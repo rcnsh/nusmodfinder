@@ -500,3 +500,23 @@ fails on the previous code.
   `c6744373`); smoke test 4/4. Log: `docs/evidence/phase1/remote-ops.md`.
 - Next: small-batch remote ingest, then the forced full re-ingest on 2026-11-04 late UTC.
 
+
+## 2026-11-04 — Phase 2d: judging tooling (no judging run yet)
+
+- `eval/JUDGING.md`: grades 0/1/2 against the intent narrative and constraints for an incoming
+  exchange student, hard-constraint violations 0, worked examples from dev queries and real
+  corpus courses, and the judge and adjudicator instructions that packets embed verbatim.
+- `npm run eval:judge`: `prepare` (rule pre-grading, judge `rule`; per-judge packets of ~12
+  queries with seeded shuffles, ~5% planted repeats, optional 5% drift sample), `collect`
+  (validation, self-consistency, drift), `agree` (raw, Krippendorff ordinal α, binary κ ≥ 1,
+  quadratic κ; overall and per shape), `adjudicate` (blind pass 1, then pass 2 with both
+  grades), `merge` (`vnm-eval-qrels/1`, version bumped, a judges object per judgment,
+  `moduleInfoSha256`), `calibrate export|import` (dev only, ~150 stratified pairs), `clean`.
+  Encrypted sets: state and qrels only as ciphertext; packets in a 0700 `.eval-work/` directory
+  until `clean`.
+- `npm run eval -- --mode lexical|vector` runs one retrieval half (the Worker's own `mode`
+  parameter, present at `eval-v0`), so the pool can be v0 hybrid ∪ lexical ∪ vector top-10.
+- `npm run test:eval` now runs the whole judge → collect → agree → adjudicate → merge → report
+  cycle on the fixture set and on an encrypted copy, with scripted judges and a throwaway key.
+- No LLM, Cloudflare or live call; no holdout file decrypted. Next: the lead runs round r1 on
+  dev, then holdout.
