@@ -21,6 +21,10 @@
   ],
   "ai": { "binding": "AI" },
 
+  // Which Worker version is serving: returned as `x-app-version` and by
+  // GET /health. `npm run deploy` tags each version with its commit SHA.
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
+
   // /search costs a Workers AI embedding and a Vectorize query per request. A
   // Cloudflare rate-limiting RULE is not an option here — workers.dev is not a
   // zone the account controls — so the guardrail lives in the Worker.

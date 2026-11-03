@@ -1,6 +1,6 @@
 // @ts-check
 // B1: the semester filter is applied in JS after the FTS query has already
-// been cut to `LIMIT depth * 4` (src/index.js runFts), so keyword matches that
+// been cut to `LIMIT depth * 4` (src/search.js runFts), so keyword matches that
 // rank below that cut-off are silently dropped from a sem-filtered search.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
