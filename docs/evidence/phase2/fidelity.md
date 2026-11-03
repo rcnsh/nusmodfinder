@@ -119,10 +119,11 @@ and no other live traffic. Raw bodies are in `live/`; the comparison is in `fide
 
 - **Rows: 15/15 match.** Status, `count` (20), `retrieval.lexical`, `retrieval.vector` (50) and
   the pinned code (d-085 → MA2101) all agree.
-- **Lexical: 15/15 match exactly, up to tie-group order.**
-  - All 299 live RRF scores (300 results minus the pinned one) decompose bit-for-bit with a lexical rank the local list allows.
-  - No local lexical hit that must appear live is missing.
-  - The replica's lexical half (D1/FTS5, migrations, filters) is faithful.
+- **Lexical (from the hybrid responses): consistent, not proven.** All 299 live RRF scores (300
+  results minus the pinned one) decompose bit-for-bit with a lexical rank the local list allows.
+  This does not pin lexical ranks: `(v,l)` and `(l,v)` give the same score and 5 rank pairs
+  collide, and on 5 of 15 queries the "must appear live" rule cannot fire (the 20th score is above
+  `1/61`). PR #12 review built mutations that pass. The direct check below settles it.
 - **Dense half: it differs on every query, as expected.**
   - 9–19 of each query's returned codes have a live vector rank different from the local one.
   - Example: d-001's local dense #1, LL4527V, is live #4.
@@ -148,8 +149,8 @@ and no other live traffic. Raw bodies are in `live/`; the comparison is in `fide
 
 - **Unexplained:** d-001 and d-065. Their overlap@10 with the replica is one item below the lowest
   that any modelled embedding-noise condition produced for them.
-- **Faithful:** everything structural. The lexical half is exact up to ties, and every row count
-  and the pinned result agree.
+- **Faithful:** everything structural. Every row count and the pinned result agree; the lexical
+  half is exact up to ties by the direct check below.
 - **The gap:** it is in the dense half only, and it is slightly larger than the modelled Workers AI
   nondeterminism.
 - **Candidate causes**, neither verified and neither modelled:
@@ -159,7 +160,7 @@ and no other live traffic. Raw bodies are in `live/`; the comparison is in `fide
 - **Ruled out:**
   - Embedding-text drift: `scripts/lib.mjs` differs between `3b18041` and `eval-v0` only in
     JSDoc and type casts.
-  - Corpus or filter drift: lexical counts and ranks match exactly.
+  - Corpus or filter drift: the direct lexical check below matches on all 15 queries.
 - **Not changed:** the replica, the envelope and the rule, after the fact.
 - **Consequence:** gating should not rely on the replica's dense half to resolve differences
   smaller than this gap until the lead decides how to treat it. Options for that decision:
@@ -170,8 +171,21 @@ and no other live traffic. Raw bodies are in `live/`; the comparison is in `fide
 
 ## Lead decision (2026-11-04)
 Verdict stands as FAIL under the pre-registered rule. Gating proceeds on the replica with the
-limitation recorded in ADR 0003 ("Replica fidelity"): lexical half exact; dense half slightly
+limitation recorded in ADR 0003 ("Replica fidelity"): lexical half exact (direct check below); dense half slightly
 noisier in production (ANN index, unknown corpus-vector batches); Δs are computed replica vs
 replica; dense-only differences of 1–2 items per top-10 are below the eval's resolution; a second
 fidelity check follows the Phase 1 forced re-ingest.
+
+## Direct lexical check (2026-11-04, after the PR #12 review)
+The hybrid-score decomposition cannot prove the lexical half (see Results). So each of the 15
+queries was sent once more to production with `mode=lexical&topK=50` (15 live calls, 3 s apart,
+browser UA, `requests.tsv` rows 50–64, raw bodies in `live-lexical/`), and the live list was
+compared with the replica's depth-50 lexical list (`lexical-live.mjs`; self-tested first:
+identical lists pass, a swap across tie groups fails).
+- **PASS, 15/15**: the same codes, each within the positions its FTS5 rank-value group occupies
+  (a group cut at depth 50 compared as a set). 10/15 are identical in order; d-015, d-039, d-073,
+  d-018 and d-043 differ only inside tie groups.
+- d-085's live lexical response leads with the exact-code pin `MA2101` (score 1), which the
+  replica's hybrid response also pins; the FTS list (`MA2101S`) matches.
+- Result: `lexical-live-result.json`. The lexical half of the replica is exact up to tie order.
 

@@ -126,9 +126,10 @@ Per-change gates are screening. False-positive control for the shipping claim re
 sealed test set, evaluated once.
 
 ## Replica fidelity (Phase 2c, lead decision)
-The pre-registered live check (`docs/evidence/phase2/fidelity.md`) **failed**: the lexical half of
-the offline `eval-v0` replica matches production exactly on all 15 queries (up to FTS5 tie
-groups), but 2 of 15 queries fall one item below their modelled dense-noise envelope (overlap@10
+The pre-registered live check (`docs/evidence/phase2/fidelity.md`) **failed**. The lexical half of
+the offline `eval-v0` replica matches production exactly on all 15 queries up to FTS5 tie order,
+shown by a direct `mode=lexical&topK=50` comparison (the hybrid-score decomposition alone could
+not prove it). But 2 of 15 queries fall one item below their modelled dense-noise envelope (overlap@10
 8 vs 9, 7 vs 8). Mean overlap@10 is 8.40, just under the modelled 8.47–9.93: production's dense
 half is a little noisier than the replica (Vectorize is approximate, the fake is exact; production
 corpus vectors come from unknown ingest batches).

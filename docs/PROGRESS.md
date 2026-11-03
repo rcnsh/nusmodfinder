@@ -389,3 +389,9 @@ fails on the previous code.
 - Lead decision on the failed fidelity check (2 of 15 queries one item outside their dense-noise
   envelope; lexical half exact): gating proceeds on the replica, limitation recorded in ADR 0003
   "Replica fidelity"; re-check after the Phase 1 forced re-ingest.
+- PR #12 review: the hybrid-score decomposition cannot prove lexical ranks (score symmetry and
+  collisions; a "must appear" rule that cannot fire on 5 queries). Replaced by a direct check:
+  15 live `mode=lexical&topK=50` calls (`requests.tsv` rows 50–64) vs the replica's lexical lists:
+  PASS 15/15 up to tie order (10/15 identical). Docs reworded; the ADR decision now cites it.
+  Live `/search` calls this session: 30 (15 hybrid, 15 lexical).
+

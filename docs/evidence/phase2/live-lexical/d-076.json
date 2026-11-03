@@ -1,0 +1,46 @@
+{
+ "path": "/search?q=OS&mode=lexical&topK=50",
+ "status": 200,
+ "body": {
+  "query": "OS",
+  "filters": {},
+  "count": 2,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 2,
+   "fused": 2
+  },
+  "results": [
+   {
+    "code": "CS5250",
+    "title": "Advanced Operating Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "CS2106",
+    "title": "Introduction to Operating Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   }
+  ]
+ }
+}
