@@ -17,7 +17,8 @@
 //      key detected, errors withheld;
 //   5. a probe ranker whose Worker logs, throws and throws uncaught with the
 //      query text: the fixture set shows it (the probe works), the encrypted
-//      set prints only the withheld line.
+//      set prints only the withheld line; a ranker answering `degraded` fails
+//      the run.
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
@@ -257,5 +258,28 @@ assert.equal(hidden.code, 1);
 assert.match(hidden.out, /^selftest\/probe: ranker [0-9a-f]{40} \([0-9a-f]{7}\), \d+ modules, \d+ queries, embeddings set-cache\neval: selftest run failed \(RunFailedError\); details withheld\n$/, `an encrypted run prints only the withheld line, got:\n${hidden.out}`);
 assertNoLeak(hidden.out, 'probe run');
 console.log('ok: the probe leaks on the plain set and nothing reaches the terminal on the encrypted set');
+
+// A ranker whose /search answers 200 but `degraded` (the dense half skipped,
+// as when the breaker is open) measures a different ranker: the run fails.
+const DEGRADED = `import worker from './index.orig.js';
+export default {
+  ...worker,
+  async fetch(request, env, ctx) {
+    const res = await worker.fetch(request, env, ctx);
+    if (new URL(request.url).pathname !== '/search' || res.status !== 200) return res;
+    const body = await res.json();
+    return Response.json({ ...body, degraded: { source: 'vectorize', reason: 'circuit-open' } });
+  },
+};
+`;
+g(['read-tree', 'HEAD']);
+g(['update-index', '--add', '--cacheinfo', `100644,${g(['rev-parse', 'HEAD:src/index.js'])},src/index.orig.js`]);
+g(['update-index', '--cacheinfo', `100644,${g(['hash-object', '-w', '--stdin'], DEGRADED)},src/index.js`]);
+const degradedRef = g(['commit-tree', g(['write-tree']), '-p', 'HEAD', '-m', 'selftest degraded probe']);
+const degraded = node(CLI, ['run', '--set', 'fixture', '--variant', 'degraded', '--ref', degradedRef, '--out', join(WORK, 'degraded.json')]);
+assert.notEqual(degraded.code, 0, 'a run with degraded responses fails');
+assert.match(degraded.out, /degraded response \(vectorize: circuit-open\); the dense half did not run/);
+assert.ok(!existsSync(join(WORK, 'degraded.json')), 'no run file is written');
+console.log('ok: degraded responses fail the run');
 
 console.log('\nselftest passed');

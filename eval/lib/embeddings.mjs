@@ -18,6 +18,8 @@ import { readEncryptedJson, writeEncryptedJson } from './crypto.mjs';
 import { REPO } from './sets.mjs';
 
 export const MODEL = '@cf/baai/bge-small-en-v1.5';
+
+export { queryTextForms } from './query-forms.mjs';
 export const DIMS = 384;
 /** Workers AI price for bge-small-en-v1.5: 1,841 neurons per million input tokens. */
 export const NEURONS_PER_M_TOKENS = 1841;

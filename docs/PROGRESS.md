@@ -202,3 +202,15 @@ fails on the previous code.
   ranker embeds the canonical (ASCII-lowercased) query, so two fixture texts (`cs1010s`,
   `xyz9999`) were embedded (1 request, ~0.0 neurons, logged). Phase 2c will need the same for
   dev and holdout queries whose canonical form differs.
+- Round 4 (fresh review of `6fe708b..8a04d9a`, the last allowed round): two findings fixed, one
+  accepted.
+  - Medium: the harness no longer resets the dense breaker, so three missing canonical-form
+    vectors in a row opened it and later queries passed keyword-only, hiding their misses. Now
+    `embed.mjs` and the run pre-check cover both forms of each query (`queryTextForms`: raw,
+    and the canonical form `/search` embeds; a workerd test checks it against `parseSearch`),
+    and any `degraded` response fails its query (self-test probe). One more fixture text
+    embedded (~0.1 neurons, logged).
+  - Low–medium: the runner import guard is now an acorn AST walk: `export … from`, several
+    imports per line, and non-literal dynamic imports (refused) are covered.
+  - Accepted: encrypted runs print the pre-retrieval header (ranker, counts; no query content)
+    before the withheld line; the self-test already allows exactly that.

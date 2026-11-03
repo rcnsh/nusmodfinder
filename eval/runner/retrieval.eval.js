@@ -56,6 +56,11 @@ describe('eval', () => {
       if (ai.missing.length) {
         throw new Error(`${ai.missing.length} text(s) have no precomputed embedding; run \`npm run eval:embed\` locally`);
       }
+      // A degraded response skipped the dense half (an embedding error, or the
+      // breaker opened by earlier ones): it measures a different ranker.
+      if (body?.degraded) {
+        throw new Error(`degraded response (${body.degraded.source}: ${body.degraded.reason}); the dense half did not run`);
+      }
     });
   }
 });

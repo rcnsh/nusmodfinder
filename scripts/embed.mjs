@@ -24,7 +24,7 @@ import { gzipSync } from 'node:zlib';
 import { loadPinnedWith } from '../eval/lib/corpus.mjs';
 import { readEncryptedJson, sha256, updateManifest } from '../eval/lib/crypto.mjs';
 import {
-  DIMS, EMB_DIR, MODEL, embeddingKey, estimateTokens, f32ToBase64, neuronsFor, readCache, writeCache,
+  DIMS, EMB_DIR, MODEL, embeddingKey, estimateTokens, f32ToBase64, neuronsFor, readCache, writeCache, queryTextForms,
 } from '../eval/lib/embeddings.mjs';
 import { REPO, layout, loadQueries, setFile, setKey } from '../eval/lib/sets.mjs';
 import { buildWorkspace } from '../eval/lib/workspace.mjs';
@@ -225,7 +225,7 @@ if (a.corpus) {
   const cache = await readCache(cachePath, key, set.name);
   const querySet = await loadQueries(set);
   /** @type {string[]} */
-  const wanted = querySet.queries.map((q) => q.text);
+  const wanted = querySet.queries.flatMap((q) => queryTextForms(q.text));
   const corpusFile = join(set.dir, 'corpus.json');
   if (existsSync(corpusFile)) wanted.push(...JSON.parse(await readFile(corpusFile, 'utf8')).modules.map((/** @type {NormalisedModule} */ m) => m.text));
   const missingFile = join(REPO, '.eval-work', `missing-${set.name}.json${key ? '.enc' : ''}`);
