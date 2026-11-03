@@ -1,0 +1,846 @@
+{
+ "path": "/search?q=Singapore+history&ng=1&mode=lexical&topK=50",
+ "status": 200,
+ "body": {
+  "query": "Singapore history",
+  "filters": {
+   "ng": true
+  },
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "HY3250",
+    "title": "Approaches to Singapore History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "GESS1007",
+    "title": "Singapore’s Business History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "GESS1026",
+    "title": "A History of Singapore in Ten Objects",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "GESS1013",
+    "title": "Singapore and Japan: Historical and Contemporary Relationships",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.015625
+   },
+   {
+    "code": "GESS1009",
+    "title": "The Evolution of a Global City-State",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     4
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "GESS1021",
+    "title": "Singapore Film: Performance of Identity",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "GESS1020",
+    "title": "Singapore Society",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "HSI2018",
+    "title": "Wallace And The History Of Science In Southeast Asia",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "GESS1035",
+    "title": "Singapore and the Sea",
+    "department": "Southeast Asian Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "GESS1025",
+    "title": "Singapore: Imagining the Next 50 Years",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "GESS1024",
+    "title": "We the Citizens - Understanding Singapore’s Politics",
+    "department": "Political Science",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "GES1034",
+    "title": "We the Citizens - Understanding Singapore’s Politics",
+    "department": "Political Science",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "MS3209",
+    "title": "Being Malay in Singapore",
+    "department": "Malay Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "GEC1055",
+    "title": "700 Years of Visual Arts: Singapore in the World",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "GESS1028",
+    "title": "Cultural Performances and Practices in Singapore",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "GESS1003",
+    "title": "Everyday Life of Chinese Singaporeans: Past & Present (taught in English)",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "AH3204",
+    "title": "Methods and Approaches to Art History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "AR2227",
+    "title": "History & Theory of Architecture I",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "HY2206",
+    "title": "China's Imperial Past: History & Culture",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "HY2235",
+    "title": "Environmental History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.0125
+   },
+   {
+    "code": "HY2251",
+    "title": "History of Technology and Virtual Reality",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "HY2253",
+    "title": "Christianity in World History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "HY3226",
+    "title": "Memory, Heritage & History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "HY1101E",
+    "title": "Engaging Asia: A Global History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2,
+     4
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "HY2272",
+    "title": "Video Games and History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "HY2232",
+    "title": "The Modern History of Japan: From Edo to the Present",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "GEC1030",
+    "title": "Metropolis: The City in World History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "NHS2026",
+    "title": "Singaporean Nostalgia",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "AH2101",
+    "title": "Introduction to Art History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "HSI2017",
+    "title": "Darwin: History, Science and the Evolution of Life",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "GEC1011",
+    "title": "Microbes which Changed Human History",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "GEH1043",
+    "title": "Microbes which Changed Human History",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "HY3267",
+    "title": "From Knives to Nukes: War in Modern Chinese History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "MUH3203",
+    "title": "The Evolution of Music for the Stage",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "GEC1023",
+    "title": "Social History of the Piano",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "EN3880A",
+    "title": "History of Non-Western Film",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "HY2260",
+    "title": "History and Popular Culture",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "GEC1037",
+    "title": "Big Picture History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "GEH1018",
+    "title": "A Brief History of Science",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "MUA2203",
+    "title": "Keyboard Literature: Genres throughout History",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.01
+   },
+   {
+    "code": "TS2880C",
+    "title": "Where Stories Reside: Sites, Histories and Memories",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "PS2249",
+    "title": "Government and Politics of Singapore",
+    "department": "Political Science",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "HS2923",
+    "title": "Human-Animal Relations: History, Biodiversity & Ethics",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "NHS2053",
+    "title": "The Heterogeneous Indians of Contemporary Singapore",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "HY2259",
+    "title": "The Craft of History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "GESS1000",
+    "title": "Global EC Dimensions of Singapore",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "GES1019",
+    "title": "Managing Singapore's Built Environment",
+    "department": "Built Environment",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "NHS2048",
+    "title": "Situating Singapore in the Wider World",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "HY2208",
+    "title": "Pre-Modern Japan: History and Culture",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "PS3249",
+    "title": "Singapore's Foreign Policy",
+    "department": "Political Science",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}

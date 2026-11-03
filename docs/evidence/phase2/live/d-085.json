@@ -1,0 +1,331 @@
+{
+ "id": "d-085",
+ "path": "/search?q=MA2101",
+ "status": 200,
+ "ttfbMs": 1026,
+ "totalMs": 1027,
+ "at": "2026-11-03T19:48:59.457Z",
+ "headers": {
+  "cf-cache-status": null,
+  "cf-ray": "a54de64fac58ddfc-SIN",
+  "age": null,
+  "server-timing": null
+ },
+ "body": {
+  "query": "MA2101",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 1,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "MA2101",
+    "title": "Linear Algebra II",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 1
+   },
+   {
+    "code": "MA2101S",
+    "title": "Linear Algebra II (S)",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 5,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.031544957774465976
+   },
+   {
+    "code": "IS2101",
+    "title": "Business and Technical Communication",
+    "department": "Center for Engl Lang Comms",
+    "faculty": "Center for Engl Lang Comms",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "MA2202",
+    "title": "Algebra I",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "MA3210",
+    "title": "Mathematical Analysis II",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "ME2114",
+    "title": "Mechanics of Materials",
+    "department": "Mechanical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "MA2108S",
+    "title": "Mathematical Analysis I (S)",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 5,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "MA2108",
+    "title": "Mathematical Analysis I",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "MUA3110",
+    "title": "Chamber Music in Mixed Ensemble",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 2,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "DEP5110",
+    "title": "Urban Design and Planning",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 8,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "MUA3109",
+    "title": "Chamber Music",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 2,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "MA2202S",
+    "title": "Algebra I (S)",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 5,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "CM3131",
+    "title": "Applications of Physical Chemistry",
+    "department": "Chemistry",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "MUT1102",
+    "title": "Musical Concepts and Materials 2",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "MUA4110",
+    "title": "Chamber Music in Mixed Ensemble",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 2,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "MUA4410",
+    "title": "Chamber Music in Mixed Ensemble 6",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 2,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "MUA4310",
+    "title": "Chamber Music in Mixed Ensemble 5",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 2,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "MLE5002",
+    "title": "Materials Characterization",
+    "department": "Materials Science and Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "ME3281",
+    "title": "Microsystems Design And Applications",
+    "department": "Mechanical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "TEE2033",
+    "title": "Integrated System Lab",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0125
+   }
+  ]
+ }
+}

@@ -1,0 +1,327 @@
+{
+ "id": "d-073",
+ "path": "/search?q=need+equivalent+of+our+%27Databases+and+Data+Management%27+%28relational+model%2C+SQL%2C+normalisation%2C+transactions%2C+intro+to+NoSQL%29",
+ "status": 200,
+ "ttfbMs": 930,
+ "totalMs": 933,
+ "at": "2026-11-03T19:48:44.450Z",
+ "headers": {
+  "cf-cache-status": null,
+  "cf-ray": "a54de5f1dff9ddfc-SIN",
+  "age": null,
+  "server-timing": null
+ },
+ "body": {
+  "query": "need equivalent of our 'Databases and Data Management' (relational model, SQL, normalisation, transactions, intro to NoSQL)",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 76
+  },
+  "results": [
+   {
+    "code": "CS4221",
+    "title": "Database Applications Design and Tuning",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03252247488101534
+   },
+   {
+    "code": "CS2102",
+    "title": "Database Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.032018442622950824
+   },
+   {
+    "code": "CS5421",
+    "title": "Database Applications Design and Tuning",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03128054740957967
+   },
+   {
+    "code": "IT2002",
+    "title": "Database Technology and Management",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03057889822595705
+   },
+   {
+    "code": "TCX2003",
+    "title": "Database Systems and Management",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     3
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.030536130536130537
+   },
+   {
+    "code": "TIC2601",
+    "title": "Database and Web Applications",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.030309988518943745
+   },
+   {
+    "code": "IT5008",
+    "title": "Database Design and Programming",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.030117753623188408
+   },
+   {
+    "code": "IT3010",
+    "title": "Data Management for Business Analytics",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.029957522915269395
+   },
+   {
+    "code": "BT5110",
+    "title": "Data Management and Warehousing",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.029631255487269532
+   },
+   {
+    "code": "CS3223",
+    "title": "Database Systems Implementation",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.02877846790890269
+   },
+   {
+    "code": "BT2102",
+    "title": "Data Management and Visualisation",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02761904761904762
+   },
+   {
+    "code": "CS4224",
+    "title": "Distributed Databases",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02758751902587519
+   },
+   {
+    "code": "DSA5104",
+    "title": "Principles of Data Management and Retrieval",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.027417840375586856
+   },
+   {
+    "code": "CS5424",
+    "title": "Distributed Databases",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.026875901875901876
+   },
+   {
+    "code": "CS6203",
+    "title": "Advanced Topics in Database Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.025478740668614087
+   },
+   {
+    "code": "DSA2111",
+    "title": "Cloud-Based Data Science and Programming",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0251821349382325
+   },
+   {
+    "code": "ECA5372",
+    "title": "Big Data Analytics and Technologies",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.024422933730454205
+   },
+   {
+    "code": "BMI5207",
+    "title": "Medical Data and Data Processing",
+    "department": "Surgery",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02299154334038055
+   },
+   {
+    "code": "BT4222",
+    "title": "Mining Web Data for Business Insights",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.022772772772772773
+   },
+   {
+    "code": "CS5228",
+    "title": "Knowledge Discovery and Data Mining",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02252925068459049
+   }
+  ]
+ }
+}

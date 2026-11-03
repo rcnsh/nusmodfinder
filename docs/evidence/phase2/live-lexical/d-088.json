@@ -1,0 +1,18 @@
+{
+ "path": "/search?q=cs+2030&ng=1&mode=lexical&topK=50",
+ "status": 200,
+ "body": {
+  "query": "cs 2030",
+  "filters": {
+   "ng": true
+  },
+  "count": 0,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 0,
+   "fused": 0
+  },
+  "results": []
+ }
+}

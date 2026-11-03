@@ -38,3 +38,33 @@ b2	browser /search	Search click	phase0 0b fe.mjs
 b3	browser /search	data structures	phase0 0b fe.mjs
 o6	browser other	/ (page load)	phase0 0b fe.mjs
 o7	browser other	/facets	phase0 0b fe.mjs
+35	fetch	[search#34] p2c_d-001 GET /search?q=corporate+finance+valuation | http=200 ttfb=2.281 total=2.285 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+36	fetch	[search#35] p2c_d-015 GET /search?q=computer+vision | http=200 ttfb=1.307 total=1.308 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+37	fetch	[search#36] p2c_d-039 GET /search?q=history+of+migration+and+diaspora | http=200 ttfb=0.927 total=0.929 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+38	fetch	[search#37] p2c_d-055 GET /search?q=is+there+something+on+marine+biology+or+coral+reefs | http=200 ttfb=0.908 total=0.909 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+39	fetch	[search#38] p2c_d-073 GET /search?q=need+equivalent+of+our+%27Databases+and+Data+Management%27+%28relational+model%2C+SQL%2C+normalisation%2C+transactions%2C+intro+to+NoSQL%29 | http=200 ttfb=0.930 total=0.933 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+40	fetch	[search#39] p2c_d-018 GET /search?q=what%27s+similar+to+the+machine+learning+course+if+it%27s+full%3F+exchange+students+never+get+the+popular+ones | http=200 ttfb=1.079 total=1.080 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+41	fetch	[search#40] p2c_d-007 GET /search?q=japanese+1 | http=200 ttfb=0.901 total=0.904 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+42	fetch	[search#41] p2c_d-076 GET /search?q=OS | http=200 ttfb=0.755 total=0.762 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+43	fetch	[search#42] p2c_d-079 GET /search?q=GE+module+about+technology+and+society | http=200 ttfb=0.746 total=0.748 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+44	fetch	[search#43] p2c_d-085 GET /search?q=MA2101 | http=200 ttfb=1.026 total=1.027 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+45	fetch	[search#44] p2c_d-095 GET /search?q=microbbiology+bacteia | http=200 ttfb=0.878 total=0.880 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+46	fetch	[search#45] p2c_d-063 GET /search?q=advanced+molecular+biology+4000+level&sem=2&ng=1 | http=200 ttfb=1.182 total=1.186 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+47	fetch	[search#46] p2c_d-043 GET /search?q=Singapore+history&ng=1 | http=200 ttfb=0.791 total=0.793 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+48	fetch	[search#47] p2c_d-065 GET /search?q=veterinary+medicine+clinical+rotation+large+animals&sem=2&ng=1 | http=200 ttfb=0.861 total=0.862 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+49	fetch	[search#48] p2c_d-088 GET /search?q=cs+2030&ng=1 | http=200 ttfb=0.888 total=0.889 | cf-cache-status=<absent> | server-timing=<absent>	phase2 2c fidelity
+50	fetch	[search#49] p2c_lex_d-001 GET /search?q=corporate+finance+valuation&mode=lexical&topK=50 | http=200 total=0.675 | cf-cache-status=<absent>	phase2 2c lexical check
+51	fetch	[search#50] p2c_lex_d-015 GET /search?q=computer+vision&mode=lexical&topK=50 | http=200 total=0.484 | cf-cache-status=<absent>	phase2 2c lexical check
+52	fetch	[search#51] p2c_lex_d-039 GET /search?q=history+of+migration+and+diaspora&mode=lexical&topK=50 | http=200 total=0.471 | cf-cache-status=<absent>	phase2 2c lexical check
+53	fetch	[search#52] p2c_lex_d-055 GET /search?q=is+there+something+on+marine+biology+or+coral+reefs&mode=lexical&topK=50 | http=200 total=0.466 | cf-cache-status=<absent>	phase2 2c lexical check
+54	fetch	[search#53] p2c_lex_d-073 GET /search?q=need+equivalent+of+our+%27Databases+and+Data+Management%27+%28relational+model%2C+SQL%2C+normalisation%2C+transactions%2C+intro+to+NoSQL%29&mode=lexical&topK=50 | http=200 total=0.472 | cf-cache-status=<absent>	phase2 2c lexical check
+55	fetch	[search#54] p2c_lex_d-018 GET /search?q=what%27s+similar+to+the+machine+learning+course+if+it%27s+full%3F+exchange+students+never+get+the+popular+ones&mode=lexical&topK=50 | http=200 total=0.546 | cf-cache-status=<absent>	phase2 2c lexical check
+56	fetch	[search#55] p2c_lex_d-007 GET /search?q=japanese+1&mode=lexical&topK=50 | http=200 total=0.418 | cf-cache-status=<absent>	phase2 2c lexical check
+57	fetch	[search#56] p2c_lex_d-076 GET /search?q=OS&mode=lexical&topK=50 | http=200 total=0.460 | cf-cache-status=<absent>	phase2 2c lexical check
+58	fetch	[search#57] p2c_lex_d-079 GET /search?q=GE+module+about+technology+and+society&mode=lexical&topK=50 | http=200 total=0.442 | cf-cache-status=<absent>	phase2 2c lexical check
+59	fetch	[search#58] p2c_lex_d-085 GET /search?q=MA2101&mode=lexical&topK=50 | http=200 total=0.577 | cf-cache-status=<absent>	phase2 2c lexical check
+60	fetch	[search#59] p2c_lex_d-095 GET /search?q=microbbiology+bacteia&mode=lexical&topK=50 | http=200 total=0.257 | cf-cache-status=<absent>	phase2 2c lexical check
+61	fetch	[search#60] p2c_lex_d-063 GET /search?q=advanced+molecular+biology+4000+level&sem=2&ng=1&mode=lexical&topK=50 | http=200 total=0.587 | cf-cache-status=<absent>	phase2 2c lexical check
+62	fetch	[search#61] p2c_lex_d-043 GET /search?q=Singapore+history&ng=1&mode=lexical&topK=50 | http=200 total=0.549 | cf-cache-status=<absent>	phase2 2c lexical check
+63	fetch	[search#62] p2c_lex_d-065 GET /search?q=veterinary+medicine+clinical+rotation+large+animals&sem=2&ng=1&mode=lexical&topK=50 | http=200 total=0.472 | cf-cache-status=<absent>	phase2 2c lexical check
+64	fetch	[search#63] p2c_lex_d-088 GET /search?q=cs+2030&ng=1&mode=lexical&topK=50 | http=200 total=0.215 | cf-cache-status=<absent>	phase2 2c lexical check

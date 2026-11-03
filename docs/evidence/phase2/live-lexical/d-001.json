@@ -1,0 +1,741 @@
+{
+ "path": "/search?q=corporate+finance+valuation&mode=lexical&topK=50",
+ "status": 200,
+ "body": {
+  "query": "corporate finance valuation",
+  "filters": {},
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "BMT5102",
+    "title": "Corporate Valuation Models",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "FE5105",
+    "title": "Corporate Financing and Risk",
+    "department": "Risk Management Institute",
+    "faculty": "Risk Management Institute",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     4
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "BMF5331",
+    "title": "Applied Corporate Finance",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "BMC5036",
+    "title": "Corporate finance",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2,
+     3
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "RE5005",
+    "title": "Real Estate Finance",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "FIN4714",
+    "title": "Valuation and Mergers & Acquisition",
+    "department": "Finance",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "BMS5030",
+    "title": "Corporate Finance",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "FIN2704",
+    "title": "Finance",
+    "department": "Finance",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "FIN2704X",
+    "title": "Finance",
+    "department": "Finance",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "LL4527V",
+    "title": "Business Valuation in Practice",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "LL5527V",
+    "title": "Business Valuation in Practice",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "LL6527V",
+    "title": "Business Valuation in Practice",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "LLJ5527V",
+    "title": "Business Valuation in Practice",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "QF5204",
+    "title": "Numerical Methods in Quantitative Finance",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "LL5188S",
+    "title": "Corporate Finance Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "ECA5334",
+    "title": "Corporate Finance",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "BMG5101",
+    "title": "Foundational Corporate Finance",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "FIN3701A",
+    "title": "Corporate Finance",
+    "department": "Finance",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "FIN3701B",
+    "title": "Corporate Finance",
+    "department": "Finance",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "LL4554V",
+    "title": "Advanced Corporate Finance",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0125
+   },
+   {
+    "code": "LL5554V",
+    "title": "Advanced Corporate Finance",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "LL6554V",
+    "title": "Advanced Corporate Finance",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "LLJ5554V",
+    "title": "Advanced Corporate Finance",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "BMX5100",
+    "title": "Applied Corporate Finance",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "LL4188V",
+    "title": "Corporate Finance Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "LL5188V",
+    "title": "Corporate Finance Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "LL6188V",
+    "title": "Corporate Finance Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 6,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "LLJ5188V",
+    "title": "Corporate Finance Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "BMS5060",
+    "title": "Corporate Accounting",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "FIN6002",
+    "title": "Banking and Household Finance",
+    "department": "Finance",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "BMC5010A",
+    "title": "Corporate Finance",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 3,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "BMS5305",
+    "title": "Entrepreneurial Finance",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "BMD5301",
+    "title": "Introduction to Finance for FinTech Professionals",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "FIN4720",
+    "title": "Sustainability and Finance",
+    "department": "Finance",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "LC5089",
+    "title": "Chinese Corporate & Securities Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "BMF5334",
+    "title": "International Finance and Economics",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "BMF5359",
+    "title": "Valuation and Mergers & Acquisitions",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "BMD5302",
+    "title": "Financial Modelling for FinTech Professionals",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "BMF5357",
+    "title": "Sustainable Investment",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "QF4205",
+    "title": "Time Series Analysis for Quantitative Finance",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01
+   },
+   {
+    "code": "MT5011",
+    "title": "Business Finance in the Technology Industry",
+    "department": "Industrial Systems Engineering and Management",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "QF5202",
+    "title": "Structured Products",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "RE3811",
+    "title": "Corporate Real Estate Strategies",
+    "department": "Real Estate",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "QF5202A",
+    "title": "Structured Products",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "BMG5202",
+    "title": "Sustainable and Green Investment",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "BMF5321",
+    "title": "Applied Financial Modelling",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "IPM3103",
+    "title": "Project Finance",
+    "department": "Built Environment",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "RE2704",
+    "title": "Introduction to Real Estate Valuation",
+    "department": "Real Estate",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "LL4063V",
+    "title": "Business & Finance For Lawyers",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "LL5063V",
+    "title": "Business & Finance For Lawyers",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}
