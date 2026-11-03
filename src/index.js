@@ -1,4 +1,25 @@
+// @ts-check
 import page from './page.html';
+
+/**
+ * A `modules` row as D1 returns it (see migrations/).
+ * @typedef {{
+ *   code: string, title: string, description: string | null, credits: number | null,
+ *   department: string | null, faculty: string | null, level: number | null,
+ *   semesters: string | null, workload: string | null, prerequisite: string | null,
+ *   preclusion: string | null, acad_year: string, text_hash: string,
+ *   ng: number, ng_semesters: string | null,
+ * }} ModuleRow
+ * @typedef {{ sem?: number, level?: number, credits?: number, faculty?: string, ng?: boolean }} FilterEcho
+ * @typedef {Record<string, string | number | boolean>} VectorFilter
+ * @typedef {{
+ *   code: string, title: string, description: string, credits: number | null,
+ *   department: string | null, faculty: string | null, level: number | null,
+ *   semesters: number[], workload: string | null, prerequisite: string | null,
+ *   preclusion: string | null, acadYear: string, text: string, textHash: string,
+ *   ng: boolean, ngSemesters?: number[],
+ * }} IngestModule One module as posted by scripts/ingest.mjs.
+ */
 
 // Overridable so the embedding model can be swapped without a code change, and
 // so the upstream-failure path (R7) can be exercised against a bogus model id.
@@ -19,19 +40,32 @@ const NG_LIST_UPDATED = '01 Sep 2026';
 // mid-list by one engine and top by the other can still surface.
 const CANDIDATE_MULTIPLIER = 3;
 
+/**
+ * @param {unknown} body
+ * @param {number} [status]
+ */
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body, null, 2), {
     status,
     headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' },
   });
 
+/** @param {string} message */
 const bad = (message) => json({ error: 'bad_request', message }, 400);
+/**
+ * @param {string} source
+ * @param {any} err
+ */
 const upstream = (source, err) =>
   json({ error: 'upstream_failure', source, message: err?.message ?? String(err) }, 502);
 
 const SELECT_COLUMNS =
   'code, title, description, credits, department, faculty, level, semesters, workload, prerequisite, preclusion, acad_year, ng, ng_semesters';
 
+/**
+ * @param {ModuleRow} row
+ * @param {number} [score]
+ */
 function rowToModule(row, score) {
   return {
     code: row.code,
@@ -49,9 +83,13 @@ function rowToModule(row, score) {
 
 // Reads sem/level/credits/faculty off the query string. Returns the echoed
 // filters plus the Vectorize metadata filter they translate to (R4).
+/** @param {URLSearchParams} params */
 function parseFilters(params) {
+  /** @type {FilterEcho} */
   const echo = {};
+  /** @type {VectorFilter} */
   const filter = {};
+  /** @type {string[]} */
   const errors = [];
 
   const sem = params.get('sem');
@@ -92,6 +130,10 @@ function parseFilters(params) {
   return { echo, filter, errors };
 }
 
+/**
+ * @param {ModuleRow} row
+ * @param {FilterEcho} echo
+ */
 function localMatchesFilters(row, echo) {
   if (echo.ng === true && row.ng !== 1) return false;
   if (echo.sem !== undefined && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
@@ -111,6 +153,7 @@ const STOPWORDS = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do'
 // FTS5 MATCH is its own query language: unescaped user text is a syntax error
 // waiting to happen. Reduce the query to bare tokens, quote each one, and OR
 // them together — recall comes from the OR, ranking from bm25().
+/** @param {string} query */
 function ftsTokens(query) {
   const all = query.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean);
   // If the query is nothing but stopwords, keep them rather than matching nothing.
@@ -121,6 +164,7 @@ function ftsTokens(query) {
 // FTS5 MATCH is its own query language: unescaped user text is a syntax error
 // waiting to happen. Reduce the query to bare tokens, quote each one, and OR
 // them together — recall comes from the OR, ranking from the rank column.
+/** @param {string[]} tokens */
 function ftsMatchExpression(tokens) {
   if (tokens.length === 0) return null;
   return tokens.map((t) => `"${t}"`).join(' OR ');
@@ -128,14 +172,27 @@ function ftsMatchExpression(tokens) {
 
 // Lexical half of the hybrid retriever. Filters are applied in SQL so the two
 // halves see the same candidate universe (R4 holds on both paths).
+/**
+ * @param {Env} env
+ * @param {string} query
+ * @param {FilterEcho} echo
+ * @param {number} limit
+ */
 async function lexicalSearch(env, query, echo, limit) {
   const match = ftsMatchExpression(ftsTokens(query));
   if (!match) return [];
   return runFts(env, match, echo, limit);
 }
 
+/**
+ * @param {Env} env
+ * @param {string} match
+ * @param {FilterEcho} echo
+ * @param {number} limit
+ */
 async function runFts(env, match, echo, limit) {
   const where = ['modules_fts MATCH ?'];
+  /** @type {(string | number)[]} */
   const binds = [match];
   if (echo.level !== undefined) { where.push('m.level = ?'); binds.push(echo.level); }
   if (echo.credits !== undefined) { where.push('m.credits = ?'); binds.push(echo.credits); }
@@ -162,7 +219,8 @@ async function runFts(env, match, echo, limit) {
     : `SELECT modules_fts.code AS code, NULL AS semesters
          FROM modules_fts WHERE ${where.join(' AND ')} ORDER BY rank LIMIT ?`;
 
-  const { results } = await env.DB.prepare(sql).bind(...binds, limit * 4).all();
+  const { results } = /** @type {D1Result<{ code: string, semesters: string | null }>} */ (
+    await env.DB.prepare(sql).bind(...binds, limit * 4).all());
 
   return results
     .filter((r) => echo.sem === undefined || JSON.parse(r.semesters ?? '[]').includes(echo.sem))
@@ -173,7 +231,9 @@ async function runFts(env, match, echo, limit) {
 // Reciprocal-rank fusion: each list contributes 1/(k + rank) to a document's
 // score. Rank-based, so the vector engine's cosine scores and FTS5's bm25
 // values never have to be made commensurable.
+/** @param {string[][]} lists */
 function fuse(lists) {
+  /** @type {Map<string, number>} */
   const scores = new Map();
   for (const list of lists) {
     list.forEach((code, i) => {
@@ -184,7 +244,7 @@ function fuse(lists) {
   // exactly one list each). Breaking them alphabetically systematically favours
   // early-alphabet codes, which correlates with whatever a fixture happens to
   // contain. A stable hash of the id is arbitrary but unbiased.
-  const tiebreak = (code) => {
+  const tiebreak = (/** @type {string} */ code) => {
     let h = 0;
     for (let i = 0; i < code.length; i++) h = (Math.imul(h, 31) + code.charCodeAt(i)) | 0;
     return h;
@@ -194,15 +254,24 @@ function fuse(lists) {
     .map(([code, score]) => ({ code, score }));
 }
 
+/**
+ * @param {Env} env
+ * @param {string[]} codes
+ * @returns {Promise<Map<string, ModuleRow>>}
+ */
 async function fetchRows(env, codes) {
   if (codes.length === 0) return new Map();
   const placeholders = codes.map(() => '?').join(',');
-  const { results } = await env.DB.prepare(
+  const { results } = /** @type {D1Result<ModuleRow>} */ (await env.DB.prepare(
     `SELECT ${SELECT_COLUMNS} FROM modules WHERE code IN (${placeholders})`,
-  ).bind(...codes).all();
+  ).bind(...codes).all());
   return new Map(results.map((r) => [r.code, r]));
 }
 
+/**
+ * @param {Request} request
+ * @param {Env} env
+ */
 async function handleSearch(request, env) {
   const params = new URL(request.url).searchParams;
   const raw = params.get('q');
@@ -233,11 +302,12 @@ async function handleSearch(request, env) {
     : DEFAULT_TOPK;
 
   // R5: an exact module code jumps to the front, if it exists and the filters allow it.
+  /** @type {ReturnType<typeof rowToModule> | null} */
   let pinned = null;
   const upper = q.toUpperCase();
   if (MODULE_CODE_RE.test(upper)) {
     try {
-      const row = await env.DB.prepare(`SELECT ${SELECT_COLUMNS} FROM modules WHERE code = ?`).bind(upper).first();
+      const row = /** @type {ModuleRow | null} */ (await env.DB.prepare(`SELECT ${SELECT_COLUMNS} FROM modules WHERE code = ?`).bind(upper).first());
       if (row && localMatchesFilters(row, echo)) pinned = rowToModule(row, 1);
     } catch (err) {
       return upstream('d1', err);
@@ -249,13 +319,14 @@ async function handleSearch(request, env) {
   // Dense retrieval. Failures here are fatal: returning only lexical hits and
   // calling it a search would hide a broken embedding path behind plausible
   // results (R7 — never an empty or quietly degraded 200).
+  /** @type {string[]} */
   let vectorCodes = [];
   if (mode !== 'lexical') {
     // Embedding and vector search are attributed separately: guessing the
     // source from the message text mislabelled Workers AI failures as Vectorize.
     let values;
     try {
-      const embedded = await env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: [q] });
+      const embedded = /** @type {{ data?: number[][] }} */ (await env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: [q] }));
       values = embedded?.data?.[0];
       if (!Array.isArray(values)) throw new Error('Workers AI returned no embedding for the query.');
     } catch (err) {
@@ -274,6 +345,7 @@ async function handleSearch(request, env) {
   }
 
   // Lexical retrieval over the same corpus, fused by rank.
+  /** @type {string[]} */
   let lexicalCodes = [];
   if (mode !== 'vector') {
     try {
@@ -286,6 +358,7 @@ async function handleSearch(request, env) {
   const lists = mode === 'vector' ? [vectorCodes] : mode === 'lexical' ? [lexicalCodes] : [vectorCodes, lexicalCodes];
   const fused = fuse(lists).filter((f) => f.code !== pinned?.code);
 
+  /** @type {Map<string, ModuleRow>} */
   let rows;
   try {
     rows = await fetchRows(env, fused.map((f) => f.code));
@@ -316,13 +389,15 @@ async function handleSearch(request, env) {
 
 // The faculty filter is only usable if the caller knows the exact strings D1
 // stores, so the page fetches them from here rather than hardcoding 26 names.
+/** @param {Env} env */
 async function handleFacets(env) {
   try {
     // One row, not three full-table aggregates. The live computation below cost
     // 9,842 D1 rows read on EVERY page load (1,364 + 7,303 + 1,175) to produce
     // about 35 rows of output — the single largest source of row reads in the
     // app. It is now rebuilt at ingest time via POST /admin/facets.
-    const cached = await env.DB.prepare('SELECT value FROM meta WHERE key = ?').bind('facets').first();
+    const cached = /** @type {{ value: string } | null} */ (
+      await env.DB.prepare('SELECT value FROM meta WHERE key = ?').bind('facets').first());
     if (cached?.value) {
       return new Response(cached.value, {
         headers: {
@@ -341,6 +416,7 @@ async function handleFacets(env) {
   }
 }
 
+/** @param {Env} env */
 async function computeFacets(env) {
   const faculties = await env.DB.prepare(
     'SELECT faculty, COUNT(*) AS n FROM modules WHERE faculty IS NOT NULL GROUP BY faculty ORDER BY faculty',
@@ -358,6 +434,10 @@ async function computeFacets(env) {
 
 // Guarded: rebuilds the precomputed facet row. Called by the ingest script once
 // the corpus has finished loading.
+/**
+ * @param {Request} request
+ * @param {Env} env
+ */
 async function handleFacetsRebuild(request, env) {
   const denied = ingestGuard(request, env);
   if (denied) return denied;
@@ -373,9 +453,14 @@ async function handleFacetsRebuild(request, env) {
   }
 }
 
+/**
+ * @param {Env} env
+ * @param {string} code
+ */
 async function handleModule(env, code) {
   const upper = decodeURIComponent(code).toUpperCase();
   if (!MODULE_CODE_RE.test(upper)) return bad(`"${upper}" is not a module code.`);
+  /** @type {ModuleRow | null} */
   let row;
   try {
     row = await env.DB.prepare('SELECT * FROM modules WHERE code = ?').bind(upper).first();
@@ -397,6 +482,10 @@ async function handleModule(env, code) {
 // token has to exist on disk; the script streams batches in over HTTP and the
 // Worker uses its own AI, Vectorize and D1 bindings. The route does not exist
 // unless an INGEST_SECRET is bound, so a deployed Worker has no admin surface.
+/**
+ * @param {Request} request
+ * @param {Env} env
+ */
 function ingestGuard(request, env) {
   if (!env.INGEST_SECRET) return json({ error: 'not_found' }, 404);
   const auth = request.headers.get('authorization') ?? '';
@@ -404,25 +493,36 @@ function ingestGuard(request, env) {
   return null;
 }
 
+/**
+ * @param {Request} request
+ * @param {Env} env
+ */
 async function handleHashes(request, env) {
   const denied = ingestGuard(request, env);
   if (denied) return denied;
-  const { results } = await env.DB.prepare('SELECT code, text_hash FROM modules').all();
+  const { results } = /** @type {D1Result<{ code: string, text_hash: string }>} */ (
+    await env.DB.prepare('SELECT code, text_hash FROM modules').all());
   return json(Object.fromEntries(results.map((r) => [r.code, r.text_hash])));
 }
 
+/**
+ * @param {Request} request
+ * @param {Env} env
+ */
 async function handleIngest(request, env) {
   const denied = ingestGuard(request, env);
   if (denied) return denied;
 
-  const body = await request.json();
+  const body = /** @type {{ modules?: IngestModule[] } | null} */ (await request.json());
   const batch = body?.modules;
   if (!Array.isArray(batch) || batch.length === 0) return bad('Body must be { modules: [...] } with at least one module.');
   if (batch.length > 100) return bad(`Batch of ${batch.length} exceeds the 100-module limit.`);
 
+  /** @type {number[][] | undefined} */
   let embeddings;
   try {
-    const out = await env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: batch.map((m) => m.text) });
+    const out = /** @type {{ data?: number[][] }} */ (
+      await env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: batch.map((m) => m.text) }));
     embeddings = out?.data;
     if (!Array.isArray(embeddings) || embeddings.length !== batch.length) {
       throw new Error(`Expected ${batch.length} embeddings, got ${embeddings?.length}`);
@@ -432,6 +532,8 @@ async function handleIngest(request, env) {
   }
 
   try {
+    // @ts-expect-error level/credits are `number | null` (lib.mjs normalise) but Vectorize metadata
+    // types exclude null. Narrowing them would change what is written; Phase 0 makes no behaviour change.
     await env.VECTORIZE.upsert(batch.map((m, i) => ({
       id: m.code,
       values: embeddings[i],
@@ -473,6 +575,11 @@ async function handleIngest(request, env) {
 }
 
 export default {
+  /**
+   * @param {Request} request
+   * @param {Env} env
+   * @param {ExecutionContext} ctx
+   */
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
