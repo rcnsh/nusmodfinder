@@ -7,7 +7,7 @@
 // already holds the AI, Vectorize and D1 bindings — so no Cloudflare API token
 // needs to exist on disk. The 19 MB moduleInfo.json is parsed here, locally,
 // never in a Worker (landmine L2). Requires INGEST_SECRET on both sides.
-import { DEFAULT_ACAD_YEAR, fetchAcadYearFile, assertExpectedShape, offeredModules, loadNgCourses } from './lib.mjs';
+import { facetsPayload, DEFAULT_ACAD_YEAR, fetchAcadYearFile, assertExpectedShape, offeredModules, loadNgCourses } from './lib.mjs';
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -50,9 +50,7 @@ if (ngCourses.available) {
 
 // /admin/facets also records where the NG list came from, so /facets reports
 // the date in data/ng-courses-*.json rather than a hand-kept copy (O3).
-const facetsBody = JSON.stringify(ngCourses.available
-  ? { ngList: { updatedAsAt: ngCourses.updatedAsAt ?? null, source: ngCourses.source, count: ngCourses.total } }
-  : {});
+const facetsBody = JSON.stringify(facetsPayload(ngCourses));
 
 // Resumability (L5): ask D1 what it already has and re-embed only what changed.
 let existing = {};

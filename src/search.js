@@ -100,14 +100,16 @@ function parseFilters(params) {
 
 /**
  * The query text every later stage sees, and the cache key holds: trimmed,
- * runs of whitespace collapsed to one space, lower-cased. Neither retriever
+ * runs of whitespace collapsed to one space, ASCII letters lower-cased. Only
+ * ASCII: full Unicode lower-casing maps the Kelvin sign (U+212A) to `k`, which
+ * would make the pin match codes that the raw query never matched. Neither retriever
  * can tell the difference: the FTS tokeniser lower-cases and splits on
  * non-word characters, the pin upper-cases, and bge-small-en-v1.5 is an
  * uncased model (its BertTokenizer has do_lower_case: true and splits on
  * whitespace). The fake embedder lower-cases too; a test pins that.
  * @param {string} trimmed
  */
-const canonicalQuery = (trimmed) => trimmed.replace(/\s+/g, ' ').toLowerCase();
+const canonicalQuery = (trimmed) => trimmed.replace(/\s+/g, ' ').replace(/[A-Z]+/g, (m) => m.toLowerCase());
 
 /**
  * Validates every parameter /search reads. Unknown parameters are ignored.

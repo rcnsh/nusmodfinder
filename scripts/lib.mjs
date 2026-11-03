@@ -208,3 +208,14 @@ export function vectorMetadata(module) {
     ng: module.ng === true,
   };
 }
+
+/**
+ * The /admin/facets body. Always carries ngList, so an ingest without the NG
+ * list overwrites a stale meta.ng_list instead of leaving its old date.
+ * @param {{ available: boolean, updatedAsAt?: string | null, source?: string | null, total: number }} ngCourses
+ */
+export function facetsPayload(ngCourses) {
+  return ngCourses.available
+    ? { ngList: { updatedAsAt: ngCourses.updatedAsAt ?? null, source: ngCourses.source ?? null, count: ngCourses.total } }
+    : { ngList: { updatedAsAt: null, source: null, count: 0 } };
+}

@@ -56,6 +56,8 @@ const QUERIES = [
   'accounting', 'japanese language', 'statistics for life sciences', 'management', 'introduction',
   'machine learning for physicists', 'C++ & Java: (advanced)', '"quoted" AND NOT near*', 'cs 1010s', 'CS101',
   'cs1010s', 'CS1010S', 'Cs1010S',
+  // Non-ASCII case: U+212A KELVIN SIGN lower-cases to 'k' under full Unicode rules.
+  'LA\u212A1201', 'la\u212A1201', 'NAÏVE BAYES', 'Ünïcode ÉCONOMICS', 'stra\u00DFe', '\uFB01nance',
   // Every 25th fixture module: its code, and a few words of its title.
   ...modules.filter((_, i) => i % 25 === 0).flatMap((m) => [m.code, m.title.split(/\s+/).slice(0, 3).join(' ')]),
 ];
@@ -100,8 +102,8 @@ async function compare(path) {
   const after = await callJson(path, { fakes });
   if (before.status !== after.status) return `${path}: status ${before.status} -> ${after.status}`;
   const expected = before.status === 200
-    // B7: the body echoes the canonical query (trimmed, whitespace collapsed, lower-cased).
-    ? { ...before.body, query: before.body.query.replace(/\s+/g, ' ').toLowerCase() }
+    // B7: the body echoes the canonical query (trimmed, whitespace collapsed, ASCII lower-cased).
+    ? { ...before.body, query: before.body.query.replace(/\s+/g, ' ').replace(/[A-Z]+/g, (/** @type {string} */ m) => m.toLowerCase()) }
     : before.body;
   try {
     expect(after.body).toEqual(expected);

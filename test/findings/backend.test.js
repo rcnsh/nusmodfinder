@@ -369,6 +369,9 @@ describe('O3', () => {
     expect(res.status).toBe(200);
     expect((await callJson('/facets')).body.ng.updatedAsAt).toBe('15 Jan 2027');
     expect((await adminCall('/admin/facets', fakes, { ngList: { updatedAsAt: 7 } })).status).toBe(400);
+    // An ingest without the NG list (facetsPayload sends an explicit empty list) clears the old date.
+    expect((await adminCall('/admin/facets', fakes, { ngList: { updatedAsAt: null, source: null, count: 0 } })).status).toBe(200);
+    expect((await callJson('/facets')).body.ng.updatedAsAt).toBeNull();
     // Re-seed so later tests in this file see the fixture as beforeAll left it.
     fakes = await seed();
   });

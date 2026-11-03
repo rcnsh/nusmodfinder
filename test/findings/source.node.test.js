@@ -158,7 +158,8 @@ describe('ops', () => {
     expect(worker).not.toContain(ngList.updatedAsAt);
     expect(readme).not.toContain('NG_LIST_UPDATED');
     const ingest = read('scripts/ingest.mjs');
-    expect(ingest).toContain('ngList: { updatedAsAt: ngCourses.updatedAsAt ?? null, source: ngCourses.source, count: ngCourses.total }');
+    // The payload is built by scripts/lib.mjs facetsPayload (unit-tested in test/facets-payload.node.test.js).
+    expect(ingest).toContain('const facetsBody = JSON.stringify(facetsPayload(ngCourses));');
     expect(ingest.match(/\/admin\/facets`, \{ method: 'POST', headers: auth, body: facetsBody \}/g)).toHaveLength(2);
   });
 
