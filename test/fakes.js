@@ -231,15 +231,79 @@ export class FakeVectorize extends Switchable {
         throw new Error(`fake Vectorize: vector "${v.id}" is not ${EMBEDDING_DIMS} finite numbers (got ${v.values?.length} values)`);
       }
     }
-    for (const v of vectors) this.vectors.set(v.id, { id: v.id, values: [...v.values], metadata: v.metadata });
-    return { mutationId: `fake-${this.calls.length}`, count: vectors.length, ids: vectors.map((v) => v.id) };
+    const stored = vectors.map((v) => ({ id: v.id, values: [...v.values], metadata: v.metadata }));
+    const mutationId = this.mutate(() => { for (const v of stored) this.vectors.set(v.id, v); });
+    return { mutationId, count: vectors.length, ids: vectors.map((v) => v.id) };
   }
 
   /** @param {string[]} ids */
   async deleteByIds(ids) {
     await this.gate('deleteByIds', [ids]);
-    for (const id of ids) this.vectors.delete(id);
-    return { mutationId: `fake-${this.calls.length}`, count: ids.length, ids };
+    const mutationId = this.mutate(() => { for (const id of ids) this.vectors.delete(id); });
+    return { mutationId, count: ids.length, ids };
+  }
+
+  /**
+   * Mutation ids in the order they were accepted. By default the data changes
+   * at once and only describe()'s report of it lags; with `deferApply` the
+   * data lags too, as with the real async mutations.
+   * @type {string[]}
+   */
+  mutations = [];
+  /** How many mutations describe() reports as processed. */
+  processed = 0;
+  /**
+   * Mutations describe() marks processed per call: Infinity = all at once, 0 =
+   * stalled (the wait must time out), n = catches up over several polls.
+   */
+  processPerDescribe = Infinity;
+  /**
+   * When true, an upsert or delete changes what query/getByIds see only once
+   * describe() (or applyAll()) processes it, in mutation order: a reader
+   * between the two sees the values from before.
+   */
+  deferApply = false;
+  /** Deferred mutations not yet applied, in order: their index in `mutations`. */
+  /** @type {{ index: number, apply: () => void }[]} */
+  pending = [];
+
+  /** When each mutation in `mutations` was accepted (Date.now()), for processedUpToDatetime. */
+  /** @type {number[]} */
+  mutationTimes = [];
+
+  /** @param {() => void} apply */
+  mutate(apply) {
+    const id = crypto.randomUUID();
+    this.mutations.push(id);
+    this.mutationTimes.push(Date.now());
+    if (this.deferApply) this.pending.push({ index: this.mutations.length - 1, apply });
+    else apply();
+    return id;
+  }
+
+  /** @param {number} n marks n more mutations processed, applying any deferred ones among them */
+  process(n) {
+    this.processed = Math.min(this.mutations.length, this.processed + n);
+    while (this.pending.length && this.pending[0].index < this.processed) this.pending.shift()?.apply();
+  }
+
+  /** Processes and applies every accepted mutation. */
+  applyAll() {
+    this.process(Infinity);
+  }
+
+  async describe() {
+    await this.gate('describe', []);
+    this.process(this.processPerDescribe);
+    return {
+      vectorCount: this.vectors.size,
+      dimensions: EMBEDDING_DIMS,
+      processedUpToMutation: this.processed ? this.mutations[this.processed - 1] : null,
+      // ISO 8601, as `wrangler vectorize info` prints it (workers-types declares
+      // `number`; ingest accepts either): when the last processed mutation was
+      // accepted.
+      processedUpToDatetime: this.processed ? new Date(this.mutationTimes[this.processed - 1]).toISOString() : null,
+    };
   }
 
   /** @param {string[]} ids */

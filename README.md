@@ -156,34 +156,137 @@ a D1 failure is still a 502. Anything unhandled is a JSON 500 with a `requestId`
 
 Ingest is a local Node script by design: `moduleInfo.json` is ~19 MB and parsing it
 inside a Worker would crowd the 128 MB memory ceiling. Embedding and upserting happen
-*in* the Worker, over an authenticated admin route, so no Cloudflare API token has to
+*in* the Worker, over authenticated admin routes, so no Cloudflare API token has to
 exist on disk.
+
+**Runbook** (ingest → verify → commit `src/data-version.json` → deploy):
 
 ```bash
 export INGEST_SECRET=$(openssl rand -hex 24)
 echo "INGEST_SECRET=$INGEST_SECRET" > .dev.vars     # gitignored
 npx wrangler dev --remote --port 8787 &             # binds the real D1/Vectorize/AI
 npm run ingest -- --year 2026-2027 --url http://localhost:8787
+npm run verify -- --url http://localhost:8787       # exits non-zero on drift
+git add src/data-version.json && git commit -m "chore(data): data version after ingest"
+npm run deploy                                      # new cache key, so no stale /search hits
 ```
 
-The script prints module count, skipped count and vectors upserted. It is **idempotent
-and resumable**: each module's embedded text is hashed into `modules.text_hash`, and a
-rerun re-embeds only what changed. A full cold ingest of 6,771 modules takes ~75 seconds.
+Before any remote write, check the account-wide D1 headroom for the UTC day
+(`docs/decisions/0002-phase1-remote-ops.md`): proceed only if the estimate × 1.5 fits.
 
-Verify the two stores agree:
+A run for a different acad year than D1 holds is refused unless you pass
+`--allow-year-change` (it rewrites every row to the new year). Pass `--allow-mass-delete`
+as well if more than 5% of the codes D1 holds leave the corpus.
 
-```bash
-npx wrangler d1 execute nusmods --remote --command "SELECT COUNT(*) FROM modules"
-npx wrangler vectorize info nusmods-modules
-```
+**What a run does.** It compares two hashes per module with what D1 holds
+(`GET /admin/hashes`): `text_hash` (embedding model + embedded-text version + text) and
+`row_hash` (normaliser version + every column D1 stores + the Vectorize metadata).
 
-Vectorize applies upserts asynchronously — `vectorCount` lags by a minute or two after a
-large ingest before it settles. That is expected, not a failure.
+- Text changed: the module is re-embedded, then the vector and the row are upserted.
+- Only the row changed: the row is rewritten, and the vector is re-upserted with its
+  stored values under the new metadata. There is no new embedding, unless the stored
+  vector's `metadata.textHash` is not the module's `text_hash` (a vector written before
+  `textHash` was stored, or one Vectorize has not yet replaced with a newer embedding).
+  Then the module is re-embedded, so old values never overwrite a pending new embedding.
+- Unchanged: skipped. A rerun with nothing changed writes nothing but the facets row.
+- Codes D1 holds that the corpus no longer offers are deleted through `/admin/delete`:
+  their hashes are cleared in D1, then Vectorize deletes the vectors, then D1 deletes the
+  rows. If the D1 delete fails and the module comes back, its cleared hash makes ingest
+  re-embed it. Deletes run last, and only if every upsert batch succeeded.
 
-**The admin routes do not exist in production.** `/admin/ingest` and `/admin/hashes`
-return 404 unless an `INGEST_SECRET` is bound, and the deployed Worker has none. Ingest is
-run locally against `wrangler dev --remote`. Do not `wrangler secret put INGEST_SECRET`
-unless you intend to expose a write endpoint on the public URL.
+The run then rebuilds the facets row and waits, by polling `describe()`, until Vectorize
+has processed its last mutation. Only then does it write `src/data-version.json`, the
+`/search` cache-key version (a hash of every code and row hash). Every mutation id is
+saved in `.data/ingest-state.json` (git-ignored, per `--url`) as it is sent, with the
+Worker's `Date.now()` when Vectorize accepted it (`sentAt`), and cleared only once a wait
+confirms it. The wait is satisfied when `processedUpToMutation` is that id, or when
+`processedUpToDatetime` is later than `sentAt`: Vectorize processes mutations in order, so a
+later one being processed covers it, even when another client (another `--url` to the
+same index) mutated the index since and the id never matches again. Both times come from
+Cloudflare's clock. The time check never counts one of the run's own earlier mutations (nor
+those of a pending mutation it carried over; they are saved with it as `earlier`): the docs do
+not say whether `processedUpToDatetime` is when a mutation was accepted or when it was
+processed, and in the second reading an earlier batch would pass while the last is still
+queued. If a mutating request was retried after a 5xx or a dropped connection, its first
+attempt may have queued a mutation whose id never came back, so that run (and any rerun
+carrying its entry over) waits by id only (`sentAt` saved as null). A rerun after exit 3 has nothing to send but still waits for that
+mutation, and writes `src/data-version.json` only once it is confirmed. If the state file
+cannot be written mid-run, the run carries on but ends with exit 1, naming the mutation ids
+it could not record, and does not write `src/data-version.json`.
+
+**If a rerun keeps exiting 3.** An entry saved by a Worker older than this script has no
+`sentAt`, so only the exact id ends its wait. Check `npx wrangler vectorize info
+nusmods-modules`. Once `processedUpToMutation` is the id in `.data/ingest-state.json`, or
+`processedUpToDatetime` is later than the time that run ended (its last mutation was sent
+before then), delete that URL's entry (or the
+whole file, if it holds no other) and rerun the same command. It then has nothing to wait
+for and writes `src/data-version.json`. Run `npm run verify` after.
+
+**One run at a time.** A run holds `.data/ingest-state.json.lock` (created exclusively,
+holding its pid and a nonce) until it exits. The first Ctrl-C (SIGINT) or SIGTERM stops the
+run after the requests in flight, records their mutation ids, releases the lock and exits
+130/143; the rerun waits for those mutations. A second signal stops it at once (a mutation
+in flight may then go unrecorded: run `npm run verify` after the rerun). A second `npm run ingest` from
+the same checkout refuses with exit 1 and names the pid. If no ingest is running (a run that
+crashed or was `kill -9`ed leaves the lock behind; the message says whether the pid is alive,
+but pids are reused), delete the lock file and rerun. A run only removes a lock carrying its
+own nonce.
+
+**Guards.** Each one stops the run before it writes anything:
+
+- the database lacks migration 0006: the schema marker, the external-content FTS table,
+  any of its four triggers (`modules_fts_insert`, `_delete`, `_update`,
+  `modules_rowid_immutable`) or `row_hash`. Rewriting rows through the old FTS triggers
+  reads ~46M rows (FINDINGS B3), and a missing trigger lets the FTS index drift;
+- the plan would delete more than 5% of the codes D1 holds, whatever the corpus size
+  (pass `--allow-mass-delete` if the drop is real);
+- the corpus is for another acad year than most of D1's rows (pass `--allow-year-change`).
+  An empty database has no year;
+- the corpus mixes acad years or repeats a code;
+- the Worker embeds with a different model than `text_hash` assumes.
+
+**Write budget.** `--write-budget` (default 40,000 D1 rows, ADR 0002) charges each admin
+call the larger of the `meta.rows_written` it reports and an estimate per module. The
+estimate includes the FTS5 shadow-table writes for inserted rows and rows whose code, title
+or description change, which local D1 does not report and remote D1 may bill. Which rows
+those are is decided by `ftsHash`, a hash of those three columns (the ones the 0006 FTS
+update trigger watches) that `/admin/hashes` computes from what D1 stores. It is not decided
+by `text_hash`, which also changes with the model or the embedded-text version. Before a
+batch would pass the budget, the run stops cleanly (exit 2) and prints how to resume. Rerun
+the same command: the hash skip sends only what is still pending. A stopped `--force` run
+resumes with `--from <code>`.
+
+The planned first run against production (rows written by main: `text_hash` in main's
+`hashOf(text)` format, `row_hash` NULL, titles and descriptions unchanged) re-embeds and
+rewrites all 6,771 modules with no FTS writes. Locally it reads 35,102 rows, D1 reports
+34,381 written, and the budget charges **37,251**, so it finishes in one run. That figure is
+from the `productionStart` step of `test/full/ingest.test.js`, which rebuilds that state in
+local D1 ([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md) "Remote estimate"). A
+forced re-ingest of rows this script wrote costs the same.
+
+**Do not cold-load the remote database with the default budget.** Loading an empty
+database writes ~48k table and index rows plus ~89k FTS5 shadow rows, about 137k in all.
+That is over the 100k/day account cap, and the remote billing of FTS writes has not been
+measured. The budget charges ~149k for it and would stop a run at 40k, but until remote
+metering of FTS writes is measured, the charged figure is only an estimate. Rebuild
+production from empty only after measuring it, spread over several UTC days
+([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md)).
+
+**Download cache.** `.data/` entries keep NUSMods' `ETag`, `Last-Modified` and the body's
+sha256 in a `<file>.cache.json` sidecar. An entry older than `--max-age` (default `24h`)
+is revalidated with `If-None-Match`; `--offline` uses the cache as it is and never fetches.
+A body that does not match its recorded sha256 is never served or revalidated. It is
+downloaded again in full, and `--offline` refuses it.
+
+Other flags: `--force` (re-embed and rewrite everything), `--batch`, `--concurrency` and
+`--wait-timeout` (default `10m`). Exit codes: 0 done, 1 refused or failed, 2 stopped by
+the budget, 3 Vectorize did not confirm the last mutation in time (D1 is complete; rerun
+the same command later, then verify).
+
+**The admin routes do not exist in production.** `/admin/*` returns 404 unless an
+`INGEST_SECRET` is bound, and the deployed Worker has none. Ingest is run locally against
+`wrangler dev --remote`. Do not `wrangler secret put INGEST_SECRET` unless you intend to
+expose a write endpoint on the public URL.
 
 ## Evaluation
 
@@ -205,21 +308,26 @@ describes it.
 
 ## Cost
 
-**D1 row reads are the binding constraint, not Vectorize.** This was mis-stated in an
-earlier version of this README, which quoted only the Vectorize budget and implied
-~71,000 searches/month were affordable. They are not, on the free plan.
+**Vectorize queried dimensions are the binding limit, not D1.** An earlier version of
+this README said the opposite; its own numbers did not support it (FINDINGS B9).
 
-| | Workers Free | measured cost here |
+| | Workers Free | cost here |
 |---|---|---|
-| **D1 rows read** | **5,000,000 / day** (enforced since 1 Sep 2026) | ~50 per search, 1 per page load |
-| D1 rows written | 100,000 / day | ~13,600 per full re-ingest |
+| **D1 rows read** | **5,000,000 / day** (enforced since 1 Sep 2026) | per search: pending: measured after the Phase 1 deploy (local grid: [`lexical-cost.md`](docs/evidence/phase1/lexical-cost.md)); 1 per page load |
+| D1 rows written | 100,000 / day | ~34,400 per forced full re-ingest (and ~35,100 read), measured locally ([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md)); a rerun with nothing changed writes 2 |
 | Vectorize stored dims | 5,000,000 | 6,771 × 384 = **2,600,064** (52%) |
-| Vectorize queried dims | 30,000,000 / month | ~71,000 searches/month |
+| Vectorize queried dims | 30,000,000 / month | ~71,354 searches/month (below) |
 
-A search now costs roughly the number of rows it returns (~7 for the FTS half) plus one
-hydration query (~40 rows for 20 modules), and a page load costs 1. That is on the order
-of **50 rows per search** rather than ~4,000 — call it 100,000+ searches/day against the
-5M limit, with repeats served free from cache.
+The arithmetic. Vectorize bills a query as (stored vectors + 1) × 384 dimensions against
+30,000,000 a month: 30,000,000 / 384 − 6,771 ≈ **71,354 uncached searches a month**,
+about 2,378 a day. D1 allows 5,000,000 rows read a day: at the ~50 rows per search measured in
+Phase 0, 5,000,000 / 50 ≈ 100,000 searches a day, about 3,000,000 a month, about 42× more
+than Vectorize allows. D1 would bind first only if uncached searches averaged more than
+5,000,000 / 2,378 ≈ 2,100 rows read. Unfiltered searches stay far below that, but filtered
+ones cost more since Phase 1 made them exact (FINDINGS B1): on the local test grid, which
+leans on broad queries, single-filter searches averaged 2,160 rows and the worst read 7,772.
+So the traffic mix decides, and the per-search numbers measured after the Phase 1 deploy
+replace these local ones. Cached repeats cost neither.
 
 ### How that number was brought down
 

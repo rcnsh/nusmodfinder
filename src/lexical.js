@@ -1,47 +1,16 @@
 // @ts-check
-// Lexical half of the hybrid retriever: query tokenising, the FTS5 MATCH
-// expression, and the BM25-ranked lookup with filters. Takes a D1 database or
-// session so callers choose primary vs replica.
+// Lexical half of the hybrid retriever: the BM25-ranked lookup with filters.
+// Takes a D1 database or session so callers choose primary vs replica. Query
+// tokenising and the MATCH expression live in fts-query.js (no Worker types,
+// so Node tests can import it).
+import { ftsMatch } from './fts-query.js';
+
+export { ftsMatch, queryTokens } from './fts-query.js';
 
 /**
  * @typedef {import('./timing.js').Trace} Trace
  * @typedef {import('./search.js').FilterEcho} FilterEcho
  */
-
-// Stopwords are dropped before the FTS5 query is built. Without this, a natural
-// question like "how do i start my own company" matches every "Design Your Own
-// Course" record on the word "own" and buries the real answers. This is the same
-// list the offline BM25 baseline uses, so neither retriever gets an easier query.
-const STOPWORDS = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do', 'for', 'from',
-  'how', 'i', 'in', 'is', 'it', 'me', 'my', 'of', 'on', 'or', 'own', 'the', 'to', 'with', 'you', 'your']);
-
-// FTS5 MATCH is its own query language: unescaped user text is a syntax error
-// waiting to happen. Reduce the query to bare tokens, quote each one, and OR
-// them together — recall comes from the OR, ranking from bm25().
-/** @param {string} query */
-function ftsTokens(query) {
-  const all = query.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).filter(Boolean);
-  // If the query is nothing but stopwords, keep them rather than matching nothing.
-  const tokens = all.filter((t) => !STOPWORDS.has(t));
-  return tokens.length ? tokens : all;
-}
-
-// FTS5 MATCH is its own query language: unescaped user text is a syntax error
-// waiting to happen. Reduce the query to bare tokens, quote each one, and OR
-// them together — recall comes from the OR, ranking from the rank column.
-/** @param {string[]} tokens */
-function ftsMatchExpression(tokens) {
-  if (tokens.length === 0) return null;
-  return tokens.map((t) => `"${t}"`).join(' OR ');
-}
-
-/**
- * The FTS5 MATCH expression for a user query, or null when it has no tokens.
- * @param {string} query
- */
-export function ftsMatch(query) {
-  return ftsMatchExpression(ftsTokens(query));
-}
 
 // Lexical half of the hybrid retriever. Filters are applied in SQL so the two
 // halves see the same candidate universe (R4 holds on both paths).
