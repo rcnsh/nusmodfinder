@@ -7,7 +7,7 @@
 // already holds the AI, Vectorize and D1 bindings — so no Cloudflare API token
 // needs to exist on disk. The 19 MB moduleInfo.json is parsed here, locally,
 // never in a Worker (landmine L2). Requires INGEST_SECRET on both sides.
-import { DEFAULT_ACAD_YEAR, fetchAcadYearFile, assertExpectedShape, offeredModules, loadNgCourses } from './lib.mjs';
+import { facetsPayload, DEFAULT_ACAD_YEAR, fetchAcadYearFile, assertExpectedShape, offeredModules, loadNgCourses } from './lib.mjs';
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -48,6 +48,10 @@ if (ngCourses.available) {
   console.log(`NG list            ABSENT — run scripts/extract-ng.py first, or every module will be marked not-NG`);
 }
 
+// /admin/facets also records where the NG list came from, so /facets reports
+// the date in data/ng-courses-*.json rather than a hand-kept copy (O3).
+const facetsBody = JSON.stringify(facetsPayload(ngCourses));
+
 // Resumability (L5): ask D1 what it already has and re-embed only what changed.
 let existing = {};
 if (!force) {
@@ -65,7 +69,7 @@ console.log();
 
 if (todo.length === 0) {
   console.log('Nothing to do — every module is already indexed at its current text hash.');
-  const res = await fetch(`${base}/admin/facets`, { method: 'POST', headers: auth }).catch(() => null);
+  const res = await fetch(`${base}/admin/facets`, { method: 'POST', headers: auth, body: facetsBody }).catch(() => null);
   console.log(res?.ok ? 'facets rebuilt.' : 'facets rebuild skipped/failed.');
   process.exit(0);
 }
@@ -113,10 +117,10 @@ console.log('\n');
 // Rebuild the precomputed facet row so /facets stays one row read per request
 // instead of three full-table aggregates.
 try {
-  const res = await fetch(`${base}/admin/facets`, { method: 'POST', headers: auth });
+  const res = await fetch(`${base}/admin/facets`, { method: 'POST', headers: auth, body: facetsBody });
   const body = await res.json().catch(() => ({}));
   console.log(res.ok
-    ? `facets rebuilt      ${body.faculties} faculties, ${body.levels} levels, ${body.ng} NG`
+    ? `facets rebuilt      ${body.faculties} faculties, ${body.levels} levels, ${body.ng} NG (list updated ${body.ngListUpdatedAsAt})`
     : `facets rebuild FAILED (HTTP ${res.status}) — /facets will fall back to live aggregates`);
 } catch (err) {
   console.log(`facets rebuild FAILED (${err.message})`);

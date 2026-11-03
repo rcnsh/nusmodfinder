@@ -26,10 +26,10 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | B1 | reproduced | test (fixture + full corpus), live |
 | B2 | reproduced | tests |
 | B3 | reproduced | test (EXPLAIN QUERY PLAN) |
-| B4 | partially-reproduced | tests (serial), live latency |
-| B5 | reproduced | tests, live |
-| B6 | reproduced | test |
-| B7 | reproduced | test, live |
+| B4 | fixed | tests (concurrency, differential), live latency |
+| B5 | fixed | tests, live |
+| B6 | fixed | test |
+| B7 | fixed | test, live |
 | B8 | reproduced | tests, live |
 | B9 | reproduced | test (README arithmetic) |
 | S1 | reproduced | test (source + EVAL.md) |
@@ -56,7 +56,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | V1 | partially-reproduced | test, screenshots |
 | O1 | fixed | test, `db:rebuild-check` (PR #1) |
 | O2 | fixed | test, CI (PR #1) |
-| O3 | reproduced | test |
+| O3 | fixed | test |
 | O4 | reproduced | tests |
 
 Checked and **not** findings (noted, no ID): the `/search` cache does work on workers.dev
@@ -122,72 +122,102 @@ property of the schema, so the local plan is the remote plan.
 
 ### B4 · Request path is fully serial
 
-**Status:** partially-reproduced
+**Status:** fixed
 
 **Claim:** pin → embed → Vectorize → FTS → hydrate run one after another; measured server
 time hybrid ~540 ms, `/module` ~240 ms.
 
 **Evidence:**
-- test `[B4 known-bug] a hybrid search runs embed -> Vectorize -> FTS -> hydrate one after another`
-- test `[B4 known-bug] the lexical query does not start until embedding has finished (fully serial)`: with AI hanging, no FTS statement is ever issued.
+- test `[B4 fixed] with Workers AI hanging, the pin and lexical queries still start before the embedding resolves`
+- test `[B4 fixed] pin, lexical and embed -> Vectorize run concurrently, then one hydrate query, all on a read session`: with the embedding held back, the FTS (and pin) statements have already been issued and nothing is hydrated; once it is released, exactly one hydrate query follows, and every statement ran on a `withSession('first-unconstrained')` session.
 - test `[B4 instrumented] /search responses carry Server-Timing spans for each stage`: flipped from the Phase 0 characterisation test that asserted there was none; `test/instrument.test.js` covers misses, hits, errors and the log line
+- test `1B is ranking-neutral` (`test/differential.test.js`): 522 generated requests through the pre-1B route and the new one give identical bodies.
 - `docs/evidence/requests.tsv` rows 4–9 (`raw/B4_search_*`, `raw/B4_module_*`): hybrid cache-miss `ttfb−tls` 932 / 1427 / 1411 ms; `/module/CS3244` 242 / 387 / 716 ms.
 
-**Notes:** The serial structure is reproduced exactly (`src/index.js:304-367` at `7ac9841`,
-now `handleSearch` in `src/search.js`; the lexical half doesn't depend on the embedding but
-waits for it). The latency figures are only partly reproduced. `/module` matches (~240 ms
-best case), but hybrid measured 0.9–1.4 s, not ~540 ms. There was no `Server-Timing` and the
-edge location varied between calls, so server time couldn't be separated from network time.
+**Notes:** The serial structure was reproduced exactly (`src/index.js:304-367` at `7ac9841`);
+the latency figures only partly (hybrid measured 0.9–1.4 s, not ~540 ms, with no
+`Server-Timing` to separate server from network time). Phase 1 step 0 added the spans.
 
-Phase 1 step 0 (`phase1/instrument`) added `Server-Timing` (`cache`, `limit`, `pin`, `embed`,
-`vector`, `fts`, `hydrate`, `total`) and a structured log line per search with D1 rows read,
-serving region and colo, so SC7 can now be measured on the deployed Worker. That sub-claim is
-fixed; the serial path itself is not (workstream 1B), so B4 stays `partially-reproduced`.
+Fixed in PR #7 (workstream 1B): `runSearch` in `src/search.js` starts the pin lookup, the
+lexical query and embed→Vectorize together and waits on all three (`Promise.all`), then runs
+one hydrate query for only the columns and rows the response renders. Every public D1 read
+(`/search`, `/module`, `/facets`) goes through `env.DB.withSession('first-unconstrained')`,
+which works with or without read replication; admin routes stay on `env.DB` (primary).
+Vectorize is asked for ids only (`returnMetadata` dropped); depth stays 50. Enabling read
+replication itself (ADR 0002) and the deployed SC7 measurement are separate Phase 1 steps.
 
 ### B5 · No upstream timeouts, no top-level try/catch
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** No upstream timeouts and no top-level try/catch; `/module/%E0%A4%A` → error 1101.
 
 **Evidence:**
-- test `[B5 known-bug] /module/%E0%A4%A throws a URIError out of fetch (workerd answers 500, error 1101)`
-- test `[B5 known-bug] a hanging Workers AI call hangs the search: there is no upstream timeout`
-- test `[B5 known-bug] a hanging Vectorize query hangs the search too`
-- test `[B5 known-bug] an exception outside the per-call try/catch escapes fetch unhandled`: a throwing rate limiter rejects `fetch`.
-- `docs/evidence/phase0/raw/B5_module.headers`: live `HTTP/2 500`, `text/plain`, body `error code: 1101`.
+- test `[B5 fixed] /module/%E0%A4%A is a 400 naming the bad encoding, not an exception out of fetch`
+- test `[B5 fixed] a hanging %s call times out at 1.5 s and the search answers keyword-only` (run for `ai` and `vectorize`): still pending at 1.35 s, settled by 1.7 s, 200 with `degraded.reason: "timeout"`.
+- test `[B5 fixed] a hanging D1 query times out at 3 s with a 502 naming D1`
+- test `[B5 fixed] a throwing rate limiter fails open, and the failure is logged`
+- test `[B5 fixed] an exception no route handles is a JSON 500 carrying the request id, and is logged`
+- `docs/evidence/phase0/raw/B5_module.headers`: live `HTTP/2 500`, `text/plain`, body `error code: 1101` (before the fix).
 
-**Notes:** `decodeURIComponent` at `src/index.js:461` is outside any try; `fetch()`
-(`:583-628`) has no catch; AI and Vectorize calls (`:329`, `:336`) have no timeout. `/search`
-with the same bytes does **not** crash (`raw/B5_search.body`, 200): `URLSearchParams` decodes
-leniently to U+FFFD.
+**Notes:** Was: `decodeURIComponent` outside any try, no catch in `fetch()`, no timeout on
+AI or Vectorize (`src/index.js:461`, `:583-628`, `:329`, `:336` at `7ac9841`). `/search` with
+the same bytes did not crash: `URLSearchParams` decodes leniently to U+FFFD.
+
+Fixed in PR #7: `fetch` catches anything a route throws and answers
+`500 { "error": "internal", "requestId" }` (the `cf-ray`, else a random UUID), logged as
+`"event":"unhandled"`. `/module` guards `decodeURIComponent` (400). `src/upstream.js`
+races every Workers AI (1.5 s, also aborted through its `signal` option), Vectorize (1.5 s)
+and D1 (3 s) call against a timer. The rate limiter call fails open and logs
+`"event":"limiter_error"`.
 
 ### B6 · No keyword fallback when AI or Vectorize fails
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** A Vectorize/AI failure fails the whole search; there's no keyword fallback.
 
 **Evidence:**
-- test `[B6 known-bug] %s throwing fails the whole search with a 502 and no keyword fallback` (`test/findings/backend.test.js`, run for `ai` and `vectorize`): 502 `upstream_failure`, no FTS statement issued, while `mode=lexical` on the same fakes returns CS1010S.
+- test `[B6 fixed] %s throwing in hybrid mode returns the keyword results, flagged degraded and cached for 60 s` (run for `ai` and `vectorize`): 200, `degraded: { source, reason: "error" }`, the same codes as `mode=lexical`, `cache-control: public, max-age=60`, `Server-Timing` span `degraded`, and the log line's `degraded`.
+- test `[B6 fixed] mode=vector still fails loudly with a 502 from the failing binding`
+- test `[B6 fixed] after 3 consecutive dense failures the dense half is skipped for 30 s, then retried`
 
-**Notes:** `src/index.js:319-345` returns `upstream(...)` from inside the vector half. The
-comment there says this is deliberate (R7: "never an empty or quietly degraded 200"); SC7 now
-requires the fallback, so the decision needs revisiting, perhaps with a `degraded` flag in the
-response.
+**Notes:** Was: `src/index.js:319-345` at `7ac9841` returned `upstream(...)` from inside the
+vector half, deliberately (R7: "never an empty or quietly degraded 200"). SC7 requires the
+fallback, so it is now explicit instead of quiet: in hybrid mode an AI or Vectorize failure
+or timeout returns the lexical results with `degraded: { source, reason }` in the body
+(`reason` is `error`, `timeout` or `circuit-open`), a `degraded;desc=<source>-<reason>`
+Server-Timing span, and a 60 s cache lifetime. A per-isolate circuit breaker
+(`denseCircuit` in `src/upstream.js`) skips the dense half for 30 s after 3 consecutive
+failures. `mode=vector` (the eval's dense-only mode) never falls back and is never
+short-circuited. Fixed in PR #7.
 
 ### B7 · Cache key is the raw URL
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** The cache key is the raw URL: case, parameter order and junk parameters all miss.
 
 **Evidence:**
-- test `[B7 known-bug] the cache key is the raw URL: param order, case and junk params each miss`: four spellings of one query make four `caches.default` entries and four embeddings; an identical repeat hits.
+- test `[B7 fixed] the cache key is canonical: order, case, whitespace, defaults and junk params share one entry`: five spellings of one query make one entry and one embedding; hits read no D1 row; parameters that change the answer still get their own entry.
+- test `[B7 evidence] every stage is case- and whitespace-insensitive, so the key may lower-case q`
 - `docs/evidence/phase0/raw/B7conn.headers`: live, `cf-cache-status: HIT` only on the identical repeat; reordered, re-cased and `&_r=` variants miss (`docs/evidence/phase0/raw/B7conn.timing`).
 
-**Notes:** `src/index.js:596` (`new Request(url.toString())`). A junk parameter lets anyone
-bypass the cache and spend metered quota.
+**Notes:** Was: `src/index.js:596` at `7ac9841` (`new Request(url.toString())`). A junk
+parameter let anyone bypass the cache and spend metered quota.
+
+Fixed in PR #7: `canonicalCacheKey` in `src/search.js` builds the key from the validated
+parameters only: `q` trimmed, whitespace runs collapsed and lower-cased; `sem`, `level`,
+`credits`, `faculty`, `ng` in parsed form; `mode` and `topK` only when not the default
+(`topK` after clamping); unknown parameters dropped; sorted; plus `v=<DATA_VERSION>` from
+the committed `src/data-version.json` (seeded with the pinned corpus sha256 prefix
+`2d138795d387`). Nothing reads D1 before the lookup. Invalid requests are answered before
+the cache is touched and never stored. Lower-casing is safe because every stage already
+ignores case: the FTS tokens are lower-cased, the pin upper-cases, the fake embedder
+lower-cases (tested), and bge-small-en-v1.5 is uncased (its `BertTokenizer` has
+`do_lower_case: true` in the model's `tokenizer_config.json`, so the real model sees the
+same token ids; not tested live). The body echoes the canonical query, so a cached answer
+is the same whichever spelling stored it.
 
 ### B8 · topK, hydration and tokeniser defects
 
@@ -198,16 +228,23 @@ selects unused columns; `returnMetadata:'indexed'` is unused and caps topK at 50
 it); the ASCII-only tokeniser splits "naïve".
 
 **Evidence:**
-- test `[B8 known-bug] an empty topK= returns 1 result instead of the default 20`; live `docs/evidence/phase0/raw/B8_emptyTopK.body` (`count: 1`).
-- test `[B8 known-bug] hydration reads every fused candidate and columns the response never uses`: binds = `retrieval.fused` (> 20 for 20 results); SQL selects `description, workload, prerequisite, preclusion, acad_year`, none of which `/search` returns.
-- test `[B8 known-bug] Vectorize is asked for indexed metadata it never reads, which caps topK at 50`
+- test `[B8 fixed] an empty topK= returns the default 20 results`; live (before the fix) `docs/evidence/phase0/raw/B8_emptyTopK.body` (`count: 1`).
+- test `[B8 fixed] hydration reads only the rows and columns the response renders`
+- test `[B8 fixed] a candidate missing from D1 (stale vector) is skipped and the next one hydrated`
+- test `[B8 fixed] Vectorize is asked for ids only; the candidate depth stays 50`
 - test `[B8 known-bug] the ASCII-only tokeniser splits "naïve" into "na" and "ve"`: MATCH is `"na" OR "ve" OR "bayes"`.
 
-**Notes:** `Number('') === 0` is finite and clamps to 1 (`src/index.js:298-302`); hydration
-`:262-269` with `SELECT_COLUMNS` `:62-63`; `returnMetadata` `:338`, and only `m.id` is read
-(`:341`); tokeniser `:158`. Live hydration was 66 rows for 20 results
-(`raw/B4_search_1.body`, `retrieval.fused`). The 77-for-50 figure wasn't re-measured, but the
-mechanism (hydrate all fused candidates) is shown.
+**Notes:** Was: `Number('') === 0` clamped to 1 (`src/index.js:298-302` at `7ac9841`);
+hydration `:262-269` read every fused candidate with `SELECT_COLUMNS`; `returnMetadata`
+`:338` with only `m.id` read; tokeniser `:158`. Live hydration was 66 rows for 20 results.
+
+PR #7 (workstream 1B) fixes three of the four sub-claims: an empty `topK=` is the default;
+hydration selects only `RESULT_COLUMNS` and reads only as many fused candidates as the page
+shows, topping up in order when a candidate is missing from D1, so the page is the same as
+before (`test/differential.test.js`); Vectorize no longer gets `returnMetadata`. The topK
+ceiling stays 50 on purpose (Phase 1 plan r2: a deeper list would change rankings). The
+Unicode tokeniser is workstream 1A's (`src/lexical.js`); B8 becomes `fixed` when that lands
+and its known-bug test flips.
 
 ### B9 · README names the wrong binding limit
 
@@ -236,10 +273,10 @@ hybrid MRR 0.820 < lexical 0.903.
 **Evidence:**
 - test `[S1 known-bug] held-out relevance is a regex over titles, recall@10 ignores order, and hybrid MRR trails lexical`: 11 of 12 held-out rules are a regex over `m.title`; `K` defaults to 10; recall is `h / |relevant|`; EVAL.md's held-out MRR row reads 0.833 / 0.674 / 0.903 / 0.820 and states `ORDER BY rank` was not re-run.
 
-**Notes:** `scripts/judge-holdout.mjs:13-49`, `scripts/eval.mjs:34,104`, `EVAL.md:94` and
+**Notes:** `eval/v1/judge-holdout.mjs:13-49`, `eval/v1/eval.mjs:34,104` (moved from `scripts/` by Phase 2), `EVAL.md:94` and
 `:41`. Production returns 20 of a 50-deep candidate list (`src/index.js:28-29,317`). "Tidy
-queries only" is a judgement, but it mostly holds. Across `eval/queries.json` and
-`eval/holdout.json` (27 queries), the three code queries are exact codes (`CS3244`, `cs2040s`,
+queries only" is a judgement, but it mostly holds. Across `eval/v1/queries.json` and
+`eval/v1/holdout.json` (27 queries), the three code queries are exact codes (`CS3244`, `cs2040s`,
 `EC4308`), and none has a space in a code, a partial code, a typo, or an exam/S/U/workload
 constraint. One query, `machine learning for beginners`, does carry level intent.
 
@@ -602,16 +639,21 @@ not this finding.
 
 ### O3 · NG_LIST_UPDATED kept in two places
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** `NG_LIST_UPDATED` is maintained by hand in `src/index.js` and in the NG JSON.
 
 **Evidence:**
-- test `[O3 known-bug] NG_LIST_UPDATED is a hand-kept copy of the NG list date`
+- test `[O3 fixed] the NG list date has one source: ingest posts it from data/ng-courses-*.json, no copy is kept by hand`
+- test `[O3 fixed] /facets reports the NG list date ingest recorded from data/ng-courses-*.json`
 
-**Notes:** `src/index.js:38` versus `data/ng-courses-2026-2027.json` `updatedAsAt`; the README
-(`:81`) tells you to bump it by hand. They agree today ("01 Sep 2026"); nothing keeps them in
-step.
+**Notes:** Was: a constant in `src/modules.js` (`src/index.js:38` at `7ac9841`) versus
+`data/ng-courses-2026-2027.json` `updatedAsAt`, with the README asking for a manual bump.
+Fixed in PR #7: `scripts/ingest.mjs` posts `{ ngList: { updatedAsAt, source, count } }`
+(from `loadNgCourses`) to `/admin/facets`, which stores it as `meta('ng_list')` before
+rebuilding the facets row; `/facets` (precomputed or live) reads the date from there. The
+constant and the README instruction are gone. Until the next ingest records it, the live
+`/facets` row keeps the date it was built with.
 
 ### O4 · No scheduled refresh
 

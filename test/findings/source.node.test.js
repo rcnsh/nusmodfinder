@@ -153,10 +153,14 @@ describe('ops', () => {
     }
   });
 
-  it('[O3 known-bug] NG_LIST_UPDATED is a hand-kept copy of the NG list date', () => {
-    expect(worker).toContain(`const NG_LIST_UPDATED = '${ngList.updatedAsAt}';`);
-    expect(worker).not.toMatch(/import[^\n]*ng-courses/);
-    expect(readme).toContain('bump `NG_LIST_UPDATED` in `src/modules.js`');
+  it('[O3 fixed] the NG list date has one source: ingest posts it from data/ng-courses-*.json, no copy is kept by hand', () => {
+    expect(worker).not.toContain('NG_LIST_UPDATED');
+    expect(worker).not.toContain(ngList.updatedAsAt);
+    expect(readme).not.toContain('NG_LIST_UPDATED');
+    const ingest = read('scripts/ingest.mjs');
+    // The payload is built by scripts/lib.mjs facetsPayload (unit-tested in test/facets-payload.node.test.js).
+    expect(ingest).toContain('const facetsBody = JSON.stringify(facetsPayload(ngCourses));');
+    expect(ingest.match(/\/admin\/facets`, \{ method: 'POST', headers: auth, body: facetsBody \}/g)).toHaveLength(2);
   });
 
   it('[O4 known-bug] wrangler.jsonc declares no cron trigger', () => {
@@ -179,13 +183,13 @@ describe('ops', () => {
 
 describe('eval (S1)', () => {
   it('[S1 known-bug] held-out relevance is a regex over titles, recall@10 ignores order, and hybrid MRR trails lexical', () => {
-    const judge = read('scripts/judge-holdout.mjs');
+    const judge = read('eval/v1/judge-holdout.mjs');
     const rules = judge.match(/rule: \(m\) => [^\n]+/g) ?? [];
     expect(rules).toHaveLength(12);
     // 11 of 12 are a regex over the title; h1 is a department check.
     expect(rules.filter((r) => /^rule: \(m\) => \/.*\/i\.test\(m\.title\)/.test(r))).toHaveLength(11);
 
-    const evalSrc = read('scripts/eval.mjs');
+    const evalSrc = read('eval/v1/eval.mjs');
     expect(evalSrc).toContain("const K = Number(arg('k', fixture.k ?? 10));");
     expect(evalSrc).toContain('recall: h / q.relevant.length,');
     // Production returns 20 from a candidate depth of up to 50.

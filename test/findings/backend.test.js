@@ -1,10 +1,16 @@
 // @ts-check
-// Backend findings B3-B8 and O4, characterised over the fixture corpus.
+// Backend findings B3-B8, O3 and O4 over the fixture corpus: characterisation
+// tests for what is still open, correctness tests for what Phase 1 fixed.
 import { env } from 'cloudflare:workers';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import worker from '../../src/index.js';
-import { createFakes } from '../fakes.js';
-import { BASE, call, callJson, fixture, seed } from '../helpers.js';
+import { lexicalSearch } from '../../src/lexical.js';
+import { RESULT_COLUMNS } from '../../src/modules.js';
+import { DATA_VERSION, searchCacheKey } from '../../src/search.js';
+import { Trace } from '../../src/timing.js';
+import { denseCircuit } from '../../src/upstream.js';
+import { createFakes, hashEmbed } from '../fakes.js';
+import { BASE, NG_LIST, adminCall, call, callJson, fixture, seed } from '../helpers.js';
 import { codes, ftsCalls, recordingDb, settlesWithin } from './support.js';
 
 /** @type {import('../fakes.js').Fakes} */
@@ -33,37 +39,66 @@ describe('B3', () => {
 });
 
 describe('B4', () => {
-  it('[B4 known-bug] the lexical query does not start until embedding has finished (fully serial)', async () => {
+  it('[B4 fixed] with Workers AI hanging, the pin and lexical queries still start before the embedding resolves', async () => {
     const hanging = createFakes();
     hanging.vectorize.vectors = fakes.vectorize.vectors;
     hanging.ai.hangs();
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
-    const pending = call('/search?q=machine%20learning%20serial', { fakes: hanging, env: { DB: recordingDb(log) } });
+    const pending = callJson('/search?q=cs1010s', { fakes: hanging, env: { DB: recordingDb(log) } });
     expect(await settlesWithin(pending, 100)).toBe('pending');
     expect(hanging.ai.calls).toHaveLength(1);
-    expect(ftsCalls(log)).toEqual([]);
+    expect(ftsCalls(log)).toHaveLength(1);
+    expect(log.filter((c) => c.sql.includes('WHERE code = ?'))).toHaveLength(1);
+    // The embedding never arrives; the search answers from the keyword half at the AI timeout.
+    const { status, body } = await pending;
+    expect(status).toBe(200);
+    expect(body.degraded).toEqual({ source: 'workers-ai', reason: 'timeout' });
+    expect(body.results[0]).toMatchObject({ code: 'CS1010S', score: 1 });
   });
 
-  it('[B4 known-bug] a hybrid search runs embed -> Vectorize -> FTS -> hydrate one after another', async () => {
+  it('[B4 fixed] pin, lexical and embed -> Vectorize run concurrently, then one hydrate query, all on a read session', async () => {
     /** @type {string[]} */
     const order = [];
     const f = createFakes();
     f.vectorize.vectors = fakes.vectorize.vectors;
+    /** @type {() => void} */
+    let release = () => {};
+    const gate = new Promise((r) => { release = () => r(undefined); });
     const run = f.ai.run.bind(f.ai), query = f.vectorize.query.bind(f.vectorize);
-    f.ai.run = async (...a) => { order.push('ai:start'); const r = await run(...a); order.push('ai:end'); return r; };
+    f.ai.run = async (...a) => { order.push('ai:start'); await gate; const r = await run(...a); order.push('ai:end'); return r; };
     f.vectorize.query = async (...a) => { order.push('vec:start'); const r = await query(...a); order.push('vec:end'); return r; };
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
     const db = recordingDb(log);
-    const prepare = db.prepare.bind(db);
-    db.prepare = (sql) => { order.push(sql.includes('MATCH') ? 'fts' : sql.includes('IN (') ? 'hydrate' : 'd1'); return prepare(sql); };
-    await call('/search?q=machine%20learning%20order', { fakes: f, env: { DB: db } });
-    expect(order).toEqual(['ai:start', 'ai:end', 'vec:start', 'vec:end', 'fts', 'hydrate']);
+    const pending = callJson('/search?q=cs1010s%20programming', { fakes: f, env: { DB: db } });
+    // While the embedding is held back, pin and FTS have both been issued and nothing has been hydrated.
+    expect(await settlesWithin(pending, 50)).toBe('pending');
+    const kinds = () => log.map((c) => (c.sql.includes('MATCH') ? 'fts' : c.sql.includes('IN (') ? 'hydrate' : 'pin'));
+    expect(order).toEqual(['ai:start']);
+    expect(kinds().sort()).toEqual(['fts']);
+    release();
+    const { status } = await pending;
+    expect(status).toBe(200);
+    expect(order).toEqual(['ai:start', 'ai:end', 'vec:start', 'vec:end']);
+    expect(kinds()).toEqual(['fts', 'hydrate']);
+    expect(log.every((c) => c.session === 'first-unconstrained')).toBe(true);
+
+    // With a code-shaped query the pin lookup is a third concurrent branch.
+    log.length = 0;
+    const held = createFakes();
+    held.vectorize.vectors = fakes.vectorize.vectors;
+    held.ai.hangs();
+    const pinned = callJson('/search?q=cs1010s', { fakes: held, env: { DB: db } });
+    expect(await settlesWithin(pinned, 50)).toBe('pending');
+    expect(kinds().sort()).toEqual(['fts', 'pin']);
+    expect((await pinned).body.results[0]).toMatchObject({ code: 'CS1010S', score: 1 });
+    // The pinned row comes from the pin query; hydration runs at most once, for the rest.
+    expect(kinds().filter((k) => k === 'hydrate').length).toBeLessThanOrEqual(1);
   });
 
   // Was `[B4 known-bug] responses carry no Server-Timing header`; Phase 1 step 0
-  // added the spans so SC7 can be measured. The serial path itself is still open.
+  // added the spans so SC7 can be measured. Concurrent spans keep pipeline order.
   it('[B4 instrumented] /search responses carry Server-Timing spans for each stage', async () => {
     const res = await call('/search?q=databases%20timing', { fakes });
     expect(res.status).toBe(200);
@@ -72,34 +107,70 @@ describe('B4', () => {
   });
 });
 
-// Behavioural, not structural: any upstream timeout shorter than HANG_MS makes the search
-// settle and these tests fail, however the timer is armed (setTimeout, scheduler.wait,
-// AbortSignal.timeout, a captured reference). Phase 1 plans 1.5 s; a timeout longer
-// than HANG_MS would not be a usable search timeout.
-const HANG_MS = 4000; // catches timeouts up to ~3.9 s (the harness arms its timer slightly earlier)
-
+// Timeouts are behavioural: the search must still be pending just before the
+// budget and settled just after it, however the timer is armed.
 describe('B5', () => {
-  it('[B5 known-bug] /module/%E0%A4%A throws a URIError out of fetch (workerd answers 500, error 1101)', async () => {
-    await expect(call('/module/%E0%A4%A')).rejects.toThrow(URIError);
+  it('[B5 fixed] /module/%E0%A4%A is a 400 naming the bad encoding, not an exception out of fetch', async () => {
+    const { status, body } = await callJson('/module/%E0%A4%A');
+    expect(status).toBe(400);
+    expect(body).toEqual({ error: 'bad_request', message: 'The module code in the path is not valid percent-encoding.' });
   });
 
-  it('[B5 known-bug] a hanging Workers AI call hangs the search: there is no upstream timeout', async () => {
+  it.each([
+    ['ai', 'workers-ai'],
+    ['vectorize', 'vectorize'],
+  ])('[B5 fixed] a hanging %s call times out at 1.5 s and the search answers keyword-only', async (which, source) => {
     const hanging = createFakes();
-    hanging.ai.hangs();
-    expect(await settlesWithin(call('/search?q=machine%20learning%20hang', { fakes: hanging }), HANG_MS)).toBe('pending');
-  }, HANG_MS + 5000);
+    hanging.vectorize.vectors = fakes.vectorize.vectors;
+    (which === 'ai' ? hanging.ai : hanging.vectorize).hangs();
+    const pending = callJson('/search?q=programming%20methodology%20hang', { fakes: hanging });
+    expect(await settlesWithin(pending, 1350)).toBe('pending');
+    expect(await settlesWithin(pending, 350)).toBe('settled'); // by ~1.7 s
+    const { status, body } = await pending;
+    expect(status).toBe(200);
+    expect(body.degraded).toEqual({ source, reason: 'timeout' });
+    expect(codes(body.results)).toContain('CS1010S');
+  });
 
-  it('[B5 known-bug] a hanging Vectorize query hangs the search too', async () => {
-    const hanging = createFakes();
-    hanging.vectorize.hangs();
-    expect(await settlesWithin(call('/search?q=machine%20learning%20hang2', { fakes: hanging }), HANG_MS)).toBe('pending');
-  }, HANG_MS + 5000);
+  it('[B5 fixed] a hanging D1 query times out at 3 s with a 502 naming D1', async () => {
+    /** @type {import('./support.js').DbCall[]} */
+    const log = [];
+    const db = recordingDb(log, { hang: (sql) => sql.includes('MATCH') });
+    const pending = callJson('/search?q=programming%20d1%20hang&mode=lexical', { fakes, env: { DB: db } });
+    expect(await settlesWithin(pending, 2800)).toBe('pending');
+    expect(await settlesWithin(pending, 400)).toBe('settled');
+    const { status, body } = await pending;
+    expect(status).toBe(502);
+    expect(body).toEqual({ error: 'upstream_failure', source: 'd1-fts', message: 'D1 did not answer within 3000 ms' });
+  }, 10_000);
 
-  it('[B5 known-bug] an exception outside the per-call try/catch escapes fetch unhandled', async () => {
-    // The rate limiter call in fetch() is not wrapped.
+  it('[B5 fixed] a throwing rate limiter fails open, and the failure is logged', async () => {
     const f = createFakes();
+    f.vectorize.vectors = fakes.vectorize.vectors;
     f.limit.throws('limiter down');
-    await expect(call('/search?q=limiter%20down', { fakes: f })).rejects.toThrow('limiter down');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { status, body } = await callJson('/search?q=limiter%20down%20programming', { fakes: f });
+      expect(status).toBe(200);
+      expect(body.results.length).toBeGreaterThan(0);
+      expect(errors.mock.calls.map((a) => JSON.parse(String(a[0])))).toContainEqual({ event: 'limiter_error', message: 'limiter down' });
+    } finally { errors.mockRestore(); }
+  });
+
+  it('[B5 fixed] an exception no route handles is a JSON 500 carrying the request id, and is logged', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      // No DB binding at all: the route throws before any of its own try blocks.
+      const withRay = await callJson('/module/CS1010S', { env: { DB: undefined }, init: { headers: { 'cf-ray': '8f1e2d3c4b5a6978-SIN' } } });
+      expect(withRay.status).toBe(500);
+      expect(withRay.body).toEqual({ error: 'internal', requestId: '8f1e2d3c4b5a6978-SIN' });
+      expect(withRay.headers.get('x-app-version')).toBe('dev');
+      const logged = errors.mock.calls.map((a) => JSON.parse(String(a[0])));
+      expect(logged[0]).toMatchObject({ event: 'unhandled', requestId: '8f1e2d3c4b5a6978-SIN', path: '/module/CS1010S', name: 'TypeError' });
+
+      const noRay = await callJson('/module/CS1010S', { env: { DB: undefined } });
+      expect(noRay.body.requestId).toMatch(/^[0-9a-f-]{36}$/);
+    } finally { errors.mockRestore(); }
   });
 });
 
@@ -107,77 +178,173 @@ describe('B6', () => {
   it.each([
     ['ai', 'workers-ai'],
     ['vectorize', 'vectorize'],
-  ])('[B6 known-bug] %s throwing fails the whole search with a 502 and no keyword fallback', async (which, source) => {
+  ])('[B6 fixed] %s throwing in hybrid mode returns the keyword results, flagged degraded and cached for 60 s', async (which, source) => {
     const f = createFakes();
     f.vectorize.vectors = fakes.vectorize.vectors;
     (which === 'ai' ? f.ai : f.vectorize).throws('down');
-    /** @type {import('./support.js').DbCall[]} */
-    const log = [];
-    const { status, body } = await callJson('/search?q=programming%20methodology', { fakes: f, env: { DB: recordingDb(log) } });
-    expect(status).toBe(502);
-    expect(body).toEqual({ error: 'upstream_failure', source, message: 'down' });
-    expect(ftsCalls(log)).toEqual([]);
+    const logs = vi.spyOn(console, 'log');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const res = await call('/search?q=programming%20methodology', { fakes: f });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.mode).toBe('hybrid');
+      expect(body.degraded).toEqual({ source, reason: 'error' });
+      expect(body.retrieval.vector).toBe(0);
+      expect(res.headers.get('cache-control')).toBe('public, max-age=60');
+      expect(res.headers.get('server-timing')).toContain(`degraded;desc=${source}-error`);
+      const line = logs.mock.calls.map((a) => { try { return JSON.parse(String(a[0])); } catch { return null; } }).find((l) => l?.event === 'search');
+      expect(line).toMatchObject({ status: 200, degraded: { source, reason: 'error' }, degradedMessage: 'down' });
 
-    // The keyword half works on its own, so a fallback was possible.
-    const lexical = await callJson('/search?q=programming%20methodology&mode=lexical', { fakes: f });
-    expect(lexical.status).toBe(200);
-    expect(codes(lexical.body.results)).toContain('CS1010S');
+      // Exactly what keyword-only search returns.
+      const lexical = await callJson('/search?q=programming%20methodology&mode=lexical', { fakes: f });
+      expect(codes(body.results)).toEqual(codes(lexical.body.results));
+      expect(codes(body.results)).toContain('CS1010S');
+    } finally { logs.mockRestore(); warn.mockRestore(); }
+  });
+
+  it('[B6 fixed] mode=vector still fails loudly with a 502 from the failing binding', async () => {
+    for (const [which, source] of [['ai', 'workers-ai'], ['vectorize', 'vectorize']]) {
+      const f = createFakes();
+      f.vectorize.vectors = fakes.vectorize.vectors;
+      (which === 'ai' ? f.ai : f.vectorize).throws('down');
+      const { status, body } = await callJson('/search?q=programming%20methodology&mode=vector', { fakes: f });
+      expect(status).toBe(502);
+      expect(body).toEqual({ error: 'upstream_failure', source, message: 'down' });
+    }
+  });
+
+  it('[B6 fixed] after 3 consecutive dense failures the dense half is skipped for 30 s, then retried', async () => {
+    const f = createFakes();
+    f.vectorize.vectors = fakes.vectorize.vectors;
+    f.ai.throws('down');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    let clock = 1_000_000;
+    const realNow = denseCircuit.now;
+    denseCircuit.reset();
+    denseCircuit.now = () => clock;
+    try {
+      for (let i = 0; i < 3; i++) {
+        const { body } = await callJson(`/search?q=circuit%20${i}`, { fakes: f, keepCircuit: true });
+        expect(body.degraded).toEqual({ source: 'workers-ai', reason: 'error' });
+      }
+      expect(f.ai.calls).toHaveLength(3);
+      const skipped = await callJson('/search?q=circuit%20open', { fakes: f, keepCircuit: true });
+      expect(f.ai.calls).toHaveLength(3);
+      expect(skipped.status).toBe(200);
+      expect(skipped.body.degraded).toEqual({ source: 'workers-ai', reason: 'circuit-open' });
+      // mode=vector is never short-circuited.
+      expect((await callJson('/search?q=circuit%20vector&mode=vector', { fakes: f, keepCircuit: true })).status).toBe(502);
+      expect(f.ai.calls).toHaveLength(4);
+
+      clock += 30_001;
+      f.ai.ok();
+      const retried = await callJson('/search?q=circuit%20closed', { fakes: f, keepCircuit: true });
+      expect(f.ai.calls).toHaveLength(5);
+      expect(retried.body.degraded).toBeUndefined();
+      expect(denseCircuit.open()).toBe(false);
+    } finally {
+      denseCircuit.now = realNow;
+      denseCircuit.reset();
+      warn.mockRestore();
+    }
   });
 });
 
 describe('B7', () => {
-  it('[B7 known-bug] the cache key is the raw URL: param order, case and junk params each miss', async () => {
+  it('[B7 fixed] the cache key is canonical: order, case, whitespace, defaults and junk params share one entry', async () => {
     const urls = [
       '/search?q=data%20visualisation&sem=2&topK=7',
       '/search?topK=7&sem=2&q=data%20visualisation',
       '/search?q=Data%20Visualisation&sem=2&topK=7',
-      '/search?q=data%20visualisation&sem=2&topK=7&_r=x1',
+      '/search?q=%20data%20%20%20visualisation%20&sem=2&topK=7.9',
+      '/search?q=data%20visualisation&sem=2&topK=7&_r=x1&mode=hybrid&ng=0&faculty=%20',
     ];
-    for (const u of urls) await caches.default.delete(new Request(new URL(u, BASE).toString()));
-    const before = fakes.ai.calls.length;
-    /** @type {string[][]} */
-    const lists = [];
-    for (const u of urls) lists.push(codes((await (await call(u, { fakes, keepCache: true })).json()).results));
-    // Four misses, four embeddings, for one logical query.
-    expect(fakes.ai.calls.length - before).toBe(4);
-    for (const u of urls) expect(await caches.default.match(new Request(new URL(u, BASE).toString()))).toBeDefined();
-    // Order and junk do not change the answer; only the cache entry.
-    expect(lists[1]).toEqual(lists[0]);
-    expect(lists[3]).toEqual(lists[0]);
+    const key = /** @type {Request} */ (searchCacheKey(new URL(urls[0], BASE)));
+    for (const u of urls) expect(searchCacheKey(new URL(u, BASE))?.url).toBe(key.url);
+    expect(key.url).toBe(`${BASE}/search?q=data+visualisation&sem=2&topK=7&v=${DATA_VERSION}`);
+    await caches.default.delete(key);
 
-    // An identical repeat is a hit.
-    await call(urls[0], { fakes, keepCache: true });
-    expect(fakes.ai.calls.length - before).toBe(4);
+    const before = fakes.ai.calls.length;
+    /** @type {any[]} */
+    const bodies = [];
+    for (const u of urls) {
+      /** @type {import('./support.js').DbCall[]} */
+      const log = [];
+      const res = await call(u, { fakes, keepCache: true, env: { DB: recordingDb(log) } });
+      bodies.push(await res.json());
+      // A hit costs no D1 read at all: nothing is read before the lookup.
+      if (bodies.length > 1) expect(log).toEqual([]);
+    }
+    // One miss, one embedding, for one logical query.
+    expect(fakes.ai.calls.length - before).toBe(1);
+    for (const b of bodies) expect(b).toEqual(bodies[0]);
+    expect(bodies[0].query).toBe('data visualisation');
+
+    // Parameters that change the answer still get their own entry.
+    for (const other of ['/search?q=data%20visualisation&sem=2&topK=8', '/search?q=data%20visualisation&sem=1&topK=7',
+      '/search?q=data%20visualisation&sem=2&topK=7&mode=lexical']) {
+      expect(searchCacheKey(new URL(other, BASE))?.url).not.toBe(key.url);
+    }
+    // Invalid requests have no key and are never cached.
+    expect(searchCacheKey(new URL('/search?q=x&sem=9', BASE))).toBeNull();
+  });
+
+  it('[B7 evidence] every stage is case- and whitespace-insensitive, so the key may lower-case q', async () => {
+    // The fake embedder (and bge-small-en-v1.5, an uncased model) ignores case and spacing.
+    expect(hashEmbed('Machine  LEARNING')).toEqual(hashEmbed('machine learning'));
+    // So does the FTS query lexical.js builds.
+    for (const [a, b] of [['Machine  LEARNING', 'machine learning'], ['Intro To DATA', 'intro to data'], ['CS1010S', 'cs1010s']]) {
+      const trace = new Trace();
+      expect(await lexicalSearch(env.DB, a, {}, 50, trace)).toEqual(await lexicalSearch(env.DB, b, {}, 50, trace));
+    }
   });
 });
 
 describe('B8', () => {
-  it('[B8 known-bug] an empty topK= returns 1 result instead of the default 20', async () => {
+  it('[B8 fixed] an empty topK= returns the default 20 results', async () => {
     const { body } = await callJson('/search?q=machine%20learning&topK=', { fakes });
-    expect(body.count).toBe(1);
-    expect(body.results).toHaveLength(1);
+    expect(body.count).toBe(20);
+    expect(body.results).toHaveLength(20);
   });
 
-  it('[B8 known-bug] hydration reads every fused candidate and columns the response never uses', async () => {
+  it('[B8 fixed] hydration reads only the rows and columns the response renders', async () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
     const { body } = await callJson('/search?q=machine%20learning%20hydrate&topK=20', { fakes, env: { DB: recordingDb(log) } });
     const hydrate = log.filter((c) => c.sql.includes('WHERE code IN'));
     expect(hydrate).toHaveLength(1);
     expect(body.results).toHaveLength(20);
-    expect(hydrate[0].binds.length).toBe(body.retrieval.fused);
-    expect(hydrate[0].binds.length).toBeGreaterThan(20);
-    for (const col of ['description', 'workload', 'prerequisite', 'preclusion', 'acad_year']) {
-      expect(hydrate[0].sql).toContain(col);
-      expect(Object.keys(body.results[0])).not.toContain(col);
+    expect(body.retrieval.fused).toBeGreaterThan(20);
+    expect(hydrate[0].binds).toEqual(codes(body.results));
+    expect(hydrate[0].sql).toContain(`SELECT ${RESULT_COLUMNS} FROM`);
+    for (const col of ['description', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash']) {
+      expect(hydrate[0].sql).not.toContain(col);
     }
   });
 
-  it('[B8 known-bug] Vectorize is asked for indexed metadata it never reads, which caps topK at 50', async () => {
+  it('[B8 fixed] a candidate missing from D1 (stale vector) is skipped and the next one hydrated', async () => {
+    const f = createFakes();
+    f.vectorize.vectors = new Map(fakes.vectorize.vectors);
+    const top = (await callJson('/search?q=machine%20learning%20stale&mode=vector&topK=5', { fakes: f })).body.results;
+    // A vector identical to the best match, for a module D1 does not have.
+    const ghost = /** @type {import('../fakes.js').StoredVector} */ (f.vectorize.vectors.get(top[0].code));
+    f.vectorize.vectors.set('ZZ9999', { ...ghost, id: 'ZZ9999' });
+    /** @type {import('./support.js').DbCall[]} */
+    const log = [];
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const { body } = await callJson('/search?q=machine%20learning%20stale&mode=vector&topK=5', { fakes: f, env: { DB: recordingDb(log) } });
+      expect(codes(body.results)).toEqual(codes(top));
+      expect(log.filter((c) => c.sql.includes('WHERE code IN')).map((c) => c.binds.length)).toEqual([5, 1]);
+    } finally { warn.mockRestore(); }
+  });
+
+  it('[B8 fixed] Vectorize is asked for ids only; the candidate depth stays 50', async () => {
     const before = fakes.vectorize.calls.length;
     const { body } = await callJson('/search?q=machine%20learning%20ceiling&topK=100', { fakes });
     const opts = /** @type {any} */ (fakes.vectorize.calls[before].args[1]);
-    expect(opts).toMatchObject({ topK: 50, returnMetadata: 'indexed' });
+    expect(opts).toEqual({ topK: 50 });
     expect(body.count).toBe(50);
   });
 
@@ -186,6 +353,27 @@ describe('B8', () => {
     const log = [];
     await callJson('/search?q=na%C3%AFve%20bayes&mode=lexical', { fakes, env: { DB: recordingDb(log) } });
     expect(ftsCalls(log)[0].binds[0]).toBe('"na" OR "ve" OR "bayes"');
+  });
+});
+
+describe('O3', () => {
+  it('[O3 fixed] /facets reports the NG list date ingest recorded from data/ng-courses-*.json', async () => {
+    await seed({ fakes, facets: true });
+    const stored = await env.DB.prepare("SELECT value FROM meta WHERE key = 'ng_list'").first('value');
+    expect(JSON.parse(String(stored))).toEqual(NG_LIST);
+    expect(NG_LIST).toMatchObject({ updatedAsAt: '01 Sep 2026', source: expect.stringContaining('Non-Graduating') });
+    expect((await callJson('/facets')).body.ng.updatedAsAt).toBe(NG_LIST.updatedAsAt);
+
+    // A new extract with a new date reaches /facets through the same route, with no code change.
+    const res = await adminCall('/admin/facets', fakes, { ngList: { ...NG_LIST, updatedAsAt: '15 Jan 2027' } });
+    expect(res.status).toBe(200);
+    expect((await callJson('/facets')).body.ng.updatedAsAt).toBe('15 Jan 2027');
+    expect((await adminCall('/admin/facets', fakes, { ngList: { updatedAsAt: 7 } })).status).toBe(400);
+    // An ingest without the NG list (facetsPayload sends an explicit empty list) clears the old date.
+    expect((await adminCall('/admin/facets', fakes, { ngList: { updatedAsAt: null, source: null, count: 0 } })).status).toBe(200);
+    expect((await callJson('/facets')).body.ng.updatedAsAt).toBeNull();
+    // Re-seed so later tests in this file see the fixture as beforeAll left it.
+    fakes = await seed();
   });
 });
 
