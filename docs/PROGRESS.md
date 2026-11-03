@@ -351,3 +351,31 @@ fails on the previous code.
   `.queries.json` is still refused. Re-running the fixed amendment with the custody seed
   reproduces the committed dev file and the committed holdout plaintext byte for byte (the
   committed holdout had no GE-prefixed or overlapping draw), so no hash changes.
+
+## 2026-11-04 — Phase 2 2c (dev): baseline, embedding noise, live fidelity
+
+- Dev query embeddings: `npm run eval:embed -- --set dev`, 136 texts, ≈ 4.5 neurons, one pass;
+  committed as `eval/dev/embeddings.json`. Raw and canonical forms embed bit-identically
+  (bge-small is uncased), so PR #7's canonical form is a no-op for the dense half.
+- Baseline (dev v2.1):
+  - `v0` (`--ref eval-v0`) and `main-2ddf0aa` both return 20 results on 94/98 queries and 400 on
+    the four home-course pastes over 200 characters. 0 degraded.
+  - **Top-10 and top-20 are identical on all 98 queries.**
+  - Run files are not committed (the README does not say they are); their sha256s are in
+    `docs/evidence/phase2/baseline.md`.
+- Workers AI nondeterminism (`docs/evidence/phase2/noise.json`):
+  - One extra 20-text request (≈ 0.46 neurons). Re-embedding the same text gives cosine
+    0.9785–0.99987.
+  - That changes the eval-v0 top-10 order on 15/20 queries and the top-10 set on 9/20.
+  - Synthetic noise at cos 0.9996 changes the set on 15–19/94; at batch-effect levels, 58–69/94.
+  - A 1–2-item dense-driven top-10 change on one query is within noise.
+- Live fidelity check:
+  - 15 live `/search` calls (`requests.tsv` 35–49), method and rule pre-registered in
+    `docs/evidence/phase2/fidelity.md`.
+  - Rows and lexical match exactly (up to FTS5 tie groups) on 15/15.
+  - The dense half differs as expected: mean overlap@10 8.40 vs the replica, below every modelled
+    noise condition's mean (8.47–9.93).
+  - **Verdict FAIL** under the pre-registered rule: d-001 (8 vs envelope 9) and d-065 (7 vs 8) are
+    unexplained. Candidates (Vectorize ANN, production ingest-batch noise) are unverified.
+  - Nothing changed; the lead decides before any gating relies on dense-half resolution.
+- Holdout half of 2c not touched (custodian's job).
