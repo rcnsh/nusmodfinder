@@ -1,0 +1,4 @@
+SELECT 'col' AS kind, m.name AS tbl, p.cid AS a, p.name AS b, p.type AS c, p."notnull" AS d, p.dflt_value AS e, p.pk AS f FROM sqlite_master m, pragma_table_xinfo(m.name) p WHERE m.type='table' AND m.name NOT LIKE '\_cf\_%' ESCAPE '\' AND m.name NOT LIKE 'd1\_%' ESCAPE '\' AND m.name NOT LIKE 'sqlite\_%' ESCAPE '\' AND m.name NOT LIKE 'modules\_fts\_%' ESCAPE '\'
+UNION ALL SELECT 'idx', m.name, i.seq, i.name, i."unique", i.origin, i.partial, NULL FROM sqlite_master m, pragma_index_list(m.name) i WHERE m.type='table' AND m.name IN ('modules','meta')
+UNION ALL SELECT 'obj', type, NULL, name, tbl_name, NULL, NULL, NULL FROM sqlite_master WHERE name NOT LIKE '\_cf\_%' ESCAPE '\' AND name NOT LIKE 'd1\_%' ESCAPE '\' AND name NOT LIKE 'sqlite\_%' ESCAPE '\'
+UNION ALL SELECT 'ftscfg', NULL, NULL, k, v, NULL, NULL, NULL FROM modules_fts_config;

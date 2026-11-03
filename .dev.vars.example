@@ -1,0 +1,7 @@
+# Copy to .dev.vars (gitignored) only when running the ingest flow in README.
+# Committed for `wrangler types --env-file .dev.vars.example`, so generated
+# types never depend on a local secret. INGEST_SECRET and EMBEDDING_MODEL are
+# optional at runtime and declared by hand in src/env.d.ts; they are left
+# commented out here so the generated Env does not mark them required.
+# INGEST_SECRET=<openssl rand -hex 24>
+# EMBEDDING_MODEL=@cf/baai/bge-small-en-v1.5
