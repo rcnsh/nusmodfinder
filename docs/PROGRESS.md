@@ -137,7 +137,7 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
   `git archive eval-v0`. A mutant that runs HEAD under `--ref eval-v0` now fails the self-test.
 - No Cloudflare, live-site or api.nusmods.com call; no neurons spent.
 
-## 2026-11-05 — PR #6 review round 2 (fix delta `3eee229..bcd843b`)
+## 2026-11-04 — PR #6 review round 2 (fix delta `3eee229..bcd843b`)
 
 A fresh-context review of the fixes found 7 issues (1 high); all fixed, each with a test that
 fails on the previous code.
