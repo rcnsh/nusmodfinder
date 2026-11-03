@@ -23,9 +23,9 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 
 | ID | Status | Evidence |
 |---|---|---|
-| B1 | reproduced | test (fixture + full corpus), live |
+| B1 | fixed | tests (fixture + full corpus, property test), live (PR #PRNUM) |
 | B2 | reproduced | tests |
-| B3 | reproduced | test (EXPLAIN QUERY PLAN) |
+| B3 | fixed | tests (EXPLAIN QUERY PLAN, trigger fuzz, cost) (PR #PRNUM) |
 | B4 | fixed | tests (concurrency, differential), live latency |
 | B5 | fixed | tests, live |
 | B6 | fixed | test |
@@ -67,21 +67,27 @@ the network, not the Worker.
 
 ### B1 · Semester filter drops keyword results
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** FTS runs with `LIMIT 4 × depth`, then the semester filter runs in JS, so
 `q=management&sem=3&mode=lexical` returns 6 when about 31 match.
 
 **Evidence:**
-- test `[B1 known-bug] lexical management&sem=3&topK=50 returns 6 of the 31 sem-3 keyword matches (as live)` (`test/full/findings.test.js`): over the full pinned corpus, exactly 31 sem-3 modules match `"management"`, more than 200 match overall, and lexical search returns the same 6 codes production did.
-- test `[B1 known-bug] lexical sem=3 returns 0 results although 3 sem-3 modules match "management"` (`test/findings/b1.test.js`): 20 strong sem-1 decoys + 3 sem-3 targets, `topK=1` → FTS `LIMIT 12` → 0 results.
-- test `[B1 known-bug] hybrid sem=3 finds the targets only through the vector half`
-- `docs/evidence/phase0/raw/B1_sem3.body`: live `count: 6` (BMC5415, TCX2003, BME5042, BMA5134, TCX2005, BME5046). `docs/evidence/phase0/raw/B1_hybrid_sem3.body`: hybrid `retrieval.lexical: 6`, and it surfaces BMA5302 and MEM5103, which lexical misses.
+- test `[B1 fixed] lexical management&sem=3&topK=50 returns all 31 sem-3 keyword matches, in rank order` (`test/full/findings.test.js`): over the full pinned corpus the search now returns all 31, equal to brute force, including the 6 production returned.
+- test `[B1 fixed] lexical sem=3 returns the sem-3 "management" matches however many sem-1 matches outrank them` (`test/findings/b1.test.js`): 20 strong sem-1 decoys + 3 sem-3 targets, `topK=1` → the top target (was 0 results).
+- test `[B1 fixed] hybrid sem=3 finds the targets through both halves`
+- test `filtered lexical equals brute force for every query x filter, and costs <= 8,000 rows read` (`test/full/lexical.test.js`): 440 queries (`test/fixtures/lexical-queries.json`) × 13 filters (each semester, ng, ng+sem1, ng+sem2, level 1/3/5/8, the largest faculty, credits 8), plus depths 3 and 15 for the selective filters: every result equals all matches ranked by bm25 then filtered.
+- `docs/evidence/phase1/lexical-cost.md`: rows-read distribution of that grid.
+- Before the fix: `docs/evidence/phase0/raw/B1_sem3.body`, live `count: 6` (BMC5415, TCX2003, BME5042, BMA5134, TCX2005, BME5046).
 
-**Notes:** Cause `src/index.js:223` (`bind(...binds, limit * 4)`) then `:226` (sem filter in
-JS); depth is `min(topK × 3, 50)` (`:317`), so at most 200 FTS rows are ever considered. The
-~31 figure is confirmed exactly (31) on the full corpus. The live check couldn't count all
-matches because of the topK cap; the full-corpus test can.
+**Notes:** Fixed by PR #PRNUM. Filters now run in SQL (`src/lexical.js` `runFts`) against
+VIRTUAL generated columns `sem1..sem4` (and `ng_sem1/2`) added by
+`migrations/0006_fts_external.sql`, after a bounded FTS top-N (`LIMIT 2000` by rank). When that
+bound may have cut matches (fewer than `limit` survivors and more than 2,000 matches), a
+filter-driven plan walks the indexed filtered rows and probes FTS5 by rowid, so recall is exact
+and a search reads at most ~2 × 2,000 + 2,001 + the filtered set. Unfiltered queries keep the old
+top-N SQL. Was: cause `src/index.js:223` (`bind(...binds, limit * 4)`) then `:226` (sem filter
+in JS).
 
 ### B2 · Re-ingest misses field changes; nothing deletes; cache never expires; acad_year ignored
 
@@ -107,18 +113,24 @@ hashOf(text)`); skip predicate `scripts/ingest.mjs:61`; cache read with no age c
 
 ### B3 · FTS triggers delete by an UNINDEXED column
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** The FTS update/delete triggers delete by UNINDEXED `code`, so every row change scans
 the whole FTS table.
 
 **Evidence:**
-- test `[B3 known-bug] the FTS update/delete triggers delete by the UNINDEXED code column, a full scan` (`test/findings/backend.test.js`): `EXPLAIN QUERY PLAN DELETE FROM modules_fts WHERE code = ?` → `SCAN modules_fts VIRTUAL TABLE INDEX 0:` (no usable constraint; a rowid delete gives `INDEX 0:=`). Updating one module reports `rows_read` ≥ the 400 rows in the table (401 measured).
+- test `[B3 fixed] the FTS triggers address the index by rowid: no full FTS scan, constant cost per row` (`test/findings/backend.test.js`): every statement in every trigger body plans without a SCAN; a title update reads < 10 rows (was 401 on the fixture).
+- test `stays equal to a fresh rebuild under random inserts, upserts, updates and deletes` (`test/fts.test.js`): `integrity-check` passes and MATCH equals a fresh `'rebuild'`.
+- test `a no-op re-ingest of every row writes nothing to the FTS index` (`test/fts.test.js`)
+- test `[B3] a forced full re-ingest writes nothing to the FTS index; one title change reads a handful of rows` (`test/full/lexical.test.js`)
+- `docs/evidence/phase1/0006-cost.md`: 0006 and re-ingest costs on the full corpus.
 
-**Notes:** `migrations/0002_fts.sql:5` (`code UNINDEXED`) and the triggers at `:15-21`. A full
-re-ingest of 6,771 rows therefore reads about 6,771² ≈ 46M FTS rows, far over the 5M/day D1
-free read limit. That figure is extrapolated, not measured remotely. The query plan is a
-property of the schema, so the local plan is the remote plan.
+**Notes:** Fixed by PR #PRNUM. `migrations/0006_fts_external.sql` rebuilds `modules_fts` as an
+external-content table (`content='modules'`, `content_rowid='rowid'`); triggers use the FTS5
+`'delete'` command keyed on `old.rowid`, and the update trigger fires only when `code`, `title`
+or `description` actually change. Was: `migrations/0002_fts.sql:5` (`code UNINDEXED`) and the
+triggers at `:15-21`; a full re-ingest read ~46M FTS rows. `INSERT OR REPLACE` on `modules` would
+corrupt the external-content index; `test/migrations.node.test.js` fails if any code uses it.
 
 ### B4 · Request path is fully serial
 
