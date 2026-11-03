@@ -114,3 +114,103 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
 - Not done here (remote, lead's): enabling D1 read replication (ADR 0002), the SC7
   measurement. Ingest does not yet write `src/data-version.json` (1C).
 - Tests 119 → 128; full corpus 4/4. No live calls, no remote commands, no deploy.
+
+## 2026-11-04 — Phase 2 workstream 2a (eval harness)
+
+- Branch `phase2/harness`: eval runner (`vitest.eval.config.mjs`, separate from `npm test`;
+  actual Worker in workerd, seeded through `/admin/ingest`, fake Vectorize with real corpus
+  vectors, fake AI serving precomputed vectors and failing loudly otherwise), custom reporter via
+  `task.meta`, `--ref` overlay (used with `eval-v0`), metrics/stats/gate, `scripts/embed.mjs`,
+  holdout custody (`scripts/holdout.mjs`, AES-256-GCM, ledger, 12-look limit), CLI
+  (`eval`, `eval:report`, `eval:pool`, `eval:embed`, `eval:verify`, `test:eval`). v1 eval moved
+  to `eval/v1/`. Docs: `eval/README.md`.
+- **Workers AI neurons (estimated from token counts, 1,841/M tokens; logged in
+  `docs/evidence/neurons.tsv`): 1,837.2 total** = fixture set 6.7 (31 texts, 1 request) + one
+  corpus pass 1,829.1 (5,920 unique texts, 60 requests) + determinism check 1.4 (3 texts).
+  No Vectorize, D1 remote, deploy, live-site or api.nusmods.com call.
+- Release `emb-bge-small-v0` (corpus embeddings, text = `embeddingText()` at `eval-v0`):
+  `corpus.f32.gz` sha256 `584555bb3a5d277c82b93ac4b4a0774ccf49004d7836df66a7aa7716ec70a3f2`,
+  `corpus.index.json` sha256 `2de0622cd47bba4befb4e0532904fcb0c4854e066639c9bb82479f38dc84d495`.
+- Finding: Workers AI embeddings are not bit-deterministic across calls/batches. Same text,
+  two REST calls: cosine 0.9994–0.9998; batch of 31 vs batches of 100: min 0.9797, median 0.9957
+  (23 texts). Relevant to the 2c fidelity check (offline vs live near-tie order).
+- Full-corpus smoke run (fixture queries, 6,771 modules, `--ref eval-v0`): 19 s end to end.
+
+## 2026-11-04 — Phase 2 2a: PR #6 review fixes (eval harness)
+
+- **Errors** (medium): a non-200 response is never correct-empty or relevant; every gate (dev,
+  holdout, cutoff, SC5) has "no new errors"; `npm run eval` prints the error count after a dev
+  run. The reviewer's case (8 answerable + 4 no-answer, candidate 500s on the 4) now fails the
+  cutoff gate on dev and holdout instead of passing.
+- **Ledger custody** (medium): `holdout` and `test` always count looks in
+  `eval/holdout-ledger.md`, whatever `--set-dir` says. Ciphertexts are `VNMENC2` with AAD
+  `<set>/<file>`, so files copied into another set's directory do not decrypt. The self-test
+  uses a new encrypted `selftest` set (ledger in its own directory; ciphertexts regenerated with
+  a throwaway key each run). `holdout.mjs encrypt|decrypt` take `--set`.
+- **Concurrency** (medium): check-then-append runs under an `O_EXCL` lock (`<ledger>.lock`; waits
+  2 min; a lock older than 30 min is removed with a message). `npm run eval` reserves its look
+  (`reserved` row, counted) before retrieval and finalises it as the verdict, `aborted` or
+  `unjudged`. Three parallel reports from 11 rows now record 12, not 14.
+- **Leaks** (medium): holdout/test errors print only `eval: <set> run failed (<class>); details
+  withheld`. Metrics errors give a bad grade's value and position, never the rationale or id.
+- **Tampering** (low): every table row counts however it is spaced; a look is refused when the
+  ledger has fewer rows than `HEAD` or `origin/main`, or is missing while git has it.
+- **Small samples** (low): < 10 primary answerable queries fails every gate ("insufficient
+  queries"); zero-variance BCa intervals are `degenerate` and never pass a CI check; tripwires
+  with n < 3 use the point estimate.
+- **Corpus** (low): `report`/`run` refuse when qrels and run corpus sha256s (moduleInfo; NG if
+  recorded) differ; comparison output names the qrels version.
+- **Which ranker ran** (low): run files record `ranker.treeHash`; the self-test checks it against
+  `git archive eval-v0`. A mutant that runs HEAD under `--ref eval-v0` now fails the self-test.
+- No Cloudflare, live-site or api.nusmods.com call; no neurons spent.
+
+## 2026-11-04 — PR #6 review round 2 (fix delta `3eee229..bcd843b`)
+
+A fresh-context review of the fixes found 7 issues (1 high); all fixed, each with a test that
+fails on the previous code.
+
+- **Worker output** (high): workerd prints a Worker's uncaught exceptions to stderr itself, so
+  holdout query text reached the terminal despite `silent`. Vitest now runs in a child process
+  (`eval/runner/vitest-child.mjs`); for encrypted sets its stdout and stderr are discarded and
+  the outcome returns over IPC. Self-test step 5 runs a probe ranker (a dangling commit object)
+  that logs, throws and throws uncaught with the query text: visible on the fixture set, absent
+  on `selftest`.
+- **Ledger edits** (medium): the tamper check compares looks per known set against `HEAD` and
+  `origin/main`, so relabelling `holdout` rows `selftest` or `test` is refused.
+- **Lock ownership** (medium): the lock holds a random token; a holder writes (`assertHeld()`
+  right before a synchronous append) and removes the lock only while the token is its own. A
+  stale lock is broken under `<ledger>.lock.break`, so two breakers cannot remove each other's
+  fresh lock; an abandoned break lock is cleared after 1 min.
+- **Decisive comparison** (low–medium): gate amendment, to record in ADR 0003. A cutoff verdict
+  needs ≥ 3 no-answer queries; the dev targeted route needs ≥ 3 distinct answerable queries
+  across its target shapes (otherwise only the CI route can pass). The 10-query overall floor
+  stays. Floors are 3, not 10, because dev has 5 `noanswer` queries and some shapes have 2.
+- **Withheld line** (low): a failed encrypted run now prints `eval: <set> run failed
+  (RunFailedError); details withheld`.
+- **treeHash** (low): covers `test/wrangler.test.jsonc` (its compatibility date and flags change
+  what runs).
+- Tests 207 → 213 unit; self-test 5 steps. No Cloudflare, live-site or api.nusmods.com call.
+- Round 3 (fresh review of `bcd843b..bd43eb5`): one finding. With `--embed-missing` on an
+  encrypted set, a failed `scripts/embed.mjs` exited directly, leaving the reserved look
+  unfinalised and printing its output. Now its output is discarded for encrypted sets and the
+  failure throws `EmbeddingError` (withheld line; look finalised `aborted`). `.lock.break`
+  gitignored. Tests 214.
+- Merging main (PR #7) broke the `eval-v0` overlay: the runner used `test/helpers.js`, which now
+  imports `src/search.js` and `src/upstream.js`, absent at `eval-v0`. The runner now has its own
+  `eval/runner/harness.js` that uses only `src/index.js`'s default `fetch` and `/admin/ingest`;
+  a node test fails if any overlaid runner file imports another `src/` module. Since PR #7 the
+  ranker embeds the canonical (ASCII-lowercased) query, so two fixture texts (`cs1010s`,
+  `xyz9999`) were embedded (1 request, ~0.0 neurons, logged). Phase 2c will need the same for
+  dev and holdout queries whose canonical form differs.
+- Round 4 (fresh review of `6fe708b..8a04d9a`, the last allowed round): two findings fixed, one
+  accepted.
+  - Medium: the harness no longer resets the dense breaker, so three missing canonical-form
+    vectors in a row opened it and later queries passed keyword-only, hiding their misses. Now
+    `embed.mjs` and the run pre-check cover both forms of each query (`queryTextForms`: raw,
+    and the canonical form `/search` embeds; a workerd test checks it against `parseSearch`),
+    and any `degraded` response fails its query (self-test probe). One more fixture text
+    embedded (~0.1 neurons, logged).
+  - Low–medium: the runner import guard is now an acorn AST walk: `export … from`, several
+    imports per line, and non-literal dynamic imports (refused) are covered.
+  - Accepted: encrypted runs print the pre-retrieval header (ranker, counts; no query content)
+    before the withheld line; the self-test already allows exactly that.

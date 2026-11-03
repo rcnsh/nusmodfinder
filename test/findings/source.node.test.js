@@ -183,13 +183,13 @@ describe('ops', () => {
 
 describe('eval (S1)', () => {
   it('[S1 known-bug] held-out relevance is a regex over titles, recall@10 ignores order, and hybrid MRR trails lexical', () => {
-    const judge = read('scripts/judge-holdout.mjs');
+    const judge = read('eval/v1/judge-holdout.mjs');
     const rules = judge.match(/rule: \(m\) => [^\n]+/g) ?? [];
     expect(rules).toHaveLength(12);
     // 11 of 12 are a regex over the title; h1 is a department check.
     expect(rules.filter((r) => /^rule: \(m\) => \/.*\/i\.test\(m\.title\)/.test(r))).toHaveLength(11);
 
-    const evalSrc = read('scripts/eval.mjs');
+    const evalSrc = read('eval/v1/eval.mjs');
     expect(evalSrc).toContain("const K = Number(arg('k', fixture.k ?? 10));");
     expect(evalSrc).toContain('recall: h / q.relevant.length,');
     // Production returns 20 from a candidate depth of up to 50.

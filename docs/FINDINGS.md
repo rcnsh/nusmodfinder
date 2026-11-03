@@ -273,10 +273,10 @@ hybrid MRR 0.820 < lexical 0.903.
 **Evidence:**
 - test `[S1 known-bug] held-out relevance is a regex over titles, recall@10 ignores order, and hybrid MRR trails lexical`: 11 of 12 held-out rules are a regex over `m.title`; `K` defaults to 10; recall is `h / |relevant|`; EVAL.md's held-out MRR row reads 0.833 / 0.674 / 0.903 / 0.820 and states `ORDER BY rank` was not re-run.
 
-**Notes:** `scripts/judge-holdout.mjs:13-49`, `scripts/eval.mjs:34,104`, `EVAL.md:94` and
+**Notes:** `eval/v1/judge-holdout.mjs:13-49`, `eval/v1/eval.mjs:34,104` (moved from `scripts/` by Phase 2), `EVAL.md:94` and
 `:41`. Production returns 20 of a 50-deep candidate list (`src/index.js:28-29,317`). "Tidy
-queries only" is a judgement, but it mostly holds. Across `eval/queries.json` and
-`eval/holdout.json` (27 queries), the three code queries are exact codes (`CS3244`, `cs2040s`,
+queries only" is a judgement, but it mostly holds. Across `eval/v1/queries.json` and
+`eval/v1/holdout.json` (27 queries), the three code queries are exact codes (`CS3244`, `cs2040s`,
 `EC4308`), and none has a space in a code, a partial code, a typo, or an exam/S/U/workload
 constraint. One query, `machine learning for beginners`, does carry level intent.
 
