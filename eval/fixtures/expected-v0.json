@@ -251,7 +251,8 @@
   "noAnswer": {
    "n": 2,
    "correctEmpty": 0,
-   "falsePositives": 2
+   "falsePositives": 2,
+   "errors": 0
   },
   "violationsAt10": {
    "total": 1,

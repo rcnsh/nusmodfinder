@@ -147,7 +147,7 @@ describe('scoreRun / summarise', () => {
     expect(s.primary.mrr).toBeCloseTo((1 / 2 + 1) / 2, 12);
     expect(s.featureGap).toMatchObject({ n: 1, ndcg: 1 });
     // q3 returned nothing (correct); q5 returned a result (false positive).
-    expect(s.noAnswer).toEqual({ n: 2, correctEmpty: 0.5, falsePositives: 1 });
+    expect(s.noAnswer).toEqual({ n: 2, correctEmpty: 0.5, falsePositives: 1, errors: 0 });
     // q1 is sem 1: B is not offered in sem 1.
     expect(s.violationsAt10).toEqual({ total: 1, perQuery: 1 / 5 });
     expect(s.judgedAt10).toEqual({ judged: 5, top: 5, coverage: 1 });

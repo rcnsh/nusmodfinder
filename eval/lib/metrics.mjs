@@ -11,6 +11,10 @@
 //   is marked `noAnswerByRule` (non-existent codes). Answerable queries tagged
 //   with a feature-gap shape are scored in their own block, not the primary.
 // - No-answer queries score correct-empty (the run returned nothing).
+// - A non-200 response is an error, never a result: it is never correct-empty
+//   and nothing in it is relevant (it scores as an empty ranking that also
+//   fails correct-empty). Every gate fails a candidate with more errors than
+//   its baseline (gate.mjs, "no new errors").
 import { bcaInterval, clusteredInterval, mean, signFlipP } from './stats.mjs';
 
 export const K = 10;
@@ -135,9 +139,11 @@ export function violates(doc, c) {
 }
 
 /**
+ * `empty` is a correct empty answer (status 200, no codes); `error` is any
+ * non-200 response.
  * @typedef {{
  *   id: string, shapes: string[], persona: string, answerable: boolean, featureGap: boolean,
- *   ndcg: number, p5: number, rr: number, empty: boolean, status: number,
+ *   ndcg: number, p5: number, rr: number, empty: boolean, error: boolean, status: number,
  *   violations: number, judged: number, top: number, top1: string | null, top1Grade: number,
  * }} QueryScore
  */
@@ -154,8 +160,10 @@ export function scoreRun(run, queries, qrels) {
     const r = run.results[q.id];
     if (!r) throw new Error(`run ${run.variant} has no result for query ${q.id}`);
     const { grades, groupOf } = qrelsFor(qrels, q.id);
-    const s = scoreRanking(r.codes, grades, groupOf);
-    const top = r.codes.slice(0, K);
+    const ok = r.status === 200;
+    const codes = ok ? r.codes : [];
+    const s = scoreRanking(codes, grades, groupOf);
+    const top = codes.slice(0, K);
     const shapes = q.shapes ?? [];
     const constraints = q.constraints ?? q.filters ?? {};
     return {
@@ -167,13 +175,14 @@ export function scoreRun(run, queries, qrels) {
       ndcg: s.ndcg,
       p5: s.p5,
       rr: s.rr,
-      empty: r.codes.length === 0,
+      empty: ok && codes.length === 0,
+      error: !ok,
       status: r.status,
       violations: top.filter((c) => violates(run.docs[c], constraints)).length,
       judged: top.filter((c) => grades.has(c)).length,
       top: top.length,
-      top1: r.codes[0] ?? null,
-      top1Grade: r.codes[0] === undefined ? 0 : grades.get(r.codes[0]) ?? 0,
+      top1: codes[0] ?? null,
+      top1Grade: codes[0] === undefined ? 0 : grades.get(codes[0]) ?? 0,
     };
   });
 }
@@ -208,11 +217,12 @@ export function summarise(scores) {
     noAnswer: {
       n: noAnswer.length,
       correctEmpty: noAnswer.length ? noAnswer.filter((s) => s.empty).length / noAnswer.length : NaN,
-      falsePositives: noAnswer.filter((s) => !s.empty).length,
+      falsePositives: noAnswer.filter((s) => !s.empty && !s.error).length,
+      errors: noAnswer.filter((s) => s.error).length,
     },
     violationsAt10: { total: violations, perQuery: scores.length ? violations / scores.length : NaN },
     judgedAt10: { judged, top, coverage: top === 0 ? 1 : judged / top },
-    errors: scores.filter((s) => s.status !== 200).length,
+    errors: scores.filter((s) => s.error).length,
   };
 }
 
@@ -290,6 +300,11 @@ export function compare(base, cand, options = {}) {
     judged: {
       base: summarise(base).judgedAt10.coverage,
       cand: summarise(cand).judgedAt10.coverage,
+    },
+    /** Non-200 responses over every query of each run. */
+    errors: {
+      base: base.filter((s) => s.error).length,
+      cand: cand.filter((s) => s.error).length,
     },
   };
 }

@@ -1,7 +1,7 @@
 // @ts-check
 import { describe, expect, it } from 'vitest';
 import { devGate, gateFor, holdoutGate, sc5Gate } from '../../eval/lib/gate.mjs';
-import { compare } from '../../eval/lib/metrics.mjs';
+import { compare, scoreRun, summarise } from '../../eval/lib/metrics.mjs';
 
 /** @typedef {import('../../eval/lib/metrics.mjs').QueryScore} QueryScore */
 
@@ -14,7 +14,7 @@ import { compare } from '../../eval/lib/metrics.mjs';
  */
 const q = (id, ndcg, extra = {}) => ({
   id, shapes: ['topical'], persona: 'p', answerable: true, featureGap: false,
-  ndcg, p5: ndcg, rr: ndcg, empty: false, status: 200, violations: 0, judged: 10, top: 10,
+  ndcg, p5: ndcg, rr: ndcg, empty: false, error: false, status: 200, violations: 0, judged: 10, top: 10,
   top1: 'X', top1Grade: 2, ...extra,
 });
 
@@ -184,5 +184,56 @@ describe('small samples and degenerate intervals (review finding 6)', () => {
     expect(names(up)[tw]).toBe(true);
     // One query that did not move is not a confident regression either.
     expect(names(devGate(withTypo([0.5], [0.5]), { targetShapes: ['typo'] }))[tw]).toBe(true);
+  });
+});
+
+describe('errored queries (review finding 1)', () => {
+  // 8 identical answerable queries plus 4 no-answer ones; the candidate
+  // returns HTTP 500 with no codes on the 4 no-answer queries.
+  const queries = [
+    ...Array.from({ length: 8 }, (_, i) => ({ id: `a${i}`, text: 'x', shapes: ['topical'], persona: `p${i % 3}` })),
+    ...Array.from({ length: 4 }, (_, i) => ({ id: `n${i}`, text: 'y', shapes: ['no-answer'], persona: 'p0' })),
+  ];
+  /** @type {import('../../eval/lib/metrics.mjs').Qrels} */
+  const qrels = { version: 'r', queries: Object.fromEntries(queries.map((x) => [x.id, { judgments: /** @type {Record<string, number>} */ (x.id.startsWith('a') ? { A: 2 } : { N: 0 }) }])) };
+  /** @param {{ status: number, codes: string[] }} noAnswer */
+  const run = (noAnswer) => ({
+    schema: 'vnm-eval-run/1', variant: 'v', set: 'dev', docs: {},
+    results: Object.fromEntries(queries.map((x) => [x.id, x.id.startsWith('a') ? { status: 200, codes: ['A'] } : noAnswer])),
+  });
+  const base = scoreRun(run({ status: 200, codes: ['N'] }), queries, qrels);
+  const cand = scoreRun(run({ status: 500, codes: [] }), queries, qrels);
+  const cmp = compare(base, cand);
+
+  it('an error is never correct-empty', () => {
+    expect(cand.filter((s) => !s.answerable).every((s) => s.error && !s.empty)).toBe(true);
+    expect(summarise(cand).noAnswer).toEqual({ n: 4, correctEmpty: 0, falsePositives: 0, errors: 4 });
+    expect(summarise(cand).errors).toBe(4);
+    expect(cmp.noAnswer.delta).toBe(0);
+    expect(cmp.errors).toEqual({ base: 0, cand: 4 });
+  });
+
+  it('the cutoff gate fails on dev and holdout ("no new errors")', () => {
+    for (const set of ['dev', 'holdout']) {
+      const v = gateFor(set, cmp, { kind: 'cutoff' });
+      expect(v.verdict).toBe('fail');
+      expect(names(v)['no new errors']).toBe(false);
+      expect(detail(v, 'no new errors')).toBe('non-200 responses: baseline 0, candidate 4');
+    }
+  });
+
+  it('every gate has the check; equal error counts pass it', () => {
+    for (const set of ['dev', 'holdout', 'test']) {
+      expect(names(gateFor(set, cmp))['no new errors']).toBe(false);
+      expect(names(gateFor(set, compare(cand, cand)))['no new errors']).toBe(true);
+      expect(names(gateFor(set, compare(cand, base)))['no new errors']).toBe(true);
+    }
+  });
+
+  it('nothing in an errored response is relevant', () => {
+    const answerable = [{ id: 'a0', text: 'x', shapes: ['topical'] }];
+    const r = (/** @type {number} */ status) => scoreRun({ schema: 'vnm-eval-run/1', variant: 'v', set: 'dev', docs: {}, results: { a0: { status, codes: ['A'] } } }, answerable, qrels)[0];
+    expect(r(200)).toMatchObject({ ndcg: 1, p5: 0.2, rr: 1, error: false, top1: 'A' });
+    expect(r(503)).toMatchObject({ ndcg: 0, p5: 0, rr: 0, error: true, empty: false, top1: null, top: 0 });
   });
 });

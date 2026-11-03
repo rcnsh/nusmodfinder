@@ -18,7 +18,8 @@
 //   SC5     On the sealed test set: BCa 95% lower bounds of ΔnDCG@10 and ΔP@5
 //           both > 0; judged@10 = 100%.
 //
-// Every gate also needs at least RULES.minQueries primary answerable queries
+// Every gate fails a candidate with more errored (non-200) queries than its
+// baseline ("no new errors"), and needs at least RULES.minQueries primary answerable queries
 // in its decisive comparison ("insufficient queries" otherwise). A CI-based
 // check never passes on a degenerate interval (stats.mjs: one query, or every
 // delta equal), and a target-shape tripwire over fewer than
@@ -65,6 +66,15 @@ const lowerAboveZero = (ci) => !ci.degenerate && ci.lower > 0;
 
 /** @param {import('./stats.mjs').Interval} ci */
 const ciText = (ci) => `[${f(ci.lower)}, ${f(ci.upper)}]${ci.degenerate ? ' (degenerate: no variance)' : ''}`;
+
+/** @param {Comparison} cmp @returns {Check} */
+function noNewErrorsCheck(cmp) {
+  return {
+    name: 'no new errors',
+    pass: cmp.errors.cand <= cmp.errors.base,
+    detail: `non-200 responses: baseline ${cmp.errors.base}, candidate ${cmp.errors.cand}`,
+  };
+}
 
 /** @param {Comparison} cmp @returns {Check} */
 function judgedCheck(cmp) {
@@ -117,7 +127,7 @@ const verdict = (set, checks) => ({ set, verdict: checks.every((c) => c.pass) ? 
  * @returns {Verdict}
  */
 export function devGate(cmp, change = {}) {
-  const checks = [sufficientCheck(cmp), judgedCheck(cmp)];
+  const checks = [noNewErrorsCheck(cmp), sufficientCheck(cmp), judgedCheck(cmp)];
   if (change.kind === 'cutoff') return verdict('dev', [...checks, ...cutoffChecks(cmp)]);
 
   const targets = change.targetShapes ?? [];
@@ -162,7 +172,7 @@ export function devGate(cmp, change = {}) {
  * @returns {Verdict}
  */
 export function holdoutGate(cmp, change = {}) {
-  const checks = [sufficientCheck(cmp), judgedCheck(cmp), exactCodeCheck(cmp)];
+  const checks = [noNewErrorsCheck(cmp), sufficientCheck(cmp), judgedCheck(cmp), exactCodeCheck(cmp)];
   if (change.kind === 'cutoff') return verdict('holdout', [...checks, ...cutoffChecks(cmp)]);
   checks.push(
     { name: 'ΔnDCG@10 >= 0', pass: cmp.overall.ndcg.delta >= -EPS, detail: f(cmp.overall.ndcg.delta) },
@@ -178,6 +188,7 @@ export function holdoutGate(cmp, change = {}) {
  */
 export function sc5Gate(cmp) {
   return verdict('test', [
+    noNewErrorsCheck(cmp),
     sufficientCheck(cmp),
     judgedCheck(cmp),
     { name: 'ΔnDCG@10 BCa 95% lower bound > 0', pass: lowerAboveZero(cmp.overall.ndcg.bca), detail: ciText(cmp.overall.ndcg.bca) },

@@ -34,6 +34,7 @@ export function summaryTable(runs) {
   add('no-answer n', (s) => String(s.noAnswer.n));
   add('no-answer correct-empty', (s) => pct(s.noAnswer.correctEmpty));
   add('no-answer false positives', (s) => String(s.noAnswer.falsePositives));
+  add('no-answer errors (non-200)', (s) => String(s.noAnswer.errors));
   add('violations@10 (total)', (s) => String(s.violationsAt10.total));
   add('judged@10', (s) => pct(s.judgedAt10.coverage));
   add('non-200 responses', (s) => String(s.errors));

@@ -103,6 +103,10 @@ returned code, for violations). No query text.
   are macro means over answerable queries **without** a feature-gap shape (`constraint`); those
   are reported as their own block. No-answer queries: correct-empty rate (nothing returned) and
   false positives.
+- **Errors.** A non-200 response is an error, never an answer: it is never correct-empty, and
+  nothing in it is relevant (nDCG, P@5 and MRR are 0). `summarise().errors` counts them (the
+  `non-200 responses` row), and `npm run eval` prints `errors: n of N queries returned a non-200
+  response` after every dev run.
 - violations@10: top-10 documents breaking `constraints` (semester; NG means NG *in that
   semester*; level; credits; faculty).
 - Paired over the primary set: BCa bootstrap 95% CI (10,000 resamples, seed 20261104; checked
@@ -113,6 +117,8 @@ returned code, for violations). No query text.
 ## Gate (`lib/gate.mjs`)
 
 Per change, vs the shipped ranker:
+- **every gate** (dev, holdout, cutoff, SC5): **no new errors**: fails if the candidate has more
+  errored (non-200) queries than the baseline.
 - **dev** (screen): ΔnDCG@10 BCa 95% lower bound > 0, or, if the change declares
   `--target-shapes`, every target's ΔnDCG@10 > 0 and overall Δ ≥ 0. Tripwire on target shapes
   only: fails if a target's one-sided 95% upper bound on ΔnDCG@10 is below 0.

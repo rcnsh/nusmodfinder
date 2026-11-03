@@ -66,7 +66,9 @@ console.log('ok: results identical to the golden run');
 step('2. working-tree run, comparison and gate; eval:report recomputes it');
 const headPath = join(WORK, 'head.json');
 const runReport = join(WORK, 'run-report.json');
-ok(node(CLI, ['run', '--set', 'fixture', '--variant', 'selftest-head', '--out', headPath, '--baseline', v0Path, '--json', runReport]), 'head run');
+const headOut = ok(node(CLI, ['run', '--set', 'fixture', '--variant', 'selftest-head', '--out', headPath, '--baseline', v0Path, '--json', runReport]), 'head run');
+// The fixture's > 200-character query returns 400: the run reports it.
+assert.match(headOut, /^errors: 1 of 11 queries returned a non-200 response$/m);
 const head = await json(headPath);
 assert.deepEqual(Object.keys(head.results).sort(), queries.map((/** @type {any} */ q) => q.id).sort());
 const recomputed = join(WORK, 'report.json');

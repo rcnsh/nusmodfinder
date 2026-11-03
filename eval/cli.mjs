@@ -227,6 +227,12 @@ async function cmdRun(a) {
     process.exit(1);
   }
   console.log(`wrote ${res.output}`);
+  if (!set.encrypted) {
+    /** @type {import('./lib/metrics.mjs').RunFile} */
+    const written = JSON.parse(await readFile(res.output, 'utf8'));
+    const all = Object.values(written.results);
+    console.log(`errors: ${all.filter((r) => r.status !== 200).length} of ${all.length} queries returned a non-200 response`);
+  }
   if (set.encrypted && !a['set-dir']) {
     const { updateManifest } = await import('./lib/crypto.mjs');
     await updateManifest(set.dir);
