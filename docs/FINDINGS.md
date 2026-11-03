@@ -2,9 +2,10 @@
 
 Phase 0 triage of every §4 finding ID in [`CRITERIA.md`](CRITERIA.md). Each claim was checked
 against `main` at `7ac9841` (production runs `3b18041`; `src/` is identical). The status set is
-closed: `reproduced | partially-reproduced | rejected | fixed`. `npm run check:findings`
-(`scripts/check-findings.mjs`) fails CI if an ID is missing, has another status, or a
-reproduced/fixed finding names evidence that does not exist.
+closed: `reproduced | partially-reproduced | rejected | fixed`. Line references of the form
+`src/index.js:N` point at `7ac9841`; Phase 1 split that file into `src/*.js` modules.
+`npm run check:findings` (`scripts/check-findings.mjs`) fails CI if an ID is missing, has
+another status, or a reproduced/fixed finding names evidence that does not exist.
 
 **Evidence kinds**
 - **Tests** are characterisation tests named `[<ID> known-bug] …`: plain `it`, asserting the
@@ -129,14 +130,19 @@ time hybrid ~540 ms, `/module` ~240 ms.
 **Evidence:**
 - test `[B4 known-bug] a hybrid search runs embed -> Vectorize -> FTS -> hydrate one after another`
 - test `[B4 known-bug] the lexical query does not start until embedding has finished (fully serial)`: with AI hanging, no FTS statement is ever issued.
-- test `[B4 known-bug] responses carry no Server-Timing header`
+- test `[B4 instrumented] /search responses carry Server-Timing spans for each stage`: flipped from the Phase 0 characterisation test that asserted there was none; `test/instrument.test.js` covers misses, hits, errors and the log line
 - `docs/evidence/requests.tsv` rows 4–9 (`raw/B4_search_*`, `raw/B4_module_*`): hybrid cache-miss `ttfb−tls` 932 / 1427 / 1411 ms; `/module/CS3244` 242 / 387 / 716 ms.
 
-**Notes:** The serial structure is reproduced exactly (`src/index.js:304-367`; the lexical
-half doesn't depend on the embedding but waits for it). The latency figures are only partly
-reproduced. `/module` matches (~240 ms best case), but hybrid measured 0.9–1.4 s, not ~540 ms.
-There is no `Server-Timing` and the edge location varied between calls, so server time can't
-be separated from network time. Phase 1 must add `Server-Timing` to measure SC7.
+**Notes:** The serial structure is reproduced exactly (`src/index.js:304-367` at `7ac9841`,
+now `handleSearch` in `src/search.js`; the lexical half doesn't depend on the embedding but
+waits for it). The latency figures are only partly reproduced. `/module` matches (~240 ms
+best case), but hybrid measured 0.9–1.4 s, not ~540 ms. There was no `Server-Timing` and the
+edge location varied between calls, so server time couldn't be separated from network time.
+
+Phase 1 step 0 (`phase1/instrument`) added `Server-Timing` (`cache`, `limit`, `pin`, `embed`,
+`vector`, `fts`, `hydrate`, `total`) and a structured log line per search with D1 rows read,
+serving region and colo, so SC7 can now be measured on the deployed Worker. That sub-claim is
+fixed; the serial path itself is not (workstream 1B), so B4 stays `partially-reproduced`.
 
 ### B5 · No upstream timeouts, no top-level try/catch
 

@@ -3,7 +3,7 @@
 // rather than of a request: the frontend (src/page.html), the README, the eval
 // scripts and the NG list. Browser behaviour (focus, history, axe, layout) is
 // cited from the recorded Playwright run in docs/evidence/phase0/ instead.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
@@ -13,7 +13,9 @@ const exists = (/** @type {string} */ rel) => existsSync(fileURLToPath(new URL(`
 const page = read('src/page.html');
 const script = /** @type {string} */ (page.match(/<script>([\s\S]*)<\/script>/)?.[1]);
 const css = /** @type {string} */ (page.match(/<style>([\s\S]*)<\/style>/)?.[1]);
-const worker = read('src/index.js');
+// The Worker source, all modules (src/index.js is only the router since Phase 1).
+const worker = readdirSync(fileURLToPath(new URL('../../src', import.meta.url)))
+  .filter((f) => f.endsWith('.js')).sort().map((f) => read(`src/${f}`)).join('\n');
 const readme = read('README.md');
 const ngList = JSON.parse(read('data/ng-courses-2026-2027.json'));
 
@@ -154,7 +156,7 @@ describe('ops', () => {
   it('[O3 known-bug] NG_LIST_UPDATED is a hand-kept copy of the NG list date', () => {
     expect(worker).toContain(`const NG_LIST_UPDATED = '${ngList.updatedAsAt}';`);
     expect(worker).not.toMatch(/import[^\n]*ng-courses/);
-    expect(readme).toContain('bump `NG_LIST_UPDATED` in `src/index.js`');
+    expect(readme).toContain('bump `NG_LIST_UPDATED` in `src/modules.js`');
   });
 
   it('[O4 known-bug] wrangler.jsonc declares no cron trigger', () => {

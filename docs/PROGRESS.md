@@ -60,6 +60,34 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
   account-wide outage; a reused holdout inflates SC5's false-positive rate (simulated 14% vs 2.5%).
 - Tagged `eval-v0` = `7ac9841` (ranker identical to production).
 
+## 2026-11-04 — Phase 1 step 0: module split and instrumentation (`phase1/instrument`)
+
+- `src/index.js` is now only the router. Search (cache, rate limiter, filters, FTS, fusion,
+  hydration) is in `src/search.js`, `/module` and `/facets` in `src/modules.js`, the admin
+  ingest routes in `src/ingest.js`, response helpers in `src/http.js`, spans and D1 counters in
+  `src/timing.js`, and the default model id in `src/embedding.js`. 1A, 1B and 1C can now edit
+  different files.
+- Behaviour-neutral: every Phase 0 test passes unchanged except three. `[B4 known-bug] responses
+  carry no Server-Timing header` is flipped to `[B4 instrumented] …`. Two source-text tests (O3,
+  S1) now read all of `src/*.js` instead of `src/index.js`, and the README's `NG_LIST_UPDATED`
+  pointer moved to `src/modules.js`. A throwaway differential test ran the old `index.js` and the
+  new router side by side on 31 paths (errors, every filter, every mode, admin 404) and got
+  identical status, headers (minus the two new ones) and bodies.
+- `/search` responses carry `Server-Timing` (`cache;desc=hit|miss`, `limit`, `pin`, `embed`,
+  `vector`, `fts`, `hydrate`, `total` from fetch entry, only stages that ran). Cache hits get fresh
+  spans, and the stored entry never holds any. `/module` and `/facets` have `d1` and `total`.
+  Each `/search` writes one JSON log line: status, cache, q (first 100 chars), q length, mode,
+  filters, topK, counts, spans, D1 queries/rows read/served_by_region/served_by_primary, colo,
+  version. Headers and IPs are not logged.
+- `version_metadata` binding (`CF_VERSION_METADATA`); every response has `x-app-version` (tag,
+  else version id, else `dev`); `GET /health` → `{ ok, versionId, versionTag }`, no D1.
+- `npm run deploy` → `scripts/deploy.mjs`: refuses a dirty tree, an unfetchable origin, or a HEAD
+  not on `origin/main`; runs `wrangler deploy --tag <short sha> --message "<sha> <subject>"`;
+  prints the version id. Not run. Plain `wrangler deploy` still works; the README says
+  `npm run deploy` is the only supported path.
+- Tests 98 → 117 (`test/instrument.test.js`, `test/deploy.node.test.js`). No live calls, no
+  remote commands, no deploy.
+
 ## 2026-11-04 — Phase 2 workstream 2a (eval harness)
 
 - Branch `phase2/harness`: eval runner (`vitest.eval.config.mjs`, separate from `npm test`;

@@ -78,7 +78,7 @@ maximum 10 in use, and spending two more for a 2.5% correction was not worth the
 headroom. Per-semester detail *is* stored in D1 (`modules.ng_semesters`) and is returned
 on every result, so the UI shows it in the NG badge tooltip.
 
-After regenerating the extract, bump `NG_LIST_UPDATED` in `src/index.js` so `/facets` —
+After regenerating the extract, bump `NG_LIST_UPDATED` in `src/modules.js` so `/facets` —
 and therefore the UI — reports the right date.
 
 ## Setup
@@ -116,6 +116,31 @@ done
 Adding a ninth filterable property later means **recreating the index and re-ingesting**.
 Vectorize allows at most 10 metadata indexes, and only the first 64 bytes of a string
 property are filterable.
+
+## Deploying
+
+```bash
+npm run deploy
+```
+
+This is the only supported way to deploy. `scripts/deploy.mjs` refuses unless the working
+tree is clean and `HEAD` is already on `origin/main`, then runs
+`wrangler deploy --tag <short sha> --message "<sha> <subject>"` and prints the new version
+id. Plain `npx wrangler deploy` still works, but the version it creates carries no commit,
+so nobody can tell later what it was built from.
+
+To check what's live: every response carries `x-app-version` (the tag, else the version
+id), and `GET /health` returns `{ ok, versionId, versionTag }` without touching D1.
+
+**Instrumentation.** `/search`, `/module/:code` and `/facets` responses carry a
+`Server-Timing` header. `/search` has spans `cache` (`desc=hit|miss`), `limit`, `pin`,
+`embed`, `vector`, `fts` and `hydrate` for the stages that ran, plus `total` from fetch
+entry. `/module` and `/facets` have `d1` and `total`. workerd's clock only advances across
+I/O, so the spans measure waiting on bindings, not CPU. A cache hit gets fresh spans,
+never the stored ones. Each `/search` also writes one JSON log line (`"event":"search"`)
+with the status, cache result, the query (first 100 characters) and its length, the mode,
+filters, result counts, spans, D1 rows read and serving region, and the colo. Headers and
+IPs are never logged.
 
 ## Re-ingesting for a new acad year
 
