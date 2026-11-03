@@ -1,0 +1,309 @@
+{
+  "query": "startup internship",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 50,
+    "lexical": 50,
+    "fused": 76
+  },
+  "results": [
+    {
+      "code": "TR5302",
+      "title": "Experiential Entrepreneurship Internship",
+      "department": "NUS Enterprise Academy",
+      "faculty": "Non-Faculty-based Departments",
+      "credits": 8,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030834914611005692
+    },
+    {
+      "code": "ETP3207S",
+      "title": "Innovation & Enterprise Internship (Team)",
+      "department": "NUS Enterprise Academy",
+      "faculty": "NUS",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.029030910609857977
+    },
+    {
+      "code": "ETP5201",
+      "title": "Innovation & Enterprise Internship",
+      "department": "NUS Enterprise Academy",
+      "faculty": "NUS",
+      "credits": 12,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.028177225029148854
+    },
+    {
+      "code": "ETP5301",
+      "title": "Innovation & Enterprise Internship",
+      "department": "NUS Enterprise Academy",
+      "faculty": "Non-Faculty-based Departments",
+      "credits": 8,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.028021349599695006
+    },
+    {
+      "code": "TR3202N",
+      "title": "Start-up Internship Programme",
+      "department": "NUS Enterprise Academy",
+      "faculty": "NUS",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.027500922849760058
+    },
+    {
+      "code": "TR3202I",
+      "title": "Start-up Internship Programme",
+      "department": "NUS Enterprise Academy",
+      "faculty": "Non-Faculty-based Departments",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02712049508554787
+    },
+    {
+      "code": "TR3202T",
+      "title": "Start-up Internship Programme",
+      "department": "NUS Enterprise Academy",
+      "faculty": "NUS",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.026860955056179775
+    },
+    {
+      "code": "TR3202S",
+      "title": "Start-up Internship Programme",
+      "department": "NUS Enterprise Academy",
+      "faculty": "NUS",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02674825174825175
+    },
+    {
+      "code": "ETP3206L",
+      "title": "Innovation & Enterprise Internship",
+      "department": "NUS Enterprise Academy",
+      "faculty": "NUS",
+      "credits": 16,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.025987006496751626
+    },
+    {
+      "code": "ETP3201S",
+      "title": "Innovation & Enterprise Internship",
+      "department": "NUS Enterprise Academy",
+      "faculty": "NUS",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.025904203323558164
+    },
+    {
+      "code": "ETP3201T",
+      "title": "Innovation & Enterprise Internship",
+      "department": "NUS Enterprise Academy",
+      "faculty": "NUS",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02565359477124183
+    },
+    {
+      "code": "ETP3201L",
+      "title": "Innovation & Enterprise Internship",
+      "department": "NUS Enterprise Academy",
+      "faculty": "NUS",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.025603392041748205
+    },
+    {
+      "code": "BI3712R",
+      "title": "Business Internship III",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.021567717996289426
+    },
+    {
+      "code": "BI3001C",
+      "title": "Business Internship I",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.019904931669637554
+    },
+    {
+      "code": "BI3001A",
+      "title": "Business Internship I",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0199009900990099
+    },
+    {
+      "code": "BI3001B",
+      "title": "Business Internship I",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0199009900990099
+    },
+    {
+      "code": "BI3704R",
+      "title": "Business Internship I",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.019812609798945932
+    },
+    {
+      "code": "BI3704D",
+      "title": "Business Internship I",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01978557504873294
+    },
+    {
+      "code": "BI3704C",
+      "title": "Business Internship I",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01976246105919003
+    },
+    {
+      "code": "BI3704B",
+      "title": "Business Internship I",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.019743240614666407
+    }
+  ]
+}

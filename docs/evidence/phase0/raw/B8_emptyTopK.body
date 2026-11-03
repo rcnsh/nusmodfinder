@@ -1,0 +1,28 @@
+{
+  "query": "machine learning",
+  "filters": {},
+  "count": 1,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 3,
+    "lexical": 3,
+    "fused": 6
+  },
+  "results": [
+    {
+      "code": "SA4110",
+      "title": "Machine Learning Application Development",
+      "department": "NUS-ISS",
+      "faculty": "NUS-ISS",
+      "credits": 6,
+      "level": 4,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01639344262295082
+    }
+  ]
+}

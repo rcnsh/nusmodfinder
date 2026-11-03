@@ -1,0 +1,318 @@
+{
+  "query": "learn korean",
+  "filters": {},
+  "count": 20,
+  "mode": "vector",
+  "retrieval": {
+    "vector": 50,
+    "lexical": 0,
+    "fused": 50
+  },
+  "results": [
+    {
+      "code": "LAK1201",
+      "title": "Korean 1",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.01639344262295082
+    },
+    {
+      "code": "LAK2201",
+      "title": "Korean 2",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.016129032258064516
+    },
+    {
+      "code": "LAK3201",
+      "title": "Korean 3",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015873015873015872
+    },
+    {
+      "code": "LAK3202",
+      "title": "Korean 4",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015625
+    },
+    {
+      "code": "LAK4202",
+      "title": "Korean 6",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015384615384615385
+    },
+    {
+      "code": "LAK4201",
+      "title": "Korean 5",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015151515151515152
+    },
+    {
+      "code": "NTW2041",
+      "title": "The Popularity of Korean Culture",
+      "department": "NUS College Dean's Office",
+      "faculty": "NUS College",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014925373134328358
+    },
+    {
+      "code": "MUA3224",
+      "title": "Intermediate Keyboard Studies",
+      "department": "YSTCM Dean's Office",
+      "faculty": "YST Conservatory of Music",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.014705882352941176
+    },
+    {
+      "code": "SE2221",
+      "title": "Old and New Music in Southeast Asia",
+      "department": "Southeast Asian Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014492753623188406
+    },
+    {
+      "code": "MUA3225",
+      "title": "Early Advanced Keyboard Studies",
+      "department": "YSTCM Dean's Office",
+      "faculty": "YST Conservatory of Music",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014285714285714285
+    },
+    {
+      "code": "LAJ1201",
+      "title": "Japanese 1",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.014084507042253521
+    },
+    {
+      "code": "CH2110",
+      "title": "How bad is my Chinese anyway? Ask a linguist.",
+      "department": "Chinese Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013888888888888888
+    },
+    {
+      "code": "EM1201",
+      "title": "English for Academic Purposes (Music) 1",
+      "department": "Center for Engl Lang Comms",
+      "faculty": "Center for Engl Lang Comms",
+      "credits": 0,
+      "level": 1,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0136986301369863
+    },
+    {
+      "code": "NM3253",
+      "title": "Fandoms to Algorithms: K-Pop, Data and Culture",
+      "department": "Communications and New Media",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013513513513513514
+    },
+    {
+      "code": "JS2233",
+      "title": "Idols and Celebrities in Japan and Korea",
+      "department": "Japanese Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.013333333333333334
+    },
+    {
+      "code": "SE3224",
+      "title": "Thai Drawing and Painting",
+      "department": "Southeast Asian Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.013157894736842105
+    },
+    {
+      "code": "EC3375",
+      "title": "Economy and Business of Japan and Korea",
+      "department": "Economics",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.012987012987012988
+    },
+    {
+      "code": "GESS1027",
+      "title": "La Kopi: Forging of the Chinese Singaporean Community",
+      "department": "Chinese Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01282051282051282
+    },
+    {
+      "code": "SC2229",
+      "title": "K-drama and Sociological Imagination",
+      "department": "Sociology and Anthropology",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.012658227848101266
+    },
+    {
+      "code": "GSA5208",
+      "title": "Sensory Asia: Culture, Society, and Experience",
+      "department": "Sociology and Anthropology",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0125
+    }
+  ]
+}

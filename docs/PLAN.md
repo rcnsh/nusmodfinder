@@ -1,0 +1,167 @@
+# Plan
+
+Mission: turn vector-nusmods into the NUS course planner for incoming exchange students.
+Success criteria SC1–SC10 are defined in the mission brief and restated in
+[`docs/CRITERIA.md`](CRITERIA.md). Findings live in [`FINDINGS.md`](FINDINGS.md), the
+log in [`PROGRESS.md`](PROGRESS.md), decisions in [`decisions/`](decisions/).
+
+## Phase status
+
+| Phase | Title | Status | Exit gate |
+|---|---|---|---|
+| 0 | Safety net | in progress | CI green on main; every finding triaged; DB rebuilds from scratch |
+| 1 | Backend correctness and pipeline | not started | SC6, SC7 measured; README cost section fixed |
+| 2 | A real eval (may run parallel to 1) | not started | one-command harness; baseline in EVAL.md |
+| 3 | Search that understands students | not started | SC4, SC5 |
+| 4 | Exchange mode that is correct | not started | SC1; persona red team finds nothing |
+| 5 | Frontend and design overhaul | not started | SC2, SC8; design gate |
+| 6 | Shortlist and export | not started | SC3 |
+| 7 | Ops and architecture | not started | SC9 |
+| 8 | Launch readiness | not started | SC10; name/domain gate |
+
+## Phase 0 plan (revision 2)
+
+### Scope
+1. Initial commit + private remote. **Done** (`3b18041`, `rcnsh/vector-nusmods`; deployed
+   version `c6744373-1aff-4d8d-8b7f-6dd4e6c3d513` serves this commit: live `/` is byte-identical
+   to `src/page.html`).
+2. Upstream data pinned. **Done**: the 2026-09-04 `.data/` production was built from is the
+   release asset `data-2026-2027-20260904` (gz; raw sha256 moduleInfo `2d138795…57b1`,
+   moduleList `c56b6fbe…e36e`).
+3. Remote schema snapshot captured read-only. **Done** (`/tmp/vnm-snap/`, 77 rows read, 0 written).
+4. Migrations formalised for `wrangler d1 migrations apply`.
+5. Test harness: Vitest 5.1.0 + `@cloudflare/vitest-plugin@1.5.1` (pinned exactly; the old
+   `vitest-pool-workers` is deprecated and its workerd can't run compat date 2026-09-01).
+6. Lint (ESLint 9 flat) + `// @ts-check` + `tsc --noEmit`.
+7. CI on GitHub Actions.
+8. Every §4 finding reproduced; `FINDINGS.md` complete; a check fails CI if any ID lacks a status.
+
+**Phase 0 makes no behavioural change to `src/`.** Only JSDoc/type annotations and
+comment-free refactors that tsc forces; any such edit is listed in the PR. Production stays on
+`3b18041` until Phase 1 deploys.
+
+### Remote-safety rules for Phase 0 (all agents)
+Banned: `wrangler d1 migrations list|apply --remote` (both run `CREATE TABLE d1_migrations`
+remotely, wrangler cli.js `initMigrationsTable`), `wrangler dev --remote`, `npm run ingest`,
+`wrangler deploy`, any remote D1 write. Allowed: read-only `wrangler d1 execute --remote
+--command "SELECT|EXPLAIN …"` with estimate + actual logged in PROGRESS. Live `/search`:
+every call appended to `/tmp/vnm-repro/requests.log` (shared counter); 36 of the 40 budget
+are spent, so ≤ 4 more in Phase 0.
+
+### Migrations
+- `migrations/0001_init.sql` = original `modules` (13 columns, `ng`/`ng_semesters` stay in
+  0003) + `idx_modules_faculty`. FTS stays in 0002, `meta` in 0004. All `CREATE … IF NOT
+  EXISTS`. `schema.sql` is deleted; README points at migrations.
+- 0003's `ALTER TABLE ADD COLUMN`: SQLite has no `IF NOT EXISTS` for columns, so idempotency
+  for ALTER comes from migration tracking. Failure mode if someone runs `apply --remote`
+  before bootstrap: 0001/0002 no-op and get recorded, 0003 fails `duplicate column name: ng`;
+  recover by inserting the remaining rows. Recorded in ADR 0001.
+- Remote bootstrap is **Phase 1**, before 0006: take a time-travel bookmark, then one
+  `d1 execute --remote` running wrangler's exact DDL
+  `CREATE TABLE IF NOT EXISTS d1_migrations(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)`
+  and `INSERT OR IGNORE` of `0001_init.sql`…`0005_rank.sql`. Est. ≤ 10 rows written.
+- **Rebuild proof**: `scripts/schema-snapshot.mjs` runs the same pragma query used for the
+  remote capture (`test/fixtures/schema-query.sql`) against a local D1 built from empty by
+  `wrangler d1 migrations apply nusmods --local --persist-to <tmp>`, normalises (sorted rows,
+  internal tables `_cf_%`, `d1_%`, `sqlite_%` excluded), and diffs against the committed remote
+  snapshot `test/fixtures/remote-schema.json`. Compares columns (pragma_table_xinfo), indexes
+  (pragma_index_list), object names, and `modules_fts_config` (so a missing 0005 is caught).
+  Not raw `sqlite_master.sql` text, which differs by comments and apply path. Runs in CI with
+  no Cloudflare credentials.
+
+### Test harness
+- `vitest.config.mjs` with `cloudflareTest({ wrangler: { configPath: './wrangler.test.jsonc' },
+  remoteBindings: false })`. `wrangler.test.jsonc` = production config minus `ai`, `vectorize`
+  and `ratelimits` (so nothing can reach a metered remote service), plus a `vars` flag. A guard
+  test asserts `env.AI`/`env.VECTORIZE` are undefined in the raw test env.
+- Fakes in `test/fakes.js`: deterministic hashing embedder for AI (384-d), in-memory cosine
+  Vectorize (`query` with topK ceiling 50 when `returnMetadata` is `all`/`indexed`, else 100;
+  implicit-eq/`$eq`/`$ne`/`$in` filters, unknown operator throws; `upsert`, `deleteByIds`,
+  `getByIds`), fake `SEARCH_LIMIT` (always allow, or configurable). Each can be set to throw or
+  hang. All requests go through a helper `call(path, {fakes})` that builds env, creates an
+  execution context and awaits `waitOnExecutionContext`.
+- Isolation: `caches.default` and D1 persist across tests in a file, so each test file seeds in
+  `beforeAll` and the helper deletes the `/search` cache entry it is about to use (or tests use
+  unique query strings); `reset()` + re-migrate where a test mutates D1.
+- **Fixture corpus** (committed): `test/fixtures/corpus.json`, ~400 normalised modules built by
+  `scripts/build-fixture.mjs` from the pinned snapshot, selected to cover the findings
+  (all "management" modules with sem 3, CS1010S, CS2109S, CS3244, CG3201, PC3270, GEA*, TR3202*,
+  PL1101E, CE5316QA, LAK1201/LAK2201, level 5–6 AI courses, non-ASCII titles, etc.). Records
+  source sha256.
+- **Full corpus**: `vitest.config.mjs` (Node side) loads the snapshot via `scripts/lib.mjs`,
+  normalises, and `provide`s it; tests use `inject('corpus')`. `test/full/*` use
+  `describe.skipIf(!corpus)` locally; with `CI=true` a missing corpus is a hard failure.
+  CI fetches the release asset (`gh release download`, `GITHUB_TOKEN`), verifies sha256,
+  caches on that hash. Never fetches api.nusmods.com.
+- **Known-bug tests are characterisation tests** with plain `it`, named `[B1 known-bug] …`,
+  asserting the current wrong output specifically. When a phase fixes the bug, the test fails
+  and is rewritten to assert correct behaviour in the same PR. No `it.fails` (it passes on
+  any error, including harness breakage). Hang/timeout behaviours use fake hangs with a short
+  test timeout and assert the specific outcome.
+
+### Lint/typecheck
+ESLint 9 flat config (`@eslint/js` recommended + `globals`). `tsc --noEmit` with `checkJs` over
+`src/`, `scripts/lib.mjs`, `test/`. Types from `wrangler types --env-file .dev.vars.example`
+(committed example has no secrets), drift-checked with `wrangler types --check` (or regenerate
+and `git diff --exit-code`). `src/env.d.ts` declares optional `INGEST_SECRET?` and
+`EMBEDDING_MODEL?` by hand.
+
+### CI
+One workflow, `push: [main]` + `pull_request`, `concurrency` with cancel-in-progress,
+`paths-ignore: ['docs/**', '**.md']` (but FINDINGS check runs on docs changes via a tiny
+separate job). Jobs: `check` (npm ci, lint, typecheck, types drift, unit/integration tests,
+migration rebuild + schema diff, findings-coverage check) and `full-corpus` (download pinned
+data, run `test/full`). Node 22 LTS in CI. Actions billing API moved (HTTP 410) so minutes
+are watched in the GitHub UI; jobs are kept to two.
+
+### Findings
+Reproductions from workstream 0b are in `/tmp/vnm-repro/` (requests.log, raw/, fe-*.json,
+axe-*.json, shots/). They go into `FINDINGS.md` with commands and key output. Locally testable
+findings additionally get a characterisation test. B3 gets a local `EXPLAIN QUERY PLAN` test
+(no remote call needed: the query plan is a property of the schema).
+`docs/CRITERIA.md` holds the SC list and every §4 ID; `scripts/check-findings.mjs` fails if an
+ID lacks a status.
+
+### Risks
+- Plugin 1.5.1 published today: pin exactly; if it misbehaves, fall back to 1.4.12.
+- Fixture too small for ranking findings (S2, S6): those stay recorded live commands.
+- Fakes diverging from real Vectorize semantics: ceilings and operators enforced, unknown
+  operators throw.
+- Miniflare does not enforce the 10 ms CPU limit: CPU measured in Phase 1 from the deployed
+  Worker's observability, not locally.
+- Branch protection is unavailable for private repos on GitHub Free, so "green before merge"
+  is enforced by process: merges only via `gh pr merge --squash` after `gh pr checks --watch`.
+
+### Quota cost
+Already spent: 77 rows read (snapshot), 36 `/search` + 7 other live calls. Remaining Phase 0:
+≤ 4 `/search`, ≤ 20 rows read. No writes.
+
+### Exit criteria
+- CI green on `main` (both jobs).
+- `scripts/check-findings.mjs` passes: every §4 ID has reproduced/rejected/fixed status.
+- Migration rebuild diff is empty against the remote snapshot.
+
+### Workstreams
+| WS | Owner | Branch | Depends on | Status |
+|---|---|---|---|---|
+| 0b live + frontend reproductions | agent | — | — | done (`/tmp/vnm-repro/`) |
+| 0a harness+migrations+lint+CI | implementer | `phase0/harness` | — | next |
+| 0c reproduction tests + FINDINGS.md | implementer | `phase0/findings` | 0a merged | |
+
+### Critic round 1 objection log
+| # | Critic | Objection | Resolution |
+|---|---|---|---|
+| 1 | A, B | `vitest-pool-workers` deprecated; 0.23 needs vitest 4, workerd too old for compat date | Switched to `@cloudflare/vitest-plugin@1.5.1` pinned |
+| 2 | A, B | `remoteBindings` defaults true; AI binding without `remote` connects to real account | `remoteBindings:false` + test config without ai/vectorize/ratelimits + guard test |
+| 3 | A | `caches.default` persists across tests → false results | per-test cache delete / unique URLs; `reset()` + re-migrate |
+| 4 | A | real rate limiter trips in tests | fake `SEARCH_LIMIT`; limiter removed from test config |
+| 5 | B | `migrations list --remote` writes to prod | banned in Phase 0; bootstrap in Phase 1 with bookmark + `INSERT OR IGNORE` |
+| 6 | B | `wrangler types` drift fails because `.dev.vars` has `INGEST_SECRET` | `--env-file .dev.vars.example`; hand-declared optional vars |
+| 7 | B | CI data not reproducible (upstream drifted, cache evicts) | pinned release asset with sha256; never fetch upstream in CI |
+| 8 | A, B | schema text diff fragile; misses 0005 | pragma-based normalised diff incl. `modules_fts_config` |
+| 9 | A, B | `it.fails` hides harness breakage | characterisation tests with plain `it` |
+| 10 | B | Actions minutes | 2 jobs, concurrency cancel, paths-ignore |
+| 11 | B | main may drift from live | no behavioural `src/` change in Phase 0; version mapped |
+| 12 | B | live budget unenforced across agents | shared `requests.log`; ≤ 4 left |
+| 13 | B | durable docs missing | PROGRESS, FINDINGS, CRITERIA, ADR 0001 written in this step |
+| 14 | A | full-corpus can pass by skipping | hard fail when `CI=true` |

@@ -1,0 +1,444 @@
+[
+  {
+    "results": [
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 0,
+        "b": "code",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 1
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 1,
+        "b": "title",
+        "c": "TEXT",
+        "d": 1,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 2,
+        "b": "description",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 3,
+        "b": "credits",
+        "c": "REAL",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 4,
+        "b": "department",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 5,
+        "b": "faculty",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 6,
+        "b": "level",
+        "c": "INTEGER",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 7,
+        "b": "semesters",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 8,
+        "b": "workload",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 9,
+        "b": "prerequisite",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 10,
+        "b": "preclusion",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 11,
+        "b": "acad_year",
+        "c": "TEXT",
+        "d": 1,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 12,
+        "b": "text_hash",
+        "c": "TEXT",
+        "d": 1,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 13,
+        "b": "ng",
+        "c": "INTEGER",
+        "d": 1,
+        "e": "0",
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules",
+        "a": 14,
+        "b": "ng_semesters",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules_fts",
+        "a": 0,
+        "b": "code",
+        "c": "",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules_fts",
+        "a": 1,
+        "b": "title",
+        "c": "",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules_fts",
+        "a": 2,
+        "b": "description",
+        "c": "",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules_fts",
+        "a": 3,
+        "b": "modules_fts",
+        "c": "",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "modules_fts",
+        "a": 4,
+        "b": "rank",
+        "c": "",
+        "d": 0,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "meta",
+        "a": 0,
+        "b": "key",
+        "c": "TEXT",
+        "d": 0,
+        "e": null,
+        "f": 1
+      },
+      {
+        "kind": "col",
+        "tbl": "meta",
+        "a": 1,
+        "b": "value",
+        "c": "TEXT",
+        "d": 1,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "col",
+        "tbl": "meta",
+        "a": 2,
+        "b": "updated_at",
+        "c": "TEXT",
+        "d": 1,
+        "e": null,
+        "f": 0
+      },
+      {
+        "kind": "idx",
+        "tbl": "modules",
+        "a": 0,
+        "b": "idx_modules_ng",
+        "c": 0,
+        "d": "c",
+        "e": 0,
+        "f": null
+      },
+      {
+        "kind": "idx",
+        "tbl": "modules",
+        "a": 1,
+        "b": "idx_modules_faculty",
+        "c": 0,
+        "d": "c",
+        "e": 0,
+        "f": null
+      },
+      {
+        "kind": "idx",
+        "tbl": "modules",
+        "a": 2,
+        "b": "sqlite_autoindex_modules_1",
+        "c": 1,
+        "d": "pk",
+        "e": 0,
+        "f": null
+      },
+      {
+        "kind": "idx",
+        "tbl": "meta",
+        "a": 0,
+        "b": "sqlite_autoindex_meta_1",
+        "c": 1,
+        "d": "pk",
+        "e": 0,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "table",
+        "a": null,
+        "b": "modules",
+        "c": "modules",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "index",
+        "a": null,
+        "b": "idx_modules_faculty",
+        "c": "modules",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "table",
+        "a": null,
+        "b": "modules_fts",
+        "c": "modules_fts",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "table",
+        "a": null,
+        "b": "modules_fts_data",
+        "c": "modules_fts_data",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "table",
+        "a": null,
+        "b": "modules_fts_idx",
+        "c": "modules_fts_idx",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "table",
+        "a": null,
+        "b": "modules_fts_content",
+        "c": "modules_fts_content",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "table",
+        "a": null,
+        "b": "modules_fts_docsize",
+        "c": "modules_fts_docsize",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "table",
+        "a": null,
+        "b": "modules_fts_config",
+        "c": "modules_fts_config",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "trigger",
+        "a": null,
+        "b": "modules_fts_insert",
+        "c": "modules",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "trigger",
+        "a": null,
+        "b": "modules_fts_delete",
+        "c": "modules",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "trigger",
+        "a": null,
+        "b": "modules_fts_update",
+        "c": "modules",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "index",
+        "a": null,
+        "b": "idx_modules_ng",
+        "c": "modules",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "obj",
+        "tbl": "table",
+        "a": null,
+        "b": "meta",
+        "c": "meta",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "ftscfg",
+        "tbl": null,
+        "a": null,
+        "b": "rank",
+        "c": "bm25(0.0, 3.0, 1.0)",
+        "d": null,
+        "e": null,
+        "f": null
+      },
+      {
+        "kind": "ftscfg",
+        "tbl": null,
+        "a": null,
+        "b": "version",
+        "c": 4,
+        "d": null,
+        "e": null,
+        "f": null
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "WEUR",
+      "served_by_colo": "AMS",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 1.1312
+      },
+      "duration": 1.1312,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 16109568,
+      "rows_read": 77,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

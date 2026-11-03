@@ -1,0 +1,26 @@
+{
+  "code": "GEA1000",
+  "title": "Quantitative Reasoning with Data",
+  "description": "This course aims to equip undergraduate students with essential data literacy skills to analyse data and make decisions under uncertainty. It covers the basic principles and practice for collecting data and extracting useful insights, illustrated in a variety of application domains. For example, when two issues are associated (e.g., smoking and cancer), how can we tell whether the relationship is causal (e.g., smoking causes cancer)? How can we deal with categorical data? Numerical data? What about uncertainty and complex relationships? These and many other questions will be addressed using software and computational tools, with real-world data sets.",
+  "credits": 4,
+  "department": "Office of the Provost",
+  "faculty": "NUS",
+  "level": 1,
+  "semesters": [
+    1,
+    2
+  ],
+  "workload": [
+    2.5,
+    1.5,
+    0,
+    3,
+    3
+  ],
+  "prerequisite": null,
+  "preclusion": "If undertaking an Undergraduate DegreeTHEN( must not have completed 1 of BT1101/BT1101HS/DSA1101/DSE1101/GEA1000N/IE1111R/SPH1904/ST1131/TCX2002)",
+  "acad_year": "2026-2027",
+  "text_hash": "3d0b2c4d90ad4d36740f4132ccea1151",
+  "ng": false,
+  "ng_semesters": []
+}

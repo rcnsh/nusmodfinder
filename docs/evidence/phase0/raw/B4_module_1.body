@@ -1,0 +1,28 @@
+{
+  "code": "CS3244",
+  "title": "Machine Learning",
+  "description": "This course introduces basic concepts and algorithms in machine learning and neural networks. The main reason for studying computational learning is to make better use of powerful computers to learn knowledge (or regularities) from the raw data. The ultimate objective is to build self-learning systems to relieve human from some of already-too-many programming tasks. At the end of the course, students are expected to be familiar with the theories and paradigms of computational learning, and capable of implementing basic learning systems.",
+  "credits": 4,
+  "department": "Computer Science",
+  "faculty": "Computing",
+  "level": 3,
+  "semesters": [
+    1,
+    2
+  ],
+  "workload": [
+    2,
+    1,
+    0,
+    4,
+    3
+  ],
+  "prerequisite": "If undertaking an Undergraduate DegreeTHENmust have completed 1 of CS2040/CS2040C/CS2040DE/CS2040HS/CS2040S/YSC2229 at a grade of at least DANDmust have completed 1 of EE2012/EE2012A/MA2116/MA2116T/MA2216/ST2131/ST2334/YSC2243 at a grade of at least DAND( must have completed all of MA1511/MA1512 at a grade of at least DORmust have completed 1 of MA1101R/MA1311/MA1508E/MA1513/MA1522/MA2001 at a grade of at least DANDmust have completed 1 of MA1102R/MA1505/MA1507/MA1521/MA2002 at a grade of at least D)",
+  "preclusion": "If undertaking an Undergraduate DegreeTHEN( must not have completed 1 of BT4240/CG3201/CS2109S/CS3264/DMX1401AI/IT3011 at a grade of at least D)",
+  "acad_year": "2026-2027",
+  "text_hash": "297363a399873da7ce4558b75820c273",
+  "ng": true,
+  "ng_semesters": [
+    2
+  ]
+}

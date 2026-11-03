@@ -1,0 +1,307 @@
+{
+  "query": "�%A",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 50,
+    "lexical": 50,
+    "fused": 99
+  },
+  "results": [
+    {
+      "code": "MA6202",
+      "title": "Approximate Subgroups",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 6,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.029551337359792925
+    },
+    {
+      "code": "PHM5011",
+      "title": "Precision Diagnostics",
+      "department": "Biochemistry",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01639344262295082
+    },
+    {
+      "code": "PHM5008",
+      "title": "Clinical Perspective in Precision Medicine",
+      "department": "Biochemistry",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.016129032258064516
+    },
+    {
+      "code": "LC3001A",
+      "title": "Evidence (A)",
+      "department": "FoL Dean's Office",
+      "faculty": "Law",
+      "credits": 8,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.016129032258064516
+    },
+    {
+      "code": "SWM5215",
+      "title": "Poverty and Asset-Building Policy",
+      "department": "Social Work",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015873015873015872
+    },
+    {
+      "code": "LC1001A",
+      "title": "Criminal Law (A)",
+      "department": "FoL Dean's Office",
+      "faculty": "Law",
+      "credits": 8,
+      "level": 1,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015873015873015872
+    },
+    {
+      "code": "PHM5012",
+      "title": "Precision Therapeutics",
+      "department": "Biochemistry",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015625
+    },
+    {
+      "code": "MUA2255",
+      "title": "Applied Secondary A",
+      "department": "YSTCM Dean's Office",
+      "faculty": "YST Conservatory of Music",
+      "credits": 2,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015625
+    },
+    {
+      "code": "LSM2106",
+      "title": "Fundamental Biochemistry",
+      "department": "Biochemistry",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.015384615384615385
+    },
+    {
+      "code": "MDG5227",
+      "title": "Bio-Innovation & Entrepreneurship",
+      "department": "NUS Medicine Dean's Office",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015384615384615385
+    },
+    {
+      "code": "MA2202",
+      "title": "Algebra I",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.015151515151515152
+    },
+    {
+      "code": "MA4198",
+      "title": "Mathematics Capstone Project",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015151515151515152
+    },
+    {
+      "code": "PHM5017",
+      "title": "Mini-Capstone project in Precision Medicine",
+      "department": "Biochemistry",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 8,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014925373134328358
+    },
+    {
+      "code": "UTC3401",
+      "title": "CAPT Undergraduate Research Opportunity (UROP)",
+      "department": "College of Alice and Peter Tan",
+      "faculty": "Residential College",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014925373134328358
+    },
+    {
+      "code": "TCE3166",
+      "title": "Structural Steel Design and System",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014705882352941176
+    },
+    {
+      "code": "UTC3102",
+      "title": "Tembusu Undergraduate Research Opportunity (UROP)",
+      "department": "Tembusu College",
+      "faculty": "Residential College",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014705882352941176
+    },
+    {
+      "code": "PC2289",
+      "title": "Basic UROPS in Physics II",
+      "department": "Physics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014492753623188406
+    },
+    {
+      "code": "AIS5281",
+      "title": "Machine Learning in a Research Project",
+      "department": "Physics",
+      "faculty": "Science",
+      "credits": 8,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014492753623188406
+    },
+    {
+      "code": "BHD4002",
+      "title": "BBA Dissertation",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 8,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014285714285714285
+    },
+    {
+      "code": "LAS3201",
+      "title": "Spanish 3",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014285714285714285
+    }
+  ]
+}

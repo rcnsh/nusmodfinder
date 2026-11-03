@@ -1,0 +1,354 @@
+{
+  "query": "machine learning",
+  "filters": {
+    "sem": 1,
+    "ng": true
+  },
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 50,
+    "lexical": 50,
+    "fused": 84
+  },
+  "results": [
+    {
+      "code": "PF3211",
+      "title": "Machine Learning for the Built Environment",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.03225806451612903
+    },
+    {
+      "code": "CG3201",
+      "title": "Machine Learning and Deep Learning",
+      "department": "Computing and Engineering Programme",
+      "faculty": "Multi Disciplinary Programme",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.032018442622950824
+    },
+    {
+      "code": "HS1502",
+      "title": "Conceptual Introduction to Machine Learning",
+      "department": "Physics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.032018442622950824
+    },
+    {
+      "code": "CS3244",
+      "title": "Machine Learning",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.031746031746031744
+    },
+    {
+      "code": "BT4222",
+      "title": "Mining Web Data for Business Insights",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.030303030303030304
+    },
+    {
+      "code": "DSA4212",
+      "title": "Optimisation for Large-Scale Data-Driven Inference",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.030090497737556562
+    },
+    {
+      "code": "CS4246",
+      "title": "Reinforcement Learning and Sequential Decision Making",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.029418126757516764
+    },
+    {
+      "code": "IS4246",
+      "title": "Smart Systems and AI Governance",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.027650648360030512
+    },
+    {
+      "code": "ST3248",
+      "title": "Statistical Learning I",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.02701252236135957
+    },
+    {
+      "code": "MA4270",
+      "title": "Data Modelling and Computation",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.026631393298059962
+    },
+    {
+      "code": "BT4212",
+      "title": "Search Engine Optimization and Analytics",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.02651914295749912
+    },
+    {
+      "code": "EE3731C",
+      "title": "Signal Analytics",
+      "department": "Electrical and Computer Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.02548701298701299
+    },
+    {
+      "code": "MA3270",
+      "title": "Mathematics for Artificial Intelligence",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.024414620217018845
+    },
+    {
+      "code": "CS4248",
+      "title": "Introduction to Large Language Models",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.023608316566063048
+    },
+    {
+      "code": "DBA3803",
+      "title": "Predictive Analytics in Business",
+      "department": "Analytics and Operations",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.023317435082140965
+    },
+    {
+      "code": "IS1108",
+      "title": "Digital and AI Ethics",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.02152014652014652
+    },
+    {
+      "code": "ME3115",
+      "title": "Mechanics of Machines",
+      "department": "Mechanical Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.014925373134328358
+    },
+    {
+      "code": "ST4231",
+      "title": "Computer Intensive Statistical Methods",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.014285714285714285
+    },
+    {
+      "code": "ME2162",
+      "title": "Manufacturing Processes",
+      "department": "Mechanical Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.014084507042253521
+    },
+    {
+      "code": "ME3261",
+      "title": "Computer-Aided Design And Manufacturing",
+      "department": "Mechanical Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.013888888888888888
+    }
+  ]
+}

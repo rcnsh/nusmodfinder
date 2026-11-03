@@ -1,0 +1,343 @@
+{
+  "query": "machine learning",
+  "filters": {
+    "ng": true
+  },
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 50,
+    "lexical": 50,
+    "fused": 73
+  },
+  "results": [
+    {
+      "code": "CS4262",
+      "title": "Machine Learning Systems",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.032018442622950824
+    },
+    {
+      "code": "PF3211",
+      "title": "Machine Learning for the Built Environment",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.031754032258064516
+    },
+    {
+      "code": "CG3201",
+      "title": "Machine Learning and Deep Learning",
+      "department": "Computing and Engineering Programme",
+      "faculty": "Multi Disciplinary Programme",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.031544957774465976
+    },
+    {
+      "code": "PC3270",
+      "title": "Machine Learning for Physicists",
+      "department": "Physics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.030834914611005692
+    },
+    {
+      "code": "CS3244",
+      "title": "Machine Learning",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.030536130536130537
+    },
+    {
+      "code": "BT3017",
+      "title": "Feature Engineering for Machine Learning",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.03036576949620428
+    },
+    {
+      "code": "BT4240",
+      "title": "Machine Learning for Predictive Data Analytics",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.030309988518943745
+    },
+    {
+      "code": "HS1502",
+      "title": "Conceptual Introduction to Machine Learning",
+      "department": "Physics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.029957522915269395
+    },
+    {
+      "code": "EE4802",
+      "title": "Learning from Data",
+      "department": "Electrical and Computer Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.02919863597612958
+    },
+    {
+      "code": "IS4402",
+      "title": "Machine Learning with Unstructured Data",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.028814262023217248
+    },
+    {
+      "code": "IE4213",
+      "title": "Learning from Data",
+      "department": "Industrial Systems Engineering and Management",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.02857142857142857
+    },
+    {
+      "code": "QF2103",
+      "title": "Computing with AI for Quantitative Finance",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.027783137179239824
+    },
+    {
+      "code": "DSA4212",
+      "title": "Optimisation for Large-Scale Data-Driven Inference",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.026875901875901876
+    },
+    {
+      "code": "BT4222",
+      "title": "Mining Web Data for Business Insights",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.02666666666666667
+    },
+    {
+      "code": "MA4275",
+      "title": "Mathematics of Reinforcement Learning",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.02581612258494337
+    },
+    {
+      "code": "ST4248",
+      "title": "Statistical Learning II",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.025278219395866455
+    },
+    {
+      "code": "CS4246",
+      "title": "Reinforcement Learning and Sequential Decision Making",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.025206087507926443
+    },
+    {
+      "code": "IS4246",
+      "title": "Smart Systems and AI Governance",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.023138297872340424
+    },
+    {
+      "code": "ST3248",
+      "title": "Statistical Learning I",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.02278953922789539
+    },
+    {
+      "code": "LL4283V",
+      "title": "Artificial Intelligence, Information Science & Law",
+      "department": "FoL Dean's Office",
+      "faculty": "Law",
+      "credits": 5,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.022420975251163933
+    }
+  ]
+}

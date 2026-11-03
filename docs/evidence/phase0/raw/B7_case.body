@@ -1,0 +1,114 @@
+{
+  "query": "Data Visualisation",
+  "filters": {
+    "sem": 2
+  },
+  "count": 7,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 21,
+    "lexical": 21,
+    "fused": 30
+  },
+  "results": [
+    {
+      "code": "DSA2101",
+      "title": "Essential Data Analytics Tools: Data Visualisation",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.03252247488101534
+    },
+    {
+      "code": "DSS5201",
+      "title": "Data Visualisation",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.031754032258064516
+    },
+    {
+      "code": "TBA2103",
+      "title": "Data Visualisation",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030679156908665108
+    },
+    {
+      "code": "DSA5822",
+      "title": "Data Visualisation: Further Principles and Practice",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 1,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030309988518943745
+    },
+    {
+      "code": "DOS4811",
+      "title": "Data Visualisation",
+      "department": "Analytics and Operations",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030158730158730156
+    },
+    {
+      "code": "CS5346",
+      "title": "Information Visualisation",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.03007688828584351
+    },
+    {
+      "code": "TCX3211",
+      "title": "Data Management and Visualisation",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.029957522915269395
+    }
+  ]
+}

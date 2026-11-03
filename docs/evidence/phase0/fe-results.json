@@ -1,0 +1,97 @@
+{
+  "searchResponses": [
+    {
+      "url": "/search?q=machine+learning",
+      "status": 200,
+      "cache": null
+    },
+    {
+      "url": "/search?q=machine+learning",
+      "status": 200,
+      "cache": null
+    },
+    {
+      "url": "/search?q=data+structures",
+      "status": 200,
+      "cache": null
+    }
+  ],
+  "statusText": "20 results for machine learning",
+  "mobile": {
+    "firstResultTopY": 499,
+    "firstResultVisibleAboveFold": true,
+    "inputFontSize": "15px",
+    "docScrollWidth": 390
+  },
+  "dom": {
+    "statusAriaLive": null,
+    "statusRole": null,
+    "resultsAriaLive": null,
+    "mainCount": 0,
+    "roleSearchCount": 0,
+    "headingCount": 1,
+    "resultCount": 20,
+    "resultsWithTabIndex": 0,
+    "linksInResults": 0,
+    "focusableInResults": 0,
+    "selectsWithLabel": [
+      {
+        "id": "sem",
+        "label": "Semester"
+      },
+      {
+        "id": "level",
+        "label": "Level"
+      },
+      {
+        "id": "credits",
+        "label": "Credits"
+      },
+      {
+        "id": "faculty",
+        "label": "Faculty"
+      }
+    ]
+  },
+  "focusDuringSearch": {
+    "active": "go",
+    "goDisabled": true
+  },
+  "focusAfterSearch": {
+    "active": "BODY",
+    "goDisabled": false
+  },
+  "historyAfterSearch1and2": {
+    "length": 2,
+    "url": "https://vector-nusmods.jacobjameswiltshire.workers.dev/?q=machine+learning"
+  },
+  "historyAfterSearch3": {
+    "length": 2,
+    "url": "https://vector-nusmods.jacobjameswiltshire.workers.dev/?q=data+structures"
+  },
+  "afterBack": {
+    "url": "about:blank"
+  },
+  "requests": [
+    {
+      "t": 1793717171274,
+      "url": "/?q=machine+learning"
+    },
+    {
+      "t": 1793717171773,
+      "url": "/facets"
+    },
+    {
+      "t": 1793717172208,
+      "url": "/search?q=machine+learning"
+    },
+    {
+      "t": 1793717176228,
+      "url": "/search?q=machine+learning"
+    },
+    {
+      "t": 1793717179647,
+      "url": "/search?q=data+structures"
+    }
+  ]
+}

@@ -1,0 +1,737 @@
+{
+  "query": "management",
+  "filters": {},
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+    "vector": 0,
+    "lexical": 50,
+    "fused": 50
+  },
+  "results": [
+    {
+      "code": "RE2707",
+      "title": "Asset and Property Management",
+      "department": "Real Estate",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01639344262295082
+    },
+    {
+      "code": "PF2110",
+      "title": "Infrastructure and Facilities Management",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.016129032258064516
+    },
+    {
+      "code": "PM5103",
+      "title": "Contract Management",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015873015873015872
+    },
+    {
+      "code": "BMS5312",
+      "title": "Fintech Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015625
+    },
+    {
+      "code": "MT5901",
+      "title": "Management Practicum",
+      "department": "Industrial Systems Engineering and Management",
+      "faculty": "College of Design and Engineering",
+      "credits": 2,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015384615384615385
+    },
+    {
+      "code": "SH5205",
+      "title": "Crisis and Incident Management",
+      "department": "Chemical and Biomolecular Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015151515151515152
+    },
+    {
+      "code": "MT5020",
+      "title": "Managing the Human elements of Technology Management",
+      "department": "Industrial Systems Engineering and Management",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014925373134328358
+    },
+    {
+      "code": "DL5302",
+      "title": "Managing Digitalisation Complexity",
+      "department": "NUS-ISS",
+      "faculty": "NUS-ISS",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014705882352941176
+    },
+    {
+      "code": "PF3306",
+      "title": "Facilities Management Law And Contracts",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.014492753623188406
+    },
+    {
+      "code": "BT5110",
+      "title": "Data Management and Warehousing",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014285714285714285
+    },
+    {
+      "code": "MNO3713",
+      "title": "Management of Employee Relations",
+      "department": "Management and Organisation",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014084507042253521
+    },
+    {
+      "code": "TCX3231",
+      "title": "Information Security Management",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013888888888888888
+    },
+    {
+      "code": "EBA5001",
+      "title": "Analytics Project Management",
+      "department": "NUS-ISS",
+      "faculty": "NUS-ISS",
+      "credits": 10,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0136986301369863
+    },
+    {
+      "code": "EBA5001G",
+      "title": "Analytics Project Management",
+      "department": "NUS-ISS",
+      "faculty": "NUS-ISS",
+      "credits": 10,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013513513513513514
+    },
+    {
+      "code": "BME5501",
+      "title": "Service Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013333333333333334
+    },
+    {
+      "code": "PF4208",
+      "title": "Safety and Health Management",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.013157894736842105
+    },
+    {
+      "code": "SWM5104",
+      "title": "Management of Human Service Organizations",
+      "department": "Social Work",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.012987012987012988
+    },
+    {
+      "code": "FIN4718",
+      "title": "FinTech Management",
+      "department": "Finance",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01282051282051282
+    },
+    {
+      "code": "SWE5002",
+      "title": "Designing and Managing Products and Platforms",
+      "department": "NUS-ISS",
+      "faculty": "NUS-ISS",
+      "credits": 12,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.012658227848101266
+    },
+    {
+      "code": "SWE5002G",
+      "title": "Designing and Managing Products and Platforms",
+      "department": "NUS-ISS",
+      "faculty": "NUS-ISS",
+      "credits": 12,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0125
+    },
+    {
+      "code": "IPM3102",
+      "title": "Infrastructure and Facilities Management",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.012345679012345678
+    },
+    {
+      "code": "FIN3714",
+      "title": "Financial Risk Management",
+      "department": "Finance",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.012195121951219513
+    },
+    {
+      "code": "IS4231",
+      "title": "Information Security Management",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.012048192771084338
+    },
+    {
+      "code": "TSC3222",
+      "title": "Global Sourcing & Supply Management",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011904761904761904
+    },
+    {
+      "code": "CE5809",
+      "title": "Management and Economics of International Construction",
+      "department": "Civil and Environmental Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011764705882352941
+    },
+    {
+      "code": "VM5103",
+      "title": "Symptom Management in Palliative Care II",
+      "department": "Division of Graduate Medical Studies",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011627906976744186
+    },
+    {
+      "code": "PM5113",
+      "title": "Managing Projects using BIM",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011494252873563218
+    },
+    {
+      "code": "PR5237",
+      "title": "Management of Older Patients",
+      "department": "PharmacyandPharmaceuticalScience",
+      "faculty": "Science",
+      "credits": 2,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011363636363636364
+    },
+    {
+      "code": "BT2102",
+      "title": "Data Management and Visualisation",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011235955056179775
+    },
+    {
+      "code": "SA4104",
+      "title": "Digital Product Management",
+      "department": "NUS-ISS",
+      "faculty": "NUS-ISS",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011111111111111112
+    },
+    {
+      "code": "LI5202",
+      "title": "Supply Chain Management Strategies and Case Studies",
+      "department": "Logistics Inst - Asia Pac",
+      "faculty": "Logistics Inst-Asia Pac",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.01098901098901099
+    },
+    {
+      "code": "NUR3114",
+      "title": "Leadership and Management",
+      "department": "Alice Lee Center for Nursing Studies",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 3,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010869565217391304
+    },
+    {
+      "code": "PM5101",
+      "title": "Project Management",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010752688172043012
+    },
+    {
+      "code": "BMA5008",
+      "title": "Financial Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010638297872340425
+    },
+    {
+      "code": "PF1101A",
+      "title": "Project Management and Finance",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010526315789473684
+    },
+    {
+      "code": "AUD5216",
+      "title": "Vestibular Assessment and Management B",
+      "department": "NUS Medicine Dean's Office",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 3,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010416666666666666
+    },
+    {
+      "code": "BMK5201",
+      "title": "Customer Relationship Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010309278350515464
+    },
+    {
+      "code": "IE5107",
+      "title": "Operations Analysis and Management",
+      "department": "Industrial Systems Engineering and Management",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01020408163265306
+    },
+    {
+      "code": "DOS5101A",
+      "title": "Managing the Financial Supply Chain",
+      "department": "Analytics and Operations",
+      "faculty": "NUS Business School",
+      "credits": 2,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010101010101010102
+    },
+    {
+      "code": "PM5117",
+      "title": "Urban Management",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01
+    },
+    {
+      "code": "TSC3226",
+      "title": "Transportation Management",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009900990099009901
+    },
+    {
+      "code": "BMC5007B",
+      "title": "Financial Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 3,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.00980392156862745
+    },
+    {
+      "code": "NUR3504",
+      "title": "Chronic Disease Management",
+      "department": "Alice Lee Center for Nursing Studies",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 6,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009708737864077669
+    },
+    {
+      "code": "AC5004",
+      "title": "Architectural Heritage Management",
+      "department": "Architecture",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009615384615384616
+    },
+    {
+      "code": "BMC5009B",
+      "title": "Supply Chain Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 3,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009523809523809525
+    },
+    {
+      "code": "BMS5122",
+      "title": "Legal Fundamentals for Entrepreneurs and Managers",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009433962264150943
+    },
+    {
+      "code": "BMC5501",
+      "title": "Service Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 2,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009345794392523364
+    },
+    {
+      "code": "PF2203",
+      "title": "Quality and Productivity Management",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009259259259259259
+    },
+    {
+      "code": "SH5402",
+      "title": "Safety Leadership and Management Practices",
+      "department": "Chemical and Biomolecular Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009174311926605505
+    },
+    {
+      "code": "IS4262",
+      "title": "Digital Product Management",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.00909090909090909
+    }
+  ]
+}
