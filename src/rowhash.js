@@ -91,6 +91,25 @@ export async function rowHash(m) {
 }
 
 /**
+ * The columns the 0006 FTS update trigger watches, in its order: it fires
+ * only when `code`, `title` or `description` differs (`IS NOT`, byte
+ * equality) between the old and the new row. /admin/hashes reports this hash
+ * of the stored columns, and ingest compares it with the corpus's to know
+ * whether an upsert writes FTS rows. text_hash cannot tell: it also covers
+ * the embedding model, the embedded-text version and text built from more
+ * than these columns.
+ */
+export const FTS_COLUMNS = /** @type {const} */ (['code', 'title', 'description']);
+
+/**
+ * @param {{ code: string, title: string, description: string }} m
+ * @returns {Promise<string>} 32 hex characters
+ */
+export async function ftsHash(m) {
+  return (await sha256Hex(JSON.stringify([m.code, m.title, m.description]))).slice(0, 32);
+}
+
+/**
  * A `modules` row as D1 returns it.
  * @typedef {{
  *   code: string, title: string, description: string, credits: number | null,

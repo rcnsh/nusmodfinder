@@ -7,7 +7,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { runIngest } from '../../scripts/ingest-core.mjs';
-import { rowHash } from '../../src/rowhash.js';
+import { ftsHash, rowHash } from '../../src/rowhash.js';
 import { adminCall, callJson, fixture, seed } from '../helpers.js';
 import { adminApi } from '../ingest-support.js';
 import { codes, syntheticModule } from './support.js';
@@ -37,12 +37,12 @@ beforeEach(async () => {
 const ingest = (modules) => runIngest({ modules, facetsBody, api: adminApi(() => fakes), sleep: async () => {} });
 
 describe('B2', () => {
-  it('[B2 fixed] /admin/hashes returns text_hash and row_hash for every module', async () => {
+  it('[B2 fixed] /admin/hashes returns text_hash, row_hash and the FTS-column hash for every module', async () => {
     const res = await callJson('/admin/hashes', {
       fakes, env: { INGEST_SECRET: 'test-ingest-secret' }, init: { headers: { authorization: 'Bearer test-ingest-secret' } },
     });
     expect(res.body.schema).toMatchObject({ ok: true, version: 6 });
-    expect(res.body.modules.XX2001).toEqual({ textHash: original.textHash, rowHash: await rowHash(original) });
+    expect(res.body.modules.XX2001).toEqual({ textHash: original.textHash, rowHash: await rowHash(original), ftsHash: await ftsHash(original) });
     expect(Object.keys(res.body.modules)).toHaveLength(fixture.modules.length + 3);
   });
 

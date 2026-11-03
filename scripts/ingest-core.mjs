@@ -20,15 +20,17 @@
 //  3. Upsert in batches, concurrently, inside a write budget. Each batch is
 //     charged the larger of its D1 meta.rows_written and an estimate that
 //     includes the FTS5 shadow-table writes local D1 does not report (and
-//     remote D1 may bill). The last batch goes alone after the others, so the
-//     run's last Vectorize mutation is well defined.
+//     remote D1 may bill), for the rows whose FTS-indexed columns change
+//     (ftsHash, src/rowhash.js). The last batch goes alone after the others,
+//     so the run's last Vectorize mutation is well defined.
 //  4. Only if no batch failed and the budget held: delete codes D1 has and the
 //     corpus lacks (hashes cleared, Vectorize, then D1), one request at a time.
 //  5. Rebuild the facets row; wait until Vectorize has processed the last
-//     mutation (describe().processedUpToMutation, bounded poll) — this run's,
-//     or one an earlier run sent and never saw confirmed; report the data
-//     version for src/data-version.json.
-import { dataVersion, rowHash } from '../src/rowhash.js';
+//     mutation (waitForMutation, bounded poll) — this run's, or one an earlier
+//     run sent and never saw confirmed; report the data version for
+//     src/data-version.json. A mutation id that could not be recorded in the
+//     pending store does not stop the run, but it ends 'failed', naming it.
+import { dataVersion, ftsHash, rowHash } from '../src/rowhash.js';
 
 export const DEFAULTS = Object.freeze({
   batchSize: 50,
@@ -49,7 +51,8 @@ export const DEFAULTS = Object.freeze({
   writesPerUpdate: 5.5,
   // FTS5 shadow-table writes, which local D1's meta does not show: an inserted
   // row 13.19 on average (cold load), a changed title/description 15.69; a row
-  // whose indexed text is unchanged, 0 (the update trigger does not fire).
+  // whose code, title and description are unchanged, 0 (the update trigger
+  // does not fire), whatever its text_hash.
   ftsWritesPerInsert: 14,
   ftsWritesPerTextChange: 16,
   /**
@@ -63,8 +66,9 @@ export const DEFAULTS = Object.freeze({
 export const REQUIRED_SCHEMA = 6;
 
 /**
- * @typedef {NormalisedModule & { rowHash: string }} HashedModule
- * @typedef {{ textHash: string, rowHash: string | null }} StoredHashes
+ * @typedef {NormalisedModule & { rowHash: string, ftsHash: string }} HashedModule
+ * @typedef {{ textHash: string, rowHash: string | null, ftsHash?: string }} StoredHashes `ftsHash`
+ *   is absent from a Worker older than this script.
  * @typedef {{
  *   version: number | null, ftsExternal: boolean, rowidTriggers: boolean, missingTriggers?: string[],
  *   rowHashColumn: boolean, ok: boolean,
@@ -78,10 +82,13 @@ export const REQUIRED_SCHEMA = 6;
  *   get: (path: string) => Promise<ApiResponse>,
  *   post: (path: string, body: unknown) => Promise<ApiResponse>,
  * }} AdminApi
+ * @typedef {{ id: string, sentAt: number | null }} PendingMutation A Vectorize
+ *   mutation id and the Worker's Date.now() when Vectorize accepted it (null
+ *   from a Worker older than this script).
  * @typedef {{
- *   read: () => Promise<string | null>,
- *   write: (mutationId: string | null) => Promise<void>,
- * }} PendingMutationStore The last Vectorize mutation id sent and not yet seen
+ *   read: () => Promise<PendingMutation | null>,
+ *   write: (mutation: PendingMutation | null) => Promise<void>,
+ * }} PendingMutationStore The last Vectorize mutation sent and not yet seen
  *   processed. Survives the run (scripts/ingest.mjs: .data/ingest-state.json),
  *   so a rerun with nothing to send still waits for it.
  * @typedef {{
@@ -101,16 +108,16 @@ export const REQUIRED_SCHEMA = 6;
  * }} IngestResult `rowsWritten` sums D1's meta.rows_written; `rowsCharged`
  *   is what the write budget counts (per batch, the larger of that and the
  *   estimate).
- * @typedef {'insert' | 'text' | 'row'} WriteKind what an upsert does to D1:
- *   inserts a row, changes its embedded text (and so, possibly, its FTS
- *   entry), or rewrites it with the same text
+ * @typedef {'insert' | 'fts' | 'row'} WriteKind what an upsert does to D1:
+ *   inserts a row, changes its FTS-indexed columns (code, title, description:
+ *   the update trigger fires), or rewrites it with them unchanged
  */
 
 /** @returns {PendingMutationStore} one that lasts as long as the run */
 export function memoryPendingStore() {
-  /** @type {string | null} */
-  let id = null;
-  return { read: async () => id, write: async (next) => { id = next; } };
+  /** @type {PendingMutation | null} */
+  let p = null;
+  return { read: async () => p, write: async (next) => { p = next; } };
 }
 
 /**
@@ -138,15 +145,22 @@ export function planIngest(modules, stored, { force }) {
 }
 
 /**
- * What an upsert of `m` does to D1, for the write estimate.
- * @param {{ code: string, textHash: string }} m
+ * What an upsert of `m` does to D1, for the write estimate. The FTS update
+ * trigger (0006) fires only when code, title or description change, which
+ * ftsHash covers exactly; text_hash does not (it changes with the model or
+ * the embedded-text version while the indexed columns stay byte-identical,
+ * as for every production row after this PR). Without a stored ftsHash (an
+ * older Worker), a text_hash change is taken as an FTS change: an
+ * over-estimate, never an under-estimate.
+ * @param {{ code: string, textHash: string, ftsHash: string }} m
  * @param {Record<string, StoredHashes>} stored
  * @returns {WriteKind}
  */
 export function writeKind(m, stored) {
   const s = stored[m.code];
   if (!s) return 'insert';
-  return s.textHash === m.textHash ? 'row' : 'text';
+  const ftsChanged = typeof s.ftsHash === 'string' ? s.ftsHash !== m.ftsHash : s.textHash !== m.textHash;
+  return ftsChanged ? 'fts' : 'row';
 }
 
 /**
@@ -167,20 +181,43 @@ export async function runIngest({
     upserted: 0, embedded: 0, failed: 0, deleted: 0, rowsRead: 0, rowsWritten: 0, rowsCharged: 0,
     resumeFrom: null, lastMutationId: null, dataVersion: null,
   };
-  /** Writes of `pending`, in the order the mutation ids arrived. */
+  /** Writes of `pending`, in the order the mutation ids arrived. Never rejects. */
   /** @type {Promise<void>} */
   let persisted = Promise.resolve();
-  /** Records a mutation id the moment Vectorize accepts it. @param {string} id */
-  const sent = (id) => {
+  /** The last mutation sent, with when Vectorize accepted it. */
+  /** @type {PendingMutation | null} */
+  let last = null;
+  /** Mutation ids `pending` failed to record, and why. */
+  /** @type {{ ids: string[], error: string | null }} */
+  const unrecorded = { ids: [], error: null };
+  /**
+   * Records a mutation the moment Vectorize accepts it. A failed write is
+   * kept, not thrown: the run goes on (its batches are already in D1 and
+   * Vectorize) and ends 'failed', naming the ids.
+   * @param {string} id @param {unknown} sentAt
+   */
+  const sent = (id, sentAt) => {
+    const p = { id, sentAt: typeof sentAt === 'number' && Number.isFinite(sentAt) ? sentAt : null };
     result.lastMutationId = id;
-    persisted = persisted.then(() => pending.write(id));
+    last = p;
+    persisted = persisted.then(() => pending.write(p)).catch((err) => {
+      unrecorded.ids.push(id);
+      unrecorded.error = /** @type {Error} */ (err)?.message ?? String(err);
+      log(`  could not record mutation ${id} in the pending store: ${unrecorded.error}`);
+    });
   };
+  const unrecordedNote = () => (unrecorded.ids.length
+    ? ` Could not record Vectorize mutation${unrecorded.ids.length === 1 ? '' : 's'} ${unrecorded.ids.join(', ')} `
+      + `in the pending store (${unrecorded.error}), so a rerun cannot wait for ${unrecorded.ids.length === 1 ? 'it' : 'them'}: `
+      + `fix the state file, wait until \`wrangler vectorize info\` reports processedUpToMutation ${unrecorded.ids.at(-1)} `
+      + '(or a processedUpToDatetime after it was sent), then rerun the same command.'
+    : '');
   /** @param {IngestStatus} status @param {string} message */
   const stop = async (status, message) => {
     await persisted;
     result.status = status;
-    result.message = message;
-    log(message);
+    result.message = message + unrecordedNote();
+    log(result.message);
     return result;
   };
 
@@ -221,7 +258,7 @@ export async function runIngest({
 
   // 2. Plan.
   /** @type {HashedModule[]} */
-  const hashed = await Promise.all(modules.map(async (m) => ({ ...m, rowHash: await rowHash(m) })));
+  const hashed = await Promise.all(modules.map(async (m) => ({ ...m, rowHash: await rowHash(m), ftsHash: await ftsHash(m) })));
   const plan = planIngest(hashed, stored, { force: o.force });
   result.plan = { embed: plan.embed.length, rowOnly: plan.rowOnly.length, unchanged: plan.unchanged, deletes: plan.deletes.length };
   log(`plan               ${plan.embed.length} to embed, ${plan.rowOnly.length} row-only, ${plan.unchanged} unchanged, ${plan.deletes.length} to delete`);
@@ -254,7 +291,7 @@ export async function runIngest({
   /** @type {Record<WriteKind, number>} */
   const perModule = {
     insert: o.writesPerInsert + o.ftsWritesPerInsert,
-    text: o.writesPerUpdate + o.ftsWritesPerTextChange,
+    fts: o.writesPerUpdate + o.ftsWritesPerTextChange,
     row: o.writesPerUpdate,
   };
   /** @param {WorkItem[]} batch the estimated rows written, FTS shadow tables included */
@@ -306,7 +343,7 @@ export async function runIngest({
 
   /** @param {WorkItem[]} batch @param {number} estimate @param {number} held */
   const upsertBatch = async (batch, estimate, held) => {
-    // rowHash travels along but the Worker recomputes it from what it binds.
+    // rowHash and ftsHash travel along but the Worker recomputes row_hash from what it binds.
     const body = await send('/admin/ingest', { modules: batch }, `batch ${batch[0].code}…`);
     reserved -= held;
     if (!body) { result.failed += batch.length; return; }
@@ -315,7 +352,7 @@ export async function runIngest({
     maxRate = maxRate === null ? rate : Math.max(maxRate, rate);
     result.upserted += Number(body.upserted ?? batch.length);
     result.embedded += Number(body.embedded ?? 0);
-    if (body.mutationId) sent(String(body.mutationId));
+    if (body.mutationId) sent(String(body.mutationId), body.sentAt);
   };
 
   const queue = batches.slice(0, -1);
@@ -387,7 +424,7 @@ export async function runIngest({
     }
     account(body, estimate);
     result.deleted += Number(body.deleted ?? 0);
-    if (body.mutationId) sent(String(body.mutationId));
+    if (body.mutationId) sent(String(body.mutationId), body.sentAt);
   }
   if (plan.deletes.length) log(`deleted            ${result.deleted} (${plan.deletes.slice(0, 10).join(', ')}${plan.deletes.length > 10 ? ', …' : ''})`);
 
@@ -397,16 +434,31 @@ export async function runIngest({
   // sent nothing waits for the one an earlier run left unconfirmed.
   await facets();
   await persisted;
-  const target = result.lastMutationId ?? await pending.read();
+  if (unrecorded.ids.length) {
+    return stop('failed', `D1 and Vectorize writes are complete (${result.upserted} upserted, ${result.deleted} deleted), `
+      + 'but src/data-version.json was not written.');
+  }
+  /** @type {PendingMutation | null} */
+  let target = last;
+  if (!target) {
+    try {
+      target = await pending.read();
+    } catch (err) {
+      return stop('failed', `Could not read the pending store (${/** @type {Error} */ (err).message}), so whether an earlier `
+        + 'run left a Vectorize mutation unconfirmed is unknown; src/data-version.json was not written. Fix the state file and rerun.');
+    }
+  }
   if (target) {
-    result.lastMutationId = target;
+    result.lastMutationId = target.id;
     const waited = await waitForMutation(api, target, { timeoutMs: o.waitTimeoutMs, intervalMs: o.waitIntervalMs, sleep, now, log });
     if (!waited) {
-      return stop('wait-timeout', `Vectorize had not processed mutation ${target} after ${o.waitTimeoutMs / 1000}s. `
+      return stop('wait-timeout', `Vectorize had not processed mutation ${target.id} after ${o.waitTimeoutMs / 1000}s. `
         + 'D1 is complete; rerun the same command once `wrangler vectorize info` shows it: with nothing left to send, '
         + 'it waits for that mutation and then writes the data version. Run npm run verify after.');
     }
-    await pending.write(null);
+    // Confirmed: a stale entry left behind is harmless (the next run's wait is
+    // satisfied at once), so a failed clear only warns.
+    await pending.write(null).catch((err) => log(`  could not clear the pending store: ${/** @type {Error} */ (err).message}`));
   }
   result.dataVersion = await dataVersion(hashed);
   return stop('done', `done               ${result.upserted} upserted (${result.embedded} embedded), ${result.deleted} deleted, `
@@ -434,24 +486,49 @@ export function describeSchemaProblem(schema) {
 }
 
 /**
- * Polls GET /admin/vectorize until describe().processedUpToMutation is
- * `mutationId` (Vectorize processes mutations in order, so everything before
- * it is applied too). Bounded: false after `timeoutMs`.
+ * describe().processedUpToDatetime as epoch ms: `wrangler vectorize info`
+ * prints an ISO 8601 string, workers-types declares a number; null if neither.
+ * @param {unknown} v
+ */
+const epochMs = (v) => {
+  const ms = typeof v === 'number' ? v : typeof v === 'string' ? Date.parse(v) : NaN;
+  return Number.isFinite(ms) ? ms : null;
+};
+
+/**
+ * Polls GET /admin/vectorize until Vectorize has processed `target`.
+ * Vectorize processes mutations in order, so either is proof:
+ * - describe().processedUpToMutation is `target.id`;
+ * - describe().processedUpToDatetime is strictly later than `target.sentAt`
+ *   (the Worker's clock just after Vectorize accepted it, src/ingest.js
+ *   acceptedAt): the mutation processed was accepted after ours, so ours is
+ *   processed too. This one is what ends the wait once Vectorize has moved
+ *   past `target` (another client mutated the index later), where the id
+ *   never matches again. Strictly later: one stamped in the same millisecond
+ *   as sentAt may be an earlier mutation.
+ * Without a sentAt (an older Worker) only the id counts. Bounded: false after
+ * `timeoutMs`.
  * @param {AdminApi} api
- * @param {string} mutationId
+ * @param {PendingMutation} target
  * @param {{ timeoutMs: number, intervalMs: number, sleep: (ms: number) => Promise<void>, now: () => number, log: (line: string) => void }} o
  */
-export async function waitForMutation(api, mutationId, { timeoutMs, intervalMs, sleep, now, log }) {
+export async function waitForMutation(api, target, { timeoutMs, intervalMs, sleep, now, log }) {
   const deadline = now() + timeoutMs;
   for (let polls = 1; ; polls++) {
     const res = await api.get('/admin/vectorize');
-    const processed = res.status === 200 ? res.body?.processedUpToMutation : null;
-    if (processed !== null && processed !== undefined && String(processed) === mutationId) {
-      log(`vectorize          processed up to ${mutationId} (${polls} poll${polls === 1 ? '' : 's'}, ${res.body.vectorCount} vectors)`);
+    const info = res.status === 200 ? res.body : null;
+    const processed = info?.processedUpToMutation ?? null;
+    const processedAt = epochMs(info?.processedUpToDatetime);
+    const byId = processed !== null && String(processed) === target.id;
+    const byTime = target.sentAt !== null && processedAt !== null && processedAt > target.sentAt;
+    if (byId || byTime) {
+      const how = byId ? `up to ${target.id}` : `up to ${processed} at ${new Date(/** @type {number} */ (processedAt)).toISOString()}, `
+        + `after ${target.id} was sent (${new Date(/** @type {number} */ (target.sentAt)).toISOString()})`;
+      log(`vectorize          processed ${how} (${polls} poll${polls === 1 ? '' : 's'}, ${info.vectorCount} vectors)`);
       return true;
     }
     if (now() + intervalMs > deadline) return false;
-    if (polls === 1) log(`vectorize          waiting for mutation ${mutationId} (processed up to ${processed ?? 'unknown'})`);
+    if (polls === 1) log(`vectorize          waiting for mutation ${target.id} (processed up to ${processed ?? 'unknown'})`);
     await sleep(intervalMs);
   }
 }

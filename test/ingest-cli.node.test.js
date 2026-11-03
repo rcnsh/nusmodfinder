@@ -4,11 +4,11 @@
 // that finished. The Worker is a stub fetch; the corpus is three records in a
 // temporary cache directory, so nothing reaches api.nusmods.com or Cloudflare.
 import { createHash } from 'node:crypto';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DATA_VERSION_PATH, dataVersionFile, main, parseDuration, parseIngestArgs } from '../scripts/ingest.mjs';
+import { DATA_VERSION_PATH, dataVersionFile, fileStateStore, main, parseDuration, parseIngestArgs } from '../scripts/ingest.mjs';
 import { DEFAULTS } from '../scripts/ingest-core.mjs';
 import { offeredModules } from '../scripts/lib.mjs';
 import { dataVersion, rowHash } from '../src/rowhash.js';
@@ -49,10 +49,10 @@ function stubWorker({ schemaOk = true, writesPerModule = 5 } = {}) {
       case '/admin/ingest':
         mutation++;
         for (const m of body.modules) stored.set(m.code, { textHash: m.textHash, rowHash: m.rowHash });
-        return ok({ upserted: body.modules.length, embedded: body.modules.length, mutationId: `m${mutation}`,
+        return ok({ upserted: body.modules.length, embedded: body.modules.length, mutationId: `m${mutation}`, sentAt: Date.now(),
           meta: { rows_read: body.modules.length, rows_written: writesPerModule * body.modules.length } });
       case '/admin/facets': return ok({ faculties: 1, levels: 1, ng: 0, ngListUpdatedAsAt: null });
-      case '/admin/vectorize': return ok({ vectorCount: 3, processedUpToMutation: vectorize.processed ? `m${mutation}` : null });
+      case '/admin/vectorize': return ok({ vectorCount: 3, processedUpToMutation: vectorize.processed ? `m${mutation}` : null, processedUpToDatetime: null });
       default: return new Response('{}', { status: 404 });
     }
   };
@@ -74,14 +74,14 @@ beforeEach(async () => {
 });
 afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
-/** @param {string[]} argv @param {ReturnType<typeof stubWorker>} worker */
-const run = async (argv, worker) => {
+/** @param {string[]} argv @param {ReturnType<typeof stubWorker>} worker @param {{ statePath?: string }} [o] */
+const run = async (argv, worker, o = {}) => {
   /** @type {string[]} */
   const lines = [];
   const dataVersionPath = join(dir, 'data-version.json');
   const code = await main(['--year', Y, '--url', 'http://worker.test', ...argv], {
     fetchImpl: worker.fetchImpl, log: (l) => lines.push(l), dataVersionPath, cacheDir, envVars: { INGEST_SECRET: 's' },
-    statePath: join(dir, 'ingest-state.json'),
+    statePath: o.statePath ?? join(dir, 'ingest-state.json'),
   });
   const written = await readFile(dataVersionPath, 'utf8').catch(() => null);
   return { code, lines, written };
@@ -113,7 +113,7 @@ describe('scripts/ingest.mjs', () => {
     const first = await run(['--wait-timeout', '0s'], worker);
     expect(first.code).toBe(3);
     expect(first.written).toBeNull();
-    expect(await state()).toEqual({ 'http://worker.test': { pendingMutationId: 'm1' } });
+    expect(await state()).toEqual({ 'http://worker.test': { pendingMutationId: 'm1', sentAt: expect.any(Number) } });
 
     // The rerun has nothing to send (the stub's D1 now holds every hash), but m1 is still unconfirmed.
     const second = await run(['--wait-timeout', '0s'], worker);
@@ -160,5 +160,56 @@ describe('scripts/ingest.mjs', () => {
     expect(written).toBeNull();
     expect(lines.join('\n')).toMatch(/Stopped cleanly: 2 of 3 modules upserted/);
     expect(lines.join('\n')).toContain(`rows written       12 reported by D1; ${2 * perInsert} charged to the budget`);
+  });
+
+  it('[PR13b #3] state writes from two stores at once never fail on a shared tmp file, and leave none behind', async () => {
+    const path = join(dir, 'ingest-state.json');
+    const stores = ['http://a.test', 'http://b.test'].map((base) => fileStateStore(path, base));
+    // Concurrent read-modify-writes may still overwrite each other (the run lock
+    // keeps two ingests apart); what must not happen is a write failing.
+    await Promise.all(Array.from({ length: 20 }, (_, i) => stores[i % 2].write({ id: `m${i}`, sentAt: i })));
+    expect(Object.keys(await state()).length).toBeGreaterThan(0);
+    expect((await readdir(dir)).filter((f) => f.endsWith('.tmp'))).toEqual([]);
+    await stores[0].write({ id: 'a', sentAt: 1 });
+    await stores[1].write({ id: 'b', sentAt: null });
+    expect(await stores[0].read()).toEqual({ id: 'a', sentAt: 1 });
+    expect(await stores[1].read()).toEqual({ id: 'b', sentAt: null });
+  });
+
+  it('[PR13b #3] refuses to start while another ingest holds the run lock, naming the lock file and how to clear a stale one', async () => {
+    const lock = join(dir, 'ingest-state.json.lock');
+    await writeFile(lock, JSON.stringify({ pid: 999999, startedAt: '2026-11-04T10:00:00.000Z' }));
+    const worker = stubWorker();
+    const { code, written, lines } = await run([], worker);
+    expect(code).toBe(1);
+    expect(written).toBeNull();
+    expect(worker.paths).toEqual([]);
+    const out = lines.join('\n');
+    expect(out).toContain(lock);
+    expect(out).toContain('pid 999999');
+    expect(out).toMatch(/no ingest is running.*delete/i);
+    // The lock is the other run's: left alone.
+    expect(await readFile(lock, 'utf8')).toContain('999999');
+  });
+
+  it('[PR13b #3] of two ingests started at once, one runs and the other is refused; the lock is released after', async () => {
+    const [a, b] = await Promise.all([run([], stubWorker()), run([], stubWorker())]);
+    expect([a.code, b.code].sort()).toEqual([0, 1]);
+    expect([a, b].find((r) => r.code === 1)?.lines.join('\n')).toMatch(/Another ingest holds/);
+    expect((await readdir(dir)).filter((f) => f.endsWith('.lock'))).toEqual([]);
+    expect((await run([], stubWorker())).code).toBe(0);
+  });
+
+  it('[PR13b #3] a state file that cannot be written does not crash the run: exit 1, no data version, the unrecorded ids named', async () => {
+    const statePath = join(dir, 'state-is-a-directory');
+    await mkdir(statePath);
+    const worker = stubWorker();
+    const { code, written, lines } = await run([], worker, { statePath });
+    expect(code).toBe(1);
+    expect(written).toBeNull();
+    expect(worker.paths).toContain('POST /admin/ingest');
+    expect(worker.paths).toContain('POST /admin/facets');
+    expect(lines.join('\n')).toMatch(/could not record.*m1/i);
+    expect((await readdir(dir)).filter((f) => f.endsWith('.lock'))).toEqual([]);
   });
 });

@@ -105,7 +105,7 @@ modules; the `.data/` download cache never expires; `/search` ignores `acad_year
 - test `[B2 fixed] text_hash is the hash of the model id, the embedded-text version and the text`
 - test `[B2 fixed] row_hash is the hash of the normaliser version, the exact bound tuple and the vector metadata, and is recomputable from the stored row`
 - test `[B2 fixed] the skip rule: text changed re-embeds, only the row changed re-upserts without embedding, unchanged is skipped`
-- test `[B2 fixed] /admin/hashes returns text_hash and row_hash for every module` (`test/findings/b2.test.js`)
+- test `[B2 fixed] /admin/hashes returns text_hash, row_hash and the FTS-column hash for every module` (`test/findings/b2.test.js`)
 - test `[B2 fixed] a field-only change (semesters, NG flags, credits, prereqs, workload) lands in D1 and the Vectorize metadata, without re-embedding`: through `runIngest` and the real routes; `/module` and the `sem` filter see the change, the vector keeps its values, Workers AI is not called, and a rerun sends nothing.
 - test `[B2 fixed] a module dropped from the corpus is deleted from Vectorize, then D1`
 - test `[B2 fixed] acad_year: rows are keyed by code, so a run leaves only the current year (stale rows deleted or rewritten)`

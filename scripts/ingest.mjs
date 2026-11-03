@@ -30,10 +30,13 @@
 // (resumable); 3 Vectorize did not confirm the last mutation in time.
 //
 // .data/ingest-state.json (git-ignored) keeps, per --url, the last Vectorize
-// mutation id sent and not yet seen processed, so a rerun after exit 3 waits
-// for it even when it has nothing to send, and writes src/data-version.json
-// only once it is confirmed.
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+// mutation id sent and not yet seen processed (with the Worker's time when it
+// was accepted), so a rerun after exit 3 waits for it even when it has nothing
+// to send, and writes src/data-version.json only once it is confirmed.
+// .data/ingest-state.json.lock is held for the whole run: a second ingest from
+// this checkout refuses to start (exit 1) rather than race it.
+import { randomUUID } from 'node:crypto';
+import { mkdir, open, readFile, rename, rm, unlink, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -49,29 +52,77 @@ export const STATE_PATH = fileURLToPath(new URL('../.data/ingest-state.json', im
 
 /**
  * The pending-mutation store for one Worker URL, in a JSON file shared by all
- * of them: `{ "<base>": { "pendingMutationId": "…" } }`. Each write replaces
- * the file atomically.
+ * of them: `{ "<base>": { "pendingMutationId": "…", "sentAt": <ms> } }`. Each
+ * write replaces the file atomically through its own tmp file (pid and a
+ * random suffix), so two writers never rename each other's. The run lock
+ * (acquireRunLock) keeps two ingests from interleaving their
+ * read-modify-writes.
  * @param {string} path
  * @param {string} base
  * @returns {import('./ingest-core.mjs').PendingMutationStore}
  */
 export function fileStateStore(path, base) {
-  /** @returns {Promise<Record<string, { pendingMutationId: string }>>} */
+  /** @returns {Promise<Record<string, { pendingMutationId: string, sentAt?: number | null }>>} */
   const load = async () => {
     const text = await readFile(path, 'utf8').catch((err) => { if (err.code === 'ENOENT') return '{}'; throw err; });
     return JSON.parse(text);
   };
   return {
-    read: async () => (await load())[base]?.pendingMutationId ?? null,
-    write: async (id) => {
+    read: async () => {
+      const entry = (await load())[base];
+      return entry?.pendingMutationId ? { id: entry.pendingMutationId, sentAt: entry.sentAt ?? null } : null;
+    },
+    write: async (p) => {
       const all = await load();
-      if (id) all[base] = { pendingMutationId: id };
+      if (p) all[base] = { pendingMutationId: p.id, sentAt: p.sentAt };
       else delete all[base];
       await mkdir(dirname(path), { recursive: true });
-      await writeFile(`${path}.tmp`, `${JSON.stringify(all, null, 2)}\n`);
-      await rename(`${path}.tmp`, path);
+      const tmp = `${path}.${process.pid}.${randomUUID()}.tmp`;
+      try {
+        await writeFile(tmp, `${JSON.stringify(all, null, 2)}\n`);
+        await rename(tmp, path);
+      } finally {
+        await rm(tmp, { force: true });
+      }
     },
   };
+}
+
+/**
+ * Takes `<statePath>.lock` with O_EXCL for one ingest run, recording this
+ * process's pid. If another run holds it, returns why not (naming the pid and
+ * whether it is still alive here) instead of a release function.
+ * @param {string} statePath
+ * @param {string} base
+ * @returns {Promise<{ release: () => Promise<void> } | { refused: string }>}
+ */
+export async function acquireRunLock(statePath, base) {
+  const lock = `${statePath}.lock`;
+  await mkdir(dirname(lock), { recursive: true });
+  try {
+    const fh = await open(lock, 'wx');
+    try {
+      await fh.writeFile(`${JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString(), url: base })}\n`);
+    } finally {
+      await fh.close();
+    }
+  } catch (err) {
+    if (/** @type {NodeJS.ErrnoException} */ (err).code !== 'EEXIST') throw err;
+    /** @type {{ pid?: number, startedAt?: string, url?: string }} */
+    let holder = {};
+    try { holder = JSON.parse(await readFile(lock, 'utf8')); } catch { /* unreadable: say so below */ }
+    const pid = Number.isInteger(holder.pid) ? /** @type {number} */ (holder.pid) : null;
+    let alive = null;
+    if (pid !== null) {
+      try { process.kill(pid, 0); alive = true; } catch (e) { alive = /** @type {NodeJS.ErrnoException} */ (e).code === 'EPERM'; }
+    }
+    const who = pid === null ? 'an unknown process (the lock file is unreadable)'
+      : `pid ${pid}${holder.startedAt ? `, started ${holder.startedAt}` : ''}${holder.url ? `, --url ${holder.url}` : ''}`;
+    const state = alive === true ? `pid ${pid} is still running` : alive === false ? `pid ${pid} is not running on this machine, so the lock looks stale` : 'its owner is unknown';
+    return { refused: `Another ingest holds ${lock} (${who}). Two runs at once would race on the state file and Vectorize. `
+      + `If no ingest is running (${state}: a run that crashed or was killed leaves it behind), delete ${lock} and rerun. Nothing was sent.` };
+  }
+  return { release: () => unlink(lock).catch(() => {}) };
 }
 
 /**
@@ -179,7 +230,26 @@ export async function main(argv, deps = {}) {
     return 1;
   }
   const args = parseIngestArgs(argv, envVars);
+  const lock = await acquireRunLock(statePath, args.base);
+  if ('refused' in lock) {
+    log(lock.refused);
+    return 1;
+  }
+  try {
+    return await ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret });
+  } finally {
+    await lock.release();
+  }
+}
 
+/**
+ * The run, once the lock is held.
+ * @param {ReturnType<typeof parseIngestArgs>} args
+ * @param {{ fetchImpl: typeof fetch, log: (line: string) => void, dataVersionPath: string, cacheDir?: URL,
+ *   statePath: string, secret: string }} deps
+ * @returns {Promise<number>}
+ */
+async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret }) {
   const info = await fetchAcadYearFile(args.acadYear, 'moduleInfo.json', {
     offline: args.offline, maxAgeMs: args.maxAgeMs, fetchImpl, ...(cacheDir ? { cacheDir } : {}),
   });

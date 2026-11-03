@@ -5,12 +5,15 @@
 // upsert phase, the Vectorize mutation wait, and the data version.
 import { applyD1Migrations, reset } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULTS, REQUIRED_SCHEMA, runIngest } from '../scripts/ingest-core.mjs';
-import { dataVersion, rowHash } from '../src/rowhash.js';
+import { dataVersion, ftsHash, rowHash, sha256Hex } from '../src/rowhash.js';
 import { createFakes, hashEmbed } from './fakes.js';
 import { adminCall, fixture, seed } from './helpers.js';
 import { adminApi } from './ingest-support.js';
+
+/** scripts/lib.mjs EMBEDDING_TEXT_VERSION (lib.mjs needs node:crypto, which workerd lacks here). */
+const EMBEDDING_TEXT_VERSION = 1;
 
 const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 const MODEL = '@cf/baai/bge-small-en-v1.5';
@@ -34,9 +37,9 @@ const ingest = (modules, options = {}, extra = {}) => runIngest({
 
 /** An in-memory stand-in for the CLI's .data/ingest-state.json. */
 const memoryPending = () => {
-  /** @type {string | null} */
-  let id = null;
-  return { read: async () => id, write: async (/** @type {string | null} */ next) => { id = next; } };
+  /** @type {import('../scripts/ingest-core.mjs').PendingMutation | null} */
+  let p = null;
+  return { read: async () => p, write: async (/** @type {import('../scripts/ingest-core.mjs').PendingMutation | null} */ next) => { p = next; } };
 };
 
 /** env.DB whose DELETE statements throw, everything else passed through. */
@@ -400,11 +403,11 @@ describe('[PR13 #3] an unconfirmed mutation outlives the run that sent it', () =
     const changed = fixture.modules.map((m, i) => (i === 0 ? { ...m, credits: 42 } : m));
     const first = await ingest(changed, { waitTimeoutMs: 10_000 }, { pending });
     expect(first.status).toBe('wait-timeout');
-    expect(await pending.read()).toBe(first.lastMutationId);
+    expect((await pending.read())?.id).toBe(first.lastMutationId);
 
     const second = await ingest(changed, { waitTimeoutMs: 10_000 }, { pending });
     expect(second).toMatchObject({ status: 'wait-timeout', upserted: 0, dataVersion: null, lastMutationId: first.lastMutationId });
-    expect(await pending.read()).toBe(first.lastMutationId);
+    expect((await pending.read())?.id).toBe(first.lastMutationId);
 
     fakes.vectorize.processPerDescribe = Infinity;
     const third = await ingest(changed, {}, { pending });
@@ -418,6 +421,71 @@ describe('[PR13 #3] an unconfirmed mutation outlives the run that sent it', () =
     const next = fixture.modules.map((m) => ({ ...m, credits: (m.credits ?? 0) + 1 }));
     const first = await ingest(next, { writeBudget: 1000, batchSize: 25, concurrency: 1 }, { pending });
     expect(first.status).toBe('budget');
-    expect(await pending.read()).toBe(fakes.vectorize.mutations.at(-1));
+    expect((await pending.read())?.id).toBe(fakes.vectorize.mutations.at(-1));
+  });
+});
+
+describe('[PR13b #1] the FTS charge follows the columns the 0006 FTS triggers watch', () => {
+  it('/admin/hashes reports ftsHash of the stored code, title and description', async () => {
+    const [x] = fixture.modules;
+    const body = /** @type {any} */ (await (await adminCall('/admin/hashes', fakes)).json());
+    expect(body.modules[x.code].ftsHash).toBe(await ftsHash(x));
+    await env.DB.prepare('UPDATE modules SET description = ? WHERE code = ?').bind(`${x.description} More.`, x.code).run();
+    const after = /** @type {any} */ (await (await adminCall('/admin/hashes', fakes)).json());
+    expect(after.modules[x.code].ftsHash).toBe(await ftsHash({ ...x, description: `${x.description} More.` }));
+  });
+
+  it('a forced run against production-format text_hash (main\'s hashOf(text)) is charged the same-text rate, and writes no FTS row', async () => {
+    // The fixture was built with main's text_hash (hashOf(text)), so the seeded
+    // D1 holds what production does after 0006 (plus row_hash NULL); the corpus
+    // carries this PR's text_hash, hash(model + text version + text).
+    expect(fixture.modules[0].textHash).toBe((await sha256Hex(fixture.modules[0].text)).slice(0, 32));
+    await env.DB.prepare('UPDATE modules SET row_hash = NULL').run();
+    const corpus = await Promise.all(fixture.modules.map(async (m) =>
+      ({ ...m, textHash: (await sha256Hex(JSON.stringify([MODEL, EMBEDDING_TEXT_VERSION, m.text]))).slice(0, 32) })));
+    const ftsRows = async () => String(await env.DB.prepare(
+      'SELECT (SELECT group_concat(id || hex(block)) FROM modules_fts_data) || (SELECT group_concat(id || hex(sz)) FROM modules_fts_docsize) AS s').first('s'));
+    const before = await ftsRows();
+    const result = await ingest(corpus, { force: true, batchSize: 50 });
+    expect(result).toMatchObject({ status: 'done', upserted: fixture.modules.length });
+    const n = fixture.modules.length;
+    const sameText = Math.floor(n / 50) * Math.ceil(50 * DEFAULTS.writesPerUpdate) + (n % 50 ? Math.ceil((n % 50) * DEFAULTS.writesPerUpdate) : 0);
+    expect(result.rowsCharged).toBeGreaterThanOrEqual(sameText);
+    expect(result.rowsCharged).toBeLessThan(n * (DEFAULTS.writesPerUpdate + 1));
+    // ...because the FTS update trigger did not fire: the shadow tables are byte-identical.
+    expect(await ftsRows()).toBe(before);
+  });
+});
+
+describe('[PR13b #2] a pending mutation Vectorize has moved past', () => {
+  afterEach(() => { vi.restoreAllMocks(); });
+
+  it('ingest and delete responses carry the Worker\'s Date.now() at the Vectorize call', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-11-04T10:00:00.000Z'));
+    const [x] = fixture.modules;
+    const ing = /** @type {any} */ (await (await adminCall('/admin/ingest', fakes, { modules: [x] })).json());
+    expect(ing.sentAt).toBe(Date.parse('2026-11-04T10:00:00.000Z'));
+    const del = /** @type {any} */ (await (await adminCall('/admin/delete', fakes, { codes: [x.code] })).json());
+    expect(del.sentAt).toBe(Date.parse('2026-11-04T10:00:00.000Z'));
+  });
+
+  it('a no-op rerun is satisfied once Vectorize has processed a later mutation sent another way, and writes the data version', async () => {
+    let t = Date.parse('2026-11-04T10:00:00.000Z');
+    vi.spyOn(Date, 'now').mockImplementation(() => t);
+    const pending = memoryPending();
+    fakes.vectorize.processPerDescribe = 0;
+    const changed = fixture.modules.map((m, i) => (i === 0 ? { ...m, credits: 42 } : m));
+    const first = await ingest(changed, { waitTimeoutMs: 0 }, { pending });
+    expect(first.status).toBe('wait-timeout');
+    expect(await pending.read()).toMatchObject({ id: first.lastMutationId, sentAt: t });
+
+    // Another client (another --url to the same Worker and index) mutates later.
+    t += 60_000;
+    await adminCall('/admin/ingest', fakes, { modules: [fixture.modules[1]] });
+    fakes.vectorize.processPerDescribe = Infinity;
+    const second = await ingest(changed, { waitTimeoutMs: 10_000 }, { pending });
+    expect(second).toMatchObject({ status: 'done', upserted: 0 });
+    expect(second.dataVersion).toMatch(/^[0-9a-f]{12}$/);
+    expect(await pending.read()).toBeNull();
   });
 });

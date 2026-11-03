@@ -197,9 +197,30 @@ as well if more than 5% of the codes D1 holds leave the corpus.
 The run then rebuilds the facets row and waits, by polling `describe()`, until Vectorize
 has processed its last mutation. Only then does it write `src/data-version.json`, the
 `/search` cache-key version (a hash of every code and row hash). Every mutation id is
-saved in `.data/ingest-state.json` (git-ignored, per `--url`) as it is sent, and cleared
-only once a wait confirms it. A rerun after exit 3 has nothing to send but still waits for
-that id, and writes `src/data-version.json` only once it is confirmed.
+saved in `.data/ingest-state.json` (git-ignored, per `--url`) as it is sent, with the
+Worker's `Date.now()` when Vectorize accepted it (`sentAt`), and cleared only once a wait
+confirms it. The wait is satisfied when `processedUpToMutation` is that id, or when
+`processedUpToDatetime` is later than `sentAt`: Vectorize processes mutations in order, so a
+later one being processed covers it, even when another client (another `--url` to the
+same index) mutated the index since and the id never matches again. Both times come from
+Cloudflare's clock. A rerun after exit 3 has nothing to send but still waits for that
+mutation, and writes `src/data-version.json` only once it is confirmed. If the state file
+cannot be written mid-run, the run carries on but ends with exit 1, naming the mutation ids
+it could not record, and does not write `src/data-version.json`.
+
+**If a rerun keeps exiting 3.** An entry saved by a Worker older than this script has no
+`sentAt`, so only the exact id ends its wait. Check `npx wrangler vectorize info
+nusmods-modules`. Once `processedUpToMutation` is the id in `.data/ingest-state.json`, or
+`processedUpToDatetime` is later than the time that run ended (its last mutation was sent
+before then), delete that URL's entry (or the
+whole file, if it holds no other) and rerun the same command. It then has nothing to wait
+for and writes `src/data-version.json`. Run `npm run verify` after.
+
+**One run at a time.** A run holds `.data/ingest-state.json.lock` (created exclusively,
+holding its pid) until it exits. A second `npm run ingest` from the same checkout refuses
+with exit 1 and names the pid. If no ingest is running (a run that crashed or was killed
+leaves the lock behind, and the message says whether the pid is alive), delete the lock
+file and rerun.
 
 **Guards.** Each one stops the run before it writes anything:
 
@@ -216,12 +237,22 @@ that id, and writes `src/data-version.json` only once it is confirmed.
 
 **Write budget.** `--write-budget` (default 40,000 D1 rows, ADR 0002) charges each admin
 call the larger of the `meta.rows_written` it reports and an estimate per module. The
-estimate includes the FTS5 shadow-table writes for inserted or text-changed rows, which
-local D1 does not report and remote D1 may bill. Before a batch would pass the budget, the run
-stops cleanly (exit 2) and prints how to resume. Rerun the same command: the hash skip
-sends only what is still pending. A stopped `--force` run resumes with `--from <code>`.
-A forced full re-ingest of existing rows costs ~35k rows read and ~34.4k written, with
-no FTS writes, and is charged ~37k.
+estimate includes the FTS5 shadow-table writes for inserted rows and rows whose code, title
+or description change, which local D1 does not report and remote D1 may bill. Which rows
+those are is decided by `ftsHash`, a hash of those three columns (the ones the 0006 FTS
+update trigger watches) that `/admin/hashes` computes from what D1 stores. It is not decided
+by `text_hash`, which also changes with the model or the embedded-text version. Before a
+batch would pass the budget, the run stops cleanly (exit 2) and prints how to resume. Rerun
+the same command: the hash skip sends only what is still pending. A stopped `--force` run
+resumes with `--from <code>`.
+
+The planned first run against production (rows written by main: `text_hash` in main's
+`hashOf(text)` format, `row_hash` NULL, titles and descriptions unchanged) re-embeds and
+rewrites all 6,771 modules with no FTS writes. Locally it reads 35,102 rows, D1 reports
+34,381 written, and the budget charges **37,251**, so it finishes in one run. That figure is
+from the `productionStart` step of `test/full/ingest.test.js`, which rebuilds that state in
+local D1 ([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md) "Remote estimate"). A
+forced re-ingest of rows this script wrote costs the same.
 
 **Do not cold-load the remote database with the default budget.** Loading an empty
 database writes ~48k table and index rows plus ~89k FTS5 shadow rows, about 137k in all.

@@ -29,6 +29,7 @@ row) and `src/modules.js` (the facets rebuild's live aggregates: ~21.5k rows rea
 
 | run | rows read | rows written (D1) | budget sum | charged | Workers AI calls | estimate (read / written) |
 |---|---:|---:|---:|---:|---:|---|
+| **production starting state** (main's `text_hash`, `row_hash` NULL; no flags; the planned remote run) | **35,102** | **34,383** | 34,381 | **37,251** | 136 | 35k / 34.4k |
 | **forced full re-ingest** (`--force`, 6,771 re-embedded) | **35,102** | **34,383** | 34,381 | **37,251** | 136 | 35k / 34.4k |
 | no-op rerun (nothing changed) | 28,331 | 2 | 0 | 0 | 0 | 28.3k / 2 |
 | **field-only change**, 25 modules (semesters ×10, credits ×5, prerequisite ×5, NG ×5) | **28,357** | **138** | 136 | 138 | 0 | 28.3k / 125 |
@@ -47,7 +48,7 @@ run higher than before the PR #13 review fixes: the schema check now lists every
 
 Line from the run:
 ```
-[1C] {"modules":6771,"coldDefaultBudget":{"status":"budget","plan":{"embed":6771,"rowOnly":0,"unchanged":0,"deletes":0},"embedded":1800,"deleted":0,"aiCalls":36,"budgetRowsWritten":12784,"budgetRowsCharged":39600,"rowsRead":5689,"rowsWritten":12788,"statements":1809},"coldResume":{"status":"done","plan":{"embed":4971,"rowOnly":0,"unchanged":1800,"deletes":0},"embedded":4971,"deleted":0,"aiCalls":100,"budgetRowsWritten":35139,"budgetRowsCharged":109362,"rowsRead":23360,"rowsWritten":35141,"statements":4980},"forced":{"status":"done","plan":{"embed":6771,"rowOnly":0,"unchanged":0,"deletes":0},"embedded":6771,"deleted":0,"aiCalls":136,"budgetRowsWritten":34381,"budgetRowsCharged":37251,"rowsRead":35102,"rowsWritten":34383,"statements":6780},"noop":{"status":"done","plan":{"embed":0,"rowOnly":0,"unchanged":6771,"deletes":0},"embedded":0,"deleted":0,"aiCalls":0,"budgetRowsWritten":0,"budgetRowsCharged":0,"rowsRead":28331,"rowsWritten":2,"statements":9},"fieldOnly25":{"status":"done","plan":{"embed":0,"rowOnly":25,"unchanged":6746,"deletes":0},"embedded":0,"deleted":0,"aiCalls":0,"budgetRowsWritten":136,"budgetRowsCharged":138,"rowsRead":28357,"rowsWritten":138,"statements":34},"delete10":{"status":"done","plan":{"embed":0,"rowOnly":0,"unchanged":6761,"deletes":10},"embedded":0,"deleted":10,"aiCalls":0,"budgetRowsWritten":30,"budgetRowsCharged":120,"rowsRead":28380,"rowsWritten":32,"statements":11},"verify":{"rowsRead":6761,"rowsWritten":0,"sample":100}}
+[1C] {"modules":6771,"coldDefaultBudget":{"status":"budget","plan":{"embed":6771,"rowOnly":0,"unchanged":0,"deletes":0},"embedded":1800,"deleted":0,"aiCalls":36,"budgetRowsWritten":12784,"budgetRowsCharged":39600,"rowsRead":5689,"rowsWritten":12788,"statements":1809},"coldResume":{"status":"done","plan":{"embed":4971,"rowOnly":0,"unchanged":1800,"deletes":0},"embedded":4971,"deleted":0,"aiCalls":100,"budgetRowsWritten":35139,"budgetRowsCharged":109362,"rowsRead":23360,"rowsWritten":35141,"statements":4980},"productionStart":{"status":"done","plan":{"embed":6771,"rowOnly":0,"unchanged":0,"deletes":0},"embedded":6771,"deleted":0,"aiCalls":136,"budgetRowsWritten":34381,"budgetRowsCharged":37251,"rowsRead":35102,"rowsWritten":34383,"statements":6780},"forced":{"status":"done","plan":{"embed":6771,"rowOnly":0,"unchanged":0,"deletes":0},"embedded":6771,"deleted":0,"aiCalls":136,"budgetRowsWritten":34381,"budgetRowsCharged":37251,"rowsRead":35102,"rowsWritten":34383,"statements":6780},"noop":{"status":"done","plan":{"embed":0,"rowOnly":0,"unchanged":6771,"deletes":0},"embedded":0,"deleted":0,"aiCalls":0,"budgetRowsWritten":0,"budgetRowsCharged":0,"rowsRead":28331,"rowsWritten":2,"statements":9},"fieldOnly25":{"status":"done","plan":{"embed":0,"rowOnly":25,"unchanged":6746,"deletes":0},"embedded":0,"deleted":0,"aiCalls":0,"budgetRowsWritten":136,"budgetRowsCharged":138,"rowsRead":28357,"rowsWritten":138,"statements":34},"delete10":{"status":"done","plan":{"embed":0,"rowOnly":0,"unchanged":6761,"deletes":10},"embedded":0,"deleted":10,"aiCalls":0,"budgetRowsWritten":30,"budgetRowsCharged":120,"rowsRead":28380,"rowsWritten":32,"statements":11},"verify":{"rowsRead":6761,"rowsWritten":0,"sample":100}}
 ```
 
 ## FTS5 shadow-table writes
@@ -71,8 +72,14 @@ count on a twin database without the three FTS triggers (the method of 0006-cost
 The forced re-ingest writes no FTS row: the update trigger fires only when code, title or
 description change (`test/full/lexical.test.js` also asserts the shadow tables are byte-identical
 after it). The budget's estimate per module (`scripts/ingest-core.mjs` DEFAULTS) is: insert 8 +
-14 FTS; text changed (by `text_hash`, a superset of a title/description change) 5.5 + 16 FTS;
-same text 5.5; delete 12 (the hash-clearing UPDATE, the DELETE and FTS). Automerges bunch the
+14 FTS; code, title or description changed 5.5 + 16 FTS; those three unchanged 5.5; delete
+12 (the hash-clearing UPDATE, the DELETE and FTS). Which applies is decided by `ftsHash`
+(`src/rowhash.js`: code, title and description, exactly the columns the 0006 update trigger
+watches), which `/admin/hashes` computes from the stored columns and ingest from the corpus.
+It used to be decided by `text_hash`. That also changes with the model id and the
+embedded-text version, so against production, whose `text_hash` main wrote as `hashOf(text)`,
+every row was charged 21.5 although no FTS row changes: 145.6k for the run, which stopped at
+1,850 of 6,771 modules (PR #13 review). Automerges bunch the
 FTS writes into a few batches (max 2,402, ~48 per module), so one batch can exceed its estimate;
 over a run the estimate exceeds the measured mean.
 
@@ -105,10 +112,21 @@ over a run the estimate exceeds the measured mean.
 ## Remote estimate
 Same SQL, so remote reads should match these within the FTS caveat above (reads are not
 affected: the forced re-ingest touches no FTS row, `test/full/lexical.test.js` asserts the
-shadow tables are byte-identical). For the first remote run after 0006 every `row_hash` is NULL
-and every `text_hash` uses the new formula (model + text version + text), so that run is the
-forced full re-ingest: **≈ 35k rows read, ≈ 34.4k rows written** (37.3k charged; no FTS
-writes), ~6,771 embeddings (≈ 2k neurons, plan "Write-cap safety"). With the ×1.5 headroom
-rule: 52k writes, as ADR 0002 budgets. Every existing vector lacks `metadata.textHash`, so this
+shadow tables are byte-identical). Production after 0006 holds main's rows: every `row_hash`
+is NULL and every `text_hash` is main's `hashOf(text)`, not the new formula (model + text
+version + text), while code, title and description are byte-identical to the corpus. So the
+first remote run re-embeds and rewrites every module, with or without `--force`, and fires
+no FTS trigger: **≈ 35k rows read, ≈ 34.4k rows written, 37,251 charged**, in one run under
+the 40,000 default, ~6,771 embeddings (≈ 2k neurons, plan "Write-cap safety"). With the ×1.5
+headroom rule: 52k writes, as ADR 0002 budgets.
+
+How the charged figure is derived: `test/full/ingest.test.js` step `productionStart` loads the
+pinned corpus into local D1, rewrites every row's `text_hash` to `sha256(text)[:32]` (main's
+`hashOf`) and `row_hash` to NULL, then runs `runIngest` with the default options. Each of the
+136 batches is charged the larger of its `meta.rows_written` and 5.5 per module (every row's
+`ftsHash` matches, so no FTS term): 135 × 275 + 116 = 37,241 from the estimate, plus 10 from
+batches whose reported writes exceeded it. `test/ingest-core.node.test.js` checks the same
+arithmetic at 6,771 modules against a stub reporting 5.08 rows per module (the reviewer's
+repro). Every existing vector lacks `metadata.textHash`, so this
 run re-embeds everything anyway, and later row-only runs reuse stored values. Measured remote figures come from the run itself (the script prints the
 budget sum) and `d1 info` before and after.

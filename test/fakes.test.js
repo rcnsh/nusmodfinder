@@ -137,3 +137,23 @@ describe('throw and hang switches', () => {
     expect(results).toEqual([true, true, false]);
   });
 });
+
+describe('FakeVectorize describe()', () => {
+  it('[PR13b #2] reports processedUpToDatetime as the ISO time of the last processed mutation, null before any', async () => {
+    const v = new FakeVectorize();
+    v.processPerDescribe = 0;
+    expect(await v.describe()).toMatchObject({ processedUpToMutation: null, processedUpToDatetime: null });
+    const realNow = Date.now;
+    try {
+      Date.now = () => Date.parse('2026-11-04T10:00:00.000Z');
+      const { mutationId: a } = await v.deleteByIds(['x']);
+      Date.now = () => Date.parse('2026-11-04T10:00:05.000Z');
+      const { mutationId: b } = await v.deleteByIds(['y']);
+      v.processPerDescribe = 1;
+      expect(await v.describe()).toMatchObject({ processedUpToMutation: a, processedUpToDatetime: '2026-11-04T10:00:00.000Z' });
+      expect(await v.describe()).toMatchObject({ processedUpToMutation: b, processedUpToDatetime: '2026-11-04T10:00:05.000Z' });
+    } finally {
+      Date.now = realNow;
+    }
+  });
+});

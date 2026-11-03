@@ -10,7 +10,7 @@
 import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
-import { ROW_COLUMNS, boundTuple, fieldsFromRow, rowHash, storedVectorMetadata } from './rowhash.js';
+import { ROW_COLUMNS, boundTuple, fieldsFromRow, ftsHash, rowHash, storedVectorMetadata } from './rowhash.js';
 
 /**
  * @typedef {{
@@ -41,6 +41,18 @@ function ingestGuard(request, env) {
  * @param {Env} env
  */
 const vectorize = (env) => /** @type {Vectorize} */ (/** @type {unknown} */ (env.VECTORIZE));
+
+/**
+ * When Vectorize accepted a mutation, by Cloudflare's clock: read just after
+ * upsert/deleteByIds resolves (a Worker's clock advances only on I/O, so this
+ * is the time that call returned), never before it. The mutation was stamped
+ * at or before this instant, so once describe().processedUpToDatetime is
+ * later than it, a later mutation has been processed and, mutations being
+ * processed in order, this one too (scripts/ingest-core.mjs waitForMutation).
+ * The same clock as processedUpToDatetime, so the ingest machine's clock never
+ * enters the comparison.
+ */
+const acceptedAt = () => Date.now();
 
 /** Vectorize getByIds is asked for at most this many ids per call. */
 const GET_BY_IDS_CHUNK = 20;
@@ -101,7 +113,11 @@ export async function schemaStatus(db) {
 
 /**
  * GET /admin/hashes:
- * `{ schema, embeddingModel, acadYears, modules: { code: { textHash, rowHash } } }`.
+ * `{ schema, embeddingModel, acadYears, modules: { code: { textHash, rowHash, ftsHash } } }`.
+ * `ftsHash` (src/rowhash.js) hashes the stored code, title and description,
+ * the columns the 0006 FTS update trigger watches, so ingest charges FTS
+ * writes only to upserts that change them; text_hash cannot tell (it also
+ * covers the model and the embedded-text version, PR #13 review).
  * `acadYears` counts D1's rows per acad year (`{}` for an empty database), so
  * ingest can refuse to rewrite a database to another year.
  * `modules` and `acadYears` are null when the schema check fails (the
@@ -115,12 +131,14 @@ export async function handleHashes(request, env) {
   const schema = await schemaStatus(env.DB);
   const embeddingModel = env.EMBEDDING_MODEL ?? DEFAULT_MODEL;
   if (!schema.ok) return json({ schema, embeddingModel, acadYears: null, modules: null });
-  const { results } = /** @type {D1Result<{ code: string, text_hash: string, row_hash: string | null, acad_year: string }>} */ (
-    await env.DB.prepare('SELECT code, text_hash, row_hash, acad_year FROM modules').all());
+  const { results } = /** @type {D1Result<{
+    code: string, title: string, description: string, text_hash: string, row_hash: string | null, acad_year: string,
+  }>} */ (await env.DB.prepare('SELECT code, title, description, text_hash, row_hash, acad_year FROM modules').all());
+  const fts = await Promise.all(results.map((r) => ftsHash(r)));
   return json({
     schema, embeddingModel,
     acadYears: results.reduce((n, r) => ({ ...n, [r.acad_year]: (n[r.acad_year] ?? 0) + 1 }), /** @type {Record<string, number>} */ ({})),
-    modules: Object.fromEntries(results.map((r) => [r.code, { textHash: r.text_hash, rowHash: r.row_hash }])),
+    modules: Object.fromEntries(results.map((r, i) => [r.code, { textHash: r.text_hash, rowHash: r.row_hash, ftsHash: fts[i] }])),
   });
 }
 
@@ -149,8 +167,10 @@ async function getVectors(env, ids) {
  * embedded after all, so stale values are never written back over a pending
  * upsert of new ones. Vectorize first, then one D1 batch writing every
  * column plus the row_hash computed here from exactly the bound values.
- * Answers `{ upserted, embedded, reused, mutationId, meta: { rows_read, rows_written } }`;
- * ingest sums `meta.rows_written` against its write budget.
+ * Answers `{ upserted, embedded, reused, mutationId, sentAt, meta: { rows_read, rows_written } }`;
+ * ingest sums `meta.rows_written` against its write budget. `sentAt` is this
+ * Worker's Date.now() once Vectorize has accepted the mutation (see
+ * acceptedAt).
  * @param {Request} request
  * @param {Env} env
  */
@@ -192,6 +212,8 @@ export async function handleIngest(request, env) {
 
   /** @type {string} */
   let mutationId;
+  /** @type {number} */
+  let sentAt;
   try {
     const mutation = await vectorize(env).upsert(batch.map((m) => ({
       id: m.code,
@@ -201,6 +223,7 @@ export async function handleIngest(request, env) {
       metadata: /** @type {Record<string, VectorizeVectorMetadata>} */ (storedVectorMetadata(m)),
     })));
     mutationId = mutation.mutationId;
+    sentAt = acceptedAt();
   } catch (err) {
     return upstream('vectorize', err);
   }
@@ -221,7 +244,7 @@ export async function handleIngest(request, env) {
     const results = await env.DB.batch(batch.map((m, i) => stmt.bind(...boundTuple(m), hashes[i])));
     return json({
       upserted: batch.length, embedded: toEmbed.length, reused: batch.length - toEmbed.length,
-      mutationId, meta: metaOf(results),
+      mutationId, sentAt, meta: metaOf(results),
     });
   } catch (err) {
     return upstream('d1', err);
@@ -240,7 +263,8 @@ export async function handleIngest(request, env) {
  *  3. D1 DELETE. If it fails, the row is still in D1, so the next run plans
  *     its delete again; deleting from D1 first would orphan the vector,
  *     invisible to a plan built from D1's codes (plan r2, objection #11).
- * Answers `{ deleted, mutationId, meta }`; meta covers both D1 statements.
+ * Answers `{ deleted, mutationId, sentAt, meta }`; meta covers both D1
+ * statements; sentAt as for /admin/ingest.
  * @param {Request} request
  * @param {Env} env
  */
@@ -266,8 +290,11 @@ export async function handleDelete(request, env) {
   }
   /** @type {string} */
   let mutationId;
+  /** @type {number} */
+  let sentAt;
   try {
     mutationId = (await vectorize(env).deleteByIds(codes)).mutationId;
+    sentAt = acceptedAt();
   } catch (err) {
     return upstream('vectorize', err);
   }
@@ -275,7 +302,7 @@ export async function handleDelete(request, env) {
     // RETURNING, not meta.changes: changes also counts the FTS trigger's writes.
     const res = /** @type {D1Result<{ code: string }>} */ (await env.DB.prepare(
       `DELETE FROM modules WHERE code IN (${marks}) RETURNING code`).bind(...codes).all());
-    return json({ deleted: res.results.length, codes: res.results.map((r) => r.code), mutationId, meta: metaOf([cleared, res]) });
+    return json({ deleted: res.results.length, codes: res.results.map((r) => r.code), mutationId, sentAt, meta: metaOf([cleared, res]) });
   } catch (err) {
     return upstream('d1', err);
   }

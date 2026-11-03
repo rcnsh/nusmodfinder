@@ -16,11 +16,17 @@
 // A cold load is charged ~149k rows (FTS inserts: 13.19 per module measured,
 // docs/evidence/phase1/fts-writes.mjs), so the default budget stops it
 // cleanly and the resume here runs with a higher one.
+//
+// The production starting state (PR #13 review): rows written by main, whose
+// text_hash was hashOf(text), with row_hash NULL. The planned run from it
+// re-embeds every module but changes no FTS-indexed column, so it must finish
+// in one run under the default budget.
 import { applyD1Migrations, reset } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, inject, it } from 'vitest';
 import { runIngest } from '../../scripts/ingest-core.mjs';
 import { runVerify } from '../../scripts/verify-core.mjs';
+import { sha256Hex } from '../../src/rowhash.js';
 import { createFakes } from '../fakes.js';
 import { adminApi } from '../ingest-support.js';
 
@@ -112,6 +118,15 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus (Phase 1C, SC6
     const cold = await measured('coldResume', c.modules, { writeBudget: 200_000 });
     expect(cold.result.status).toBe('done');
     expect(stopped.result.upserted + cold.result.upserted).toBe(c.modules.length);
+
+    // The production starting state: main's text_hash, no row_hash.
+    const mainFormat = await Promise.all(c.modules.map(async (m) => env.DB
+      .prepare('UPDATE modules SET text_hash = ?, row_hash = NULL WHERE code = ?').bind((await sha256Hex(m.text)).slice(0, 32), m.code)));
+    for (let i = 0; i < mainFormat.length; i += 500) await env.DB.batch(mainFormat.slice(i, i + 500));
+    const production = await measured('productionStart', c.modules);
+    expect(production.result.status).toBe('done');
+    expect(production.result.plan).toMatchObject({ embed: c.modules.length, rowOnly: 0, unchanged: 0, deletes: 0 });
+    expect(production.result.rowsCharged).toBeLessThanOrEqual(40_000);
 
     // SC6: forced full re-ingest.
     const forced = await measured('forced', c.modules, { force: true });

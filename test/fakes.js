@@ -267,10 +267,15 @@ export class FakeVectorize extends Switchable {
   /** @type {{ index: number, apply: () => void }[]} */
   pending = [];
 
+  /** When each mutation in `mutations` was accepted (Date.now()), for processedUpToDatetime. */
+  /** @type {number[]} */
+  mutationTimes = [];
+
   /** @param {() => void} apply */
   mutate(apply) {
     const id = crypto.randomUUID();
     this.mutations.push(id);
+    this.mutationTimes.push(Date.now());
     if (this.deferApply) this.pending.push({ index: this.mutations.length - 1, apply });
     else apply();
     return id;
@@ -294,7 +299,10 @@ export class FakeVectorize extends Switchable {
       vectorCount: this.vectors.size,
       dimensions: EMBEDDING_DIMS,
       processedUpToMutation: this.processed ? this.mutations[this.processed - 1] : null,
-      processedUpToDatetime: null,
+      // ISO 8601, as `wrangler vectorize info` prints it (workers-types declares
+      // `number`; ingest accepts either): when the last processed mutation was
+      // accepted.
+      processedUpToDatetime: this.processed ? new Date(this.mutationTimes[this.processed - 1]).toISOString() : null,
     };
   }
 
