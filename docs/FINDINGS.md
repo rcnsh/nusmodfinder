@@ -110,6 +110,7 @@ modules; the `.data/` download cache never expires; `/search` ignores `acad_year
 - test `[B2 fixed] a module dropped from the corpus is deleted from Vectorize, then D1`
 - test `[B2 fixed] acad_year: rows are keyed by code, so a run leaves only the current year (stale rows deleted or rewritten)`
 - test `[B2 fixed] an entry older than --max-age is revalidated with If-None-Match, and a 304 keeps the cached body` (`test/findings/ingest.node.test.js`), and the four cache tests after it (200 replaces body and sidecar; a fresh entry is used without a request; `--offline`; an entry with no sidecar).
+- test `reports missing and extra vectors` (`test/verify.test.js`), `reports metadata drift in the sample`, `reports a row whose stored row_hash no longer matches its columns, and a row with none`: `npm run verify` (`scripts/verify.mjs`) exits non-zero on each.
 - test `refuses a corpus below 95% of the D1 count unless allowMassDelete` (`test/ingest.test.js`), `run only when no upsert batch failed`, `stops cleanly before a batch would exceed it, never exceeds it, and a rerun resumes through the hash skip`, `reports done only once describe() has processed the last mutation, polling on that state`, `refuses a database without migration 0006, and /admin/hashes says what is missing`.
 
 **Notes:** Was: hash input `scripts/lib.mjs:94-101` (`embeddingText`) and `:163` (`textHash:
