@@ -351,3 +351,36 @@ fails on the previous code.
   `.queries.json` is still refused. Re-running the fixed amendment with the custody seed
   reproduces the committed dev file and the committed holdout plaintext byte for byte (the
   committed holdout had no GE-prefixed or overlapping draw), so no hash changes.
+
+## 2026-11-04 — Phase 1 1C: ingest pipeline, B2/B8/B9 fixed
+
+- **B2 fixed.** `text_hash` = hash(model id + embedded-text version + text); `row_hash` =
+  hash(normaliser version + the exact bound tuple + Vectorize metadata), shared by the Worker
+  and the scripts (`src/rowhash.js`). `/admin/hashes` returns both plus a 0006 schema report.
+  `scripts/ingest-core.mjs`: text change → re-embed; row-only change → row rewrite + vector
+  re-upsert with its stored values (`getByIds`, no embedding; deviation from r1's "re-embed,
+  cheap"); unchanged → skip. Deletes through the new `/admin/delete` (Vectorize, then D1), last,
+  only after a clean upsert phase; 95% mass-delete abort before any write. Write budget (default
+  40k) summed from `meta.rows_written`, clean resumable stop (`--from` for forced runs). Bounded
+  wait on `describe().processedUpToMutation` (the last upsert batch runs alone so the last
+  mutation is well defined). `.data/` cache revalidates with an ETag/Last-Modified sidecar past
+  `--max-age` (24 h) unless `--offline`. Ingest refuses a database without 0006, a mixed acad
+  year, duplicate codes or an embedding-model mismatch. A finished run writes
+  `src/data-version.json`; README runbook: ingest → verify → commit it → `npm run deploy`.
+  acad_year sub-claim: no query-time fix; rows keyed by code, so deletes and row-hash rewrites
+  leave one year (tested).
+- `npm run verify`: missing/extra vectors (wrangler `list-vectors` ids), row_hash recomputed from
+  stored columns, sampled (≤ 100) metadata via `getByIds`; exits non-zero on drift. Tested with
+  the fake index and a stubbed wrangler only; never run remotely.
+- **SC6 measured locally** (`docs/evidence/phase1/ingest-cost.md`): forced full re-ingest
+  **35,079 rows read** (gate < 500k) / 34,381 written; no-op 28,308 / 2; 25 field-only changes
+  28,334 / 138 with no embedding; 10 deletes 28,317 / 22 (local D1 under-counts delete writes).
+  Found while measuring: a cold load writes ~7.1 rows/module (~48k), over the 40k default; the
+  budget stops it cleanly and a rerun finishes it.
+- **B8 fixed:** query tokens split on the exact unicode61 separator set, generated from SQLite
+  (`src/fts-separators.js`); ASCII MATCH strings byte-identical over every query fixture.
+- **B9 fixed:** README cost section names Vectorize queried dims as the binding limit with the
+  arithmetic; per-search D1 numbers marked pending the Phase 1 deploy.
+- Nothing deployed, no remote call, no migration change. The first remote ingest after 0006 is
+  the forced full re-ingest (every `row_hash` NULL, every `text_hash` on the new formula): ADR
+  0002's separate-UTC-day rule and headroom check apply.
