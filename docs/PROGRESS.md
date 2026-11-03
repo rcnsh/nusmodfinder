@@ -287,3 +287,11 @@ fails on the previous code.
   - Rollout order (supersedes "right after the deploy"): apply 0006, then rebuild the facets row
     with this code (`POST /admin/facets` through `wrangler dev --remote`, ~21.5k rows read),
     then deploy, so no isolate serves the fixed order.
+- Review round 3 (`03d3f63..92c0297`): two findings, both fixed.
+  - Medium: as a BEFORE trigger, `modules_rowid_immutable` made SQLite re-read every updated row,
+    which D1 bills: forced re-ingest reads 13,542 instead of 6,771. Now AFTER UPDATE (ABORT
+    still rolls back the statement and the FTS writes; the 11 refused forms still fail). The
+    full-corpus test now asserts exactly 6,771 / 1 / 1 rows read (was `< 3 × modules`).
+  - Low (pre-existing): `UPDATE OR REPLACE modules SET code = …` onto an existing code corrupts
+    the index like INSERT OR REPLACE; the REPLACE ban now covers it (and `main.`, quoted names),
+    with a test showing the corruption.
