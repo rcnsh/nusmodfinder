@@ -1,4 +1,6 @@
 {
   "schema": "vnm-holdout-manifest/1",
-  "files": {}
+  "files": {
+    "queries.json.enc": "2431c18ec4c045451006a17a8eabcca38006713a0eaee019875e64a0bf66b057"
+  }
 }

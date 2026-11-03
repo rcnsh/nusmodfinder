@@ -235,3 +235,16 @@ fails on the previous code.
   not ready); recorded for ADR 0003.
 - Running: 2a eval harness, 1A (0006 + exact filtered lexical), 1B (request path).
 
+
+## 2026-11-04 — Phase 2 2b: query sets committed, ADR 0003
+
+- Dev set moved to the harness layout (`eval/dev/queries.json`, 99 queries, sha256 unchanged
+  `cf33e601…bc3b4`). Holdout (81) encrypted with `scripts/holdout.mjs` (`VNMENC2`, bound to
+  `holdout/queries.json.enc`): ciphertext sha256 `2431c18e…f66b057` in `eval/holdout/MANIFEST.json`;
+  decrypting it reproduces the plaintext sha256 `8f653595…f7bdb4` recorded at the split.
+- Custody: the key file was base64 from before the custody tool existed; re-encoded to hex in place
+  (same 32 bytes; base64 backup kept, mode 600). `~/.config/vnm/` and `custody/` set to mode 700.
+  The custody plaintext is kept (reason in ADR 0003).
+- ADR 0003: query sets and locks, custody (procedural, plainly), metrics, the gate as implemented,
+  the SC5 sealed-test reading (queued for Jacob), deviations (AES-GCM not age, TF-IDF clustering,
+  decisive-comparison floors, both query forms embedded).
