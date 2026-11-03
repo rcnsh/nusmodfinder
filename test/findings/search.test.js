@@ -73,7 +73,9 @@ describe('S7', () => {
     const { results } = await env.DB.prepare("SELECT name FROM pragma_table_info('modules') ORDER BY cid").all();
     expect(results.map((r) => r.name)).toEqual([
       'code', 'title', 'description', 'credits', 'department', 'faculty', 'level', 'semesters', 'workload',
-      'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters',
+      // row_hash: 0006 (Phase 1C). The generated sem/ng_sem columns are hidden
+      // from table_info.
+      'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters', 'row_hash',
     ]);
   });
 

@@ -22,7 +22,7 @@ describe('raw test env', () => {
     const ours = Object.keys(raw).filter((k) => !k.startsWith('__VITEST_POOL_WORKERS_')).sort();
     expect(ours).toEqual(['DB', 'TEST_MIGRATIONS']);
     expect(env.TEST_MIGRATIONS.map((m) => m.name)).toEqual([
-      '0001_init.sql', '0002_fts.sql', '0003_ng.sql', '0004_meta.sql', '0005_rank.sql',
+      '0001_init.sql', '0002_fts.sql', '0003_ng.sql', '0004_meta.sql', '0005_rank.sql', '0006_fts_external.sql',
     ]);
   });
 });
