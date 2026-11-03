@@ -5,3 +5,4 @@ node_modules/
 *.log
 wrangler.r7.jsonc
 .eval-work/
+eval/*.lock

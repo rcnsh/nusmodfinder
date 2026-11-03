@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { decrypt, encrypt, generateKey, readEncryptedJson, readKey, updateManifest, verifyManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { embeddingKey, estimateTokens } from '../../eval/lib/embeddings.mjs';
 import { spawnSync } from 'node:child_process';
-import { appendLook, assertLookAllowed, finaliseLook, looks, readLedger, recordLook, reserveLook, withLedgerLock } from '../../eval/lib/ledger.mjs';
+import { appendLook, assertLookAllowed, finaliseLook, looks, readLedger, reserveLook, withLedgerLock } from '../../eval/lib/ledger.mjs';
 import { DecryptionError } from '../../eval/lib/errors.mjs';
 import { REPO, layout, runFile, searchParams, validateQueries } from '../../eval/lib/sets.mjs';
 
@@ -217,7 +217,13 @@ describe('ledger concurrency (review finding 3)', () => {
   it('three parallel looks from 11 rows: one is recorded, two are refused', async () => {
     const path = join(dir, 'parallel.md');
     for (let i = 0; i < 11; i++) await appendLook(path, row);
-    const results = await Promise.allSettled([1, 2, 3].map((i) => recordLook(path, 12, { ...row, variant: `p${i}` })));
+    // What eval:report does: check, compute (a tick here), append, under the lock.
+    const look = (/** @type {number} */ i) => withLedgerLock(path, async () => {
+      await assertLookAllowed(path, 'holdout', 12);
+      await new Promise((r) => setTimeout(r, 5));
+      await appendLook(path, { ...row, variant: `p${i}` });
+    });
+    const results = await Promise.allSettled([1, 2, 3].map(look));
     expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
     const refused = results.filter((r) => r.status === 'rejected').map((r) => /** @type {PromiseRejectedResult} */ (r).reason.name);
     expect(refused).toEqual(['LookLimitError', 'LookLimitError']);

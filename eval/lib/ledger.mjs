@@ -145,7 +145,7 @@ export function formatRow(row) {
 }
 
 /**
- * Appends a row. Callers that enforce the limit hold the lock (recordLook,
+ * Appends a row. Callers that enforce the limit hold the lock (eval:report,
  * reserveLook); this alone does not check anything.
  * @param {string} path
  * @param {Omit<LedgerRow, 'verdict' | 'ndcg' | 'p5'> & Partial<LedgerRow>} row
@@ -214,20 +214,6 @@ export async function withLedgerLock(path, fn, options = {}) {
   } finally {
     rmSync(lock, { force: true });
   }
-}
-
-/**
- * Checks the limit and appends the row, atomically.
- * @param {string} path
- * @param {number} max
- * @param {LedgerRow} row
- * @param {{ repo?: string, waitMs?: number }} [options]
- */
-export function recordLook(path, max, row, options = {}) {
-  return withLedgerLock(path, async () => {
-    await assertLookAllowed(path, row.set, max, options);
-    await appendLook(path, row);
-  }, options);
 }
 
 /**

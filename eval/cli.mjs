@@ -238,10 +238,15 @@ async function cmdRun(a) {
  * @param {Args} a
  */
 async function precheckCorpus(set, a) {
-  const qrelsPath = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
-  if (!existsSync(qrelsPath)) return; // dev before judging: nothing to score yet
   /** @type {import('./lib/metrics.mjs').Qrels} */
-  const qrels = set.encrypted ? await loadQrels(set) : JSON.parse(await readFile(qrelsPath, 'utf8'));
+  let qrels;
+  if (set.encrypted) {
+    qrels = await loadQrels(set); // throws if the set is not judged yet, before a look is reserved
+  } else {
+    const qrelsPath = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
+    if (!existsSync(qrelsPath)) return; // dev before judging: nothing to score yet
+    qrels = JSON.parse(await readFile(qrelsPath, 'utf8'));
+  }
   assertSameCorpus(qrels, [await readRun(set, runPath(set, /** @type {string} */ (a.baseline)))]);
 }
 

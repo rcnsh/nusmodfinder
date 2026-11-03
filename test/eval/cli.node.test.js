@@ -211,3 +211,14 @@ describe('qrels and runs must share a corpus (review finding 7)', () => {
     expect(await readLedger(join(dir, 'ledger.md'))).toHaveLength(0);
   });
 });
+
+describe('a holdout run with nothing to score reserves no look', () => {
+  it('refuses before reserving when the set has no qrels yet', async () => {
+    const { dir } = await makeSet('unjudged');
+    await rm(join(dir, 'qrels.json.enc'));
+    const r = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'never', '--baseline', 'base']);
+    expect(r.code).toBe(1);
+    expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (Error); details withheld\n`);
+    expect(await readLedger(join(dir, 'ledger.md'))).toHaveLength(0);
+  });
+});
