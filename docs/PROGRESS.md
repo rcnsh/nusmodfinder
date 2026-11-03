@@ -446,3 +446,21 @@ fails on the previous code.
   FTS metering is measured. The forced re-ingest writes 0 FTS rows and is charged 37,251.
 - CI: the full unicode61 separator probe gets a 60 s timeout (5.2 s on the runner).
 - Nothing deployed, no remote call.
+
+## 2026-11-04 — Phase 1 1C: PR #13 second review fixes
+
+- **The FTS write charge follows the FTS triggers.** `/admin/hashes` returns `ftsHash` (code,
+  title, description of the stored row, `src/rowhash.js`); the budget charges the FTS term only
+  when it differs from the corpus's. `text_hash` still decides re-embedding. Against production
+  (main's `hashOf(text)`, `row_hash` NULL) the old rule charged every row 21.5 and stopped at
+  1,850 of 6,771 modules; the planned run is now charged 37,251 (local, `productionStart` in
+  `test/full/ingest.test.js`) and finishes in one run under the 40k default.
+- **The mutation wait cannot deadlock.** `/admin/ingest` and `/admin/delete` return `sentAt`
+  (the Worker's `Date.now()` once Vectorize accepted the mutation); the state file stores it,
+  and the wait also ends when `processedUpToDatetime` (ISO or number) is strictly later. README
+  documents the manual way out for entries without `sentAt`.
+- **One ingest at a time.** `.data/ingest-state.json.lock` (O_EXCL, pid; the refusal says
+  whether the pid is alive); state writes use a per-process tmp file. A failed state write no
+  longer kills the run: it finishes, exits 1, names the unrecorded mutation ids and does not
+  write `data-version.json`.
+- Nothing deployed, no remote call.
