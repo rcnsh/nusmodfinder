@@ -225,7 +225,8 @@ export class FakeVectorize extends Switchable {
   async upsert(vectors) {
     await this.gate('upsert', [vectors]);
     for (const v of vectors) {
-      const okType = Array.isArray(v.values) || v.values instanceof Float32Array || v.values instanceof Float64Array;
+      const vals = /** @type {unknown} */ (v.values);
+      const okType = Array.isArray(vals) || vals instanceof Float32Array || vals instanceof Float64Array;
       if (!okType || v.values.length !== EMBEDDING_DIMS || !Array.from(v.values).every((x) => typeof x === 'number' && Number.isFinite(x))) {
         throw new Error(`fake Vectorize: vector "${v.id}" is not ${EMBEDDING_DIMS} finite numbers (got ${v.values?.length} values)`);
       }
