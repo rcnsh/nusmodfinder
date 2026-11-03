@@ -20,21 +20,40 @@ beforeAll(async () => {
 });
 
 describe('B3', () => {
-  it('[B3 known-bug] the FTS update/delete triggers delete by the UNINDEXED code column, a full scan', async () => {
-    const plan = await env.DB.prepare('EXPLAIN QUERY PLAN DELETE FROM modules_fts WHERE code = ?').bind('CS1010S').all();
-    // FTS5 idxStr "0:" = no usable constraint, i.e. scan every row.
-    expect(plan.results.map((r) => r.detail)).toEqual(['SCAN modules_fts VIRTUAL TABLE INDEX 0:']);
-    // A rowid delete, for contrast, is a point lookup.
-    const byRowid = await env.DB.prepare('EXPLAIN QUERY PLAN DELETE FROM modules_fts WHERE rowid = ?').bind(1).all();
-    expect(byRowid.results.map((r) => r.detail)).toEqual(['SCAN modules_fts VIRTUAL TABLE INDEX 0:=']);
+  // Was `[B3 known-bug] the FTS update/delete triggers delete by the UNINDEXED
+  // code column, a full scan`. Fixed by migrations/0006_fts_external.sql.
+  it('[B3 fixed] the FTS triggers address the index by rowid: no full FTS scan, constant cost per row', async () => {
+    const { results: triggers } = /** @type {D1Result<{ name: string, sql: string }>} */ (await env.DB.prepare(
+      "SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'modules' ORDER BY name").all());
+    // modules_rowid_immutable (0006) only compares rowids and touches no table.
+    expect(triggers.map((t) => t.name)).toEqual(['modules_fts_delete', 'modules_fts_insert', 'modules_fts_update', 'modules_rowid_immutable']);
 
-    // The trigger body is the one in migrations/0002_fts.sql.
-    const trigger = await env.DB.prepare("SELECT sql FROM sqlite_master WHERE name = 'modules_fts_update'").first('sql');
-    expect(trigger).toContain('DELETE FROM modules_fts WHERE code = old.code');
+    // EXPLAIN QUERY PLAN does not descend into trigger programs, so plan each
+    // statement of each trigger body on its own, old.x/new.x bound as values.
+    let planned = 0;
+    for (const { name, sql } of triggers.filter((t) => t.name.startsWith('modules_fts_'))) {
+      const body = sql.slice(sql.search(/\bBEGIN\b/i) + 5, sql.lastIndexOf('END')).split(';').map((x) => x.trim()).filter(Boolean);
+      for (const stmt of body) {
+        expect(stmt, name).not.toMatch(/\bDELETE\s+FROM\s+modules_fts\b|\bWHERE\s+code\b/i);
+        const refs = stmt.match(/\b(?:old|new)\.\w+/g) ?? [];
+        const plan = await env.DB.prepare(`EXPLAIN QUERY PLAN ${stmt.replace(/\b(?:old|new)\.\w+/g, '?')}`)
+          .bind(...refs.map((r, i) => (r.endsWith('rowid') ? 1 : `v${i}`))).all();
+        expect(plan.results.map((r) => r.detail).filter((d) => /SCAN/.test(String(d))), `${name}: ${stmt}`).toEqual([]);
+        planned++;
+      }
+    }
+    expect(planned).toBe(4); // insert 1, delete 1, update 2 ('delete' command, then insert)
+    // The statements that fire them find the row by primary key.
+    for (const stmt of ['UPDATE modules SET title = ? WHERE code = ?', 'DELETE FROM modules WHERE code = ?']) {
+      const plan = await env.DB.prepare(`EXPLAIN QUERY PLAN ${stmt}`).bind(...(stmt.startsWith('UPDATE') ? ['t', 'CS1010S'] : ['CS1010S'])).all();
+      expect(plan.results.map((r) => r.detail)).toEqual(['SEARCH modules USING INDEX sqlite_autoindex_modules_1 (code=?)']);
+    }
 
-    // Cost: one upsert of one row reads the whole FTS table.
-    const res = await env.DB.prepare("UPDATE modules SET title = title WHERE code = 'CS1010S'").run();
-    expect(res.meta.rows_read).toBeGreaterThanOrEqual(fixture.modules.length);
+    // Cost: changing one title used to read the whole FTS table (401 rows here).
+    const res = await env.DB.prepare("UPDATE modules SET title = title || ' revised' WHERE code = 'CS1010S'").run();
+    expect(res.meta.rows_written).toBeGreaterThan(0);
+    expect(res.meta.rows_read).toBeLessThan(10);
+    expect(fixture.modules.length).toBeGreaterThan(300);
   });
 });
 
