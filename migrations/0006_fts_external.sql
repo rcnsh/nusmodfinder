@@ -64,8 +64,11 @@ BEGIN
   INSERT INTO modules_fts(rowid, code, title, description)
   VALUES (new.rowid, new.code, new.title, new.description);
 END;
--- See the hazard note at the top. Costs a comparison per updated row, no reads.
-CREATE TRIGGER modules_rowid_immutable BEFORE UPDATE ON modules
+-- See the hazard note at the top. AFTER, not BEFORE: SQLite re-reads the row
+-- after a BEFORE UPDATE trigger (D1 bills it, doubling rows read on every
+-- ingest upsert). RAISE(ABORT) still rolls back the whole statement, including
+-- the FTS trigger's writes. Costs a comparison per updated row, no reads.
+CREATE TRIGGER modules_rowid_immutable AFTER UPDATE ON modules
 WHEN new.rowid IS NOT old.rowid
 BEGIN
   SELECT RAISE(ABORT, 'modules.rowid is immutable: modules_fts is keyed on it');

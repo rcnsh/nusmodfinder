@@ -75,7 +75,7 @@
     "{\"name\":\"modules_fts_idx\",\"sql\":\"CREATE TABLE 'modules_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID\",\"tbl_name\":\"modules_fts_idx\",\"type\":\"table\"}",
     "{\"name\":\"modules_fts_insert\",\"sql\":\"CREATE TRIGGER modules_fts_insert AFTER INSERT ON modules BEGIN INSERT INTO modules_fts(rowid, code, title, description) VALUES (new.rowid, new.code, new.title, new.description); END\",\"tbl_name\":\"modules\",\"type\":\"trigger\"}",
     "{\"name\":\"modules_fts_update\",\"sql\":\"CREATE TRIGGER modules_fts_update AFTER UPDATE OF code, title, description ON modules WHEN old.title IS NOT new.title OR old.description IS NOT new.description OR old.code IS NOT new.code BEGIN INSERT INTO modules_fts(modules_fts, rowid, code, title, description) VALUES ('delete', old.rowid, old.code, old.title, old.description); INSERT INTO modules_fts(rowid, code, title, description) VALUES (new.rowid, new.code, new.title, new.description); END\",\"tbl_name\":\"modules\",\"type\":\"trigger\"}",
-    "{\"name\":\"modules_rowid_immutable\",\"sql\":\"CREATE TRIGGER modules_rowid_immutable BEFORE UPDATE ON modules WHEN new.rowid IS NOT old.rowid BEGIN SELECT RAISE(ABORT, 'modules.rowid is immutable: modules_fts is keyed on it'); END\",\"tbl_name\":\"modules\",\"type\":\"trigger\"}"
+    "{\"name\":\"modules_rowid_immutable\",\"sql\":\"CREATE TRIGGER modules_rowid_immutable AFTER UPDATE ON modules WHEN new.rowid IS NOT old.rowid BEGIN SELECT RAISE(ABORT, 'modules.rowid is immutable: modules_fts is keyed on it'); END\",\"tbl_name\":\"modules\",\"type\":\"trigger\"}"
   ],
   "indexXinfo": [
     "{\"cid\":-1,\"coll\":\"BINARY\",\"desc\":0,\"idx\":\"idx_modules_credits\",\"key\":0,\"name\":null,\"seqno\":1,\"tbl\":\"modules\"}",

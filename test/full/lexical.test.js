@@ -378,7 +378,10 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
       titleUpdate: { rowsRead: update.meta.rows_read, rowsWritten: update.meta.rows_written },
     };
     console.log(`[1A] ${JSON.stringify(reingestCost)}`);
-    expect(update.meta.rows_read).toBeLessThan(10);
-    expect(full.read).toBeLessThan(3 * c.modules.length);
+    // One row read per updated row (PR #8 review round 3: a BEFORE UPDATE
+    // trigger made SQLite re-read each row, doubling these).
+    expect(update.meta.rows_read).toBe(1);
+    expect(one.read).toBe(1);
+    expect(full.read).toBe(c.modules.length);
   }, 600_000);
 });
