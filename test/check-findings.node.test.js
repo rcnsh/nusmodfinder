@@ -46,6 +46,7 @@ describe('check-findings', () => {
       expect.stringMatching(/X3: duplicate section/),
       expect.stringMatching(/X4: no \*\*Status:\*\* line/),
       expect.stringMatching(/X99: not an ID in CRITERIA\.md/),
+      expect.stringMatching(/X99: status "rejected" needs at least one existing evidence/),
       'FINDINGS.md: no section for X1',
     ]);
   });
@@ -56,6 +57,7 @@ describe('check-findings', () => {
       .replace(section('X2', 'reproduced'), section('X2', 'partially-reproduced', '- `docs/evidence/missing.body`'))
       .replace(section('X3', 'reproduced'), section('X3', 'fixed', '- test `[X3 fixed] nowhere`'))
       .replace(section('X4', 'reproduced'), section('X4', 'rejected', '- none needed'))
+      .replace(section('X6', 'reproduced'), section('X6', 'reproduced', '- `scripts/missing.py` `docs/x/y.gz` test `[X6 known-bug]` test `[`'))
       .replace(section('X5', 'reproduced'), section('X5', 'reproduced', '- `docs/evidence/real.body`'));
     const errors = run({ findings });
     expect(errors).toEqual([
@@ -64,6 +66,12 @@ describe('check-findings', () => {
       expect.stringMatching(/X2: status "partially-reproduced" needs at least one/),
       expect.stringMatching(/X3: test \[X3 fixed\] nowhere not found under test\//),
       expect.stringMatching(/X3: status "fixed" needs at least one/),
+      expect.stringMatching(/X4: status "rejected" needs at least one/),
+      expect.stringMatching(/X6: evidence file scripts\/missing\.py does not exist/),
+      expect.stringMatching(/X6: evidence file docs\/x\/y\.gz does not exist/),
+      expect.stringMatching(/X6: test \[X6 known-bug\] not found/),
+      expect.stringMatching(/X6: test \[ not found/),
+      expect.stringMatching(/X6: status "reproduced" needs at least one/),
     ]);
   });
 

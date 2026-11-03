@@ -93,7 +93,7 @@ modules; the `.data/` download cache never expires; `/search` ignores `acad_year
 **Evidence:**
 - test `[B2 known-bug] textHash ignores semesters, credits, workload, prerequisite, preclusion and NG flags` (`test/findings/ingest.node.test.js`)
 - test `[B2 known-bug] scripts/ingest.mjs skips a module whenever its textHash is unchanged`
-- test `[B2 known-bug] a module whose semesters, NG flags, credits, prereqs and workload changed is skipped by ingest` (`test/findings/b2.test.js`): `/admin/hashes` returns only `text_hash`; the changed module lands in nobody's to-do list and `/module` keeps serving the stale row.
+- test `[B2 known-bug] /admin/hashes exposes a single embedded-text hash per module, so ingest can only compare text` (`test/findings/b2.test.js`): `/admin/hashes` returns only `text_hash`, and `/module` keeps serving the stale row.
 - test `[B2 known-bug] re-ingesting a corpus without a module leaves that module in D1 and Vectorize`: no `deleteByIds` call, no delete route (404).
 - test `[B2 known-bug] the .data/ download cache is used however old it is`: a cache file dated 2000-01-01 is served with `cached: true` (fetch stubbed to throw).
 - test `[B2 known-bug] /search returns a module from another acad year`: a `2019-2020` row is returned.

@@ -1,7 +1,7 @@
 // @ts-check
 // Backend findings B3-B8 and O4, characterised over the fixture corpus.
 import { env } from 'cloudflare:workers';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import worker from '../../src/index.js';
 import { createFakes } from '../fakes.js';
 import { BASE, call, callJson, fixture, seed } from '../helpers.js';
@@ -69,6 +69,22 @@ describe('B4', () => {
   });
 });
 
+/** Records every timer the code under test arms, then restores the globals. */
+function timerSpies() {
+  const st = vi.spyOn(globalThis, 'setTimeout');
+  const ab = typeof AbortSignal.timeout === 'function' ? vi.spyOn(AbortSignal, 'timeout') : null;
+  return {
+    armed() {
+      const out = [
+        ...st.mock.calls.filter((c) => c[1] !== 200).map((c) => `setTimeout(${c[1]})`),
+        ...(ab ? ab.mock.calls.map((c) => `AbortSignal.timeout(${c[0]})`) : []),
+      ];
+      st.mockRestore(); ab?.mockRestore();
+      return out;
+    },
+  };
+}
+
 describe('B5', () => {
   it('[B5 known-bug] /module/%E0%A4%A throws a URIError out of fetch (workerd answers 500, error 1101)', async () => {
     await expect(call('/module/%E0%A4%A')).rejects.toThrow(URIError);
@@ -77,13 +93,19 @@ describe('B5', () => {
   it('[B5 known-bug] a hanging Workers AI call hangs the search: there is no upstream timeout', async () => {
     const hanging = createFakes();
     hanging.ai.hangs();
+    const timers = timerSpies();
     expect(await settlesWithin(call('/search?q=machine%20learning%20hang', { fakes: hanging }), 200)).toBe('pending');
+    // Any timeout the Worker arms (setTimeout or AbortSignal.timeout) breaks this test,
+    // whatever its length; settlesWithin's own 200 ms timer is excluded.
+    expect(timers.armed()).toEqual([]);
   });
 
   it('[B5 known-bug] a hanging Vectorize query hangs the search too', async () => {
     const hanging = createFakes();
     hanging.vectorize.hangs();
+    const timers = timerSpies();
     expect(await settlesWithin(call('/search?q=machine%20learning%20hang2', { fakes: hanging }), 200)).toBe('pending');
+    expect(timers.armed()).toEqual([]);
   });
 
   it('[B5 known-bug] an exception outside the per-call try/catch escapes fetch unhandled', async () => {

@@ -25,19 +25,18 @@ beforeAll(async () => {
   fakes = await seed({ modules: [original, dropped, oldYear] });
 });
 
-/** scripts/ingest.mjs line 61, verbatim apart from `force` being false. */
-const ingestTodo = (/** @type {NormalisedModule[]} */ modules, /** @type {Record<string, string>} */ existing) =>
-  modules.filter((m) => existing[m.code] !== m.textHash);
-
 describe('B2', () => {
-  it('[B2 known-bug] a module whose semesters, NG flags, credits, prereqs and workload changed is skipped by ingest', async () => {
-    const existing = /** @type {Record<string, string>} */ (await (await adminCall('/admin/hashes', fakes)).json());
+  it('[B2 known-bug] /admin/hashes exposes a single embedded-text hash per module, so ingest can only compare text', async () => {
+    const existing = /** @type {Record<string, unknown>} */ (await (await adminCall('/admin/hashes', fakes)).json());
+    // One opaque string per code: the stored text_hash. No row hash, no per-field state.
     expect(existing).toEqual({ XX2001: original.textHash, XX2002: dropped.textHash, XX2003: oldYear.textHash });
-    expect(ingestTodo([changed], existing)).toEqual([]);
+    for (const v of Object.values(existing)) expect(typeof v).toBe('string');
 
-    // So D1 keeps serving the stale row.
+    // Re-sending the changed row is the only way it could land; ingest.mjs never sends it
+    // (rule characterised in ingest.node.test.js), so D1 keeps serving the stale row.
     const { body } = await callJson('/module/XX2001');
     expect(body).toMatchObject({ semesters: [1], credits: 4, ng: false, ng_semesters: [], prerequisite: 'None' });
+    expect(changed.textHash).toBe(original.textHash);
   });
 
   it('[B2 known-bug] re-ingesting a corpus without a module leaves that module in D1 and Vectorize', async () => {

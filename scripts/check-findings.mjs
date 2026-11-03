@@ -20,9 +20,21 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const EXPECTED_ID_COUNT = 35;
 export const STATUSES = ['reproduced', 'partially-reproduced', 'rejected', 'fixed'];
-const NEEDS_EVIDENCE = new Set(['reproduced', 'partially-reproduced', 'fixed']);
+const NEEDS_EVIDENCE = new Set(STATUSES); // rejected rows need evidence for the rejection too
 const ID = /^[A-Z]\d+$/;
-const PATH = /^(\.?[\w@-][\w.@-]*\/)*[\w@-][\w.@-]*\.(m?js|jsonc?|md|ya?ml|sql|html|body|headers|timing|tsv|txt|png)$/;
+// Anything shaped like a repo path is checked: a path with a directory part whose
+// last segment has an extension (`docs/evidence/x.gz`, `scripts/missing.py`), or a bare
+// file name with a common file extension (`README.md`, `wrangler.jsonc`). Prose spans
+// such as `res.json()`, `text/plain`, `m.title` or `index.js:38` are not paths.
+const EXT = 'm?[jt]sx?|cjs|jsonc?|md|ya?ml|toml|sql|html?|css|body|headers|timing|tsv|csv|txt|log|png|jpe?g|svg|gz|zip|py|sh|pdf|age';
+const PATH = new RegExp(`^(?:(?:\\.?[\\w@-][\\w.@-]*/)+[\\w@-][\\w@-]*(?:\\.[\\w-]+)*\\.[A-Za-z][\\w]*|\\.?[\\w@-][\\w.@-]*\\.(?:${EXT}))$`);
+/** Matches the title of every it()/test()/it.each()() call. */
+const TEST_TITLE = /\b(?:it|test)(?:\.(?:each|skip|only|skipIf|runIf)\([^)]*\))?\(\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g;
+
+/** @param {string} source @returns {Set<string>} exact test titles declared in `source` */
+export function testTitles(source) {
+  return new Set([...source.matchAll(TEST_TITLE)].map((m) => m[2].replace(/\\(.)/g, '$1')));
+}
 
 /**
  * @param {string} criteria CRITERIA.md text
@@ -93,12 +105,13 @@ export function evidenceRefs(evidence) {
  *   findings: string,
  *   fileExists: (repoPath: string) => boolean,
  *   testSource: string,
- * }} input `testSource` is every file under test/, concatenated.
+ * }} input `testSource` is every test file under test/ (excluding check-findings' own tests), concatenated.
  * @returns {string[]} errors; empty means the check passed
  */
 export function checkFindings({ criteria, findings, fileExists, testSource }) {
   const { ids, errors } = parseIds(criteria);
   const { sections, table } = parseFindings(findings);
+  const titles = testTitles(testSource);
   const known = new Set(ids);
   /** @type {Map<string, Section>} */
   const byId = new Map();
@@ -115,7 +128,7 @@ export function checkFindings({ criteria, findings, fileExists, testSource }) {
     }
     const { tests, paths } = evidenceRefs(s.evidence);
     const missingPaths = paths.filter((p) => !fileExists(p));
-    const missingTests = tests.filter((t) => !testSource.includes(t));
+    const missingTests = tests.filter((t) => !titles.has(t));
     for (const p of missingPaths) errors.push(`${where}: evidence file ${p} does not exist`);
     for (const t of missingTests) errors.push(`${where}: test ${t} not found under test/`);
     const found = paths.length - missingPaths.length + tests.length - missingTests.length;
@@ -137,7 +150,8 @@ export function checkFindings({ criteria, findings, fileExists, testSource }) {
 /** @param {string} dir @returns {string[]} */
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
-    e.isDirectory() ? walk(join(dir, e.name)) : /\.(m?js)$/.test(e.name) ? [join(dir, e.name)] : []);
+    e.isDirectory() ? walk(join(dir, e.name))
+      : /\.test\.m?js$/.test(e.name) && e.name !== 'check-findings.node.test.js' ? [join(dir, e.name)] : []);
 }
 
 /**
