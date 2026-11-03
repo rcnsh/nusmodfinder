@@ -1,0 +1,16 @@
+{
+ "path": "/search?q=microbbiology+bacteia&mode=lexical&topK=50",
+ "status": 200,
+ "body": {
+  "query": "microbbiology bacteia",
+  "filters": {},
+  "count": 0,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 0,
+   "fused": 0
+  },
+  "results": []
+ }
+}

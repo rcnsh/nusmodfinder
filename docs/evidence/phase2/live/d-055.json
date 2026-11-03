@@ -1,0 +1,330 @@
+{
+ "id": "d-055",
+ "path": "/search?q=is+there+something+on+marine+biology+or+coral+reefs",
+ "status": 200,
+ "ttfbMs": 908,
+ "totalMs": 909,
+ "at": "2026-11-03T19:48:41.449Z",
+ "headers": {
+  "cf-cache-status": null,
+  "cf-ray": "a54de5df1d20ddfc-SIN",
+  "age": null,
+  "server-timing": null
+ },
+ "body": {
+  "query": "is there something on marine biology or coral reefs",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 84
+  },
+  "results": [
+   {
+    "code": "LSM3275",
+    "title": "Coral Reef Ecology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03278688524590164
+   },
+   {
+    "code": "LSM4261",
+    "title": "Marine Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0315136476426799
+   },
+   {
+    "code": "CE5317B",
+    "title": "Nature Based Solutions for Coastal Protection",
+    "department": "Civil and Environmental Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.030621785881252923
+   },
+   {
+    "code": "CE5317QB",
+    "title": "Nature Based Solutions for Coastal Protection",
+    "department": "Civil and Environmental Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03057889822595705
+   },
+   {
+    "code": "BL5225",
+    "title": "Marine Conservation",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02854251012145749
+   },
+   {
+    "code": "HS2906",
+    "title": "Saltwater: Sea and Society",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.028283227848101264
+   },
+   {
+    "code": "LSM3254",
+    "title": "Ecology of Aquatic Environments",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02712049508554787
+   },
+   {
+    "code": "LSM4257",
+    "title": "Aquatic Vertebrate Diversity",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.026397515527950312
+   },
+   {
+    "code": "HS2938",
+    "title": "Paradise for Sale: The Puzzle of Natural Wealth",
+    "department": "Malay Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02637768817204301
+   },
+   {
+    "code": "NEX3008S",
+    "title": "GEx Bali/Lombok",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.025478740668614087
+   },
+   {
+    "code": "LSM4262",
+    "title": "Tropical Conservation Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.024242424242424242
+   },
+   {
+    "code": "BL5233",
+    "title": "Data Analysis for Conservation Biology with R",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.021198668146503882
+   },
+   {
+    "code": "CS6222",
+    "title": "Advanced Topics in Computational Biology",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.021090021090021092
+   },
+   {
+    "code": "LSM4264",
+    "title": "Freshwater Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.019378393559258564
+   },
+   {
+    "code": "LSM4255",
+    "title": "Methods in Mathematical Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.019232547387887194
+   },
+   {
+    "code": "LSM3266",
+    "title": "Avian Biology and Evolution",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.018706293706293706
+   },
+   {
+    "code": "LSM4270",
+    "title": "Intertidal Ecology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "NST2006",
+    "title": "The Biology and Phenomenology of Pain",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "PH6240",
+    "title": "Advanced Metaphysics",
+    "department": "Philosophy",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "PH4240",
+    "title": "Issues in Metaphysics",
+    "department": "Philosophy",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014705882352941176
+   }
+  ]
+ }
+}

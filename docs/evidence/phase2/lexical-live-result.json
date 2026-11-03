@@ -1,0 +1,127 @@
+{
+ "verdict": "PASS",
+ "pass": 15,
+ "total": 15,
+ "queries": {
+  "d-001": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  },
+  "d-015": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": false,
+   "ok": true,
+   "problems": []
+  },
+  "d-039": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": false,
+   "ok": true,
+   "problems": []
+  },
+  "d-055": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  },
+  "d-073": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": false,
+   "ok": true,
+   "problems": []
+  },
+  "d-018": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": false,
+   "ok": true,
+   "problems": []
+  },
+  "d-007": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  },
+  "d-076": {
+   "live": 2,
+   "local": 2,
+   "pin": null,
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  },
+  "d-079": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  },
+  "d-085": {
+   "live": 1,
+   "local": 1,
+   "pin": "MA2101",
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  },
+  "d-095": {
+   "live": 0,
+   "local": 0,
+   "pin": null,
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  },
+  "d-063": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  },
+  "d-043": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": false,
+   "ok": true,
+   "problems": []
+  },
+  "d-065": {
+   "live": 50,
+   "local": 50,
+   "pin": null,
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  },
+  "d-088": {
+   "live": 0,
+   "local": 0,
+   "pin": null,
+   "exactOrder": true,
+   "ok": true,
+   "problems": []
+  }
+ }
+}

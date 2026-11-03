@@ -5,3 +5,5 @@ date	mode	texts	est_tokens	est_neurons	requests	note
 2026-11-03T18:34:26.199Z	set:fixture	2	11	0.0	1	
 2026-11-03T18:45:00.358Z	set:fixture	1	61	0.1	1	
 2026-11-03T19:35:36.943Z	set:holdout	119	1853	3.4	2	
+2026-11-03T19:37:23.308Z	set:dev	136	2462	4.5	2	dev set v2.1 (phase2/baseline 2c)
+2026-11-03T19:42:22.699Z	reembed	20	249	0.5	1	phase2/baseline 2c item 3: 20 dev query texts re-embedded once (HTTP 200)

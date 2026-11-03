@@ -1,0 +1,320 @@
+{
+ "id": "d-015",
+ "path": "/search?q=computer+vision",
+ "status": 200,
+ "ttfbMs": 1307,
+ "totalMs": 1308,
+ "at": "2026-11-03T19:48:35.447Z",
+ "headers": {
+  "cf-cache-status": null,
+  "cf-ray": "a54de5b99cbaddfc-SIN",
+  "age": null,
+  "server-timing": null
+ },
+ "body": {
+  "query": "computer vision",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 84
+  },
+  "results": [
+   {
+    "code": "CS4243",
+    "title": "Computer Vision and Pattern Recognition",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.03252247488101534
+   },
+   {
+    "code": "EE4212",
+    "title": "Computer Vision",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03252247488101534
+   },
+   {
+    "code": "EE5731",
+    "title": "Visual Computing",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03149801587301587
+   },
+   {
+    "code": "CS4277",
+    "title": "3D Computer Vision",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03125763125763126
+   },
+   {
+    "code": "EE6733",
+    "title": "Advanced Topics on Vision and Machine Learning",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03055037313432836
+   },
+   {
+    "code": "CS5477",
+    "title": "3D Computer Vision",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.030536130536130537
+   },
+   {
+    "code": "ME5405",
+    "title": "Machine Vision",
+    "department": "Mechanical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.029437229437229435
+   },
+   {
+    "code": "EE4704",
+    "title": "Image Processing and Analysis",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.028577260665441927
+   },
+   {
+    "code": "ME5411",
+    "title": "Robot vision and AI",
+    "department": "Mechanical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.027912386121341344
+   },
+   {
+    "code": "CS6283",
+    "title": "Topics in Computer Science: Robot Learning in the Era of Foundation Models",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.026013513513513515
+   },
+   {
+    "code": "CP4282",
+    "title": "Emerging Topics in Computing II: Gaussian Splatting",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.025893752088205813
+   },
+   {
+    "code": "EE3703",
+    "title": "Machine Learning with Applications",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.024422933730454205
+   },
+   {
+    "code": "ESP3201A",
+    "title": "Machine Learning in Engineering Science",
+    "department": "Engineering Science Programme",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.023128342245989305
+   },
+   {
+    "code": "EE4309",
+    "title": "Robot Perception",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.021595262974573322
+   },
+   {
+    "code": "CS3241R",
+    "title": "Computer Graphics",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 1,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.018706293706293706
+   },
+   {
+    "code": "CS3241",
+    "title": "Computer Graphics",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.01869812145041503
+   },
+   {
+    "code": "ID5401",
+    "title": "Spatial Computing: Design and Development",
+    "department": "Design",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "AIS5202",
+    "title": "AI in Bio-imaging",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "ID4401",
+    "title": "Spatial Computing: Design and Development",
+    "department": "Design",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "CEG5303",
+    "title": "Intelligent Autonomous Robotic Systems",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014285714285714285
+   }
+  ]
+ }
+}

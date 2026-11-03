@@ -1,0 +1,319 @@
+{
+ "id": "d-076",
+ "path": "/search?q=OS",
+ "status": 200,
+ "ttfbMs": 755,
+ "totalMs": 762,
+ "at": "2026-11-03T19:48:53.454Z",
+ "headers": {
+  "cf-cache-status": null,
+  "cf-ray": "a54de62a8f82ddfc-SIN",
+  "age": null,
+  "server-timing": null
+ },
+ "body": {
+  "query": "OS",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 2,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "CS2106",
+    "title": "Introduction to Operating Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03252247488101534
+   },
+   {
+    "code": "CS5250",
+    "title": "Advanced Operating Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03252247488101534
+   },
+   {
+    "code": "CG2271",
+    "title": "Real-Time Operating Systems",
+    "department": "Computing and Engineering Programme",
+    "faculty": "Multi Disciplinary Programme",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "CP3209R",
+    "title": "Undergraduate Research Project in Computing (REx)",
+    "department": "SoC Dean's Office",
+    "faculty": "Computing",
+    "credits": 0,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "IT5002",
+    "title": "Computer Systems and Applications",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "CS2100HS",
+    "title": "Computer Organisation",
+    "department": "FoS Dean's Office",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "CG2028",
+    "title": "Computer Organization",
+    "department": "Computing and Engineering Programme",
+    "faculty": "Multi Disciplinary Programme",
+    "credits": 2,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "CS2100DE",
+    "title": "Computer Organisation",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "DSA3289R",
+    "title": "Advanced UROPS in Data Science and Analytics II (REx)",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "FST2289R",
+    "title": "Basic UROPS in Food Science & Technology II (REx)",
+    "department": "Food Science and Technology",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "DL5101",
+    "title": "Digital Organisation Models",
+    "department": "NUS-ISS",
+    "faculty": "NUS-ISS",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "SA4106",
+    "title": "AD Project",
+    "department": "NUS-ISS",
+    "faculty": "NUS-ISS",
+    "credits": 6,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "SP2273",
+    "title": "Working on Interdisciplinary Science, Pythonically",
+    "department": "FoS Dean's Office",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "TIC2401",
+    "title": "Introduction to Computer Systems",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "TCX1001",
+    "title": "Introduction to Computing",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "ST2289R",
+    "title": "Basic UROPS in Statistics and Applied Probability II (REx)",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "SA4101C",
+    "title": "Software Analysis and Design",
+    "department": "NUS-ISS",
+    "faculty": "NUS-ISS",
+    "credits": 8,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "ZB3289R",
+    "title": "Advanced UROPS in Computational Biology II (REx)",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "EE5502",
+    "title": "Mos Devices",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "ZB3288R",
+    "title": "Advanced UROPS in Computational Biology I (REx)",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0125
+   }
+  ]
+ }
+}

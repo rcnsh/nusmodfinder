@@ -1,0 +1,49 @@
+{
+ "path": "/search?q=MA2101&mode=lexical&topK=50",
+ "status": 200,
+ "body": {
+  "query": "MA2101",
+  "filters": {},
+  "count": 2,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 1,
+   "fused": 2
+  },
+  "results": [
+   {
+    "code": "MA2101",
+    "title": "Linear Algebra II",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 1
+   },
+   {
+    "code": "MA2101S",
+    "title": "Linear Algebra II (S)",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 5,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01639344262295082
+   }
+  ]
+ }
+}
