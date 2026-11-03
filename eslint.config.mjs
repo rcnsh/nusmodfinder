@@ -14,7 +14,7 @@ export default [
   },
   {
     // Node-side scripts, tool configs, and the tests that run in Node.
-    files: ['scripts/**/*.mjs', '*.mjs', 'test/**/*.node.test.js'],
+    files: ['scripts/**/*.mjs', 'eval/**/*.mjs', '*.mjs', 'test/**/*.node.test.js'],
     languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: { ...globals.node } },
   },
 ];

@@ -1,0 +1,1792 @@
+{
+ "version": "v2",
+ "seed": "vnm-2026-11-04",
+ "created": "2026-11-04",
+ "clusterMethod": "tfidf(text+narrative.relevant) single-link union at cos>=0.35 (lowest of 0.30..0.50 step 0.05 giving every shape >=2 per split), provenance-first",
+ "clusters": 116,
+ "largestCluster": 7,
+ "set": "dev",
+ "queries": [
+  {
+   "persona": "P1",
+   "shapes": [
+    "topical"
+   ],
+   "text": "corporate finance valuation",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An undergraduate corporate finance course, ideally 3rd-year level, on firm valuation (DCF, multiples), capital budgeting and cost of capital, taught in English",
+    "partial": "A general finance or financial management course that covers valuation as one topic, or an investments course with some company valuation",
+    "notRelevant": "Accounting courses on bookkeeping, public finance or government budgeting, real estate valuation, or anything in economics that only mentions 'finance' in passing"
+   },
+   "origin": "persona",
+   "id": "d-001"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "topical"
+   ],
+   "text": "brand management and consumer behaviour",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A marketing course on consumer behaviour or brand management at intermediate/advanced undergraduate level in the business school",
+    "partial": "An intro marketing course that covers consumer behaviour as a chapter, or a psychology course on decision-making that's open to business students",
+    "notRelevant": "Pure psychology research methods, graphic design or communications courses about making logos, or anything about animal behaviour"
+   },
+   "origin": "persona",
+   "id": "d-002"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "topical"
+   ],
+   "text": "is there a course on competitive strategy, like porter five forces, business models etc",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A strategic management course at undergraduate level covering industry analysis, competitive advantage, corporate strategy and business models, with case studies",
+    "partial": "An entrepreneurship or innovation course with a strong strategy component, or a management capstone that uses strategy cases",
+    "notRelevant": "Military strategy, game theory in maths, IT strategy for computing students, or political science courses on security strategy"
+   },
+   "origin": "persona",
+   "id": "d-003"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "Corporate Finance II",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An advanced corporate finance course that follows on from an intro finance course: capital structure, dividend policy, risk management with derivatives, M&A, about 3rd-year level",
+    "partial": "A single advanced finance course covering only part of that, like capital structure or derivatives alone",
+    "notRelevant": "An intro finance course (that would be Corporate Finance I, which I already did), personal finance, or accounting courses"
+   },
+   "origin": "persona",
+   "id": "d-004"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "International Marketing: Students learn to analyse international markets and develop marketing strategies for entering and operating in foreign markets. Topics include market entry modes (export, licensing, joint ventures, FDI), cultural differences and their influence on consumer behaviour, standardisation vs adaptation of the marketing mix, global branding, and international pricing and distribution. Case studies of multinational companies.",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An undergraduate international or global marketing course covering market entry, cross-cultural consumer behaviour and adapting the marketing mix across countries, ideally with Asian market cases",
+    "partial": "A general marketing strategy course with some international content, or an international business course that covers entry modes but isn't marketing-focused",
+    "notRelevant": "International relations, trade economics with no marketing, or a basic intro to marketing course"
+   },
+   "origin": "persona",
+   "id": "d-005"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "alternatives"
+   ],
+   "text": "backup option if I don't get the investment course, something else in finance at similar level",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Other 3rd-year finance electives open to exchange students in Sem 1, like portfolio management, financial markets or risk management, that are probably less oversubscribed",
+    "partial": "Financial accounting/analysis courses, or a finance course in Sem 2 (not useful for me but shows options)",
+    "notRelevant": "Intro finance courses, or courses with 'investment' in the title from other faculties, like infrastructure investment in engineering"
+   },
+   "origin": "persona",
+   "id": "d-006"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "language"
+   ],
+   "text": "japanese 1",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "The first-level Japanese language course for beginners",
+    "partial": "Japanese level 2, or another East Asian language course at beginner level such as Korean",
+    "notRelevant": "Japanese studies courses on history, film or society taught in English"
+   },
+   "origin": "persona",
+   "id": "d-007"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "equivalence"
+   ],
+   "text": "marketing courses third year level bachelor",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Upper-level (3000-level or so) marketing electives that my home university would see as 3rd-year bachelor level",
+    "partial": "2nd-year marketing courses that still go beyond intro level",
+    "notRelevant": "Intro marketing courses for first-years, or master's level marketing courses I can't take"
+   },
+   "origin": "persona",
+   "id": "d-008"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "abbreviation"
+   ],
+   "text": "IB courses",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "International business courses: managing multinationals, international management, cross-cultural management, global strategy",
+    "partial": "International marketing or international trade courses",
+    "notRelevant": "Anything about the International Baccalaureate, investment banking only, or biology courses where IB means something else"
+   },
+   "origin": "persona",
+   "id": "d-009"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "level"
+   ],
+   "text": "advanced financial modelling excel",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An advanced, hands-on finance course with spreadsheet-based financial modelling (valuation models, forecasting) for students who already did corporate finance",
+    "partial": "A business analytics course using Excel, or a quantitative finance course with less hands-on modelling",
+    "notRelevant": "Intro to Excel or basic computing skills courses, or mathematical modelling courses in engineering"
+   },
+   "origin": "persona",
+   "id": "d-010"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "level"
+   ],
+   "text": "intro accounting no prerequisites",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An introductory financial or managerial accounting course with no prerequisites, open to exchange students, maybe as an easier course to balance workload",
+    "partial": "An intro finance course with no prerequisites",
+    "notRelevant": "Advanced accounting or auditing courses with prerequisites, or tax law courses"
+   },
+   "origin": "persona",
+   "id": "d-011"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "noanswer"
+   ],
+   "text": "german tax law HGB Bilanzierung",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A course on German commercial code accounting and German tax law (I don't really expect NUS to have this)",
+    "partial": "A general financial reporting or international accounting standards course comparing different countries",
+    "notRelevant": "Singapore tax law, German language courses, or random accounting courses with no international angle"
+   },
+   "origin": "persona",
+   "id": "d-012"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "noanswer"
+   ],
+   "text": "corprate fiannce iii sdf",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Honestly a typo, I meant corporate finance. A perfect result would be an advanced corporate finance course, though a nonsense query might reasonably return nothing",
+    "partial": "Any finance course",
+    "notRelevant": "Courses matching random letters like 'sdf' or roman numeral 'iii' with no finance connection"
+   },
+   "origin": "persona",
+   "id": "d-013"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "topical"
+   ],
+   "text": "human computer interaction user interface design",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An HCI course covering usability, prototyping, and user studies",
+    "partial": "A graphic design or web development course with some UX",
+    "notRelevant": "Pure hardware interface or electronics courses"
+   },
+   "origin": "persona",
+   "id": "d-014"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "topical"
+   ],
+   "text": "computer vision",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A computer vision course covering image recognition, detection, 3D vision",
+    "partial": "A graphics or image processing course",
+    "notRelevant": "Optometry or photography courses"
+   },
+   "origin": "persona",
+   "id": "d-015"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "CS 4400 Operating Systems",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An NUS operating systems course that would transfer as equivalent to my home OS class",
+    "partial": "A systems programming or computer architecture course",
+    "notRelevant": "Courses that only mention operating systems in passing, like intro IT"
+   },
+   "origin": "persona",
+   "id": "d-016"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "Need an equivalent for my home course Intro to AI. Description: Covers search (A*, minimax), constraint satisfaction, logic and knowledge representation, probabilistic reasoning and Bayesian networks, intro to machine learning, and a final project implementing an agent. Prereqs: data structures, discrete math, probability. Learning outcomes: students can formulate problems as search, implement basic probabilistic inference, and evaluate AI systems.",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An NUS introductory AI course with search, logic, probabilistic reasoning and some ML",
+    "partial": "A machine learning course that skips classical AI topics",
+    "notRelevant": "AI ethics or business AI courses with no technical content"
+   },
+   "origin": "persona",
+   "id": "d-017"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "alternatives"
+   ],
+   "text": "what's similar to the machine learning course if it's full? exchange students never get the popular ones",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Other ML/AI/data-mining courses that are less oversubscribed and open to exchange students",
+    "partial": "Statistics or data analytics courses",
+    "notRelevant": "Unrelated electives"
+   },
+   "origin": "persona",
+   "id": "d-018"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "equivalence"
+   ],
+   "text": "upper-division CS course, 3 credit equivalent",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A 3000/4000-level CS course with units that map to roughly 3 US credits (4 NUS units)",
+    "partial": "A 2000-level CS course that's fairly advanced",
+    "notRelevant": "Intro-level or non-CS courses"
+   },
+   "origin": "persona",
+   "id": "d-019"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "equivalence"
+   ],
+   "text": "how many NUS units is equal to 3 US credits? I need 16 units total, 4 courses",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Information on the unit/credit conversion and courses of 4 units each",
+    "partial": "General info on course units",
+    "notRelevant": "Tuition fee info or unrelated courses"
+   },
+   "origin": "persona",
+   "id": "d-020"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "abbreviation"
+   ],
+   "text": "HCI / UX",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Human-computer interaction and user experience design courses",
+    "partial": "Web design or interactive media courses",
+    "notRelevant": "Hardware engineering or marketing courses"
+   },
+   "origin": "persona",
+   "id": "d-021"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "ge"
+   ],
+   "text": "general education course that's easy and interesting",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A general education course accessible to exchange students, interesting topic and manageable workload",
+    "partial": "Any broad-interest humanities/social science course",
+    "notRelevant": "Technical major-specific courses"
+   },
+   "origin": "persona",
+   "id": "d-022"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "level"
+   ],
+   "text": "intro course, no prerequisites, any subject",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An introductory course with no prerequisites that I can take as my fun elective",
+    "partial": "Intro courses with light prereqs",
+    "notRelevant": "Advanced courses with heavy prerequisites"
+   },
+   "origin": "persona",
+   "id": "d-023"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "constraint"
+   ],
+   "text": "no final exam, project based CS course",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A CS course assessed by projects/continuous assessment with no final exam",
+    "partial": "A course with a light, open-book final",
+    "notRelevant": "Courses with heavy final exams worth most of the grade"
+   },
+   "origin": "persona",
+   "id": "d-024"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "noanswer"
+   ],
+   "text": "asdkj qwpo cs44xx zzz",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Nothing; this was a typo or garbled string and I expect no results or a helpful 'no match' message",
+    "partial": "A suggestion to refine my search",
+    "notRelevant": "Random courses returned with no connection"
+   },
+   "origin": "persona",
+   "id": "d-025"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "topical"
+   ],
+   "text": "thermodynamics for mechanical engineering",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An undergraduate engineering thermodynamics course in the mechanical engineering department: laws of thermodynamics, cycles, entropy, at 2nd-year level.",
+    "partial": "A chemical engineering thermodynamics course, or a broader thermal-fluids course that has a big thermo part.",
+    "notRelevant": "Statistical thermodynamics in physics or chemistry, or a materials course that only mentions thermodynamics once."
+   },
+   "origin": "persona",
+   "id": "d-026"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "topical"
+   ],
+   "text": "fluid mechanics",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A core fluid mechanics course for mechanical engineers: fluid statics, Bernoulli, pipe flow, boundary layer basics, at 2nd-year level.",
+    "partial": "A civil engineering hydraulics course or an advanced fluid dynamics elective.",
+    "notRelevant": "Biology courses about body fluids, or a pure maths PDE course."
+   },
+   "origin": "persona",
+   "id": "d-027"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "topical"
+   ],
+   "text": "machine design course gears bearings shafts",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A mechanical design course where you design machine elements like gears, bearings, shafts and springs, with calculation of stress and failure.",
+    "partial": "A general engineering design project course or a CAD course.",
+    "notRelevant": "Graphic design, product design for art students, or software design."
+   },
+   "origin": "persona",
+   "id": "d-028"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "topical"
+   ],
+   "text": "heat transfer conduction convection radiation",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An undergraduate heat transfer course in mechanical engineering covering conduction, convection and radiation.",
+    "partial": "A thermal-fluids combined course or an HVAC / building energy course that teaches heat transfer.",
+    "notRelevant": "A physics electromagnetism course that mentions radiation, or a radiation safety/medical course."
+   },
+   "origin": "persona",
+   "id": "d-029"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "topical"
+   ],
+   "text": "manufacturing process machining casting welding",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A manufacturing processes course for mechanical engineering students explaining machining, casting, forming and welding.",
+    "partial": "A course on additive manufacturing or industrial/production engineering.",
+    "notRelevant": "Supply chain or operations management courses from the business school."
+   },
+   "origin": "persona",
+   "id": "d-030"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "Thermodynamics 2",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "The second thermodynamics course in mechanical engineering: power and refrigeration cycles, gas mixtures, combustion, so my home university accept it for Thermodynamics 2.",
+    "partial": "A first thermodynamics course that also covers cycles, or an applied thermodynamics elective.",
+    "notRelevant": "Introductory physics with only a short thermodynamics chapter."
+   },
+   "origin": "persona",
+   "id": "d-031"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "This course covers the basic concept of fluid mechanics including fluid properties, hydrostatics, conservation of mass momentum and energy, Bernoulli equation, dimensional analysis and similitude, viscous flow in pipes and introduction to boundary layer. Students will be able to analyze simple fluid systems used in mechanical engineering.",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "The NUS mechanical engineering fluid mechanics course at 2nd-year level that covers nearly the same topics (hydrostatics, Bernoulli, dimensional analysis, pipe flow, boundary layer).",
+    "partial": "A thermal-fluids course where fluid mechanics is half, or a civil engineering fluid mechanics course.",
+    "notRelevant": "Advanced computational fluid dynamics for postgraduates, or any course without fluid mechanics content."
+   },
+   "origin": "persona",
+   "id": "d-032"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "Mechanical Engineering Design (Capstone Design 1) - team design project, concept generation, CAD modeling, prototype and presentation",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A team-based mechanical design project course where students go from concept to CAD model and prototype, open to exchange students.",
+    "partial": "An individual design course or a general engineering innovation/design thinking course.",
+    "notRelevant": "Final-year thesis courses that only home students can take, or design courses in architecture."
+   },
+   "origin": "persona",
+   "id": "d-033"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "language"
+   ],
+   "text": "can exchange student take japanese 1",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "The first-level Japanese language course for beginners, with information that exchange students can enrol.",
+    "partial": "Other beginner Asian language courses.",
+    "notRelevant": "Japanese studies courses about society or pop culture without language teaching."
+   },
+   "origin": "persona",
+   "id": "d-034"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "sea"
+   ],
+   "text": "singapore history and society course",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An introductory course about Singapore's history, society and identity, easy for a non-specialist foreign student.",
+    "partial": "A broader Southeast Asia history course.",
+    "notRelevant": "Advanced history seminars needing many prerequisites, or courses that only use Singapore as a case study for something technical."
+   },
+   "origin": "persona",
+   "id": "d-035"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "equivalence"
+   ],
+   "text": "3 credit 2nd year mechanical course how many units in nus",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Mechanical engineering courses at 2000-level with the unit amount shown so I can compare to 3 credits in Korea (I think 4 units is normal).",
+    "partial": "Any engineering course showing units and level clearly.",
+    "notRelevant": "Pages about graduate courses or non-credit workshops."
+   },
+   "origin": "persona",
+   "id": "d-036"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "constraint"
+   ],
+   "text": "engineering elective without final exam, project based",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A mechanical or general engineering elective that is graded by project, reports and presentations with no final exam, because I may travel in December.",
+    "partial": "A course with a mid-term but a small final exam weight.",
+    "notRelevant": "Courses with a 50% or more final exam, or non-engineering courses."
+   },
+   "origin": "persona",
+   "id": "d-037"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "topical"
+   ],
+   "text": "colonial history of Southeast Asia",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A history course on colonialism and decolonisation in Southeast Asia, 19th-20th century, undergraduate level",
+    "partial": "General Asian history or a broader colonialism course not focused on the region",
+    "notRelevant": "Colonial-era architecture or economics courses with no historical focus"
+   },
+   "origin": "persona",
+   "id": "d-038"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "topical"
+   ],
+   "text": "history of migration and diaspora",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A history or social science course on migration, diaspora communities and labour movement in Asia, offered in Sem 2",
+    "partial": "A general course on globalisation",
+    "notRelevant": "Courses on migration in biology or data migration in computing"
+   },
+   "origin": "persona",
+   "id": "d-039"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "topical"
+   ],
+   "text": "gender and politics",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A course on gender in politics or society, ideally with an Asian angle",
+    "partial": "A general sociology intro with a gender unit",
+    "notRelevant": "Gender studies in health sciences or business HR courses"
+   },
+   "origin": "persona",
+   "id": "d-040"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "Introduction to Comparative Politics",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An NUS intro comparative politics course that my uni would accept as the equivalent",
+    "partial": "Any political science course at intro level",
+    "notRelevant": "International relations theory or public policy courses only loosely related"
+   },
+   "origin": "persona",
+   "id": "d-041"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "This course examines the political and social history of twentieth century Australia, including federation, the world wars, immigration policy, Indigenous rights and Australia's changing relationship with Asia. Students will analyse primary sources, develop skills in historical argument, and write a major research essay. By the end of the course students should be able to critically evaluate competing interpretations of national identity.",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A history course on a modern nation-state with a primary source and research essay focus, that could map to this Australian history unit, e.g. national history of a Southeast Asian country",
+    "partial": "A general modern history or politics course",
+    "notRelevant": "Courses with no historical or essay-based content, such as quantitative methods"
+   },
+   "origin": "persona",
+   "id": "d-042"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "sea"
+   ],
+   "text": "Singapore history",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A course on the history of Singapore from colonial times to independence and after",
+    "partial": "A broader Southeast Asian history course with a Singapore section",
+    "notRelevant": "Tourism or Singapore business law courses"
+   },
+   "origin": "persona",
+   "id": "d-043"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "sea"
+   ],
+   "text": "Singapore society, multiculturalism, race and religion",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A sociology or social studies course on Singapore society, ethnicity and religion, in Sem 1",
+    "partial": "A general sociology intro",
+    "notRelevant": "Courses about religion in other regions with no Singapore link"
+   },
+   "origin": "persona",
+   "id": "d-044"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "equivalence"
+   ],
+   "text": "which courses count as third year level / upper-division, my uni needs 3000-level equivalent",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Higher-level (3000 or 4000-level) history or politics courses open to exchange students",
+    "partial": "2000-level courses in my fields",
+    "notRelevant": "1000-level introductory courses"
+   },
+   "origin": "persona",
+   "id": "d-045"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "abbreviation"
+   ],
+   "text": "SEA studies",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Southeast Asian studies courses on history, society or culture",
+    "partial": "General Asian studies",
+    "notRelevant": "Marine or environmental courses about the sea"
+   },
+   "origin": "persona",
+   "id": "d-046"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "ge"
+   ],
+   "text": "general education course on society or culture, interesting and easy",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A general education module in the humanities or social science that exchange students can take",
+    "partial": "Any broad intro course outside my major",
+    "notRelevant": "Technical GE modules like data literacy or coding"
+   },
+   "origin": "persona",
+   "id": "d-047"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "level"
+   ],
+   "text": "intro history course no prerequisites",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An introductory history course with no prerequisites",
+    "partial": "An intro humanities course in any subject",
+    "notRelevant": "Advanced seminars requiring prior history courses"
+   },
+   "origin": "persona",
+   "id": "d-048"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "constraint"
+   ],
+   "text": "no final exam, essay only assessment history",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "History courses assessed by essays and coursework with no final exam",
+    "partial": "Courses with a small exam share but mostly essays",
+    "notRelevant": "Courses with a 60% or more final exam"
+   },
+   "origin": "persona",
+   "id": "d-049"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "constraint"
+   ],
+   "text": "politics courses with no exam",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Sem 2 politics courses with 100% continuous assessment",
+    "partial": "Politics courses with low exam weighting",
+    "notRelevant": "Courses with heavy final exams"
+   },
+   "origin": "persona",
+   "id": "d-050"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "noanswer"
+   ],
+   "text": "dentistry clinical placement year 3",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Nothing, I expect NUS has no such course for exchange undergraduates",
+    "partial": "Anything about health sciences intro",
+    "notRelevant": "Any history or politics course"
+   },
+   "origin": "persona",
+   "id": "d-051"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "topical"
+   ],
+   "text": "molecular biology",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A core molecular biology course at about third-year level: DNA replication, transcription, translation, gene regulation, taught in Sem 2 and open to exchange students.",
+    "partial": "A genetics or cell biology course that spends a lot of time on molecular mechanisms.",
+    "notRelevant": "Molecular gastronomy, molecular chemistry or materials science courses that only share the word 'molecular'."
+   },
+   "origin": "persona",
+   "id": "d-052"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "topical"
+   ],
+   "text": "biochemistry metabolism enzymes",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A biochemistry course on metabolic pathways (glycolysis, TCA, lipid metabolism) and enzyme kinetics and regulation, at intermediate or advanced level.",
+    "partial": "A protein structure course, or nutrition biochemistry.",
+    "notRelevant": "Chemical engineering reaction kinetics or food science processing courses."
+   },
+   "origin": "persona",
+   "id": "d-053"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "topical"
+   ],
+   "text": "lab course molecular techniques PCR cloning gel electrophoresis western blot",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A hands-on laboratory course where I actually do PCR, cloning, transformation, gels and western blots myself. Most of the grade comes from practicals.",
+    "partial": "A lecture course with a lab component, or a lab course in biochemistry instead of molecular biology.",
+    "notRelevant": "A course that only covers lab safety, or lecture-only courses that just describe the techniques."
+   },
+   "origin": "persona",
+   "id": "d-054"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "topical"
+   ],
+   "text": "is there something on marine biology or coral reefs",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A marine biology or coral reef ecology course, ideally with dives or shore visits.",
+    "partial": "A general biodiversity or aquatic ecology course that includes marine systems.",
+    "notRelevant": "Maritime law, shipping or ocean engineering courses."
+   },
+   "origin": "persona",
+   "id": "d-055"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "topical"
+   ],
+   "text": "cell signalling pathways and cancer",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A cell biology course on signal transduction (receptors, kinases, second messengers) and how it goes wrong in cancer.",
+    "partial": "A general cell biology course, or a cancer biology course focused more on epidemiology.",
+    "notRelevant": "Signal processing in electrical engineering, or telecom courses."
+   },
+   "origin": "persona",
+   "id": "d-056"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "topical"
+   ],
+   "text": "microbiology bacteria",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A microbiology course on bacterial physiology, genetics and pathogenesis, at intermediate level, ideally with a lab.",
+    "partial": "A virology or immunology course that covers microbes as well.",
+    "notRelevant": "Food hygiene for hospitality, or public health policy courses."
+   },
+   "origin": "persona",
+   "id": "d-057"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "travaux pratiques biochimie: protein purification, enzyme kinetics, SDS-PAGE, spectrophotometry, chromatography",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A practical biochemistry lab course where I purify proteins, measure enzyme kinetics and run SDS-PAGE and chromatography, so it can replace my home lab unit.",
+    "partial": "A biochemistry lecture course with some lab sessions, or a molecular biology lab course.",
+    "notRelevant": "Analytical chemistry for chemical engineers, or lecture-only courses with no practical work."
+   },
+   "origin": "persona",
+   "id": "d-058"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "alternatives"
+   ],
+   "text": "backup if i dont get the molecular biology module - something similar like genetics or genomics, preferably with lab",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Other upper-level genetics, genomics or molecular cell biology courses with a lab that are less likely to be oversubscribed and are open to exchange students in Sem 2.",
+    "partial": "A related course without a lab, like bioinformatics or evolution.",
+    "notRelevant": "The same molecular biology course I already wanted, or unrelated introductory biology."
+   },
+   "origin": "persona",
+   "id": "d-059"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "sea"
+   ],
+   "text": "conservation of tropical rainforests and mangroves in southeast asia",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A conservation biology course focused on Southeast Asian tropical ecosystems: deforestation, mangroves, species loss, and maybe palm oil.",
+    "partial": "A general environmental studies course about the region, or global conservation biology.",
+    "notRelevant": "Southeast Asian politics or tourism management courses."
+   },
+   "origin": "persona",
+   "id": "d-060"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "abbreviation"
+   ],
+   "text": "evo devo",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An evolutionary developmental biology course: how changes in developmental genes like Hox drive evolution of body plans.",
+    "partial": "A developmental biology course or an evolution course on its own.",
+    "notRelevant": "Software 'DevOps' or developer courses that just match 'devo'."
+   },
+   "origin": "persona",
+   "id": "d-061"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "ge"
+   ],
+   "text": "general education courses open to exchange students sem 2",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A list of NUS general education courses I can actually register for as an exchange student in Sem 2, on any interesting topic.",
+    "partial": "General education courses without clear info on whether exchange students can take them.",
+    "notRelevant": "Major-specific advanced courses, or education/teaching degree courses."
+   },
+   "origin": "persona",
+   "id": "d-062"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "level"
+   ],
+   "text": "advanced molecular biology 4000 level",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A higher-level molecular biology course (final year or honours) on current research topics like CRISPR, RNA biology and genome editing, that a third-year exchange student is allowed to take.",
+    "partial": "A third-year molecular biology course, still more advanced than intro.",
+    "notRelevant": "Introductory first-year biology, or graduate-only courses I can't enrol in."
+   },
+   "origin": "persona",
+   "id": "d-063"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "level"
+   ],
+   "text": "biochemistry suitable for 3rd year students, not first year basics",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An intermediate-to-advanced biochemistry course (structural biochemistry, metabolism regulation, protein science) above introductory level.",
+    "partial": "A biochemistry course at second-year level that still goes deeper than the basics.",
+    "notRelevant": "First-year general chemistry or 'biology for non-majors' courses."
+   },
+   "origin": "persona",
+   "id": "d-064"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "noanswer"
+   ],
+   "text": "veterinary medicine clinical rotation large animals",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A veterinary clinical placement with farm animals open to exchange undergraduates, though I doubt NUS has one.",
+    "partial": "An animal physiology or animal behaviour course.",
+    "notRelevant": "Human medicine clinical courses, or pet business and management courses."
+   },
+   "origin": "persona",
+   "id": "d-065"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "topical"
+   ],
+   "text": "concurrent and parallel programming threads locks",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A course teaching concurrency: threads, synchronisation, deadlocks, parallel programming models, in Sem 1.",
+    "partial": "A systems or operating systems course that covers threads for a few weeks.",
+    "notRelevant": "A pure web development course that only mentions async in passing."
+   },
+   "origin": "persona",
+   "id": "d-066"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "topical"
+   ],
+   "text": "software engineering design patterns object oriented design",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A software design or software engineering course with design patterns, OO design and a team project.",
+    "partial": "A basic programming methodology course in Java.",
+    "notRelevant": "Graphic or product design courses."
+   },
+   "origin": "persona",
+   "id": "d-067"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "topical"
+   ],
+   "text": "philosophy of mind",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A philosophy course on consciousness, mind and cognition, accessible to a non-philosophy major.",
+    "partial": "General intro philosophy or cognitive science courses.",
+    "notRelevant": "Religious studies or psychology lab methods courses."
+   },
+   "origin": "persona",
+   "id": "d-068"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "topical"
+   ],
+   "text": "ethics - moral philosophy intro",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An introductory ethics or moral philosophy course with lectures and essays rather than heavy prerequisites.",
+    "partial": "Business ethics or ethics of technology courses.",
+    "notRelevant": "Medical ethics aimed at med students or advanced logic courses."
+   },
+   "origin": "persona",
+   "id": "d-069"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "topical"
+   ],
+   "text": "introductory economics microeconomics",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An intro micro or principles of economics course in Sem 1 that assumes no prior economics.",
+    "partial": "Intro macroeconomics, or managerial economics.",
+    "notRelevant": "Advanced econometrics or finance derivatives courses."
+   },
+   "origin": "persona",
+   "id": "d-070"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "topical"
+   ],
+   "text": "secure software development, web vulnerabilities, how do I learn to find bugs in code",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A hands-on course about software security, vulnerabilities, exploits and secure coding.",
+    "partial": "A general software testing or software engineering course.",
+    "notRelevant": "Courses about insurance or workplace safety."
+   },
+   "origin": "persona",
+   "id": "d-071"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "Concurrent Programming",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An NUS course my home uni would accept as equivalent to its Concurrent Programming module, covering threads, shared memory and message passing.",
+    "partial": "A broader parallel computing or operating systems course.",
+    "notRelevant": "Intro programming courses."
+   },
+   "origin": "persona",
+   "id": "d-072"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "mapping"
+   ],
+   "text": "need equivalent of our 'Databases and Data Management' (relational model, SQL, normalisation, transactions, intro to NoSQL)",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A database systems course covering relational design, SQL, transactions and ideally some NoSQL, in Sem 2.",
+    "partial": "A data analytics course that uses SQL for a few sessions.",
+    "notRelevant": "Spreadsheet or business information systems courses."
+   },
+   "origin": "persona",
+   "id": "d-073"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "alternatives"
+   ],
+   "text": "similar to a computer security course but less oversubscribed",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Courses in security-adjacent areas such as cryptography, privacy, secure systems or networks that exchange students are more likely to get into.",
+    "partial": "Any systems course.",
+    "notRelevant": "Non-technical risk management courses."
+   },
+   "origin": "persona",
+   "id": "d-074"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "alternatives"
+   ],
+   "text": "other options besides the main data engineering course, maybe databases or cloud",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Database, cloud computing or big data courses I could substitute.",
+    "partial": "Machine learning courses with a data component.",
+    "notRelevant": "Courses on data privacy law only."
+   },
+   "origin": "persona",
+   "id": "d-075"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "abbreviation"
+   ],
+   "text": "OS",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An operating systems course covering processes, memory management and file systems.",
+    "partial": "A computer architecture course.",
+    "notRelevant": "Courses about operations or Mac and Windows user skills."
+   },
+   "origin": "persona",
+   "id": "d-076"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "abbreviation"
+   ],
+   "text": "DB sys + SQL",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Database systems courses that teach SQL and relational design.",
+    "partial": "Data analytics courses.",
+    "notRelevant": "Courses about the DB (Deutsche Bank) or finance."
+   },
+   "origin": "persona",
+   "id": "d-077"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "ge"
+   ],
+   "text": "general education course that is easy to fit with CS",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A general education or common curriculum course open to exchange students that is non-technical and manageable alongside CS.",
+    "partial": "Any humanities elective.",
+    "notRelevant": "Technical CS courses."
+   },
+   "origin": "persona",
+   "id": "d-078"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "ge"
+   ],
+   "text": "GE module about technology and society",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A general education course in Sem 1 looking at how technology affects society, ethics or culture.",
+    "partial": "A broad sociology or philosophy of technology course.",
+    "notRelevant": "An engineering course on device design."
+   },
+   "origin": "persona",
+   "id": "d-079"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "level"
+   ],
+   "text": "no prerequisites intro philosophy",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A beginner philosophy course with no prerequisites and open to exchange students.",
+    "partial": "Intro logic or critical thinking.",
+    "notRelevant": "Advanced seminars on specific philosophers requiring earlier philosophy courses."
+   },
+   "origin": "persona",
+   "id": "d-080"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "constraint"
+   ],
+   "text": "computer science courses with no final exam, 100% coursework or project",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "CS courses assessed entirely by projects, assignments or continuous assessment with no final exam.",
+    "partial": "Courses where the final exam is worth a small share of the grade.",
+    "notRelevant": "Courses with heavy final exams."
+   },
+   "origin": "persona",
+   "id": "d-081"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "BN4207",
+   "filters": {
+    "ng": true,
+    "sem": 2
+   },
+   "narrative": {
+    "relevant": "The course BN4207 itself.",
+    "partial": "Variants or cross-listings of BN4207 (same base code with a letter suffix).",
+    "notRelevant": "Any other course."
+   },
+   "origin": "code",
+   "codeForm": "exact",
+   "target": "BN4207",
+   "id": "d-082"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "LL4541V",
+   "filters": {
+    "ng": true,
+    "sem": 2
+   },
+   "narrative": {
+    "relevant": "The course LL4541V itself.",
+    "partial": "Variants or cross-listings of LL4541V (same base code with a letter suffix).",
+    "notRelevant": "Any other course."
+   },
+   "origin": "code",
+   "codeForm": "exact",
+   "target": "LL4541V",
+   "id": "d-083"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "MLE2105",
+   "filters": {
+    "ng": true,
+    "sem": 2
+   },
+   "narrative": {
+    "relevant": "The course MLE2105 itself.",
+    "partial": "Variants or cross-listings of MLE2105 (same base code with a letter suffix).",
+    "notRelevant": "Any other course."
+   },
+   "origin": "code",
+   "codeForm": "exact",
+   "target": "MLE2105",
+   "id": "d-084"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "MA2101",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "The course MA2101 itself.",
+    "partial": "Variants or cross-listings of MA2101 (same base code with a letter suffix).",
+    "notRelevant": "Any other course."
+   },
+   "origin": "code",
+   "codeForm": "exact",
+   "target": "MA2101",
+   "id": "d-085"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "EE4502",
+   "filters": {
+    "ng": true,
+    "sem": 1
+   },
+   "narrative": {
+    "relevant": "The course EE4502 itself.",
+    "partial": "Variants or cross-listings of EE4502 (same base code with a letter suffix).",
+    "notRelevant": "Any other course."
+   },
+   "origin": "code",
+   "codeForm": "exact",
+   "target": "EE4502",
+   "id": "d-086"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "cn 2109",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "The course CN2109 itself.",
+    "partial": "Variants or cross-listings of CN2109 (same base code with a letter suffix).",
+    "notRelevant": "Any other course."
+   },
+   "origin": "code",
+   "codeForm": "space",
+   "target": "CN2109",
+   "id": "d-087"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "cs 2030",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "The course CS2030 itself.",
+    "partial": "Variants or cross-listings of CS2030 (same base code with a letter suffix).",
+    "notRelevant": "Any other course."
+   },
+   "origin": "code",
+   "codeForm": "space",
+   "target": "CS2030",
+   "id": "d-088"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "is 4246",
+   "filters": {
+    "ng": true,
+    "sem": 1
+   },
+   "narrative": {
+    "relevant": "The course IS4246 itself.",
+    "partial": "Variants or cross-listings of IS4246 (same base code with a letter suffix).",
+    "notRelevant": "Any other course."
+   },
+   "origin": "code",
+   "codeForm": "space",
+   "target": "IS4246",
+   "id": "d-089"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "MUL21",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Courses whose code starts with MUL21, open to exchange students.",
+    "partial": "Courses with a similar code family or subject.",
+    "notRelevant": "Courses unrelated to that code prefix."
+   },
+   "origin": "code",
+   "codeForm": "partial",
+   "target": "MUL21",
+   "id": "d-090"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code"
+   ],
+   "text": "DAO17",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Courses whose code starts with DAO17, open to exchange students.",
+    "partial": "Courses with a similar code family or subject.",
+    "notRelevant": "Courses unrelated to that code prefix."
+   },
+   "origin": "code",
+   "codeForm": "partial",
+   "target": "DAO17",
+   "id": "d-091"
+  },
+  {
+   "persona": "mech",
+   "shapes": [
+    "code",
+    "ge"
+   ],
+   "text": "GEC",
+   "filters": {
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Courses whose code starts with GEC, open to exchange students.",
+    "partial": "Courses with a similar code family or subject.",
+    "notRelevant": "Courses unrelated to that code prefix."
+   },
+   "origin": "code",
+   "codeForm": "partial",
+   "target": "GEC",
+   "id": "d-092"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "typo"
+   ],
+   "text": "advanced molecuular bioogy 4000 level",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A higher-level molecular biology course (final year or honours) on current research topics like CRISPR, RNA biology and genome editing, that a third-year exchange student is allowed to take.",
+    "partial": "A third-year molecular biology course, still more advanced than intro.",
+    "notRelevant": "Introductory first-year biology, or graduate-only courses I can't enrol in."
+   },
+   "origin": "typo",
+   "id": "d-093",
+   "source": "d-063"
+  },
+  {
+   "persona": "P4",
+   "shapes": [
+    "typo"
+   ],
+   "text": "Singapore society, multiculturalism, race and reliion",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A sociology or social studies course on Singapore society, ethnicity and religion, in Sem 1",
+    "partial": "A general sociology intro",
+    "notRelevant": "Courses about religion in other regions with no Singapore link"
+   },
+   "origin": "typo",
+   "id": "d-094",
+   "source": "d-044"
+  },
+  {
+   "persona": "P5",
+   "shapes": [
+    "typo"
+   ],
+   "text": "microbbiology bacteia",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A microbiology course on bacterial physiology, genetics and pathogenesis, at intermediate level, ideally with a lab.",
+    "partial": "A virology or immunology course that covers microbes as well.",
+    "notRelevant": "Food hygiene for hospitality, or public health policy courses."
+   },
+   "origin": "typo",
+   "id": "d-095",
+   "source": "d-057"
+  },
+  {
+   "persona": "P6",
+   "shapes": [
+    "typo"
+   ],
+   "text": "introducttory economics microoeconomics",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An intro micro or principles of economics course in Sem 1 that assumes no prior economics.",
+    "partial": "Intro macroeconomics, or managerial economics.",
+    "notRelevant": "Advanced econometrics or finance derivatives courses."
+   },
+   "origin": "typo",
+   "id": "d-096",
+   "source": "d-070"
+  },
+  {
+   "persona": "P3",
+   "shapes": [
+    "typo"
+   ],
+   "text": "machine desgin course gears bearings shafts",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "A mechanical design course where you design machine elements like gears, bearings, shafts and springs, with calculation of stress and failure.",
+    "partial": "A general engineering design project course or a CAD course.",
+    "notRelevant": "Graphic design, product design for art students, or software design."
+   },
+   "origin": "typo",
+   "id": "d-097",
+   "source": "d-028"
+  },
+  {
+   "persona": "P2",
+   "shapes": [
+    "typo"
+   ],
+   "text": "HCI / UX",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "Human-computer interaction and user experience design courses",
+    "partial": "Web design or interactive media courses",
+    "notRelevant": "Hardware engineering or marketing courses"
+   },
+   "origin": "typo",
+   "id": "d-098",
+   "source": "d-021"
+  },
+  {
+   "persona": "P1",
+   "shapes": [
+    "typo"
+   ],
+   "text": "intro accunting no prerqeuisites",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "narrative": {
+    "relevant": "An introductory financial or managerial accounting course with no prerequisites, open to exchange students, maybe as an easier course to balance workload",
+    "partial": "An intro finance course with no prerequisites",
+    "notRelevant": "Advanced accounting or auditing courses with prerequisites, or tax law courses"
+   },
+   "origin": "typo",
+   "id": "d-099",
+   "source": "d-011"
+  }
+ ]
+}
