@@ -1,0 +1,127 @@
+{
+ "schema": "vnm-eval-queries/1",
+ "set": "fixture",
+ "version": "fixture-v1",
+ "note": "Synthetic queries for the harness self-test; not an evaluation set.",
+ "queries": [
+  {
+   "id": "fx-01",
+   "text": "learn to program from scratch",
+   "filters": {},
+   "shapes": [
+    "topical"
+   ],
+   "persona": "p-cs",
+   "narrative": "synthetic fixture query"
+  },
+  {
+   "id": "fx-02",
+   "text": "CS1010S",
+   "filters": {},
+   "shapes": [
+    "code-exact"
+   ],
+   "persona": "p-cs",
+   "narrative": "synthetic fixture query"
+  },
+  {
+   "id": "fx-03",
+   "text": "machine learning",
+   "filters": {
+    "sem": 1
+   },
+   "shapes": [
+    "topical"
+   ],
+   "persona": "p-cs",
+   "narrative": "synthetic fixture query"
+  },
+  {
+   "id": "fx-04",
+   "text": "machine learning",
+   "filters": {
+    "ng": true,
+    "sem": 2
+   },
+   "shapes": [
+    "topical"
+   ],
+   "persona": "p-eng",
+   "narrative": "synthetic fixture query"
+  },
+  {
+   "id": "fx-05",
+   "text": "qwrtzp vbnmx",
+   "filters": {},
+   "shapes": [
+    "no-answer"
+   ],
+   "persona": "p-gen",
+   "narrative": "synthetic fixture query"
+  },
+  {
+   "id": "fx-06",
+   "text": "startup internship",
+   "filters": {},
+   "shapes": [
+    "topical"
+   ],
+   "persona": "p-biz",
+   "narrative": "synthetic fixture query"
+  },
+  {
+   "id": "fx-07",
+   "text": "korean langauge for beginners",
+   "filters": {},
+   "shapes": [
+    "typo",
+    "language"
+   ],
+   "persona": "p-arts",
+   "narrative": "synthetic fixture query"
+  },
+  {
+   "id": "fx-08",
+   "text": "modules with no final exam",
+   "filters": {},
+   "shapes": [
+    "constraint"
+   ],
+   "persona": "p-gen",
+   "narrative": "synthetic fixture query"
+  },
+  {
+   "id": "fx-09",
+   "text": "XYZ9999",
+   "filters": {},
+   "shapes": [
+    "code-exact"
+   ],
+   "persona": "p-gen",
+   "narrative": "synthetic fixture query",
+   "noAnswerByRule": true
+  },
+  {
+   "id": "fx-10",
+   "text": "Introduction to Psychology: this course surveys the scientific study of behaviour and mental processes, covering perception, learning, memory, motivation, emotion, personality, development and social psychology, with weekly seminars.",
+   "filters": {},
+   "shapes": [
+    "home-course"
+   ],
+   "persona": "p-arts",
+   "narrative": "synthetic fixture query"
+  },
+  {
+   "id": "fx-11",
+   "text": "management courses in special term",
+   "filters": {
+    "sem": 3
+   },
+   "shapes": [
+    "topical"
+   ],
+   "persona": "p-biz",
+   "narrative": "synthetic fixture query"
+  }
+ ]
+}

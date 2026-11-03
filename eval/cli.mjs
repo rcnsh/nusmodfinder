@@ -1,0 +1,433 @@
+#!/usr/bin/env node
+// @ts-check
+// Phase 2 eval CLI. See eval/README.md.
+//
+//   npm run eval -- --variant <name> [--ref <git ref>] [--set dev|holdout|test] [--baseline <variant>]
+//   npm run eval -- --holdout --variant <name> --baseline <variant>      (custodian only)
+//   npm run eval:report -- --run <variant> [--baseline <variant>] [--set dev]
+//   npm run eval:pool -- --runs <a,b,...> [--set dev] [--unjudged]
+import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
+import { parseArgs } from 'node:util';
+import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
+import { writeEncryptedJson } from './lib/crypto.mjs';
+import { EmbeddingError, errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
+import { gateFor } from './lib/gate.mjs';
+import { appendLook, assertLookAllowed, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
+import { assertSameCorpus, byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
+import { comparisonTable, shapeTable, summaryTable, verdictBlock, verdictOnly } from './lib/report.mjs';
+import { REPO, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
+import { rng } from './lib/stats.mjs';
+
+const OPTIONS = /** @type {const} */ ({
+  variant: { type: 'string' },
+  ref: { type: 'string' },
+  set: { type: 'string', default: 'dev' },
+  holdout: { type: 'boolean', default: false },
+  'set-dir': { type: 'string' },
+  baseline: { type: 'string' },
+  run: { type: 'string' },
+  runs: { type: 'string' },
+  'change-kind': { type: 'string', default: 'general' },
+  'target-shapes': { type: 'string' },
+  unfiltered: { type: 'boolean', default: false },
+  embedding: { type: 'string' },
+  'store-only': { type: 'boolean', default: false },
+  'embed-missing': { type: 'boolean', default: false },
+  out: { type: 'string' },
+  qrels: { type: 'string' },
+  json: { type: 'string' },
+  unjudged: { type: 'boolean', default: false },
+  custodian: { type: 'boolean', default: false },
+  seed: { type: 'string', default: '20261104' },
+  help: { type: 'boolean', default: false },
+});
+
+/** @param {string} msg @returns {never} */
+function fail(msg) {
+  console.error(`eval: ${msg}`);
+  process.exit(1);
+}
+
+/**
+ * @typedef {ReturnType<typeof parseArgs<{ options: typeof OPTIONS }>>['values']} Args
+ */
+
+/** @param {Args} a */
+function setOf(a) {
+  return layout(a.holdout ? 'holdout' : /** @type {string} */ (a.set), a['set-dir'] ? resolve(a['set-dir']) : undefined);
+}
+
+/** @param {Args} a @returns {import('./lib/gate.mjs').Change} */
+function changeOf(a) {
+  const kind = a['change-kind'];
+  if (kind !== 'general' && kind !== 'cutoff') fail(`--change-kind must be general or cutoff, got ${kind}`);
+  return {
+    kind: /** @type {'general' | 'cutoff'} */ (kind),
+    targetShapes: a['target-shapes'] ? a['target-shapes'].split(',').map((s) => s.trim()).filter(Boolean) : [],
+  };
+}
+
+/**
+ * A variant name or a path to a run file.
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {string} v
+ */
+const runPath = (set, v) => (v.includes('/') || v.endsWith('.json') || v.endsWith('.enc') ? resolve(v) : runFile(set, v));
+
+/**
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {string} path
+ * @returns {Promise<import('./lib/metrics.mjs').RunFile>}
+ */
+async function readRun(set, path) {
+  if (!existsSync(path)) throw new RunFileError(`no run file at ${path}`);
+  return readSetJson(set, path);
+}
+
+/** @param {import('./lib/metrics.mjs').RunFile[]} runs */
+function assertComparable(runs) {
+  const key = (/** @type {import('./lib/metrics.mjs').RunFile} */ r) => JSON.stringify([r.set, /** @type {any} */ (r.queries)?.sha256, /** @type {any} */ (r.corpus)?.moduleInfoSha256]);
+  const first = key(runs[0]);
+  for (const r of runs.slice(1)) {
+    if (key(r) !== first) fail(`runs ${runs[0].variant} and ${r.variant} differ in set, query-set sha256 or corpus; they cannot be compared`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// dev / fixture: full report
+
+/**
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {string} candPath
+ * @param {string | undefined} basePath
+ * @param {Args} a
+ */
+async function fullReport(set, candPath, basePath, a) {
+  const querySet = await loadQueries(set);
+  const qrelsPath = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
+  if (!existsSync(qrelsPath)) {
+    console.log(`no qrels at ${qrelsPath} yet; run files are written but cannot be scored`);
+    return;
+  }
+  /** @type {import('./lib/metrics.mjs').Qrels} */
+  const qrels = JSON.parse(await readFile(qrelsPath, 'utf8'));
+  const cand = await readRun(set, candPath);
+  const base = basePath ? await readRun(set, basePath) : null;
+  assertComparable(base ? [base, cand] : [cand]);
+  assertSameCorpus(qrels, base ? [base, cand] : [cand]);
+  const currentSha = /** @type {any} */ (cand.queries)?.sha256;
+  const { createHash } = await import('node:crypto');
+  const nowSha = createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex');
+  if (currentSha !== nowSha) console.warn(`warning: ${cand.variant} was run on a different version of the ${set.name} queries; re-run it`);
+
+  const candScores = scoreRun(cand, querySet.queries, qrels);
+  const baseScores = base ? scoreRun(base, querySet.queries, qrels) : null;
+  console.log(`\nset ${set.name} · queries ${querySet.version} (${querySet.queries.length}) · qrels ${qrels.version} · metrics on top ${K}`);
+  console.log(summaryTable([...(base && baseScores ? [{ name: base.variant, summary: summarise(baseScores) }] : []), { name: cand.variant, summary: summarise(candScores) }]));
+
+  /** @type {Record<string, unknown>} */
+  const json = { set: set.name, queries: querySet.version, qrels: qrels.version, candidate: cand.variant, summary: summarise(candScores), shapes: byShape(candScores) };
+  let cmp = null;
+  if (base && baseScores) {
+    cmp = compare(baseScores, candScores);
+    console.log(`\n${comparisonTable(cmp, base.variant, cand.variant, qrels.version)}`);
+    const v = gateFor(set.gate, cmp, changeOf(a));
+    console.log(`\n${verdictBlock(v)}`);
+    Object.assign(json, { baseline: base.variant, baseSummary: summarise(baseScores), comparison: { ...cmp, shapes: undefined }, verdict: v });
+  }
+  console.log(`\nper shape (${set.name} only)`);
+  console.log(shapeTable(baseScores ? byShape(baseScores) : {}, byShape(candScores), cmp));
+  if (a.json) {
+    await mkdir(dirname(resolve(a.json)), { recursive: true });
+    await writeFile(resolve(a.json), `${JSON.stringify(json, null, 1)}\n`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// holdout / test: verdict only, ledger-counted
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+/**
+ * The verdict for an encrypted set, counted in the ledger. `report` checks
+ * the limit, computes and appends under the ledger lock; `run` passes the row
+ * it reserved before retrieval and finalises it here.
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {string} candPath
+ * @param {string} basePath
+ * @param {Args} a
+ * @param {string | null} [reserved] the ledger line `run` reserved
+ */
+async function verdictReport(set, candPath, basePath, a, reserved = null) {
+  const ledger = /** @type {string} */ (set.ledger);
+  /** @param {import('./lib/ledger.mjs').LockHandle} [lock] held by `report`; `run`'s finaliseLook takes its own */
+  const body = async (lock) => {
+    if (!reserved) await assertLookAllowed(ledger, set.name, set.maxLooks);
+    const querySet = await loadQueries(set);
+    const qrels = await loadQrels(set);
+    const cand = await readRun(set, candPath);
+    const base = await readRun(set, basePath);
+    assertComparable([base, cand]);
+    assertSameCorpus(qrels, [base, cand]);
+    const candScores = scoreRun(cand, querySet.queries, qrels);
+    const baseScores = scoreRun(base, querySet.queries, qrels);
+    const cmp = compare(baseScores, candScores);
+    const ranker = /** @type {any} */ (cand.ranker) ?? {};
+    const row = {
+      date: today(),
+      set: set.name,
+      commit: `${String(ranker.sha ?? 'unknown').slice(0, 7)}${ranker.dirty ? '+dirty' : ''}`,
+      variant: cand.variant,
+      baseline: base.variant,
+    };
+    if (cmp.judged.base < 1 || cmp.judged.cand < 1) {
+      if (reserved) await finaliseLook(ledger, reserved, { ...row, verdict: 'unjudged', ndcg: '—', p5: '—' });
+      console.log(`${set.name}: not fully judged (judged@10 must be 100%); judge the pool first. ${reserved ? 'The look reserved for this run stays counted.' : 'No look recorded.'}`);
+      process.exitCode = 2;
+      return;
+    }
+    const v = gateFor(set.gate, cmp, changeOf(a));
+    const out = verdictOnly(v, cmp, qrels.version);
+    const final = { ...row, verdict: v.verdict, ndcg: out.ndcg, p5: out.p5 };
+    if (reserved) {
+      await finaliseLook(ledger, reserved, final);
+    } else {
+      lock?.assertHeld();
+      await appendLook(ledger, final);
+    }
+    console.log(out.text);
+  };
+  // `report`: check-then-append is one critical section.
+  return reserved ? body() : withLedgerLock(ledger, body);
+}
+
+// ---------------------------------------------------------------------------
+// commands
+
+/** @param {Args} a */
+async function cmdRun(a) {
+  if (!a.variant) fail('--variant <name> is required');
+  const set = setOf(a);
+  if (a['embed-missing'] && process.env.CI) fail('--embed-missing calls Workers AI and never runs in CI');
+  /** @type {string | null} */
+  let reserved = null;
+  if (set.encrypted) {
+    if (a.out) fail('--out is not allowed for encrypted sets');
+    if (!a['store-only'] && !a.baseline) fail(`the ${set.name} set needs --baseline <variant> (or --store-only to store a run without a verdict)`);
+    await setKey(); // fail before any work if the key is not there
+    if (!a['store-only']) {
+      await precheckCorpus(set, a); // before the look is reserved
+      // Reserve the look before any retrieval: the reserved row counts, so
+      // parallel runs cannot all get past the limit.
+      reserved = await reserveLook(/** @type {string} */ (set.ledger), set.maxLooks, {
+        date: today(), set: set.name, commit: 'pending', variant: /** @type {string} */ (a.variant), baseline: /** @type {string} */ (a.baseline),
+      });
+    }
+  }
+  if (!set.encrypted && a.baseline) await precheckCorpus(set, a);
+  try {
+    await runAndReport(a, set, reserved);
+  } catch (err) {
+    if (reserved) await abortLook(set, a, reserved);
+    throw err;
+  }
+}
+
+/**
+ * Before any retrieval: the baseline run must use the corpus the qrels were
+ * judged on (the candidate is checked again after it runs).
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {Args} a
+ */
+async function precheckCorpus(set, a) {
+  /** @type {import('./lib/metrics.mjs').Qrels} */
+  let qrels;
+  if (set.encrypted) {
+    qrels = await loadQrels(set); // throws if the set is not judged yet, before a look is reserved
+  } else {
+    const qrelsPath = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
+    if (!existsSync(qrelsPath)) return; // dev before judging: nothing to score yet
+    qrels = JSON.parse(await readFile(qrelsPath, 'utf8'));
+  }
+  assertSameCorpus(qrels, [await readRun(set, runPath(set, /** @type {string} */ (a.baseline)))]);
+}
+
+/**
+ * Marks a reserved look as aborted (it still counts).
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {Args} a
+ * @param {string} reserved
+ */
+function abortLook(set, a, reserved) {
+  return finaliseLook(/** @type {string} */ (set.ledger), reserved, {
+    date: today(), set: set.name, commit: 'unknown', variant: /** @type {string} */ (a.variant), baseline: /** @type {string} */ (a.baseline), verdict: 'aborted', ndcg: '—', p5: '—',
+  });
+}
+
+/**
+ * @param {Args} a
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {string | null} reserved
+ */
+async function runAndReport(a, set, reserved) {
+  const { runVariant } = await import('./runner/run.mjs');
+  const embedMissing = a['embed-missing'];
+  // Plan Final §1: locally, texts missing from the cache (new queries, or texts a
+  // query-rewriting variant asked for) are embedded under the per-run cap, then
+  // the run is repeated once. Off by default, so a run never calls Cloudflare unasked.
+  // Encrypted sets: embed.mjs's output (stack traces, Workers AI error
+  // bodies) is discarded, and a failure throws so cmdRun aborts the reserved
+  // look and the top-level handler prints the withheld line.
+  const embed = () => {
+    const args = [join(REPO, 'scripts/embed.mjs'), '--set', set.name, ...(a['set-dir'] ? ['--set-dir', a['set-dir']] : [])];
+    const r = spawnSync(process.execPath, args, { cwd: REPO, stdio: set.encrypted ? 'ignore' : 'inherit' });
+    if (r.status === 0) return;
+    if (set.encrypted) throw new EmbeddingError(`scripts/embed.mjs exited ${r.status ?? r.signal}`);
+    fail('embedding the missing texts failed');
+  };
+  if (embedMissing) embed();
+  const run = () => runVariant({
+    set,
+    variant: /** @type {string} */ (a.variant),
+    ref: a.ref,
+    embedding: a.embedding,
+    unfiltered: a.unfiltered,
+    output: a.out ? resolve(a.out) : undefined,
+  });
+  let res = await run();
+  if (!res.ok && embedMissing && res.problems.some((p) => p.includes('without a precomputed embedding'))) {
+    embed();
+    res = await run();
+  }
+  if (!res.ok) {
+    // Encrypted sets: the problems can name ids or carry query text, so throw
+    // and let the top-level handler print the withheld line (cmdRun aborts the look).
+    if (set.encrypted) throw new RunFailedError(res.problems.join('; '));
+    if (reserved) await abortLook(set, a, reserved);
+    console.error(`eval: run ${a.variant} failed:\n  ${res.problems.join('\n  ')}`);
+    process.exit(1);
+  }
+  console.log(`wrote ${res.output}`);
+  if (!set.encrypted) {
+    /** @type {import('./lib/metrics.mjs').RunFile} */
+    const written = JSON.parse(await readFile(res.output, 'utf8'));
+    const all = Object.values(written.results);
+    console.log(`errors: ${all.filter((r) => r.status !== 200).length} of ${all.length} queries returned a non-200 response`);
+  }
+  if (set.encrypted && !a['set-dir']) {
+    const { updateManifest } = await import('./lib/crypto.mjs');
+    await updateManifest(set.dir);
+  }
+  if (a['store-only']) return;
+  if (set.encrypted) return verdictReport(set, res.output, runPath(set, /** @type {string} */ (a.baseline)), a, reserved);
+  return fullReport(set, res.output, a.baseline ? runPath(set, a.baseline) : undefined, a);
+}
+
+/** @param {Args} a */
+async function cmdReport(a) {
+  if (!a.run) fail('--run <variant or path> is required');
+  const set = setOf(a);
+  const cand = runPath(set, /** @type {string} */ (a.run));
+  if (set.encrypted) {
+    if (!a.baseline) fail(`the ${set.name} set reports only a verdict against --baseline <variant>`);
+    if (a.qrels || a.json) fail('--qrels and --json are not allowed for encrypted sets');
+    return verdictReport(set, cand, runPath(set, a.baseline), a);
+  }
+  return fullReport(set, cand, a.baseline ? runPath(set, a.baseline) : undefined, a);
+}
+
+/** @param {Args} a */
+async function cmdPool(a) {
+  if (!a.runs) fail('--runs <a,b,...> is required');
+  const set = setOf(a);
+  if (set.encrypted && !a.custodian) fail(`refusing to pool the ${set.name} set without --custodian (only the custodian dispatches holdout judging)`);
+  const querySet = await loadQueries(set);
+  const runs = await Promise.all(a.runs.split(',').map((v) => readRun(set, runPath(set, v.trim()))));
+  assertComparable(runs);
+  const qrelsPath = setFile(set, 'qrels.json');
+  const qrels = a.unjudged && existsSync(qrelsPath) ? await readSetJson(set, qrelsPath) : { queries: {} };
+  const corpusFile = join(set.dir, 'corpus.json');
+  const corpus = existsSync(corpusFile) ? await loadCorpusFile(corpusFile) : await loadPinnedWith(REPO);
+  const byCode = new Map(corpus.modules.map((m) => [m.code, m]));
+
+  const rand = rng(Number(a.seed));
+  /** @template T @param {T[]} xs */
+  const shuffle = (xs) => {
+    const out = [...xs];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  };
+
+  let docs = 0;
+  const queries = shuffle(querySet.queries).map((q) => {
+    const judged = new Set(Object.keys(qrels.queries?.[q.id]?.judgments ?? {}));
+    // Sorted before the shuffle so the order carries no system or rank signal.
+    const codes = [...new Set(runs.flatMap((r) => r.results[q.id]?.codes.slice(0, K) ?? []))].filter((c) => !judged.has(c)).sort();
+    docs += codes.length;
+    return {
+      id: q.id,
+      text: q.text,
+      narrative: q.narrative ?? null,
+      filters: q.filters ?? {},
+      constraints: q.constraints ?? q.filters ?? {},
+      candidates: shuffle(codes).map((code) => {
+        const m = byCode.get(code);
+        if (!m) throw new Error(`pooled code ${code} is not in the corpus`);
+        return {
+          code: m.code, title: m.title, level: m.level, semesters: m.semesters, ngSemesters: m.ngSemesters,
+          units: m.credits, faculty: m.faculty, department: m.department, description: m.description, prerequisite: m.prerequisite,
+        };
+      }),
+    };
+  });
+  const pool = { schema: 'vnm-eval-pool/1', set: set.name, queriesVersion: querySet.version, createdAt: new Date().toISOString(), seed: Number(a.seed), sourceRuns: runs.length, depth: K, queries };
+  const out = resolve(a.out ?? join(REPO, '.eval-work', `pool-${set.name}.json${set.encrypted ? '.enc' : ''}`));
+  await mkdir(dirname(out), { recursive: true });
+  if (set.encrypted) {
+    if (!out.endsWith('.enc')) fail('an encrypted set pool must be written to a .enc path');
+    await writeEncryptedJson(out, pool, await setKey(), set.name);
+  } else {
+    await writeFile(out, `${JSON.stringify(pool, null, 1)}\n`);
+  }
+  console.log(`pooled ${docs} ${a.unjudged ? 'unjudged ' : ''}documents over ${queries.length} queries from ${runs.length} runs -> ${out}`);
+}
+
+const { positionals, values } = parseArgs({ options: OPTIONS, allowPositionals: true });
+const command = positionals[0] ?? 'run';
+if (values.help) {
+  console.log(spawnSync('sed', ['-n', '3,10p', new URL(import.meta.url).pathname]).stdout.toString());
+  process.exit(0);
+}
+const commands = { run: cmdRun, report: cmdReport, pool: cmdPool };
+const fn = /** @type {Record<string, (a: Args) => Promise<void>>} */ (commands)[command];
+if (!fn) fail(`unknown command "${command}"; expected run, report or pool`);
+/**
+ * The encrypted set this invocation touches, if any. Its errors may carry
+ * holdout content (a query id, a judge's rationale), so they are withheld.
+ * @returns {string | null}
+ */
+function encryptedSetName() {
+  try {
+    const set = setOf(values);
+    return set.encrypted ? set.name : null;
+  } catch {
+    return null;
+  }
+}
+
+try {
+  await fn(values);
+} catch (err) {
+  const hidden = encryptedSetName();
+  if (hidden) {
+    console.error(`eval: ${hidden} run failed (${errorClass(err)}); details withheld`);
+    process.exit(1);
+  }
+  fail(/** @type {Error} */ (err).message);
+}

@@ -1,0 +1,16 @@
+{
+ "default": "emb-bge-small-v0",
+ "versions": {
+  "emb-bge-small-v0": {
+   "release": "emb-bge-small-v0",
+   "model": "@cf/baai/bge-small-en-v1.5",
+   "dims": 384,
+   "textRef": "eval-v0",
+   "count": 5920,
+   "files": {
+    "corpus.f32.gz": "584555bb3a5d277c82b93ac4b4a0774ccf49004d7836df66a7aa7716ec70a3f2",
+    "corpus.index.json": "2de0622cd47bba4befb4e0532904fcb0c4854e066639c9bb82479f38dc84d495"
+   }
+  }
+ }
+}
