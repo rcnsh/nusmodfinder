@@ -10,7 +10,7 @@
 // production defaults and the query's filters. One test per query, named by
 // its opaque id; the result travels to the Node-side reporter in task.meta.
 import { beforeAll, describe, inject, it } from 'vitest';
-import { call, seed } from '../../test/helpers.js';
+import { call, seed } from './harness.js';
 import { createFakes } from '../../test/fakes.js';
 import { LookupAI } from './lookup-ai.js';
 
@@ -19,11 +19,11 @@ if (!payload) throw new Error('evalPayload not provided; run through `npm run ev
 
 const fakes = createFakes();
 const ai = new LookupAI(payload.lookup);
-// The Worker only calls `run`; the fake keeps the same `calls` log seed() clears.
+// The Worker only calls `run`.
 fakes.ai = /** @type {any} */ (ai);
 
 beforeAll(async () => {
-  await seed({ modules: payload.corpus, fakes });
+  await seed(payload.corpus, fakes);
   if (ai.missing.length) throw new Error(`seeding left ${ai.missing.length} corpus texts unembedded`);
 }, payload.seedTimeoutMs);
 
@@ -31,7 +31,7 @@ describe('eval', () => {
   for (const q of payload.queries) {
     it(q.id, async ({ task }) => {
       ai.missing.length = 0;
-      const res = await call(`/search?${new URLSearchParams(q.params)}`, { fakes });
+      const res = await call(`/search?${new URLSearchParams(q.params)}`, fakes);
       const text = await res.text();
       /** @type {any} */
       let body = null;

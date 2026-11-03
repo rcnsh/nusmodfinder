@@ -2,7 +2,7 @@
 // Builds the directory a run executes in: the ranker under test (src/,
 // migrations/, scripts/lib.mjs and data/ — the embedding text is part of the
 // ranker) from a git ref or the working tree, overlaid with the HEAD runner
-// (eval/runner/, test/helpers.js, test/fakes.js and what they import). Used
+// (eval/runner/retrieval.eval.js, harness.js, lookup-ai.js and test/fakes.js). Used
 // for `--ref eval-v0`: tag + overlaid runner, as the plan's r3 requires.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -48,7 +48,7 @@ export async function treeHash(root, paths = HASHED) {
   return createHash('sha256').update(entries.join('\n')).digest('hex');
 }
 /** Runner files always taken from the working tree. */
-const RUNNER = ['eval/runner/retrieval.eval.js', 'eval/runner/lookup-ai.js', 'test/helpers.js', 'test/fakes.js', 'test/fixtures/corpus.json'];
+export const RUNNER = ['eval/runner/retrieval.eval.js', 'eval/runner/harness.js', 'eval/runner/lookup-ai.js', 'test/fakes.js'];
 
 /**
  * @param {string[]} args
@@ -111,7 +111,7 @@ export async function buildWorkspace({ ref, name }) {
       sha,
       dirty: ref ? false : dirty(HASHED),
       treeHash: await treeHash(root),
-      runner: { sha: head, dirty: dirty(['eval/runner', 'eval/lib', 'test/helpers.js', 'test/fakes.js', 'vitest.eval.config.mjs']) },
+      runner: { sha: head, dirty: dirty(['eval/runner', 'eval/lib', 'test/fakes.js', 'vitest.eval.config.mjs']) },
     },
   };
 }

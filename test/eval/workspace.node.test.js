@@ -1,9 +1,10 @@
 // @ts-check
-import { mkdir, mkdtemp, rm, symlink, utimes, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, symlink, utimes, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, normalize } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { HASHED, RANKER, TEST_CONFIG, treeHash } from '../../eval/lib/workspace.mjs';
+import { HASHED, RANKER, RUNNER, TEST_CONFIG, treeHash } from '../../eval/lib/workspace.mjs';
+import { REPO } from '../../eval/lib/sets.mjs';
 
 /** @type {string} */
 let dir;
@@ -58,5 +59,19 @@ describe('treeHash (review finding 8)', () => {
     const a = await treeHash(await tree('cfg-a', { ...files, [TEST_CONFIG]: cfg('2025-01-01', []) }));
     const b = await treeHash(await tree('cfg-b', { ...files, [TEST_CONFIG]: cfg('2026-01-01', ['nodejs_compat']) }));
     expect(a).not.toBe(b);
+  });
+});
+
+describe('the overlaid runner works with any ranker ref', () => {
+  it('imports nothing from src/ except src/index.js, and only files it overlays', async () => {
+    for (const file of RUNNER) {
+      const text = await readFile(join(REPO, file), 'utf8');
+      const specs = [...text.matchAll(/^\s*import\s[^'"]*['"]([^'"]+)['"]/gm), ...text.matchAll(/import\(\s*['"]([^'"]+)['"]/g)].map((m) => m[1]);
+      for (const spec of specs.filter((x) => x.startsWith('.'))) {
+        const target = normalize(join(dirname(file), spec)).split('\\').join('/');
+        if (target.startsWith('src/')) expect(`${file} -> ${target}`).toBe(`${file} -> src/index.js`);
+        else expect(RUNNER, `${file} imports ${target}, which the workspace does not overlay`).toContain(target);
+      }
+    }
   });
 });

@@ -195,3 +195,10 @@ fails on the previous code.
   unfinalised and printing its output. Now its output is discarded for encrypted sets and the
   failure throws `EmbeddingError` (withheld line; look finalised `aborted`). `.lock.break`
   gitignored. Tests 214.
+- Merging main (PR #7) broke the `eval-v0` overlay: the runner used `test/helpers.js`, which now
+  imports `src/search.js` and `src/upstream.js`, absent at `eval-v0`. The runner now has its own
+  `eval/runner/harness.js` that uses only `src/index.js`'s default `fetch` and `/admin/ingest`;
+  a node test fails if any overlaid runner file imports another `src/` module. Since PR #7 the
+  ranker embeds the canonical (ASCII-lowercased) query, so two fixture texts (`cs1010s`,
+  `xyz9999`) were embedded (1 request, ~0.0 neurons, logged). Phase 2c will need the same for
+  dev and holdout queries whose canonical form differs.
