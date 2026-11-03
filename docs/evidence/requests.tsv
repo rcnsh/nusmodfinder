@@ -36,3 +36,5 @@ n	kind	path_or_name	note
 b1	browser /search	page load ?q=machine+learning	phase0 0b fe.mjs
 b2	browser /search	Search click	phase0 0b fe.mjs
 b3	browser /search	data structures	phase0 0b fe.mjs
+o6	browser other	/ (page load)	phase0 0b fe.mjs
+o7	browser other	/facets	phase0 0b fe.mjs

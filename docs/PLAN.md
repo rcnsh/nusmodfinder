@@ -69,22 +69,24 @@ counter; `.log` is gitignored); 36 of the 40 budget are spent (33 curl + 3 brows
   remote capture (`test/fixtures/schema-query.sql`) against a local D1 built from empty by
   `wrangler d1 migrations apply nusmods --local --persist-to <tmp>`, normalises (sorted rows,
   internal tables `_cf_%`, `d1_%`, `sqlite_%` excluded), and diffs against the committed remote
-  snapshot `test/fixtures/remote-schema.json`. Compares columns (pragma_table_xinfo), indexes
+  snapshot `test/fixtures/remote-schema.json` (unwrapping wrangler's `[{results}]` envelope).
+  `test/fixtures/schema-query.sql` is a byte-identical copy of the evidence query; CI checks they
+  match. Compares columns (pragma_table_xinfo), indexes
   (pragma_index_list), object names, and `modules_fts_config` (so a missing 0005 is caught).
   Not raw `sqlite_master.sql` text, which differs by comments and apply path. Runs in CI with
   no Cloudflare credentials. Strengthened (round 2): also builds the *old recipe*
-  (`git show 3b18041:schema.sql` + 0002–0005) locally and diffs normalised `sqlite_master.sql`
+  (`schema.sql` and 0002–0005 all taken from `git show 3b18041:…`) locally and diffs normalised `sqlite_master.sql`
   (comments stripped, whitespace collapsed) and `pragma_index_xinfo` between the two local
   builds, which covers index columns, trigger bodies and the FTS `tokenize` option.
 
 ### Test harness
 - `vitest.config.mjs` with `cloudflareTest({ wrangler: { configPath: './test/wrangler.test.jsonc' },
   remoteBindings: false })`. `test/wrangler.test.jsonc` (`main: "../src/index.js"`) = production
-  config minus `ai`, `vectorize` and `ratelimits`, so nothing can reach a metered remote service;
+  config minus `ai`, `vectorize` and `ratelimits`, with `"migrations_dir": "../migrations"`, so nothing can reach a metered remote service;
   it lives in `test/` so the root `.dev.vars` secret is not loaded. A guard test asserts
   `env.AI`, `env.VECTORIZE` and `env.INGEST_SECRET` are undefined in the raw test env.
 - Fakes in `test/fakes.js`: deterministic hashing embedder for AI (384-d), in-memory cosine
-  Vectorize (`query` with topK ceiling 50 when `returnMetadata` is `all`/`indexed`, else 100;
+  Vectorize (`query` with topK ceiling 50 when `returnValues` or `returnMetadata` is `all`/`indexed`, else 100;
   implicit-eq/`$eq`/`$ne`/`$in` filters, unknown operator throws; `upsert`, `deleteByIds`,
   `getByIds`), fake `SEARCH_LIMIT` (always allow, or configurable). Each can be set to throw or
   hang. All requests go through a helper `call(path, {fakes})` that builds env, creates an
@@ -100,10 +102,11 @@ counter; `.log` is gitignored); 36 of the 40 budget are spent (33 curl + 3 brows
 - **Full corpus**: `vitest.config.mjs` (Node side) reads `.data/2026-2027-moduleInfo.json`
   **directly** (never via `fetchAcadYearFile`, which falls back to fetching upstream), checks its
   sha256 against the pinned value, normalises via `scripts/lib.mjs`, and `provide`s it; tests use `inject('corpus')`. `test/full/*` use
-  `describe.skipIf(!corpus)` locally; with `CI=true` a missing corpus is a hard failure.
+  `describe.skipIf(!corpus)`; with `FULL_CORPUS=1` (set only in the `full-corpus` CI job) a
+  missing or mismatched corpus is a hard failure.
   CI fetches the release asset (`gh release download`, `GITHUB_TOKEN`), verifies sha256,
-  caches on that hash. Never fetches api.nusmods.com. `CI=true` hard failure lives on the Node
-  side of the config.
+  caches on that hash. Never fetches api.nusmods.com. The `FULL_CORPUS=1` hard failure lives on the
+  Node side of the config.
 - **Known-bug tests are characterisation tests** with plain `it`, named `[B1 known-bug] …`,
   asserting the current wrong output specifically. When a phase fixes the bug, the test fails
   and is rewritten to assert correct behaviour in the same PR. No `it.fails` (it passes on
@@ -124,8 +127,9 @@ Two workflows. `ci.yml`: `push: { branches: [main] }` + `pull_request`, `paths-i
 ['docs/**', '**.md']`, `concurrency` grouped on ref with cancel-in-progress only for PRs, jobs
 `check` (npm ci, lint, typecheck, types drift, unit/integration tests, migration rebuild + schema
 diff) and `full-corpus` (download pinned data, verify raw sha256 after gunzip, run `test/full`;
-fails if zero tests ran). `findings.yml`: no path filter, runs `scripts/check-findings.mjs`
-(asserts the ID block parses to exactly 35 IDs, each has a status, and each `reproduced` row
+fails if zero tests ran). `findings.yml` (**added by 0c**, not 0a, so 0a's PR isn't red before FINDINGS.md exists): no path filter, runs `scripts/check-findings.mjs`
+(asserts the ID block parses to exactly 35 IDs, each has a status from the closed set
+`reproduced | partially-reproduced | rejected | fixed` (anything else fails), and each `reproduced` row
 names an evidence file or test that exists). `permissions: contents: read`,
 `WRANGLER_SEND_METRICS=false`, `GH_TOKEN` for `gh release download`. Node pinned via `.nvmrc`
 (22) and `engines`. Actions billing API moved (HTTP 410) so minutes
@@ -196,3 +200,17 @@ Already spent: 77 rows read (snapshot), 36 `/search` + 7 other live calls. Remai
 | 22 | D | check-findings could pass with 0 IDs | assert 35 IDs + evidence existence |
 | 23 | D | request log uncommitted / incomplete | `docs/evidence/requests.tsv` incl. browser calls |
 | 24 | C, D | Node/wrangler version split; CI hygiene | `.nvmrc`, `engines`, telemetry off, read-only perms |
+
+### Critic round 3 objection log
+| # | Critic | Objection | Resolution |
+|---|---|---|---|
+| 25 | E (blocking) | `CI=true` hard-fail would break the `check` job | gated on `FULL_CORPUS=1`, set only in `full-corpus` |
+| 26 | E (blocking) | `findings.yml` in 0a would be red until 0c | `findings.yml` moves to 0c |
+| 27 | E | status values not a closed set | closed set enforced |
+| 28 | E | test config needs `migrations_dir` | added |
+| 29 | E | old recipe should use 0002–0005 from `3b18041` | done |
+| 30 | E | query file duplicated; envelope | byte-identical check; unwrap |
+| 31 | E | counts/ceiling details | `requests.tsv` counts by call id; `returnValues` ceiling |
+
+**Convergence (round 3 of 3):** every blocking objection from all three rounds was accepted and
+the plan changed; none was rebutted, so no dissent. Phase 0 plan is the shared understanding.
