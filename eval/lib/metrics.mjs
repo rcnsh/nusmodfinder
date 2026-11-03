@@ -31,7 +31,7 @@ export const METRICS = /** @type {const} */ (['ndcg', 'p5', 'rr']);
  * @typedef {{ sem?: number | string, ng?: boolean | number | string, level?: number | string | (number | string)[], credits?: number | string, faculty?: string }} Constraints
  * @typedef {{
  *   id: string, text: string, filters?: Constraints, constraints?: Constraints,
- *   shapes?: string[], persona?: string, narrative?: string, noAnswerByRule?: boolean, source?: string,
+ *   shapes?: string[], persona?: string, narrative?: string | { relevant?: string, partial?: string, notRelevant?: string }, noAnswerByRule?: boolean, source?: string,
  * }} EvalQuery
  * @typedef {{ schema?: string, set?: string, version: string, queries: EvalQuery[] }} QuerySet
  * @typedef {number | { grade: number, [k: string]: unknown }} Judgment
@@ -125,29 +125,44 @@ export function scoreRanking(codes, grades, groupOf = new Map()) {
 /** @param {unknown} v */
 const truthy = (v) => v === true || v === 1 || v === '1' || v === 'true';
 
+/** How a semester number reads to a person. */
+export const SEMESTER_NAMES = /** @type {Record<number, string>} */ ({ 1: 'semester 1', 2: 'semester 2', 3: 'special term I', 4: 'special term II' });
+/** @param {number} sem */
+export const semesterName = (sem) => SEMESTER_NAMES[sem] ?? `semester ${sem}`;
+
 /**
- * Does a returned document break the query's hard constraints? Semester means
- * offered that semester; NG + semester means NG in that semester (an exchange
- * student can take an NG module only in its NG semesters).
+ * The first hard constraint a document breaks, in words, or null. Semester
+ * means offered that semester; NG + semester means NG in that semester (an
+ * exchange student can take an NG module only in its NG semesters).
+ * @param {DocMeta | undefined} doc
+ * @param {Constraints} c
+ * @returns {string | null}
+ */
+export function violationReason(doc, c) {
+  if (!doc) return null;
+  const ng = truthy(c.ng);
+  if (ng && !doc.ng) return 'not open to non-graduating students';
+  if (c.sem !== undefined && c.sem !== '') {
+    const sem = Number(c.sem);
+    if (!doc.semesters.includes(sem)) return `not offered in ${semesterName(sem)}`;
+    if (ng && !(doc.ngSemesters ?? []).includes(sem)) return `not open to non-graduating students in ${semesterName(sem)}`;
+  }
+  if (c.level !== undefined && c.level !== '') {
+    const levels = (Array.isArray(c.level) ? c.level : [c.level]).map(Number);
+    if (!levels.includes(/** @type {number} */ (doc.level))) return `level ${doc.level} is not ${levels.join(' or ')}`;
+  }
+  if (c.credits !== undefined && c.credits !== '' && doc.credits !== Number(c.credits)) return `${doc.credits} credits, not ${c.credits}`;
+  if (c.faculty !== undefined && c.faculty !== '' && doc.faculty !== c.faculty) return `faculty ${doc.faculty}, not ${c.faculty}`;
+  return null;
+}
+
+/**
+ * Does a returned document break the query's hard constraints?
  * @param {DocMeta | undefined} doc
  * @param {Constraints} c
  */
 export function violates(doc, c) {
-  if (!doc) return false;
-  const ng = truthy(c.ng);
-  if (ng && !doc.ng) return true;
-  if (c.sem !== undefined && c.sem !== '') {
-    const sem = Number(c.sem);
-    if (!doc.semesters.includes(sem)) return true;
-    if (ng && !(doc.ngSemesters ?? []).includes(sem)) return true;
-  }
-  if (c.level !== undefined && c.level !== '') {
-    const levels = (Array.isArray(c.level) ? c.level : [c.level]).map(Number);
-    if (!levels.includes(/** @type {number} */ (doc.level))) return true;
-  }
-  if (c.credits !== undefined && c.credits !== '' && doc.credits !== Number(c.credits)) return true;
-  if (c.faculty !== undefined && c.faculty !== '' && doc.faculty !== c.faculty) return true;
-  return false;
+  return violationReason(doc, c) !== null;
 }
 
 /**

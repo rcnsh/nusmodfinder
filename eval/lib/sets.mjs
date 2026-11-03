@@ -140,13 +140,19 @@ export function validateQueries(qs, where) {
 /** The /search parameters a query's `filters` may set (the UI state). */
 export const FILTER_PARAMS = ['sem', 'ng', 'level', 'credits', 'faculty'];
 
+/** Retrieval modes the Worker's /search takes (eval-v0 and later); `hybrid` ships. */
+export const MODES = ['hybrid', 'lexical', 'vector'];
+
 /**
  * The query string for one query: production defaults (no topK, no mode) plus
- * the query's filters as API params.
+ * the query's filters as API params. `mode` (lexical, vector) is for pool
+ * variants only; hybrid, the shipped mode, sends no parameter.
  * @param {import('./metrics.mjs').EvalQuery} q
- * @param {{ unfiltered?: boolean }} [options]
+ * @param {{ unfiltered?: boolean, mode?: string }} [options]
  */
 export function searchParams(q, options = {}) {
+  const mode = options.mode ?? 'hybrid';
+  if (!MODES.includes(mode)) throw new Error(`mode must be hybrid, lexical or vector, got ${JSON.stringify(mode)}`);
   /** @type {Record<string, string>} */
   const params = { q: q.text };
   if (!options.unfiltered) {
@@ -155,5 +161,6 @@ export function searchParams(q, options = {}) {
       params[k] = v === true ? '1' : String(v);
     }
   }
+  if (mode !== 'hybrid') params.mode = mode;
   return params;
 }

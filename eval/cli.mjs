@@ -5,7 +5,8 @@
 //   npm run eval -- --variant <name> [--ref <git ref>] [--set dev|holdout|test] [--baseline <variant>]
 //   npm run eval -- --holdout --variant <name> --baseline <variant>      (custodian only)
 //   npm run eval:report -- --run <variant> [--baseline <variant>] [--set dev]
-//   npm run eval:pool -- --runs <a,b,...> [--set dev] [--unjudged]
+//   npm run eval -- --variant <name> --ref eval-v0 --mode lexical|vector   (pool variants)
+//   npm run eval:pool -- --runs <a,b,...> [--set dev] [--unjudged [--qrels <path>]]
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -15,10 +16,11 @@ import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { writeEncryptedJson } from './lib/crypto.mjs';
 import { EmbeddingError, errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
 import { gateFor } from './lib/gate.mjs';
+import { poolCandidate } from './lib/judging.mjs';
 import { appendLook, assertLookAllowed, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
 import { assertSameCorpus, byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
 import { comparisonTable, shapeTable, summaryTable, verdictBlock, verdictOnly } from './lib/report.mjs';
-import { REPO, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
+import { MODES, REPO, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
 import { rng } from './lib/stats.mjs';
 
 const OPTIONS = /** @type {const} */ ({
@@ -33,6 +35,7 @@ const OPTIONS = /** @type {const} */ ({
   'change-kind': { type: 'string', default: 'general' },
   'target-shapes': { type: 'string' },
   unfiltered: { type: 'boolean', default: false },
+  mode: { type: 'string', default: 'hybrid' },
   embedding: { type: 'string' },
   'store-only': { type: 'boolean', default: false },
   'embed-missing': { type: 'boolean', default: false },
@@ -96,6 +99,19 @@ function assertComparable(runs) {
   }
 }
 
+/**
+ * Gates compare shipped-mode runs: a `--mode lexical|vector` run is a pool
+ * variant (a run file without `config.mode` predates the option: hybrid).
+ * @param {import('./lib/metrics.mjs').RunFile[]} runs
+ */
+function assertGateable(runs) {
+  for (const r of runs) {
+    const mode = /** @type {any} */ (r.config)?.mode ?? 'hybrid';
+    // Thrown, not fail(): `report` on an encrypted set holds the ledger lock here.
+    if (mode !== 'hybrid') throw new RunFileError(`run ${r.variant} used --mode ${mode}, a pool variant; gates compare hybrid runs only`);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // dev / fixture: full report
 
@@ -132,6 +148,7 @@ async function fullReport(set, candPath, basePath, a) {
   const json = { set: set.name, queries: querySet.version, qrels: qrels.version, candidate: cand.variant, summary: summarise(candScores), shapes: byShape(candScores) };
   let cmp = null;
   if (base && baseScores) {
+    assertGateable([base, cand]);
     cmp = compare(baseScores, candScores);
     console.log(`\n${comparisonTable(cmp, base.variant, cand.variant, qrels.version)}`);
     const v = gateFor(set.gate, cmp, changeOf(a));
@@ -171,6 +188,7 @@ async function verdictReport(set, candPath, basePath, a, reserved = null) {
     const cand = await readRun(set, candPath);
     const base = await readRun(set, basePath);
     assertComparable([base, cand]);
+    assertGateable([base, cand]);
     assertSameCorpus(qrels, [base, cand]);
     const candScores = scoreRun(cand, querySet.queries, qrels);
     const baseScores = scoreRun(base, querySet.queries, qrels);
@@ -212,6 +230,9 @@ async function cmdRun(a) {
   if (!a.variant) fail('--variant <name> is required');
   const set = setOf(a);
   if (a['embed-missing'] && process.env.CI) fail('--embed-missing calls Workers AI and never runs in CI');
+  if (!MODES.includes(/** @type {string} */ (a.mode))) fail(`--mode must be one of ${MODES.join(', ')}, got ${a.mode}`);
+  // Before any look is reserved: a pool variant never meets a gate.
+  if (a.mode !== 'hybrid' && (a.baseline || (setOf(a).encrypted && !a['store-only']))) fail('--mode lexical|vector makes a pool variant; it takes no --baseline and no verdict (use --store-only on an encrypted set)');
   /** @type {string | null} */
   let reserved = null;
   if (set.encrypted) {
@@ -237,12 +258,16 @@ async function cmdRun(a) {
 }
 
 /**
- * Before any retrieval: the baseline run must use the corpus the qrels were
- * judged on (the candidate is checked again after it runs).
+ * Before any retrieval (and any look): the baseline run must be a hybrid run
+ * on the corpus the qrels were judged on (the candidate is checked again
+ * after it runs).
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {Args} a
  */
 async function precheckCorpus(set, a) {
+  const baseRun = await readRun(set, runPath(set, /** @type {string} */ (a.baseline)));
+  // A pool-variant baseline is refused here, before any look is reserved.
+  assertGateable([baseRun]);
   /** @type {import('./lib/metrics.mjs').Qrels} */
   let qrels;
   if (set.encrypted) {
@@ -252,7 +277,7 @@ async function precheckCorpus(set, a) {
     if (!existsSync(qrelsPath)) return; // dev before judging: nothing to score yet
     qrels = JSON.parse(await readFile(qrelsPath, 'utf8'));
   }
-  assertSameCorpus(qrels, [await readRun(set, runPath(set, /** @type {string} */ (a.baseline)))]);
+  assertSameCorpus(qrels, [baseRun]);
 }
 
 /**
@@ -295,6 +320,7 @@ async function runAndReport(a, set, reserved) {
     ref: a.ref,
     embedding: a.embedding,
     unfiltered: a.unfiltered,
+    mode: a.mode,
     output: a.out ? resolve(a.out) : undefined,
   });
   let res = await run();
@@ -347,7 +373,9 @@ async function cmdPool(a) {
   const querySet = await loadQueries(set);
   const runs = await Promise.all(a.runs.split(',').map((v) => readRun(set, runPath(set, v.trim()))));
   assertComparable(runs);
-  const qrelsPath = setFile(set, 'qrels.json');
+  if (a.qrels && !a.unjudged) fail('--qrels for eval:pool only says which judgments --unjudged leaves out');
+  const qrelsPath = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
+  if (a.qrels && !existsSync(qrelsPath)) fail(`no qrels at ${qrelsPath}`);
   const qrels = a.unjudged && existsSync(qrelsPath) ? await readSetJson(set, qrelsPath) : { queries: {} };
   const corpusFile = join(set.dir, 'corpus.json');
   const corpus = existsSync(corpusFile) ? await loadCorpusFile(corpusFile) : await loadPinnedWith(REPO);
@@ -379,14 +407,19 @@ async function cmdPool(a) {
       candidates: shuffle(codes).map((code) => {
         const m = byCode.get(code);
         if (!m) throw new Error(`pooled code ${code} is not in the corpus`);
-        return {
-          code: m.code, title: m.title, level: m.level, semesters: m.semesters, ngSemesters: m.ngSemesters,
-          units: m.credits, faculty: m.faculty, department: m.department, description: m.description, prerequisite: m.prerequisite,
-        };
+        return poolCandidate(m);
       }),
     };
   });
-  const pool = { schema: 'vnm-eval-pool/1', set: set.name, queriesVersion: querySet.version, createdAt: new Date().toISOString(), seed: Number(a.seed), sourceRuns: runs.length, depth: K, queries };
+  // The corpus the judgments will be for (qrels record it; runs agree: assertComparable).
+  const corpusIds = /** @type {any} */ (runs[0].corpus) ?? {};
+  const pool = {
+    schema: 'vnm-eval-pool/1', set: set.name, queriesVersion: querySet.version, createdAt: new Date().toISOString(), seed: Number(a.seed),
+    sourceRuns: runs.length, depth: K,
+    corpus: { moduleInfoSha256: corpusIds.moduleInfoSha256 ?? null, ngSha256: corpusIds.ngSha256 ?? null },
+    embedding: /** @type {any} */ (runs[0].embedding)?.corpus ?? null,
+    queries,
+  };
   const out = resolve(a.out ?? join(REPO, '.eval-work', `pool-${set.name}.json${set.encrypted ? '.enc' : ''}`));
   await mkdir(dirname(out), { recursive: true });
   if (set.encrypted) {
@@ -401,7 +434,7 @@ async function cmdPool(a) {
 const { positionals, values } = parseArgs({ options: OPTIONS, allowPositionals: true });
 const command = positionals[0] ?? 'run';
 if (values.help) {
-  console.log(spawnSync('sed', ['-n', '3,10p', new URL(import.meta.url).pathname]).stdout.toString());
+  console.log(spawnSync('sed', ['-n', '3,11p', new URL(import.meta.url).pathname]).stdout.toString());
   process.exit(0);
 }
 const commands = { run: cmdRun, report: cmdReport, pool: cmdPool };
