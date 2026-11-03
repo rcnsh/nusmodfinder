@@ -1,0 +1,17 @@
+{
+  "name": "vector-nusmods",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Semantic module search over NUSMods, on Cloudflare Workers + Vectorize + D1.",
+  "scripts": {
+    "probe": "node scripts/probe.mjs",
+    "ingest": "node scripts/ingest.mjs",
+    "eval": "node scripts/eval.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.129.0"
+  }
+}

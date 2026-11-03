@@ -1,0 +1,1105 @@
+{
+  "acadYear": "2026-2027",
+  "k": 10,
+  "corpus": 6771,
+  "systems": [
+    "baseline",
+    "vector",
+    "lexical",
+    "hybrid"
+  ],
+  "rows": [
+    {
+      "id": "h1",
+      "kind": "topical",
+      "q": "learning a foreign language",
+      "relevantCount": 72,
+      "got": {
+        "baseline": [
+          "LAM4202",
+          "GEC1001",
+          "CH5213",
+          "CL1101E",
+          "ELC5207",
+          "EL2206",
+          "CS4248",
+          "EC2880C",
+          "EBA5004",
+          "EBA5004G"
+        ],
+        "vector": [
+          "ELC5207",
+          "CH2110",
+          "CS4248",
+          "LAF1201",
+          "LAR3201",
+          "LAF2201",
+          "EBA5004",
+          "LAJ1201",
+          "EL2206",
+          "LAT1201"
+        ],
+        "lexical": [
+          "LAM4202",
+          "CH5213",
+          "GEC1001",
+          "CL1101E",
+          "ELC5207",
+          "EC2880C",
+          "PS3249",
+          "CS4248",
+          "EBA5004",
+          "EBA5004G"
+        ],
+        "hybrid": [
+          "ELC5207",
+          "CS4248",
+          "EBA5004",
+          "EL2206",
+          "LAF1201",
+          "EBA5004G",
+          "EL4210",
+          "LAM4202",
+          "CH2110",
+          "CH5213"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 1,
+          "recall": 0.013888888888888888,
+          "precision": 0.1,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 5,
+          "recall": 0.06944444444444445,
+          "precision": 0.5,
+          "rr": 0.25,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 1,
+          "recall": 0.013888888888888888,
+          "precision": 0.1,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 2,
+          "recall": 0.027777777777777776,
+          "precision": 0.2,
+          "rr": 0.2,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.1388888888888889
+    },
+    {
+      "id": "h2",
+      "kind": "topical",
+      "q": "how the brain works",
+      "relevantCount": 16,
+      "got": {
+        "baseline": [
+          "GEX1009",
+          "GEX1009T",
+          "HPP5112",
+          "HPP5001",
+          "LSM4210",
+          "HPP5004",
+          "BN5213",
+          "LSM4213",
+          "PL3102",
+          "MUA3230"
+        ],
+        "vector": [
+          "LSM4213",
+          "HPP5112",
+          "LSM3222",
+          "GEX1009",
+          "GEX1009T",
+          "HPP5001",
+          "PL3102",
+          "HPP5111",
+          "HPP5004",
+          "PL3285"
+        ],
+        "lexical": [
+          "GEX1009",
+          "GEX1009T",
+          "HPP5112",
+          "HPP5001",
+          "LSM4210",
+          "BN5213",
+          "HPP5004",
+          "LSM4213",
+          "PL3102",
+          "LSM3215"
+        ],
+        "hybrid": [
+          "GEX1009",
+          "HPP5112",
+          "GEX1009T",
+          "LSM4213",
+          "HPP5001",
+          "PL3102",
+          "HPP5004",
+          "BN5213",
+          "LSM3215",
+          "MDG5245"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 7,
+          "recall": 0.4375,
+          "precision": 0.7,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 6,
+          "recall": 0.375,
+          "precision": 0.6,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 7,
+          "recall": 0.4375,
+          "precision": 0.7,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 6,
+          "recall": 0.375,
+          "precision": 0.6,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.625
+    },
+    {
+      "id": "h3",
+      "kind": "topical",
+      "q": "diseases and how they spread",
+      "relevantCount": 39,
+      "got": {
+        "baseline": [
+          "UTC2703",
+          "SPH6102",
+          "FSC5206",
+          "UTC1702B",
+          "OPT5105",
+          "UTC2716",
+          "LSM4228",
+          "SPH5201",
+          "SPH5105",
+          "MDG5222"
+        ],
+        "vector": [
+          "LSM4226",
+          "UTC2703",
+          "BL5623",
+          "MDG5246",
+          "GMS6904",
+          "SPH3203",
+          "IDE5002",
+          "LSM3225",
+          "FST3202",
+          "UTC2421"
+        ],
+        "lexical": [
+          "SPH6101",
+          "SPH6102",
+          "SPH2002",
+          "UTC2703",
+          "SPH5105",
+          "LSM4228",
+          "FSC5206",
+          "UTC1702B",
+          "OPT5105",
+          "UTC2716"
+        ],
+        "hybrid": [
+          "UTC2703",
+          "SPH6101",
+          "SPH6102",
+          "BL5623",
+          "SPH2002",
+          "SPH5105",
+          "UTC1702B",
+          "FST3202",
+          "SPH3107",
+          "LSM4220"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 3,
+          "recall": 0.07692307692307693,
+          "precision": 0.3,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 7,
+          "recall": 0.1794871794871795,
+          "precision": 0.7,
+          "rr": 0.5,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 4,
+          "recall": 0.10256410256410256,
+          "precision": 0.4,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 6,
+          "recall": 0.15384615384615385,
+          "precision": 0.6,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.2564102564102564
+    },
+    {
+      "id": "h4",
+      "kind": "topical",
+      "q": "photography and film making",
+      "relevantCount": 10,
+      "got": {
+        "baseline": [
+          "TPS5242",
+          "NHT2208",
+          "JSC5306",
+          "SC3213",
+          "PH2224",
+          "EN2203",
+          "GEC1017",
+          "GEH1053",
+          "PC4253",
+          "GES1029"
+        ],
+        "vector": [
+          "NM3230",
+          "ID3132",
+          "NHT2208",
+          "NHT2207",
+          "CDE2000",
+          "MUA4173",
+          "GEH1053",
+          "GEC1017",
+          "SC3213",
+          "NST2050"
+        ],
+        "lexical": [
+          "TPS5242",
+          "NHT2208",
+          "JSC5306",
+          "GES1029",
+          "GESS1021",
+          "SC3213",
+          "TS2243",
+          "PH2224",
+          "EN2203",
+          "GEC1017"
+        ],
+        "hybrid": [
+          "NHT2208",
+          "SC3213",
+          "GEH1053",
+          "GEC1017",
+          "MUA4173",
+          "TPS5242",
+          "EN2203",
+          "PC4253",
+          "NST2050",
+          "TS4220"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 3,
+          "recall": 0.3,
+          "precision": 0.3,
+          "rr": 0.5,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 2,
+          "recall": 0.2,
+          "precision": 0.2,
+          "rr": 0.3333333333333333,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 3,
+          "recall": 0.3,
+          "precision": 0.3,
+          "rr": 0.5,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 2,
+          "recall": 0.2,
+          "precision": 0.2,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 1
+    },
+    {
+      "id": "h5",
+      "kind": "topical",
+      "q": "keeping computer systems secure",
+      "relevantCount": 31,
+      "got": {
+        "baseline": [
+          "TCX3235",
+          "CS2107",
+          "TIC2301",
+          "TCX3232",
+          "CS2105",
+          "CS6231",
+          "CS6219",
+          "CS5321",
+          "CS6211",
+          "TIC2401"
+        ],
+        "vector": [
+          "CS3235",
+          "TCX3235",
+          "CS5231",
+          "IT5100E",
+          "CS2107",
+          "CS4236",
+          "CS5322",
+          "CS4238",
+          "CS5321",
+          "SWE5005G"
+        ],
+        "lexical": [
+          "CS5231",
+          "CS4238",
+          "TCX3235",
+          "CS3235",
+          "CS6231",
+          "TCX3232",
+          "CS2107",
+          "TIC2301",
+          "CS5321",
+          "SWE5005"
+        ],
+        "hybrid": [
+          "CS5231",
+          "CS3235",
+          "TCX3235",
+          "CS4238",
+          "CS2107",
+          "CS5321",
+          "TCX3232",
+          "CS5322",
+          "SWE5005",
+          "SWE5005G"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 3,
+          "recall": 0.0967741935483871,
+          "precision": 0.3,
+          "rr": 0.5,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 8,
+          "recall": 0.25806451612903225,
+          "precision": 0.8,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 6,
+          "recall": 0.1935483870967742,
+          "precision": 0.6,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 6,
+          "recall": 0.1935483870967742,
+          "precision": 0.6,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.3225806451612903
+    },
+    {
+      "id": "h6",
+      "kind": "topical",
+      "q": "music theory and composition",
+      "relevantCount": 15,
+      "got": {
+        "baseline": [
+          "MUT1201",
+          "MUA3101",
+          "MUA3102",
+          "MUA1102",
+          "MUA1101",
+          "MUA2101",
+          "MUA2102",
+          "MUA4101A",
+          "MUA4102",
+          "MUA1165"
+        ],
+        "vector": [
+          "MUT2102",
+          "MUT1201",
+          "MUT3222",
+          "MUA3133",
+          "MUT3201",
+          "PS2266",
+          "MUA2102",
+          "MUH1101",
+          "MUT1101",
+          "MUH5202"
+        ],
+        "lexical": [
+          "MUT1201",
+          "MUA3101",
+          "MUA3102",
+          "MUA1102",
+          "MUA1101",
+          "MUA2101",
+          "MUA2102",
+          "MUA4102",
+          "MUA4101A",
+          "MUT3201"
+        ],
+        "hybrid": [
+          "MUT1201",
+          "MUT3222",
+          "MUA2102",
+          "MUT3201",
+          "MUA3133",
+          "MUA2101",
+          "MUA1101",
+          "MUA1102",
+          "MUA4102",
+          "MUA3102"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 9,
+          "recall": 0.6,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 4,
+          "recall": 0.26666666666666666,
+          "precision": 0.4,
+          "rr": 0.5,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 9,
+          "recall": 0.6,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 9,
+          "recall": 0.6,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.6666666666666666
+    },
+    {
+      "id": "h7",
+      "kind": "topical",
+      "q": "understanding modern chinese history",
+      "relevantCount": 41,
+      "got": {
+        "baseline": [
+          "HY3267",
+          "CHC5305",
+          "CHC5336",
+          "CHC5316",
+          "ECA5374",
+          "CL4233",
+          "CHC5354",
+          "CHC5302",
+          "CHC5371",
+          "LL4009V"
+        ],
+        "vector": [
+          "HS2909",
+          "HY2206",
+          "HY3267",
+          "CH3251",
+          "CHC5371",
+          "CHC5362",
+          "HY3260",
+          "CH2230",
+          "HY3205",
+          "CHC5302"
+        ],
+        "lexical": [
+          "HY3267",
+          "CHC5305",
+          "CHC5336",
+          "CHC5316",
+          "ECA5374",
+          "CL4233",
+          "CHC5302",
+          "CHC5354",
+          "LL4009V",
+          "LL5009V"
+        ],
+        "hybrid": [
+          "HY3267",
+          "CHC5302",
+          "CHC5371",
+          "CHC5336",
+          "CHC5305",
+          "CL4233",
+          "ECA5374",
+          "CHC5316",
+          "CL2221",
+          "CHC5317"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 9,
+          "recall": 0.21951219512195122,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 6,
+          "recall": 0.14634146341463414,
+          "precision": 0.6,
+          "rr": 0.5,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 9,
+          "recall": 0.21951219512195122,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 9,
+          "recall": 0.21951219512195122,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.24390243902439024
+    },
+    {
+      "id": "h8",
+      "kind": "topical",
+      "q": "buildings and urban design",
+      "relevantCount": 118,
+      "got": {
+        "baseline": [
+          "CE3166",
+          "PF3502",
+          "LAD4012",
+          "ISD5103",
+          "CE5902AB",
+          "LA5303",
+          "CE5901AB",
+          "RE1707",
+          "CE5104A",
+          "CE5104QA"
+        ],
+        "vector": [
+          "LA5303",
+          "ISD5106",
+          "UD5602",
+          "LAD4012",
+          "AR5952F",
+          "AR5958F",
+          "AR5958A",
+          "AR5952L",
+          "AR5958G",
+          "AR5952I"
+        ],
+        "lexical": [
+          "BPS5221",
+          "LAD4012",
+          "UD5628",
+          "PM5117",
+          "DEP5111",
+          "AR3101",
+          "CE3166",
+          "LA5303",
+          "AR5952H",
+          "AR5952I"
+        ],
+        "hybrid": [
+          "LAD4012",
+          "LA5303",
+          "AR5958A",
+          "AR5952L",
+          "AR5952I",
+          "AR5958F",
+          "UD5628",
+          "AR5952J",
+          "UD5602",
+          "AR3101"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 0,
+          "recall": 0,
+          "precision": 0,
+          "rr": 0,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 1,
+          "recall": 0.00847457627118644,
+          "precision": 0.1,
+          "rr": 0.5,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 1,
+          "recall": 0.00847457627118644,
+          "precision": 0.1,
+          "rr": 0.3333333333333333,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 1,
+          "recall": 0.00847457627118644,
+          "precision": 0.1,
+          "rr": 0.14285714285714285,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.0847457627118644
+    },
+    {
+      "id": "h9",
+      "kind": "topical",
+      "q": "statistics and probability",
+      "relevantCount": 103,
+      "got": {
+        "baseline": [
+          "ST2334",
+          "TCX2102",
+          "TMA2103",
+          "ST2288R",
+          "FSC4201",
+          "ST2289R",
+          "ST3289R",
+          "ST3288R",
+          "ST1131",
+          "ST2288"
+        ],
+        "vector": [
+          "ST2131",
+          "FSC4201",
+          "ST2334",
+          "ST2132",
+          "ST1131",
+          "ST6101",
+          "ST3247",
+          "ST6103",
+          "MA2116",
+          "TMA2103"
+        ],
+        "lexical": [
+          "ST2334",
+          "TCX2102",
+          "TMA2103",
+          "ST3289R",
+          "ST2288R",
+          "ST2289R",
+          "ST3288R",
+          "FSC4201",
+          "ST1131",
+          "ST3288"
+        ],
+        "hybrid": [
+          "ST2334",
+          "FSC4201",
+          "TMA2103",
+          "ST1131",
+          "TCX2102",
+          "ST6101",
+          "MA2116",
+          "PC5252",
+          "MA2401",
+          "ST5201"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 10,
+          "recall": 0.0970873786407767,
+          "precision": 1,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 9,
+          "recall": 0.08737864077669903,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 10,
+          "recall": 0.0970873786407767,
+          "precision": 1,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 9,
+          "recall": 0.08737864077669903,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.0970873786407767
+    },
+    {
+      "id": "h10",
+      "kind": "topical",
+      "q": "mental health and wellbeing",
+      "relevantCount": 41,
+      "got": {
+        "baseline": [
+          "HPP5002",
+          "HS2924",
+          "NLM5009",
+          "CMH5104",
+          "CIT5007",
+          "AN2208",
+          "SC2226",
+          "PHM5020",
+          "NLM5006",
+          "NUR2113"
+        ],
+        "vector": [
+          "HS2924",
+          "NLM5009",
+          "HS2911",
+          "UTS2409",
+          "MNO4712",
+          "HPP5002",
+          "CMH5104",
+          "UTC2412",
+          "CMH5103",
+          "SW3217"
+        ],
+        "lexical": [
+          "HPP5002",
+          "NLM5009",
+          "HS2924",
+          "CMH5104",
+          "CIT5007",
+          "AN2208",
+          "NLM5006",
+          "PHM5020",
+          "HM5105",
+          "SC2226"
+        ],
+        "hybrid": [
+          "HS2924",
+          "NLM5009",
+          "HPP5002",
+          "CMH5104",
+          "HS2911",
+          "CMH5103",
+          "SW3217",
+          "UTS2409",
+          "AN2208",
+          "NUR2113"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 9,
+          "recall": 0.21951219512195122,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 8,
+          "recall": 0.1951219512195122,
+          "precision": 0.8,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 9,
+          "recall": 0.21951219512195122,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 9,
+          "recall": 0.21951219512195122,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.24390243902439024
+    },
+    {
+      "id": "h11",
+      "kind": "topical",
+      "q": "ethics and moral philosophy",
+      "relevantCount": 55,
+      "got": {
+        "baseline": [
+          "PH3203",
+          "PH4203",
+          "PH2208",
+          "PH3202",
+          "PH2242",
+          "PH2216",
+          "PH3230",
+          "GES1041",
+          "GESS1029",
+          "PE4101P"
+        ],
+        "vector": [
+          "PH3202",
+          "PH3230",
+          "PH3203",
+          "PH4203",
+          "PH5430",
+          "GESS1029",
+          "HS2921",
+          "GES1041",
+          "PH2203",
+          "SW4225"
+        ],
+        "lexical": [
+          "PH3203",
+          "PH4203",
+          "PH3202",
+          "PH2208",
+          "PH2216",
+          "PH2242",
+          "PH3230",
+          "GES1041",
+          "GESS1029",
+          "PE4101P"
+        ],
+        "hybrid": [
+          "PH3202",
+          "PH3203",
+          "PH4203",
+          "PH3230",
+          "GESS1029",
+          "GES1041",
+          "PH2242",
+          "PH2216",
+          "PH2208",
+          "PH2227"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 7,
+          "recall": 0.12727272727272726,
+          "precision": 0.7,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 7,
+          "recall": 0.12727272727272726,
+          "precision": 0.7,
+          "rr": 0.5,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 7,
+          "recall": 0.12727272727272726,
+          "precision": 0.7,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 6,
+          "recall": 0.10909090909090909,
+          "precision": 0.6,
+          "rr": 0.5,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.18181818181818182
+    },
+    {
+      "id": "h12",
+      "kind": "topical",
+      "q": "renewable energy and power systems",
+      "relevantCount": 32,
+      "got": {
+        "baseline": [
+          "ME5209",
+          "EE2022",
+          "EE5702",
+          "CN5303",
+          "EE5713",
+          "EE5711",
+          "EE4511",
+          "MLE2102",
+          "SH5408",
+          "PF3504"
+        ],
+        "vector": [
+          "EE2022",
+          "EE4511",
+          "EE5711",
+          "ME5207",
+          "ME5209",
+          "CN5303",
+          "SCE5151",
+          "MLE2102",
+          "EE5702",
+          "EE5713"
+        ],
+        "lexical": [
+          "ME5209",
+          "EE2022",
+          "EE5702",
+          "CN5303",
+          "EE5713",
+          "EE5711",
+          "EE4511",
+          "MLE2102",
+          "SH5408",
+          "PF3504"
+        ],
+        "hybrid": [
+          "EE2022",
+          "ME5209",
+          "EE4511",
+          "EE5711",
+          "CN5303",
+          "EE5702",
+          "EE5713",
+          "MLE2102",
+          "SCE5151",
+          "EE5531"
+        ]
+      },
+      "per": {
+        "baseline": {
+          "hits": 7,
+          "recall": 0.21875,
+          "precision": 0.7,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "vector": {
+          "hits": 9,
+          "recall": 0.28125,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "lexical": {
+          "hits": 7,
+          "recall": 0.21875,
+          "precision": 0.7,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        },
+        "hybrid": {
+          "hits": 9,
+          "recall": 0.28125,
+          "precision": 0.9,
+          "rr": 1,
+          "firstOk": null,
+          "violations": []
+        }
+      },
+      "ceiling": 0.3125
+    }
+  ]
+}
