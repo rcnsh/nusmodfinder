@@ -12,7 +12,7 @@
     "ingest": "node scripts/ingest.mjs",
     "eval": "node scripts/eval.mjs",
     "dev": "wrangler dev -c test/wrangler.test.jsonc --local",
-    "deploy": "wrangler deploy",
+    "deploy": "node scripts/deploy.mjs",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
     "test": "vitest run --exclude 'test/full/**'",
