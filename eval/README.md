@@ -133,11 +133,12 @@ returned code, for violations). No query text.
 Per change, vs the shipped ranker:
 - **every gate** (dev, holdout, cutoff, SC5): **no new errors**: fails if the candidate has more
   errored (non-200) queries than the baseline.
-- **dev** (screen): ΔnDCG@10 BCa 95% lower bound > 0, or, if the change declares
-  `--target-shapes`, every target's ΔnDCG@10 > 0 and overall Δ ≥ 0. Tripwire on target shapes
-  only: fails if a target's one-sided 95% upper bound on ΔnDCG@10 is below 0.
-- **holdout**: ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates), no exact-code regression (a
-  `code-exact` query whose baseline rank-1 is relevant keeps that rank-1), judged@10 100%.
+- **dev** (screen): no exact-code regression, and ΔnDCG@10 BCa 95% lower bound > 0, or, if the
+  change declares `--target-shapes`, every target's ΔnDCG@10 > 0 and overall Δ ≥ 0 (≥ 3 target
+  queries). Tripwire on target shapes only: fails if a target's one-sided 95% upper bound on
+  ΔnDCG@10 is below 0.
+- **holdout**: ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates), no exact-code regression (no
+  `code-exact` query whose baseline rank-1 is relevant gets a lower-graded rank-1), judged@10 100%.
 - **cutoff changes** (`--change-kind cutoff`): the no-answer trade-off replaces the Δ rules on
   both sets: correct-empty gain ≥ 0.25 and answerable ΔnDCG@10 ≥ −0.01.
 - **SC5** (test set): BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0, judged 100%.

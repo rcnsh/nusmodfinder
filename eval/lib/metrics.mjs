@@ -334,8 +334,11 @@ export function compare(base, cand, options = {}) {
       return [shape, { n: ps.length, members, ...(ps.length ? stats(ps, { alpha: 0.1 }) : {}) }];
     }))),
     exactCodeRegressions: pairs
+      // A regression is a worse rank-1 hit (lower grade, or none), not any
+      // change: a variant replaced by the exact course, or a swap between
+      // equally graded cross-listings, is not one (PR #10 review round 2).
       .filter(({ b }) => b.shapes.some((t) => EXACT_CODE_SHAPES.includes(t)) && b.top1 !== null && b.top1Grade >= 1)
-      .filter(({ b, c }) => c.top1 !== b.top1)
+      .filter(({ b, c }) => c.top1Grade < b.top1Grade)
       .map(({ b }) => b.id),
     judged: {
       base: summarise(base).judgedAt10.coverage,
