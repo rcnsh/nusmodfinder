@@ -34,8 +34,12 @@ describe('query-set locks (ADR 0003)', () => {
     const dir = await mkdtemp(join(tmpdir(), 'vnm-lock-'));
     try {
       await writeFile(join(dir, '.DS_Store'), ''); // Finder's, ignored
+      await writeFile(join(dir, '._queries.json.enc'), ''); // Finder's, ignored
       await writeFile(join(dir, 'queries.json'), '{}');
-      expect(await verifyManifest(dir)).toEqual([expect.stringMatching(/queries\.json is not a ciphertext/)]);
+      await writeFile(join(dir, '.queries.json'), '{}'); // a hidden plaintext is still refused
+      const problems = await verifyManifest(dir);
+      expect(problems).toHaveLength(2);
+      expect(problems).toEqual(expect.arrayContaining([expect.stringMatching(/\/queries\.json is not a ciphertext/), expect.stringMatching(/\/\.queries\.json is not a ciphertext/)]));
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

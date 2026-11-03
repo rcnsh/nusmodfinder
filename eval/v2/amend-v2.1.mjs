@@ -71,7 +71,7 @@ function codeRecord(old, form, target, text) {
     : form === 'partial'
       ? { relevant: `Courses whose code starts with ${target}, open to exchange students.`, partial: 'Courses with a similar code family or subject.', notRelevant: 'Courses unrelated to that code prefix.' }
       : { relevant: `The course ${target} itself.`, partial: `Variants or cross-listings of ${target} (same base code with a letter suffix).`, notRelevant: 'Any other course.' };
-  const shapes = form === 'nonexistent' ? ['code', 'noanswer'] : (form === 'partial' && target.startsWith('GE') ? ['code', 'ge'] : ['code']);
+  const shapes = form === 'nonexistent' ? ['code', 'noanswer'] : (form === 'partial' && /^GE[A-Z]/.test(target) ? ['code', 'ge'] : ['code']);
   return { ...old, shapes, text, filters, narrative, target };
 }
 
@@ -84,7 +84,8 @@ function redraw(q) {
     // them public (dev, writer example, the rebuildable v2 pick), so it could
     // be guessed (PR #10 review round 2).
     const famOf = (/** @type {string} */ c) => c.match(/^[A-Z]+\d\d/)[0];
-    const fam = famOf(take((c) => !clashes(famOf(c))));
+    // Not a GE code: a family under a GE pillar (GEX10, GESS10) is nearly the whole pillar.
+    const fam = famOf(take((c) => !c.startsWith('GE') && !clashes(famOf(c))));
     used.add(fam);
     return codeRecord(q, form, fam, fam);
   }
@@ -92,7 +93,7 @@ function redraw(q) {
     const lower = q.text === q.text.toLowerCase();
     for (;;) {
       const c = `${shuffle(['CS', 'MA', 'EC', 'BT', 'LSM', 'PH'])[0]}${1000 + Math.floor(rnd() * 3999)}`;
-      if (offered.has(c) || info.some((r) => r.moduleCode === c) || banned(c) || used.has(c)) continue;
+      if (offered.has(c) || info.some((r) => r.moduleCode === c) || clashes(c)) continue;
       used.add(c);
       return codeRecord(q, form, c, lower ? c.toLowerCase() : c);
     }

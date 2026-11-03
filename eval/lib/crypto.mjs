@@ -125,6 +125,9 @@ export async function readEncryptedJson(path, key, set) {
 /** @param {Buffer} bytes */
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
+/** macOS Finder files (.DS_Store, AppleDouble ._*): git-ignored, never ciphertexts or plaintexts. */
+const isFinderFile = (/** @type {string} */ name) => name === '.DS_Store' || name.startsWith('._');
+
 /**
  * Every *.enc under `dir` (recursive), as paths relative to `dir`.
  * @param {string} dir
@@ -134,7 +137,7 @@ async function encFiles(dir) {
   if (!existsSync(dir)) return [];
   const entries = await readdir(dir, { recursive: true, withFileTypes: true });
   return entries
-    .filter((e) => e.isFile() && e.name.endsWith('.enc'))
+    .filter((e) => e.isFile() && e.name.endsWith('.enc') && !isFinderFile(e.name))
     .map((e) => join(e.parentPath, e.name).slice(dir.length + 1))
     .sort();
 }
@@ -167,7 +170,7 @@ export async function verifyManifest(dir) {
   const stray = [];
   if (existsSync(dir)) {
     for (const e of await readdir(dir, { recursive: true, withFileTypes: true })) {
-      if (!e.isFile() || e.name.startsWith('.')) continue; // .DS_Store and the like are git-ignored
+      if (!e.isFile() || isFinderFile(e.name)) continue;
       const rel = join(e.parentPath, e.name).slice(dir.length + 1);
       if (rel !== MANIFEST && !rel.endsWith('.enc')) stray.push(`${join(dir, rel)} is not a ciphertext; only *.enc and ${MANIFEST} may live in ${dir}`);
     }

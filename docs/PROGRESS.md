@@ -344,3 +344,10 @@ fails on the previous code.
   had ~3 guessable values); drawn targets may not overlap any v2 pick, writer example or other
   draw as a prefix; `eval:verify` ignores dotfiles (`.DS_Store`). Dev unchanged (byte-identical
   re-run); new holdout hashes in ADR 0003.
+- PR #10 review round 3 (3 findings, fixed): the partial-code draw excludes `GE*` codes (a
+  family such as `GEX10` is nearly a whole pillar) and `ge` is tagged only on `GE[A-Z]` pillars;
+  non-existent draws use the same prefix-overlap check as the rest; `eval:verify` skips only
+  macOS Finder files (`.DS_Store`, `._*`; also git-ignored), so a hidden plaintext such as
+  `.queries.json` is still refused. Re-running the fixed amendment with the custody seed
+  reproduces the committed dev file and the committed holdout plaintext byte for byte (the
+  committed holdout had no GE-prefixed or overlapping draw), so no hash changes.
