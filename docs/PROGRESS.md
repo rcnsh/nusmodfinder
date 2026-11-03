@@ -352,6 +352,13 @@ fails on the previous code.
   reproduces the committed dev file and the committed holdout plaintext byte for byte (the
   committed holdout had no GE-prefixed or overlapping draw), so no hash changes.
 
+## 2026-11-04 — Phase 2 2c (custodian half): holdout embeddings and the eval-v0 holdout run
+
+- Holdout query embeddings (both forms, 119 texts, 2 requests, ~3.4 neurons, logged) in
+  `eval/holdout/embeddings.json.enc`; `eval-v0` holdout run stored with `--store-only`
+  (`eval/holdout/run-v0.json.enc`, no look, no ledger row). Both ciphertexts are in the manifest.
+  Output was counts only.
+
 ## 2026-11-04 — Phase 2 2c (dev): baseline, embedding noise, live fidelity
 
 - Dev query embeddings: `npm run eval:embed -- --set dev`, 136 texts, ≈ 4.5 neurons, one pass;
@@ -382,4 +389,3 @@ fails on the previous code.
 - Lead decision on the failed fidelity check (2 of 15 queries one item outside their dense-noise
   envelope; lexical half exact): gating proceeds on the replica, limitation recorded in ADR 0003
   "Replica fidelity"; re-check after the Phase 1 forced re-ingest.
-
