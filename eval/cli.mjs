@@ -13,6 +13,7 @@ import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { writeEncryptedJson } from './lib/crypto.mjs';
+import { errorClass } from './lib/errors.mjs';
 import { gateFor } from './lib/gate.mjs';
 import { appendLook, assertLookAllowed } from './lib/ledger.mjs';
 import { byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
@@ -323,8 +324,27 @@ if (values.help) {
 const commands = { run: cmdRun, report: cmdReport, pool: cmdPool };
 const fn = /** @type {Record<string, (a: Args) => Promise<void>>} */ (commands)[command];
 if (!fn) fail(`unknown command "${command}"; expected run, report or pool`);
+/**
+ * The encrypted set this invocation touches, if any. Its errors may carry
+ * holdout content (a query id, a judge's rationale), so they are withheld.
+ * @returns {string | null}
+ */
+function encryptedSetName() {
+  try {
+    const set = setOf(values);
+    return set.encrypted ? set.name : null;
+  } catch {
+    return null;
+  }
+}
+
 try {
   await fn(values);
 } catch (err) {
+  const hidden = encryptedSetName();
+  if (hidden) {
+    console.error(`eval: ${hidden} run failed (${errorClass(err)}); details withheld`);
+    process.exit(1);
+  }
   fail(/** @type {Error} */ (err).message);
 }

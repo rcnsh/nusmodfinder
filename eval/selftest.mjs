@@ -132,16 +132,16 @@ const wrongKey = join(WORK, 'wrong.key');
 await writeFile(wrongKey, `${'ab'.repeat(32)}\n`);
 const wrong = node(CLI, ['report', '--set', 'holdout', '--set-dir', H, '--run', 'cand', '--baseline', 'base'], { VNM_HOLDOUT_KEY_FILE: wrongKey });
 assert.notEqual(wrong.code, 0);
-assert.match(wrong.out, /decryption failed/);
+assert.equal(wrong.out, 'eval: holdout run failed (DecryptionError); details withheld\n', 'a holdout error prints only the generic line');
 assert.ok(!wrong.out.includes('abab'), 'key material printed');
 assert.equal((await readFile(join(H, 'ledger.md'), 'utf8')).split('\n').filter((l) => /^\| \d{4}-/.test(l)).length, 1, 'a failed look is not recorded');
 
 for (let i = 2; i <= 12; i++) await appendFile(join(H, 'ledger.md'), `| 2026-01-01 | holdout | 0000000 | filler-${i} | base | fail | +0.000 [0.000, 0.000] | +0.000 [0.000, 0.000] |\n`);
 const thirteenth = node(CLI, ['report', ...hargs, '--run', 'cand', '--baseline', 'base'], env);
 assert.notEqual(thirteenth.code, 0);
-assert.match(thirteenth.out, /refusing look 13 at the holdout set/);
+assert.equal(thirteenth.out, 'eval: holdout run failed (LookLimitError); details withheld\n');
 const thirteenthRun = node(CLI, ['run', ...hargs, '--variant', 'cand2', '--baseline', 'base'], env);
-assert.match(thirteenthRun.out, /refusing look 13/);
+assert.equal(thirteenthRun.out, 'eval: holdout run failed (LookLimitError); details withheld\n');
 assert.ok(!existsSync(join(H, 'runs', 'run-cand2.json.enc')), 'the 13th look is refused before any retrieval');
 
 const pooled = node(CLI, ['pool', ...hargs, '--runs', 'base,cand'], env);

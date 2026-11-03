@@ -72,7 +72,8 @@ describe('qrelsFor', () => {
   });
 
   it('rejects grades outside 0..2', () => {
-    expect(() => qrelsFor({ version: 'v', queries: { q: { judgments: { A: 3 } } } }, 'q')).toThrow(/grade must be 0, 1 or 2/);
+    expect(() => qrelsFor({ version: 'v', queries: { q: { judgments: { A: 3 } } } }, 'q')).toThrow(/has grade 3; grades must be 0, 1 or 2/);
+    expect(() => qrelsFor(/** @type {any} */ ({ version: 'v', queries: { q: { judgments: { A: { grade: 'two', note: 'x' } } } } }), 'q', 0)).toThrow(/^qrels: query #1, judgment #1 has grade a string;/);
   });
 });
 
@@ -165,8 +166,20 @@ describe('scoreRun / summarise', () => {
     expect(shapes.topical.violationsAt10).toBe(1);
   });
 
-  it('fails loudly when a query has no result', () => {
-    expect(() => scoreRun(run({ q1: [] }), queries, qrels)).toThrow(/no result for query q2/);
+  it('fails loudly when a query has no result, naming its position, not its id', () => {
+    expect(() => scoreRun(run({ q1: [] }), queries, qrels)).toThrow(/^run v has no result for query #2 of 5$/);
+  });
+
+  it('a bad grade error carries the value and position, never the judgment (review finding 4)', () => {
+    const secret = { version: 'r', queries: { ...qrels.queries, q2: { judgments: { CS1010: 2, CS1010S: { grade: 7, rationale: 'SECRET-RATIONALE about q2' } } } } };
+    /** @type {unknown} */
+    let err;
+    try { scoreRun(run({ q1: [], q2: [], q3: [], q4: [], q5: [] }), queries, secret); } catch (e) { err = e; }
+    expect(err).toBeInstanceOf(Error);
+    const msg = /** @type {Error} */ (err).message;
+    expect(msg).toBe('qrels: query #2, judgment #2 has grade 7; grades must be 0, 1 or 2');
+    expect(msg).not.toMatch(/SECRET|rationale|q2|CS1010/);
+    expect(/** @type {Error} */ (err).name).toBe('QrelsError');
   });
 });
 

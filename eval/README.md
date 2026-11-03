@@ -174,7 +174,12 @@ npm run eval:pool -- --set holdout --runs v0,cand --custodian     # encrypted po
 `$VNM_HOLDOUT_KEY_FILE` overrides the key path. The key never enters the repo, CI, logs or
 error messages. Plaintext is decrypted in memory; `decrypt` refuses to write inside the repo.
 Holdout runs use only the eval reporter, with console output silenced, so no id, text or
-per-query error reaches the terminal. Every verdict appends a row to `eval/holdout-ledger.md`;
+per-query error reaches the terminal. Any error in a holdout or test command prints one line,
+`eval: holdout run failed (<error class>); details withheld`, and nothing else; the class
+(`DecryptionError`, `KeyFileError`, `LookLimitError`, `LedgerTamperError`, `LedgerLockError`,
+`CorpusMismatchError`, `QrelsError`, `RunFileError`, see `lib/errors.mjs`) says what went wrong.
+Metrics errors carry no judgment content in any set: a bad grade is reported by its value and
+position (`query #3, judgment #2 has grade 7`), never its rationale, query id or code. Every verdict appends a row to `eval/holdout-ledger.md`;
 a 13th holdout look (2nd test-set look) is refused before any retrieval runs. CI never has the
 key: `npm run eval:verify` checks only that each ciphertext matches its `MANIFEST.json` sha256.
 

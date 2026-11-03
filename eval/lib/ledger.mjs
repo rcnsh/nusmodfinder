@@ -4,6 +4,7 @@
 // that prints a verdict. Append-only; the CLI refuses a look past the limit.
 import { existsSync } from 'node:fs';
 import { appendFile, readFile, writeFile } from 'node:fs/promises';
+import { LookLimitError } from './errors.mjs';
 
 const HEADER = `# Holdout ledger
 
@@ -44,7 +45,7 @@ export async function looks(path, set) {
 export async function assertLookAllowed(path, set, max) {
   const n = await looks(path, set);
   if (n >= max) {
-    throw new Error(`refusing look ${n + 1} at the ${set} set: the ledger (${path}) already records ${n} of the allowed ${max}`);
+    throw new LookLimitError(`refusing look ${n + 1} at the ${set} set: the ledger (${path}) already records ${n} of the allowed ${max}`);
   }
   return n;
 }

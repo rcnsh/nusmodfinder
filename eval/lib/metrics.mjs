@@ -15,6 +15,7 @@
 //   and nothing in it is relevant (it scores as an empty ranking that also
 //   fails correct-empty). Every gate fails a candidate with more errors than
 //   its baseline (gate.mjs, "no new errors").
+import { QrelsError, RunFileError } from './errors.mjs';
 import { bcaInterval, clusteredInterval, mean, signFlipP } from './stats.mjs';
 
 export const K = 10;
@@ -46,24 +47,34 @@ export const METRICS = /** @type {const} */ (['ndcg', 'p5', 'rr']);
  * }} RunFile
  */
 
-/** @param {Judgment | undefined} j */
-export function gradeOf(j) {
+/**
+ * Errors name a bad grade by its value and position only: never the judgment
+ * object (it may carry a judge's rationale), the query id or the code.
+ * @param {Judgment | undefined} j
+ * @param {string} [where] position, e.g. "query #3, judgment #2"
+ */
+export function gradeOf(j, where = 'a judgment') {
   if (j === undefined) return 0;
-  const g = typeof j === 'number' ? j : j.grade;
-  if (!Number.isInteger(g) || g < 0 || g > 2) throw new Error(`qrels: grade must be 0, 1 or 2, got ${JSON.stringify(j)}`);
-  return g;
+  const g = typeof j === 'number' ? j : j?.grade;
+  if (!Number.isInteger(g) || g < 0 || g > 2) {
+    const value = typeof g === 'number' ? String(g) : g === null ? 'null' : `a ${typeof g}`;
+    throw new QrelsError(`qrels: ${where} has grade ${value}; grades must be 0, 1 or 2`);
+  }
+  return /** @type {number} */ (g);
 }
 
 /**
  * @param {Qrels} qrels
  * @param {string} id
+ * @param {number} [position] zero-based index of the query in its set, for errors
  * @returns {{ grades: Map<string, number>, groupOf: Map<string, string> }}
  */
-export function qrelsFor(qrels, id) {
+export function qrelsFor(qrels, id, position) {
   const q = qrels.queries[id];
+  const at = position === undefined ? 'a query' : `query #${position + 1}`;
   /** @type {Map<string, number>} */
   const grades = new Map();
-  for (const [code, j] of Object.entries(q?.judgments ?? {})) grades.set(code, gradeOf(j));
+  Object.entries(q?.judgments ?? {}).forEach(([code, j], k) => grades.set(code, gradeOf(j, `${at}, judgment #${k + 1}`)));
   /** @type {Map<string, string>} */
   const groupOf = new Map();
   for (const group of [...(qrels.groups ?? []), ...(q?.groups ?? [])]) {
@@ -156,10 +167,10 @@ export function violates(doc, c) {
  * @returns {QueryScore[]}
  */
 export function scoreRun(run, queries, qrels) {
-  return queries.map((q) => {
+  return queries.map((q, i) => {
     const r = run.results[q.id];
-    if (!r) throw new Error(`run ${run.variant} has no result for query ${q.id}`);
-    const { grades, groupOf } = qrelsFor(qrels, q.id);
+    if (!r) throw new RunFileError(`run ${run.variant} has no result for query #${i + 1} of ${queries.length}`);
+    const { grades, groupOf } = qrelsFor(qrels, q.id, i);
     const ok = r.status === 200;
     const codes = ok ? r.codes : [];
     const s = scoreRanking(codes, grades, groupOf);

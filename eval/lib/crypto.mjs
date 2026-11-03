@@ -12,6 +12,7 @@ import { chmod, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
+import { DecryptionError, KeyFileError } from './errors.mjs';
 
 const MAGIC = Buffer.from('VNMENC1\n', 'latin1');
 const IV_BYTES = 12;
@@ -33,9 +34,9 @@ export async function readKey(path = keyFilePath()) {
   try {
     text = (await readFile(path, 'utf8')).trim();
   } catch {
-    throw new Error(`holdout key not found at ${path}. Only the custodian has it; tuning agents must not run holdout commands.`);
+    throw new KeyFileError(`holdout key not found at ${path}. Only the custodian has it; tuning agents must not run holdout commands.`);
   }
-  if (!/^[0-9a-f]{64}$/i.test(text)) throw new Error(`holdout key at ${path} is not 64 hex characters`);
+  if (!/^[0-9a-f]{64}$/i.test(text)) throw new KeyFileError(`holdout key at ${path} is not 64 hex characters`);
   return Buffer.from(text, 'hex');
 }
 
@@ -74,7 +75,7 @@ export function encrypt(plaintext, key, name) {
  */
 export function decrypt(data, key, name) {
   if (data.length < MAGIC.length + IV_BYTES + TAG_BYTES || !data.subarray(0, MAGIC.length).equals(MAGIC)) {
-    throw new Error(`${basename(name)} is not a VNMENC1 file`);
+    throw new DecryptionError(`${basename(name)} is not a VNMENC1 file`);
   }
   const iv = data.subarray(MAGIC.length, MAGIC.length + IV_BYTES);
   const tag = data.subarray(MAGIC.length + IV_BYTES, MAGIC.length + IV_BYTES + TAG_BYTES);
@@ -84,7 +85,7 @@ export function decrypt(data, key, name) {
   try {
     return Buffer.concat([decipher.update(data.subarray(MAGIC.length + IV_BYTES + TAG_BYTES)), decipher.final()]);
   } catch {
-    throw new Error(`${basename(name)}: decryption failed (wrong key, renamed file, or tampered ciphertext)`);
+    throw new DecryptionError(`${basename(name)}: decryption failed (wrong key, renamed file, or tampered ciphertext)`);
   }
 }
 
