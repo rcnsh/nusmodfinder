@@ -103,7 +103,7 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
   shape quotas in `eval/v2/`) + 18 mechanical code queries + 15 noise-model typos = 180. Split
   provenance-first, TF-IDF topic clusters (single-link, threshold 0.35 = lowest of 0.30–0.50 giving
   every shape ≥ 2 per split): **dev 99 / holdout 81**. Dev sha256 `cf33e601…bc3b4`; holdout plaintext
-  sha256 `8f653595…72bb4` held by the custodian (lead) in `~/.config/vnm/custody/`, to be committed
+  sha256 `8f653595…f7bdb4` held by the custodian (lead) in `~/.config/vnm/custody/`, to be committed
   only encrypted. Deviation: TF-IDF instead of embedding similarity for clustering (embedding tool
   not ready); recorded for ADR 0003.
 - Running: 2a eval harness, 1A (0006 + exact filtered lexical), 1B (request path).
