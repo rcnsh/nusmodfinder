@@ -88,7 +88,7 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
 - Tests 98 → 117 (`test/instrument.test.js`, `test/deploy.node.test.js`). No live calls, no
   remote commands, no deploy.
 
-## 2026-11-04 — Phase 1 workstream 1B (search request path, PR #__PR__)
+## 2026-11-04 — Phase 1 workstream 1B (search request path, PR #7)
 
 - B4, B5, B6, B7, O3 → `fixed`; B8 stays `reproduced` with three of four sub-claims fixed
   (the Unicode tokeniser is 1A's, in `src/lexical.js`). Characterisation tests flipped.

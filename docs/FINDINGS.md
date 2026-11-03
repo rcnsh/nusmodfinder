@@ -138,7 +138,7 @@ time hybrid ~540 ms, `/module` ~240 ms.
 the latency figures only partly (hybrid measured 0.9–1.4 s, not ~540 ms, with no
 `Server-Timing` to separate server from network time). Phase 1 step 0 added the spans.
 
-Fixed in PR #__PR__ (workstream 1B): `runSearch` in `src/search.js` starts the pin lookup, the
+Fixed in PR #7 (workstream 1B): `runSearch` in `src/search.js` starts the pin lookup, the
 lexical query and embed→Vectorize together and waits on all three (`Promise.all`), then runs
 one hydrate query for only the columns and rows the response renders. Every public D1 read
 (`/search`, `/module`, `/facets`) goes through `env.DB.withSession('first-unconstrained')`,
@@ -164,7 +164,7 @@ replication itself (ADR 0002) and the deployed SC7 measurement are separate Phas
 AI or Vectorize (`src/index.js:461`, `:583-628`, `:329`, `:336` at `7ac9841`). `/search` with
 the same bytes did not crash: `URLSearchParams` decodes leniently to U+FFFD.
 
-Fixed in PR #__PR__: `fetch` catches anything a route throws and answers
+Fixed in PR #7: `fetch` catches anything a route throws and answers
 `500 { "error": "internal", "requestId" }` (the `cf-ray`, else a random UUID), logged as
 `"event":"unhandled"`. `/module` guards `decodeURIComponent` (400). `src/upstream.js`
 races every Workers AI (1.5 s, also aborted through its `signal` option), Vectorize (1.5 s)
@@ -190,7 +190,7 @@ or timeout returns the lexical results with `degraded: { source, reason }` in th
 Server-Timing span, and a 60 s cache lifetime. A per-isolate circuit breaker
 (`denseCircuit` in `src/upstream.js`) skips the dense half for 30 s after 3 consecutive
 failures. `mode=vector` (the eval's dense-only mode) never falls back and is never
-short-circuited. Fixed in PR #__PR__.
+short-circuited. Fixed in PR #7.
 
 ### B7 · Cache key is the raw URL
 
@@ -206,7 +206,7 @@ short-circuited. Fixed in PR #__PR__.
 **Notes:** Was: `src/index.js:596` at `7ac9841` (`new Request(url.toString())`). A junk
 parameter let anyone bypass the cache and spend metered quota.
 
-Fixed in PR #__PR__: `canonicalCacheKey` in `src/search.js` builds the key from the validated
+Fixed in PR #7: `canonicalCacheKey` in `src/search.js` builds the key from the validated
 parameters only: `q` trimmed, whitespace runs collapsed and lower-cased; `sem`, `level`,
 `credits`, `faculty`, `ng` in parsed form; `mode` and `topK` only when not the default
 (`topK` after clamping); unknown parameters dropped; sorted; plus `v=<DATA_VERSION>` from
@@ -238,7 +238,7 @@ it); the ASCII-only tokeniser splits "naïve".
 hydration `:262-269` read every fused candidate with `SELECT_COLUMNS`; `returnMetadata`
 `:338` with only `m.id` read; tokeniser `:158`. Live hydration was 66 rows for 20 results.
 
-PR #__PR__ (workstream 1B) fixes three of the four sub-claims: an empty `topK=` is the default;
+PR #7 (workstream 1B) fixes three of the four sub-claims: an empty `topK=` is the default;
 hydration selects only `RESULT_COLUMNS` and reads only as many fused candidates as the page
 shows, topping up in order when a candidate is missing from D1, so the page is the same as
 before (`test/differential.test.js`); Vectorize no longer gets `returnMetadata`. The topK
@@ -649,7 +649,7 @@ not this finding.
 
 **Notes:** Was: a constant in `src/modules.js` (`src/index.js:38` at `7ac9841`) versus
 `data/ng-courses-2026-2027.json` `updatedAsAt`, with the README asking for a manual bump.
-Fixed in PR #__PR__: `scripts/ingest.mjs` posts `{ ngList: { updatedAsAt, source, count } }`
+Fixed in PR #7: `scripts/ingest.mjs` posts `{ ngList: { updatedAsAt, source, count } }`
 (from `loadNgCourses`) to `/admin/facets`, which stores it as `meta('ng_list')` before
 rebuilding the facets row; `/facets` (precomputed or live) reads the date from there. The
 constant and the README instruction are gone. Until the next ingest records it, the live
