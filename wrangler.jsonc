@@ -1,0 +1,41 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vector-nusmods",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+  "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": false }],
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nusmods",
+      "database_id": "c6a769d3-8713-4c32-819a-7755b49b5edf"
+    }
+  ],
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "nusmods-modules"
+    }
+  ],
+  "ai": { "binding": "AI" },
+
+  // /search costs a Workers AI embedding and a Vectorize query per request. A
+  // Cloudflare rate-limiting RULE is not an option here — workers.dev is not a
+  // zone the account controls — so the guardrail lives in the Worker.
+  //
+  // This is a BURST guard, not a budget guard. The binding is per-IP AND
+  // per-colo, and Cloudflare documents its counters as permissive and
+  // eventually consistent: a measured burst of 80 requests in 2s passed
+  // untouched before the counter caught up. It stops a runaway script; it does
+  // NOT protect the account-wide monthly Vectorize allowance, which stays an
+  // accepted residual risk (see README).
+  "ratelimits": [
+    {
+      "name": "SEARCH_LIMIT",
+      "namespace_id": "1001",
+      "simple": { "limit": 20, "period": 10 }
+    }
+  ]
+}
