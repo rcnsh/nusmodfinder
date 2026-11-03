@@ -7,17 +7,23 @@
 // - every table row except the header and separator lines counts, whatever
 //   its spacing or contents; a row whose set cell is not a known set counts
 //   against every set;
-// - a look is refused if the ledger has fewer rows than git's copy at HEAD or
-//   origin/main, or if the file is missing while git has it.
+// - a look is refused if, for any known set, the ledger records fewer looks
+//   than git's copy at HEAD or origin/main (so moving a row to another set
+//   is caught), if it has fewer rows in total, or if the file is missing
+//   while git has it.
 //
 // Concurrency: check-then-append runs under an exclusive lock file
-// (`<ledger>.lock`, created with O_EXCL), so parallel looks cannot all pass
-// the limit. `run` reserves its look (a `reserved` row, which counts) before
-// retrieval starts and finalises that row with the verdict afterwards.
+// (`<ledger>.lock`, created with O_EXCL and holding a random token), so
+// parallel looks cannot all pass the limit. `run` reserves its look (a
+// `reserved` row, which counts) before retrieval starts and finalises that
+// row with the verdict afterwards. A holder writes, and releases the lock,
+// only while the lock still holds its token; a lock older than 30 minutes is
+// broken under a second lock (`<ledger>.lock.break`), so two processes
+// cannot both break it and one remove the other's fresh lock.
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { closeSync, existsSync, openSync, rmSync, statSync, writeSync } from 'node:fs';
-import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, statSync, writeFileSync, writeSync } from 'node:fs';
+import { mkdir, readFile } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, sep } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { LedgerLockError, LedgerTamperError, LookLimitError } from './errors.mjs';
@@ -74,32 +80,49 @@ export async function readLedger(path) {
  * @param {string} set
  */
 export async function looks(path, set) {
-  return (await readLedger(path)).filter((r) => r.set === set || !KNOWN_SETS.includes(r.set)).length;
+  return countLooks(await readLedger(path), set);
 }
 
 /**
- * Row counts of the ledger as committed at HEAD and origin/main, for those
- * refs that have it. Empty when the path is outside `repo` or untracked.
+ * @param {{ set: string }[]} rows
+ * @param {string} set
+ */
+const countLooks = (rows, set) => rows.filter((r) => r.set === set || !KNOWN_SETS.includes(r.set)).length;
+
+/**
+ * Looks per known set, by the same rule as `looks`.
+ * @param {string} text a ledger's contents
+ * @returns {Record<string, number>}
+ */
+function lookCounts(text) {
+  const rows = ledgerRows(text).map((cells) => ({ set: cells[1] ?? '' }));
+  return Object.fromEntries(KNOWN_SETS.map((s) => [s, countLooks(rows, s)]));
+}
+
+/**
+ * Row and per-set look counts of the ledger as committed at HEAD and
+ * origin/main, for those refs that have it. Empty when the path is outside
+ * `repo` or untracked.
  * @param {string} path
  * @param {string} [repo]
- * @returns {{ ref: string, rel: string, rows: number }[]}
+ * @returns {{ ref: string, rel: string, rows: number, looks: Record<string, number> }[]}
  */
 export function committedLedgers(path, repo = REPO) {
   const rel = relative(repo, path);
   if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) return [];
   const spec = rel.split(sep).join('/');
-  /** @type {{ ref: string, rel: string, rows: number }[]} */
+  /** @type {{ ref: string, rel: string, rows: number, looks: Record<string, number> }[]} */
   const out = [];
   for (const ref of COMMITTED_REFS) {
     const r = spawnSync('git', ['show', `${ref}:${spec}`], { cwd: repo, encoding: 'utf8' });
-    if (r.status === 0) out.push({ ref, rel: spec, rows: ledgerRows(r.stdout).length });
+    if (r.status === 0) out.push({ ref, rel: spec, rows: ledgerRows(r.stdout).length, looks: lookCounts(r.stdout) });
   }
   return out;
 }
 
 /**
- * Throws if the ledger is missing while git has it, or has fewer rows than
- * git's copy at HEAD or origin/main.
+ * Throws if the ledger is missing while git has it, or has fewer rows, or
+ * fewer looks for any known set, than git's copy at HEAD or origin/main.
  * @param {string} path
  * @param {string} [repo]
  */
@@ -110,10 +133,17 @@ export async function assertLedgerIntact(path, repo = REPO) {
     if (c) throw new LedgerTamperError(`the ledger ${path} is missing but ${c.ref} has it (${c.rows} look rows); restore it with \`git checkout ${c.ref} -- ${c.rel}\``);
     return;
   }
-  const local = ledgerRows(await readFile(path, 'utf8')).length;
+  const text = await readFile(path, 'utf8');
+  const local = ledgerRows(text).length;
+  const localLooks = lookCounts(text);
   for (const c of committed) {
     if (local < c.rows) {
       throw new LedgerTamperError(`the ledger ${path} has ${local} look rows but ${c.ref}:${c.rel} has ${c.rows}; rows may only be appended`);
+    }
+    for (const set of KNOWN_SETS) {
+      if (localLooks[set] < c.looks[set]) {
+        throw new LedgerTamperError(`the ledger ${path} records ${localLooks[set]} ${set} looks but ${c.ref}:${c.rel} records ${c.looks[set]}; rows may only be appended, not edited`);
+      }
     }
   }
 }
@@ -146,38 +176,88 @@ export function formatRow(row) {
 
 /**
  * Appends a row. Callers that enforce the limit hold the lock (eval:report,
- * reserveLook); this alone does not check anything.
+ * reserveLook) and call `lock.assertHeld()` immediately before; the write is
+ * synchronous so nothing runs between that check and the append. This alone
+ * does not check anything.
  * @param {string} path
  * @param {Omit<LedgerRow, 'verdict' | 'ndcg' | 'p5'> & Partial<LedgerRow>} row
  * @param {string} [line] a preformatted line
  */
 export async function appendLook(path, row, line) {
   if (!existsSync(path)) {
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, HEADER);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, HEADER);
   }
-  await appendFile(path, `${line ?? formatRow(/** @type {LedgerRow} */ (row))}\n`);
+  appendFileSync(path, `${line ?? formatRow(/** @type {LedgerRow} */ (row))}\n`);
 }
 
 export const LEDGER_HEADER = HEADER;
 
 /** A lock older than this is abandoned (its eval crashed) and is removed. */
 export const LOCK_STALE_MS = 30 * 60 * 1000;
+/** A break lock older than this is abandoned (its holder crashed mid-break). */
+const BREAK_STALE_MS = 60_000;
 /** How long to wait for another eval to release the lock. */
 const LOCK_WAIT_MS = 120_000;
 
+/** @typedef {{ assertHeld: () => void }} LockHandle */
+
+/** @param {string} file @returns {string | null} */
+function readToken(file) {
+  try { return readFileSync(file, 'utf8').trim(); } catch { return null; }
+}
+
+/**
+ * Removes `lock` if it is older than LOCK_STALE_MS, holding `<lock>.break`
+ * while it re-checks and removes, so two processes that both saw the same
+ * stale lock cannot have one remove the lock the other has just taken.
+ * @param {string} lock
+ * @returns {boolean} false if another process is breaking it (wait and retry)
+ */
+function breakStaleLock(lock) {
+  const breaker = `${lock}.break`;
+  let fd;
+  try {
+    fd = openSync(breaker, 'wx');
+  } catch (err) {
+    if (/** @type {NodeJS.ErrnoException} */ (err).code !== 'EEXIST') throw err;
+    try {
+      if (Date.now() - statSync(breaker).mtimeMs > BREAK_STALE_MS) rmSync(breaker, { force: true });
+    } catch { /* released in the meantime */ }
+    return false;
+  }
+  try {
+    let st;
+    try { st = statSync(lock); } catch { return true; } // already gone
+    const age = Date.now() - st.mtimeMs;
+    if (age > LOCK_STALE_MS) {
+      console.error(`eval: removing a stale ledger lock ${lock} (${Math.floor(age / 60_000)} minutes old; a lock older than 30 minutes is treated as abandoned)`);
+      rmSync(lock, { force: true });
+    }
+    return true;
+  } finally {
+    closeSync(fd);
+    rmSync(breaker, { force: true });
+  }
+}
+
 /**
  * Runs `fn` holding the ledger's exclusive lock. Waits up to `waitMs` for
- * another holder; removes a lock older than 30 minutes, saying so.
+ * another holder; breaks a lock older than 30 minutes, saying so. `fn` gets a
+ * handle whose `assertHeld()` throws LedgerLockError if the lock no longer
+ * holds this process's token (it stalled past 30 minutes and another eval
+ * broke the lock); call it right before writing. On exit the lock is removed
+ * only if it still holds the token.
  * @template T
  * @param {string} path the ledger
- * @param {() => Promise<T>} fn
+ * @param {(lock: LockHandle) => Promise<T>} fn
  * @param {{ waitMs?: number }} [options]
  * @returns {Promise<T>}
  */
 export async function withLedgerLock(path, fn, options = {}) {
   const lock = `${path}.lock`;
   const waitMs = options.waitMs ?? LOCK_WAIT_MS;
+  const token = `${process.pid} ${randomBytes(8).toString('hex')}`;
   const start = Date.now();
   /** @type {number} */
   let fd;
@@ -193,26 +273,25 @@ export async function withLedgerLock(path, fn, options = {}) {
     let held;
     try { held = statSync(lock); } catch { continue; } // released in the meantime
     const age = Date.now() - held.mtimeMs;
-    if (age > LOCK_STALE_MS) {
-      // Re-check it is the same lock file before removing it.
-      let again;
-      try { again = statSync(lock); } catch { continue; }
-      if (again.ino === held.ino && again.mtimeMs === held.mtimeMs) {
-        console.error(`eval: removing a stale ledger lock ${lock} (${Math.floor(age / 60_000)} minutes old; a lock older than 30 minutes is treated as abandoned)`);
-        rmSync(lock, { force: true });
-      }
-      continue;
-    }
+    if (age > LOCK_STALE_MS && breakStaleLock(lock)) continue;
     if (Date.now() - start >= waitMs) {
       throw new LedgerLockError(`another eval holds the ledger lock ${lock} (taken ${Math.round(age / 1000)} s ago); try again when it finishes. A lock older than 30 minutes is treated as stale and removed.`);
     }
     await sleep(25 + Math.floor(Math.random() * 50));
   }
+  /** @type {LockHandle} */
+  const handle = {
+    assertHeld() {
+      if (readToken(lock) !== token) {
+        throw new LedgerLockError(`this eval lost the ledger lock ${lock}: it was held past 30 minutes and another eval broke it. Nothing was written; run again.`);
+      }
+    },
+  };
   try {
-    try { writeSync(fd, `${process.pid} ${new Date().toISOString()}\n`); } finally { closeSync(fd); }
-    return await fn();
+    try { writeSync(fd, `${token}\n`); } finally { closeSync(fd); }
+    return await fn(handle);
   } finally {
-    rmSync(lock, { force: true });
+    if (readToken(lock) === token) rmSync(lock, { force: true });
   }
 }
 
@@ -226,9 +305,10 @@ export async function withLedgerLock(path, fn, options = {}) {
  * @returns {Promise<string>} the reserved line, for finaliseLook
  */
 export function reserveLook(path, max, row, options = {}) {
-  return withLedgerLock(path, async () => {
+  return withLedgerLock(path, async (lock) => {
     await assertLookAllowed(path, row.set, max, options);
     const line = formatRow({ ...row, verdict: `reserved ${randomBytes(4).toString('hex')}`, ndcg: '—', p5: '—' });
+    lock.assertHeld();
     await appendLook(path, row, line);
     return line;
   }, options);
@@ -244,12 +324,12 @@ export function reserveLook(path, max, row, options = {}) {
  * @param {{ waitMs?: number }} [options]
  */
 export function finaliseLook(path, reserved, row, options = {}) {
-  return withLedgerLock(path, async () => {
-    if (!existsSync(path)) return appendLook(path, row);
-    const lines = (await readFile(path, 'utf8')).split('\n');
+  return withLedgerLock(path, async (lock) => {
+    const lines = existsSync(path) ? (await readFile(path, 'utf8')).split('\n') : [];
     const i = lines.findIndex((l) => l.trim() === reserved);
+    lock.assertHeld();
     if (i < 0) return appendLook(path, row);
     lines[i] = formatRow(row);
-    await writeFile(path, lines.join('\n'));
+    writeFileSync(path, lines.join('\n'));
   }, options);
 }

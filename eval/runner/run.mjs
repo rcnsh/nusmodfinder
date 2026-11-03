@@ -3,15 +3,17 @@
 // actual Worker in workerd and writes its run file. A variant is identified
 // by name; the run file records the ranker ref and sha, corpus version,
 // embedding version and query-set version.
+import { fork } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { createVitest } from 'vitest/node';
+import { fileURLToPath } from 'node:url';
 import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
 import { cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
 import { REPO, loadQueries, runFile, searchParams, setFile, setKey } from '../lib/sets.mjs';
 import { buildWorkspace } from '../lib/workspace.mjs';
-import { EvalReporter } from './reporter.mjs';
+
+const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
 
 /**
  * @typedef {{
@@ -81,15 +83,14 @@ export async function runVariant(options) {
     },
     config: { topK: 'worker default', filters: !unfiltered },
   };
-  const reporter = new EvalReporter({
+  const reporterOptions = {
     output,
     missingOutput: join(REPO, '.eval-work', `missing-${set.name}.json${key ? '.enc' : ''}`),
     key,
     set: set.name,
     header,
     expectedIds: querySet.queries.map((q) => q.id),
-    log,
-  });
+  };
 
   /** @type {EvalPayload} */
   const payload = {
@@ -101,24 +102,45 @@ export async function runVariant(options) {
 
   log(`${set.name}/${variant}: ranker ${ws.ranker.ref} (${ws.ranker.sha.slice(0, 7)}${ws.ranker.dirty ? ', dirty' : ''}), `
     + `${corpus.modules.length} modules, ${querySet.queries.length} queries, embeddings ${embedding.corpus}`);
-  process.env.VNM_EVAL_WORKSPACE = ws.root;
-  const vitest = await createVitest({
+  const outcome = await runInChild({
     config: join(REPO, 'vitest.eval.config.mjs'),
     root: REPO,
-    watch: false,
-    run: true,
-    // Encrypted sets: only the eval reporter, and no console passthrough, so
-    // no query id, text or per-query error reaches the terminal.
-    reporters: set.perQueryOutput ? ['dot', reporter] : [reporter],
-    silent: !set.perQueryOutput,
-  });
-  try {
-    // The ProvidedContext key is typed on the worker side (eval/runner/vitest.d.ts).
-    /** @type {any} */ (vitest).provide('evalPayload', payload);
-    await vitest.start();
-  } finally {
-    await vitest.close();
-  }
-  const outcome = reporter.outcome ?? { ok: false, written: null, problems: ['the reporter never saw the end of the run'] };
+    perQueryOutput: set.perQueryOutput,
+    payload,
+    reporter: reporterOptions,
+  }, ws.root, log);
   return { ok: outcome.ok, output, problems: outcome.problems };
+}
+
+/**
+ * Runs Vitest in a child process (eval/runner/vitest-child.mjs). Encrypted
+ * sets (no per-query output) discard the child's stdout and stderr entirely:
+ * workerd prints a Worker's uncaught exceptions itself, so no in-process
+ * setting can keep holdout text out of the terminal.
+ * @param {import('./vitest-child.mjs').ChildRequest} request
+ * @param {string} workspace
+ * @param {(line: string) => void} log
+ * @returns {Promise<{ ok: boolean, written: string | null, problems: string[] }>}
+ */
+function runInChild(request, workspace, log) {
+  const quiet = !request.perQueryOutput;
+  const child = fork(CHILD, [], {
+    cwd: REPO,
+    env: { ...process.env, VNM_EVAL_WORKSPACE: workspace },
+    stdio: quiet ? ['ignore', 'ignore', 'ignore', 'ipc'] : ['inherit', 'inherit', 'inherit', 'ipc'],
+    serialization: 'advanced',
+  });
+  return new Promise((resolve, reject) => {
+    /** @type {{ ok: boolean, written: string | null, problems: string[] } | null} */
+    let outcome = null;
+    child.on('message', (/** @type {import('./vitest-child.mjs').ChildMessage} */ msg) => {
+      if (msg.type === 'log') log(msg.line);
+      else if (msg.type === 'outcome') outcome = msg.outcome;
+    });
+    child.on('error', reject);
+    child.on('exit', (code, signal) => {
+      resolve(outcome ?? { ok: false, written: null, problems: [`the eval runner process exited (${signal ?? `code ${code}`}) without a result`] });
+    });
+    child.send(request);
+  });
 }

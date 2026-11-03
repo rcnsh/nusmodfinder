@@ -323,10 +323,15 @@ export function compare(base, cand, options = {}) {
       cand: rate(noAnswer.map(({ c }) => c)),
       delta: rate(noAnswer.map(({ c }) => c)) - rate(noAnswer.map(({ b }) => b)),
     },
-    /** One-sided 95% bounds per shape come from a two-sided 90% interval. */
-    shapes: /** @type {Record<string, { n: number } & Partial<ReturnType<typeof stats>>>} */ (Object.fromEntries(shapes.map((shape) => {
-      const ps = pairs.filter(({ b }) => b.answerable && b.shapes.includes(shape));
-      return [shape, { n: ps.length, ...(ps.length ? stats(ps, { alpha: 0.1 }) : {}) }];
+    /**
+     * One-sided 95% bounds per shape come from a two-sided 90% interval.
+     * `members`: positions (in the baseline's query order, never ids) of the
+     * shape's answerable queries, so a gate can count distinct queries across shapes.
+     */
+    shapes: /** @type {Record<string, { n: number, members: number[] } & Partial<ReturnType<typeof stats>>>} */ (Object.fromEntries(shapes.map((shape) => {
+      const members = pairs.flatMap(({ b }, i) => (b.answerable && b.shapes.includes(shape) ? [i] : []));
+      const ps = members.map((i) => pairs[i]);
+      return [shape, { n: ps.length, members, ...(ps.length ? stats(ps, { alpha: 0.1 }) : {}) }];
     }))),
     exactCodeRegressions: pairs
       .filter(({ b }) => b.shapes.some((t) => EXACT_CODE_SHAPES.includes(t)) && b.top1 !== null && b.top1Grade >= 1)

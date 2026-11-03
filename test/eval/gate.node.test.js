@@ -237,3 +237,48 @@ describe('errored queries (review finding 1)', () => {
     expect(r(503)).toMatchObject({ ndcg: 0, p5: 0, rr: 0, error: true, empty: false, top1: null, top: 0 });
   });
 });
+
+describe('decisive-comparison floors (PR #6 review round 2, finding 5)', () => {
+  const judgedAll = (/** @type {QueryScore[]} */ xs) => xs.map((s) => ({ ...s, judged: s.top }));
+  const noAnswer = (/** @type {boolean[]} */ empties) => empties.map((e, i) => q(`n${i}`, 0, { answerable: false, empty: e, judged: 0, top: e ? 0 : 1 }));
+
+  it('a cutoff verdict over fewer than 3 no-answer queries fails, on dev and holdout', () => {
+    const answerable = many(10, 0.5, 0.5);
+    const one = compare(judgedAll([...answerable.base, ...noAnswer([false])]), judgedAll([...answerable.cand, ...noAnswer([true])]));
+    expect(one.noAnswer.delta).toBe(1);
+    for (const gate of [holdoutGate, devGate]) {
+      const v = gate(one, { kind: 'cutoff' });
+      expect(v.verdict).toBe('fail');
+      expect(names(v)['sufficient no-answer queries (>= 3)']).toBe(false);
+      expect(detail(v, 'sufficient no-answer queries (>= 3)')).toBe('insufficient queries: 1 no-answer, need 3');
+    }
+    const three = compare(judgedAll([...answerable.base, ...noAnswer([false, false, false])]), judgedAll([...answerable.cand, ...noAnswer([true, false, false])]));
+    expect(holdoutGate(three, { kind: 'cutoff' }).verdict).toBe('pass');
+  });
+
+  it('the targeted dev route needs 3 distinct target-shape queries, counting a multi-shape query once', () => {
+    const rest = many(10, 0.5, 0.5);
+    // One target query gains +1 while a non-target query loses 1: overall Δ 0.
+    const one = compare(
+      [...rest.base, q('t0', 0, { shapes: ['t'] })],
+      [...rest.cand.map((s, i) => (i === 0 ? { ...s, ndcg: s.ndcg - 0.5 } : s)), q('t0', 0.5, { shapes: ['t'] })],
+    );
+    const v = devGate(one, { targetShapes: ['t'] });
+    expect(v.verdict).toBe('fail');
+    expect(v.checks.find((c) => c.name.startsWith('ΔnDCG@10 CI lower > 0'))?.detail).toMatch(/\(n 1, insufficient queries for the targeted route: need 3\)/);
+
+    // The same query under three target shapes is still one query.
+    const shared = compare(
+      [...rest.base, q('t0', 0, { shapes: ['a', 'b', 'c'] })],
+      [...rest.cand, q('t0', 1, { shapes: ['a', 'b', 'c'] })],
+    );
+    expect(devGate(shared, { targetShapes: ['a', 'b', 'c'] }).verdict).toBe('fail');
+
+    // Three distinct target queries are enough.
+    const three = compare(
+      [...rest.base, ...['x', 'y', 'z'].map((id) => q(id, 0.2, { shapes: ['t'] }))],
+      [...rest.cand, q('x', 0.6, { shapes: ['t'] }), q('y', 0.2, { shapes: ['t'] }), q('z', 0.2, { shapes: ['t'] })],
+    );
+    expect(devGate(three, { targetShapes: ['t'] }).verdict).toBe('pass');
+  });
+});

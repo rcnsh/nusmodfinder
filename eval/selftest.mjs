@@ -14,14 +14,17 @@
 //      bound to that name, so real holdout files cannot be read through it):
 //      encrypted-only output, a verdict-only terminal, ledger append, 13th
 //      look refused, pool refused without --custodian, tampering and a wrong
-//      key detected, errors withheld.
+//      key detected, errors withheld;
+//   5. a probe ranker whose Worker logs, throws and throws uncaught with the
+//      query text: the fixture set shows it (the probe works), the encrypted
+//      set prints only the withheld line.
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { appendFile, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { readLedger } from './lib/ledger.mjs';
-import { RANKER, treeHash } from './lib/workspace.mjs';
+import { HASHED, treeHash } from './lib/workspace.mjs';
 import { REPO } from './lib/sets.mjs';
 
 const WORK = join(REPO, '.eval-work', 'selftest');
@@ -89,7 +92,7 @@ assert.equal(v0.embedding.model, '@cf/baai/bge-small-en-v1.5');
 // with the hash of eval-v0's own files, extracted independently.
 const archiveDir = join(WORK, 'eval-v0-archive');
 await mkdir(archiveDir, { recursive: true });
-const atV0 = RANKER.filter((p) => spawnSync('git', ['cat-file', '-e', `eval-v0:${p}`], { cwd: REPO }).status === 0);
+const atV0 = HASHED.filter((p) => spawnSync('git', ['cat-file', '-e', `eval-v0:${p}`], { cwd: REPO }).status === 0);
 const tar = spawnSync('git', ['archive', '--format=tar', 'eval-v0', '--', ...atV0], { cwd: REPO, maxBuffer: 1 << 30 });
 assert.equal(tar.status, 0, 'git archive eval-v0');
 assert.equal(spawnSync('tar', ['-x', '-C', archiveDir], { input: tar.stdout }).status, 0, 'extract eval-v0');
@@ -108,7 +111,7 @@ const head = await json(headPath);
 assert.deepEqual(Object.keys(head.results).sort(), queries.map((/** @type {any} */ q) => q.id).sort());
 const worktreeTree = await treeHash(REPO);
 assert.equal(head.ranker.treeHash, worktreeTree, 'a working-tree run records the working tree\'s ranker hash');
-const treesDiffer = spawnSync('git', ['diff', '--quiet', 'eval-v0', '--', ...RANKER], { cwd: REPO }).status !== 0;
+const treesDiffer = spawnSync('git', ['diff', '--quiet', 'eval-v0', '--', ...HASHED], { cwd: REPO }).status !== 0;
 if (treesDiffer) assert.notEqual(head.ranker.treeHash, v0.ranker.treeHash, 'eval-v0 and the working tree differ, so must their tree hashes');
 console.log(`ok: working-tree ranker tree ${worktreeTree.slice(0, 12)} (${treesDiffer ? 'differs from' : 'same files as'} eval-v0)`);
 const recomputed = join(WORK, 'report.json');
@@ -214,5 +217,45 @@ const t = node(HOLDOUT, ['verify', '--dir', tampered]);
 assert.notEqual(t.code, 0);
 assert.match(t.out, /MISMATCH/);
 console.log('ok: encrypted-only output, verdict-only terminal, ledger, reserved looks, lock, look limit, custodian gate, tamper and key checks');
+
+step('5. nothing the Worker prints reaches the terminal for an encrypted set');
+// A commit object (no ref, no working-tree change) whose src/index.js wraps
+// the real Worker and, on /search, logs, schedules an uncaught throw and
+// throws, each carrying the query text.
+const PROBE = `import worker from './index.orig.js';
+export default {
+  ...worker,
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    if (url.pathname === '/search') {
+      const q = url.searchParams.get('q') ?? '';
+      setTimeout(() => { throw new Error('LEAK-UNCAUGHT ' + q); }, 0);
+      console.error('LEAK-CONSOLE ' + q);
+      throw new Error('LEAK-THROW ' + q);
+    }
+    return worker.fetch(request, env, ctx);
+  },
+};
+`;
+const gitEnv = { ...process.env, GIT_INDEX_FILE: join(WORK, 'probe.index'), GIT_AUTHOR_NAME: 'selftest', GIT_AUTHOR_EMAIL: 'selftest@example.com', GIT_COMMITTER_NAME: 'selftest', GIT_COMMITTER_EMAIL: 'selftest@example.com' };
+const g = (/** @type {string[]} */ args, /** @type {string} */ input = '') => {
+  const r = spawnSync('git', args, { cwd: REPO, env: gitEnv, input, encoding: 'utf8' });
+  assert.equal(r.status, 0, `git ${args.join(' ')}: ${r.stderr}`);
+  return r.stdout.trim();
+};
+g(['read-tree', 'HEAD']);
+g(['update-index', '--add', '--cacheinfo', `100644,${g(['rev-parse', 'HEAD:src/index.js'])},src/index.orig.js`]);
+g(['update-index', '--cacheinfo', `100644,${g(['hash-object', '-w', '--stdin'], PROBE)},src/index.js`]);
+const probe = g(['commit-tree', g(['write-tree']), '-p', 'HEAD', '-m', 'selftest leak probe']);
+// Positive control: on the plain fixture set the probe's output is visible.
+const shown = node(CLI, ['run', '--set', 'fixture', '--variant', 'probe', '--ref', probe, '--out', join(WORK, 'probe.json')]);
+assert.notEqual(shown.code, 0, 'the probe run fails');
+assert.match(shown.out, /LEAK-UNCAUGHT /, `the probe's uncaught exception is printed for a plain set:\n${shown.out}`);
+const hidden = node(CLI, ['run', ...hargs, '--variant', 'probe', '--ref', probe, '--store-only'], env);
+assert.equal(hidden.code, 1);
+// Only the header line (ranker, counts) printed before retrieval, then the withheld line.
+assert.match(hidden.out, /^selftest\/probe: ranker [0-9a-f]{40} \([0-9a-f]{7}\), \d+ modules, \d+ queries, embeddings set-cache\neval: selftest run failed \(RunFailedError\); details withheld\n$/, `an encrypted run prints only the withheld line, got:\n${hidden.out}`);
+assertNoLeak(hidden.out, 'probe run');
+console.log('ok: the probe leaks on the plain set and nothing reaches the terminal on the encrypted set');
 
 console.log('\nselftest passed');

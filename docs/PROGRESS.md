@@ -136,3 +136,30 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
 - **Which ranker ran** (low): run files record `ranker.treeHash`; the self-test checks it against
   `git archive eval-v0`. A mutant that runs HEAD under `--ref eval-v0` now fails the self-test.
 - No Cloudflare, live-site or api.nusmods.com call; no neurons spent.
+
+## 2026-11-05 — PR #6 review round 2 (fix delta `3eee229..bcd843b`)
+
+A fresh-context review of the fixes found 7 issues (1 high); all fixed, each with a test that
+fails on the previous code.
+
+- **Worker output** (high): workerd prints a Worker's uncaught exceptions to stderr itself, so
+  holdout query text reached the terminal despite `silent`. Vitest now runs in a child process
+  (`eval/runner/vitest-child.mjs`); for encrypted sets its stdout and stderr are discarded and
+  the outcome returns over IPC. Self-test step 5 runs a probe ranker (a dangling commit object)
+  that logs, throws and throws uncaught with the query text: visible on the fixture set, absent
+  on `selftest`.
+- **Ledger edits** (medium): the tamper check compares looks per known set against `HEAD` and
+  `origin/main`, so relabelling `holdout` rows `selftest` or `test` is refused.
+- **Lock ownership** (medium): the lock holds a random token; a holder writes (`assertHeld()`
+  right before a synchronous append) and removes the lock only while the token is its own. A
+  stale lock is broken under `<ledger>.lock.break`, so two breakers cannot remove each other's
+  fresh lock; an abandoned break lock is cleared after 1 min.
+- **Decisive comparison** (low–medium): gate amendment, to record in ADR 0003. A cutoff verdict
+  needs ≥ 3 no-answer queries; the dev targeted route needs ≥ 3 distinct answerable queries
+  across its target shapes (otherwise only the CI route can pass). The 10-query overall floor
+  stays. Floors are 3, not 10, because dev has 5 `noanswer` queries and some shapes have 2.
+- **Withheld line** (low): a failed encrypted run now prints `eval: <set> run failed
+  (RunFailedError); details withheld`.
+- **treeHash** (low): covers `test/wrangler.test.jsonc` (its compatibility date and flags change
+  what runs).
+- Tests 207 → 213 unit; self-test 5 steps. No Cloudflare, live-site or api.nusmods.com call.

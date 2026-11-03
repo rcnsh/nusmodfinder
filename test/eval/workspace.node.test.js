@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm, symlink, utimes, writeFile } from 'node:fs/promises
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { RANKER, treeHash } from '../../eval/lib/workspace.mjs';
+import { HASHED, RANKER, TEST_CONFIG, treeHash } from '../../eval/lib/workspace.mjs';
 
 /** @type {string} */
 let dir;
@@ -49,5 +49,14 @@ describe('treeHash (review finding 8)', () => {
     const h = await tree('h', files);
     await symlink('index.js', join(h, 'src/link.js'));
     expect(await treeHash(g)).not.toBe(await treeHash(h));
+  });
+
+  it('covers the test Worker config too: its compatibility date and flags change what runs (PR #6 review round 2, finding 7)', async () => {
+    expect(TEST_CONFIG).toBe('test/wrangler.test.jsonc');
+    expect(HASHED).toEqual([...RANKER, TEST_CONFIG]);
+    const cfg = (/** @type {string} */ date, /** @type {string[]} */ flags) => JSON.stringify({ main: '../src/index.js', compatibility_date: date, compatibility_flags: flags });
+    const a = await treeHash(await tree('cfg-a', { ...files, [TEST_CONFIG]: cfg('2025-01-01', []) }));
+    const b = await treeHash(await tree('cfg-b', { ...files, [TEST_CONFIG]: cfg('2026-01-01', ['nodejs_compat']) }));
+    expect(a).not.toBe(b);
   });
 });

@@ -19,8 +19,12 @@
 //           both > 0; judged@10 = 100%.
 //
 // Every gate fails a candidate with more errored (non-200) queries than its
-// baseline ("no new errors"), and needs at least RULES.minQueries primary answerable queries
-// in its decisive comparison ("insufficient queries" otherwise). A CI-based
+// baseline ("no new errors"), and needs at least RULES.minQueries primary
+// answerable queries ("insufficient queries" otherwise). When the verdict
+// rests on a smaller comparison, that comparison has its own floor: a cutoff
+// verdict needs RULES.minNoAnswerQueries no-answer queries, and the dev
+// targeted route needs RULES.minTargetQueries distinct answerable queries
+// across the target shapes (otherwise only the CI route can pass). A CI-based
 // check never passes on a degenerate interval (stats.mjs: one query, or every
 // delta equal), and a target-shape tripwire over fewer than
 // RULES.minShapeQueriesForCi queries falls back to "point estimate >= 0".
@@ -34,6 +38,10 @@ export const RULES = Object.freeze({
   cutoffMaxNdcgLoss: 0.01,
   /** Fewer primary answerable queries than this and no gate can pass. */
   minQueries: 10,
+  /** Fewer no-answer queries than this and a cutoff verdict cannot pass. */
+  minNoAnswerQueries: 3,
+  /** Fewer distinct answerable target-shape queries than this and the targeted route cannot pass. */
+  minTargetQueries: 3,
   /** Below this many queries a shape tripwire uses the point estimate, not a CI. */
   minShapeQueriesForCi: 3,
 });
@@ -99,7 +107,13 @@ function exactCodeCheck(cmp) {
 function cutoffChecks(cmp) {
   const gain = cmp.noAnswer.delta;
   const loss = -cmp.overall.ndcg.delta;
+  const enough = cmp.noAnswer.n >= RULES.minNoAnswerQueries;
   return [
+    {
+      name: `sufficient no-answer queries (>= ${RULES.minNoAnswerQueries})`,
+      pass: enough,
+      detail: enough ? `${cmp.noAnswer.n} no-answer queries` : `insufficient queries: ${cmp.noAnswer.n} no-answer, need ${RULES.minNoAnswerQueries}`,
+    },
     {
       name: `correct-empty gain >= ${RULES.cutoffMinCorrectEmptyGain}`,
       pass: Number.isFinite(gain) && gain >= RULES.cutoffMinCorrectEmptyGain - EPS,
@@ -134,14 +148,18 @@ export function devGate(cmp, change = {}) {
   const ndcg = cmp.overall.ndcg;
   const ciPass = lowerAboveZero(ndcg.bca);
   const missing = targets.filter((t) => !cmp.shapes[t]?.ndcg);
+  // Distinct answerable queries across the targets (a query may carry several shapes).
+  const targetN = new Set(targets.flatMap((t) => /** @type {any} */ (cmp.shapes[t])?.members ?? [])).size;
   const targetedPass = targets.length > 0 && missing.length === 0
+    && targetN >= RULES.minTargetQueries
     && targets.every((t) => /** @type {any} */ (cmp.shapes[t]).ndcg.delta > EPS)
     && ndcg.delta >= -EPS;
   checks.push({
     name: targets.length ? 'ΔnDCG@10 CI lower > 0, or targeted shapes improve and overall Δ >= 0' : 'ΔnDCG@10 BCa 95% lower bound > 0',
     pass: ciPass || targetedPass,
     detail: `ΔnDCG@10 ${f(ndcg.delta)} ${ciText(ndcg.bca)}`
-      + (targets.length ? `; targets ${targets.map((t) => `${t} Δ ${f(/** @type {any} */ (cmp.shapes[t])?.ndcg?.delta ?? NaN)}`).join(', ')}` : ''),
+      + (targets.length ? `; targets ${targets.map((t) => `${t} Δ ${f(/** @type {any} */ (cmp.shapes[t])?.ndcg?.delta ?? NaN)}`).join(', ')}`
+        + ` (n ${targetN}${targetN < RULES.minTargetQueries ? `, insufficient queries for the targeted route: need ${RULES.minTargetQueries}` : ''})` : ''),
   });
   for (const t of targets) {
     const s = /** @type {any} */ (cmp.shapes[t]);

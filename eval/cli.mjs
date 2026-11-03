@@ -13,7 +13,7 @@ import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { writeEncryptedJson } from './lib/crypto.mjs';
-import { errorClass, RunFileError } from './lib/errors.mjs';
+import { errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
 import { gateFor } from './lib/gate.mjs';
 import { appendLook, assertLookAllowed, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
 import { assertSameCorpus, byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
@@ -163,7 +163,8 @@ const today = () => new Date().toISOString().slice(0, 10);
  */
 async function verdictReport(set, candPath, basePath, a, reserved = null) {
   const ledger = /** @type {string} */ (set.ledger);
-  const body = async () => {
+  /** @param {import('./lib/ledger.mjs').LockHandle} [lock] held by `report`; `run`'s finaliseLook takes its own */
+  const body = async (lock) => {
     if (!reserved) await assertLookAllowed(ledger, set.name, set.maxLooks);
     const querySet = await loadQueries(set);
     const qrels = await loadQrels(set);
@@ -191,8 +192,12 @@ async function verdictReport(set, candPath, basePath, a, reserved = null) {
     const v = gateFor(set.gate, cmp, changeOf(a));
     const out = verdictOnly(v, cmp, qrels.version);
     const final = { ...row, verdict: v.verdict, ndcg: out.ndcg, p5: out.p5 };
-    if (reserved) await finaliseLook(ledger, reserved, final);
-    else await appendLook(ledger, final);
+    if (reserved) {
+      await finaliseLook(ledger, reserved, final);
+    } else {
+      lock?.assertHeld();
+      await appendLook(ledger, final);
+    }
     console.log(out.text);
   };
   // `report`: check-then-append is one critical section.
@@ -293,6 +298,9 @@ async function runAndReport(a, set, reserved) {
     res = await run();
   }
   if (!res.ok) {
+    // Encrypted sets: the problems can name ids or carry query text, so throw
+    // and let the top-level handler print the withheld line (cmdRun aborts the look).
+    if (set.encrypted) throw new RunFailedError(res.problems.join('; '));
     if (reserved) await abortLook(set, a, reserved);
     console.error(`eval: run ${a.variant} failed:\n  ${res.problems.join('\n  ')}`);
     process.exit(1);

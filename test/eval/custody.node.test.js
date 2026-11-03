@@ -282,3 +282,109 @@ describe('ledger concurrency (review finding 3)', () => {
     expect(existsSync(`${path}.lock`)).toBe(false);
   });
 });
+
+describe('ledger edits and lock ownership (PR #6 review round 2, findings 2-4)', () => {
+  const row = { date: '2026-11-04', set: 'holdout', commit: 'abc1234', variant: 'v', baseline: 'v0', verdict: 'fail', ndcg: '+0.000 [0.000, 0.000]', p5: '+0.000 [0.000, 0.000]' };
+
+  it('moving committed holdout rows to another known set is refused', async () => {
+    const repo = join(dir, 'repo-sets');
+    const git = (/** @type {string[]} */ ...args) => {
+      const r = spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: repo, encoding: 'utf8' });
+      if (r.status !== 0) throw new Error(r.stderr);
+      return r.stdout.trim();
+    };
+    const { mkdir } = await import('node:fs/promises');
+    await mkdir(join(repo, 'eval'), { recursive: true });
+    git('init', '-q');
+    const path = join(repo, 'eval', 'holdout-ledger.md');
+    for (let i = 0; i < 12; i++) await appendLook(path, row);
+    git('add', '.');
+    git('commit', '-qm', 'twelve looks');
+    const opts = { repo };
+    await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toMatchObject({ name: 'LookLimitError' });
+    const committed = await readFile(path, 'utf8');
+    for (const other of ['selftest', 'test']) {
+      await writeFile(path, committed.replaceAll('| holdout |', `| ${other} |`));
+      expect(await looks(path, 'holdout')).toBe(0);
+      await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toMatchObject({ name: 'LedgerTamperError' });
+      await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toThrow(/records 0 holdout looks but HEAD:eval\/holdout-ledger\.md records 12; rows may only be appended, not edited/);
+    }
+    // An unknown set cell still counts against every set, so it is not a cut.
+    await writeFile(path, committed.replace('| holdout |', '| h0ldout |'));
+    await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toMatchObject({ name: 'LookLimitError' });
+  });
+
+  it('a holder whose lock was broken as stale neither writes nor removes the new holder\'s lock', async () => {
+    const path = join(dir, 'owner.md');
+    for (let i = 0; i < 11; i++) await appendLook(path, row);
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      /** @type {() => void} */
+      let resumeA = () => {};
+      const aPaused = new Promise((r) => { resumeA = /** @type {() => void} */ (r); });
+      /** @type {() => void} */
+      let aInside = () => {};
+      const aEntered = new Promise((r) => { aInside = /** @type {() => void} */ (r); });
+      // A: checks, then stalls (laptop sleep) before appending.
+      const a = withLedgerLock(path, async (lock) => {
+        await assertLookAllowed(path, 'holdout', 12);
+        aInside();
+        await aPaused;
+        lock.assertHeld();
+        await appendLook(path, { ...row, variant: 'A' });
+      });
+      await aEntered;
+      const old = new Date(Date.now() - 31 * 60 * 1000);
+      await utimes(`${path}.lock`, old, old);
+      // B breaks the stale lock and stalls inside; A resumes and finishes.
+      /** @type {() => void} */
+      let resumeB = () => {};
+      const bPaused = new Promise((r) => { resumeB = /** @type {() => void} */ (r); });
+      /** @type {() => void} */
+      let bInside = () => {};
+      const bEntered = new Promise((r) => { bInside = /** @type {() => void} */ (r); });
+      const b = withLedgerLock(path, async (lock) => {
+        await assertLookAllowed(path, 'holdout', 12);
+        bInside();
+        await bPaused;
+        lock.assertHeld();
+        await appendLook(path, { ...row, variant: 'B' });
+      }, { waitMs: 0 });
+      await bEntered;
+      resumeA();
+      await expect(a).rejects.toMatchObject({ name: 'LedgerLockError' });
+      await expect(a).rejects.toThrow(/lost the ledger lock/);
+      // B's lock is still there, so C cannot get in alongside B.
+      expect(existsSync(`${path}.lock`)).toBe(true);
+      await expect(withLedgerLock(path, async () => 'C', { waitMs: 100 })).rejects.toMatchObject({ name: 'LedgerLockError' });
+      resumeB();
+      await b;
+      expect(existsSync(`${path}.lock`)).toBe(false);
+      expect((await readLedger(path)).map((r) => r.variant).slice(10)).toEqual(['v', 'B']);
+      expect(await looks(path, 'holdout')).toBe(12);
+    } finally {
+      err.mockRestore();
+    }
+  });
+
+  it('a stale lock is not broken while another eval holds the break lock', async () => {
+    const path = join(dir, 'breaking.md');
+    await writeFile(`${path}.lock`, '1 long ago\n');
+    const old = new Date(Date.now() - 31 * 60 * 1000);
+    await utimes(`${path}.lock`, old, old);
+    await writeFile(`${path}.lock.break`, '');
+    await expect(withLedgerLock(path, async () => 'ran', { waitMs: 150 })).rejects.toMatchObject({ name: 'LedgerLockError' });
+    expect(existsSync(`${path}.lock`)).toBe(true);
+    // An abandoned break lock (its holder crashed mid-break) is cleared after a minute.
+    const oldBreak = new Date(Date.now() - 2 * 60 * 1000);
+    await utimes(`${path}.lock.break`, oldBreak, oldBreak);
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(await withLedgerLock(path, async () => 'ran', { waitMs: 150 })).toBe('ran');
+    } finally {
+      err.mockRestore();
+    }
+    expect(existsSync(`${path}.lock`)).toBe(false);
+    expect(existsSync(`${path}.lock.break`)).toBe(false);
+  });
+});

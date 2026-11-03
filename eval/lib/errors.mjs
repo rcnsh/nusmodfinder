@@ -25,6 +25,8 @@ export class LedgerLockError extends EvalError {}
 export class CorpusMismatchError extends EvalError {}
 /** A qrels file is malformed (a grade outside 0..2). */
 export class QrelsError extends EvalError {}
+/** The retrieval run did not complete (a query failed, a result is missing, the runner crashed). */
+export class RunFailedError extends EvalError {}
 /** A run file is missing a result or does not match the query set. */
 export class RunFileError extends EvalError {}
 

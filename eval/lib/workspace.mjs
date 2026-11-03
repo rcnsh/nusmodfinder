@@ -13,16 +13,22 @@ import { REPO } from './sets.mjs';
 
 /** Ranker files taken from the ref (or working tree). */
 export const RANKER = ['src', 'migrations', 'scripts/lib.mjs', 'data'];
+/** Test-only Worker config: from the ref if it has one (its own compat date), else HEAD's. */
+export const TEST_CONFIG = 'test/wrangler.test.jsonc';
+/** What `ranker.treeHash` covers: the ranker plus the Worker config it runs under. */
+export const HASHED = [...RANKER, TEST_CONFIG];
 
 /**
- * Content hash of the ranker files under `root` (RANKER paths): sha256 over
+ * Content hash of the ranker files under `root` (HASHED paths: RANKER and
+ * the test Worker config, whose compatibility date and flags change what
+ * runs): sha256 over
  * the sorted lines "<posix path>\0<kind>\0<sha256 of content or link target>".
  * Recorded as `ranker.treeHash`, so a run file says which ranker code actually
  * ran, whatever `git rev-parse` said about the ref.
  * @param {string} root
  * @param {string[]} [paths]
  */
-export async function treeHash(root, paths = RANKER) {
+export async function treeHash(root, paths = HASHED) {
   /** @type {string[]} */
   const entries = [];
   /** @param {string} abs */
@@ -43,8 +49,6 @@ export async function treeHash(root, paths = RANKER) {
 }
 /** Runner files always taken from the working tree. */
 const RUNNER = ['eval/runner/retrieval.eval.js', 'eval/runner/lookup-ai.js', 'test/helpers.js', 'test/fakes.js', 'test/fixtures/corpus.json'];
-/** Test-only Worker config: from the ref if it has one (its own compat date), else HEAD's. */
-const TEST_CONFIG = 'test/wrangler.test.jsonc';
 
 /**
  * @param {string[]} args
@@ -105,7 +109,7 @@ export async function buildWorkspace({ ref, name }) {
     ranker: {
       ref: ref ?? 'WORKTREE',
       sha,
-      dirty: ref ? false : dirty(RANKER),
+      dirty: ref ? false : dirty(HASHED),
       treeHash: await treeHash(root),
       runner: { sha: head, dirty: dirty(['eval/runner', 'eval/lib', 'test/helpers.js', 'test/fakes.js', 'vitest.eval.config.mjs']) },
     },
