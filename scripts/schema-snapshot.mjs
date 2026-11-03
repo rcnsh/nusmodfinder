@@ -23,6 +23,7 @@ const WRANGLER = join(ROOT, 'node_modules/.bin/wrangler');
 const QUERY_FILE = join(ROOT, 'test/fixtures/schema-query.sql');
 const EVIDENCE_QUERY_FILE = join(ROOT, 'docs/evidence/phase0/remote-schema-query.sql');
 const REMOTE_SNAPSHOT = join(ROOT, 'test/fixtures/remote-schema.json');
+const EVIDENCE_SNAPSHOT = join(ROOT, 'docs/evidence/phase0/remote-schema.json');
 const OLD_RECIPE_COMMIT = '3b18041';
 const OLD_RECIPE_FILES = [
   'schema.sql',
@@ -189,6 +190,10 @@ async function main() {
     console.log(`migrations applied: ${applied.join(', ')}`);
 
     const remote = normalisePragmaRows(unwrap(JSON.parse(await readFile(REMOTE_SNAPSHOT, 'utf8'))));
+    // The fixture is the evidence capture with wrangler's envelope removed;
+    // it must not drift from what was actually read from production.
+    const evidence = normalisePragmaRows(unwrap(JSON.parse(await readFile(EVIDENCE_SNAPSHOT, 'utf8'))));
+    problems.push(...diffRows('evidence-vs-fixture', evidence, remote));
     const local = normalisePragmaRows(queryFile(fresh, QUERY_FILE));
     const remoteDiff = diffRows('remote-vs-migrations', remote, local);
     console.log(`pragma snapshot: ${local.length} local rows vs ${remote.length} remote rows, ${remoteDiff.length} differences`);
