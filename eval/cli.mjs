@@ -34,6 +34,7 @@ const OPTIONS = /** @type {const} */ ({
   unfiltered: { type: 'boolean', default: false },
   embedding: { type: 'string' },
   'store-only': { type: 'boolean', default: false },
+  'embed-missing': { type: 'boolean', default: false },
   out: { type: 'string' },
   qrels: { type: 'string' },
   json: { type: 'string' },
@@ -197,7 +198,18 @@ async function cmdRun(a) {
     await setKey(); // fail before any work if the key is not there
   }
   const { runVariant } = await import('./runner/run.mjs');
-  const res = await runVariant({
+  const embedMissing = a['embed-missing'];
+  if (embedMissing && process.env.CI) fail('--embed-missing calls Workers AI and never runs in CI');
+  // Plan Final §1: locally, texts missing from the cache (new queries, or texts a
+  // query-rewriting variant asked for) are embedded under the per-run cap, then
+  // the run is repeated once. Off by default, so a run never calls Cloudflare unasked.
+  const embed = () => {
+    const args = [join(REPO, 'scripts/embed.mjs'), '--set', set.name, ...(a['set-dir'] ? ['--set-dir', a['set-dir']] : [])];
+    const r = spawnSync(process.execPath, args, { cwd: REPO, stdio: 'inherit' });
+    if (r.status !== 0) fail('embedding the missing texts failed');
+  };
+  if (embedMissing) embed();
+  const run = () => runVariant({
     set,
     variant: /** @type {string} */ (a.variant),
     ref: a.ref,
@@ -205,6 +217,11 @@ async function cmdRun(a) {
     unfiltered: a.unfiltered,
     output: a.out ? resolve(a.out) : undefined,
   });
+  let res = await run();
+  if (!res.ok && embedMissing && res.problems.some((p) => p.includes('without a precomputed embedding'))) {
+    embed();
+    res = await run();
+  }
   if (!res.ok) {
     console.error(`eval: run ${a.variant} failed:\n  ${res.problems.join('\n  ')}`);
     process.exit(1);

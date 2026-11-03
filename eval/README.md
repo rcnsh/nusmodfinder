@@ -38,6 +38,7 @@ npm run eval -- --variant head-unf --unfiltered           # secondary: filters d
 npm run eval:report -- --run head --baseline v0           # recompute from run files + qrels only
 npm run eval:pool -- --runs v0,head [--unjudged]          # blind pool for judges
 npm run eval:embed                                        # embed dev query texts missing from the cache
+npm run eval -- --variant rewrite --embed-missing         # embed missing texts (cap 500), then run; local only
 npm run test:eval                                         # self-test on the fixture set (CI)
 npm run eval:verify                                       # ciphertext sha256 vs manifests (CI, no key)
 ```
