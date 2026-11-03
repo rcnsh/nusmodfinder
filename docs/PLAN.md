@@ -28,7 +28,9 @@ log in [`PROGRESS.md`](PROGRESS.md), decisions in [`decisions/`](decisions/).
 2. Upstream data pinned. **Done**: the 2026-09-04 `.data/` production was built from is the
    release asset `data-2026-2027-20260904` (gz; raw sha256 moduleInfo `2d138795…57b1`,
    moduleList `c56b6fbe…e36e`).
-3. Remote schema snapshot captured read-only. **Done** (`/tmp/vnm-snap/`, 77 rows read, 0 written).
+3. Remote schema snapshot captured read-only. **Done** (`docs/evidence/phase0/remote-schema.json`,
+   query in `remote-schema-query.sql`; 77 rows read, 0 written). Copied to
+   `test/fixtures/remote-schema.json` by 0a.
 4. Migrations formalised for `wrangler d1 migrations apply`.
 5. Test harness: Vitest 5.1.0 + `@cloudflare/vitest-plugin@1.5.1` (pinned exactly; the old
    `vitest-pool-workers` is deprecated and its workerd can't run compat date 2026-09-01).
@@ -41,12 +43,15 @@ comment-free refactors that tsc forces; any such edit is listed in the PR. Produ
 `3b18041` until Phase 1 deploys.
 
 ### Remote-safety rules for Phase 0 (all agents)
-Banned: `wrangler d1 migrations list|apply --remote` (both run `CREATE TABLE d1_migrations`
+Banned: `wrangler dev` / `npm run dev` in **any** form except `-c test/wrangler.test.jsonc` (the
+production config's `ai` binding always calls the real account, even locally), `npm run eval`
+and `scripts/pool.mjs` with any URL, `wrangler d1 migrations list|apply --remote` (both run `CREATE TABLE d1_migrations`
 remotely, wrangler cli.js `initMigrationsTable`), `wrangler dev --remote`, `npm run ingest`,
 `wrangler deploy`, any remote D1 write. Allowed: read-only `wrangler d1 execute --remote
 --command "SELECT|EXPLAIN …"` with estimate + actual logged in PROGRESS. Live `/search`:
-every call appended to `/tmp/vnm-repro/requests.log` (shared counter); 36 of the 40 budget
-are spent, so ≤ 4 more in Phase 0.
+every call (curl or browser-driven) appended to `docs/evidence/requests.tsv` (committed shared
+counter; `.log` is gitignored); 36 of the 40 budget are spent (33 curl + 3 browser from
+`fe.mjs`), so ≤ 4 more in Phase 0.
 
 ### Migrations
 - `migrations/0001_init.sql` = original `modules` (13 columns, `ng`/`ng_semesters` stay in
@@ -67,13 +72,17 @@ are spent, so ≤ 4 more in Phase 0.
   snapshot `test/fixtures/remote-schema.json`. Compares columns (pragma_table_xinfo), indexes
   (pragma_index_list), object names, and `modules_fts_config` (so a missing 0005 is caught).
   Not raw `sqlite_master.sql` text, which differs by comments and apply path. Runs in CI with
-  no Cloudflare credentials.
+  no Cloudflare credentials. Strengthened (round 2): also builds the *old recipe*
+  (`git show 3b18041:schema.sql` + 0002–0005) locally and diffs normalised `sqlite_master.sql`
+  (comments stripped, whitespace collapsed) and `pragma_index_xinfo` between the two local
+  builds, which covers index columns, trigger bodies and the FTS `tokenize` option.
 
 ### Test harness
-- `vitest.config.mjs` with `cloudflareTest({ wrangler: { configPath: './wrangler.test.jsonc' },
-  remoteBindings: false })`. `wrangler.test.jsonc` = production config minus `ai`, `vectorize`
-  and `ratelimits` (so nothing can reach a metered remote service), plus a `vars` flag. A guard
-  test asserts `env.AI`/`env.VECTORIZE` are undefined in the raw test env.
+- `vitest.config.mjs` with `cloudflareTest({ wrangler: { configPath: './test/wrangler.test.jsonc' },
+  remoteBindings: false })`. `test/wrangler.test.jsonc` (`main: "../src/index.js"`) = production
+  config minus `ai`, `vectorize` and `ratelimits`, so nothing can reach a metered remote service;
+  it lives in `test/` so the root `.dev.vars` secret is not loaded. A guard test asserts
+  `env.AI`, `env.VECTORIZE` and `env.INGEST_SECRET` are undefined in the raw test env.
 - Fakes in `test/fakes.js`: deterministic hashing embedder for AI (384-d), in-memory cosine
   Vectorize (`query` with topK ceiling 50 when `returnMetadata` is `all`/`indexed`, else 100;
   implicit-eq/`$eq`/`$ne`/`$in` filters, unknown operator throws; `upsert`, `deleteByIds`,
@@ -88,11 +97,13 @@ are spent, so ≤ 4 more in Phase 0.
   (all "management" modules with sem 3, CS1010S, CS2109S, CS3244, CG3201, PC3270, GEA*, TR3202*,
   PL1101E, CE5316QA, LAK1201/LAK2201, level 5–6 AI courses, non-ASCII titles, etc.). Records
   source sha256.
-- **Full corpus**: `vitest.config.mjs` (Node side) loads the snapshot via `scripts/lib.mjs`,
-  normalises, and `provide`s it; tests use `inject('corpus')`. `test/full/*` use
+- **Full corpus**: `vitest.config.mjs` (Node side) reads `.data/2026-2027-moduleInfo.json`
+  **directly** (never via `fetchAcadYearFile`, which falls back to fetching upstream), checks its
+  sha256 against the pinned value, normalises via `scripts/lib.mjs`, and `provide`s it; tests use `inject('corpus')`. `test/full/*` use
   `describe.skipIf(!corpus)` locally; with `CI=true` a missing corpus is a hard failure.
   CI fetches the release asset (`gh release download`, `GITHUB_TOKEN`), verifies sha256,
-  caches on that hash. Never fetches api.nusmods.com.
+  caches on that hash. Never fetches api.nusmods.com. `CI=true` hard failure lives on the Node
+  side of the config.
 - **Known-bug tests are characterisation tests** with plain `it`, named `[B1 known-bug] …`,
   asserting the current wrong output specifically. When a phase fixes the bug, the test fails
   and is rewritten to assert correct behaviour in the same PR. No `it.fails` (it passes on
@@ -100,18 +111,24 @@ are spent, so ≤ 4 more in Phase 0.
   test timeout and assert the specific outcome.
 
 ### Lint/typecheck
-ESLint 9 flat config (`@eslint/js` recommended + `globals`). `tsc --noEmit` with `checkJs` over
-`src/`, `scripts/lib.mjs`, `test/`. Types from `wrangler types --env-file .dev.vars.example`
-(committed example has no secrets), drift-checked with `wrangler types --check` (or regenerate
+ESLint 9 flat config (`@eslint/js` recommended + `globals`). Two `tsc --noEmit` projects with `checkJs`:
+`tsconfig.json` (worker: `src/`, `test/`, types from `worker-configuration.d.ts` +
+`@cloudflare/vitest-plugin/types`) and `tsconfig.node.json` (`scripts/`, config files,
+`@types/node`). Types from `wrangler types --env-file .dev.vars.example`
+(committed example has no secrets; `worker-configuration.d.ts` committed), drift-checked with `wrangler types --check` (or regenerate
 and `git diff --exit-code`). `src/env.d.ts` declares optional `INGEST_SECRET?` and
 `EMBEDDING_MODEL?` by hand.
 
 ### CI
-One workflow, `push: [main]` + `pull_request`, `concurrency` with cancel-in-progress,
-`paths-ignore: ['docs/**', '**.md']` (but FINDINGS check runs on docs changes via a tiny
-separate job). Jobs: `check` (npm ci, lint, typecheck, types drift, unit/integration tests,
-migration rebuild + schema diff, findings-coverage check) and `full-corpus` (download pinned
-data, run `test/full`). Node 22 LTS in CI. Actions billing API moved (HTTP 410) so minutes
+Two workflows. `ci.yml`: `push: { branches: [main] }` + `pull_request`, `paths-ignore:
+['docs/**', '**.md']`, `concurrency` grouped on ref with cancel-in-progress only for PRs, jobs
+`check` (npm ci, lint, typecheck, types drift, unit/integration tests, migration rebuild + schema
+diff) and `full-corpus` (download pinned data, verify raw sha256 after gunzip, run `test/full`;
+fails if zero tests ran). `findings.yml`: no path filter, runs `scripts/check-findings.mjs`
+(asserts the ID block parses to exactly 35 IDs, each has a status, and each `reproduced` row
+names an evidence file or test that exists). `permissions: contents: read`,
+`WRANGLER_SEND_METRICS=false`, `GH_TOKEN` for `gh release download`. Node pinned via `.nvmrc`
+(22) and `engines`. Actions billing API moved (HTTP 410) so minutes
 are watched in the GitHub UI; jobs are kept to two.
 
 ### Findings
@@ -162,6 +179,20 @@ Already spent: 77 rows read (snapshot), 36 `/search` + 7 other live calls. Remai
 | 9 | A, B | `it.fails` hides harness breakage | characterisation tests with plain `it` |
 | 10 | B | Actions minutes | 2 jobs, concurrency cancel, paths-ignore |
 | 11 | B | main may drift from live | no behavioural `src/` change in Phase 0; version mapped |
-| 12 | B | live budget unenforced across agents | shared `requests.log`; ≤ 4 left |
-| 13 | B | durable docs missing | PROGRESS, FINDINGS, CRITERIA, ADR 0001 written in this step |
+| 12 | B | live budget unenforced across agents | committed `docs/evidence/requests.tsv` incl. browser calls; ≤ 4 left |
+| 13 | B | durable docs missing | PROGRESS, CRITERIA, ADR 0001 written; FINDINGS.md created by 0c |
 | 14 | A | full-corpus can pass by skipping | hard fail when `CI=true` |
+
+### Critic round 2 objection log
+| # | Critic | Objection | Resolution |
+|---|---|---|---|
+| 15 | C (blocking) | `paths-ignore` skips the findings check on docs-only PRs | separate `findings.yml` with no path filter |
+| 16 | D (blocking) | plain `wrangler dev`, `npm run eval`, `pool.mjs` hit real AI / live site | banned except `-c test/wrangler.test.jsonc` |
+| 17 | C | root test config loads `.dev.vars` secret | config moved to `test/`; guard asserts `INGEST_SECRET` undefined |
+| 18 | C | corpus loader may fetch upstream | read file directly, sha256 check |
+| 19 | C, D | schema diff misses index columns, trigger bodies, tokenize | old-recipe local build + `sqlite_master`/`index_xinfo` diff |
+| 20 | C | one tsc mixes worker and node types | two tsconfigs |
+| 21 | D | concurrency cancels main runs | cancel only for PRs |
+| 22 | D | check-findings could pass with 0 IDs | assert 35 IDs + evidence existence |
+| 23 | D | request log uncommitted / incomplete | `docs/evidence/requests.tsv` incl. browser calls |
+| 24 | C, D | Node/wrangler version split; CI hygiene | `.nvmrc`, `engines`, telemetry off, read-only perms |
