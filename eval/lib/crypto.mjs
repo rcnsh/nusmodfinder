@@ -167,7 +167,7 @@ export async function verifyManifest(dir) {
   const stray = [];
   if (existsSync(dir)) {
     for (const e of await readdir(dir, { recursive: true, withFileTypes: true })) {
-      if (!e.isFile()) continue;
+      if (!e.isFile() || e.name.startsWith('.')) continue; // .DS_Store and the like are git-ignored
       const rel = join(e.parentPath, e.name).slice(dir.length + 1);
       if (rel !== MANIFEST && !rel.endsWith('.enc')) stray.push(`${join(dir, rel)} is not a ciphertext; only *.enc and ${MANIFEST} may live in ${dir}`);
     }

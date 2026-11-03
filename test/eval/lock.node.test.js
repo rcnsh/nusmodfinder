@@ -33,6 +33,7 @@ describe('query-set locks (ADR 0003)', () => {
   it('a plaintext file in an encrypted-set directory fails verification', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'vnm-lock-'));
     try {
+      await writeFile(join(dir, '.DS_Store'), ''); // Finder's, ignored
       await writeFile(join(dir, 'queries.json'), '{}');
       expect(await verifyManifest(dir)).toEqual([expect.stringMatching(/queries\.json is not a ciphertext/)]);
     } finally {
