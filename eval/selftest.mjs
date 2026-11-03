@@ -143,7 +143,7 @@ ok(look, 'holdout look');
 assertNoLeak(look.out, 'holdout look');
 const verdictLines = look.out.trim().split('\n').filter((l) => !/^(wrote |selftest\/cand: ranker )/.test(l));
 assert.equal(verdictLines.length, 3, `holdout prints only the verdict and two Δ lines, got:\n${look.out}`);
-assert.match(verdictLines[0], /^holdout verdict: (PASS|FAIL)$/);
+assert.match(verdictLines[0], /^holdout verdict: (PASS|FAIL) · qrels fixture-qrels-v1$/);
 assert.match(verdictLines[1], /^ΔnDCG@10 [+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 assert.match(verdictLines[2], /^ΔP@5 +[+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 const ledgerPath = join(H, 'ledger.md');

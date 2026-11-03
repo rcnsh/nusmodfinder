@@ -15,7 +15,7 @@
 //   and nothing in it is relevant (it scores as an empty ranking that also
 //   fails correct-empty). Every gate fails a candidate with more errors than
 //   its baseline (gate.mjs, "no new errors").
-import { QrelsError, RunFileError } from './errors.mjs';
+import { CorpusMismatchError, QrelsError, RunFileError } from './errors.mjs';
 import { bcaInterval, clusteredInterval, mean, signFlipP } from './stats.mjs';
 
 export const K = 10;
@@ -36,7 +36,8 @@ export const METRICS = /** @type {const} */ (['ndcg', 'p5', 'rr']);
  * @typedef {{ schema?: string, set?: string, version: string, queries: EvalQuery[] }} QuerySet
  * @typedef {number | { grade: number, [k: string]: unknown }} Judgment
  * @typedef {{ judgments: Record<string, Judgment>, groups?: string[][] }} QueryQrels
- * @typedef {{ schema?: string, set?: string, version: string, groups?: string[][], queries: Record<string, QueryQrels> }} Qrels
+ * @typedef {{ moduleInfoSha256?: string, ngSha256?: string }} CorpusIds
+ * @typedef {{ schema?: string, set?: string, version: string, corpus?: CorpusIds, groups?: string[][], queries: Record<string, QueryQrels> }} Qrels
  * @typedef {{ level: number | null, semesters: number[], ng: boolean, ngSemesters: number[], credits: number | null, faculty: string | null }} DocMeta
  * @typedef {{ status: number, codes: string[], error?: string }} QueryRun
  * @typedef {{
@@ -158,6 +159,29 @@ export function violates(doc, c) {
  *   violations: number, judged: number, top: number, top1: string | null, top1Grade: number,
  * }} QueryScore
  */
+
+/**
+ * Throws unless every run used the corpus the qrels were judged on: the
+ * same moduleInfo sha256, and the same NG sha256 when the qrels record one.
+ * @param {Qrels} qrels
+ * @param {RunFile[]} runs
+ */
+export function assertSameCorpus(qrels, runs) {
+  const want = qrels.corpus ?? {};
+  if (!want.moduleInfoSha256) {
+    throw new CorpusMismatchError(`qrels ${qrels.version} record no corpus.moduleInfoSha256, so there is no telling which corpus they were judged on`);
+  }
+  const keys = /** @type {(keyof CorpusIds)[]} */ (want.ngSha256 ? ['moduleInfoSha256', 'ngSha256'] : ['moduleInfoSha256']);
+  const short = (/** @type {unknown} */ v) => (typeof v === 'string' ? v.slice(0, 12) : String(v));
+  for (const run of runs) {
+    const got = /** @type {CorpusIds} */ (run.corpus ?? {});
+    for (const k of keys) {
+      if (got[k] !== want[k]) {
+        throw new CorpusMismatchError(`qrels ${qrels.version} were judged on a corpus with ${k} ${short(want[k])}…, but run ${run.variant} used ${short(got[k])}…; re-run on that corpus or re-judge`);
+      }
+    }
+  }
+}
 
 /**
  * Scores every query of a run.

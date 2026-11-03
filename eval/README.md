@@ -88,7 +88,13 @@ ciphertexts, or a copy of them, cannot start a fresh count. `--embedding <versio
                           "groups": [] } } }
 ```
 Grades 0/1/2; a judgment is a number or an object with `grade` (judge ids and rationales may
-ride along). `groups` (global and per query) mark duplicate groups.
+ride along). `groups` (global and per query) mark duplicate groups. `corpus` is required:
+`eval:report` and `npm run eval` refuse (`CorpusMismatchError`) when a run's corpus
+`moduleInfoSha256` differs from the qrels', or its `ngSha256` does when the qrels record one.
+`npm run eval` checks the baseline before any retrieval (on an encrypted set, before the look
+is reserved) and the candidate after. Comparison output names the qrels version (`paired over
+n primary answerable queries · qrels <version>`; holdout `holdout verdict: PASS · qrels
+<version>`).
 
 Run file (`vnm-eval-run/1`): `variant`, `set`, `ranker` (ref, sha, dirty, runner sha), `corpus`
 (release, moduleInfo sha256, NG sha256, module count, sha256 of all embedding texts),

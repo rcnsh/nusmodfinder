@@ -41,19 +41,23 @@ export function summaryTable(runs) {
   return table(rows);
 }
 
+/** A qrels version as printed: only [A-Za-z0-9._-], at most 40 characters. */
+export const qrelsLabel = (/** @type {unknown} */ v) => String(v).replace(/[^A-Za-z0-9._-]/g, '?').slice(0, 40);
+
 /**
  * @param {import('./metrics.mjs').Comparison} cmp
  * @param {string} base
  * @param {string} cand
+ * @param {string} qrelsVersion
  */
-export function comparisonTable(cmp, base, cand) {
+export function comparisonTable(cmp, base, cand, qrelsVersion) {
   const rows = [['Δ (cand − base)', base, cand, 'Δ', 'BCa 95% CI', 'sign-flip p', 'persona-cluster 95% CI']];
   for (const [label, m] of /** @type {const} */ ([['nDCG@10', 'ndcg'], ['P@5', 'p5'], ['MRR@10', 'rr']])) {
     const s = cmp.overall[m];
     rows.push([label, fmt(s.base), fmt(s.cand), signed(s.delta), `[${fmt(s.bca.lower)}, ${fmt(s.bca.upper)}]`, fmt(s.signFlip.p, 4), `[${fmt(s.cluster.lower)}, ${fmt(s.cluster.upper)}] (${s.cluster.clusters})`]);
   }
   rows.push(['correct-empty', pct(cmp.noAnswer.base), pct(cmp.noAnswer.cand), signed(cmp.noAnswer.delta), '', '', `n ${cmp.noAnswer.n}`]);
-  return `paired over ${cmp.n} primary answerable queries\n${table(rows)}`;
+  return `paired over ${cmp.n} primary answerable queries · qrels ${qrelsLabel(qrelsVersion)}\n${table(rows)}`;
 }
 
 /**
@@ -81,11 +85,12 @@ export function verdictBlock(v) {
  * The only output an encrypted set ever produces.
  * @param {import('./gate.mjs').Verdict} v
  * @param {import('./metrics.mjs').Comparison} cmp
+ * @param {string} qrelsVersion
  */
-export function verdictOnly(v, cmp) {
+export function verdictOnly(v, cmp, qrelsVersion) {
   const ci = (/** @type {'ndcg' | 'p5'} */ m) => `${signed(cmp.overall[m].delta)} [${fmt(cmp.overall[m].bca.lower)}, ${fmt(cmp.overall[m].bca.upper)}]`;
   return {
-    text: [`${v.set} verdict: ${v.verdict.toUpperCase()}`, `ΔnDCG@10 ${ci('ndcg')} (BCa 95%)`, `ΔP@5     ${ci('p5')} (BCa 95%)`].join('\n'),
+    text: [`${v.set} verdict: ${v.verdict.toUpperCase()} · qrels ${qrelsLabel(qrelsVersion)}`, `ΔnDCG@10 ${ci('ndcg')} (BCa 95%)`, `ΔP@5     ${ci('p5')} (BCa 95%)`].join('\n'),
     ndcg: ci('ndcg'),
     p5: ci('p5'),
   };

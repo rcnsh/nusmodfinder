@@ -16,7 +16,7 @@ import { writeEncryptedJson } from './lib/crypto.mjs';
 import { errorClass, RunFileError } from './lib/errors.mjs';
 import { gateFor } from './lib/gate.mjs';
 import { appendLook, assertLookAllowed, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
-import { byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
+import { assertSameCorpus, byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
 import { comparisonTable, shapeTable, summaryTable, verdictBlock, verdictOnly } from './lib/report.mjs';
 import { REPO, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
 import { rng } from './lib/stats.mjs';
@@ -117,6 +117,7 @@ async function fullReport(set, candPath, basePath, a) {
   const cand = await readRun(set, candPath);
   const base = basePath ? await readRun(set, basePath) : null;
   assertComparable(base ? [base, cand] : [cand]);
+  assertSameCorpus(qrels, base ? [base, cand] : [cand]);
   const currentSha = /** @type {any} */ (cand.queries)?.sha256;
   const { createHash } = await import('node:crypto');
   const nowSha = createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex');
@@ -132,7 +133,7 @@ async function fullReport(set, candPath, basePath, a) {
   let cmp = null;
   if (base && baseScores) {
     cmp = compare(baseScores, candScores);
-    console.log(`\n${comparisonTable(cmp, base.variant, cand.variant)}`);
+    console.log(`\n${comparisonTable(cmp, base.variant, cand.variant, qrels.version)}`);
     const v = gateFor(set.gate, cmp, changeOf(a));
     console.log(`\n${verdictBlock(v)}`);
     Object.assign(json, { baseline: base.variant, baseSummary: summarise(baseScores), comparison: { ...cmp, shapes: undefined }, verdict: v });
@@ -169,6 +170,7 @@ async function verdictReport(set, candPath, basePath, a, reserved = null) {
     const cand = await readRun(set, candPath);
     const base = await readRun(set, basePath);
     assertComparable([base, cand]);
+    assertSameCorpus(qrels, [base, cand]);
     const candScores = scoreRun(cand, querySet.queries, qrels);
     const baseScores = scoreRun(base, querySet.queries, qrels);
     const cmp = compare(baseScores, candScores);
@@ -187,7 +189,7 @@ async function verdictReport(set, candPath, basePath, a, reserved = null) {
       return;
     }
     const v = gateFor(set.gate, cmp, changeOf(a));
-    const out = verdictOnly(v, cmp);
+    const out = verdictOnly(v, cmp, qrels.version);
     const final = { ...row, verdict: v.verdict, ndcg: out.ndcg, p5: out.p5 };
     if (reserved) await finaliseLook(ledger, reserved, final);
     else await appendLook(ledger, final);
@@ -212,6 +214,7 @@ async function cmdRun(a) {
     if (!a['store-only'] && !a.baseline) fail(`the ${set.name} set needs --baseline <variant> (or --store-only to store a run without a verdict)`);
     await setKey(); // fail before any work if the key is not there
     if (!a['store-only']) {
+      await precheckCorpus(set, a); // before the look is reserved
       // Reserve the look before any retrieval: the reserved row counts, so
       // parallel runs cannot all get past the limit.
       reserved = await reserveLook(/** @type {string} */ (set.ledger), set.maxLooks, {
@@ -219,12 +222,27 @@ async function cmdRun(a) {
       });
     }
   }
+  if (!set.encrypted && a.baseline) await precheckCorpus(set, a);
   try {
     await runAndReport(a, set, reserved);
   } catch (err) {
     if (reserved) await abortLook(set, a, reserved);
     throw err;
   }
+}
+
+/**
+ * Before any retrieval: the baseline run must use the corpus the qrels were
+ * judged on (the candidate is checked again after it runs).
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {Args} a
+ */
+async function precheckCorpus(set, a) {
+  const qrelsPath = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
+  if (!existsSync(qrelsPath)) return; // dev before judging: nothing to score yet
+  /** @type {import('./lib/metrics.mjs').Qrels} */
+  const qrels = set.encrypted ? await loadQrels(set) : JSON.parse(await readFile(qrelsPath, 'utf8'));
+  assertSameCorpus(qrels, [await readRun(set, runPath(set, /** @type {string} */ (a.baseline)))]);
 }
 
 /**

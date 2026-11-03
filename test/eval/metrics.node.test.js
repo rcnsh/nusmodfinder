@@ -1,6 +1,6 @@
 // @ts-check
 import { describe, expect, it } from 'vitest';
-import { byShape, compare, qrelsFor, scoreRanking, scoreRun, summarise, violates } from '../../eval/lib/metrics.mjs';
+import { assertSameCorpus, byShape, compare, qrelsFor, scoreRanking, scoreRun, summarise, violates } from '../../eval/lib/metrics.mjs';
 
 /** @typedef {import('../../eval/lib/metrics.mjs').RunFile} RunFile */
 
@@ -209,5 +209,29 @@ describe('compare', () => {
 
   it('refuses runs over different queries', () => {
     expect(() => compare(base, cand.slice(1))).toThrow(/same queries/);
+  });
+});
+
+describe('assertSameCorpus (review finding 7)', () => {
+  const MI = 'a'.repeat(64), NG = 'b'.repeat(64);
+  /** @param {Record<string, unknown>} corpus @returns {RunFile} */
+  const runOn = (corpus) => ({ schema: 'vnm-eval-run/1', variant: 'cand', set: 'dev', corpus, results: {}, docs: {} });
+
+  it('passes when moduleInfo (and NG, when the qrels record it) match', () => {
+    expect(() => assertSameCorpus({ version: 'q1', corpus: { moduleInfoSha256: MI, ngSha256: NG }, queries: {} }, [runOn({ moduleInfoSha256: MI, ngSha256: NG })])).not.toThrow();
+    // No NG recorded in the qrels: NG is not compared.
+    expect(() => assertSameCorpus({ version: 'q1', corpus: { moduleInfoSha256: MI }, queries: {} }, [runOn({ moduleInfoSha256: MI, ngSha256: 'other' })])).not.toThrow();
+  });
+
+  it('refuses a different moduleInfo or NG corpus, naming the qrels version', () => {
+    const qrels = { version: 'qrels-dev-v3', corpus: { moduleInfoSha256: MI, ngSha256: NG }, queries: {} };
+    expect(() => assertSameCorpus(qrels, [runOn({ moduleInfoSha256: 'c'.repeat(64), ngSha256: NG })]))
+      .toThrow(/^qrels qrels-dev-v3 were judged on a corpus with moduleInfoSha256 aaaaaaaaaaaa…, but run cand used cccccccccccc…/);
+    expect(() => assertSameCorpus(qrels, [runOn({ moduleInfoSha256: MI, ngSha256: 'd'.repeat(64) })])).toThrow(/with ngSha256 bbbbbbbbbbbb…/);
+    expect(() => assertSameCorpus(qrels, [runOn({ moduleInfoSha256: MI })])).toThrow(/ngSha256/);
+  });
+
+  it('refuses qrels that record no corpus', () => {
+    expect(() => assertSameCorpus({ version: 'q0', queries: {} }, [runOn({ moduleInfoSha256: MI })])).toThrow(/qrels q0 record no corpus\.moduleInfoSha256/);
   });
 });

@@ -4,7 +4,7 @@
 // every returned code is judged, so the set is fully judged.
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -153,4 +153,61 @@ describe('parallel looks (review finding 3)', () => {
     for (const r of runs.filter((x) => x.code === 1)) expect(r.out).toBe(`eval: ${SET} run failed (LookLimitError); details withheld\n`);
     expect(await readLedger(ledger)).toHaveLength(12);
   }, 60_000);
+});
+
+describe('qrels and runs must share a corpus (review finding 7)', () => {
+  /**
+   * A plaintext copy of the fixture set with synthetic runs; `edit` changes the qrels.
+   * @param {string} name
+   * @param {(q: any) => void} [edit]
+   */
+  async function devSet(name, edit) {
+    const dir = join(tmp, name);
+    await cp(join(REPO, 'eval', 'fixtures'), dir, { recursive: true });
+    const querySet = await fixture('queries.json');
+    const qrels = await fixture('qrels.json');
+    for (const [variant, order] of /** @type {const} */ ([['base', 'worst'], ['cand', 'best']])) {
+      await writeFile(join(dir, `${variant}.json`), JSON.stringify({ ...syntheticRun(querySet, qrels, variant, order), set: 'fixture' }));
+    }
+    edit?.(qrels);
+    await writeFile(join(dir, 'qrels.json'), JSON.stringify(qrels));
+    return dir;
+  }
+  const report = (/** @type {string} */ dir, /** @type {string[]} */ extra = []) => cli(['report', '--set', 'fixture', '--set-dir', dir, '--run', join(dir, 'cand.json'), '--baseline', join(dir, 'base.json'), ...extra]);
+
+  it('dev: the comparison names the qrels version', async () => {
+    const r = report(await devSet('same-corpus'));
+    expect(r.stderr).toBe('');
+    expect(r.code).toBe(0);
+    expect(r.stdout).toMatch(/^paired over \d+ primary answerable queries · qrels fixture-qrels-v1$/m);
+  });
+
+  it('dev: report refuses qrels judged on another moduleInfo corpus', async () => {
+    const r = report(await devSet('other-corpus', (q) => { q.version = 'fixture-qrels-v9'; q.corpus.moduleInfoSha256 = '0'.repeat(64); }));
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/^eval: qrels fixture-qrels-v9 were judged on a corpus with moduleInfoSha256 000000000000…, but run base used 2d138795d387…/);
+    expect(r.stdout).not.toMatch(/paired over/);
+  });
+
+  it('dev: report refuses a different NG corpus when the qrels record one', async () => {
+    const r = report(await devSet('other-ng', (q) => { q.corpus.ngSha256 = 'f'.repeat(64); }));
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/with ngSha256 ffffffffffff…/);
+  });
+
+  it('dev: run refuses before any retrieval when the baseline used another corpus', async () => {
+    const dir = await devSet('run-precheck', (q) => { q.corpus.moduleInfoSha256 = '0'.repeat(64); });
+    const r = cli(['run', '--set', 'fixture', '--set-dir', dir, '--variant', 'never', '--out', join(dir, 'never.json'), '--baseline', join(dir, 'base.json')]);
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/^eval: qrels fixture-qrels-v1 were judged on a corpus with moduleInfoSha256 000000000000…/);
+    expect(r.stdout).not.toMatch(/ranker/); // the runner never started
+  });
+
+  it('holdout: report refuses, withheld, and records no look', async () => {
+    const { dir } = await makeSet('holdout-other-corpus', { qrels: (q) => { q.corpus.moduleInfoSha256 = '0'.repeat(64); } });
+    const r = cli(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base']);
+    expect(r.code).toBe(1);
+    expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (CorpusMismatchError); details withheld\n`);
+    expect(await readLedger(join(dir, 'ledger.md'))).toHaveLength(0);
+  });
 });
