@@ -25,11 +25,16 @@ const many = (/** @type {number} */ n, /** @type {number} */ from, /** @type {nu
 });
 
 const names = (/** @type {{ checks: { name: string, pass: boolean }[] }} */ v) => Object.fromEntries(v.checks.map((c) => [c.name, c.pass]));
+const detail = (/** @type {{ checks: { name: string, detail: string }[] }} */ v, /** @type {string} */ name) => v.checks.find((c) => c.name === name)?.detail ?? '';
+
+/** Per-query variation, so the deltas have variance and the interval is not degenerate. */
+const spread = (/** @type {QueryScore[]} */ scores) => scores.map((s, i) => ({ ...s, ndcg: s.ndcg + (i % 4) * 0.01, p5: s.p5 + (i % 4) * 0.01, rr: s.rr + (i % 4) * 0.01 }));
+const ENOUGH = 'sufficient queries (>= 10 answerable)';
 
 describe('devGate', () => {
   it('passes a change whose BCa lower bound is above 0', () => {
     const { base, cand } = many(30, 0.4, 0.5);
-    const v = devGate(compare(base, cand));
+    const v = devGate(compare(base, spread(cand)));
     expect(v.verdict).toBe('pass');
   });
 
@@ -111,7 +116,8 @@ describe('holdoutGate', () => {
 
 describe('sc5Gate', () => {
   it('needs both lower bounds above 0', () => {
-    const { base, cand } = many(40, 0.3, 0.4);
+    const { base } = many(40, 0.3, 0.4);
+    const cand = spread(many(40, 0.3, 0.4).cand);
     expect(sc5Gate(compare(base, cand)).verdict).toBe('pass');
     const flatP5 = cand.map((s, i) => ({ ...s, p5: base[i].p5 }));
     expect(sc5Gate(compare(base, flatP5)).verdict).toBe('fail');
@@ -123,5 +129,60 @@ describe('sc5Gate', () => {
     expect(gateFor('holdout', cmp).set).toBe('holdout');
     expect(gateFor('test', cmp).set).toBe('test');
     expect(gateFor('dev', cmp).set).toBe('dev');
+  });
+});
+
+describe('small samples and degenerate intervals (review finding 6)', () => {
+  it('every gate fails with "insufficient queries" below 10 answerable queries, however large the gain', () => {
+    const one = compare([q('a', 0.2)], [q('a', 0.5)]);
+    for (const set of ['dev', 'holdout', 'test']) {
+      const v = gateFor(set, one);
+      expect(v.verdict).toBe('fail');
+      expect(names(v)[ENOUGH]).toBe(false);
+      expect(detail(v, ENOUGH)).toMatch(/^insufficient queries: 1 primary answerable, need 10$/);
+    }
+    expect(gateFor('dev', one, { kind: 'cutoff' }).verdict).toBe('fail');
+    expect(gateFor('holdout', one, { kind: 'cutoff' }).verdict).toBe('fail');
+  });
+
+  it('10 answerable queries are enough; 9 are not', () => {
+    const at = (/** @type {number} */ n) => {
+      const { base, cand } = many(n, 0.3, 0.6);
+      return devGate(compare(base, spread(cand)));
+    };
+    expect(names(at(9))[ENOUGH]).toBe(false);
+    expect(at(9).verdict).toBe('fail');
+    expect(at(10).verdict).toBe('pass');
+  });
+
+  it('a CI-based check never passes on a degenerate (zero-variance) interval', () => {
+    // 30 queries that all move by exactly +0.2: the BCa interval has no width.
+    const base = Array.from({ length: 30 }, (_, i) => q(`q${i}`, 0.3));
+    const cand = Array.from({ length: 30 }, (_, i) => q(`q${i}`, 0.5));
+    const cmp = compare(base, cand);
+    expect(cmp.overall.ndcg.bca).toMatchObject({ degenerate: true });
+    expect(cmp.overall.ndcg.bca.lower).toBeGreaterThan(0);
+    const dev = devGate(cmp);
+    expect(names(dev)['ΔnDCG@10 BCa 95% lower bound > 0']).toBe(false);
+    expect(detail(dev, 'ΔnDCG@10 BCa 95% lower bound > 0')).toMatch(/degenerate/);
+    expect(sc5Gate(cmp).verdict).toBe('fail');
+    // The holdout gate uses point estimates only, so it is unaffected.
+    expect(holdoutGate(cmp).verdict).toBe('pass');
+  });
+
+  it('a tripwire over fewer than 3 queries uses "point estimate >= 0"', () => {
+    const core = many(30, 0.3, 0.3);
+    const tw = 'tripwire: typo not confidently regressed';
+    const withTypo = (/** @type {number[]} */ from, /** @type {number[]} */ to) => compare(
+      [...core.base, ...from.map((x, i) => q(`t${i}`, x, { shapes: ['typo'] }))],
+      [...spread(core.cand), ...to.map((x, i) => q(`t${i}`, x, { shapes: ['typo'] }))],
+    );
+    const down = devGate(withTypo([0.5, 0.5], [0.3, 0.6]), { targetShapes: ['typo'] });
+    expect(names(down)[tw]).toBe(false);
+    expect(detail(down, tw)).toMatch(/^n 2 < 3: point estimate/);
+    const up = devGate(withTypo([0.5, 0.5], [0.5, 0.7]), { targetShapes: ['typo'] });
+    expect(names(up)[tw]).toBe(true);
+    // One query that did not move is not a confident regression either.
+    expect(names(devGate(withTypo([0.5], [0.5]), { targetShapes: ['typo'] }))[tw]).toBe(true);
   });
 });

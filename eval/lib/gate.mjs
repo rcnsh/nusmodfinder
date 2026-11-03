@@ -17,6 +17,12 @@
 //           holdout governs.
 //   SC5     On the sealed test set: BCa 95% lower bounds of ΔnDCG@10 and ΔP@5
 //           both > 0; judged@10 = 100%.
+//
+// Every gate also needs at least RULES.minQueries primary answerable queries
+// in its decisive comparison ("insufficient queries" otherwise). A CI-based
+// check never passes on a degenerate interval (stats.mjs: one query, or every
+// delta equal), and a target-shape tripwire over fewer than
+// RULES.minShapeQueriesForCi queries falls back to "point estimate >= 0".
 
 /** Tolerance for "point estimate >= 0" so float summation noise cannot flip a verdict. */
 const EPS = 1e-12;
@@ -25,6 +31,10 @@ export const RULES = Object.freeze({
   judgedRequired: 1,
   cutoffMinCorrectEmptyGain: 0.25,
   cutoffMaxNdcgLoss: 0.01,
+  /** Fewer primary answerable queries than this and no gate can pass. */
+  minQueries: 10,
+  /** Below this many queries a shape tripwire uses the point estimate, not a CI. */
+  minShapeQueriesForCi: 3,
 });
 
 /**
@@ -36,6 +46,25 @@ export const RULES = Object.freeze({
 
 /** @param {number} x */
 const f = (x) => (Number.isFinite(x) ? x.toFixed(4) : String(x));
+
+/** @param {Comparison} cmp @returns {Check} */
+function sufficientCheck(cmp) {
+  const ok = cmp.n >= RULES.minQueries;
+  return {
+    name: `sufficient queries (>= ${RULES.minQueries} answerable)`,
+    pass: ok,
+    detail: ok ? `${cmp.n} primary answerable queries` : `insufficient queries: ${cmp.n} primary answerable, need ${RULES.minQueries}`,
+  };
+}
+
+/**
+ * A CI lower bound above 0, never on a degenerate interval.
+ * @param {import('./stats.mjs').Interval} ci
+ */
+const lowerAboveZero = (ci) => !ci.degenerate && ci.lower > 0;
+
+/** @param {import('./stats.mjs').Interval} ci */
+const ciText = (ci) => `[${f(ci.lower)}, ${f(ci.upper)}]${ci.degenerate ? ' (degenerate: no variance)' : ''}`;
 
 /** @param {Comparison} cmp @returns {Check} */
 function judgedCheck(cmp) {
@@ -88,12 +117,12 @@ const verdict = (set, checks) => ({ set, verdict: checks.every((c) => c.pass) ? 
  * @returns {Verdict}
  */
 export function devGate(cmp, change = {}) {
-  const checks = [judgedCheck(cmp)];
+  const checks = [sufficientCheck(cmp), judgedCheck(cmp)];
   if (change.kind === 'cutoff') return verdict('dev', [...checks, ...cutoffChecks(cmp)]);
 
   const targets = change.targetShapes ?? [];
   const ndcg = cmp.overall.ndcg;
-  const ciPass = ndcg.bca.lower > 0;
+  const ciPass = lowerAboveZero(ndcg.bca);
   const missing = targets.filter((t) => !cmp.shapes[t]?.ndcg);
   const targetedPass = targets.length > 0 && missing.length === 0
     && targets.every((t) => /** @type {any} */ (cmp.shapes[t]).ndcg.delta > EPS)
@@ -101,17 +130,26 @@ export function devGate(cmp, change = {}) {
   checks.push({
     name: targets.length ? 'ΔnDCG@10 CI lower > 0, or targeted shapes improve and overall Δ >= 0' : 'ΔnDCG@10 BCa 95% lower bound > 0',
     pass: ciPass || targetedPass,
-    detail: `ΔnDCG@10 ${f(ndcg.delta)} [${f(ndcg.bca.lower)}, ${f(ndcg.bca.upper)}]`
+    detail: `ΔnDCG@10 ${f(ndcg.delta)} ${ciText(ndcg.bca)}`
       + (targets.length ? `; targets ${targets.map((t) => `${t} Δ ${f(/** @type {any} */ (cmp.shapes[t])?.ndcg?.delta ?? NaN)}`).join(', ')}` : ''),
   });
   for (const t of targets) {
     const s = /** @type {any} */ (cmp.shapes[t]);
-    const upper = s?.ndcg?.bca?.upper ?? NaN;
-    checks.push({
-      name: `tripwire: ${t} not confidently regressed`,
-      pass: Number.isFinite(upper) && upper >= 0,
-      detail: s?.ndcg ? `n ${s.n}, ΔnDCG@10 ${f(s.ndcg.delta)}, one-sided 95% upper ${f(upper)}` : 'no answerable queries with this shape',
-    });
+    const name = `tripwire: ${t} not confidently regressed`;
+    if (!s?.ndcg) {
+      checks.push({ name, pass: false, detail: 'no answerable queries with this shape' });
+    } else if (s.n < RULES.minShapeQueriesForCi) {
+      // Too few queries for an interval: fall back to the point estimate.
+      checks.push({ name, pass: s.ndcg.delta >= -EPS, detail: `n ${s.n} < ${RULES.minShapeQueriesForCi}: point estimate ΔnDCG@10 ${f(s.ndcg.delta)} >= 0` });
+    } else {
+      /** @type {import('./stats.mjs').Interval} */
+      const ci = s.ndcg.bca;
+      checks.push({
+        name,
+        pass: !ci.degenerate && Number.isFinite(ci.upper) && ci.upper >= 0,
+        detail: `n ${s.n}, ΔnDCG@10 ${f(s.ndcg.delta)}, one-sided 95% upper ${f(ci.upper)}${ci.degenerate ? ' (degenerate: no variance)' : ''}`,
+      });
+    }
   }
   return verdict('dev', checks);
 }
@@ -124,7 +162,7 @@ export function devGate(cmp, change = {}) {
  * @returns {Verdict}
  */
 export function holdoutGate(cmp, change = {}) {
-  const checks = [judgedCheck(cmp), exactCodeCheck(cmp)];
+  const checks = [sufficientCheck(cmp), judgedCheck(cmp), exactCodeCheck(cmp)];
   if (change.kind === 'cutoff') return verdict('holdout', [...checks, ...cutoffChecks(cmp)]);
   checks.push(
     { name: 'ΔnDCG@10 >= 0', pass: cmp.overall.ndcg.delta >= -EPS, detail: f(cmp.overall.ndcg.delta) },
@@ -140,9 +178,10 @@ export function holdoutGate(cmp, change = {}) {
  */
 export function sc5Gate(cmp) {
   return verdict('test', [
+    sufficientCheck(cmp),
     judgedCheck(cmp),
-    { name: 'ΔnDCG@10 BCa 95% lower bound > 0', pass: cmp.overall.ndcg.bca.lower > 0, detail: `[${f(cmp.overall.ndcg.bca.lower)}, ${f(cmp.overall.ndcg.bca.upper)}]` },
-    { name: 'ΔP@5 BCa 95% lower bound > 0', pass: cmp.overall.p5.bca.lower > 0, detail: `[${f(cmp.overall.p5.bca.lower)}, ${f(cmp.overall.p5.bca.upper)}]` },
+    { name: 'ΔnDCG@10 BCa 95% lower bound > 0', pass: lowerAboveZero(cmp.overall.ndcg.bca), detail: ciText(cmp.overall.ndcg.bca) },
+    { name: 'ΔP@5 BCa 95% lower bound > 0', pass: lowerAboveZero(cmp.overall.p5.bca), detail: ciText(cmp.overall.p5.bca) },
   ]);
 }
 

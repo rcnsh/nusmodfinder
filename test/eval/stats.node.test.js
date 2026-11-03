@@ -59,6 +59,16 @@ describe('bcaInterval', () => {
     expect(bcaInterval([0.2, 0.2])).toMatchObject({ lower: 0.2, upper: 0.2 });
   });
 
+  it('flags a zero-variance interval as degenerate (review finding 6)', () => {
+    expect(bcaInterval([0.3])).toMatchObject({ estimate: 0.3, lower: 0.3, upper: 0.3, degenerate: true });
+    expect(bcaInterval([0.1, 0.1, 0.1]).degenerate).toBe(true);
+    expect(bcaInterval([]).degenerate).toBe(true);
+    // Equal up to float noise is still no variance.
+    expect(bcaInterval([0.4 - 0.3, 0.41 - 0.31, 0.42 - 0.32]).degenerate).toBe(true);
+    expect(bcaInterval(D1).degenerate).toBe(false);
+    expect(bcaInterval([0, 0, 0.01]).degenerate).toBe(false);
+  });
+
   it('narrows as alpha grows', () => {
     const wide = bcaInterval(D1, { alpha: 0.05 });
     const narrow = bcaInterval(D1, { alpha: 0.1 });

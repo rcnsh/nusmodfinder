@@ -98,8 +98,26 @@ export function quantile(sorted, q) {
 }
 
 /**
- * @typedef {{ estimate: number, lower: number, upper: number, n: number, method: string }} Interval
+ * `degenerate` marks an interval with no width to speak of: fewer than two
+ * deltas, or deltas whose spread is within float noise (one query, or every
+ * query moved by the same amount). Its bounds equal the estimate and carry no
+ * evidence, so a CI-based gate check never passes on it (gate.mjs).
+ * @typedef {{ estimate: number, lower: number, upper: number, n: number, method: string, degenerate: boolean }} Interval
  */
+
+/**
+ * True when the deltas have no variance beyond float noise.
+ * @param {number[]} deltas
+ */
+export function zeroVariance(deltas) {
+  if (deltas.length < 2) return true;
+  let lo = Infinity, hi = -Infinity;
+  for (const d of deltas) {
+    if (d < lo) lo = d;
+    if (d > hi) hi = d;
+  }
+  return hi - lo <= 1e-12 * Math.max(1, Math.abs(lo), Math.abs(hi));
+}
 
 /**
  * Paired BCa bootstrap confidence interval for the mean delta (Efron 1987):
@@ -113,8 +131,8 @@ export function bcaInterval(deltas, options = {}) {
   const { resamples = RESAMPLES, seed = SEED, alpha = 0.05 } = options;
   const n = deltas.length;
   const estimate = mean(deltas);
-  if (n === 0) return { estimate: NaN, lower: NaN, upper: NaN, n, method: 'bca' };
-  if (deltas.every((d) => d === deltas[0])) return { estimate, lower: estimate, upper: estimate, n, method: 'bca' };
+  if (n === 0) return { estimate: NaN, lower: NaN, upper: NaN, n, method: 'bca', degenerate: true };
+  if (zeroVariance(deltas)) return { estimate, lower: estimate, upper: estimate, n, method: 'bca', degenerate: true };
 
   const rand = rng(seed);
   const boot = new Float64Array(resamples);
@@ -159,6 +177,7 @@ export function bcaInterval(deltas, options = {}) {
     upper: quantile(boot, adjusted(1 - alpha / 2)),
     n,
     method: 'bca',
+    degenerate: false,
   };
 }
 
@@ -185,7 +204,7 @@ export function clusteredInterval(deltas, clusters, options = {}) {
   const groups = [...byCluster.values()].map((ds) => ({ sum: ds.reduce((s, d) => s + d, 0), n: ds.length }));
   const k = groups.length;
   const estimate = mean(deltas);
-  if (deltas.length === 0) return { estimate: NaN, lower: NaN, upper: NaN, n: 0, clusters: 0, method: 'cluster-percentile' };
+  if (deltas.length === 0) return { estimate: NaN, lower: NaN, upper: NaN, n: 0, clusters: 0, method: 'cluster-percentile', degenerate: true };
   const rand = rng(seed);
   const boot = new Float64Array(resamples);
   for (let b = 0; b < resamples; b++) {
@@ -205,6 +224,7 @@ export function clusteredInterval(deltas, clusters, options = {}) {
     n: deltas.length,
     clusters: k,
     method: 'cluster-percentile',
+    degenerate: boot[resamples - 1] - boot[0] <= 1e-12 * Math.max(1, Math.abs(estimate)),
   };
 }
 

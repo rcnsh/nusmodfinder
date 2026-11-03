@@ -122,6 +122,17 @@ Per change, vs the shipped ranker:
   both sets: correct-empty gain ≥ 0.25 and answerable ΔnDCG@10 ≥ −0.01.
 - **SC5** (test set): BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0, judged 100%.
 
+Small samples (every gate, every set):
+- **Insufficient queries.** A gate whose decisive comparison (the paired primary answerable
+  queries) has fewer than 10 queries fails with `insufficient queries: n primary answerable,
+  need 10`, however large the gain.
+- **Degenerate intervals.** With zero variance (one query, or every delta equal up to float
+  noise) `bcaInterval` returns the point as both bounds and sets `degenerate: true`. A CI-based
+  check (dev's lower bound > 0, SC5's lower bounds > 0, a tripwire's upper bound ≥ 0) never
+  passes on a degenerate interval; the check's detail says `degenerate: no variance`.
+- **Small shapes.** A target-shape tripwire over fewer than 3 answerable queries has no usable
+  interval and falls back to "point estimate ΔnDCG@10 ≥ 0".
+
 ## Embeddings
 
 - `scripts/embed.mjs` calls Workers AI REST `@cf/baai/bge-small-en-v1.5` (default pooling,
