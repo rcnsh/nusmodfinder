@@ -1,0 +1,25 @@
+name: Findings
+
+# Every finding ID in docs/CRITERIA.md must be triaged in docs/FINDINGS.md.
+# Separate from ci.yml and with no path filter, so docs-only changes are
+# checked too.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-findings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci --ignore-scripts
+      - run: npm run check:findings

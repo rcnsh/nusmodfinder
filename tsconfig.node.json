@@ -15,5 +15,5 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["scripts/**/*.mjs", "*.mjs", "scripts/corpus-types.d.ts"]
+  "include": ["scripts/**/*.mjs", "*.mjs", "scripts/corpus-types.d.ts", "test/**/*.node.test.js"]
 }

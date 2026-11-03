@@ -37,19 +37,40 @@ async function fullCorpus() {
   }
 }
 
+// Files named *.node.test.js run in plain Node instead of workerd: they cover
+// Node-side code (scripts/) and read repository files, neither of which the
+// Worker runtime can do without nodejs_compat, which production does not set.
+const NODE_TESTS = 'test/**/*.node.test.js';
+
 export default defineConfig(async () => {
   const migrations = await readD1Migrations('./migrations');
   return {
-    plugins: [
-      cloudflareTest({
-        wrangler: { configPath: './test/wrangler.test.jsonc' },
-        remoteBindings: false,
-        miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
-      }),
-    ],
     test: {
-      include: ['test/**/*.test.js'],
-      provide: { corpus: await fullCorpus() },
+      projects: [
+        {
+          plugins: [
+            cloudflareTest({
+              wrangler: { configPath: './test/wrangler.test.jsonc' },
+              remoteBindings: false,
+              miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
+            }),
+          ],
+          test: {
+            name: 'workers',
+            // Not an `exclude`: a project-level exclude replaces the CLI's
+            // `--exclude 'test/full/**'` that `npm test` relies on.
+            include: ['test/**/!(*.node).test.js'],
+            provide: { corpus: await fullCorpus() },
+          },
+        },
+        {
+          test: {
+            name: 'node',
+            environment: 'node',
+            include: [NODE_TESTS],
+          },
+        },
+      ],
     },
   };
 });
