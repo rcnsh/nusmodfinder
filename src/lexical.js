@@ -166,10 +166,11 @@ export function parseFilterCounts(facets) {
   return { sem, level, credits, faculty, ng };
 }
 
-// Loaded at most once per isolate, on the first search that reaches the
+// Loaded once per isolate, on the first search that reaches the
 // filter-driven plan; the common path never reads it. Stale counts (an ingest
-// since) only cost a worse plan choice, never a wrong answer. A failed read
-// is not cached, so the next fallback retries.
+// since) only cost a worse plan choice, never a wrong answer. Neither a failed
+// read nor a row without counts (written before they existed) is cached, so
+// the next fallback re-reads the row and picks up a facets rebuild.
 /** @type {Promise<FilterCounts | null> | null} */
 let filterCounts = null;
 
@@ -177,16 +178,19 @@ let filterCounts = null;
 export function resetFilterCounts() { filterCounts = null; }
 
 /**
+ * The per-filter row counts from the facets row, cached per isolate once found.
  * @param {D1Database | D1DatabaseSession} db
  * @param {Trace} trace
  * @returns {Promise<FilterCounts | null>}
  */
-function loadFilterCounts(db, trace) {
+export function loadFilterCounts(db, trace) {
   filterCounts ??= trace.time('fts', () => db.prepare('SELECT value FROM meta WHERE key = ?').bind('facets').all())
     .then((res) => {
       trace.d1Result(res);
       const value = /** @type {{ value?: string } | undefined} */ (res.results[0])?.value;
-      return value ? parseFilterCounts(JSON.parse(value)) : null;
+      const counts = value ? parseFilterCounts(JSON.parse(value)) : null;
+      if (!counts) filterCounts = null;
+      return counts;
     })
     .catch(() => {
       filterCounts = null;

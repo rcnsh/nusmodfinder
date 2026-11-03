@@ -8,7 +8,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
-  FIXED_DRIVER_ORDER, chooseDriver, exactStatement, filterSql, lexicalSearch, parseFilterCounts, resetFilterCounts,
+  FIXED_DRIVER_ORDER, chooseDriver, exactStatement, filterSql, lexicalSearch, loadFilterCounts, parseFilterCounts, resetFilterCounts,
 } from '../src/lexical.js';
 import { Trace } from '../src/timing.js';
 import { fixture, seed } from './helpers.js';
@@ -46,6 +46,25 @@ describe('facets row counts', () => {
     expect(facets.semesters).toEqual([1, 2, 3, 4].map((sem) => ({ sem, count: count((m) => m.semesters.includes(sem)) })));
     expect(facets.ngSemesters).toEqual([1, 2].map((sem) => ({ sem, count: count((m) => (m.ngSemesters ?? []).includes(sem)) })));
     expect(parseFilterCounts(facets)).not.toBeNull();
+  });
+
+  it('a row without counts is not cached: a facets rebuild is picked up without a new isolate (PR #8 review round 2)', async () => {
+    const put = (/** @type {unknown} */ v) => env.DB.prepare("UPDATE meta SET value = ? WHERE key = 'facets'").bind(JSON.stringify(v)).run();
+    const old = { ...facets };
+    delete old.credits;
+    delete old.semesters;
+    delete old.ngSemesters;
+    try {
+      await put(old);
+      expect(await loadFilterCounts(env.DB, new Trace())).toBeNull();
+      await put(facets); // POST /admin/facets after the deploy
+      expect(await loadFilterCounts(env.DB, new Trace())).toEqual(parseFilterCounts(facets));
+      // Found counts are cached: a later row change is not re-read.
+      await put(old);
+      expect(await loadFilterCounts(env.DB, new Trace())).toEqual(parseFilterCounts(facets));
+    } finally {
+      await put(facets);
+    }
   });
 
   it('a row without them (written before they existed) parses to null', () => {
