@@ -13,8 +13,8 @@ export default [
     languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: { ...globals.serviceworker } },
   },
   {
-    // Node-side scripts and tool configs.
-    files: ['scripts/**/*.mjs', '*.mjs'],
+    // Node-side scripts, tool configs, and the tests that run in Node.
+    files: ['scripts/**/*.mjs', '*.mjs', 'test/**/*.node.test.js'],
     languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: { ...globals.node } },
   },
 ];
