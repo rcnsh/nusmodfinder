@@ -18,6 +18,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { appendFile, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { readLedger } from './lib/ledger.mjs';
 import { REPO } from './lib/sets.mjs';
 
 const WORK = join(REPO, '.eval-work', 'selftest');
@@ -129,8 +130,8 @@ assert.equal(verdictLines.length, 3, `holdout prints only the verdict and two Δ
 assert.match(verdictLines[0], /^holdout verdict: (PASS|FAIL)$/);
 assert.match(verdictLines[1], /^ΔnDCG@10 [+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 assert.match(verdictLines[2], /^ΔP@5 +[+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
-const ledger = await readFile(join(H, 'ledger.md'), 'utf8');
-assert.equal(ledger.split('\n').filter((l) => /^\| \d{4}-/.test(l)).length, 1, 'one ledger row per look');
+const ledgerPath = join(H, 'ledger.md');
+assert.equal((await readLedger(ledgerPath)).length, 1, 'one ledger row per look');
 
 const wrongKey = join(WORK, 'wrong.key');
 await writeFile(wrongKey, `${'ab'.repeat(32)}\n`);
@@ -138,7 +139,7 @@ const wrong = node(CLI, ['report', ...hargs, '--run', 'cand', '--baseline', 'bas
 assert.notEqual(wrong.code, 0);
 assert.equal(wrong.out, 'eval: selftest run failed (DecryptionError); details withheld\n', 'a holdout error prints only the generic line');
 assert.ok(!wrong.out.includes('abab'), 'key material printed');
-assert.equal((await readFile(join(H, 'ledger.md'), 'utf8')).split('\n').filter((l) => /^\| \d{4}-/.test(l)).length, 1, 'a failed look is not recorded');
+assert.equal((await readLedger(ledgerPath)).length, 1, 'a failed look is not recorded');
 
 for (let i = 2; i <= 12; i++) await appendFile(join(H, 'ledger.md'), `| 2026-01-01 | selftest | 0000000 | filler-${i} | base | fail | +0.000 [0.000, 0.000] | +0.000 [0.000, 0.000] |\n`);
 const thirteenth = node(CLI, ['report', ...hargs, '--run', 'cand', '--baseline', 'base'], env);

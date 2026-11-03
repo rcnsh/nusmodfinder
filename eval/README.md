@@ -190,7 +190,11 @@ per-query error reaches the terminal. Any error in a holdout or test command pri
 `CorpusMismatchError`, `QrelsError`, `RunFileError`, see `lib/errors.mjs`) says what went wrong.
 Metrics errors carry no judgment content in any set: a bad grade is reported by its value and
 position (`query #3, judgment #2 has grade 7`), never its rationale, query id or code. Every verdict appends a row to `eval/holdout-ledger.md`;
-a 13th holdout look (2nd test-set look) is refused before any retrieval runs. CI never has the
+a 13th holdout look (2nd test-set look) is refused before any retrieval runs. Every table row
+except the header and separator lines counts, however it is spaced; a row whose set cell is not
+a known set counts against every set. A look is also refused (`LedgerTamperError`) when the
+ledger has fewer rows than its copy at `HEAD` or `origin/main`, or is missing while git has it:
+the ledger is append-only, so commit it after every look. CI never has the
 key: `npm run eval:verify` checks only that each ciphertext matches its `MANIFEST.json` sha256.
 
 ## Fixture set and self-test

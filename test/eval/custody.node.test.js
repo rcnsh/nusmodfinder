@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { decrypt, encrypt, generateKey, readEncryptedJson, readKey, updateManifest, verifyManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { embeddingKey, estimateTokens } from '../../eval/lib/embeddings.mjs';
+import { spawnSync } from 'node:child_process';
 import { appendLook, assertLookAllowed, looks } from '../../eval/lib/ledger.mjs';
 import { DecryptionError } from '../../eval/lib/errors.mjs';
 import { REPO, layout, runFile, searchParams, validateQueries } from '../../eval/lib/sets.mjs';
@@ -84,6 +85,72 @@ describe('ledger', () => {
     await expect(assertLookAllowed(path, 'test', 1)).rejects.toThrow(/refusing look 2/);
     // A pipe in a cell cannot shift the columns.
     expect((await readFile(path, 'utf8'))).toContain('| v 0 |');
+  });
+});
+
+describe('ledger tampering (review finding 5)', () => {
+  const row = { date: '2026-11-04', set: 'holdout', commit: 'abc1234', variant: 'v', baseline: 'v0', verdict: 'fail', ndcg: '+0.000 [0.000, 0.000]', p5: '+0.000 [0.000, 0.000]' };
+
+  it('counts every table row however it is spaced', async () => {
+    const path = join(dir, 'spaced.md');
+    for (let i = 0; i < 14; i++) await appendLook(path, row);
+    const lines = (await readFile(path, 'utf8')).split('\n');
+    let k = 0, j = 0;
+    // A space after the leading pipe of 11 rows, and two more rows squashed and indented.
+    const edited = lines.map((l) => (l.startsWith('| 2026') && k++ < 11 ? l.replace(/^\| /, '|  ') : l))
+      .map((l) => (l.startsWith('| 2026') && j++ < 2 ? `   ${l.replace(/ \| /g, '|')}   ` : l));
+    expect(edited.filter((l) => /^\| \d{4}-/.test(l))).toHaveLength(1);
+    await writeFile(path, edited.join('\n'));
+    expect(await looks(path, 'holdout')).toBe(14);
+    await expect(assertLookAllowed(path, 'holdout', 12)).rejects.toThrow(/refusing look 15/);
+  });
+
+  it('a row whose set cell was changed to an unknown value still counts against every set', async () => {
+    const path = join(dir, 'renamed.md');
+    await appendLook(path, row);
+    await appendLook(path, { ...row, set: 'h0ldout' });
+    expect(await looks(path, 'holdout')).toBe(2);
+    expect(await looks(path, 'test')).toBe(1);
+  });
+
+  it('refuses when the ledger has fewer rows than HEAD or origin/main, or is missing while git has it', async () => {
+    const repo = join(dir, 'repo');
+    const git = (/** @type {string[]} */ ...args) => {
+      const r = spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd: repo, encoding: 'utf8' });
+      if (r.status !== 0) throw new Error(r.stderr);
+      return r.stdout.trim();
+    };
+    const { mkdir } = await import('node:fs/promises');
+    await mkdir(join(repo, 'eval'), { recursive: true });
+    git('init', '-q');
+    const path = join(repo, 'eval', 'holdout-ledger.md');
+    for (let i = 0; i < 5; i++) await appendLook(path, row);
+    git('add', '.');
+    git('commit', '-qm', 'five looks');
+    const opts = { repo };
+    expect(await assertLookAllowed(path, 'holdout', 12, opts)).toBe(5);
+
+    // Cut back to 3 rows: refused against HEAD.
+    const text = await readFile(path, 'utf8');
+    const cut = text.split('\n').filter((l, i, all) => !(l.startsWith('| 2026') && all.slice(0, i).filter((x) => x.startsWith('| 2026')).length >= 3)).join('\n');
+    await writeFile(path, cut);
+    expect(await looks(path, 'holdout')).toBe(3);
+    await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toThrow(/has 3 look rows but HEAD:eval\/holdout-ledger\.md has 5; rows may only be appended/);
+    await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toMatchObject({ name: 'LedgerTamperError' });
+
+    // Deleted: refused while git has it.
+    await rm(path);
+    await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toThrow(/is missing but HEAD has it \(5 look rows\)/);
+
+    // Committing the cut does not help while origin/main still has 5.
+    git('update-ref', 'refs/remotes/origin/main', git('rev-parse', 'HEAD'));
+    await writeFile(path, cut);
+    git('commit', '-qam', 'cut the ledger');
+    await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toThrow(/but origin\/main:eval\/holdout-ledger\.md has 5/);
+
+    // Appending is always fine.
+    for (let i = 0; i < 3; i++) await appendLook(path, row);
+    expect(await assertLookAllowed(path, 'holdout', 12, opts)).toBe(6);
   });
 });
 
