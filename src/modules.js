@@ -75,10 +75,12 @@ export function rowToModule(row, score) {
 export async function handleFacets(env, trace) {
   const db = readSession(env);
   try {
-    // One row, not three full-table aggregates. The live computation below cost
+    // One row, not full-table aggregates. The live computation below cost
     // 9,842 D1 rows read on EVERY page load (1,364 + 7,303 + 1,175) to produce
     // about 35 rows of output — the single largest source of row reads in the
-    // app. It is now rebuilt at ingest time via POST /admin/facets.
+    // app. It is now rebuilt at ingest time via POST /admin/facets. (With 0006
+    // and the per-credits/semester counts the live computation reads 21,488:
+    // 6,771 + 6,771 + 1,175 + 6,771 on the full corpus.)
     const cached = /** @type {{ value: string } | null} */ (await d1Timed(trace, 'd1', () =>
       db.prepare('SELECT value FROM meta WHERE key = ?').bind('facets').first()));
     if (cached?.value) {
@@ -92,7 +94,7 @@ export async function handleFacets(env, trace) {
     }
     // No precomputed row (fresh database, or ingest never finished). Fall back
     // so the page still works, but say so rather than silently being expensive.
-    console.warn('facets: no precomputed row; falling back to live aggregates (~9.8k rows read)');
+    console.warn('facets: no precomputed row; falling back to live aggregates (~21.5k rows read)');
     return json(await d1Timed(trace, 'd1', () => computeFacets(db)), 200);
   } catch (err) {
     return upstream('d1', err);
@@ -121,6 +123,17 @@ export async function computeFacets(db) {
     'SELECT level, COUNT(*) AS n FROM modules WHERE level IS NOT NULL GROUP BY level ORDER BY level',
   ).all();
   const ng = await db.prepare('SELECT COUNT(*) AS n FROM modules WHERE ng = 1').first();
+  // Per-value row counts for the remaining filters, in one scan. src/lexical.js
+  // reads them (with the faculty, level and ng counts above) to pick the most
+  // selective filter to drive its filter-driven plan.
+  const byCredits = /** @type {D1Result<{ credits: number | null, n: number, s1: number, s2: number, s3: number, s4: number, g1: number, g2: number }>} */ (
+    await db.prepare(
+      `SELECT credits, COUNT(*) AS n, SUM(sem1) AS s1, SUM(sem2) AS s2, SUM(sem3) AS s3, SUM(sem4) AS s4,
+              SUM(ng_sem1) AS g1, SUM(ng_sem2) AS g2
+         FROM modules GROUP BY credits ORDER BY credits`,
+    ).all());
+  const total = (/** @type {'s1' | 's2' | 's3' | 's4' | 'g1' | 'g2'} */ k) =>
+    byCredits.results.reduce((sum, r) => sum + (r[k] ?? 0), 0);
   const ngList = await readNgList(db);
   return {
     faculties: faculties.results.map((r) => ({ name: r.faculty, count: r.n })),
@@ -128,6 +141,9 @@ export async function computeFacets(db) {
     // updatedAsAt comes from data/ng-courses-*.json via ingest (meta.ng_list);
     // null until an ingest has recorded it.
     ng: { count: ng?.n ?? 0, updatedAsAt: ngList?.updatedAsAt ?? null },
+    credits: byCredits.results.filter((r) => r.credits !== null).map((r) => ({ credits: r.credits, count: r.n })),
+    semesters: [1, 2, 3, 4].map((sem) => ({ sem, count: total(/** @type {'s1'} */ (`s${sem}`)) })),
+    ngSemesters: [1, 2].map((sem) => ({ sem, count: total(/** @type {'g1'} */ (`g${sem}`)) })),
   };
 }
 

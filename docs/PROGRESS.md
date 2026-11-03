@@ -215,6 +215,87 @@ fails on the previous code.
   - Accepted: encrypted runs print the pre-retrieval header (ranker, counts; no query content)
     before the withheld line; the self-test already allows exactly that.
 
+## 2026-11-04 — Phase 1A: migration 0006 and exact filtered lexical search (`phase1/fts`)
+
+- `migrations/0006_fts_external.sql`: `modules_fts` rebuilt as external-content FTS5
+  (`content='modules'`, `content_rowid='rowid'`, `code UNINDEXED`, `prefix='2 3 4'`) with the
+  rank config restored; rowid triggers using the FTS5 `'delete'` command, the update trigger
+  guarded by `UPDATE OF code, title, description … WHEN` any of them changed; VIRTUAL generated
+  `sem1..sem4`, `ng_sem1`, `ng_sem2`; `row_hash`; `meta('schema','6')`. Not applied remotely.
+- B1 fixed (`src/lexical.js`): filters in SQL on the generated columns; bounded top-2000 CTE,
+  then, only when the cap may have cut matches, a filter-driven plan (indexed filtered rows,
+  FTS5 probed by rowid) behind a cap probe. Exact over 440 queries × 13 filters on the full
+  corpus; worst 6,989 rows read per search (gate 8,000), mean 1,071
+  (`docs/evidence/phase1/lexical-cost.md`). Unfiltered SQL unchanged.
+- Deviation: 0006 also creates `idx_modules_level`, `idx_modules_credits` and partial
+  `idx_modules_sem3/4`. Without them the filter-driven plan scans `modules` and the worst
+  case is 13,278 rows. Cost: 0006 estimate rises from 16k to ~30.1k rows written, and a forced
+  full re-ingest writes 34,381 rows locally (index entries ~5/row), reads 6,771.
+- B3 fixed: trigger statements plan without scans; a title update reads 1 row (was every FTS
+  row); a forced re-ingest of unchanged rows writes nothing to FTS (asserted byte for byte);
+  old triggers: 105,404 changes for the same re-ingest in node:sqlite
+  (`docs/evidence/phase1/0006-cost.md`).
+- Ranking neutrality: 0006 applied on top of a populated 0001–0005 database leaves unfiltered
+  lexical top-50 identical for all 417 distinct queries (0 tie-only diffs, 0 bm25 changes).
+  Remotely the rebuild realigns FTS rowids, so exact-bm25 ties may reorder (pre-declared, r3).
+- `db:rebuild-check` now proves 0001–0005 == the remote capture (unchanged) and the full chain
+  == `test/fixtures/schema-0006.json` (`-- --update` regenerates it).
+- `scripts/remote-migration.mjs <name> [--bootstrap]` writes `/tmp/vnm-remote-<name>.sql`
+  (wrangler's `d1_migrations` DDL + 0001–0005 rows, body, own row) and prints a rows-written
+  estimate; its structure is asserted in `test/migrations.node.test.js`, which also fails on
+  any `INSERT OR REPLACE` into `modules`.
+- New tests: `test/fts.test.js` (trigger fuzz vs `'rebuild'` + `integrity-check`, no-op
+  re-ingest, generated columns), `test/full/lexical.test.js`, `test/migrations.node.test.js`;
+  B1/B3 characterisation tests flipped. Mutation-checked: removing the update trigger's
+  `'delete'`, its `WHEN` guard, or the lexical fallback each fails a test.
+- No remote commands, no deploy, no live requests. Corpus copied from the pinned `.data/`.
+
+## 2026-11-04 — Phase 1A review fixes (PR #8)
+
+- Rebased `phase1/fts` onto `main` after PR #7. Conflicts only in `docs/FINDINGS.md` (summary
+  table: B1/B3 `fixed` from #8, B4–B7 `fixed` from #7) and `docs/PROGRESS.md` (both entries
+  kept). B8 stays `reproduced`; its note now says the tokeniser is still open after #8.
+  `/module` still selects the 0001–0005 columns by name (`test/smoke.test.js` on a 0006 DB).
+- High (combined filters over the 8k budget): without `sqlite_stat1`, SQLite drove the
+  filter-driven plan from the most recently created equality index (`in`, Computing +
+  credits=4: 11,546 rows). `src/lexical.js` now picks the driver (`chooseDriver`) from per-value
+  counts in `meta('facets')` and writes every other filter `+m.col`. `/admin/facets` adds
+  `credits`, `semesters` and `ngSemesters` counts to the row (data, not schema:
+  `schema-0006.json` unchanged); the live `/facets` fallback reads 21,488 rows. Counts load once
+  per isolate, only when a search with two or more indexed filters reaches the filter-driven
+  plan. Without counts: `FIXED_DRIVER_ORDER` (sem3/4, faculty, ng, level, credits).
+- Grid (`test/full/lexical.test.js`): every single value × 419 queries, every two-filter
+  combination and 412 three-to-five-filter ones × 12 broad queries: 46,078 depth-50 searches,
+  0 mismatches, worst 7,772 rows read (single 6,989, two 7,646). Fixed order (no counts): exact,
+  worst 9,148, 101 of 6,700 over 8,000; logged, not gated. **Run `POST /admin/facets` right
+  after the deploy** so production has the counts (`docs/evidence/phase1/lexical-cost.md`).
+- Low: `test/migrations.node.test.js` bans `UPDATE … SET rowid` in `src/`, `scripts/`,
+  `migrations/`; the hazard is in 0006's header comment. Rebutted tie reorder: the reviewer's
+  churned-DB measurement is recorded in `docs/evidence/phase1/0006-cost.md`.
+- Full-corpus suite 37 s → ~4.5 min locally (CI job timeout 15 min). No remote commands, no
+  deploy, no live requests.
+- Review round 2 of the fix delta (`c6495ce..03d3f63`): two findings, both fixed.
+  - Medium: a facets row without counts was cached per isolate as "no counts", so warm isolates
+    kept the fixed order (9,148 rows) after a facets rebuild. Now neither a failed read nor a
+    row without counts is cached; the next fallback re-reads the row (1 row).
+  - Low: the textual rowid ban missed the upsert form ingest uses (`ON CONFLICT … DO UPDATE SET
+    rowid`), schema-qualified, aliased, bracketed and row-value forms. Replaced by a database
+    guard: 0006 adds `modules_rowid_immutable` (BEFORE UPDATE, aborts when `new.rowid IS NOT
+    old.rowid`); a test applies the migrations in `node:sqlite` and checks 11 spellings are
+    refused and rowid-preserving updates (incl. ingest's upsert) still work. 0006 estimate
+    unchanged (30,076 rows written; one more schema object).
+  - Rollout order (supersedes "right after the deploy"): apply 0006, then rebuild the facets row
+    with this code (`POST /admin/facets` through `wrangler dev --remote`, ~21.5k rows read),
+    then deploy, so no isolate serves the fixed order.
+- Review round 3 (`03d3f63..92c0297`): two findings, both fixed.
+  - Medium: as a BEFORE trigger, `modules_rowid_immutable` made SQLite re-read every updated row,
+    which D1 bills: forced re-ingest reads 13,542 instead of 6,771. Now AFTER UPDATE (ABORT
+    still rolls back the statement and the FTS writes; the 11 refused forms still fail). The
+    full-corpus test now asserts exactly 6,771 / 1 / 1 rows read (was `< 3 × modules`).
+  - Low (pre-existing): `UPDATE OR REPLACE modules SET code = …` onto an existing code corrupts
+    the index like INSERT OR REPLACE; the REPLACE ban now covers it (and `main.`, quoted names),
+    with a test showing the corruption.
+
 ## 2026-11-04 — Phase 1/2 in flight
 
 - PR #4 (module split + Server-Timing, structured logs, version_metadata, guarded `npm run deploy`)

@@ -16,19 +16,21 @@ describe.skipIf(!corpus)('findings over the full pinned corpus', () => {
     fakes = await seed({ modules: c.modules });
   }, 120_000);
 
-  it('[B1 known-bug] lexical management&sem=3&topK=50 returns 6 of the 31 sem-3 keyword matches (as live)', async () => {
+  // Was `[B1 known-bug] lexical management&sem=3&topK=50 returns 6 of the 31
+  // sem-3 keyword matches (as live)`: production returned BMA5134, BMC5415,
+  // BME5042, BME5046, TCX2003, TCX2005 (docs/evidence/phase0/raw/B1_sem3.body).
+  it('[B1 fixed] lexical management&sem=3&topK=50 returns all 31 sem-3 keyword matches, in rank order', async () => {
     const { body } = await callJson('/search?q=management&sem=3&mode=lexical&topK=50', { fakes });
-    // docs/evidence/phase0/raw/B1_sem3.body: the live Worker returned the same 6.
-    expect(body.results.map((/** @type {{ code: string }} */ r) => r.code).sort())
-      .toEqual(['BMA5134', 'BMC5415', 'BME5042', 'BME5046', 'TCX2003', 'TCX2005']);
+    const got = body.results.map((/** @type {{ code: string }} */ r) => r.code);
 
     const all = await env.DB.prepare(
-      `SELECT m.semesters FROM modules_fts JOIN modules m ON m.code = modules_fts.code
-        WHERE modules_fts MATCH '"management"'`).all();
-    const sem3 = all.results.filter((r) => JSON.parse(String(r.semesters)).includes(3));
+      `SELECT m.code, m.semesters FROM modules_fts JOIN modules m ON m.rowid = modules_fts.rowid
+        WHERE modules_fts MATCH '"management"' ORDER BY rank, m.rowid`).all();
+    const sem3 = all.results.filter((r) => JSON.parse(String(r.semesters)).includes(3)).map((r) => r.code);
     expect(sem3).toHaveLength(31);
-    // FTS LIMIT is depth * 4 = 200 of the matches; only 6 of those are sem 3.
     expect(all.results.length).toBeGreaterThan(200);
+    expect(got).toEqual(sem3);
+    expect(got).toEqual(expect.arrayContaining(['BMA5134', 'BMC5415', 'BME5042', 'BME5046', 'TCX2003', 'TCX2005']));
   });
 
   it('[S6 evidence] 46% of offered modules are level 5 or above', () => {
