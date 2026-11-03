@@ -15,11 +15,12 @@ const VERSION = '9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d';
 function fakeExec(over = {}) {
   /** @type {Record<string, { code?: number, stdout?: string }>} */
   const table = {
-    'git status --porcelain': { stdout: '' },
+    'git status --porcelain --untracked-files=all --ignore-submodules=none': { stdout: '' },
+    'git ls-files -v': { stdout: 'H src/index.js\nH package.json\n' },
     'git fetch --quiet origin main': {},
     'git rev-parse HEAD': { stdout: `${SHA}\n` },
-    'git rev-parse origin/main': { stdout: `${SHA}\n` },
-    'git merge-base --is-ancestor HEAD origin/main': {},
+    'git rev-parse refs/remotes/origin/main': { stdout: `${SHA}\n` },
+    'git merge-base --is-ancestor HEAD refs/remotes/origin/main': {},
     'git rev-parse --short HEAD': { stdout: '0123456\n' },
     'git log -1 --format=%s': { stdout: 'feat(search): add Server-Timing\n' },
     ...over,
@@ -54,7 +55,7 @@ const ranWrangler = (/** @type {string[][]} */ calls) => calls.some((c) => c[0] 
 
 describe('npm run deploy', () => {
   it('refuses a dirty working tree and never runs wrangler', async () => {
-    const { exec, calls } = fakeExec({ 'git status --porcelain': { stdout: ' M src/index.js\n?? scratch.txt\n' } });
+    const { exec, calls } = fakeExec({ 'git status --porcelain --untracked-files=all --ignore-submodules=none': { stdout: ' M src/index.js\n?? scratch.txt\n' } });
     const { code, err } = await runDeploy(exec);
     expect(code).toBe(1);
     expect(err).toContain('not clean');
@@ -65,12 +66,22 @@ describe('npm run deploy', () => {
   it('refuses when HEAD is not on origin/main', async () => {
     const { exec, calls } = fakeExec({
       'git rev-parse HEAD': { stdout: 'feedface\n' },
-      'git merge-base --is-ancestor HEAD origin/main': { code: 1 },
+      'git merge-base --is-ancestor HEAD refs/remotes/origin/main': { code: 1 },
     });
     const { code, err } = await runDeploy(exec);
     expect(code).toBe(1);
     expect(err).toContain('not on origin/main');
     expect(ranWrangler(calls)).toBe(false);
+  });
+
+  it('refuses when files are hidden by assume-unchanged or skip-worktree', async () => {
+    for (const line of ['h src/index.js', 'S src/search.js']) {
+      const { exec, calls } = fakeExec({ 'git ls-files -v': { stdout: `H package.json\n${line}\n` } });
+      const { code, err } = await runDeploy(exec);
+      expect(code).toBe(1);
+      expect(err).toContain('assume-unchanged or skip-worktree');
+      expect(ranWrangler(calls)).toBe(false);
+    }
   });
 
   it('refuses when origin/main cannot be fetched', async () => {

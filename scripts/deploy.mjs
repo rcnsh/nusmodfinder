@@ -46,10 +46,19 @@ export async function deploy({ exec = run, log = console.log, error = console.er
     return { ...res, out: res.stdout.trim() };
   };
 
-  const status = await git(['status', '--porcelain']);
+  // --untracked-files=all overrides status.showUntrackedFiles; ls-files -v catches files
+  // hidden by assume-unchanged (lower-case tag) or skip-worktree (S).
+  const status = await git(['status', '--porcelain', '--untracked-files=all', '--ignore-submodules=none']);
   if (status.code !== 0) { error('deploy: `git status` failed.'); return 1; }
   if (status.out !== '') {
     error(`deploy: refusing, the working tree is not clean:\n${status.out}\nCommit (via a PR to main) or discard these first.`);
+    return 1;
+  }
+  const flags = await git(['ls-files', '-v']);
+  if (flags.code !== 0) { error('deploy: `git ls-files` failed.'); return 1; }
+  const hidden = flags.out.split('\n').filter((l) => /^([a-z]|S) /.test(l));
+  if (hidden.length) {
+    error(`deploy: refusing, files are marked assume-unchanged or skip-worktree, so local edits may be hidden:\n${hidden.join('\n')}`);
     return 1;
   }
 
@@ -57,9 +66,9 @@ export async function deploy({ exec = run, log = console.log, error = console.er
   if (fetched.code !== 0) { error('deploy: refusing, could not fetch origin/main to check HEAD is pushed.'); return 1; }
 
   const head = await git(['rev-parse', 'HEAD']);
-  const tip = await git(['rev-parse', 'origin/main']);
+  const tip = await git(['rev-parse', 'refs/remotes/origin/main']);
   if (head.code !== 0 || tip.code !== 0) { error('deploy: `git rev-parse` failed.'); return 1; }
-  const onMain = await git(['merge-base', '--is-ancestor', 'HEAD', 'origin/main']);
+  const onMain = await git(['merge-base', '--is-ancestor', 'HEAD', 'refs/remotes/origin/main']);
   if (onMain.code === 1) {
     error(`deploy: refusing, HEAD ${head.out} is not on origin/main. Merge it to main first.`);
     return 1;

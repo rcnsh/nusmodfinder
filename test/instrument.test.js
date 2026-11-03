@@ -190,3 +190,21 @@ describe('version traceability', () => {
     expect(local.body).toEqual({ ok: true, versionId: null, versionTag: null });
   });
 });
+
+describe('log hygiene', () => {
+  it('never logs free-text faculty values or unvalidated modes', async () => {
+    /** @type {string[]} */
+    const lines = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l) => { lines.push(String(l)); });
+    try {
+      await call('/search?q=logs%20faculty&faculty=alice%40example.com%20%2B65%209123', { fakes: createFakes() });
+      await call(`/search?q=logs%20mode&mode=${'x'.repeat(500)}`, { fakes: createFakes() });
+    } finally { spy.mockRestore(); }
+    const joined = lines.join('\n');
+    expect(joined).not.toContain('alice@example.com');
+    expect(joined).not.toContain('x'.repeat(50));
+    expect(lines.some((l) => l.includes('"faculty":true'))).toBe(true);
+    expect(lines.some((l) => l.includes('"mode":"invalid"'))).toBe(true);
+  });
+});
+

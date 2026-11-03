@@ -240,17 +240,19 @@ async function handleSearch(request, env, trace, log) {
   }
 
   const { echo, filter, errors } = parseFilters(params);
-  log.filters = echo;
+  // faculty is free text: log only whether it was set, never its value.
+  log.filters = { ...echo, ...(echo.faculty !== undefined ? { faculty: true } : {}) };
   if (errors.length) return bad(errors.join('; '));
 
   // Retrieval mode. Defaults to the hybrid that ships; `vector` and `lexical`
   // exist so the evaluation harness can measure each half on its own, which is
   // what the gate is actually about.
   const mode = params.get('mode') ?? 'hybrid';
-  log.mode = mode;
   if (!['hybrid', 'vector', 'lexical'].includes(mode)) {
+    log.mode = 'invalid';
     return bad(`Unknown mode "${mode}"; expected hybrid, vector or lexical.`);
   }
+  log.mode = mode;
 
   const requestedTopK = Number(params.get('topK') ?? DEFAULT_TOPK);
   // R6/L-limits: topK above the Vectorize ceiling is clamped, not rejected.
