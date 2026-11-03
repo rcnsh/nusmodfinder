@@ -88,21 +88,21 @@ npm install
 npx wrangler login
 ```
 
-Resources (already created for this deployment):
+Resources (already created for this deployment; do not re-run these against it):
 
 ```bash
 npx wrangler d1 create nusmods
-npx wrangler d1 migrations apply nusmods --remote
 npx wrangler vectorize create nusmods-modules --dimensions=384 --metric=cosine
 ```
 
 The schema lives only in `migrations/` (`0001_init.sql` onwards); there is no separate
-`schema.sql`. `migrations apply` records what it ran in a `d1_migrations` table. The
-existing production database was built by hand before that tracking existed, so **do not
-run `migrations apply` or `migrations list` against it** (both write `d1_migrations`)
-until it has been bootstrapped as described in
-[ADR 0001](docs/decisions/0001-migrations-and-remote-bootstrap.md). A local database
-needs no bootstrap: `npx wrangler d1 migrations apply nusmods --local`.
+`schema.sql`. `wrangler d1 migrations apply` records what it ran in a `d1_migrations`
+table. The existing production database was built by hand before that tracking existed,
+so **do not run `migrations apply --remote` or `migrations list --remote` against it**
+(both write `d1_migrations`) until it has been bootstrapped as described in
+[ADR 0001](docs/decisions/0001-migrations-and-remote-bootstrap.md). For a brand-new
+database the schema step is `npx wrangler d1 migrations apply <name> --remote`; a local
+database needs no bootstrap: `npx wrangler d1 migrations apply nusmods --local`.
 
 Then the eight filterable metadata indexes — **these cannot be added retroactively**, so
 they must exist before any vector is written:
