@@ -76,7 +76,8 @@ the network, not the Worker.
 - test `[B1 fixed] lexical management&sem=3&topK=50 returns all 31 sem-3 keyword matches, in rank order` (`test/full/findings.test.js`): over the full pinned corpus the search now returns all 31, equal to brute force, including the 6 production returned.
 - test `[B1 fixed] lexical sem=3 returns the sem-3 "management" matches however many sem-1 matches outrank them` (`test/findings/b1.test.js`): 20 strong sem-1 decoys + 3 sem-3 targets, `topK=1` → the top target (was 0 results).
 - test `[B1 fixed] hybrid sem=3 finds the targets through both halves`
-- test `filtered lexical equals brute force for every query x filter, and costs <= 8,000 rows read` (`test/full/lexical.test.js`): 440 queries (`test/fixtures/lexical-queries.json`) × 13 filters (each semester, ng, ng+sem1, ng+sem2, level 1/3/5/8, the largest faculty, credits 8), plus depths 3 and 15 for the selective filters: every result equals all matches ranked by bm25 then filtered.
+- test `filtered lexical equals brute force on a grid of single, two- and many-filter searches, and costs <= 8,000 rows read` (`test/full/lexical.test.js`): 419 queries (`test/fixtures/lexical-queries.json` plus broad ones) × every single filter value (62), plus 12 broad queries (> 2,000 matches each) × every two-filter combination (1,263) and 412 three-to-five-filter combinations, plus depths 3 and 15 for the selective values: 46,078 depth-50 searches, every result equals all matches ranked by bm25 then filtered; worst 7,772 rows read.
+- test `without a driver, SQLite drives faculty+credits from the credits index (the bug)` (`test/lexical-driver.test.js`), and the parametrised tests after it: with a driver the plan walks only that filter's index; `chooseDriver` picks the filter with the fewest rows (counts in `meta('facets')`), not the index SQLite picks by creation order.
 - `docs/evidence/phase1/lexical-cost.md`: rows-read distribution of that grid.
 - Before the fix: `docs/evidence/phase0/raw/B1_sem3.body`, live `count: 6` (BMC5415, TCX2003, BME5042, BMA5134, TCX2005, BME5046).
 
@@ -85,7 +86,9 @@ VIRTUAL generated columns `sem1..sem4` (and `ng_sem1/2`) added by
 `migrations/0006_fts_external.sql`, after a bounded FTS top-N (`LIMIT 2000` by rank). When that
 bound may have cut matches (fewer than `limit` survivors and more than 2,000 matches), a
 filter-driven plan walks the indexed filtered rows and probes FTS5 by rowid, so recall is exact
-and a search reads at most ~2 × 2,000 + 2,001 + the filtered set. Unfiltered queries keep the old
+and a search reads at most ~2 × 2,000 + 2,001 + the walk; the walk goes through the index of
+the active filter with the fewest rows (per-value counts in `meta('facets')`, other filters
+written `+m.col`). Unfiltered queries keep the old
 top-N SQL. Was: cause `src/index.js:223` (`bind(...binds, limit * 4)`) then `:226` (sem filter
 in JS).
 
@@ -255,8 +258,9 @@ hydration selects only `RESULT_COLUMNS` and reads only as many fused candidates 
 shows, topping up in order when a candidate is missing from D1, so the page is the same as
 before (`test/differential.test.js`); Vectorize no longer gets `returnMetadata`. The topK
 ceiling stays 50 on purpose (Phase 1 plan r2: a deeper list would change rankings). The
-Unicode tokeniser is workstream 1A's (`src/lexical.js`); B8 becomes `fixed` when that lands
-and its known-bug test flips.
+Unicode tokeniser is workstream 1A's (`src/lexical.js`) and is still open: PR #8 (1A's
+migration and filtered search) leaves it unchanged. B8 becomes `fixed` when it lands and its
+known-bug test flips.
 
 ### B9 · README names the wrong binding limit
 

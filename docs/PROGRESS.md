@@ -149,3 +149,28 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
   B1/B3 characterisation tests flipped. Mutation-checked: removing the update trigger's
   `'delete'`, its `WHEN` guard, or the lexical fallback each fails a test.
 - No remote commands, no deploy, no live requests. Corpus copied from the pinned `.data/`.
+
+## 2026-11-04 — Phase 1A review fixes (PR #8)
+
+- Rebased `phase1/fts` onto `main` after PR #7. Conflicts only in `docs/FINDINGS.md` (summary
+  table: B1/B3 `fixed` from #8, B4–B7 `fixed` from #7) and `docs/PROGRESS.md` (both entries
+  kept). B8 stays `reproduced`; its note now says the tokeniser is still open after #8.
+  `/module` still selects the 0001–0005 columns by name (`test/smoke.test.js` on a 0006 DB).
+- High (combined filters over the 8k budget): without `sqlite_stat1`, SQLite drove the
+  filter-driven plan from the most recently created equality index (`in`, Computing +
+  credits=4: 11,546 rows). `src/lexical.js` now picks the driver (`chooseDriver`) from per-value
+  counts in `meta('facets')` and writes every other filter `+m.col`. `/admin/facets` adds
+  `credits`, `semesters` and `ngSemesters` counts to the row (data, not schema:
+  `schema-0006.json` unchanged); the live `/facets` fallback reads 21,488 rows. Counts load once
+  per isolate, only when a search with two or more indexed filters reaches the filter-driven
+  plan. Without counts: `FIXED_DRIVER_ORDER` (sem3/4, faculty, ng, level, credits).
+- Grid (`test/full/lexical.test.js`): every single value × 419 queries, every two-filter
+  combination and 412 three-to-five-filter ones × 12 broad queries: 46,078 depth-50 searches,
+  0 mismatches, worst 7,772 rows read (single 6,989, two 7,646). Fixed order (no counts): exact,
+  worst 9,148, 101 of 6,700 over 8,000; logged, not gated. **Run `POST /admin/facets` right
+  after the deploy** so production has the counts (`docs/evidence/phase1/lexical-cost.md`).
+- Low: `test/migrations.node.test.js` bans `UPDATE … SET rowid` in `src/`, `scripts/`,
+  `migrations/`; the hazard is in 0006's header comment. Rebutted tie reorder: the reviewer's
+  churned-DB measurement is recorded in `docs/evidence/phase1/0006-cost.md`.
+- Full-corpus suite 37 s → ~4.5 min locally (CI job timeout 15 min). No remote commands, no
+  deploy, no live requests.
