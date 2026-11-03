@@ -41,12 +41,18 @@ npm run eval -- --variant typo-fix --baseline v0 --target-shapes typo
 npm run eval -- --variant cutoff --baseline v0 --change-kind cutoff
 npm run eval -- --variant head-unf --unfiltered           # secondary: filters dropped
 npm run eval:report -- --run head --baseline v0           # recompute from run files + qrels only
-npm run eval:pool -- --runs v0,head [--unjudged]          # blind pool for judges
+npm run eval -- --variant v0-lexical --ref eval-v0 --mode lexical   # pool variant: one retrieval half only
+npm run eval:pool -- --runs v0,head [--unjudged [--qrels <file>]]   # blind pool for judges
+npm run eval:judge -- <command>                           # judging (see "Judging" below)
 npm run eval:embed                                        # embed dev query texts missing from the cache
 npm run eval -- --variant rewrite --embed-missing         # embed missing texts (cap 500), then run; local only
 npm run test:eval                                         # self-test on the fixture set (CI)
 npm run eval:verify                                       # ciphertext sha256 vs manifests (CI, no key)
 ```
+
+`--mode hybrid|lexical|vector` (default `hybrid`, which sends no parameter) runs one retrieval
+half through the Worker's own `mode` parameter (present at `eval-v0` and HEAD) and records it as
+`config.mode`. It exists for pool variants only; gates compare shipped (hybrid) runs.
 
 `--set dev|holdout|test` (default `dev`; `--holdout` = `--set holdout`). `--set-dir <dir>` points
 a set at another directory (tests). It never moves a custody set's look ledger: `holdout` and
@@ -153,6 +159,86 @@ Small samples (every gate, every set):
   passes on a degenerate interval; the check's detail says `degenerate: no variance`.
 - **Small shapes.** A target-shape tripwire over fewer than 3 answerable queries has no usable
   interval and falls back to "point estimate ΔnDCG@10 ≥ 0".
+
+## Judging (2d)
+
+Protocol, grades, the judge and adjudicator instructions (verbatim) and worked examples:
+[`JUDGING.md`](JUDGING.md). Tooling: `eval/judge.mjs` (`npm run eval:judge`), pure logic in
+`lib/judging.mjs` and `lib/agreement.mjs`. The lead dispatches the judge agents; the tooling
+makes no LLM or Cloudflare call.
+
+```bash
+# 1. pool: top-10 of each variant, with the queries' filters
+npm run eval -- --variant v0 --ref eval-v0
+npm run eval -- --variant v0-lexical --ref eval-v0 --mode lexical
+npm run eval -- --variant v0-vector --ref eval-v0 --mode vector
+npm run eval:pool -- --runs v0,v0-lexical,v0-vector               # -> .eval-work/pool-dev.json
+# 2. rule pre-grading + packets (one per judge per ~12 queries)
+npm run eval:judge -- prepare --round r1 --judges claude-opus-5-5,gemini-3.1-pro-low
+#    -> .eval-work/judging/dev/plain-r1/packets/{A,B}-bNN.md: hand each path to one judge run
+# 3. collect (validates; reports planted-repeat self-consistency and drift)
+npm run eval:judge -- collect --round r1 [--slot A]
+# 4. agreement A vs B, overall and per shape
+npm run eval:judge -- agree --round r1 [--json .eval-work/agree-r1.json]
+# 5. adjudication of |A − B| ≥ 1: blind pass 1, then pass 2 with both grades
+npm run eval:judge -- adjudicate prepare --round r1 --adjudicator claude-sonnet-5-5
+npm run eval:judge -- adjudicate collect --round r1 --pass 1     # writes the pass-2 packets
+npm run eval:judge -- adjudicate collect --round r1 --pass 2
+# 6. merge into qrels (base = the existing qrels file, if any; version bumped)
+npm run eval:judge -- merge --round r1                            # -> eval/dev/qrels.json
+npm run eval:report -- --run v0                                   # scores with it
+# 7. human calibration (dev only)
+npm run eval:judge -- calibrate export [--n 150]                  # -> .eval-work/calibration-dev.csv
+npm run eval:judge -- calibrate import --csv <filled.csv> --baseline v0 --run <candidate>
+# later rounds: new variants' unjudged top-10 plus a 5% drift sample of old pairs
+npm run eval:pool -- --runs v0,cand --unjudged
+npm run eval:judge -- prepare --round r2 --judges … --drift-from eval/dev/qrels.json
+npm run eval:judge -- status --round r1
+npm run eval:judge -- clean --round r1 [--state]                  # removes the packet directory
+```
+
+Common flags: `--set` / `--holdout` / `--set-dir` as for `npm run eval`; `--work-dir` moves
+`.eval-work/judging/<set>/` (tests). `prepare`: `--pool <file>` (default
+`.eval-work/pool-<set>.json[.enc]`), `--batch-size 12`, `--repeat-rate 0.05`, `--drift-rate
+0.05`, `--seed 20261104` (every shuffle, item id, repeat and drift pick derives from it and is
+recorded in the state). `merge`: `--base <qrels>` or `--no-base`, `--out`, `--version`.
+
+- **Pre-grading.** A pooled candidate breaking its query's hard constraints (`constraints`, else
+  `filters`: semester, NG in that semester, level, credits, faculty; `violationReason` in
+  `lib/metrics.mjs`) is graded 0 by judge `rule` and left out of the packets.
+- **Packets.** One Markdown file per judge per batch, self-contained: the instructions and
+  examples from `JUDGING.md` verbatim, then per section the query text, intent and constraints in
+  words, each candidate (item id, code, title, level, credits, semesters, NG semesters,
+  faculty/department, description), the output path and a JSON template
+  `{ itemId: { grade, rationale } }`. A and B get the same pairs, shuffled independently.
+  About 5% of each batch's items come back in a later section under new ids (planted repeats).
+- **Collect** validates every section file: valid JSON object, every item graded, no unknown
+  ids, grades in {0, 1, 2}, a non-empty rationale, no other keys. A valid file replaces the
+  section's grades, an invalid one drops them; problems are listed by file, section and item
+  id, and the command exits 1. Re-run after the judge fixes its files.
+- **Agreement**: raw, Krippendorff's ordinal α, binary κ (grade ≥ 1), quadratic κ, overall and
+  per shape with n; `—` when undefined (one category only).
+- **Final grade** = `rule`, else A = B, else the adjudicator's pass-2 grade. `merge` refuses
+  while any pooled pair lacks one, refuses pairs already in the base qrels, and refuses a base
+  judged on another corpus.
+- **Qrels written** (`vnm-eval-qrels/1`): `version` bumped (`qrels-<set>-v1`, then `-v2`, …),
+  `corpus` (`moduleInfoSha256`, `ngSha256`) and `embedding` from the pool's runs, the base's
+  `groups` kept, a `judging` log of rounds, and per judgment
+  `{ grade, source: rule|agreed|adjudicated, round, judges }`, where `judges` maps each judge id
+  to `{ slot, grade, rationale }` (the adjudicator's also carries its `blind` pass-1 grade).
+- **Calibration** exports ~150 pairs stratified by grade and by shape (rule pairs excluded) as a
+  blind CSV (`your_grade` to fill). The import reports agreement of Jacob's grades with A, B and
+  the final grade, and Δ nDCG@10 (candidate − baseline) with its sign under A's, B's, the final
+  and, on the calibrated subset, Jacob's grades. Refused for encrypted sets.
+
+**Encrypted sets (custodian only).** Pool with `--custodian`, then the same commands with
+`--holdout`. The round's state (`.eval-work/judging/holdout/state-<round>.json.enc`) and the
+qrels (`eval/holdout/qrels.json.enc`, added to `MANIFEST.json`) are written only as ciphertext.
+Packets and judge outputs exist in plaintext only in `.eval-work/judging/holdout/plain-<round>/`
+(mode 0700, git-ignored), and `prepare` prints the command that deletes it:
+`npm run eval:judge -- clean --holdout --round <round>`. Run it once `merge` has run (collect
+stores everything in the encrypted state). Errors print only their class; validation problems
+(file, section, item id, value type) and aggregate numbers are printed.
 
 ## Embeddings
 

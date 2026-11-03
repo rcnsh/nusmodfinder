@@ -194,6 +194,13 @@ describe('sets', () => {
     expect(searchParams({ id: 'a', text: 'ml', filters: { ng: false } })).toEqual({ q: 'ml' });
     expect(searchParams({ id: 'a', text: 'ml', filters: { sem: 2 } }, { unfiltered: true })).toEqual({ q: 'ml' });
   });
+
+  it('sends a retrieval mode only when it is not the shipped hybrid (pool variants)', () => {
+    expect(searchParams({ id: 'a', text: 'ml', filters: { sem: 2 } }, { mode: 'lexical' })).toEqual({ q: 'ml', sem: '2', mode: 'lexical' });
+    expect(searchParams({ id: 'a', text: 'ml' }, { mode: 'vector' })).toEqual({ q: 'ml', mode: 'vector' });
+    expect(searchParams({ id: 'a', text: 'ml' }, { mode: 'hybrid' })).toEqual({ q: 'ml' });
+    expect(() => searchParams({ id: 'a', text: 'ml' }, { mode: 'dense' })).toThrow(/mode must be hybrid, lexical or vector/);
+  });
 });
 
 describe('embedding keys and token estimates', () => {

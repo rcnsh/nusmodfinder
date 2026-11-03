@@ -14,6 +14,7 @@
     "eval": "node eval/cli.mjs run",
     "eval:report": "node eval/cli.mjs report",
     "eval:pool": "node eval/cli.mjs pool",
+    "eval:judge": "node eval/judge.mjs",
     "eval:embed": "node scripts/embed.mjs",
     "eval:verify": "node scripts/holdout.mjs verify",
     "test:eval": "node eval/selftest.mjs",

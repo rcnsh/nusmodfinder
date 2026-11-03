@@ -22,6 +22,7 @@ const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
  *   ref?: string,
  *   embedding?: string,
  *   unfiltered?: boolean,
+ *   mode?: string,
  *   output?: string,
  *   log?: (line: string) => void,
  * }} RunOptions
@@ -32,7 +33,7 @@ const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
  * @returns {Promise<{ ok: boolean, output: string, problems: string[] }>}
  */
 export async function runVariant(options) {
-  const { set, variant, ref, unfiltered = false } = options;
+  const { set, variant, ref, unfiltered = false, mode = 'hybrid' } = options;
   const log = options.log ?? ((/** @type {string} */ l) => console.log(l));
   const key = set.encrypted ? await setKey() : null;
   const querySet = await loadQueries(set);
@@ -82,7 +83,7 @@ export async function runVariant(options) {
       sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'),
       count: querySet.queries.length,
     },
-    config: { topK: 'worker default', filters: !unfiltered },
+    config: { topK: 'worker default', filters: !unfiltered, mode },
   };
   const reporterOptions = {
     output,
@@ -95,7 +96,7 @@ export async function runVariant(options) {
 
   /** @type {EvalPayload} */
   const payload = {
-    queries: querySet.queries.map((q) => ({ id: q.id, params: searchParams(q, { unfiltered }) })),
+    queries: querySet.queries.map((q) => ({ id: q.id, params: searchParams(q, { unfiltered, mode }) })),
     corpus: corpus.modules,
     lookup,
     seedTimeoutMs: 900_000,
