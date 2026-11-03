@@ -108,17 +108,10 @@ export const INDEXED_PROPERTIES = ['sem1', 'sem2', 'sem3', 'sem4', 'level', 'cre
  * @typedef {{ id: string, values: number[], metadata?: Record<string, unknown> }} StoredVector
  */
 
-/**
- * @param {Record<string, unknown> | undefined} metadata
- * @param {Record<string, unknown>} filter
- */
-function matchesFilter(metadata, filter) {
+/** @param {Record<string, unknown>} filter */
+function validateFilter(filter) {
   for (const [key, cond] of Object.entries(filter)) {
-    const actual = metadata?.[key];
-    if (cond === null || typeof cond !== 'object' || Array.isArray(cond)) {
-      if (actual !== cond) return false;
-      continue;
-    }
+    if (cond === null || typeof cond !== 'object' || Array.isArray(cond)) continue;
     // Cloudflare docs: an operator object holds one operator, except that one
     // upper bound ($lt/$lte) may pair with one lower bound ($gt/$gte).
     const ops = Object.keys(cond);
@@ -129,20 +122,41 @@ function matchesFilter(metadata, filter) {
       throw new Error(`fake Vectorize: operator combination ${ops.join(', ')} on "${key}" is not allowed`);
     }
     for (const [op, expected] of Object.entries(cond)) {
-      if (op === '$eq') { if (actual !== expected) return false; }
-      else if (op === '$ne') { if (actual === expected) return false; }
-      else if (op === '$in' || op === '$nin') {
+      if (op === '$eq' || op === '$ne') continue;
+      if (op === '$in' || op === '$nin') {
         if (!Array.isArray(expected)) throw new Error(`fake Vectorize: ${op} needs an array for "${key}"`);
-        if (expected.includes(actual) === (op === '$nin')) return false;
       } else if (op === '$lt' || op === '$lte' || op === '$gt' || op === '$gte') {
         if (typeof expected !== 'string' && typeof expected !== 'number') {
           throw new Error(`fake Vectorize: ${op} on "${key}" needs a string or number, got ${typeof expected}`);
         }
+      } else {
+        throw new Error(`fake Vectorize: unsupported filter operator "${op}" on "${key}"`);
+      }
+    }
+  }
+}
+
+/**
+ * Assumes validateFilter() already accepted `filter`.
+ * @param {Record<string, unknown> | undefined} metadata
+ * @param {Record<string, unknown>} filter
+ */
+function matchesFilter(metadata, filter) {
+  for (const [key, cond] of Object.entries(filter)) {
+    const actual = metadata?.[key];
+    if (cond === null || typeof cond !== 'object' || Array.isArray(cond)) {
+      if (actual !== cond) return false;
+      continue;
+    }
+    for (const [op, expected] of Object.entries(cond)) {
+      if (op === '$eq') { if (actual !== expected) return false; }
+      else if (op === '$ne') { if (actual === expected) return false; }
+      else if (op === '$in' || op === '$nin') {
+        if (/** @type {unknown[]} */ (expected).includes(actual) === (op === '$nin')) return false;
+      } else {
         if (typeof actual !== typeof expected) return false;
         const a = /** @type {any} */ (actual), e = /** @type {any} */ (expected);
         if (op === '$lt' ? !(a < e) : op === '$lte' ? !(a <= e) : op === '$gt' ? !(a > e) : !(a >= e)) return false;
-      } else {
-        throw new Error(`fake Vectorize: unsupported filter operator "${op}" on "${key}"`);
       }
     }
   }
@@ -185,6 +199,7 @@ export class FakeVectorize extends Switchable {
     if (!Number.isInteger(topK) || topK < 1 || topK > ceiling) {
       throw new Error(`fake Vectorize: topK ${topK} outside 1..${ceiling} for these return options`);
     }
+    if (options.filter) validateFilter(options.filter);
     if (vector.length !== EMBEDDING_DIMS) {
       throw new Error(`fake Vectorize: query has ${vector.length} dimensions, index has ${EMBEDDING_DIMS}`);
     }
@@ -210,8 +225,9 @@ export class FakeVectorize extends Switchable {
   async upsert(vectors) {
     await this.gate('upsert', [vectors]);
     for (const v of vectors) {
-      if (!(Array.isArray(v.values) || ArrayBuffer.isView(v.values)) || v.values.length !== EMBEDDING_DIMS) {
-        throw new Error(`fake Vectorize: vector "${v.id}" has ${v.values?.length} dimensions, index expects ${EMBEDDING_DIMS}`);
+      const okType = Array.isArray(v.values) || v.values instanceof Float32Array || v.values instanceof Float64Array;
+      if (!okType || v.values.length !== EMBEDDING_DIMS || !Array.from(v.values).every((x) => typeof x === 'number' && Number.isFinite(x))) {
+        throw new Error(`fake Vectorize: vector "${v.id}" is not ${EMBEDDING_DIMS} finite numbers (got ${v.values?.length} values)`);
       }
     }
     for (const v of vectors) this.vectors.set(v.id, { id: v.id, values: [...v.values], metadata: v.metadata });

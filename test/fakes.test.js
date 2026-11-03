@@ -61,6 +61,19 @@ describe('FakeVectorize', () => {
     expect((await index.query(q, { filter: { level: { $gt: 2, $lt: 4 } } })).matches.map((m) => m.id)).toEqual(['A']);
   });
 
+  it('validates the filter even when no vector reaches it', async () => {
+    const empty = new FakeVectorize();
+    await expect(empty.query(hashEmbed('x'), { filter: { level: { $eq: 1, $lt: 5 } } })).rejects.toThrow(/not allowed/);
+    await expect(empty.query(hashEmbed('x'), { filter: { level: 1, ng: { $gt: false } } })).rejects.toThrow(/string or number/);
+  });
+
+  it('rejects non-float typed arrays and non-finite values', async () => {
+    const index = new FakeVectorize();
+    await expect(index.upsert([{ id: 'U', values: /** @type {any} */ (new Uint8Array(384)) }])).rejects.toThrow(/finite numbers/);
+    await expect(index.upsert([{ id: 'N', values: new Array(384).fill(NaN) }])).rejects.toThrow(/finite numbers/);
+    await expect(index.upsert([{ id: 'S', values: new Array(384) }])).rejects.toThrow(/finite numbers/);
+  });
+
   it('accepts typed-array vectors', async () => {
     const index = new FakeVectorize();
     await expect(index.upsert([{ id: 'F', values: /** @type {any} */ (new Float32Array(384)) }])).resolves.toBeDefined();
@@ -68,7 +81,7 @@ describe('FakeVectorize', () => {
 
   it('rejects vectors of the wrong dimension on upsert', async () => {
     const index = new FakeVectorize();
-    await expect(index.upsert([{ id: 'A', values: [1, 2, 3] }])).rejects.toThrow(/dimensions/);
+    await expect(index.upsert([{ id: 'A', values: [1, 2, 3] }])).rejects.toThrow(/finite numbers/);
   });
 
   it('enforces the topK ceilings', async () => {
