@@ -69,16 +69,39 @@ describe('migrations/0006_fts_external.sql', () => {
 describe('INSERT OR REPLACE', () => {
   // On an external-content FTS table, REPLACE's implicit delete fires no
   // delete trigger (recursive_triggers is off), so the old row's index
-  // entries stay behind and integrity-check fails.
+  // entries stay behind and integrity-check fails. UPDATE OR REPLACE onto an
+  // existing code does the same (PR #8 review round 3).
+  const REPLACES_MODULES = /\b(?:(?:INSERT|UPDATE)\s+OR\s+REPLACE(?:\s+INTO)?|REPLACE\s+INTO)\s+["`[]?(?:main\s*\.\s*)?["`[]?modules\b(?!_)/i;
+
+  it('the pattern catches every REPLACE form on modules and nothing else', () => {
+    for (const sql of ['INSERT OR REPLACE INTO modules VALUES (1)', 'replace into "modules" (code) values (?)', 'UPDATE OR REPLACE modules SET code = ?',
+      'update or replace [modules] set code = ?', 'INSERT OR REPLACE INTO main.modules (code) VALUES (?)']) {
+      expect(REPLACES_MODULES.test(sql), sql).toBe(true);
+    }
+    for (const sql of ['INSERT OR REPLACE INTO meta (key) VALUES (?)', 'UPDATE OR REPLACE modules_fts SET x = 1', "SELECT replace(title, 'a', 'b') FROM modules"]) {
+      expect(REPLACES_MODULES.test(sql), sql).toBe(false);
+    }
+  });
+
+  it('UPDATE OR REPLACE onto an existing code really corrupts the index (why it is banned)', async () => {
+    const { DatabaseSync } = await import('node:sqlite');
+    const db = new DatabaseSync(':memory:');
+    for (const f of readdirSync(join(ROOT, 'migrations')).filter((x) => x.endsWith('.sql')).sort()) db.exec(read(join('migrations', f)));
+    db.exec("INSERT INTO modules (code, title, description, acad_year, text_hash) VALUES ('A1', 'alpha', 'alpha one', 'y', 'h'), ('B2', 'beta', 'beta two', 'y', 'h')");
+    db.exec("UPDATE OR REPLACE modules SET code = 'B2' WHERE code = 'A1'");
+    expect(() => db.exec("INSERT INTO modules_fts(modules_fts, rank) VALUES('integrity-check', 1)")).toThrow();
+  });
+
   it('is never used on modules anywhere in src/, scripts/, migrations/ or test/', () => {
     /** @param {string} dir @returns {string[]} */
     const files = (dir) => readdirSync(join(ROOT, dir), { recursive: true, encoding: 'utf8' })
       .filter((f) => /\.(m?js|sql|py)$/.test(f)).map((f) => join(dir, f));
     const offenders = [];
     for (const f of [...files('src'), ...files('scripts'), ...files('migrations'), ...files('test')]) {
-      if (f.startsWith(join('test', 'fixtures'))) continue;
+      // This file's own examples (the pattern test, the rowid trigger's refused forms) are not uses.
+      if (f.startsWith(join('test', 'fixtures')) || f === join('test', 'migrations.node.test.js')) continue;
       const text = read(f);
-      if (/\b(?:INSERT\s+OR\s+REPLACE|REPLACE)\s+INTO\s+["`]?modules\b(?!_)/i.test(text)) offenders.push(f);
+      if (REPLACES_MODULES.test(text)) offenders.push(f);
     }
     expect(offenders).toEqual([]);
   });
