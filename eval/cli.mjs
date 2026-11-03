@@ -99,6 +99,19 @@ function assertComparable(runs) {
   }
 }
 
+/**
+ * Gates compare shipped-mode runs: a `--mode lexical|vector` run is a pool
+ * variant (a run file without `config.mode` predates the option: hybrid).
+ * @param {import('./lib/metrics.mjs').RunFile[]} runs
+ */
+function assertGateable(runs) {
+  for (const r of runs) {
+    const mode = /** @type {any} */ (r.config)?.mode ?? 'hybrid';
+    // Thrown, not fail(): `report` on an encrypted set holds the ledger lock here.
+    if (mode !== 'hybrid') throw new RunFileError(`run ${r.variant} used --mode ${mode}, a pool variant; gates compare hybrid runs only`);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // dev / fixture: full report
 
@@ -135,6 +148,7 @@ async function fullReport(set, candPath, basePath, a) {
   const json = { set: set.name, queries: querySet.version, qrels: qrels.version, candidate: cand.variant, summary: summarise(candScores), shapes: byShape(candScores) };
   let cmp = null;
   if (base && baseScores) {
+    assertGateable([base, cand]);
     cmp = compare(baseScores, candScores);
     console.log(`\n${comparisonTable(cmp, base.variant, cand.variant, qrels.version)}`);
     const v = gateFor(set.gate, cmp, changeOf(a));
@@ -174,6 +188,7 @@ async function verdictReport(set, candPath, basePath, a, reserved = null) {
     const cand = await readRun(set, candPath);
     const base = await readRun(set, basePath);
     assertComparable([base, cand]);
+    assertGateable([base, cand]);
     assertSameCorpus(qrels, [base, cand]);
     const candScores = scoreRun(cand, querySet.queries, qrels);
     const baseScores = scoreRun(base, querySet.queries, qrels);
@@ -216,6 +231,8 @@ async function cmdRun(a) {
   const set = setOf(a);
   if (a['embed-missing'] && process.env.CI) fail('--embed-missing calls Workers AI and never runs in CI');
   if (!MODES.includes(/** @type {string} */ (a.mode))) fail(`--mode must be one of ${MODES.join(', ')}, got ${a.mode}`);
+  // Before any look is reserved: a pool variant never meets a gate.
+  if (a.mode !== 'hybrid' && (a.baseline || (setOf(a).encrypted && !a['store-only']))) fail('--mode lexical|vector makes a pool variant; it takes no --baseline and no verdict (use --store-only on an encrypted set)');
   /** @type {string | null} */
   let reserved = null;
   if (set.encrypted) {

@@ -215,7 +215,11 @@ recorded in the state). `merge`: `--base <qrels>` or `--no-base`, `--out`, `--ve
 - **Collect** validates every section file: valid JSON object, every item graded, no unknown
   ids, grades in {0, 1, 2}, a non-empty rationale, no other keys. A valid file replaces the
   section's grades, an invalid one drops them; problems are listed by file, section and item
-  id, and the command exits 1. Re-run after the judge fixes its files.
+  id, and the command exits 1. Re-run after the judge fixes its files. Once `adjudicate
+  prepare` has run, the judges' grades are frozen (`collect` refuses), and pass 1 closes when
+  the pass-2 packets are written, so the stored `blind` grade really was given blind.
+- Judge ids `rule` and `adjudicator` are reserved. `--mode lexical|vector` runs are pool
+  variants: `npm run eval` refuses them with `--baseline`, and every gate refuses them.
 - **Agreement**: raw, Krippendorff's ordinal α, binary κ (grade ≥ 1), quadratic κ, overall and
   per shape with n; `—` when undefined (one category only).
 - **Final grade** = `rule`, else A = B, else the adjudicator's pass-2 grade. `merge` refuses

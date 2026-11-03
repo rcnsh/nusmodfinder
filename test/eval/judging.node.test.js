@@ -149,6 +149,11 @@ describe('buildRound', () => {
     expect(Object.values(makeRound({ repeatRate: 0 }).items).some((i) => i.kind === 'repeat')).toBe(false);
   });
 
+  it('refuses the reserved ids rule and adjudicator as judge ids', () => {
+    expect(() => makeRound({ judges: { A: 'rule', B: 'gemini' } })).toThrow(/reserved/);
+    expect(() => makeRound({ judges: { A: 'opus', B: 'adjudicator' } })).toThrow(/reserved/);
+  });
+
   it('refuses a pool query that is not in the query set, and identical judges', () => {
     expect(() => makeRound({ queries: QUERIES.slice(1) })).toThrow(/not in the dev query set/);
     expect(() => makeRound({ judges: { A: 'same', B: 'same' } })).toThrow(/different judges/);
@@ -214,7 +219,9 @@ describe('validateSectionOutput', () => {
   it('an ungraded item', () => expect(v({ iaaaaaa: good.iaaaaaa })).toEqual(['item ibbbbbb not graded']));
   it('an unknown id, named only when it looks like an id', () => {
     expect(v({ ...good, izzzzzz: { grade: 1, rationale: 'x' } })).toEqual(['unknown item id "izzzzzz"']);
-    expect(v({ ...good, 'SECRET text here': 1 })).toEqual(['unknown item id a key that is not an item id']);
+    expect(v({ ...good, 'SECRET text here': 1 })).toEqual(['unknown item id (a key that is not an item id)']);
+    // Words a judge used as keys (they may quote an encrypted query) are never printed.
+    expect(v({ ...good, management: 1, in: 2 })).toEqual(['unknown item id (a key that is not an item id)', 'unknown item id (a key that is not an item id)']);
   });
   it('grades outside {0,1,2}', () => {
     expect(v({ ...good, iaaaaaa: { grade: 3, rationale: 'x' } })).toEqual(['item iaaaaaa: grade 3, must be 0, 1 or 2']);
@@ -314,6 +321,7 @@ describe('adjudication', () => {
     gradeAll(round, 'A', () => 1);
     expect(() => buildAdjudication(round, { adjudicator: 'adj' })).toThrow(/collect both judges first/);
     expect(() => buildAdjudication(setup(), { adjudicator: 'judge-a' })).toThrow(/must not be one of the judges/);
+    expect(() => buildAdjudication(setup(), { adjudicator: 'rule' })).toThrow(/reserved/);
   });
 
   it('takes exactly the pairs where |A − B| ≥ 1, blind in pass 1, both grades in pass 2', () => {

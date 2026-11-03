@@ -233,6 +233,10 @@ async function cmdCollect(a) {
   const p = paths(set, a);
   const round = await readState(set, p);
   if (!existsSync(p.plain)) usage(`${p.plain} is gone (cleaned); nothing to collect`);
+  // Adjudication was built from the judges' grades as they stood; changing them
+  // now could leave a disagreement with no adjudication, or one made against
+  // grades that no longer exist.
+  if (round.adjudication) usage('this round is already in adjudication; the judges\' grades are frozen (start a new round to re-judge)');
   const slots = a.slot ? [a.slot] : [...JUDGE_SLOTS];
   for (const s of slots) if (!JUDGE_SLOTS.includes(/** @type {any} */ (s))) usage('--slot must be A or B');
   /** @type {string[]} */
@@ -326,6 +330,8 @@ async function cmdAdjudicate(a, sub) {
   const pass = a.pass === '1' ? 1 : a.pass === '2' ? 2 : usage('--pass 1 or --pass 2');
   if (!existsSync(p.plain)) usage(`${p.plain} is gone (cleaned); nothing to collect`);
   if (pass === 2 && !adj.pass2Issued) usage('pass-2 packets have not been written; collect pass 1 first');
+  // Pass 1 is blind only until the pass-2 packets (both judges' grades) exist.
+  if (pass === 1 && adj.pass2Issued) usage('pass 1 is closed: the pass-2 packets showing both judges\' grades are out, so a new pass-1 grade would not be blind');
   const store = pass === 1 ? adj.pass1 : adj.pass2;
   const r = await collectAsync(adj.batches, store, (b, s) => outputPath(p.out, `${ADJUDICATOR}/p${pass}`, b, s), `adjudicator pass ${pass}`);
   const total = Object.keys(adj.items).length;

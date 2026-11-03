@@ -199,6 +199,8 @@ export function buildRound(o) {
   if (!(batchSize >= 1)) throw new Error('batch size must be at least 1');
   if (!(repeatRate >= 0 && repeatRate < 1)) throw new Error('repeat rate must be in [0, 1)');
   if (o.judges.A === o.judges.B) throw new Error('judges A and B must be different judges');
+  assertJudgeId(o.judges.A);
+  assertJudgeId(o.judges.B);
   const byId = new Map(o.queries.map((q) => [q.id, q]));
   for (const q of o.pool.queries) if (!byId.has(q.id)) throw new Error(`the pool has a query that is not in the ${o.set} query set; re-pool from current runs`);
   const { rule, toJudge } = preGrade(o.pool);
@@ -438,8 +440,18 @@ export function renderJudgePacket(round, slot, batchId, o) {
 // ---------------------------------------------------------------------------
 // validation and collection
 
-/** A judge-written key, printed only when it looks like an item id. */
-const safeKey = (/** @type {string} */ k) => (/^[a-z0-9]{1,12}$/i.test(k) ? `"${k}"` : 'a key that is not an item id');
+/**
+ * A judge-written key, printed only when it has the item-id form: any other
+ * key may be words of the query (an encrypted set's content).
+ */
+const safeKey = (/** @type {string} */ k) => (/^i[0-9a-z]{6}$/.test(k) ? `"${k}"` : '(a key that is not an item id)');
+
+/** Ids the qrels' `judges` objects reserve; a judge may not be named after them. */
+export const RESERVED_JUDGE_IDS = ['rule', 'adjudicator'];
+/** @param {string} id */
+function assertJudgeId(id) {
+  if (RESERVED_JUDGE_IDS.includes(id)) throw new Error(`"${id}" is reserved and cannot name a judge`);
+}
 
 /**
  * Problems with one section's output; empty means valid. Messages name item
@@ -605,6 +617,7 @@ export function buildAdjudication(round, o) {
   const missing = judgedPairKeys(round).filter((k) => !slotPairGrades(round, 'A').has(k) || !slotPairGrades(round, 'B').has(k));
   if (missing.length) throw new Error(`${missing.length} pair(s) lack a grade from judge A or B; collect both judges first`);
   if (Object.values(round.judges).includes(o.adjudicator)) throw new Error('the adjudicator must not be one of the judges');
+  assertJudgeId(o.adjudicator);
   const seed = deriveSeed(round.seed, 'adjudication');
   const disagreements = agreementUnits(round).filter((u) => Math.abs(u.a - u.b) >= 1);
   /** @type {Map<string, string[]>} */

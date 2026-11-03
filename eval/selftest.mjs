@@ -332,6 +332,11 @@ ok(node(CLI, ['run', '--set', 'fixture', '--variant', 'selftest-unf', '--unfilte
 assert.equal((await json(lexPath)).config.mode, 'lexical', 'a --mode lexical run records its mode');
 assert.equal(head.config.mode, 'hybrid');
 assert.match(node(CLI, ['run', '--set', 'fixture', '--variant', 'x', '--mode', 'dense']).out, /--mode must be one of hybrid, lexical, vector/);
+// A pool variant never meets a gate.
+assert.match(node(CLI, ['run', '--set', 'fixture', '--variant', 'x', '--mode', 'lexical', '--baseline', v0Path]).out, /takes no --baseline/);
+const lexGate = node(CLI, ['report', '--set', 'fixture', '--run', lexPath, '--baseline', v0Path]);
+assert.notEqual(lexGate.code, 0);
+assert.match(lexGate.out, /used --mode lexical, a pool variant; gates compare hybrid runs only/);
 const pool4 = join(WORK, 'pool-fixture.json');
 ok(node(CLI, ['pool', '--set', 'fixture', '--runs', [v0Path, headPath, lexPath, unfPath].join(','), '--out', pool4]), 'pool of four runs');
 const poolJson = await json(pool4);
@@ -389,6 +394,8 @@ assert.ok(!/Grader 1|scripted A grade|scripted B grade/.test(p1), 'pass 1 is bli
 assert.equal(node(JUDGE, ['adjudicate', 'collect', ...fx, '--pass', '2']).code, 1, 'pass 2 cannot be collected before pass 1');
 await scriptedJudge(state, outDir, 'adjudicator/p1', () => 1);
 ok(node(JUDGE, ['adjudicate', 'collect', ...fx, '--pass', '1']), 'adjudicate collect pass 1');
+assert.match(node(JUDGE, ['adjudicate', 'collect', ...fx, '--pass', '1']).out, /pass 1 is closed/, 'pass 1 cannot change once both grades are shown');
+assert.match(node(JUDGE, ['collect', ...fx]).out, /already in adjudication; the judges' grades are frozen/);
 const p2 = await readFile(join(plainDir, 'packets', 'adj-p2-b01.md'), 'utf8');
 assert.match(p2, /- Grader 1: grade [012]: "scripted [AB] grade"/);
 assert.match(p2, /- Your first-pass grade 1: "scripted adjudicator\/p1 grade"/);
