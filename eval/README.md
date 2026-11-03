@@ -194,7 +194,15 @@ a 13th holdout look (2nd test-set look) is refused before any retrieval runs. Ev
 except the header and separator lines counts, however it is spaced; a row whose set cell is not
 a known set counts against every set. A look is also refused (`LedgerTamperError`) when the
 ledger has fewer rows than its copy at `HEAD` or `origin/main`, or is missing while git has it:
-the ledger is append-only, so commit it after every look. CI never has the
+the ledger is append-only, so commit it after every look.
+
+Parallel looks cannot pass the limit. Check-then-append runs under an exclusive lock,
+`<ledger>.lock` (created with `O_EXCL`, removed when done). A second eval waits up to 2 minutes
+and then fails with `LedgerLockError`. A lock older than 30 minutes is treated as abandoned and
+removed, with a message saying so. `eval:report` checks, computes and appends inside the lock.
+`npm run eval` reserves its look before retrieval starts: it appends a `reserved <token>` row,
+which counts as a look. It then replaces that row with the verdict, or with `aborted` (the run
+failed) or `unjudged` (judged@10 < 100%); either way the look stays counted. CI never has the
 key: `npm run eval:verify` checks only that each ciphertext matches its `MANIFEST.json` sha256.
 
 ## Fixture set and self-test

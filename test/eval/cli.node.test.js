@@ -2,13 +2,14 @@
 // The eval CLI's `report` path end to end on a small encrypted set built here
 // with a throwaway key (no workerd, no Cloudflare). Run files are synthetic:
 // every returned code is judged, so the set is fully judged.
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { generateKey, readKey, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
+import { appendLook, readLedger } from '../../eval/lib/ledger.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
@@ -124,4 +125,32 @@ describe('set-bound ciphertexts (review finding 2)', () => {
     expect(r.code).toBe(1);
     expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (DecryptionError); details withheld\n`);
   });
+});
+
+/**
+ * @param {string[]} args
+ * @returns {Promise<{ code: number | null, out: string }>}
+ */
+function cliAsync(args) {
+  return new Promise((done) => {
+    const child = spawn(process.execPath, [CLI, ...args], { cwd: REPO, env: { ...process.env, VNM_HOLDOUT_KEY_FILE: keyFile, FORCE_COLOR: '0' } });
+    let out = '';
+    child.stdout.on('data', (d) => { out += d; });
+    child.stderr.on('data', (d) => { out += d; });
+    child.on('close', (code) => done({ code, out }));
+  });
+}
+
+describe('parallel looks (review finding 3)', () => {
+  it('three parallel reports from 11 ledger rows record exactly one look', async () => {
+    const { dir } = await makeSet('parallel');
+    const ledger = join(dir, 'ledger.md');
+    for (let i = 0; i < 11; i++) {
+      await appendLook(ledger, { date: '2026-01-01', set: SET, commit: '0000000', variant: `filler-${i}`, baseline: 'base', verdict: 'fail', ndcg: '+0.000', p5: '+0.000' });
+    }
+    const runs = await Promise.all([1, 2, 3].map(() => cliAsync(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base'])));
+    expect(runs.map((r) => r.code).sort()).toEqual([0, 1, 1]);
+    for (const r of runs.filter((x) => x.code === 1)) expect(r.out).toBe(`eval: ${SET} run failed (LookLimitError); details withheld\n`);
+    expect(await readLedger(ledger)).toHaveLength(12);
+  }, 60_000);
 });

@@ -9,11 +9,18 @@
 //   against every set;
 // - a look is refused if the ledger has fewer rows than git's copy at HEAD or
 //   origin/main, or if the file is missing while git has it.
+//
+// Concurrency: check-then-append runs under an exclusive lock file
+// (`<ledger>.lock`, created with O_EXCL), so parallel looks cannot all pass
+// the limit. `run` reserves its look (a `reserved` row, which counts) before
+// retrieval starts and finalises that row with the verdict afterwards.
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { appendFile, readFile, writeFile } from 'node:fs/promises';
-import { isAbsolute, relative, sep } from 'node:path';
-import { LedgerTamperError, LookLimitError } from './errors.mjs';
+import { randomBytes } from 'node:crypto';
+import { closeSync, existsSync, openSync, rmSync, statSync, writeSync } from 'node:fs';
+import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, relative, sep } from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { LedgerLockError, LedgerTamperError, LookLimitError } from './errors.mjs';
 import { REPO } from './sets.mjs';
 
 const HEADER = `# Holdout ledger
@@ -138,12 +145,125 @@ export function formatRow(row) {
 }
 
 /**
+ * Appends a row. Callers that enforce the limit hold the lock (recordLook,
+ * reserveLook); this alone does not check anything.
  * @param {string} path
- * @param {LedgerRow} row
+ * @param {Omit<LedgerRow, 'verdict' | 'ndcg' | 'p5'> & Partial<LedgerRow>} row
+ * @param {string} [line] a preformatted line
  */
-export async function appendLook(path, row) {
-  if (!existsSync(path)) await writeFile(path, HEADER);
-  await appendFile(path, `${formatRow(row)}\n`);
+export async function appendLook(path, row, line) {
+  if (!existsSync(path)) {
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(path, HEADER);
+  }
+  await appendFile(path, `${line ?? formatRow(/** @type {LedgerRow} */ (row))}\n`);
 }
 
 export const LEDGER_HEADER = HEADER;
+
+/** A lock older than this is abandoned (its eval crashed) and is removed. */
+export const LOCK_STALE_MS = 30 * 60 * 1000;
+/** How long to wait for another eval to release the lock. */
+const LOCK_WAIT_MS = 120_000;
+
+/**
+ * Runs `fn` holding the ledger's exclusive lock. Waits up to `waitMs` for
+ * another holder; removes a lock older than 30 minutes, saying so.
+ * @template T
+ * @param {string} path the ledger
+ * @param {() => Promise<T>} fn
+ * @param {{ waitMs?: number }} [options]
+ * @returns {Promise<T>}
+ */
+export async function withLedgerLock(path, fn, options = {}) {
+  const lock = `${path}.lock`;
+  const waitMs = options.waitMs ?? LOCK_WAIT_MS;
+  const start = Date.now();
+  /** @type {number} */
+  let fd;
+  for (;;) {
+    try {
+      fd = openSync(lock, 'wx');
+      break;
+    } catch (err) {
+      const code = /** @type {NodeJS.ErrnoException} */ (err).code;
+      if (code === 'ENOENT') { await mkdir(dirname(lock), { recursive: true }); continue; }
+      if (code !== 'EEXIST') throw err;
+    }
+    let held;
+    try { held = statSync(lock); } catch { continue; } // released in the meantime
+    const age = Date.now() - held.mtimeMs;
+    if (age > LOCK_STALE_MS) {
+      // Re-check it is the same lock file before removing it.
+      let again;
+      try { again = statSync(lock); } catch { continue; }
+      if (again.ino === held.ino && again.mtimeMs === held.mtimeMs) {
+        console.error(`eval: removing a stale ledger lock ${lock} (${Math.floor(age / 60_000)} minutes old; a lock older than 30 minutes is treated as abandoned)`);
+        rmSync(lock, { force: true });
+      }
+      continue;
+    }
+    if (Date.now() - start >= waitMs) {
+      throw new LedgerLockError(`another eval holds the ledger lock ${lock} (taken ${Math.round(age / 1000)} s ago); try again when it finishes. A lock older than 30 minutes is treated as stale and removed.`);
+    }
+    await sleep(25 + Math.floor(Math.random() * 50));
+  }
+  try {
+    try { writeSync(fd, `${process.pid} ${new Date().toISOString()}\n`); } finally { closeSync(fd); }
+    return await fn();
+  } finally {
+    rmSync(lock, { force: true });
+  }
+}
+
+/**
+ * Checks the limit and appends the row, atomically.
+ * @param {string} path
+ * @param {number} max
+ * @param {LedgerRow} row
+ * @param {{ repo?: string, waitMs?: number }} [options]
+ */
+export function recordLook(path, max, row, options = {}) {
+  return withLedgerLock(path, async () => {
+    await assertLookAllowed(path, row.set, max, options);
+    await appendLook(path, row);
+  }, options);
+}
+
+/**
+ * Reserves a look before retrieval starts: checks the limit and appends a
+ * `reserved <token>` row, atomically. The row counts as a look from now on.
+ * @param {string} path
+ * @param {number} max
+ * @param {Omit<LedgerRow, 'verdict' | 'ndcg' | 'p5'>} row
+ * @param {{ repo?: string, waitMs?: number }} [options]
+ * @returns {Promise<string>} the reserved line, for finaliseLook
+ */
+export function reserveLook(path, max, row, options = {}) {
+  return withLedgerLock(path, async () => {
+    await assertLookAllowed(path, row.set, max, options);
+    const line = formatRow({ ...row, verdict: `reserved ${randomBytes(4).toString('hex')}`, ndcg: '—', p5: '—' });
+    await appendLook(path, row, line);
+    return line;
+  }, options);
+}
+
+/**
+ * Replaces a reserved row with the final one (verdict, or `aborted` /
+ * `unjudged`). If the reserved row has gone, the final row is appended, so the
+ * look is still counted.
+ * @param {string} path
+ * @param {string} reserved the line reserveLook returned
+ * @param {LedgerRow} row
+ * @param {{ waitMs?: number }} [options]
+ */
+export function finaliseLook(path, reserved, row, options = {}) {
+  return withLedgerLock(path, async () => {
+    if (!existsSync(path)) return appendLook(path, row);
+    const lines = (await readFile(path, 'utf8')).split('\n');
+    const i = lines.findIndex((l) => l.trim() === reserved);
+    if (i < 0) return appendLook(path, row);
+    lines[i] = formatRow(row);
+    await writeFile(path, lines.join('\n'));
+  }, options);
+}

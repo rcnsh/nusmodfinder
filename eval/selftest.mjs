@@ -14,7 +14,7 @@
 //      look refused, pool refused without --custodian, tampering and a wrong
 //      key detected, errors withheld.
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { appendFile, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -34,6 +34,22 @@ const HOLDOUT = join(REPO, 'scripts', 'holdout.mjs');
 function node(script, args, env = {}) {
   const r = spawnSync(process.execPath, [script, ...args], { cwd: REPO, encoding: 'utf8', env: { ...process.env, ...env, FORCE_COLOR: '0' }, maxBuffer: 1 << 28 });
   return { code: r.status, out: `${r.stdout}${r.stderr}` };
+}
+
+/**
+ * @param {string} script
+ * @param {string[]} args
+ * @param {Record<string, string>} [env]
+ * @returns {Promise<{ code: number | null, out: string }>}
+ */
+function nodeAsync(script, args, env = {}) {
+  return new Promise((done) => {
+    const child = spawn(process.execPath, [script, ...args], { cwd: REPO, env: { ...process.env, ...env, FORCE_COLOR: '0' } });
+    let out = '';
+    child.stdout.on('data', (d) => { out += d; });
+    child.stderr.on('data', (d) => { out += d; });
+    child.on('close', (code) => done({ code, out }));
+  });
 }
 
 /** @param {ReturnType<typeof node>} r @param {string} what */
@@ -131,7 +147,9 @@ assert.match(verdictLines[0], /^holdout verdict: (PASS|FAIL)$/);
 assert.match(verdictLines[1], /^ΔnDCG@10 [+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 assert.match(verdictLines[2], /^ΔP@5 +[+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 const ledgerPath = join(H, 'ledger.md');
-assert.equal((await readLedger(ledgerPath)).length, 1, 'one ledger row per look');
+const rows1 = await readLedger(ledgerPath);
+assert.equal(rows1.length, 1, 'one ledger row per look');
+assert.ok(['pass', 'fail'].includes(rows1[0].verdict), `the reserved row is finalised with the verdict, got ${rows1[0].verdict}`);
 
 const wrongKey = join(WORK, 'wrong.key');
 await writeFile(wrongKey, `${'ab'.repeat(32)}\n`);
@@ -141,7 +159,20 @@ assert.equal(wrong.out, 'eval: selftest run failed (DecryptionError); details wi
 assert.ok(!wrong.out.includes('abab'), 'key material printed');
 assert.equal((await readLedger(ledgerPath)).length, 1, 'a failed look is not recorded');
 
-for (let i = 2; i <= 12; i++) await appendFile(join(H, 'ledger.md'), `| 2026-01-01 | selftest | 0000000 | filler-${i} | base | fail | +0.000 [0.000, 0.000] | +0.000 [0.000, 0.000] |\n`);
+// A run that fails after its look was reserved still counts (finalised as aborted).
+const aborted = node(CLI, ['run', ...hargs, '--variant', 'cand-x', '--baseline', 'base', '--ref', 'no-such-ref-for-selftest'], env);
+assert.equal(aborted.out, 'eval: selftest run failed (Error); details withheld\n');
+const rows2 = await readLedger(ledgerPath);
+assert.deepEqual(rows2.map((r) => r.verdict).slice(1), ['aborted'], 'a failed run keeps its reserved look');
+
+// Three parallel reports from 11 rows: the lock lets exactly one through.
+for (let i = 3; i <= 11; i++) await appendFile(ledgerPath, `| 2026-01-01 | selftest | 0000000 | filler-${i} | base | fail | +0.000 [0.000, 0.000] | +0.000 [0.000, 0.000] |\n`);
+assert.equal((await readLedger(ledgerPath)).length, 11);
+const parallel = await Promise.all([1, 2, 3].map(() => nodeAsync(CLI, ['report', ...hargs, '--run', 'cand', '--baseline', 'base'], env)));
+assert.deepEqual(parallel.map((r) => r.code).sort(), [0, 1, 1], `parallel looks:\n${parallel.map((r) => r.out).join('\n')}`);
+assert.equal((await readLedger(ledgerPath)).length, 12, 'parallel looks cannot pass the limit');
+assert.ok(!existsSync(`${ledgerPath}.lock`), 'the ledger lock is released');
+
 const thirteenth = node(CLI, ['report', ...hargs, '--run', 'cand', '--baseline', 'base'], env);
 assert.notEqual(thirteenth.code, 0);
 assert.equal(thirteenth.out, 'eval: selftest run failed (LookLimitError); details withheld\n');
@@ -162,6 +193,6 @@ await writeFile(join(tampered, 'queries.json.enc'), q);
 const t = node(HOLDOUT, ['verify', '--dir', tampered]);
 assert.notEqual(t.code, 0);
 assert.match(t.out, /MISMATCH/);
-console.log('ok: encrypted-only output, verdict-only terminal, ledger, look limit, custodian gate, tamper and key checks');
+console.log('ok: encrypted-only output, verdict-only terminal, ledger, reserved looks, lock, look limit, custodian gate, tamper and key checks');
 
 console.log('\nselftest passed');

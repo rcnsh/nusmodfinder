@@ -13,9 +13,9 @@ import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { writeEncryptedJson } from './lib/crypto.mjs';
-import { errorClass } from './lib/errors.mjs';
+import { errorClass, RunFileError } from './lib/errors.mjs';
 import { gateFor } from './lib/gate.mjs';
-import { appendLook, assertLookAllowed } from './lib/ledger.mjs';
+import { appendLook, assertLookAllowed, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
 import { byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
 import { comparisonTable, shapeTable, summaryTable, verdictBlock, verdictOnly } from './lib/report.mjs';
 import { REPO, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
@@ -83,7 +83,7 @@ const runPath = (set, v) => (v.includes('/') || v.endsWith('.json') || v.endsWit
  * @returns {Promise<import('./lib/metrics.mjs').RunFile>}
  */
 async function readRun(set, path) {
-  if (!existsSync(path)) fail(`no run file at ${path}`);
+  if (!existsSync(path)) throw new RunFileError(`no run file at ${path}`);
   return readSetJson(set, path);
 }
 
@@ -148,41 +148,53 @@ async function fullReport(set, candPath, basePath, a) {
 // ---------------------------------------------------------------------------
 // holdout / test: verdict only, ledger-counted
 
+const today = () => new Date().toISOString().slice(0, 10);
+
 /**
+ * The verdict for an encrypted set, counted in the ledger. `report` checks
+ * the limit, computes and appends under the ledger lock; `run` passes the row
+ * it reserved before retrieval and finalises it here.
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {string} candPath
  * @param {string} basePath
  * @param {Args} a
+ * @param {string | null} [reserved] the ledger line `run` reserved
  */
-async function verdictReport(set, candPath, basePath, a) {
-  await assertLookAllowed(/** @type {string} */ (set.ledger), set.name, set.maxLooks);
-  const querySet = await loadQueries(set);
-  const qrels = await loadQrels(set);
-  const cand = await readRun(set, candPath);
-  const base = await readRun(set, basePath);
-  assertComparable([base, cand]);
-  const candScores = scoreRun(cand, querySet.queries, qrels);
-  const baseScores = scoreRun(base, querySet.queries, qrels);
-  const cmp = compare(baseScores, candScores);
-  if (cmp.judged.base < 1 || cmp.judged.cand < 1) {
-    console.log(`${set.name}: not fully judged (judged@10 must be 100%); judge the pool first. No look recorded.`);
-    process.exitCode = 2;
-    return;
-  }
-  const v = gateFor(set.gate, cmp, changeOf(a));
-  const out = verdictOnly(v, cmp);
-  console.log(out.text);
-  const ranker = /** @type {any} */ (cand.ranker) ?? {};
-  await appendLook(/** @type {string} */ (set.ledger), {
-    date: new Date().toISOString().slice(0, 10),
-    set: set.name,
-    commit: `${String(ranker.sha ?? 'unknown').slice(0, 7)}${ranker.dirty ? '+dirty' : ''}`,
-    variant: cand.variant,
-    baseline: base.variant,
-    verdict: v.verdict,
-    ndcg: out.ndcg,
-    p5: out.p5,
-  });
+async function verdictReport(set, candPath, basePath, a, reserved = null) {
+  const ledger = /** @type {string} */ (set.ledger);
+  const body = async () => {
+    if (!reserved) await assertLookAllowed(ledger, set.name, set.maxLooks);
+    const querySet = await loadQueries(set);
+    const qrels = await loadQrels(set);
+    const cand = await readRun(set, candPath);
+    const base = await readRun(set, basePath);
+    assertComparable([base, cand]);
+    const candScores = scoreRun(cand, querySet.queries, qrels);
+    const baseScores = scoreRun(base, querySet.queries, qrels);
+    const cmp = compare(baseScores, candScores);
+    const ranker = /** @type {any} */ (cand.ranker) ?? {};
+    const row = {
+      date: today(),
+      set: set.name,
+      commit: `${String(ranker.sha ?? 'unknown').slice(0, 7)}${ranker.dirty ? '+dirty' : ''}`,
+      variant: cand.variant,
+      baseline: base.variant,
+    };
+    if (cmp.judged.base < 1 || cmp.judged.cand < 1) {
+      if (reserved) await finaliseLook(ledger, reserved, { ...row, verdict: 'unjudged', ndcg: '—', p5: '—' });
+      console.log(`${set.name}: not fully judged (judged@10 must be 100%); judge the pool first. ${reserved ? 'The look reserved for this run stays counted.' : 'No look recorded.'}`);
+      process.exitCode = 2;
+      return;
+    }
+    const v = gateFor(set.gate, cmp, changeOf(a));
+    const out = verdictOnly(v, cmp);
+    const final = { ...row, verdict: v.verdict, ndcg: out.ndcg, p5: out.p5 };
+    if (reserved) await finaliseLook(ledger, reserved, final);
+    else await appendLook(ledger, final);
+    console.log(out.text);
+  };
+  // `report`: check-then-append is one critical section.
+  return reserved ? body() : withLedgerLock(ledger, body);
 }
 
 // ---------------------------------------------------------------------------
@@ -192,15 +204,49 @@ async function verdictReport(set, candPath, basePath, a) {
 async function cmdRun(a) {
   if (!a.variant) fail('--variant <name> is required');
   const set = setOf(a);
+  if (a['embed-missing'] && process.env.CI) fail('--embed-missing calls Workers AI and never runs in CI');
+  /** @type {string | null} */
+  let reserved = null;
   if (set.encrypted) {
     if (a.out) fail('--out is not allowed for encrypted sets');
     if (!a['store-only'] && !a.baseline) fail(`the ${set.name} set needs --baseline <variant> (or --store-only to store a run without a verdict)`);
-    if (!a['store-only']) await assertLookAllowed(/** @type {string} */ (set.ledger), set.name, set.maxLooks);
     await setKey(); // fail before any work if the key is not there
+    if (!a['store-only']) {
+      // Reserve the look before any retrieval: the reserved row counts, so
+      // parallel runs cannot all get past the limit.
+      reserved = await reserveLook(/** @type {string} */ (set.ledger), set.maxLooks, {
+        date: today(), set: set.name, commit: 'pending', variant: /** @type {string} */ (a.variant), baseline: /** @type {string} */ (a.baseline),
+      });
+    }
   }
+  try {
+    await runAndReport(a, set, reserved);
+  } catch (err) {
+    if (reserved) await abortLook(set, a, reserved);
+    throw err;
+  }
+}
+
+/**
+ * Marks a reserved look as aborted (it still counts).
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {Args} a
+ * @param {string} reserved
+ */
+function abortLook(set, a, reserved) {
+  return finaliseLook(/** @type {string} */ (set.ledger), reserved, {
+    date: today(), set: set.name, commit: 'unknown', variant: /** @type {string} */ (a.variant), baseline: /** @type {string} */ (a.baseline), verdict: 'aborted', ndcg: '—', p5: '—',
+  });
+}
+
+/**
+ * @param {Args} a
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {string | null} reserved
+ */
+async function runAndReport(a, set, reserved) {
   const { runVariant } = await import('./runner/run.mjs');
   const embedMissing = a['embed-missing'];
-  if (embedMissing && process.env.CI) fail('--embed-missing calls Workers AI and never runs in CI');
   // Plan Final §1: locally, texts missing from the cache (new queries, or texts a
   // query-rewriting variant asked for) are embedded under the per-run cap, then
   // the run is repeated once. Off by default, so a run never calls Cloudflare unasked.
@@ -224,6 +270,7 @@ async function cmdRun(a) {
     res = await run();
   }
   if (!res.ok) {
+    if (reserved) await abortLook(set, a, reserved);
     console.error(`eval: run ${a.variant} failed:\n  ${res.problems.join('\n  ')}`);
     process.exit(1);
   }
@@ -239,7 +286,7 @@ async function cmdRun(a) {
     await updateManifest(set.dir);
   }
   if (a['store-only']) return;
-  if (set.encrypted) return verdictReport(set, res.output, runPath(set, /** @type {string} */ (a.baseline)), a);
+  if (set.encrypted) return verdictReport(set, res.output, runPath(set, /** @type {string} */ (a.baseline)), a, reserved);
   return fullReport(set, res.output, a.baseline ? runPath(set, a.baseline) : undefined, a);
 }
 

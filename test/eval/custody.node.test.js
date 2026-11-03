@@ -1,12 +1,13 @@
 // @ts-check
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, utimes, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { decrypt, encrypt, generateKey, readEncryptedJson, readKey, updateManifest, verifyManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { embeddingKey, estimateTokens } from '../../eval/lib/embeddings.mjs';
 import { spawnSync } from 'node:child_process';
-import { appendLook, assertLookAllowed, looks } from '../../eval/lib/ledger.mjs';
+import { appendLook, assertLookAllowed, finaliseLook, looks, readLedger, recordLook, reserveLook, withLedgerLock } from '../../eval/lib/ledger.mjs';
 import { DecryptionError } from '../../eval/lib/errors.mjs';
 import { REPO, layout, runFile, searchParams, validateQueries } from '../../eval/lib/sets.mjs';
 
@@ -207,5 +208,71 @@ describe('embedding keys and token estimates', () => {
     expect(estimateTokens('a'.repeat(4000))).toBe(512);
     const text = 'Programming Methodology. Computing. This course introduces the fundamental concepts.';
     expect(estimateTokens(text)).toBeGreaterThanOrEqual(Math.ceil(text.length / 4));
+  });
+});
+
+describe('ledger concurrency (review finding 3)', () => {
+  const row = { date: '2026-11-04', set: 'holdout', commit: 'abc1234', variant: 'v', baseline: 'v0', verdict: 'fail', ndcg: '+0.000 [0.000, 0.000]', p5: '+0.000 [0.000, 0.000]' };
+
+  it('three parallel looks from 11 rows: one is recorded, two are refused', async () => {
+    const path = join(dir, 'parallel.md');
+    for (let i = 0; i < 11; i++) await appendLook(path, row);
+    const results = await Promise.allSettled([1, 2, 3].map((i) => recordLook(path, 12, { ...row, variant: `p${i}` })));
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const refused = results.filter((r) => r.status === 'rejected').map((r) => /** @type {PromiseRejectedResult} */ (r).reason.name);
+    expect(refused).toEqual(['LookLimitError', 'LookLimitError']);
+    expect(await looks(path, 'holdout')).toBe(12);
+    expect(existsSync(`${path}.lock`)).toBe(false);
+  });
+
+  it('a reserved look counts before its verdict, and finalising replaces that row', async () => {
+    const path = join(dir, 'reserve.md');
+    for (let i = 0; i < 10; i++) await appendLook(path, row);
+    const base = { date: row.date, set: row.set, commit: row.commit, variant: row.variant, baseline: row.baseline };
+    const r1 = await reserveLook(path, 12, { ...base, commit: 'pending', variant: 'r1' });
+    const r2 = await reserveLook(path, 12, { ...base, commit: 'pending', variant: 'r2' });
+    expect(r1).toMatch(/^\| 2026-11-04 \| holdout \| pending \| r1 \| v0 \| reserved [0-9a-f]{8} \| — \| — \|$/);
+    expect(await looks(path, 'holdout')).toBe(12);
+    await expect(reserveLook(path, 12, { ...base, variant: 'r3' })).rejects.toMatchObject({ name: 'LookLimitError' });
+    await finaliseLook(path, r2, { ...row, variant: 'r2', verdict: 'pass' });
+    await finaliseLook(path, r1, { ...row, variant: 'r1', verdict: 'aborted' });
+    const rows = await readLedger(path);
+    expect(rows).toHaveLength(12);
+    expect(rows.slice(10).map((r) => [r.variant, r.verdict])).toEqual([['r1', 'aborted'], ['r2', 'pass']]);
+    expect(await readFile(path, 'utf8')).not.toMatch(/reserved/);
+  });
+
+  it('a reserved row deleted mid-run is appended again when finalised', async () => {
+    const path = join(dir, 'reserve-gone.md');
+    const base = { date: row.date, set: row.set, commit: row.commit, variant: row.variant, baseline: row.baseline };
+    const line = await reserveLook(path, 12, base);
+    await writeFile(path, (await readFile(path, 'utf8')).replace(`${line}\n`, ''));
+    expect(await looks(path, 'holdout')).toBe(0);
+    await finaliseLook(path, line, { ...row, verdict: 'pass' });
+    expect(await looks(path, 'holdout')).toBe(1);
+  });
+
+  it('waits for a fresh lock, then gives up with LedgerLockError', async () => {
+    const path = join(dir, 'locked.md');
+    await writeFile(`${path}.lock`, '1 now\n');
+    await expect(withLedgerLock(path, async () => 'ran', { waitMs: 150 })).rejects.toMatchObject({ name: 'LedgerLockError' });
+    await expect(withLedgerLock(path, async () => 'ran', { waitMs: 150 })).rejects.toThrow(/another eval holds the ledger lock .*locked\.md\.lock/);
+    await rm(`${path}.lock`);
+    expect(await withLedgerLock(path, async () => 'ran', { waitMs: 150 })).toBe('ran');
+  });
+
+  it('removes a lock older than 30 minutes, saying so', async () => {
+    const path = join(dir, 'stale.md');
+    await writeFile(`${path}.lock`, '1 long ago\n');
+    const old = new Date(Date.now() - 31 * 60 * 1000);
+    await utimes(`${path}.lock`, old, old);
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(await withLedgerLock(path, async () => 'ran', { waitMs: 0 })).toBe('ran');
+      expect(err).toHaveBeenCalledWith(expect.stringMatching(/^eval: removing a stale ledger lock .*stale\.md\.lock \(31 minutes old; a lock older than 30 minutes is treated as abandoned\)$/));
+    } finally {
+      err.mockRestore();
+    }
+    expect(existsSync(`${path}.lock`)).toBe(false);
   });
 });
