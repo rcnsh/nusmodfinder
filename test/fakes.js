@@ -119,6 +119,15 @@ function matchesFilter(metadata, filter) {
       if (actual !== cond) return false;
       continue;
     }
+    // Cloudflare docs: an operator object holds one operator, except that one
+    // upper bound ($lt/$lte) may pair with one lower bound ($gt/$gte).
+    const ops = Object.keys(cond);
+    const ranged = ops.length === 2
+      && ops.filter((o) => o === '$lt' || o === '$lte').length === 1
+      && ops.filter((o) => o === '$gt' || o === '$gte').length === 1;
+    if (ops.length !== 1 && !ranged) {
+      throw new Error(`fake Vectorize: operator combination ${ops.join(', ')} on "${key}" is not allowed`);
+    }
     for (const [op, expected] of Object.entries(cond)) {
       if (op === '$eq') { if (actual !== expected) return false; }
       else if (op === '$ne') { if (actual === expected) return false; }
@@ -126,7 +135,10 @@ function matchesFilter(metadata, filter) {
         if (!Array.isArray(expected)) throw new Error(`fake Vectorize: ${op} needs an array for "${key}"`);
         if (expected.includes(actual) === (op === '$nin')) return false;
       } else if (op === '$lt' || op === '$lte' || op === '$gt' || op === '$gte') {
-        if (typeof actual !== typeof expected || actual === undefined || actual === null) return false;
+        if (typeof expected !== 'string' && typeof expected !== 'number') {
+          throw new Error(`fake Vectorize: ${op} on "${key}" needs a string or number, got ${typeof expected}`);
+        }
+        if (typeof actual !== typeof expected) return false;
         const a = /** @type {any} */ (actual), e = /** @type {any} */ (expected);
         if (op === '$lt' ? !(a < e) : op === '$lte' ? !(a <= e) : op === '$gt' ? !(a > e) : !(a >= e)) return false;
       } else {
@@ -147,8 +159,9 @@ function cosine(a, b) {
 /**
  * Fake Vectorize index with cosine similarity. topK ceiling: 50 when values or
  * metadata are returned, else 100; exceeding it throws as the real service
- * does. Filters support implicit equality, $eq, $ne and $in; anything else
- * throws rather than silently matching.
+ * does. Filters support implicit equality, $eq, $ne, $in, $nin, and range
+ * operators ($lt/$lte/$gt/$gte, string or number values, at most one upper plus
+ * one lower bound per key); anything else throws rather than silently matching.
  */
 export class FakeVectorize extends Switchable {
   /** @type {Map<string, StoredVector>} */
@@ -197,7 +210,7 @@ export class FakeVectorize extends Switchable {
   async upsert(vectors) {
     await this.gate('upsert', [vectors]);
     for (const v of vectors) {
-      if (!Array.isArray(v.values) || v.values.length !== EMBEDDING_DIMS) {
+      if (!(Array.isArray(v.values) || ArrayBuffer.isView(v.values)) || v.values.length !== EMBEDDING_DIMS) {
         throw new Error(`fake Vectorize: vector "${v.id}" has ${v.values?.length} dimensions, index expects ${EMBEDDING_DIMS}`);
       }
     }

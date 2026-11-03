@@ -51,6 +51,21 @@ describe('FakeVectorize', () => {
     await expect(index.query(hashEmbed('x'), { filter: { level: { $regex: 'x' } } })).rejects.toThrow(/unsupported filter operator/);
   });
 
+  it('rejects operator combinations Vectorize forbids, allows one upper + one lower bound', async () => {
+    const index = new FakeVectorize();
+    await index.upsert([v('A', 'x', { level: 3, ng: false }), v('B', 'x', { level: 5, ng: true })]);
+    const q = hashEmbed('x');
+    await expect(index.query(q, { filter: { level: { $eq: 3, $lt: 5 } } })).rejects.toThrow(/not allowed/);
+    await expect(index.query(q, { filter: { level: { $gte: 3, $gt: 4 } } })).rejects.toThrow(/not allowed/);
+    await expect(index.query(q, { filter: { ng: { $gt: false } } })).rejects.toThrow(/string or number/);
+    expect((await index.query(q, { filter: { level: { $gt: 2, $lt: 4 } } })).matches.map((m) => m.id)).toEqual(['A']);
+  });
+
+  it('accepts typed-array vectors', async () => {
+    const index = new FakeVectorize();
+    await expect(index.upsert([{ id: 'F', values: /** @type {any} */ (new Float32Array(384)) }])).resolves.toBeDefined();
+  });
+
   it('rejects vectors of the wrong dimension on upsert', async () => {
     const index = new FakeVectorize();
     await expect(index.upsert([{ id: 'A', values: [1, 2, 3] }])).rejects.toThrow(/dimensions/);
