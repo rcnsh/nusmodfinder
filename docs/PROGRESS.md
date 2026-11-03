@@ -379,3 +379,7 @@ fails on the previous code.
     unexplained. Candidates (Vectorize ANN, production ingest-batch noise) are unverified.
   - Nothing changed; the lead decides before any gating relies on dense-half resolution.
 - Holdout half of 2c not touched (custodian's job).
+- Lead decision on the failed fidelity check (2 of 15 queries one item outside their dense-noise
+  envelope; lexical half exact): gating proceeds on the replica, limitation recorded in ADR 0003
+  "Replica fidelity"; re-check after the Phase 1 forced re-ingest.
+

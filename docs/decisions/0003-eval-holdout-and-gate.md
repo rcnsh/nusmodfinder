@@ -125,6 +125,27 @@ Every gate fails a candidate in four cases:
 Per-change gates are screening. False-positive control for the shipping claim rests on the
 sealed test set, evaluated once.
 
+## Replica fidelity (Phase 2c, lead decision)
+The pre-registered live check (`docs/evidence/phase2/fidelity.md`) **failed**: the lexical half of
+the offline `eval-v0` replica matches production exactly on all 15 queries (up to FTS5 tie
+groups), but 2 of 15 queries fall one item below their modelled dense-noise envelope (overlap@10
+8 vs 9, 7 vs 8). Mean overlap@10 is 8.40, just under the modelled 8.47–9.93: production's dense
+half is a little noisier than the replica (Vectorize is approximate, the fake is exact; production
+corpus vectors come from unknown ingest batches).
+
+Decision: gating proceeds on the replica, with this limitation stated wherever results are
+reported.
+- Every gate compares candidate and baseline on the **same** replica, so a replica-vs-production
+  dense difference does not bias Δ; it affects how well absolute numbers describe production.
+- Dense-only rank differences of 1–2 items in a query's top-10 are below the eval's resolution.
+- Reported baselines and SC5 numbers are labelled "offline replica (exact dense search)".
+- Re-check after the Phase 1 forced re-ingest, when production's corpus vectors are re-embedded:
+  a second 15-call fidelity check against the then-deployed ranker's replica.
+
+This departs from the pre-registered rule ("no gating until investigated"): the investigation is
+the analysis above; the residual cause (ANN vs exact search, batch noise) cannot be reproduced
+offline within the plan's quotas.
+
 ## SC5 reading (needs Jacob's sign-off)
 "The held-out set" in SC5 is read as the **sealed test set**. The holdout result is reported as
 secondary, and the test set governs if they disagree. If Jacob rejects this reading, SC5 is

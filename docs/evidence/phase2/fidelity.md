@@ -167,3 +167,11 @@ and no other live traffic. Raw bodies are in `live/`; the comparison is in `fide
   - export production vectors (`getByIds`, rejected in plan §4 on cost grounds);
   - accept that dense-only ranking differences of about 1–2 items in the top-10 are below the
     eval's resolution.
+
+## Lead decision (2026-11-04)
+Verdict stands as FAIL under the pre-registered rule. Gating proceeds on the replica with the
+limitation recorded in ADR 0003 ("Replica fidelity"): lexical half exact; dense half slightly
+noisier in production (ANN index, unknown corpus-vector batches); Δs are computed replica vs
+replica; dense-only differences of 1–2 items per top-10 are below the eval's resolution; a second
+fidelity check follows the Phase 1 forced re-ingest.
+
