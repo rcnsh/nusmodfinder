@@ -205,21 +205,26 @@ describes it.
 
 ## Cost
 
-**D1 row reads are the binding constraint, not Vectorize.** This was mis-stated in an
-earlier version of this README, which quoted only the Vectorize budget and implied
-~71,000 searches/month were affordable. They are not, on the free plan.
+**Vectorize queried dimensions are the binding limit, not D1.** An earlier version of
+this README said the opposite; its own numbers did not support it (FINDINGS B9).
 
-| | Workers Free | measured cost here |
+| | Workers Free | cost here |
 |---|---|---|
-| **D1 rows read** | **5,000,000 / day** (enforced since 1 Sep 2026) | ~50 per search, 1 per page load |
-| D1 rows written | 100,000 / day | ~13,600 per full re-ingest |
+| **D1 rows read** | **5,000,000 / day** (enforced since 1 Sep 2026) | per search: pending: measured after the Phase 1 deploy (local grid: [`lexical-cost.md`](docs/evidence/phase1/lexical-cost.md)); 1 per page load |
+| D1 rows written | 100,000 / day | ~34,400 per forced full re-ingest, measured locally ([`0006-cost.md`](docs/evidence/phase1/0006-cost.md)); a rerun with nothing changed writes ~0 |
 | Vectorize stored dims | 5,000,000 | 6,771 × 384 = **2,600,064** (52%) |
-| Vectorize queried dims | 30,000,000 / month | ~71,000 searches/month |
+| Vectorize queried dims | 30,000,000 / month | ~71,354 searches/month (below) |
 
-A search now costs roughly the number of rows it returns (~7 for the FTS half) plus one
-hydration query (~40 rows for 20 modules), and a page load costs 1. That is on the order
-of **50 rows per search** rather than ~4,000 — call it 100,000+ searches/day against the
-5M limit, with repeats served free from cache.
+The arithmetic. Vectorize bills a query as (stored vectors + 1) × 384 dimensions against
+30,000,000 a month: 30,000,000 / 384 − 6,771 ≈ **71,354 uncached searches a month**,
+about 2,378 a day. D1 allows 5,000,000 rows read a day: at the ~50 rows per search measured in
+Phase 0, 5,000,000 / 50 ≈ 100,000 searches a day, about 3,000,000 a month, about 42× more
+than Vectorize allows. D1 would bind first only if uncached searches averaged more than
+5,000,000 / 2,378 ≈ 2,100 rows read. Unfiltered searches stay far below that, but filtered
+ones cost more since Phase 1 made them exact (FINDINGS B1): on the local test grid, which
+leans on broad queries, single-filter searches averaged 2,160 rows and the worst read 7,772.
+So the traffic mix decides, and the per-search numbers measured after the Phase 1 deploy
+replace these local ones. Cached repeats cost neither.
 
 ### How that number was brought down
 

@@ -31,7 +31,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | B6 | fixed | test |
 | B7 | fixed | test, live |
 | B8 | fixed | tests, live |
-| B9 | reproduced | test (README arithmetic) |
+| B9 | fixed | test (README arithmetic) |
 | S1 | reproduced | test (source + EVAL.md) |
 | S2 | reproduced | live |
 | S3 | reproduced | tests |
@@ -273,17 +273,23 @@ can rank differently.
 
 ### B9 · README names the wrong binding limit
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** README says D1 is the binding limit, but Vectorize's ~71k queries/month runs out
 first.
 
 **Evidence:**
-- test `[B9 known-bug] README calls D1 the binding limit, but its own numbers put Vectorize ~40x lower` (`test/findings/source.node.test.js`)
+- test `[B9 fixed] README names Vectorize queried dims as the binding limit, with the arithmetic, and marks per-search D1 costs pending` (`test/findings/source.node.test.js`)
 
-**Notes:** `README.md:169` versus its own table (`:175-178`). D1 allows 5M rows/day ÷ ~50 per
-search ≈ 3M searches/month. Vectorize allows 30M queried dims/month ÷ 384 − 6,771 stored ≈
+**Notes:** Was `README.md:169` versus its own table (`:175-178`). D1 allows 5M rows/day ÷ ~50
+per search ≈ 3M searches/month. Vectorize allows 30M queried dims/month ÷ 384 − 6,771 stored ≈
 71,354 searches/month, about 42× fewer. The claim's arithmetic holds.
+
+Fixed in workstream 1C: the README's cost section now names Vectorize queried dimensions as
+the binding limit with this arithmetic, states the break-even (D1 binds first only if
+uncached searches average more than ~2,100 rows read, which filtered searches can approach
+since B1 made them exact) and marks the per-search D1 numbers as pending until they are
+measured on the Phase 1 deploy, quoting only the local grid meanwhile.
 
 ## Search
 
