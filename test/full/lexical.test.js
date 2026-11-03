@@ -73,6 +73,25 @@ async function ingest(modules, size, db) {
 }
 
 /**
+ * Loads modules into a pre-0006 database the way production's rows were
+ * written: the pre-1C Worker's column list, no row_hash. (/admin/ingest now
+ * writes row_hash, which exists only from 0006 on, so it fails on this schema
+ * by design; see scripts/ingest-core.mjs's schema guard.)
+ * @param {NormalisedModule[]} modules
+ */
+async function legacyLoad(modules) {
+  const stmt = env.DB.prepare(
+    `INSERT INTO modules (code, title, description, credits, department, faculty, level, semesters, workload,
+                          prerequisite, preclusion, acad_year, text_hash, ng, ng_semesters)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+  for (let i = 0; i < modules.length; i += 100) {
+    await env.DB.batch(modules.slice(i, i + 100).map((m) => stmt.bind(
+      m.code, m.title, m.description, m.credits, m.department, m.faculty, m.level, JSON.stringify(m.semesters),
+      m.workload, m.prerequisite, m.preclusion, m.acadYear, m.textHash, m.ng ? 1 : 0, JSON.stringify(m.ngSemesters ?? []))));
+  }
+}
+
+/**
  * Unfiltered lexical top-DEPTH for every query, with each code's bm25 rank.
  * @returns {Promise<Map<string, { codes: string[], rank: Map<string, number> }>>}
  */
@@ -121,7 +140,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
     expect(pre.map((m) => m.name)).toEqual(['0001_init.sql', '0002_fts.sql', '0003_ng.sql', '0004_meta.sql', '0005_rank.sql']);
     expect(rest.map((m) => m.name)[0]).toBe('0006_fts_external.sql');
     await applyD1Migrations(env.DB, pre);
-    await ingest(c.modules, 100);
+    await legacyLoad(c.modules);
     before = await unfilteredTopN();
     await applyD1Migrations(env.DB, rest);
   }, 600_000);
