@@ -174,3 +174,16 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
   churned-DB measurement is recorded in `docs/evidence/phase1/0006-cost.md`.
 - Full-corpus suite 37 s → ~4.5 min locally (CI job timeout 15 min). No remote commands, no
   deploy, no live requests.
+- Review round 2 of the fix delta (`c6495ce..03d3f63`): two findings, both fixed.
+  - Medium: a facets row without counts was cached per isolate as "no counts", so warm isolates
+    kept the fixed order (9,148 rows) after a facets rebuild. Now neither a failed read nor a
+    row without counts is cached; the next fallback re-reads the row (1 row).
+  - Low: the textual rowid ban missed the upsert form ingest uses (`ON CONFLICT … DO UPDATE SET
+    rowid`), schema-qualified, aliased, bracketed and row-value forms. Replaced by a database
+    guard: 0006 adds `modules_rowid_immutable` (BEFORE UPDATE, aborts when `new.rowid IS NOT
+    old.rowid`); a test applies the migrations in `node:sqlite` and checks 11 spellings are
+    refused and rowid-preserving updates (incl. ingest's upsert) still work. 0006 estimate
+    unchanged (30,076 rows written; one more schema object).
+  - Rollout order (supersedes "right after the deploy"): apply 0006, then rebuild the facets row
+    with this code (`POST /admin/facets` through `wrangler dev --remote`, ~21.5k rows read),
+    then deploy, so no isolate serves the fixed order.

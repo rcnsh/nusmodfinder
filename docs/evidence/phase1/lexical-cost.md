@@ -62,9 +62,11 @@ grids on `and`, `the`, `in`, `students will learn`, 0 mismatches:
 
 Worst: `and`, level=5 + credits=5 (level drives: 2,713 rows instead of 407). No order by
 filter alone can be right here: level=5 is a worse driver than credits=5 but a better one than
-credits=4. The fix is the rebuild: **run `POST /admin/facets` right after deploying this
-change**, before the counts exist search costs up to ~9.1k rows on these shapes. The test logs
-these numbers and asserts exactness, not the gate.
+credits=4. The fix is the rebuild, done **before** the deploy: apply 0006, then run
+`POST /admin/facets` with this code through `wrangler dev --remote` (~21.5k rows read), then
+deploy. Until the counts exist, search costs up to ~9.1k rows on these shapes. A row without
+counts is not cached, so an isolate that read it re-reads it on its next fallback. The test
+logs these numbers and asserts exactness, not the gate.
 
 ## How the cost is bounded
 `src/lexical.js` `runFts`, filtered branch:
