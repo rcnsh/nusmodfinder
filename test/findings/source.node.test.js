@@ -158,26 +158,37 @@ describe('ops', () => {
     expect(worker).not.toContain(ngList.updatedAsAt);
     expect(readme).not.toContain('NG_LIST_UPDATED');
     const ingest = read('scripts/ingest.mjs');
-    // The payload is built by scripts/lib.mjs facetsPayload (unit-tested in test/facets-payload.node.test.js).
-    expect(ingest).toContain('const facetsBody = JSON.stringify(facetsPayload(ngCourses));');
-    expect(ingest.match(/\/admin\/facets`, \{ method: 'POST', headers: auth, body: facetsBody \}/g)).toHaveLength(2);
+    // The payload is built by scripts/lib.mjs facetsPayload (unit-tested in
+    // test/facets-payload.node.test.js) and posted by the ingest core on every
+    // run that gets past its guards (test/ingest.test.js drives it).
+    expect(ingest).toContain('const facetsBody = facetsPayload(ngCourses);');
+    expect(ingest).toContain('runIngest({ modules, facetsBody,');
+    const core = read('scripts/ingest-core.mjs');
+    expect(core.match(/send\('\/admin\/facets', facetsBody, 'facets'\)/g)).toHaveLength(1);
   });
 
   it('[O4 known-bug] wrangler.jsonc declares no cron trigger', () => {
     expect(read('wrangler.jsonc')).not.toMatch(/"triggers"|"crons"/);
   });
 
-  it('[B9 known-bug] README calls D1 the binding limit, but its own numbers put Vectorize ~40x lower', () => {
-    expect(readme).toContain('**D1 row reads are the binding constraint, not Vectorize.**');
-    // README's table: 5,000,000 D1 rows/day at ~50 per search; 30,000,000
-    // queried dims/month, billed as (stored vectors + queries) x 384.
-    expect(readme).toContain('**5,000,000 / day**');
-    expect(readme).toContain('~50 per search');
-    expect(readme).toContain('30,000,000 / month');
-    const d1PerMonth = (5_000_000 / 50) * 30;
+  it('[B9 fixed] README names Vectorize queried dims as the binding limit, with the arithmetic, and marks per-search D1 costs pending', () => {
+    expect(readme).not.toContain('D1 row reads are the binding constraint');
+    const cost = readme.slice(readme.indexOf('## Cost'), readme.indexOf('## Data source'));
+    expect(cost).toContain('**Vectorize queried dimensions are the binding limit, not D1.**');
+    // FINDINGS B9: 30,000,000 queried dims/month, billed as (stored vectors +
+    // queries) x 384; D1 5,000,000 rows/day at Phase 0's ~50 rows per search.
     const vectorizePerMonth = 30_000_000 / 384 - 6771;
+    const d1PerMonth = (5_000_000 / 50) * 30;
     expect(Math.round(vectorizePerMonth)).toBe(71354);
     expect(Math.round(d1PerMonth / vectorizePerMonth)).toBe(42);
+    expect(cost).toContain('30,000,000 / 384 − 6,771 ≈ **71,354 uncached searches a month**');
+    expect(cost).toContain(`about ${Math.round(vectorizePerMonth / 30).toLocaleString('en-US')} a day`);
+    expect(cost).toContain('5,000,000 / 50 ≈ 100,000 searches a day');
+    expect(cost).toContain('about 42× more');
+    expect(cost).toContain('**5,000,000 / day**');
+    expect(cost).toContain('30,000,000 / month');
+    // Per-search D1 numbers after Phase 1 are measured after the deploy, not invented.
+    expect(cost).toMatch(/\| \*\*D1 rows read\*\* \|[^\n]*\| per search: pending: measured after the Phase 1 deploy/);
   });
 });
 

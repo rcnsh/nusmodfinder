@@ -24,14 +24,14 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | ID | Status | Evidence |
 |---|---|---|
 | B1 | fixed | tests (fixture + full corpus, property test), live (PR #8) |
-| B2 | reproduced | tests |
+| B2 | fixed | tests (hash rules, skip, deletes, cache, budget, verify, full-corpus cost) |
 | B3 | fixed | tests (EXPLAIN QUERY PLAN, trigger fuzz, cost) (PR #8) |
 | B4 | fixed | tests (concurrency, differential), live latency |
 | B5 | fixed | tests, live |
 | B6 | fixed | test |
 | B7 | fixed | test, live |
-| B8 | reproduced | tests, live |
-| B9 | reproduced | test (README arithmetic) |
+| B8 | fixed | tests, live |
+| B9 | fixed | test (README arithmetic) |
 | S1 | reproduced | test (source + EVAL.md) |
 | S2 | reproduced | live |
 | S3 | reproduced | tests |
@@ -94,25 +94,55 @@ in JS).
 
 ### B2 · Re-ingest misses field changes; nothing deletes; cache never expires; acad_year ignored
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** Ingest hashes only the embedded text (title/department/faculty/description), so
 changes to semesters, NG flags, credits and prereqs never land; nothing deletes dropped
 modules; the `.data/` download cache never expires; `/search` ignores `acad_year`.
 
 **Evidence:**
-- test `[B2 known-bug] textHash ignores semesters, credits, workload, prerequisite, preclusion and NG flags` (`test/findings/ingest.node.test.js`)
-- test `[B2 known-bug] scripts/ingest.mjs skips a module whenever its textHash is unchanged`
-- test `[B2 known-bug] /admin/hashes exposes a single embedded-text hash per module, so ingest can only compare text` (`test/findings/b2.test.js`): `/admin/hashes` returns only `text_hash`, and `/module` keeps serving the stale row.
-- test `[B2 known-bug] re-ingesting a corpus without a module leaves that module in D1 and Vectorize`: no `deleteByIds` call, no delete route (404).
-- test `[B2 known-bug] the .data/ download cache is used however old it is`: a cache file dated 2000-01-01 is served with `cached: true` (fetch stubbed to throw).
-- test `[B2 known-bug] /search returns a module from another acad year`: a `2019-2020` row is returned.
+- test `[B2 fixed] row_hash changes with semesters, credits, workload, prerequisite, preclusion, NG flags and acad year; text_hash does not` (`test/findings/ingest.node.test.js`)
+- test `[B2 fixed] text_hash is the hash of the model id, the embedded-text version and the text`
+- test `[B2 fixed] row_hash is the hash of the normaliser version, the exact bound tuple and the vector metadata, and is recomputable from the stored row`
+- test `[B2 fixed] the skip rule: text changed re-embeds, only the row changed re-upserts without embedding, unchanged is skipped`
+- test `[B2 fixed] /admin/hashes returns text_hash, row_hash and the FTS-column hash for every module` (`test/findings/b2.test.js`)
+- test `[B2 fixed] a field-only change (semesters, NG flags, credits, prereqs, workload) lands in D1 and the Vectorize metadata, without re-embedding`: through `runIngest` and the real routes; `/module` and the `sem` filter see the change, the vector keeps its values, Workers AI is not called, and a rerun sends nothing.
+- test `[B2 fixed] a module dropped from the corpus is deleted from Vectorize, then D1`
+- test `[B2 fixed] acad_year: rows are keyed by code, so a run leaves only the current year (stale rows deleted or rewritten)`
+- test `[B2 fixed] an entry older than --max-age is revalidated with If-None-Match, and a 304 keeps the cached body` (`test/findings/ingest.node.test.js`), and the four cache tests after it (200 replaces body and sidecar; a fresh entry is used without a request; `--offline`; an entry with no sidecar).
+- test `cold ingest, forced full re-ingest (SC6), no-op rerun, field-only change, 10 deletes, verify` (`test/full/ingest.test.js`): over the full pinned corpus, a forced full re-ingest reads 35,079 rows (SC6 gate < 500,000) and writes 34,381 by the budget's count; 25 field-only changes land with no embedding; 10 dropped modules leave both stores; verify agrees. Costs and estimates: `docs/evidence/phase1/ingest-cost.md`.
+- test `reports missing and extra vectors` (`test/verify.test.js`), `reports metadata drift in the sample`, `reports a row whose stored row_hash no longer matches its columns, and a row with none`: `npm run verify` (`scripts/verify.mjs`) exits non-zero on each.
+- PR #13 review fixes (`test/ingest.test.js`, `test/verify.test.js`): test `[PR13 #1a] refuses when the deletes exceed 5% of D1, even when the corpus is as large as D1`, `[PR13 #1b] refuses a corpus for another acad year than D1 holds unless allowYearChange; /admin/hashes reports the year`, `re-embed when the stored vector is not for this text_hash, so an old embedding never overwrites a new one`, `[PR13 #2] reports a sampled vector whose metadata textHash is not the row's text_hash, or has none`, `leaves the module re-embedded when it comes back: hashes are cleared before Vectorize deletes`.
+- test `refuses a corpus below 95% of the D1 count unless allowMassDelete` (`test/ingest.test.js`), `run only when no upsert batch failed`, `stops cleanly before a batch would exceed it, never exceeds it, and a rerun resumes through the hash skip`, `reports done only once describe() has processed the last mutation, polling on that state`, `refuses a database without migration 0006, and /admin/hashes says what is missing`.
 
-**Notes:** Hash input `scripts/lib.mjs:94-101` (`embeddingText`) and `:163` (`textHash:
+**Notes:** Was: hash input `scripts/lib.mjs:94-101` (`embeddingText`) and `:163` (`textHash:
 hashOf(text)`); skip predicate `scripts/ingest.mjs:61`; cache read with no age check
-`scripts/lib.mjs:39-44`; no `acad_year` predicate anywhere in `src/index.js` `runFts`
-(`:193-229`) or `fetchRows` (`:262-269`). The Worker's own `ON CONFLICT DO UPDATE`
-(`src/index.js:557-563`) would write every field; it's the client-side skip that stops it.
+`scripts/lib.mjs:39-44`; no `acad_year` predicate in `runFts` or `fetchRows`.
+
+Fixed in workstream 1C (plan "Ingest (changes vs r1)"). `text_hash` = hash(model id +
+embedded-text version + text) (`scripts/lib.mjs`); `row_hash` = hash(normaliser version + the
+exact tuple `/admin/ingest` binds + the Vectorize metadata) (`src/rowhash.js`, shared by the
+Worker and the scripts; the Worker stores the hash of what it actually binds).
+`/admin/hashes` returns both. `scripts/ingest-core.mjs` plans each module: text changed →
+re-embed and upsert vector and row; only the row changed → rewrite the row and re-upsert the
+vector with its stored values (`getByIds`) under new metadata, embedding only if the vector
+is missing or its `metadata.textHash` is not the module's (a deviation from r1's "re-embed,
+cheap": same vector, no neurons; the textHash check stops stale values from a lagging
+Vectorize overwriting a pending new embedding); unchanged → skip. Codes D1 holds and the
+corpus lacks are deleted through the new authenticated `/admin/delete` (hashes cleared, then
+Vectorize `deleteByIds`, then D1), last, and only when no upsert batch failed. A plan that
+deletes more than 5% of D1's codes, or a corpus for another acad year than most of D1's rows,
+aborts the run before any write unless `--allow-mass-delete` / `--allow-year-change`. The
+`.data/` cache keeps `ETag`/`Last-Modified` and the body's sha256 in a `<entry>.cache.json`
+sidecar and revalidates entries older than `--max-age` (24 h) unless `--offline`.
+
+The acad_year sub-claim needs no query-time fix: one database holds one acad year by
+construction, because rows are keyed by `code` alone. A run refuses a corpus that mixes acad
+years; a code that left the corpus is deleted with its old-year row, and a code offered in both
+years is one row whose `row_hash` (which includes the acad year) differs, so it is rewritten
+with the current year. After a finished run every row carries the corpus's year (tested), so
+an `acad_year` predicate in `/search` would only add a column read per row. Between a failed
+run and its rerun, old-year rows can still be served.
 
 ### B3 · FTS triggers delete by an UNINDEXED column
 
@@ -236,7 +266,7 @@ is the same whichever spelling stored it.
 
 ### B8 · topK, hydration and tokeniser defects
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** `?topK=` (empty) → 1 result; hydration reads up to 77 rows for 50 results and
 selects unused columns; `returnMetadata:'indexed'` is unused and caps topK at 50 (100 without
@@ -247,7 +277,10 @@ it); the ASCII-only tokeniser splits "naïve".
 - test `[B8 fixed] hydration reads only the rows and columns the response renders`
 - test `[B8 fixed] a candidate missing from D1 (stale vector) is skipped and the next one hydrated`
 - test `[B8 fixed] Vectorize is asked for ids only; the candidate depth stays 50`
-- test `[B8 known-bug] the ASCII-only tokeniser splits "naïve" into "na" and "ve"`: MATCH is `"na" OR "ve" OR "bayes"`.
+- test `[B8 fixed] "naïve" stays one token, and D1's FTS5 folds it to the same term as "naive"` (`test/findings/backend.test.js`): MATCH is `"naïve" OR "bayes"` (was `"na" OR "ve" OR "bayes"`).
+- test `[B8 fixed] the separator table equals the unicode61 separators probed from SQLite, for every code point` (`test/fts-tokenizer.node.test.js`)
+- test `[B8 fixed] every query token is at most one FTS5 term, and together they are the FTS5 terms of the query`
+- test `[B8 fixed] ASCII queries keep byte-identical MATCH strings (differential over every query fixture)`: the 440 lexical fixture queries, the 98 dev eval queries and every ASCII character; no fixture query's MATCH string changes.
 
 **Notes:** Was: `Number('') === 0` clamped to 1 (`src/index.js:298-302` at `7ac9841`);
 hydration `:262-269` read every fused candidate with `SELECT_COLUMNS`; `returnMetadata`
@@ -258,23 +291,35 @@ hydration selects only `RESULT_COLUMNS` and reads only as many fused candidates 
 shows, topping up in order when a candidate is missing from D1, so the page is the same as
 before (`test/differential.test.js`); Vectorize no longer gets `returnMetadata`. The topK
 ceiling stays 50 on purpose (Phase 1 plan r2: a deeper list would change rankings). The
-Unicode tokeniser is workstream 1A's (`src/lexical.js`) and is still open: PR #8 (1A's
-migration and filtered search) leaves it unchanged. B8 becomes `fixed` when it lands and its
-known-bug test flips.
+Unicode tokeniser landed with workstream 1C: `queryTokens` in `src/lexical.js` splits on
+`src/fts-separators.js`, the exact separator set of the table's `porter unicode61` tokenizer,
+generated from SQLite by `scripts/gen-fts-separators.mjs`. A character class such as
+`[^\p{L}\p{N}]` would not match it: unicode61 classifies by Unicode 6.1 (later code points are
+token characters), treats the diacritics it can strip as token characters and splits on all
+other marks. Folding and stemming stay with FTS5, which applies them to each quoted token as
+it does to the index, so `"naïve"` matches what `"naive"` matches. Stopwords are tested on
+the diacritic-stripped token. ASCII MATCH strings are unchanged, so only non-ASCII queries
+can rank differently.
 
 ### B9 · README names the wrong binding limit
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** README says D1 is the binding limit, but Vectorize's ~71k queries/month runs out
 first.
 
 **Evidence:**
-- test `[B9 known-bug] README calls D1 the binding limit, but its own numbers put Vectorize ~40x lower` (`test/findings/source.node.test.js`)
+- test `[B9 fixed] README names Vectorize queried dims as the binding limit, with the arithmetic, and marks per-search D1 costs pending` (`test/findings/source.node.test.js`)
 
-**Notes:** `README.md:169` versus its own table (`:175-178`). D1 allows 5M rows/day ÷ ~50 per
-search ≈ 3M searches/month. Vectorize allows 30M queried dims/month ÷ 384 − 6,771 stored ≈
+**Notes:** Was `README.md:169` versus its own table (`:175-178`). D1 allows 5M rows/day ÷ ~50
+per search ≈ 3M searches/month. Vectorize allows 30M queried dims/month ÷ 384 − 6,771 stored ≈
 71,354 searches/month, about 42× fewer. The claim's arithmetic holds.
+
+Fixed in workstream 1C: the README's cost section now names Vectorize queried dimensions as
+the binding limit with this arithmetic, states the break-even (D1 binds first only if
+uncached searches average more than ~2,100 rows read, which filtered searches can approach
+since B1 made them exact) and marks the per-search D1 numbers as pending until they are
+measured on the Phase 1 deploy, quoting only the local grid meanwhile.
 
 ## Search
 

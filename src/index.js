@@ -3,7 +3,9 @@
 // search (search.js), module/facet reads (modules.js) and the admin ingest
 // routes (ingest.js) can change independently.
 import { appVersion, json, withHeaders } from './http.js';
-import { handleFacetsRebuild, handleHashes, handleIngest } from './ingest.js';
+import {
+  handleDelete, handleFacetsRebuild, handleHashes, handleIngest, handleVectorizeInfo, handleVerify,
+} from './ingest.js';
 import { handleFacets, handleModule } from './modules.js';
 import page from './page.html';
 import { searchRoute } from './search.js';
@@ -41,6 +43,9 @@ function route(request, env, ctx, trace) {
   if (path === '/admin/hashes' && request.method === 'GET') return handleHashes(request, env);
   if (path === '/admin/ingest' && request.method === 'POST') return handleIngest(request, env);
   if (path === '/admin/facets' && request.method === 'POST') return handleFacetsRebuild(request, env);
+  if (path === '/admin/delete' && request.method === 'POST') return handleDelete(request, env);
+  if (path === '/admin/vectorize' && request.method === 'GET') return handleVectorizeInfo(request, env);
+  if (path === '/admin/verify' && request.method === 'POST') return handleVerify(request, env);
 
   return json({ error: 'not_found', message: `No route for ${path}.` }, 404);
 }

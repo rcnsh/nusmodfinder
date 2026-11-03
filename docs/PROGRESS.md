@@ -395,3 +395,99 @@ fails on the previous code.
   PASS 15/15 up to tie order (10/15 identical). Docs reworded; the ADR decision now cites it.
   Live `/search` calls this session: 30 (15 hybrid, 15 lexical).
 
+## 2026-11-04 — Phase 1 1C: ingest pipeline, B2/B8/B9 fixed
+
+- **B2 fixed.** `text_hash` = hash(model id + embedded-text version + text); `row_hash` =
+  hash(normaliser version + the exact bound tuple + Vectorize metadata), shared by the Worker
+  and the scripts (`src/rowhash.js`). `/admin/hashes` returns both plus a 0006 schema report.
+  `scripts/ingest-core.mjs`: text change → re-embed; row-only change → row rewrite + vector
+  re-upsert with its stored values (`getByIds`, no embedding; deviation from r1's "re-embed,
+  cheap"); unchanged → skip. Deletes through the new `/admin/delete` (Vectorize, then D1), last,
+  only after a clean upsert phase; 95% mass-delete abort before any write. Write budget (default
+  40k) summed from `meta.rows_written`, clean resumable stop (`--from` for forced runs). Bounded
+  wait on `describe().processedUpToMutation` (the last upsert batch runs alone so the last
+  mutation is well defined). `.data/` cache revalidates with an ETag/Last-Modified sidecar past
+  `--max-age` (24 h) unless `--offline`. Ingest refuses a database without 0006, a mixed acad
+  year, duplicate codes or an embedding-model mismatch. A finished run writes
+  `src/data-version.json`; README runbook: ingest → verify → commit it → `npm run deploy`.
+  acad_year sub-claim: no query-time fix; rows keyed by code, so deletes and row-hash rewrites
+  leave one year (tested).
+- `npm run verify`: missing/extra vectors (wrangler `list-vectors` ids), row_hash recomputed from
+  stored columns, sampled (≤ 100) metadata via `getByIds`; exits non-zero on drift. Tested with
+  the fake index and a stubbed wrangler only; never run remotely.
+- **SC6 measured locally** (`docs/evidence/phase1/ingest-cost.md`): forced full re-ingest
+  **35,079 rows read** (gate < 500k) / 34,381 written; no-op 28,308 / 2; 25 field-only changes
+  28,334 / 138 with no embedding; 10 deletes 28,317 / 22 (local D1 under-counts delete writes).
+  Found while measuring: a cold load writes ~7.1 rows/module (~48k), over the 40k default; the
+  budget stops it cleanly and a rerun finishes it.
+- **B8 fixed:** query tokens split on the exact unicode61 separator set, generated from SQLite
+  (`src/fts-separators.js`); ASCII MATCH strings byte-identical over every query fixture.
+- **B9 fixed:** README cost section names Vectorize queried dims as the binding limit with the
+  arithmetic; per-search D1 numbers marked pending the Phase 1 deploy.
+- Nothing deployed, no remote call, no migration change. The first remote ingest after 0006 is
+  the forced full re-ingest (every `row_hash` NULL, every `text_hash` on the new formula): ADR
+  0002's separate-UTC-day rule and headroom check apply.
+
+## 2026-11-04 — Phase 1 1C: PR #13 review fixes
+
+- Mass-delete guard counts the planned deletes (> 5% of D1's codes refuses), so a same-size
+  corpus of other codes is refused; a corpus for another acad year than most of D1's rows is
+  refused unless `--allow-year-change` (`/admin/hashes` returns `acadYears` counts).
+- Vector metadata carries `textHash` (not indexed); the row-only path reuses stored values only
+  when it matches and the dimension is 384, else re-embeds; verify compares it. Production
+  vectors have none, so the planned forced re-ingest re-embeds everything as before.
+- The last sent mutation id persists in `.data/ingest-state.json` (per `--url`) until a wait
+  confirms it; a rerun with nothing to send waits for it before writing `data-version.json`.
+- Schema guard requires all four 0006 triggers. `/admin/delete` clears the hashes before
+  `deleteByIds`. The `.data/` sidecar records the body sha256; a mismatch forces a full GET.
+- **Cold-load cost corrected:** ~48k table/index + 89,337 FTS5 shadow rows ≈ 137k written
+  (`docs/evidence/phase1/fts-writes.mjs`), over the 100k/day cap. The budget now charges
+  max(`meta.rows_written`, estimate with FTS); a cold load must not run remotely until remote
+  FTS metering is measured. The forced re-ingest writes 0 FTS rows and is charged 37,251.
+- CI: the full unicode61 separator probe gets a 60 s timeout (5.2 s on the runner).
+- Nothing deployed, no remote call.
+
+## 2026-11-04 — Phase 1 1C: PR #13 second review fixes
+
+- **The FTS write charge follows the FTS triggers.** `/admin/hashes` returns `ftsHash` (code,
+  title, description of the stored row, `src/rowhash.js`); the budget charges the FTS term only
+  when it differs from the corpus's. `text_hash` still decides re-embedding. Against production
+  (main's `hashOf(text)`, `row_hash` NULL) the old rule charged every row 21.5 and stopped at
+  1,850 of 6,771 modules; the planned run is now charged 37,251 (local, `productionStart` in
+  `test/full/ingest.test.js`) and finishes in one run under the 40k default.
+- **The mutation wait cannot deadlock.** `/admin/ingest` and `/admin/delete` return `sentAt`
+  (the Worker's `Date.now()` once Vectorize accepted the mutation); the state file stores it,
+  and the wait also ends when `processedUpToDatetime` (ISO or number) is strictly later. README
+  documents the manual way out for entries without `sentAt`.
+- **One ingest at a time.** `.data/ingest-state.json.lock` (O_EXCL, pid; the refusal says
+  whether the pid is alive); state writes use a per-process tmp file. A failed state write no
+  longer kills the run: it finishes, exits 1, names the unrecorded mutation ids and does not
+  write `data-version.json`.
+- Nothing deployed, no remote call.
+
+## 2026-11-04 — PR #13 third review fixes
+
+- **Wait no longer ends on the run's own earlier mutation.** The pending entry carries
+  `earlier` (this run's ids, after those of a carried-over pending entry); the
+  `processedUpToDatetime > sentAt` check ignores them, so an undocumented "processed time"
+  reading of that field cannot end the wait with the last batch still queued.
+- **Run lock released on SIGINT/SIGTERM** (exit 130/143), and only while it carries this run's
+  nonce, so a hand-deleted lock's old owner never removes the next run's.
+- Nothing deployed, no remote call.
+
+## 2026-11-04 — PR #13 fourth review fixes (last review round)
+
+- **Retried mutating request → wait by id only.** A 5xx or dropped connection on
+  `/admin/ingest` or `/admin/delete` may hide a queued mutation (the Worker mutates Vectorize
+  before D1), so the run records `sentAt: null` from then on (re-recording the last id) and a
+  rerun carrying that entry inherits it.
+- **Signals stop the run cleanly.** First SIGINT/SIGTERM aborts: no new request, in-flight ones
+  finish and are recorded, status `interrupted`, exit 130/143, lock released. A second signal
+  forces exit.
+- **Residual, accepted at the review cap:** a request whose every attempt fails after Vectorize
+  accepted it, with no earlier mutation recorded in the run, leaves a hidden mutation no entry
+  marks id-only; a forced second signal mid-POST can lose an id. Both need a failure plus a
+  processing-time reading of `processedUpToDatetime`; the cost is a data version written while
+  that mutation is still queued, caught by `npm run verify`.
+- Nothing deployed, no remote call.
+
