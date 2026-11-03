@@ -6,35 +6,58 @@ import { fixture } from '../helpers.js';
 /**
  * One SQL statement the Worker executed: its text, its bound values, and the
  * D1 meta (rows read/written) when the call returned a result object.
- * @typedef {{ sql: string, binds: unknown[], method: string }} DbCall
+ * @typedef {{ sql: string, binds: unknown[], method: string, session: string | null }} DbCall
  */
 
 /**
- * Wraps the test D1 binding so every statement the Worker runs is logged.
- * Pass the result as `env: { DB }` to `call()`.
+ * Wraps the test D1 binding so every statement the Worker runs is logged,
+ * including statements run on a session (`withSession`), whose constraint is
+ * recorded as `session`. Pass the result as `env: { DB }` to `call()`.
  * @param {DbCall[]} log
+ * @param {{ hang?: (sql: string) => boolean }} [options] `hang`: statements
+ *   for which it returns true never settle, for D1 timeout tests.
  * @returns {D1Database}
  */
-export function recordingDb(log) {
+export function recordingDb(log, options = {}) {
   const db = env.DB;
+  const hang = options.hang ?? (() => false);
   /**
    * @param {D1PreparedStatement} stmt
    * @param {string} sql
    * @param {unknown[]} binds
+   * @param {string | null} session
    * @returns {D1PreparedStatement}
    */
-  const wrap = (stmt, sql, binds) => /** @type {any} */ ({
-    inner: stmt,
-    bind: (/** @type {unknown[]} */ ...args) => wrap(stmt.bind(...args), sql, args),
-    first: (/** @type {any} */ col) => { log.push({ sql, binds, method: 'first' }); return stmt.first(col); },
-    all: () => { log.push({ sql, binds, method: 'all' }); return stmt.all(); },
-    run: () => { log.push({ sql, binds, method: 'run' }); return stmt.run(); },
-    raw: (/** @type {any} */ opts) => { log.push({ sql, binds, method: 'raw' }); return stmt.raw(opts); },
+  const wrap = (stmt, sql, binds, session) => {
+    /** @param {string} method @param {() => Promise<any>} run */
+    const exec = (method, run) => {
+      log.push({ sql, binds, method, session });
+      return hang(sql) ? new Promise(() => {}) : run();
+    };
+    return /** @type {any} */ ({
+      inner: stmt,
+      bind: (/** @type {unknown[]} */ ...args) => wrap(stmt.bind(...args), sql, args, session),
+      first: (/** @type {any} */ col) => exec('first', () => stmt.first(col)),
+      all: () => exec('all', () => stmt.all()),
+      run: () => exec('run', () => stmt.run()),
+      raw: (/** @type {any} */ opts) => exec('raw', () => stmt.raw(opts)),
+    });
+  };
+  /**
+   * @param {D1Database | D1DatabaseSession} target
+   * @param {string | null} session
+   */
+  const facade = (target, session) => ({
+    prepare: (/** @type {string} */ sql) => wrap(target.prepare(sql), sql, [], session),
+    batch: (/** @type {any[]} */ stmts) => target.batch(stmts.map((s) => s.inner ?? s)),
   });
   return /** @type {any} */ ({
-    prepare: (/** @type {string} */ sql) => wrap(db.prepare(sql), sql, []),
-    batch: (/** @type {any[]} */ stmts) => db.batch(stmts.map((s) => s.inner ?? s)),
+    ...facade(db, null),
     exec: (/** @type {string} */ q) => db.exec(q),
+    withSession: (/** @type {any} */ constraint) => ({
+      ...facade(db.withSession(constraint), String(constraint ?? 'first-unconstrained')),
+      getBookmark: () => null,
+    }),
   });
 }
 

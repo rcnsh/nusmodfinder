@@ -54,6 +54,13 @@ async function timed(pending, trace) {
   return withHeaders(await pending, { 'server-timing': trace.header() });
 }
 
+/**
+ * The request's id for an error report: the cf-ray Cloudflare assigned, so a
+ * user's report can be matched to the logs, else a fresh random id.
+ * @param {Request} request
+ */
+const requestId = (request) => request.headers.get('cf-ray') ?? crypto.randomUUID();
+
 export default {
   /**
    * @param {Request} request
@@ -62,7 +69,22 @@ export default {
    */
   async fetch(request, env, ctx) {
     const trace = new Trace();
-    const response = await route(request, env, ctx, trace);
+    /** @type {Response} */
+    let response;
+    try {
+      response = await route(request, env, ctx, trace);
+    } catch (err) {
+      // Anything a route did not handle (B5): a JSON 500 the caller can quote,
+      // never workerd's bare "error code: 1101".
+      const id = requestId(request);
+      const e = /** @type {any} */ (err);
+      console.error(JSON.stringify({
+        event: 'unhandled', requestId: id, path: new URL(request.url).pathname,
+        name: e?.name ?? null, message: e?.message ?? String(err), stack: e?.stack ?? null,
+      }));
+      response = json({ error: 'internal', requestId: id }, 500);
+      response.headers.set('cache-control', 'no-store');
+    }
     return withHeaders(response, { 'x-app-version': appVersion(env) });
   },
 };

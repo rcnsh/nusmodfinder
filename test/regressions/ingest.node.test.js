@@ -14,7 +14,7 @@ const record = {
   workload: [2, 1, 1, 3, 3], prerequisite: 'None', preclusion: 'CS1010',
 };
 const ng = (/** @type {Record<string, number[]>} */ bySem) =>
-  ({ available: true, bySem: new Map(Object.entries(bySem)), updatedAsAt: '01 Sep 2026', total: Object.keys(bySem).length });
+  ({ available: true, bySem: new Map(Object.entries(bySem)), updatedAsAt: '01 Sep 2026', source: null, total: Object.keys(bySem).length });
 
 describe('B2', () => {
   it('[B2 known-bug] textHash ignores semesters, credits, workload, prerequisite, preclusion and NG flags', () => {

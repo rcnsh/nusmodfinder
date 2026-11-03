@@ -44,7 +44,7 @@ describe('/search', () => {
     expect(body.results.map((/** @type {{ code: string }} */ r) => r.code)).toContain('PC3270');
     expect(fakes.ai.calls.length - before.ai).toBe(1);
     expect(fakes.vectorize.calls.length - before.vec).toBe(1);
-    expect(fakes.vectorize.calls.at(-1)?.args[1]).toMatchObject({ topK: 50, returnMetadata: 'indexed' });
+    expect(fakes.vectorize.calls.at(-1)?.args[1]).toEqual({ topK: 50 });
   });
 
   it('pins an exact module code to the top', async () => {
@@ -63,10 +63,13 @@ describe('/search', () => {
     expect(fakes.ai.calls.length).toBe(afterFirst + 1);
   });
 
-  it('reports an embedding failure as a 502 from workers-ai', async () => {
+  it('degrades a hybrid search to keyword-only when embedding fails, and fails mode=vector with a 502', async () => {
     const failing = createFakes();
     failing.ai.throws('model unavailable');
-    const { status, body } = await callJson('/search?q=databases', { fakes: failing });
+    const hybrid = await callJson('/search?q=databases', { fakes: failing });
+    expect(hybrid.status).toBe(200);
+    expect(hybrid.body.degraded).toEqual({ source: 'workers-ai', reason: 'error' });
+    const { status, body } = await callJson('/search?q=databases&mode=vector', { fakes: failing });
     expect(status).toBe(502);
     expect(body).toMatchObject({ error: 'upstream_failure', source: 'workers-ai', message: 'model unavailable' });
   });
@@ -81,22 +84,24 @@ describe('/search', () => {
 });
 
 describe('/module/:code', () => {
-  it('returns the full row for CS1010S', async () => {
+  it('returns the full row for CS1010S, with exactly the columns of migrations 0001-0005', async () => {
     const { status, body } = await callJson('/module/CS1010S');
     expect(status).toBe(200);
     expect(body).toMatchObject({ code: 'CS1010S', title: 'Programming Methodology', semesters: [1, 2], ng: false });
+    expect(Object.keys(body)).toEqual(['code', 'title', 'description', 'credits', 'department', 'faculty', 'level',
+      'semesters', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters']);
   });
 });
 
 describe('/facets', () => {
-  it('falls back to live aggregates when no precomputed row exists', async () => {
+  it('falls back to live aggregates when no precomputed row exists (no NG date before an ingest records one)', async () => {
     const { status, headers, body } = await callJson('/facets');
     expect(status).toBe(200);
     // The precomputed path sets a cache-control header; the fallback does not.
     expect(headers.get('cache-control')).toBeNull();
     const faculties = new Set(fixture.modules.map((m) => m.faculty));
     expect(body.faculties).toHaveLength(faculties.size);
-    expect(body.ng).toEqual({ count: fixture.modules.filter((m) => m.ng).length, updatedAsAt: '01 Sep 2026' });
+    expect(body.ng).toEqual({ count: fixture.modules.filter((m) => m.ng).length, updatedAsAt: null });
   });
 });
 

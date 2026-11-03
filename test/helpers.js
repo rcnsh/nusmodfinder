@@ -5,6 +5,9 @@
 import { applyD1Migrations, createExecutionContext, reset, waitOnExecutionContext } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import worker from '../src/index.js';
+import { searchCacheKey } from '../src/search.js';
+import { denseCircuit } from '../src/upstream.js';
+import ngJson from '../data/ng-courses-2026-2027.json';
 import { createFakes } from './fakes.js';
 import fixtureJson from './fixtures/corpus.json';
 
@@ -13,6 +16,13 @@ import fixtureJson from './fixtures/corpus.json';
 export const BASE = 'https://vector-nusmods.test';
 /** Only ever bound inside tests; the raw test env has no INGEST_SECRET. */
 export const TEST_INGEST_SECRET = 'test-ingest-secret';
+
+/** The NG list provenance ingest posts to /admin/facets (scripts/ingest.mjs). */
+export const NG_LIST = {
+  updatedAsAt: ngJson.updatedAsAt,
+  source: ngJson.source,
+  count: new Set(Object.values(/** @type {Record<string, string[]>} */ (ngJson.semesters)).flat()).size,
+};
 
 /** The committed fixture corpus (~400 modules). */
 export const fixture = /** @type {FixtureCorpus} */ (/** @type {unknown} */ (fixtureJson));
@@ -36,7 +46,11 @@ export function buildEnv(fakes, extra = {}) {
  * @property {Record<string, unknown>} [env] Extra env vars, e.g. `{ INGEST_SECRET }`.
  * @property {boolean} [keepCache] `/search` responses are cached in
  *   `caches.default`, which persists across tests in a file. By default the
- *   entry for this URL is deleted first so each call is a cache miss.
+ *   entry this URL maps to (its canonical key) is deleted first so each call
+ *   is a cache miss.
+ * @property {boolean} [keepCircuit] The dense-half circuit breaker is
+ *   per-isolate state shared by every test in a file. By default it is reset
+ *   before each call so one test's failures cannot open it for the next.
  */
 
 /**
@@ -46,11 +60,13 @@ export function buildEnv(fakes, extra = {}) {
  * @returns {Promise<Response>}
  */
 export async function call(path, options = {}) {
-  const { fakes = createFakes(), init, env: extra, keepCache = false } = options;
+  const { fakes = createFakes(), init, env: extra, keepCache = false, keepCircuit = false } = options;
   const url = new URL(path, BASE);
   if (url.pathname === '/search' && !keepCache) {
-    await caches.default.delete(new Request(url.toString(), { method: 'GET' }));
+    const key = searchCacheKey(url);
+    if (key) await caches.default.delete(key);
   }
+  if (!keepCircuit) denseCircuit.reset();
   const ctx = createExecutionContext();
   const response = await worker.fetch(new Request(url, init), buildEnv(fakes, extra), ctx);
   await waitOnExecutionContext(ctx);
@@ -99,7 +115,8 @@ export function adminCall(path, fakes, body) {
  * what production would. Call from `beforeAll` (or `beforeEach` when a test
  * mutates D1). Call logs on the returned fakes are cleared afterwards.
  * @param {{ modules?: NormalisedModule[], fakes?: Fakes, facets?: boolean }} [options]
- *   `facets: true` also builds the precomputed /facets row, as ingest does.
+ *   `facets: true` also records the NG list and builds the precomputed
+ *   /facets row, as ingest does.
  * @returns {Promise<Fakes>}
  */
 export async function seed(options = {}) {
@@ -111,7 +128,7 @@ export async function seed(options = {}) {
     if (res.status !== 200) throw new Error(`seed: ingest batch ${i / 100} failed: HTTP ${res.status} ${await res.text()}`);
   }
   if (facets) {
-    const res = await adminCall('/admin/facets', fakes);
+    const res = await adminCall('/admin/facets', fakes, { ngList: NG_LIST });
     if (res.status !== 200) throw new Error(`seed: facets rebuild failed: HTTP ${res.status} ${await res.text()}`);
   }
   for (const fake of [fakes.ai, fakes.vectorize, fakes.limit]) fake.calls.length = 0;

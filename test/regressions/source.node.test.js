@@ -153,10 +153,14 @@ describe('ops', () => {
     }
   });
 
-  it('[O3 known-bug] NG_LIST_UPDATED is a hand-kept copy of the NG list date', () => {
-    expect(worker).toContain(`const NG_LIST_UPDATED = '${ngList.updatedAsAt}';`);
-    expect(worker).not.toMatch(/import[^\n]*ng-courses/);
-    expect(readme).toContain('bump `NG_LIST_UPDATED` in `src/modules.js`');
+  it('[O3 fixed] the NG list date has one source: ingest posts it from data/ng-courses-*.json, no copy is kept by hand', () => {
+    expect(worker).not.toContain('NG_LIST_UPDATED');
+    expect(worker).not.toContain(ngList.updatedAsAt);
+    expect(readme).not.toContain('NG_LIST_UPDATED');
+    const ingest = read('scripts/ingest.mjs');
+    // The payload is built by scripts/lib.mjs facetsPayload (unit-tested in test/facets-payload.node.test.js).
+    expect(ingest).toContain('const facetsBody = JSON.stringify(facetsPayload(ngCourses));');
+    expect(ingest.match(/\/admin\/facets`, \{ method: 'POST', headers: auth, body: facetsBody \}/g)).toHaveLength(2);
   });
 
   it('[O4 known-bug] wrangler.jsonc declares no cron trigger', () => {
