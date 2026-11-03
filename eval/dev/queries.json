@@ -1,5 +1,5 @@
 {
- "version": "v2",
+ "version": "v2.1",
  "seed": "vnm-2026-11-04",
  "created": "2026-11-04",
  "clusterMethod": "tfidf(text+narrative.relevant) single-link union at cos>=0.35 (lowest of 0.30..0.50 step 0.05 giving every shape >=2 per split), provenance-first",
@@ -1443,7 +1443,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-exact"
    ],
    "text": "BN4207",
    "filters": {
@@ -1463,7 +1464,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-exact"
    ],
    "text": "LL4541V",
    "filters": {
@@ -1483,7 +1485,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-exact"
    ],
    "text": "MLE2105",
    "filters": {
@@ -1503,7 +1506,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-exact"
    ],
    "text": "MA2101",
    "filters": {
@@ -1522,7 +1526,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-exact"
    ],
    "text": "EE4502",
    "filters": {
@@ -1542,7 +1547,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-space"
    ],
    "text": "cn 2109",
    "filters": {
@@ -1561,7 +1567,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-space"
    ],
    "text": "cs 2030",
    "filters": {
@@ -1580,7 +1587,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-space"
    ],
    "text": "is 4246",
    "filters": {
@@ -1600,7 +1608,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-partial"
    ],
    "text": "MUL21",
    "filters": {
@@ -1619,7 +1628,8 @@
   {
    "persona": "mech",
    "shapes": [
-    "code"
+    "code",
+    "code-partial"
    ],
    "text": "DAO17",
    "filters": {
@@ -1639,7 +1649,8 @@
    "persona": "mech",
    "shapes": [
     "code",
-    "ge"
+    "ge",
+    "code-partial"
    ],
    "text": "GEC",
    "filters": {
@@ -1751,25 +1762,6 @@
    "source": "d-028"
   },
   {
-   "persona": "P2",
-   "shapes": [
-    "typo"
-   ],
-   "text": "HCI / UX",
-   "filters": {
-    "sem": 2,
-    "ng": true
-   },
-   "narrative": {
-    "relevant": "Human-computer interaction and user experience design courses",
-    "partial": "Web design or interactive media courses",
-    "notRelevant": "Hardware engineering or marketing courses"
-   },
-   "origin": "typo",
-   "id": "d-098",
-   "source": "d-021"
-  },
-  {
    "persona": "P1",
    "shapes": [
     "typo"
@@ -1788,5 +1780,6 @@
    "id": "d-099",
    "source": "d-011"
   }
- ]
+ ],
+ "amendment": "v2.1: code-<form> shapes; noAnswerByRule on non-existent codes; typo copies of their source dropped"
 }
