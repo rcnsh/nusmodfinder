@@ -87,3 +87,23 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
   `npm run deploy` is the only supported path.
 - Tests 98 → 117 (`test/instrument.test.js`, `test/deploy.node.test.js`). No live calls, no
   remote commands, no deploy.
+
+## 2026-11-04 — Phase 1/2 in flight
+
+- PR #4 (module split + Server-Timing, structured logs, version_metadata, guarded `npm run deploy`)
+  and PR #5 (lexical retriever moved to `src/lexical.js`, takes a D1 handle) merged. **Not deployed**:
+  the brief allows deploys only after a phase passes its exit criteria, so the plan's "instrumentation
+  deploy first" step is replaced by a read-only analytics baseline (below).
+- **Production baseline** (GraphQL `workersInvocationsAdaptive`, script `vector-nusmods`,
+  2026-10-28..2026-11-04, all routes, 225 successful requests incl. our Phase 0 probes): wall time
+  p50 **279 ms**, p90 1,017 ms, p99 1,886 ms; CPU p50 4.3 ms, **p99 18.5 ms** (above the nominal
+  10 ms Free limit, with 0 errors). 2 `scriptThrewException` = our B5 probes. Per-span numbers come
+  with the Phase 1 deploy.
+- Phase 2 2b: 147 persona queries (6 writer subagents, no corpus/tool access; prompts and seeded
+  shape quotas in `eval/v2/`) + 18 mechanical code queries + 15 noise-model typos = 180. Split
+  provenance-first, TF-IDF topic clusters (single-link, threshold 0.35 = lowest of 0.30–0.50 giving
+  every shape ≥ 2 per split): **dev 99 / holdout 81**. Dev sha256 `cf33e601…bc3b4`; holdout plaintext
+  sha256 `8f653595…72bb4` held by the custodian (lead) in `~/.config/vnm/custody/`, to be committed
+  only encrypted. Deviation: TF-IDF instead of embedding similarity for clustering (embedding tool
+  not ready); recorded for ADR 0003.
+- Running: 2a eval harness, 1A (0006 + exact filtered lexical), 1B (request path).
