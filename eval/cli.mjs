@@ -133,7 +133,7 @@ async function fullReport(set, candPath, basePath, a) {
   if (base && baseScores) {
     cmp = compare(baseScores, candScores);
     console.log(`\n${comparisonTable(cmp, base.variant, cand.variant)}`);
-    const v = gateFor(set.name === 'fixture' ? 'dev' : set.name, cmp, changeOf(a));
+    const v = gateFor(set.gate, cmp, changeOf(a));
     console.log(`\n${verdictBlock(v)}`);
     Object.assign(json, { baseline: base.variant, baseSummary: summarise(baseScores), comparison: { ...cmp, shapes: undefined }, verdict: v });
   }
@@ -169,7 +169,7 @@ async function verdictReport(set, candPath, basePath, a) {
     process.exitCode = 2;
     return;
   }
-  const v = gateFor(set.name, cmp, changeOf(a));
+  const v = gateFor(set.gate, cmp, changeOf(a));
   const out = verdictOnly(v, cmp);
   console.log(out.text);
   const ranker = /** @type {any} */ (cand.ranker) ?? {};
@@ -308,7 +308,7 @@ async function cmdPool(a) {
   await mkdir(dirname(out), { recursive: true });
   if (set.encrypted) {
     if (!out.endsWith('.enc')) fail('an encrypted set pool must be written to a .enc path');
-    await writeEncryptedJson(out, pool, await setKey());
+    await writeEncryptedJson(out, pool, await setKey(), set.name);
   } else {
     await writeFile(out, `${JSON.stringify(pool, null, 1)}\n`);
   }

@@ -12,7 +12,9 @@ import { generateKey, readKey, writeEncryptedJson } from '../../eval/lib/crypto.
 import { REPO } from '../../eval/lib/sets.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
-const SET = 'holdout';
+// The self-test twin of the holdout set: same rules, ledger in its own
+// directory. Tests never touch the real eval/holdout-ledger.md.
+const SET = 'selftest';
 
 /** @type {string} */
 let tmp;
@@ -57,21 +59,22 @@ function syntheticRun(querySet, qrels, variant, order) {
 
 /**
  * Writes an encrypted set (queries, qrels, runs `base` and `cand`) into a new
- * directory under tmp.
+ * directory under tmp, bound to `edit.as` (default the self-test set).
  * @param {string} name
- * @param {{ qrels?: (q: any) => void }} [edit]
+ * @param {{ qrels?: (q: any) => void, as?: string }} [edit]
  */
 async function makeSet(name, edit = {}) {
+  const as = edit.as ?? SET;
   const dir = join(tmp, name);
   const querySet = await fixture('queries.json');
   const qrels = await fixture('qrels.json');
   const base = syntheticRun(querySet, qrels, 'base', 'worst');
   const cand = syntheticRun(querySet, qrels, 'cand', 'best');
   edit.qrels?.(qrels);
-  await writeEncryptedJson(join(dir, 'queries.json.enc'), querySet, key);
-  await writeEncryptedJson(join(dir, 'qrels.json.enc'), qrels, key);
-  await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), base, key);
-  await writeEncryptedJson(join(dir, 'runs', 'run-cand.json.enc'), cand, key);
+  await writeEncryptedJson(join(dir, 'queries.json.enc'), querySet, key, as);
+  await writeEncryptedJson(join(dir, 'qrels.json.enc'), qrels, key, as);
+  await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), base, key, as);
+  await writeEncryptedJson(join(dir, 'runs', 'run-cand.json.enc'), cand, key, as);
   return { dir, querySet };
 }
 
@@ -100,6 +103,24 @@ describe('holdout errors are withheld (review finding 4)', () => {
     const wrong = join(tmp, 'wrong.key');
     await generateKey(wrong);
     const r = cli(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base'], { VNM_HOLDOUT_KEY_FILE: wrong });
+    expect(r.code).toBe(1);
+    expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (DecryptionError); details withheld\n`);
+  });
+});
+
+describe('set-bound ciphertexts (review finding 2)', () => {
+  it('a look on the self-test set records one row in that set\'s own ledger', async () => {
+    const { dir } = await makeSet('one-look');
+    const r = cli(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base']);
+    expect(r.stderr).toBe('');
+    expect(r.code).toBe(0);
+    expect(r.stdout).toMatch(/^holdout verdict: (PASS|FAIL)/);
+    expect(await readFile(join(dir, 'ledger.md'), 'utf8')).toMatch(/\| selftest \| 0000000 \| cand \| base \|/);
+  });
+
+  it('holdout ciphertexts copied into a self-test directory do not decrypt there', async () => {
+    const { dir } = await makeSet('copied-holdout', { as: 'holdout' });
+    const r = cli(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base']);
     expect(r.code).toBe(1);
     expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (DecryptionError); details withheld\n`);
   });

@@ -222,7 +222,7 @@ if (a.corpus) {
   const set = layout(/** @type {string} */ (a.set), a['set-dir'] ? resolve(a['set-dir']) : undefined);
   const key = set.encrypted ? await setKey() : null;
   const cachePath = setFile(set, 'embeddings.json');
-  const cache = await readCache(cachePath, key);
+  const cache = await readCache(cachePath, key, set.name);
   const querySet = await loadQueries(set);
   /** @type {string[]} */
   const wanted = querySet.queries.map((q) => q.text);
@@ -230,7 +230,7 @@ if (a.corpus) {
   if (existsSync(corpusFile)) wanted.push(...JSON.parse(await readFile(corpusFile, 'utf8')).modules.map((/** @type {NormalisedModule} */ m) => m.text));
   const missingFile = join(REPO, '.eval-work', `missing-${set.name}.json${key ? '.enc' : ''}`);
   if (existsSync(missingFile)) {
-    const m = key ? await readEncryptedJson(missingFile, key) : JSON.parse(await readFile(missingFile, 'utf8'));
+    const m = key ? await readEncryptedJson(missingFile, key, set.name) : JSON.parse(await readFile(missingFile, 'utf8'));
     wanted.push(...m.texts);
   }
   const todo = [...new Set(wanted)].filter((t) => !(embeddingKey(MODEL, t) in cache.entries));
@@ -242,7 +242,7 @@ if (a.corpus) {
   const { vectors } = await embedAll(todo);
   await logSpend(`set:${set.name}`, est, a.note ?? '');
   todo.forEach((t, i) => { cache.entries[embeddingKey(MODEL, t)] = f32ToBase64(Float32Array.from(vectors[i])); });
-  await writeCache(cachePath, cache, key);
+  await writeCache(cachePath, cache, key, set.name);
   if (key && !a['set-dir']) await updateManifest(set.dir);
   await rm(missingFile, { force: true });
   console.log(`added ${todo.length} vectors to ${cachePath} (${Object.keys(cache.entries).length} total)`);

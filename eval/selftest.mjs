@@ -7,9 +7,12 @@
 //   2. a working-tree run + comparison + gate, and eval:report recomputes it
 //      identically from the run files alone;
 //   3. eval:pool output has no system or rank information;
-//   4. holdout custody with a throwaway key: encrypted-only output, a
-//      verdict-only terminal, ledger append, 13th look refused, pool refused
-//      without --custodian, tampering and a wrong key detected.
+//   4. holdout custody with a throwaway key, on the `selftest` set (the
+//      holdout rules with its ledger in its own directory; its ciphertexts are
+//      bound to that name, so real holdout files cannot be read through it):
+//      encrypted-only output, a verdict-only terminal, ledger append, 13th
+//      look refused, pool refused without --custodian, tampering and a wrong
+//      key detected, errors withheld.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
@@ -97,7 +100,8 @@ const keyFile = join(WORK, 'throwaway.key');
 const env = { VNM_HOLDOUT_KEY_FILE: keyFile };
 ok(node(HOLDOUT, ['keygen'], env), 'keygen');
 assert.notEqual(node(HOLDOUT, ['keygen'], env).code, 0, 'keygen refuses to overwrite');
-for (const f of ['queries.json', 'qrels.json', 'embeddings.json']) ok(node(HOLDOUT, ['encrypt', join(FIX, f), '--as', f, '--dir', H], env), `encrypt ${f}`);
+assert.match(node(HOLDOUT, ['encrypt', join(FIX, 'queries.json'), '--as', 'queries.json', '--dir', H], env).out, /say which set it holds with --set/);
+for (const f of ['queries.json', 'qrels.json', 'embeddings.json']) ok(node(HOLDOUT, ['encrypt', join(FIX, f), '--as', f, '--dir', H, '--set', 'selftest'], env), `encrypt ${f}`);
 await cp(join(FIX, 'corpus.json'), join(H, 'corpus.json'));
 ok(node(HOLDOUT, ['verify', '--dir', H]), 'verify');
 
@@ -108,7 +112,7 @@ const assertNoLeak = (/** @type {string} */ out, /** @type {string} */ what) => 
     assert.ok(!out.includes(q.text), `${what} printed a query text`);
   }
 };
-const hargs = ['--set', 'holdout', '--set-dir', H];
+const hargs = ['--set', 'selftest', '--set-dir', H];
 const base = node(CLI, ['run', ...hargs, '--variant', 'base', '--ref', 'eval-v0', '--store-only'], env);
 ok(base, 'holdout baseline run');
 assertNoLeak(base.out, 'holdout baseline run');
@@ -120,7 +124,7 @@ assert.ok(!enc.includes('fx-01') && !enc.includes('CS1010'), 'ciphertext contain
 const look = node(CLI, ['run', ...hargs, '--variant', 'cand', '--baseline', 'base'], env);
 ok(look, 'holdout look');
 assertNoLeak(look.out, 'holdout look');
-const verdictLines = look.out.trim().split('\n').filter((l) => !/^(wrote |holdout\/cand: ranker )/.test(l));
+const verdictLines = look.out.trim().split('\n').filter((l) => !/^(wrote |selftest\/cand: ranker )/.test(l));
 assert.equal(verdictLines.length, 3, `holdout prints only the verdict and two Δ lines, got:\n${look.out}`);
 assert.match(verdictLines[0], /^holdout verdict: (PASS|FAIL)$/);
 assert.match(verdictLines[1], /^ΔnDCG@10 [+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
@@ -130,18 +134,18 @@ assert.equal(ledger.split('\n').filter((l) => /^\| \d{4}-/.test(l)).length, 1, '
 
 const wrongKey = join(WORK, 'wrong.key');
 await writeFile(wrongKey, `${'ab'.repeat(32)}\n`);
-const wrong = node(CLI, ['report', '--set', 'holdout', '--set-dir', H, '--run', 'cand', '--baseline', 'base'], { VNM_HOLDOUT_KEY_FILE: wrongKey });
+const wrong = node(CLI, ['report', ...hargs, '--run', 'cand', '--baseline', 'base'], { VNM_HOLDOUT_KEY_FILE: wrongKey });
 assert.notEqual(wrong.code, 0);
-assert.equal(wrong.out, 'eval: holdout run failed (DecryptionError); details withheld\n', 'a holdout error prints only the generic line');
+assert.equal(wrong.out, 'eval: selftest run failed (DecryptionError); details withheld\n', 'a holdout error prints only the generic line');
 assert.ok(!wrong.out.includes('abab'), 'key material printed');
 assert.equal((await readFile(join(H, 'ledger.md'), 'utf8')).split('\n').filter((l) => /^\| \d{4}-/.test(l)).length, 1, 'a failed look is not recorded');
 
-for (let i = 2; i <= 12; i++) await appendFile(join(H, 'ledger.md'), `| 2026-01-01 | holdout | 0000000 | filler-${i} | base | fail | +0.000 [0.000, 0.000] | +0.000 [0.000, 0.000] |\n`);
+for (let i = 2; i <= 12; i++) await appendFile(join(H, 'ledger.md'), `| 2026-01-01 | selftest | 0000000 | filler-${i} | base | fail | +0.000 [0.000, 0.000] | +0.000 [0.000, 0.000] |\n`);
 const thirteenth = node(CLI, ['report', ...hargs, '--run', 'cand', '--baseline', 'base'], env);
 assert.notEqual(thirteenth.code, 0);
-assert.equal(thirteenth.out, 'eval: holdout run failed (LookLimitError); details withheld\n');
+assert.equal(thirteenth.out, 'eval: selftest run failed (LookLimitError); details withheld\n');
 const thirteenthRun = node(CLI, ['run', ...hargs, '--variant', 'cand2', '--baseline', 'base'], env);
-assert.equal(thirteenthRun.out, 'eval: holdout run failed (LookLimitError); details withheld\n');
+assert.equal(thirteenthRun.out, 'eval: selftest run failed (LookLimitError); details withheld\n');
 assert.ok(!existsSync(join(H, 'runs', 'run-cand2.json.enc')), 'the 13th look is refused before any retrieval');
 
 const pooled = node(CLI, ['pool', ...hargs, '--runs', 'base,cand'], env);

@@ -74,11 +74,12 @@ export const emptyCache = () => ({ schema: 'vnm-eval-embeddings/1', model: MODEL
 /**
  * @param {string} path
  * @param {Buffer | null} key decryption key for encrypted sets
+ * @param {string} set set name (bound into the ciphertext)
  * @returns {Promise<QueryCache>}
  */
-export async function readCache(path, key) {
+export async function readCache(path, key, set) {
   if (!existsSync(path)) return emptyCache();
-  const cache = key ? await readEncryptedJson(path, key) : JSON.parse(await readFile(path, 'utf8'));
+  const cache = key ? await readEncryptedJson(path, key, set) : JSON.parse(await readFile(path, 'utf8'));
   if (cache.model !== MODEL || cache.dims !== DIMS) throw new Error(`${path}: cache is for ${cache.model}/${cache.dims}, expected ${MODEL}/${DIMS}`);
   return cache;
 }
@@ -87,10 +88,11 @@ export async function readCache(path, key) {
  * @param {string} path
  * @param {QueryCache} cache
  * @param {Buffer | null} key
+ * @param {string} set
  */
-export async function writeCache(path, cache, key) {
+export async function writeCache(path, cache, key, set) {
   const sorted = { ...cache, entries: Object.fromEntries(Object.entries(cache.entries).sort(([a], [b]) => a.localeCompare(b))) };
-  if (key) return writeEncryptedJson(path, sorted, key);
+  if (key) return writeEncryptedJson(path, sorted, key, set);
   await writeFile(path, `${JSON.stringify(sorted, null, 1)}\n`);
 }
 

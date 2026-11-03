@@ -19,6 +19,7 @@ import { writeEncryptedJson } from '../lib/crypto.mjs';
  *   output: string,
  *   missingOutput: string,
  *   key: Buffer | null,
+ *   set: string,
  *   header: Record<string, unknown>,
  *   expectedIds: string[],
  *   log?: (line: string) => void,
@@ -61,7 +62,7 @@ export class EvalReporter {
    * @param {ReadonlyArray<unknown>} unhandled
    */
   async onTestRunEnd(modules, unhandled) {
-    const { output, missingOutput, key, header, expectedIds } = this.options;
+    const { output, missingOutput, key, set, header, expectedIds } = this.options;
     const encrypted = key !== null;
     /** @type {string[]} */
     const problems = [];
@@ -80,7 +81,7 @@ export class EvalReporter {
       const unique = [...new Set(this.missing)];
       const file = { schema: 'vnm-eval-missing/1', texts: unique };
       await mkdir(dirname(missingOutput), { recursive: true });
-      if (key) await writeEncryptedJson(missingOutput, file, key);
+      if (key) await writeEncryptedJson(missingOutput, file, key, set);
       else await writeFile(missingOutput, `${JSON.stringify(file, null, 1)}\n`);
       problems.push(`${unique.length} text(s) without a precomputed embedding, listed in ${missingOutput}; run \`npm run eval:embed\` locally`);
     }
@@ -102,7 +103,7 @@ export class EvalReporter {
     const sortedDocs = Object.fromEntries(Object.entries(docs).sort(([a], [b]) => a.localeCompare(b)));
     const run = { ...header, results, docs: sortedDocs };
     await mkdir(dirname(output), { recursive: true });
-    if (key) await writeEncryptedJson(output, run, key);
+    if (key) await writeEncryptedJson(output, run, key, set);
     else await writeFile(output, `${JSON.stringify(run, null, 1)}\n`);
     this.outcome = { ok: true, written: output, problems: [] };
   }

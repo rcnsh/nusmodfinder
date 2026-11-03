@@ -6,7 +6,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { decrypt, encrypt, generateKey, readEncryptedJson, readKey, updateManifest, verifyManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { embeddingKey, estimateTokens } from '../../eval/lib/embeddings.mjs';
 import { appendLook, assertLookAllowed, looks } from '../../eval/lib/ledger.mjs';
-import { layout, runFile, searchParams, validateQueries } from '../../eval/lib/sets.mjs';
+import { DecryptionError } from '../../eval/lib/errors.mjs';
+import { REPO, layout, runFile, searchParams, validateQueries } from '../../eval/lib/sets.mjs';
 
 /** @type {string} */
 let dir;
@@ -18,14 +19,25 @@ describe('AES-256-GCM files', () => {
     const keyPath = await generateKey(join(dir, 'k', 'holdout.key'));
     const key = await readKey(keyPath);
     expect(key).toHaveLength(32);
-    const ct = encrypt(Buffer.from('{"a":1}'), key, 'qrels.json.enc');
-    expect(ct.subarray(0, 8).toString('latin1')).toBe('VNMENC1\n');
-    expect(decrypt(ct, key, 'qrels.json.enc').toString()).toBe('{"a":1}');
-    expect(() => decrypt(ct, key, 'queries.json.enc')).toThrow(/decryption failed/);
+    const ct = encrypt(Buffer.from('{"a":1}'), key, 'qrels.json.enc', 'holdout');
+    expect(ct.subarray(0, 8).toString('latin1')).toBe('VNMENC2\n');
+    expect(decrypt(ct, key, 'qrels.json.enc', 'holdout').toString()).toBe('{"a":1}');
+    expect(() => decrypt(ct, key, 'queries.json.enc', 'holdout')).toThrow(/decryption failed/);
     const flipped = Buffer.from(ct);
     flipped[flipped.length - 1] ^= 1;
-    expect(() => decrypt(flipped, key, 'qrels.json.enc')).toThrow(/decryption failed/);
-    expect(() => decrypt(ct, Buffer.alloc(32, 7), 'qrels.json.enc')).toThrow(/decryption failed/);
+    expect(() => decrypt(flipped, key, 'qrels.json.enc', 'holdout')).toThrow(/decryption failed/);
+    expect(() => decrypt(ct, Buffer.alloc(32, 7), 'qrels.json.enc', 'holdout')).toThrow(/decryption failed/);
+  });
+
+  it('binds the set name, so a ciphertext copied into another set fails to decrypt (review finding 2)', async () => {
+    const key = await readKey(await generateKey(join(dir, 'k-set', 'holdout.key')));
+    const ct = encrypt(Buffer.from('{"q":1}'), key, '/somewhere/eval/holdout/queries.json.enc', 'holdout');
+    // Same file name, any directory: the set name decides.
+    expect(decrypt(ct, key, '/elsewhere/copy/queries.json.enc', 'holdout').toString()).toBe('{"q":1}');
+    for (const other of ['test', 'selftest']) {
+      expect(() => decrypt(ct, key, '/elsewhere/copy/queries.json.enc', other)).toThrow(DecryptionError);
+    }
+    expect(() => encrypt(Buffer.from('{}'), key, 'queries.json.enc', /** @type {any} */ (undefined))).toThrow(/needs a set name/);
   });
 
   it('never overwrites a key and never puts key material in an error', async () => {
@@ -41,11 +53,11 @@ describe('AES-256-GCM files', () => {
   it('JSON helpers and the manifest detect tampering, missing and unlisted files without a key', async () => {
     const key = await readKey(await generateKey(join(dir, 'k3.key')));
     const h = join(dir, 'holdout');
-    await writeEncryptedJson(join(h, 'queries.json.enc'), { version: 'x', queries: [] }, key);
-    expect(await readEncryptedJson(join(h, 'queries.json.enc'), key)).toEqual({ version: 'x', queries: [] });
+    await writeEncryptedJson(join(h, 'queries.json.enc'), { version: 'x', queries: [] }, key, 'holdout');
+    expect(await readEncryptedJson(join(h, 'queries.json.enc'), key, 'holdout')).toEqual({ version: 'x', queries: [] });
     await updateManifest(h);
     expect(await verifyManifest(h)).toEqual([]);
-    await writeEncryptedJson(join(h, 'qrels.json.enc'), {}, key);
+    await writeEncryptedJson(join(h, 'qrels.json.enc'), {}, key, 'holdout');
     expect((await verifyManifest(h)).join('\n')).toMatch(/qrels\.json\.enc is not in/);
     await updateManifest(h);
     const p = join(h, 'queries.json.enc');
@@ -85,6 +97,19 @@ describe('sets', () => {
     expect(runFile(layout('dev'), 'v0')).toMatch(/eval\/runs\/v0\.json$/);
     expect(() => runFile(layout('dev'), '../x')).toThrow(/may only use/);
     expect(() => layout('nope')).toThrow(/unknown set/);
+  });
+
+  it('keeps the custody ledger at its fixed repo path whatever --set-dir says (review finding 2)', () => {
+    const fixed = join(REPO, 'eval', 'holdout-ledger.md');
+    for (const name of ['holdout', 'test']) {
+      expect(layout(name).ledger).toBe(fixed);
+      expect(layout(name, '/tmp/copy-of-holdout').ledger).toBe(fixed);
+      expect(layout(name, join(REPO, 'eval', 'holdout')).ledger).toBe(fixed);
+    }
+    // Only the self-test set keeps a ledger in its directory; its ciphertexts are bound to "selftest".
+    expect(layout('selftest', '/tmp/st').ledger).toBe('/tmp/st/ledger.md');
+    expect(layout('selftest', '/tmp/st')).toMatchObject({ encrypted: true, maxLooks: 12, gate: 'holdout' });
+    expect(layout('dev', '/tmp/d').ledger).toBe(null);
   });
 
   it('validates query files', () => {

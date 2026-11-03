@@ -44,7 +44,9 @@ npm run eval:verify                                       # ciphertext sha256 vs
 ```
 
 `--set dev|holdout|test` (default `dev`; `--holdout` = `--set holdout`). `--set-dir <dir>` points
-a set at another directory (tests). `--embedding <version>` picks a corpus embedding version
+a set at another directory (tests). It never moves a custody set's look ledger: `holdout` and
+`test` always count looks in `eval/holdout-ledger.md`, so pointing `--set-dir` at the real
+ciphertexts, or a copy of them, cannot start a fresh count. `--embedding <version>` picks a corpus embedding version
 (default from `embeddings.json`). Run files go to `eval/runs/<variant>.json` (dev).
 
 **Reproduce the fixture end to end (one command, no Cloudflare, no `.data/` needed):**
@@ -58,6 +60,7 @@ a set at another directory (tests). `--embedding <version>` picks a corpus embed
 | `holdout` | `eval/holdout/*.enc` (queries, qrels, embeddings, `run-<variant>.json.enc`) | AES-256-GCM | verdict + overall Δ with CI; ledger; ≤ 12 looks |
 | `test` (sealed, SC5) | `eval/sealed/*.enc` | AES-256-GCM | SC5 verdict + Δ; ledger; 1 look |
 | `fixture` | `eval/fixtures/` (own 23-module corpus) | plaintext | synthetic; harness self-test only |
+| `selftest` | `--set-dir` (the self-test's throwaway copy of the fixture) | AES-256-GCM | holdout rules; ledger at `<set-dir>/ledger.md` |
 
 `queries.json`:
 ```json
@@ -170,6 +173,13 @@ npm run eval -- --holdout --variant v0 --ref eval-v0 --store-only # stored, no v
 npm run eval -- --holdout --variant cand --baseline v0            # verdict + Δ; one ledger row
 npm run eval:pool -- --set holdout --runs v0,cand --custodian     # encrypted pool for judges
 ```
+
+Ciphertexts (`VNMENC2`) bind the set name and the file name as AES-GCM additional data
+(`holdout/qrels.json`), so a file renamed into another slot, or copied into another set's
+directory (holdout files read as `test` or `selftest`), fails to decrypt. `holdout.mjs encrypt`
+and `decrypt` infer the set for `eval/holdout` and `eval/sealed` and need `--set` anywhere else.
+That binding is what lets the `selftest` set keep its ledger in its own directory: real holdout
+ciphertexts cannot be read through it.
 
 `$VNM_HOLDOUT_KEY_FILE` overrides the key path. The key never enters the repo, CI, logs or
 error messages. Plaintext is decrypted in memory; `decrypt` refuses to write inside the repo.

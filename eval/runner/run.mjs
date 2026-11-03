@@ -41,7 +41,7 @@ export async function runVariant(options) {
 
   // Vectors: the set's query cache, plus the corpus release asset unless the
   // set carries its own corpus (fixture), whose vectors live in the same cache.
-  const cache = await readCache(setFile(set, 'embeddings.json'), key);
+  const cache = await readCache(setFile(set, 'embeddings.json'), key, set.name);
   /** @type {{ keys: string[], vectors: Float32Array }[]} */
   const parts = [cachePart(cache)];
   /** @type {Record<string, unknown>} */
@@ -85,6 +85,7 @@ export async function runVariant(options) {
     output,
     missingOutput: join(REPO, '.eval-work', `missing-${set.name}.json${key ? '.enc' : ''}`),
     key,
+    set: set.name,
     header,
     expectedIds: querySet.queries.map((q) => q.id),
     log,

@@ -4,9 +4,11 @@
 // ($VNM_HOLDOUT_KEY_FILE, default ~/.config/vnm/holdout.key). It is never
 // printed, logged, or put in an error message.
 //
-// File format: "VNMENC1\n" (8 bytes) | IV (12) | GCM tag (16) | ciphertext.
-// The file's name without ".enc" is bound as additional authenticated data,
-// so a ciphertext cannot be renamed into another slot (qrels as queries).
+// File format: "VNMENC2\n" (8 bytes) | IV (12) | GCM tag (16) | ciphertext.
+// The set name and the file's name without ".enc" are bound as additional
+// authenticated data ("holdout/qrels.json"), so a ciphertext cannot be renamed
+// into another slot (qrels as queries) or copied into another set's directory
+// (holdout files read as the test set or the self-test set).
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { chmod, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -14,7 +16,7 @@ import { homedir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { DecryptionError, KeyFileError } from './errors.mjs';
 
-const MAGIC = Buffer.from('VNMENC1\n', 'latin1');
+const MAGIC = Buffer.from('VNMENC2\n', 'latin1');
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
 export const MANIFEST = 'MANIFEST.json';
@@ -52,18 +54,26 @@ export async function generateKey(path = keyFilePath()) {
   return path;
 }
 
-/** @param {string} file */
-const aadFor = (file) => Buffer.from(basename(file).replace(/\.enc$/, ''), 'utf8');
+/**
+ * @param {string} file
+ * @param {string} set
+ */
+function aadFor(file, set) {
+  if (typeof set !== 'string' || !/^[a-z][a-z0-9-]*$/.test(set)) throw new Error(`encryption needs a set name, got ${JSON.stringify(set)}`);
+  return Buffer.from(`${set}/${basename(file).replace(/\.enc$/, '')}`, 'utf8');
+}
 
 /**
  * @param {Buffer} plaintext
  * @param {Buffer} key
  * @param {string} name logical file name, bound as AAD
+ * @param {string} set set name (holdout, test, selftest), bound as AAD
  */
-export function encrypt(plaintext, key, name) {
+export function encrypt(plaintext, key, name, set) {
+  const aad = aadFor(name, set);
   const iv = randomBytes(IV_BYTES);
   const cipher = createCipheriv('aes-256-gcm', key, iv);
-  cipher.setAAD(aadFor(name));
+  cipher.setAAD(aad);
   const body = Buffer.concat([cipher.update(plaintext), cipher.final()]);
   return Buffer.concat([MAGIC, iv, cipher.getAuthTag(), body]);
 }
@@ -72,20 +82,22 @@ export function encrypt(plaintext, key, name) {
  * @param {Buffer} data
  * @param {Buffer} key
  * @param {string} name logical file name the ciphertext was written under
+ * @param {string} set set name the ciphertext was written for
  */
-export function decrypt(data, key, name) {
+export function decrypt(data, key, name, set) {
+  const aad = aadFor(name, set);
   if (data.length < MAGIC.length + IV_BYTES + TAG_BYTES || !data.subarray(0, MAGIC.length).equals(MAGIC)) {
-    throw new DecryptionError(`${basename(name)} is not a VNMENC1 file`);
+    throw new DecryptionError(`${basename(name)} is not a VNMENC2 file`);
   }
   const iv = data.subarray(MAGIC.length, MAGIC.length + IV_BYTES);
   const tag = data.subarray(MAGIC.length + IV_BYTES, MAGIC.length + IV_BYTES + TAG_BYTES);
   const decipher = createDecipheriv('aes-256-gcm', key, iv);
-  decipher.setAAD(aadFor(name));
+  decipher.setAAD(aad);
   decipher.setAuthTag(tag);
   try {
     return Buffer.concat([decipher.update(data.subarray(MAGIC.length + IV_BYTES + TAG_BYTES)), decipher.final()]);
   } catch {
-    throw new DecryptionError(`${basename(name)}: decryption failed (wrong key, renamed file, or tampered ciphertext)`);
+    throw new DecryptionError(`${basename(name)}: decryption failed for the ${set} set (wrong key, renamed file, a file from another set, or tampered ciphertext)`);
   }
 }
 
@@ -93,19 +105,21 @@ export function decrypt(data, key, name) {
  * @param {string} path ends in .enc
  * @param {unknown} value
  * @param {Buffer} key
+ * @param {string} set
  */
-export async function writeEncryptedJson(path, value, key) {
+export async function writeEncryptedJson(path, value, key, set) {
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, encrypt(Buffer.from(JSON.stringify(value), 'utf8'), key, path));
+  await writeFile(path, encrypt(Buffer.from(JSON.stringify(value), 'utf8'), key, path, set));
 }
 
 /**
  * @param {string} path
  * @param {Buffer} key
+ * @param {string} set
  * @returns {Promise<any>}
  */
-export async function readEncryptedJson(path, key) {
-  return JSON.parse(decrypt(await readFile(path), key, path).toString('utf8'));
+export async function readEncryptedJson(path, key, set) {
+  return JSON.parse(decrypt(await readFile(path), key, path, set).toString('utf8'));
 }
 
 /** @param {Buffer} bytes */

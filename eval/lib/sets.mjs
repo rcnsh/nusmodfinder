@@ -2,8 +2,14 @@
 // Where each query set lives and how it is read. dev is plaintext; holdout
 // and test (sealed) are AES-256-GCM ciphertext only (crypto.mjs) and are
 // decrypted in memory. `fixture` is the tiny synthetic set CI runs
-// end-to-end. `--set-dir` points a set name at another directory (tests use
-// it with a throwaway key); the ledger then lives in that directory too.
+// end-to-end, and `selftest` is its encrypted twin for the custody self-test.
+//
+// `--set-dir` points a set name at another directory. The look ledger of a
+// custody set (holdout, test) stays at its one fixed repo path whatever
+// --set-dir says, so pointing --set-dir at the real ciphertexts, or a copy of
+// them, cannot start a fresh count. Only `selftest` keeps its ledger in its
+// directory; its ciphertexts are bound to the name "selftest" (crypto.mjs), so
+// real holdout files cannot be read through it.
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -13,19 +19,27 @@ import { readEncryptedJson, readKey } from './crypto.mjs';
 export const REPO = fileURLToPath(new URL('../../', import.meta.url)).replace(/\/$/, '');
 
 /**
+ * `gate` is the gate the set's verdicts use (gate.mjs `gateFor`).
  * @typedef {{
  *   name: string, dir: string, runsDir: string, encrypted: boolean,
- *   maxLooks: number, ledger: string | null, perQueryOutput: boolean,
+ *   maxLooks: number, ledger: string | null, perQueryOutput: boolean, gate: 'dev' | 'holdout' | 'test',
  * }} SetLayout
  */
 
-/** @type {Record<string, Omit<SetLayout, 'name'>>} */
+/** The fixed look ledger of the custody sets (repo-relative). */
+export const LEDGER = 'eval/holdout-ledger.md';
+
+/** @type {Record<string, Omit<SetLayout, 'name' | 'ledger'> & { ledger: string | null | 'in-dir' }>} */
 const LAYOUTS = {
-  dev: { dir: 'eval/dev', runsDir: 'eval/runs', encrypted: false, maxLooks: Infinity, ledger: null, perQueryOutput: true },
-  fixture: { dir: 'eval/fixtures', runsDir: '.eval-work/runs', encrypted: false, maxLooks: Infinity, ledger: null, perQueryOutput: true },
-  holdout: { dir: 'eval/holdout', runsDir: 'eval/holdout', encrypted: true, maxLooks: 12, ledger: 'eval/holdout-ledger.md', perQueryOutput: false },
-  test: { dir: 'eval/sealed', runsDir: 'eval/sealed', encrypted: true, maxLooks: 1, ledger: 'eval/holdout-ledger.md', perQueryOutput: false },
+  dev: { dir: 'eval/dev', runsDir: 'eval/runs', encrypted: false, maxLooks: Infinity, ledger: null, perQueryOutput: true, gate: 'dev' },
+  fixture: { dir: 'eval/fixtures', runsDir: '.eval-work/runs', encrypted: false, maxLooks: Infinity, ledger: null, perQueryOutput: true, gate: 'dev' },
+  holdout: { dir: 'eval/holdout', runsDir: 'eval/holdout', encrypted: true, maxLooks: 12, ledger: LEDGER, perQueryOutput: false, gate: 'holdout' },
+  test: { dir: 'eval/sealed', runsDir: 'eval/sealed', encrypted: true, maxLooks: 1, ledger: LEDGER, perQueryOutput: false, gate: 'test' },
+  selftest: { dir: '.eval-work/selftest/holdout', runsDir: '.eval-work/selftest/holdout/runs', encrypted: true, maxLooks: 12, ledger: 'in-dir', perQueryOutput: false, gate: 'holdout' },
 };
+
+/** Encrypted sets, whose ciphertexts are bound to these names. */
+export const ENCRYPTED_SETS = Object.keys(LAYOUTS).filter((k) => LAYOUTS[k].encrypted);
 
 export const SET_NAMES = Object.keys(LAYOUTS);
 
@@ -37,16 +51,13 @@ export const SET_NAMES = Object.keys(LAYOUTS);
 export function layout(name, dirOverride) {
   const base = LAYOUTS[name];
   if (!base) throw new Error(`unknown set "${name}"; expected one of ${SET_NAMES.join(', ')}`);
-  if (dirOverride) {
-    return { name, ...base, dir: dirOverride, runsDir: join(dirOverride, 'runs'), ledger: base.ledger ? join(dirOverride, 'ledger.md') : null };
-  }
-  return {
-    name,
-    ...base,
-    dir: join(REPO, base.dir),
-    runsDir: join(REPO, base.runsDir),
-    ledger: base.ledger ? join(REPO, base.ledger) : null,
-  };
+  const dir = dirOverride ?? join(REPO, base.dir);
+  const runsDir = dirOverride ? join(dirOverride, 'runs') : join(REPO, base.runsDir);
+  /** @type {string | null} */
+  let ledger = null;
+  if (base.ledger === 'in-dir') ledger = join(dir, 'ledger.md');
+  else if (base.ledger) ledger = join(REPO, base.ledger); // fixed, whatever --set-dir says
+  return { name, ...base, dir, runsDir, ledger };
 }
 
 /** @param {SetLayout} set @param {string} file e.g. "queries.json" */
@@ -74,7 +85,7 @@ export async function setKey() {
  */
 export async function readSetJson(set, path) {
   if (!existsSync(path)) throw new Error(`${path} does not exist`);
-  if (set.encrypted) return readEncryptedJson(path, await setKey());
+  if (set.encrypted) return readEncryptedJson(path, await setKey(), set.name);
   return JSON.parse(await readFile(path, 'utf8'));
 }
 
