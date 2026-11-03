@@ -24,11 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # db:rebuild-check rebuilds the old recipe from commit 3b18041.
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -50,15 +50,15 @@ jobs:
       MODULE_INFO: .data/2026-2027-moduleInfo.json
       MODULE_INFO_SHA256: 2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - name: Restore pinned corpus
         id: corpus
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.MODULE_INFO }}
           key: corpus-${{ env.MODULE_INFO_SHA256 }}
