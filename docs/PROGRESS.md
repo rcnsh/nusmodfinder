@@ -475,3 +475,19 @@ fails on the previous code.
   nonce, so a hand-deleted lock's old owner never removes the next run's.
 - Nothing deployed, no remote call.
 
+## 2026-11-04 — PR #13 fourth review fixes (last review round)
+
+- **Retried mutating request → wait by id only.** A 5xx or dropped connection on
+  `/admin/ingest` or `/admin/delete` may hide a queued mutation (the Worker mutates Vectorize
+  before D1), so the run records `sentAt: null` from then on (re-recording the last id) and a
+  rerun carrying that entry inherits it.
+- **Signals stop the run cleanly.** First SIGINT/SIGTERM aborts: no new request, in-flight ones
+  finish and are recorded, status `interrupted`, exit 130/143, lock released. A second signal
+  forces exit.
+- **Residual, accepted at the review cap:** a request whose every attempt fails after Vectorize
+  accepted it, with no earlier mutation recorded in the run, leaves a hidden mutation no entry
+  marks id-only; a forced second signal mid-POST can lose an id. Both need a failure plus a
+  processing-time reading of `processedUpToDatetime`; the cost is a data version written while
+  that mutation is still queued, caught by `npm run verify`.
+- Nothing deployed, no remote call.
+
