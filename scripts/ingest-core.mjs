@@ -82,9 +82,11 @@ export const REQUIRED_SCHEMA = 6;
  *   get: (path: string) => Promise<ApiResponse>,
  *   post: (path: string, body: unknown) => Promise<ApiResponse>,
  * }} AdminApi
- * @typedef {{ id: string, sentAt: number | null }} PendingMutation A Vectorize
+ * @typedef {{ id: string, sentAt: number | null, earlier?: string[] }} PendingMutation A Vectorize
  *   mutation id and the Worker's Date.now() when Vectorize accepted it (null
- *   from a Worker older than this script).
+ *   from a Worker older than this script). `earlier`: the ids this run (and
+ *   any pending mutation it carried over) sent before it; none of them may
+ *   end the wait by time (waitForMutation).
  * @typedef {{
  *   read: () => Promise<PendingMutation | null>,
  *   write: (mutation: PendingMutation | null) => Promise<void>,
@@ -187,6 +189,14 @@ export async function runIngest({
   /** The last mutation sent, with when Vectorize accepted it. */
   /** @type {PendingMutation | null} */
   let last = null;
+  /**
+   * Mutation ids this run sent, after those of a pending mutation an earlier
+   * run left: a later poll that reports one of them processed is not proof
+   * that the last one is, however late its processedUpToDatetime. An
+   * unreadable store is reported at the end (step 6), not here.
+   * @type {string[]}
+   */
+  const ownIds = await pending.read().then((p) => (p ? [...(p.earlier ?? []), p.id] : []), () => []);
   /** Mutation ids `pending` failed to record, and why. */
   /** @type {{ ids: string[], error: string | null }} */
   const unrecorded = { ids: [], error: null };
@@ -197,7 +207,9 @@ export async function runIngest({
    * @param {string} id @param {unknown} sentAt
    */
   const sent = (id, sentAt) => {
-    const p = { id, sentAt: typeof sentAt === 'number' && Number.isFinite(sentAt) ? sentAt : null };
+    const p = { id, sentAt: typeof sentAt === 'number' && Number.isFinite(sentAt) ? sentAt : null, earlier: [...ownIds] };
+    ownIds.push(id);
+    if (ownIds.length > MAX_OWN_IDS) ownIds.splice(0, ownIds.length - MAX_OWN_IDS);
     result.lastMutationId = id;
     last = p;
     persisted = persisted.then(() => pending.write(p)).catch((err) => {
@@ -505,7 +517,10 @@ const epochMs = (v) => {
  *   processed too. This one is what ends the wait once Vectorize has moved
  *   past `target` (another client mutated the index later), where the id
  *   never matches again. Strictly later: one stamped in the same millisecond
- *   as sentAt may be an earlier mutation.
+ *   as sentAt may be an earlier mutation. Never for an id in `target.earlier`:
+ *   whether processedUpToDatetime is when Vectorize accepted a mutation or
+ *   when it processed it is undocumented, and in the second reading an
+ *   earlier mutation of this run would pass while `target` is still queued.
  * Without a sentAt (an older Worker) only the id counts. Bounded: false after
  * `timeoutMs`.
  * @param {AdminApi} api
@@ -520,7 +535,8 @@ export async function waitForMutation(api, target, { timeoutMs, intervalMs, slee
     const processed = info?.processedUpToMutation ?? null;
     const processedAt = epochMs(info?.processedUpToDatetime);
     const byId = processed !== null && String(processed) === target.id;
-    const byTime = target.sentAt !== null && processedAt !== null && processedAt > target.sentAt;
+    const ours = processed !== null && (target.earlier ?? []).includes(String(processed));
+    const byTime = target.sentAt !== null && processedAt !== null && processedAt > target.sentAt && !ours;
     if (byId || byTime) {
       const how = byId ? `up to ${target.id}` : `up to ${processed} at ${new Date(/** @type {number} */ (processedAt)).toISOString()}, `
         + `after ${target.id} was sent (${new Date(/** @type {number} */ (target.sentAt)).toISOString()})`;
@@ -532,6 +548,9 @@ export async function waitForMutation(api, target, { timeoutMs, intervalMs, slee
     await sleep(intervalMs);
   }
 }
+
+/** Bound on the ids a pending mutation carries in `earlier` (a run sends ~140). */
+const MAX_OWN_IDS = 2000;
 
 /** @param {number} ms */
 const defaultSleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });

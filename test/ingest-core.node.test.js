@@ -132,6 +132,64 @@ describe('[PR13b #2] the mutation wait once Vectorize has processed a later muta
   });
 });
 
+describe('[PR13c #1] the time check never counts a mutation of this run, or of the pending one, as later', () => {
+  /** @param {{ processedUpToMutation: unknown, processedUpToDatetime: unknown }} info */
+  const api = (info) => /** @type {import('../scripts/ingest-core.mjs').AdminApi} */ ({
+    get: async () => ({ status: 200, body: { vectorCount: 1, ...info } }), post: async () => ({ status: 404, body: {} }),
+  });
+  const opts = () => {
+    let t = 0;
+    return { timeoutMs: 10_000, intervalMs: 5_000, sleep: async (/** @type {number} */ ms) => { t += ms; }, now: () => t, log: () => {} };
+  };
+  const sentAt = Date.parse('2026-11-04T10:00:00.400Z');
+
+  it('an earlier mutation of the same run stamped after sentAt is not proof; a foreign one is', async () => {
+    const target = { id: 'B', sentAt, earlier: ['A'] };
+    expect(await waitForMutation(api({ processedUpToMutation: 'A', processedUpToDatetime: sentAt + 50 }), target, opts())).toBe(false);
+    expect(await waitForMutation(api({ processedUpToMutation: 'X', processedUpToDatetime: sentAt + 50 }), target, opts())).toBe(true);
+    expect(await waitForMutation(api({ processedUpToMutation: 'B', processedUpToDatetime: null }), target, opts())).toBe(true);
+  });
+
+  it('a run whose last batch is still queued behind its first ends wait-timeout, not done', async () => {
+    const modules = corpus(100);
+    const base = stubApi(await productionHashes(modules));
+    /** @type {number[]} */
+    const stamps = [];
+    const api = {
+      ...base,
+      post: async (/** @type {string} */ path, /** @type {unknown} */ body) => {
+        const res = await base.post(path, body);
+        if (path === '/admin/ingest') stamps.push(/** @type {any} */ (res.body).sentAt);
+        return res;
+      },
+      get: async (/** @type {string} */ path) => (path === '/admin/vectorize'
+        ? { status: 200, body: { vectorCount: N, processedUpToMutation: 'm1', processedUpToDatetime: /** @type {number} */ (stamps.at(-1)) + 50 } }
+        : base.get(path)),
+    };
+    let t = 0;
+    const result = await runIngest({ modules, facetsBody, api, options: { batchSize: 50, concurrency: 1, waitTimeoutMs: 10_000, waitIntervalMs: 5_000 },
+      sleep: async (ms) => { t += ms; }, now: () => t });
+    expect(base.mutations).toEqual(['m1', 'm2']);
+    expect(result).toMatchObject({ status: 'wait-timeout', lastMutationId: 'm2', dataVersion: null });
+  });
+
+  it('the pending store records the earlier ids of the run, carrying over those of a pending mutation left by an earlier run', async () => {
+    const modules = corpus(100);
+    /** @type {(import('../scripts/ingest-core.mjs').PendingMutation | null)[]} */
+    const writes = [];
+    const pending = {
+      read: async () => ({ id: 'old2', sentAt: 5, earlier: ['old1'] }),
+      write: async (/** @type {any} */ p) => { writes.push(p); },
+    };
+    await runIngest({ modules, facetsBody, api: stubApi(await productionHashes(modules)), pending,
+      options: { batchSize: 50, concurrency: 1 }, sleep: async () => {} });
+    const recorded = writes.filter(Boolean);
+    expect(recorded.map((p) => p?.id)).toEqual(['m1', 'm2']);
+    expect(recorded[0]?.earlier).toEqual(['old1', 'old2']);
+    expect(recorded[1]?.earlier).toEqual(['old1', 'old2', 'm1']);
+  });
+});
+
 describe('[PR13b #3] a pending-store write that fails mid-run', () => {
   it('does not kill the run: every batch is still sent, and it ends failed, naming the unrecorded mutation ids', async () => {
     const modules = corpus(200);

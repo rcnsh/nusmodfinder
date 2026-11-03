@@ -8,7 +8,8 @@ import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DATA_VERSION_PATH, dataVersionFile, fileStateStore, main, parseDuration, parseIngestArgs } from '../scripts/ingest.mjs';
+import { EventEmitter } from 'node:events';
+import { DATA_VERSION_PATH, acquireRunLock, dataVersionFile, fileStateStore, main, parseDuration, parseIngestArgs, releaseOnSignal } from '../scripts/ingest.mjs';
 import { DEFAULTS } from '../scripts/ingest-core.mjs';
 import { offeredModules } from '../scripts/lib.mjs';
 import { dataVersion, rowHash } from '../src/rowhash.js';
@@ -113,7 +114,7 @@ describe('scripts/ingest.mjs', () => {
     const first = await run(['--wait-timeout', '0s'], worker);
     expect(first.code).toBe(3);
     expect(first.written).toBeNull();
-    expect(await state()).toEqual({ 'http://worker.test': { pendingMutationId: 'm1', sentAt: expect.any(Number) } });
+    expect(await state()).toEqual({ 'http://worker.test': { pendingMutationId: 'm1', sentAt: expect.any(Number), earlier: [] } });
 
     // The rerun has nothing to send (the stub's D1 now holds every hash), but m1 is still unconfirmed.
     const second = await run(['--wait-timeout', '0s'], worker);
@@ -172,8 +173,10 @@ describe('scripts/ingest.mjs', () => {
     expect((await readdir(dir)).filter((f) => f.endsWith('.tmp'))).toEqual([]);
     await stores[0].write({ id: 'a', sentAt: 1 });
     await stores[1].write({ id: 'b', sentAt: null });
-    expect(await stores[0].read()).toEqual({ id: 'a', sentAt: 1 });
-    expect(await stores[1].read()).toEqual({ id: 'b', sentAt: null });
+    expect(await stores[0].read()).toEqual({ id: 'a', sentAt: 1, earlier: [] });
+    expect(await stores[1].read()).toEqual({ id: 'b', sentAt: null, earlier: [] });
+    await stores[0].write({ id: 'c', sentAt: 2, earlier: ['a'] });
+    expect(await stores[0].read()).toEqual({ id: 'c', sentAt: 2, earlier: ['a'] });
   });
 
   it('[PR13b #3] refuses to start while another ingest holds the run lock, naming the lock file and how to clear a stale one', async () => {
@@ -198,6 +201,32 @@ describe('scripts/ingest.mjs', () => {
     expect([a, b].find((r) => r.code === 1)?.lines.join('\n')).toMatch(/Another ingest holds/);
     expect((await readdir(dir)).filter((f) => f.endsWith('.lock'))).toEqual([]);
     expect((await run([], stubWorker())).code).toBe(0);
+  });
+
+  it('[PR13c #2] release removes only this run\'s lock, not one another run took after it was deleted by hand', async () => {
+    const statePath = join(dir, 'ingest-state.json');
+    const lock = await acquireRunLock(statePath, 'http://a.test');
+    if (!('release' in lock)) throw new Error('not acquired');
+    await writeFile(`${statePath}.lock`, JSON.stringify({ pid: 4242, nonce: 'someone-else' }));
+    await lock.release();
+    expect(await readFile(`${statePath}.lock`, 'utf8')).toContain('someone-else');
+  });
+
+  it('[PR13c #2] SIGINT or SIGTERM releases the lock and exits 130 or 143, so the next run is not refused', async () => {
+    for (const [signal, want] of /** @type {const} */ ([['SIGINT', 130], ['SIGTERM', 143]])) {
+      const statePath = join(dir, `state-${signal}.json`);
+      const lock = await acquireRunLock(statePath, 'http://a.test');
+      if (!('release' in lock)) throw new Error('not acquired');
+      /** @type {number[]} */
+      const exits = [];
+      const proc = Object.assign(new EventEmitter(), { exit: (/** @type {number} */ c) => { exits.push(c); } });
+      const off = releaseOnSignal(lock, /** @type {any} */ (proc));
+      proc.emit(signal);
+      expect(exits).toEqual([want]);
+      expect((await readdir(dir)).filter((f) => f === `state-${signal}.json.lock`)).toEqual([]);
+      off();
+      expect(proc.listenerCount('SIGINT') + proc.listenerCount('SIGTERM')).toBe(0);
+    }
   });
 
   it('[PR13b #3] a state file that cannot be written does not crash the run: exit 1, no data version, the unrecorded ids named', async () => {

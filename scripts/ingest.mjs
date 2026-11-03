@@ -36,6 +36,7 @@
 // .data/ingest-state.json.lock is held for the whole run: a second ingest from
 // this checkout refuses to start (exit 1) rather than race it.
 import { randomUUID } from 'node:crypto';
+import { readFileSync, unlinkSync } from 'node:fs';
 import { mkdir, open, readFile, rename, rm, unlink, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -52,7 +53,7 @@ export const STATE_PATH = fileURLToPath(new URL('../.data/ingest-state.json', im
 
 /**
  * The pending-mutation store for one Worker URL, in a JSON file shared by all
- * of them: `{ "<base>": { "pendingMutationId": "…", "sentAt": <ms> } }`. Each
+ * of them: `{ "<base>": { "pendingMutationId": "…", "sentAt": <ms>, "earlier": ["…"] } }`. Each
  * write replaces the file atomically through its own tmp file (pid and a
  * random suffix), so two writers never rename each other's. The run lock
  * (acquireRunLock) keeps two ingests from interleaving their
@@ -62,7 +63,7 @@ export const STATE_PATH = fileURLToPath(new URL('../.data/ingest-state.json', im
  * @returns {import('./ingest-core.mjs').PendingMutationStore}
  */
 export function fileStateStore(path, base) {
-  /** @returns {Promise<Record<string, { pendingMutationId: string, sentAt?: number | null }>>} */
+  /** @returns {Promise<Record<string, { pendingMutationId: string, sentAt?: number | null, earlier?: string[] }>>} */
   const load = async () => {
     const text = await readFile(path, 'utf8').catch((err) => { if (err.code === 'ENOENT') return '{}'; throw err; });
     return JSON.parse(text);
@@ -70,11 +71,13 @@ export function fileStateStore(path, base) {
   return {
     read: async () => {
       const entry = (await load())[base];
-      return entry?.pendingMutationId ? { id: entry.pendingMutationId, sentAt: entry.sentAt ?? null } : null;
+      return entry?.pendingMutationId
+        ? { id: entry.pendingMutationId, sentAt: entry.sentAt ?? null, earlier: Array.isArray(entry.earlier) ? entry.earlier : [] }
+        : null;
     },
     write: async (p) => {
       const all = await load();
-      if (p) all[base] = { pendingMutationId: p.id, sentAt: p.sentAt };
+      if (p) all[base] = { pendingMutationId: p.id, sentAt: p.sentAt, earlier: p.earlier ?? [] };
       else delete all[base];
       await mkdir(dirname(path), { recursive: true });
       const tmp = `${path}.${process.pid}.${randomUUID()}.tmp`;
@@ -90,19 +93,22 @@ export function fileStateStore(path, base) {
 
 /**
  * Takes `<statePath>.lock` with O_EXCL for one ingest run, recording this
- * process's pid. If another run holds it, returns why not (naming the pid and
- * whether it is still alive here) instead of a release function.
+ * process's pid and a random nonce. If another run holds it, returns why not
+ * (naming the pid and whether it is still alive here) instead of a release
+ * function. Release removes the lock only while it still carries this run's
+ * nonce, so a run whose lock was deleted by hand never removes the next run's.
  * @param {string} statePath
  * @param {string} base
- * @returns {Promise<{ release: () => Promise<void> } | { refused: string }>}
+ * @returns {Promise<RunLock | { refused: string }>}
  */
 export async function acquireRunLock(statePath, base) {
   const lock = `${statePath}.lock`;
+  const nonce = randomUUID();
   await mkdir(dirname(lock), { recursive: true });
   try {
     const fh = await open(lock, 'wx');
     try {
-      await fh.writeFile(`${JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString(), url: base })}\n`);
+      await fh.writeFile(`${JSON.stringify({ pid: process.pid, nonce, startedAt: new Date().toISOString(), url: base })}\n`);
     } finally {
       await fh.close();
     }
@@ -118,11 +124,42 @@ export async function acquireRunLock(statePath, base) {
     }
     const who = pid === null ? 'an unknown process (the lock file is unreadable)'
       : `pid ${pid}${holder.startedAt ? `, started ${holder.startedAt}` : ''}${holder.url ? `, --url ${holder.url}` : ''}`;
-    const state = alive === true ? `pid ${pid} is still running` : alive === false ? `pid ${pid} is not running on this machine, so the lock looks stale` : 'its owner is unknown';
+    const state = alive === true ? `pid ${pid} is running, though pids are reused: check it is an ingest` : alive === false ? `pid ${pid} is not running on this machine, so the lock looks stale` : 'its owner is unknown';
     return { refused: `Another ingest holds ${lock} (${who}). Two runs at once would race on the state file and Vectorize. `
       + `If no ingest is running (${state}: a run that crashed or was killed leaves it behind), delete ${lock} and rerun. Nothing was sent.` };
   }
-  return { release: () => unlink(lock).catch(() => {}) };
+  /** @param {string} text */
+  const ours = (text) => { try { return JSON.parse(text).nonce === nonce; } catch { return false; } };
+  return {
+    release: async () => {
+      const text = await readFile(lock, 'utf8').catch(() => null);
+      if (text !== null && ours(text)) await unlink(lock).catch(() => {});
+    },
+    releaseSync: () => {
+      try { if (ours(readFileSync(lock, 'utf8'))) unlinkSync(lock); } catch { /* gone or unreadable: not ours to remove */ }
+    },
+  };
+}
+
+/** @typedef {{ release: () => Promise<void>, releaseSync: () => void }} RunLock */
+
+/**
+ * Releases `lock` and exits 130/143 on SIGINT/SIGTERM, so a Ctrl-C (most
+ * likely during the long Vectorize wait) does not leave a lock the next run
+ * refuses on. The pending store already holds every mutation sent, so the
+ * rerun waits for them. Returns a function that removes the handlers.
+ * @param {RunLock} lock
+ * @param {Pick<NodeJS.Process, 'once' | 'off' | 'exit'>} [proc]
+ */
+export function releaseOnSignal(lock, proc = process) {
+  /** @type {[NodeJS.Signals, number][]} */
+  const signals = [['SIGINT', 130], ['SIGTERM', 143]];
+  const handlers = signals.map(([signal, code]) => {
+    const h = () => { lock.releaseSync(); proc.exit(code); };
+    proc.once(signal, h);
+    return /** @type {const} */ ([signal, h]);
+  });
+  return () => { for (const [signal, h] of handlers) proc.off(signal, h); };
 }
 
 /**
@@ -235,9 +272,11 @@ export async function main(argv, deps = {}) {
     log(lock.refused);
     return 1;
   }
+  const offSignals = releaseOnSignal(lock);
   try {
     return await ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret });
   } finally {
+    offSignals();
     await lock.release();
   }
 }
