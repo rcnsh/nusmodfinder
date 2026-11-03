@@ -98,9 +98,11 @@ export const REQUIRED_SCHEMA = 6;
  *   allowMassDelete?: boolean, allowYearChange?: boolean, deleteBatchSize?: number, massDeleteRatio?: number,
  *   maxAttempts?: number, waitTimeoutMs?: number, waitIntervalMs?: number, embeddingModel?: string | null,
  *   writesPerInsert?: number, writesPerUpdate?: number, ftsWritesPerInsert?: number,
- *   ftsWritesPerTextChange?: number, writesPerDelete?: number,
- * }} IngestOptions
- * @typedef {'done' | 'refused' | 'failed' | 'budget' | 'wait-timeout'} IngestStatus
+ *   ftsWritesPerTextChange?: number, writesPerDelete?: number, signal?: AbortSignal,
+ * }} IngestOptions `signal`: once aborted (scripts/ingest.mjs on SIGINT/SIGTERM),
+ *   no new request starts; those in flight finish and are recorded, and the
+ *   run ends 'interrupted'.
+ * @typedef {'done' | 'refused' | 'failed' | 'budget' | 'wait-timeout' | 'interrupted'} IngestStatus
  * @typedef {{
  *   status: IngestStatus, message: string,
  *   plan: { embed: number, rowOnly: number, unchanged: number, deletes: number },
@@ -194,9 +196,19 @@ export async function runIngest({
    * run left: a later poll that reports one of them processed is not proof
    * that the last one is, however late its processedUpToDatetime. An
    * unreadable store is reported at the end (step 6), not here.
-   * @type {string[]}
    */
-  const ownIds = await pending.read().then((p) => (p ? [...(p.earlier ?? []), p.id] : []), () => []);
+  const carried = await pending.read().catch(() => null);
+  /** @type {string[]} */
+  const ownIds = carried ? [...(carried.earlier ?? []), carried.id] : [];
+  /**
+   * Wait by id only (sentAt null). A request retried after a 5xx or a dropped
+   * connection may have queued a Vectorize mutation whose id never came back
+   * (the Worker mutates Vectorize before D1), so `earlier` cannot list it and
+   * the time check could end the wait on it. Inherited from a carried-over
+   * entry that was already id-only, whose hidden mutation precedes this run's.
+   */
+  let idOnly = carried !== null && carried.sentAt === null;
+  const aborted = () => o.signal?.aborted === true;
   /** Mutation ids `pending` failed to record, and why. */
   /** @type {{ ids: string[], error: string | null }} */
   const unrecorded = { ids: [], error: null };
@@ -207,7 +219,7 @@ export async function runIngest({
    * @param {string} id @param {unknown} sentAt
    */
   const sent = (id, sentAt) => {
-    const p = { id, sentAt: typeof sentAt === 'number' && Number.isFinite(sentAt) ? sentAt : null, earlier: [...ownIds] };
+    const p = { id, sentAt: !idOnly && typeof sentAt === 'number' && Number.isFinite(sentAt) ? sentAt : null, earlier: [...ownIds] };
     ownIds.push(id);
     if (ownIds.length > MAX_OWN_IDS) ownIds.splice(0, ownIds.length - MAX_OWN_IDS);
     result.lastMutationId = id;
@@ -217,6 +229,20 @@ export async function runIngest({
       unrecorded.error = /** @type {Error} */ (err)?.message ?? String(err);
       log(`  could not record mutation ${id} in the pending store: ${unrecorded.error}`);
     });
+  };
+  /** Switches to waiting by id only, re-recording the last mutation so a rerun inherits it. */
+  const markIdOnly = () => {
+    if (idOnly) return;
+    idOnly = true;
+    if (last) {
+      const p = { ...last, sentAt: null };
+      last = p;
+      persisted = persisted.then(() => pending.write(p)).catch((err) => {
+        unrecorded.ids.push(p.id);
+        unrecorded.error = /** @type {Error} */ (err)?.message ?? String(err);
+        log(`  could not record mutation ${p.id} in the pending store: ${unrecorded.error}`);
+      });
+    }
   };
   const unrecordedNote = () => (unrecorded.ids.length
     ? ` Could not record Vectorize mutation${unrecorded.ids.length === 1 ? '' : 's'} ${unrecorded.ids.join(', ')} `
@@ -331,6 +357,7 @@ export async function runIngest({
       const res = await api.post(path, body);
       if (res.status === 200) return res.body;
       // Workers AI throttles under load; back off rather than losing the batch.
+      if (res.status >= 500 && (path === '/admin/ingest' || path === '/admin/delete')) markIdOnly();
       if (attempt < o.maxAttempts && (res.status === 429 || res.status >= 500)) {
         const wait = 2 ** attempt * 1000;
         log(`  ${label}: HTTP ${res.status}, retrying in ${wait / 1000}s`);
@@ -375,7 +402,7 @@ export async function runIngest({
   const progress = () => log(`  ${result.upserted + result.failed}/${work.length}  charged ${result.rowsCharged} `
     + `(D1 reported ${result.rowsWritten})  failed ${result.failed}  ${((now() - started) / 1000).toFixed(0)}s`);
   await Promise.all(Array.from({ length: Math.max(1, o.concurrency) }, async () => {
-    while (queue.length && !budgetHit) {
+    while (queue.length && !budgetHit && !aborted()) {
       const batch = /** @type {WorkItem[]} */ (queue[0]);
       const estimate = estimateBatch(batch);
       const held = reserve(estimate, batch.length);
@@ -385,7 +412,7 @@ export async function runIngest({
       progress();
     }
   }));
-  if (tail && !budgetHit) {
+  if (tail && !budgetHit && !aborted()) {
     const estimate = estimateBatch(tail);
     const held = reserve(estimate, tail.length);
     if (held === null) { budgetHit = true; firstUnsent = tail[0].code; }
@@ -400,6 +427,17 @@ export async function runIngest({
       log('facets rebuild FAILED — /facets will fall back to live aggregates');
     }
   };
+
+  /** @param {string} where */
+  const interrupted = (where) => stop('interrupted', `Interrupted ${where}: ${result.upserted} of ${work.length} modules upserted, `
+    + `${result.deleted} deleted; every Vectorize mutation sent is in the pending store and src/data-version.json was not written. `
+    + `Rerun the same command${o.force && result.resumeFrom ? ` with --from ${result.resumeFrom}` : ''}: the hash skip sends only `
+    + 'what is still pending, and it waits for those mutations.');
+  if (aborted() && !budgetHit) {
+    const unsent = queue[0] ?? (result.upserted + result.failed < work.length ? tail : undefined);
+    result.resumeFrom = unsent?.[0]?.code ?? null;
+    return interrupted('during the upserts');
+  }
 
   if (budgetHit) {
     result.resumeFrom = firstUnsent;
@@ -420,6 +458,7 @@ export async function runIngest({
   // cleared, Vectorize, then D1).
   for (let i = 0; i < plan.deletes.length; i += o.deleteBatchSize) {
     const codes = plan.deletes.slice(i, i + o.deleteBatchSize);
+    if (aborted()) return interrupted('during the deletes');
     const estimate = Math.ceil(codes.length * o.writesPerDelete);
     const held = reserve(estimate, codes.length);
     if (held === null) {
@@ -462,7 +501,8 @@ export async function runIngest({
   }
   if (target) {
     result.lastMutationId = target.id;
-    const waited = await waitForMutation(api, target, { timeoutMs: o.waitTimeoutMs, intervalMs: o.waitIntervalMs, sleep, now, log });
+    const waited = await waitForMutation(api, target, { timeoutMs: o.waitTimeoutMs, intervalMs: o.waitIntervalMs, sleep, now, log, signal: o.signal });
+    if (!waited && aborted()) return interrupted(`waiting for Vectorize mutation ${target.id}`);
     if (!waited) {
       return stop('wait-timeout', `Vectorize had not processed mutation ${target.id} after ${o.waitTimeoutMs / 1000}s. `
         + 'D1 is complete; rerun the same command once `wrangler vectorize info` shows it: with nothing left to send, '
@@ -521,13 +561,14 @@ const epochMs = (v) => {
  *   whether processedUpToDatetime is when Vectorize accepted a mutation or
  *   when it processed it is undocumented, and in the second reading an
  *   earlier mutation of this run would pass while `target` is still queued.
- * Without a sentAt (an older Worker) only the id counts. Bounded: false after
- * `timeoutMs`.
+ * Without a sentAt (an older Worker, or a run that retried a mutating
+ * request) only the id counts. Bounded: false after `timeoutMs`, or once
+ * `signal` is aborted.
  * @param {AdminApi} api
  * @param {PendingMutation} target
- * @param {{ timeoutMs: number, intervalMs: number, sleep: (ms: number) => Promise<void>, now: () => number, log: (line: string) => void }} o
+ * @param {{ timeoutMs: number, intervalMs: number, sleep: (ms: number) => Promise<void>, now: () => number, log: (line: string) => void, signal?: AbortSignal }} o
  */
-export async function waitForMutation(api, target, { timeoutMs, intervalMs, sleep, now, log }) {
+export async function waitForMutation(api, target, { timeoutMs, intervalMs, sleep, now, log, signal }) {
   const deadline = now() + timeoutMs;
   for (let polls = 1; ; polls++) {
     const res = await api.get('/admin/vectorize');
@@ -543,7 +584,7 @@ export async function waitForMutation(api, target, { timeoutMs, intervalMs, slee
       log(`vectorize          processed ${how} (${polls} poll${polls === 1 ? '' : 's'}, ${info.vectorCount} vectors)`);
       return true;
     }
-    if (now() + intervalMs > deadline) return false;
+    if (signal?.aborted || now() + intervalMs > deadline) return false;
     if (polls === 1) log(`vectorize          waiting for mutation ${target.id} (processed up to ${processed ?? 'unknown'})`);
     await sleep(intervalMs);
   }

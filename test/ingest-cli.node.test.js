@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { EventEmitter } from 'node:events';
-import { DATA_VERSION_PATH, acquireRunLock, dataVersionFile, fileStateStore, main, parseDuration, parseIngestArgs, releaseOnSignal } from '../scripts/ingest.mjs';
+import { DATA_VERSION_PATH, acquireRunLock, dataVersionFile, fileStateStore, handleSignals, main, parseDuration, parseIngestArgs } from '../scripts/ingest.mjs';
 import { DEFAULTS } from '../scripts/ingest-core.mjs';
 import { offeredModules } from '../scripts/lib.mjs';
 import { dataVersion, rowHash } from '../src/rowhash.js';
@@ -75,14 +75,14 @@ beforeEach(async () => {
 });
 afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
-/** @param {string[]} argv @param {ReturnType<typeof stubWorker>} worker @param {{ statePath?: string }} [o] */
+/** @param {string[]} argv @param {ReturnType<typeof stubWorker>} worker @param {{ statePath?: string, proc?: any }} [o] */
 const run = async (argv, worker, o = {}) => {
   /** @type {string[]} */
   const lines = [];
   const dataVersionPath = join(dir, 'data-version.json');
   const code = await main(['--year', Y, '--url', 'http://worker.test', ...argv], {
     fetchImpl: worker.fetchImpl, log: (l) => lines.push(l), dataVersionPath, cacheDir, envVars: { INGEST_SECRET: 's' },
-    statePath: o.statePath ?? join(dir, 'ingest-state.json'),
+    statePath: o.statePath ?? join(dir, 'ingest-state.json'), ...(o.proc ? { proc: o.proc } : {}),
   });
   const written = await readFile(dataVersionPath, 'utf8').catch(() => null);
   return { code, lines, written };
@@ -212,7 +212,7 @@ describe('scripts/ingest.mjs', () => {
     expect(await readFile(`${statePath}.lock`, 'utf8')).toContain('someone-else');
   });
 
-  it('[PR13c #2] SIGINT or SIGTERM releases the lock and exits 130 or 143, so the next run is not refused', async () => {
+  it('[PR13d #2] the first SIGINT/SIGTERM aborts the run and keeps the lock; a second releases it and exits 130/143', async () => {
     for (const [signal, want] of /** @type {const} */ ([['SIGINT', 130], ['SIGTERM', 143]])) {
       const statePath = join(dir, `state-${signal}.json`);
       const lock = await acquireRunLock(statePath, 'http://a.test');
@@ -220,13 +220,39 @@ describe('scripts/ingest.mjs', () => {
       /** @type {number[]} */
       const exits = [];
       const proc = Object.assign(new EventEmitter(), { exit: (/** @type {number} */ c) => { exits.push(c); } });
-      const off = releaseOnSignal(lock, /** @type {any} */ (proc));
+      const controller = new AbortController();
+      const h = handleSignals(lock, controller, /** @type {any} */ (proc), () => {});
       proc.emit(signal);
+      expect(controller.signal.aborted).toBe(true);
+      expect(h.exitCode()).toBe(want);
+      expect(exits).toEqual([]);
+      expect((await readdir(dir)).filter((f) => f === `state-${signal}.json.lock`)).toHaveLength(1);
+      proc.emit(signal === 'SIGINT' ? 'SIGTERM' : 'SIGINT');
       expect(exits).toEqual([want]);
       expect((await readdir(dir)).filter((f) => f === `state-${signal}.json.lock`)).toEqual([]);
-      off();
+      h.off();
       expect(proc.listenerCount('SIGINT') + proc.listenerCount('SIGTERM')).toBe(0);
     }
+  });
+
+  it('[PR13d #2] Ctrl-C mid-run: exit 130 after the in-flight batch, its mutation id saved, the lock released, no data version', async () => {
+    const worker = stubWorker();
+    const proc = Object.assign(new EventEmitter(), { exit: () => { throw new Error('must not force-exit on the first signal'); } });
+    const inner = worker.fetchImpl;
+    let ingests = 0;
+    worker.fetchImpl = async (input, init) => {
+      const res = await inner(input, init);
+      if (new URL(String(input)).pathname === '/admin/ingest' && ++ingests === 2) proc.emit('SIGINT');
+      return res;
+    };
+    const { code, written, lines } = await run(['--batch', '1', '--concurrency', '1'], worker, { proc });
+    expect(code).toBe(130);
+    expect(written).toBeNull();
+    expect(ingests).toBe(2);
+    expect((await state())['http://worker.test']).toMatchObject({ pendingMutationId: 'm2', earlier: ['m1'] });
+    expect((await readdir(dir)).filter((f) => f.endsWith('.lock'))).toEqual([]);
+    expect(lines.join('\n')).toMatch(/interrupted/i);
+    expect(proc.listenerCount('SIGINT')).toBe(0);
   });
 
   it('[PR13b #3] a state file that cannot be written does not crash the run: exit 1, no data version, the unrecorded ids named', async () => {

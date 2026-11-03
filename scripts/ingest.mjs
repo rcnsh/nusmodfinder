@@ -144,22 +144,39 @@ export async function acquireRunLock(statePath, base) {
 /** @typedef {{ release: () => Promise<void>, releaseSync: () => void }} RunLock */
 
 /**
- * Releases `lock` and exits 130/143 on SIGINT/SIGTERM, so a Ctrl-C (most
- * likely during the long Vectorize wait) does not leave a lock the next run
- * refuses on. The pending store already holds every mutation sent, so the
- * rerun waits for them. Returns a function that removes the handlers.
+ * SIGINT/SIGTERM during a run. The first aborts `controller`: no new request
+ * starts, those in flight finish and their mutation ids are recorded (a
+ * Ctrl-C mid-POST would otherwise lose an id the Worker already queued), and
+ * the run ends 'interrupted', exit 130/143, releasing the lock as usual. A
+ * second signal forces it: the lock is released and the process exits at
+ * once, accepting that an in-flight mutation may go unrecorded.
  * @param {RunLock} lock
- * @param {Pick<NodeJS.Process, 'once' | 'off' | 'exit'>} [proc]
+ * @param {AbortController} controller
+ * @param {Pick<NodeJS.Process, 'on' | 'off' | 'exit'>} [proc]
+ * @param {(line: string) => void} [log]
+ * @returns {{ off: () => void, exitCode: () => number | null }}
  */
-export function releaseOnSignal(lock, proc = process) {
+export function handleSignals(lock, controller, proc = process, log = console.error) {
+  /** @type {number | null} */
+  let code = null;
   /** @type {[NodeJS.Signals, number][]} */
   const signals = [['SIGINT', 130], ['SIGTERM', 143]];
-  const handlers = signals.map(([signal, code]) => {
-    const h = () => { lock.releaseSync(); proc.exit(code); };
-    proc.once(signal, h);
+  const handlers = signals.map(([signal, c]) => {
+    const h = () => {
+      if (code === null) {
+        code = c;
+        controller.abort();
+        log(`${signal}: stopping after the requests in flight, recording their mutation ids. Signal again to stop at once `
+          + '(a mutation in flight may then go unrecorded; run npm run verify after the rerun).');
+        return;
+      }
+      lock.releaseSync();
+      proc.exit(code);
+    };
+    proc.on(signal, h);
     return /** @type {const} */ ([signal, h]);
   });
-  return () => { for (const [signal, h] of handlers) proc.off(signal, h); };
+  return { off: () => { for (const [signal, h] of handlers) proc.off(signal, h); }, exitCode: () => code };
 }
 
 /**
@@ -254,12 +271,13 @@ export const dataVersionFile = (version) => `${JSON.stringify({ version }, null,
 /**
  * @param {string[]} argv
  * @param {{ fetchImpl?: typeof fetch, log?: (line: string) => void, dataVersionPath?: string,
- *   envVars?: Record<string, string | undefined>, cacheDir?: URL, statePath?: string }} [deps]
+ *   envVars?: Record<string, string | undefined>, cacheDir?: URL, statePath?: string,
+ *   proc?: Pick<NodeJS.Process, 'on' | 'off' | 'exit'> }} [deps]
  * @returns {Promise<number>} exit code
  */
 export async function main(argv, deps = {}) {
   const {
-    fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, cacheDir, statePath = STATE_PATH,
+    fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, cacheDir, statePath = STATE_PATH, proc = process,
   } = deps;
   const secret = envVars.INGEST_SECRET;
   if (!secret) {
@@ -272,11 +290,14 @@ export async function main(argv, deps = {}) {
     log(lock.refused);
     return 1;
   }
-  const offSignals = releaseOnSignal(lock);
+  const controller = new AbortController();
+  const signals = handleSignals(lock, controller, proc, log);
   try {
-    return await ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret });
+    const code = await ingestLocked({ ...args, options: { ...args.options, signal: controller.signal } },
+      { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret });
+    return code === 130 ? (signals.exitCode() ?? code) : code;
   } finally {
-    offSignals();
+    signals.off();
     await lock.release();
   }
 }
@@ -327,7 +348,7 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, s
     log('next               commit src/data-version.json, then npm run deploy (README "Re-ingesting")');
     return 0;
   }
-  return { done: 0, refused: 1, failed: 1, budget: 2, 'wait-timeout': 3 }[result.status];
+  return { done: 0, refused: 1, failed: 1, budget: 2, 'wait-timeout': 3, interrupted: 130 }[result.status];
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

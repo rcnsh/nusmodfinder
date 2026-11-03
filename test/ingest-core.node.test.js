@@ -190,6 +190,91 @@ describe('[PR13c #1] the time check never counts a mutation of this run, or of t
   });
 });
 
+describe('[PR13d #1] a retried request may have queued a mutation the run never saw: the wait goes by id only', () => {
+  it('the tail batch\'s first attempt queues mX and returns 502; mX processed after m2.sentAt does not end the wait', async () => {
+    const modules = corpus(100);
+    const base = stubApi(await productionHashes(modules));
+    /** @type {number[]} */
+    const stamps = [];
+    let calls = 0;
+    /** @type {(import('../scripts/ingest-core.mjs').PendingMutation | null)[]} */
+    const writes = [];
+    const api = {
+      ...base,
+      post: async (/** @type {string} */ path, /** @type {unknown} */ body) => {
+        if (path === '/admin/ingest' && ++calls === 2) return { status: 502, body: { error: 'upstream' } };
+        const res = await base.post(path, body);
+        if (path === '/admin/ingest') stamps.push(/** @type {any} */ (res.body).sentAt);
+        return res;
+      },
+      get: async (/** @type {string} */ path) => (path === '/admin/vectorize'
+        ? { status: 200, body: { vectorCount: N, processedUpToMutation: 'mX', processedUpToDatetime: /** @type {number} */ (stamps.at(-1)) + 50 } }
+        : base.get(path)),
+    };
+    let t = 0;
+    const result = await runIngest({ modules, facetsBody, api, pending: { read: async () => null, write: async (p) => { writes.push(p); } },
+      options: { batchSize: 50, concurrency: 1, waitTimeoutMs: 10_000, waitIntervalMs: 5_000 }, sleep: async (ms) => { t += ms; }, now: () => t });
+    expect(base.mutations).toEqual(['m1', 'm2']);
+    expect(result).toMatchObject({ status: 'wait-timeout', lastMutationId: 'm2', dataVersion: null });
+    expect(writes.filter(Boolean).at(-1)).toMatchObject({ id: 'm2', sentAt: null });
+  });
+
+  it('a carried-over entry that waits by id only keeps the new ones id-only too', async () => {
+    const modules = corpus(100);
+    /** @type {(import('../scripts/ingest-core.mjs').PendingMutation | null)[]} */
+    const writes = [];
+    await runIngest({ modules, facetsBody, api: stubApi(await productionHashes(modules)),
+      pending: { read: async () => ({ id: 'old', sentAt: null, earlier: [] }), write: async (p) => { writes.push(p); } },
+      options: { batchSize: 50, concurrency: 1 }, sleep: async () => {} });
+    expect(writes.filter(Boolean).map((p) => p?.sentAt)).toEqual([null, null]);
+  });
+});
+
+describe('[PR13d #2] an abort signal stops the run between requests, every sent mutation recorded', () => {
+  it('aborted after the second batch: no more batches, no deletes, no wait, status interrupted, m2 recorded', async () => {
+    const modules = corpus(200);
+    const base = stubApi(await productionHashes(modules));
+    const controller = new AbortController();
+    /** @type {string[]} */
+    const gets = [];
+    const api = {
+      ...base,
+      get: async (/** @type {string} */ path) => { gets.push(path); return base.get(path); },
+      post: async (/** @type {string} */ path, /** @type {unknown} */ body) => {
+        const res = await base.post(path, body);
+        if (path === '/admin/ingest' && base.mutations.length === 2) controller.abort();
+        return res;
+      },
+    };
+    /** @type {(import('../scripts/ingest-core.mjs').PendingMutation | null)[]} */
+    const writes = [];
+    const result = await runIngest({ modules, facetsBody, api,
+      pending: { read: async () => null, write: async (p) => { await new Promise((r) => { setTimeout(r, 5); }); writes.push(p); } },
+      options: { batchSize: 50, concurrency: 1, signal: controller.signal }, sleep: async () => {} });
+    expect(base.mutations).toEqual(['m1', 'm2']);
+    expect(result).toMatchObject({ status: 'interrupted', upserted: 100, dataVersion: null });
+    expect(writes.filter(Boolean).at(-1)?.id).toBe('m2');
+    expect(gets).not.toContain('/admin/vectorize');
+  });
+
+  it('aborted during the Vectorize wait: interrupted at the next poll, not a full wait-timeout', async () => {
+    const modules = corpus(50);
+    const base = stubApi(await productionHashes(modules));
+    const controller = new AbortController();
+    let polls = 0;
+    const api = { ...base, get: async (/** @type {string} */ path) => {
+      if (path !== '/admin/vectorize') return base.get(path);
+      if (++polls === 2) controller.abort();
+      return { status: 200, body: { vectorCount: N, processedUpToMutation: null, processedUpToDatetime: null } };
+    } };
+    let t = 0;
+    const result = await runIngest({ modules, facetsBody, api,
+      options: { batchSize: 50, signal: controller.signal, waitTimeoutMs: 600_000, waitIntervalMs: 5_000 }, sleep: async (ms) => { t += ms; }, now: () => t });
+    expect(result.status).toBe('interrupted');
+    expect(polls).toBe(2);
+  });
+});
+
 describe('[PR13b #3] a pending-store write that fails mid-run', () => {
   it('does not kill the run: every batch is still sent, and it ends failed, naming the unrecorded mutation ids', async () => {
     const modules = corpus(200);

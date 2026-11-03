@@ -207,7 +207,9 @@ Cloudflare's clock. The time check never counts one of the run's own earlier mut
 those of a pending mutation it carried over; they are saved with it as `earlier`): the docs do
 not say whether `processedUpToDatetime` is when a mutation was accepted or when it was
 processed, and in the second reading an earlier batch would pass while the last is still
-queued. A rerun after exit 3 has nothing to send but still waits for that
+queued. If a mutating request was retried after a 5xx or a dropped connection, its first
+attempt may have queued a mutation whose id never came back, so that run (and any rerun
+carrying its entry over) waits by id only (`sentAt` saved as null). A rerun after exit 3 has nothing to send but still waits for that
 mutation, and writes `src/data-version.json` only once it is confirmed. If the state file
 cannot be written mid-run, the run carries on but ends with exit 1, naming the mutation ids
 it could not record, and does not write `src/data-version.json`.
@@ -221,8 +223,10 @@ whole file, if it holds no other) and rerun the same command. It then has nothin
 for and writes `src/data-version.json`. Run `npm run verify` after.
 
 **One run at a time.** A run holds `.data/ingest-state.json.lock` (created exclusively,
-holding its pid and a nonce) until it exits; Ctrl-C (SIGINT) and SIGTERM release it too, and
-the saved mutation ids mean the rerun still waits for them. A second `npm run ingest` from
+holding its pid and a nonce) until it exits. The first Ctrl-C (SIGINT) or SIGTERM stops the
+run after the requests in flight, records their mutation ids, releases the lock and exits
+130/143; the rerun waits for those mutations. A second signal stops it at once (a mutation
+in flight may then go unrecorded: run `npm run verify` after the rerun). A second `npm run ingest` from
 the same checkout refuses with exit 1 and names the pid. If no ingest is running (a run that
 crashed or was `kill -9`ed leaves the lock behind; the message says whether the pid is alive,
 but pids are reused), delete the lock file and rerun. A run only removes a lock carrying its
