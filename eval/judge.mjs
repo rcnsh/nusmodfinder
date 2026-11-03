@@ -55,6 +55,7 @@ const OPTIONS = /** @type {const} */ ({
   pass: { type: 'string' },
   base: { type: 'string' },
   'no-base': { type: 'boolean', default: false },
+  force: { type: 'boolean', default: false },
   out: { type: 'string' },
   version: { type: 'string' },
   qrels: { type: 'string' },
@@ -360,6 +361,8 @@ async function cmdMerge(a) {
   const target = a.out ? resolve(a.out) : setFile(set, 'qrels.json');
   if (set.encrypted && !target.endsWith('.enc')) usage('encrypted-set qrels must be written to a .enc path');
   if (a.base && a['no-base']) usage('--base and --no-base exclude each other');
+  // Starting over must not drop earlier rounds' judgments, or reuse their version string, unasked.
+  if (a['no-base'] && existsSync(target) && !a.force) usage(`${a.out ? 'the --out file' : 'the set\'s qrels'} already exists; --no-base would overwrite it (pass --force to replace it)`);
   const basePath = a['no-base'] ? null : a.base ? resolve(a.base) : existsSync(target) ? target : null;
   const base = basePath ? await readSetJson(set, basePath) : null;
   const qrels = mergeQrels(round, { base, version: a.version });

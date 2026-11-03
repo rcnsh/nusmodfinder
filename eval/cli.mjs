@@ -258,12 +258,16 @@ async function cmdRun(a) {
 }
 
 /**
- * Before any retrieval: the baseline run must use the corpus the qrels were
- * judged on (the candidate is checked again after it runs).
+ * Before any retrieval (and any look): the baseline run must be a hybrid run
+ * on the corpus the qrels were judged on (the candidate is checked again
+ * after it runs).
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {Args} a
  */
 async function precheckCorpus(set, a) {
+  const baseRun = await readRun(set, runPath(set, /** @type {string} */ (a.baseline)));
+  // A pool-variant baseline is refused here, before any look is reserved.
+  assertGateable([baseRun]);
   /** @type {import('./lib/metrics.mjs').Qrels} */
   let qrels;
   if (set.encrypted) {
@@ -273,7 +277,7 @@ async function precheckCorpus(set, a) {
     if (!existsSync(qrelsPath)) return; // dev before judging: nothing to score yet
     qrels = JSON.parse(await readFile(qrelsPath, 'utf8'));
   }
-  assertSameCorpus(qrels, [await readRun(set, runPath(set, /** @type {string} */ (a.baseline)))]);
+  assertSameCorpus(qrels, [baseRun]);
 }
 
 /**

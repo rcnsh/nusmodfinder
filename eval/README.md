@@ -201,7 +201,7 @@ Common flags: `--set` / `--holdout` / `--set-dir` as for `npm run eval`; `--work
 `.eval-work/judging/<set>/` (tests). `prepare`: `--pool <file>` (default
 `.eval-work/pool-<set>.json[.enc]`), `--batch-size 12`, `--repeat-rate 0.05`, `--drift-rate
 0.05`, `--seed 20261104` (every shuffle, item id, repeat and drift pick derives from it and is
-recorded in the state). `merge`: `--base <qrels>` or `--no-base`, `--out`, `--version`.
+recorded in the state). `merge`: `--base <qrels>` or `--no-base` (refused over an existing target unless `--force`), `--out`, `--version`.
 
 - **Pre-grading.** A pooled candidate breaking its query's hard constraints (`constraints`, else
   `filters`: semester, NG in that semester, level, credits, faculty; `violationReason` in

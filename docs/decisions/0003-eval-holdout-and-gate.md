@@ -165,6 +165,11 @@ reported on the holdout with its look count and an explicit caveat about adaptiv
 - **Query embeddings.** Since PR #7 the ranker embeds the canonical query, which is trimmed, has
   whitespace collapsed and ASCII letters lowercased. The eval embeds both the raw text (for
   `eval-v0`) and the canonical text. Any `degraded` response fails its query.
+- **Prerequisites hidden from judges** (lead decision, PR #15). Plan §3 lists prereqs among the
+  judge fields; `eval/JUDGING.md` omits them. An incoming exchange student judges a module from
+  its description and is not bound by NUS prerequisite chains in the same way, and a prereq line
+  invites judges to grade eligibility, which no query asks about. Revisit if a query shape about
+  eligibility is added.
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.

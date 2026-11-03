@@ -187,6 +187,12 @@ const ledgerPath = join(H, 'ledger.md');
 const rows1 = await readLedger(ledgerPath);
 assert.equal(rows1.length, 1, 'one ledger row per look');
 assert.ok(['pass', 'fail'].includes(rows1[0].verdict), `the reserved row is finalised with the verdict, got ${rows1[0].verdict}`);
+// A pool-variant baseline is refused before a look is reserved (PR #15 review).
+ok(node(CLI, ['run', ...hargs, '--variant', 'lexbase', '--ref', 'eval-v0', '--mode', 'lexical', '--store-only'], env), 'holdout lexical pool run');
+const lexBase = node(CLI, ['run', ...hargs, '--variant', 'cand-l', '--baseline', 'lexbase'], env);
+assert.notEqual(lexBase.code, 0, 'a lexical baseline must be refused');
+assertNoLeak(lexBase.out, 'refused lexical baseline');
+assert.equal((await readLedger(ledgerPath)).length, 1, 'a refused pool-variant baseline uses no look');
 
 const wrongKey = join(WORK, 'wrong.key');
 await writeFile(wrongKey, `${'ab'.repeat(32)}\n`);
@@ -404,6 +410,10 @@ ok(node(JUDGE, ['adjudicate', 'collect', ...fx, '--pass', '2']), 'adjudicate col
 const merged = join(WORK, 'qrels-merged.json');
 const mergeOut = ok(node(JUDGE, ['merge', ...fx, '--no-base', '--out', merged]), 'merge');
 assert.match(mergeOut, /^qrels qrels-fixture-v1 -> /m);
+// --no-base never silently overwrites existing qrels (PR #15 review).
+const clobber = node(JUDGE, ['merge', ...fx, '--no-base', '--out', merged]);
+assert.notEqual(clobber.code, 0, '--no-base over an existing qrels file must be refused');
+assert.match(clobber.out, /already exists/);
 const mq = await json(merged);
 assert.equal(mq.schema, 'vnm-eval-qrels/1');
 assert.equal(mq.corpus.moduleInfoSha256, v0.corpus.moduleInfoSha256, 'merged qrels carry moduleInfoSha256');
