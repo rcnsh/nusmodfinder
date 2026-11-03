@@ -108,3 +108,31 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
   two REST calls: cosine 0.9994–0.9998; batch of 31 vs batches of 100: min 0.9797, median 0.9957
   (23 texts). Relevant to the 2c fidelity check (offline vs live near-tie order).
 - Full-corpus smoke run (fixture queries, 6,771 modules, `--ref eval-v0`): 19 s end to end.
+
+## 2026-11-04 — Phase 2 2a: PR #6 review fixes (eval harness)
+
+- **Errors** (medium): a non-200 response is never correct-empty or relevant; every gate (dev,
+  holdout, cutoff, SC5) has "no new errors"; `npm run eval` prints the error count after a dev
+  run. The reviewer's case (8 answerable + 4 no-answer, candidate 500s on the 4) now fails the
+  cutoff gate on dev and holdout instead of passing.
+- **Ledger custody** (medium): `holdout` and `test` always count looks in
+  `eval/holdout-ledger.md`, whatever `--set-dir` says. Ciphertexts are `VNMENC2` with AAD
+  `<set>/<file>`, so files copied into another set's directory do not decrypt. The self-test
+  uses a new encrypted `selftest` set (ledger in its own directory; ciphertexts regenerated with
+  a throwaway key each run). `holdout.mjs encrypt|decrypt` take `--set`.
+- **Concurrency** (medium): check-then-append runs under an `O_EXCL` lock (`<ledger>.lock`; waits
+  2 min; a lock older than 30 min is removed with a message). `npm run eval` reserves its look
+  (`reserved` row, counted) before retrieval and finalises it as the verdict, `aborted` or
+  `unjudged`. Three parallel reports from 11 rows now record 12, not 14.
+- **Leaks** (medium): holdout/test errors print only `eval: <set> run failed (<class>); details
+  withheld`. Metrics errors give a bad grade's value and position, never the rationale or id.
+- **Tampering** (low): every table row counts however it is spaced; a look is refused when the
+  ledger has fewer rows than `HEAD` or `origin/main`, or is missing while git has it.
+- **Small samples** (low): < 10 primary answerable queries fails every gate ("insufficient
+  queries"); zero-variance BCa intervals are `degenerate` and never pass a CI check; tripwires
+  with n < 3 use the point estimate.
+- **Corpus** (low): `report`/`run` refuse when qrels and run corpus sha256s (moduleInfo; NG if
+  recorded) differ; comparison output names the qrels version.
+- **Which ranker ran** (low): run files record `ranker.treeHash`; the self-test checks it against
+  `git archive eval-v0`. A mutant that runs HEAD under `--ref eval-v0` now fails the self-test.
+- No Cloudflare, live-site or api.nusmods.com call; no neurons spent.
