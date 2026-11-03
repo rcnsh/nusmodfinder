@@ -36,10 +36,24 @@ describe('FakeVectorize', () => {
     expect((await index.query(q, { topK: 3, filter: { level: { $eq: 5 } } })).matches.map((m) => m.id)).toEqual(['B']);
   });
 
+  it('supports the documented range and $nin operators', async () => {
+    const index = new FakeVectorize();
+    await index.upsert([v('A', 'x', { level: 3 }), v('B', 'x', { level: 5 })]);
+    const q = hashEmbed('x');
+    expect((await index.query(q, { filter: { level: { $gte: 4 } } })).matches.map((m) => m.id)).toEqual(['B']);
+    expect((await index.query(q, { filter: { level: { $lt: 4 } } })).matches.map((m) => m.id)).toEqual(['A']);
+    expect((await index.query(q, { filter: { level: { $nin: [5] } } })).matches.map((m) => m.id)).toEqual(['A']);
+  });
+
   it('throws on an unknown filter operator', async () => {
     const index = new FakeVectorize();
     await index.upsert([v('A', 'x', { level: 3 })]);
-    await expect(index.query(hashEmbed('x'), { filter: { level: { $gte: 3 } } })).rejects.toThrow(/unsupported filter operator/);
+    await expect(index.query(hashEmbed('x'), { filter: { level: { $regex: 'x' } } })).rejects.toThrow(/unsupported filter operator/);
+  });
+
+  it('rejects vectors of the wrong dimension on upsert', async () => {
+    const index = new FakeVectorize();
+    await expect(index.upsert([{ id: 'A', values: [1, 2, 3] }])).rejects.toThrow(/dimensions/);
   });
 
   it('enforces the topK ceilings', async () => {

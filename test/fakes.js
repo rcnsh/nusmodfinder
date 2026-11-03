@@ -122,9 +122,13 @@ function matchesFilter(metadata, filter) {
     for (const [op, expected] of Object.entries(cond)) {
       if (op === '$eq') { if (actual !== expected) return false; }
       else if (op === '$ne') { if (actual === expected) return false; }
-      else if (op === '$in') {
-        if (!Array.isArray(expected)) throw new Error(`fake Vectorize: $in needs an array for "${key}"`);
-        if (!expected.includes(actual)) return false;
+      else if (op === '$in' || op === '$nin') {
+        if (!Array.isArray(expected)) throw new Error(`fake Vectorize: ${op} needs an array for "${key}"`);
+        if (expected.includes(actual) === (op === '$nin')) return false;
+      } else if (op === '$lt' || op === '$lte' || op === '$gt' || op === '$gte') {
+        if (typeof actual !== typeof expected || actual === undefined || actual === null) return false;
+        const a = /** @type {any} */ (actual), e = /** @type {any} */ (expected);
+        if (op === '$lt' ? !(a < e) : op === '$lte' ? !(a <= e) : op === '$gt' ? !(a > e) : !(a >= e)) return false;
       } else {
         throw new Error(`fake Vectorize: unsupported filter operator "${op}" on "${key}"`);
       }
@@ -192,6 +196,11 @@ export class FakeVectorize extends Switchable {
   /** @param {StoredVector[]} vectors */
   async upsert(vectors) {
     await this.gate('upsert', [vectors]);
+    for (const v of vectors) {
+      if (!Array.isArray(v.values) || v.values.length !== EMBEDDING_DIMS) {
+        throw new Error(`fake Vectorize: vector "${v.id}" has ${v.values?.length} dimensions, index expects ${EMBEDDING_DIMS}`);
+      }
+    }
     for (const v of vectors) this.vectors.set(v.id, { id: v.id, values: [...v.values], metadata: v.metadata });
     return { mutationId: `fake-${this.calls.length}`, count: vectors.length, ids: vectors.map((v) => v.id) };
   }
