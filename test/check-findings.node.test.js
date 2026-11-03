@@ -91,13 +91,16 @@ describe('check-findings', () => {
       "it.each([1])('[T] each %s', () => {});",
       "it.skipIf(true)('[T] skipIf', () => {});",
       "test.concurrent(`[T] template`, () => {});",
+      "it.skipIf('[C] cond')('[T] after cond', () => {});",
+      "it.each('[C] table')('[T] after table', () => {});",
+      "it.each`a\n${1}`('[T] tagged %s', () => {});",
     ].join('\n'));
-    expect([...titles].sort()).toEqual(['[T] each %s', '[T] fails', '[T] plain', '[T] skipIf', '[T] template']);
+    expect([...titles].sort()).toEqual(['[T] after cond', '[T] after table', '[T] each %s', '[T] fails', '[T] plain', '[T] skipIf', '[T] tagged %s', '[T] template']);
   });
 
   it('checks paths with ./ prefixes, :line suffixes and any extension under a directory', () => {
-    const { paths } = evidenceRefs('`./docs/x.gz` `docs/x.gz:12` `scripts/missing.py:3-9` `docs/x.7z` `evidence.har` `res.json()` `text/plain` `m.title`');
-    expect(paths).toEqual(['./docs/x.gz', 'docs/x.gz', 'scripts/missing.py', 'docs/x.7z', 'evidence.har']);
+    const { paths } = evidenceRefs('`./docs/x.gz` `docs/x.gz:12` `scripts/missing.py:3-9` `docs/x.7z` `evidence.har` `res.json()` `text/plain` `m.title` `a/b.py:3:5` `a/c.py:3,5` `a/d.py#L3` `a/e.py:L3` `a/f.js:`');
+    expect(paths).toEqual(['./docs/x.gz', 'docs/x.gz', 'scripts/missing.py', 'docs/x.7z', 'evidence.har', 'a/b.py', 'a/c.py', 'a/d.py', 'a/e.py', 'a/f.js']);
   });
 
   it('passes on the committed docs/FINDINGS.md', () => {

@@ -29,7 +29,7 @@ const ID = /^[A-Z]\d+$/;
 // Prose spans such as `res.json()`, `text/plain` or `m.title` are not paths.
 const EXT = 'm?[jt]sx?|cjs|jsonc?|jsonl|md|ya?ml|toml|sql|html?|css|body|headers|timing|tsv|csv|txt|log|har|png|jpe?g|svg|gz|7z|zip|py|sh|pdf|age';
 const PATH = new RegExp(`^(?:(?:\\.{1,2}/)*(?:[\\w@-][\\w.@-]*/)+[\\w@-][\\w@.-]*\\.[\\w]+|\\.?[\\w@-][\\w.@-]*\\.(?:${EXT}))$`);
-const LINE_SUFFIX = /:\d+(?:-\d+)?$/;
+const LINE_SUFFIX = /(?::L?\d+(?:[-,:]L?\d+)*|#L\d+(?:-L?\d+)?|:)$/;
 const TEST_FNS = new Set(['it', 'test']);
 
 /**
@@ -42,12 +42,16 @@ const TEST_FNS = new Set(['it', 'test']);
 export function testTitles(source) {
   const titles = new Set();
   const ast = parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
-  /** @param {any} callee */
-  const isTestFn = (callee) => {
-    while (callee?.type === 'MemberExpression') callee = callee.object;
-    if (callee?.type === 'CallExpression') return isTestFn(callee.callee);
-    return callee?.type === 'Identifier' && TEST_FNS.has(callee.name);
-  };
+  const FACTORIES = new Set(['each', 'skipIf', 'runIf', 'for']);
+  /** `it`, `test`, or a modifier chain on them (`it.skip`, `test.concurrent.only`). @param {any} n @returns {boolean} */
+  const isBase = (n) => (n?.type === 'Identifier' && TEST_FNS.has(n.name))
+    || (n?.type === 'MemberExpression' && !n.computed && !FACTORIES.has(n.property.name) && isBase(n.object));
+  /** `it.each`, `test.skipIf`, … (the factory itself, whose arguments are not titles). @param {any} n */
+  const isFactory = (n) => n?.type === 'MemberExpression' && !n.computed && FACTORIES.has(n.property.name) && isBase(n.object);
+  /** Is `callee` the function that receives the title? @param {any} callee */
+  const isTestFn = (callee) => isBase(callee)
+    || (callee?.type === 'CallExpression' && isFactory(callee.callee))
+    || (callee?.type === 'TaggedTemplateExpression' && isFactory(callee.tag));
   /** @param {any} node */
   const visit = (node) => {
     if (!node || typeof node.type !== 'string') return;

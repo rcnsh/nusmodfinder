@@ -69,11 +69,11 @@ describe('B4', () => {
   });
 });
 
-// Behavioural, not structural: any upstream timeout up to HANG_MS makes the search
+// Behavioural, not structural: any upstream timeout shorter than HANG_MS makes the search
 // settle and these tests fail, however the timer is armed (setTimeout, scheduler.wait,
 // AbortSignal.timeout, a captured reference). Phase 1 plans 1.5 s; a timeout longer
 // than HANG_MS would not be a usable search timeout.
-const HANG_MS = 3500;
+const HANG_MS = 4000; // catches timeouts up to ~3.9 s (the harness arms its timer slightly earlier)
 
 describe('B5', () => {
   it('[B5 known-bug] /module/%E0%A4%A throws a URIError out of fetch (workerd answers 500, error 1101)', async () => {
