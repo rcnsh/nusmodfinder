@@ -44,3 +44,18 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
 - Live calls: none. Pinned corpus fetched from the GitHub release (not api.nusmods.com) into
   `/tmp/vnm-0c/` and `.data/` (gitignored) to run `test/full` locally.
 - No change to `src/` or `scripts/lib.mjs`.
+
+## 2026-11-04 — Phase 0 passed; Phases 1 and 2 planned
+
+- PR #1 (harness, migrations, lint, typecheck, CI) and PR #2 (35 findings triaged: 30 reproduced,
+  3 partially reproduced, 2 fixed; characterisation tests; findings CI) merged. Main CI green on
+  `546a91d` (CI + Findings). Each PR went through 4 fresh-context review rounds; findings fixed
+  (fake Vectorize semantics, CI path filter, B5 tests made behavioural, check-findings reads
+  exact test titles from the AST).
+- Phase 0 exit: CI green on main; `check-findings` OK; `db:rebuild-check` 0 differences. No
+  deploy (no runtime change); production still `c6744373` ↔ `3b18041` (behaviourally = `546a91d`).
+- Phase 1 and Phase 2 plans converged after 3 critic rounds each (`docs/plans/`). Key facts found:
+  D1 primary is WEUR with read replication disabled (likely cause of latency for SIN users);
+  indexing `code` in FTS or raising depth to 100 would change rankings; a D1 write overrun is an
+  account-wide outage; a reused holdout inflates SC5's false-positive rate (simulated 14% vs 2.5%).
+- Tagged `eval-v0` = `7ac9841` (ranker identical to production).

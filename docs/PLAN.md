@@ -9,9 +9,9 @@ log in [`PROGRESS.md`](PROGRESS.md), decisions in [`decisions/`](decisions/).
 
 | Phase | Title | Status | Exit gate |
 |---|---|---|---|
-| 0 | Safety net | in progress | CI green on main; every finding triaged; DB rebuilds from scratch |
-| 1 | Backend correctness and pipeline | not started | SC6, SC7 measured; README cost section fixed |
-| 2 | A real eval (may run parallel to 1) | not started | one-command harness; baseline in EVAL.md |
+| 0 | Safety net | **passed** (PRs #1, #2) | CI green on main; every finding triaged; DB rebuilds from scratch |
+| 1 | Backend correctness and pipeline | planned ([plan](plans/phase1.md), converged r3) | SC6, SC7 measured; README cost section fixed |
+| 2 | A real eval (may run parallel to 1) | planned ([plan](plans/phase2.md), converged r3) | one-command harness; baseline in EVAL.md |
 | 3 | Search that understands students | not started | SC4, SC5 |
 | 4 | Exchange mode that is correct | not started | SC1; persona red team finds nothing |
 | 5 | Frontend and design overhaul | not started | SC2, SC8; design gate |
@@ -166,8 +166,8 @@ Already spent: 77 rows read (snapshot), 36 `/search` + 7 other live calls. Remai
 | WS | Owner | Branch | Depends on | Status |
 |---|---|---|---|---|
 | 0b live + frontend reproductions | agent | — | — | done (`/tmp/vnm-repro/`) |
-| 0a harness+migrations+lint+CI | implementer | `phase0/harness` | — | next |
-| 0c reproduction tests + FINDINGS.md | implementer | `phase0/findings` | 0a merged | |
+| 0a harness+migrations+lint+CI | implementer | `phase0/harness` | — | merged #1 |
+| 0c reproduction tests + FINDINGS.md | implementer | `phase0/findings` | 0a merged | merged #2 |
 
 ### Critic round 1 objection log
 | # | Critic | Objection | Resolution |
@@ -214,3 +214,24 @@ Already spent: 77 rows read (snapshot), 36 `/search` + 7 other live calls. Remai
 
 **Convergence (round 3 of 3):** every blocking objection from all three rounds was accepted and
 the plan changed; none was rebutted, so no dissent. Phase 0 plan is the shared understanding.
+
+## Phases 1 and 2 (running in parallel)
+
+Plans: [`plans/phase1.md`](plans/phase1.md), [`plans/phase2.md`](plans/phase2.md). Each was reviewed by
+critics over 3 rounds; later "amendments"/"Final" sections supersede earlier text.
+
+Cross-phase ordering constraints:
+- Phase 2's baseline runs at tag `eval-v0` (= `7ac9841`) and its live fidelity check (15 calls)
+  must finish **before** Phase 1 applies 0006 remotely or deploys a ranking-affecting Worker.
+- Phase 1 step 0 (module split + instrumentation) is behaviour-neutral and may deploy first.
+
+| WS | Scope | Branch | Depends on | Status |
+|---|---|---|---|---|
+| 1-0 | split `src/index.js` into modules; Server-Timing, structured logs, version_metadata, `npm run deploy` | `phase1/instrument` | — | |
+| 1A | 0006 migration, filtered lexical (B1), generated filter columns | `phase1/fts` | 1-0 | |
+| 1B | request path: parallel, sessions/replication, timeouts, fallback, cache key, input bugs | `phase1/search-path` | 1-0 | |
+| 1C | ingest: row_hash, deletes, cache expiry, verify, data-version, O3 | `phase1/ingest` | 1A | |
+| 2a | eval runner, metrics, reporter, embed script, encryption, CLI | `phase2/harness` | — | |
+| 2b | persona queries (no corpus access), typo noise model, split | `phase2/queries` | — | |
+| 2c | embeddings, baseline run at eval-v0, fidelity check | `phase2/baseline` | 2a, 2b | |
+| 2d | pooling + blind judging + agreement | `phase2/judging` | 2c | |
