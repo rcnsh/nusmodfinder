@@ -231,20 +231,22 @@ export class FakeVectorize extends Switchable {
         throw new Error(`fake Vectorize: vector "${v.id}" is not ${EMBEDDING_DIMS} finite numbers (got ${v.values?.length} values)`);
       }
     }
-    for (const v of vectors) this.vectors.set(v.id, { id: v.id, values: [...v.values], metadata: v.metadata });
-    return { mutationId: this.mutate(), count: vectors.length, ids: vectors.map((v) => v.id) };
+    const stored = vectors.map((v) => ({ id: v.id, values: [...v.values], metadata: v.metadata }));
+    const mutationId = this.mutate(() => { for (const v of stored) this.vectors.set(v.id, v); });
+    return { mutationId, count: vectors.length, ids: vectors.map((v) => v.id) };
   }
 
   /** @param {string[]} ids */
   async deleteByIds(ids) {
     await this.gate('deleteByIds', [ids]);
-    for (const id of ids) this.vectors.delete(id);
-    return { mutationId: this.mutate(), count: ids.length, ids };
+    const mutationId = this.mutate(() => { for (const id of ids) this.vectors.delete(id); });
+    return { mutationId, count: ids.length, ids };
   }
 
   /**
-   * Mutation ids in the order they were accepted. The data changes at once;
-   * what lags is describe()'s report of it, as with the real async mutations.
+   * Mutation ids in the order they were accepted. By default the data changes
+   * at once and only describe()'s report of it lags; with `deferApply` the
+   * data lags too, as with the real async mutations.
    * @type {string[]}
    */
   mutations = [];
@@ -255,16 +257,39 @@ export class FakeVectorize extends Switchable {
    * stalled (the wait must time out), n = catches up over several polls.
    */
   processPerDescribe = Infinity;
+  /**
+   * When true, an upsert or delete changes what query/getByIds see only once
+   * describe() (or applyAll()) processes it, in mutation order: a reader
+   * between the two sees the values from before.
+   */
+  deferApply = false;
+  /** Deferred mutations not yet applied, in order: their index in `mutations`. */
+  /** @type {{ index: number, apply: () => void }[]} */
+  pending = [];
 
-  mutate() {
+  /** @param {() => void} apply */
+  mutate(apply) {
     const id = crypto.randomUUID();
     this.mutations.push(id);
+    if (this.deferApply) this.pending.push({ index: this.mutations.length - 1, apply });
+    else apply();
     return id;
+  }
+
+  /** @param {number} n marks n more mutations processed, applying any deferred ones among them */
+  process(n) {
+    this.processed = Math.min(this.mutations.length, this.processed + n);
+    while (this.pending.length && this.pending[0].index < this.processed) this.pending.shift()?.apply();
+  }
+
+  /** Processes and applies every accepted mutation. */
+  applyAll() {
+    this.process(Infinity);
   }
 
   async describe() {
     await this.gate('describe', []);
-    this.processed = Math.min(this.mutations.length, this.processed + this.processPerDescribe);
+    this.process(this.processPerDescribe);
     return {
       vectorCount: this.vectors.size,
       dimensions: EMBEDDING_DIMS,
