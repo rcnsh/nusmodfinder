@@ -92,21 +92,28 @@ Resources (already created for this deployment):
 
 ```bash
 npx wrangler d1 create nusmods
-npx wrangler d1 execute nusmods --remote --file=schema.sql
-npx wrangler d1 execute nusmods --remote --file=migrations/0002_fts.sql
+npx wrangler d1 migrations apply nusmods --remote
 npx wrangler vectorize create nusmods-modules --dimensions=384 --metric=cosine
 ```
 
-Then the seven filterable metadata indexes — **these cannot be added retroactively**, so
+The schema lives only in `migrations/` (`0001_init.sql` onwards); there is no separate
+`schema.sql`. `migrations apply` records what it ran in a `d1_migrations` table. The
+existing production database was built by hand before that tracking existed, so **do not
+run `migrations apply` or `migrations list` against it** (both write `d1_migrations`)
+until it has been bootstrapped as described in
+[ADR 0001](docs/decisions/0001-migrations-and-remote-bootstrap.md). A local database
+needs no bootstrap: `npx wrangler d1 migrations apply nusmods --local`.
+
+Then the eight filterable metadata indexes — **these cannot be added retroactively**, so
 they must exist before any vector is written:
 
 ```bash
-for spec in sem1:boolean sem2:boolean sem3:boolean sem4:boolean level:number credits:number faculty:string; do
+for spec in sem1:boolean sem2:boolean sem3:boolean sem4:boolean level:number credits:number faculty:string ng:boolean; do
   npx wrangler vectorize create-metadata-index nusmods-modules --property-name="${spec%%:*}" --type="${spec##*:}"
 done
 ```
 
-Adding an eighth filterable property later means **recreating the index and re-ingesting**.
+Adding a ninth filterable property later means **recreating the index and re-ingesting**.
 Vectorize allows at most 10 metadata indexes, and only the first 64 bytes of a string
 property are filterable.
 
