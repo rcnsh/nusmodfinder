@@ -1,5 +1,7 @@
-// Phase 3: fetch a NUSMods acad year, embed every offered module, and write it
-// to D1 + Vectorize.
+// @ts-check
+// Fetch a NUSMods acad year and bring D1 + Vectorize in line with it:
+// re-embed what changed text, rewrite rows whose fields changed, delete
+// modules that left the corpus, then write src/data-version.json.
 //
 //   npm run ingest -- --year 2026-2027 --url http://localhost:8787
 //
@@ -7,129 +9,176 @@
 // already holds the AI, Vectorize and D1 bindings — so no Cloudflare API token
 // needs to exist on disk. The 19 MB moduleInfo.json is parsed here, locally,
 // never in a Worker (landmine L2). Requires INGEST_SECRET on both sides.
-import { facetsPayload, DEFAULT_ACAD_YEAR, fetchAcadYearFile, assertExpectedShape, offeredModules, loadNgCourses } from './lib.mjs';
+// The run itself is scripts/ingest-core.mjs; README "Re-ingesting" is the
+// runbook.
+//
+// Flags:
+//   --year <y>             acad year (default DEFAULT_ACAD_YEAR)
+//   --url <base>           Worker base URL (default $WORKER_URL or http://localhost:8787)
+//   --force                re-embed and rewrite every module, whatever the hashes say
+//   --from <code>          only modules whose code sorts at or after <code> (resume a forced run)
+//   --write-budget <n>     stop before D1 rows written would pass n (default 40000, ADR 0002)
+//   --allow-mass-delete    proceed even if the corpus offers < 95% of the codes D1 holds
+//   --offline              use the .data/ cache as it is; never contact api.nusmods.com
+//   --max-age <dur>        revalidate .data/ entries older than this (default 24h; 90s, 30m, 2d)
+//   --batch <n>            modules per /admin/ingest call (default 50, max 100)
+//   --concurrency <n>      parallel batches (default 4)
+//   --wait-timeout <dur>   how long to wait for Vectorize to apply the last mutation (default 10m)
+//
+// Exit codes: 0 done; 1 refused or failed; 2 stopped by the write budget
+// (resumable); 3 Vectorize did not confirm the last mutation in time.
+import { writeFile } from 'node:fs/promises';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { parseArgs } from 'node:util';
+import { DEFAULTS, runIngest } from './ingest-core.mjs';
+import {
+  DEFAULT_ACAD_YEAR, DEFAULT_MAX_AGE_MS, EMBEDDING_MODEL, assertExpectedShape, facetsPayload, fetchAcadYearFile,
+  loadNgCourses, offeredModules,
+} from './lib.mjs';
 
-const arg = (name, fallback) => {
-  const i = process.argv.indexOf(`--${name}`);
-  return i === -1 ? fallback : process.argv[i + 1];
-};
-const has = (name) => process.argv.includes(`--${name}`);
+export const DATA_VERSION_PATH = fileURLToPath(new URL('../src/data-version.json', import.meta.url));
 
-const acadYear = arg('year', DEFAULT_ACAD_YEAR);
-const base = (arg('url', process.env.WORKER_URL) ?? 'http://localhost:8787').replace(/\/$/, '');
-const secret = process.env.INGEST_SECRET;
-const batchSize = Number(arg('batch', 50));
-const concurrency = Number(arg('concurrency', 4));
-const force = has('force');
-
-if (!secret) {
-  console.error('INGEST_SECRET is not set. Export the same value the Worker is bound to.');
-  process.exit(1);
+/**
+ * `90s`, `30m`, `24h`, `2d`; a bare number is hours.
+ * @param {string} text
+ */
+export function parseDuration(text) {
+  const m = /^(\d+(?:\.\d+)?)(s|m|h|d)?$/.exec(text.trim());
+  if (!m) throw new Error(`not a duration: "${text}" (use e.g. 90s, 30m, 24h, 2d)`);
+  const unit = { s: 1_000, m: 60_000, h: 3_600_000, d: 86_400_000 }[/** @type {'s' | 'm' | 'h' | 'd'} */ (m[2] ?? 'h')];
+  return Number(m[1]) * unit;
 }
 
-const auth = { authorization: `Bearer ${secret}`, 'content-type': 'application/json' };
-
-const info = await fetchAcadYearFile(acadYear, 'moduleInfo.json');
-assertExpectedShape(info.data);
-const ngCourses = await loadNgCourses(acadYear);
-const { modules, skipped } = offeredModules(info.data, acadYear, ngCourses);
-
-console.log(`acad year          ${acadYear}`);
-console.log(`source             ${info.url} (${(info.bytes / 1e6).toFixed(1)} MB, ${info.cached ? 'from .data cache' : 'freshly fetched'})`);
-console.log(`catalogue records  ${info.data.length}`);
-console.log(`offered & usable   ${modules.length}`);
-// R2: a record missing a title or description is skipped by code, not dropped silently.
-console.log(`skipped            ${skipped.length}${skipped.length ? ` (${skipped.slice(0, 10).map((s) => `${s.code}: ${s.why}`).join('; ')})` : ''}`);
-if (ngCourses.available) {
-  const matched = modules.filter((m) => m.ng).length;
-  const orphans = ngCourses.total - matched;
-  console.log(`NG list            ${ngCourses.total} codes (updated ${ngCourses.updatedAsAt}); ${matched} matched this corpus, ${orphans} not offered this year`);
-} else {
-  console.log(`NG list            ABSENT — run scripts/extract-ng.py first, or every module will be marked not-NG`);
+/** @param {string} name @param {string} text */
+function positiveInt(name, text) {
+  const n = Number(text);
+  if (!Number.isInteger(n) || n < 1) throw new Error(`--${name} must be a positive integer, got "${text}"`);
+  return n;
 }
 
-// /admin/facets also records where the NG list came from, so /facets reports
-// the date in data/ng-courses-*.json rather than a hand-kept copy (O3).
-const facetsBody = JSON.stringify(facetsPayload(ngCourses));
-
-// Resumability (L5): ask D1 what it already has and re-embed only what changed.
-let existing = {};
-if (!force) {
-  const res = await fetch(`${base}/admin/hashes`, { headers: auth });
-  if (!res.ok) {
-    console.error(`GET ${base}/admin/hashes -> HTTP ${res.status}. Is the Worker running with INGEST_SECRET bound?`);
-    process.exit(1);
-  }
-  existing = await res.json();
-}
-const todo = modules.filter((m) => force || existing[m.code] !== m.textHash);
-console.log(`already current    ${modules.length - todo.length}`);
-console.log(`to embed           ${todo.length}`);
-console.log();
-
-if (todo.length === 0) {
-  console.log('Nothing to do — every module is already indexed at its current text hash.');
-  const res = await fetch(`${base}/admin/facets`, { method: 'POST', headers: auth, body: facetsBody }).catch(() => null);
-  console.log(res?.ok ? 'facets rebuilt.' : 'facets rebuild skipped/failed.');
-  process.exit(0);
-}
-
-const batches = [];
-for (let i = 0; i < todo.length; i += batchSize) batches.push(todo.slice(i, i + batchSize));
-
-let done = 0;
-let failed = 0;
-const started = Date.now();
-
-async function sendBatch(batch, attempt = 1) {
-  const res = await fetch(`${base}/admin/ingest`, {
-    method: 'POST',
-    headers: auth,
-    body: JSON.stringify({ modules: batch }),
+/**
+ * @param {string[]} argv
+ * @param {Record<string, string | undefined>} [envVars]
+ */
+export function parseIngestArgs(argv, envVars = process.env) {
+  const { values } = parseArgs({
+    args: argv,
+    options: {
+      year: { type: 'string' }, url: { type: 'string' }, force: { type: 'boolean' }, from: { type: 'string' },
+      'write-budget': { type: 'string' }, 'allow-mass-delete': { type: 'boolean' }, offline: { type: 'boolean' },
+      'max-age': { type: 'string' }, batch: { type: 'string' }, concurrency: { type: 'string' },
+      'wait-timeout': { type: 'string' },
+    },
+    strict: true,
   });
-  if (res.ok) return;
-  const body = await res.text();
-  // Workers AI throttles under load; back off rather than losing the batch.
-  if (attempt < 5 && (res.status === 429 || res.status >= 500)) {
-    const wait = 2 ** attempt * 1000;
-    process.stderr.write(`\n  batch ${batch[0].code}…: HTTP ${res.status}, retrying in ${wait / 1000}s\n`);
-    await new Promise((r) => setTimeout(r, wait));
-    return sendBatch(batch, attempt + 1);
-  }
-  failed += batch.length;
-  process.stderr.write(`\n  batch ${batch[0].code}… FAILED after ${attempt} attempts: HTTP ${res.status} ${body.slice(0, 300)}\n`);
+  const batchSize = values.batch ? positiveInt('batch', values.batch) : DEFAULTS.batchSize;
+  if (batchSize > 100) throw new Error('--batch must be at most 100 (the /admin/ingest limit)');
+  return {
+    acadYear: values.year ?? DEFAULT_ACAD_YEAR,
+    base: (values.url ?? envVars.WORKER_URL ?? 'http://localhost:8787').replace(/\/$/, ''),
+    offline: values.offline ?? false,
+    maxAgeMs: values['max-age'] ? parseDuration(values['max-age']) : DEFAULT_MAX_AGE_MS,
+    /** @type {import('./ingest-core.mjs').IngestOptions} */
+    options: {
+      force: values.force ?? false,
+      from: values.from ?? null,
+      writeBudget: values['write-budget'] ? positiveInt('write-budget', values['write-budget']) : DEFAULTS.writeBudget,
+      allowMassDelete: values['allow-mass-delete'] ?? false,
+      batchSize,
+      concurrency: values.concurrency ? positiveInt('concurrency', values.concurrency) : DEFAULTS.concurrency,
+      waitTimeoutMs: values['wait-timeout'] ? parseDuration(values['wait-timeout']) : DEFAULTS.waitTimeoutMs,
+      embeddingModel: EMBEDDING_MODEL,
+    },
+  };
 }
 
-const queue = batches.slice();
-await Promise.all(Array.from({ length: concurrency }, async () => {
-  while (queue.length) {
-    const batch = queue.shift();
-    await sendBatch(batch);
-    done += batch.length;
-    const pct = ((done / todo.length) * 100).toFixed(1);
-    const rate = done / ((Date.now() - started) / 1000);
-    process.stdout.write(`\r  ${done}/${todo.length} (${pct}%)  ${rate.toFixed(0)}/s  failed ${failed}   `);
-  }
-}));
-
-console.log('\n');
-
-// Rebuild the precomputed facet row so /facets stays one row read per request
-// instead of three full-table aggregates.
-try {
-  const res = await fetch(`${base}/admin/facets`, { method: 'POST', headers: auth, body: facetsBody });
-  const body = await res.json().catch(() => ({}));
-  console.log(res.ok
-    ? `facets rebuilt      ${body.faculties} faculties, ${body.levels} levels, ${body.ng} NG (list updated ${body.ngListUpdatedAsAt})`
-    : `facets rebuild FAILED (HTTP ${res.status}) — /facets will fall back to live aggregates`);
-} catch (err) {
-  console.log(`facets rebuild FAILED (${err.message})`);
+/**
+ * The admin API over HTTP.
+ * @param {string} base
+ * @param {string} secret
+ * @param {typeof fetch} [fetchImpl]
+ * @returns {import('./ingest-core.mjs').AdminApi}
+ */
+export function httpAdminApi(base, secret, fetchImpl = fetch) {
+  const headers = { authorization: `Bearer ${secret}`, 'content-type': 'application/json' };
+  /** @param {string} path @param {RequestInit} init */
+  const send = async (path, init) => {
+    /** @type {Response} */
+    let res;
+    try {
+      res = await fetchImpl(`${base}${path}`, { ...init, headers });
+    } catch (err) {
+      // A dropped connection is retried like a 5xx by the caller.
+      return { status: 599, body: { error: 'network', message: /** @type {Error} */ (err).message } };
+    }
+    const text = await res.text();
+    let body;
+    try { body = JSON.parse(text); } catch { body = text; }
+    return { status: res.status, body };
+  };
+  return {
+    get: (path) => send(path, { method: 'GET' }),
+    post: (path, body) => send(path, { method: 'POST', body: JSON.stringify(body) }),
+  };
 }
 
-console.log(`embedded & upserted ${done - failed}`);
-console.log(`failed              ${failed}`);
-console.log(`elapsed             ${((Date.now() - started) / 1000).toFixed(0)}s`);
-if (failed) {
-  console.log('\nRerun the same command — resumability means only the failed modules are retried.');
-  process.exit(1);
+/** @param {string} version */
+export const dataVersionFile = (version) => `${JSON.stringify({ version }, null, 2)}\n`;
+
+/**
+ * @param {string[]} argv
+ * @param {{ fetchImpl?: typeof fetch, log?: (line: string) => void, dataVersionPath?: string,
+ *   envVars?: Record<string, string | undefined>, cacheDir?: URL }} [deps]
+ * @returns {Promise<number>} exit code
+ */
+export async function main(argv, deps = {}) {
+  const { fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, cacheDir } = deps;
+  const secret = envVars.INGEST_SECRET;
+  if (!secret) {
+    log('INGEST_SECRET is not set. Export the same value the Worker is bound to.');
+    return 1;
+  }
+  const args = parseIngestArgs(argv, envVars);
+
+  const info = await fetchAcadYearFile(args.acadYear, 'moduleInfo.json', {
+    offline: args.offline, maxAgeMs: args.maxAgeMs, fetchImpl, ...(cacheDir ? { cacheDir } : {}),
+  });
+  assertExpectedShape(info.data);
+  const ngCourses = await loadNgCourses(args.acadYear);
+  const { modules, skipped } = offeredModules(info.data, args.acadYear, ngCourses);
+
+  const age = info.ageMs === null ? 'age unknown' : `${(info.ageMs / 3_600_000).toFixed(1)} h old`;
+  const how = !info.cached ? 'freshly fetched' : info.revalidated ? 'cache revalidated (304)' : `from .data cache, ${age}`;
+  log(`acad year          ${args.acadYear}`);
+  log(`source             ${info.url} (${(info.bytes / 1e6).toFixed(1)} MB, ${how})`);
+  log(`catalogue records  ${info.data.length}`);
+  log(`offered & usable   ${modules.length}`);
+  // R2: a record missing a title or description is skipped by code, not dropped silently.
+  log(`skipped            ${skipped.length}${skipped.length ? ` (${skipped.slice(0, 10).map((s) => `${s.code}: ${s.why}`).join('; ')})` : ''}`);
+  if (ngCourses.available) {
+    const matched = modules.filter((m) => m.ng).length;
+    log(`NG list            ${ngCourses.total} codes (updated ${ngCourses.updatedAsAt}); ${matched} matched this corpus, ${ngCourses.total - matched} not offered this year`);
+  } else {
+    log('NG list            ABSENT — run scripts/extract-ng.py first, or every module will be marked not-NG');
+  }
+  log(`write budget       ${args.options.writeBudget} D1 rows`);
+
+  // /admin/facets also records where the NG list came from, so /facets reports
+  // the date in data/ng-courses-*.json rather than a hand-kept copy (O3).
+  const facetsBody = facetsPayload(ngCourses);
+  const result = await runIngest({ modules, facetsBody, api: httpAdminApi(args.base, secret, fetchImpl), options: args.options, log });
+
+  log(`rows read          ${result.rowsRead} (ingest and delete calls; /admin/hashes and facets not metered here)`);
+  log(`rows written       ${result.rowsWritten}`);
+  if (result.status === 'done' && result.dataVersion) {
+    await writeFile(dataVersionPath, dataVersionFile(result.dataVersion));
+    log(`data version       ${result.dataVersion} -> src/data-version.json`);
+    log('next               commit src/data-version.json, then npm run deploy (README "Re-ingesting")');
+    return 0;
+  }
+  return { done: 0, refused: 1, failed: 1, budget: 2, 'wait-timeout': 3 }[result.status];
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  process.exitCode = await main(process.argv.slice(2));
 }

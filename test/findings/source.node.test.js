@@ -158,9 +158,13 @@ describe('ops', () => {
     expect(worker).not.toContain(ngList.updatedAsAt);
     expect(readme).not.toContain('NG_LIST_UPDATED');
     const ingest = read('scripts/ingest.mjs');
-    // The payload is built by scripts/lib.mjs facetsPayload (unit-tested in test/facets-payload.node.test.js).
-    expect(ingest).toContain('const facetsBody = JSON.stringify(facetsPayload(ngCourses));');
-    expect(ingest.match(/\/admin\/facets`, \{ method: 'POST', headers: auth, body: facetsBody \}/g)).toHaveLength(2);
+    // The payload is built by scripts/lib.mjs facetsPayload (unit-tested in
+    // test/facets-payload.node.test.js) and posted by the ingest core on every
+    // run that gets past its guards (test/ingest.test.js drives it).
+    expect(ingest).toContain('const facetsBody = facetsPayload(ngCourses);');
+    expect(ingest).toContain('runIngest({ modules, facetsBody,');
+    const core = read('scripts/ingest-core.mjs');
+    expect(core.match(/send\('\/admin\/facets', facetsBody, 'facets'\)/g)).toHaveLength(1);
   });
 
   it('[O4 known-bug] wrangler.jsonc declares no cron trigger', () => {

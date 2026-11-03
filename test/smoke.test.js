@@ -16,8 +16,8 @@ beforeAll(async () => {
 describe('seeding', () => {
   it('loads every fixture module into D1 and the fake index', async () => {
     const res = await adminCall('/admin/hashes', fakes);
-    const hashes = await res.json();
-    expect(Object.keys(/** @type {object} */ (hashes))).toHaveLength(fixture.modules.length);
+    const hashes = /** @type {{ modules: object }} */ (await res.json());
+    expect(Object.keys(hashes.modules)).toHaveLength(fixture.modules.length);
     expect(fakes.vectorize.vectors.size).toBe(fixture.modules.length);
   });
 });
@@ -110,6 +110,9 @@ describe('admin routes', () => {
     ['GET', '/admin/hashes'],
     ['POST', '/admin/ingest'],
     ['POST', '/admin/facets'],
+    ['POST', '/admin/delete'],
+    ['GET', '/admin/vectorize'],
+    ['POST', '/admin/verify'],
   ])('%s %s is 404 when no INGEST_SECRET is bound', async (method, path) => {
     const { status, body } = await callJson(path, {
       init: { method, headers: { authorization: 'Bearer anything' }, ...(method === 'POST' ? { body: '{}' } : {}) },

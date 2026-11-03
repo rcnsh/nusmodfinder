@@ -24,7 +24,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | ID | Status | Evidence |
 |---|---|---|
 | B1 | fixed | tests (fixture + full corpus, property test), live (PR #8) |
-| B2 | reproduced | tests |
+| B2 | fixed | tests (hash rules, skip, deletes, cache, budget, verify, full-corpus cost) |
 | B3 | fixed | tests (EXPLAIN QUERY PLAN, trigger fuzz, cost) (PR #8) |
 | B4 | fixed | tests (concurrency, differential), live latency |
 | B5 | fixed | tests, live |
@@ -94,25 +94,50 @@ in JS).
 
 ### B2 · Re-ingest misses field changes; nothing deletes; cache never expires; acad_year ignored
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** Ingest hashes only the embedded text (title/department/faculty/description), so
 changes to semesters, NG flags, credits and prereqs never land; nothing deletes dropped
 modules; the `.data/` download cache never expires; `/search` ignores `acad_year`.
 
 **Evidence:**
-- test `[B2 known-bug] textHash ignores semesters, credits, workload, prerequisite, preclusion and NG flags` (`test/findings/ingest.node.test.js`)
-- test `[B2 known-bug] scripts/ingest.mjs skips a module whenever its textHash is unchanged`
-- test `[B2 known-bug] /admin/hashes exposes a single embedded-text hash per module, so ingest can only compare text` (`test/findings/b2.test.js`): `/admin/hashes` returns only `text_hash`, and `/module` keeps serving the stale row.
-- test `[B2 known-bug] re-ingesting a corpus without a module leaves that module in D1 and Vectorize`: no `deleteByIds` call, no delete route (404).
-- test `[B2 known-bug] the .data/ download cache is used however old it is`: a cache file dated 2000-01-01 is served with `cached: true` (fetch stubbed to throw).
-- test `[B2 known-bug] /search returns a module from another acad year`: a `2019-2020` row is returned.
+- test `[B2 fixed] row_hash changes with semesters, credits, workload, prerequisite, preclusion, NG flags and acad year; text_hash does not` (`test/findings/ingest.node.test.js`)
+- test `[B2 fixed] text_hash is the hash of the model id, the embedded-text version and the text`
+- test `[B2 fixed] row_hash is the hash of the normaliser version, the exact bound tuple and the vector metadata, and is recomputable from the stored row`
+- test `[B2 fixed] the skip rule: text changed re-embeds, only the row changed re-upserts without embedding, unchanged is skipped`
+- test `[B2 fixed] /admin/hashes returns text_hash and row_hash for every module` (`test/findings/b2.test.js`)
+- test `[B2 fixed] a field-only change (semesters, NG flags, credits, prereqs, workload) lands in D1 and the Vectorize metadata, without re-embedding`: through `runIngest` and the real routes; `/module` and the `sem` filter see the change, the vector keeps its values, Workers AI is not called, and a rerun sends nothing.
+- test `[B2 fixed] a module dropped from the corpus is deleted from Vectorize, then D1`
+- test `[B2 fixed] acad_year: rows are keyed by code, so a run leaves only the current year (stale rows deleted or rewritten)`
+- test `[B2 fixed] an entry older than --max-age is revalidated with If-None-Match, and a 304 keeps the cached body` (`test/findings/ingest.node.test.js`), and the four cache tests after it (200 replaces body and sidecar; a fresh entry is used without a request; `--offline`; an entry with no sidecar).
+- test `refuses a corpus below 95% of the D1 count unless allowMassDelete` (`test/ingest.test.js`), `run only when no upsert batch failed`, `stops cleanly before a batch would exceed it, never exceeds it, and a rerun resumes through the hash skip`, `reports done only once describe() has processed the last mutation, polling on that state`, `refuses a database without migration 0006, and /admin/hashes says what is missing`.
 
-**Notes:** Hash input `scripts/lib.mjs:94-101` (`embeddingText`) and `:163` (`textHash:
+**Notes:** Was: hash input `scripts/lib.mjs:94-101` (`embeddingText`) and `:163` (`textHash:
 hashOf(text)`); skip predicate `scripts/ingest.mjs:61`; cache read with no age check
-`scripts/lib.mjs:39-44`; no `acad_year` predicate anywhere in `src/index.js` `runFts`
-(`:193-229`) or `fetchRows` (`:262-269`). The Worker's own `ON CONFLICT DO UPDATE`
-(`src/index.js:557-563`) would write every field; it's the client-side skip that stops it.
+`scripts/lib.mjs:39-44`; no `acad_year` predicate in `runFts` or `fetchRows`.
+
+Fixed in workstream 1C (plan "Ingest (changes vs r1)"). `text_hash` = hash(model id +
+embedded-text version + text) (`scripts/lib.mjs`); `row_hash` = hash(normaliser version + the
+exact tuple `/admin/ingest` binds + the Vectorize metadata) (`src/rowhash.js`, shared by the
+Worker and the scripts; the Worker stores the hash of what it actually binds).
+`/admin/hashes` returns both. `scripts/ingest-core.mjs` plans each module: text changed →
+re-embed and upsert vector and row; only the row changed → rewrite the row and re-upsert the
+vector with its stored values (`getByIds`) under new metadata, embedding only if the vector
+is missing (a deviation from r1's "re-embed, cheap": same vector, no neurons); unchanged →
+skip. Codes D1 holds and the corpus lacks are deleted through the new authenticated
+`/admin/delete` (Vectorize `deleteByIds`, then D1), last, and only when no upsert batch
+failed. A corpus under 95% of D1's count aborts the run before any write unless
+`--allow-mass-delete`. The `.data/` cache keeps `ETag`/`Last-Modified` in a
+`<entry>.cache.json` sidecar and revalidates entries older than `--max-age` (24 h) unless
+`--offline`.
+
+The acad_year sub-claim needs no query-time fix: one database holds one acad year by
+construction, because rows are keyed by `code` alone. A run refuses a corpus that mixes acad
+years; a code that left the corpus is deleted with its old-year row, and a code offered in both
+years is one row whose `row_hash` (which includes the acad year) differs, so it is rewritten
+with the current year. After a finished run every row carries the corpus's year (tested), so
+an `acad_year` predicate in `/search` would only add a column read per row. Between a failed
+run and its rerun, old-year rows can still be served.
 
 ### B3 · FTS triggers delete by an UNINDEXED column
 

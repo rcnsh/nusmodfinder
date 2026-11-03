@@ -1,6 +1,6 @@
 // @ts-check
 // Shared helpers for probing, ingesting and evaluating the NUSMods corpus.
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
 /**
@@ -15,6 +15,11 @@ import { createHash } from 'node:crypto';
 
 export const DEFAULT_ACAD_YEAR = '2026-2027';
 export const EMBEDDING_MODEL = '@cf/baai/bge-small-en-v1.5';
+/**
+ * Bump when embeddingText() changes, so text_hash changes and every module is
+ * re-embedded once (FINDINGS B2: text_hash = hash(model + this + text)).
+ */
+export const EMBEDDING_TEXT_VERSION = 1;
 export const EMBEDDING_DIMS = 384;
 export const CACHE_DIR = new URL('../.data/', import.meta.url);
 
@@ -28,33 +33,92 @@ export const MAX_BLOB_CHARS = 1900;
 // A query only short-circuits if the code actually exists, so a loose match is safe.
 export const MODULE_CODE_RE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 
+/** How long a .data/ entry is used without asking NUSMods whether it changed (`--max-age`). */
+export const DEFAULT_MAX_AGE_MS = 24 * 3_600_000;
+
 /**
+ * Sidecar stored next to each .data/ entry (`<entry>.cache.json`): the
+ * validators NUSMods sent with it and when it was last fetched or revalidated.
+ * @typedef {{ url: string, etag: string | null, lastModified: string | null, fetchedAt: string }} CacheSidecar
+ */
+
+/**
+ * Fetches `https://api.nusmods.com/v2/<acadYear>/<file>` through the .data/
+ * cache (FINDINGS B2: the cache used to be served however old it was).
+ * - An entry younger than `maxAgeMs` (by its sidecar's `fetchedAt`) is used
+ *   without a request.
+ * - Otherwise it is revalidated: a conditional GET with `If-None-Match` /
+ *   `If-Modified-Since` from the sidecar. 304 keeps the body and refreshes
+ *   `fetchedAt`; 200 replaces body and sidecar. An entry with no sidecar
+ *   (written before sidecars existed) is fetched unconditionally.
+ * - `offline` uses the entry however old and never fetches.
+ * A failed revalidation is an error, never a silent stale read; pass
+ * `offline` to use the stale copy deliberately.
  * @param {string} acadYear
  * @param {string} file
+ * @param {{ offline?: boolean, maxAgeMs?: number, cacheDir?: URL, fetchImpl?: typeof fetch, now?: () => number }} [options]
  */
-export async function fetchAcadYearFile(acadYear, file) {
+export async function fetchAcadYearFile(acadYear, file, options = {}) {
+  const { offline = false, maxAgeMs = DEFAULT_MAX_AGE_MS, cacheDir = CACHE_DIR, fetchImpl = fetch, now = Date.now } = options;
   const url = `https://api.nusmods.com/v2/${acadYear}/${file}`;
-  await mkdir(CACHE_DIR, { recursive: true });
-  const cachePath = new URL(`${acadYear}-${file}`, CACHE_DIR);
-  try {
-    const cached = await readFile(cachePath, 'utf8');
-    return { data: JSON.parse(cached), bytes: Buffer.byteLength(cached), url, cached: true };
-  } catch {
-    // not cached yet
+  await mkdir(cacheDir, { recursive: true });
+  const cachePath = new URL(`${acadYear}-${file}`, cacheDir);
+  const sidecarPath = new URL(`${acadYear}-${file}.cache.json`, cacheDir);
+  /** @type {string | null} */
+  const cached = await readFile(cachePath, 'utf8').catch(() => null);
+  /** @type {CacheSidecar | null} */
+  const sidecar = await readFile(sidecarPath, 'utf8').then((t) => JSON.parse(t)).catch(() => null);
+  const ageMs = sidecar ? now() - Date.parse(sidecar.fetchedAt) : null;
+  /** @param {string} body @param {boolean} revalidated */
+  const fromCache = (body, revalidated) =>
+    ({ data: parseJson(body, cachePath.pathname), bytes: Buffer.byteLength(body), url, cached: true, revalidated, ageMs });
+
+  if (offline) {
+    if (cached === null) throw new Error(`--offline: no cached copy of ${url} at ${cachePath.pathname}`);
+    return fromCache(cached, false);
   }
-  const res = await fetch(url);
+  if (cached !== null && ageMs !== null && ageMs >= 0 && ageMs < maxAgeMs) return fromCache(cached, false);
+
+  /** @type {Record<string, string>} */
+  const headers = {};
+  if (cached !== null && sidecar?.etag) headers['if-none-match'] = sidecar.etag;
+  if (cached !== null && sidecar?.lastModified) headers['if-modified-since'] = sidecar.lastModified;
+  /** @type {Response} */
+  let res;
+  try {
+    res = await fetchImpl(url, { headers });
+  } catch (err) {
+    throw new Error(`Could not revalidate ${url} (${/** @type {Error} */ (err).message}). Pass --offline to use the cached copy as it is.`, { cause: err });
+  }
+  const stamp = new Date(now()).toISOString();
+  if (res.status === 304 && cached !== null) {
+    /** @type {CacheSidecar} */
+    const next = { url, etag: res.headers.get('etag') ?? sidecar?.etag ?? null,
+      lastModified: res.headers.get('last-modified') ?? sidecar?.lastModified ?? null, fetchedAt: stamp };
+    await writeFile(sidecarPath, `${JSON.stringify(next, null, 2)}\n`);
+    return fromCache(cached, true);
+  }
   if (!res.ok) {
-    throw new Error(`NUSMods returned HTTP ${res.status} for ${url} — is "${acadYear}" a real acad year?`);
+    throw new Error(`NUSMods returned HTTP ${res.status} for ${url} — is "${acadYear}" a real acad year? Pass --offline to use the cached copy.`);
   }
   const body = await res.text();
-  let data;
+  const data = parseJson(body, url);
+  // Body first, then the sidecar that vouches for it, each replaced atomically.
+  await writeFile(new URL(`${cachePath.href}.tmp`), body);
+  await rename(new URL(`${cachePath.href}.tmp`), cachePath);
+  /** @type {CacheSidecar} */
+  const next = { url, etag: res.headers.get('etag'), lastModified: res.headers.get('last-modified'), fetchedAt: stamp };
+  await writeFile(sidecarPath, `${JSON.stringify(next, null, 2)}\n`);
+  return { data, bytes: Buffer.byteLength(body), url, cached: false, revalidated: cached !== null, ageMs: 0 };
+}
+
+/** @param {string} body @param {string} where */
+function parseJson(body, where) {
   try {
-    data = JSON.parse(body);
+    return JSON.parse(body);
   } catch {
-    throw new Error(`NUSMods returned non-JSON for ${url} (first 200 bytes: ${body.slice(0, 200)})`);
+    throw new Error(`non-JSON in ${where} (first 200 bytes: ${body.slice(0, 200)})`);
   }
-  await writeFile(cachePath, body);
-  return { data, bytes: Buffer.byteLength(body), url, cached: false };
 }
 
 const REQUIRED_KEYS = ['moduleCode', 'title', 'description', 'moduleCredit', 'faculty', 'semesterData'];
@@ -144,6 +208,9 @@ export function normalise(record, acadYear) {
   const semesters = semestersOf(record);
   const credits = Number(record.moduleCredit);
   const text = embeddingText(record);
+  // The vector depends on the model and on how the text was built, not only
+  // on the text: a model switch or embeddingText() change must re-embed.
+  const textHash = hashOf(JSON.stringify([EMBEDDING_MODEL, EMBEDDING_TEXT_VERSION, text]));
 
   return {
     module: {
@@ -160,7 +227,7 @@ export function normalise(record, acadYear) {
       preclusion: record.preclusion ?? null,
       acadYear,
       text,
-      textHash: hashOf(text),
+      textHash,
       // Filled in by offeredModules() when an NG list is present.
       ng: false,
       ngSemesters: [],
@@ -194,20 +261,8 @@ export function offeredModules(records, acadYear, ngCourses = null) {
   return { modules, skipped };
 }
 
-/** @param {NormalisedModule} module */
-export function vectorMetadata(module) {
-  return {
-    code: module.code,
-    sem1: module.semesters.includes(1),
-    sem2: module.semesters.includes(2),
-    sem3: module.semesters.includes(3),
-    sem4: module.semesters.includes(4),
-    level: module.level,
-    credits: module.credits,
-    faculty: module.faculty ?? '',
-    ng: module.ng === true,
-  };
-}
+// The Vectorize metadata and row hash are shared with the Worker.
+export { vectorMetadata } from '../src/rowhash.js';
 
 /**
  * The /admin/facets body. Always carries ngList, so an ingest without the NG

@@ -232,14 +232,45 @@ export class FakeVectorize extends Switchable {
       }
     }
     for (const v of vectors) this.vectors.set(v.id, { id: v.id, values: [...v.values], metadata: v.metadata });
-    return { mutationId: `fake-${this.calls.length}`, count: vectors.length, ids: vectors.map((v) => v.id) };
+    return { mutationId: this.mutate(), count: vectors.length, ids: vectors.map((v) => v.id) };
   }
 
   /** @param {string[]} ids */
   async deleteByIds(ids) {
     await this.gate('deleteByIds', [ids]);
     for (const id of ids) this.vectors.delete(id);
-    return { mutationId: `fake-${this.calls.length}`, count: ids.length, ids };
+    return { mutationId: this.mutate(), count: ids.length, ids };
+  }
+
+  /**
+   * Mutation ids in the order they were accepted. The data changes at once;
+   * what lags is describe()'s report of it, as with the real async mutations.
+   * @type {string[]}
+   */
+  mutations = [];
+  /** How many mutations describe() reports as processed. */
+  processed = 0;
+  /**
+   * Mutations describe() marks processed per call: Infinity = all at once, 0 =
+   * stalled (the wait must time out), n = catches up over several polls.
+   */
+  processPerDescribe = Infinity;
+
+  mutate() {
+    const id = crypto.randomUUID();
+    this.mutations.push(id);
+    return id;
+  }
+
+  async describe() {
+    await this.gate('describe', []);
+    this.processed = Math.min(this.mutations.length, this.processed + this.processPerDescribe);
+    return {
+      vectorCount: this.vectors.size,
+      dimensions: EMBEDDING_DIMS,
+      processedUpToMutation: this.processed ? this.mutations[this.processed - 1] : null,
+      processedUpToDatetime: null,
+    };
   }
 
   /** @param {string[]} ids */
