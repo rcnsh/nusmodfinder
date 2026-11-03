@@ -3,7 +3,9 @@
 // `npm run test:eval`: the harness end to end on the synthetic fixture set,
 // through the real CLI, in workerd, from the committed embedding cache (no
 // Cloudflare call). Runs in CI. Checks:
-//   1. eval-v0 overlay run reproduces the golden results and metrics;
+//   1. eval-v0 overlay run reproduces the golden results and metrics, and
+//      its ranker.treeHash is the hash of `git archive eval-v0` (so the old
+//      ranker really ran; the fixture ranks identically under both);
 //   2. a working-tree run + comparison + gate, and eval:report recomputes it
 //      identically from the run files alone;
 //   3. eval:pool output has no system or rank information;
@@ -19,6 +21,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import { appendFile, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { readLedger } from './lib/ledger.mjs';
+import { RANKER, treeHash } from './lib/workspace.mjs';
 import { REPO } from './lib/sets.mjs';
 
 const WORK = join(REPO, '.eval-work', 'selftest');
@@ -81,7 +84,19 @@ assert.equal(v0.queries.sha256, golden.queries.sha256);
 for (const field of ['ranker', 'corpus', 'embedding', 'queries', 'config']) assert.ok(v0[field], `run file has ${field}`);
 assert.equal(v0.corpus.moduleInfoSha256, '2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1');
 assert.equal(v0.embedding.model, '@cf/baai/bge-small-en-v1.5');
-console.log('ok: results identical to the golden run');
+// The fixture ranks every query the same at eval-v0 and HEAD, so results
+// alone cannot show which ranker ran: compare the hash of the files that ran
+// with the hash of eval-v0's own files, extracted independently.
+const archiveDir = join(WORK, 'eval-v0-archive');
+await mkdir(archiveDir, { recursive: true });
+const atV0 = RANKER.filter((p) => spawnSync('git', ['cat-file', '-e', `eval-v0:${p}`], { cwd: REPO }).status === 0);
+const tar = spawnSync('git', ['archive', '--format=tar', 'eval-v0', '--', ...atV0], { cwd: REPO, maxBuffer: 1 << 30 });
+assert.equal(tar.status, 0, 'git archive eval-v0');
+assert.equal(spawnSync('tar', ['-x', '-C', archiveDir], { input: tar.stdout }).status, 0, 'extract eval-v0');
+const v0Tree = await treeHash(archiveDir);
+assert.match(v0.ranker.treeHash, /^[0-9a-f]{64}$/);
+assert.equal(v0.ranker.treeHash, v0Tree, '--ref eval-v0 must run exactly the ranker files of eval-v0');
+console.log(`ok: results identical to the golden run; ranker tree ${v0Tree.slice(0, 12)} = git archive eval-v0`);
 
 step('2. working-tree run, comparison and gate; eval:report recomputes it');
 const headPath = join(WORK, 'head.json');
@@ -91,6 +106,11 @@ const headOut = ok(node(CLI, ['run', '--set', 'fixture', '--variant', 'selftest-
 assert.match(headOut, /^errors: 1 of 11 queries returned a non-200 response$/m);
 const head = await json(headPath);
 assert.deepEqual(Object.keys(head.results).sort(), queries.map((/** @type {any} */ q) => q.id).sort());
+const worktreeTree = await treeHash(REPO);
+assert.equal(head.ranker.treeHash, worktreeTree, 'a working-tree run records the working tree\'s ranker hash');
+const treesDiffer = spawnSync('git', ['diff', '--quiet', 'eval-v0', '--', ...RANKER], { cwd: REPO }).status !== 0;
+if (treesDiffer) assert.notEqual(head.ranker.treeHash, v0.ranker.treeHash, 'eval-v0 and the working tree differ, so must their tree hashes');
+console.log(`ok: working-tree ranker tree ${worktreeTree.slice(0, 12)} (${treesDiffer ? 'differs from' : 'same files as'} eval-v0)`);
 const recomputed = join(WORK, 'report.json');
 ok(node(CLI, ['report', '--set', 'fixture', '--run', headPath, '--baseline', v0Path, '--json', recomputed]), 'eval:report');
 const r1 = await json(runReport), r2 = await json(recomputed);

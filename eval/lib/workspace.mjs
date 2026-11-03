@@ -5,13 +5,42 @@
 // (eval/runner/, test/helpers.js, test/fakes.js and what they import). Used
 // for `--ref eval-v0`: tag + overlaid runner, as the plan's r3 requires.
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { cp, mkdir, rm } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { cp, lstat, mkdir, readFile, readdir, readlink, rm } from 'node:fs/promises';
+import { dirname, join, relative, sep } from 'node:path';
 import { REPO } from './sets.mjs';
 
 /** Ranker files taken from the ref (or working tree). */
-const RANKER = ['src', 'migrations', 'scripts/lib.mjs', 'data'];
+export const RANKER = ['src', 'migrations', 'scripts/lib.mjs', 'data'];
+
+/**
+ * Content hash of the ranker files under `root` (RANKER paths): sha256 over
+ * the sorted lines "<posix path>\0<kind>\0<sha256 of content or link target>".
+ * Recorded as `ranker.treeHash`, so a run file says which ranker code actually
+ * ran, whatever `git rev-parse` said about the ref.
+ * @param {string} root
+ * @param {string[]} [paths]
+ */
+export async function treeHash(root, paths = RANKER) {
+  /** @type {string[]} */
+  const entries = [];
+  /** @param {string} abs */
+  const visit = async (abs) => {
+    const st = await lstat(abs);
+    const rel = relative(root, abs).split(sep).join('/');
+    if (st.isSymbolicLink()) {
+      entries.push(`${rel}\0link\0${createHash('sha256').update(await readlink(abs)).digest('hex')}`);
+    } else if (st.isDirectory()) {
+      for (const name of await readdir(abs)) await visit(join(abs, name));
+    } else if (st.isFile()) {
+      entries.push(`${rel}\0file\0${createHash('sha256').update(await readFile(abs)).digest('hex')}`);
+    }
+  };
+  for (const p of paths) if (existsSync(join(root, p))) await visit(join(root, p));
+  entries.sort();
+  return createHash('sha256').update(entries.join('\n')).digest('hex');
+}
 /** Runner files always taken from the working tree. */
 const RUNNER = ['eval/runner/retrieval.eval.js', 'eval/runner/lookup-ai.js', 'test/helpers.js', 'test/fakes.js', 'test/fixtures/corpus.json'];
 /** Test-only Worker config: from the ref if it has one (its own compat date), else HEAD's. */
@@ -34,7 +63,8 @@ const existsAt = (ref, path) => spawnSync('git', ['cat-file', '-e', `${ref}:${pa
 const dirty = (paths) => git(['status', '--porcelain', '--', ...paths]).toString().trim() !== '';
 
 /**
- * @typedef {{ ref: string, sha: string, dirty: boolean, runner: { sha: string, dirty: boolean } }} RankerInfo
+ * `treeHash` is treeHash() of the ranker files as extracted into the workspace.
+ * @typedef {{ ref: string, sha: string, dirty: boolean, treeHash: string, runner: { sha: string, dirty: boolean } }} RankerInfo
  */
 
 /**
@@ -76,6 +106,7 @@ export async function buildWorkspace({ ref, name }) {
       ref: ref ?? 'WORKTREE',
       sha,
       dirty: ref ? false : dirty(RANKER),
+      treeHash: await treeHash(root),
       runner: { sha: head, dirty: dirty(['eval/runner', 'eval/lib', 'test/helpers.js', 'test/fakes.js', 'vitest.eval.config.mjs']) },
     },
   };

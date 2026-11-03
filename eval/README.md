@@ -25,7 +25,12 @@ file (ciphertext only for encrypted sets). No Cloudflare call is made during a r
 
 `--ref <git ref>` builds a workspace in `.eval-work/` from that ref's `src/`, `migrations/`,
 `scripts/lib.mjs` and `data/` (the embedding text is part of the ranker) with the HEAD runner
-overlaid. Without `--ref` the working tree is the ranker.
+overlaid. Without `--ref` the working tree is the ranker. `ranker.sha` is what `git rev-parse`
+says; `ranker.treeHash` is a content hash of the ranker files actually extracted into the
+workspace (`treeHash()` in `lib/workspace.mjs`: sha256 over sorted `path\0kind\0sha256` lines
+of `src/`, `migrations/`, `scripts/lib.mjs`, `data/`). The self-test checks that a
+`--ref eval-v0` run's `treeHash` equals the hash of `git archive eval-v0` of those paths, and
+differs from the working tree's whenever git says the trees differ.
 
 ## Commands
 
@@ -96,7 +101,7 @@ is reserved) and the candidate after. Comparison output names the qrels version 
 n primary answerable queries · qrels <version>`; holdout `holdout verdict: PASS · qrels
 <version>`).
 
-Run file (`vnm-eval-run/1`): `variant`, `set`, `ranker` (ref, sha, dirty, runner sha), `corpus`
+Run file (`vnm-eval-run/1`): `variant`, `set`, `ranker` (ref, sha, dirty, `treeHash`, runner sha), `corpus`
 (release, moduleInfo sha256, NG sha256, module count, sha256 of all embedding texts),
 `embedding` (corpus version, model, text ref), `queries` (version, sha256, count), `config`,
 `results` (`id → { status, codes, error? }`, top 20 as returned), `docs` (metadata of every
