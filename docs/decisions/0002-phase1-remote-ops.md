@@ -1,6 +1,7 @@
 # 0002 — Phase 1 remote operations: 0006 write budget, read replication, ordering
 
-Status: accepted (lead decision, 2026-11-04). Read replication part pending execution.
+Status: accepted (lead decision, 2026-11-04). Read replication enabled 2026-11-03 21:57 UTC;
+0006 applied the same evening (`docs/evidence/phase1/remote-ops.md`); forced re-ingest pending.
 
 ## Context
 Phase 1 changes the production D1 schema (0006) and forces a full re-ingest (SC6). D1 Free caps

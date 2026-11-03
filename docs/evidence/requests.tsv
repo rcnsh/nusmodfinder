@@ -68,3 +68,7 @@ o7	browser other	/facets	phase0 0b fe.mjs
 62	fetch	[search#61] p2c_lex_d-043 GET /search?q=Singapore+history&ng=1&mode=lexical&topK=50 | http=200 total=0.549 | cf-cache-status=<absent>	phase2 2c lexical check
 63	fetch	[search#62] p2c_lex_d-065 GET /search?q=veterinary+medicine+clinical+rotation+large+animals&sem=2&ng=1&mode=lexical&topK=50 | http=200 total=0.472 | cf-cache-status=<absent>	phase2 2c lexical check
 64	fetch	[search#63] p2c_lex_d-088 GET /search?q=cs+2030&ng=1&mode=lexical&topK=50 | http=200 total=0.215 | cf-cache-status=<absent>	phase2 2c lexical check
+65	fetch	p1_smoke GET /health | http=200 total=0.593 | x-app-version=c2d37d5	phase1 post-deploy smoke
+66	fetch	[search#64] p1_smoke GET /search?q=machine+learning | http=200 total=1.129 | x-app-version=c2d37d5	phase1 post-deploy smoke
+67	fetch	[search#65] p1_smoke GET /search?q=CS2030S | http=200 total=0.551 | x-app-version=c2d37d5	phase1 post-deploy smoke
+68	fetch	[search#66] p1_smoke GET /search?q=japanese+culture&sem=1&ng=1 | http=200 total=0.580 | x-app-version=c2d37d5	phase1 post-deploy smoke
