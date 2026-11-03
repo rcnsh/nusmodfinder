@@ -3,14 +3,20 @@
 // wrangler call carries --local and --persist-to a fresh temp dir, and uses the
 // test config, whose D1 id is not production's.
 //
-// 1. Builds a database from empty with `wrangler d1 migrations apply`, runs the
+// 1. Builds a database from empty with `wrangler d1 migrations apply` over
+//    0001–0005 only (the migrations production holds before 0006), runs the
 //    exact pragma query used for the read-only remote capture, normalises, and
 //    diffs against test/fixtures/remote-schema.json.
 // 2. Builds the old recipe (schema.sql + 0002–0005, all from 3b18041) and diffs
-//    normalised sqlite_master.sql and pragma_index_xinfo between the two local
-//    builds, covering index columns, trigger bodies and the FTS tokenize option.
+//    normalised sqlite_master.sql and pragma_index_xinfo against build 1,
+//    covering index columns, trigger bodies and the FTS tokenize option.
+// 3. Builds the full chain (every file in migrations/) and diffs the same
+//    pragma rows, sqlite_master and index_xinfo against the committed expected
+//    snapshot test/fixtures/schema-0006.json. After a remote apply of 0006 that
+//    file is what a fresh remote capture must match.
 //
 // Exits non-zero on any difference. Usage: npm run db:rebuild-check
+// `-- --update` rewrites test/fixtures/schema-0006.json from build 3 instead.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -33,6 +39,10 @@ const OLD_RECIPE_FILES = [
   'migrations/0005_rank.sql',
 ];
 const DB = 'nusmods';
+const MIGRATIONS_DIR = join(ROOT, 'migrations');
+const EXPECTED_SNAPSHOT = join(ROOT, 'test/fixtures/schema-0006.json');
+// What production holds before 0006 (ADR 0001: applied by hand, then bootstrapped).
+const REMOTE_MIGRATIONS = ['0001_init.sql', '0002_fts.sql', '0003_ng.sql', '0004_meta.sql', '0005_rank.sql'];
 
 // Internal tables: Cloudflare's (_cf_), wrangler's migration tracking (d1_)
 // and SQLite's own (sqlite_). The FTS shadow tables are real schema and stay.
@@ -48,11 +58,12 @@ const INDEX_XINFO_SQL =
  * Runs wrangler with --local forced on, and refuses to continue if its output
  * suggests it touched anything remote.
  * @param {string[]} args
+ * @param {string} [config] Defaults to the test config.
  * @returns {string} stdout
  */
-function wrangler(args) {
+function wrangler(args, config = CONFIG) {
   if (!args.includes('--local')) throw new Error(`refusing to run wrangler without --local: ${args.join(' ')}`);
-  const res = spawnSync(WRANGLER, [...args, '-c', CONFIG], {
+  const res = spawnSync(WRANGLER, [...args, '-c', config], {
     cwd: ROOT,
     encoding: 'utf8',
     env: { ...process.env, WRANGLER_SEND_METRICS: 'false', CI: 'true' },
@@ -78,6 +89,8 @@ function wrangler(args) {
  */
 function query(persistTo, sql) {
   const source = sql.file ? ['--file', sql.file] : ['--command', /** @type {string} */ (sql.command)];
+  // `d1 execute --local` never reads migrations_dir, so the test config is
+  // right for every build.
   const out = wrangler(['d1', 'execute', DB, '--local', '--persist-to', persistTo, ...source, '--json']);
   return unwrap(JSON.parse(out));
 }
@@ -173,7 +186,51 @@ export function diffRows(label, expected, actual) {
   return lines;
 }
 
+/**
+ * A copy of the test config whose migrations_dir holds only `files`, so
+ * `migrations apply` stops where production does.
+ * @param {string} tmp
+ * @param {string[]} files
+ * @returns {Promise<string>} the config path
+ */
+async function partialConfig(tmp, files) {
+  const dir = join(tmp, 'migrations-subset');
+  await mkdir(dir);
+  for (const f of files) await writeFile(join(dir, f), await readFile(join(MIGRATIONS_DIR, f)));
+  const text = (await readFile(CONFIG, 'utf8'))
+    .replace('"main": "../src/index.js"', JSON.stringify({ main: join(ROOT, 'src/index.js') }).slice(1, -1))
+    .replace('"migrations_dir": "../migrations"', JSON.stringify({ migrations_dir: dir }).slice(1, -1));
+  if (!text.includes(dir)) throw new Error('could not point the partial config at the migration subset');
+  const path = join(tmp, 'wrangler.subset.jsonc');
+  await writeFile(path, text);
+  return path;
+}
+
+/**
+ * Applies migrations to a fresh local database and returns what was applied.
+ * @param {string} persistTo
+ * @param {string} [config]
+ */
+function applyMigrations(persistTo, config) {
+  wrangler(['d1', 'migrations', 'apply', DB, '--local', '--persist-to', persistTo], config);
+  return queryRows(persistTo, 'SELECT name FROM d1_migrations ORDER BY id').map((r) => String(r.name));
+}
+
+/**
+ * The normalised schema of one local build, in the shape of
+ * test/fixtures/schema-0006.json.
+ * @param {string} persistTo
+ */
+function snapshot(persistTo) {
+  return {
+    pragma: normalisePragmaRows(queryFile(persistTo, QUERY_FILE)),
+    master: normaliseMaster(queryRows(persistTo, MASTER_SQL)),
+    indexXinfo: normaliseIndexXinfo(queryRows(persistTo, INDEX_XINFO_SQL)),
+  };
+}
+
 async function main() {
+  const update = process.argv.includes('--update');
   const problems = [];
 
   const [fixtureQuery, evidenceQuery] = await Promise.all([readFile(QUERY_FILE), readFile(EVIDENCE_QUERY_FILE)]);
@@ -183,11 +240,11 @@ async function main() {
 
   const tmp = await mkdtemp(join(tmpdir(), 'vnm-schema-'));
   try {
-    // Build 1: migrations from empty.
+    // Build 1: 0001–0005 from empty, as production stands before 0006.
     const fresh = join(tmp, 'migrations');
-    wrangler(['d1', 'migrations', 'apply', DB, '--local', '--persist-to', fresh]);
-    const applied = queryRows(fresh, 'SELECT name FROM d1_migrations ORDER BY id').map((r) => r.name);
-    console.log(`migrations applied: ${applied.join(', ')}`);
+    const applied = applyMigrations(fresh, await partialConfig(tmp, REMOTE_MIGRATIONS));
+    console.log(`build 1 (production before 0006) applied: ${applied.join(', ')}`);
+    if (applied.join() !== REMOTE_MIGRATIONS.join()) problems.push(`build 1 applied ${applied.join(', ')}`);
 
     const remote = normalisePragmaRows(unwrap(JSON.parse(await readFile(REMOTE_SNAPSHOT, 'utf8'))));
     // The fixture is the evidence capture with wrangler's envelope removed;
@@ -225,6 +282,25 @@ async function main() {
     console.log(`sqlite_master: ${masterCount} objects, ${masterDiff.length} differences`);
     console.log(`index_xinfo: ${xinfoCount} rows, ${xinfoDiff.length} differences`);
     problems.push(...masterDiff, ...xinfoDiff);
+
+    // Build 3: the full chain, against the committed expected snapshot.
+    const full = join(tmp, 'full');
+    const all = applyMigrations(full);
+    console.log(`build 3 (full chain) applied: ${all.join(', ')}`);
+    const actual = snapshot(full);
+    if (update) {
+      await writeFile(EXPECTED_SNAPSHOT, `${JSON.stringify(actual, null, 2)}\n`);
+      console.log(`wrote ${EXPECTED_SNAPSHOT}`);
+    } else {
+      const expected = JSON.parse(await readFile(EXPECTED_SNAPSHOT, 'utf8'));
+      const fullDiff = [
+        ...diffRows('schema-0006-vs-migrations pragma', expected.pragma, actual.pragma),
+        ...diffRows('schema-0006-vs-migrations sqlite_master', expected.master, actual.master),
+        ...diffRows('schema-0006-vs-migrations index_xinfo', expected.indexXinfo, actual.indexXinfo),
+      ];
+      console.log(`full chain vs ${EXPECTED_SNAPSHOT.slice(ROOT.length)}: ${fullDiff.length} differences`);
+      problems.push(...fullDiff);
+    }
   } finally {
     await rm(tmp, { recursive: true, force: true });
   }
