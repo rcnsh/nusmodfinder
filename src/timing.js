@@ -57,6 +57,15 @@ export class Trace {
   }
 
   /**
+   * Fixes the header order of spans that may run concurrently, so it does not
+   * depend on which finishes first. Reserved spans that never run stay absent.
+   * @param {string[]} names
+   */
+  reserve(...names) {
+    for (const name of names) if (!this.spans.has(name)) this.spans.set(name, {});
+  }
+
+  /**
    * Sets a span's description, e.g. `cache;desc=hit`.
    * @param {string} name
    * @param {string} desc
@@ -107,6 +116,7 @@ export class Trace {
   header(total = this.total()) {
     const parts = [];
     for (const [name, { dur, desc }] of this.spans) {
+      if (dur === undefined && desc === undefined) continue;
       let part = name;
       if (desc !== undefined) part += `;desc=${desc}`;
       if (dur !== undefined) part += `;dur=${fmt(dur)}`;

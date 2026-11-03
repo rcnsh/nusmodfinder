@@ -78,8 +78,9 @@ maximum 10 in use, and spending two more for a 2.5% correction was not worth the
 headroom. Per-semester detail *is* stored in D1 (`modules.ng_semesters`) and is returned
 on every result, so the UI shows it in the NG badge tooltip.
 
-After regenerating the extract, bump `NG_LIST_UPDATED` in `src/modules.js` so `/facets` —
-and therefore the UI — reports the right date.
+The extract's `updatedAsAt` date reaches `/facets` (and so the UI) through ingest: the
+ingest script posts it to `/admin/facets`, which stores it as `meta.ng_list`. Re-run
+ingest after regenerating the extract; there is no copy of the date to bump by hand.
 
 ## Setup
 
@@ -134,13 +135,22 @@ id), and `GET /health` returns `{ ok, versionId, versionTag }` without touching 
 
 **Instrumentation.** `/search`, `/module/:code` and `/facets` responses carry a
 `Server-Timing` header. `/search` has spans `cache` (`desc=hit|miss`), `limit`, `pin`,
-`embed`, `vector`, `fts` and `hydrate` for the stages that ran, plus `total` from fetch
-entry. `/module` and `/facets` have `d1` and `total`. workerd's clock only advances across
+`embed`, `vector`, `fts` and `hydrate` for the stages that ran (pin, `fts` and
+`embed`→`vector` run concurrently; the header keeps that order), `degraded`
+(`desc=<source>-<reason>`) on a keyword-only fallback, plus `total` from fetch entry. `/module` and `/facets` have `d1` and `total`. workerd's clock only advances across
 I/O, so the spans measure waiting on bindings, not CPU. A cache hit gets fresh spans,
 never the stored ones. Each `/search` also writes one JSON log line (`"event":"search"`)
 with the status, cache result, the query (first 100 characters) and its length, the mode,
-filters, result counts, spans, D1 rows read and serving region, and the colo. Headers and
-IPs are never logged.
+filters, result counts, the fallback (`degraded`), spans, D1 rows read and serving region
+(`d1.servedByRegion`, `d1.servedByPrimary`), and the colo. Headers and IPs are never logged.
+
+**Failure behaviour.** Workers AI and Vectorize calls time out after 1.5 s, D1 calls after
+3 s. In hybrid mode, if embedding or Vectorize fails or times out, `/search` answers with
+the keyword results alone and says so: `"degraded": { "source", "reason" }` in the body,
+cached for 60 s instead of an hour. After 3 consecutive dense failures an isolate skips
+the dense half for 30 s (`reason: "circuit-open"`). `mode=vector` still answers 502, and
+a D1 failure is still a 502. Anything unhandled is a JSON 500 with a `requestId` (the
+`cf-ray`) that matches the `"event":"unhandled"` log line.
 
 ## Re-ingesting for a new acad year
 
@@ -221,9 +231,12 @@ load testing. Three fixes, each measured with the `meta.rows_read` field D1 retu
 2. **`/facets` was three full-table aggregates on every page load** — 1,364 + 7,303 +
    1,175 = **9,842 rows read** to produce ~35 rows of output. Now one precomputed JSON row
    in the `meta` table, rebuilt at the end of ingest. **9,842 → 1.**
-3. **`/search` responses are cached** (Workers Cache API, keyed on the full URL, 1 hour).
-   A repeated search — a shared link, a reload, an evaluation run — costs zero D1 rows,
-   zero Vectorize queries and zero Workers AI calls.
+3. **`/search` responses are cached** (Workers Cache API, 1 hour). The key is built from
+   the validated parameters only — query trimmed, whitespace collapsed and lower-cased,
+   parameters sorted, defaults and unknown parameters dropped — plus the data version in
+   `src/data-version.json`, so a deploy after an ingest that bumps it starts a fresh
+   cache. A repeated search — a shared link, a reload, an evaluation run — costs zero D1
+   rows, zero Vectorize queries and zero Workers AI calls, however it is spelled.
 
 The join to `modules` is also skipped unless a filter needs a column from it.
 

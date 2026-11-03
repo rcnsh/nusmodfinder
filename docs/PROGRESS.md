@@ -87,3 +87,30 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
   `npm run deploy` is the only supported path.
 - Tests 98 → 117 (`test/instrument.test.js`, `test/deploy.node.test.js`). No live calls, no
   remote commands, no deploy.
+
+## 2026-11-04 — Phase 1 workstream 1B (search request path, PR #__PR__)
+
+- B4, B5, B6, B7, O3 → `fixed`; B8 stays `reproduced` with three of four sub-claims fixed
+  (the Unicode tokeniser is 1A's, in `src/lexical.js`). Characterisation tests flipped.
+- `/search`: parameters validated first (400s touch no cache, limiter or binding); canonical
+  cache key from validated params + `DATA_VERSION` (`src/data-version.json`, seeded
+  `2d138795d387`, the pinned moduleInfo sha256 prefix), no D1 read before the lookup;
+  pin, lexical and embed→Vectorize concurrent, then one hydrate of only rendered columns and
+  rows; all public D1 reads on `withSession('first-unconstrained')`, admin on `env.DB`.
+  Vectorize gets no `returnMetadata`; depth and `MAX_TOPK` stay 50, RRF unchanged.
+- Timeouts (`src/upstream.js`): AI 1.5 s (also aborted via `signal`), Vectorize 1.5 s, D1 3 s.
+  Hybrid AI/Vectorize failure → lexical-only, `degraded: { source, reason }`, Server-Timing
+  `degraded`, cached 60 s; per-isolate breaker skips the dense half for 30 s after 3
+  consecutive failures. `mode=vector` still 502s. Top-level catch → JSON 500 with
+  `requestId` (cf-ray); `/module` bad percent-encoding → 400; rate limiter fails open.
+- `/module/:code` selects the 0001–0005 columns by name. O3: ingest posts the NG list's
+  `{ updatedAsAt, source, count }` to `/admin/facets` → `meta('ng_list')`; the constant is gone.
+- Neutrality: `test/differential.test.js` runs 522 generated requests (every query × mode with
+  random filters/topK/junk, incl. invalid ones) through a frozen copy of the pre-1B route
+  (`test/legacy/search-f61072e.js`) and the new Worker: 0 differences beyond the declared
+  fixes (empty `topK=`, canonical `query` echo). Mutation check: depth multiplier 3 → 2 fails
+  it. With stale vectors injected, results are identical; only `retrieval.fused` may be higher
+  (hydration stops when the page is full).
+- Not done here (remote, lead's): enabling D1 read replication (ADR 0002), the SC7
+  measurement. Ingest does not yet write `src/data-version.json` (1C).
+- Tests 119 → 128; full corpus 4/4. No live calls, no remote commands, no deploy.

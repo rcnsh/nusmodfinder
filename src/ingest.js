@@ -113,7 +113,10 @@ export async function handleIngest(request, env) {
 }
 
 // Guarded: rebuilds the precomputed facet row. Called by the ingest script once
-// the corpus has finished loading.
+// the corpus has finished loading. An optional body `{ ngList: { updatedAsAt,
+// source, count } }` (from data/ng-courses-*.json) is stored as meta('ng_list')
+// first, so /facets reports the NG list date from the file itself (O3). Admin
+// reads and writes go to the primary (env.DB), never a replica.
 /**
  * @param {Request} request
  * @param {Env} env
@@ -121,13 +124,37 @@ export async function handleIngest(request, env) {
 export async function handleFacetsRebuild(request, env) {
   const denied = ingestGuard(request, env);
   if (denied) return denied;
+
+  /** @type {import('./modules.js').NgList | null} */
+  let ngList = null;
+  const text = await request.text();
+  if (text.trim() !== '') {
+    /** @type {any} */
+    let body;
+    try { body = JSON.parse(text); } catch { return bad('Body must be JSON.'); }
+    if (body?.ngList !== undefined) {
+      const { updatedAsAt, source, count } = body.ngList ?? {};
+      const okString = (/** @type {unknown} */ v) => v === null || typeof v === 'string';
+      if (!okString(updatedAsAt) || !okString(source) || !Number.isInteger(count) || count < 0) {
+        return bad('ngList must be { updatedAsAt: string | null, source: string | null, count: non-negative integer }.');
+      }
+      ngList = { updatedAsAt, source, count };
+    }
+  }
+
   try {
-    const facets = await computeFacets(env);
-    await env.DB.prepare(
-      `INSERT INTO meta (key, value, updated_at) VALUES ('facets', ?, ?)
+    const now = new Date().toISOString();
+    const upsertMeta = env.DB.prepare(
+      `INSERT INTO meta (key, value, updated_at) VALUES (?, ?, ?)
        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
-    ).bind(JSON.stringify(facets), new Date().toISOString()).run();
-    return json({ rebuilt: 'facets', faculties: facets.faculties.length, levels: facets.levels.length, ng: facets.ng.count });
+    );
+    if (ngList) await upsertMeta.bind('ng_list', JSON.stringify(ngList), now).run();
+    const facets = await computeFacets(env.DB);
+    await upsertMeta.bind('facets', JSON.stringify(facets), now).run();
+    return json({
+      rebuilt: 'facets', faculties: facets.faculties.length, levels: facets.levels.length, ng: facets.ng.count,
+      ngListUpdatedAsAt: facets.ng.updatedAsAt,
+    });
   } catch (err) {
     return upstream('d1', err);
   }

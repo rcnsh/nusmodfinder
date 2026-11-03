@@ -123,9 +123,9 @@ export async function loadNgCourses(acadYear) {
       }
     }
     for (const sems of bySem.values()) sems.sort((a, b) => a - b);
-    return { available: true, bySem, updatedAsAt: data.updatedAsAt, total: bySem.size };
+    return { available: true, bySem, updatedAsAt: data.updatedAsAt, source: data.source ?? null, total: bySem.size };
   } catch {
-    return { available: false, bySem: /** @type {Map<string, number[]>} */ (new Map()), updatedAsAt: null, total: 0 };
+    return { available: false, bySem: /** @type {Map<string, number[]>} */ (new Map()), updatedAsAt: null, source: null, total: 0 };
   }
 }
 

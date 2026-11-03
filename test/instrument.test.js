@@ -3,6 +3,7 @@
 // line, x-app-version and GET /health.
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createFakes } from './fakes.js';
+import { searchCacheKey } from '../src/search.js';
 import { BASE, call, callJson, seed } from './helpers.js';
 
 /** @type {import('./fakes.js').Fakes} */
@@ -74,15 +75,16 @@ describe('Server-Timing on /search', () => {
     // Same body as the miss: the header is the only difference.
     expect(await hit.json()).toEqual(await miss.json());
 
-    const stored = await caches.default.match(new Request(new URL(path, BASE).toString()));
+    const stored = await caches.default.match(/** @type {Request} */ (searchCacheKey(new URL(path, BASE))));
     expect(stored?.headers.get('server-timing')).toBeNull();
     expect(stored?.headers.get('x-app-version')).toBeNull();
   });
 
-  it('400, 429 and 502 responses carry it too', async () => {
+  it('400, 429, 502 and degraded responses carry it too', async () => {
+    // A 400 is answered before the cache or the limiter is touched.
     const badRes = await call('/search?q=', { fakes });
     expect(badRes.status).toBe(400);
-    expect(Object.keys(parseTiming(badRes.headers.get('server-timing')))).toEqual(['cache', 'limit', 'total']);
+    expect(Object.keys(parseTiming(badRes.headers.get('server-timing')))).toEqual(['total']);
 
     const limited = createFakes();
     limited.limit.allow = false;
@@ -92,9 +94,15 @@ describe('Server-Timing on /search', () => {
 
     const failing = createFakes();
     failing.ai.throws('down');
-    const res502 = await call('/search?q=databases%20failing', { fakes: failing });
+    const res502 = await call('/search?q=databases%20failing&mode=vector', { fakes: failing });
     expect(res502.status).toBe(502);
     expect(Object.keys(parseTiming(res502.headers.get('server-timing')))).toEqual(['cache', 'limit', 'embed', 'total']);
+
+    const degraded = await call('/search?q=databases%20failing', { fakes: failing });
+    expect(degraded.status).toBe(200);
+    const spans = parseTiming(degraded.headers.get('server-timing'));
+    expect(Object.keys(spans)).toEqual(['cache', 'limit', 'embed', 'fts', 'hydrate', 'degraded', 'total']);
+    expect(spans.degraded.desc).toBe('workers-ai-error');
   });
 });
 
@@ -121,7 +129,7 @@ describe('structured /search log', () => {
     const line = lines[0];
     expect(line).toMatchObject({
       event: 'search', status: 200, cache: 'miss', q: 'machine learning logged', qLength: 23,
-      mode: 'hybrid', filters: { sem: 1 }, topK: 20,
+      mode: 'hybrid', filters: { sem: 1 }, topK: 20, degraded: null,
       counts: {
         vector: body.retrieval.vector, lexical: body.retrieval.lexical, fused: body.retrieval.fused,
         returned: body.count, stale: 0,
@@ -129,8 +137,9 @@ describe('structured /search log', () => {
       colo: null, version: 'abc1234',
     });
     expect(Object.keys(line.spans)).toEqual(['cache', 'limit', 'embed', 'vector', 'fts', 'hydrate', 'total']);
-    // FTS + hydrate, both against the local D1.
+    // FTS + hydrate, both against the local D1 (a session on it).
     expect(line.d1.queries).toBe(2);
+    expect(line.d1.servedByPrimary).toBe(true);
     expect(line.d1.rowsRead).toBeGreaterThan(0);
     expect(line.d1).toHaveProperty('servedByRegion');
     expect(line.d1).toHaveProperty('servedByPrimary');
@@ -157,7 +166,7 @@ describe('structured /search log', () => {
     const [hit, bad] = logs();
     expect(hit).toMatchObject({ status: 200, cache: 'hit', q: 'robotics logged hit', d1: { queries: 0, rowsRead: 0 } });
     expect(Object.keys(hit.spans)).toEqual(['cache', 'total']);
-    expect(bad).toMatchObject({ status: 400, cache: 'miss', q: 'x' });
+    expect(bad).toMatchObject({ status: 400, cache: 'bypass', q: 'x' });
   });
 });
 
