@@ -351,3 +351,10 @@ fails on the previous code.
   `.queries.json` is still refused. Re-running the fixed amendment with the custody seed
   reproduces the committed dev file and the committed holdout plaintext byte for byte (the
   committed holdout had no GE-prefixed or overlapping draw), so no hash changes.
+
+## 2026-11-04 — Phase 2 2c (custodian half): holdout embeddings and the eval-v0 holdout run
+
+- Holdout query embeddings (both forms, 119 texts, 2 requests, ~3.4 neurons, logged) in
+  `eval/holdout/embeddings.json.enc`; `eval-v0` holdout run stored with `--store-only`
+  (`eval/holdout/run-v0.json.enc`, no look, no ledger row). Both ciphertexts are in the manifest.
+  Output was counts only.
