@@ -14,8 +14,10 @@
 // 4. Holdout only: every code query is redrawn, same form, from the same pools
 //    as eval/v2/build-queries.mjs but with the secret seed. The v2 picks came
 //    from the committed seed and committed/released data, so anyone could
-//    rebuild them. Excluded from the draw: every v2 code pick (dev and holdout),
-//    and the code examples shown to persona writers (eval/v2/PERSONAS.md).
+//    rebuild them. Excluded from the draw: anything overlapping (as a prefix,
+//    either way) a v2 code pick (dev and holdout), a code example shown to
+//    persona writers (eval/v2/PERSONAS.md), or an earlier draw. Partial
+//    queries are redrawn as code families, never GE pillars (too few to hide).
 // Prints counts only; never the holdout's text.
 import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -29,7 +31,6 @@ for (const k of ['dev', 'holdout', 'out-holdout', 'seed-file', 'module-info']) i
 
 /** Code examples persona writers saw (PERSONAS.md); never drawn. */
 const WRITER_EXAMPLES = ['CS3244', 'CS32', 'GEA'];
-const GE_PILLARS = ['GEA', 'GEC', 'GEN', 'GESS', 'GEX', 'GEI'];
 
 const read = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const dev = read(a.dev);
@@ -50,11 +51,16 @@ const ngSem = new Map();
 for (const [s, codes] of Object.entries(ng.semesters)) for (const c of codes) { if (!ngSem.has(c)) ngSem.set(c, []); ngSem.get(c).push(Number(s)); }
 const level = (c) => Number(c.match(/\d/)[0]);
 
-const v2Targets = new Set([...dev.queries, ...hold.queries].filter((q) => q.origin === 'code').map((q) => q.target));
-const banned = (t) => v2Targets.has(t) || WRITER_EXAMPLES.some((e) => t === e || t.startsWith(e) || e.startsWith(t));
+const v2Targets = [...new Set([...dev.queries, ...hold.queries].filter((q) => q.origin === 'code').map((q) => q.target))];
+// Two targets overlap when one is a prefix of the other (a code and its
+// letter-suffixed variant, a family prefix and the codes under it). A drawn
+// target may not overlap any v2 pick, writer example or earlier draw.
+const overlaps = (x, y) => x.startsWith(y) || y.startsWith(x);
+const banned = (t) => [...v2Targets, ...WRITER_EXAMPLES].some((e) => overlaps(t, e));
 const pool = shuffle([...ngSem.keys()].filter((c) => offered.has(c) && level(c) <= 4 && /^[A-Z]{2,4}\d{4}[A-Z]?$/.test(c) && !banned(c)));
 const used = new Set();
-const take = (ok) => { const c = pool.find((x) => !used.has(x) && ok(x)); if (!c) throw new Error('code pool exhausted'); used.add(c); return c; };
+const clashes = (t) => banned(t) || [...used].some((u) => overlaps(t, u));
+const take = (ok) => { const c = pool.find((x) => !clashes(x) && ok(x)); if (!c) throw new Error('code pool exhausted'); used.add(c); return c; };
 
 /** Same record shape as build-queries.mjs, for a newly drawn target. */
 function codeRecord(old, form, target, text) {
@@ -74,14 +80,11 @@ function redraw(q) {
   if (form === 'exact') { const c = take(() => true); return codeRecord(q, form, c, c); }
   if (form === 'space') { const c = take(() => true); const m = c.match(/^([A-Z]+)(\d.*)$/); return codeRecord(q, form, c, `${m[1].toLowerCase()} ${m[2].toLowerCase()}`); }
   if (form === 'partial') {
-    if (q.target.startsWith('GE')) {
-      const pillar = shuffle(GE_PILLARS.filter((p) => !banned(p) && !used.has(p)))[0];
-      if (!pillar) throw new Error('no GE pillar left');
-      used.add(pillar);
-      return codeRecord(q, form, pillar, pillar);
-    }
+    // Always a code family: a GE pillar has six possible values, three of
+    // them public (dev, writer example, the rebuildable v2 pick), so it could
+    // be guessed (PR #10 review round 2).
     const famOf = (/** @type {string} */ c) => c.match(/^[A-Z]+\d\d/)[0];
-    const fam = famOf(take((c) => !banned(famOf(c)) && !used.has(famOf(c))));
+    const fam = famOf(take((c) => !clashes(famOf(c))));
     used.add(fam);
     return codeRecord(q, form, fam, fam);
   }
