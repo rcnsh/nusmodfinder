@@ -7,6 +7,14 @@
 -- re-ingest). The new table reads its content from `modules` and every trigger
 -- addresses the FTS row by rowid, which is a point lookup.
 --
+-- Hazard: nothing may change a modules rowid (`UPDATE modules SET rowid = …`).
+-- The FTS row is keyed on it and no trigger here moves it: the update trigger
+-- fires only when code, title or description change, so after a rowid-only
+-- update the index still holds the row under its old rowid, which external
+-- content then reads from whatever row has it. test/migrations.node.test.js fails
+-- if src/, scripts/ or migrations/ assigns a rowid. Same for INSERT OR REPLACE
+-- (see the triggers below).
+--
 -- `code` stays UNINDEXED: indexing it, even at bm25 weight 0, changes bm25's
 -- document lengths and so the ranking (plan r2). Prefix indexes cost nothing at
 -- query time for full-token queries and spare Phase 3 a second remote rebuild.

@@ -1,7 +1,7 @@
 // @ts-check
 // Migration 0006 and its tooling, checked from Node: the remote wrapper that
 // scripts/remote-migration.mjs writes, the clean migration file, and the rule
-// that nothing writes `modules` with INSERT OR REPLACE.
+// that nothing writes `modules` with INSERT OR REPLACE or assigns a rowid.
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -79,6 +79,34 @@ describe('INSERT OR REPLACE', () => {
       if (f.startsWith(join('test', 'fixtures'))) continue;
       const text = read(f);
       if (/\b(?:INSERT\s+OR\s+REPLACE|REPLACE)\s+INTO\s+["`]?modules\b(?!_)/i.test(text)) offenders.push(f);
+    }
+    expect(offenders).toEqual([]);
+  });
+});
+
+describe('UPDATE … SET rowid', () => {
+  // The external-content FTS table is keyed on modules.rowid. Changing a
+  // rowid moves the row out from under its FTS entry: the update trigger
+  // fires only when code/title/description change, so after a rowid-only
+  // update the index still holds the row under the old rowid.
+  const ASSIGNS_ROWID = /\bUPDATE\s+(?:OR\s+\w+\s+)?["`]?\w+["`]?\s+SET\s+(?:[^;`]*?,\s*)?["`]?(?:rowid|_rowid_|oid)["`]?\s*=/i;
+
+  it('the pattern catches the forms it bans and not a rowid in WHERE', () => {
+    expect(ASSIGNS_ROWID.test('UPDATE modules SET rowid = rowid + 1')).toBe(true);
+    expect(ASSIGNS_ROWID.test('update modules set title = ?, _rowid_ = ? where code = ?')).toBe(true);
+    expect(ASSIGNS_ROWID.test('UPDATE OR IGNORE "modules" SET oid=7')).toBe(true);
+    expect(ASSIGNS_ROWID.test('UPDATE modules SET title = ? WHERE rowid = ?')).toBe(false);
+  });
+
+  it('is never used in src/, scripts/ or migrations/', () => {
+    /** @param {string} dir @returns {string[]} */
+    const files = (dir) => readdirSync(join(ROOT, dir), { recursive: true, encoding: 'utf8' })
+      .filter((f) => /\.(m?js|sql|py)$/.test(f)).map((f) => join(dir, f));
+    const offenders = [];
+    for (const f of [...files('src'), ...files('scripts'), ...files('migrations')]) {
+      // SQL comments may name the hazard (0006's header does).
+      const text = f.endsWith('.sql') ? read(f).replace(/--[^\n]*/g, '') : read(f);
+      if (ASSIGNS_ROWID.test(text)) offenders.push(f);
     }
     expect(offenders).toEqual([]);
   });
