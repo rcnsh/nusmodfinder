@@ -3,7 +3,7 @@
 // committed one must pass.
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { checkFindings, checkRepo, parseIds } from '../scripts/check-findings.mjs';
+import { checkFindings, checkRepo, evidenceRefs, parseIds, testTitles } from '../scripts/check-findings.mjs';
 
 const IDS = Array.from({ length: 35 }, (_, i) => `X${i + 1}`);
 const criteria = (/** @type {string[]} */ ids = IDS) => `# C\n\n<!-- ids:start -->\n${ids.join(' ')}\n<!-- ids:end -->\n`;
@@ -78,6 +78,26 @@ describe('check-findings', () => {
   it('fails when the summary table disagrees with a section', () => {
     const findings = `| ID | Status |\n|---|---|\n| X1 | rejected |\n\n## Findings\n\n${good()}`;
     expect(run({ findings })).toEqual([expect.stringMatching(/summary table says X1 is "rejected", its section says "reproduced"/)]);
+  });
+
+  it('reads exact test titles from the AST, not from comments or strings', () => {
+    const titles = testTitles([
+      "// it('[C] line comment')",
+      "/* test('[C] block comment') */",
+      "const s = \"it('[C] in string')\";",
+      "/^a/.test('[C] regex test');",
+      "it('[T] plain', () => {});",
+      "it.fails('[T] fails', () => {});",
+      "it.each([1])('[T] each %s', () => {});",
+      "it.skipIf(true)('[T] skipIf', () => {});",
+      "test.concurrent(`[T] template`, () => {});",
+    ].join('\n'));
+    expect([...titles].sort()).toEqual(['[T] each %s', '[T] fails', '[T] plain', '[T] skipIf', '[T] template']);
+  });
+
+  it('checks paths with ./ prefixes, :line suffixes and any extension under a directory', () => {
+    const { paths } = evidenceRefs('`./docs/x.gz` `docs/x.gz:12` `scripts/missing.py:3-9` `docs/x.7z` `evidence.har` `res.json()` `text/plain` `m.title`');
+    expect(paths).toEqual(['./docs/x.gz', 'docs/x.gz', 'scripts/missing.py', 'docs/x.7z', 'evidence.har']);
   });
 
   it('passes on the committed docs/FINDINGS.md', () => {

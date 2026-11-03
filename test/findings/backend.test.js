@@ -1,7 +1,7 @@
 // @ts-check
 // Backend findings B3-B8 and O4, characterised over the fixture corpus.
 import { env } from 'cloudflare:workers';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import worker from '../../src/index.js';
 import { createFakes } from '../fakes.js';
 import { BASE, call, callJson, fixture, seed } from '../helpers.js';
@@ -69,21 +69,11 @@ describe('B4', () => {
   });
 });
 
-/** Records every timer the code under test arms, then restores the globals. */
-function timerSpies() {
-  const st = vi.spyOn(globalThis, 'setTimeout');
-  const ab = typeof AbortSignal.timeout === 'function' ? vi.spyOn(AbortSignal, 'timeout') : null;
-  return {
-    armed() {
-      const out = [
-        ...st.mock.calls.filter((c) => c[1] !== 200).map((c) => `setTimeout(${c[1]})`),
-        ...(ab ? ab.mock.calls.map((c) => `AbortSignal.timeout(${c[0]})`) : []),
-      ];
-      st.mockRestore(); ab?.mockRestore();
-      return out;
-    },
-  };
-}
+// Behavioural, not structural: any upstream timeout up to HANG_MS makes the search
+// settle and these tests fail, however the timer is armed (setTimeout, scheduler.wait,
+// AbortSignal.timeout, a captured reference). Phase 1 plans 1.5 s; a timeout longer
+// than HANG_MS would not be a usable search timeout.
+const HANG_MS = 3500;
 
 describe('B5', () => {
   it('[B5 known-bug] /module/%E0%A4%A throws a URIError out of fetch (workerd answers 500, error 1101)', async () => {
@@ -93,20 +83,14 @@ describe('B5', () => {
   it('[B5 known-bug] a hanging Workers AI call hangs the search: there is no upstream timeout', async () => {
     const hanging = createFakes();
     hanging.ai.hangs();
-    const timers = timerSpies();
-    expect(await settlesWithin(call('/search?q=machine%20learning%20hang', { fakes: hanging }), 200)).toBe('pending');
-    // Any timeout the Worker arms (setTimeout or AbortSignal.timeout) breaks this test,
-    // whatever its length; settlesWithin's own 200 ms timer is excluded.
-    expect(timers.armed()).toEqual([]);
-  });
+    expect(await settlesWithin(call('/search?q=machine%20learning%20hang', { fakes: hanging }), HANG_MS)).toBe('pending');
+  }, HANG_MS + 5000);
 
   it('[B5 known-bug] a hanging Vectorize query hangs the search too', async () => {
     const hanging = createFakes();
     hanging.vectorize.hangs();
-    const timers = timerSpies();
-    expect(await settlesWithin(call('/search?q=machine%20learning%20hang2', { fakes: hanging }), 200)).toBe('pending');
-    expect(timers.armed()).toEqual([]);
-  });
+    expect(await settlesWithin(call('/search?q=machine%20learning%20hang2', { fakes: hanging }), HANG_MS)).toBe('pending');
+  }, HANG_MS + 5000);
 
   it('[B5 known-bug] an exception outside the per-call try/catch escapes fetch unhandled', async () => {
     // The rate limiter call in fetch() is not wrapped.

@@ -13,27 +13,56 @@
 //   there must exist: a backticked repo path must be a file on disk, and a
 //   backticked test name (starting with `[`) must appear in a file under test/.
 // - The summary table, if present, agrees with the sections.
-// No dependencies, so CI can run it with plain node.
+// Depends only on acorn (to read exact test titles from the test sources).
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { parse } from 'acorn';
 
 export const EXPECTED_ID_COUNT = 35;
 export const STATUSES = ['reproduced', 'partially-reproduced', 'rejected', 'fixed'];
 const NEEDS_EVIDENCE = new Set(STATUSES); // rejected rows need evidence for the rejection too
 const ID = /^[A-Z]\d+$/;
-// Anything shaped like a repo path is checked: a path with a directory part whose
-// last segment has an extension (`docs/evidence/x.gz`, `scripts/missing.py`), or a bare
-// file name with a common file extension (`README.md`, `wrangler.jsonc`). Prose spans
-// such as `res.json()`, `text/plain`, `m.title` or `index.js:38` are not paths.
-const EXT = 'm?[jt]sx?|cjs|jsonc?|md|ya?ml|toml|sql|html?|css|body|headers|timing|tsv|csv|txt|log|png|jpe?g|svg|gz|zip|py|sh|pdf|age';
-const PATH = new RegExp(`^(?:(?:\\.?[\\w@-][\\w.@-]*/)+[\\w@-][\\w@-]*(?:\\.[\\w-]+)*\\.[A-Za-z][\\w]*|\\.?[\\w@-][\\w.@-]*\\.(?:${EXT}))$`);
-/** Matches the title of every it()/test()/it.each()() call. */
-const TEST_TITLE = /\b(?:it|test)(?:\.(?:each|skip|only|skipIf|runIf)\([^)]*\))?\(\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g;
+// Anything shaped like a repo path is checked: a path with a directory part
+// (`docs/evidence/x.gz`, `./scripts/missing.py`, any extension), or a bare file name
+// with a common file extension (`README.md`). A trailing `:line` or `:a-b` is ignored.
+// Prose spans such as `res.json()`, `text/plain` or `m.title` are not paths.
+const EXT = 'm?[jt]sx?|cjs|jsonc?|jsonl|md|ya?ml|toml|sql|html?|css|body|headers|timing|tsv|csv|txt|log|har|png|jpe?g|svg|gz|7z|zip|py|sh|pdf|age';
+const PATH = new RegExp(`^(?:(?:\\.{1,2}/)*(?:[\\w@-][\\w.@-]*/)+[\\w@-][\\w@.-]*\\.[\\w]+|\\.?[\\w@-][\\w.@-]*\\.(?:${EXT}))$`);
+const LINE_SUFFIX = /:\d+(?:-\d+)?$/;
+const TEST_FNS = new Set(['it', 'test']);
 
-/** @param {string} source @returns {Set<string>} exact test titles declared in `source` */
+/**
+ * Exact titles of every it()/test() call (incl. it.skip/only/fails/concurrent/todo,
+ * it.each(table)(title), it.skipIf(c)(title)) in `source`, read from the AST so titles
+ * in comments or strings don't count. Template titles must have no expressions.
+ * @param {string} source
+ * @returns {Set<string>}
+ */
 export function testTitles(source) {
-  return new Set([...source.matchAll(TEST_TITLE)].map((m) => m[2].replace(/\\(.)/g, '$1')));
+  const titles = new Set();
+  const ast = parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
+  /** @param {any} callee */
+  const isTestFn = (callee) => {
+    while (callee?.type === 'MemberExpression') callee = callee.object;
+    if (callee?.type === 'CallExpression') return isTestFn(callee.callee);
+    return callee?.type === 'Identifier' && TEST_FNS.has(callee.name);
+  };
+  /** @param {any} node */
+  const visit = (node) => {
+    if (!node || typeof node.type !== 'string') return;
+    if (node.type === 'CallExpression' && isTestFn(node.callee)) {
+      const a = node.arguments[0];
+      if (a?.type === 'Literal' && typeof a.value === 'string') titles.add(a.value);
+      if (a?.type === 'TemplateLiteral' && a.expressions.length === 0) titles.add(a.quasis[0].value.cooked);
+    }
+    for (const v of Object.values(node)) {
+      if (Array.isArray(v)) v.forEach(visit);
+      else if (v && typeof v === 'object') visit(v);
+    }
+  };
+  visit(ast);
+  return titles;
 }
 
 /**
@@ -95,7 +124,7 @@ export function evidenceRefs(evidence) {
     // A repo path: no spaces, ending in a file extension this repo uses, e.g.
     // `docs/evidence/phase0/raw/B1_sem3.body` or `tsconfig.json`. Other code
     // spans (`res.json()`, `0.030`) are prose.
-    paths: spans.filter((s) => !s.startsWith('[') && PATH.test(s)),
+    paths: spans.map((s) => s.replace(LINE_SUFFIX, '')).filter((s) => !s.startsWith('[') && PATH.test(s)),
   };
 }
 
@@ -104,14 +133,14 @@ export function evidenceRefs(evidence) {
  *   criteria: string,
  *   findings: string,
  *   fileExists: (repoPath: string) => boolean,
- *   testSource: string,
- * }} input `testSource` is every test file under test/ (excluding check-findings' own tests), concatenated.
+ *   testSource: string | string[],
+ * }} input `testSource` is each test file under test/ (excluding check-findings' own tests).
  * @returns {string[]} errors; empty means the check passed
  */
 export function checkFindings({ criteria, findings, fileExists, testSource }) {
   const { ids, errors } = parseIds(criteria);
   const { sections, table } = parseFindings(findings);
-  const titles = testTitles(testSource);
+  const titles = new Set((Array.isArray(testSource) ? testSource : [testSource]).flatMap((src) => [...testTitles(src)]));
   const known = new Set(ids);
   /** @type {Map<string, Section>} */
   const byId = new Map();
@@ -164,7 +193,7 @@ export function checkRepo(root) {
     if (!existsSync(join(root, p))) return { errors: [`${p} does not exist`], counts: {} };
   }
   const findings = read('docs/FINDINGS.md');
-  const testSource = walk(join(root, 'test')).map((f) => readFileSync(f, 'utf8')).join('\n');
+  const testSource = walk(join(root, 'test')).map((f) => readFileSync(f, 'utf8'));
   const errors = checkFindings({
     criteria: read('docs/CRITERIA.md'),
     findings,
