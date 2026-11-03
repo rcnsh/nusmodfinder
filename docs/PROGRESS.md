@@ -491,3 +491,12 @@ fails on the previous code.
   that mutation is still queued, caught by `npm run verify`.
 - Nothing deployed, no remote call.
 
+## 2026-11-03 (UTC evening) — Phase 1 remote ops: replication, 0006, deploy
+
+- Headroom check, then: read replication `auto`; Time Travel bookmark; `d1_migrations`
+  bootstrap + 0006 in one atomic import (**41,440 read / 14,108 written** vs 30,076 written
+  estimated: D1 does not bill index entries separately); checks clean; facets row rebuilt via
+  `wrangler dev --remote`; deployed `c2d37d5` as version `75ec8580` (rollback target
+  `c6744373`); smoke test 4/4. Log: `docs/evidence/phase1/remote-ops.md`.
+- Next: small-batch remote ingest, then the forced full re-ingest on 2026-11-04 late UTC.
+
