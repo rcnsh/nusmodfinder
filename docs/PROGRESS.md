@@ -295,3 +295,59 @@ fails on the previous code.
   - Low (pre-existing): `UPDATE OR REPLACE modules SET code = …` onto an existing code corrupts
     the index like INSERT OR REPLACE; the REPLACE ban now covers it (and `main.`, quoted names),
     with a test showing the corruption.
+
+## 2026-11-04 — Phase 1/2 in flight
+
+- PR #4 (module split + Server-Timing, structured logs, version_metadata, guarded `npm run deploy`)
+  and PR #5 (lexical retriever moved to `src/lexical.js`, takes a D1 handle) merged. **Not deployed**:
+  the brief allows deploys only after a phase passes its exit criteria, so the plan's "instrumentation
+  deploy first" step is replaced by a read-only analytics baseline (below).
+- **Production baseline** (GraphQL `workersInvocationsAdaptive`, script `vector-nusmods`,
+  2026-10-28..2026-11-04, all routes, 225 successful requests incl. our Phase 0 probes): wall time
+  p50 **279 ms**, p90 1,017 ms, p99 1,886 ms; CPU p50 4.3 ms, **p99 18.5 ms** (above the nominal
+  10 ms Free limit, with 0 errors). 2 `scriptThrewException` = our B5 probes. Per-span numbers come
+  with the Phase 1 deploy.
+- Phase 2 2b: 147 persona queries (6 writer subagents, no corpus/tool access; prompts and seeded
+  shape quotas in `eval/v2/`) + 18 mechanical code queries + 15 noise-model typos = 180. Split
+  provenance-first, TF-IDF topic clusters (single-link, threshold 0.35 = lowest of 0.30–0.50 giving
+  every shape ≥ 2 per split): **dev 99 / holdout 81**. Dev sha256 `cf33e601…bc3b4`; holdout plaintext
+  sha256 `8f653595…f7bdb4` held by the custodian (lead) in `~/.config/vnm/custody/`, to be committed
+  only encrypted. Deviation: TF-IDF instead of embedding similarity for clustering (embedding tool
+  not ready); recorded for ADR 0003.
+- Running: 2a eval harness, 1A (0006 + exact filtered lexical), 1B (request path).
+
+
+## 2026-11-04 — Phase 2 2b: query sets committed, ADR 0003
+
+- Dev set moved to the harness layout (`eval/dev/queries.json`, 99 queries, sha256 unchanged
+  `cf33e601…bc3b4`). Holdout (81) encrypted with `scripts/holdout.mjs` (`VNMENC2`, bound to
+  `holdout/queries.json.enc`): ciphertext sha256 `2431c18e…f66b057` in `eval/holdout/MANIFEST.json`;
+  decrypting it reproduces the plaintext sha256 `8f653595…f7bdb4` recorded at the split.
+- Custody: the key file was base64 from before the custody tool existed; re-encoded to hex in place
+  (same 32 bytes; base64 backup kept, mode 600). `~/.config/vnm/` and `custody/` set to mode 700.
+  The custody plaintext is kept (reason in ADR 0003).
+- ADR 0003: query sets and locks, custody (procedural, plainly), metrics, the gate as implemented,
+  the SC5 sealed-test reading (queued for Jacob), deviations (AES-GCM not age, TF-IDF clustering,
+  decisive-comparison floors, both query forms embedded).
+- PR #10 review (7 findings) → query sets amended to **v2.1** before any look
+  (`eval/v2/amend-v2.1.mjs`, ADR 0003): code queries carry `code-<form>` shapes (the exact-code
+  check matched nothing before), non-existent codes are `noAnswerByRule`, the typo copy `d-098`
+  is dropped (dev 98), and the holdout's 7 code queries are redrawn from a custody-held seed (the
+  v2 picks were rebuildable from public inputs). Holdout code forms: 1 exact, 2 space, 1 partial,
+  3 non-existent, so the dev gate now also runs the exact-code check. New hashes in ADR 0003;
+  `test/eval/lock.node.test.js` ties the files to them. `eval:verify` refuses any non-`.enc`
+  file in an encrypted-set directory, and `.gitignore` keeps plaintext there out of git. The
+  custody tool accepts `judge-<judge>.json`. Protocol doc fixes (single-link; 20–28 per persona).
+- PR #10 review round 2 (4 findings, fixed): an exact-code regression is now a lower-graded (or
+  missing) rank-1 result, not any change (fixing a variant or swapping equal cross-listings
+  failed the gate); the holdout's partial code query is redrawn as a code family (a GE pillar
+  had ~3 guessable values); drawn targets may not overlap any v2 pick, writer example or other
+  draw as a prefix; `eval:verify` ignores dotfiles (`.DS_Store`). Dev unchanged (byte-identical
+  re-run); new holdout hashes in ADR 0003.
+- PR #10 review round 3 (3 findings, fixed): the partial-code draw excludes `GE*` codes (a
+  family such as `GEX10` is nearly a whole pillar) and `ge` is tagged only on `GE[A-Z]` pillars;
+  non-existent draws use the same prefix-overlap check as the rest; `eval:verify` skips only
+  macOS Finder files (`.DS_Store`, `._*`; also git-ignored), so a hidden plaintext such as
+  `.queries.json` is still refused. Re-running the fixed amendment with the custody seed
+  reproduces the committed dev file and the committed holdout plaintext byte for byte (the
+  committed holdout had no GE-prefixed or overlapping draw), so no hash changes.
