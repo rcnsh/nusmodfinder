@@ -64,26 +64,152 @@ export async function lexicalSearch(db, query, echo, limit, trace) {
 export const FTS_CAP = 2000;
 
 /**
- * SQL predicates over `modules m` for the active filters. Semester and NG use
- * the generated columns from migrations/0006_fts_external.sql.
+ * @typedef {'sem' | 'level' | 'credits' | 'faculty' | 'ng'} FilterKey
+ * @typedef {{
+ *   sem: Map<number, number>, level: Map<number, number>, credits: Map<number, number>,
+ *   faculty: Map<string, number>, ng: number,
+ * }} FilterCounts
+ *   Rows per filter value, from the precomputed meta('facets') row.
+ */
+
+/**
+ * Whether a filter has an index the filter-driven plan can walk: faculty
+ * (0001), ng (0003), level, credits and partial sem3/sem4 (0006). sem1/sem2
+ * have none.
+ * @param {FilterKey} key
  * @param {FilterEcho} echo
+ */
+const indexed = (key, echo) => key !== 'sem' || echo.sem === 3 || echo.sem === 4;
+
+/**
+ * Driver order when the facets row has no counts: the indexed filters by their
+ * largest per-value row count on the pinned corpus
+ * (docs/evidence/phase1/lexical-cost.md). Also breaks ties between equal counts.
+ * @type {FilterKey[]}
+ */
+export const FIXED_DRIVER_ORDER = ['sem', 'faculty', 'ng', 'level', 'credits'];
+
+/**
+ * The active filters that have an index, in FIXED_DRIVER_ORDER.
+ * @param {FilterEcho} echo
+ */
+const indexedFilters = (echo) => FIXED_DRIVER_ORDER.filter((k) =>
+  (k === 'ng' ? echo.ng === true : echo[k] !== undefined) && indexed(k, echo));
+
+/**
+ * The filter whose index drives the filter-driven plan: the indexed active
+ * filter with the fewest rows, or, without counts, the first active one in
+ * FIXED_DRIVER_ORDER. Undefined when no active filter is indexed. A value the
+ * counts do not list matches no row, so it is the cheapest driver.
+ * @param {FilterEcho} echo
+ * @param {FilterCounts | null} counts
+ * @returns {FilterKey | undefined}
+ */
+export function chooseDriver(echo, counts) {
+  const active = indexedFilters(echo);
+  if (!counts) return active[0];
+  /** @param {FilterKey} k */
+  const rows = (k) => {
+    if (k === 'ng') return counts.ng;
+    if (k === 'faculty') return counts.faculty.get(/** @type {string} */ (echo.faculty)) ?? 0;
+    return counts[k].get(/** @type {number} */ (echo[k])) ?? 0;
+  };
+  let best;
+  for (const k of active) if (best === undefined || rows(k) < rows(best)) best = k;
+  return best;
+}
+
+/**
+ * SQL predicates over `modules m` for the active filters. Semester and NG use
+ * the generated columns from migrations/0006_fts_external.sql. With `driver`,
+ * every other predicate is written `+m.col`: unary plus makes it unusable as
+ * an index constraint, so the planner can only walk the driver's index.
+ * (Without sqlite_stat1 it picks among equality indexes by creation order,
+ * not by selectivity: credits=4 (5,081 rows) over faculty=Computing (315).)
+ * @param {FilterEcho} echo
+ * @param {FilterKey} [driver]
  * @returns {{ clauses: string[], binds: (string | number)[] }}
  */
-export function filterSql(echo) {
+export function filterSql(echo, driver) {
   /** @type {string[]} */
   const clauses = [];
   /** @type {(string | number)[]} */
   const binds = [];
+  const col = (/** @type {FilterKey} */ key, /** @type {string} */ name) =>
+    `${driver !== undefined && key !== driver ? '+' : ''}m.${name}`;
   if (echo.sem !== undefined) {
     // Interpolated into a column name, so it must be one of the four columns.
     if (![1, 2, 3, 4].includes(echo.sem)) throw new RangeError(`sem must be 1-4, got ${echo.sem}`);
-    clauses.push(`m.sem${echo.sem} = 1`);
+    clauses.push(`${col('sem', `sem${echo.sem}`)} = 1`);
   }
-  if (echo.level !== undefined) { clauses.push('m.level = ?'); binds.push(echo.level); }
-  if (echo.credits !== undefined) { clauses.push('m.credits = ?'); binds.push(echo.credits); }
-  if (echo.faculty !== undefined) { clauses.push('m.faculty = ?'); binds.push(echo.faculty); }
-  if (echo.ng === true) clauses.push('m.ng = 1');
+  if (echo.level !== undefined) { clauses.push(`${col('level', 'level')} = ?`); binds.push(echo.level); }
+  if (echo.credits !== undefined) { clauses.push(`${col('credits', 'credits')} = ?`); binds.push(echo.credits); }
+  if (echo.faculty !== undefined) { clauses.push(`${col('faculty', 'faculty')} = ?`); binds.push(echo.faculty); }
+  if (echo.ng === true) clauses.push(`${col('ng', 'ng')} = 1`);
   return { clauses, binds };
+}
+
+/**
+ * The facets row as FilterCounts, or null when it lacks any of the counts
+ * (a row written before they were added).
+ * @param {any} facets
+ * @returns {FilterCounts | null}
+ */
+export function parseFilterCounts(facets) {
+  const list = (/** @type {unknown} */ xs, /** @type {string} */ key) => Array.isArray(xs) ? new Map(xs.map((x) => [x[key], x.count])) : null;
+  const sem = list(facets?.semesters, 'sem');
+  const level = list(facets?.levels, 'level');
+  const credits = list(facets?.credits, 'credits');
+  const faculty = list(facets?.faculties, 'name');
+  const ng = facets?.ng?.count;
+  if (!sem || !level || !credits || !faculty || typeof ng !== 'number') return null;
+  return { sem, level, credits, faculty, ng };
+}
+
+// Loaded at most once per isolate, on the first search that reaches the
+// filter-driven plan; the common path never reads it. Stale counts (an ingest
+// since) only cost a worse plan choice, never a wrong answer. A failed read
+// is not cached, so the next fallback retries.
+/** @type {Promise<FilterCounts | null> | null} */
+let filterCounts = null;
+
+/** Forgets the cached counts (tests; the next fallback reloads them). */
+export function resetFilterCounts() { filterCounts = null; }
+
+/**
+ * @param {D1Database | D1DatabaseSession} db
+ * @param {Trace} trace
+ * @returns {Promise<FilterCounts | null>}
+ */
+function loadFilterCounts(db, trace) {
+  filterCounts ??= trace.time('fts', () => db.prepare('SELECT value FROM meta WHERE key = ?').bind('facets').all())
+    .then((res) => {
+      trace.d1Result(res);
+      const value = /** @type {{ value?: string } | undefined} */ (res.results[0])?.value;
+      return value ? parseFilterCounts(JSON.parse(value)) : null;
+    })
+    .catch(() => {
+      filterCounts = null;
+      return null;
+    });
+  return filterCounts;
+}
+
+/**
+ * The filter-driven statement (see runFts). Exported so tests can EXPLAIN the
+ * exact text the Worker runs. Binds: (match, ...binds, limit).
+ * @param {FilterEcho} echo
+ * @param {FilterKey} [driver]
+ */
+export function exactStatement(echo, driver) {
+  const { clauses, binds } = filterSql(echo, driver);
+  const sql = `WITH capped AS (
+       SELECT count(*) AS n FROM (SELECT 1 FROM modules_fts WHERE modules_fts MATCH ?1 LIMIT ${FTS_CAP + 1}))
+     SELECT m.code AS code
+       FROM capped CROSS JOIN modules AS m CROSS JOIN modules_fts ON modules_fts.rowid = m.rowid
+      WHERE capped.n > ${FTS_CAP} AND modules_fts MATCH ?1 AND ${clauses.join(' AND ')}
+      ORDER BY modules_fts.rank, m.rowid LIMIT ?`;
+  return { sql, binds };
 }
 
 /**
@@ -144,16 +270,15 @@ async function runFts(db, match, echo, limit, trace) {
   // overflow the cap its one row fails `n > FTS_CAP` and the join never runs.
   // (As a scalar subquery in WHERE the guard is not hoisted: SQLite still
   // walks every modules row, measured 6,831 rows read for nothing.)
+  // The walk goes through the index of the most selective filter (chooseDriver):
+  // the other filters are written `+m.col`, so they cannot drive it.
   // `?1` is the MATCH expression in both places; each later bare `?` takes
   // the next number, so the binds are (match, ...filter binds, limit).
-  const exact = /** @type {D1Result<{ code: string }>} */ (await trace.time('fts', () => db.prepare(
-    `WITH capped AS (
-       SELECT count(*) AS n FROM (SELECT 1 FROM modules_fts WHERE modules_fts MATCH ?1 LIMIT ${FTS_CAP + 1}))
-     SELECT m.code AS code
-       FROM capped CROSS JOIN modules AS m CROSS JOIN modules_fts ON modules_fts.rowid = m.rowid
-      WHERE capped.n > ${FTS_CAP} AND modules_fts MATCH ?1 AND ${where}
-      ORDER BY modules_fts.rank, m.rowid LIMIT ?`,
-  ).bind(match, ...binds, limit).all()));
+  // Counts only matter when there is a choice: two or more indexed filters.
+  const driver = chooseDriver(echo, indexedFilters(echo).length > 1 ? await loadFilterCounts(db, trace) : null);
+  const stmt = exactStatement(echo, driver);
+  const exact = /** @type {D1Result<{ code: string }>} */ (await trace.time('fts', () => db.prepare(stmt.sql)
+    .bind(match, ...stmt.binds, limit).all()));
   trace.d1Result(exact);
   // An empty exact result means either the guard was false (the bounded
   // answer is complete) or nothing matches the filters at all (and then the
