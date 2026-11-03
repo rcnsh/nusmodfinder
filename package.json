@@ -11,7 +11,7 @@
     "probe": "node scripts/probe.mjs",
     "ingest": "node scripts/ingest.mjs",
     "eval": "node scripts/eval.mjs",
-    "dev": "wrangler dev",
+    "dev": "wrangler dev -c test/wrangler.test.jsonc --local",
     "deploy": "wrangler deploy",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
