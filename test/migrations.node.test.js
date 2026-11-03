@@ -84,30 +84,49 @@ describe('INSERT OR REPLACE', () => {
   });
 });
 
-describe('UPDATE … SET rowid', () => {
+describe('modules.rowid is immutable', () => {
   // The external-content FTS table is keyed on modules.rowid. Changing a
-  // rowid moves the row out from under its FTS entry: the update trigger
-  // fires only when code/title/description change, so after a rowid-only
-  // update the index still holds the row under the old rowid.
-  const ASSIGNS_ROWID = /\bUPDATE\s+(?:OR\s+\w+\s+)?["`]?\w+["`]?\s+SET\s+(?:[^;`]*?,\s*)?["`]?(?:rowid|_rowid_|oid)["`]?\s*=/i;
+  // rowid moves the row out from under its FTS entry, and no text pattern
+  // catches every spelling (PR #8 review round 2: the upsert form ingest
+  // uses, schema-qualified names, row-value SET, [bracketed] identifiers).
+  // 0006's modules_rowid_immutable trigger refuses them in the database.
+  const FORMS = [
+    "INSERT INTO modules (code, title, acad_year, text_hash) VALUES ('A1', 't', 'y', 'h') ON CONFLICT(code) DO UPDATE SET rowid = 100",
+    "INSERT INTO modules (code, title, acad_year, text_hash) VALUES ('A1', 't', 'y', 'h') ON CONFLICT(code) DO UPDATE SET title = excluded.title, rowid = 101",
+    'UPDATE main.modules SET rowid = rowid + 10',
+    'UPDATE modules AS m SET rowid = 70',
+    'UPDATE [modules] SET [rowid] = 80',
+    "UPDATE modules SET (title, rowid) = ('x', 90) WHERE code = 'A1'",
+    "UPDATE modules SET \"title\" = 'q', [_rowid_] = 110 WHERE code = 'A1'",
+    "UPDATE modules SET title = 'a;b', oid = 120 WHERE code = 'A1'",
+    'UPDATE modules INDEXED BY idx_modules_level SET rowid = rowid + 130',
+    'UPDATE OR REPLACE modules SET rowid = rowid + 140',
+    "UPDATE OR IGNORE modules SET rowid = 150 WHERE code = 'A1'",
+  ];
 
-  it('the pattern catches the forms it bans and not a rowid in WHERE', () => {
-    expect(ASSIGNS_ROWID.test('UPDATE modules SET rowid = rowid + 1')).toBe(true);
-    expect(ASSIGNS_ROWID.test('update modules set title = ?, _rowid_ = ? where code = ?')).toBe(true);
-    expect(ASSIGNS_ROWID.test('UPDATE OR IGNORE "modules" SET oid=7')).toBe(true);
-    expect(ASSIGNS_ROWID.test('UPDATE modules SET title = ? WHERE rowid = ?')).toBe(false);
+  /** A database with every migration applied and two modules. */
+  async function migrated() {
+    const { DatabaseSync } = await import('node:sqlite');
+    const db = new DatabaseSync(':memory:');
+    for (const f of readdirSync(join(ROOT, 'migrations')).filter((x) => x.endsWith('.sql')).sort()) db.exec(read(join('migrations', f)));
+    db.exec("INSERT INTO modules (code, title, description, acad_year, text_hash) VALUES ('A1', 'alpha', 'alpha one', 'y', 'h'), ('B2', 'beta', 'beta two', 'y', 'h')");
+    return db;
+  }
+
+  it.each(FORMS)('refuses %s', async (sql) => {
+    const db = await migrated();
+    const before = db.prepare('SELECT rowid, code FROM modules ORDER BY rowid').all();
+    expect(() => db.exec(sql)).toThrow(/modules\.rowid is immutable/);
+    expect(db.prepare('SELECT rowid, code FROM modules ORDER BY rowid').all()).toEqual(before);
+    expect(db.prepare("SELECT m.code FROM modules_fts JOIN modules m ON m.rowid = modules_fts.rowid WHERE modules_fts MATCH 'alpha'").all()).toEqual([{ code: 'A1' }]);
   });
 
-  it('is never used in src/, scripts/ or migrations/', () => {
-    /** @param {string} dir @returns {string[]} */
-    const files = (dir) => readdirSync(join(ROOT, dir), { recursive: true, encoding: 'utf8' })
-      .filter((f) => /\.(m?js|sql|py)$/.test(f)).map((f) => join(dir, f));
-    const offenders = [];
-    for (const f of [...files('src'), ...files('scripts'), ...files('migrations')]) {
-      // SQL comments may name the hazard (0006's header does).
-      const text = f.endsWith('.sql') ? read(f).replace(/--[^\n]*/g, '') : read(f);
-      if (ASSIGNS_ROWID.test(text)) offenders.push(f);
-    }
-    expect(offenders).toEqual([]);
+  it('allows every update that keeps the rowid, including ingest\'s upsert', async () => {
+    const db = await migrated();
+    db.exec("INSERT INTO modules (code, title, description, acad_year, text_hash) VALUES ('A1', 'gamma', 'gamma one', 'y', 'h2') ON CONFLICT(code) DO UPDATE SET title = excluded.title, description = excluded.description, text_hash = excluded.text_hash");
+    db.exec("UPDATE modules SET title = 'delta' WHERE rowid = 2");
+    db.exec('UPDATE modules SET rowid = rowid');
+    expect(db.prepare('SELECT rowid, code, title FROM modules ORDER BY rowid').all()).toEqual([{ rowid: 1, code: 'A1', title: 'gamma' }, { rowid: 2, code: 'B2', title: 'delta' }]);
+    expect(db.prepare("SELECT rowid FROM modules_fts WHERE modules_fts MATCH 'gamma OR delta' ORDER BY rowid").all()).toEqual([{ rowid: 1 }, { rowid: 2 }]);
   });
 });

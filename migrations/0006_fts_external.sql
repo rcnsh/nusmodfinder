@@ -7,13 +7,14 @@
 -- re-ingest). The new table reads its content from `modules` and every trigger
 -- addresses the FTS row by rowid, which is a point lookup.
 --
--- Hazard: nothing may change a modules rowid (`UPDATE modules SET rowid = …`).
--- The FTS row is keyed on it and no trigger here moves it: the update trigger
--- fires only when code, title or description change, so after a rowid-only
--- update the index still holds the row under its old rowid, which external
--- content then reads from whatever row has it. test/migrations.node.test.js fails
--- if src/, scripts/ or migrations/ assigns a rowid. Same for INSERT OR REPLACE
--- (see the triggers below).
+-- Hazard: nothing may change a modules rowid. The FTS row is keyed on it and no
+-- trigger here moves it: the update trigger fires only when code, title or
+-- description change, so after a rowid-only update the index still holds the
+-- row under its old rowid, which external content then reads from whatever row
+-- has it. The modules_rowid_immutable trigger below aborts any statement that
+-- changes one, however it is spelt (UPDATE … SET rowid/_rowid_/oid, row-value
+-- SET, ON CONFLICT DO UPDATE SET rowid). INSERT OR REPLACE is a separate
+-- hazard (see the triggers below; a test bans it).
 --
 -- `code` stays UNINDEXED: indexing it, even at bm25 weight 0, changes bm25's
 -- document lengths and so the ranking (plan r2). Prefix indexes cost nothing at
@@ -25,6 +26,7 @@
 DROP TRIGGER IF EXISTS modules_fts_insert;
 DROP TRIGGER IF EXISTS modules_fts_delete;
 DROP TRIGGER IF EXISTS modules_fts_update;
+DROP TRIGGER IF EXISTS modules_rowid_immutable;
 DROP TABLE IF EXISTS modules_fts;
 
 CREATE VIRTUAL TABLE modules_fts USING fts5(
@@ -61,6 +63,12 @@ BEGIN
   VALUES ('delete', old.rowid, old.code, old.title, old.description);
   INSERT INTO modules_fts(rowid, code, title, description)
   VALUES (new.rowid, new.code, new.title, new.description);
+END;
+-- See the hazard note at the top. Costs a comparison per updated row, no reads.
+CREATE TRIGGER modules_rowid_immutable BEFORE UPDATE ON modules
+WHEN new.rowid IS NOT old.rowid
+BEGIN
+  SELECT RAISE(ABORT, 'modules.rowid is immutable: modules_fts is keyed on it');
 END;
 
 -- Filter columns for SQL-side filtering (FINDINGS B1). VIRTUAL generated

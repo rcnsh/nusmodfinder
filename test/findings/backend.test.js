@@ -25,12 +25,13 @@ describe('B3', () => {
   it('[B3 fixed] the FTS triggers address the index by rowid: no full FTS scan, constant cost per row', async () => {
     const { results: triggers } = /** @type {D1Result<{ name: string, sql: string }>} */ (await env.DB.prepare(
       "SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'modules' ORDER BY name").all());
-    expect(triggers.map((t) => t.name)).toEqual(['modules_fts_delete', 'modules_fts_insert', 'modules_fts_update']);
+    // modules_rowid_immutable (0006) only compares rowids and touches no table.
+    expect(triggers.map((t) => t.name)).toEqual(['modules_fts_delete', 'modules_fts_insert', 'modules_fts_update', 'modules_rowid_immutable']);
 
     // EXPLAIN QUERY PLAN does not descend into trigger programs, so plan each
     // statement of each trigger body on its own, old.x/new.x bound as values.
     let planned = 0;
-    for (const { name, sql } of triggers) {
+    for (const { name, sql } of triggers.filter((t) => t.name.startsWith('modules_fts_'))) {
       const body = sql.slice(sql.search(/\bBEGIN\b/i) + 5, sql.lastIndexOf('END')).split(';').map((x) => x.trim()).filter(Boolean);
       for (const stmt of body) {
         expect(stmt, name).not.toMatch(/\bDELETE\s+FROM\s+modules_fts\b|\bWHERE\s+code\b/i);
