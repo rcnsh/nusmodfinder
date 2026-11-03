@@ -1,5 +1,8 @@
 # EVAL.md — retrieval quality for vector-nusmods
 
+> **v1 (historical).** The fixtures and scripts this file cites now live in `eval/v1/`. The
+> Phase 2 harness that replaces them is described in [`eval/README.md`](eval/README.md).
+
 **Verdict up front.** The hybrid retriever passes the pre-committed gate on both the
 development fixture (+1.0pp) and a held-out fixture written after tuning was frozen
 (+1.0pp). But the margin is ~10 documents out of 970 and is not statistically
