@@ -37,7 +37,7 @@ export const DEFAULTS = Object.freeze({
   /**
    * Rows written per module before any batch has reported its own: measured
    * ~5.1 per upsert (row + index entries, docs/evidence/phase1/0006-cost.md),
-   * rounded up. Later batches use the observed rate if it is higher.
+   * rounded up. Once batches report, the highest per-module rate seen is used.
    */
   writesPerRowPrior: 6,
 });
@@ -171,13 +171,16 @@ export async function runIngest({ modules, facetsBody, api, options = {}, log = 
 
   // 3. Upserts inside the write budget.
   let reserved = 0;
-  let rowsSeen = 0;
+  /** Highest rows written per module any batch has reported; null before the first. */
+  /** @type {number | null} */
+  let maxRate = null;
   let budgetHit = false;
-  /** @param {number} rows */
-  const estimate = (rows) => {
-    const observed = rowsSeen > 0 ? result.rowsWritten / rowsSeen : 0;
-    return Math.ceil(rows * Math.max(o.writesPerRowPrior, observed));
-  };
+  /**
+   * Rows a batch of `rows` modules may write: at the worst per-module rate a
+   * batch of this run has shown, or the prior before any has reported.
+   * @param {number} rows
+   */
+  const estimate = (rows) => Math.ceil(rows * (maxRate ?? o.writesPerRowPrior));
   /** @param {number} rows @returns {number | null} the reservation, or null if over budget */
   const reserve = (rows) => {
     const need = estimate(rows);
@@ -215,7 +218,8 @@ export async function runIngest({ modules, facetsBody, api, options = {}, log = 
     reserved -= held;
     if (!body) { result.failed += batch.length; return; }
     account(body);
-    rowsSeen += batch.length;
+    const rate = Number(body?.meta?.rows_written ?? 0) / batch.length;
+    maxRate = maxRate === null ? rate : Math.max(maxRate, rate);
     result.upserted += Number(body.upserted ?? batch.length);
     result.embedded += Number(body.embedded ?? 0);
     if (body.mutationId) result.lastMutationId = String(body.mutationId);
