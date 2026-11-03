@@ -464,3 +464,14 @@ fails on the previous code.
   longer kills the run: it finishes, exits 1, names the unrecorded mutation ids and does not
   write `data-version.json`.
 - Nothing deployed, no remote call.
+
+## 2026-11-04 — PR #13 third review fixes
+
+- **Wait no longer ends on the run's own earlier mutation.** The pending entry carries
+  `earlier` (this run's ids, after those of a carried-over pending entry); the
+  `processedUpToDatetime > sentAt` check ignores them, so an undocumented "processed time"
+  reading of that field cannot end the wait with the last batch still queued.
+- **Run lock released on SIGINT/SIGTERM** (exit 130/143), and only while it carries this run's
+  nonce, so a hand-deleted lock's old owner never removes the next run's.
+- Nothing deployed, no remote call.
+
