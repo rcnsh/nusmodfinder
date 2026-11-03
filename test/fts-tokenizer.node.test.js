@@ -49,9 +49,11 @@ function rng(/** @type {number} */ seed) {
 }
 
 describe('B8 tokeniser', () => {
+  // The full probe (every code point through SQLite) takes ~5.2 s on a GitHub
+  // runner, past vitest's 5 s default; it is kept whole, not sampled.
   it('[B8 fixed] the separator table equals the unicode61 separators probed from SQLite, for every code point', () => {
     expect(read('src/fts-separators.js')).toBe(render(probeSeparators()));
-  });
+  }, 60_000);
 
   // "At most": a token of nothing but strippable diacritics folds to no term at
   // all, in the index as in the query; FTS5 treats that empty phrase as
