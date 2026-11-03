@@ -26,7 +26,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # db:rebuild-check rebuilds the old recipe from commit 3b18041.
+          # db:rebuild-check rebuilds the old recipe from commit 3b18041;
+          # test:eval overlays tag eval-v0.
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
@@ -38,6 +39,10 @@ jobs:
       - name: Generated types are up to date
         run: npm run types:check
       - run: npm test
+      - name: Eval harness self-test (fixture set, committed embeddings, no Cloudflare)
+        run: npm run test:eval
+      - name: Holdout ciphertexts match their manifests (no key)
+        run: npm run eval:verify
       - name: Migrations rebuild the production schema
         run: npm run db:rebuild-check
 

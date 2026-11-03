@@ -1,0 +1,267 @@
+{
+ "note": "Golden output of the fixture set at ranker eval-v0 (7ac9841) with the committed fixture embeddings. eval-v0 never changes, so any difference is a harness or embedding change. Regenerate only deliberately: see eval/README.md.",
+ "ranker": "7ac984174ded88cb2b6497d9835b456981acdd99",
+ "queries": {
+  "version": "fixture-v1",
+  "sha256": "08d73068003967bf09662935be7cc716c397b7606a46977f28ff87894915cacf",
+  "count": 11
+ },
+ "results": {
+  "fx-01": {
+   "status": 200,
+   "codes": [
+    "CS1010",
+    "CS3244",
+    "CS1010E",
+    "CS1010S",
+    "CS2113",
+    "PC3270",
+    "TR3202S",
+    "CS2104",
+    "TR3202T",
+    "CS2109S",
+    "CG3201",
+    "TR3202I",
+    "MA1531",
+    "PC3246",
+    "CS3231",
+    "BL5240",
+    "GEA1000",
+    "GEA1000N",
+    "BMA5134",
+    "LAK1201"
+   ]
+  },
+  "fx-02": {
+   "status": 200,
+   "codes": [
+    "CS1010S",
+    "CS2104",
+    "CS3231",
+    "CS1010",
+    "CS1010E",
+    "LAK2201",
+    "CS2109S",
+    "LAK1201",
+    "CS3244",
+    "CG3201",
+    "TR3202S",
+    "TR3202T",
+    "CS2113",
+    "GEA1000",
+    "MA1531",
+    "TR3202I",
+    "GEA1000N",
+    "BL5240",
+    "PC3270",
+    "PL1101E"
+   ]
+  },
+  "fx-03": {
+   "status": 200,
+   "codes": [
+    "CG3201",
+    "CS2109S",
+    "CS3244",
+    "MA1531",
+    "CS2104",
+    "TR3202S",
+    "TR3202I",
+    "TR3202T",
+    "PC3246",
+    "GEA1000",
+    "CS3231",
+    "GEA1000N",
+    "CS2113",
+    "PL1101E",
+    "CS1010",
+    "CS1010E",
+    "CS1010S",
+    "LAK1201",
+    "LAK2201",
+    "BMA5013"
+   ]
+  },
+  "fx-04": {
+   "status": 200,
+   "codes": [
+    "CG3201",
+    "PC3270",
+    "CS3244",
+    "CS2113",
+    "PL1101E",
+    "CS1010",
+    "CS1010E",
+    "LAK1201"
+   ]
+  },
+  "fx-05": {
+   "status": 200,
+   "codes": [
+    "GEA1000",
+    "GEA1000N",
+    "CS3231",
+    "CG3201",
+    "TR3202S",
+    "TR3202T",
+    "CS2113",
+    "CS3244",
+    "BMA5134",
+    "PC3270",
+    "TR3202I",
+    "CS2109S",
+    "BL5240",
+    "MA1531",
+    "CS1010S",
+    "CS2104",
+    "CS1010",
+    "CS1010E",
+    "BMA5013",
+    "LAK2201"
+   ]
+  },
+  "fx-06": {
+   "status": 200,
+   "codes": [
+    "TR3202S",
+    "TR3202I",
+    "TR3202T",
+    "BMA5134",
+    "BL5240",
+    "CS2113",
+    "BMA5013",
+    "GEA1000",
+    "CS1010S",
+    "CS1010",
+    "CS1010E",
+    "GEA1000N",
+    "CS2109S",
+    "LAK1201",
+    "CG3201",
+    "CS2104",
+    "LAK2201",
+    "CS3244",
+    "PL1101E",
+    "CS3231"
+   ]
+  },
+  "fx-07": {
+   "status": 200,
+   "codes": [
+    "LAK1201",
+    "LAK2201",
+    "CS2109S",
+    "CS2104",
+    "TR3202S",
+    "TR3202T",
+    "CS1010S",
+    "TR3202I",
+    "CG3201",
+    "CS1010",
+    "CS1010E",
+    "CS3231",
+    "PL1101E",
+    "CS2113",
+    "BL5240",
+    "CS3244",
+    "GEA1000",
+    "PC3270",
+    "MA1531",
+    "GEA1000N"
+   ]
+  },
+  "fx-08": {
+   "status": 200,
+   "codes": [
+    "TR3202I",
+    "CS2113",
+    "CS3231",
+    "GEA1000",
+    "TR3202S",
+    "TR3202T",
+    "GEA1000N",
+    "CS1010S",
+    "CG3201",
+    "CS1010",
+    "CS1010E",
+    "BMA5134",
+    "MA1531",
+    "CS3244",
+    "CS2104",
+    "LAK2201",
+    "PC3246",
+    "BL5240",
+    "LAK1201",
+    "PC3270"
+   ]
+  },
+  "fx-09": {
+   "status": 200,
+   "codes": [
+    "CS1010S",
+    "CS3231",
+    "GEA1000",
+    "LAK2201",
+    "TR3202S",
+    "TR3202T",
+    "CS1010",
+    "CS1010E",
+    "CS2104",
+    "LAK1201",
+    "CS2109S",
+    "GEA1000N",
+    "MA1531",
+    "TR3202I",
+    "CG3201",
+    "PC3270",
+    "BL5240",
+    "CS3244",
+    "PC3246",
+    "CS2113"
+   ]
+  },
+  "fx-10": {
+   "status": 400,
+   "codes": [],
+   "error": "bad_request: Query parameter \"q\" was 233 characters; the maximum is 200."
+  },
+  "fx-11": {
+   "status": 200,
+   "codes": [
+    "BMA5134",
+    "BL5240",
+    "BMA5013"
+   ]
+  }
+ },
+ "summary": {
+  "queries": 11,
+  "primary": {
+   "n": 8,
+   "ndcg": 0.8405940468546897,
+   "p5": 0.375,
+   "mrr": 0.875
+  },
+  "featureGap": {
+   "n": 1,
+   "ndcg": 1,
+   "p5": 0.2,
+   "mrr": 1
+  },
+  "noAnswer": {
+   "n": 2,
+   "correctEmpty": 0,
+   "falsePositives": 2
+  },
+  "violationsAt10": {
+   "total": 1,
+   "perQuery": 0.09090909090909091
+  },
+  "judgedAt10": {
+   "judged": 91,
+   "top": 91,
+   "coverage": 1
+  },
+  "errors": 1
+ }
+}
