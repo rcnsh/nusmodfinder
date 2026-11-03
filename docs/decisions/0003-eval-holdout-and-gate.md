@@ -37,14 +37,17 @@ that lock it, and where the build departs from the plan.
     (dev `d-098`; none in the holdout): dev 98 / holdout 81;
   - the holdout's 7 code queries are redrawn, same forms, from a secret seed held in custody
     (`code-seed.v2.1`). The v2 picks came from the committed seed, the committed NG list and the
-    released corpus, so anyone could rebuild them. The draw excludes every v2 code pick and the
-    code examples persona writers saw (`CS3244`, `CS32`, `GEA`). Holdout code forms: 1 exact,
-    2 space, 1 partial, 3 non-existent.
+    released corpus, so anyone could rebuild them. A drawn target may not overlap, as a prefix
+    either way, any v2 code pick, any code example persona writers saw (`CS3244`, `CS32`,
+    `GEA`) or another draw, so it is never a variant of, or under the prefix of, a dev query's
+    target. The partial query is drawn as a code family, not a GE pillar: only six pillars
+    exist and three are public, so a pillar could be guessed. Holdout code forms: 1 exact,
+    2 space, 1 partial (a family), 3 non-existent.
 - **Locks** (v2.1).
   - dev plaintext sha256 `fe7a248f9de3de04ef41af723c8ffd274805c283c8be3c002de026e75bb742ce`.
-  - holdout plaintext sha256 `fe4cf5570c52113577fc8030607c5cce7b64c63e26648096f1a66a081862d186`
+  - holdout plaintext sha256 `685881afb719558de8f3988af477832c6d050382bd8e4885203139a4f9db946a`
     (verified on decrypting the committed ciphertext).
-  - holdout ciphertext sha256 `193f5a45bb2b52313e5db4e9c906aeb02d4672ae19e7f85dc535f8be6cc3aff9`,
+  - holdout ciphertext sha256 `d7b6af869b8491588622fc27e2a8b13917bf51562a5a6c3d1d1eaf1c4c37e079`,
     recorded in `eval/holdout/MANIFEST.json`.
   - v2, before the amendment: dev `cf33e601…bc3b4`, holdout plaintext `8f653595…f7bdb4`.
   - `test/eval/lock.node.test.js` fails unless the dev file and the holdout ciphertext match the
@@ -56,8 +59,9 @@ that lock it, and where the build departs from the plan.
 - **Test set, pre-registered now.** The sealed test set is written after Phase 3 freezes. It uses
   the same writer prompt, personas and shape-assignment procedure, with fresh writer runs and a
   new seed recorded when it is drawn. Its code queries are drawn from a secret seed held in
-  custody (only its sha256 is recorded), excluding every dev and holdout code target and the
-  writer examples, and carry the v2.1 form shapes and `noAnswerByRule`; typo sources need a word
+  custody (only its sha256 is recorded), with the v2.1 overlap rule against every dev and
+  holdout code target and the writer examples, partials as code families, and carry the v2.1
+  form shapes and `noAnswerByRule`; typo sources need a word
   of 4+ letters. It is pooled from v0 plus the final ranker and judged under the same protocol.
   - Leak filter: drop a query that is a near-duplicate of any dev or holdout query (query-text
     embedding cosine ≥ 0.9, or the same source query for a derived variant). Report the count.
@@ -113,8 +117,8 @@ Every gate fails a candidate in four cases:
 
 | set | a change passes iff |
 |---|---|
-| dev (screen) | no exact-code regression (v2.1: the holdout has only one exact-code query, dev has five); and ΔnDCG@10 BCa 95% lower bound > 0; **or**, for a change declaring target shapes, every target's ΔnDCG@10 > 0, overall ΔnDCG@10 ≥ 0, and ≥ 3 distinct answerable queries across the targets. Tripwire on target shapes only: a target whose one-sided 95% upper bound on ΔnDCG@10 is below 0 fails it; with < 3 queries the tripwire uses the point estimate ≥ 0. |
-| holdout | ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates); no exact-code query loses its rank-1 hit. |
+| dev (screen) | no exact-code regression (v2.1: the holdout has only one exact-code query, dev has five; a regression is a `code-exact` query whose relevant rank-1 result gets a lower grade or disappears, not an equal-grade swap); and ΔnDCG@10 BCa 95% lower bound > 0; **or**, for a change declaring target shapes, every target's ΔnDCG@10 > 0, overall ΔnDCG@10 ≥ 0, and ≥ 3 distinct answerable queries across the targets. Tripwire on target shapes only: a target whose one-sided 95% upper bound on ΔnDCG@10 is below 0 fails it; with < 3 queries the tripwire uses the point estimate ≥ 0. |
+| holdout | ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates); no exact-code regression: no `code-exact` query's rank-1 result gets a lower grade (or disappears). |
 | cutoff change (dev screen, holdout governs) | replaces the Δ rules: correct-empty gain ≥ 0.25, answerable ΔnDCG@10 ≥ −0.01, ≥ 3 no-answer queries. |
 | test (SC5) | BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0, final shipped ranker vs `eval-v0` (= 7ac9841, the production ranker), same pinned corpus `data-2026-2027-20260904`. |
 

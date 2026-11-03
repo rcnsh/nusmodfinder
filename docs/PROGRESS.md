@@ -257,3 +257,9 @@ fails on the previous code.
   `test/eval/lock.node.test.js` ties the files to them. `eval:verify` refuses any non-`.enc`
   file in an encrypted-set directory, and `.gitignore` keeps plaintext there out of git. The
   custody tool accepts `judge-<judge>.json`. Protocol doc fixes (single-link; 20–28 per persona).
+- PR #10 review round 2 (4 findings, fixed): an exact-code regression is now a lower-graded (or
+  missing) rank-1 result, not any change (fixing a variant or swapping equal cross-listings
+  failed the gate); the holdout's partial code query is redrawn as a code family (a GE pillar
+  had ~3 guessable values); drawn targets may not overlap any v2 pick, writer example or other
+  draw as a prefix; `eval:verify` ignores dotfiles (`.DS_Store`). Dev unchanged (byte-identical
+  re-run); new holdout hashes in ADR 0003.
