@@ -1,0 +1,4 @@
+date	mode	texts	est_tokens	est_neurons	requests	note
+2026-11-03T16:52:42.344Z	set:fixture	31	3629	6.7	1	fixture set (phase2/harness)
+2026-11-03T16:56:36.721Z	corpus	5920	993551	1829.1	60	emb-bge-small-v0 from eval-v0; phase2/harness one-time corpus pass
+2026-11-03T16:56:37.049Z	determinism	3	736	1.4	1	cosines 0.9998186,0.9997914,0.9993989

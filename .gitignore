@@ -4,3 +4,4 @@ node_modules/
 .dev.vars
 *.log
 wrangler.r7.jsonc
+.eval-work/
