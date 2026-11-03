@@ -86,6 +86,15 @@ describe('holdoutGate', () => {
     expect(v.verdict).toBe('fail');
   });
 
+  it('dev also fails an exact-code regression (ADR 0003 v2.1)', () => {
+    const base = [...many(30, 0.4, 0.4).base, q('x1', 1, { shapes: ['code', 'code-exact'], top1: 'CS2040', top1Grade: 2 })];
+    const cand = [...spread(many(30, 0.4, 0.6).cand), q('x1', 0.6, { shapes: ['code', 'code-exact'], top1: 'CS2040S', top1Grade: 1 })];
+    const v = devGate(compare(base, cand));
+    expect(names(v)['ΔnDCG@10 BCa 95% lower bound > 0']).toBe(true);
+    expect(names(v)['no exact-code regression']).toBe(false);
+    expect(v.verdict).toBe('fail');
+  });
+
   it('fails an exact-code regression', () => {
     const base = [q('c', 1, { shapes: ['code-exact'], top1: 'CS1010', top1Grade: 2 })];
     const cand = [q('c', 1, { shapes: ['code-exact'], top1: 'CS1010S', top1Grade: 1 })];
