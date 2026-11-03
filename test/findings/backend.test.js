@@ -62,10 +62,13 @@ describe('B4', () => {
     expect(order).toEqual(['ai:start', 'ai:end', 'vec:start', 'vec:end', 'fts', 'hydrate']);
   });
 
-  it('[B4 known-bug] responses carry no Server-Timing header', async () => {
+  // Was `[B4 known-bug] responses carry no Server-Timing header`; Phase 1 step 0
+  // added the spans so SC7 can be measured. The serial path itself is still open.
+  it('[B4 instrumented] /search responses carry Server-Timing spans for each stage', async () => {
     const res = await call('/search?q=databases%20timing', { fakes });
     expect(res.status).toBe(200);
-    expect(res.headers.get('server-timing')).toBeNull();
+    const names = (res.headers.get('server-timing') ?? '').split(', ').map((p) => p.split(';')[0]);
+    expect(names).toEqual(['cache', 'limit', 'embed', 'vector', 'fts', 'hydrate', 'total']);
   });
 });
 
