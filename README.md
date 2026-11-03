@@ -156,34 +156,69 @@ a D1 failure is still a 502. Anything unhandled is a JSON 500 with a `requestId`
 
 Ingest is a local Node script by design: `moduleInfo.json` is ~19 MB and parsing it
 inside a Worker would crowd the 128 MB memory ceiling. Embedding and upserting happen
-*in* the Worker, over an authenticated admin route, so no Cloudflare API token has to
+*in* the Worker, over authenticated admin routes, so no Cloudflare API token has to
 exist on disk.
+
+**Runbook** (ingest → verify → commit `src/data-version.json` → deploy):
 
 ```bash
 export INGEST_SECRET=$(openssl rand -hex 24)
 echo "INGEST_SECRET=$INGEST_SECRET" > .dev.vars     # gitignored
 npx wrangler dev --remote --port 8787 &             # binds the real D1/Vectorize/AI
 npm run ingest -- --year 2026-2027 --url http://localhost:8787
+npm run verify -- --url http://localhost:8787       # exits non-zero on drift
+git add src/data-version.json && git commit -m "chore(data): data version after ingest"
+npm run deploy                                      # new cache key, so no stale /search hits
 ```
 
-The script prints module count, skipped count and vectors upserted. It is **idempotent
-and resumable**: each module's embedded text is hashed into `modules.text_hash`, and a
-rerun re-embeds only what changed. A full cold ingest of 6,771 modules takes ~75 seconds.
+Before any remote write, check the account-wide D1 headroom for the UTC day
+(`docs/decisions/0002-phase1-remote-ops.md`): proceed only if the estimate × 1.5 fits.
 
-Verify the two stores agree:
+**What a run does.** It compares two hashes per module with what D1 holds
+(`GET /admin/hashes`): `text_hash` (embedding model + embedded-text version + text) and
+`row_hash` (normaliser version + every column D1 stores + the Vectorize metadata).
 
-```bash
-npx wrangler d1 execute nusmods --remote --command "SELECT COUNT(*) FROM modules"
-npx wrangler vectorize info nusmods-modules
-```
+- Text changed: the module is re-embedded, then the vector and the row are upserted.
+- Only the row changed: the row is rewritten, and the vector is re-upserted with its
+  stored values under the new metadata. There is no new embedding.
+- Unchanged: skipped. A rerun with nothing changed writes nothing but the facets row.
+- Codes D1 holds that the corpus no longer offers are deleted through `/admin/delete`
+  (Vectorize first, then D1). Deletes run last, and only if every upsert batch succeeded.
 
-Vectorize applies upserts asynchronously — `vectorCount` lags by a minute or two after a
-large ingest before it settles. That is expected, not a failure.
+The run then rebuilds the facets row and waits, by polling `describe()`, until Vectorize
+has processed its last mutation. Only then does it write `src/data-version.json`, the
+`/search` cache-key version (a hash of every code and row hash).
 
-**The admin routes do not exist in production.** `/admin/ingest` and `/admin/hashes`
-return 404 unless an `INGEST_SECRET` is bound, and the deployed Worker has none. Ingest is
-run locally against `wrangler dev --remote`. Do not `wrangler secret put INGEST_SECRET`
-unless you intend to expose a write endpoint on the public URL.
+**Guards.** Each one stops the run before it writes anything:
+
+- the database lacks migration 0006. Rewriting rows through the old FTS triggers reads
+  ~46M rows (FINDINGS B3);
+- the corpus offers fewer than 95% of the codes D1 holds (pass `--allow-mass-delete` if
+  the drop is real);
+- the corpus mixes acad years or repeats a code;
+- the Worker embeds with a different model than `text_hash` assumes.
+
+**Write budget.** `--write-budget` (default 40,000 D1 rows, ADR 0002) is summed from the
+`meta.rows_written` each admin response reports. Before a batch would pass it, the run
+stops cleanly (exit 2) and prints how to resume. Rerun the same command: the hash skip
+sends only what is still pending. A stopped `--force` run resumes with `--from <code>`.
+A forced full re-ingest costs ~35k rows read and ~34.4k written. Loading an empty
+database costs ~48k written, so it takes two runs at the default budget
+([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md)).
+
+**Download cache.** `.data/` entries keep NUSMods' `ETag` and `Last-Modified` in a
+`<file>.cache.json` sidecar. An entry older than `--max-age` (default `24h`) is
+revalidated with `If-None-Match`; `--offline` uses the cache as it is and never fetches.
+
+Other flags: `--force` (re-embed and rewrite everything), `--batch`, `--concurrency` and
+`--wait-timeout` (default `10m`). Exit codes: 0 done, 1 refused or failed, 2 stopped by
+the budget, 3 Vectorize did not confirm the last mutation in time (D1 is complete; verify
+later).
+
+**The admin routes do not exist in production.** `/admin/*` returns 404 unless an
+`INGEST_SECRET` is bound, and the deployed Worker has none. Ingest is run locally against
+`wrangler dev --remote`. Do not `wrangler secret put INGEST_SECRET` unless you intend to
+expose a write endpoint on the public URL.
 
 ## Evaluation
 
@@ -211,7 +246,7 @@ this README said the opposite; its own numbers did not support it (FINDINGS B9).
 | | Workers Free | cost here |
 |---|---|---|
 | **D1 rows read** | **5,000,000 / day** (enforced since 1 Sep 2026) | per search: pending: measured after the Phase 1 deploy (local grid: [`lexical-cost.md`](docs/evidence/phase1/lexical-cost.md)); 1 per page load |
-| D1 rows written | 100,000 / day | ~34,400 per forced full re-ingest, measured locally ([`0006-cost.md`](docs/evidence/phase1/0006-cost.md)); a rerun with nothing changed writes ~0 |
+| D1 rows written | 100,000 / day | ~34,400 per forced full re-ingest (and ~35,100 read), measured locally ([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md)); a rerun with nothing changed writes 2 |
 | Vectorize stored dims | 5,000,000 | 6,771 × 384 = **2,600,064** (52%) |
 | Vectorize queried dims | 30,000,000 / month | ~71,354 searches/month (below) |
 
