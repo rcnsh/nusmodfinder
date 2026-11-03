@@ -59,3 +59,24 @@ Append-only. Re-read this file and `docs/PLAN.md` after every compaction or new 
   indexing `code` in FTS or raising depth to 100 would change rankings; a D1 write overrun is an
   account-wide outage; a reused holdout inflates SC5's false-positive rate (simulated 14% vs 2.5%).
 - Tagged `eval-v0` = `7ac9841` (ranker identical to production).
+
+## 2026-11-04 — Phase 2 workstream 2a (eval harness)
+
+- Branch `phase2/harness`: eval runner (`vitest.eval.config.mjs`, separate from `npm test`;
+  actual Worker in workerd, seeded through `/admin/ingest`, fake Vectorize with real corpus
+  vectors, fake AI serving precomputed vectors and failing loudly otherwise), custom reporter via
+  `task.meta`, `--ref` overlay (used with `eval-v0`), metrics/stats/gate, `scripts/embed.mjs`,
+  holdout custody (`scripts/holdout.mjs`, AES-256-GCM, ledger, 12-look limit), CLI
+  (`eval`, `eval:report`, `eval:pool`, `eval:embed`, `eval:verify`, `test:eval`). v1 eval moved
+  to `eval/v1/`. Docs: `eval/README.md`.
+- **Workers AI neurons (estimated from token counts, 1,841/M tokens; logged in
+  `docs/evidence/neurons.tsv`): 1,837.2 total** = fixture set 6.7 (31 texts, 1 request) + one
+  corpus pass 1,829.1 (5,920 unique texts, 60 requests) + determinism check 1.4 (3 texts).
+  No Vectorize, D1 remote, deploy, live-site or api.nusmods.com call.
+- Release `emb-bge-small-v0` (corpus embeddings, text = `embeddingText()` at `eval-v0`):
+  `corpus.f32.gz` sha256 `584555bb3a5d277c82b93ac4b4a0774ccf49004d7836df66a7aa7716ec70a3f2`,
+  `corpus.index.json` sha256 `2de0622cd47bba4befb4e0532904fcb0c4854e066639c9bb82479f38dc84d495`.
+- Finding: Workers AI embeddings are not bit-deterministic across calls/batches. Same text,
+  two REST calls: cosine 0.9994–0.9998; batch of 31 vs batches of 100: min 0.9797, median 0.9957
+  (23 texts). Relevant to the 2c fidelity check (offline vs live near-tie order).
+- Full-corpus smoke run (fixture queries, 6,771 modules, `--ref eval-v0`): 19 s end to end.
