@@ -1,0 +1,324 @@
+{
+ "id": "d-039",
+ "path": "/search?q=history+of+migration+and+diaspora",
+ "status": 200,
+ "ttfbMs": 927,
+ "totalMs": 929,
+ "at": "2026-11-03T19:48:38.448Z",
+ "headers": {
+  "cf-cache-status": null,
+  "cf-ray": "a54de5cc598eddfc-SIN",
+  "age": null,
+  "server-timing": null
+ },
+ "body": {
+  "query": "history of migration and diaspora",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 86
+  },
+  "results": [
+   {
+    "code": "HY3260",
+    "title": "Chinese Migrations in World History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03200204813108039
+   },
+   {
+    "code": "UTW1001K",
+    "title": "Meaning of Home and Identity in the Diaspora",
+    "department": "Center for Engl Lang Comms",
+    "faculty": "Center for Engl Lang Comms",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03131881575727918
+   },
+   {
+    "code": "CHC5339",
+    "title": "Chinese Diaspora and Mass Media in the 20th Century",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03036576949620428
+   },
+   {
+    "code": "JS4233",
+    "title": "Japan’s Immigration Politics in Global Perspective",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03021353930031804
+   },
+   {
+    "code": "ENC5239",
+    "title": "Literature of the Anglophone Chinese Diaspora",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.030117753623188408
+   },
+   {
+    "code": "GSA5401",
+    "title": "Ethnicity, Migration, and Population Diversity",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.029857397504456328
+   },
+   {
+    "code": "GESS1007",
+    "title": "Singapore’s Business History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02900988017658188
+   },
+   {
+    "code": "GES1009",
+    "title": "Singapore’s Business History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.028991596638655463
+   },
+   {
+    "code": "CHC5360",
+    "title": "Chinese Dialects Overseas",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.028205128205128206
+   },
+   {
+    "code": "GEC1043",
+    "title": "Feasting and Fasting: Global Histories of Food",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.027056277056277056
+   },
+   {
+    "code": "NHS2102",
+    "title": "Polysemic Migration",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02649122807017544
+   },
+   {
+    "code": "NTW2006",
+    "title": "Human Trafficking and Labour Migration",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02548701298701299
+   },
+   {
+    "code": "GSA5208",
+    "title": "Sensory Asia: Culture, Society, and Experience",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.024393871783430016
+   },
+   {
+    "code": "CL3231",
+    "title": "Overseas Chinese Society",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.023799640237996404
+   },
+   {
+    "code": "NHS2053",
+    "title": "The Heterogeneous Indians of Contemporary Singapore",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "HY1101E",
+    "title": "Engaging Asia: A Global History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2,
+     4
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.015625
+   },
+   {
+    "code": "TPS5242",
+    "title": "Visualising Orientalism, Travel and Performance",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "TPS5232",
+    "title": "Performance, History and Cultural Memory",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "HY5210",
+    "title": "Approaches to Modern Se Asian History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "HY5422",
+    "title": "Time and Space: Doing History with GIS",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   }
+  ]
+ }
+}
