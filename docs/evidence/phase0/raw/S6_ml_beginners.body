@@ -1,0 +1,305 @@
+{
+  "query": "machine learning for beginners",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 50,
+    "lexical": 50,
+    "fused": 74
+  },
+  "results": [
+    {
+      "code": "EE2211",
+      "title": "Introduction to Machine Learning",
+      "department": "Electrical and Computer Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030090497737556562
+    },
+    {
+      "code": "DSS5104",
+      "title": "Machine Learning and Predictive Modelling",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02964426877470356
+    },
+    {
+      "code": "DSA5102",
+      "title": "Foundations of Machine Learning",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.027598020555767037
+    },
+    {
+      "code": "EC4308",
+      "title": "Machine Learning and Economic Forecasting",
+      "department": "Economics",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02738970588235294
+    },
+    {
+      "code": "DSA5105",
+      "title": "Principles of Machine Learning",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.027272727272727275
+    },
+    {
+      "code": "ECA5304",
+      "title": "Machine Learning and Economic Forecasting",
+      "department": "Economics",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02724014336917563
+    },
+    {
+      "code": "CS2251",
+      "title": "Optimization for Machine Learning",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.026838432635534086
+    },
+    {
+      "code": "EE3703",
+      "title": "Machine Learning with Applications",
+      "department": "Electrical and Computer Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02638888888888889
+    },
+    {
+      "code": "CG3201",
+      "title": "Machine Learning and Deep Learning",
+      "department": "Computing and Engineering Programme",
+      "faculty": "Multi Disciplinary Programme",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.026140526140526144
+    },
+    {
+      "code": "EE5026",
+      "title": "Machine Learning for Data Analytics",
+      "department": "Electrical and Computer Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 2,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.025155279503105588
+    },
+    {
+      "code": "CS2109HS",
+      "title": "Introduction to AI and Machine Learning",
+      "department": "FoS Dean's Office",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.024922600619195046
+    },
+    {
+      "code": "IS2109",
+      "title": "AI and Machine Learning Techniques I",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.024877149877149878
+    },
+    {
+      "code": "CS4262",
+      "title": "Machine Learning Systems",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.024414620217018845
+    },
+    {
+      "code": "FT5005",
+      "title": "Machine Learning for Finance",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.024336928009326728
+    },
+    {
+      "code": "PF3211",
+      "title": "Machine Learning for the Built Environment",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.023676099747828524
+    },
+    {
+      "code": "CS5339",
+      "title": "Theory and Algorithms for Machine Learning",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.023431077007399288
+    },
+    {
+      "code": "CN3105",
+      "title": "Machine Learning in Chemical Engineering",
+      "department": "Chemical and Biomolecular Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.023138297872340424
+    },
+    {
+      "code": "CS2109S",
+      "title": "Introduction to AI and Machine Learning",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02307489451476793
+    },
+    {
+      "code": "CS5462",
+      "title": "Machine Learning Systems",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.022961816305469555
+    },
+    {
+      "code": "ECA5308",
+      "title": "Machine Learning for Applied Economics",
+      "department": "Economics",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02292152292152292
+    }
+  ]
+}

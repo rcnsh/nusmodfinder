@@ -1,0 +1,19 @@
+{
+  // Worker side: src/ and the tests that run inside workerd. Node-side
+  // scripts and configs are checked by tsconfig.node.json.
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "lib": ["es2023"],
+    "types": ["@cloudflare/vitest-plugin/types"],
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "include": ["worker-configuration.d.ts", "scripts/corpus-types.d.ts", "src/**/*", "test/**/*"],
+  "exclude": ["test/fixtures/**"]
+}

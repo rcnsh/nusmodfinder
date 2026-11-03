@@ -1,0 +1,300 @@
+{
+  "query": "AI",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 50,
+    "lexical": 50,
+    "fused": 86
+  },
+  "results": [
+    {
+      "code": "CDE2212",
+      "title": "AI for Design",
+      "department": "Architecture",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.03177805800756621
+    },
+    {
+      "code": "SCE5131",
+      "title": "AI for Sustainable Chemistry",
+      "department": "Chemistry",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.029236022193768675
+    },
+    {
+      "code": "MSI5001",
+      "title": "Introduction to AI: Concepts, Applications, and Evaluation",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02877846790890269
+    },
+    {
+      "code": "CS6282",
+      "title": "Topics in Computer Science: AI meets Science - Science-Inspired AI and AI for Science",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 6,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.027757078986587184
+    },
+    {
+      "code": "HS1503",
+      "title": "Living with AI: Understanding the Technology that’s Changing Everything",
+      "department": "Philosophy",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0264957264957265
+    },
+    {
+      "code": "MLE5243",
+      "title": "Current Topics in Materials AI",
+      "department": "Materials Science and Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02419816723940435
+    },
+    {
+      "code": "MLE4230",
+      "title": "Current Topics in Materials AI",
+      "department": "Materials Science and Engineering",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.022559217947111167
+    },
+    {
+      "code": "PR5227",
+      "title": "AI in Pharmaceutical Applications",
+      "department": "PharmacyandPharmaceuticalScience",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02224694104560623
+    },
+    {
+      "code": "PHM5005",
+      "title": "AI and Machine Learning for Precision Medicine",
+      "department": "Biochemistry",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02214960058097313
+    },
+    {
+      "code": "CP4281",
+      "title": "Emerging Topics in Computing I: AI for Graphics",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.022005772005772008
+    },
+    {
+      "code": "BPS5231",
+      "title": "AI for Sustainable Building Design",
+      "department": "Built Environment",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.021405677655677656
+    },
+    {
+      "code": "SPH5424",
+      "title": "Artificial Intelligence (AI) for Health",
+      "department": "SSH School of Public Health Dean's Office",
+      "faculty": "SSH School of Public Health",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.020939017808958446
+    },
+    {
+      "code": "BL5633",
+      "title": "Applications of AI in Biotech and Biomed",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02046142603612068
+    },
+    {
+      "code": "IS2108",
+      "title": "Full-stack Software Engineering for AI Solutions I",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02041026698278528
+    },
+    {
+      "code": "IT5005",
+      "title": "Artificial Intelligence",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.016129032258064516
+    },
+    {
+      "code": "MSI5004",
+      "title": "AI Governance and Ethics",
+      "department": "FoL Dean's Office",
+      "faculty": "Law",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.016129032258064516
+    },
+    {
+      "code": "IS5010",
+      "title": "AI Ethics and Governance",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015873015873015872
+    },
+    {
+      "code": "DSA5210",
+      "title": "AI for Mathematics",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015873015873015872
+    },
+    {
+      "code": "IS4400",
+      "title": "Human-AI Interaction",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.015625
+    },
+    {
+      "code": "CM5231",
+      "title": "AI in Chemistry",
+      "department": "Chemistry",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015625
+    }
+  ]
+}

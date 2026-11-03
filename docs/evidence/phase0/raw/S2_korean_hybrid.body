@@ -1,0 +1,317 @@
+{
+  "query": "learn korean",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 50,
+    "lexical": 50,
+    "fused": 90
+  },
+  "results": [
+    {
+      "code": "LAK2201",
+      "title": "Korean 2",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.03225806451612903
+    },
+    {
+      "code": "LAK1201",
+      "title": "Korean 1",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.03177805800756621
+    },
+    {
+      "code": "LAK3201",
+      "title": "Korean 3",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.031746031746031744
+    },
+    {
+      "code": "LAK4201",
+      "title": "Korean 5",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.031544957774465976
+    },
+    {
+      "code": "LAK3202",
+      "title": "Korean 4",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.03125
+    },
+    {
+      "code": "LAK4202",
+      "title": "Korean 6",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030309988518943745
+    },
+    {
+      "code": "NTW2041",
+      "title": "The Popularity of Korean Culture",
+      "department": "NUS College Dean's Office",
+      "faculty": "NUS College",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.03007688828584351
+    },
+    {
+      "code": "JS2233",
+      "title": "Idols and Celebrities in Japan and Korea",
+      "department": "Japanese Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.02761904761904762
+    },
+    {
+      "code": "SC2229",
+      "title": "K-drama and Sociological Imagination",
+      "department": "Sociology and Anthropology",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.02715098147128967
+    },
+    {
+      "code": "MUA3217",
+      "title": "Music Markets in Western, Korean, and Singaporean Contexts: A Storytelling Approach",
+      "department": "YSTCM Dean's Office",
+      "faculty": "YST Conservatory of Music",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02413984461709212
+    },
+    {
+      "code": "MUA3224",
+      "title": "Intermediate Keyboard Studies",
+      "department": "YSTCM Dean's Office",
+      "faculty": "YST Conservatory of Music",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.014705882352941176
+    },
+    {
+      "code": "SE2221",
+      "title": "Old and New Music in Southeast Asia",
+      "department": "Southeast Asian Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014492753623188406
+    },
+    {
+      "code": "MUA3225",
+      "title": "Early Advanced Keyboard Studies",
+      "department": "YSTCM Dean's Office",
+      "faculty": "YST Conservatory of Music",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014285714285714285
+    },
+    {
+      "code": "LAJ1201",
+      "title": "Japanese 1",
+      "department": "Centre for Language Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.014084507042253521
+    },
+    {
+      "code": "BME5110",
+      "title": "Navigating Asia's Geostrategic Landscape",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 2,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014084507042253521
+    },
+    {
+      "code": "CG3201",
+      "title": "Machine Learning and Deep Learning",
+      "department": "Computing and Engineering Programme",
+      "faculty": "Multi Disciplinary Programme",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.013888888888888888
+    },
+    {
+      "code": "CH2110",
+      "title": "How bad is my Chinese anyway? Ask a linguist.",
+      "department": "Chinese Studies",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013888888888888888
+    },
+    {
+      "code": "NUR5701",
+      "title": "Learning Needs Analysis",
+      "department": "Alice Lee Center for Nursing Studies",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 2,
+      "level": 5,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0136986301369863
+    },
+    {
+      "code": "EM1201",
+      "title": "English for Academic Purposes (Music) 1",
+      "department": "Center for Engl Lang Comms",
+      "faculty": "Center for Engl Lang Comms",
+      "credits": 0,
+      "level": 1,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0136986301369863
+    },
+    {
+      "code": "NM3253",
+      "title": "Fandoms to Algorithms: K-Pop, Data and Culture",
+      "department": "Communications and New Media",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013513513513513514
+    }
+  ]
+}

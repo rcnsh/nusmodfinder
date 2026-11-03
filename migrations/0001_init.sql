@@ -1,5 +1,7 @@
 -- D1 is the source of truth for everything the API displays. Vectorize stores
 -- only the embedding plus the handful of small properties that get filtered on.
+-- This is the pre-0002 shape: `ng`/`ng_semesters` are added by 0003, the FTS
+-- table by 0002 and `meta` by 0004.
 CREATE TABLE IF NOT EXISTS modules (
   code         TEXT PRIMARY KEY,
   title        TEXT NOT NULL,
@@ -16,17 +18,3 @@ CREATE TABLE IF NOT EXISTS modules (
   text_hash    TEXT NOT NULL  -- hash of the embedded blob, for skip-on-reingest
 );
 CREATE INDEX IF NOT EXISTS idx_modules_faculty ON modules(faculty);
-
--- Lexical half of the hybrid retriever; see migrations/0002_fts.sql.
-CREATE VIRTUAL TABLE IF NOT EXISTS modules_fts USING fts5(
-  code UNINDEXED, title, description, tokenize = 'porter unicode61'
-);
-
--- Non-Graduating (exchange) availability; see migrations/0003_ng.sql.
--- ALTER statements live in the migration so a fresh database and an existing
--- one converge on the same shape.
-
--- Precomputed facet counts; see migrations/0004_meta.sql.
-CREATE TABLE IF NOT EXISTS meta (
-  key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
-);

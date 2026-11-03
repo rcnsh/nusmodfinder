@@ -1,6 +1,17 @@
+// @ts-check
 // Shared helpers for probing, ingesting and evaluating the NUSMods corpus.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+
+/**
+ * The fields of a NUSMods v2 moduleInfo record this code reads.
+ * @typedef {{
+ *   moduleCode?: string, title?: string, description?: string, moduleCredit?: string | number,
+ *   department?: string, faculty?: string, semesterData?: { semester?: unknown }[],
+ *   workload?: unknown, prerequisite?: string, preclusion?: string,
+ * }} NusModsRecord
+ * @typedef {Awaited<ReturnType<typeof loadNgCourses>>} NgCourses
+ */
 
 export const DEFAULT_ACAD_YEAR = '2026-2027';
 export const EMBEDDING_MODEL = '@cf/baai/bge-small-en-v1.5';
@@ -17,6 +28,10 @@ export const MAX_BLOB_CHARS = 1900;
 // A query only short-circuits if the code actually exists, so a loose match is safe.
 export const MODULE_CODE_RE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 
+/**
+ * @param {string} acadYear
+ * @param {string} file
+ */
 export async function fetchAcadYearFile(acadYear, file) {
   const url = `https://api.nusmods.com/v2/${acadYear}/${file}`;
   await mkdir(CACHE_DIR, { recursive: true });
@@ -45,6 +60,7 @@ export async function fetchAcadYearFile(acadYear, file) {
 const REQUIRED_KEYS = ['moduleCode', 'title', 'description', 'moduleCredit', 'faculty', 'semesterData'];
 
 // Aborts rather than writing malformed rows if NUSMods changes shape (L6).
+/** @param {unknown} records */
 export function assertExpectedShape(records) {
   if (!Array.isArray(records) || records.length === 0) {
     throw new Error('moduleInfo.json was not a non-empty array');
@@ -57,18 +73,24 @@ export function assertExpectedShape(records) {
   }
 }
 
+/** @param {string} moduleCode */
 export function levelOf(moduleCode) {
   const digit = moduleCode.match(/\d/);
   return digit ? Number(digit[0]) : null;
 }
 
+/**
+ * @param {NusModsRecord} record
+ * @returns {number[]}
+ */
 export function semestersOf(record) {
-  const sems = (record.semesterData ?? [])
+  const sems = /** @type {number[]} */ ((record.semesterData ?? [])
     .map((s) => s.semester)
-    .filter((s) => Number.isInteger(s));
+    .filter((s) => Number.isInteger(s)));
   return [...new Set(sems)].sort((a, b) => a - b);
 }
 
+/** @param {NusModsRecord} record */
 export function embeddingText(record) {
   const blob = [record.title, record.department, record.faculty, record.description]
     .filter((part) => typeof part === 'string' && part.trim())
@@ -78,6 +100,7 @@ export function embeddingText(record) {
   return blob.length > MAX_BLOB_CHARS ? blob.slice(0, MAX_BLOB_CHARS) : blob;
 }
 
+/** @param {string} text */
 export function hashOf(text) {
   return createHash('sha256').update(text).digest('hex').slice(0, 32);
 }
@@ -86,25 +109,32 @@ export function hashOf(text) {
 // PDF, so it is extracted by scripts/extract-ng.py into a committed artifact
 // rather than fetched. Absent file => no NG data, and every module is marked
 // unknown rather than silently false.
+/** @param {string} acadYear */
 export async function loadNgCourses(acadYear) {
   const path = new URL(`../data/ng-courses-${acadYear}.json`, import.meta.url);
   try {
     const data = JSON.parse(await readFile(path, 'utf8'));
+    /** @type {Map<string, number[]>} */
     const bySem = new Map();
-    for (const [sem, codes] of Object.entries(data.semesters ?? {})) {
+    for (const [sem, codes] of /** @type {[string, string[]][]} */ (Object.entries(data.semesters ?? {}))) {
       for (const code of codes) {
         if (!bySem.has(code)) bySem.set(code, []);
-        bySem.get(code).push(Number(sem));
+        /** @type {number[]} */ (bySem.get(code)).push(Number(sem));
       }
     }
     for (const sems of bySem.values()) sems.sort((a, b) => a - b);
     return { available: true, bySem, updatedAsAt: data.updatedAsAt, total: bySem.size };
   } catch {
-    return { available: false, bySem: new Map(), updatedAsAt: null, total: 0 };
+    return { available: false, bySem: /** @type {Map<string, number[]>} */ (new Map()), updatedAsAt: null, total: 0 };
   }
 }
 
 // One normalised module. `skipped` explains why a record was dropped (R2).
+/**
+ * @param {NusModsRecord} record
+ * @param {string} acadYear
+ * @returns {{ skipped: string, module?: undefined } | { module: NormalisedModule, skipped?: undefined }}
+ */
 export function normalise(record, acadYear) {
   const code = record.moduleCode;
   if (!code || typeof code !== 'string') return { skipped: 'missing moduleCode' };
@@ -140,12 +170,20 @@ export function normalise(record, acadYear) {
 
 // Only modules actually offered this acad year are indexed. moduleInfo.json
 // carries the whole historical catalogue; see PHASE1.md for the sizing reason.
+/**
+ * @param {NusModsRecord[]} records
+ * @param {string} acadYear
+ * @param {NgCourses | null} [ngCourses]
+ */
 export function offeredModules(records, acadYear, ngCourses = null) {
+  /** @type {NormalisedModule[]} */
   const modules = [];
+  /** @type {{ code: string, why: string }[]} */
   const skipped = [];
   for (const record of records) {
     if (semestersOf(record).length === 0) continue;
-    const { module, skipped: why } = normalise(record, acadYear);
+    // `skipped` is set exactly when `module` is not, which tsc cannot follow through the destructure.
+    const { module, skipped: why } = /** @type {{ module: NormalisedModule, skipped?: string }} */ (normalise(record, acadYear));
     if (why) { skipped.push({ code: record.moduleCode ?? '<no code>', why }); continue; }
     if (ngCourses?.available) {
       const sems = ngCourses.bySem.get(module.code);
@@ -156,6 +194,7 @@ export function offeredModules(records, acadYear, ngCourses = null) {
   return { modules, skipped };
 }
 
+/** @param {NormalisedModule} module */
 export function vectorMetadata(module) {
   return {
     code: module.code,

@@ -1,0 +1,791 @@
+{
+  "query": "management",
+  "filters": {
+    "sem": 3
+  },
+  "count": 50,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 50,
+    "lexical": 6,
+    "fused": 50
+  },
+  "results": [
+    {
+      "code": "TCX2003",
+      "title": "Database Systems and Management",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.03225806451612903
+    },
+    {
+      "code": "BMC5415",
+      "title": "Managing Human Capital Today",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 2,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.032018442622950824
+    },
+    {
+      "code": "BME5046",
+      "title": "Managing Organisations",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.031544957774465976
+    },
+    {
+      "code": "BMA5134",
+      "title": "Entrepreneurial Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.031009615384615385
+    },
+    {
+      "code": "TCX2005",
+      "title": "Information Systems, Management and Organisations",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030536130536130537
+    },
+    {
+      "code": "BME5042",
+      "title": "Accounting and Information Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.03036576949620428
+    },
+    {
+      "code": "BMA5013",
+      "title": "Corporate Strategy",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.015873015873015872
+    },
+    {
+      "code": "TSC3100",
+      "title": "Supply Chain Design",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 8,
+      "level": 3,
+      "semesters": [
+        1,
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014925373134328358
+    },
+    {
+      "code": "BME5058",
+      "title": "Leadership in the Era of Disruption",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014705882352941176
+    },
+    {
+      "code": "BME5106",
+      "title": "ESG Strategies and Corporate Governance",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014285714285714285
+    },
+    {
+      "code": "BMC5130",
+      "title": "Governance and sustainable business",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.014084507042253521
+    },
+    {
+      "code": "TSC4101",
+      "title": "B. Tech Dissertation",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 8,
+      "level": 4,
+      "semesters": [
+        1,
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013888888888888888
+    },
+    {
+      "code": "IE5666",
+      "title": "Industrial Attachment",
+      "department": "Industrial Systems Engineering and Management",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0136986301369863
+    },
+    {
+      "code": "BMA5302",
+      "title": "Investment Analysis and Management",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013513513513513514
+    },
+    {
+      "code": "MTM5101",
+      "title": "Maritime Industrial Attachment",
+      "department": "Industrial Systems Engineering and Management",
+      "faculty": "College of Design and Engineering",
+      "credits": 12,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013333333333333334
+    },
+    {
+      "code": "IND5005",
+      "title": "Industry Consulting and Application Project",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.013157894736842105
+    },
+    {
+      "code": "GEC1040T",
+      "title": "A Culture of Sustainability",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 1,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.012987012987012988
+    },
+    {
+      "code": "BMA5430",
+      "title": "Judgment and Decision Making Under Uncertainty",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01282051282051282
+    },
+    {
+      "code": "TIE3100",
+      "title": "Systems Design Project",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 8,
+      "level": 3,
+      "semesters": [
+        1,
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.012658227848101266
+    },
+    {
+      "code": "IND5005B",
+      "title": "Industry Consulting and Application Project",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 3,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.0125
+    },
+    {
+      "code": "BMA5303",
+      "title": "Financial Statement Analysis",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.012345679012345678
+    },
+    {
+      "code": "BL5240",
+      "title": "Skills for Research Survival and Excellence",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.012195121951219513
+    },
+    {
+      "code": "IS4010",
+      "title": "Digital Transformation Leadership Programme",
+      "department": "Information Systems and Analytics",
+      "faculty": "Computing",
+      "credits": 12,
+      "level": 4,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.012048192771084338
+    },
+    {
+      "code": "BMC5839",
+      "title": "Navigating Change: Strategy, Tech & Global Leadership",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011904761904761904
+    },
+    {
+      "code": "BME5107",
+      "title": "Futures Thinking and Scenario Planning",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011764705882352941
+    },
+    {
+      "code": "MEM5103",
+      "title": "Capstone Project for Environmental Management",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011627906976744186
+    },
+    {
+      "code": "BL5699",
+      "title": "Capstone Project in Biotechnology",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 8,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011494252873563218
+    },
+    {
+      "code": "HM5106",
+      "title": "Psychogeriatrics",
+      "department": "Division of Graduate Medical Studies",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011363636363636364
+    },
+    {
+      "code": "BME5040",
+      "title": "Business Analytics and Decision Making",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011235955056179775
+    },
+    {
+      "code": "BMA5138",
+      "title": "Digital Business Transformation",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.011111111111111112
+    },
+    {
+      "code": "BMC5036",
+      "title": "Corporate finance",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01098901098901099
+    },
+    {
+      "code": "ZB3289",
+      "title": "Advanced UROPS in Computational Biology II",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010869565217391304
+    },
+    {
+      "code": "LSM3289",
+      "title": "Advanced UROPS in Life Sciences II",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010752688172043012
+    },
+    {
+      "code": "BME5044",
+      "title": "Communications, Influence and Negotiations",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010638297872340425
+    },
+    {
+      "code": "BMP5300",
+      "title": "Business Project",
+      "department": "BIZ Dean's Office",
+      "faculty": "NUS Business School",
+      "credits": 8,
+      "level": 5,
+      "semesters": [
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010526315789473684
+    },
+    {
+      "code": "CP3880",
+      "title": "Advanced Technology Attachment Programme",
+      "department": "SoC Dean's Office",
+      "faculty": "Computing",
+      "credits": 12,
+      "level": 3,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010416666666666666
+    },
+    {
+      "code": "FST2204",
+      "title": "Seafood Supply Chains in Japan and Singapore",
+      "department": "Food Science and Technology",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010309278350515464
+    },
+    {
+      "code": "BL5690",
+      "title": "Internship Project in Biotechnology",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 12,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01020408163265306
+    },
+    {
+      "code": "NUR5723",
+      "title": "Multisystem Nursing Practice II",
+      "department": "Alice Lee Center for Nursing Studies",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.010101010101010102
+    },
+    {
+      "code": "PHM5016",
+      "title": "Capstone project in Precision Medicine",
+      "department": "Biochemistry",
+      "faculty": "Yong Loo Lin Sch of Medicine",
+      "credits": 8,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.01
+    },
+    {
+      "code": "CG4001",
+      "title": "B. Eng. Dissertation",
+      "department": "Computing and Engineering Programme",
+      "faculty": "Multi Disciplinary Programme",
+      "credits": 12,
+      "level": 4,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009900990099009901
+    },
+    {
+      "code": "DSA4510",
+      "title": "Startups in Data-Driven Economies",
+      "department": "Statistics and Data Science",
+      "faculty": "Science",
+      "credits": 2,
+      "level": 4,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.00980392156862745
+    },
+    {
+      "code": "LSM2289",
+      "title": "Basic UROPS in Life Sciences II",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009708737864077669
+    },
+    {
+      "code": "PP5146",
+      "title": "Decentralization, Governance & Sustainable Development",
+      "department": "LKYSPP Dean's Office",
+      "faculty": "LKY School of Public Policy",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009615384615384616
+    },
+    {
+      "code": "PC5287",
+      "title": "M.SC Coursework Thesis for Physics And Technology",
+      "department": "Physics",
+      "faculty": "Science",
+      "credits": 8,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009523809523809525
+    },
+    {
+      "code": "LSM3288",
+      "title": "Advanced UROPS in Life Sciences I",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009433962264150943
+    },
+    {
+      "code": "LSM2288",
+      "title": "Basic UROPS in Life Sciences I",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009345794392523364
+    },
+    {
+      "code": "ZB3288",
+      "title": "Advanced UROPS in Computational Biology I",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009259259259259259
+    },
+    {
+      "code": "ID5358",
+      "title": "Design Research Immersion Programme",
+      "department": "Design",
+      "faculty": "College of Design and Engineering",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.009174311926605505
+    },
+    {
+      "code": "BL5199",
+      "title": "Research Project in Conservation and Nature-based Climate Solutions",
+      "department": "Biological Sciences",
+      "faculty": "Science",
+      "credits": 12,
+      "level": 5,
+      "semesters": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.00909090909090909
+    }
+  ]
+}

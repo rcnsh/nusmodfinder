@@ -1,0 +1,19 @@
+{
+  // Node side: scripts/ and tool configs. checkJs is off so the pre-Phase-0
+  // scripts (eval, ingest, judge, ...) are not checked until they are typed;
+  // files opt in with `// @ts-check`.
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["es2023"],
+    "types": ["node"],
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "include": ["scripts/**/*.mjs", "*.mjs", "scripts/corpus-types.d.ts"]
+}

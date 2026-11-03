@@ -1,0 +1,605 @@
+https://vector-nusmods.jacobjameswiltshire.workers.dev/search?q=graph+theory&topK=9 http=200 reused=1 tls=1.240627 ttfb=2.590389 total=2.594898
+{
+  "query": "graph theory",
+  "filters": {},
+  "count": 9,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 27,
+    "lexical": 27,
+    "fused": 42
+  },
+  "results": [
+    {
+      "code": "MA4235",
+      "title": "Topics in Graph Theory",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.03278688524590164
+    },
+    {
+      "code": "MA2214",
+      "title": "Combinatorics and Graphs I",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.03225806451612903
+    },
+    {
+      "code": "MA3233",
+      "title": "Combinatorics and Graphs II",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.031746031746031744
+    },
+    {
+      "code": "CS5284",
+      "title": "Graph Machine Learning",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030776515151515152
+    },
+    {
+      "code": "CS3230",
+      "title": "Design and Analysis of Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.028577260665441927
+    },
+    {
+      "code": "CS6234",
+      "title": "Advanced Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 6,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02817460317460317
+    },
+    {
+      "code": "TCX2001",
+      "title": "Data Structures and Algorithms",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02712049508554787
+    },
+    {
+      "code": "CS2040",
+      "title": "Data Structures and Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.026709401709401708
+    },
+    {
+      "code": "CS2040HS",
+      "title": "Data Structures and Algorithms",
+      "department": "Geography",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02668564312399929
+    }
+  ]
+}https://vector-nusmods.jacobjameswiltshire.workers.dev/search?q=graph+theory&topK=9 http=200 reused=0 tls=0.000000 ttfb=2.893463 total=2.893678
+{
+  "query": "graph theory",
+  "filters": {},
+  "count": 9,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 27,
+    "lexical": 27,
+    "fused": 42
+  },
+  "results": [
+    {
+      "code": "MA4235",
+      "title": "Topics in Graph Theory",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.03278688524590164
+    },
+    {
+      "code": "MA2214",
+      "title": "Combinatorics and Graphs I",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.03225806451612903
+    },
+    {
+      "code": "MA3233",
+      "title": "Combinatorics and Graphs II",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.031746031746031744
+    },
+    {
+      "code": "CS5284",
+      "title": "Graph Machine Learning",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030776515151515152
+    },
+    {
+      "code": "CS3230",
+      "title": "Design and Analysis of Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.028577260665441927
+    },
+    {
+      "code": "CS6234",
+      "title": "Advanced Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 6,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02817460317460317
+    },
+    {
+      "code": "TCX2001",
+      "title": "Data Structures and Algorithms",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02712049508554787
+    },
+    {
+      "code": "CS2040",
+      "title": "Data Structures and Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.026709401709401708
+    },
+    {
+      "code": "CS2040HS",
+      "title": "Data Structures and Algorithms",
+      "department": "Geography",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02668564312399929
+    }
+  ]
+}https://vector-nusmods.jacobjameswiltshire.workers.dev/search?topK=9&q=graph+theory http=200 reused=0 tls=0.000000 ttfb=1.326530 total=1.328991
+{
+  "query": "Graph Theory",
+  "filters": {},
+  "count": 9,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 27,
+    "lexical": 27,
+    "fused": 42
+  },
+  "results": [
+    {
+      "code": "MA4235",
+      "title": "Topics in Graph Theory",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.03278688524590164
+    },
+    {
+      "code": "MA2214",
+      "title": "Combinatorics and Graphs I",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.03225806451612903
+    },
+    {
+      "code": "MA3233",
+      "title": "Combinatorics and Graphs II",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.031746031746031744
+    },
+    {
+      "code": "CS5284",
+      "title": "Graph Machine Learning",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030776515151515152
+    },
+    {
+      "code": "CS3230",
+      "title": "Design and Analysis of Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.028577260665441927
+    },
+    {
+      "code": "CS6234",
+      "title": "Advanced Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 6,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02817460317460317
+    },
+    {
+      "code": "TCX2001",
+      "title": "Data Structures and Algorithms",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02712049508554787
+    },
+    {
+      "code": "CS2040",
+      "title": "Data Structures and Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.026709401709401708
+    },
+    {
+      "code": "CS2040HS",
+      "title": "Data Structures and Algorithms",
+      "department": "Geography",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02668564312399929
+    }
+  ]
+}https://vector-nusmods.jacobjameswiltshire.workers.dev/search?q=Graph+Theory&topK=9 http=200 reused=0 tls=0.000000 ttfb=1.461931 total=1.663755
+{
+  "query": "graph theory",
+  "filters": {},
+  "count": 9,
+  "mode": "hybrid",
+  "retrieval": {
+    "vector": 27,
+    "lexical": 27,
+    "fused": 42
+  },
+  "results": [
+    {
+      "code": "MA4235",
+      "title": "Topics in Graph Theory",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 4,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.03278688524590164
+    },
+    {
+      "code": "MA2214",
+      "title": "Combinatorics and Graphs I",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1
+      ],
+      "score": 0.03225806451612903
+    },
+    {
+      "code": "MA3233",
+      "title": "Combinatorics and Graphs II",
+      "department": "Mathematics",
+      "faculty": "Science",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        2
+      ],
+      "score": 0.031746031746031744
+    },
+    {
+      "code": "CS5284",
+      "title": "Graph Machine Learning",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 5,
+      "semesters": [
+        1
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.030776515151515152
+    },
+    {
+      "code": "CS3230",
+      "title": "Design and Analysis of Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 3,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": true,
+      "ngSemesters": [
+        1,
+        2
+      ],
+      "score": 0.028577260665441927
+    },
+    {
+      "code": "CS6234",
+      "title": "Advanced Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 6,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02817460317460317
+    },
+    {
+      "code": "TCX2001",
+      "title": "Data Structures and Algorithms",
+      "department": "SCALE Dean's Office",
+      "faculty": "Cont and Lifelong Education",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02712049508554787
+    },
+    {
+      "code": "CS2040",
+      "title": "Data Structures and Algorithms",
+      "department": "Computer Science",
+      "faculty": "Computing",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.026709401709401708
+    },
+    {
+      "code": "CS2040HS",
+      "title": "Data Structures and Algorithms",
+      "department": "Geography",
+      "faculty": "Arts and Social Science",
+      "credits": 4,
+      "level": 2,
+      "semesters": [
+        1,
+        2
+      ],
+      "ng": false,
+      "ngSemesters": [],
+      "score": 0.02668564312399929
+    }
+  ]
+}https://vector-nusmods.jacobjameswiltshire.workers.dev/search?q=graph+theory&topK=9&_r=z http=200 reused=0 tls=0.000000 ttfb=1.821825 total=1.822109

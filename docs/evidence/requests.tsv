@@ -1,0 +1,40 @@
+n	kind	path_or_name	note
+1	curl	[search#1] B1_sem3 GET /search?q=management&sem=3&mode=lexical&topK=50 | http=200 connect=1.126111 ttfb=2.767319 total=2.768728 | ttfb-connect=1641ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+2	curl	[search#2] B1_nosem GET /search?q=management&mode=lexical&topK=50 | http=200 connect=1.082636 ttfb=2.663887 total=2.668937 | ttfb-connect=1581ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+3	curl	[search#3] B1_hybrid_sem3 GET /search?q=management&sem=3&topK=50 | http=200 dns=0.002005 connect=1.157454 tls=1.265277 ttfb=2.633486 total=2.636572 | ttfb-tls(server~)=1368ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+4	curl	[search#4] B4_search_1 GET /search?q=machine+learning&_r=1548210715 | http=200 dns=0.001666 connect=1.192786 tls=1.402215 ttfb=2.333730 total=2.338577 | ttfb-tls(server~)=932ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+5	curl	[other#1] B4_module_1 GET /module/CS3244?_r=1548210715 | http=200 dns=0.001706 connect=1.008940 tls=1.024592 ttfb=1.266258 total=1.268802 | ttfb-tls(server~)=242ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+6	curl	[search#5] B4_search_2 GET /search?q=machine+learning&_r=1022318710 | http=200 dns=0.001989 connect=1.083009 tls=1.391549 ttfb=2.818575 total=2.818851 | ttfb-tls(server~)=1427ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+7	curl	[other#2] B4_module_2 GET /module/CS3244?_r=1022318710 | http=200 dns=0.001923 connect=1.207453 tls=1.465360 ttfb=1.851949 total=1.854609 | ttfb-tls(server~)=387ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+8	curl	[search#6] B4_search_3 GET /search?q=machine+learning&_r=2103418635 | http=200 dns=0.001995 connect=1.085925 tls=1.496364 ttfb=2.907860 total=2.911516 | ttfb-tls(server~)=1411ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+9	curl	[other#3] B4_module_3 GET /module/CS3244?_r=2103418635 | http=200 dns=0.001653 connect=1.094720 tls=1.520207 ttfb=2.236190 total=2.238539 | ttfb-tls(server~)=716ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+10	curl	[other#4] B5_module GET /module/%E0%A4%A | http=500 dns=0.002954 connect=1.011336 tls=1.031273 ttfb=1.076184 total=1.078559 | ttfb-tls(server~)=45ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+11	curl	[search#7] B5_search GET /search?q=%E0%A4%A | http=200 dns=0.001694 connect=1.013053 tls=1.029396 ttfb=2.081638 total=2.085874 | ttfb-tls(server~)=1052ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+12	curl	[search#8] B7_base GET /search?q=data+visualisation&sem=2&topK=7 | http=200 dns=0.001582 connect=1.125616 tls=1.166059 ttfb=2.201438 total=2.204049 | ttfb-tls(server~)=1035ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+13	curl	[search#9] B7_base_repeat GET /search?q=data+visualisation&sem=2&topK=7 | http=200 dns=0.001816 connect=1.185030 tls=1.403025 ttfb=2.148054 total=2.149358 | ttfb-tls(server~)=745ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+14	curl	[search#10] B7_reordered GET /search?topK=7&sem=2&q=data+visualisation | http=200 dns=0.002238 connect=0.197950 tls=0.450726 ttfb=1.209374 total=1.209797 | ttfb-tls(server~)=759ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+15	curl	[search#11] B7_case GET /search?q=Data+Visualisation&sem=2&topK=7 | http=200 dns=0.002005 connect=1.077692 tls=1.227425 ttfb=2.249690 total=2.250077 | ttfb-tls(server~)=1022ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+16	curl	[search#12] B7_junk GET /search?q=data+visualisation&sem=2&topK=7&_r=x1 | http=200 dns=0.001737 connect=1.178536 tls=1.427307 ttfb=2.176001 total=2.176261 | ttfb-tls(server~)=749ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+17	curl	[search#13..17] B7conn same-connection run, see raw/B7conn.*	phase0 0b
+18	curl	[search#18] B8_emptyTopK GET /search?q=machine+learning&topK= | http=200 dns=0.001707 connect=1.076199 tls=1.510002 ttfb=2.731499 total=2.734647 | ttfb-tls(server~)=1221ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+19	curl	[search#19] S2_psych_hybrid GET /search?q=intro+to+psych | http=200 dns=0.001817 connect=1.014908 tls=1.029951 ttfb=1.950326 total=1.955292 | ttfb-tls(server~)=920ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+20	curl	[search#20] S2_psych_vector GET /search?q=intro+to+psych&mode=vector | http=200 dns=0.001578 connect=1.046854 tls=1.075710 ttfb=2.461472 total=2.463480 | ttfb-tls(server~)=1386ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+21	curl	[search#21] S2_korean_hybrid GET /search?q=learn+korean | http=200 dns=0.001618 connect=1.108244 tls=1.567399 ttfb=4.002711 total=4.003570 | ttfb-tls(server~)=2435ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+22	curl	[search#22] S2_korean_vector GET /search?q=learn+korean&mode=vector | http=200 dns=0.001974 connect=1.202128 tls=1.404670 ttfb=2.086942 total=2.101644 | ttfb-tls(server~)=682ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+23	curl	[search#23] S4_cs1010s GET /search?q=cs+1010s | http=200 dns=0.001993 connect=1.195518 tls=1.389247 ttfb=2.038975 total=2.044164 | ttfb-tls(server~)=650ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+24	curl	[search#24] S4_CS32 GET /search?q=CS32 | http=200 dns=0.001824 connect=1.010123 tls=1.032213 ttfb=1.887092 total=1.889457 | ttfb-tls(server~)=855ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+25	curl	[search#25] S4_GEA GET /search?q=GEA | http=200 dns=0.001674 connect=1.421106 tls=1.624283 ttfb=2.239129 total=2.242517 | ttfb-tls(server~)=615ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+26	curl	[search#26] S5_machne GET /search?q=machne+learning | http=200 dns=0.001601 connect=1.319673 tls=1.835902 ttfb=5.105166 total=5.716661 | ttfb-tls(server~)=3269ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+27	curl	[other#5] S4_module_GEA1000 GET /module/GEA1000 | http=200 dns=0.002027 connect=2.038468 tls=16.305140 ttfb=17.186898 total=20.367567 | ttfb-tls(server~)=882ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+28	curl	[search#27] S6_ml_beginners GET /search?q=machine+learning+for+beginners | http=200 dns=0.001822 connect=1.033771 tls=1.061689 ttfb=1.118996 total=1.149507 | ttfb-tls(server~)=57ms | cf-cache-status=HIT | server-timing=<absent>	phase0 0b
+29	curl	[search#28] S6_AI GET /search?q=AI | http=200 dns=0.001714 connect=1.012340 tls=1.030745 ttfb=2.174616 total=2.177811 | ttfb-tls(server~)=1144ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+30	curl	[search#29] S8_nonsense GET /search?q=xqzvbnm+flurble | http=200 dns=0.001767 connect=1.077330 tls=2.039849 ttfb=3.509755 total=3.510201 | ttfb-tls(server~)=1470ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+31	curl	[search#30] S8_TR3202 GET /search?q=TR3202 | http=200 dns=0.001701 connect=1.093778 tls=1.469917 ttfb=3.352506 total=3.352859 | ttfb-tls(server~)=1883ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+32	curl	[search#31] S8_startup_intern GET /search?q=startup+internship | http=200 dns=0.002245 connect=1.215497 tls=1.407395 ttfb=2.200855 total=2.203720 | ttfb-tls(server~)=793ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+33	curl	[search#32] P1_ml_ng_sem1 GET /search?q=machine+learning&ng=1&sem=1 | http=200 dns=0.001882 connect=1.075193 tls=1.442585 ttfb=3.032649 total=3.033679 | ttfb-tls(server~)=1590ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+34	curl	[search#33] P2_ml_ng GET /search?q=machine+learning&ng=1 | http=200 dns=0.001655 connect=2.062034 tls=2.229761 ttfb=2.863476 total=2.882873 | ttfb-tls(server~)=634ms | cf-cache-status=<absent> | server-timing=<absent>	phase0 0b
+b1	browser /search	page load ?q=machine+learning	phase0 0b fe.mjs
+b2	browser /search	Search click	phase0 0b fe.mjs
+b3	browser /search	data structures	phase0 0b fe.mjs
+o6	browser other	/ (page load)	phase0 0b fe.mjs
+o7	browser other	/facets	phase0 0b fe.mjs
