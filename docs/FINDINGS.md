@@ -23,9 +23,9 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 
 | ID | Status | Evidence |
 |---|---|---|
-| B1 | fixed | tests (fixture + full corpus, property test), live (PR #PRNUM) |
+| B1 | fixed | tests (fixture + full corpus, property test), live (PR #8) |
 | B2 | reproduced | tests |
-| B3 | fixed | tests (EXPLAIN QUERY PLAN, trigger fuzz, cost) (PR #PRNUM) |
+| B3 | fixed | tests (EXPLAIN QUERY PLAN, trigger fuzz, cost) (PR #8) |
 | B4 | fixed | tests (concurrency, differential), live latency |
 | B5 | fixed | tests, live |
 | B6 | fixed | test |
@@ -80,7 +80,7 @@ the network, not the Worker.
 - `docs/evidence/phase1/lexical-cost.md`: rows-read distribution of that grid.
 - Before the fix: `docs/evidence/phase0/raw/B1_sem3.body`, live `count: 6` (BMC5415, TCX2003, BME5042, BMA5134, TCX2005, BME5046).
 
-**Notes:** Fixed by PR #PRNUM. Filters now run in SQL (`src/lexical.js` `runFts`) against
+**Notes:** Fixed by PR #8. Filters now run in SQL (`src/lexical.js` `runFts`) against
 VIRTUAL generated columns `sem1..sem4` (and `ng_sem1/2`) added by
 `migrations/0006_fts_external.sql`, after a bounded FTS top-N (`LIMIT 2000` by rank). When that
 bound may have cut matches (fewer than `limit` survivors and more than 2,000 matches), a
@@ -125,7 +125,7 @@ the whole FTS table.
 - test `[B3] a forced full re-ingest writes nothing to the FTS index; one title change reads a handful of rows` (`test/full/lexical.test.js`)
 - `docs/evidence/phase1/0006-cost.md`: 0006 and re-ingest costs on the full corpus.
 
-**Notes:** Fixed by PR #PRNUM. `migrations/0006_fts_external.sql` rebuilds `modules_fts` as an
+**Notes:** Fixed by PR #8. `migrations/0006_fts_external.sql` rebuilds `modules_fts` as an
 external-content table (`content='modules'`, `content_rowid='rowid'`); triggers use the FTS5
 `'delete'` command keyed on `old.rowid`, and the update trigger fires only when `code`, `title`
 or `description` actually change. Was: `migrations/0002_fts.sql:5` (`code UNINDEXED`) and the
