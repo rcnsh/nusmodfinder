@@ -6,3 +6,4 @@ node_modules/
 wrangler.r7.jsonc
 .eval-work/
 eval/*.lock
+eval/*.lock.break

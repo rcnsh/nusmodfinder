@@ -13,7 +13,7 @@ import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { writeEncryptedJson } from './lib/crypto.mjs';
-import { errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
+import { EmbeddingError, errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
 import { gateFor } from './lib/gate.mjs';
 import { appendLook, assertLookAllowed, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
 import { assertSameCorpus, byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
@@ -278,10 +278,15 @@ async function runAndReport(a, set, reserved) {
   // Plan Final §1: locally, texts missing from the cache (new queries, or texts a
   // query-rewriting variant asked for) are embedded under the per-run cap, then
   // the run is repeated once. Off by default, so a run never calls Cloudflare unasked.
+  // Encrypted sets: embed.mjs's output (stack traces, Workers AI error
+  // bodies) is discarded, and a failure throws so cmdRun aborts the reserved
+  // look and the top-level handler prints the withheld line.
   const embed = () => {
     const args = [join(REPO, 'scripts/embed.mjs'), '--set', set.name, ...(a['set-dir'] ? ['--set-dir', a['set-dir']] : [])];
-    const r = spawnSync(process.execPath, args, { cwd: REPO, stdio: 'inherit' });
-    if (r.status !== 0) fail('embedding the missing texts failed');
+    const r = spawnSync(process.execPath, args, { cwd: REPO, stdio: set.encrypted ? 'ignore' : 'inherit' });
+    if (r.status === 0) return;
+    if (set.encrypted) throw new EmbeddingError(`scripts/embed.mjs exited ${r.status ?? r.signal}`);
+    fail('embedding the missing texts failed');
   };
   if (embedMissing) embed();
   const run = () => runVariant({

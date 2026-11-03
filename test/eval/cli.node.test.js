@@ -109,6 +109,18 @@ describe('holdout errors are withheld (review finding 4)', () => {
   });
 });
 
+describe('--embed-missing on an encrypted set (PR #6 review round 3)', () => {
+  it('a failed embedding prints only the withheld line and finalises the reserved look as aborted', async () => {
+    const { dir } = await makeSet('embed-fails');
+    // A corrupt cache: embed.mjs fails reading it, before any network call.
+    await writeFile(join(dir, 'embeddings.json.enc'), 'not a ciphertext\n');
+    const r = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'em', '--baseline', 'base', '--embed-missing'], { CI: '' });
+    expect(r.code).toBe(1);
+    expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (EmbeddingError); details withheld\n`);
+    expect((await readLedger(join(dir, 'ledger.md'))).map((x) => [x.variant, x.verdict])).toEqual([['em', 'aborted']]);
+  });
+});
+
 describe('set-bound ciphertexts (review finding 2)', () => {
   it('a look on the self-test set records one row in that set\'s own ledger', async () => {
     const { dir } = await makeSet('one-look');

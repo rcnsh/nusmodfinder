@@ -163,3 +163,8 @@ fails on the previous code.
 - **treeHash** (low): covers `test/wrangler.test.jsonc` (its compatibility date and flags change
   what runs).
 - Tests 207 → 213 unit; self-test 5 steps. No Cloudflare, live-site or api.nusmods.com call.
+- Round 3 (fresh review of `bcd843b..bd43eb5`): one finding. With `--embed-missing` on an
+  encrypted set, a failed `scripts/embed.mjs` exited directly, leaving the reserved look
+  unfinalised and printing its output. Now its output is discarded for encrypted sets and the
+  failure throws `EmbeddingError` (withheld line; look finalised `aborted`). `.lock.break`
+  gitignored. Tests 214.
