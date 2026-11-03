@@ -125,6 +125,9 @@ export async function readEncryptedJson(path, key, set) {
 /** @param {Buffer} bytes */
 export const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
+/** macOS Finder files (.DS_Store, AppleDouble ._*): git-ignored, never ciphertexts or plaintexts. */
+const isFinderFile = (/** @type {string} */ name) => name === '.DS_Store' || name.startsWith('._');
+
 /**
  * Every *.enc under `dir` (recursive), as paths relative to `dir`.
  * @param {string} dir
@@ -134,7 +137,7 @@ async function encFiles(dir) {
   if (!existsSync(dir)) return [];
   const entries = await readdir(dir, { recursive: true, withFileTypes: true });
   return entries
-    .filter((e) => e.isFile() && e.name.endsWith('.enc'))
+    .filter((e) => e.isFile() && e.name.endsWith('.enc') && !isFinderFile(e.name))
     .map((e) => join(e.parentPath, e.name).slice(dir.length + 1))
     .sort();
 }
@@ -161,7 +164,18 @@ export async function updateManifest(dir) {
 export async function verifyManifest(dir) {
   const path = join(dir, MANIFEST);
   const actual = await encFiles(dir);
-  if (!existsSync(path)) return actual.length ? [`${path} is missing but ${actual.length} .enc files exist`] : [];
+  // An encrypted-set directory holds only ciphertexts and the manifest: a
+  // plaintext dropped beside them would be committed in the clear.
+  /** @type {string[]} */
+  const stray = [];
+  if (existsSync(dir)) {
+    for (const e of await readdir(dir, { recursive: true, withFileTypes: true })) {
+      if (!e.isFile() || isFinderFile(e.name)) continue;
+      const rel = join(e.parentPath, e.name).slice(dir.length + 1);
+      if (rel !== MANIFEST && !rel.endsWith('.enc')) stray.push(`${join(dir, rel)} is not a ciphertext; only *.enc and ${MANIFEST} may live in ${dir}`);
+    }
+  }
+  if (!existsSync(path)) return [...stray, ...(actual.length ? [`${path} is missing but ${actual.length} .enc files exist`] : [])];
   const { files = {} } = JSON.parse(await readFile(path, 'utf8'));
   const problems = [];
   for (const [f, want] of Object.entries(/** @type {Record<string, string>} */ (files))) {
@@ -171,5 +185,5 @@ export async function verifyManifest(dir) {
     if (got !== want) problems.push(`${p} sha256 ${got} != manifest ${want}`);
   }
   for (const f of actual) if (!(f in files)) problems.push(`${join(dir, f)} is not in ${path}`);
-  return problems;
+  return [...stray, ...problems];
 }

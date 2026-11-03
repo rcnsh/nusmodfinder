@@ -5,7 +5,7 @@
 // of the change, and returns a verdict with every check that produced it.
 //
 // Per change:
-//   dev     ΔnDCG@10 BCa 95% lower bound > 0, OR (the change declares target
+//   dev     no exact-code regression, and ΔnDCG@10 BCa 95% lower bound > 0, OR (the change declares target
 //           shapes, each target's ΔnDCG@10 > 0, and overall ΔnDCG@10 >= 0).
 //           Tripwire on target shapes only: a target whose one-sided 95% upper
 //           bound on ΔnDCG@10 is below 0 (a confident regression) fails.
@@ -141,7 +141,8 @@ const verdict = (set, checks) => ({ set, verdict: checks.every((c) => c.pass) ? 
  * @returns {Verdict}
  */
 export function devGate(cmp, change = {}) {
-  const checks = [noNewErrorsCheck(cmp), sufficientCheck(cmp), judgedCheck(cmp)];
+  // Exact-code check on dev too: the holdout has a single exact-code query (ADR 0003 v2.1).
+  const checks = [noNewErrorsCheck(cmp), sufficientCheck(cmp), judgedCheck(cmp), exactCodeCheck(cmp)];
   if (change.kind === 'cutoff') return verdict('dev', [...checks, ...cutoffChecks(cmp)]);
 
   const targets = change.targetShapes ?? [];

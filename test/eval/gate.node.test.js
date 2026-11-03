@@ -86,6 +86,25 @@ describe('holdoutGate', () => {
     expect(v.verdict).toBe('fail');
   });
 
+  it('dev also fails an exact-code regression (ADR 0003 v2.1)', () => {
+    const base = [...many(30, 0.4, 0.4).base, q('x1', 1, { shapes: ['code', 'code-exact'], top1: 'CS2040', top1Grade: 2 })];
+    const cand = [...spread(many(30, 0.4, 0.6).cand), q('x1', 0.6, { shapes: ['code', 'code-exact'], top1: 'CS2040S', top1Grade: 1 })];
+    const v = devGate(compare(base, cand));
+    expect(names(v)['ΔnDCG@10 BCa 95% lower bound > 0']).toBe(true);
+    expect(names(v)['no exact-code regression']).toBe(false);
+    expect(v.verdict).toBe('fail');
+  });
+
+  it('an exact-code improvement or an equal-grade swap is not a regression (PR #10 review round 2)', () => {
+    const exact = (/** @type {string} */ id, /** @type {string} */ top1, /** @type {number} */ g) => q(id, g / 2, { shapes: ['code', 'code-exact'], top1, top1Grade: g });
+    const base = [...many(30, 0.4, 0.4).base, exact('fix', 'CS2040S', 1), exact('swap', 'TR3202I', 2), exact('drop', 'CS1010', 2)];
+    const cand = [...spread(many(30, 0.4, 0.6).cand), exact('fix', 'CS2040', 2), exact('swap', 'TR3202S', 2), exact('drop', 'CS1010S', 1)];
+    expect(compare(base, cand).exactCodeRegressions).toEqual(['drop']);
+    const ok = compare(base.filter((s) => s.id !== 'drop'), cand.filter((s) => s.id !== 'drop'));
+    expect(ok.exactCodeRegressions).toEqual([]);
+    expect(names(devGate(ok))['no exact-code regression']).toBe(true);
+  });
+
   it('fails an exact-code regression', () => {
     const base = [q('c', 1, { shapes: ['code-exact'], top1: 'CS1010', top1Grade: 2 })];
     const cand = [q('c', 1, { shapes: ['code-exact'], top1: 'CS1010S', top1Grade: 1 })];

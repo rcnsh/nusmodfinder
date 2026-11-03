@@ -143,8 +143,10 @@ ok(node(HOLDOUT, ['keygen'], env), 'keygen');
 assert.notEqual(node(HOLDOUT, ['keygen'], env).code, 0, 'keygen refuses to overwrite');
 assert.match(node(HOLDOUT, ['encrypt', join(FIX, 'queries.json'), '--as', 'queries.json', '--dir', H], env).out, /say which set it holds with --set/);
 for (const f of ['queries.json', 'qrels.json', 'embeddings.json']) ok(node(HOLDOUT, ['encrypt', join(FIX, f), '--as', f, '--dir', H, '--set', 'selftest'], env), `encrypt ${f}`);
-await cp(join(FIX, 'corpus.json'), join(H, 'corpus.json'));
 ok(node(HOLDOUT, ['verify', '--dir', H]), 'verify');
+// The fixture corpus is public and the runner reads it in plain form; it goes
+// in after verification, which (rightly) refuses any non-.enc file.
+await cp(join(FIX, 'corpus.json'), join(H, 'corpus.json'));
 
 /** Holdout output must never carry a query id or text. */
 const assertNoLeak = (/** @type {string} */ out, /** @type {string} */ what) => {
