@@ -42,7 +42,7 @@ Phase 3 freezes. Seed for shape assignment: `vnm-2026-11-04` (dev/holdout); the 
 | constraint | 10 | no exam, light workload, S/U, exam timing — feature-gap block |
 | noanswer | 8 | things NUS plausibly doesn't offer to exchange students, or nonsense |
 
-Per persona ≈ 24–25 queries; assignment matrix generated from the seed.
+Per persona 20–28 queries (147 in all); assignment matrix generated from the seed.
 
 ## Mechanically generated shapes (33)
 - **code** (18): seeded sample of NG-list codes → exact (`CS3244`), lower-case with space

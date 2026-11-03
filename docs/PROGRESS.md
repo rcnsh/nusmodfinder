@@ -248,3 +248,12 @@ fails on the previous code.
 - ADR 0003: query sets and locks, custody (procedural, plainly), metrics, the gate as implemented,
   the SC5 sealed-test reading (queued for Jacob), deviations (AES-GCM not age, TF-IDF clustering,
   decisive-comparison floors, both query forms embedded).
+- PR #10 review (7 findings) → query sets amended to **v2.1** before any look
+  (`eval/v2/amend-v2.1.mjs`, ADR 0003): code queries carry `code-<form>` shapes (the exact-code
+  check matched nothing before), non-existent codes are `noAnswerByRule`, the typo copy `d-098`
+  is dropped (dev 98), and the holdout's 7 code queries are redrawn from a custody-held seed (the
+  v2 picks were rebuildable from public inputs). Holdout code forms: 1 exact, 2 space, 1 partial,
+  3 non-existent, so the dev gate now also runs the exact-code check. New hashes in ADR 0003;
+  `test/eval/lock.node.test.js` ties the files to them. `eval:verify` refuses any non-`.enc`
+  file in an encrypted-set directory, and `.gitignore` keeps plaintext there out of git. The
+  custody tool accepts `judge-<judge>.json`. Protocol doc fixes (single-link; 20–28 per persona).

@@ -14,7 +14,7 @@ that lock it, and where the build departs from the plan.
 ## Query sets
 | set | where | size | role |
 |---|---|---|---|
-| dev | `eval/dev/queries.json` (plaintext) | 99 | tuning, open, full per-query output |
+| dev | `eval/dev/queries.json` (plaintext) | 98 | tuning, open, full per-query output |
 | holdout | `eval/holdout/queries.json.enc` (encrypted) | 81 | per-change gate, verdict only, ≤ 12 looks |
 | test | `eval/sealed/` (written after Phase 3 freezes) | ≥ 160 answerable | SC5, one look |
 
@@ -27,19 +27,38 @@ that lock it, and where the build departs from the plan.
   clusters: TF-IDF over query text plus the relevant-narrative, single-link union at cosine
   ≥ 0.35. That is the lowest threshold in 0.30–0.50 (step 0.05) that leaves every shape with ≥ 2
   queries per split. Then stratification by shape. Result: dev 99 / holdout 81 (55/45, as r2
-  planned).
-- **Locks.**
-  - dev plaintext sha256 `cf33e601054923fda58c1d85be4d83e0e04343b1d743e560e16e98f3d42bc3b4`.
-  - holdout plaintext sha256 `8f653595ae7e272b6065ce821c5a529237b9caffebd18e4852989903f2f7bdb4`
+  planned), version `v2`.
+- **Amendment v2.1** (`eval/v2/amend-v2.1.mjs`, PR #10 review), applied before any look:
+  - every code query also carries its form as a shape (`code-exact`, `code-space`,
+    `code-partial`, `code-nonexistent`), so the exact-code check sees `code-exact`;
+  - non-existent-code queries carry `noAnswerByRule: true`, so a judge's grade cannot make them
+    answerable;
+  - a "typo" query with no word of 4+ letters to edit was a copy of its source and is dropped
+    (dev `d-098`; none in the holdout): dev 98 / holdout 81;
+  - the holdout's 7 code queries are redrawn, same forms, from a secret seed held in custody
+    (`code-seed.v2.1`). The v2 picks came from the committed seed, the committed NG list and the
+    released corpus, so anyone could rebuild them. The draw excludes every v2 code pick and the
+    code examples persona writers saw (`CS3244`, `CS32`, `GEA`). Holdout code forms: 1 exact,
+    2 space, 1 partial, 3 non-existent.
+- **Locks** (v2.1).
+  - dev plaintext sha256 `fe7a248f9de3de04ef41af723c8ffd274805c283c8be3c002de026e75bb742ce`.
+  - holdout plaintext sha256 `fe4cf5570c52113577fc8030607c5cce7b64c63e26648096f1a66a081862d186`
     (verified on decrypting the committed ciphertext).
-  - holdout ciphertext sha256 `2431c18ec4c045451006a17a8eabcca38006713a0eaee019875e64a0bf66b057`,
+  - holdout ciphertext sha256 `193f5a45bb2b52313e5db4e9c906aeb02d4672ae19e7f85dc535f8be6cc3aff9`,
     recorded in `eval/holdout/MANIFEST.json`.
-  - CI (`npm run eval:verify`) fails if any committed ciphertext differs from the manifest.
-    Qrels, query embeddings and run files join the manifest as they are made.
+  - v2, before the amendment: dev `cf33e601…bc3b4`, holdout plaintext `8f653595…f7bdb4`.
+  - `test/eval/lock.node.test.js` fails unless the dev file and the holdout ciphertext match the
+    hashes above, so changing a set means changing this ADR in the same PR. CI
+    (`npm run eval:verify`) fails if a ciphertext differs from the manifest or if any file other
+    than `*.enc` and `MANIFEST.json` sits in an encrypted-set directory (`.gitignore` also keeps
+    plaintext there out of git). Qrels, query embeddings, run files and judge outputs join the
+    manifest as they are made.
 - **Test set, pre-registered now.** The sealed test set is written after Phase 3 freezes. It uses
   the same writer prompt, personas and shape-assignment procedure, with fresh writer runs and a
-  new seed recorded when it is drawn. It is pooled from v0 plus the final ranker and judged
-  under the same protocol.
+  new seed recorded when it is drawn. Its code queries are drawn from a secret seed held in
+  custody (only its sha256 is recorded), excluding every dev and holdout code target and the
+  writer examples, and carry the v2.1 form shapes and `noAnswerByRule`; typo sources need a word
+  of 4+ letters. It is pooled from v0 plus the final ranker and judged under the same protocol.
   - Leak filter: drop a query that is a near-duplicate of any dev or holdout query (query-text
     embedding cosine ≥ 0.9, or the same source query for a derived variant). Report the count.
     SC5 is reported on the filtered set, with the unfiltered set as secondary.
@@ -94,7 +113,7 @@ Every gate fails a candidate in four cases:
 
 | set | a change passes iff |
 |---|---|
-| dev (screen) | ΔnDCG@10 BCa 95% lower bound > 0; **or**, for a change declaring target shapes, every target's ΔnDCG@10 > 0, overall ΔnDCG@10 ≥ 0, and ≥ 3 distinct answerable queries across the targets. Tripwire on target shapes only: a target whose one-sided 95% upper bound on ΔnDCG@10 is below 0 fails it; with < 3 queries the tripwire uses the point estimate ≥ 0. |
+| dev (screen) | no exact-code regression (v2.1: the holdout has only one exact-code query, dev has five); and ΔnDCG@10 BCa 95% lower bound > 0; **or**, for a change declaring target shapes, every target's ΔnDCG@10 > 0, overall ΔnDCG@10 ≥ 0, and ≥ 3 distinct answerable queries across the targets. Tripwire on target shapes only: a target whose one-sided 95% upper bound on ΔnDCG@10 is below 0 fails it; with < 3 queries the tripwire uses the point estimate ≥ 0. |
 | holdout | ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates); no exact-code query loses its rank-1 hit. |
 | cutoff change (dev screen, holdout governs) | replaces the Δ rules: correct-empty gain ≥ 0.25, answerable ΔnDCG@10 ≥ −0.01, ≥ 3 no-answer queries. |
 | test (SC5) | BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0, final shipped ranker vs `eval-v0` (= 7ac9841, the production ranker), same pinned corpus `data-2026-2027-20260904`. |
@@ -115,6 +134,8 @@ reported on the holdout with its look count and an explicit caveat about adaptiv
 - **Dev minimums.** The 10-query floor is overall. The floors on the comparison that decides a
   verdict are 3 for cutoff no-answer queries and 3 for target-shape queries, because dev has 5
   `noanswer` queries and some shapes only 2 (PR #6 review round 2).
+- **Exact-code check on dev.** The plan applies it to the holdout only; v2.1 adds it to the dev
+  screen, because the holdout has a single exact-code query.
 - **Query embeddings.** Since PR #7 the ranker embeds the canonical query, which is trimmed, has
   whitespace collapsed and ASCII letters lowercased. The eval embeds both the raw text (for
   `eval-v0`) and the canonical text. Any `degraded` response fails its query.

@@ -69,7 +69,7 @@ const all = [...persona, ...codeRecords, ...typoRecords].map((q, n) => ({ ...q, 
 // provenance groups: typo joins its source
 const group = all.map((q) => (q.origin === 'typo' ? q.sourceIndex : q._n));
 
-// TF-IDF on text + narrative.relevant, average-linkage agglomerative within threshold
+// TF-IDF on text + narrative.relevant, single-link union at cosine >= TH
 const tok = (s) => s.toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N} ]+/gu, ' ').split(/\s+/).filter((t) => t.length > 2);
 const docs = all.map((q) => tok(`${q.text} ${q.narrative?.relevant ?? ''}`));
 const df = new Map(); docs.forEach((d) => new Set(d).forEach((t) => df.set(t, (df.get(t) ?? 0) + 1)));
