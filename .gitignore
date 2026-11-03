@@ -7,3 +7,12 @@ wrangler.r7.jsonc
 .eval-work/
 eval/*.lock
 eval/*.lock.break
+# Encrypted-set directories: only ciphertexts and the manifest are committed.
+eval/holdout/**
+!eval/holdout/**/
+!eval/holdout/**/*.enc
+!eval/holdout/MANIFEST.json
+eval/sealed/**
+!eval/sealed/**/
+!eval/sealed/**/*.enc
+!eval/sealed/MANIFEST.json

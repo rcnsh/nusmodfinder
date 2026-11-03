@@ -20,7 +20,7 @@ import { decrypt, encrypt, generateKey, keyFilePath, readKey, updateManifest, ve
 import { ENCRYPTED_SETS, REPO } from '../eval/lib/sets.mjs';
 
 const ENCRYPTED_DIRS = ['eval/holdout', 'eval/sealed'];
-const NAMES = /^(queries|qrels|embeddings)\.json$|^run-[A-Za-z0-9._-]+\.json$/;
+const NAMES = /^(queries|qrels|embeddings)\.json$|^(run|judge)-[A-Za-z0-9._-]+\.json$/;
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -65,9 +65,9 @@ switch (command) {
     break;
   }
   case 'encrypt': {
-    if (!file || !values.as) fail('usage: encrypt <plain.json> --as <queries.json|qrels.json|embeddings.json|run-<variant>.json> [--dir eval/holdout]');
+    if (!file || !values.as) fail('usage: encrypt <plain.json> --as <queries.json|qrels.json|embeddings.json|run-<variant>.json|judge-<judge>.json> [--dir eval/holdout]');
     const name = /** @type {string} */ (values.as);
-    if (!NAMES.test(name)) fail(`--as ${name}: expected queries.json, qrels.json, embeddings.json or run-<variant>.json`);
+    if (!NAMES.test(name)) fail(`--as ${name}: expected queries.json, qrels.json, embeddings.json, run-<variant>.json or judge-<judge>.json`);
     const dir = resolve(values.dir?.[0] ?? join(REPO, 'eval/holdout'));
     const plain = await readFile(/** @type {string} */ (file));
     JSON.parse(plain.toString('utf8')); // refuse to encrypt something that is not JSON
