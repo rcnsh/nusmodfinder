@@ -4,6 +4,7 @@
 // how the download cache revalidates. Runs in Node (vitest project "node").
 // The cache tests use a temporary directory and a stubbed fetch: no request
 // ever reaches api.nusmods.com.
+import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -94,16 +95,58 @@ describe('B2', () => {
     });
     afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
-    /** Writes a cached body and its sidecar, fetched `age` ms ago. */
-    const prime = async (/** @type {number} */ age, sidecar = true) => {
-      await writeFile(new URL(`${Y}-${FILE}`, dir), '{"v":1}');
+    const BODY = '{"v":1}';
+    /** Writes a cached body and its sidecar (vouching for `vouchFor`), fetched `age` ms ago. */
+    const prime = async (/** @type {number} */ age, sidecar = true, vouchFor = BODY) => {
+      await writeFile(new URL(`${Y}-${FILE}`, dir), BODY);
       if (sidecar) {
         await writeFile(new URL(`${Y}-${FILE}.cache.json`, dir), JSON.stringify({
           url: `https://api.nusmods.com/v2/${Y}/${FILE}`, etag: '"v1"', lastModified: 'Mon, 01 Sep 2026 00:00:00 GMT',
-          fetchedAt: new Date(Date.now() - age).toISOString(),
+          fetchedAt: new Date(Date.now() - age).toISOString(), sha256: createHash('sha256').update(vouchFor).digest('hex'),
         }));
       }
     };
+    /** NUSMods: 304 to a conditional GET, else the body. */
+    const nusmods = (/** @type {string} */ body) => vi.fn(async (/** @type {any} */ _url, /** @type {any} */ init) =>
+      (init?.headers?.['if-none-match'] || init?.headers?.['if-modified-since']
+        ? new Response(null, { status: 304, headers: { etag: '"v1"' } })
+        : new Response(body, { status: 200, headers: { etag: '"v9"' } })));
+
+    it('[PR13 #7] a fresh entry whose body does not match its sidecar sha256 is refetched in full, without validators', async () => {
+      await prime(1 * HOUR, true, '{"v":"what was really downloaded"}');
+      const fetchImpl = nusmods('{"v":9}');
+      const got = await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl });
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      expect(/** @type {any[]} */ (fetchImpl.mock.calls[0])[1].headers).toEqual({});
+      expect(got).toMatchObject({ data: { v: 9 }, cached: false });
+      expect(await readFile(new URL(`${Y}-${FILE}`, dir), 'utf8')).toBe('{"v":9}');
+    });
+
+    it('[PR13 #7] a stale entry whose body does not match is never revalidated into a 304', async () => {
+      await prime(25 * HOUR, true, '{"v":"other"}');
+      const fetchImpl = nusmods('{"v":9}');
+      const got = await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl });
+      expect(/** @type {any[]} */ (fetchImpl.mock.calls[0])[1].headers).toEqual({});
+      expect(got).toMatchObject({ data: { v: 9 } });
+    });
+
+    it('[PR13 #7] the sidecar records the body sha256; --offline refuses a body that does not match it', async () => {
+      await prime(0, false);
+      await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl: nusmods('{"v":9}') });
+      expect((await sidecar()).sha256).toBe(createHash('sha256').update('{"v":9}').digest('hex'));
+      await writeFile(new URL(`${Y}-${FILE}`, dir), '{"v":9');
+      await expect(fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl: nusmods('{}'), offline: true })).rejects.toThrow(/sha256/);
+    });
+
+    it('[PR13 #7] a sidecar without sha256 (written before it was recorded) cannot vouch for its body: full GET', async () => {
+      await prime(1 * HOUR, true);
+      const side = await sidecar();
+      delete side.sha256;
+      await writeFile(new URL(`${Y}-${FILE}.cache.json`, dir), JSON.stringify(side));
+      const fetchImpl = nusmods('{"v":9}');
+      expect(await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl })).toMatchObject({ data: { v: 9 } });
+      expect(/** @type {any[]} */ (fetchImpl.mock.calls[0])[1].headers).toEqual({});
+    });
     const sidecar = async () => JSON.parse(await readFile(new URL(`${Y}-${FILE}.cache.json`, dir), 'utf8'));
 
     it('[B2 fixed] an entry older than --max-age is revalidated with If-None-Match, and a 304 keeps the cached body', async () => {

@@ -8,7 +8,14 @@
 // quotes it.
 //
 // SC6: a forced full re-ingest stays under 10% of the daily D1 read limit
-// (500,000 rows), and within the default write budget (40,000, ADR 0002).
+// (500,000 rows), and within the default write budget (40,000, ADR 0002) as
+// the budget charges it (per batch, the larger of meta.rows_written and the
+// estimate with FTS shadow writes; a forced re-ingest of unchanged text has
+// none).
+//
+// A cold load is charged ~149k rows (FTS inserts: 13.19 per module measured,
+// docs/evidence/phase1/fts-writes.mjs), so the default budget stops it
+// cleanly and the resume here runs with a higher one.
 import { applyD1Migrations, reset } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, inject, it } from 'vitest';
@@ -78,8 +85,10 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus (Phase 1C, SC6
     report[name] = {
       status: result.status, plan: result.plan, embedded: result.embedded, deleted: result.deleted,
       aiCalls: fakes.ai.calls.length - aiBefore,
-      // What the script's budget sums (ingest + delete responses only)...
+      // What D1 reported to the script (ingest + delete responses only), what
+      // its budget charged for them (FTS estimate included)...
       budgetRowsWritten: result.rowsWritten,
+      budgetRowsCharged: result.rowsCharged,
       // ...and every D1 statement of the run, /admin/hashes and facets included.
       rowsRead: meter.read, rowsWritten: meter.written, statements: meter.statements,
     };
@@ -93,13 +102,14 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus (Phase 1C, SC6
 
   it('cold ingest, forced full re-ingest (SC6), no-op rerun, field-only change, 10 deletes, verify', async () => {
     // Cold: an empty 0006 database. An INSERT writes the row, its primary-key
-    // index entry and every filter index (~7.1 rows/module), more than the
-    // 40,000 default budget (sized for the forced re-ingest of existing rows,
-    // ADR 0002), so the default stops it cleanly; it loads with a higher one.
+    // index entry and every filter index (~7.1 rows/module) plus ~13.2 FTS5
+    // shadow rows local D1 does not report: far more than the 40,000 default
+    // budget (sized for the forced re-ingest of existing rows, ADR 0002), so
+    // the default stops it cleanly; it loads with a higher one.
     const stopped = await measured('coldDefaultBudget', c.modules);
     expect(stopped.result.status).toBe('budget');
-    expect(stopped.result.rowsWritten).toBeLessThanOrEqual(40_000);
-    const cold = await measured('coldResume', c.modules);
+    expect(stopped.result.rowsCharged).toBeLessThanOrEqual(40_000);
+    const cold = await measured('coldResume', c.modules, { writeBudget: 200_000 });
     expect(cold.result.status).toBe('done');
     expect(stopped.result.upserted + cold.result.upserted).toBe(c.modules.length);
 
@@ -108,7 +118,8 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus (Phase 1C, SC6
     expect(forced.result.status).toBe('done');
     expect(forced.result.plan.embed).toBe(c.modules.length);
     expect(forced.meter.read).toBeLessThan(SC6_READ_LIMIT);
-    expect(forced.result.rowsWritten).toBeLessThanOrEqual(40_000);
+    expect(forced.result.rowsCharged).toBeLessThanOrEqual(40_000);
+    expect(forced.result.rowsCharged).toBeGreaterThanOrEqual(forced.result.rowsWritten);
 
     // Nothing changed.
     const noop = await measured('noop', c.modules);

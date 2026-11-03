@@ -20,7 +20,7 @@ export const EMBEDDING_MODEL = '@cf/baai/bge-small-en-v1.5';
  * re-embedded once (FINDINGS B2: text_hash = hash(model + this + text)).
  */
 export const EMBEDDING_TEXT_VERSION = 1;
-export const EMBEDDING_DIMS = 384;
+export { EMBEDDING_DIMS } from '../src/embedding.js';
 export const CACHE_DIR = new URL('../.data/', import.meta.url);
 
 // bge-small-en-v1.5 accepts 512 input tokens. ~4 chars/token, kept short of the
@@ -38,9 +38,13 @@ export const DEFAULT_MAX_AGE_MS = 24 * 3_600_000;
 
 /**
  * Sidecar stored next to each .data/ entry (`<entry>.cache.json`): the
- * validators NUSMods sent with it and when it was last fetched or revalidated.
- * @typedef {{ url: string, etag: string | null, lastModified: string | null, fetchedAt: string }} CacheSidecar
+ * validators NUSMods sent with it, when it was last fetched or revalidated,
+ * and the sha256 of the body it vouches for.
+ * @typedef {{ url: string, etag: string | null, lastModified: string | null, fetchedAt: string, sha256?: string }} CacheSidecar
  */
+
+/** @param {string} body */
+const bodySha256 = (body) => createHash('sha256').update(body).digest('hex');
 
 /**
  * Fetches `https://api.nusmods.com/v2/<acadYear>/<file>` through the .data/
@@ -52,6 +56,11 @@ export const DEFAULT_MAX_AGE_MS = 24 * 3_600_000;
  *   `fetchedAt`; 200 replaces body and sidecar. An entry with no sidecar
  *   (written before sidecars existed) is fetched unconditionally.
  * - `offline` uses the entry however old and never fetches.
+ * - The sidecar's sha256 must match the body. If it does not (a truncated or
+ *   edited file, or a sidecar from before the hash was recorded), the entry is
+ *   ignored: a full GET with no validators, so a 304 cannot bless the bad
+ *   body. `offline` refuses a mismatching body; with no sidecar hash at all
+ *   it uses the body as it is.
  * A failed revalidation is an error, never a silent stale read; pass
  * `offline` to use the stale copy deliberately.
  * @param {string} acadYear
@@ -65,18 +74,25 @@ export async function fetchAcadYearFile(acadYear, file, options = {}) {
   const cachePath = new URL(`${acadYear}-${file}`, cacheDir);
   const sidecarPath = new URL(`${acadYear}-${file}.cache.json`, cacheDir);
   /** @type {string | null} */
-  const cached = await readFile(cachePath, 'utf8').catch(() => null);
+  const onDisk = await readFile(cachePath, 'utf8').catch(() => null);
   /** @type {CacheSidecar | null} */
   const sidecar = await readFile(sidecarPath, 'utf8').then((t) => JSON.parse(t)).catch(() => null);
   const ageMs = sidecar ? now() - Date.parse(sidecar.fetchedAt) : null;
   /** @param {string} body @param {boolean} revalidated */
   const fromCache = (body, revalidated) =>
     ({ data: parseJson(body, cachePath.pathname), bytes: Buffer.byteLength(body), url, cached: true, revalidated, ageMs });
+  const vouched = onDisk !== null && sidecar?.sha256 === bodySha256(onDisk);
 
   if (offline) {
-    if (cached === null) throw new Error(`--offline: no cached copy of ${url} at ${cachePath.pathname}`);
-    return fromCache(cached, false);
+    if (onDisk === null) throw new Error(`--offline: no cached copy of ${url} at ${cachePath.pathname}`);
+    if (sidecar?.sha256 && !vouched) {
+      throw new Error(`--offline: ${cachePath.pathname} does not match the sha256 its sidecar recorded (truncated or edited?). `
+        + 'Rerun without --offline to download it again.');
+    }
+    return fromCache(onDisk, false);
   }
+  // Only a body its sidecar vouches for is served or revalidated.
+  const cached = vouched ? onDisk : null;
   if (cached !== null && ageMs !== null && ageMs >= 0 && ageMs < maxAgeMs) return fromCache(cached, false);
 
   /** @type {Record<string, string>} */
@@ -94,7 +110,7 @@ export async function fetchAcadYearFile(acadYear, file, options = {}) {
   if (res.status === 304 && cached !== null) {
     /** @type {CacheSidecar} */
     const next = { url, etag: res.headers.get('etag') ?? sidecar?.etag ?? null,
-      lastModified: res.headers.get('last-modified') ?? sidecar?.lastModified ?? null, fetchedAt: stamp };
+      lastModified: res.headers.get('last-modified') ?? sidecar?.lastModified ?? null, fetchedAt: stamp, sha256: bodySha256(cached) };
     await writeFile(sidecarPath, `${JSON.stringify(next, null, 2)}\n`);
     return fromCache(cached, true);
   }
@@ -107,7 +123,7 @@ export async function fetchAcadYearFile(acadYear, file, options = {}) {
   await writeFile(new URL(`${cachePath.href}.tmp`), body);
   await rename(new URL(`${cachePath.href}.tmp`), cachePath);
   /** @type {CacheSidecar} */
-  const next = { url, etag: res.headers.get('etag'), lastModified: res.headers.get('last-modified'), fetchedAt: stamp };
+  const next = { url, etag: res.headers.get('etag'), lastModified: res.headers.get('last-modified'), fetchedAt: stamp, sha256: bodySha256(body) };
   await writeFile(sidecarPath, `${JSON.stringify(next, null, 2)}\n`);
   return { data, bytes: Buffer.byteLength(body), url, cached: false, revalidated: cached !== null, ageMs: 0 };
 }

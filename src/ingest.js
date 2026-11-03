@@ -7,10 +7,10 @@
 // token has to exist on disk; the script streams batches in over HTTP and the
 // Worker uses its own AI, Vectorize and D1 bindings. The routes do not exist
 // unless an INGEST_SECRET is bound, so a deployed Worker has no admin surface.
-import { DEFAULT_MODEL } from './embedding.js';
+import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
-import { ROW_COLUMNS, boundTuple, fieldsFromRow, rowHash, vectorMetadata } from './rowhash.js';
+import { ROW_COLUMNS, boundTuple, fieldsFromRow, rowHash, storedVectorMetadata } from './rowhash.js';
 
 /**
  * @typedef {{
@@ -59,10 +59,18 @@ const metaOf = (results) => ({
 });
 
 /**
+ * The triggers 0006 creates. Without any one of them the FTS index or the
+ * rowid it is keyed on drifts from `modules` (a missing insert trigger: new
+ * modules never reach FTS).
+ */
+export const REQUIRED_TRIGGERS = ['modules_fts_insert', 'modules_fts_delete', 'modules_fts_update', 'modules_rowid_immutable'];
+
+/**
  * Whether the database has migration 0006: the schema marker, the
- * external-content FTS table, triggers addressed by rowid and the row_hash
- * column. Ingest refuses to write without it: through the old triggers a full
- * re-ingest reads ~46M rows (FINDINGS B3). Reads a few sqlite_master rows.
+ * external-content FTS table, all four of its triggers (the update trigger
+ * addressed by rowid) and the row_hash column. Ingest refuses to write
+ * without it: through the old triggers a full re-ingest reads ~46M rows
+ * (FINDINGS B3). Reads a few sqlite_master rows.
  * @param {D1Database} db
  * @returns {Promise<import('../scripts/ingest-core.mjs').SchemaStatus>}
  */
@@ -74,6 +82,7 @@ export async function schemaStatus(db) {
       `SELECT (SELECT value FROM meta WHERE key = 'schema') AS version,
               (SELECT sql FROM sqlite_master WHERE name = 'modules_fts') AS fts,
               (SELECT sql FROM sqlite_master WHERE name = 'modules_fts_update') AS trig,
+              (SELECT json_group_array(name) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'modules') AS triggers,
               (SELECT count(*) FROM pragma_table_info('modules') WHERE name = 'row_hash') AS row_hash`).first();
   } catch {
     // No meta table (pre-0004): certainly not 0006.
@@ -81,17 +90,22 @@ export async function schemaStatus(db) {
   const version = row?.version == null ? null : Number(row.version);
   const ftsExternal = /content\s*=\s*'modules'/i.test(row?.fts ?? '');
   const rowidTriggers = /old\.rowid/i.test(row?.trig ?? '');
+  const present = new Set(/** @type {string[]} */ (JSON.parse(row?.triggers ?? '[]')));
+  const missingTriggers = REQUIRED_TRIGGERS.filter((t) => !present.has(t));
   const rowHashColumn = Number(row?.row_hash ?? 0) === 1;
   return {
-    version, ftsExternal, rowidTriggers, rowHashColumn,
-    ok: version !== null && version >= 6 && ftsExternal && rowidTriggers && rowHashColumn,
+    version, ftsExternal, rowidTriggers, missingTriggers, rowHashColumn,
+    ok: version !== null && version >= 6 && ftsExternal && rowidTriggers && missingTriggers.length === 0 && rowHashColumn,
   };
 }
 
 /**
- * GET /admin/hashes: `{ schema, embeddingModel, modules: { code: { textHash, rowHash } } }`.
- * `modules` is null when the schema check fails (the row_hash column may not
- * exist), and ingest refuses.
+ * GET /admin/hashes:
+ * `{ schema, embeddingModel, acadYears, modules: { code: { textHash, rowHash } } }`.
+ * `acadYears` counts D1's rows per acad year (`{}` for an empty database), so
+ * ingest can refuse to rewrite a database to another year.
+ * `modules` and `acadYears` are null when the schema check fails (the
+ * row_hash column may not exist), and ingest refuses.
  * @param {Request} request
  * @param {Env} env
  */
@@ -100,11 +114,12 @@ export async function handleHashes(request, env) {
   if (denied) return denied;
   const schema = await schemaStatus(env.DB);
   const embeddingModel = env.EMBEDDING_MODEL ?? DEFAULT_MODEL;
-  if (!schema.ok) return json({ schema, embeddingModel, modules: null });
-  const { results } = /** @type {D1Result<{ code: string, text_hash: string, row_hash: string | null }>} */ (
-    await env.DB.prepare('SELECT code, text_hash, row_hash FROM modules').all());
+  if (!schema.ok) return json({ schema, embeddingModel, acadYears: null, modules: null });
+  const { results } = /** @type {D1Result<{ code: string, text_hash: string, row_hash: string | null, acad_year: string }>} */ (
+    await env.DB.prepare('SELECT code, text_hash, row_hash, acad_year FROM modules').all());
   return json({
     schema, embeddingModel,
+    acadYears: results.reduce((n, r) => ({ ...n, [r.acad_year]: (n[r.acad_year] ?? 0) + 1 }), /** @type {Record<string, number>} */ ({})),
     modules: Object.fromEntries(results.map((r) => [r.code, { textHash: r.text_hash, rowHash: r.row_hash }])),
   });
 }
@@ -127,8 +142,12 @@ async function getVectors(env, ids) {
  * POST /admin/ingest `{ modules: [...] }` (at most 100). Each module may carry
  * `reembed: false` (scripts/ingest-core.mjs: its text_hash is unchanged, only
  * the row changed): its stored vector values are re-upserted with the new
- * metadata instead of being embedded again; if Vectorize has no vector for it,
- * it is embedded after all. Vectorize first, then one D1 batch writing every
+ * metadata instead of being embedded again, but only if the stored vector says
+ * it embeds this text (`metadata.textHash` equals the module's) and has the
+ * index's dimensions. Otherwise (no vector, a vector from before textHash was
+ * stored, or one Vectorize has not yet replaced with a newer embedding) it is
+ * embedded after all, so stale values are never written back over a pending
+ * upsert of new ones. Vectorize first, then one D1 batch writing every
  * column plus the row_hash computed here from exactly the bound values.
  * Answers `{ upserted, embedded, reused, mutationId, meta: { rows_read, rows_written } }`;
  * ingest sums `meta.rows_written` against its write budget.
@@ -146,10 +165,11 @@ export async function handleIngest(request, env) {
 
   /** @type {Map<string, VectorizeVector['values']>} */
   const values = new Map();
-  const reuse = batch.filter((m) => m.reembed === false);
+  const reuse = new Map(batch.filter((m) => m.reembed === false).map((m) => [m.code, m]));
   try {
-    for (const [id, v] of await getVectors(env, reuse.map((m) => m.code))) {
-      if (v.values && v.values.length) values.set(id, v.values);
+    for (const [id, v] of await getVectors(env, [...reuse.keys()])) {
+      const m = reuse.get(id);
+      if (m && v.values?.length === EMBEDDING_DIMS && v.metadata?.textHash === m.textHash) values.set(id, v.values);
     }
   } catch (err) {
     return upstream('vectorize', err);
@@ -178,7 +198,7 @@ export async function handleIngest(request, env) {
       values: /** @type {VectorizeVector['values']} */ (values.get(m.code)),
       // level/credits are `number | null` (lib.mjs normalise) but Vectorize metadata
       // types exclude null; written as they always have been.
-      metadata: /** @type {Record<string, VectorizeVectorMetadata>} */ (vectorMetadata(m)),
+      metadata: /** @type {Record<string, VectorizeVectorMetadata>} */ (storedVectorMetadata(m)),
     })));
     mutationId = mutation.mutationId;
   } catch (err) {
@@ -210,10 +230,17 @@ export async function handleIngest(request, env) {
 
 /**
  * POST /admin/delete `{ codes: [...] }` (at most 100): removes modules that
- * left the corpus. Vectorize deleteByIds first, then D1: if the D1 delete
- * fails, the row is still in D1, so the next run plans its delete again; the
- * other order would orphan the vector, invisible to a plan built from D1's
- * codes (plan r2, objection #11). Answers `{ deleted, mutationId, meta }`.
+ * left the corpus, in three steps:
+ *  1. D1: clear the rows' text_hash ('', NOT NULL) and row_hash, so if a later
+ *     step fails and the module comes back to the corpus, ingest sees no
+ *     matching hash and re-embeds it rather than skipping it as unchanged with
+ *     its vector gone (PR #13 review). 1 row written per code; no index or FTS
+ *     trigger covers either column.
+ *  2. Vectorize deleteByIds.
+ *  3. D1 DELETE. If it fails, the row is still in D1, so the next run plans
+ *     its delete again; deleting from D1 first would orphan the vector,
+ *     invisible to a plan built from D1's codes (plan r2, objection #11).
+ * Answers `{ deleted, mutationId, meta }`; meta covers both D1 statements.
  * @param {Request} request
  * @param {Env} env
  */
@@ -228,7 +255,15 @@ export async function handleDelete(request, env) {
     return bad('Body must be { codes: [...] } with at least one module code.');
   }
   if (codes.length > DELETE_LIMIT) return bad(`${codes.length} codes exceed the ${DELETE_LIMIT}-code limit.`);
+  const marks = codes.map(() => '?').join(',');
 
+  /** @type {D1Result} */
+  let cleared;
+  try {
+    cleared = await env.DB.prepare(`UPDATE modules SET text_hash = '', row_hash = NULL WHERE code IN (${marks})`).bind(...codes).run();
+  } catch (err) {
+    return upstream('d1', err);
+  }
   /** @type {string} */
   let mutationId;
   try {
@@ -239,8 +274,8 @@ export async function handleDelete(request, env) {
   try {
     // RETURNING, not meta.changes: changes also counts the FTS trigger's writes.
     const res = /** @type {D1Result<{ code: string }>} */ (await env.DB.prepare(
-      `DELETE FROM modules WHERE code IN (${codes.map(() => '?').join(',')}) RETURNING code`).bind(...codes).all());
-    return json({ deleted: res.results.length, codes: res.results.map((r) => r.code), mutationId, meta: metaOf([res]) });
+      `DELETE FROM modules WHERE code IN (${marks}) RETURNING code`).bind(...codes).all());
+    return json({ deleted: res.results.length, codes: res.results.map((r) => r.code), mutationId, meta: metaOf([cleared, res]) });
   } catch (err) {
     return upstream('d1', err);
   }
@@ -268,8 +303,8 @@ const canonicalMetadata = (m) => JSON.stringify(Object.fromEntries(
 /**
  * POST /admin/verify `{ sampleSize?: number, sample?: string[] }`: the D1 half
  * of `npm run verify`. Reads every row once, recomputes its row_hash from the
- * stored columns, and compares Vectorize metadata (getByIds) with what the row
- * implies for a sample of at most 100 codes (random unless `sample` names
+ * stored columns, and compares Vectorize metadata (getByIds, textHash
+ * included) with what the row implies for a sample of at most 100 codes (random unless `sample` names
  * them). The vector id listing comes from wrangler (scripts/verify.mjs).
  * @param {Request} request
  * @param {Env} env
@@ -325,7 +360,8 @@ export async function handleVerify(request, env) {
     const v = vectors.get(code);
     if (!v) { if (row) missingVectors.push(code); continue; }
     if (!row) continue; // an extra vector: the id listing reports it
-    const expected = vectorMetadata(fieldsFromRow(row));
+    // textHash included: a vector whose values embed another text drifts.
+    const expected = storedVectorMetadata(fieldsFromRow(row));
     if (canonicalMetadata(v.metadata) !== canonicalMetadata(expected)) {
       metadataDrift.push({ code, expected, actual: v.metadata ?? null });
     }

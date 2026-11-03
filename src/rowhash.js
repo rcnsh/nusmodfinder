@@ -64,6 +64,18 @@ export function vectorMetadata(m) {
   };
 }
 
+/**
+ * Everything stored with a module's vector: the filter properties above plus
+ * `textHash`, which names the text the vector's values embed, so a reader can
+ * tell whether stored values are still the right ones (ingest's row-only
+ * reuse, verify). Never a metadata index: /search does not filter on it. Not
+ * in row_hash separately: textHash is already in the bound tuple.
+ * @param {RowFields} m
+ */
+export function storedVectorMetadata(m) {
+  return { ...vectorMetadata(m), textHash: m.textHash };
+}
+
 /** @param {string} text */
 export async function sha256Hex(text) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));

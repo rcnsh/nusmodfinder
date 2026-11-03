@@ -18,7 +18,8 @@
 //   --force                re-embed and rewrite every module, whatever the hashes say
 //   --from <code>          only modules whose code sorts at or after <code> (resume a forced run)
 //   --write-budget <n>     stop before D1 rows written would pass n (default 40000, ADR 0002)
-//   --allow-mass-delete    proceed even if the corpus offers < 95% of the codes D1 holds
+//   --allow-mass-delete    proceed even if the run would delete > 5% of the codes D1 holds
+//   --allow-year-change    proceed even if D1 holds another acad year than --year (rewrites every row)
 //   --offline              use the .data/ cache as it is; never contact api.nusmods.com
 //   --max-age <dur>        revalidate .data/ entries older than this (default 24h; 90s, 30m, 2d)
 //   --batch <n>            modules per /admin/ingest call (default 50, max 100)
@@ -27,7 +28,13 @@
 //
 // Exit codes: 0 done; 1 refused or failed; 2 stopped by the write budget
 // (resumable); 3 Vectorize did not confirm the last mutation in time.
-import { writeFile } from 'node:fs/promises';
+//
+// .data/ingest-state.json (git-ignored) keeps, per --url, the last Vectorize
+// mutation id sent and not yet seen processed, so a rerun after exit 3 waits
+// for it even when it has nothing to send, and writes src/data-version.json
+// only once it is confirmed.
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { DEFAULTS, runIngest } from './ingest-core.mjs';
@@ -37,6 +44,35 @@ import {
 } from './lib.mjs';
 
 export const DATA_VERSION_PATH = fileURLToPath(new URL('../src/data-version.json', import.meta.url));
+/** Unconfirmed Vectorize mutations, per Worker URL. Under .data/, so git-ignored. */
+export const STATE_PATH = fileURLToPath(new URL('../.data/ingest-state.json', import.meta.url));
+
+/**
+ * The pending-mutation store for one Worker URL, in a JSON file shared by all
+ * of them: `{ "<base>": { "pendingMutationId": "…" } }`. Each write replaces
+ * the file atomically.
+ * @param {string} path
+ * @param {string} base
+ * @returns {import('./ingest-core.mjs').PendingMutationStore}
+ */
+export function fileStateStore(path, base) {
+  /** @returns {Promise<Record<string, { pendingMutationId: string }>>} */
+  const load = async () => {
+    const text = await readFile(path, 'utf8').catch((err) => { if (err.code === 'ENOENT') return '{}'; throw err; });
+    return JSON.parse(text);
+  };
+  return {
+    read: async () => (await load())[base]?.pendingMutationId ?? null,
+    write: async (id) => {
+      const all = await load();
+      if (id) all[base] = { pendingMutationId: id };
+      else delete all[base];
+      await mkdir(dirname(path), { recursive: true });
+      await writeFile(`${path}.tmp`, `${JSON.stringify(all, null, 2)}\n`);
+      await rename(`${path}.tmp`, path);
+    },
+  };
+}
 
 /**
  * `90s`, `30m`, `24h`, `2d`; a bare number is hours.
@@ -65,7 +101,8 @@ export function parseIngestArgs(argv, envVars = process.env) {
     args: argv,
     options: {
       year: { type: 'string' }, url: { type: 'string' }, force: { type: 'boolean' }, from: { type: 'string' },
-      'write-budget': { type: 'string' }, 'allow-mass-delete': { type: 'boolean' }, offline: { type: 'boolean' },
+      'write-budget': { type: 'string' }, 'allow-mass-delete': { type: 'boolean' },
+      'allow-year-change': { type: 'boolean' }, offline: { type: 'boolean' },
       'max-age': { type: 'string' }, batch: { type: 'string' }, concurrency: { type: 'string' },
       'wait-timeout': { type: 'string' },
     },
@@ -84,6 +121,7 @@ export function parseIngestArgs(argv, envVars = process.env) {
       from: values.from ?? null,
       writeBudget: values['write-budget'] ? positiveInt('write-budget', values['write-budget']) : DEFAULTS.writeBudget,
       allowMassDelete: values['allow-mass-delete'] ?? false,
+      allowYearChange: values['allow-year-change'] ?? false,
       batchSize,
       concurrency: values.concurrency ? positiveInt('concurrency', values.concurrency) : DEFAULTS.concurrency,
       waitTimeoutMs: values['wait-timeout'] ? parseDuration(values['wait-timeout']) : DEFAULTS.waitTimeoutMs,
@@ -128,11 +166,13 @@ export const dataVersionFile = (version) => `${JSON.stringify({ version }, null,
 /**
  * @param {string[]} argv
  * @param {{ fetchImpl?: typeof fetch, log?: (line: string) => void, dataVersionPath?: string,
- *   envVars?: Record<string, string | undefined>, cacheDir?: URL }} [deps]
+ *   envVars?: Record<string, string | undefined>, cacheDir?: URL, statePath?: string }} [deps]
  * @returns {Promise<number>} exit code
  */
 export async function main(argv, deps = {}) {
-  const { fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, cacheDir } = deps;
+  const {
+    fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, cacheDir, statePath = STATE_PATH,
+  } = deps;
   const secret = envVars.INGEST_SECRET;
   if (!secret) {
     log('INGEST_SECRET is not set. Export the same value the Worker is bound to.');
@@ -166,10 +206,12 @@ export async function main(argv, deps = {}) {
   // /admin/facets also records where the NG list came from, so /facets reports
   // the date in data/ng-courses-*.json rather than a hand-kept copy (O3).
   const facetsBody = facetsPayload(ngCourses);
-  const result = await runIngest({ modules, facetsBody, api: httpAdminApi(args.base, secret, fetchImpl), options: args.options, log });
+  const api = httpAdminApi(args.base, secret, fetchImpl);
+  const pending = fileStateStore(statePath, args.base);
+  const result = await runIngest({ modules, facetsBody, api, options: args.options, pending, log });
 
   log(`rows read          ${result.rowsRead} (ingest and delete calls; /admin/hashes and facets not metered here)`);
-  log(`rows written       ${result.rowsWritten}`);
+  log(`rows written       ${result.rowsWritten} reported by D1; ${result.rowsCharged} charged to the budget (with FTS estimate)`);
   if (result.status === 'done' && result.dataVersion) {
     await writeFile(dataVersionPath, dataVersionFile(result.dataVersion));
     log(`data version       ${result.dataVersion} -> src/data-version.json`);
