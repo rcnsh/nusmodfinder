@@ -427,3 +427,22 @@ fails on the previous code.
 - Nothing deployed, no remote call, no migration change. The first remote ingest after 0006 is
   the forced full re-ingest (every `row_hash` NULL, every `text_hash` on the new formula): ADR
   0002's separate-UTC-day rule and headroom check apply.
+
+## 2026-11-04 — Phase 1 1C: PR #13 review fixes
+
+- Mass-delete guard counts the planned deletes (> 5% of D1's codes refuses), so a same-size
+  corpus of other codes is refused; a corpus for another acad year than most of D1's rows is
+  refused unless `--allow-year-change` (`/admin/hashes` returns `acadYears` counts).
+- Vector metadata carries `textHash` (not indexed); the row-only path reuses stored values only
+  when it matches and the dimension is 384, else re-embeds; verify compares it. Production
+  vectors have none, so the planned forced re-ingest re-embeds everything as before.
+- The last sent mutation id persists in `.data/ingest-state.json` (per `--url`) until a wait
+  confirms it; a rerun with nothing to send waits for it before writing `data-version.json`.
+- Schema guard requires all four 0006 triggers. `/admin/delete` clears the hashes before
+  `deleteByIds`. The `.data/` sidecar records the body sha256; a mismatch forces a full GET.
+- **Cold-load cost corrected:** ~48k table/index + 89,337 FTS5 shadow rows ≈ 137k written
+  (`docs/evidence/phase1/fts-writes.mjs`), over the 100k/day cap. The budget now charges
+  max(`meta.rows_written`, estimate with FTS); a cold load must not run remotely until remote
+  FTS metering is measured. The forced re-ingest writes 0 FTS rows and is charged 37,251.
+- CI: the full unicode61 separator probe gets a 60 s timeout (5.2 s on the runner).
+- Nothing deployed, no remote call.

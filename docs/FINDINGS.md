@@ -112,6 +112,7 @@ modules; the `.data/` download cache never expires; `/search` ignores `acad_year
 - test `[B2 fixed] an entry older than --max-age is revalidated with If-None-Match, and a 304 keeps the cached body` (`test/findings/ingest.node.test.js`), and the four cache tests after it (200 replaces body and sidecar; a fresh entry is used without a request; `--offline`; an entry with no sidecar).
 - test `cold ingest, forced full re-ingest (SC6), no-op rerun, field-only change, 10 deletes, verify` (`test/full/ingest.test.js`): over the full pinned corpus, a forced full re-ingest reads 35,079 rows (SC6 gate < 500,000) and writes 34,381 by the budget's count; 25 field-only changes land with no embedding; 10 dropped modules leave both stores; verify agrees. Costs and estimates: `docs/evidence/phase1/ingest-cost.md`.
 - test `reports missing and extra vectors` (`test/verify.test.js`), `reports metadata drift in the sample`, `reports a row whose stored row_hash no longer matches its columns, and a row with none`: `npm run verify` (`scripts/verify.mjs`) exits non-zero on each.
+- PR #13 review fixes (`test/ingest.test.js`, `test/verify.test.js`): test `[PR13 #1a] refuses when the deletes exceed 5% of D1, even when the corpus is as large as D1`, `[PR13 #1b] refuses a corpus for another acad year than D1 holds unless allowYearChange; /admin/hashes reports the year`, `re-embed when the stored vector is not for this text_hash, so an old embedding never overwrites a new one`, `[PR13 #2] reports a sampled vector whose metadata textHash is not the row's text_hash, or has none`, `leaves the module re-embedded when it comes back: hashes are cleared before Vectorize deletes`.
 - test `refuses a corpus below 95% of the D1 count unless allowMassDelete` (`test/ingest.test.js`), `run only when no upsert batch failed`, `stops cleanly before a batch would exceed it, never exceeds it, and a rerun resumes through the hash skip`, `reports done only once describe() has processed the last mutation, polling on that state`, `refuses a database without migration 0006, and /admin/hashes says what is missing`.
 
 **Notes:** Was: hash input `scripts/lib.mjs:94-101` (`embeddingText`) and `:163` (`textHash:
@@ -125,13 +126,15 @@ Worker and the scripts; the Worker stores the hash of what it actually binds).
 `/admin/hashes` returns both. `scripts/ingest-core.mjs` plans each module: text changed →
 re-embed and upsert vector and row; only the row changed → rewrite the row and re-upsert the
 vector with its stored values (`getByIds`) under new metadata, embedding only if the vector
-is missing (a deviation from r1's "re-embed, cheap": same vector, no neurons); unchanged →
-skip. Codes D1 holds and the corpus lacks are deleted through the new authenticated
-`/admin/delete` (Vectorize `deleteByIds`, then D1), last, and only when no upsert batch
-failed. A corpus under 95% of D1's count aborts the run before any write unless
-`--allow-mass-delete`. The `.data/` cache keeps `ETag`/`Last-Modified` in a
-`<entry>.cache.json` sidecar and revalidates entries older than `--max-age` (24 h) unless
-`--offline`.
+is missing or its `metadata.textHash` is not the module's (a deviation from r1's "re-embed,
+cheap": same vector, no neurons; the textHash check stops stale values from a lagging
+Vectorize overwriting a pending new embedding); unchanged → skip. Codes D1 holds and the
+corpus lacks are deleted through the new authenticated `/admin/delete` (hashes cleared, then
+Vectorize `deleteByIds`, then D1), last, and only when no upsert batch failed. A plan that
+deletes more than 5% of D1's codes, or a corpus for another acad year than most of D1's rows,
+aborts the run before any write unless `--allow-mass-delete` / `--allow-year-change`. The
+`.data/` cache keeps `ETag`/`Last-Modified` and the body's sha256 in a `<entry>.cache.json`
+sidecar and revalidates entries older than `--max-age` (24 h) unless `--offline`.
 
 The acad_year sub-claim needs no query-time fix: one database holds one acad year by
 construction, because rows are keyed by `code` alone. A run refuses a corpus that mixes acad

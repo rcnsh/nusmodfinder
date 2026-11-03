@@ -174,46 +174,73 @@ npm run deploy                                      # new cache key, so no stale
 Before any remote write, check the account-wide D1 headroom for the UTC day
 (`docs/decisions/0002-phase1-remote-ops.md`): proceed only if the estimate × 1.5 fits.
 
+A run for a different acad year than D1 holds is refused unless you pass
+`--allow-year-change` (it rewrites every row to the new year). Pass `--allow-mass-delete`
+as well if more than 5% of the codes D1 holds leave the corpus.
+
 **What a run does.** It compares two hashes per module with what D1 holds
 (`GET /admin/hashes`): `text_hash` (embedding model + embedded-text version + text) and
 `row_hash` (normaliser version + every column D1 stores + the Vectorize metadata).
 
 - Text changed: the module is re-embedded, then the vector and the row are upserted.
 - Only the row changed: the row is rewritten, and the vector is re-upserted with its
-  stored values under the new metadata. There is no new embedding.
+  stored values under the new metadata. There is no new embedding, unless the stored
+  vector's `metadata.textHash` is not the module's `text_hash` (a vector written before
+  `textHash` was stored, or one Vectorize has not yet replaced with a newer embedding).
+  Then the module is re-embedded, so old values never overwrite a pending new embedding.
 - Unchanged: skipped. A rerun with nothing changed writes nothing but the facets row.
-- Codes D1 holds that the corpus no longer offers are deleted through `/admin/delete`
-  (Vectorize first, then D1). Deletes run last, and only if every upsert batch succeeded.
+- Codes D1 holds that the corpus no longer offers are deleted through `/admin/delete`:
+  their hashes are cleared in D1, then Vectorize deletes the vectors, then D1 deletes the
+  rows. If the D1 delete fails and the module comes back, its cleared hash makes ingest
+  re-embed it. Deletes run last, and only if every upsert batch succeeded.
 
 The run then rebuilds the facets row and waits, by polling `describe()`, until Vectorize
 has processed its last mutation. Only then does it write `src/data-version.json`, the
-`/search` cache-key version (a hash of every code and row hash).
+`/search` cache-key version (a hash of every code and row hash). Every mutation id is
+saved in `.data/ingest-state.json` (git-ignored, per `--url`) as it is sent, and cleared
+only once a wait confirms it. A rerun after exit 3 has nothing to send but still waits for
+that id, and writes `src/data-version.json` only once it is confirmed.
 
 **Guards.** Each one stops the run before it writes anything:
 
-- the database lacks migration 0006. Rewriting rows through the old FTS triggers reads
-  ~46M rows (FINDINGS B3);
-- the corpus offers fewer than 95% of the codes D1 holds (pass `--allow-mass-delete` if
-  the drop is real);
+- the database lacks migration 0006: the schema marker, the external-content FTS table,
+  any of its four triggers (`modules_fts_insert`, `_delete`, `_update`,
+  `modules_rowid_immutable`) or `row_hash`. Rewriting rows through the old FTS triggers
+  reads ~46M rows (FINDINGS B3), and a missing trigger lets the FTS index drift;
+- the plan would delete more than 5% of the codes D1 holds, whatever the corpus size
+  (pass `--allow-mass-delete` if the drop is real);
+- the corpus is for another acad year than most of D1's rows (pass `--allow-year-change`).
+  An empty database has no year;
 - the corpus mixes acad years or repeats a code;
 - the Worker embeds with a different model than `text_hash` assumes.
 
-**Write budget.** `--write-budget` (default 40,000 D1 rows, ADR 0002) is summed from the
-`meta.rows_written` each admin response reports. Before a batch would pass it, the run
+**Write budget.** `--write-budget` (default 40,000 D1 rows, ADR 0002) charges each admin
+call the larger of the `meta.rows_written` it reports and an estimate per module. The
+estimate includes the FTS5 shadow-table writes for inserted or text-changed rows, which
+local D1 does not report and remote D1 may bill. Before a batch would pass the budget, the run
 stops cleanly (exit 2) and prints how to resume. Rerun the same command: the hash skip
 sends only what is still pending. A stopped `--force` run resumes with `--from <code>`.
-A forced full re-ingest costs ~35k rows read and ~34.4k written. Loading an empty
-database costs ~48k written, so it takes two runs at the default budget
+A forced full re-ingest of existing rows costs ~35k rows read and ~34.4k written, with
+no FTS writes, and is charged ~37k.
+
+**Do not cold-load the remote database with the default budget.** Loading an empty
+database writes ~48k table and index rows plus ~89k FTS5 shadow rows, about 137k in all.
+That is over the 100k/day account cap, and the remote billing of FTS writes has not been
+measured. The budget charges ~149k for it and would stop a run at 40k, but until remote
+metering of FTS writes is measured, the charged figure is only an estimate. Rebuild
+production from empty only after measuring it, spread over several UTC days
 ([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md)).
 
-**Download cache.** `.data/` entries keep NUSMods' `ETag` and `Last-Modified` in a
-`<file>.cache.json` sidecar. An entry older than `--max-age` (default `24h`) is
-revalidated with `If-None-Match`; `--offline` uses the cache as it is and never fetches.
+**Download cache.** `.data/` entries keep NUSMods' `ETag`, `Last-Modified` and the body's
+sha256 in a `<file>.cache.json` sidecar. An entry older than `--max-age` (default `24h`)
+is revalidated with `If-None-Match`; `--offline` uses the cache as it is and never fetches.
+A body that does not match its recorded sha256 is never served or revalidated. It is
+downloaded again in full, and `--offline` refuses it.
 
 Other flags: `--force` (re-embed and rewrite everything), `--batch`, `--concurrency` and
 `--wait-timeout` (default `10m`). Exit codes: 0 done, 1 refused or failed, 2 stopped by
-the budget, 3 Vectorize did not confirm the last mutation in time (D1 is complete; verify
-later).
+the budget, 3 Vectorize did not confirm the last mutation in time (D1 is complete; rerun
+the same command later, then verify).
 
 **The admin routes do not exist in production.** `/admin/*` returns 404 unless an
 `INGEST_SECRET` is bound, and the deployed Worker has none. Ingest is run locally against
