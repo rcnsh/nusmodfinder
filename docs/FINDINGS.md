@@ -30,7 +30,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | B5 | fixed | tests, live |
 | B6 | fixed | test |
 | B7 | fixed | test, live |
-| B8 | reproduced | tests, live |
+| B8 | fixed | tests, live |
 | B9 | reproduced | test (README arithmetic) |
 | S1 | reproduced | test (source + EVAL.md) |
 | S2 | reproduced | live |
@@ -236,7 +236,7 @@ is the same whichever spelling stored it.
 
 ### B8 · topK, hydration and tokeniser defects
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** `?topK=` (empty) → 1 result; hydration reads up to 77 rows for 50 results and
 selects unused columns; `returnMetadata:'indexed'` is unused and caps topK at 50 (100 without
@@ -247,7 +247,10 @@ it); the ASCII-only tokeniser splits "naïve".
 - test `[B8 fixed] hydration reads only the rows and columns the response renders`
 - test `[B8 fixed] a candidate missing from D1 (stale vector) is skipped and the next one hydrated`
 - test `[B8 fixed] Vectorize is asked for ids only; the candidate depth stays 50`
-- test `[B8 known-bug] the ASCII-only tokeniser splits "naïve" into "na" and "ve"`: MATCH is `"na" OR "ve" OR "bayes"`.
+- test `[B8 fixed] "naïve" stays one token, and D1's FTS5 folds it to the same term as "naive"` (`test/findings/backend.test.js`): MATCH is `"naïve" OR "bayes"` (was `"na" OR "ve" OR "bayes"`).
+- test `[B8 fixed] the separator table equals the unicode61 separators probed from SQLite, for every code point` (`test/fts-tokenizer.node.test.js`)
+- test `[B8 fixed] every query token is at most one FTS5 term, and together they are the FTS5 terms of the query`
+- test `[B8 fixed] ASCII queries keep byte-identical MATCH strings (differential over every query fixture)`: the 440 lexical fixture queries, the 98 dev eval queries and every ASCII character; no fixture query's MATCH string changes.
 
 **Notes:** Was: `Number('') === 0` clamped to 1 (`src/index.js:298-302` at `7ac9841`);
 hydration `:262-269` read every fused candidate with `SELECT_COLUMNS`; `returnMetadata`
@@ -258,9 +261,15 @@ hydration selects only `RESULT_COLUMNS` and reads only as many fused candidates 
 shows, topping up in order when a candidate is missing from D1, so the page is the same as
 before (`test/differential.test.js`); Vectorize no longer gets `returnMetadata`. The topK
 ceiling stays 50 on purpose (Phase 1 plan r2: a deeper list would change rankings). The
-Unicode tokeniser is workstream 1A's (`src/lexical.js`) and is still open: PR #8 (1A's
-migration and filtered search) leaves it unchanged. B8 becomes `fixed` when it lands and its
-known-bug test flips.
+Unicode tokeniser landed with workstream 1C: `queryTokens` in `src/lexical.js` splits on
+`src/fts-separators.js`, the exact separator set of the table's `porter unicode61` tokenizer,
+generated from SQLite by `scripts/gen-fts-separators.mjs`. A character class such as
+`[^\p{L}\p{N}]` would not match it: unicode61 classifies by Unicode 6.1 (later code points are
+token characters), treats the diacritics it can strip as token characters and splits on all
+other marks. Folding and stemming stay with FTS5, which applies them to each quoted token as
+it does to the index, so `"naïve"` matches what `"naive"` matches. Stopwords are tested on
+the diacritic-stripped token. ASCII MATCH strings are unchanged, so only non-ASCII queries
+can rank differently.
 
 ### B9 · README names the wrong binding limit
 

@@ -367,11 +367,17 @@ describe('B8', () => {
     expect(body.count).toBe(50);
   });
 
-  it('[B8 known-bug] the ASCII-only tokeniser splits "naïve" into "na" and "ve"', async () => {
+  it('[B8 fixed] "naïve" stays one token, and D1\'s FTS5 folds it to the same term as "naive"', async () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
     await callJson('/search?q=na%C3%AFve%20bayes&mode=lexical', { fakes, env: { DB: recordingDb(log) } });
-    expect(ftsCalls(log)[0].binds[0]).toBe('"na" OR "ve" OR "bayes"');
+    expect(ftsCalls(log)[0].binds[0]).toBe('"naïve" OR "bayes"');
+    // The table's own tokenizer (porter unicode61) strips the diaeresis, so the
+    // quoted token matches what "naive" matches in the fixture.
+    const count = (/** @type {string} */ m) => env.DB.prepare('SELECT count(*) AS n FROM modules_fts WHERE modules_fts MATCH ?').bind(m).first('n');
+    expect(await count('"naïve"')).toBe(await count('"naive"'));
+    expect(await count('"Model"')).toBe(await count('"modél"'));
+    expect(Number(await count('"modél"'))).toBeGreaterThan(0);
   });
 });
 
