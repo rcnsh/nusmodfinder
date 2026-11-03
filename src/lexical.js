@@ -35,6 +35,14 @@ function ftsMatchExpression(tokens) {
   return tokens.map((t) => `"${t}"`).join(' OR ');
 }
 
+/**
+ * The FTS5 MATCH expression for a user query, or null when it has no tokens.
+ * @param {string} query
+ */
+export function ftsMatch(query) {
+  return ftsMatchExpression(ftsTokens(query));
+}
+
 // Lexical half of the hybrid retriever. Filters are applied in SQL so the two
 // halves see the same candidate universe (R4 holds on both paths).
 /**
@@ -45,9 +53,37 @@ function ftsMatchExpression(tokens) {
  * @param {Trace} trace
  */
 export async function lexicalSearch(db, query, echo, limit, trace) {
-  const match = ftsMatchExpression(ftsTokens(query));
+  const match = ftsMatch(query);
   if (!match) return [];
   return runFts(db, match, echo, limit, trace);
+}
+
+// Filtered lexical search keeps at most this many FTS hits before joining
+// `modules` for the filters (docs/plans/phase1.md r2): the join costs one row
+// read per hit, so the cap bounds a filtered search at about 2 x FTS_CAP rows.
+export const FTS_CAP = 2000;
+
+/**
+ * SQL predicates over `modules m` for the active filters. Semester and NG use
+ * the generated columns from migrations/0006_fts_external.sql.
+ * @param {FilterEcho} echo
+ * @returns {{ clauses: string[], binds: (string | number)[] }}
+ */
+export function filterSql(echo) {
+  /** @type {string[]} */
+  const clauses = [];
+  /** @type {(string | number)[]} */
+  const binds = [];
+  if (echo.sem !== undefined) {
+    // Interpolated into a column name, so it must be one of the four columns.
+    if (![1, 2, 3, 4].includes(echo.sem)) throw new RangeError(`sem must be 1-4, got ${echo.sem}`);
+    clauses.push(`m.sem${echo.sem} = 1`);
+  }
+  if (echo.level !== undefined) { clauses.push('m.level = ?'); binds.push(echo.level); }
+  if (echo.credits !== undefined) { clauses.push('m.credits = ?'); binds.push(echo.credits); }
+  if (echo.faculty !== undefined) { clauses.push('m.faculty = ?'); binds.push(echo.faculty); }
+  if (echo.ng === true) clauses.push('m.ng = 1');
+  return { clauses, binds };
 }
 
 /**
@@ -58,41 +94,69 @@ export async function lexicalSearch(db, query, echo, limit, trace) {
  * @param {Trace} trace
  */
 async function runFts(db, match, echo, limit, trace) {
-  const where = ['modules_fts MATCH ?'];
-  /** @type {(string | number)[]} */
-  const binds = [match];
-  if (echo.level !== undefined) { where.push('m.level = ?'); binds.push(echo.level); }
-  if (echo.credits !== undefined) { where.push('m.credits = ?'); binds.push(echo.credits); }
-  if (echo.faculty !== undefined) { where.push('m.faculty = ?'); binds.push(echo.faculty); }
-  if (echo.ng === true) { where.push('m.ng = 1'); }
-  // semesters is a JSON array in D1, so the semester filter is applied in JS
-  // below — which is why echo.sem forces the join.
+  const { clauses, binds } = filterSql(echo);
 
-  // ORDER BY rank, NOT ORDER BY bm25(...). They produce the same ordering — the
-  // table's persistent rank config is bm25(0.0, 3.0, 1.0), set in
-  // migrations/0005_rank.sql — but calling bm25() as a function forces FTS5 to
-  // materialise and score every matching row, while `rank` uses its internal
-  // top-N path. Measured on "machine AND learning" (224 matching documents):
-  // bm25() cost 389 D1 rows read, rank cost 7. That single word is the
-  // difference between ~1,250 and ~100,000 searches per day on the free tier.
+  if (clauses.length === 0) {
+    // ORDER BY rank, NOT ORDER BY bm25(...). They produce the same ordering — the
+    // table's persistent rank config is bm25(0.0, 3.0, 1.0), set in
+    // migrations/0005_rank.sql and again in 0006 — but calling bm25() as a
+    // function forces FTS5 to materialise and score every matching row, while
+    // `rank` uses its internal top-N path. Measured on "machine AND learning"
+    // (224 matching documents): bm25() cost 389 D1 rows read, rank cost 7.
+    //
+    // Unchanged from before 0006 (LIMIT and slice included) so unfiltered
+    // rankings stay identical.
+    const res = /** @type {D1Result<{ code: string }>} */ (await trace.time('fts', () => db.prepare(
+      `SELECT modules_fts.code AS code FROM modules_fts
+        WHERE modules_fts MATCH ? ORDER BY rank LIMIT ?`,
+    ).bind(match, limit * 4).all()));
+    trace.d1Result(res);
+    return res.results.slice(0, limit).map((r) => r.code);
+  }
+
+  // Filters run in SQL against the generated columns, after a bounded FTS
+  // top-N (FINDINGS B1: they used to run in JS after the LIMIT, dropping
+  // matches). FTS5 returns rank ties in rowid order, so (rank, rowid) is the
+  // total order every path here agrees on. The outer LIMIT stops the scan as
+  // soon as `limit` hits survive, which is the common case. CROSS JOIN keeps
+  // `hits` the outer loop: given a plain JOIN and the filter indexes, SQLite
+  // drives from modules and builds an index on hits instead, losing the early
+  // stop (level=5 on "buildings and urban design": 7,455 rows read vs 211).
+  const where = clauses.join(' AND ');
+  const bounded = /** @type {D1Result<{ code: string }>} */ (await trace.time('fts', () => db.prepare(
+    `WITH hits AS (
+       SELECT rowid, rank FROM modules_fts WHERE modules_fts MATCH ? ORDER BY rank LIMIT ${FTS_CAP})
+     SELECT m.code AS code FROM hits CROSS JOIN modules m ON m.rowid = hits.rowid
+      WHERE ${where} ORDER BY hits.rank, hits.rowid LIMIT ?`,
+  ).bind(match, ...binds, limit).all()));
+  trace.d1Result(bounded);
+  if (bounded.results.length >= limit) return bounded.results.map((r) => r.code);
+
+  // Fewer than `limit` survived. That is the exact answer unless the query
+  // matched more than FTS_CAP documents, in which case a filtered match ranked
+  // below the cap was never looked at. Then run the filter-driven plan: walk
+  // the (indexed) filtered rows and ask FTS5 about each by rowid, so the cost
+  // follows the size of the filtered set, not of the match set; never an
+  // unbounded match-driven scan.
   //
-  // Joining `modules` also costs a row read per match, so only join when a
-  // filter needs a column that lives over there.
-  const needsJoin = where.length > 1 || echo.sem !== undefined;
-  const sql = needsJoin
-    ? `SELECT m.code AS code, m.semesters AS semesters
-         FROM modules_fts JOIN modules m ON m.code = modules_fts.code
-        WHERE ${where.join(' AND ')} ORDER BY rank LIMIT ?`
-    : `SELECT modules_fts.code AS code, NULL AS semesters
-         FROM modules_fts WHERE ${where.join(' AND ')} ORDER BY rank LIMIT ?`;
-
-  const res = /** @type {D1Result<{ code: string, semesters: string | null }>} */ (
-    await trace.time('fts', () => db.prepare(sql).bind(...binds, limit * 4).all()));
-  trace.d1Result(res);
-  const { results } = res;
-
-  return results
-    .filter((r) => echo.sem === undefined || JSON.parse(r.semesters ?? '[]').includes(echo.sem))
-    .slice(0, limit)
-    .map((r) => r.code);
+  // `capped` counts at most FTS_CAP + 1 matches (no ranking, so no scoring).
+  // CROSS JOIN fixes the loop order with it outermost: when the query did not
+  // overflow the cap its one row fails `n > FTS_CAP` and the join never runs.
+  // (As a scalar subquery in WHERE the guard is not hoisted: SQLite still
+  // walks every modules row, measured 6,831 rows read for nothing.)
+  // `?1` is the MATCH expression in both places; each later bare `?` takes
+  // the next number, so the binds are (match, ...filter binds, limit).
+  const exact = /** @type {D1Result<{ code: string }>} */ (await trace.time('fts', () => db.prepare(
+    `WITH capped AS (
+       SELECT count(*) AS n FROM (SELECT 1 FROM modules_fts WHERE modules_fts MATCH ?1 LIMIT ${FTS_CAP + 1}))
+     SELECT m.code AS code
+       FROM capped CROSS JOIN modules AS m CROSS JOIN modules_fts ON modules_fts.rowid = m.rowid
+      WHERE capped.n > ${FTS_CAP} AND modules_fts MATCH ?1 AND ${where}
+      ORDER BY modules_fts.rank, m.rowid LIMIT ?`,
+  ).bind(match, ...binds, limit).all()));
+  trace.d1Result(exact);
+  // An empty exact result means either the guard was false (the bounded
+  // answer is complete) or nothing matches the filters at all (and then the
+  // bounded answer is empty too).
+  return (exact.results.length ? exact.results : bounded.results).map((r) => r.code);
 }
