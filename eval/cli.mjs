@@ -16,6 +16,7 @@ import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { writeEncryptedJson } from './lib/crypto.mjs';
 import { EmbeddingError, errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
 import { gateFor } from './lib/gate.mjs';
+import { loadGroups, withCorpusGroups } from './lib/groups.mjs';
 import { poolCandidate } from './lib/judging.mjs';
 import { appendLook, assertLookAllowed, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
 import { assertSameCorpus, byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
@@ -134,14 +135,16 @@ async function fullReport(set, candPath, basePath, a) {
   const base = basePath ? await readRun(set, basePath) : null;
   assertComparable(base ? [base, cand] : [cand]);
   assertSameCorpus(qrels, base ? [base, cand] : [cand]);
+  const groups = await loadGroups();
+  const scored = withCorpusGroups(qrels, groups);
   const currentSha = /** @type {any} */ (cand.queries)?.sha256;
   const { createHash } = await import('node:crypto');
   const nowSha = createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex');
   if (currentSha !== nowSha) console.warn(`warning: ${cand.variant} was run on a different version of the ${set.name} queries; re-run it`);
 
-  const candScores = scoreRun(cand, querySet.queries, qrels);
-  const baseScores = base ? scoreRun(base, querySet.queries, qrels) : null;
-  console.log(`\nset ${set.name} · queries ${querySet.version} (${querySet.queries.length}) · qrels ${qrels.version} · metrics on top ${K}`);
+  const candScores = scoreRun(cand, querySet.queries, scored);
+  const baseScores = base ? scoreRun(base, querySet.queries, scored) : null;
+  console.log(`\nset ${set.name} · queries ${querySet.version} (${querySet.queries.length}) · qrels ${qrels.version} · duplicate groups ${groups.version} · metrics on top ${K}`);
   console.log(summaryTable([...(base && baseScores ? [{ name: base.variant, summary: summarise(baseScores) }] : []), { name: cand.variant, summary: summarise(candScores) }]));
 
   /** @type {Record<string, unknown>} */
@@ -190,8 +193,9 @@ async function verdictReport(set, candPath, basePath, a, reserved = null) {
     assertComparable([base, cand]);
     assertGateable([base, cand]);
     assertSameCorpus(qrels, [base, cand]);
-    const candScores = scoreRun(cand, querySet.queries, qrels);
-    const baseScores = scoreRun(base, querySet.queries, qrels);
+    const scored = withCorpusGroups(qrels, await loadGroups());
+    const candScores = scoreRun(cand, querySet.queries, scored);
+    const baseScores = scoreRun(base, querySet.queries, scored);
     const cmp = compare(baseScores, candScores);
     const ranker = /** @type {any} */ (cand.ranker) ?? {};
     const row = {
@@ -259,8 +263,8 @@ async function cmdRun(a) {
 
 /**
  * Before any retrieval (and any look): the baseline run must be a hybrid run
- * on the corpus the qrels were judged on (the candidate is checked again
- * after it runs).
+ * on the corpus the qrels were judged on, and the duplicate groups built from
+ * it (the candidate is checked again after it runs).
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {Args} a
  */
@@ -278,6 +282,7 @@ async function precheckCorpus(set, a) {
     qrels = JSON.parse(await readFile(qrelsPath, 'utf8'));
   }
   assertSameCorpus(qrels, [baseRun]);
+  withCorpusGroups(qrels, await loadGroups()); // throws if the groups are for another corpus
 }
 
 /**

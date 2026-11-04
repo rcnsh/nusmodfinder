@@ -224,6 +224,87 @@ describe('qrels and runs must share a corpus (review finding 7)', () => {
   });
 });
 
+describe('the committed duplicate groups (eval/groups.json) apply to every set', () => {
+  const OTHER = '0'.repeat(64);
+  /**
+   * A plaintext copy of the fixture set whose qrels and runs agree with each
+   * other; `edit` changes the qrels before the runs are built from them.
+   * @param {string} name
+   * @param {(q: any) => void} [edit]
+   */
+  async function devSetOn(name, edit) {
+    const dir = join(tmp, name);
+    await cp(join(REPO, 'eval', 'fixtures'), dir, { recursive: true });
+    const querySet = await fixture('queries.json');
+    const qrels = await fixture('qrels.json');
+    edit?.(qrels);
+    for (const [variant, order] of /** @type {const} */ ([['base', 'worst'], ['cand', 'best']])) {
+      await writeFile(join(dir, `${variant}.json`), JSON.stringify({ ...syntheticRun(querySet, qrels, variant, order), set: 'fixture' }));
+    }
+    await writeFile(join(dir, 'qrels.json'), JSON.stringify(qrels));
+    return dir;
+  }
+  /** @param {string} dir @param {string[]} [extra] */
+  const report = (dir, extra = []) => cli(['report', '--set', 'fixture', '--set-dir', dir, '--run', join(dir, 'cand.json'), '--baseline', join(dir, 'base.json'), ...extra]);
+
+  it('dev: qrels without groups score as if they carried the corpus groups', async () => {
+    const withOwn = await devSetOn('own-groups');
+    const without = await devSetOn('no-groups', (q) => { q.groups = []; });
+    const summaries = [];
+    for (const dir of [withOwn, without]) {
+      const r = report(dir, ['--json', join(dir, 'out.json')]);
+      expect(r.stderr).toBe('');
+      expect(r.code).toBe(0);
+      summaries.push(JSON.parse(await readFile(join(dir, 'out.json'), 'utf8')).summary);
+    }
+    expect(summaries[1]).toEqual(summaries[0]);
+  });
+
+  it('dev: report refuses when the groups were built from another corpus', async () => {
+    const r = report(await devSetOn('groups-other-corpus', (q) => { q.corpus.moduleInfoSha256 = OTHER; }));
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/^eval: duplicate groups groups-v1 were built from a corpus with moduleInfoSha256 2d138795d387…, but qrels fixture-qrels-v1 were judged on 000000000000…/);
+    expect(r.stdout).not.toMatch(/paired over/);
+  });
+
+  it('dev: run refuses before any retrieval', async () => {
+    const dir = await devSetOn('groups-run-precheck', (q) => { q.corpus.moduleInfoSha256 = OTHER; });
+    const r = cli(['run', '--set', 'fixture', '--set-dir', dir, '--variant', 'never', '--out', join(dir, 'never.json'), '--baseline', join(dir, 'base.json')]);
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/^eval: duplicate groups groups-v1 were built from a corpus/);
+    expect(r.stdout).not.toMatch(/ranker/);
+  });
+
+  /** An encrypted set whose qrels and runs agree on a corpus the groups were not built from. */
+  async function holdoutOn(/** @type {string} */ name) {
+    const dir = join(tmp, name);
+    const querySet = await fixture('queries.json');
+    const qrels = await fixture('qrels.json');
+    qrels.corpus.moduleInfoSha256 = OTHER;
+    await writeEncryptedJson(join(dir, 'queries.json.enc'), querySet, key, SET);
+    await writeEncryptedJson(join(dir, 'qrels.json.enc'), qrels, key, SET);
+    await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), syntheticRun(querySet, qrels, 'base', 'worst'), key, SET);
+    await writeEncryptedJson(join(dir, 'runs', 'run-cand.json.enc'), syntheticRun(querySet, qrels, 'cand', 'best'), key, SET);
+    return dir;
+  }
+
+  it('holdout: report refuses, withheld, and records no look', async () => {
+    const dir = await holdoutOn('groups-holdout-report');
+    const r = cli(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base']);
+    expect(r.code).toBe(1);
+    expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (CorpusMismatchError); details withheld\n`);
+    expect(await readLedger(join(dir, 'ledger.md'))).toHaveLength(0);
+  });
+
+  it('holdout: run refuses before reserving a look', async () => {
+    const dir = await holdoutOn('groups-holdout-run');
+    const r = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'never', '--baseline', 'base']);
+    expect(r.code).toBe(1);
+    expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (CorpusMismatchError); details withheld\n`);
+    expect(await readLedger(join(dir, 'ledger.md'))).toHaveLength(0);
+  });
+});
+
 describe('a holdout run with nothing to score reserves no look', () => {
   it('refuses before reserving when the set has no qrels yet', async () => {
     const { dir } = await makeSet('unjudged');
