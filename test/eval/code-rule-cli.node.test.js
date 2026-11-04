@@ -133,6 +133,22 @@ describe('eval:judge -- code-rule on an encrypted set', () => {
     expect(existsSync(join(dir, 'qrels.json'))).toBe(false);
   });
 
+  it('updates only the qrels entry of the manifest: a tampered ciphertext stays flagged', async () => {
+    const dir = await makeSet('holdout-manifest', true);
+    const hash = async (/** @type {string} */ f) => createHash('sha256').update(await readFile(join(dir, f))).digest('hex');
+    // A manifest that vouches for a run file, which is then swapped for other bytes.
+    await mkdir(join(dir, 'runs'), { recursive: true });
+    await writeFile(join(dir, 'runs', 'run-v0.json.enc'), 'original');
+    const vouched = await hash('runs/run-v0.json.enc');
+    await writeFile(join(dir, 'MANIFEST.json'), JSON.stringify({ schema: 'vnm-holdout-manifest/1', files: { 'queries.json.enc': await hash('queries.json.enc'), 'qrels.json.enc': await hash('qrels.json.enc'), 'runs/run-v0.json.enc': vouched } }));
+    await writeFile(join(dir, 'runs', 'run-v0.json.enc'), 'swapped');
+    const r = node('eval/judge.mjs', ['code-rule', '--holdout', '--set-dir', dir]);
+    expect(r.code, r.stderr).toBe(0);
+    const files = JSON.parse(await readFile(join(dir, 'MANIFEST.json'), 'utf8')).files;
+    expect(files['qrels.json.enc']).toBe(await hash('qrels.json.enc'));
+    expect(files['runs/run-v0.json.enc']).toBe(vouched);
+  });
+
   it('refuses qrels judged under another NG list (ngSha256 mismatch)', async () => {
     const dir = await makeSet('dev-fixture-ng', false);
     const path = join(dir, 'qrels.json');

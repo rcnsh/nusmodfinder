@@ -2,6 +2,8 @@
 // eval/holdout-ledger.md: one row per look at the holdout (or sealed test)
 // set, so the number of looks is visible in git history. A look is any run
 // that prints a verdict. Append-only; the CLI refuses a look past the limit.
+// Each row records the rule the verdict applied (`general`, `targeted:
+// <shapes>`, `cutoff`, `sc5`) and the baseline's ranker sha.
 //
 // Tamper resistance (honour system, but not trivially editable):
 // - every table row except the header and separator lines counts, whatever
@@ -34,8 +36,8 @@ const HEADER = `# Holdout ledger
 Append-only. One row per look at an encrypted set (\`holdout\` max 12, \`test\` max 1), written
 by \`npm run eval -- --holdout\`. Phase 3 tuning stops at 12 holdout looks.
 
-| date | set | commit | variant | baseline | verdict | ΔnDCG@10 [95% CI] | ΔP@5 [95% CI] |
-|---|---|---|---|---|---|---|---|
+| date | set | commit | variant | baseline | verdict | ΔnDCG@10 [95% CI] | ΔP@5 [95% CI] | rule | baseline ranker |
+|---|---|---|---|---|---|---|---|---|---|
 `;
 
 /** Set names a row can belong to; any other set cell counts against all of them. */
@@ -165,13 +167,14 @@ export async function assertLookAllowed(path, set, max, options = {}) {
 }
 
 /**
- * @typedef {{ date: string, set: string, commit: string, variant: string, baseline: string, verdict: string, ndcg: string, p5: string }} LedgerRow
+ * `rule` is gate.mjs `ruleOf`; `baselineRanker` the baseline run's ranker sha (7 characters).
+ * @typedef {{ date: string, set: string, commit: string, variant: string, baseline: string, verdict: string, ndcg: string, p5: string, rule?: string, baselineRanker?: string }} LedgerRow
  */
 
 /** @param {LedgerRow} row */
 export function formatRow(row) {
   const clean = (/** @type {string} */ s) => s.replace(/[|\n]/g, ' ');
-  return `| ${[row.date, row.set, row.commit, row.variant, row.baseline, row.verdict, row.ndcg, row.p5].map(clean).join(' | ')} |`;
+  return `| ${[row.date, row.set, row.commit, row.variant, row.baseline, row.verdict, row.ndcg, row.p5, row.rule ?? '—', row.baselineRanker ?? '—'].map(clean).join(' | ')} |`;
 }
 
 /**

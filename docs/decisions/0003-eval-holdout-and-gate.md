@@ -88,7 +88,8 @@ that lock it, and where the build departs from the plan.
     nothing here claims otherwise.
 - **Looks.** A look is any run or report that prints a verdict for an encrypted set.
   - `eval/holdout-ledger.md` holds one row per look, with a set column shared by `holdout` (max
-    12) and `test` (max 1).
+    12) and `test` (max 1), the rule applied and the baseline's ranker sha (amendment
+    2026-11-04).
   - A run reserves its row before retrieval; the reserved row counts even if the run is aborted
     or unjudged.
   - A look is refused when, for any set, the ledger records fewer looks than git's copy at `HEAD`
@@ -170,6 +171,34 @@ reported on the holdout with its look count and an explicit caveat about adaptiv
   its description and is not bound by NUS prerequisite chains in the same way, and a prereq line
   invites judges to grade eligibility, which no query asks about. Revisit if a query shape about
   eligibility is added.
+
+## Amendment 2026-11-04: gate and custody refusals (Phase 2 exit red-team)
+Made before the first holdout look. The red-team found three ways to get a verdict the rules
+above do not allow; each is now refused mechanically, before a look is reserved or appended.
+- **Cutoff rule.** The cutoff rule replaces the Δ rules only for a change that is a cutoff. The
+  CLI used to take `--change-kind cutoff` on the operator's word, so a candidate that emptied
+  no-answer results and also pushed relevant documents down passed on the holdout where the
+  general rule failed it. A cutoff candidate's result list must now be, for every query, the
+  baseline's or a prefix of it, with the same status (`assertTruncation`, `CutoffError`). On an
+  encrypted set the candidate is checked as a stored run (`--store-only`, then
+  `eval:report --change-kind cutoff`), since `npm run eval` reserves its look before retrieval.
+  Every verdict prints the rule it applied (`general`, `targeted: <shapes>`, `cutoff`, `sc5`),
+  and the ledger records it in a `rule` column.
+- **Pinned baseline.** Holdout and SC5 verdicts refuse a baseline that is not `eval-v0` =
+  7ac9841 (`eval/lib/baseline.mjs`, `BaselineError`): the tag must still resolve to that commit,
+  and the run file must record ref `eval-v0`, that sha, a clean tree and that commit's ranker
+  `treeHash`. The ledger records the baseline's ranker sha in a `baseline ranker` column.
+  Moving the holdout baseline to a later shipped ranker means changing the pin and this ADR in
+  the same PR. A stored encrypted run the manifest lists is never overwritten (by
+  `--store-only` or a look). Replacing one is `npm run eval -- retire-run --reason …`, logged
+  with the retired ciphertext's sha256 in `eval/retired-runs.md`. Writing a run adds only that
+  file to the manifest instead of re-hashing every ciphertext, so the overwrite no longer makes
+  `eval:verify` pass.
+- **Manifest on read.** A `--set-dir` of ciphertexts the manifest never checked could be scored,
+  so two directories differing only in qrels grades gave FAIL and then PASS, both counted. Every
+  ciphertext a verdict reads must now match the set directory's `MANIFEST.json` (the
+  `eval:verify` check, on the bytes decrypted; `ManifestError`); a set directory with no
+  manifest is refused.
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.

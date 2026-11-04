@@ -1,16 +1,19 @@
 // @ts-check
 // The eval CLI's `report` path end to end on a small encrypted set built here
 // with a throwaway key (no workerd, no Cloudflare). Run files are synthetic:
-// every returned code is judged, so the set is fully judged.
+// every returned code is judged, so the set is fully judged. The baseline
+// carries the pinned eval-v0 ranker block and every set has a MANIFEST.json,
+// as a custody verdict requires (gate-custody.node.test.js tests both).
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { generateKey, readKey, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
+import { generateKey, readKey, updateManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { appendLook, readLedger } from '../../eval/lib/ledger.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
+import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
 // The self-test twin of the holdout set: same rules, ledger in its own
@@ -23,10 +26,18 @@ let tmp;
 let keyFile;
 /** @type {Buffer} */
 let key;
+/** The ranker block of a genuine `--ref eval-v0` run (ADR 0003's pin). */
+let pinned = {};
 beforeAll(async () => {
   tmp = await mkdtemp(join(tmpdir(), 'vnm-cli-'));
   keyFile = await generateKey(join(tmp, 'throwaway.key'));
   key = await readKey(keyFile);
+  const archive = join(tmp, 'eval-v0-archive');
+  const present = HASHED.filter((p) => spawnSync('git', ['cat-file', '-e', `eval-v0:${p}`], { cwd: REPO }).status === 0);
+  const tar = spawnSync('git', ['archive', '--format=tar', 'eval-v0', '--', ...present], { cwd: REPO, maxBuffer: 1 << 30 });
+  await mkdir(archive, { recursive: true });
+  spawnSync('tar', ['-x', '-C', archive], { input: tar.stdout });
+  pinned = { ref: 'eval-v0', sha: '7ac984174ded88cb2b6497d9835b456981acdd99', dirty: false, treeHash: await treeHash(archive), runner: { sha: '0'.repeat(40), dirty: false } };
 });
 afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 
@@ -51,9 +62,10 @@ function syntheticRun(querySet, qrels, variant, order) {
   }
   return {
     schema: 'vnm-eval-run/1', variant, set: SET,
-    ranker: { ref: 'synthetic', sha: '0'.repeat(40), dirty: false },
+    ranker: variant === 'base' ? pinned : { ref: 'synthetic', sha: '0'.repeat(40), dirty: false },
     corpus: { ...qrels.corpus },
     queries: { version: querySet.version, sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'), count: querySet.queries.length },
+    config: { mode: 'hybrid', filters: true },
     results, docs: {},
   };
 }
@@ -76,6 +88,7 @@ async function makeSet(name, edit = {}) {
   await writeEncryptedJson(join(dir, 'qrels.json.enc'), qrels, key, as);
   await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), base, key, as);
   await writeEncryptedJson(join(dir, 'runs', 'run-cand.json.enc'), cand, key, as);
+  await updateManifest(dir);
   return { dir, querySet };
 }
 
@@ -113,7 +126,9 @@ describe('--embed-missing on an encrypted set (PR #6 review round 3)', () => {
   it('a failed embedding prints only the withheld line and finalises the reserved look as aborted', async () => {
     const { dir } = await makeSet('embed-fails');
     // A corrupt cache: embed.mjs fails reading it, before any network call.
+    // The custodian re-manifests it, so the manifest check lets the run start.
     await writeFile(join(dir, 'embeddings.json.enc'), 'not a ciphertext\n');
+    await updateManifest(dir);
     const r = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'em', '--baseline', 'base', '--embed-missing'], { CI: '' });
     expect(r.code).toBe(1);
     expect(`${r.stdout}${r.stderr}`).toBe(`eval: ${SET} run failed (EmbeddingError); details withheld\n`);
@@ -285,6 +300,7 @@ describe('the committed duplicate groups (eval/groups.json) apply to every set',
     await writeEncryptedJson(join(dir, 'qrels.json.enc'), qrels, key, SET);
     await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), syntheticRun(querySet, qrels, 'base', 'worst'), key, SET);
     await writeEncryptedJson(join(dir, 'runs', 'run-cand.json.enc'), syntheticRun(querySet, qrels, 'cand', 'best'), key, SET);
+    await updateManifest(dir);
     return dir;
   }
 

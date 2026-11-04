@@ -78,19 +78,22 @@ export function shapeTable(baseShapes, candShapes, cmp) {
  * @param {import('./gate.mjs').Verdict} v
  */
 export function verdictBlock(v) {
-  return [`gate (${v.set}): ${v.verdict.toUpperCase()}`, ...v.checks.map((c) => `  [${c.pass ? 'pass' : 'FAIL'}] ${c.name} — ${c.detail}`)].join('\n');
+  return [`gate (${v.set}): ${v.verdict.toUpperCase()}${v.rule ? ` · rule ${v.rule}` : ''}`, ...v.checks.map((c) => `  [${c.pass ? 'pass' : 'FAIL'}] ${c.name} — ${c.detail}`)].join('\n');
 }
 
 /**
- * The only output an encrypted set ever produces.
+ * The only output an encrypted set ever produces. The first line names the
+ * rule applied (gate.mjs `ruleOf`) and the baseline ranker it was taken
+ * against ("eval-v0 7ac9841").
  * @param {import('./gate.mjs').Verdict} v
  * @param {import('./metrics.mjs').Comparison} cmp
  * @param {string} qrelsVersion
+ * @param {string} baseline
  */
-export function verdictOnly(v, cmp, qrelsVersion) {
+export function verdictOnly(v, cmp, qrelsVersion, baseline) {
   const ci = (/** @type {'ndcg' | 'p5'} */ m) => `${signed(cmp.overall[m].delta)} [${fmt(cmp.overall[m].bca.lower)}, ${fmt(cmp.overall[m].bca.upper)}]`;
   return {
-    text: [`${v.set} verdict: ${v.verdict.toUpperCase()} · qrels ${qrelsLabel(qrelsVersion)}`, `ΔnDCG@10 ${ci('ndcg')} (BCa 95%)`, `ΔP@5     ${ci('p5')} (BCa 95%)`].join('\n'),
+    text: [`${v.set} verdict: ${v.verdict.toUpperCase()} · rule ${v.rule ?? 'general'} · baseline ${baseline} · qrels ${qrelsLabel(qrelsVersion)}`, `ΔnDCG@10 ${ci('ndcg')} (BCa 95%)`, `ΔP@5     ${ci('p5')} (BCa 95%)`].join('\n'),
     ndcg: ci('ndcg'),
     p5: ci('p5'),
   };
