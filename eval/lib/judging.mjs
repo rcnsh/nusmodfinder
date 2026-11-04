@@ -16,6 +16,7 @@
 // Validation messages never quote judge-written text (it may carry holdout
 // content): they name files, sections, item ids and value types only.
 import { createHash } from 'node:crypto';
+import { CODE_RULE, applyCodeRule } from './code-rule.mjs';
 import { CorpusMismatchError, QrelsError } from './errors.mjs';
 import { K, gradeOf, scoreRun, semesterName, violationReason } from './metrics.mjs';
 import { mean, rng } from './stats.mjs';
@@ -816,9 +817,13 @@ export function nextVersion(base, set) {
 }
 
 /**
- * Merges a round's final judgments into qrels (vnm-eval-qrels/1).
+ * Merges a round's final judgments into qrels (vnm-eval-qrels/1). With
+ * `codeRule` (code-rule.mjs `codeRuleGrades` over the set's queries and
+ * corpus) the code-target rule grades are applied last: they replace the
+ * round's grade for a pair they name and add pairs nobody pooled. Their
+ * counts ride on the round's `judging` entry.
  * @param {Round} round
- * @param {{ base?: Qrels | null, version?: string, createdAt?: string }} [o]
+ * @param {{ base?: Qrels | null, version?: string, createdAt?: string, codeRule?: Map<string, import('./code-rule.mjs').RuleGrade> }} [o]
  * @returns {Qrels & { embedding?: string | null, judging: unknown[] }}
  */
 export function mergeQrels(round, o = {}) {
@@ -830,7 +835,7 @@ export function mergeQrels(round, o = {}) {
   }
   const finals = finalJudgments(round);
   /** @type {Record<string, import('./metrics.mjs').QueryQrels>} */
-  const queries = JSON.parse(JSON.stringify(base?.queries ?? {}));
+  let queries = JSON.parse(JSON.stringify(base?.queries ?? {}));
   let conflicts = 0;
   for (const [key, j] of [...finals].sort(([x], [y]) => (x < y ? -1 : 1))) {
     const [qid, code] = splitKey(key);
@@ -839,6 +844,13 @@ export function mergeQrels(round, o = {}) {
     queries[qid].judgments[code] = { grade: j.grade, source: j.source, round: round.round, judges: j.judges };
   }
   if (conflicts) throw new QrelsError(`${conflicts} pair(s) of this round are already judged in the base qrels; pool with --unjudged against them`);
+  /** @type {Record<string, unknown> | null} */
+  let codeRule = null;
+  if (o.codeRule?.size) {
+    const applied = applyCodeRule({ queries }, o.codeRule);
+    queries = applied.queries;
+    codeRule = { rule: CODE_RULE, pairs: o.codeRule.size, queries: applied.stats.queries, added: applied.stats.added, changed: applied.stats.changed, overrides: applied.stats.overrides };
+  }
   const version = o.version ?? nextVersion(base?.version, round.set);
   if (base && version === base.version) throw new QrelsError('the merged qrels need a new version string');
   const qrels = {
@@ -856,7 +868,9 @@ export function mergeQrels(round, o = {}) {
         judges: round.judges,
         adjudicator: round.adjudication?.adjudicator ?? null,
         ...(round.dropped?.length ? { dropped: round.dropped } : {}),
-        pairs: finals.size, pool: round.pool.sha256, createdAt: o.createdAt ?? new Date().toISOString(),
+        pairs: finals.size, pool: round.pool.sha256,
+        ...(codeRule ? { codeRule } : {}),
+        createdAt: o.createdAt ?? new Date().toISOString(),
       },
     ],
     queries,
