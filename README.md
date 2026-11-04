@@ -319,7 +319,7 @@ not refused, and this project stays inside them.
 
 | | Workers Paid, included | cost here |
 |---|---|---|
-| D1 rows read | 25,000,000,000 / month | per search: pending (measured with SC7; local grid: [`lexical-cost.md`](docs/evidence/phase1/lexical-cost.md)); 1 per page load |
+| D1 rows read | 25,000,000,000 / month | per search: unfiltered 137–239 (median 239), filtered 249–1,784 (median 497), measured on 36 production searches with SC7 ([`sc7.md`](docs/evidence/phase1/sc7.md); local grid: [`lexical-cost.md`](docs/evidence/phase1/lexical-cost.md)); 1 per page load |
 | D1 rows written | 50,000,000 / month | 34,383 per forced full re-ingest, measured against production on 2026-11-04 ([`remote-ops.md`](docs/evidence/phase1/remote-ops.md)); a rerun with nothing changed writes 2 |
 | Vectorize stored dims | 10,000,000 | 6,771 × 384 = **2,600,064** (26%) |
 | **Vectorize queried dims** | **50,000,000 / month** | ~123,400 uncached searches/month (below) |

@@ -75,3 +75,96 @@ locally (`npm test`).
 
 **Call log.** Every call is a row in `sc7-requests.tsv` (format of `docs/evidence/requests.tsv`,
 numbered `s7-1`, `s7-2`, …; the lead merges them).
+
+## Results (collected 2026-11-04 06:17–07:22 UTC)
+
+**Verdict: FAIL.** Pooled SIN cache-miss p50 of `total` = **351.0 ms** (95% bootstrap CI
+343.0–385.0, n = 33) against the < 250 ms rule. Warm p50 350.5 ms (n = 30, CI 341.0–368.5);
+sparse p50 871.0 ms (n = 3; with three samples the bootstrap CI, 856.0–1028.0, only spans the
+data). The `total` of every one of the 33 SIN samples is ≥ 304 ms.
+
+**Shortfall: 3 SIN sparse samples, not ≥ 10.** The warm run gave 30 of 30 SIN (one keep-alive
+connection). The first six sparse calls, each on a fresh connection through the VPN exit, were
+served by NRT, NRT, SIN, SIN, SIN, MRS. With 6 of the 12 pre-registered sparse calls left, at most
+9 SIN sparse samples were reachable, so collection stopped at 07:22:47 UTC after 36 of 45 calls,
+as Jacob instructed (stop and report rather than stretch the method). This shortfall cannot change
+the verdict. 33 SIN samples are ≥ 304 ms. The 45-call cap allows at most 9 more. Even if all 9 were
+faster, the pooled median of 42 is the mean of the 21st and 22nd smallest, both ≥ 304 ms.
+
+No ingest window was declared during collection; nothing is excluded. Every call returned 200
+with `cache;desc=miss`, version `78ef263b` / `x-app-version 8d94982`, none degraded. 36 of 36
+calls have a matching structured log line.
+
+### Latency by span
+
+| span | warm p50 | sparse p50 | pooled p50 | pooled p90 |
+|---|---|---|---|---|
+| cache | 8.0 | 25.0 | 9.0 | 20.0 |
+| limit | 0.0 | 0.0 | 0.0 | 0.0 |
+| embed | 88.0 | 227.0 | 92.0 | 226.8 |
+| vector | 232.0 | 272.0 | 232.0 | 276.8 |
+| fts | 19.0 | 616.0 | 20.0 | 461.6 |
+| hydrate | 13.0 | 214.0 | 13.0 | 208.6 |
+| **total** | **350.5** | **871.0** | **351.0** | **868.0** |
+
+`embed`→`vector` and `fts` run concurrently, so `total` ≈ `cache` + max(`embed`+`vector`,
+`fts`) + `hydrate`. In the warm state the dense half (`embed` + `vector`, ~320 ms at the median)
+sets the total; `vector` alone is ~232 ms on every warm search. In the sparse and cold samples
+`fts` (520–715 ms) and `hydrate` (201–250 ms) dominate instead.
+
+### Replication: where D1 served each search
+
+Primary WEUR, replication `mode: auto`, session `first-unconstrained`.
+
+- **Cold start and every sparse search went to the WEUR primary.** s7-1 to s7-3, the first three
+  warm searches, logged `servedByRegion: ["WEUR"]`, `servedByPrimary: true`, with `fts` 215–573 ms
+  and `hydrate` 203–211 ms. The same holds for all six sparse searches (s7-31 to s7-36, each after
+  ≥ 10 min idle): `fts` 520–715 ms and `hydrate` 201–250 ms from SIN and NRT. The MRS sample,
+  served from Marseille, logged `fts` 128 ms and `hydrate` 83 ms against the same primary.
+- **From s7-4 on, an APAC replica served the warm burst.** s7-4 logged both regions (`WEUR, APAC`):
+  its `fts` (227 ms) took primary-like time and its `hydrate` (13 ms) did not. The log records the
+  set of regions, not which query went where. s7-5 to s7-30 logged `["APAC"]`,
+  `servedByPrimary: false`, with `fts` 13–42 ms and `hydrate` 10–22 ms.
+- So the pilot's `fts;dur=588, hydrate;dur=201` matches the pattern logged here for searches the
+  primary served. In these logs, after ≥ 10 min without traffic, D1 reads went to WEUR rather than
+  a nearby replica. The logs do not show why.
+
+| samples | servedByRegion | servedByPrimary | n |
+|---|---|---|---|
+| s7-1–3, s7-31–36 | WEUR | true | 9 |
+| s7-4 | WEUR, APAC | false | 1 |
+| s7-5–30 | APAC | false | 26 |
+
+### D1 rows read per search (`d1.rowsRead`, from the log)
+
+| | n | min | p50 | p90 | max | mean |
+|---|---|---|---|---|---|---|
+| all | 36 | 137 | 244 | 744.5 | 1,784 | 406.4 |
+| unfiltered | 18 | 137 | 239 | 239 | 239 | 233.3 |
+| filtered | 18 | 249 | 497 | 857.8 | 1,784 | 579.4 |
+
+17 of 18 unfiltered searches read exactly 239 rows; `entrepreneurship startup` read 137. Filtered
+searches range from 249 (`sem=2`) to 1,784 (`creative writing workshop`, `sem=2&ng=1`, which ran 3
+D1 queries); `level` filters read 617–757. Every search is under the plan's 8k worst-case gate. The
+per-query table is in the analysis output (`node sc7-analyse.mjs`).
+
+### Graceful degradation (B6)
+
+Local run on this branch, 2026-11-04 (`npx vitest run test/findings/backend.test.js -t B6`): 4 of 4 pass.
+
+- `[B6 fixed] ai throwing in hybrid mode returns the keyword results, flagged degraded and cached for 60 s`
+- `[B6 fixed] vectorize throwing in hybrid mode returns the keyword results, flagged degraded and cached for 60 s`
+- `[B6 fixed] mode=vector still fails loudly with a 502 from the failing binding`
+- `[B6 fixed] after 3 consecutive dense failures the dense half is skipped for 30 s, then retried`
+
+The full `npm test` also passes (463 tests). No live sample was degraded.
+
+### Files
+
+`sc7-samples.jsonl` holds the raw client samples: UTC, path, status, cf-ray, every Server-Timing span.
+`sc7-logs.jsonl` holds the Worker's search log lines for these queries, extracted from
+`wrangler tail`. `sc7-requests.tsv` is the call log (s7-1 to s7-36). Reproduce the tables with
+`node docs/evidence/phase1/sc7-analyse.mjs`.
+
+The tail ran in one session from 06:16:46 to 07:22:47 UTC, covering every call. An earlier tail
+session, started before any search, dropped on keep-alive pings and was restarted before collection.
