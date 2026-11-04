@@ -87,3 +87,6 @@ recorded with the switch below.
 
 **Old database.** `nusmods` (`c6a769d3-…`, WEUR) holds the same catalogue and data version, and
 stays as the rollback target (ADR 0005).
+
+| 07:57:37–07:57:54 | `npm run deploy` (PR #24): version `ee96bbd0-add9-4aa6-8f2f-78e219087817`, tag `597c2b7`, `env.DB (nusmods-apac)` | — | live |
+| 07:58–08:11 | Post-switch check with `wrangler tail`: two searches right after the deploy, one after 12 min idle (`requests.tsv` 72–74) | — | all three logged `servedByRegion: ["APAC"]`, `servedByPrimary: true`. From SIN: fts 45–269 ms, hydrate 16–43 ms (before the switch the same situations were 520–715 / 201–250 ms from the WEUR primary). The idle sample left through the VPN's Marseille exit, so its fts 399 / hydrate 164 ms is a Marseille-to-APAC round trip, not a SIN measurement |
