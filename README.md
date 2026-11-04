@@ -272,7 +272,11 @@ metering of FTS writes is measured, the charged figure is only an estimate. Rebu
 production from empty only after measuring it, spread over several UTC days
 ([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md)).
 
-**Download cache.** `.data/` entries keep NUSMods' `ETag`, `Last-Modified` and the body's
+**Download cache.** Downloads live in `.data/cache/`, never in `.data/` itself:
+`.data/2026-2027-moduleInfo.json` is the pinned snapshot that the eval and the full-corpus tests
+read and hash-check (`scripts/pinned-corpus.mjs`), and a fetch must not overwrite it. To
+ingest the pinned snapshot itself, copy it into `.data/cache/` without a sidecar and pass
+`--offline`. Cache entries keep NUSMods' `ETag`, `Last-Modified` and the body's
 sha256 in a `<file>.cache.json` sidecar. An entry older than `--max-age` (default `24h`)
 is revalidated with `If-None-Match`; `--offline` uses the cache as it is and never fetches.
 A body that does not match its recorded sha256 is never served or revalidated. It is
