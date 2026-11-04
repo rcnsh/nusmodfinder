@@ -1,0 +1,37 @@
+{
+ "n": "f2-26",
+ "id": "d-095",
+ "kind": "lexical",
+ "path": "/search?q=microbbiology+bacteia&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 69,
+ "totalMs": 72,
+ "at": "2026-11-04T06:22:45.315Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55186ad5b95885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:45 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=VF3085LEO8Ikg3RGJxsZecLm%2FpsegyCaldVWYiyjSrC%2FEBACPfBtZ1ys%2BXnAE%2BWy%2B3v0MpFsBNJpSyO%2BhBAJxqPtf0Cq2tOaesJ%2BBN9YJMN9%2BvdijGdcHasBPi4UXdS%2FB5lDgc1jqmKqwCT7%2Fny2k3s79goLvTfZH1RlBrBllbm7\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=9, limit;dur=0, fts;dur=12, total;dur=21",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"microbbiology bacteia\",\n  \"filters\": {},\n  \"count\": 0,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 0,\n    \"fused\": 0\n  },\n  \"results\": []\n}",
+ "body": {
+  "query": "microbbiology bacteia",
+  "filters": {},
+  "count": 0,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 0,
+   "fused": 0
+  },
+  "results": []
+ }
+}

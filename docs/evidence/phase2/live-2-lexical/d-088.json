@@ -1,0 +1,39 @@
+{
+ "n": "f2-30",
+ "id": "d-088",
+ "kind": "lexical",
+ "path": "/search?q=cs+2030&ng=1&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 104,
+ "totalMs": 106,
+ "at": "2026-11-04T06:22:59.858Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55187082fbd885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:59 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=34zqFXjvs1WfqKMU7bGDyoaH8v3zIBw8Em67f2kf0ezyYenI731VdlnxmAKCUkfaK%2BOVWLPTIS0DKj8J6v8NGgluzjcqZoM6p23Bdjeoqiayf91hPGnxyjVhBuywp%2BgQCiUKVVuUNCe4aTVRCjY8EuysUoiEo3HFZx0ceKb5VVHl\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=11, limit;dur=0, fts;dur=30, total;dur=41",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"cs 2030\",\n  \"filters\": {\n    \"ng\": true\n  },\n  \"count\": 0,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 0,\n    \"fused\": 0\n  },\n  \"results\": []\n}",
+ "body": {
+  "query": "cs 2030",
+  "filters": {
+   "ng": true
+  },
+  "count": 0,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 0,
+   "fused": 0
+  },
+  "results": []
+ }
+}

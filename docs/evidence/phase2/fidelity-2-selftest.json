@@ -1,0 +1,141 @@
+{
+ "schema": "vnm-phase2-fidelity-selftest/2",
+ "createdAt": "2026-11-04T06:18:46.919Z",
+ "ranker": "8d94982",
+ "clean": {
+  "verdict": "PASS",
+  "want": "PASS",
+  "overlap10": [
+   [
+    "d-001",
+    10,
+    9
+   ],
+   [
+    "d-015",
+    10,
+    9
+   ],
+   [
+    "d-039",
+    10,
+    9
+   ],
+   [
+    "d-055",
+    9,
+    8
+   ],
+   [
+    "d-073",
+    10,
+    9
+   ],
+   [
+    "d-018",
+    8,
+    7
+   ],
+   [
+    "d-007",
+    10,
+    7
+   ],
+   [
+    "d-076",
+    10,
+    8
+   ],
+   [
+    "d-079",
+    8,
+    4
+   ],
+   [
+    "d-085",
+    9,
+    9
+   ],
+   [
+    "d-095",
+    10,
+    4
+   ],
+   [
+    "d-063",
+    10,
+    9
+   ],
+   [
+    "d-043",
+    10,
+    9
+   ],
+   [
+    "d-065",
+    9,
+    8
+   ],
+   [
+    "d-088",
+    9,
+    7
+   ]
+  ]
+ },
+ "corrupted": {
+  "verdict": "FAIL",
+  "failing": [
+   "d-001",
+   "d-015",
+   "d-039",
+   "d-055",
+   "d-073"
+  ],
+  "want": [
+   "d-001",
+   "d-015",
+   "d-039",
+   "d-055",
+   "d-073"
+  ],
+  "problems": [
+   [
+    "d-001",
+    [
+     "lexical mismatch: BMT5102 (score 0.030887196246139226; local lexical 1)"
+    ]
+   ],
+   [
+    "d-015",
+    [
+     "retrieval.lexical 49 vs 50"
+    ]
+   ],
+   [
+    "d-039",
+    [
+     "cache hit"
+    ]
+   ],
+   [
+    "d-055",
+    [
+     "degraded {\"source\":\"workers-ai\",\"reason\":\"timeout\"}"
+    ]
+   ],
+   [
+    "d-073",
+    [
+     "direct lexical: CS4224 at live 1, tie group spans 12-13; CS4221 at live 12, tie group spans 1-1"
+    ]
+   ]
+  ]
+ },
+ "identity": {
+  "verdict": "PASS",
+  "vectorRankShifts": 0,
+  "want": "PASS, 0"
+ },
+ "ok": true
+}

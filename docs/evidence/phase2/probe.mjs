@@ -15,6 +15,8 @@ import { REPO } from '../../../eval/lib/sets.mjs';
 import { buildWorkspace } from '../../../eval/lib/workspace.mjs';
 
 const SPEC = fileURLToPath(new URL('./probe.eval.js', import.meta.url));
+/** The probe for Phase 1 rankers (second fidelity check). */
+export const HEAD_SPEC = fileURLToPath(new URL('./probe-head.eval.js', import.meta.url));
 
 /**
  * @typedef {{ id: string, path: string, override?: string, fts?: boolean, lex?: boolean }} ProbeRequest
@@ -35,6 +37,7 @@ export async function loadVectors() {
  *   requests: ProbeRequest[],
  *   ref?: string,
  *   name?: string,
+ *   spec?: string,
  *   corpusVectors?: Part,
  *   queryVectors?: Part,
  *   overrides?: Record<string, Part>,
@@ -42,9 +45,9 @@ export async function loadVectors() {
  * @returns {Promise<Map<string, ProbeResult>>}
  */
 export async function runProbe(options) {
-  const { requests, ref = 'eval-v0', name = 'probe' } = options;
+  const { requests, ref = 'eval-v0', name = 'probe', spec = SPEC } = options;
   const ws = await buildWorkspace({ ref, name });
-  await copyFile(SPEC, join(ws.root, 'eval/runner/retrieval.eval.js'));
+  await copyFile(spec, join(ws.root, 'eval/runner/retrieval.eval.js'));
   const corpus = await loadPinnedWith(ws.root);
   const loaded = options.corpusVectors && options.queryVectors ? null : await loadVectors();
   const lookup = packLookup([options.corpusVectors ?? /** @type {any} */ (loaded).corpus, options.queryVectors ?? /** @type {any} */ (loaded).dev], DIMS);

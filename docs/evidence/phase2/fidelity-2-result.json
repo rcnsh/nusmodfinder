@@ -1,0 +1,2857 @@
+{
+ "schema": "vnm-phase2-fidelity/2",
+ "createdAt": "2026-11-04T06:23:18.133Z",
+ "ranker": "8d94982",
+ "verdict": "FAIL",
+ "verdictFirstRule": "FAIL",
+ "summary": {
+  "meanOverlap10": 8.4,
+  "minOverlap10": 5,
+  "rbo10AtLeast08": 10,
+  "directLexicalOk": 15,
+  "directLexicalExactOrder": 11,
+  "failing": [
+   "d-001",
+   "d-065"
+  ]
+ },
+ "rows": [
+  {
+   "id": "d-001",
+   "path": "/search?q=corporate+finance+valuation",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 67
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 68
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 938,
+    "total": 941
+   },
+   "serverTiming": "cache;desc=miss;dur=28, limit;dur=0, embed;dur=125, vector;dur=273, fts;dur=223, hydrate;dur=384, total;dur=810",
+   "overlap10": 8,
+   "rbo10": 0.5682187219500001,
+   "envelopeMinOverlap10": 9,
+   "withinEnvelope": false,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": false,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": false,
+   "passFirstRule": false,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 16,
+   "vectorRankShiftExamples": [
+    {
+     "code": "BMC5036",
+     "live": [
+      8
+     ],
+     "local": 11
+    },
+    {
+     "code": "LLJ5527V",
+     "live": [
+      1
+     ],
+     "local": 4
+    },
+    {
+     "code": "BMF5331",
+     "live": [
+      10
+     ],
+     "local": 9
+    },
+    {
+     "code": "LL4527V",
+     "live": [
+      4
+     ],
+     "local": 1
+    },
+    {
+     "code": "BMT5102",
+     "live": [
+      14
+     ],
+     "local": 10
+    }
+   ],
+   "liveVectorRanks": {
+    "BMC5036": [
+     8
+    ],
+    "LLJ5527V": [
+     1
+    ],
+    "LL5527V": [
+     2
+    ],
+    "BMF5331": [
+     10
+    ],
+    "LL4527V": [
+     4
+    ],
+    "BMT5102": [
+     14
+    ],
+    "LL6527V": [
+     3
+    ],
+    "RE5005": [
+     13
+    ],
+    "FIN4714": [
+     15
+    ],
+    "FE5105": [
+     25
+    ],
+    "FIN3701B": [
+     6
+    ],
+    "FIN3701A": [
+     7
+    ],
+    "ECA5334": [
+     9
+    ],
+    "LLJ5554V": [
+     5
+    ],
+    "BMS5030": [
+     26
+    ],
+    "LL5554V": [
+     16
+    ],
+    "LL4554V": [
+     17
+    ],
+    "BMG5101": [
+     22
+    ],
+    "BMC5010A": [
+     12
+    ],
+    "LL5188S": [
+     29
+    ]
+   },
+   "liveTop10": [
+    "BMC5036",
+    "LLJ5527V",
+    "LL5527V",
+    "BMF5331",
+    "LL4527V",
+    "BMT5102",
+    "LL6527V",
+    "RE5005",
+    "FIN4714",
+    "FE5105"
+   ],
+   "localTop10": [
+    "BMT5102",
+    "LL4527V",
+    "BMF5331",
+    "LL5527V",
+    "LL6527V",
+    "BMC5036",
+    "LLJ5527V",
+    "FIN4714",
+    "BMS5030",
+    "FIN3701A"
+   ]
+  },
+  {
+   "id": "d-015",
+   "path": "/search?q=computer+vision",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 84
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 85
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 611,
+    "total": 614
+   },
+   "serverTiming": "cache;desc=miss;dur=8, limit;dur=0, embed;dur=90, vector;dur=226, fts;dur=213, hydrate;dur=199, total;dur=523",
+   "overlap10": 9,
+   "rbo10": 0.9612579510999999,
+   "envelopeMinOverlap10": 9,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 10,
+   "vectorRankShiftExamples": [
+    {
+     "code": "EE6733",
+     "live": [
+      7
+     ],
+     "local": 6
+    },
+    {
+     "code": "ME5405",
+     "live": [
+      6
+     ],
+     "local": 7
+    },
+    {
+     "code": "ME5411",
+     "live": [
+      17
+     ],
+     "local": 25
+    },
+    {
+     "code": "CS6283",
+     "live": [
+      20
+     ],
+     "local": 21
+    },
+    {
+     "code": "CP4282",
+     "live": [
+      22
+     ],
+     "local": 19
+    }
+   ],
+   "liveVectorRanks": {
+    "CS4243": [
+     1
+    ],
+    "EE4212": [
+     2
+    ],
+    "EE5731": [
+     4
+    ],
+    "CS4277": [
+     3
+    ],
+    "EE6733": [
+     7
+    ],
+    "CS5477": [
+     5
+    ],
+    "ME5405": [
+     6
+    ],
+    "EE4704": [
+     9
+    ],
+    "ME5411": [
+     17
+    ],
+    "CS6283": [
+     20
+    ],
+    "CP4282": [
+     22
+    ],
+    "EE3703": [
+     25
+    ],
+    "ESP3201A": [
+     28
+    ],
+    "EE4309": [
+     39
+    ],
+    "CS3241R": [
+     44
+    ],
+    "CS3241": [
+     45
+    ],
+    "ID4401": [
+     null
+    ],
+    "AIS5202": [
+     8
+    ],
+    "ID5401": [
+     null
+    ],
+    "CEG5303": [
+     10
+    ]
+   },
+   "liveTop10": [
+    "CS4243",
+    "EE4212",
+    "EE5731",
+    "CS4277",
+    "EE6733",
+    "CS5477",
+    "ME5405",
+    "EE4704",
+    "ME5411",
+    "CS6283"
+   ],
+   "localTop10": [
+    "CS4243",
+    "EE4212",
+    "EE5731",
+    "CS4277",
+    "EE6733",
+    "CS5477",
+    "ME5405",
+    "EE4704",
+    "ME5411",
+    "CP4282"
+   ]
+  },
+  {
+   "id": "d-039",
+   "path": "/search?q=history+of+migration+and+diaspora",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 86
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 84
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 526,
+    "total": 527
+   },
+   "serverTiming": "cache;desc=miss;dur=13, limit;dur=0, embed;dur=107, vector;dur=246, fts;dur=25, hydrate;dur=14, total;dur=380",
+   "overlap10": 10,
+   "rbo10": 0.9280822744642858,
+   "envelopeMinOverlap10": 9,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 16,
+   "vectorRankShiftExamples": [
+    {
+     "code": "CHC5339",
+     "live": [
+      3
+     ],
+     "local": 6
+    },
+    {
+     "code": "JS4233",
+     "live": [
+      11
+     ],
+     "local": 9
+    },
+    {
+     "code": "ENC5239",
+     "live": [
+      9
+     ],
+     "local": 7
+    },
+    {
+     "code": "GSA5401",
+     "live": [
+      6
+     ],
+     "local": 4
+    },
+    {
+     "code": "GESS1007",
+     "live": [
+      7
+     ],
+     "local": 12
+    }
+   ],
+   "liveVectorRanks": {
+    "HY3260": [
+     2
+    ],
+    "UTW1001K": [
+     1
+    ],
+    "CHC5339": [
+     3
+    ],
+    "JS4233": [
+     11
+    ],
+    "ENC5239": [
+     9
+    ],
+    "GSA5401": [
+     6
+    ],
+    "GESS1007": [
+     7
+    ],
+    "GES1009": [
+     8
+    ],
+    "CHC5360": [
+     18
+    ],
+    "GEC1043": [
+     24
+    ],
+    "NHS2102": [
+     16
+    ],
+    "NTW2006": [
+     20
+    ],
+    "GSA5208": [
+     21
+    ],
+    "CL3231": [
+     39
+    ],
+    "NHS2053": [
+     null
+    ],
+    "HY1101E": [
+     4
+    ],
+    "TPS5242": [
+     5
+    ],
+    "TPS5232": [
+     10
+    ],
+    "HY5210": [
+     null
+    ],
+    "HY5422": [
+     12
+    ]
+   },
+   "liveTop10": [
+    "HY3260",
+    "UTW1001K",
+    "CHC5339",
+    "JS4233",
+    "ENC5239",
+    "GSA5401",
+    "GESS1007",
+    "GES1009",
+    "CHC5360",
+    "GEC1043"
+   ],
+   "localTop10": [
+    "HY3260",
+    "UTW1001K",
+    "JS4233",
+    "ENC5239",
+    "GSA5401",
+    "CHC5339",
+    "CHC5360",
+    "GES1009",
+    "GESS1007",
+    "GEC1043"
+   ]
+  },
+  {
+   "id": "d-055",
+   "path": "/search?q=is+there+something+on+marine+biology+or+coral+reefs",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 84
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 82
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 442,
+    "total": 444
+   },
+   "serverTiming": "cache;desc=miss;dur=11, limit;dur=0, embed;dur=96, vector;dur=245, fts;dur=19, hydrate;dur=11, total;dur=363",
+   "overlap10": 9,
+   "rbo10": 0.9481359511,
+   "envelopeMinOverlap10": 8,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 10,
+   "vectorRankShiftExamples": [
+    {
+     "code": "CE5317B",
+     "live": [
+      9
+     ],
+     "local": 7
+    },
+    {
+     "code": "BL5225",
+     "live": [
+      5
+     ],
+     "local": 9
+    },
+    {
+     "code": "HS2906",
+     "live": [
+      4
+     ],
+     "local": 6
+    },
+    {
+     "code": "LSM3254",
+     "live": [
+      7
+     ],
+     "local": 5
+    },
+    {
+     "code": "HS2938",
+     "live": [
+      33
+     ],
+     "local": 38
+    }
+   ],
+   "liveVectorRanks": {
+    "LSM3275": [
+     1
+    ],
+    "LSM4261": [
+     2
+    ],
+    "CE5317B": [
+     9
+    ],
+    "CE5317QB": [
+     8
+    ],
+    "BL5225": [
+     5
+    ],
+    "HS2906": [
+     4
+    ],
+    "LSM3254": [
+     7
+    ],
+    "LSM4257": [
+     24
+    ],
+    "HS2938": [
+     33
+    ],
+    "NEX3008S": [
+     19
+    ],
+    "LSM4262": [
+     6
+    ],
+    "BL5233": [
+     46
+    ],
+    "CS6222": [
+     31
+    ],
+    "LSM4264": [
+     49
+    ],
+    "LSM4255": [
+     43
+    ],
+    "LSM3266": [
+     50
+    ],
+    "LSM4270": [
+     3
+    ],
+    "NST2006": [
+     null
+    ],
+    "PH6240": [
+     null
+    ],
+    "PH4240": [
+     null
+    ]
+   },
+   "liveTop10": [
+    "LSM3275",
+    "LSM4261",
+    "CE5317B",
+    "CE5317QB",
+    "BL5225",
+    "HS2906",
+    "LSM3254",
+    "LSM4257",
+    "HS2938",
+    "NEX3008S"
+   ],
+   "localTop10": [
+    "LSM3275",
+    "LSM4261",
+    "CE5317B",
+    "CE5317QB",
+    "HS2906",
+    "BL5225",
+    "LSM3254",
+    "LSM4257",
+    "HS2938",
+    "LSM4262"
+   ]
+  },
+  {
+   "id": "d-073",
+   "path": "/search?q=need+equivalent+of+our+%27Databases+and+Data+Management%27+%28relational+model%2C+SQL%2C+normalisation%2C+transactions%2C+intro+to+NoSQL%29",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 76
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 82
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 513,
+    "total": 515
+   },
+   "serverTiming": "cache;desc=miss;dur=12, limit;dur=0, embed;dur=121, vector;dur=233, fts;dur=23, hydrate;dur=56, total;dur=422",
+   "overlap10": 10,
+   "rbo10": 0.8686530000000001,
+   "envelopeMinOverlap10": 9,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": false,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [
+    "CS4224"
+   ],
+   "vectorRankShifts": 14,
+   "vectorRankShiftExamples": [
+    {
+     "code": "CS4221",
+     "live": [
+      2
+     ],
+     "local": 6
+    },
+    {
+     "code": "CS5421",
+     "live": [
+      6
+     ],
+     "local": 7
+    },
+    {
+     "code": "IT2002",
+     "live": [
+      3
+     ],
+     "local": 2
+    },
+    {
+     "code": "TIC2601",
+     "live": [
+      7
+     ],
+     "local": 4
+    },
+    {
+     "code": "IT5008",
+     "live": [
+      4
+     ],
+     "local": 3
+    }
+   ],
+   "liveVectorRanks": {
+    "CS4221": [
+     2
+    ],
+    "CS2102": [
+     1
+    ],
+    "CS5421": [
+     6
+    ],
+    "IT2002": [
+     3
+    ],
+    "TCX2003": [
+     5
+    ],
+    "TIC2601": [
+     7
+    ],
+    "IT5008": [
+     4
+    ],
+    "IT3010": [
+     11
+    ],
+    "BT5110": [
+     8
+    ],
+    "CS3223": [
+     9
+    ],
+    "BT2102": [
+     10
+    ],
+    "CS4224": [
+     12,
+     13
+    ],
+    "DSA5104": [
+     15
+    ],
+    "CS5424": [
+     17
+    ],
+    "CS6203": [
+     19
+    ],
+    "DSA2111": [
+     22
+    ],
+    "ECA5372": [
+     25
+    ],
+    "BMI5207": [
+     26
+    ],
+    "BT4222": [
+     14
+    ],
+    "CS5228": [
+     18
+    ]
+   },
+   "liveTop10": [
+    "CS4221",
+    "CS2102",
+    "CS5421",
+    "IT2002",
+    "TCX2003",
+    "TIC2601",
+    "IT5008",
+    "IT3010",
+    "BT5110",
+    "CS3223"
+   ],
+   "localTop10": [
+    "CS2102",
+    "CS4221",
+    "CS5421",
+    "TIC2601",
+    "IT2002",
+    "TCX2003",
+    "IT5008",
+    "IT3010",
+    "BT5110",
+    "CS3223"
+   ]
+  },
+  {
+   "id": "d-018",
+   "path": "/search?q=what%27s+similar+to+the+machine+learning+course+if+it%27s+full%3F+exchange+students+never+get+the+popular+ones",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 93
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 95
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 494,
+    "total": 497
+   },
+   "serverTiming": "cache;desc=miss;dur=14, limit;dur=0, embed;dur=91, vector;dur=232, fts;dur=36, hydrate;dur=14, total;dur=351",
+   "overlap10": 8,
+   "rbo10": 0.7039670131285714,
+   "envelopeMinOverlap10": 7,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": false,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 9,
+   "vectorRankShiftExamples": [
+    {
+     "code": "EC4308",
+     "live": [
+      2
+     ],
+     "local": 12
+    },
+    {
+     "code": "CS5462",
+     "live": [
+      11
+     ],
+     "local": 8
+    },
+    {
+     "code": "BMF5360",
+     "live": [
+      13
+     ],
+     "local": 3
+    },
+    {
+     "code": "DSE4231",
+     "live": [
+      26
+     ],
+     "local": 37
+    },
+    {
+     "code": "EBA5012",
+     "live": [
+      44
+     ],
+     "local": null
+    }
+   ],
+   "liveVectorRanks": {
+    "EC4308": [
+     2
+    ],
+    "CS4262": [
+     7
+    ],
+    "CS5462": [
+     11
+    ],
+    "BMF5360": [
+     13
+    ],
+    "DSE4231": [
+     26
+    ],
+    "EBA5012": [
+     44
+    ],
+    "BT4212": [
+     46
+    ],
+    "SPH2002": [
+     null
+    ],
+    "MSI5102": [
+     1
+    ],
+    "SW4103": [
+     null
+    ],
+    "SC2209": [
+     null
+    ],
+    "CP4285": [
+     3
+    ],
+    "ECA5304": [
+     4
+    ],
+    "HS2914": [
+     null
+    ],
+    "DSA5105": [
+     5
+    ],
+    "HS2935": [
+     null
+    ],
+    "JSC5202": [
+     null
+    ],
+    "CS3264": [
+     6
+    ],
+    "RE3000": [
+     null
+    ],
+    "ID2042": [
+     null
+    ]
+   },
+   "liveTop10": [
+    "EC4308",
+    "CS4262",
+    "CS5462",
+    "BMF5360",
+    "DSE4231",
+    "EBA5012",
+    "BT4212",
+    "SPH2002",
+    "MSI5102",
+    "SW4103"
+   ],
+   "localTop10": [
+    "BMF5360",
+    "EC4308",
+    "CS4262",
+    "CS5462",
+    "DSE4231",
+    "SPH2002",
+    "MSI5102",
+    "SW4103",
+    "DSA5105",
+    "SC2209"
+   ]
+  },
+  {
+   "id": "d-007",
+   "path": "/search?q=japanese+1",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 76
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 77
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 545,
+    "total": 546
+   },
+   "serverTiming": "cache;desc=miss;dur=7, limit;dur=0, embed;dur=120, vector;dur=249, fts;dur=17, hydrate;dur=23, total;dur=399",
+   "overlap10": 9,
+   "rbo10": 0.9143663018499999,
+   "envelopeMinOverlap10": 7,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": false,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 17,
+   "vectorRankShiftExamples": [
+    {
+     "code": "JSC5301",
+     "live": [
+      10
+     ],
+     "local": 11
+    },
+    {
+     "code": "LAJ2203",
+     "live": [
+      4
+     ],
+     "local": 5
+    },
+    {
+     "code": "JS1101E",
+     "live": [
+      6
+     ],
+     "local": 9
+    },
+    {
+     "code": "LAJ2202",
+     "live": [
+      8
+     ],
+     "local": 6
+    },
+    {
+     "code": "JS4229",
+     "live": [
+      13
+     ],
+     "local": 16
+    }
+   ],
+   "liveVectorRanks": {
+    "LAJ1201": [
+     1
+    ],
+    "LAJ2201": [
+     2
+    ],
+    "JSC5301": [
+     10
+    ],
+    "LAJ2203": [
+     4
+    ],
+    "JS1101E": [
+     6
+    ],
+    "LAJ2202": [
+     8
+    ],
+    "JS4229": [
+     13
+    ],
+    "JS3101": [
+     28
+    ],
+    "LAJ3201": [
+     11
+    ],
+    "LAK1201": [
+     3
+    ],
+    "LAJ3204": [
+     20
+    ],
+    "LAJ3202": [
+     19
+    ],
+    "JS3222": [
+     31
+    ],
+    "HY2208": [
+     16
+    ],
+    "JSC5207": [
+     33
+    ],
+    "JSC5306": [
+     26
+    ],
+    "JS3216": [
+     37
+    ],
+    "LAG1201": [
+     15
+    ],
+    "JSC5103": [
+     35
+    ],
+    "LAH1201": [
+     24
+    ]
+   },
+   "liveTop10": [
+    "LAJ1201",
+    "LAJ2201",
+    "JSC5301",
+    "LAJ2203",
+    "JS1101E",
+    "LAJ2202",
+    "JS4229",
+    "JS3101",
+    "LAJ3201",
+    "LAK1201"
+   ],
+   "localTop10": [
+    "LAJ1201",
+    "LAJ2201",
+    "JSC5301",
+    "LAJ2202",
+    "LAJ2203",
+    "JS1101E",
+    "JS4229",
+    "LAJ3204",
+    "LAK1201",
+    "LAJ3201"
+   ]
+  },
+  {
+   "id": "d-076",
+   "path": "/search?q=OS",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 2,
+     "fused": 50
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 2,
+     "fused": 50
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 596,
+    "total": 596
+   },
+   "serverTiming": "cache;desc=miss;dur=9, limit;dur=0, embed;dur=263, vector;dur=238, fts;dur=15, hydrate;dur=14, total;dur=524",
+   "overlap10": 8,
+   "rbo10": 0.87491272195,
+   "envelopeMinOverlap10": 8,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 2,
+    "local": 2,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 16,
+   "vectorRankShiftExamples": [
+    {
+     "code": "CG2271",
+     "live": [
+      3
+     ],
+     "local": 4
+    },
+    {
+     "code": "CP3209R",
+     "live": [
+      4
+     ],
+     "local": 3
+    },
+    {
+     "code": "CS2100HS",
+     "live": [
+      6
+     ],
+     "local": 7
+    },
+    {
+     "code": "CG2028",
+     "live": [
+      7
+     ],
+     "local": 6
+    },
+    {
+     "code": "CS2100DE",
+     "live": [
+      8
+     ],
+     "local": 9
+    }
+   ],
+   "liveVectorRanks": {
+    "CS2106": [
+     1
+    ],
+    "CS5250": [
+     2
+    ],
+    "CG2271": [
+     3
+    ],
+    "CP3209R": [
+     4
+    ],
+    "IT5002": [
+     5
+    ],
+    "CS2100HS": [
+     6
+    ],
+    "CG2028": [
+     7
+    ],
+    "CS2100DE": [
+     8
+    ],
+    "DSA3289R": [
+     9
+    ],
+    "FST2289R": [
+     10
+    ],
+    "DL5101": [
+     11
+    ],
+    "SA4106": [
+     12
+    ],
+    "SP2273": [
+     13
+    ],
+    "TIC2401": [
+     14
+    ],
+    "TCX1001": [
+     15
+    ],
+    "ST2289R": [
+     16
+    ],
+    "SA4101C": [
+     17
+    ],
+    "ZB3289R": [
+     18
+    ],
+    "EE5502": [
+     19
+    ],
+    "ZB3288R": [
+     20
+    ]
+   },
+   "liveTop10": [
+    "CS2106",
+    "CS5250",
+    "CG2271",
+    "CP3209R",
+    "IT5002",
+    "CS2100HS",
+    "CG2028",
+    "CS2100DE",
+    "DSA3289R",
+    "FST2289R"
+   ],
+   "localTop10": [
+    "CS2106",
+    "CS5250",
+    "CP3209R",
+    "CG2271",
+    "IT5002",
+    "CG2028",
+    "CS2100HS",
+    "SA4101C",
+    "CS2100DE",
+    "ST2289R"
+   ]
+  },
+  {
+   "id": "d-079",
+   "path": "/search?q=GE+module+about+technology+and+society",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 96
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 95
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 594,
+    "total": 597
+   },
+   "serverTiming": "cache;desc=miss;dur=10, limit;dur=0, embed;dur=161, vector;dur=228, fts;dur=20, hydrate;dur=13, total;dur=412",
+   "overlap10": 8,
+   "rbo10": 0.7810035131285714,
+   "envelopeMinOverlap10": 4,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 11,
+   "vectorRankShiftExamples": [
+    {
+     "code": "DEP5117",
+     "live": [
+      8
+     ],
+     "local": 5
+    },
+    {
+     "code": "NEX3003",
+     "live": [
+      23
+     ],
+     "local": 30
+    },
+    {
+     "code": "ME3163",
+     "live": [
+      25
+     ],
+     "local": 15
+    },
+    {
+     "code": "SC3211",
+     "live": [
+      24
+     ],
+     "local": 18
+    },
+    {
+     "code": "NEX3004",
+     "live": [
+      1
+     ],
+     "local": 3
+    }
+   ],
+   "liveVectorRanks": {
+    "DEP5117": [
+     8
+    ],
+    "NEX3003": [
+     23
+    ],
+    "ME3163": [
+     25
+    ],
+    "SC3211": [
+     24
+    ],
+    "NEX3004": [
+     1
+    ],
+    "GEX1009": [
+     null
+    ],
+    "NEX3007S": [
+     2
+    ],
+    "NSS2001A": [
+     null
+    ],
+    "NM4242": [
+     3
+    ],
+    "NSS2001B": [
+     null
+    ],
+    "NEX3009": [
+     4
+    ],
+    "NSS2001D": [
+     null
+    ],
+    "MT5020": [
+     5
+    ],
+    "NSS2001E": [
+     null
+    ],
+    "NSS2001F": [
+     null
+    ],
+    "EC4372": [
+     6
+    ],
+    "TEE3031": [
+     7
+    ],
+    "NSS2001G": [
+     null
+    ],
+    "NSS2001I": [
+     null
+    ],
+    "LLJ5562": [
+     9
+    ]
+   },
+   "liveTop10": [
+    "DEP5117",
+    "NEX3003",
+    "ME3163",
+    "SC3211",
+    "NEX3004",
+    "GEX1009",
+    "NEX3007S",
+    "NSS2001A",
+    "NM4242",
+    "NSS2001B"
+   ],
+   "localTop10": [
+    "DEP5117",
+    "ME3163",
+    "SC3211",
+    "NEX3003",
+    "NM4206",
+    "NEX3009",
+    "GEX1009",
+    "NEX3007S",
+    "NSS2001A",
+    "NEX3004"
+   ]
+  },
+  {
+   "id": "d-085",
+   "path": "/search?q=MA2101",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 1,
+     "fused": 50
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 1,
+     "fused": 50
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 509,
+    "total": 511
+   },
+   "serverTiming": "cache;desc=miss;dur=7, limit;dur=0, pin;dur=20, embed;dur=207, vector;dur=230, fts;dur=18, hydrate;dur=15, total;dur=459",
+   "overlap10": 9,
+   "rbo10": 0.9481359511,
+   "envelopeMinOverlap10": 9,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 1,
+    "local": 1,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 15,
+   "vectorRankShiftExamples": [
+    {
+     "code": "MA2101S",
+     "live": [
+      6
+     ],
+     "local": 5
+    },
+    {
+     "code": "MA3210",
+     "live": [
+      3
+     ],
+     "local": 6
+    },
+    {
+     "code": "ME2114",
+     "live": [
+      4
+     ],
+     "local": 3
+    },
+    {
+     "code": "MA2108S",
+     "live": [
+      5
+     ],
+     "local": 7
+    },
+    {
+     "code": "DEP5110",
+     "live": [
+      10
+     ],
+     "local": 12
+    }
+   ],
+   "liveVectorRanks": {
+    "MA2101S": [
+     6
+    ],
+    "IS2101": [
+     1
+    ],
+    "MA2202": [
+     2
+    ],
+    "MA3210": [
+     3
+    ],
+    "ME2114": [
+     4
+    ],
+    "MA2108S": [
+     5
+    ],
+    "MA2108": [
+     8
+    ],
+    "MUA3110": [
+     9
+    ],
+    "DEP5110": [
+     10
+    ],
+    "MUA3109": [
+     11
+    ],
+    "MA2202S": [
+     12
+    ],
+    "CM3131": [
+     13
+    ],
+    "MUT1102": [
+     14
+    ],
+    "MUA4110": [
+     15
+    ],
+    "MUA4410": [
+     16
+    ],
+    "MUA4310": [
+     17
+    ],
+    "MLE5002": [
+     18
+    ],
+    "ME3281": [
+     19
+    ],
+    "TEE2033": [
+     20
+    ]
+   },
+   "liveTop10": [
+    "MA2101",
+    "MA2101S",
+    "IS2101",
+    "MA2202",
+    "MA3210",
+    "ME2114",
+    "MA2108S",
+    "MA2108",
+    "MUA3110",
+    "DEP5110"
+   ],
+   "localTop10": [
+    "MA2101",
+    "MA2101S",
+    "IS2101",
+    "MA2202",
+    "ME2114",
+    "MA3210",
+    "MA2108S",
+    "MA2108",
+    "MUA3110",
+    "MUA3109"
+   ]
+  },
+  {
+   "id": "d-095",
+   "path": "/search?q=microbbiology+bacteia",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 0,
+     "fused": 50
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 0,
+     "fused": 50
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 441,
+    "total": 444
+   },
+   "serverTiming": "cache;desc=miss;dur=9, limit;dur=0, embed;dur=89, vector;dur=237, fts;dur=16, hydrate;dur=14, total;dur=349",
+   "overlap10": 5,
+   "rbo10": 0.6396540226428571,
+   "envelopeMinOverlap10": 4,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 0,
+    "local": 0,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 19,
+   "vectorRankShiftExamples": [
+    {
+     "code": "BL5198",
+     "live": [
+      2
+     ],
+     "local": 3
+    },
+    {
+     "code": "CS4330",
+     "live": [
+      3
+     ],
+     "local": 2
+    },
+    {
+     "code": "BN4207",
+     "live": [
+      4
+     ],
+     "local": 5
+    },
+    {
+     "code": "LSM3228",
+     "live": [
+      5
+     ],
+     "local": 11
+    },
+    {
+     "code": "LSM2291",
+     "live": [
+      6
+     ],
+     "local": 14
+    }
+   ],
+   "liveVectorRanks": {
+    "BL5221": [
+     1
+    ],
+    "BL5198": [
+     2
+    ],
+    "CS4330": [
+     3
+    ],
+    "BN4207": [
+     4
+    ],
+    "LSM3228": [
+     5
+    ],
+    "LSM2291": [
+     6
+    ],
+    "CN5172": [
+     7
+    ],
+    "ISD5106": [
+     8
+    ],
+    "MB5104": [
+     9
+    ],
+    "HS2937": [
+     10
+    ],
+    "GMS6850": [
+     11
+    ],
+    "ZB2101": [
+     12
+    ],
+    "ME3281": [
+     13
+    ],
+    "ESE5301": [
+     14
+    ],
+    "LSM4234": [
+     15
+    ],
+    "LSM3234": [
+     16
+    ],
+    "EEK5108": [
+     17
+    ],
+    "BN4406": [
+     18
+    ],
+    "ESE3301": [
+     19
+    ],
+    "MB5103": [
+     20
+    ]
+   },
+   "liveTop10": [
+    "BL5221",
+    "BL5198",
+    "CS4330",
+    "BN4207",
+    "LSM3228",
+    "LSM2291",
+    "CN5172",
+    "ISD5106",
+    "MB5104",
+    "HS2937"
+   ],
+   "localTop10": [
+    "BL5221",
+    "CS4330",
+    "BL5198",
+    "ZB2101",
+    "BN4207",
+    "GMS6850",
+    "LSM3234",
+    "LSM4234",
+    "LSM2289",
+    "MB5104"
+   ]
+  },
+  {
+   "id": "d-063",
+   "path": "/search?q=advanced+molecular+biology+4000+level&sem=2&ng=1",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 74
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 73
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 385,
+    "total": 388
+   },
+   "serverTiming": "cache;desc=miss;dur=7, limit;dur=0, embed;dur=85, vector;dur=243, fts;dur=19, hydrate;dur=13, total;dur=348",
+   "overlap10": 9,
+   "rbo10": 0.9148377565642858,
+   "envelopeMinOverlap10": 9,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 19,
+   "vectorRankShiftExamples": [
+    {
+     "code": "LSM3225",
+     "live": [
+      7
+     ],
+     "local": 8
+    },
+    {
+     "code": "ZB2101",
+     "live": [
+      3
+     ],
+     "local": 2
+    },
+    {
+     "code": "LSM4222",
+     "live": [
+      12
+     ],
+     "local": 10
+    },
+    {
+     "code": "LSM2105",
+     "live": [
+      2
+     ],
+     "local": 3
+    },
+    {
+     "code": "HSI2003",
+     "live": [
+      17
+     ],
+     "local": 13
+    }
+   ],
+   "liveVectorRanks": {
+    "LSM3225": [
+     7
+    ],
+    "ZB2101": [
+     3
+    ],
+    "LSM4222": [
+     12
+    ],
+    "LSM2105": [
+     2
+    ],
+    "HSI2003": [
+     17
+    ],
+    "LSM2234": [
+     9
+    ],
+    "LSM2191B": [
+     8
+    ],
+    "LSM2191A": [
+     11
+    ],
+    "LSM3242": [
+     26
+    ],
+    "LSM2233": [
+     22
+    ],
+    "LSM2106": [
+     27
+    ],
+    "CN2111": [
+     30
+    ],
+    "LSM4231": [
+     15
+    ],
+    "LSM3244": [
+     23
+    ],
+    "PC3267": [
+     19
+    ],
+    "LSM1301": [
+     14
+    ],
+    "CM4236": [
+     18
+    ],
+    "LSM3243": [
+     42
+    ],
+    "LSM3220": [
+     13
+    ],
+    "LSM4227": [
+     35
+    ]
+   },
+   "liveTop10": [
+    "LSM3225",
+    "ZB2101",
+    "LSM4222",
+    "LSM2105",
+    "HSI2003",
+    "LSM2234",
+    "LSM2191B",
+    "LSM2191A",
+    "LSM3242",
+    "LSM2233"
+   ],
+   "localTop10": [
+    "LSM3225",
+    "ZB2101",
+    "LSM4222",
+    "HSI2003",
+    "LSM2105",
+    "LSM4231",
+    "LSM2234",
+    "LSM2191A",
+    "LSM3242",
+    "LSM2191B"
+   ]
+  },
+  {
+   "id": "d-043",
+   "path": "/search?q=Singapore+history&ng=1",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 74
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 72
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 440,
+    "total": 442
+   },
+   "serverTiming": "cache;desc=miss;dur=21, limit;dur=0, embed;dur=86, vector;dur=232, fts;dur=28, hydrate;dur=12, total;dur=351",
+   "overlap10": 10,
+   "rbo10": 0.9232170309999999,
+   "envelopeMinOverlap10": 9,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 18,
+   "vectorRankShiftExamples": [
+    {
+     "code": "GESS1007",
+     "live": [
+      2
+     ],
+     "local": 1
+    },
+    {
+     "code": "GESS1009",
+     "live": [
+      1
+     ],
+     "local": 2
+    },
+    {
+     "code": "HY3250",
+     "live": [
+      5
+     ],
+     "local": 4
+    },
+    {
+     "code": "GESS1026",
+     "live": [
+      4
+     ],
+     "local": 3
+    },
+    {
+     "code": "GESS1013",
+     "live": [
+      9
+     ],
+     "local": 10
+    }
+   ],
+   "liveVectorRanks": {
+    "GESS1007": [
+     2
+    ],
+    "GESS1009": [
+     1
+    ],
+    "HY3250": [
+     5
+    ],
+    "GESS1026": [
+     4
+    ],
+    "GESS1013": [
+     9
+    ],
+    "GESS1035": [
+     6
+    ],
+    "GEC1055": [
+     8
+    ],
+    "GESS1003": [
+     7
+    ],
+    "GESS1021": [
+     20
+    ],
+    "GESS1025": [
+     15
+    ],
+    "GESS1020": [
+     31
+    ],
+    "NHS2026": [
+     11
+    ],
+    "MS3209": [
+     26
+    ],
+    "GESS1028": [
+     29
+    ],
+    "NHS2048": [
+     10
+    ],
+    "GESS1024": [
+     46
+    ],
+    "GES1034": [
+     49
+    ],
+    "HY1101E": [
+     35
+    ],
+    "HY3226": [
+     40
+    ],
+    "GES1019": [
+     21
+    ]
+   },
+   "liveTop10": [
+    "GESS1007",
+    "GESS1009",
+    "HY3250",
+    "GESS1026",
+    "GESS1013",
+    "GESS1035",
+    "GEC1055",
+    "GESS1003",
+    "GESS1021",
+    "GESS1025"
+   ],
+   "localTop10": [
+    "GESS1007",
+    "HY3250",
+    "GESS1026",
+    "GESS1009",
+    "GESS1013",
+    "GESS1035",
+    "GEC1055",
+    "GESS1003",
+    "GESS1025",
+    "GESS1021"
+   ]
+  },
+  {
+   "id": "d-065",
+   "path": "/search?q=veterinary+medicine+clinical+rotation+large+animals&sem=2&ng=1",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 82
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 50,
+     "fused": 86
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 545,
+    "total": 546
+   },
+   "serverTiming": "cache;desc=miss;dur=10, limit;dur=0, embed;dur=143, vector;dur=237, fts;dur=22, hydrate;dur=21, total;dur=411",
+   "overlap10": 7,
+   "rbo10": 0.8606371897642857,
+   "envelopeMinOverlap10": 8,
+   "withinEnvelope": false,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 50,
+    "local": 50,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": false,
+   "passFirstRule": false,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 19,
+   "vectorRankShiftExamples": [
+    {
+     "code": "LSM1303",
+     "live": [
+      1
+     ],
+     "local": 2
+    },
+    {
+     "code": "CS4248",
+     "live": [
+      3
+     ],
+     "local": 1
+    },
+    {
+     "code": "HS2923",
+     "live": [
+      9
+     ],
+     "local": 11
+    },
+    {
+     "code": "LSM3267",
+     "live": [
+      5
+     ],
+     "local": 4
+    },
+    {
+     "code": "LSM4221",
+     "live": [
+      7
+     ],
+     "local": 9
+    }
+   ],
+   "liveVectorRanks": {
+    "LSM1303": [
+     1
+    ],
+    "CS4248": [
+     3
+    ],
+    "HS2923": [
+     9
+    ],
+    "LSM3267": [
+     5
+    ],
+    "LSM4221": [
+     7
+    ],
+    "LSM3255": [
+     13
+    ],
+    "LSM4225": [
+     29
+    ],
+    "NST2036": [
+     26
+    ],
+    "GEC1044": [
+     43
+    ],
+    "LSM3218": [
+     8
+    ],
+    "LL4277V": [
+     50
+    ],
+    "LSM4252": [
+     36
+    ],
+    "PL3257": [
+     35
+    ],
+    "HSI2004": [
+     16
+    ],
+    "LSM4261": [
+     33
+    ],
+    "LSM3242": [
+     18
+    ],
+    "GEC1015": [
+     30
+    ],
+    "ZB2101": [
+     32
+    ],
+    "LSM4237": [
+     null
+    ],
+    "LSM3227": [
+     2
+    ]
+   },
+   "liveTop10": [
+    "LSM1303",
+    "CS4248",
+    "HS2923",
+    "LSM3267",
+    "LSM4221",
+    "LSM3255",
+    "LSM4225",
+    "NST2036",
+    "GEC1044",
+    "LSM3218"
+   ],
+   "localTop10": [
+    "LSM1303",
+    "CS4248",
+    "HS2923",
+    "LSM3267",
+    "LSM4221",
+    "LSM3255",
+    "LSM4252",
+    "NST2036",
+    "PL3257",
+    "LSM4261"
+   ]
+  },
+  {
+   "id": "d-088",
+   "path": "/search?q=cs+2030&ng=1",
+   "status": 200,
+   "count": 20,
+   "retrieval": {
+    "live": {
+     "vector": 50,
+     "lexical": 0,
+     "fused": 50
+    },
+    "local": {
+     "vector": 50,
+     "lexical": 0,
+     "fused": 50
+    }
+   },
+   "cache": "miss",
+   "version": "8d94982",
+   "ms": {
+    "ttfb": 692,
+    "total": 694
+   },
+   "serverTiming": "cache;desc=miss;dur=10, limit;dur=0, embed;dur=224, vector;dur=229, fts;dur=33, hydrate;dur=17, total;dur=480",
+   "overlap10": 7,
+   "rbo10": 0.7826584785142856,
+   "envelopeMinOverlap10": 7,
+   "withinEnvelope": true,
+   "rowsOk": true,
+   "decompOk": true,
+   "directLexical": {
+    "ok": true,
+    "exactOrder": true,
+    "live": 0,
+    "local": 0,
+    "problems": []
+   },
+   "lexOk": true,
+   "pass": true,
+   "passFirstRule": true,
+   "problems": [],
+   "ambiguousVectorRank": [],
+   "vectorRankShifts": 16,
+   "vectorRankShiftExamples": [
+    {
+     "code": "CG4002",
+     "live": [
+      2
+     ],
+     "local": 4
+    },
+    {
+     "code": "CS2030",
+     "live": [
+      3
+     ],
+     "local": 2
+    },
+    {
+     "code": "CS3211",
+     "live": [
+      4
+     ],
+     "local": 3
+    },
+    {
+     "code": "NM3205",
+     "live": [
+      7
+     ],
+     "local": 12
+    },
+    {
+     "code": "NM1101E",
+     "live": [
+      8
+     ],
+     "local": 13
+    }
+   ],
+   "liveVectorRanks": {
+    "CS4330": [
+     1
+    ],
+    "CG4002": [
+     2
+    ],
+    "CS2030": [
+     3
+    ],
+    "CS3211": [
+     4
+    ],
+    "CS4234": [
+     5
+    ],
+    "IE4246": [
+     6
+    ],
+    "NM3205": [
+     7
+    ],
+    "NM1101E": [
+     8
+    ],
+    "NM2207": [
+     9
+    ],
+    "CS4223": [
+     10
+    ],
+    "CS3240": [
+     11
+    ],
+    "CS4215": [
+     12
+    ],
+    "ESP2107": [
+     13
+    ],
+    "CS3230": [
+     14
+    ],
+    "LSM4223": [
+     15
+    ],
+    "CS4231": [
+     16
+    ],
+    "CDE2300": [
+     17
+    ],
+    "MLE4230": [
+     18
+    ],
+    "CG3207": [
+     19
+    ],
+    "CS4249": [
+     20
+    ]
+   },
+   "liveTop10": [
+    "CS4330",
+    "CG4002",
+    "CS2030",
+    "CS3211",
+    "CS4234",
+    "IE4246",
+    "NM3205",
+    "NM1101E",
+    "NM2207",
+    "CS4223"
+   ],
+   "localTop10": [
+    "CS4330",
+    "CS2030",
+    "CS3211",
+    "CG4002",
+    "CS4234",
+    "IE4246",
+    "CS4215",
+    "CS3240",
+    "NM2207",
+    "ESP2107"
+   ]
+  }
+ ],
+ "againstFirstCheck": {
+  "d-001": {
+   "firstCheck": {
+    "overlap10": 8,
+    "envelope": 9,
+    "pass": false
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 0.9279999999999999
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 8
+   },
+   "denseOldVsNew": {
+    "comparable": 19,
+    "sameRank": 19
+   }
+  },
+  "d-015": {
+   "firstCheck": {
+    "overlap10": 9,
+    "envelope": 9,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 9
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-039": {
+   "firstCheck": {
+    "overlap10": 10,
+    "envelope": 9,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 10
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-055": {
+   "firstCheck": {
+    "overlap10": 9,
+    "envelope": 8,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 9
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-073": {
+   "firstCheck": {
+    "overlap10": 10,
+    "envelope": 9,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 10
+   },
+   "denseOldVsNew": {
+    "comparable": 19,
+    "sameRank": 19
+   }
+  },
+  "d-018": {
+   "firstCheck": {
+    "overlap10": 8,
+    "envelope": 7,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 8
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-007": {
+   "firstCheck": {
+    "overlap10": 9,
+    "envelope": 7,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 9
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-076": {
+   "firstCheck": {
+    "overlap10": 8,
+    "envelope": 8,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 8
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-079": {
+   "firstCheck": {
+    "overlap10": 8,
+    "envelope": 4,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 8
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-085": {
+   "firstCheck": {
+    "overlap10": 9,
+    "envelope": 9,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 9
+   },
+   "denseOldVsNew": {
+    "comparable": 19,
+    "sameRank": 19
+   }
+  },
+  "d-095": {
+   "firstCheck": {
+    "overlap10": 5,
+    "envelope": 4,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 5
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-063": {
+   "firstCheck": {
+    "overlap10": 9,
+    "envelope": 9,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 9
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-043": {
+   "firstCheck": {
+    "overlap10": 10,
+    "envelope": 9,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 10
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-065": {
+   "firstCheck": {
+    "overlap10": 7,
+    "envelope": 8,
+    "pass": false
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 7
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  },
+  "d-088": {
+   "firstCheck": {
+    "overlap10": 7,
+    "envelope": 7,
+    "pass": true
+   },
+   "liveOldVsNew": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "replicaV0VsHead": {
+    "overlap10": 10,
+    "rbo10": 1
+   },
+   "liveNewVsReplicaV0": {
+    "overlap10": 7
+   },
+   "denseOldVsNew": {
+    "comparable": 20,
+    "sameRank": 20
+   }
+  }
+ }
+}

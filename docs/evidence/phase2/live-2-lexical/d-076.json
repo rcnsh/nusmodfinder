@@ -1,0 +1,67 @@
+{
+ "n": "f2-23",
+ "id": "d-076",
+ "kind": "lexical",
+ "path": "/search?q=OS&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 154,
+ "totalMs": 156,
+ "at": "2026-11-04T06:22:34.358Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a5518668dc73885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:34 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=ZYuH%2Fq1TwHVRiR2%2BXVTngJGBnOHqzoDSjkqK4b%2Bon6X864Yi83nCppKS3RsqD7hHe%2FyZxSaalS3WueV1OeMls301ueH00lhwRholbEkfOo3W%2BEj1U6A1crcR2ZLL4NIsnCzAnavcWcLdtF%2F4uJNcGylR3bmLd3mwxExC07%2BJX9tK\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=11, limit;dur=0, fts;dur=25, hydrate;dur=19, total;dur=55",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"os\",\n  \"filters\": {},\n  \"count\": 2,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 2,\n    \"fused\": 2\n  },\n  \"results\": [\n    {\n      \"code\": \"CS5250\",\n      \"title\": \"Advanced Operating Systems\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"CS2106\",\n      \"title\": \"Introduction to Operating Systems\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.016129032258064516\n    }\n  ]\n}",
+ "body": {
+  "query": "os",
+  "filters": {},
+  "count": 2,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 2,
+   "fused": 2
+  },
+  "results": [
+   {
+    "code": "CS5250",
+    "title": "Advanced Operating Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "CS2106",
+    "title": "Introduction to Operating Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   }
+  ]
+ }
+}

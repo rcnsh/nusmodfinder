@@ -1,0 +1,776 @@
+{
+ "n": "f2-24",
+ "id": "d-079",
+ "kind": "lexical",
+ "path": "/search?q=GE+module+about+technology+and+society&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 70,
+ "totalMs": 72,
+ "at": "2026-11-04T06:22:38.015Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a551867fadda885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:38 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=N84dRIzur5gL6oMhADA0Xg8wiPSKchrbn4Nl3TgdCfk48RXCcuIM750yo2Zepw1ZtqsSKTUGkuKn4x502lV1kBq6Riq%2Fgldl1XvVOoy4NrEFKLP7zSeGM3mrxwy14wIkjxfedPXuIU2VsXchEOxZ7xqcWEGqWv4hkykt8fS07rHM\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=6, limit;dur=0, fts;dur=18, hydrate;dur=14, total;dur=38",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"ge module about technology and society\",\n  \"filters\": {},\n  \"count\": 50,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 50,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"GEX1009\",\n      \"title\": \"Understanding Your Brain\",\n      \"department\": \"Physiology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"NSS2001A\",\n      \"title\": \"Science and Society\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"NSS2001B\",\n      \"title\": \"Science and Society\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"NSS2001D\",\n      \"title\": \"Science and Society\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"NSS2001E\",\n      \"title\": \"Science and Society\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"NSS2001F\",\n      \"title\": \"Science and Society\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"NSS2001G\",\n      \"title\": \"Science and Society\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"NSS2001I\",\n      \"title\": \"Science and Society\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"NEX3003\",\n      \"title\": \"GEx New York\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"AR5221\",\n      \"title\": \"Contemporary Theories\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"ME3163\",\n      \"title\": \"Introduction to Cyber Physical Systems\",\n      \"department\": \"Mechanical Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"EE4438\",\n      \"title\": \"Solar Cells and Modules\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"SN3275\",\n      \"title\": \"Subtle Tamil Traits? Tamil Culture and Society\",\n      \"department\": \"South Asian Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"SC3210\",\n      \"title\": \"AI and Society\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"NST2064\",\n      \"title\": \"Social Insect Societies\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"DEP5117\",\n      \"title\": \"Technology, Society, and Cities\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"SC3211\",\n      \"title\": \"Science, Technology & Society\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"HSI2014\",\n      \"title\": \"Science, Medical Technology and Society\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"HY2262\",\n      \"title\": \"The Ancient World: The Roman Empire\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"NST2045\",\n      \"title\": \"Food Production and Security in Urban Singapore\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.0125\n    },\n    {\n      \"code\": \"SC4880B\",\n      \"title\": \"Advanced Sociological Analysis of Singapore Society\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012345679012345678\n    },\n    {\n      \"code\": \"UTS2721\",\n      \"title\": \"The Four Upheavals: Journeying through the Past and Present\",\n      \"department\": \"Residential College 4\",\n      \"faculty\": \"Residential College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012195121951219513\n    },\n    {\n      \"code\": \"LCC5467\",\n      \"title\": \"Criminal Law\",\n      \"department\": \"FoL Dean's Office\",\n      \"faculty\": \"Law\",\n      \"credits\": 3,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012048192771084338\n    },\n    {\n      \"code\": \"BME5110\",\n      \"title\": \"Navigating Asia's Geostrategic Landscape\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 2,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011904761904761904\n    },\n    {\n      \"code\": \"NM4206\",\n      \"title\": \"Media Policy and Regulation\",\n      \"department\": \"Communications and New Media\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011764705882352941\n    },\n    {\n      \"code\": \"QT5201U\",\n      \"title\": \"Quantum control technology\",\n      \"department\": \"Center for Quantum Technologies\",\n      \"faculty\": \"NUS Graduate School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011627906976744186\n    },\n    {\n      \"code\": \"UTC2402\",\n      \"title\": \"Environment and Civil Society in Singapore\",\n      \"department\": \"College of Alice and Peter Tan\",\n      \"faculty\": \"Residential College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011494252873563218\n    },\n    {\n      \"code\": \"UTS2402\",\n      \"title\": \"Environment and Civil Society in Singapore\",\n      \"department\": \"College of Alice and Peter Tan\",\n      \"faculty\": \"Residential College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011363636363636364\n    },\n    {\n      \"code\": \"UTC1120\",\n      \"title\": \"Emotions in Modern Society\",\n      \"department\": \"Tembusu College\",\n      \"faculty\": \"Residential College\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011235955056179775\n    },\n    {\n      \"code\": \"UTC1116\",\n      \"title\": \"Spectacles and Society\",\n      \"department\": \"Tembusu College\",\n      \"faculty\": \"Residential College\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011111111111111112\n    },\n    {\n      \"code\": \"NHS2070\",\n      \"title\": \"Tragedy, Culture, and Society\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01098901098901099\n    },\n    {\n      \"code\": \"UTW1001A\",\n      \"title\": \"Identities and Ideas in Modern Market-Driven Societies\",\n      \"department\": \"Center for Engl Lang Comms\",\n      \"faculty\": \"NUS\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010869565217391304\n    },\n    {\n      \"code\": \"PP5704\",\n      \"title\": \"Policy Analysis and Programme Evaluation\",\n      \"department\": \"LKYSPP Dean's Office\",\n      \"faculty\": \"LKY School of Public Policy\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010752688172043012\n    },\n    {\n      \"code\": \"EN2206\",\n      \"title\": \"The Arts and Social Justice\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010638297872340425\n    },\n    {\n      \"code\": \"RE1707\",\n      \"title\": \"Real Estate, Society and Enterprise\",\n      \"department\": \"Real Estate\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 2,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010526315789473684\n    },\n    {\n      \"code\": \"HS1504\",\n      \"title\": \"Ex Machina? The Promises, Problems and Potentials of AI\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010416666666666666\n    },\n    {\n      \"code\": \"CE5610B\",\n      \"title\": \"Concrete Repair and Retrofitting of Structural Concrete\",\n      \"department\": \"Civil and Environmental Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 2,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010309278350515464\n    },\n    {\n      \"code\": \"GSA5209\",\n      \"title\": \"Studying Society Visually\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01020408163265306\n    },\n    {\n      \"code\": \"SC2222\",\n      \"title\": \"Sports and Society\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.010101010101010102\n    },\n    {\n      \"code\": \"EM1180\",\n      \"title\": \"Foundations in Communicating about Music\",\n      \"department\": \"Center for Engl Lang Comms\",\n      \"faculty\": \"Center for Engl Lang Comms\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01\n    },\n    {\n      \"code\": \"GEC1024\",\n      \"title\": \"Ghosts and Spirits in Society and Culture\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009900990099009901\n    },\n    {\n      \"code\": \"GEH1062\",\n      \"title\": \"Ghosts and Spirits in Society and Culture\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.00980392156862745\n    },\n    {\n      \"code\": \"SEA5102\",\n      \"title\": \"Societies and Cultures of Southeast Asia\",\n      \"department\": \"Southeast Asian Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009708737864077669\n    },\n    {\n      \"code\": \"IND5001\",\n      \"title\": \"Introduction to Industry 4.0 and Applications\",\n      \"department\": \"Analytics and Operations\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009615384615384616\n    },\n    {\n      \"code\": \"PH4202\",\n      \"title\": \"Political Philosophy\",\n      \"department\": \"Philosophy\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009523809523809525\n    },\n    {\n      \"code\": \"MLE4221\",\n      \"title\": \"Emerging materials for renewable fuels and clean water\",\n      \"department\": \"Materials Science and Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.009433962264150943\n    },\n    {\n      \"code\": \"NSW2001M\",\n      \"title\": \"Understanding the Social World: Singapore & Beyond\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009345794392523364\n    },\n    {\n      \"code\": \"ABM5104\",\n      \"title\": \"Microbiome-Aging-Immunity crosstalk\",\n      \"department\": \"NUS Medicine Dean's Office\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009259259259259259\n    },\n    {\n      \"code\": \"UIS3931\",\n      \"title\": \"Independent Study Module\",\n      \"department\": \"CDE Dean's Office\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009174311926605505\n    },\n    {\n      \"code\": \"UIS3932\",\n      \"title\": \"Independent Study Module\",\n      \"department\": \"CDE Dean's Office\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.00909090909090909\n    }\n  ]\n}",
+ "body": {
+  "query": "ge module about technology and society",
+  "filters": {},
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "GEX1009",
+    "title": "Understanding Your Brain",
+    "department": "Physiology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "NSS2001A",
+    "title": "Science and Society",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "NSS2001B",
+    "title": "Science and Society",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "NSS2001D",
+    "title": "Science and Society",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "NSS2001E",
+    "title": "Science and Society",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "NSS2001F",
+    "title": "Science and Society",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "NSS2001G",
+    "title": "Science and Society",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "NSS2001I",
+    "title": "Science and Society",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "NEX3003",
+    "title": "GEx New York",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "AR5221",
+    "title": "Contemporary Theories",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "ME3163",
+    "title": "Introduction to Cyber Physical Systems",
+    "department": "Mechanical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "EE4438",
+    "title": "Solar Cells and Modules",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "SN3275",
+    "title": "Subtle Tamil Traits? Tamil Culture and Society",
+    "department": "South Asian Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "SC3210",
+    "title": "AI and Society",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "NST2064",
+    "title": "Social Insect Societies",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "DEP5117",
+    "title": "Technology, Society, and Cities",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "SC3211",
+    "title": "Science, Technology & Society",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "HSI2014",
+    "title": "Science, Medical Technology and Society",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "HY2262",
+    "title": "The Ancient World: The Roman Empire",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "NST2045",
+    "title": "Food Production and Security in Urban Singapore",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0125
+   },
+   {
+    "code": "SC4880B",
+    "title": "Advanced Sociological Analysis of Singapore Society",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "UTS2721",
+    "title": "The Four Upheavals: Journeying through the Past and Present",
+    "department": "Residential College 4",
+    "faculty": "Residential College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "LCC5467",
+    "title": "Criminal Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 3,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "BME5110",
+    "title": "Navigating Asia's Geostrategic Landscape",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "NM4206",
+    "title": "Media Policy and Regulation",
+    "department": "Communications and New Media",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "QT5201U",
+    "title": "Quantum control technology",
+    "department": "Center for Quantum Technologies",
+    "faculty": "NUS Graduate School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "UTC2402",
+    "title": "Environment and Civil Society in Singapore",
+    "department": "College of Alice and Peter Tan",
+    "faculty": "Residential College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "UTS2402",
+    "title": "Environment and Civil Society in Singapore",
+    "department": "College of Alice and Peter Tan",
+    "faculty": "Residential College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "UTC1120",
+    "title": "Emotions in Modern Society",
+    "department": "Tembusu College",
+    "faculty": "Residential College",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "UTC1116",
+    "title": "Spectacles and Society",
+    "department": "Tembusu College",
+    "faculty": "Residential College",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "NHS2070",
+    "title": "Tragedy, Culture, and Society",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "UTW1001A",
+    "title": "Identities and Ideas in Modern Market-Driven Societies",
+    "department": "Center for Engl Lang Comms",
+    "faculty": "NUS",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "PP5704",
+    "title": "Policy Analysis and Programme Evaluation",
+    "department": "LKYSPP Dean's Office",
+    "faculty": "LKY School of Public Policy",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "EN2206",
+    "title": "The Arts and Social Justice",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "RE1707",
+    "title": "Real Estate, Society and Enterprise",
+    "department": "Real Estate",
+    "faculty": "NUS Business School",
+    "credits": 2,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "HS1504",
+    "title": "Ex Machina? The Promises, Problems and Potentials of AI",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "CE5610B",
+    "title": "Concrete Repair and Retrofitting of Structural Concrete",
+    "department": "Civil and Environmental Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "GSA5209",
+    "title": "Studying Society Visually",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "SC2222",
+    "title": "Sports and Society",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "EM1180",
+    "title": "Foundations in Communicating about Music",
+    "department": "Center for Engl Lang Comms",
+    "faculty": "Center for Engl Lang Comms",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01
+   },
+   {
+    "code": "GEC1024",
+    "title": "Ghosts and Spirits in Society and Culture",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "GEH1062",
+    "title": "Ghosts and Spirits in Society and Culture",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "SEA5102",
+    "title": "Societies and Cultures of Southeast Asia",
+    "department": "Southeast Asian Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "IND5001",
+    "title": "Introduction to Industry 4.0 and Applications",
+    "department": "Analytics and Operations",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "PH4202",
+    "title": "Political Philosophy",
+    "department": "Philosophy",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "MLE4221",
+    "title": "Emerging materials for renewable fuels and clean water",
+    "department": "Materials Science and Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "NSW2001M",
+    "title": "Understanding the Social World: Singapore & Beyond",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "ABM5104",
+    "title": "Microbiome-Aging-Immunity crosstalk",
+    "department": "NUS Medicine Dean's Office",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "UIS3931",
+    "title": "Independent Study Module",
+    "department": "CDE Dean's Office",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "UIS3932",
+    "title": "Independent Study Module",
+    "department": "CDE Dean's Office",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}

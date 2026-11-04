@@ -1,0 +1,349 @@
+{
+ "n": "f2-7",
+ "id": "d-007",
+ "kind": "hybrid",
+ "path": "/search?q=japanese+1",
+ "status": 200,
+ "ttfbMs": 545,
+ "totalMs": 546,
+ "at": "2026-11-04T06:21:32.555Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55184e68f95885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:21:32 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=yKtrFeicjjn0TagAwvxGRK3aa2BMoeW1rbCKYGBCe9CGKnsO9v9d2YxY%2FS7nSuZQ4ccvnSugwgsP1t7lhy5ZeI9h0GkJ5Y%2BgU6%2FH9l56FdAGvF8Dyh7jQFCmnkwR74eDLk0WMTmiZ7QZ%2FvBJ7tvNJkD%2BF0Hdx5BNeJRmmu%2FoE8SZ\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=7, limit;dur=0, embed;dur=120, vector;dur=249, fts;dur=17, hydrate;dur=23, total;dur=399",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"japanese 1\",\n  \"filters\": {},\n  \"count\": 20,\n  \"mode\": \"hybrid\",\n  \"retrieval\": {\n    \"vector\": 50,\n    \"lexical\": 50,\n    \"fused\": 76\n  },\n  \"results\": [\n    {\n      \"code\": \"LAJ1201\",\n      \"title\": \"Japanese 1\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.03278688524590164\n    },\n    {\n      \"code\": \"LAJ2201\",\n      \"title\": \"Japanese 2\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.03200204813108039\n    },\n    {\n      \"code\": \"JSC5301\",\n      \"title\": \"Advanced Japanese I (Coursework)\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.02877846790890269\n    },\n    {\n      \"code\": \"LAJ2203\",\n      \"title\": \"Japanese 4\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.028283227848101264\n    },\n    {\n      \"code\": \"JS1101E\",\n      \"title\": \"Introduction to Japan\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.027972027972027972\n    },\n    {\n      \"code\": \"LAJ2202\",\n      \"title\": \"Japanese 3\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.02786377708978328\n    },\n    {\n      \"code\": \"JS4229\",\n      \"title\": \"Japanese Translation - Theory & Practice\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.027212143650499815\n    },\n    {\n      \"code\": \"JS3101\",\n      \"title\": \"Approaches to Japanese Studies II\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.02674825174825175\n    },\n    {\n      \"code\": \"LAJ3201\",\n      \"title\": \"Japanese 5\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.02658450704225352\n    },\n    {\n      \"code\": \"LAK1201\",\n      \"title\": \"Korean 1\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.0265113137453563\n    },\n    {\n      \"code\": \"LAJ3204\",\n      \"title\": \"Business Japanese 2\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.02638888888888889\n    },\n    {\n      \"code\": \"LAJ3202\",\n      \"title\": \"Japanese 6\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.026356857985087564\n    },\n    {\n      \"code\": \"JS3222\",\n      \"title\": \"Japanese Business Management\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.02507351803126451\n    },\n    {\n      \"code\": \"HY2208\",\n      \"title\": \"Pre-Modern Japan: History and Culture\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.024269005847953218\n    },\n    {\n      \"code\": \"JSC5207\",\n      \"title\": \"Pre-Modern Japanese Visual Cultures\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.024086021505376344\n    },\n    {\n      \"code\": \"JSC5306\",\n      \"title\": \"Japanese Photography: A Visual History of Modernity\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.023122159850307404\n    },\n    {\n      \"code\": \"JS3216\",\n      \"title\": \"Japanese Literature Across Media\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.02265495736286114\n    },\n    {\n      \"code\": \"LAG1201\",\n      \"title\": \"German 1\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.022592592592592595\n    },\n    {\n      \"code\": \"JSC5103\",\n      \"title\": \"Japanese Popular Culture - Theory and Methodology\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.022154222766217868\n    },\n    {\n      \"code\": \"LAH1201\",\n      \"title\": \"Hindi 1\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.021805752003771807\n    }\n  ]\n}",
+ "body": {
+  "query": "japanese 1",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 76
+  },
+  "results": [
+   {
+    "code": "LAJ1201",
+    "title": "Japanese 1",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.03278688524590164
+   },
+   {
+    "code": "LAJ2201",
+    "title": "Japanese 2",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03200204813108039
+   },
+   {
+    "code": "JSC5301",
+    "title": "Advanced Japanese I (Coursework)",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02877846790890269
+   },
+   {
+    "code": "LAJ2203",
+    "title": "Japanese 4",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.028283227848101264
+   },
+   {
+    "code": "JS1101E",
+    "title": "Introduction to Japan",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.027972027972027972
+   },
+   {
+    "code": "LAJ2202",
+    "title": "Japanese 3",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02786377708978328
+   },
+   {
+    "code": "JS4229",
+    "title": "Japanese Translation - Theory & Practice",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.027212143650499815
+   },
+   {
+    "code": "JS3101",
+    "title": "Approaches to Japanese Studies II",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02674825174825175
+   },
+   {
+    "code": "LAJ3201",
+    "title": "Japanese 5",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02658450704225352
+   },
+   {
+    "code": "LAK1201",
+    "title": "Korean 1",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.0265113137453563
+   },
+   {
+    "code": "LAJ3204",
+    "title": "Business Japanese 2",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02638888888888889
+   },
+   {
+    "code": "LAJ3202",
+    "title": "Japanese 6",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.026356857985087564
+   },
+   {
+    "code": "JS3222",
+    "title": "Japanese Business Management",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02507351803126451
+   },
+   {
+    "code": "HY2208",
+    "title": "Pre-Modern Japan: History and Culture",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.024269005847953218
+   },
+   {
+    "code": "JSC5207",
+    "title": "Pre-Modern Japanese Visual Cultures",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.024086021505376344
+   },
+   {
+    "code": "JSC5306",
+    "title": "Japanese Photography: A Visual History of Modernity",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.023122159850307404
+   },
+   {
+    "code": "JS3216",
+    "title": "Japanese Literature Across Media",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.02265495736286114
+   },
+   {
+    "code": "LAG1201",
+    "title": "German 1",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.022592592592592595
+   },
+   {
+    "code": "JSC5103",
+    "title": "Japanese Popular Culture - Theory and Methodology",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.022154222766217868
+   },
+   {
+    "code": "LAH1201",
+    "title": "Hindi 1",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.021805752003771807
+   }
+  ]
+ }
+}

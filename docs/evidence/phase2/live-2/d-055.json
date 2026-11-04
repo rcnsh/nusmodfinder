@@ -1,0 +1,341 @@
+{
+ "n": "f2-4",
+ "id": "d-055",
+ "kind": "hybrid",
+ "path": "/search?q=is+there+something+on+marine+biology+or+coral+reefs",
+ "status": 200,
+ "ttfbMs": 442,
+ "totalMs": 444,
+ "at": "2026-11-04T06:21:20.595Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a551849bcf4a885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:21:21 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=mVWkFfNb43IfHUp1%2B92CkhHtSkhx9BxCLFR0ayKOOrT1R%2F9GccVdiqgdxH%2F2yfOqRPQh4CJU9PlPUFAfhNEK7EFql6TbhUij3Vlcav1SPqmbCxJpkMTUUiD14I9G4XNbfAmZmqPRML8lBpWBIyjZd%2Fs723%2B%2BVlfwDE9q6HHb9cQU\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=11, limit;dur=0, embed;dur=96, vector;dur=245, fts;dur=19, hydrate;dur=11, total;dur=363",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"is there something on marine biology or coral reefs\",\n  \"filters\": {},\n  \"count\": 20,\n  \"mode\": \"hybrid\",\n  \"retrieval\": {\n    \"vector\": 50,\n    \"lexical\": 50,\n    \"fused\": 84\n  },\n  \"results\": [\n    {\n      \"code\": \"LSM3275\",\n      \"title\": \"Coral Reef Ecology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.03278688524590164\n    },\n    {\n      \"code\": \"LSM4261\",\n      \"title\": \"Marine Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.0315136476426799\n    },\n    {\n      \"code\": \"CE5317B\",\n      \"title\": \"Nature Based Solutions for Coastal Protection\",\n      \"department\": \"Civil and Environmental Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 2,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.030621785881252923\n    },\n    {\n      \"code\": \"CE5317QB\",\n      \"title\": \"Nature Based Solutions for Coastal Protection\",\n      \"department\": \"Civil and Environmental Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 2,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.03057889822595705\n    },\n    {\n      \"code\": \"BL5225\",\n      \"title\": \"Marine Conservation\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.02854251012145749\n    },\n    {\n      \"code\": \"HS2906\",\n      \"title\": \"Saltwater: Sea and Society\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.028283227848101264\n    },\n    {\n      \"code\": \"LSM3254\",\n      \"title\": \"Ecology of Aquatic Environments\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.02712049508554787\n    },\n    {\n      \"code\": \"LSM4257\",\n      \"title\": \"Aquatic Vertebrate Diversity\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.026397515527950312\n    },\n    {\n      \"code\": \"HS2938\",\n      \"title\": \"Paradise for Sale: The Puzzle of Natural Wealth\",\n      \"department\": \"Malay Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.02637768817204301\n    },\n    {\n      \"code\": \"NEX3008S\",\n      \"title\": \"GEx Bali/Lombok\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.025478740668614087\n    },\n    {\n      \"code\": \"LSM4262\",\n      \"title\": \"Tropical Conservation Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.024242424242424242\n    },\n    {\n      \"code\": \"BL5233\",\n      \"title\": \"Data Analysis for Conservation Biology with R\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.021198668146503882\n    },\n    {\n      \"code\": \"CS6222\",\n      \"title\": \"Advanced Topics in Computational Biology\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 6,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.021090021090021092\n    },\n    {\n      \"code\": \"LSM4264\",\n      \"title\": \"Freshwater Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.019378393559258564\n    },\n    {\n      \"code\": \"LSM4255\",\n      \"title\": \"Methods in Mathematical Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.019232547387887194\n    },\n    {\n      \"code\": \"LSM3266\",\n      \"title\": \"Avian Biology and Evolution\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.018706293706293706\n    },\n    {\n      \"code\": \"LSM4270\",\n      \"title\": \"Intertidal Ecology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"NST2006\",\n      \"title\": \"The Biology and Phenomenology of Pain\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"PH6240\",\n      \"title\": \"Advanced Metaphysics\",\n      \"department\": \"Philosophy\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 6,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"PH4240\",\n      \"title\": \"Issues in Metaphysics\",\n      \"department\": \"Philosophy\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.014705882352941176\n    }\n  ]\n}",
+ "body": {
+  "query": "is there something on marine biology or coral reefs",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 84
+  },
+  "results": [
+   {
+    "code": "LSM3275",
+    "title": "Coral Reef Ecology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03278688524590164
+   },
+   {
+    "code": "LSM4261",
+    "title": "Marine Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0315136476426799
+   },
+   {
+    "code": "CE5317B",
+    "title": "Nature Based Solutions for Coastal Protection",
+    "department": "Civil and Environmental Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.030621785881252923
+   },
+   {
+    "code": "CE5317QB",
+    "title": "Nature Based Solutions for Coastal Protection",
+    "department": "Civil and Environmental Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.03057889822595705
+   },
+   {
+    "code": "BL5225",
+    "title": "Marine Conservation",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02854251012145749
+   },
+   {
+    "code": "HS2906",
+    "title": "Saltwater: Sea and Society",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.028283227848101264
+   },
+   {
+    "code": "LSM3254",
+    "title": "Ecology of Aquatic Environments",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02712049508554787
+   },
+   {
+    "code": "LSM4257",
+    "title": "Aquatic Vertebrate Diversity",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.026397515527950312
+   },
+   {
+    "code": "HS2938",
+    "title": "Paradise for Sale: The Puzzle of Natural Wealth",
+    "department": "Malay Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02637768817204301
+   },
+   {
+    "code": "NEX3008S",
+    "title": "GEx Bali/Lombok",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.025478740668614087
+   },
+   {
+    "code": "LSM4262",
+    "title": "Tropical Conservation Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.024242424242424242
+   },
+   {
+    "code": "BL5233",
+    "title": "Data Analysis for Conservation Biology with R",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.021198668146503882
+   },
+   {
+    "code": "CS6222",
+    "title": "Advanced Topics in Computational Biology",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.021090021090021092
+   },
+   {
+    "code": "LSM4264",
+    "title": "Freshwater Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.019378393559258564
+   },
+   {
+    "code": "LSM4255",
+    "title": "Methods in Mathematical Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.019232547387887194
+   },
+   {
+    "code": "LSM3266",
+    "title": "Avian Biology and Evolution",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.018706293706293706
+   },
+   {
+    "code": "LSM4270",
+    "title": "Intertidal Ecology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "NST2006",
+    "title": "The Biology and Phenomenology of Pain",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "PH6240",
+    "title": "Advanced Metaphysics",
+    "department": "Philosophy",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "PH4240",
+    "title": "Issues in Metaphysics",
+    "department": "Philosophy",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014705882352941176
+   }
+  ]
+ }
+}

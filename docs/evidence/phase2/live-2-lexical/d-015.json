@@ -1,0 +1,784 @@
+{
+ "n": "f2-17",
+ "id": "d-015",
+ "kind": "lexical",
+ "path": "/search?q=computer+vision&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 91,
+ "totalMs": 94,
+ "at": "2026-11-04T06:22:12.408Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55185dfa858885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:12 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=GQfeDx6vxs7iGuSRyWUwJNBN%2FupeB9yzkd%2FAkjS5%2FdKt%2FT3CbgOcsY%2F5BixMjmGy%2BlTG0BaN1jSx6e%2BqdeFVlMKD%2FRkHwfPG5CvA3kxs%2Bu%2B4OLcOwCqXtk8GX6vme5IrvtvAvlPiFJFpoFsAaVWVM%2BaEEtIT2VHJP7FyJt%2B20wcO\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=8, limit;dur=0, fts;dur=20, hydrate;dur=20, total;dur=48",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"computer vision\",\n  \"filters\": {},\n  \"count\": 50,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 50,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"EE4212\",\n      \"title\": \"Computer Vision\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"CS4243\",\n      \"title\": \"Computer Vision and Pattern Recognition\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"EE5731\",\n      \"title\": \"Visual Computing\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"EE6733\",\n      \"title\": \"Advanced Topics on Vision and Machine Learning\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 6,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"CS4277\",\n      \"title\": \"3D Computer Vision\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"CS5477\",\n      \"title\": \"3D Computer Vision\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"ME5411\",\n      \"title\": \"Robot vision and AI\",\n      \"department\": \"Mechanical Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"ID4401\",\n      \"title\": \"Spatial Computing: Design and Development\",\n      \"department\": \"Design\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"ID5401\",\n      \"title\": \"Spatial Computing: Design and Development\",\n      \"department\": \"Design\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"ME5405\",\n      \"title\": \"Machine Vision\",\n      \"department\": \"Mechanical Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"EE4704\",\n      \"title\": \"Image Processing and Analysis\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"DSA5201\",\n      \"title\": \"DSML Industry Consulting and Applications Project\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2,\n        3,\n        4\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"CP4282\",\n      \"title\": \"Emerging Topics in Computing II: Gaussian Splatting\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"CS6283\",\n      \"title\": \"Topics in Computer Science: Robot Learning in the Era of Foundation Models\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 6,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"DSA5204\",\n      \"title\": \"Deep Learning and Applications\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"ENC5240\",\n      \"title\": \"Visions of China in European Literary Culture\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"CS5242\",\n      \"title\": \"Neural Networks and Deep Learning\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"LSM4267\",\n      \"title\": \"Light & Vision in Animal Communication\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"EE3703\",\n      \"title\": \"Machine Learning with Applications\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"CS5240\",\n      \"title\": \"Theoretical Foundations in MultiMedia\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.0125\n    },\n    {\n      \"code\": \"ST5229\",\n      \"title\": \"Deep Learning in Data Analytics\",\n      \"department\": \"Statistics and Data Science\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012345679012345678\n    },\n    {\n      \"code\": \"BMS5040\",\n      \"title\": \"Leading People and Organizations\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012195121951219513\n    },\n    {\n      \"code\": \"PF3208\",\n      \"title\": \"Project Leadership\",\n      \"department\": \"Built Environment\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.012048192771084338\n    },\n    {\n      \"code\": \"TPS5202\",\n      \"title\": \"Theatre and Civil Dramaturgy\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011904761904761904\n    },\n    {\n      \"code\": \"ESP3201A\",\n      \"title\": \"Machine Learning in Engineering Science\",\n      \"department\": \"Engineering Science Programme\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011764705882352941\n    },\n    {\n      \"code\": \"CS5340\",\n      \"title\": \"Uncertainty Modelling in AI\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011627906976744186\n    },\n    {\n      \"code\": \"EE4309\",\n      \"title\": \"Robot Perception\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011494252873563218\n    },\n    {\n      \"code\": \"MA5233\",\n      \"title\": \"Computational Mathematics\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011363636363636364\n    },\n    {\n      \"code\": \"ZB4199\",\n      \"title\": \"Honours Project in Computational Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 12,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011235955056179775\n    },\n    {\n      \"code\": \"TIC2501\",\n      \"title\": \"Computer Networks and Applications\",\n      \"department\": \"SCALE Dean's Office\",\n      \"faculty\": \"Cont and Lifelong Education\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011111111111111112\n    },\n    {\n      \"code\": \"GEI1000\",\n      \"title\": \"Computational Thinking\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01098901098901099\n    },\n    {\n      \"code\": \"ZB2201\",\n      \"title\": \"Computational Thinking for Life Sciences\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.010869565217391304\n    },\n    {\n      \"code\": \"QF5313\",\n      \"title\": \"Advanced Computational & Programming Methods in Finance\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010752688172043012\n    },\n    {\n      \"code\": \"BMH5102\",\n      \"title\": \"Talent Assessment & Selection\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010638297872340425\n    },\n    {\n      \"code\": \"TCX1001\",\n      \"title\": \"Introduction to Computing\",\n      \"department\": \"SCALE Dean's Office\",\n      \"faculty\": \"Cont and Lifelong Education\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010526315789473684\n    },\n    {\n      \"code\": \"MA5271\",\n      \"title\": \"Introduction to Computational Mathematics\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010416666666666666\n    },\n    {\n      \"code\": \"PC2451\",\n      \"title\": \"Introduction to Quantum Computing\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010309278350515464\n    },\n    {\n      \"code\": \"IT5002\",\n      \"title\": \"Computer Systems and Applications\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01020408163265306\n    },\n    {\n      \"code\": \"BN4206\",\n      \"title\": \"Computational Methods in Biomedical Engineering\",\n      \"department\": \"Biomedical Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.010101010101010102\n    },\n    {\n      \"code\": \"BN5206\",\n      \"title\": \"Computational Methods in Biomedical Engineering\",\n      \"department\": \"Biomedical Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01\n    },\n    {\n      \"code\": \"PL3102\",\n      \"title\": \"Biological Psychology\",\n      \"department\": \"Psychology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009900990099009901\n    },\n    {\n      \"code\": \"CS3210\",\n      \"title\": \"Parallel Computing\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.00980392156862745\n    },\n    {\n      \"code\": \"CS2100DE\",\n      \"title\": \"Computer Organisation\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009708737864077669\n    },\n    {\n      \"code\": \"COS1000\",\n      \"title\": \"Computational Thinking for Scientists\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009615384615384616\n    },\n    {\n      \"code\": \"DSA5208\",\n      \"title\": \"Scalable Distributed Computing for Data Science\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009523809523809525\n    },\n    {\n      \"code\": \"MA1522\",\n      \"title\": \"Linear Algebra for Computing\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009433962264150943\n    },\n    {\n      \"code\": \"CS5224\",\n      \"title\": \"Cloud Computing\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009345794392523364\n    },\n    {\n      \"code\": \"CP3208\",\n      \"title\": \"Undergraduate Research in Computing I\",\n      \"department\": \"SoC Dean's Office\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009259259259259259\n    },\n    {\n      \"code\": \"CS3241\",\n      \"title\": \"Computer Graphics\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.009174311926605505\n    },\n    {\n      \"code\": \"CS3241R\",\n      \"title\": \"Computer Graphics\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 1,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.00909090909090909\n    }\n  ]\n}",
+ "body": {
+  "query": "computer vision",
+  "filters": {},
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "EE4212",
+    "title": "Computer Vision",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "CS4243",
+    "title": "Computer Vision and Pattern Recognition",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "EE5731",
+    "title": "Visual Computing",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "EE6733",
+    "title": "Advanced Topics on Vision and Machine Learning",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "CS4277",
+    "title": "3D Computer Vision",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "CS5477",
+    "title": "3D Computer Vision",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "ME5411",
+    "title": "Robot vision and AI",
+    "department": "Mechanical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "ID4401",
+    "title": "Spatial Computing: Design and Development",
+    "department": "Design",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "ID5401",
+    "title": "Spatial Computing: Design and Development",
+    "department": "Design",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "ME5405",
+    "title": "Machine Vision",
+    "department": "Mechanical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "EE4704",
+    "title": "Image Processing and Analysis",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "DSA5201",
+    "title": "DSML Industry Consulting and Applications Project",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "CP4282",
+    "title": "Emerging Topics in Computing II: Gaussian Splatting",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "CS6283",
+    "title": "Topics in Computer Science: Robot Learning in the Era of Foundation Models",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "DSA5204",
+    "title": "Deep Learning and Applications",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "ENC5240",
+    "title": "Visions of China in European Literary Culture",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "CS5242",
+    "title": "Neural Networks and Deep Learning",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "LSM4267",
+    "title": "Light & Vision in Animal Communication",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "EE3703",
+    "title": "Machine Learning with Applications",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "CS5240",
+    "title": "Theoretical Foundations in MultiMedia",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0125
+   },
+   {
+    "code": "ST5229",
+    "title": "Deep Learning in Data Analytics",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "BMS5040",
+    "title": "Leading People and Organizations",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "PF3208",
+    "title": "Project Leadership",
+    "department": "Built Environment",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "TPS5202",
+    "title": "Theatre and Civil Dramaturgy",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "ESP3201A",
+    "title": "Machine Learning in Engineering Science",
+    "department": "Engineering Science Programme",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "CS5340",
+    "title": "Uncertainty Modelling in AI",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "EE4309",
+    "title": "Robot Perception",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "MA5233",
+    "title": "Computational Mathematics",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "ZB4199",
+    "title": "Honours Project in Computational Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 12,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "TIC2501",
+    "title": "Computer Networks and Applications",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "GEI1000",
+    "title": "Computational Thinking",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "ZB2201",
+    "title": "Computational Thinking for Life Sciences",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "QF5313",
+    "title": "Advanced Computational & Programming Methods in Finance",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "BMH5102",
+    "title": "Talent Assessment & Selection",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "TCX1001",
+    "title": "Introduction to Computing",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "MA5271",
+    "title": "Introduction to Computational Mathematics",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "PC2451",
+    "title": "Introduction to Quantum Computing",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "IT5002",
+    "title": "Computer Systems and Applications",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "BN4206",
+    "title": "Computational Methods in Biomedical Engineering",
+    "department": "Biomedical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "BN5206",
+    "title": "Computational Methods in Biomedical Engineering",
+    "department": "Biomedical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01
+   },
+   {
+    "code": "PL3102",
+    "title": "Biological Psychology",
+    "department": "Psychology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "CS3210",
+    "title": "Parallel Computing",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "CS2100DE",
+    "title": "Computer Organisation",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "COS1000",
+    "title": "Computational Thinking for Scientists",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "DSA5208",
+    "title": "Scalable Distributed Computing for Data Science",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "MA1522",
+    "title": "Linear Algebra for Computing",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "CS5224",
+    "title": "Cloud Computing",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "CP3208",
+    "title": "Undergraduate Research in Computing I",
+    "department": "SoC Dean's Office",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "CS3241",
+    "title": "Computer Graphics",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "CS3241R",
+    "title": "Computer Graphics",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 1,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}

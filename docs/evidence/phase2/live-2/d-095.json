@@ -1,0 +1,343 @@
+{
+ "n": "f2-11",
+ "id": "d-095",
+ "kind": "hybrid",
+ "path": "/search?q=microbbiology+bacteia",
+ "status": 200,
+ "ttfbMs": 441,
+ "totalMs": 444,
+ "at": "2026-11-04T06:21:48.810Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a551854c2c17885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:21:49 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=Mm60LD51tTpgWFnMyHX6qwVIlWrMxFP26PLRFZHJnP9sSU9NRm26WfQVoz5HDxshTrSjZnIbpp6x%2B%2FrQZyDHkLzPIzLyOG2xprfgLUuPDAv1GI%2BPlCmSrvHNMg363TU%2F5SGOBMEP5MG8bKXnnKx8wTpGbRIQHqF1dWcppdcVZKQf\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=9, limit;dur=0, embed;dur=89, vector;dur=237, fts;dur=16, hydrate;dur=14, total;dur=349",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"microbbiology bacteia\",\n  \"filters\": {},\n  \"count\": 20,\n  \"mode\": \"hybrid\",\n  \"retrieval\": {\n    \"vector\": 50,\n    \"lexical\": 0,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"BL5221\",\n      \"title\": \"Plant and Microbial Development\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"BL5198\",\n      \"title\": \"Graduate Seminar Course in Biological Sciences\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"CS4330\",\n      \"title\": \"Combinatorial Methods in Bioinformatics\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"BN4207\",\n      \"title\": \"Microrobotics\",\n      \"department\": \"Biomedical Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"LSM3228\",\n      \"title\": \"Microbiomes and Biofilms\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"LSM2291\",\n      \"title\": \"Fundamental Techniques in Microbiology\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"CN5172\",\n      \"title\": \"Biochemical Engineering\",\n      \"department\": \"Chemical and Biomolecular Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"ISD5106\",\n      \"title\": \"Bio-centric design for the built environment\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"MB5104\",\n      \"title\": \"Integrative Approach To Understand Cell Functions\",\n      \"department\": \"Mechanobiology Institute (MBI)\",\n      \"faculty\": \"Mechanobiology Institute (MBI)\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2,\n        3\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"HS2937\",\n      \"title\": \"Living with Darkness\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"GMS6850\",\n      \"title\": \"Core Concepts in Bioinformatics\",\n      \"department\": \"Duke-NUS Dean's Office\",\n      \"faculty\": \"Duke-NUS Medical School\",\n      \"credits\": 4,\n      \"level\": 6,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"ZB2101\",\n      \"title\": \"Introductory Bioinformatics\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"ME3281\",\n      \"title\": \"Microsystems Design And Applications\",\n      \"department\": \"Mechanical Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"ESE5301\",\n      \"title\": \"Environmental Microbiology and Biotechnology\",\n      \"department\": \"Civil and Environmental Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"LSM4234\",\n      \"title\": \"Mechanobiology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"LSM3234\",\n      \"title\": \"Biological Imaging of Growth and Form\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"EEK5108\",\n      \"title\": \"Silicon Microsystem Design and Fabrication\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"BN4406\",\n      \"title\": \"Biophotonics And Bioimaging\",\n      \"department\": \"Biomedical Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"ESE3301\",\n      \"title\": \"Microbiology in Natural and Built Environments\",\n      \"department\": \"Civil and Environmental Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"MB5103\",\n      \"title\": \"Research Seminars in Mechanobiology\",\n      \"department\": \"Mechanobiology Institute (MBI)\",\n      \"faculty\": \"Mechanobiology Institute (MBI)\",\n      \"credits\": 2,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.0125\n    }\n  ]\n}",
+ "body": {
+  "query": "microbbiology bacteia",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 0,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "BL5221",
+    "title": "Plant and Microbial Development",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "BL5198",
+    "title": "Graduate Seminar Course in Biological Sciences",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "CS4330",
+    "title": "Combinatorial Methods in Bioinformatics",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "BN4207",
+    "title": "Microrobotics",
+    "department": "Biomedical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015625
+   },
+   {
+    "code": "LSM3228",
+    "title": "Microbiomes and Biofilms",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "LSM2291",
+    "title": "Fundamental Techniques in Microbiology",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "CN5172",
+    "title": "Biochemical Engineering",
+    "department": "Chemical and Biomolecular Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "ISD5106",
+    "title": "Bio-centric design for the built environment",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "MB5104",
+    "title": "Integrative Approach To Understand Cell Functions",
+    "department": "Mechanobiology Institute (MBI)",
+    "faculty": "Mechanobiology Institute (MBI)",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2,
+     3
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "HS2937",
+    "title": "Living with Darkness",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "GMS6850",
+    "title": "Core Concepts in Bioinformatics",
+    "department": "Duke-NUS Dean's Office",
+    "faculty": "Duke-NUS Medical School",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "ZB2101",
+    "title": "Introductory Bioinformatics",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "ME3281",
+    "title": "Microsystems Design And Applications",
+    "department": "Mechanical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "ESE5301",
+    "title": "Environmental Microbiology and Biotechnology",
+    "department": "Civil and Environmental Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "LSM4234",
+    "title": "Mechanobiology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "LSM3234",
+    "title": "Biological Imaging of Growth and Form",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "EEK5108",
+    "title": "Silicon Microsystem Design and Fabrication",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "BN4406",
+    "title": "Biophotonics And Bioimaging",
+    "department": "Biomedical Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "ESE3301",
+    "title": "Microbiology in Natural and Built Environments",
+    "department": "Civil and Environmental Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "MB5103",
+    "title": "Research Seminars in Mechanobiology",
+    "department": "Mechanobiology Institute (MBI)",
+    "faculty": "Mechanobiology Institute (MBI)",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0125
+   }
+  ]
+ }
+}

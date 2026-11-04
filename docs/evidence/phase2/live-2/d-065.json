@@ -1,0 +1,375 @@
+{
+ "n": "f2-14",
+ "id": "d-065",
+ "kind": "hybrid",
+ "path": "/search?q=veterinary+medicine+clinical+rotation+large+animals&sem=2&ng=1",
+ "status": 200,
+ "ttfbMs": 545,
+ "totalMs": 546,
+ "at": "2026-11-04T06:22:00.587Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a5518595dbc4885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:01 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=AIkPV92WrpOUciDXwOnCRVTXqUzbBQ4nG%2FaE1pcZ1U3UfkNRm5DQVTXF7c7rFoCUtyzAsU0x5A0QElE5sUBf8I0bP9ammB%2FO0IkgPLnY0198AsMoItB79djsIjwKZvLrv1M%2FbCYmOY4mVgx50KosnDCxfmzXkaaQdROHmPaYjmqE\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=10, limit;dur=0, embed;dur=143, vector;dur=237, fts;dur=22, hydrate;dur=21, total;dur=411",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"veterinary medicine clinical rotation large animals\",\n  \"filters\": {\n    \"sem\": 2,\n    \"ng\": true\n  },\n  \"count\": 20,\n  \"mode\": \"hybrid\",\n  \"retrieval\": {\n    \"vector\": 50,\n    \"lexical\": 50,\n    \"fused\": 82\n  },\n  \"results\": [\n    {\n      \"code\": \"LSM1303\",\n      \"title\": \"Animal Behaviour\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.03252247488101534\n    },\n    {\n      \"code\": \"CS4248\",\n      \"title\": \"Introduction to Large Language Models\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.03036576949620428\n    },\n    {\n      \"code\": \"HS2923\",\n      \"title\": \"Human-Animal Relations: History, Biodiversity & Ethics\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.03036576949620428\n    },\n    {\n      \"code\": \"LSM3267\",\n      \"title\": \"Behavioural Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.02946912242686891\n    },\n    {\n      \"code\": \"LSM4221\",\n      \"title\": \"Drug Discovery and Clinical Trials\",\n      \"department\": \"Pharmacology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.027745885954841176\n    },\n    {\n      \"code\": \"LSM3255\",\n      \"title\": \"Ecology of Terrestrial Environments\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.02546333601933924\n    },\n    {\n      \"code\": \"LSM4225\",\n      \"title\": \"Genetic Medicine in the Post-Genomic Era\",\n      \"department\": \"Biochemistry\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.025124843945068663\n    },\n    {\n      \"code\": \"NST2036\",\n      \"title\": \"Creating Wolverine in Real Life\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.024961240310077522\n    },\n    {\n      \"code\": \"GEC1044\",\n      \"title\": \"Chinese Medicine: Theory and Practice\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.024634110998406025\n    },\n    {\n      \"code\": \"LSM3218\",\n      \"title\": \"Cardiopulmonary Pharmacology\",\n      \"department\": \"Pharmacology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.024509803921568627\n    },\n    {\n      \"code\": \"LL4277V\",\n      \"title\": \"Medical Law and Ethics\",\n      \"department\": \"FoL Dean's Office\",\n      \"faculty\": \"Law\",\n      \"credits\": 5,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.024242424242424242\n    },\n    {\n      \"code\": \"LSM4252\",\n      \"title\": \"Reproductive Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.02393018018018018\n    },\n    {\n      \"code\": \"PL3257\",\n      \"title\": \"Introduction to Clinical Psychology\",\n      \"department\": \"Psychology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.02318454363757495\n    },\n    {\n      \"code\": \"HSI2004\",\n      \"title\": \"Cell Based Proteins for a Sustainable Future\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.023058884835852007\n    },\n    {\n      \"code\": \"LSM4261\",\n      \"title\": \"Marine Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.022380595148787197\n    },\n    {\n      \"code\": \"LSM3242\",\n      \"title\": \"Translational Microbiology\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.022254475084663765\n    },\n    {\n      \"code\": \"GEC1015\",\n      \"title\": \"Public Health in Action\",\n      \"department\": \"SSH School of Public Health Dean's Office\",\n      \"faculty\": \"SSH School of Public Health\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.022222222222222223\n    },\n    {\n      \"code\": \"ZB2101\",\n      \"title\": \"Introductory Bioinformatics\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.020578303081468973\n    },\n    {\n      \"code\": \"LSM4237\",\n      \"title\": \"Pharmacogenomics & Personalised Medicine\",\n      \"department\": \"Pharmacology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"LSM3227\",\n      \"title\": \"General Virology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.016129032258064516\n    }\n  ]\n}",
+ "body": {
+  "query": "veterinary medicine clinical rotation large animals",
+  "filters": {
+   "sem": 2,
+   "ng": true
+  },
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 82
+  },
+  "results": [
+   {
+    "code": "LSM1303",
+    "title": "Animal Behaviour",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03252247488101534
+   },
+   {
+    "code": "CS4248",
+    "title": "Introduction to Large Language Models",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.03036576949620428
+   },
+   {
+    "code": "HS2923",
+    "title": "Human-Animal Relations: History, Biodiversity & Ethics",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03036576949620428
+   },
+   {
+    "code": "LSM3267",
+    "title": "Behavioural Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.02946912242686891
+   },
+   {
+    "code": "LSM4221",
+    "title": "Drug Discovery and Clinical Trials",
+    "department": "Pharmacology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.027745885954841176
+   },
+   {
+    "code": "LSM3255",
+    "title": "Ecology of Terrestrial Environments",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.02546333601933924
+   },
+   {
+    "code": "LSM4225",
+    "title": "Genetic Medicine in the Post-Genomic Era",
+    "department": "Biochemistry",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.025124843945068663
+   },
+   {
+    "code": "NST2036",
+    "title": "Creating Wolverine in Real Life",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.024961240310077522
+   },
+   {
+    "code": "GEC1044",
+    "title": "Chinese Medicine: Theory and Practice",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.024634110998406025
+   },
+   {
+    "code": "LSM3218",
+    "title": "Cardiopulmonary Pharmacology",
+    "department": "Pharmacology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.024509803921568627
+   },
+   {
+    "code": "LL4277V",
+    "title": "Medical Law and Ethics",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.024242424242424242
+   },
+   {
+    "code": "LSM4252",
+    "title": "Reproductive Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.02393018018018018
+   },
+   {
+    "code": "PL3257",
+    "title": "Introduction to Clinical Psychology",
+    "department": "Psychology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.02318454363757495
+   },
+   {
+    "code": "HSI2004",
+    "title": "Cell Based Proteins for a Sustainable Future",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.023058884835852007
+   },
+   {
+    "code": "LSM4261",
+    "title": "Marine Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.022380595148787197
+   },
+   {
+    "code": "LSM3242",
+    "title": "Translational Microbiology",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.022254475084663765
+   },
+   {
+    "code": "GEC1015",
+    "title": "Public Health in Action",
+    "department": "SSH School of Public Health Dean's Office",
+    "faculty": "SSH School of Public Health",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.022222222222222223
+   },
+   {
+    "code": "ZB2101",
+    "title": "Introductory Bioinformatics",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.020578303081468973
+   },
+   {
+    "code": "LSM4237",
+    "title": "Pharmacogenomics & Personalised Medicine",
+    "department": "Pharmacology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "LSM3227",
+    "title": "General Virology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.016129032258064516
+   }
+  ]
+ }
+}

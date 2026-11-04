@@ -1,0 +1,780 @@
+{
+ "n": "f2-21",
+ "id": "d-018",
+ "kind": "lexical",
+ "path": "/search?q=what%27s+similar+to+the+machine+learning+course+if+it%27s+full%3F+exchange+students+never+get+the+popular+ones&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 284,
+ "totalMs": 284,
+ "at": "2026-11-04T06:22:26.885Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a551863a2802885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:27 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=yNxs26P1l4cbv2ptkUqxoG15BXi0xVO8sg63Kseh82RxTNhgZnxA%2FOnvCorTNHXW4QEt3kOYu%2BEry0fVNDsIEbidi%2BeFuMsxFybrM0Vb7yU23HL%2FcOIv0U94f4fw2ugUtdl%2BUxF34cZsLPLa2mwMwoS1trWdyr80tUVShoCbGMoF\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=11, limit;dur=0, fts;dur=48, hydrate;dur=23, total;dur=82",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"what's similar to the machine learning course if it's full? exchange students never get the popular ones\",\n  \"filters\": {},\n  \"count\": 50,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 50,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"SPH2002\",\n      \"title\": \"Public Health and Epidemiology\",\n      \"department\": \"SSH School of Public Health Dean's Office\",\n      \"faculty\": \"SSH School of Public Health\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"SW4103\",\n      \"title\": \"What Works? Program Evaluation and Research\",\n      \"department\": \"Social Work\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"SC2209\",\n      \"title\": \"Money, Business and Social Networks\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"HS2914\",\n      \"title\": \"How to Get Humans and Machines to Talk to Each Other\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"HS2935\",\n      \"title\": \"Girl Power: Women in Asian Societies\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"JSC5202\",\n      \"title\": \"Let’s Go Catch a Show\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"RE3000\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"Real Estate\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        3,\n        4\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"ID2042\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"Design\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        3,\n        4\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"PF2402\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"Built Environment\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        3,\n        4\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"MT5021\",\n      \"title\": \"Creativity and Problem-Solving Skills\",\n      \"department\": \"Industrial Systems Engineering and Management\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"AIS5281\",\n      \"title\": \"Machine Learning in a Research Project\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 8,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"EC4308\",\n      \"title\": \"Machine Learning and Economic Forecasting\",\n      \"department\": \"Economics\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"BI3003\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"BI3003A\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"BI3003B\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"BI3003C\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"BI3003D\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"NPS2002\",\n      \"title\": \"Problem Solving with Intelligent Systems\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"NTW2041\",\n      \"title\": \"The Popularity of Korean Culture\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"PS2300\",\n      \"title\": \"Humanity between Animals and Robots\",\n      \"department\": \"Political Science\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.0125\n    },\n    {\n      \"code\": \"BMF5360\",\n      \"title\": \"Machine Learning in Investments\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012345679012345678\n    },\n    {\n      \"code\": \"CS5462\",\n      \"title\": \"Machine Learning Systems\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012195121951219513\n    },\n    {\n      \"code\": \"CS4262\",\n      \"title\": \"Machine Learning Systems\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012048192771084338\n    },\n    {\n      \"code\": \"TS4219\",\n      \"title\": \"Media and Popular Performance\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.011904761904761904\n    },\n    {\n      \"code\": \"JSC5103\",\n      \"title\": \"Japanese Popular Culture - Theory and Methodology\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011764705882352941\n    },\n    {\n      \"code\": \"SP1541\",\n      \"title\": \"Communication Practices in Popular Science\",\n      \"department\": \"Center for Engl Lang Comms\",\n      \"faculty\": \"Center for Engl Lang Comms\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011627906976744186\n    },\n    {\n      \"code\": \"PC2032S\",\n      \"title\": \"Classical Mechanics I (S)\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 5,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011494252873563218\n    },\n    {\n      \"code\": \"ENC5240\",\n      \"title\": \"Visions of China in European Literary Culture\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011363636363636364\n    },\n    {\n      \"code\": \"GEC1001\",\n      \"title\": \"Chinese Music, Language and Literature (in English)\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011235955056179775\n    },\n    {\n      \"code\": \"PL4501\",\n      \"title\": \"Integrated Thesis\",\n      \"department\": \"Psychology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 8,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011111111111111112\n    },\n    {\n      \"code\": \"PL4501HM\",\n      \"title\": \"Integrated Thesis\",\n      \"department\": \"Psychology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 15,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01098901098901099\n    },\n    {\n      \"code\": \"EN2203\",\n      \"title\": \"Introduction to Film Studies\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010869565217391304\n    },\n    {\n      \"code\": \"PC5252\",\n      \"title\": \"Bayesian Statistics and Machine Learning\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010752688172043012\n    },\n    {\n      \"code\": \"CS5275\",\n      \"title\": \"The Algorithm Designer's Toolkit\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010638297872340425\n    },\n    {\n      \"code\": \"NUR2441A\",\n      \"title\": \"Cross-cultural Experience for Nursing Students I\",\n      \"department\": \"Alice Lee Center for Nursing Studies\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 2,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010526315789473684\n    },\n    {\n      \"code\": \"ST4248\",\n      \"title\": \"Statistical Learning II\",\n      \"department\": \"Statistics and Data Science\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010416666666666666\n    },\n    {\n      \"code\": \"HS2913\",\n      \"title\": \"Representing Live(s): Research, Performance and Stories\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010309278350515464\n    },\n    {\n      \"code\": \"PC2031S\",\n      \"title\": \"Electricity & Magnetism I (S)\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 5,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01020408163265306\n    },\n    {\n      \"code\": \"BMA5902\",\n      \"title\": \"Entrepreneurship Practicum\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010101010101010102\n    },\n    {\n      \"code\": \"EE5311\",\n      \"title\": \"Differentiable and Probabilistic Computing\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01\n    },\n    {\n      \"code\": \"UTC1402\",\n      \"title\": \"Jr Sem: Pathways to Adulthood\",\n      \"department\": \"College of Alice and Peter Tan\",\n      \"faculty\": \"Residential College\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009900990099009901\n    },\n    {\n      \"code\": \"HS1503\",\n      \"title\": \"Living with AI: Understanding the Technology that’s Changing Everything\",\n      \"department\": \"Philosophy\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.00980392156862745\n    },\n    {\n      \"code\": \"CH5259\",\n      \"title\": \"Studies in Sino-S.e. Asian Interactions\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009708737864077669\n    },\n    {\n      \"code\": \"GEC1004\",\n      \"title\": \"Samurai, Geisha, Yakuza as Self or Other\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009615384615384616\n    },\n    {\n      \"code\": \"SN2285\",\n      \"title\": \"What’s Cooking: Food and Drink in South Asian Cultures\",\n      \"department\": \"South Asian Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009523809523809525\n    },\n    {\n      \"code\": \"EBA5012\",\n      \"title\": \"Predictive Analytics Lifecycle\",\n      \"department\": \"NUS-ISS\",\n      \"faculty\": \"NUS-ISS\",\n      \"credits\": 12,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009433962264150943\n    },\n    {\n      \"code\": \"IS4402\",\n      \"title\": \"Machine Learning with Unstructured Data\",\n      \"department\": \"Information Systems and Analytics\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009345794392523364\n    },\n    {\n      \"code\": \"DSE4231\",\n      \"title\": \"Topics in Data Science and the Digital Economy\",\n      \"department\": \"Economics\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009259259259259259\n    },\n    {\n      \"code\": \"IFS4205\",\n      \"title\": \"Information Security Capstone Project.\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 8,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009174311926605505\n    },\n    {\n      \"code\": \"BT4212\",\n      \"title\": \"Search Engine Optimization and Analytics\",\n      \"department\": \"Information Systems and Analytics\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.00909090909090909\n    }\n  ]\n}",
+ "body": {
+  "query": "what's similar to the machine learning course if it's full? exchange students never get the popular ones",
+  "filters": {},
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "SPH2002",
+    "title": "Public Health and Epidemiology",
+    "department": "SSH School of Public Health Dean's Office",
+    "faculty": "SSH School of Public Health",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "SW4103",
+    "title": "What Works? Program Evaluation and Research",
+    "department": "Social Work",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "SC2209",
+    "title": "Money, Business and Social Networks",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "HS2914",
+    "title": "How to Get Humans and Machines to Talk to Each Other",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "HS2935",
+    "title": "Girl Power: Women in Asian Societies",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "JSC5202",
+    "title": "Let’s Go Catch a Show",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "RE3000",
+    "title": "Work Experience Internship",
+    "department": "Real Estate",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     3,
+     4
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "ID2042",
+    "title": "Work Experience Internship",
+    "department": "Design",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     3,
+     4
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "PF2402",
+    "title": "Work Experience Internship",
+    "department": "Built Environment",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     3,
+     4
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "MT5021",
+    "title": "Creativity and Problem-Solving Skills",
+    "department": "Industrial Systems Engineering and Management",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "AIS5281",
+    "title": "Machine Learning in a Research Project",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 8,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "EC4308",
+    "title": "Machine Learning and Economic Forecasting",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "BI3003",
+    "title": "Work Experience Internship",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "BI3003A",
+    "title": "Work Experience Internship",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "BI3003B",
+    "title": "Work Experience Internship",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "BI3003C",
+    "title": "Work Experience Internship",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "BI3003D",
+    "title": "Work Experience Internship",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "NPS2002",
+    "title": "Problem Solving with Intelligent Systems",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "NTW2041",
+    "title": "The Popularity of Korean Culture",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "PS2300",
+    "title": "Humanity between Animals and Robots",
+    "department": "Political Science",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.0125
+   },
+   {
+    "code": "BMF5360",
+    "title": "Machine Learning in Investments",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "CS5462",
+    "title": "Machine Learning Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "CS4262",
+    "title": "Machine Learning Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "TS4219",
+    "title": "Media and Popular Performance",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "JSC5103",
+    "title": "Japanese Popular Culture - Theory and Methodology",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "SP1541",
+    "title": "Communication Practices in Popular Science",
+    "department": "Center for Engl Lang Comms",
+    "faculty": "Center for Engl Lang Comms",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "PC2032S",
+    "title": "Classical Mechanics I (S)",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 5,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "ENC5240",
+    "title": "Visions of China in European Literary Culture",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "GEC1001",
+    "title": "Chinese Music, Language and Literature (in English)",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "PL4501",
+    "title": "Integrated Thesis",
+    "department": "Psychology",
+    "faculty": "Arts and Social Science",
+    "credits": 8,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "PL4501HM",
+    "title": "Integrated Thesis",
+    "department": "Psychology",
+    "faculty": "Arts and Social Science",
+    "credits": 15,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "EN2203",
+    "title": "Introduction to Film Studies",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "PC5252",
+    "title": "Bayesian Statistics and Machine Learning",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "CS5275",
+    "title": "The Algorithm Designer's Toolkit",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "NUR2441A",
+    "title": "Cross-cultural Experience for Nursing Students I",
+    "department": "Alice Lee Center for Nursing Studies",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 2,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "ST4248",
+    "title": "Statistical Learning II",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "HS2913",
+    "title": "Representing Live(s): Research, Performance and Stories",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "PC2031S",
+    "title": "Electricity & Magnetism I (S)",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 5,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "BMA5902",
+    "title": "Entrepreneurship Practicum",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "EE5311",
+    "title": "Differentiable and Probabilistic Computing",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01
+   },
+   {
+    "code": "UTC1402",
+    "title": "Jr Sem: Pathways to Adulthood",
+    "department": "College of Alice and Peter Tan",
+    "faculty": "Residential College",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "HS1503",
+    "title": "Living with AI: Understanding the Technology that’s Changing Everything",
+    "department": "Philosophy",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "CH5259",
+    "title": "Studies in Sino-S.e. Asian Interactions",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "GEC1004",
+    "title": "Samurai, Geisha, Yakuza as Self or Other",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "SN2285",
+    "title": "What’s Cooking: Food and Drink in South Asian Cultures",
+    "department": "South Asian Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "EBA5012",
+    "title": "Predictive Analytics Lifecycle",
+    "department": "NUS-ISS",
+    "faculty": "NUS-ISS",
+    "credits": 12,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "IS4402",
+    "title": "Machine Learning with Unstructured Data",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "DSE4231",
+    "title": "Topics in Data Science and the Digital Economy",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "IFS4205",
+    "title": "Information Security Capstone Project.",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 8,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "BT4212",
+    "title": "Search Engine Optimization and Analytics",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}

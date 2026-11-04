@@ -1,0 +1,382 @@
+{
+ "n": "f2-12",
+ "id": "d-063",
+ "kind": "hybrid",
+ "path": "/search?q=advanced+molecular+biology+4000+level&sem=2&ng=1",
+ "status": 200,
+ "ttfbMs": 385,
+ "totalMs": 388,
+ "at": "2026-11-04T06:21:52.756Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a5518564cd73885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:21:53 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=8O%2FBTAH5dMWfGEEg02k6nLrqz6wuiZ87Fe%2BcSk1TbWQqgjqs%2Fx5UtqL%2BrRnNKaVQvm%2Bp0WcJga9zba4CfSh%2BCzYVnRu6PnFiDwmDxpfS3Vw5e%2Fr6ist5VwA6BRzC2pnRRE4%2FH%2FLpVk6V9GDWGs0bq99c2%2FpkK9RRt6NvWc8geZYq\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=7, limit;dur=0, embed;dur=85, vector;dur=243, fts;dur=19, hydrate;dur=13, total;dur=348",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"advanced molecular biology 4000 level\",\n  \"filters\": {\n    \"sem\": 2,\n    \"ng\": true\n  },\n  \"count\": 20,\n  \"mode\": \"hybrid\",\n  \"retrieval\": {\n    \"vector\": 50,\n    \"lexical\": 50,\n    \"fused\": 74\n  },\n  \"results\": [\n    {\n      \"code\": \"LSM3225\",\n      \"title\": \"Molecular Microbiology in Human Diseases\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.03131881575727918\n    },\n    {\n      \"code\": \"ZB2101\",\n      \"title\": \"Introductory Bioinformatics\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.03057889822595705\n    },\n    {\n      \"code\": \"LSM4222\",\n      \"title\": \"Advanced Immunology\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.029513888888888888\n    },\n    {\n      \"code\": \"LSM2105\",\n      \"title\": \"Molecular Genetics\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.02928692699490662\n    },\n    {\n      \"code\": \"HSI2003\",\n      \"title\": \"From DNA to Gene Therapy\",\n      \"department\": \"Biochemistry\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.02886002886002886\n    },\n    {\n      \"code\": \"LSM2234\",\n      \"title\": \"Introduction to Quantitative Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.028577260665441927\n    },\n    {\n      \"code\": \"LSM2191B\",\n      \"title\": \"Laboratory Techniques in Life Sciences\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.028404512489927477\n    },\n    {\n      \"code\": \"LSM2191A\",\n      \"title\": \"Laboratory Techniques in Life Sciences\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.02797339593114241\n    },\n    {\n      \"code\": \"LSM3242\",\n      \"title\": \"Translational Microbiology\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.0277569392348087\n    },\n    {\n      \"code\": \"LSM2233\",\n      \"title\": \"Cell Biology\",\n      \"department\": \"Biochemistry\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.027346637102734665\n    },\n    {\n      \"code\": \"LSM2106\",\n      \"title\": \"Fundamental Biochemistry\",\n      \"department\": \"Biochemistry\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.026878868258178604\n    },\n    {\n      \"code\": \"CN2111\",\n      \"title\": \"Fundamentals of Biomolecular Engineering\",\n      \"department\": \"Chemical and Biomolecular Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.02603648424543947\n    },\n    {\n      \"code\": \"LSM4231\",\n      \"title\": \"Structural Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.0259915611814346\n    },\n    {\n      \"code\": \"LSM3244\",\n      \"title\": \"Molecular Biotechnology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.025561706284597852\n    },\n    {\n      \"code\": \"PC3267\",\n      \"title\": \"Biophysics II\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.024706420619185605\n    },\n    {\n      \"code\": \"LSM1301\",\n      \"title\": \"General Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.024624624624624628\n    },\n    {\n      \"code\": \"CM4236\",\n      \"title\": \"Spectroscopy & Imaging in Biophysical Chemistry\",\n      \"department\": \"Chemistry\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.02357320099255583\n    },\n    {\n      \"code\": \"LSM3243\",\n      \"title\": \"Molecular Biophysics\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.023137254901960787\n    },\n    {\n      \"code\": \"LSM3220\",\n      \"title\": \"Genes, Genomes and Biomedical Implications\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.02278953922789539\n    },\n    {\n      \"code\": \"LSM4227\",\n      \"title\": \"Stem Cell Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.0227214377406932\n    }\n  ]\n}",
+ "body": {
+  "query": "advanced molecular biology 4000 level",
+  "filters": {
+   "sem": 2,
+   "ng": true
+  },
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 74
+  },
+  "results": [
+   {
+    "code": "LSM3225",
+    "title": "Molecular Microbiology in Human Diseases",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03131881575727918
+   },
+   {
+    "code": "ZB2101",
+    "title": "Introductory Bioinformatics",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.03057889822595705
+   },
+   {
+    "code": "LSM4222",
+    "title": "Advanced Immunology",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.029513888888888888
+   },
+   {
+    "code": "LSM2105",
+    "title": "Molecular Genetics",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.02928692699490662
+   },
+   {
+    "code": "HSI2003",
+    "title": "From DNA to Gene Therapy",
+    "department": "Biochemistry",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.02886002886002886
+   },
+   {
+    "code": "LSM2234",
+    "title": "Introduction to Quantitative Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.028577260665441927
+   },
+   {
+    "code": "LSM2191B",
+    "title": "Laboratory Techniques in Life Sciences",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.028404512489927477
+   },
+   {
+    "code": "LSM2191A",
+    "title": "Laboratory Techniques in Life Sciences",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.02797339593114241
+   },
+   {
+    "code": "LSM3242",
+    "title": "Translational Microbiology",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0277569392348087
+   },
+   {
+    "code": "LSM2233",
+    "title": "Cell Biology",
+    "department": "Biochemistry",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.027346637102734665
+   },
+   {
+    "code": "LSM2106",
+    "title": "Fundamental Biochemistry",
+    "department": "Biochemistry",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.026878868258178604
+   },
+   {
+    "code": "CN2111",
+    "title": "Fundamentals of Biomolecular Engineering",
+    "department": "Chemical and Biomolecular Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.02603648424543947
+   },
+   {
+    "code": "LSM4231",
+    "title": "Structural Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0259915611814346
+   },
+   {
+    "code": "LSM3244",
+    "title": "Molecular Biotechnology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.025561706284597852
+   },
+   {
+    "code": "PC3267",
+    "title": "Biophysics II",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.024706420619185605
+   },
+   {
+    "code": "LSM1301",
+    "title": "General Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.024624624624624628
+   },
+   {
+    "code": "CM4236",
+    "title": "Spectroscopy & Imaging in Biophysical Chemistry",
+    "department": "Chemistry",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.02357320099255583
+   },
+   {
+    "code": "LSM3243",
+    "title": "Molecular Biophysics",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.023137254901960787
+   },
+   {
+    "code": "LSM3220",
+    "title": "Genes, Genomes and Biomedical Implications",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.02278953922789539
+   },
+   {
+    "code": "LSM4227",
+    "title": "Stem Cell Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.0227214377406932
+   }
+  ]
+ }
+}

@@ -1,0 +1,375 @@
+{
+ "n": "f2-15",
+ "id": "d-088",
+ "kind": "hybrid",
+ "path": "/search?q=cs+2030&ng=1",
+ "status": 200,
+ "ttfbMs": 692,
+ "totalMs": 694,
+ "at": "2026-11-04T06:22:04.634Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55185af08ae885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:05 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=4ON1FEX5tGAX4FxZxBhkx4OQO5Ba1KkGvuVhH%2F8z%2Fdll%2BVQjZKF6ZeBEY79vGAXebu8tE%2Br1wy3jpWAcubYbk1FBPLPUqmzsnLfWuBjeELuApB4XphQeSW6gQqo65xawosobHxCbtR9QrGDswuWSoVv4dCYBVWFdpo7lX%2BVW2U80\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=10, limit;dur=0, embed;dur=224, vector;dur=229, fts;dur=33, hydrate;dur=17, total;dur=480",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"cs 2030\",\n  \"filters\": {\n    \"ng\": true\n  },\n  \"count\": 20,\n  \"mode\": \"hybrid\",\n  \"retrieval\": {\n    \"vector\": 50,\n    \"lexical\": 0,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"CS4330\",\n      \"title\": \"Combinatorial Methods in Bioinformatics\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"CG4002\",\n      \"title\": \"Computer Engineering Capstone Project\",\n      \"department\": \"Computing and Engineering Programme\",\n      \"faculty\": \"Multi Disciplinary Programme\",\n      \"credits\": 8,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"CS2030\",\n      \"title\": \"Programming Methodology II\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"CS3211\",\n      \"title\": \"Concurrent Programming\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"CS4234\",\n      \"title\": \"Optimisation Algorithms\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"IE4246\",\n      \"title\": \"Decarbonisation: Principles, Metrics and Cases\",\n      \"department\": \"Industrial Systems Engineering and Management\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"NM3205\",\n      \"title\": \"Digital Media Cultures\",\n      \"department\": \"Communications and New Media\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"NM1101E\",\n      \"title\": \"Communications, New Media and Society\",\n      \"department\": \"Communications and New Media\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"NM2207\",\n      \"title\": \"Computational Media Literacy\",\n      \"department\": \"Communications and New Media\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"CS4223\",\n      \"title\": \"Multi-core Architectures\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"CS3240\",\n      \"title\": \"Interaction Design\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"CS4215\",\n      \"title\": \"Programming Language Implementation\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"ESP2107\",\n      \"title\": \"Numerical Methods and Statistics\",\n      \"department\": \"Engineering Science Programme\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"CS3230\",\n      \"title\": \"Design and Analysis of Algorithms\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"LSM4223\",\n      \"title\": \"Advances in Antimicrobial Strategies\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"CS4231\",\n      \"title\": \"Parallel and Distributed Algorithms\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"CDE2300\",\n      \"title\": \"Product Design and Innovation\",\n      \"department\": \"CDE Dean's Office\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"MLE4230\",\n      \"title\": \"Current Topics in Materials AI\",\n      \"department\": \"Materials Science and Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"CG3207\",\n      \"title\": \"Computer Architecture\",\n      \"department\": \"Computing and Engineering Programme\",\n      \"faculty\": \"Multi Disciplinary Programme\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"CS4249\",\n      \"title\": \"Quantitative Methods of Human-Computer Interaction\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.0125\n    }\n  ]\n}",
+ "body": {
+  "query": "cs 2030",
+  "filters": {
+   "ng": true
+  },
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 0,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "CS4330",
+    "title": "Combinatorial Methods in Bioinformatics",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "CG4002",
+    "title": "Computer Engineering Capstone Project",
+    "department": "Computing and Engineering Programme",
+    "faculty": "Multi Disciplinary Programme",
+    "credits": 8,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "CS2030",
+    "title": "Programming Methodology II",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "CS3211",
+    "title": "Concurrent Programming",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015625
+   },
+   {
+    "code": "CS4234",
+    "title": "Optimisation Algorithms",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "IE4246",
+    "title": "Decarbonisation: Principles, Metrics and Cases",
+    "department": "Industrial Systems Engineering and Management",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "NM3205",
+    "title": "Digital Media Cultures",
+    "department": "Communications and New Media",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "NM1101E",
+    "title": "Communications, New Media and Society",
+    "department": "Communications and New Media",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "NM2207",
+    "title": "Computational Media Literacy",
+    "department": "Communications and New Media",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "CS4223",
+    "title": "Multi-core Architectures",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "CS3240",
+    "title": "Interaction Design",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "CS4215",
+    "title": "Programming Language Implementation",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "ESP2107",
+    "title": "Numerical Methods and Statistics",
+    "department": "Engineering Science Programme",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "CS3230",
+    "title": "Design and Analysis of Algorithms",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "LSM4223",
+    "title": "Advances in Antimicrobial Strategies",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "CS4231",
+    "title": "Parallel and Distributed Algorithms",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "CDE2300",
+    "title": "Product Design and Innovation",
+    "department": "CDE Dean's Office",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "MLE4230",
+    "title": "Current Topics in Materials AI",
+    "department": "Materials Science and Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "CG3207",
+    "title": "Computer Architecture",
+    "department": "Computing and Engineering Programme",
+    "faculty": "Multi Disciplinary Programme",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "CS4249",
+    "title": "Quantitative Methods of Human-Computer Interaction",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0125
+   }
+  ]
+ }
+}
