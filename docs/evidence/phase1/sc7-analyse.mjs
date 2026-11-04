@@ -141,6 +141,9 @@ p(`Samples: ${samples.length} calls; ${ok.length} HTTP 200 cache misses; ${poole
 const colos = {};
 for (const s of samples) colos[s.colo ?? 'error'] = (colos[s.colo ?? 'error'] ?? 0) + 1;
 p(`Colos: ${Object.entries(colos).map(([k, v]) => `${k} ${v}`).join(', ')}.`);
+const versions = {};
+for (const s of samples) versions[s.appVersion ?? 'none'] = [...(versions[s.appVersion ?? 'none'] ?? []), s.n];
+p(`x-app-version: ${Object.entries(versions).map(([k, v]) => `${k} ${v.length} (${v[0]}–${v[v.length - 1]})`).join(', ')}.`);
 const notMiss = samples.filter((s) => s.status === 200 && s.spans?.cache?.desc !== 'miss');
 if (notMiss.length) p(`Not cache misses (excluded): ${notMiss.map((s) => s.n).join(', ')}.`);
 const bad = samples.filter((s) => s.status !== 200);

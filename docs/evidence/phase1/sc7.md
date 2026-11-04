@@ -91,9 +91,18 @@ as Jacob instructed (stop and report rather than stretch the method). This short
 the verdict. 33 SIN samples are ≥ 304 ms. The 45-call cap allows at most 9 more. Even if all 9 were
 faster, the pooled median of 42 is the mean of the 21st and 22nd smallest, both ≥ 304 ms.
 
-No ingest window was declared during collection; nothing is excluded. Every call returned 200
-with `cache;desc=miss`, version `78ef263b` / `x-app-version 8d94982`, none degraded. 36 of 36
-calls have a matching structured log line.
+Every call returned 200 with `cache;desc=miss`, and none was degraded. 36 of 36 calls have a
+matching structured log line. Two corrections, made after a review of this write-up; the verdict is
+unchanged:
+- **Ingest window.** The lead's catalogue ingest ran 06:29:35–06:31:02 UTC
+  (`docs/evidence/phase1/remote-ops.md`). No sample falls inside it:
+  `--exclude 2026-11-04T06:29:35Z/2026-11-04T06:31:02Z` leaves every number unchanged.
+- **Version.** Production was redeployed at 06:59:17–06:59:32 UTC (version `d367e6e0`, tag
+  `2cd9273`; the same code with the new catalogue's data version). s7-1 to s7-33 ran on
+  `78ef263b` / `8d94982`, and s7-34 to s7-36 on `d367e6e0` / `2cd9273`, against the 6,778-module
+  corpus. Leaving out everything from 06:55 on
+  (`--exclude 2026-11-04T06:55:00Z/2026-11-04T23:59:59Z`) gives pooled n = 31, p50 351.0, CI
+  341.0–378.0: still FAIL.
 
 ### Latency by span
 
@@ -109,8 +118,9 @@ calls have a matching structured log line.
 
 `embed`→`vector` and `fts` run concurrently, so `total` ≈ `cache` + max(`embed`+`vector`,
 `fts`) + `hydrate`. In the warm state the dense half (`embed` + `vector`, ~320 ms at the median)
-sets the total; `vector` alone is ~232 ms on every warm search. In the sparse and cold samples
-`fts` (520–715 ms) and `hydrate` (201–250 ms) dominate instead.
+sets the total; `vector` alone is ~232 ms on every warm search. In the samples the WEUR primary
+served, `fts` and `hydrate` dominate instead: `fts` 215–573 ms cold and 520–715 ms sparse (SIN and
+NRT), `hydrate` 201–250 ms.
 
 ### Replication: where D1 served each search
 
@@ -118,16 +128,22 @@ Primary WEUR, replication `mode: auto`, session `first-unconstrained`.
 
 - **Cold start and every sparse search went to the WEUR primary.** s7-1 to s7-3, the first three
   warm searches, logged `servedByRegion: ["WEUR"]`, `servedByPrimary: true`, with `fts` 215–573 ms
-  and `hydrate` 203–211 ms. The same holds for all six sparse searches (s7-31 to s7-36, each after
-  ≥ 10 min idle): `fts` 520–715 ms and `hydrate` 201–250 ms from SIN and NRT. The MRS sample,
+  and `hydrate` 203–211 ms. The same holds for all six sparse searches, s7-31 to s7-36, each about
+  10.5 min after the previous SC7 call: `fts` 520–715 ms and `hydrate` 201–250 ms from SIN and NRT.
+  Not all of those gaps were idle. s7-31 (06:29:17) came about 6 min after the second fidelity
+  check's 30 live calls (06:21:08–06:22:59). s7-32 came about 9 min after the catalogue ingest's
+  writes to the primary. s7-34 was the first search after the 06:59 redeploy. The cleanest
+  idle samples are s7-33 (06:50:17) and s7-35 (07:11:17): no known traffic for ≥ 10 min, no deploy
+  within 10 min, and ≥ 19 min after the last write. The MRS sample,
   served from Marseille, logged `fts` 128 ms and `hydrate` 83 ms against the same primary.
 - **From s7-4 on, an APAC replica served the warm burst.** s7-4 logged both regions (`WEUR, APAC`):
   its `fts` (227 ms) took primary-like time and its `hydrate` (13 ms) did not. The log records the
   set of regions, not which query went where. s7-5 to s7-30 logged `["APAC"]`,
   `servedByPrimary: false`, with `fts` 13–42 ms and `hydrate` 10–22 ms.
 - So the pilot's `fts;dur=588, hydrate;dur=201` matches the pattern logged here for searches the
-  primary served. In these logs, after ≥ 10 min without traffic, D1 reads went to WEUR rather than
-  a nearby replica. The logs do not show why.
+  primary served. In these logs, every search after a gap of ~6–10 min or more went to the WEUR
+  primary rather than a nearby replica. That holds for the two clean idle samples, and also after
+  fresh writes and after a redeploy. The logs do not show why.
 
 | samples | servedByRegion | servedByPrimary | n |
 |---|---|---|---|
