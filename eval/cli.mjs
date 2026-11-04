@@ -117,7 +117,8 @@ async function readRun(set, path, options = {}) {
 async function assertRunSlotFree(set, variant) {
   const path = runFile(set, variant);
   const name = relative(set.dir, path);
-  if (!existsSync(path) || !(name in ((await manifestFiles(set.dir)) ?? {}))) return;
+  // Listed in the manifest is enough: deleting the file first must not free the slot.
+  if (!(name in ((await manifestFiles(set.dir)) ?? {}))) return;
   const dirArg = set.dir === layout(set.name).dir ? '' : ` --set-dir ${relative(process.cwd(), set.dir) || '.'}`;
   fail(`${name} is already in ${join(set.dir, MANIFEST)}; a stored run is never overwritten. To replace it, retire it first (logged in ${set.retiredLog}):\n  npm run eval -- retire-run --set ${set.name}${dirArg} --variant ${variant} --reason "<why>"`);
 }

@@ -98,12 +98,12 @@ async function derived() {
  * @param {any} ranker
  * @param {Record<string, string[]>} codes
  */
-function runFile(querySet, variant, set, ranker, codes) {
+function runFile(querySet, variant, set, ranker, codes, config = { mode: 'hybrid', filters: true }) {
   return {
     schema: 'vnm-eval-run/1', variant, set, ranker,
     corpus: { moduleInfoSha256: corpusSha },
     queries: { version: querySet.version, sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'), count: querySet.queries.length },
-    config: { mode: 'hybrid' },
+    config,
     results: Object.fromEntries(Object.entries(codes).map(([id, c]) => [id, { status: 200, codes: c }])),
     docs: {},
   };
@@ -116,14 +116,14 @@ const copy = (codes) => Object.fromEntries(Object.entries(codes).map(([id, c]) =
  * Writes an encrypted set: queries, qrels and the given runs, bound to `as`.
  * `manifest: false` leaves out MANIFEST.json.
  * @param {string} name
- * @param {{ base?: { ranker?: any, codes?: (d: Awaited<ReturnType<typeof derived>>) => Record<string, string[]> }, cand: (d: Awaited<ReturnType<typeof derived>>) => Record<string, string[]>, qrels?: (q: any, d: Awaited<ReturnType<typeof derived>>) => void, as?: string, manifest?: boolean }} spec
+ * @param {{ base?: { ranker?: any, config?: any, codes?: (d: Awaited<ReturnType<typeof derived>>) => Record<string, string[]> }, cand: (d: Awaited<ReturnType<typeof derived>>) => Record<string, string[]>, qrels?: (q: any, d: Awaited<ReturnType<typeof derived>>) => void, as?: string, manifest?: boolean }} spec
  */
 async function makeSet(name, spec) {
   const as = spec.as ?? SET;
   const dir = join(tmp, name);
   const d = await derived();
   spec.qrels?.(d.qrels, d);
-  const base = runFile(d.querySet, 'base', as, spec.base?.ranker ?? pinnedRanker(), spec.base?.codes?.(d) ?? copy(d.ranked));
+  const base = runFile(d.querySet, 'base', as, spec.base?.ranker ?? pinnedRanker(), spec.base?.codes?.(d) ?? copy(d.ranked), spec.base?.config);
   const cand = runFile(d.querySet, 'cand', as, candRanker(), spec.cand(d));
   await writeEncryptedJson(join(dir, 'queries.json.enc'), d.querySet, key, as);
   await writeEncryptedJson(join(dir, 'qrels.json.enc'), d.qrels, key, as);
@@ -258,6 +258,17 @@ describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not the pinn
     expect(await rowsOf(ledgerOf(dir))).toHaveLength(0);
   });
 
+  it.each([
+    ['an unfiltered eval-v0 run', { config: { mode: 'hybrid', filters: false } }, 'BaselineError'],
+    ['a lexical-mode eval-v0 run', { config: { mode: 'lexical', filters: true } }, 'RunFileError'], // a pool variant, refused first
+    ['a run made by a dirty runner', { ranker: { ...pinnedRanker(), runner: { sha: PINNED_SHA, dirty: true } } }, 'BaselineError'],
+  ])('refuses %s as the baseline', async (_, base, error) => {
+    const { dir } = await makeSet(`forged-${_.replace(/\W+/g, '-')}`, { base, cand: (d) => copy(d.ranked) });
+    const r = report(dir);
+    expect(`${r.stdout}${r.stderr}`).toBe(withheld(error));
+    expect(await rowsOf(ledgerOf(dir))).toHaveLength(0);
+  });
+
   it('`run` refuses a forged baseline before reserving a look', async () => {
     const { dir } = await makeSet('forged-run', { base: { ranker: { ...pinnedRanker(), sha: '0'.repeat(40) } }, cand: (d) => copy(d.ranked) });
     const r = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'never', '--baseline', 'base']);
@@ -332,6 +343,16 @@ describe('gap 2: a stored encrypted run is never overwritten without a logged re
     expect(r.stderr).toMatch(/runs\/run-base\.json\.enc is already in .*MANIFEST\.json.*retire-run/s);
     expect(r.stdout).not.toMatch(/ranker/); // the runner never started
     expect(await readFile(join(dir, 'runs', 'run-base.json.enc'))).toEqual(before);
+  });
+
+  it('--store-only refuses a manifested run even after its file was deleted', async () => {
+    const { dir } = await makeSet('store-deleted', { cand: (d) => copy(d.ranked) });
+    await rm(join(dir, 'runs', 'run-base.json.enc'));
+    const manifestBefore = await readFile(join(dir, 'MANIFEST.json'), 'utf8');
+    const r = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'base', '--ref', 'eval-v0', '--store-only']);
+    expect(r.code).toBe(1);
+    expect(r.stderr).toMatch(/runs\/run-base\.json\.enc is already in .*MANIFEST\.json.*retire-run/s);
+    expect(await readFile(join(dir, 'MANIFEST.json'), 'utf8')).toBe(manifestBefore);
   });
 
   it('a look run cannot overwrite a manifested run file either', async () => {

@@ -37,7 +37,7 @@ beforeAll(async () => {
   const tar = spawnSync('git', ['archive', '--format=tar', 'eval-v0', '--', ...present], { cwd: REPO, maxBuffer: 1 << 30 });
   await mkdir(archive, { recursive: true });
   spawnSync('tar', ['-x', '-C', archive], { input: tar.stdout });
-  pinned = { ref: 'eval-v0', sha: '7ac984174ded88cb2b6497d9835b456981acdd99', dirty: false, treeHash: await treeHash(archive) };
+  pinned = { ref: 'eval-v0', sha: '7ac984174ded88cb2b6497d9835b456981acdd99', dirty: false, treeHash: await treeHash(archive), runner: { sha: '0'.repeat(40), dirty: false } };
 });
 afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 
@@ -65,6 +65,7 @@ function syntheticRun(querySet, qrels, variant, order) {
     ranker: variant === 'base' ? pinned : { ref: 'synthetic', sha: '0'.repeat(40), dirty: false },
     corpus: { ...qrels.corpus },
     queries: { version: querySet.version, sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'), count: querySet.queries.length },
+    config: { mode: 'hybrid', filters: true },
     results, docs: {},
   };
 }
