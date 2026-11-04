@@ -1,4 +1,7 @@
-# Phase 3 plan: search that understands students (draft r3, final)
+# Phase 3 plan: search that understands students (converged r3.1, 3 critic rounds)
+
+Decision record: [ADR 0006](../decisions/0006-phase3-search-quality-plan.md). It is accepted,
+pending Jacob's answers to Q1–Q4 (§10).
 
 Goal (exit): **SC4** and **SC5** are met, and **SC7** (carried over from Phase 1) passes on a
 re-measurement under the same pre-registered rule.
@@ -16,27 +19,27 @@ plan changes no code. Every number marked *est.* is an estimate, not a measureme
 credited to a critic come from that critic's scripts on the pinned corpus. The step named beside
 each one re-runs it and commits the script and its output before anything depends on it.
 
-r3 applies every round-2 objection (§11) and the lead's round-2 dispositions. The structural
-changes from r2:
-- two preconditions run by the lead come first: P-0a (code-target rule grades, `qrels-v2`) and
-  P-0b (gate and custody hardening). P-5b adds the gate code the plan's new rules need;
-- 3H takes a holdout look outright. 3F takes none: it is gated like 3-0, by identity. The look
-  count stays at 7 and the reserve is 5 (sealed) or 4 (holdout) for certain;
-- the mapping pastes leave Phase 3: the 200-character limit rejects them;
-- the 3-0 runbook splits verify in two, moves every Vectorize write to step 7, and reaches the
-  admin routes only through `wrangler dev --remote`;
-- the cache key uses the deploy's version id instead of hand-bumped versions, and the TTFB
-  guard is gone;
-- every bundle is pooled as its own run, w_c is fixed at 1, and each change SC4 needs has a
-  pre-registered fallback;
-- the code parser gets a fixed resolution order, a guarded spaced-code join and a pre-retrieval
-  GE mask.
+r3.1 is the final draft. It applies every round-3 objection (§11) and the lead's round-3
+dispositions; no critic pass follows it. The changes from r3:
+- P-5b builds a custodian-only `eval:count` and amends ADR 0003, so a count is not a look. 3G's
+  dev gate gains two conditions, and its τ is derived and gated on separate halves of the
+  gibberish set;
+- each holdout look's baseline is stored and judged, and the verdict comes from `eval:report`;
+- the 3-0 runbook merges the manifest and an offline data version before D1 is written, names
+  the D1-only ingest mode, and has step 8 upsert every code and wait for the mutation;
+- the cache key carries the new intent parameters and `ignore`;
+- code joins need a real code or a non-colliding prefix, and 3H phrases match before any join;
+- year phrases set a level window, N ≤ level ≤ 4;
+- the SC4 partial-code items run at topK = 50, and the suite grows to 90 queries;
+- 3H's dev screen exempts queries whose only relevant documents fail the parsed constraint.
+- P-0a and P-4 are done (PR #30), so §1 cites the measured dev baseline.
 
 ## 1. Facts gathered
-- **Dev baseline: to be measured.** groups-v1 merged (PR #28, `87107a1`), so the eval is
-  group-aware. The gating baseline is the **dev baseline under `qrels-dev-v2` and groups-v1, to
-  be measured at P-4** (§3). r3 quotes no baseline number. The qrels-v1 figures and the
-  groups-v1 table on `docs/phase2-baseline` are both superseded by P-0a.
+- **Dev baseline** (`EVAL.md`, PR #30, `846fac2`), under `qrels-dev-v2` and groups-v1: `eval-v0`
+  hybrid nDCG@10 **0.712** [0.644, 0.770], P@5 0.571 [0.494, 0.641], MRR@10 0.820, over **83**
+  primary answerable queries, with 10 no-answer and 5 feature-gap. The weakest shapes are
+  `code-partial` 0.000 (n = 3), `code-space` 0.210 (n = 3) and `ge` 0.402. The qrels-v1 figures
+  and the groups-v1 table on `docs/phase2-baseline` are superseded.
 - **Duplicate groups, groups-v1** (`eval/lib/groups.mjs`, `eval/groups.json`). Over the 6,771
   offered modules of the pinned corpus:
   - a *variant family* is codes with the same prefix letters and four digits that differ only in
@@ -57,7 +60,8 @@ changes from r2:
   - 5 are tagged `noanswer`. Only d-012 and d-025 have no plausible answer.
   - 5 are answerable code queries that no pooled run retrieved: d-087 `cn 2109`, d-089
     `is 4246`, d-090 `MUL21`, d-091 `DAO17`, d-092 `GEC`. The Phase 2 exit red-team found them.
-    P-0a grades their targets by rule from the corpus.
+    P-0a graded their targets by rule from the corpus, so under `qrels-dev-v2` they are
+    answerable and 10 dev queries remain no-answer.
   - 4 are mapping pastes of 340–452 characters (d-005, d-017, d-032, d-042). `/search` rejects
     any query over `MAX_QUERY_CHARS` = 200 with a 400 (`src/search.js:25`, `:129–130`), and every
     eval mode goes through `/search` (`eval/runner/retrieval.eval.js:34`). No run can retrieve
@@ -72,15 +76,26 @@ changes from r2:
     "answerable Δ ≥ −0.01" (3G) or "Δ ≥ 0" (3F, 3H's dev screen).
   - `answerable` is `!noAnswerByRule` and some grade ≥ 1 (`eval/lib/metrics.mjs:240`), so the
     no-answer set is "no relevant document found", not a tag.
+  - The CLI has three commands: `run`, `report` and `pool` (`package.json`, `eval/cli.mjs`).
+    No count-only tool exists yet.
+  - The ledger counts every table row, and a row whose set cell names no known set counts against
+    every set, the test set included (`eval/lib/ledger.mjs:7–9`). ADR 0003 defines a look as
+    "any run or report that prints a verdict" (`0003:89`, `:177`).
+  - `run` on an encrypted set reserves a look before retrieval, and the reserved row counts even
+    if the run turns out unjudged. `report` records a look only once both runs are fully judged
+    (`eval/cli.mjs:184–226`, `:246–257`). `judgedCheck` needs judged@10 = 100% for the baseline
+    as well as the candidate (`eval/lib/gate.mjs:89–96`).
+  - Only `eval-v0`'s run is stored on the holdout.
 - **SC7 FAIL** (`docs/evidence/phase1/sc7.md`): pooled p50 351 ms.
   - Warm SIN cache-miss spans (30 samples, `sc7-samples.jsonl`): p50 `vector` 232, `embed` 88,
     `fts` 19, `hydrate` 13, `cache` 8. `embed` p67 is 99.
   - `embed`→`vector` runs alongside `fts`, so `total` ≈ cache + max(embed + vector, fts) +
     hydrate.
   - With exact search in place of `vector` (~5 ms, *est.*), the per-sample projection
-    cache + max(embed + 5, fts) + hydrate over those 30 samples has a p67 of **140 ms**
-    (recomputed from `sc7-samples.jsonl`; critic B's figure). Summing the spans' separate p67s
-    gives 128 and understates it.
+    cache + max(embed + 5, fts) + hydrate over those 30 samples has a p67 of **138.7 ms** by
+    linear interpolation, and a p69 of 148 ms (recomputed from `sc7-samples.jsonl`; critic B's
+    figures, re-run by step 3-0.0). Summing the spans' separate p67s gives 128 and understates
+    it.
   - With the APAC primary (ADR 0005), D1 is no longer the problem.
   - Only three searches are logged since the APAC switch (`docs/evidence/requests.tsv` rows
     72–74): two post-deploy smokes (embed 414 and 260 ms) and one after 12 minutes idle from MRS.
@@ -98,10 +113,14 @@ changes from r2:
   - `src/search.js`:
     - fusion: RRF k = 60 with equal weights and a hash tiebreak (`fuse`), at depth
       min(3 × topK, 50);
+    - `topK` defaults to 20 and is clamped to 50 (`DEFAULT_TOPK`, `MAX_TOPK`, `:29–30`);
     - pin: only when the whole query matches `MODULE_CODE_RE`;
     - dense: Vectorize is asked for ids only, so its cosine scores are thrown away;
-    - cache: the key holds `q` and `DATA_VERSION` only (`canonicalCacheKey`), with a TTL of
-      3600 s, so a ranker-only deploy serves old rankings for up to an hour;
+    - cache: the key holds `q`, `DATA_VERSION` and the parsed `sem`, `level`, `credits`,
+      `faculty`, `ng`, `mode` and `topK` (`canonicalCacheKey`, `:167–176`), with a TTL of
+      3600 s (`:37`). So a ranker-only deploy serves old rankings for up to an hour.
+      `parseSearch` ignores unknown parameters (`:115`), so a new parameter left out of the key
+      shares the cache entry of the request without it;
     - timing: workerd's clock advances only across I/O, so a CPU-only span such as an in-Worker
       dot product reads ~0.
   - `src/index.js:93` sets `x-app-version` on every response from `CF_VERSION_METADATA`
@@ -110,12 +129,26 @@ changes from r2:
     Every admin route returns 404 unless `INGEST_SECRET` is bound (`src/ingest.js:29–34`).
     Production binds none, by design; ingest and verify run against `wrangler dev --remote` with a
     local secret (README, `scripts/verify.mjs`).
+  - `/health` touches no binding (`src/index.js:15`), so a probe of it costs no D1 read.
+  - `/admin/ingest` always reads stored vectors (`getByIds`), embeds what it can't reuse
+    (`AI.run`) and upserts to Vectorize, all before it writes D1 (`src/ingest.js:186–229`).
+    `ingest-core` writes `src/data-version.json` only after it has waited for the last Vectorize
+    mutation (`scripts/ingest-core.mjs:490–515`, `waitForMutation` at `:571`). So no D1-only
+    ingest exists today.
   - `/admin/delete` clears the D1 hashes, calls Vectorize `deleteByIds`, then deletes the D1 rows
     (`src/ingest.js:285–305`).
+  - The data version is the first 12 hex digits of sha256 over the sorted (code, `row_hash`)
+    lines (`dataVersion`, `src/rowhash.js:146–149`), so it can be computed offline from the rows
+    ingest will write.
+  - `npm run deploy` refuses a dirty tree and a HEAD that is not on `origin/main`
+    (`scripts/deploy.mjs:51–76`). Whatever a deploy needs must be merged first.
   - Verify compares each sampled Vectorize vector's metadata, `textHash` included, against D1
-    (`src/ingest.js:385–394`, `scripts/verify-core.mjs:51`). A Vectorize upsert replaces the whole
+    (`src/ingest.js:385–394`, `scripts/verify-core.mjs:51`), and lists the index's ids, so it
+    sees a deletion only after Vectorize has processed it. A Vectorize upsert replaces the whole
     record, so an upsert of `{id, values}` alone wipes the filter metadata
-    (`storedVectorMetadata`, `src/rowhash.js:53–77`).
+    (`storedVectorMetadata`, `src/rowhash.js:53–77`). That metadata holds semesters, level,
+    credits, faculty, NG and `textHash` only (`vectorMetadata`, `:53–65`): no prefix, group or 3H
+    field.
   - Embedding keys differ: the eval keys a vector by sha256(model + "\n" + text)
     (`eval/lib/embeddings.mjs:33–35`), production's `textHash` is
     sha256(JSON [model, `EMBEDDING_TEXT_VERSION`, text]) (`scripts/lib.mjs:231`). The pinned
@@ -133,20 +166,40 @@ changes from r2:
   3H-0):
   - Prefixes:
     - ART and LAW are not prefixes. Real collisions with words or abbreviations: AI 9 modules,
-      IT 18, PR 79, JS 24, GE 62, MA 110, EE 123, CE 144, LL 386. IS, ME and AN are prefixes too.
-    - GEA has 2 offered modules (one group), CS101 7 (one group), DAO17 2, MUL21 4. CS32 has 30.
+      IT 18, PR 79, JS 24, GE 62, MA 110, EE 123, CE 144, LL 386. IS 57, ME 106 and AN 17 are
+      prefixes too. So are SE 28, PE 25 and LAB 5, and DSA has 55 modules (statistics, not
+      CS2040's "data structures and algorithms").
+    - GEA has 2 offered modules (one group), CS101 7 (one group), DAO17 2, MUL21 4. CS32 has 30
+      members in 27 groups, GEC 36 in 35 and GEX 16 in 14. At the default topK of 20, a page
+      cannot hold every CS32 or GEC group.
+    - 90 pairs of prefixes have one as the start of the other (CS/CSA, SE/SEA, PH/PHS,
+      LA/LAJ, …). A range
+      `code >= 'CS' AND code < 'CT'` returns CSA6101 and CSA6770. Digits follow the letters in
+      every code, so `code >= 'CS0' AND code < 'CS:'` returns CS codes only.
     - `comp`, `math`, `econ` are not NUS prefixes.
     - 36 offered codes have the shape `XX N000` (GEA1000, GEA1000N, GEI1000, GEN2000, GESS1000,
       GEX1000, ES1000, ME3000, IS6000, BI3000, …), and 50 more are catalogue-only (GEQ1000).
+      ME3000 and IS6000 make `give me 3000 level electives` and `what is 6000 level` join into
+      offered codes unless the join is guarded.
+    - 22 codes exist both with and without a trailing S (CS1231 and CS1231S), so `cs1231 s/u`
+      must not join into `cs1231s`. CS1231 is S/U-able.
+    - CS4400 (d-016 `CS 4400 Operating Systems`) is neither offered nor in the catalogue.
     - "Every prefix that is a df > 0 token" would cover 93 of 304 prefixes, CS, GEN, GET and GEX
       among them.
   - GE inside longer queries: the pillar members left in r2's fused top 10 are d-078 2 (of 69
     eligible), d-079 5 (of 48), d-062 9, d-022 10.
   - Catalogue: 14,359 catalogue codes are not offered this year (e.g. GEQ1000, GEH1001, IS1103).
   - Prerequisites: 4,180 of 6,771 offered modules have no prerequisite field. All 5 relevant
-    modules of d-011 (`intro accounting no prerequisites`) have one, several only a cohort
-    restriction (ACC1701XA, ACC1701XC, ACC2706, FIN2704X, QF1100). `prerequisite IS NULL` loses
-    3 of d-023's 17.
+    modules of d-011 (`intro accounting no prerequisites`) have one:
+    - ACC1701XA and ACC1701XC carry only a cohort restriction;
+    - ACC2706 and FIN2704X need EC2204 or ACC1701;
+    - QF1100 needs A-level mathematics.
+
+    So semantics (ii) (NULL or cohort-only) keeps 2 of d-011's 5, and semantics (i)
+    (`prerequisite IS NULL`) keeps none: it excludes every level-1/2 accounting module but
+    LC2018. d-099 (`intro accunting no prerqeuisites`) has one relevant module, QF1100, which
+    fails both semantics, so 3H loses d-099 by construction. `prerequisite IS NULL` loses 3 of
+    d-023's 17.
   - Workload: 259 modules have an all-zero workload array. 4,614 of 5,081 4-MC modules list 10
     h a week.
   - S/U and grading: `attributes.su` is set on 933 modules (levels 1–4). 648 are graded CS/CU
@@ -156,6 +209,11 @@ changes from r2:
   - Groups and credits: of the exact title+description groups, 37 mix credits (AR4421 8 MC,
     AR4421A 12 MC). 270 same-title groups have different descriptions.
   - 9 of the 98 dev queries carry a 3H phrase.
+  - Year wording: d-064 (`biochemistry suitable for 3rd year students, not first year basics`)
+    has grade-2 answers at level 4 (LSM4231, CM4236), so a hard level = 3 caps its nDCG@10 at
+    0.189. d-045 asks for "third year level" and "3000-level equivalent" in one query.
+  - Typos: d-095 (`microbbiology bacteia`) has two df-0 tokens with no prefix match, and three
+    grade-1 answers (ESE3301, LSM2291, LSM3242).
 - **Cloudflare limits** (docs, 2026-11-04):
   - Worker size 64 MiB uncompressed (no compressed limit since 2026-09-04);
   - startup 1 s; 128 MB per isolate;
@@ -182,10 +240,17 @@ then the holdout step planned in §3.
   - Inputs: Phase 1's 30 warm SIN spans, and one logged warm burst of at most 12 fresh queries
     (none from the eval sets, SC4 or earlier calls) on the current deployment, spaced ≥ 2 s
     apart. The burst's collector records time to response headers as well as `clientMs`, so it
-    is also the pre-3-0 TTFB baseline. Non-SIN samples are reported and left out.
+    is also the pre-3-0 TTFB baseline.
+  - **Colo rule (B3-2).** The collector first probes `/health` (no binding touched) on a
+    keep-alive connection, at most 20 times, until `cf-ray` ends in `SIN`. It then sends the
+    burst on that connection. Non-SIN samples are reported and left out.
   - Projection, per sample: cache + max(embed + 5, fts, pin) + hydrate, then the p67 over the
-    samples. Phase 1's set gives 140 ms; the burst gives the post-APAC figure.
-  - If the burst's projected p67 is above ~200 ms, building 3-0 waits for Jacob (§10, Q3).
+    samples, by linear interpolation. Phase 1's set gives 138.7 ms; the burst gives the
+    post-APAC figure.
+  - If the burst yields fewer than 8 SIN samples, it cannot answer Q3. The step records that,
+    and the Phase 1 projection (138.7 ms) stands, so Q3 does not trigger.
+  - With ≥ 8 SIN samples, if the burst's projected p67 is above ~200 ms, building 3-0 waits for
+    Jacob (§10, Q3).
   - The step writes the samples and both projections to `docs/evidence/phase3/embed-latency.md`.
 - **Approach.** Replace `env.VECTORIZE.query` in `denseSearch` with a brute-force dot product over
   L2-normalised corpus vectors held in the Worker.
@@ -248,71 +313,111 @@ then the holdout step planned in §3.
   - Allowance: at 5 ms a search, 30M CPU-ms a month covers 6.0M searches. Workers AI at
     ~0.05 neurons a search (3A-1) covers 10k × 30 / 0.05 = 6.0M. The two estimates tie, so the
     measured CPU decides. The README cost section names whichever is smaller.
-- **Deploy guard (B-2, B2-2).**
+- **Deploy guard (B-2, B2-2, B3-4).**
   - `npm run deploy` downloads the production asset and checks its sha256.
   - It compares `rowsKey` with D1's current (code, `text_hash`) pairs, read from the existing
     `/admin/hashes` route (~6.8k rows read, logged). The deploy script reaches it through a
     local `wrangler dev --remote` session with a local secret. No production secret is ever
     bound, so the deployed Worker's admin routes stay 404.
-  - It also requires the manifest's data version to equal `src/data-version.json`.
+  - It also requires the manifest's data version to equal `src/data-version.json`, and D1's
+    data version, computed from its `row_hash`es, to equal both.
   - Any mismatch refuses the deploy.
   - Because `text_hash` → `row_hash` → data version, D1 must hold the new text hashes before the
-    Worker that bundles their vectors deploys. Hence the order below.
-- **Ingest and re-embed runbook (B-2, B-3, B-8, B-10, B2-1, B2-2, B2-10).** One order for every
-  corpus change: a catalogue update, 3A-2's re-embedding, or 3H's row change. Every admin call
-  goes through `wrangler dev --remote`.
-  1. Build the production vectors asset (reuse by key, embed only missing texts). Publish it and
-     write the manifest on a branch.
-  2. Record a D1 Time Travel bookmark in `remote-ops.md`.
-  3. Write D1 only. `/admin/ingest` writes text and row hashes, new rows and fields, with no
-     Workers AI call and no Vectorize write: the vectors come from the asset in step 7.
-     `/admin/delete` takes a
-     D1-only mode: it deletes the rows and records their codes for step 7, with no
-     `deleteByIds`.
-  4. `npm run verify -- --pre-deploy`: D1's (code, `text_hash`) pairs equal the manifest's
-     `rowsKey`, and the bundle's codes and filter table equal D1's fields. It reads no Vectorize.
-  5. Commit the data version and manifest. Then the deploy guard, `versions upload`, the startup
-     gate and `versions deploy`.
-  6. Smoke (≤ 4 calls). If it fails, roll back (below) and stop.
-  7. Bring the Vectorize standby level. `/admin/vectors` (new) upserts
-     `{id, values, metadata: storedVectorMetadata(row)}` for every code whose `text_hash` **or**
-     stored metadata changed, row-only changes included (B2-10). The metadata comes from the D1
-     row, with the new `textHash`. The values come in the POST body, read by the script from the
-     sha-checked asset, never from the dev session's bundle, which is the fixture by default.
-     Then `deleteByIds` for step 3's deletions. Then `npm run verify` (today's check, Vectorize
-     metadata against D1) and a `getByIds` sample against the asset's bits.
+    Worker that bundles their vectors deploys. `npm run deploy` deploys only merged commits
+    (§1), so the manifest and data version merge first, and the guard refuses that commit until
+    D1 has caught up. Hence the order below.
+- **Ingest and re-embed runbook (B-2, B-3, B-8, B-10, B2-1, B2-2, B2-10, B3-3, B3-4, B3-5).**
+  One order for every corpus change: a catalogue update, 3A-2's re-embedding, or 3H's row
+  change. Every admin call goes through `wrangler dev --remote`.
+  1. Build the production vectors asset (reuse by key, embed only missing texts) and publish it.
+     Compute the data version **offline**: `normalise` → `rowHash` → `dataVersion` over the rows
+     ingest will write, the same functions ingest uses. Write the manifest and
+     `src/data-version.json` on a branch, with any code change the corpus change needs.
+  2. Merge that PR. Nothing deploys: the guard refuses the merged commit while D1 still holds
+     the old rows, so no deploy from `main` can go out until step 4 has run. Every deploy in the
+     meantime waits.
+  3. Record a D1 Time Travel bookmark in `remote-ops.md`.
+  4. Write D1 only, with the **D1-only mode** that 3-0 adds (B3-5):
+     - `/admin/ingest?d1Only=1` writes text and row hashes, new rows and fields. It makes no
+       `getByIds`, `AI.run` or Vectorize call; the vectors come from the asset in step 8.
+     - `ingest-core --d1-only` skips the mutation wait and checks the data version it computes
+       against the committed `src/data-version.json` instead of writing it. A mismatch stops
+       the run before step 5.
+     - `/admin/delete?d1Only=1` deletes the rows and returns their codes for step 8, with no
+       `deleteByIds`.
+     - Tests: in D1-only mode neither route touches the AI or Vectorize fakes.
+  5. `npm run verify -- --pre-deploy`: D1's (code, `text_hash`) pairs equal the manifest's
+     `rowsKey`, D1's data version equals the committed one, and the bundle's codes and filter
+     table equal D1's fields. It reads no Vectorize.
+  6. The deploy guard, `versions upload`, the startup gate and `versions deploy`.
+  7. Smoke (≤ 4 calls). If it fails, roll back (below) and stop.
+  8. Bring the Vectorize standby level. `/admin/vectors` (new) upserts
+     `{id, values, metadata: storedVectorMetadata(row)}` for **every code** in D1, in batches of
+     at most 1,000, and returns each batch's `mutationId`. Nothing tracks which rows changed, so
+     upserting all of them is the only complete rule, and it costs no D1 write and no neuron
+     (B3-3). The metadata comes from the D1 row, with the new `textHash`. The values come in the
+     POST body, read by the script from the sha-checked asset, never from the dev session's
+     bundle, which is the fixture by default. Then `deleteByIds` for step 4's deletions. The
+     script waits for the last mutation with ingest-core's `waitForMutation`, then runs
+     `npm run verify` (today's check, Vectorize metadata against D1, and the id list) and a
+     `getByIds` sample against the asset's bits.
   - Every remote D1 operation is estimated and logged in `remote-ops.md`, **reads included**
     (B-10).
-  - Between steps 3 and 5 (minutes), the live Worker runs its old bundle against the new D1. Old
-    vectors can still return a code that changed. So after hydrate, `localMatchesFilters`,
-    extended with the 3H fields, runs on every dense row against the fresh D1 row and drops
-    rows that fail (B-3). A test covers this. Rows missing from D1 are dropped at hydrate, as
-    stale Vectorize ids are today.
+  - Between steps 4 and 6 (minutes: the merge is already done), the live Worker runs its old
+    bundle against the new D1. Old vectors can still return a code that changed. So after
+    hydrate, `localMatchesFilters`, extended with the 3H fields, runs on every dense row against
+    the fresh D1 row and drops rows that fail (B-3). A test covers this. Rows missing from D1
+    are dropped at hydrate, as stale Vectorize ids are today.
 - **Vectorize stays, off the search path, as an identical cold standby (B-1).**
-  - Cutover: ingest skips unchanged rows, and today's production vectors came from ingest batches
-    of 50 that differ from the bundle. So at the 3-0 cutover, step 7 upserts all 6,778 bundle
-    vectors with their full metadata: 0 D1 writes, 0 neurons, stored dims unchanged at ~2.6M of
-    10M.
-  - From then on, runbook step 7 keeps the standby equal to the bundle.
-  - The flip: `DENSE_BACKEND=vectorize`, a var flipped by a deploy, restores today's path.
-    Between steps 5 and 7 the standby holds the previous vectors, so the flip is not used in that
+  - Cutover: today's production vectors came from ingest batches of 50 that differ from the
+    bundle. At the 3-0 cutover, step 8 upserts all 6,778 bundle vectors with their full metadata,
+    as it does on every run: 0 D1 writes, 0 neurons, stored dims unchanged at ~2.6M of 10M.
+  - From then on, runbook step 8 keeps the standby equal to the bundle.
+  - The flip: `DENSE_BACKEND=vectorize`, a var flipped by a deploy, restores today's dense path.
+    Between steps 6 and 8 the standby holds the previous vectors, so the flip is not used in that
     window.
+  - **What the flip serves (B3-6).** It swaps only the dense retriever. The filter table and
+    group ids still come from the bundle, so the 3F collapse works. Vectorize metadata has no
+    prefix, group or 3H field, and an index allows at most 10 metadata indexes, so under the
+    flip:
+    - whole-query masks (partial code, pillar, `XX N000`) list their members in code order, as
+      in `mode=lexical`;
+    - the GE mask inside a longer query keeps its SQL prefix ranges on the FTS side, and the
+      dense rows are filtered to pillar members after hydrate;
+    - 3H's constraints run on every dense row after hydrate, through the extended
+      `localMatchesFilters`.
+
+    One test runs the masked routes and a 3H query under the flip. The flip is degraded service:
+    SC4 is not claimed under it.
   - The brief forbids deleting or recreating the index. Keeping it costs nothing material.
   - When the bundle is missing or corrupt, or Workers AI fails, the fallback stays keyword-only
     (B6), with `degraded.source` `dense-index` or `workers-ai`. SC7's Vectorize-failure case
     becomes moot and is reported that way.
   - Vectorize queried dims drop to ~0 per search.
-- **Response cache key (B-7, A-N5, B2-6).** `canonicalCacheKey` adds `v=<CF_VERSION_METADATA.id>`.
-  Every deploy gets a new version id, whether it changes the ranker, the vectors or
-  `DENSE_BACKEND`, so no hand-bumped constant can be forgotten. SC7 collection rejects any sample
-  whose `x-app-version` differs from the frozen deploy's.
+- **Response cache key (B-7, A-N5, B2-6, B3-1).** `canonicalCacheKey` adds
+  `v=<CF_VERSION_METADATA.id>`. Every deploy gets a new version id, whether it changes the ranker,
+  the vectors or `DENSE_BACKEND`, so no hand-bumped constant can be forgotten. SC7 collection
+  rejects any sample whose `x-app-version` differs from the frozen deploy's.
+  - Every new parameter joins the key in parsed form, in the PR that adds it: `exam`, `su`,
+    `hoursBelow` and `prereq` (3H), and `ignore` as a sorted, de-duplicated, comma-joined list of
+    intent names (3B, 3D, 3H). Otherwise `ignore=level` would serve the cached page with the
+    level intent applied, for up to the 3600 s TTL.
+  - Each parameter gets its own test beside the B7 key tests
+    (`test/findings/backend.test.js:303–307`): a request with it has a different key from one
+    without, and `ignore=su,level` and `ignore=level,su` share one key.
+  - Intents parsed from `q` need no key entry: `q` is in the key.
 - **Rollback (B-8).**
   - Every deploy's version id goes into `remote-ops.md`.
   - Rollback is `wrangler rollback <id>` to the previous recorded version. The floor is the
     version built from `597c2b7`: older versions are bound to the deleted WEUR database
     (ADR 0005).
-  - If D1 changed in runbook step 3, restore it to the step-2 bookmark (a logged remote D1
-    operation). Vectorize needs nothing: step 7 has not run, and step 3 no longer touches it.
+  - If D1 changed in runbook step 4, restore it to the step-3 bookmark (a logged remote D1
+    operation), and revert step 2's merge so `main` matches D1 again. Vectorize needs nothing:
+    step 8 has not run, and step 4 does not touch it.
+- **Touches** `src/search.js` (`denseSearch`, the cache key), `src/ingest.js` (D1-only modes,
+  `/admin/vectors`), `scripts/ingest-core.mjs` (`--d1-only`), `scripts/vectors.mjs` (new),
+  `scripts/verify.mjs` (`--pre-deploy`), `scripts/deploy.mjs` (guard, startup gate),
+  `wrangler.jsonc` (alias, `DENSE_BACKEND`), `test/fixtures/vectors.bin` and `data/vectors.json`.
 - **Eval fidelity (A-N6).**
   - The harness builds the pinned Data module from `emb-bge-small-vN`, so the replica runs the
     production code path. Only `eval-v0` keeps the fake Vectorize, which is the same exact cosine
@@ -331,8 +436,8 @@ then the holdout step planned in §3.
 - **Neurons (B-11).** The 3A-1 prefix adds tokens: *est.* ~0.05 neurons a query, so the 10k/day
   Workers AI allowance covers ~200k searches a day. 3C-2's second embed doubles that.
 - **Expected latency** (*est.*). The warm p67 sets the pooled p50 (§1). Phase 1's spans project
-  to 140 ms warm; 3-0.0 adds the post-APAC figure. Sparse, with the APAC primary: cache 25 +
-  embed 227 + 5 + hydrate ~40 ≈ 300 ms.
+  to 138.7 ms warm (p67) and 148 ms (p69); 3-0.0 adds the post-APAC figure. Sparse, with the
+  APAC primary: cache 25 + embed 227 + 5 + hydrate ~40 ≈ 300 ms.
 - **SC7 re-measurement (A-N7).** The rule is unchanged (Phase 1 Final §2): pool every SIN-colo
   cache-miss sample, ≥ 30 distinct queries spaced ≥ 2 s apart plus ≥ 10 sparse samples ≥ 10 min
   apart. **Pass iff the point-estimate p50 of `total` < 250 ms.** The report gives the bootstrap
@@ -372,35 +477,55 @@ then the holdout step planned in §3.
   2. Dev screen, with judging and the cross-family grade (§3). Then the holdout look by the
      custodian. If it fails, stop here: production is untouched, and the asset stays only as a
      record.
-  3. Merge. Then the runbook above, steps 1–7. Step 1 reuses the eval's vectors by key and
-     embeds only the texts the pinned corpus lacks (*est.* ≤ 400 texts, ≤ 300 neurons). Step 3
-     rewrites every `text_hash`: no Workers AI call, and no FTS writes, since title and
-     description are unchanged. *est.* ~35k rows written (5.2 per module, Phase 1 small batch).
-     Step 7 upserts the new vectors in place, with no parallel index.
+  3. The runbook above, steps 1–8. Steps 1–2 merge the new `embeddingText`, the manifest and
+     the offline data version in one PR. Step 1 reuses the eval's vectors by key and embeds only
+     the texts the pinned corpus lacks (*est.* ≤ 400 texts, ≤ 300 neurons). Step 4 rewrites
+     every `text_hash`: no Workers AI call, and no FTS writes, since title and description are
+     unchanged. *est.* ~35k rows written (5.2 per module, Phase 1 small batch). Step 8 upserts
+     the new vectors in place, with no parallel index.
 - A 768-d model would fit Paid's 10M stored dims, but it doubles the bundle and adds embed time.
   Not planned.
 
 ### 3B Codes, GE pillars, keyword brittleness (S5, S4)
 - **3B-0 corpus data**, committed with the script that builds it:
   - the prefix list: letter parts of offered codes, with counts;
-  - the **collision list** (C-2, C2-7): a committed list of English words and common
+  - the **collision list** (C-2, C2-7, C3-5): a committed list of English words and common
     abbreviations that are also prefixes, starting from AI, IT, PR, JS, GE, MA, EE, CE, LL, IS,
-    ME, AN. It is a written list, not "every prefix with df > 0". Pillar prefixes are exempt, so
-    a bare `GEX` routes to its pillar;
+    ME, AN, and the NUS-ambiguous DSA, SE, PE and LAB. It is a written list, not "every prefix
+    with df > 0". Pillar prefixes are exempt, so a bare `GEX` routes to its pillar;
   - the catalogue-only code list (C-7);
   - the GE pillar table: pillar names → {GEA, GEC, GEH, GEI, GEN, GEQ, GES, GESS, GET, GEX},
     with the NUS GE page URL in the file.
 
   The step re-runs critic C's counts and commits them as evidence.
-- **Canonicalisation (C-14, C2-2)** before any matching, on the canonical q:
-  - letters + space + 4 digits joins when the letters are a known prefix (`cs 1010s` →
-    `cs1010s`; `is 4246` still pins);
-  - letters + space + 1–3 digits joins only when the letters are a known prefix **and** are not
-    on the collision list or the stopword list (`cs 32` → `cs32`, `cs 101` → `cs101`). So
-    `give me 2 easy electives` never becomes `me2`, and `how many units is 3 US credits` never
+- **Parse order** (one order for every query, in `src/query-intent.js`):
+  1. canonical q (today's `canonicalQuery`);
+  2. 3G's vocabulary test reads the pre-correction tokens (it decides only at the end);
+  3. 3C's correction of df-0 letter-only tokens of ≥ 5 letters. Known prefixes have 2–4
+     letters, so it never touches a code's letters;
+  4. **3H phrases**, matched and stripped from the lexical query before any join (C3-1), so
+     `s/u` can never feed a suffix join;
+  5. the code joins below;
+  6. code resolution;
+  7. 3D's level phrases.
+- **Code joins (C-14, C2-2, C3-1)**, on the canonical q with step 4's phrases removed; "the
+  whole query" below means that remainder. A join is made only when its result is usable:
+  - **Letters on the collision or stopword list** join only when letters + digits (+ suffix)
+    are the whole query **and** the joined code is offered or catalogue-only (`is 4246` →
+    IS4246, pinned; `me 3000` → ME3000). Inside a longer query they never join, and they never
+    reach resolution step 3. So `give me 3000 level electives` stays a level-3 query and does not
+    pin ME3000, `show me 4000 level courses` is level 4 with no ME route, and `what is 2000
+    level` and `is it 3000 level` route nothing but their level.
+  - **Other known prefixes**: letters + space + 4 digits join (`cs 1010s` → `cs1010s`, `cs 3000`
+    → `cs3000`); letters + space + 1–3 digits join (`cs 32` → `cs32`, `cs 101` → `cs101`).
+  - So `give me 2 easy electives` never becomes `me2`, and `how many units is 3 US credits` never
     becomes `is3`. Critic B's arithmetic shows why the guard matters: at w_c = 2, k = 20, a code
-    list's rank 1 scores 2/21, the same as rank 1 in both other lists;
-  - code + space + 1–2 suffix letters joins (`cs1010 s` → `cs1010s`).
+    list's rank 1 scores 2/21, the same as rank 1 in both other lists.
+  - **Suffix join**: code + space + 1–2 letters joins only when the joined code is offered or
+    catalogue-only, and never when `/` or `-` follows the letters (`cs1010 s` → `cs1010s`).
+    `cs2040 or cs2030` keeps both codes, and `cs1231 s/u` pins CS1231 with `su=1`.
+  - A cost the rule accepts: a collision-list code inside a longer query (`is 4246 workload`)
+    is not pinned. It still reaches the lexical and dense halves as text.
 - **Code parser** (`src/query-intent.js`, new; pure, Node-testable):
   - Only a **known corpus prefix** makes a token code-shaped (C-7). `comp 1010`, `math 1001` and
     `econ 1101` are topical queries.
@@ -413,22 +538,35 @@ then the holdout step planned in §3.
        embedded at request time. The text comes from a new D1 table `catalogue_only` (migration
        `0008_catalogue.sql`, loaded by ingest). Neighbours ride in `noMatch`, never in
        `results`, so the eval scores the response as empty;
-    3. it has the shape `XX N000` → a level intent (3D) (`cs 3000`, `lvl 3000`); when `XX` is a
-       known prefix, the prefix route also applies;
+    3. it has the shape `XX N000`, with `XX` a known prefix off the collision and stopword lists
+       → level = N
+       (3D) and the `XX` prefix route (`cs 3000`). As the whole query it is a hard mask, prefix
+       ∩ level, ordered by exact dense score; inside a longer query the level is a filter and
+       the prefix members form the third RRF list (C3-7). `lvl 3000` is a 3D phrase, not a code:
+       `lvl` is no prefix;
     4. otherwise, as a whole query → `count: 0`, `noMatch: { reason: "unknown-code" }`. The eval
        scores non-existent codes as correct-empty.
+
+    **Inside a longer query (C3-6)**, a catalogue-only or unknown code routes nothing: no pin,
+    no prefix list, no `noMatch`. Its original tokens stay in the query text. So d-016
+    (`CS 4400 Operating Systems`) is a topical query and can still return CS2106.
 - **Partial codes and GE pillars (C-1, C-2, C2-3, C2-9)**:
   - **Whole-query partial code** (`[a-z]{2,4}\d{0,3}`, known prefix, the whole query, e.g.
-    `CS32`, `GEA`, `cs101`): a **hard candidate mask**. A PK range scan `code >= ? AND code < ?`
-    reads ≈ the rows it returns. The members are ordered by exact dense score (3-0). Lexical and
-    RRF play no part. In `mode=lexical` and in the keyword-only fallback the members are in code
+    `CS32`, `GEA`, `cs101`): a **hard candidate mask**. A PK range scan reads ≈ the rows it
+    returns. For a partial code P the range runs from P (P + `0` when P is letters only) up
+    to, not including, P + `:`, where `:` is the character after `9`. Every code has
+    digits after its letters, so a bare prefix never takes in a longer one (C3-4): `cs` →
+    `code >= 'CS0' AND code < 'CS:'`, which excludes CSA6101; `cs32` → `code >= 'CS32' AND code
+    < 'CS32:'`. A test checks that `cs` returns no CSA code and `ges` no GESS code. The members are ordered by exact dense score (3-0). Lexical and RRF
+    play no part. In `mode=lexical` and in the keyword-only fallback the members are in code
     order (C2-9), with a test.
   - **A code token inside a longer query** (`cs32 machine learning`): the prefix members become a
-    **third RRF list** with weight w_c = 1 (fixed at P-6, A2-8).
+    **third RRF list**, ordered by exact dense score (C3-7), with weight w_c = 1 (fixed at P-6,
+    A2-8).
   - **Letter-only tokens:**
     - A letter-only token never prefix-routes inside a multi-token query.
     - As a whole query, it routes only when it is a known prefix and is not on the collision
-      list. So `AI`, `js` and `pr` are topical queries.
+      list. So `AI`, `js`, `pr` and `dsa` are topical queries.
   - **GE intent**: `ge`, `gen ed`, `general education`, and the pillar names from the table:
     - maps to the pillar prefixes only, never `GE\d` (Geography);
     - a whole query → the pillar mask ordered by dense score;
@@ -490,19 +628,27 @@ then the holdout step planned in §3.
   - One look (L4).
 
 ### 3D Level intent and graduate flooding (S6)
-- **Intent rules, per direction (C-6, C-13, C2-6)**, from the parser in `src/query-intent.js`.
-  The phrase lists are pre-registered. **The longest matching phrase wins**; a phrase inside a
-  longer match is not read on its own.
+- **Intent rules, per direction (C-6, C-13, C2-6, C3-2)**, from the parser in
+  `src/query-intent.js`. The phrase lists are pre-registered. **The longest matching phrase
+  wins**; a phrase inside a longer match is not read on its own.
 
   | intent | phrases (examples) | effect |
   |---|---|---|
-  | beginner | `intro`, `introductory`, `beginner(s)`, `for beginners`, `no background`, `first year`, `1st year` | **hard exclusion of level ≥ 5**; soft prior α favours levels 1–2 over 3–4 |
+  | beginner | `intro`, `introductory`, `beginner(s)`, `for beginners`, `no background`, `first year`, `1st year` | **hard exclusion of level ≥ 5** (the year window with N = 1); soft prior α favours levels 1–2 over 3–4 |
   | graduate | `graduate`, `postgraduate`, `masters`, `phd` | hard filter level ≥ 5 |
-  | level N | `level N000`, `N000 level`, `N000-level`, `Nk`, `Nnd/Nrd/Nth year` and `second`–`fourth year`, `year N`, `XX N000` (after the code order in 3B) | hard filter level = N (as the `level` param) |
+  | level N | `level N000`, `lvl N000`, `N000 level`, `N000-level`, `Nk`, `XX N000` (after the code order in 3B) | hard filter level = N (as the `level` param) |
+  | year N | `2nd`/`3rd`/`4th year`, `second`–`fourth year`, `year N` | **hard window N ≤ level ≤ 4** |
   | none | `advanced` alone (`advanced calculus` keeps MA2311), any phrase negated by `not`/`non`/`except`/`beyond` within the two preceding tokens (`not first year basics`) | no level intent; the phrase stays in the query text |
 
+  - **Year phrases are a window, not a level (C3-2).** A student in their third year takes
+    level-3 and level-4 modules, and d-064's grade-2 answers are level 4. `level N000`,
+    `N000 level` and `Nk` name a level, so they stay exact.
   - `level 1000`, `1000 level` and `1k` are level N = 1, not beginner: r2 listed them under both.
     Level = 1 already excludes level ≥ 5.
+  - **Several level phrases in one query** take the union of their ranges, and α applies when
+    beginner is among them. So d-045 (`third year level` and `3000-level`) gets levels 3–4.
+  - The window is internal: it has no URL parameter. `interpreted.level` echoes it as
+    `{ min, max, source }`.
   - Matched phrases are stripped from the lexical query only. The dense query stays raw.
   - The intent is echoed as `interpreted.level` (direction and the exclusion applied), so the UI
     (Phase 5) can show it. `ignore=level` undoes it.
@@ -518,8 +664,10 @@ then the holdout step planned in §3.
 - P2 interaction: Phase 4 adds the study-level input and the hard rule for exchange mode. The
   priors stay soft and only order what that rule allows.
 - **Measured**: dev target `level` (7) for the rules + α. The overall dev CI rule applies to β.
-  Pooled in one round: the 4 α points, the 3 β points, and the bundle rules + α* + β* as one
-  extra run (A2-6). Fallback (A2-7): the rules with α = 0 and no β. One look (L5).
+  - Round 1 pools the 4 α points and the 3 β points (7 runs). α* and β* are selected from it.
+  - The bundle rules + α* + β* exists only once both are known, so a second, dev-only round
+    pools it as one run (A2-6, A3-5). It is pooled only if β* passed dev alone.
+  - Fallback (A2-7): the rules with α = 0 and no β. One look (L5).
 
 ### 3E RRF weighting (S2)
 - Weighted RRF in `fuse()`: w_v/(k + r_v) + w_l/(k + r_l) (+ w_c/(k + r_c) for the 3B code
@@ -530,8 +678,9 @@ then the holdout step planned in §3.
   - **w_c = 1, fixed at P-6** (A2-8). Dev has no multi-word query with a known-prefix code token
     except d-025, so dev cannot tune it. The SC4 mixed-query rule (§4) checks it instead.
 
-  That is 8 points, one of them the shipped (1, 60), tuned **after** 3A and 3D, which shift the
-  lists' relative quality. All 8 are pooled in one round before selection.
+  That is 8 points, tuned **after** 3A and 3D, which shift the lists' relative quality. The
+  point (1, 60) uses the new tiebreak, so it is not the shipped ranker either (A3-5): all 8 are
+  new runs, pooled in one round before selection.
 - S2's cases (`intro to psych`, `learn korean`) join the SC4 guards. One look (L6).
 
 ### 3F Near-duplicate crowding (S8)
@@ -566,26 +715,38 @@ then the holdout step planned in §3.
   - the top exact dense cosine (from 3-0) is below τ.
 
   3C's correction runs after this test, so `asdf` → `aidf` cannot rescue gibberish.
-- **τ (A2-9, C2-10).**
+- **The gibberish set** is `eval/dev/gibberish.json`: ≥ 40 strings written before any 3G code
+  (keyboard mash, filler, out-of-vocabulary slang, and mixed tokens like d-025), disjoint from
+  SC4. P-6 splits it, by a recorded seed, into a **derivation half** and a **gate half** of
+  ≥ 20 each (A3-6). τ is derived on one half and gated on the other, so the gate cannot pass by
+  construction.
+- **τ (A2-9, C2-10, A3-6).**
   - The rule that maps 3G-1's distribution to candidates is fixed at P-6. Step 3G-1 measures the
-    top-1 cosine on the gibberish set and on the dev queries **not tagged** no-answer; it reads
-    tags, never relevance labels.
-  - Candidates: the gibberish set's top-1 cosine at its 90th and 95th percentiles and at its
-    maximum (+1e-6), as distinct values.
+    top-1 cosine on both halves and on the dev queries **not tagged** no-answer; it reads tags,
+    never relevance labels.
+  - Candidates: the derivation half's top-1 cosine at its 90th and 95th percentiles by
+    **nearest rank** (the ⌈p·n⌉-th smallest value) and its maximum, each + 1e-6, as distinct
+    values.
   - **Selection: the largest candidate that passes every dev condition below.** The candidates
     are distinct, so the rule has no ties.
   - Fallback (A2-7): the next smaller candidate that passes on dev.
-- **Gate, no holdout look** (A-1, C-3, A2-9; ADR 0003 amendment, §9). 3G passes iff all hold:
-  - the SC4 gibberish, non-existent-code and guard rules pass;
-  - ≥ 90% of the **pre-registered gibberish set** returns `count: 0` (threshold fixed at P-6).
-    The set is `eval/dev/gibberish.json`, ≥ 20 strings written before any 3G code: keyboard mash,
-    filler, out-of-vocabulary slang, and mixed tokens like d-025. It is disjoint from SC4;
+- **Gate, no holdout look** (A-1, C-3, A2-9, A3-1, A3-2; ADR 0003 amendment, §9). 3G passes iff
+  all hold:
+  - **the SC4 suite is green** with 3G in place, typo items included. Items owned by a
+    workstream that has not merged yet, or that Jacob dropped (Q4), are listed and skipped;
+    the typo, gibberish, non-existent-code and guard items are never skipped (A3-2);
+  - ≥ 90% of the **gate half** returns `count: 0` (threshold fixed at P-6);
+  - **no dev query outside the no-answer tags returns `noMatch.reason` `no-signal`** (A3-2).
+    The report lists any such id; dev is open. This stops 3G emptying an answerable typo query
+    such as d-095, which the −0.01 floor alone would allow: dev has 83 primary answerable queries,
+    so the floor tolerates a summed nDCG@10 loss of 0.83;
   - dev answerable ΔnDCG@10 ≥ −0.01, with the no-answer set fixed by tag (change kind
     `answerable-floor`, P-5b);
   - the **custodian's count** of holdout queries not tagged no-answer that the selected τ
-    empties is 0. The custodian stores the candidate with `--holdout --store-only`, and a
-    custodian-only script prints that one number. The count is logged in the ledger as a count,
-    not a look. The fallback gets one count of its own.
+    empties is 0. The custodian stores the candidate with `--holdout --store-only` and runs
+    `npm run eval:count -- --holdout --emptied-untagged --run <candidate>` (P-5b). It prints one
+    integer and logs the call in `eval/count-log.md`, not in the ledger, so it is not a look
+    (A3-1). The fallback gets one count of its own.
 
 ### 3H No-exam, S/U, workload and prerequisite intents (S7)
 - **Data (3H-0, 3H-1).**
@@ -595,12 +756,15 @@ then the holdout step planned in §3.
     - `workload_hours`: the sum of the workload array, NULL when unparseable **or all zero**
       (259 modules, C-11);
     - `prereq_none` (prerequisite IS NULL, C-5) and `prereq_cohort_only` (A2-12): the
-      prerequisite text is only a cohort or programme restriction, by a committed pattern list.
-      3H-0 commits the list, its matches and the count.
+      prerequisite text is only a cohort or programme restriction, by a pattern list that P-6
+      fixes (A3-7). 3H-0 commits its matches and the count.
   - `normalise()` keeps them, and `NORMALISER_VERSION` is bumped, so every `row_hash` changes.
   - That makes a row-only re-ingest through the runbook: no re-embedding, no FTS writes, *est.*
-    ~35–50k rows written, after the headroom check and a bookmark (ADR 0004). Step 7 then
-    rewrites the standby's metadata (B2-10). It is ranking-neutral, so it can land early.
+    ~35–50k rows written, after the headroom check and a bookmark (ADR 0004). Step 1 computes the
+    new data version offline under the bumped normaliser. Step 8 re-upserts every code as on
+    every run (B3-3). The stored metadata has no 3H field (`vectorMetadata`,
+    `src/rowhash.js:53–65`), so the standby gains nothing from 3H, and under the flip the 3H
+    constraints run after hydrate (B3-6). It is ranking-neutral, so it can land early.
   - 3H-0 re-runs critic C's field counts and commits them.
   - **The fixture is rebuilt** after the bump (C-15). It gains examples of each intent: mixed
     per-semester exams, CS/CU grading, zero workload, no prerequisite, cohort-only prerequisite.
@@ -621,7 +785,9 @@ then the holdout step planned in §3.
   - **`prereq=none` has two pre-registered semantics (A2-12):** (i) prerequisite IS NULL;
     (ii) NULL or cohort-only. Both are pooled. **Selection:** mean ΔnDCG@10 over the dev queries
     with a parsed prereq intent; (i) wins ties to 3 decimals, as the literal reading.
-    `interpreted.prereq` names the semantics applied.
+    `interpreted.prereq` names the semantics applied. On d-011, (ii) keeps 2 of its 5 relevant
+    modules (ACC1701XA, ACC1701XC) and (i) keeps none; d-099's only relevant module fails both
+    (§1).
   - The constraints are hard filters in SQL and in the in-Worker filter table.
   - **Matched phrases are stripped from the keyword query (C-4)**, so `final` no longer boosts
     Final Year Projects and `s/u` no longer becomes `s`. With the longest-phrase rule,
@@ -640,20 +806,31 @@ then the holdout step planned in §3.
 - **Measured: one look, L7, under the holdout rule (A2-3).** 9 of the 98 dev queries carry a 3H
   phrase, so 3H moves the relevance metric and needs a look. Judges never see exam, S/U,
   workload or prerequisite fields (`JUDGING.md`), so compliance itself is measured by the SC4
-  suite. The dev screen passes iff:
+  suite. The primary set holds the prereq queries; the exam queries sit in the constraint block,
+  outside it. So L7 measures the prereq intent only, and exam, S/U and workload are checked by
+  the SC4 suite alone (A3-7). The dev screen passes iff:
   - the SC4 intent rules pass;
-  - dev primary ΔnDCG@10 ≥ 0 (change kind `no-loss`, P-5b; constraint block reported);
+  - dev primary ΔnDCG@10 ≥ 0 (change kind `no-loss`, P-5b; constraint block reported), **over
+    the primary set less the constraint-exempt queries** (C3-8, lead decision, §11);
   - on dev, every query with no parsed intent keeps its top 10 unchanged.
-
-  Pooled runs: (i) and (ii), each stripped and raw: 4. Fallback (A2-7): the dev runner-up.
+- **Constraint-exempt queries (C3-8).** A dev query is exempt iff it parses a 3H intent and
+  every one of its grade-≥1 documents fails that constraint under the candidate's semantics.
+  The student asked for the constraint, so emptying those answers is the requested behaviour,
+  not a loss. The rule is pre-registered at P-6. A committed script computes the list per
+  candidate from the qrels version in use, and the dev report prints the exempt ids with their
+  Δ. Under both semantics d-099 is exempt, and under (i) d-011 is too. The exemption applies to
+  the dev screen only: L7 runs the unchanged holdout rule, where such queries count as loss.
+- Pooled runs: (i) and (ii), each stripped and raw: 4. **Fallback (A2-7, A3-7):** the other
+  prereq semantics with the same raw/stripped choice, fixed at P-6.
 
 ## 3. Measurement and the holdout look plan
 - **Before L1.** All of these are done before the first holdout look. The order matters where
   stated.
-  - **P-0a. Code-target rule grades** (lead, in progress). Judge rule 4 in `eval/JUDGING.md`
-    grades a code query's target modules from the corpus, mechanically. It produces
-    `qrels-dev-v2` and `qrels-holdout-v2`, and makes d-087, d-089, d-090, d-091 and d-092
-    answerable. P-4 follows it.
+  - **P-0a. Code-target rule grades: done** (PR #30, `846fac2`). Judge rule 4 in
+    `eval/JUDGING.md` grades a code query's target modules from the corpus, mechanically
+    (`eval/lib/code-rule.mjs`). It produced `qrels-dev-v2` (56 rule pairs over 11 queries) and
+    `qrels-holdout-v2` (15 rule pairs over 4 queries, counts only, no look), and made d-087,
+    d-089, d-090, d-091 and d-092 answerable.
   - **P-0b. Gate and custody hardening** (lead, in progress):
     - a cutoff must truncate the baseline;
     - the ledger records the rule applied;
@@ -663,31 +840,48 @@ then the holdout step planned in §3.
   - **P-1. groups-v1: done** (PR #28, `87107a1`). `eval/groups.json` is the duplicate-group source
     for every set.
   - **P-2. Step 3-0.0**, the embed-latency check. Q3 goes to Jacob only if it triggers.
-  - **P-3. 3-0** is built, proven identical on dev and the fixture, and deployed. Runbook step 7
+  - **P-3. 3-0** is built, proven identical on dev and the fixture, and deployed. Runbook step 8
     upserts the standby. No look.
-  - **P-4. The dev baseline** is measured under `qrels-dev-v2` and groups-v1, after P-0a. It
-    replaces the "to be measured" in §1. r2's deep pool of the four mapping pastes is dropped
-    (A2-1).
+  - **P-4. The dev baseline: done** (PR #30, `EVAL.md`), under `qrels-dev-v2` and groups-v1
+    (§1). r2's deep pool of the four mapping pastes is dropped (A2-1).
   - **P-5. The ADR 0003 and 0004 amendments** merge (§9).
-  - **P-5b. Gate code for the new rules (A2-2)**, on top of P-0b, each with tests:
-    - an SC5 gate selectable on the holdout (`--gate sc5`), accepted only for the L12 look under
-      the holdout reading and recorded in the ledger. Without it, L12 would run the per-change
-      point-estimate rule and write a pass;
+  - **P-5b. Gate code for the new rules (A2-2, A3-1)**, on top of P-0b, each with tests:
+    - an SC5 gate selectable on the holdout (`eval:report --gate sc5`), accepted only for the
+      L12 look under the holdout reading and recorded in the ledger. Without it, L12 would run
+      the per-change point-estimate rule and write a pass;
     - change kinds `no-loss` (Δ ≥ 0 point estimate, for 3F and 3H's dev screen) and
-      `answerable-floor` (answerable ΔnDCG@10 ≥ −0.01, for 3G);
+      `answerable-floor` (answerable ΔnDCG@10 ≥ −0.01, for 3G). `no-loss` takes an optional
+      `--exempt <file>` of dev ids, refused on encrypted sets; the report prints each exempt id
+      and its Δ (3H, C3-8);
     - the no-answer set defined by tag (`noanswer`, `code-nonexistent`, `noAnswerByRule`) in
       `eval/lib/metrics.mjs`. An untagged query with no grade-≥1 document is unscored, in
       neither set;
     - reports list unscored query ids on dev only, and give counts only on the holdout and test
-      sets (A2-11).
+      sets (A2-11);
+    - **`eval:count`** (A3-1, A-N9), custodian-only, refused without `--custodian`. It prints
+      one integer and nothing else:
+      - `--set test --answerable`: the test set's answerable count (§5's stopping rule);
+      - `--holdout --emptied-untagged --run <variant>`: how many holdout queries not tagged
+        no-answer the stored run returns empty (3G).
+
+      Each call appends a row to `eval/count-log.md` (date, set, kind, run, count), a separate
+      committed file the ledger never reads, so a count can never count as a look. Tests: the
+      output is a single integer; the tool refuses without `--custodian`, on dev, and with any
+      flag that would print ids or metrics; a count-log row cannot be placed in the ledger;
+      the ledger's look count is unchanged after a count. **ADR 0003's look definition is
+      amended in the same commit**: a count from `eval:count` prints no verdict and is not a
+      look, even when a pre-registered gate reads it.
   - **P-6. The pre-registration commit** (A-N3, A-6). It fixes:
     - every grid and finite candidate set: 3A-2 v1–v3, 3C-1/3C-2, α ∈ {0, 0.1, 0.2, 0.35}, β,
       the 8-point 3E grid, w_c = 1, the two prereq semantics, raw/stripped;
-    - the selection statistic, the tie-break, and each SC4-required change's fallback;
-    - the stopword list, OSA thresholds, intent phrase lists and precedence, GE table and
-      collision list;
-    - "light" = 10 h, the raw/stripped margin, the gibberish set and its 90% threshold, and the
-      τ candidate rule;
+    - the selection statistic, the tie-break, and each SC4-required change's fallback, 3H's
+      included (the other semantics, same raw/stripped);
+    - the stopword list, OSA thresholds, the parse order, the join rules, intent phrase lists and
+      precedence (the year window and the union rule included), GE table and collision list;
+    - the cohort-only prerequisite pattern list (A3-7) and 3H's constraint-exempt rule (C3-8);
+    - "light" = 10 h, the raw/stripped margin, the gibberish set, its seeded split into
+      derivation and gate halves, the 90% threshold, and the τ candidate rule with its
+      nearest-rank percentile method;
     - the SC4 suite, with its typo threshold T and mixed-query count.
   - **P-7. Jacob answers Q1** (SC5 reading), batched with Q2 (VPN) (§10).
 - **Dev is open.** Every candidate runs `npm run eval -- --variant <v> --baseline <shipped>`
@@ -695,7 +889,8 @@ then the holdout step planned in §3.
   its look. Every comparison scores both runs under the same, latest qrels version.
 - **One pooling round per workstream, before selection (A-6, A2-6).** `eval:pool --runs
   <shipped>,<every candidate> --unjudged` pools the union of every candidate's top-10. Every
-  bundle that could go to a look is pooled as one extra run in the same round.
+  bundle that could go to a look is pooled as one extra run in the same round, except 3D's,
+  whose parts are selected first: it gets a second, dev-only round of one run (A3-5).
   - Judge A (`claude-opus-5-5`, single-judge protocol, ADR 0004) grades the round, with a 5%
     drift sample, and it merges to the next qrels version.
   - Only then is a candidate selected. judged@10 must be 100% for every run compared.
@@ -726,10 +921,18 @@ then the holdout step planned in §3.
     lead records a decision with a reason.
 - **Holdout, custodian only.** Tuning agents never get the key and never decrypt; they see only
   the verdict lines. For each look the lead (custodian):
-  1. stores the candidate (`--holdout --store-only`, no look);
-  2. pools it encrypted (`--custodian --unjudged`);
-  3. judges it with in-process subagents and merges;
-  4. only then runs the verdict, so no look is spent `unjudged`.
+  1. stores the candidate (`--holdout --store-only`, no look), and **the baseline too** unless it
+     is already stored and fully judged (A3-4). Only `eval-v0` is stored today, so L1's baseline
+     (the 3-0 head) is new. So is L7's: 3F and 3G ship between L6 and L7 without a holdout run.
+     After that, a look's baseline is usually the previous look's accepted candidate, already
+     stored and judged;
+  2. pools every run stored in step 1 encrypted (`eval:pool --holdout --custodian --unjudged`);
+  3. judges the pool with in-process subagents and merges. `judgedCheck` needs 100% for both
+     runs;
+  4. only then runs the verdict with `npm run eval:report -- --holdout --run <candidate>
+     --baseline <shipped>`, on the stored runs. `report` writes the ledger row only for a fully
+     judged pair, and runs no retrieval, so no look is spent `unjudged` (A3-4). `npm run eval --
+     --holdout` is not used for looks: it reserves a row before retrieval.
 
   The ledger is committed after each look. Retries are the named ones only, so the custodian
   directs no rework after seeing a verdict (A-N3).
@@ -745,7 +948,7 @@ then the holdout step planned in §3.
   | L5 | 3D level rules + α (+ β only if it passed dev alone under the CI rule) | general |
   | L6 | 3E fusion weights + tiebreak | general |
   | — | 3F groups-v1 collapse | identity vs the group-first projection + dev `no-loss`; no look |
-  | — | 3G no-match | SC4 + gibberish set + dev `answerable-floor` + custodian count = 0; no look |
+  | — | 3G no-match | SC4 suite + gibberish gate half + no untagged dev query emptied + dev `answerable-floor` + custodian count = 0; no look |
   | L7 | 3H intents | general |
   | L8–L12 | reserve, **sealed reading** (5 slots) | as the original change |
   | L8–L11 | reserve, **holdout reading** (4 slots) | as the original change |
@@ -754,14 +957,16 @@ then the holdout step planned in §3.
   **Arithmetic.**
   - Change looks: 3A-1, 3A-2, 3B, 3C, 3D, 3E, 3H = **7** (L1–L7).
   - No-look changes: 3-0 and 3F (identity), 3G (SC4, gibberish set, answerable floor, count) = 0.
+  - Counts: 3G's `eval:count` calls (the selected τ, and its fallback if needed: ≤ 2) and the
+    sealed test set's answerable counts go to `eval/count-log.md`, never the ledger = 0
+    (A3-1).
   - Bundled candidates: `stopwords-v2` rides L3 and β rides L5, each only after passing dev
     alone = 0.
   - SC5: sealed reading 0 (the test set has its own single look, and the holdout is not read
     for SC5); holdout reading 1 (L12).
   - Reserve = 12 − 7 − 0 = **5** (sealed) or 12 − 7 − 1 = **4** (holdout).
-  - Against r2: 3F leaves (−1) and 3H enters (+1), so change looks stay at 7. r2's reserve was
-    5 or 4 only if 3H's count stayed below 3. Critic A puts the chance of that at 1.7%
-    (P(count ≤ 2 of 81)), so r2's likely reserve was 4 or 3. r3's 5 or 4 is certain.
+  - The reserve is certain: no planned change's look depends on a count. r3.1 leaves the look
+    table's counts as r3 had them.
   - Retries: 6 changes have a named retry (3A-2, 3B, 3C, 3D, 3E, 3H). The reserve funds at most
     one per failed change, in order of failure. When one slot is left and more than one change
     is waiting, the waiting changes are bundled into that look, never a 13th. A change that fails
@@ -772,7 +977,7 @@ then the holdout step planned in §3.
   `test/sc4/queries.json` at P-6, with rules, counts and thresholds fixed in the same commit.
   Implementers may not edit it; a change goes through the lead with the reason logged.
   - Dev is open, so named dev texts may appear, and each is listed: d-024 as an intent rule,
-    d-079 and d-022 as GE rules.
+    d-079 and d-022 as GE rules, d-016 as an unknown code inside a longer query.
 - **Custody (A-N1).**
   - No holdout text enters the suite. The custodian runs the v2.1 code-overlap rule and the
     query-embedding cosine ≥ 0.9 check of every suite query against the holdout. The tool prints
@@ -780,8 +985,11 @@ then the holdout step planned in §3.
   - The suite's texts and code targets join the test-set exclusion list and the test-set leak
     filter (§5).
 - **Runs** the real Worker over the **pinned bundle** and pinned corpus in the `full-corpus` CI
-  job (B2-4). Query embeddings are committed (*est.* ~100 texts with the gibberish set, < 5
+  job (B2-4). Query embeddings are committed (*est.* ~130 texts with the gibberish set, < 10
   neurons).
+- **topK.** Every item runs at the default topK of 20, except the partial-code and pillar items,
+  which run at topK = 50 (`MAX_TOPK`, A3-3, C3-3). At 20 a page cannot hold CS32's 27 groups or
+  GEC's 35. P-6 asserts that G ≤ 50 for every such item.
 - **Every query has an exact expected `interpreted` JSON**, with `null` for every intent it must
   not set. Any difference fails (C-10).
 - **Thresholds fixed at P-6:**
@@ -791,20 +999,23 @@ then the holdout step planned in §3.
     the 6 pairs, capped at 7.
   - **M, the mixed-query count** (A2-8): ≥ 3 prefix members in the top 10 (proposed). CS32 has
     30 offered modules, so the rule is satisfiable.
-- **Items, fixed counts, rules** (C-10, C-1, C-6, round 2). "Groups" are groups-v1 groups, with a
-  singleton counting as its own group (A2-5).
+- **Items, fixed counts, rules** (C-10, C-1, C-6, rounds 2 and 3). "Groups" are groups-v1
+  groups, with a singleton counting as its own group (A2-5).
 
   | item | n | rule |
   |---|---|---|
   | space code (`cs 1010s`, `ma 1521`, `cs1010 s`, `is 4246`) | 5 | that code at rank 1 |
-  | code vs level (`GEA1000`, `ES1000`, `cs 3000`) | 3 | offered code at rank 1 with `interpreted.level` null; `cs 3000` → level 3 with the CS prefix route |
-  | partial code or pillar (`CS32`, `cs101`, `cs 32`, `GEA`, `gec`, `GEX`) | 6 | count > 0; the top min(10, G) results are all members, G = distinct groups in the set ∩ filters; every member appears as a result or a variant |
+  | code vs level (`GEA1000`, `ES1000`, `cs 3000`) | 3 | offered code at rank 1 with `interpreted.level` null; `cs 3000` → level 3 with the CS prefix route, every result a level-3 CS module |
+  | code joins (`cs2040 or cs2030`, `cs1231 s/u`) | 2 | `cs2040 or cs2030`: CS2040 and CS2030 at ranks 1 and 2; `cs1231 s/u`: CS1231 at rank 1, `interpreted.su` set, and every result satisfies `su=1` (C3-1) |
+  | partial code or pillar (`CS32`, `cs101`, `cs 32`, `GEA`, `gec`, `GEX`), at topK = 50 | 6 | every result is a member; count = G, the distinct groups among the members ∩ filters; every member appears as a result or as a variant of one (A3-3) |
   | code inside a longer query (`cs32 machine learning`, one more written at P-6) | 2 | ≥ M prefix members in the top 10 |
-  | GE inside a longer query (d-079, d-022) | 2 | every result is a pillar member, and count ≥ min(10, \|pillar members ∩ filters\|) |
+  | unknown or not-offered code inside a longer query (d-016 `CS 4400 Operating Systems`, one more with a catalogue-only code written at P-6) | 2 | count > 0, no pin, no prefix route, no `noMatch` (C3-6) |
+  | GE inside a longer query (d-079, d-022) | 2 | every result is a pillar member, and count ≥ min(10, distinct groups among pillar members ∩ filters) |
   | typo | 5 | top-10 overlap with its clean form ≥ T, and the clean form's `interpreted` |
   | level: beginner | 4 | no level ≥ 5 in the top 10, and a named level-1/2 answer in the top 3 (e.g. CS2109S, EE2211) |
   | level: graduate | 2 | every top-10 result level ≥ 5 |
-  | level: N / year (`4000 level`, `level 3000`, `3rd year`, `2nd year`, `third year`) | 5 | every top-10 result at level N |
+  | level: N (`4000 level`, `level 3000`, `lvl 3000`) | 3 | every top-10 result at level N |
+  | level: year (`3rd year`, `2nd year`, `third year`, each inside a topical query) | 3 | every top-10 result at a level from N to 4 (C3-2) |
   | no-exam (d-024's text, `without final exam`) | 3 | 100% of results satisfy the constraint, and top-10 overlap ≥ 7 with (clean query + explicit param) |
   | S/U | 3 | as no-exam |
   | workload | 3 | as no-exam |
@@ -812,14 +1023,16 @@ then the holdout step planned in §3.
   | gibberish | 5 | `count: 0`, `noMatch.reason` `no-signal` |
   | non-existent code | 3 | `count: 0`, `noMatch.reason` `unknown-code` |
   | not-offered code (`GEQ1000`, one more) | 2 | `count: 0`, `noMatch.reason` `not-offered`, `noMatch.title` equals the catalogue title |
-  | guards | 26 | count > 0 and no prefix route fired; for a collision-list token, the exact `interpreted` JSON as well and no count rule (C2-8); for any other letter-only token, ≤ 2 of the top 10 have a code whose letter part equals it |
-  | **total** | **82** | |
+  | guards | 29 | count > 0 and no prefix route fired; for a collision-list token, the exact `interpreted` JSON as well and no count rule (C2-8); for any other letter-only token, ≤ 2 of the top 10 have a code whose letter part equals it |
+  | **total** | **90** | |
 
   The guards include `art history`, `law and society`, `intro to psych`, `learn korean`, `AI`,
-  `ai ethics`, `js`, `pr`, `comp 1010`, `math 1001`, `econ 1101`, `advanced calculus` (MA2311 in
-  the top 10, no level intent), `not first year basics`, `give me 2 easy electives` and
-  `how many units is 3 US credits` (no code join, C2-2). The AI guard has no count rule: all 9
-  AI* modules are about AI, so a correct answer may hold several.
+  `ai ethics`, `js`, `pr`, `dsa` (C3-5), `comp 1010`, `math 1001`, `econ 1101`,
+  `advanced calculus` (MA2311 in the top 10, no level intent), `not first year basics`,
+  `give me 2 easy electives` and `how many units is 3 US credits` (no code join, C2-2),
+  `show me 4000 level courses` (level 4, no ME route) and `give me 3000 level electives`
+  (level 3, ME3000 not pinned) (C3-1). The AI guard has no count rule: all 9 AI* modules are
+  about AI, so a correct answer may hold several.
 - **SC4 passes** iff the suite is fully green at the frozen ranker, and a live confirmation of
   ≤ 20 calls on the deployed Worker agrees on every rule it samples.
   - The live queries are **fresh texts written at the freeze**, not the suite's.
@@ -840,8 +1053,9 @@ then the holdout step planned in §3.
        - The leak filter drops any query with cosine ≥ 0.9 to, or a shared source with, any of
          them.
        - Writing continues until ≥ 160 answerable queries, at most 2 extra rounds. The stopping
-         rule reads only a **count-only tool** (`eval:count --set test`, A-N9). It prints the
-         answerable count and nothing else, and is not a look.
+         rule reads only the **count-only tool** built at P-5b (`eval:count --set test
+         --answerable`, A-N9, A3-1). It prints one integer, logs the call in
+         `eval/count-log.md`, and is not a look under the amended ADR 0003.
        - Pool v0 + final top-10, judge A in-process (with rule 4 grades), then run the
          cross-family check on the differing pairs (reported).
        - Then **one look** on the test set: BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0,
@@ -863,8 +1077,9 @@ budgeted at 13 to cover a failed smoke and its redeploy.
 
 | item | D1 read | D1 written | Vectorize queried dims | neurons | live `/search` |
 |---|---|---|---|---|---|
-| 3-0.0 warm burst | ~5k (12 × 406 mean) | 0 | ~4.6k (12 × 384) | < 1 | ≤ 12, one session |
-| 3-0 cutover: guard read + step-7 upsert of 6,778 with metadata | ~6.8k | 0 | 0 (upserts; stored 2.6M of 10M) | ≤ 300 (missing texts, *est.*) | ≤ 4 smoke |
+| 3-0.0 warm burst (after ≤ 20 `/health` probes, which read nothing) | ~5k (12 × 406 mean) | 0 | ~4.6k (12 × 384) | < 1 | ≤ 12, one session |
+| 3-0 cutover: guard read | ~6.8k | 0 | 0 | ≤ 300 (missing texts, *est.*) | ≤ 4 smoke |
+| runbook step 8 (×3: cutover, 3A-2, 3H): read every row, upsert 6,778 with metadata in ≤ 1,000-vector batches | ~20k (3 × 6.8k) | 0 | 0 (upserts; stored 2.6M of 10M) | 0 | 0 |
 | deploys (≤ 13): guard read via `/admin/hashes` + smoke (≤ 4 each) | ~88k (6.8k × 13) + ~21k (52 × 406) | 0 | 0 after 3-0 | ~3 | ≤ 52, ≤ 4 per session |
 | SC7 counted run at the freeze | ~18k (45 × 406) | 0 | 0 | ~2 (45 × 0.05) | 45, one session |
 | SC7 declared re-run (colo shortfall only) | ~18k | 0 | 0 | ~2 | 45, another session |
@@ -874,8 +1089,8 @@ budgeted at 13 to cover a failed smoke and its redeploy.
 | 3B `0008_catalogue` + load of ~14.4k catalogue-only rows | ~15k | ≤ 30k *est.* (rows + PK index) | 0 | 0 | in deploys |
 | 3H migration 0007 + row-only ingest | ~30k | ~35–50k *est.* | 0 | 0 | in deploys |
 | 3C-2 / rewrites (embed-missing cap) | 0 | 0 | 0 | ≤ 500 per run | 0 |
-| verify after each corpus change (×4: pre-deploy + post-step-7) | ~55k | 0 | `getByIds` sample only | 0 | 0 |
-| SC4 suite + gibberish embeddings + live confirmation | ~8k | 0 | 0 | < 5 | ≤ 20 |
+| verify after each corpus change (×4: pre-deploy + post-step-8) | ~55k | 0 | `getByIds` sample only | 0 | 0 |
+| SC4 suite (90) + gibberish set (≥ 40) embeddings + live confirmation | ~8k | 0 | 0 | < 10 | ≤ 20 |
 | **Phase 3 total** | **< 0.35M of 25B** | **< 0.15M of 50M** | **~2.6M (stored term) of 50M** | **≤ 5k on any one day** | **≤ 60 per agent session** |
 
 The stored term, (6,778 stored) × 384 ≈ 2.6M, counts once a month. Every search before
@@ -895,11 +1110,12 @@ symmetric difference of two top-10s) × 98.
 | 3A-2 (v1–v3, dense-only + hybrid) | 6 | 5,880 | 1,960 |
 | 3B (3B, `stopwords-v2` alone, bundle) | 3 | 2,940 | — |
 | 3C (3C-1, 3C-2) + diagnostic set (own qrels) | 2 + 2 | 1,960 + diag | — |
-| 3D (α × 4 with rules, β × 3, bundle) | 8 | 7,840 | 1,960 |
-| 3E (7 new points) | 7 | 6,860 | 1,960 |
+| 3D round 1 (α × 4 with rules, β × 3) | 7 | 6,860 | 1,960 |
+| 3D round 2, dev only (bundle rules + α* + β*) | 1 | 980 | — |
+| 3E (8 new points) | 8 | 7,840 | 1,960 |
 | 3F | 1 | 980 | — |
 | 3H ((i), (ii) × stripped, raw) | 4 | 3,920 | — |
-| holdout, per look (custodian) | 1 | 810 | — |
+| holdout, per look (custodian: candidate, and the baseline when it is new) | 1–2 | 1,620 | — |
 | SC5 test pool (sealed reading) | 2 (v0, final) | ~20 per query | ~20 per query |
 
 Other rules:
@@ -917,6 +1133,11 @@ Other rules:
   guard refuses a manifest whose `rowsKey` or data version differs from D1's. The pre-deploy
   verify and `/health` compare the bundle's data version. The dense rows are re-filtered against
   fresh D1 rows.
+- **Merge before D1**: from runbook step 2 to step 4, `main` holds a data version D1 does not, so
+  the guard refuses every deploy from `main`. The runbook keeps that window short, and a failed
+  step 4 is undone by restoring the bookmark and reverting the merge.
+- **The Vectorize flip** serves masks in code order and applies 3H after hydrate. It is degraded
+  service, SC4 is not claimed under it, and one test covers it.
 - **Admin routes**: production never binds `INGEST_SECRET`, so every admin route there stays 404.
   The runbook and the guard reach them only through `wrangler dev --remote`. `/admin/vectors`
   takes its values from the sha-checked asset, so the dev session's fixture bundle cannot leak
@@ -933,17 +1154,22 @@ Other rules:
   is to bundle rather than take a 13th.
 - **An SC4-required change fails its look.** Its fallback is the retry. If that fails too, SC4
   cannot pass on that item, and Jacob decides (Q4).
-- **Intent parser false positives**: the collision list, the guarded spaced join and the "known
-  prefix only" rule stop `AI`, `js`, `comp 1010` and `give me 2 …` from routing. Hard level and
-  intent filters are echoed and undoable. The SC4 guards and exact `interpreted` JSON pin each
-  case down.
-- **Hard beginner exclusion** removes level ≥ 5 even where a student might accept one. It is
-  echoed so the UI can undo it.
+- **Intent parser false positives**: the collision list, the guarded joins and the "known prefix
+  only" rule stop `AI`, `js`, `dsa`, `comp 1010`, `give me 2 …` and `give me 3000 level …` from
+  routing. Hard level and intent filters are echoed and undoable. The SC4 guards and exact
+  `interpreted` JSON pin each case down. The cost: a collision-list code inside a longer query
+  (`is 4246 workload`) is not pinned.
+- **Hard beginner exclusion and the year window** remove level ≥ 5 (and, for `3rd year`, levels
+  1–2) even where a student might accept one. Both are echoed so the UI can undo them.
+- **3H's constraints cost relevant answers by design.** d-099's only relevant module fails both
+  prereq semantics, and (i) removes all 5 of d-011's. The dev screen exempts such queries
+  (C3-8), but L7 does not, so a holdout query of that shape counts as loss there.
 - **Exam data semantics**: a missing `examDate` is not a certified "no exam". The mitigations are
   the UI copy and the echoed interpretation.
-- **No-match hides real long-tail answers**: three signals must all agree. Dev answerable loss is
-  capped at 0.01, the holdout count of emptied untagged queries must be 0, and the SC4 guards
-  must stay non-empty.
+- **No-match hides real long-tail answers**: three signals must all agree before 3G fires, and
+  four checks gate it. No untagged dev query may return `no-signal`, dev answerable loss is
+  capped at 0.01, the holdout count of emptied untagged queries must be 0, and the SC4 suite,
+  typo items and guards included, must stay green.
 - **Single same-family judge** (ADR 0004) grades every new pair. The per-round cross-family check
   on the differing pairs is the mitigation. Its verifiers are Claude, so the risk is lowered,
   not removed.
@@ -961,26 +1187,25 @@ Other rules:
 - SC4: the acceptance suite is green in CI at `phase3-final`, and the live confirmation agrees.
 - SC5: one SC5 look passes, under the reading Jacob chose before L1.
 - FINDINGS S2–S8 are `fixed` (or `rejected` with a reason). README's cost section names the new
-  binding limit: Workers CPU or Workers AI neurons, whichever measures smaller. ADR 0006 records
-  the in-Worker dense search, the vectors artifact and deploy guard, and Vectorize's standby
-  role.
+  binding limit: Workers CPU or Workers AI neurons, whichever measures smaller. ADR 0006 carries
+  the measured bundle size, startup time and CPU per query from 3-0's PR.
 
 ## 9. ADR amendments needed
 | ADR | amendment | objections | when |
 |---|---|---|---|
-| 0003, `JUDGING.md` | **Judge rule 4**: code queries' targets graded by rule from the corpus; `qrels-dev-v2`, `qrels-holdout-v2`. | Phase 2 exit red-team | P-0a (lead, in progress) |
+| 0003, `JUDGING.md` | **Judge rule 4**: code queries' targets graded by rule from the corpus; `qrels-dev-v2`, `qrels-holdout-v2`. | Phase 2 exit red-team | P-0a (done, PR #30) |
 | 0003 | **Gate and custody hardening**: cutoff truncates the baseline; the ledger records the rule; baseline sha checked; `--store-only` cannot overwrite; `--set-dir` manifest-checked. | Phase 2 exit red-team | P-0b (lead, in progress) |
 | 0003 | **No-answer set fixed by tag** for any change: `noanswer`, `code-nonexistent` or `noAnswerByRule`. Emptying any other query is answerable loss. An untagged query with no grade-≥1 document is unscored; reports list its id on dev only and give counts on the holdout and test sets. | A-1, C-3, A2-2, A2-11 | P-5; code at P-5b |
-| 0003 | **Change kinds** `no-loss` (Δ ≥ 0) and `answerable-floor` (answerable ΔnDCG@10 ≥ −0.01). | A2-2 | P-5; code at P-5b |
-| 0003 | **3G gated without a look**: SC4 + the gibberish set (≥ 90%) + `answerable-floor` on dev + the custodian's count of emptied untagged holdout queries = 0, which is logged as a count, not a look. | A-1, C-3, A2-9 | P-5 |
+| 0003 | **Change kinds** `no-loss` (Δ ≥ 0, with an optional dev-only exemption list, for 3H's constraint-exempt queries) and `answerable-floor` (answerable ΔnDCG@10 ≥ −0.01). | A2-2, C3-8 | P-5; code at P-5b |
+| 0003 | **Look definition: counts are not looks.** `eval:count` prints one integer, is custodian-only, and logs to `eval/count-log.md`, which the ledger never reads. A count is not a verdict, even when a pre-registered gate reads it. | A3-1, A-N9 | in P-5b's commit, with the tool |
+| 0003 | **3G gated without a look**: the SC4 suite + the gibberish gate half (≥ 90%) + no untagged dev query returning `no-signal` + `answerable-floor` on dev + the custodian's `eval:count` of emptied untagged holdout queries = 0. | A-1, C-3, A2-9, A3-1, A3-2, A3-6 | P-5 |
+| 0003 | **Look procedure**: the custodian stores and pools each look's baseline when it is new, and takes the verdict with `eval:report` on stored, fully judged runs. | A3-4 | P-5 |
 | 0003 | **3F gated without a look**: identity with the group-first projection on dev and the fixture + `no-loss` on dev. | A2-4 | P-5 |
 | 0003 | **SC5 reading** recorded as Jacob decides it, with L12 per reading (sealed: none; holdout: the SC5 look via `--gate sc5`, ledger-recorded). | A-3, A2-2, A2-10 | P-7; code at P-5b |
 | 0003 | **groups-v1** named as the duplicate-group rule for dev, holdout, test and the product, with the `eval/groups.json` hash in the locks. | A-2, C-8 | P-5 (groups-v1 merged at P-1) |
-| 0003 | **SC4 custody and test-set exclusions**: the count-only overlap check against the holdout; SC4 and gibberish texts join the test-set exclusion and leak filter; the count-only test answerable tool is not a look. | A-N1, A-N9 | P-5 |
+| 0003 | **SC4 custody and test-set exclusions**: the count-only overlap check against the holdout; SC4 and gibberish texts join the test-set exclusion and leak filter. | A-N1 | P-5 |
 | 0004 | **Per-round cross-family check** (Gemini + Sonnet verifier, blind to A) on differing pairs for 3A-2, 3D, 3E and the SC5 test pool. It replaces the calibration Δ-sign report, and an opposite sign on dev stops the change before its look. | A-N2 | P-5 |
-| 0006 (new) | In-Worker exact dense search; two bundles from one keyed builder; manifest `rowsKey`; deploy guard via `wrangler dev --remote` and the `versions upload` startup gate; split verify and the runbook order with every Vectorize write in step 7; cache key `v=<version id>`; Vectorize as an identical standby; rollback floor `597c2b7`; no production `INGEST_SECRET`. | B-1…B-11, A-N5, B2-1…B2-10 | with 3-0's PR |
-
-r2's amendment "3H gated without a look" is withdrawn: 3H takes L7.
+| 0006 (new) | [Written with this plan](../decisions/0006-phase3-search-quality-plan.md): the key Phase 3 decisions and the dissent from all three rounds. 3-0's PR adds the measured bundle size, startup time and CPU per query. | all three rounds | r3.1 (this PR); 3-0's PR |
 
 ## 10. Gate questions for Jacob
 Q1 and Q2 go together, before the first holdout look. Q3 is asked only if step 3-0.0 triggers
@@ -999,9 +1224,10 @@ it. Q4 is a standing rule that comes up only if a change fails.
   stays on, we fall back to the nearest Asia-Pacific location and the one allowed re-run, and the
   sample may still fall short.
 - **Q3 (only if triggered). Should 3-0 go ahead if embed time alone threatens SC7?** Before
-  building 3-0 we send up to 12 test searches and project how fast search would be with exact
-  vector search in place. If that projection (the 67th percentile, which decides SC7) is above
-  about 200 ms, removing Vectorize alone may not get SC7 under 250 ms. The options:
+  building 3-0 we send up to 12 test searches through Singapore and project how fast search would
+  be with exact vector search in place. If at least 8 of them reach Singapore and that projection
+  (the 67th percentile, which decides SC7) is above about 200 ms, removing Vectorize alone may
+  not get SC7 under 250 ms. The options:
   - build 3-0 anyway: it still removes ~230 ms of Vectorize time, but SC7 may fail on embed time;
   - pause 3-0 while the lead plans an embed-side change.
 - **Q4 (standing rule). If a change SC4 needs fails, who decides?** You do. The changes SC4 needs
@@ -1017,7 +1243,7 @@ goes to Phase 4 as an open question.
 Each round, three independent critics reviewed the draft: A on eval discipline, B on vectors,
 ingest, deploy and cost, C on SC4 and student queries. The lead's default was to accept each
 objection with its proposed fix, with the choices recorded in the dispositions. "Applied" means
-the critic's fix is in the plan as proposed. Locations are r3 sections.
+the critic's fix is in the plan as proposed. Locations are r3.1 sections.
 
 ### Round 1 (r1, PR #27 head 40c5ec0)
 
@@ -1037,8 +1263,8 @@ the critic's fix is in the plan as proposed. Locations are r3 sections.
 | A-N6 | 3-0 identity harness gaps | Applied | 3-0 builder, eval fidelity |
 | A-N7 | SC7 run count and conditions | Applied: one counted run; one declared re-run. The TTFB guard is withdrawn by B2-7 | 3-0 SC7 |
 | A-N8 | 3C diagnostic would break the dev lock | Applied: separate `--set-dir` with its own qrels | 3C |
-| A-N9 | No count-only tool for the test answerable count | Applied: `eval:count --set test` | §5, §9 |
-| B-1 | Vectorize not an identical standby at cutover | Applied: step 7 upserts the 6,778 bundle vectors (round 2: with full metadata) | 3-0 standby |
+| A-N9 | No count-only tool for the test answerable count | Applied: `eval:count --set test` (r3 only named it; P-5b builds it since A3-1) | §3 P-5b, §5, §9 |
+| B-1 | Vectorize not an identical standby at cutover | Applied: step 8 (r3: step 7) upserts the 6,778 bundle vectors (round 2: with full metadata) | 3-0 standby |
 | B-2 | 3A-2 order fails the deploy guard | Applied: manifest `rowsKey` vs `/admin/hashes`; D1 before deploy | 3-0 guard, runbook |
 | B-3 | Stale filter table between ingest and deploy | Applied: `localMatchesFilters` on hydrated dense rows, plus a test | 3-0 runbook |
 | B-4 | Startup gate can't use `--dry-run` | Applied: `versions upload` → `startup_time_ms` ≤ 200 → `versions deploy` | 3-0 startup gate |
@@ -1081,8 +1307,8 @@ the critic's fix is in the plan as proposed. Locations are r3 sections.
 | A2-10 | "Holdout reported as secondary" is an unbudgeted look | Applied: dropped from Q1 and §5 | §5, §10 Q1 |
 | A2-11 | Listing unscored queries prints holdout ids | Applied: ids on dev only; counts elsewhere | §3 P-5b, §9 |
 | A2-12 | `prereq=none` empties d-011 | Applied: two semantics, both pooled, stated selection rule | 3H, §4 |
-| A2-13 | Stale: PR #28 merged; group-aware baseline exists | Applied in part (dissent 3): P-1 done; branch rebased; baseline cited as "under qrels-v2, to be measured" | §1, §3 |
-| B2-1 | Runbook verify always fails; delete and upsert wipe the standby | Applied: verify split; D1-only delete in step 3, `deleteByIds` in step 7; full `storedVectorMetadata` | 3-0 runbook |
+| A2-13 | Stale: PR #28 merged; group-aware baseline exists | Applied in part (dissent 3): P-1 done; branch rebased; baseline cited as "under qrels-v2, to be measured"; since PR #30 it is measured and cited | §1, §3 |
+| B2-1 | Runbook verify always fails; delete and upsert wipe the standby | Applied: verify split; D1-only delete in step 4, `deleteByIds` in step 8 (r3: steps 3 and 7); full `storedVectorMetadata` | 3-0 runbook |
 | B2-2 | `/admin/hashes` exists and 404s in prod; fixture leak via dev | Applied: guard and admin calls via `wrangler dev --remote`; values from the asset in the POST body; no prod secret; "new" struck | 3-0 guard, runbook, §7 |
 | B2-3 | Step 3-0.0 can't produce a warm p67; formula omits fts | Applied: Phase 1 spans + ≤ 12-query burst; per-sample projection with max(); Q3 conditional | §1, 3-0.0, §6, §10 Q3 |
 | B2-4 | CI and SC4 mix catalogues | Applied: pinned bundle for CI and SC4, production bundle for deploys only | 3-0 bundles, §4 |
@@ -1091,7 +1317,7 @@ the critic's fix is in the plan as proposed. Locations are r3 sections.
 | B2-7 | TTFB guard measures connection setup | Applied (lead's choice): rely on the startup gate; report true TTFB against the 3-0.0 baseline; no threshold | 3-0 startup gate, 3-0.0, §8 |
 | B2-8 | Binding limit becomes CPU | Applied: measure `CPUTimeMs` on the 3-0 smoke; README names the smaller | 3-0 CPU, §6, §8 |
 | B2-9 | §6 undercounts deploys | Applied: 11 planned, budgeted at 13 | §6 |
-| B2-10 | Row ingest doesn't reach Vectorize metadata | Applied: step 7 upserts on row-only changes too | 3-0 runbook, 3H |
+| B2-10 | Row ingest doesn't reach Vectorize metadata | Applied: step 8 (r3: step 7) upserts on row-only changes too; since B3-3 it upserts every code | 3-0 runbook, 3H |
 | C2-1 | `XX N000` collides with 36 offered codes | Applied: resolution order; GEA1000 and GEQ1000 in SC4 | 3B, §4 |
 | C2-2 | Spaced-code join turns words into codes | Applied: 1–3-digit join guarded by collision and stopword lists; both texts as guards | 3B, §4 |
 | C2-3 | GE restriction after fusion leaves short pages | Applied: pre-retrieval pillar mask; SC4 count rule | 3B, §4 |
@@ -1103,12 +1329,39 @@ the critic's fix is in the plan as proposed. Locations are r3 sections.
 | C2-9 | Partial-code route needs dense order | Applied: code order in lexical mode and fallback, with a test | 3B |
 | C2-10 | τ rule contradicts itself | Applied with A2-9; prefix test only for ≥ 4 letters | 3G |
 
+### Round 3 (r3, PR #27 head 48f46ba), the final round
+
+| # | Objection (short) | Disposition | Where |
+|---|---|---|---|
+| A3-1 | 3G's holdout count would be a look; no `eval:count` exists | Applied: P-5b builds custodian-only `eval:count` (test answerable, holdout emptied-untagged), one integer, logged in `eval/count-log.md`, with tamper tests; ADR 0003's look definition amended in the same commit | 3G, §3 P-5b and arithmetic, §5, §9 |
+| A3-2 | 3G's no-look gate lets d-095 be emptied; the floor allows 0.83 total loss | Applied in part (dissent 4): no untagged dev query may return `no-signal`; the SC4 suite must be green, typo items included | 3G, §3 look table, §7, §9 |
+| A3-3 | Partial-code rule fails by construction at topK 20 (CS32 27 groups, GEC 35) | Applied (lead's choice): the partial-code and pillar items run at topK = 50; count = G | §1, §4 |
+| A3-4 | Holdout baselines never stored or judged; `eval --holdout` reserves first | Applied: steps 1–2 store and pool a new baseline; step 4 is `eval:report` | §1, §3 holdout, §6, §9 |
+| A3-5 | 3D bundle can't pool with its parts; 3E has 8 new runs | Applied (lead's choice of A3-5's options): a second, dev-only round for 3D's bundle; 3E pools 8 | 3D, 3E, §3, §6 |
+| A3-6 | τ percentile method unstated; candidates derived on the set they're gated on | Applied: nearest rank; a seeded split into derivation and gate halves (set ≥ 40) | 3G, §3 P-6, §6 |
+| A3-7 | 3H fallback "dev runner-up" unranked; pattern list fixed late | Applied: P-6 fixes the cohort-only pattern list and the fallback (the other semantics, same raw/stripped); L7 measures the prereq intent only | 3H, §3 P-6 |
+| B3-1 | New params and `ignore` missing from the cache key | Applied: `exam`, `su`, `hoursBelow`, `prereq` and sorted `ignore` join the key in parsed form, one test each; §1's key description corrected | §1, 3-0 cache key |
+| B3-2 | 3-0.0 burst has no colo rule | Applied: `/health` probes until `cf-ray` is SIN, burst on that connection; < 8 SIN samples → Phase 1 projection stands | §1, 3-0.0, §6, §10 Q3 |
+| B3-3 | Step 7 can't find the changed set, doesn't wait for the mutation, and is a no-op for 3H | Applied: step 8 upserts every code in ≤ 1,000 batches, returns `mutationId`, waits with `waitForMutation`; 3H text reworded | §1, 3-0 runbook, 3H, §6 |
+| B3-4 | "Between steps 3 and 5 (minutes)" is false: deploy needs a merged commit | Applied: data version computed offline; manifest and data version merge at step 2; the guard refuses until D1 matches | §1, 3-0 guard and runbook, rollback, §7 |
+| B3-5 | D1-only `/admin/ingest` is an unnamed code change | Applied: D1-only modes for `/admin/ingest`, `/admin/delete` and `ingest-core`, tested to make no AI or Vectorize call | §1, 3-0 runbook, Touches |
+| B3-6 | The Vectorize flip can't serve 3B masks or 3H filters | Applied: masks in code order, 3H after hydrate, one test; SC4 not claimed under the flip | §1, 3-0 standby, §7 |
+| C3-1 | 4-digit and suffix joins still make words into codes | Applied, stricter than proposed (lead decision below): collision and stopword letters join only as a whole query that names a real code; suffix join needs a real code and never before `/` or `-`; 3H phrases match first; four guards | §1, 3B, §4, §7 |
+| C3-2 | Hard level = N for year phrases contradicts dev (d-064) | Applied (lead's choice): year phrases are the window N ≤ level ≤ 4; `level N000`, `N000 level`, `Nk` stay exact; SC4 year items | §1, 3D, §4, §7 |
+| C3-3 | Same as A3-3 | Applied with A3-3 | §4 |
+| C3-4 | Prefix range scan takes in CSA | Applied: `code >= 'CS0' AND code < 'CS:'`; test that `cs` returns no CSA | §1, 3B |
+| C3-5 | Collision seed misses DSA, SE, PE, LAB | Applied: added; `dsa` guard | §1, 3B, §4 |
+| C3-6 | No rule for an unknown code inside a longer query | Applied: it routes nothing and its tokens stay; d-016 item | §1, 3B, §4 |
+| C3-7 | `lvl 3000` can't fire; mask and third-list order unstated | Applied: `lvl N000` is a 3D phrase; whole-query `cs 3000` is prefix ∩ level by dense score; third list by dense score | 3B, 3D, §4 |
+| C3-8 | §1 misstates d-011; d-099 loses by construction | Applied: §1 corrected; the loss is named; constraint-exempt rule for the dev screen (lead decision below) | §1, 3H, §7 |
+
 ### Dissent and partial application
 1. **B-8, "delay step 5 until smoke passes"** (round 1, applied in part). B-2's guard needs D1's
    text hashes to match the manifest *before* the deploy, so the D1 write cannot wait for the
-   smoke. It runs before the deploy, behind a Time Travel bookmark, and is restored from it if
-   the smoke fails. Every Vectorize write waits for the smoke, as B-8 asks, and since B2-1 that
-   includes deletions. B-8's intent, that a bad deploy can be undone with nothing lost, holds.
+   smoke. It runs before the deploy, behind a Time Travel bookmark, and is restored from it, with
+   step 2's merge reverted, if the smoke fails. Every Vectorize write waits for the smoke, as B-8
+   asks, and since B2-1 that includes deletions. B-8's intent, that a bad deploy can be undone
+   with nothing lost, holds.
 2. **A2-7, a fallback per SC4-required change** (applied in part). Every one has a
    pre-registered fallback, but in some cases it coincides with the candidate or does not exist:
    - 3B's is "without `stopwords-v2`". When `stopwords-v2` already failed dev, L3 carries 3B
@@ -1119,9 +1372,15 @@ the critic's fix is in the plan as proposed. Locations are r3 sections.
 
    In each case a failure goes straight to Jacob (Q4). Writing extra variants now would add
    designs no critic has reviewed.
-3. **A2-13, the group-aware baseline on `docs/phase2-baseline`** (applied in part). r3 does not
+3. **A2-13, the group-aware baseline on `docs/phase2-baseline`** (applied in part). The plan does not
    cite that table: it is scored under `qrels-dev-v1`, which scores d-087 to d-092 as no-answer.
-   P-0a supersedes it, and P-4 measures the baseline r3 gates on.
+   P-0a supersedes it, and the plan gates on the `qrels-dev-v2` baseline in `EVAL.md` (P-4, PR
+   #30).
+4. **A3-2, "the whole SC4 suite green" at 3G's gate** (round 3, applied in part). 3G can merge
+   before 3H, and a change SC4 needs can be dropped (Q4), so a literal whole-suite rule could
+   block 3G for reasons it doesn't control. Items owned by an unmerged or dropped workstream are
+   listed and skipped. The typo, gibberish, non-existent-code and guard items, which A3-2 is
+   about, are never skipped, and SC4's exit check (§8) still needs the whole suite.
 
 ### Decisions beyond a critic's text
 Recorded so they can be challenged:
@@ -1142,3 +1401,22 @@ Recorded so they can be challenged:
 - From round 1, still standing: `no background` sets both the beginner intent and
   `prereq=none`, each echoed and undoable; "light" = 10 h; the raw-vs-stripped margin 0.05; the
   gibberish threshold 90%. Each is fixed at P-6.
+
+From round 3:
+- **3H's constraint-exempt queries (C3-8).** The dev screen's `no-loss` excludes a query whose
+  every relevant document fails the parsed constraint. The student asked for the constraint, so
+  removing those answers is what they asked for. The exemption covers the dev screen only; L7's
+  holdout rule is unchanged. Pre-registered at P-6.
+- **The join rule is stricter than C3-1 proposed.** C3-1 lets collision-list letters join
+  whenever the result is a real code. ME3000 is offered, so `give me 3000 level electives` would
+  still pin it. In r3.1 collision and stopword letters join only when they and the digits are
+  the whole query. The cost is that `is 4246 workload` is not pinned.
+- **Several level phrases in one query take the union** of their ranges (d-045 → levels 3–4).
+  C3-2 sets the year window but not how it combines with an exact level.
+- **`first year` and `1st year` stay beginner.** Their hard effect is the year window with
+  N = 1, plus α.
+- **The gibberish set grows to ≥ 40**, so each half of A3-6's split holds ≥ 20 strings.
+- **The GE-inside-a-longer-query rule counts groups**, as A3-3's partial-code rule does, so a
+  collapsed page cannot fail it by construction.
+- **3D's bundle gets a second dev-only round** rather than pooling all 12 α × β points: one
+  extra run instead of 12.
