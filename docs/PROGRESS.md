@@ -562,3 +562,24 @@ fails on the previous code.
   On the no-answer queries (n = 15), 0% come back empty, 11 return false positives and 4 return
   errors. Violations@10 total 12. EVAL.md's baseline table with CIs follows the holdout judging.
 - Next: holdout judging (custodian, single judge); Jacob's human calibration export.
+
+
+## 2026-11-04 — Phase 2d: holdout qrels v1 (single judge, custodian)
+
+- **Store-only holdout runs.** The custodian stored `v0-lexical` and `v0-vector` holdout runs
+  (`--store-only`, so no look; the ledger is unchanged). They pooled with `v0` (`--custodian`):
+  1,319 documents over 81 queries.
+- **Round h1.** Single judge, `claude-opus-5-5`, seed 20261105, 7 packets. The judges ran as
+  in-process subagents, not T3 threads (Phase 2 plan, objection 14), and each read only its own
+  packet.
+  - Grading: 1,361 of 1,361 items; all 65 planted repeats got the same grade twice.
+  - Merged into `eval/holdout/qrels.json.enc` (`qrels-holdout-v1`): 23 rule pairs and 1,296 pairs
+    graded by A. Only ciphertext is committed.
+  - The plaintext packets and outputs were deleted (`clean`).
+- **Setting difference.** Dev judge A ran as a T3 delegate at medium effort. The holdout judges ran
+  as in-process subagents at the session's default effort. Model, packet format and instructions
+  are identical.
+- **Next:**
+  - EVAL.md baseline table with CIs. Dev is from `qrels-dev-v1`; the holdout verdict is spent only
+    on Phase 3 candidates.
+  - Jacob's calibration sheet (`.eval-work/calibration-dev.csv`, 150 pairs).
