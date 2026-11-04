@@ -7,9 +7,10 @@ import { describe, expect, it } from 'vitest';
 import { agreementBlock } from '../../eval/lib/agreement.mjs';
 import {
   agreementUnits, allocate, buildAdjudication, buildRound, calibrationCsv, calibrationSample, chunkEvenly, collectOutputs,
-  constraintText, driftReport, finalJudgments, gradeBy, humanAgreement, judgedPairKeys, mergeQrels, ndcgDelta, nextVersion,
-  pairKey, parseCsv, poolCandidate, preGrade, qrelsUnder, readCalibration, renderAdjudicationPacket, renderJudgePacket,
-  sampleDrift, selfConsistency, toCsv, validateSectionOutput, verbatimBlock,
+  constraintText, driftReport, dropJudge, finalJudgments, gradeBy, humanAgreement, isRuleJudgment, isSingleJudge, judgeSlots,
+  graderLabels, judgedPairKeys, mergeQrels, ndcgDelta, nextVersion, pairKey, parseCsv, poolCandidate, preGrade, qrelsSlots, qrelsUnder,
+  readCalibration, renderAdjudicationPacket, renderJudgePacket, sampleDrift, selfConsistency, toCsv, validateSectionOutput,
+  verbatimBlock,
 } from '../../eval/lib/judging.mjs';
 import { qrelsFor, scoreRun } from '../../eval/lib/metrics.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
@@ -520,5 +521,172 @@ describe('calibration', () => {
     expect(Object.keys(qrelsUnder(qrels, 'A', subset).queries['q-01'].judgments)).toEqual(['CS100', 'CS101']);
     // scoreRun accepts every re-graded qrels.
     expect(() => scoreRun(base, q, qrelsUnder(qrels, 'B'))).not.toThrow();
+  });
+});
+
+describe('single-judge rounds', () => {
+  const single = (/** @type {Partial<import('../../eval/lib/judging.mjs').RoundOptions>} */ over = {}) => makeRound({ judges: { A: 'judge-a' }, ...over });
+
+  it('prepare with one judge: only A batches, items and grades; same A items as a two-judge round', () => {
+    const round = single();
+    expect(round.judges).toEqual({ A: 'judge-a' });
+    expect(Object.keys(round.batches)).toEqual(['A']);
+    expect(Object.keys(round.grades)).toEqual(['A']);
+    expect(Object.values(round.items).every((i) => i.slot === 'A')).toBe(true);
+    expect(judgeSlots(round)).toEqual(['A']);
+    expect(isSingleJudge(round)).toBe(true);
+    const pair = makeRound();
+    expect(judgeSlots(pair)).toEqual(['A', 'B']);
+    expect(isSingleJudge(pair)).toBe(false);
+    expect(round.batches.A).toEqual(pair.batches.A);
+    expect(Object.fromEntries(Object.entries(pair.items).filter(([, i]) => i.slot === 'A'))).toEqual(round.items);
+    const packet = renderJudgePacket(round, 'A', 'b01', { judging: JUDGING, queries: QUERIES, outDir: '/tmp/vnm-out' });
+    expect(packet).toContain('# Relevance judging packet r1-A-b01');
+  });
+
+  it('planted repeats and the drift sample go to A', () => {
+    const round = single({ drift: [{ queryId: 'q-03', code: 'OLD1', grade: 2, candidate: mod('OLD1') }] });
+    const items = Object.values(round.items);
+    expect(items.filter((i) => i.kind === 'repeat').length).toBeGreaterThan(0);
+    expect(items.filter((i) => i.kind === 'drift').map((i) => `${i.slot}:${i.code}`)).toEqual(['A:OLD1']);
+  });
+
+  it('refuses a round without judge A, and reserved ids', () => {
+    expect(() => makeRound({ judges: /** @type {any} */ ({ B: 'judge-b' }) })).toThrow(/judge A/);
+    expect(() => single({ judges: { A: 'adjudicator' } })).toThrow(/reserved/);
+  });
+
+  it('final = rule, else A (source "judged"); throws with counts while an A pair is ungraded', () => {
+    const round = single();
+    expect(() => finalJudgments(round)).toThrow(/^not every pair has a final grade: 112 without judge A's grade$/);
+    gradeAll(round, 'A', (_q, c) => (c.endsWith('0') ? 2 : 1));
+    const f = finalJudgments(round);
+    expect(f.size).toBe(14 * 8 + 2);
+    expect(f.get(pairKey('q-01', 'RUL9901'))).toMatchObject({ grade: 0, source: 'rule' });
+    expect(f.get(pairKey('q-02', 'CS200'))).toEqual({ grade: 2, source: 'judged', judges: { 'judge-a': { slot: 'A', grade: 2, rationale: 'r CS200' } } });
+    // An ungraded planted repeat does not block; an ungraded new item does.
+    const rep = Object.entries(round.items).find(([, i]) => i.kind === 'repeat');
+    delete round.grades.A[/** @type {any} */ (rep)[0]];
+    expect(() => finalJudgments(round)).not.toThrow();
+    const fresh = Object.entries(round.items).find(([, i]) => i.kind === 'new');
+    delete round.grades.A[/** @type {any} */ (fresh)[0]];
+    expect(() => finalJudgments(round)).toThrow(/: 1 without judge A's grade$/);
+  });
+
+  it('adjudication refuses a single-judge round', () => {
+    const round = single();
+    gradeAll(round, 'A', () => 1);
+    expect(() => buildAdjudication(round, { adjudicator: 'adj' })).toThrow(/single-judge/);
+    expect(agreementUnits(round)).toEqual([]);
+  });
+
+  it('merge records single-judge mode and writes qrels the scorer accepts', () => {
+    const round = single();
+    gradeAll(round, 'A', (_q, c) => (c.endsWith('0') ? 2 : 0));
+    const q = mergeQrels(round, { createdAt: 'now' });
+    expect(q.judging).toEqual([{ round: 'r1', mode: 'single', judges: { A: 'judge-a' }, adjudicator: null, pairs: 114, pool: 'pool-sha', createdAt: 'now' }]);
+    expect(q.queries['q-02'].judgments.CS200).toMatchObject({ grade: 2, source: 'judged', round: 'r1' });
+    expect(qrelsFor(q, 'q-02', 1).grades.get('CS201')).toBe(0);
+    expect(isRuleJudgment(q.queries['q-02'].judgments.CS200)).toBe(false);
+    expect(isRuleJudgment(q.queries['q-01'].judgments.RUL9901)).toBe(true);
+    // Rule pairs stay out of the drift sample; judged pairs are in it.
+    expect(sampleDrift(q, { seed: 1, rate: 1 })).toHaveLength(14 * 8);
+  });
+});
+
+describe('dropJudge', () => {
+  /** @returns {import('../../eval/lib/judging.mjs').Round} */
+  const graded = () => {
+    const round = makeRound();
+    gradeAll(round, 'A', (_q, c) => (c.endsWith('0') ? 2 : 1));
+    return round;
+  };
+
+  it('turns a two-judge round into a single-judge round, keeping A untouched', () => {
+    const round = graded();
+    const before = JSON.parse(JSON.stringify(round));
+    const aItems = Object.fromEntries(Object.entries(before.items).filter(([, i]) => /** @type {any} */ (i).slot === 'A'));
+    dropJudge(round, { slot: 'B', reason: 'owner decision: one judge', at: '2026-11-04T01:00:00Z' });
+    expect(round.judges).toEqual({ A: 'judge-a' });
+    expect(round.batches).toEqual({ A: before.batches.A });
+    expect(round.grades).toEqual({ A: before.grades.A });
+    expect(round.items).toEqual(aItems);
+    expect(round.dropped).toEqual([{ slot: 'B', judge: 'judge-b', reason: 'owner decision: one judge', at: '2026-11-04T01:00:00Z' }]);
+    expect(isSingleJudge(round)).toBe(true);
+    // A's collected outputs still validate against the same item ids.
+    const answer = (/** @type {string[]} */ ids) => JSON.stringify(Object.fromEntries(ids.map((id) => [id, { grade: 1, rationale: 'ok' }])));
+    const r = collectOutputs(round.batches.A, round.grades.A, (b, s) => answer(/** @type {any} */ (round.batches.A.find((x) => x.id === b)).sections.find((/** @type {any} */ x) => x.id === s).items), 'A');
+    expect(r.problems).toEqual([]);
+    expect(finalJudgments(round).get(pairKey('q-02', 'CS200'))).toMatchObject({ source: 'judged' });
+    const q = mergeQrels(round, { createdAt: 'now' });
+    expect(q.judging[0]).toEqual({
+      round: 'r1', mode: 'single', judges: { A: 'judge-a' }, adjudicator: null,
+      dropped: [{ slot: 'B', judge: 'judge-b', reason: 'owner decision: one judge', at: '2026-11-04T01:00:00Z' }],
+      pairs: 114, pool: 'pool-sha', createdAt: 'now',
+    });
+  });
+
+  it('refuses an unknown slot, slot A, a slot with no judge, and an empty reason', () => {
+    expect(() => dropJudge(graded(), { slot: 'C', reason: 'x' })).toThrow(/unknown judge slot/);
+    expect(() => dropJudge(graded(), { slot: 'A', reason: 'x' })).toThrow(/cannot drop judge A/);
+    const round = graded();
+    dropJudge(round, { slot: 'B', reason: 'x' });
+    expect(() => dropJudge(round, { slot: 'B', reason: 'x' })).toThrow(/no judge in slot B/);
+    expect(() => dropJudge(graded(), { slot: 'B', reason: '  ' })).toThrow(/reason/);
+  });
+
+  it('refuses once adjudication has started, and when B has grades unless forced', () => {
+    const adj = graded();
+    gradeAll(adj, 'B', () => 1);
+    adj.adjudication = buildAdjudication(adj, { adjudicator: 'adj' });
+    expect(() => dropJudge(adj, { slot: 'B', reason: 'x', force: true })).toThrow(/adjudication/);
+    const round = graded();
+    const first = Object.entries(round.items).find(([, i]) => i.slot === 'B');
+    round.grades.B[/** @type {any} */ (first)[0]] = { grade: 1, rationale: 'b' };
+    expect(() => dropJudge(round, { slot: 'B', reason: 'x' })).toThrow(/judge B has 1 collected grade/);
+    dropJudge(round, { slot: 'B', reason: 'x', force: true });
+    expect(round.grades).toEqual({ A: expect.any(Object) });
+  });
+});
+
+describe('calibration on single-judge qrels', () => {
+  const round = makeRound({ judges: { A: 'judge-a' } });
+  gradeAll(round, 'A', (_q, c) => (c.endsWith('0') ? 2 : c.endsWith('1') ? 1 : 0));
+  const qrels = mergeQrels(round, { createdAt: 'now' });
+
+  it('reports human vs A and final, and no B', () => {
+    expect(qrelsSlots(qrels)).toEqual(['A']);
+    const graded = [{ queryId: 'q-02', code: 'CS200', grade: 2 }, { queryId: 'q-02', code: 'CS201', grade: 0 }, { queryId: 'q-02', code: 'CS202', grade: 0 }];
+    const h = humanAgreement(graded, qrels, agreementBlock);
+    expect(Object.keys(h.bySource)).toEqual(['A', 'final']);
+    expect(/** @type {any} */ (h.bySource.A).n).toBe(3);
+    expect(gradeBy(qrels.queries['q-02'].judgments.CS201, 'A')).toBe(1);
+    expect(gradeBy(qrels.queries['q-02'].judgments.CS201, 'B')).toBeNull();
+    expect(gradeBy(qrels.queries['q-01'].judgments.RUL9901, 'A')).toBe(0);
+  });
+
+  it('refuses to re-grade the qrels under a judge they have no grades from', () => {
+    expect(() => qrelsUnder(qrels, 'B')).toThrow(/no grades from judge B/);
+    expect(Object.keys(qrelsUnder(qrels, 'A').queries['q-02'].judgments)).toHaveLength(8);
+  });
+
+  it('leaves out of a judge column the pairs that judge did not grade (mixed qrels), keeping rule pairs', () => {
+    /** @type {any} */
+    const mixed = JSON.parse(JSON.stringify(qrels));
+    mixed.queries['q-02'].judgments.CS200.judges['judge-b'] = { slot: 'B', grade: 0, rationale: 'x' };
+    expect(qrelsSlots(mixed)).toEqual(['A', 'B']);
+    const underB = qrelsUnder(mixed, 'B');
+    expect(underB.queries['q-02'].judgments).toEqual({ CS200: 0 });
+    expect(underB.queries['q-01'].judgments.RUL9901).toBe(0);
+    expect(Object.keys(qrelsUnder(mixed, 'A').queries['q-02'].judgments)).toHaveLength(8);
+  });
+});
+
+describe('graderLabels', () => {
+  it('names the final grade by what the qrels record', () => {
+    expect(graderLabels(['A', 'B'])).toEqual({ note: '', final: 'final (adjudicated)' });
+    expect(graderLabels(['A'])).toEqual({ note: '; single-judge qrels (judge A only)', final: 'final (rule, else A)' });
+    expect(graderLabels([])).toEqual({ note: '; the qrels record no judge grades', final: 'final' });
+    expect(graderLabels(['A', 'B'], true)).toEqual({ note: '; mixes single- and two-judge rounds', final: 'final (adjudicated, or rule, else A)' });
   });
 });

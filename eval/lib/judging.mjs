@@ -10,6 +10,8 @@
 //        --agreementUnits--> A vs B (agreement.mjs)
 //        --buildAdjudication--> pass 1 (blind) and pass 2 (both grades) packets
 //        --finalJudgments/mergeQrels--> vnm-eval-qrels/1 with a judges object
+// A single-judge round (judges { A } only, from prepare or dropJudge) skips
+// agreement and adjudication: its final grade is rule, else A's.
 // Packets never carry a query id, shape, persona, system, rank or score.
 // Validation messages never quote judge-written text (it may carry holdout
 // content): they name files, sections, item ids and value types only.
@@ -49,6 +51,8 @@ export const DEFAULT_CALIBRATION_N = 150;
  * @typedef {{ slot: string, batch: string, section: string, queryId: string, code: string, kind: 'new' | 'repeat' | 'drift', repeatOf?: string }} Item
  * @typedef {{ id: string, queryId: string, seed: number, items: string[] }} Section
  * @typedef {{ id: string, seed: number, sections: Section[] }} Batch
+ * @typedef {{ A: string, B?: string }} Judges
+ * @typedef {{ slot: Slot, judge: string, reason: string, at: string }} DroppedJudge
  */
 
 // ---------------------------------------------------------------------------
@@ -182,15 +186,30 @@ export function preGrade(pool) {
 /**
  * @typedef {{
  *   pool: Pool, poolSha256: string, queries: EvalQuery[], set: string, round: string,
- *   judges: Record<Slot, string>, seed: number, batchSize?: number, repeatRate?: number,
+ *   judges: Judges, seed: number, batchSize?: number, repeatRate?: number,
  *   drift?: { queryId: string, code: string, grade: number, candidate: Candidate }[], driftFrom?: string | null,
  *   createdAt?: string,
  * }} RoundOptions
  */
 
 /**
+ * The judge slots a round (or its judges object) uses: A, or A and B.
+ * @param {{ judges: Judges }} round
+ * @returns {Slot[]}
+ */
+export const judgeSlots = (round) => JUDGE_SLOTS.filter((s) => round.judges[s]);
+
+/**
+ * Is this a single-judge round (judge A only)?
+ * @param {{ judges: Judges }} round
+ */
+export const isSingleJudge = (round) => !round.judges.B;
+
+/**
  * Builds a judging round: rule grades, then for each judge slot its own
  * shuffled batches of ~batchSize queries with planted repeats and drift items.
+ * With judges { A } only it is a single-judge round: A's batches are the same
+ * as in a two-judge round with the same seed.
  * @param {RoundOptions} o
  */
 export function buildRound(o) {
@@ -198,9 +217,10 @@ export function buildRound(o) {
   const repeatRate = o.repeatRate ?? DEFAULT_REPEAT_RATE;
   if (!(batchSize >= 1)) throw new Error('batch size must be at least 1');
   if (!(repeatRate >= 0 && repeatRate < 1)) throw new Error('repeat rate must be in [0, 1)');
+  if (!o.judges.A) throw new Error('a round needs judge A');
   if (o.judges.A === o.judges.B) throw new Error('judges A and B must be different judges');
-  assertJudgeId(o.judges.A);
-  assertJudgeId(o.judges.B);
+  const slots = judgeSlots(o);
+  for (const slot of slots) assertJudgeId(/** @type {string} */ (o.judges[slot]));
   const byId = new Map(o.queries.map((q) => [q.id, q]));
   for (const q of o.pool.queries) if (!byId.has(q.id)) throw new Error(`the pool has a query that is not in the ${o.set} query set; re-pool from current runs`);
   const { rule, toJudge } = preGrade(o.pool);
@@ -234,7 +254,7 @@ export function buildRound(o) {
   const idRand = rng(deriveSeed(o.seed, 'ids'));
   /** @type {Record<string, Batch[]>} */
   const batches = {};
-  for (const slot of JUDGE_SLOTS) {
+  for (const slot of slots) {
     const order = rng(deriveSeed(o.seed, 'order', slot));
     const qids = [...new Set([...Object.keys(toJudge).filter((id) => toJudge[id].length), ...driftByQuery.keys()])].sort();
     batches[slot] = chunkEvenly(shuffle(qids, order), batchSize).map((chunk, b) => {
@@ -305,12 +325,39 @@ export function buildRound(o) {
     drift,
     items,
     batches,
-    grades: /** @type {Record<string, Record<string, Grade>>} */ ({ A: {}, B: {} }),
+    grades: /** @type {Record<string, Record<string, Grade>>} */ (Object.fromEntries(slots.map((s) => [s, {}]))),
     adjudication: /** @type {Adjudication | null} */ (null),
   };
 }
 
-/** @typedef {ReturnType<typeof buildRound>} Round */
+/** @typedef {ReturnType<typeof buildRound> & { dropped?: DroppedJudge[] }} Round */
+
+/**
+ * Turns a two-judge round into a single-judge round by removing judge B:
+ * its batches, items and grades go; A's batches, items (same ids) and grades
+ * stay untouched. Records { slot, judge, reason, at } in `round.dropped`.
+ * Refuses once adjudication has started, and when B has collected grades
+ * unless `force`. Mutates and returns the round.
+ * @param {Round} round
+ * @param {{ slot: string, reason: string, force?: boolean, at?: string }} o
+ */
+export function dropJudge(round, o) {
+  if (!JUDGE_SLOTS.includes(/** @type {any} */ (o.slot))) throw new Error(`unknown judge slot "${o.slot}"; expected ${JUDGE_SLOTS.join(' or ')}`);
+  const slot = /** @type {Slot} */ (o.slot);
+  if (slot === 'A') throw new Error('cannot drop judge A: a round always keeps judge A');
+  const judge = round.judges[slot];
+  if (!judge) throw new Error(`round ${round.round} has no judge in slot ${slot}`);
+  if (typeof o.reason !== 'string' || !o.reason.trim()) throw new Error('dropping a judge needs a reason');
+  if (round.adjudication) throw new Error('this round is already in adjudication; a judge cannot be dropped');
+  const graded = Object.keys(round.grades[slot] ?? {}).length;
+  if (graded && !o.force) throw new Error(`judge ${slot} has ${graded} collected grade(s); pass force to drop them`);
+  delete round.judges[slot];
+  delete round.batches[slot];
+  delete round.grades[slot];
+  for (const [id, it] of Object.entries(round.items)) if (it.slot === slot) delete round.items[id];
+  round.dropped = [...(round.dropped ?? []), { slot, judge, reason: o.reason.trim(), at: o.at ?? new Date().toISOString() }];
+  return round;
+}
 
 // ---------------------------------------------------------------------------
 // packets
@@ -614,6 +661,7 @@ export function judgedPairKeys(round) {
  * @param {{ adjudicator: string, batchSize?: number }} o
  */
 export function buildAdjudication(round, o) {
+  if (isSingleJudge(round)) throw new Error('a single-judge round has no adjudication: its final grade is rule, else judge A');
   const missing = judgedPairKeys(round).filter((k) => !slotPairGrades(round, 'A').has(k) || !slotPairGrades(round, 'B').has(k));
   if (missing.length) throw new Error(`${missing.length} pair(s) lack a grade from judge A or B; collect both judges first`);
   if (Object.values(round.judges).includes(o.adjudicator)) throw new Error('the adjudicator must not be one of the judges');
@@ -703,13 +751,27 @@ export function renderAdjudicationPacket(round, batchId, pass, o) {
 
 /**
  * The final judgment of every pool pair: `rule` where it applies, else the
- * agreed A = B grade, else the adjudicator's pass-2 grade. Throws, with
- * counts only, when a pair has no final grade yet.
+ * agreed A = B grade, else the adjudicator's pass-2 grade. In a single-judge
+ * round: `rule`, else A's grade (source `judged`). Throws, with counts only,
+ * when a pair has no final grade yet.
  * @param {Round} round
- * @returns {Map<string, { grade: number, source: 'rule' | 'agreed' | 'adjudicated', judges: Record<string, unknown> }>}
+ * @returns {Map<string, { grade: number, source: 'rule' | 'agreed' | 'adjudicated' | 'judged', judges: Record<string, unknown> }>}
  */
 export function finalJudgments(round) {
   const a = slotPairGrades(round, 'A'), b = slotPairGrades(round, 'B');
+  if (isSingleJudge(round)) {
+    /** @type {ReturnType<typeof finalJudgments>} */
+    const out = new Map();
+    let ungraded = 0;
+    for (const [key, g] of Object.entries(round.rule)) out.set(key, { grade: 0, source: 'rule', judges: { [RULE]: { slot: RULE, grade: g.grade, rationale: g.rationale } } });
+    for (const key of judgedPairKeys(round)) {
+      const ga = a.get(key);
+      if (!ga) { ungraded++; continue; }
+      out.set(key, { grade: ga.grade, source: 'judged', judges: { [round.judges.A]: { slot: 'A', grade: ga.grade, rationale: ga.rationale } } });
+    }
+    if (ungraded) throw new Error(`not every pair has a final grade: ${ungraded} without judge A's grade`);
+    return out;
+  }
   const adj = round.adjudication;
   /** @type {Map<string, string>} pair -> adjudication item */
   const adjByPair = new Map(Object.entries(adj?.items ?? {}).map(([id, it]) => [pairKey(it.queryId, it.code), id]));
@@ -723,7 +785,7 @@ export function finalJudgments(round) {
     /** @type {Record<string, unknown>} */
     const judges = {
       [round.judges.A]: { slot: 'A', grade: ga.grade, rationale: ga.rationale },
-      [round.judges.B]: { slot: 'B', grade: gb.grade, rationale: gb.rationale },
+      [/** @type {string} */ (round.judges.B)]: { slot: 'B', grade: gb.grade, rationale: gb.rationale },
     };
     if (ga.grade === gb.grade) {
       out.set(key, { grade: ga.grade, source: 'agreed', judges });
@@ -788,7 +850,14 @@ export function mergeQrels(round, o = {}) {
     groups: base?.groups ?? [],
     judging: [
       .../** @type {any} */ (base)?.judging ?? [],
-      { round: round.round, judges: round.judges, adjudicator: round.adjudication?.adjudicator ?? null, pairs: finals.size, pool: round.pool.sha256, createdAt: o.createdAt ?? new Date().toISOString() },
+      {
+        round: round.round,
+        ...(isSingleJudge(round) ? { mode: 'single' } : {}),
+        judges: round.judges,
+        adjudicator: round.adjudication?.adjudicator ?? null,
+        ...(round.dropped?.length ? { dropped: round.dropped } : {}),
+        pairs: finals.size, pool: round.pool.sha256, createdAt: o.createdAt ?? new Date().toISOString(),
+      },
     ],
     queries,
   };
@@ -801,7 +870,8 @@ export function mergeQrels(round, o = {}) {
 // drift sampling
 
 /**
- * Was a qrels judgment graded by the mechanical rule?
+ * Was a qrels judgment graded by the mechanical rule? (Sources: rule, agreed,
+ * adjudicated, and judged for a single-judge round's A grade.)
  * @param {import('./metrics.mjs').Judgment} j
  */
 export const isRuleJudgment = (j) => typeof j === 'object' && (j.source === RULE || (!!j.judges && typeof j.judges === 'object' && RULE in /** @type {object} */ (j.judges)));
@@ -1014,7 +1084,40 @@ export function gradeBy(j, source) {
 }
 
 /**
- * Agreement of Jacob's grades with judge A, judge B and the final grade.
+ * How the calibration report names its graders, from the slots the qrels
+ * record: two judges are adjudicated, A alone is "rule, else A", none is just
+ * the qrels grade. `mixed`: the qrels also hold a single-judge round.
+ * @param {Slot[]} slots
+ * @param {boolean} [mixed]
+ */
+export function graderLabels(slots, mixed = false) {
+  if (slots.includes('B') && mixed) return { note: '; mixes single- and two-judge rounds', final: 'final (adjudicated, or rule, else A)' };
+  if (slots.includes('B')) return { note: '', final: 'final (adjudicated)' };
+  if (slots.length === 1 && slots[0] === 'A') return { note: '; single-judge qrels (judge A only)', final: 'final (rule, else A)' };
+  return { note: '; the qrels record no judge grades', final: 'final' };
+}
+
+/**
+ * The judge slots (A, B) whose grades the qrels record, in slot order. A
+ * single-judge qrels gives ['A'].
+ * @param {Qrels} qrels
+ * @returns {Slot[]}
+ */
+export function qrelsSlots(qrels) {
+  /** @type {Set<string>} */
+  const seen = new Set();
+  for (const q of Object.values(qrels.queries)) {
+    for (const j of Object.values(q.judgments)) {
+      if (typeof j !== 'object' || !j.judges || typeof j.judges !== 'object') continue;
+      for (const x of Object.values(/** @type {Record<string, any>} */ (j.judges))) if (x && typeof x.slot === 'string') seen.add(x.slot);
+    }
+  }
+  return JUDGE_SLOTS.filter((s) => seen.has(s));
+}
+
+/**
+ * Agreement of Jacob's grades with each judge the qrels record (A, and B in
+ * a two-judge qrels) and the final grade.
  * @param {{ queryId: string, code: string, grade: number }[]} graded
  * @param {Qrels} qrels
  * @param {(a: number[], b: number[]) => unknown} block agreement.mjs agreementBlock
@@ -1023,7 +1126,7 @@ export function humanAgreement(graded, qrels, block) {
   /** @type {Record<string, unknown>} */
   const out = {};
   let unknown = 0;
-  for (const source of ['A', 'B', 'final']) {
+  for (const source of [...qrelsSlots(qrels), 'final']) {
     const h = [], o = [];
     for (const g of graded) {
       const j = qrels.queries[g.queryId]?.judgments[g.code];
@@ -1041,13 +1144,19 @@ export function humanAgreement(graded, qrels, block) {
 /**
  * The qrels re-graded by one source. With `subset` (pair key -> grade, e.g.
  * Jacob's), only those pairs are kept: graded by the subset itself when
- * `source` is "human", else by `source`.
+ * `source` is "human", else by `source`. A judge slot the qrels hold no
+ * grades from (B in a single-judge qrels) is refused rather than silently
+ * falling back to the final grade; in qrels that mix rounds, pairs a slot did
+ * not grade are left out of its column (rule pairs are 0 for every slot).
  * @param {Qrels} qrels
  * @param {string} source final | A | B | human
  * @param {Map<string, number>} [subset]
  * @returns {Qrels}
  */
 export function qrelsUnder(qrels, source, subset) {
+  if (JUDGE_SLOTS.includes(/** @type {any} */ (source)) && !qrelsSlots(qrels).includes(/** @type {Slot} */ (source))) {
+    throw new Error(`the qrels hold no grades from judge ${source}`);
+  }
   /** @type {Record<string, import('./metrics.mjs').QueryQrels>} */
   const queries = {};
   for (const [qid, q] of Object.entries(qrels.queries)) {
@@ -1056,7 +1165,9 @@ export function qrelsUnder(qrels, source, subset) {
     for (const [code, j] of Object.entries(q.judgments)) {
       const key = pairKey(qid, code);
       if (subset && !subset.has(key)) continue;
-      const g = source === 'human' ? subset?.get(key) : gradeBy(j, source) ?? gradeOf(j);
+      const g = source === 'human' ? subset?.get(key)
+        : JUDGE_SLOTS.includes(/** @type {any} */ (source)) ? gradeBy(j, source)
+          : gradeBy(j, source) ?? gradeOf(j);
       if (g === undefined || g === null) continue;
       judgments[code] = g;
     }
