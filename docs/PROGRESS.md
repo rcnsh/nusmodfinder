@@ -605,3 +605,15 @@ fails on the previous code.
   stays for rollback.
 - SC7 still needs the warm path fixed: about 320 ms of embed plus vector. The candidate is
   in-Worker exact vector search, for Phase 3 planning.
+
+
+## 2026-11-04 — Judge A calibration by model cross-check
+
+- Jacob replaced human calibration with a model cross-check (ADR 0004 amendment).
+- **Grading:** `gemini-3.8-flash-high` graded the 150 calibration pairs blind to A, then fresh
+  Sonnet verifiers checked every grade and overturned 4.
+- **Agreement with A:** verified grades raw 0.880, quadratic κ 0.915; Gemini alone raw 0.867,
+  κ 0.893. A is slightly lenient on partial matches, and the Δ sign agrees.
+- **Evidence:** `docs/evidence/phase2/calibration/`.
+- **Process note:** the first Gemini run wrote all 150 rows in one reply and hit the 32k
+  output-token cap. Batches of 30 work.
