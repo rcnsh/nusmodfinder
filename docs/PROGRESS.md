@@ -540,3 +540,25 @@ fails on the previous code.
   and the cache moves to `.data/cache/` (PR #16).
 - **Upstream changed.** NUSMods published a new catalogue at 05:35 UTC: 97 modules dropped, 104
   added, 302 changed. It lands as an incremental ingest after the second fidelity check.
+
+
+## 2026-11-04 — Phase 2d: dev qrels v1 (single judge)
+
+- Round r1 is now single-judge (ADR 0004). `drop-judge` removed judge B's 8 unjudged packets and
+  recorded the reason. Judge A (`claude-opus-5-5`) graded 1,671 of 1,671 items; all 80 planted
+  repeats got the same grade twice. That agreement is a floor on A's consistency, since the
+  repeats sat in the same packets as their originals.
+- `eval/dev/qrels.json` is `qrels-dev-v1`: 1,616 pairs over 94 queries (25 graded by the rule,
+  1,591 by A), with grades 0/1/2 = 1,076 / 361 / 179. 83 queries are answerable. The other 4 dev
+  queries have no pool: their runs return 400, because q is over 200 characters.
+- Baseline on dev, primary answerable n = 78, judged@10 = 100% for all three runs:
+
+  | run | nDCG@10 | P@5 | MRR@10 |
+  |---|---|---|---|
+  | v0 hybrid | 0.762 | 0.631 | 0.872 |
+  | v0 lexical only | 0.648 | 0.495 | 0.800 |
+  | v0 vector only | 0.723 | 0.603 | 0.848 |
+
+  On the no-answer queries (n = 15), 0% come back empty, 11 return false positives and 4 return
+  errors. Violations@10 total 12. EVAL.md's baseline table with CIs follows the holdout judging.
+- Next: holdout judging (custodian, single judge); Jacob's human calibration export.
