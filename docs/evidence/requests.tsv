@@ -72,3 +72,9 @@ o7	browser other	/facets	phase0 0b fe.mjs
 66	fetch	[search#64] p1_smoke GET /search?q=machine+learning | http=200 total=1.129 | x-app-version=c2d37d5	phase1 post-deploy smoke
 67	fetch	[search#65] p1_smoke GET /search?q=CS2030S | http=200 total=0.551 | x-app-version=c2d37d5	phase1 post-deploy smoke
 68	fetch	[search#66] p1_smoke GET /search?q=japanese+culture&sem=1&ng=1 | http=200 total=0.580 | x-app-version=c2d37d5	phase1 post-deploy smoke
+69	fetch	[search#67] p1_smoke GET /search?q=machine+learning&sem=1 | http=200 server total=815 (fts 588, hydrate 201) | x-app-version=8d94982 | SIN	post-deploy smoke 2026-11-04 06:06 (version 78ef263b)
+70	ref	f2-1..f2-30: docs/evidence/phase2/fidelity-2-requests.tsv	second fidelity check, 30 calls, 06:21:08-06:22:59
+71	ref	s7-1..s7-36: docs/evidence/phase1/sc7-requests.tsv	SC7 measurement, 36 calls, 06:17-07:22
+72	fetch	[search#68] apac_smoke GET /search?q=korean+language+beginner&sem=1&ng=1 | http=200 server total=736 (embed 414, vector 254, fts 269, hydrate 43) | x-app-version=597c2b7 | SIN | d1 APAC primary	first search after the APAC switch, 07:58:48
+73	fetch	[search#69] apac_smoke GET /search?q=urban+planning+studio | http=200 server total=542 (embed 260, vector 245, fts 45, hydrate 16) | x-app-version=597c2b7 | SIN | d1 APAC primary	07:58:54
+74	fetch	[search#70] apac_idle GET /search?q=behavioural+economics+nudges | http=200 server total=583 (fts 399, hydrate 164) | MRS (VPN exit) | d1 APAC primary	after 12 min idle, 08:11:27
