@@ -65,3 +65,25 @@ future live fidelity check needs a new pinned snapshot first.
 **Still to do:** deploy data version `c1cf88518972`; the SC7 measurement and the `served_by_region`
 check (PR pending). SC7 samples taken between 06:29:35 and 06:31:02 overlap the ingest and are
 excluded.
+
+## 2026-11-04: D1 primary to APAC (ADR 0005)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 06:59:17–06:59:32 | `npm run deploy` (PR #22): version `d367e6e0-5f5e-42e6-9410-1c8429e76adf`, tag `2cd9273` | — | live; `/health` 200 |
+| 07:38 | Headroom check | — | 357,657 read / 37,712 written today; 2,976 neurons |
+| 07:38 | `wrangler d1 create nusmods-apac --location apac` | 0 rows | `de4527ff-19ec-4a5b-9c5c-4d1791078b25`, "created in region APAC" |
+| 07:39 | `wrangler d1 migrations apply nusmods-apac --remote` (0001–0006 on an empty database) | < 500 written | 25 commands; schema 6, 4 triggers, 6 `d1_migrations` rows, 0 modules (check read 30, served by APAC) |
+| 07:40 | Read replication `mode: auto` on `nusmods-apac` (REST PUT) | 0 rows | `{"mode":"auto"}`; `running_in_region: APAC` |
+| 07:41:19–07:42:39 | **Cold load** through `wrangler dev --remote` bound to `nusmods-apac`: `ingest --write-budget 160000` | ~137k written (149k charged), ~30k read, ~2.4k neurons | **6,778 upserted, 6,778 embedded** (in-place upsert to the production index), 0 deleted; **D1 reported 47,981 written**, 149,116 charged; Vectorize confirmed after 5 polls; data version `c1cf88518972` (unchanged) |
+| 07:43 | `npm run verify` | 6,778 read | OK: 6,778 rows, 6,778 vectors, 0 missing / extra / drift |
+| 07:44 | Old and new compared: `MATCH 'algorithm'` and `'management'` counts, module count, facets length; FTS `integrity-check` on the new database | ~16k read | identical (222 / 961 / 6,778 / 2,270) on both; integrity OK |
+| 07:44 | Headroom (GraphQL, lagging) | — | 373,701 read / 76,570 written today; 5,971 neurons |
+
+**FTS writes on a cold load.** D1's `meta.rows_written` reported 47,981, about 7.1 per module: table
+plus index rows, with no FTS5 shadow rows. The budget's estimate of 149k assumed FTS shadow writes
+are billed. The account-wide GraphQL total, once it settles, decides which is right; it is
+recorded with the switch below.
+
+**Old database.** `nusmods` (`c6a769d3-…`, WEUR) holds the same catalogue and data version, and
+stays as the rollback target (ADR 0005).

@@ -591,3 +591,17 @@ fails on the previous code.
   2,617 rows written. Verify is clean, and production holds 6,778 modules (data version
   `c1cf88518972`). The eval stays on the pinned 2026-09-04 snapshot. A new pin is needed before
   any further live fidelity check.
+
+
+## 2026-11-04: SC7 FAIL; D1 primary moving to APAC
+
+- **SC7 FAIL** (PR #23): p50 351 ms (CI 343–385, n = 33 SIN samples) against 250 ms.
+  - Warm: an APAC replica serves D1, and the time goes to `vector` ~232 ms plus `embed` ~88 ms.
+  - After a gap of ~6–10 min or more, after writes, or after a deploy: reads go to the WEUR
+    primary, with fts plus hydrate about 800 ms.
+- **D1 to APAC** (Jacob, ADR 0005). The new database `nusmods-apac` (APAC primary) is migrated,
+  replicated, cold-loaded (6,778 modules, 47,981 rows written) and verified. It is identical to the
+  old one on the checks run. The binding switch is in the next PR. The old `nusmods` database
+  stays for rollback.
+- SC7 still needs the warm path fixed: about 320 ms of embed plus vector. The candidate is
+  in-Worker exact vector search, for Phase 3 planning.
