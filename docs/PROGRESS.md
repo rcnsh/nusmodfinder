@@ -583,3 +583,11 @@ fails on the previous code.
   - EVAL.md baseline table with CIs. Dev is from `qrels-dev-v1`; the holdout verdict is spent only
     on Phase 3 candidates.
   - Jacob's calibration sheet (`.eval-work/calibration-dev.csv`, 150 pairs).
+## 2026-11-04 — NUSMods catalogue update in production
+
+- **Deployed** `8d94982` (version `78ef263b`) with the pinned data version `c25f43ebfbdb`. The
+  second fidelity check made its live calls against it (PR #20).
+- **Incremental ingest** of the 2026-11-04 catalogue: 406 upserted (194 re-embedded), 97 deleted,
+  2,617 rows written. Verify is clean, and production holds 6,778 modules (data version
+  `c1cf88518972`). The eval stays on the pinned 2026-09-04 snapshot. A new pin is needed before
+  any further live fidelity check.

@@ -49,6 +49,19 @@ semesters 82, preclusions 57, department 48, descriptions 27). The forced run us
 production keeps matching the eval corpus for the second fidelity check. The new catalogue lands
 afterwards as an ordinary incremental ingest.
 
-**Still to do:** deploy the new data version; second fidelity check (before the catalogue update);
-incremental ingest of the 2026-11-04 catalogue; SC7 measurement; `served_by_region` check of read
-replication in the structured logs.
+| 06:05 | `npm run deploy` (PR #18 merged): version `78ef263b-4039-4c7c-9b79-eb17443e68d3`, tag `8d94982` | — | live; smoke `/health` + 1 search 200, `x-app-version 8d94982`, SIN, not degraded |
+| 06:22:59 | Second fidelity check's live calls done (PR #20) | — | production still on the pinned corpus |
+| 06:29 | Headroom check | — | 296,079 read / 34,999 written today; 2,907 neurons |
+| 06:29:35–06:31:02 | **Incremental ingest of the 2026-11-04 NUSMods catalogue** (`ingest --write-budget 20000`, fresh fetch into `.data/cache/`) | ~10k written, ~30k read incl. hashes and facets, ~70 neurons | plan 194 embed / 212 row-only / 6,372 unchanged / 97 delete; **406 upserted (194 embedded), 97 deleted; D1 reported 2,617 written**, 5,596 charged; 1,078 read by the ingest and delete calls; Vectorize confirmed after 13 polls; facets 26 / 7 / 1,167 NG; data version `c25f43ebfbdb` → `c1cf88518972` |
+| 06:31 | `npm run verify` | 6,778 read | OK: 6,778 rows, 6,778 vectors, 0 missing / extra / drift |
+
+The catalogue estimate over-counted FTS writes: 2,617 reported against ~10k estimated.
+
+**Production now runs a newer corpus than the eval.** Production has the 2026-11-04 catalogue (6,778
+modules). The eval, the full-corpus tests and both fidelity checks use the pinned 2026-09-04
+snapshot (6,771). Offline comparisons stay valid, since both sides are replica against replica. A
+future live fidelity check needs a new pinned snapshot first.
+
+**Still to do:** deploy data version `c1cf88518972`; the SC7 measurement and the `served_by_region`
+check (PR pending). SC7 samples taken between 06:29:35 and 06:31:02 overlap the ingest and are
+excluded.
