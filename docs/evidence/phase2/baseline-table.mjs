@@ -19,6 +19,13 @@ const scored = withCorpusGroups(qrels, groups);
 const names = ['v0', 'v0-lexical', 'v0-vector'];
 const runs = await Promise.all(names.map(async (n) => JSON.parse(await readFile(join(REPO, 'eval/runs', `${n}.json`), 'utf8'))));
 assertSameCorpus(qrels, runs);
+const wantMode = { v0: 'hybrid', 'v0-lexical': 'lexical', 'v0-vector': 'vector' };
+runs.forEach((r, i) => {
+  const mode = r.config?.mode ?? 'hybrid';
+  if (r.variant !== names[i] || mode !== wantMode[names[i]] || r.ranker?.ref !== 'eval-v0') {
+    throw new Error(`eval/runs/${names[i]}.json is variant ${r.variant}, mode ${mode}, ref ${r.ranker?.ref}; expected ${names[i]}, ${wantMode[names[i]]}, eval-v0`);
+  }
+});
 const scores = Object.fromEntries(runs.map((r, i) => [names[i], scoreRun(r, queries, scored)]));
 
 const f = (x) => x.toFixed(3);

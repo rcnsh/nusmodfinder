@@ -6,8 +6,16 @@ The harness is described in [`eval/README.md`](eval/README.md). These are the nu
 Phase 3 changes are measured against.
 
 **Setup:**
-- **Ranker:** tag `eval-v0` (= 7ac9841). Production up to the start of Phase 3 returns the same
-  top 20 on every dev query (`docs/evidence/phase2/baseline.md` §2).
+- **What is measured:** an **offline replica (exact dense search)** of the ranker at tag
+  `eval-v0` (= 7ac9841), not production (ADR 0003, "Replica fidelity").
+  - The replica of main at the start of Phase 3 gives the same top 20 as `eval-v0` on every dev
+    query (`docs/evidence/phase2/baseline.md` §2).
+  - Production differs from the replica in three ways:
+    - Vectorize search is approximate, while the replica's is exact;
+    - both live fidelity checks failed on the dense half;
+    - production serves the 2026-11-04 catalogue (6,778 modules), not the pinned 2026-09-04
+      snapshot.
+  - Δ between two replicas is unbiased. Absolute numbers describe production only approximately.
 - **Corpus:** pinned `data-2026-2027-20260904`, 6,771 offered modules.
 - **Query embeddings:** `emb-bge-small-v0`, committed vectors.
 - **Queries:** dev queries v2.1, 98 in total. 78 are primary answerable; the rest are 5
@@ -68,14 +76,18 @@ intervals don't. The script prints both.
 pairs graded by A. No look has been taken (`eval/holdout-ledger.md`). Looks are spent only on
 Phase 3 candidates, at most 12.
 
-**Reproduce:**
+**Reproduce** (from a clean clone, with the release assets):
 ```sh
-npm run eval -- run --set dev --variant v0 --ref eval-v0          # plus --mode lexical|vector for the halves
-npm run eval:report -- --run v0 --baseline v0-lexical
-node docs/evidence/phase2/baseline-table.mjs                       # this section's tables
+npm run eval -- run --set dev --variant v0         --ref eval-v0
+npm run eval -- run --set dev --variant v0-lexical --ref eval-v0 --mode lexical
+npm run eval -- run --set dev --variant v0-vector  --ref eval-v0 --mode vector
+npm run eval:report -- --run v0                    # the v0 row and the per-shape table
+node docs/evidence/phase2/baseline-table.mjs       # both tables in this section, CIs included
 ```
-Running from a clean clone with the release assets gives identical results. A run file's hash
-differs between runs because the file records a `createdAt` time.
+`eval:report` refuses `--baseline` with a lexical or vector run, because gates compare hybrid
+runs only. The paired Δ against the halves therefore comes from `baseline-table.mjs` alone.
+Re-running gives identical results, but the run file's hash changes, because the file records
+`createdAt` and the runner's sha.
 
 ---
 
