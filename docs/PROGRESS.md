@@ -638,3 +638,23 @@ fails on the previous code.
   `docs/evidence/phase2/baseline-table.mjs`.
 - **Next:** the Phase 2 exit red-team. Phase 3 plan r2 is being revised after the round-1
   critics: 3 critics, 19 blocking objections, PR #27.
+
+
+## 2026-11-04 — Phase 2 exit: code-target rule grades (qrels v2)
+
+- **Finding (exit red-team).** Five dev code queries had no pooled target: `d-087` "cn 2109",
+  `d-089` "is 4246", and the partials `d-090` "MUL21", `d-091` "DAO17" and `d-092` "GEC". They
+  scored as no-answer. Emptying them in v0 passed `--change-kind cutoff`, with correct-empty
+  going from 0 to 0.333.
+- **Fix.** `eval/lib/code-rule.mjs` applies JUDGING.md rule 4 mechanically as judge `rule`. It
+  grades from public corpus fields, pooled or not, and replaces A's grade where one exists.
+  `merge` applies it, and so does `npm run eval:judge -- code-rule`.
+  - `qrels-dev-v2`: 56 rule pairs over 11 queries (50 new). It overrode 6 A grades, all
+    unchanged.
+  - `qrels-holdout-v2`: 15 rule pairs over 4 queries (14 new). It overrode 1 A grade, unchanged.
+    The command printed counts only and took no look.
+- **Dev v0, v1 → v2.**
+  - Primary answerable n: 78 → 83. No-answer n: 15 → 10.
+  - nDCG@10: 0.758 → 0.712. P@5: 0.608 → 0.571. MRR@10: 0.872 → 0.820.
+  - The same five-query emptying now fails the cutoff gate: correct-empty stays at 0 over 10
+    no-answer queries.
