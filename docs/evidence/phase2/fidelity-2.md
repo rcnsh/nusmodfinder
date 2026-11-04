@@ -1,3 +1,5 @@
+LIVE CALLS DONE 2026-11-04T06:22:59Z
+
 # Phase 2: second live fidelity check (Phase 1 production vs the head replica, dev)
 
 The method, the acceptance rule and the analysis self-test below were written and committed

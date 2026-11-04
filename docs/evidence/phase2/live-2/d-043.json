@@ -1,0 +1,372 @@
+{
+ "n": "f2-13",
+ "id": "d-043",
+ "kind": "hybrid",
+ "path": "/search?q=Singapore+history&ng=1",
+ "status": 200,
+ "ttfbMs": 440,
+ "totalMs": 442,
+ "at": "2026-11-04T06:21:56.644Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a551857d1973885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:21:57 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=NIXsJ1jW72O62yt9X0kDUA%2BZ5udi1Md7dqa7LiVoMwrPrYIw%2BH%2BHhikQETfXjJAwBP0JZoDAKdmEJSyLFGAZRN9ADDkQWQPBG2yBQvv5Nj8bwksOiMwvnGpUvSxL1kPivrAPyr41%2F972tF81PcjnI1KSOVzqSAVH%2BCJsxaBINxgo\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=21, limit;dur=0, embed;dur=86, vector;dur=232, fts;dur=28, hydrate;dur=12, total;dur=351",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"singapore history\",\n  \"filters\": {\n    \"ng\": true\n  },\n  \"count\": 20,\n  \"mode\": \"hybrid\",\n  \"retrieval\": {\n    \"vector\": 50,\n    \"lexical\": 50,\n    \"fused\": 74\n  },\n  \"results\": [\n    {\n      \"code\": \"GESS1007\",\n      \"title\": \"Singapore’s Business History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.03225806451612903\n    },\n    {\n      \"code\": \"GESS1009\",\n      \"title\": \"The Evolution of a Global City-State\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        4\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.03177805800756621\n    },\n    {\n      \"code\": \"HY3250\",\n      \"title\": \"Approaches to Singapore History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.03177805800756621\n    },\n    {\n      \"code\": \"GESS1026\",\n      \"title\": \"A History of Singapore in Ten Objects\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.03149801587301587\n    },\n    {\n      \"code\": \"GESS1013\",\n      \"title\": \"Singapore and Japan: Historical and Contemporary Relationships\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.030117753623188408\n    },\n    {\n      \"code\": \"GESS1035\",\n      \"title\": \"Singapore and the Sea\",\n      \"department\": \"Southeast Asian Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.02964426877470356\n    },\n    {\n      \"code\": \"GEC1055\",\n      \"title\": \"700 Years of Visual Arts: Singapore in the World\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.02821939586645469\n    },\n    {\n      \"code\": \"GESS1003\",\n      \"title\": \"Everyday Life of Chinese Singaporeans: Past & Present (taught in English)\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.028083267871170464\n    },\n    {\n      \"code\": \"GESS1021\",\n      \"title\": \"Singapore Film: Performance of Identity\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.027651515151515153\n    },\n    {\n      \"code\": \"GESS1025\",\n      \"title\": \"Singapore: Imagining the Next 50 Years\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.02761904761904762\n    },\n    {\n      \"code\": \"GESS1020\",\n      \"title\": \"Singapore Society\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.025914384123339348\n    },\n    {\n      \"code\": \"NHS2026\",\n      \"title\": \"Singaporean Nostalgia\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.025448143405889884\n    },\n    {\n      \"code\": \"MS3209\",\n      \"title\": \"Being Malay in Singapore\",\n      \"department\": \"Malay Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.025326537113730486\n    },\n    {\n      \"code\": \"GESS1028\",\n      \"title\": \"Cultural Performances and Practices in Singapore\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.02456928838951311\n    },\n    {\n      \"code\": \"NHS2048\",\n      \"title\": \"Situating Singapore in the Wider World\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.023544973544973542\n    },\n    {\n      \"code\": \"GESS1024\",\n      \"title\": \"We the Citizens - Understanding Singapore’s Politics\",\n      \"department\": \"Political Science\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.02332285115303983\n    },\n    {\n      \"code\": \"GES1034\",\n      \"title\": \"We the Citizens - Understanding Singapore’s Politics\",\n      \"department\": \"Political Science\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.02325881896885903\n    },\n    {\n      \"code\": \"HY1101E\",\n      \"title\": \"Engaging Asia: A Global History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2,\n        4\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.022431077694235586\n    },\n    {\n      \"code\": \"HY3226\",\n      \"title\": \"Memory, Heritage & History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.022048192771084336\n    },\n    {\n      \"code\": \"GES1019\",\n      \"title\": \"Managing Singapore's Built Environment\",\n      \"department\": \"Built Environment\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.021691473404869044\n    }\n  ]\n}",
+ "body": {
+  "query": "singapore history",
+  "filters": {
+   "ng": true
+  },
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 74
+  },
+  "results": [
+   {
+    "code": "GESS1007",
+    "title": "Singapore’s Business History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.03225806451612903
+   },
+   {
+    "code": "GESS1009",
+    "title": "The Evolution of a Global City-State",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     4
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.03177805800756621
+   },
+   {
+    "code": "HY3250",
+    "title": "Approaches to Singapore History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.03177805800756621
+   },
+   {
+    "code": "GESS1026",
+    "title": "A History of Singapore in Ten Objects",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.03149801587301587
+   },
+   {
+    "code": "GESS1013",
+    "title": "Singapore and Japan: Historical and Contemporary Relationships",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.030117753623188408
+   },
+   {
+    "code": "GESS1035",
+    "title": "Singapore and the Sea",
+    "department": "Southeast Asian Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02964426877470356
+   },
+   {
+    "code": "GEC1055",
+    "title": "700 Years of Visual Arts: Singapore in the World",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02821939586645469
+   },
+   {
+    "code": "GESS1003",
+    "title": "Everyday Life of Chinese Singaporeans: Past & Present (taught in English)",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.028083267871170464
+   },
+   {
+    "code": "GESS1021",
+    "title": "Singapore Film: Performance of Identity",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.027651515151515153
+   },
+   {
+    "code": "GESS1025",
+    "title": "Singapore: Imagining the Next 50 Years",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.02761904761904762
+   },
+   {
+    "code": "GESS1020",
+    "title": "Singapore Society",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.025914384123339348
+   },
+   {
+    "code": "NHS2026",
+    "title": "Singaporean Nostalgia",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.025448143405889884
+   },
+   {
+    "code": "MS3209",
+    "title": "Being Malay in Singapore",
+    "department": "Malay Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.025326537113730486
+   },
+   {
+    "code": "GESS1028",
+    "title": "Cultural Performances and Practices in Singapore",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.02456928838951311
+   },
+   {
+    "code": "NHS2048",
+    "title": "Situating Singapore in the Wider World",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.023544973544973542
+   },
+   {
+    "code": "GESS1024",
+    "title": "We the Citizens - Understanding Singapore’s Politics",
+    "department": "Political Science",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02332285115303983
+   },
+   {
+    "code": "GES1034",
+    "title": "We the Citizens - Understanding Singapore’s Politics",
+    "department": "Political Science",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.02325881896885903
+   },
+   {
+    "code": "HY1101E",
+    "title": "Engaging Asia: A Global History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2,
+     4
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.022431077694235586
+   },
+   {
+    "code": "HY3226",
+    "title": "Memory, Heritage & History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.022048192771084336
+   },
+   {
+    "code": "GES1019",
+    "title": "Managing Singapore's Built Environment",
+    "department": "Built Environment",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.021691473404869044
+   }
+  ]
+ }
+}

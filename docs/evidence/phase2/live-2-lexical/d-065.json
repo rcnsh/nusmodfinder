@@ -1,0 +1,869 @@
+{
+ "n": "f2-29",
+ "id": "d-065",
+ "kind": "lexical",
+ "path": "/search?q=veterinary+medicine+clinical+rotation+large+animals&sem=2&ng=1&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 181,
+ "totalMs": 184,
+ "at": "2026-11-04T06:22:56.173Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55186f12c35885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:56 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=j%2FJoYys9QpVhlQ3hWHEeEnQ4c6wHdE0Ncgt7kxTJPTO9rsEEBMoD5OQmOWt2jOlrpwim%2FVpqcK1y2Cl7GfmML228HY4Z%2BAvp92oH5Ks3Db7n0TYMMdFQ93TrIkvFlDQ9O4RZd2YvDV1enuvDlAjRjHSbqx7OgSiwSWfjh8vAiQBp\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=11, limit;dur=0, fts;dur=22, hydrate;dur=16, total;dur=49",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"veterinary medicine clinical rotation large animals\",\n  \"filters\": {\n    \"sem\": 2,\n    \"ng\": true\n  },\n  \"count\": 50,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 50,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"LSM4237\",\n      \"title\": \"Pharmacogenomics & Personalised Medicine\",\n      \"department\": \"Pharmacology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"LSM1303\",\n      \"title\": \"Animal Behaviour\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"HS2923\",\n      \"title\": \"Human-Animal Relations: History, Biodiversity & Ethics\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"CS3242\",\n      \"title\": \"3D Modeling and Animation\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"LSM3259\",\n      \"title\": \"Fungal Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"LL4277V\",\n      \"title\": \"Medical Law and Ethics\",\n      \"department\": \"FoL Dean's Office\",\n      \"faculty\": \"Law\",\n      \"credits\": 5,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"GEC1044\",\n      \"title\": \"Chinese Medicine: Theory and Practice\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"PC3233\",\n      \"title\": \"Atomic & Molecular Physics I\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"CS4248\",\n      \"title\": \"Introduction to Large Language Models\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"ST4248\",\n      \"title\": \"Statistical Learning II\",\n      \"department\": \"Statistics and Data Science\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"LSM3267\",\n      \"title\": \"Behavioural Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"LSM4225\",\n      \"title\": \"Genetic Medicine in the Post-Genomic Era\",\n      \"department\": \"Biochemistry\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"PC3295\",\n      \"title\": \"Radiation for Imaging and Therapy in Medicine\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"LSM4252\",\n      \"title\": \"Reproductive Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"NST2036\",\n      \"title\": \"Creating Wolverine in Real Life\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"JS3216\",\n      \"title\": \"Japanese Literature Across Media\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"PC2032\",\n      \"title\": \"Classical Mechanics I\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"LSM4221\",\n      \"title\": \"Drug Discovery and Clinical Trials\",\n      \"department\": \"Pharmacology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"PL3257\",\n      \"title\": \"Introduction to Clinical Psychology\",\n      \"department\": \"Psychology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"CS4243\",\n      \"title\": \"Computer Vision and Pattern Recognition\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.0125\n    },\n    {\n      \"code\": \"FST2106\",\n      \"title\": \"Post Harvest Food Processing\",\n      \"department\": \"Food Science and Technology\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012345679012345678\n    },\n    {\n      \"code\": \"CG4002\",\n      \"title\": \"Computer Engineering Capstone Project\",\n      \"department\": \"Computing and Engineering Programme\",\n      \"faculty\": \"Multi Disciplinary Programme\",\n      \"credits\": 8,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.012195121951219513\n    },\n    {\n      \"code\": \"EE4802\",\n      \"title\": \"Learning from Data\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012048192771084338\n    },\n    {\n      \"code\": \"IE4213\",\n      \"title\": \"Learning from Data\",\n      \"department\": \"Industrial Systems Engineering and Management\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011904761904761904\n    },\n    {\n      \"code\": \"LSM3255\",\n      \"title\": \"Ecology of Terrestrial Environments\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011764705882352941\n    },\n    {\n      \"code\": \"LSM4261\",\n      \"title\": \"Marine Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011627906976744186\n    },\n    {\n      \"code\": \"ID4400\",\n      \"title\": \"Creative Computing\",\n      \"department\": \"Design\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011494252873563218\n    },\n    {\n      \"code\": \"EN1101E\",\n      \"title\": \"An Introduction to Literary Studies\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.011363636363636364\n    },\n    {\n      \"code\": \"TS2243\",\n      \"title\": \"Film Genres: Stars and Styles\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011235955056179775\n    },\n    {\n      \"code\": \"GEC1015\",\n      \"title\": \"Public Health in Action\",\n      \"department\": \"SSH School of Public Health Dean's Office\",\n      \"faculty\": \"SSH School of Public Health\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.011111111111111112\n    },\n    {\n      \"code\": \"LAD2007\",\n      \"title\": \"Design 4\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 8,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01098901098901099\n    },\n    {\n      \"code\": \"IS3107\",\n      \"title\": \"Data Engineering\",\n      \"department\": \"Information Systems and Analytics\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010869565217391304\n    },\n    {\n      \"code\": \"HSI2018\",\n      \"title\": \"Wallace And The History Of Science In Southeast Asia\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010752688172043012\n    },\n    {\n      \"code\": \"GEC1004\",\n      \"title\": \"Samurai, Geisha, Yakuza as Self or Other\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010638297872340425\n    },\n    {\n      \"code\": \"NST2064\",\n      \"title\": \"Social Insect Societies\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010526315789473684\n    },\n    {\n      \"code\": \"CM3121\",\n      \"title\": \"Advanced Organic Chemistry\",\n      \"department\": \"Chemistry\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.010416666666666666\n    },\n    {\n      \"code\": \"NHS2070\",\n      \"title\": \"Tragedy, Culture, and Society\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010309278350515464\n    },\n    {\n      \"code\": \"NST2006\",\n      \"title\": \"The Biology and Phenomenology of Pain\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01020408163265306\n    },\n    {\n      \"code\": \"LSM3244\",\n      \"title\": \"Molecular Biotechnology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010101010101010102\n    },\n    {\n      \"code\": \"GESS1028\",\n      \"title\": \"Cultural Performances and Practices in Singapore\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01\n    },\n    {\n      \"code\": \"HSI2004\",\n      \"title\": \"Cell Based Proteins for a Sustainable Future\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009900990099009901\n    },\n    {\n      \"code\": \"LSM3218\",\n      \"title\": \"Cardiopulmonary Pharmacology\",\n      \"department\": \"Pharmacology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.00980392156862745\n    },\n    {\n      \"code\": \"ZB2101\",\n      \"title\": \"Introductory Bioinformatics\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009708737864077669\n    },\n    {\n      \"code\": \"LSM4227\",\n      \"title\": \"Stem Cell Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009615384615384616\n    },\n    {\n      \"code\": \"PC3413\",\n      \"title\": \"From Data to a Galaxy\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009523809523809525\n    },\n    {\n      \"code\": \"LSM3242\",\n      \"title\": \"Translational Microbiology\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009433962264150943\n    },\n    {\n      \"code\": \"GEC1016\",\n      \"title\": \"Plants and Society\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009345794392523364\n    },\n    {\n      \"code\": \"GEC1054\",\n      \"title\": \"Fungi and Society\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009259259259259259\n    },\n    {\n      \"code\": \"MA2116\",\n      \"title\": \"Probability\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009174311926605505\n    },\n    {\n      \"code\": \"ST2131\",\n      \"title\": \"Probability\",\n      \"department\": \"Statistics and Data Science\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.00909090909090909\n    }\n  ]\n}",
+ "body": {
+  "query": "veterinary medicine clinical rotation large animals",
+  "filters": {
+   "sem": 2,
+   "ng": true
+  },
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "LSM4237",
+    "title": "Pharmacogenomics & Personalised Medicine",
+    "department": "Pharmacology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "LSM1303",
+    "title": "Animal Behaviour",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "HS2923",
+    "title": "Human-Animal Relations: History, Biodiversity & Ethics",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "CS3242",
+    "title": "3D Modeling and Animation",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015625
+   },
+   {
+    "code": "LSM3259",
+    "title": "Fungal Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "LL4277V",
+    "title": "Medical Law and Ethics",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 5,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "GEC1044",
+    "title": "Chinese Medicine: Theory and Practice",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "PC3233",
+    "title": "Atomic & Molecular Physics I",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "CS4248",
+    "title": "Introduction to Large Language Models",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "ST4248",
+    "title": "Statistical Learning II",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "LSM3267",
+    "title": "Behavioural Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "LSM4225",
+    "title": "Genetic Medicine in the Post-Genomic Era",
+    "department": "Biochemistry",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "PC3295",
+    "title": "Radiation for Imaging and Therapy in Medicine",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "LSM4252",
+    "title": "Reproductive Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "NST2036",
+    "title": "Creating Wolverine in Real Life",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "JS3216",
+    "title": "Japanese Literature Across Media",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "PC2032",
+    "title": "Classical Mechanics I",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "LSM4221",
+    "title": "Drug Discovery and Clinical Trials",
+    "department": "Pharmacology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "PL3257",
+    "title": "Introduction to Clinical Psychology",
+    "department": "Psychology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "CS4243",
+    "title": "Computer Vision and Pattern Recognition",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.0125
+   },
+   {
+    "code": "FST2106",
+    "title": "Post Harvest Food Processing",
+    "department": "Food Science and Technology",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "CG4002",
+    "title": "Computer Engineering Capstone Project",
+    "department": "Computing and Engineering Programme",
+    "faculty": "Multi Disciplinary Programme",
+    "credits": 8,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "EE4802",
+    "title": "Learning from Data",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "IE4213",
+    "title": "Learning from Data",
+    "department": "Industrial Systems Engineering and Management",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "LSM3255",
+    "title": "Ecology of Terrestrial Environments",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "LSM4261",
+    "title": "Marine Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "ID4400",
+    "title": "Creative Computing",
+    "department": "Design",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "EN1101E",
+    "title": "An Introduction to Literary Studies",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "TS2243",
+    "title": "Film Genres: Stars and Styles",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "GEC1015",
+    "title": "Public Health in Action",
+    "department": "SSH School of Public Health Dean's Office",
+    "faculty": "SSH School of Public Health",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "LAD2007",
+    "title": "Design 4",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 8,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "IS3107",
+    "title": "Data Engineering",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "HSI2018",
+    "title": "Wallace And The History Of Science In Southeast Asia",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "GEC1004",
+    "title": "Samurai, Geisha, Yakuza as Self or Other",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "NST2064",
+    "title": "Social Insect Societies",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "CM3121",
+    "title": "Advanced Organic Chemistry",
+    "department": "Chemistry",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "NHS2070",
+    "title": "Tragedy, Culture, and Society",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "NST2006",
+    "title": "The Biology and Phenomenology of Pain",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "LSM3244",
+    "title": "Molecular Biotechnology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "GESS1028",
+    "title": "Cultural Performances and Practices in Singapore",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01
+   },
+   {
+    "code": "HSI2004",
+    "title": "Cell Based Proteins for a Sustainable Future",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "LSM3218",
+    "title": "Cardiopulmonary Pharmacology",
+    "department": "Pharmacology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "ZB2101",
+    "title": "Introductory Bioinformatics",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "LSM4227",
+    "title": "Stem Cell Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "PC3413",
+    "title": "From Data to a Galaxy",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "LSM3242",
+    "title": "Translational Microbiology",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "GEC1016",
+    "title": "Plants and Society",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "GEC1054",
+    "title": "Fungi and Society",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "MA2116",
+    "title": "Probability",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "ST2131",
+    "title": "Probability",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}

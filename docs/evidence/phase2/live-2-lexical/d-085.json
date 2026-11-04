@@ -1,0 +1,70 @@
+{
+ "n": "f2-25",
+ "id": "d-085",
+ "kind": "lexical",
+ "path": "/search?q=MA2101&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 223,
+ "totalMs": 224,
+ "at": "2026-11-04T06:22:41.590Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55186960809885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:41 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=sMso8crJgTesJFA9blIPkUCI3CdvhJE749fiCmT%2FLfa%2Bha9llU6xkU4BRAmc3sbkQsizrvDVLlHWPxrozxKFKbqkzzoNWQJdIbsCeNqKFme%2B61YcP%2F7e9YxSY4S9rAR56W44R6ktM3SeiAEliSmpgIxWKlip2HeC7FT91SfFTvgR\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=11, limit;dur=0, pin;dur=17, fts;dur=17, hydrate;dur=27, total;dur=55",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"ma2101\",\n  \"filters\": {},\n  \"count\": 2,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 1,\n    \"fused\": 2\n  },\n  \"results\": [\n    {\n      \"code\": \"MA2101\",\n      \"title\": \"Linear Algebra II\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 1\n    },\n    {\n      \"code\": \"MA2101S\",\n      \"title\": \"Linear Algebra II (S)\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 5,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01639344262295082\n    }\n  ]\n}",
+ "body": {
+  "query": "ma2101",
+  "filters": {},
+  "count": 2,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 1,
+   "fused": 2
+  },
+  "results": [
+   {
+    "code": "MA2101",
+    "title": "Linear Algebra II",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 1
+   },
+   {
+    "code": "MA2101S",
+    "title": "Linear Algebra II (S)",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 5,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01639344262295082
+   }
+  ]
+ }
+}

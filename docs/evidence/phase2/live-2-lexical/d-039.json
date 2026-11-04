@@ -1,0 +1,774 @@
+{
+ "n": "f2-18",
+ "id": "d-039",
+ "kind": "lexical",
+ "path": "/search?q=history+of+migration+and+diaspora&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 107,
+ "totalMs": 109,
+ "at": "2026-11-04T06:22:16.004Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55185f61d50885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:16 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=KArCRsdpbJV4hk1RkcgwMh6%2Fz%2FWJYIm25aWnt0TpglNB9UX%2FD4FZ6UVPg%2B9ITbIJFB59r7fb8UMyk1eMXn7xmIzaYZkdvhrUGuEW93OUDOGj0jBMHsnu05XYzEcL0cDziMql5TKFrQSMiezhHtEp48QLnYfTNQ9va2bMfLv%2FQ%2FGy\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=7, limit;dur=0, fts;dur=14, hydrate;dur=18, total;dur=39",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"history of migration and diaspora\",\n  \"filters\": {},\n  \"count\": 50,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 50,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"NHS2053\",\n      \"title\": \"The Heterogeneous Indians of Contemporary Singapore\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"JS4233\",\n      \"title\": \"Japan’s Immigration Politics in Global Perspective\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"HY3260\",\n      \"title\": \"Chinese Migrations in World History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"ENC5239\",\n      \"title\": \"Literature of the Anglophone Chinese Diaspora\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"CHC5360\",\n      \"title\": \"Chinese Dialects Overseas\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"GEC1043\",\n      \"title\": \"Feasting and Fasting: Global Histories of Food\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"UTW1001K\",\n      \"title\": \"Meaning of Home and Identity in the Diaspora\",\n      \"department\": \"Center for Engl Lang Comms\",\n      \"faculty\": \"Center for Engl Lang Comms\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"GSA5401\",\n      \"title\": \"Ethnicity, Migration, and Population Diversity\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"CHC5339\",\n      \"title\": \"Chinese Diaspora and Mass Media in the 20th Century\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"GES1009\",\n      \"title\": \"Singapore’s Business History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"GESS1007\",\n      \"title\": \"Singapore’s Business History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"HY5210\",\n      \"title\": \"Approaches to Modern Se Asian History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"CL3231\",\n      \"title\": \"Overseas Chinese Society\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"NM4212\",\n      \"title\": \"Race, Media, and Representation\",\n      \"department\": \"Communications and New Media\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"NHS2102\",\n      \"title\": \"Polysemic Migration\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"SEA5234\",\n      \"title\": \"Country Studies: The Philippines\",\n      \"department\": \"Southeast Asian Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"NTW2006\",\n      \"title\": \"Human Trafficking and Labour Migration\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"GES1028\",\n      \"title\": \"Singapore Society\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"GESS1020\",\n      \"title\": \"Singapore Society\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"CHC5353\",\n      \"title\": \"Poetic Merchants: Chinese Poetry and Socio-economic Changes since 16th Century\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.0125\n    },\n    {\n      \"code\": \"CL4227\",\n      \"title\": \"Contemporary Chinese Literature in Twelve Key Words\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012345679012345678\n    },\n    {\n      \"code\": \"ENC5151\",\n      \"title\": \"Global Anglophone Literature\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012195121951219513\n    },\n    {\n      \"code\": \"GSA5208\",\n      \"title\": \"Sensory Asia: Culture, Society, and Experience\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012048192771084338\n    },\n    {\n      \"code\": \"CHC5342\",\n      \"title\": \"Topics in SE Asian Chinese Literature and Film\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011904761904761904\n    },\n    {\n      \"code\": \"EC4362\",\n      \"title\": \"Immigration Economics\",\n      \"department\": \"Economics\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011764705882352941\n    },\n    {\n      \"code\": \"SFI2054\",\n      \"title\": \"Introducing the Philippines (with Introductory Filipino language)\",\n      \"department\": \"Office of the Provost\",\n      \"faculty\": \"NUS\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011627906976744186\n    },\n    {\n      \"code\": \"EN6881\",\n      \"title\": \"Topics in Literary History\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 6,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011494252873563218\n    },\n    {\n      \"code\": \"AH3204\",\n      \"title\": \"Methods and Approaches to Art History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.011363636363636364\n    },\n    {\n      \"code\": \"CHC5335\",\n      \"title\": \"Literature, Politics, and Media in Contemporary China\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011235955056179775\n    },\n    {\n      \"code\": \"AR5951D\",\n      \"title\": \"Topics in History & Theory of Architecture 4\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011111111111111112\n    },\n    {\n      \"code\": \"AR5951E\",\n      \"title\": \"Topics in History & Theory of Architecture 5\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01098901098901099\n    },\n    {\n      \"code\": \"AR5951G\",\n      \"title\": \"Topics in History and Theory of Architecture 7\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010869565217391304\n    },\n    {\n      \"code\": \"AR5957D\",\n      \"title\": \"Topics in History and Theory of Architecture 4\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010752688172043012\n    },\n    {\n      \"code\": \"AR5957E\",\n      \"title\": \"Topics in History and Theory of Architecture 5\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010638297872340425\n    },\n    {\n      \"code\": \"AR5957F\",\n      \"title\": \"Topics in History and Theory of Architecture 6\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010526315789473684\n    },\n    {\n      \"code\": \"HY5407\",\n      \"title\": \"Theory and Practice of Oral History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010416666666666666\n    },\n    {\n      \"code\": \"ECA5371\",\n      \"title\": \"Economic Growth And Development\",\n      \"department\": \"Economics\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010309278350515464\n    },\n    {\n      \"code\": \"HY3250\",\n      \"title\": \"Approaches to Singapore History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.01020408163265306\n    },\n    {\n      \"code\": \"HY5405\",\n      \"title\": \"Applied and Public History: Theory, Method and Practice\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010101010101010102\n    },\n    {\n      \"code\": \"HY5207\",\n      \"title\": \"Approaches to American History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01\n    },\n    {\n      \"code\": \"HY5411\",\n      \"title\": \"Special Topics in Applied and Public History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009900990099009901\n    },\n    {\n      \"code\": \"HY5211\",\n      \"title\": \"Approaches to Modern East Asian History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.00980392156862745\n    },\n    {\n      \"code\": \"AR2227\",\n      \"title\": \"History & Theory of Architecture I\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009708737864077669\n    },\n    {\n      \"code\": \"HY2206\",\n      \"title\": \"China's Imperial Past: History & Culture\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.009615384615384616\n    },\n    {\n      \"code\": \"HY3550\",\n      \"title\": \"History Internship\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009523809523809525\n    },\n    {\n      \"code\": \"HY2235\",\n      \"title\": \"Environmental History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.009433962264150943\n    },\n    {\n      \"code\": \"HY2251\",\n      \"title\": \"History of Technology and Virtual Reality\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.009345794392523364\n    },\n    {\n      \"code\": \"HY4217\",\n      \"title\": \"Approaches to Study of SE Asian History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009259259259259259\n    },\n    {\n      \"code\": \"AH3550\",\n      \"title\": \"Art History Internship\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        3,\n        4\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009174311926605505\n    },\n    {\n      \"code\": \"HY2253\",\n      \"title\": \"Christianity in World History\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.00909090909090909\n    }\n  ]\n}",
+ "body": {
+  "query": "history of migration and diaspora",
+  "filters": {},
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "NHS2053",
+    "title": "The Heterogeneous Indians of Contemporary Singapore",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "JS4233",
+    "title": "Japan’s Immigration Politics in Global Perspective",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "HY3260",
+    "title": "Chinese Migrations in World History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "ENC5239",
+    "title": "Literature of the Anglophone Chinese Diaspora",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "CHC5360",
+    "title": "Chinese Dialects Overseas",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "GEC1043",
+    "title": "Feasting and Fasting: Global Histories of Food",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "UTW1001K",
+    "title": "Meaning of Home and Identity in the Diaspora",
+    "department": "Center for Engl Lang Comms",
+    "faculty": "Center for Engl Lang Comms",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "GSA5401",
+    "title": "Ethnicity, Migration, and Population Diversity",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "CHC5339",
+    "title": "Chinese Diaspora and Mass Media in the 20th Century",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "GES1009",
+    "title": "Singapore’s Business History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "GESS1007",
+    "title": "Singapore’s Business History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "HY5210",
+    "title": "Approaches to Modern Se Asian History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "CL3231",
+    "title": "Overseas Chinese Society",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "NM4212",
+    "title": "Race, Media, and Representation",
+    "department": "Communications and New Media",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "NHS2102",
+    "title": "Polysemic Migration",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "SEA5234",
+    "title": "Country Studies: The Philippines",
+    "department": "Southeast Asian Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "NTW2006",
+    "title": "Human Trafficking and Labour Migration",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "GES1028",
+    "title": "Singapore Society",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "GESS1020",
+    "title": "Singapore Society",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "CHC5353",
+    "title": "Poetic Merchants: Chinese Poetry and Socio-economic Changes since 16th Century",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0125
+   },
+   {
+    "code": "CL4227",
+    "title": "Contemporary Chinese Literature in Twelve Key Words",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "ENC5151",
+    "title": "Global Anglophone Literature",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "GSA5208",
+    "title": "Sensory Asia: Culture, Society, and Experience",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "CHC5342",
+    "title": "Topics in SE Asian Chinese Literature and Film",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "EC4362",
+    "title": "Immigration Economics",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "SFI2054",
+    "title": "Introducing the Philippines (with Introductory Filipino language)",
+    "department": "Office of the Provost",
+    "faculty": "NUS",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "EN6881",
+    "title": "Topics in Literary History",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "AH3204",
+    "title": "Methods and Approaches to Art History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "CHC5335",
+    "title": "Literature, Politics, and Media in Contemporary China",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "AR5951D",
+    "title": "Topics in History & Theory of Architecture 4",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "AR5951E",
+    "title": "Topics in History & Theory of Architecture 5",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "AR5951G",
+    "title": "Topics in History and Theory of Architecture 7",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "AR5957D",
+    "title": "Topics in History and Theory of Architecture 4",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "AR5957E",
+    "title": "Topics in History and Theory of Architecture 5",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "AR5957F",
+    "title": "Topics in History and Theory of Architecture 6",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "HY5407",
+    "title": "Theory and Practice of Oral History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "ECA5371",
+    "title": "Economic Growth And Development",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "HY3250",
+    "title": "Approaches to Singapore History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "HY5405",
+    "title": "Applied and Public History: Theory, Method and Practice",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "HY5207",
+    "title": "Approaches to American History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01
+   },
+   {
+    "code": "HY5411",
+    "title": "Special Topics in Applied and Public History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "HY5211",
+    "title": "Approaches to Modern East Asian History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "AR2227",
+    "title": "History & Theory of Architecture I",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "HY2206",
+    "title": "China's Imperial Past: History & Culture",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "HY3550",
+    "title": "History Internship",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "HY2235",
+    "title": "Environmental History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "HY2251",
+    "title": "History of Technology and Virtual Reality",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "HY4217",
+    "title": "Approaches to Study of SE Asian History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "AH3550",
+    "title": "Art History Internship",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     3,
+     4
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "HY2253",
+    "title": "Christianity in World History",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}

@@ -1,0 +1,332 @@
+{
+ "n": "f2-6",
+ "id": "d-018",
+ "kind": "hybrid",
+ "path": "/search?q=what%27s+similar+to+the+machine+learning+course+if+it%27s+full%3F+exchange+students+never+get+the+popular+ones",
+ "status": 200,
+ "ttfbMs": 494,
+ "totalMs": 497,
+ "at": "2026-11-04T06:21:28.556Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55184cdeae8885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:21:29 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=SSLwqcGPkcDtFIB8SQk1Pi3RazkQOKXPFJGDfWRN9YHaTA3mDYweLOnGrVKsySL%2FJgJjI2DnGQRzWKReeXQtSDkvjyhgHJvGsiAl0v6gvJl1XmAid%2BGfmF%2Br80OBKDrvv5ZjzFtYAJ58ztgNf2o4uyw5%2BPja0mkegpmhKHSJiMUO\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=14, limit;dur=0, embed;dur=91, vector;dur=232, fts;dur=36, hydrate;dur=14, total;dur=351",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"what's similar to the machine learning course if it's full? exchange students never get the popular ones\",\n  \"filters\": {},\n  \"count\": 20,\n  \"mode\": \"hybrid\",\n  \"retrieval\": {\n    \"vector\": 50,\n    \"lexical\": 50,\n    \"fused\": 93\n  },\n  \"results\": [\n    {\n      \"code\": \"EC4308\",\n      \"title\": \"Machine Learning and Economic Forecasting\",\n      \"department\": \"Economics\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.030017921146953404\n    },\n    {\n      \"code\": \"CS4262\",\n      \"title\": \"Machine Learning Systems\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.026973565905412694\n    },\n    {\n      \"code\": \"CS5462\",\n      \"title\": \"Machine Learning Systems\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.026279628993473032\n    },\n    {\n      \"code\": \"BMF5360\",\n      \"title\": \"Machine Learning in Investments\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.02604430914933198\n    },\n    {\n      \"code\": \"DSE4231\",\n      \"title\": \"Topics in Data Science and the Digital Economy\",\n      \"department\": \"Economics\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.020887166236003445\n    },\n    {\n      \"code\": \"EBA5012\",\n      \"title\": \"Predictive Analytics Lifecycle\",\n      \"department\": \"NUS-ISS\",\n      \"faculty\": \"NUS-ISS\",\n      \"credits\": 12,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.019049346879535557\n    },\n    {\n      \"code\": \"BT4212\",\n      \"title\": \"Search Engine Optimization and Analytics\",\n      \"department\": \"Information Systems and Analytics\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.018524871355060035\n    },\n    {\n      \"code\": \"SPH2002\",\n      \"title\": \"Public Health and Epidemiology\",\n      \"department\": \"SSH School of Public Health Dean's Office\",\n      \"faculty\": \"SSH School of Public Health\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"MSI5102\",\n      \"title\": \"Essentials of Machine Learning\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"SW4103\",\n      \"title\": \"What Works? Program Evaluation and Research\",\n      \"department\": \"Social Work\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"SC2209\",\n      \"title\": \"Money, Business and Social Networks\",\n      \"department\": \"Sociology and Anthropology\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"CP4285\",\n      \"title\": \"Emerging Topics in Computing V: Modern Recommendation Systems\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"ECA5304\",\n      \"title\": \"Machine Learning and Economic Forecasting\",\n      \"department\": \"Economics\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"HS2914\",\n      \"title\": \"How to Get Humans and Machines to Talk to Each Other\",\n      \"department\": \"English,Ling.andTheatre Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"DSA5105\",\n      \"title\": \"Principles of Machine Learning\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"HS2935\",\n      \"title\": \"Girl Power: Women in Asian Societies\",\n      \"department\": \"Chinese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"JSC5202\",\n      \"title\": \"Let’s Go Catch a Show\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"CS3264\",\n      \"title\": \"Foundations of Machine Learning\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"RE3000\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"Real Estate\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        3,\n        4\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"ID2042\",\n      \"title\": \"Work Experience Internship\",\n      \"department\": \"Design\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        3,\n        4\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014705882352941176\n    }\n  ]\n}",
+ "body": {
+  "query": "what's similar to the machine learning course if it's full? exchange students never get the popular ones",
+  "filters": {},
+  "count": 20,
+  "mode": "hybrid",
+  "retrieval": {
+   "vector": 50,
+   "lexical": 50,
+   "fused": 93
+  },
+  "results": [
+   {
+    "code": "EC4308",
+    "title": "Machine Learning and Economic Forecasting",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.030017921146953404
+   },
+   {
+    "code": "CS4262",
+    "title": "Machine Learning Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.026973565905412694
+   },
+   {
+    "code": "CS5462",
+    "title": "Machine Learning Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.026279628993473032
+   },
+   {
+    "code": "BMF5360",
+    "title": "Machine Learning in Investments",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.02604430914933198
+   },
+   {
+    "code": "DSE4231",
+    "title": "Topics in Data Science and the Digital Economy",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.020887166236003445
+   },
+   {
+    "code": "EBA5012",
+    "title": "Predictive Analytics Lifecycle",
+    "department": "NUS-ISS",
+    "faculty": "NUS-ISS",
+    "credits": 12,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.019049346879535557
+   },
+   {
+    "code": "BT4212",
+    "title": "Search Engine Optimization and Analytics",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.018524871355060035
+   },
+   {
+    "code": "SPH2002",
+    "title": "Public Health and Epidemiology",
+    "department": "SSH School of Public Health Dean's Office",
+    "faculty": "SSH School of Public Health",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "MSI5102",
+    "title": "Essentials of Machine Learning",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "SW4103",
+    "title": "What Works? Program Evaluation and Research",
+    "department": "Social Work",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "SC2209",
+    "title": "Money, Business and Social Networks",
+    "department": "Sociology and Anthropology",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "CP4285",
+    "title": "Emerging Topics in Computing V: Modern Recommendation Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "ECA5304",
+    "title": "Machine Learning and Economic Forecasting",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "HS2914",
+    "title": "How to Get Humans and Machines to Talk to Each Other",
+    "department": "English,Ling.andTheatre Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "DSA5105",
+    "title": "Principles of Machine Learning",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "HS2935",
+    "title": "Girl Power: Women in Asian Societies",
+    "department": "Chinese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "JSC5202",
+    "title": "Let’s Go Catch a Show",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "CS3264",
+    "title": "Foundations of Machine Learning",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "RE3000",
+    "title": "Work Experience Internship",
+    "department": "Real Estate",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     3,
+     4
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "ID2042",
+    "title": "Work Experience Internship",
+    "department": "Design",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     3,
+     4
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014705882352941176
+   }
+  ]
+ }
+}

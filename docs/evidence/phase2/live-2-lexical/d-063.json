@@ -1,0 +1,882 @@
+{
+ "n": "f2-27",
+ "id": "d-063",
+ "kind": "lexical",
+ "path": "/search?q=advanced+molecular+biology+4000+level&sem=2&ng=1&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 74,
+ "totalMs": 75,
+ "at": "2026-11-04T06:22:48.889Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55186c39da7885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:48 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=5yRUrgkrPb5TZt%2FnicNdITLre40H5Awu1BDNXdF4uoPyhBkoZQLb%2FutJgoVrCe0LnYLr963Njn8Q3eZYYY1OSP5vf289h0yQeKsTz%2Bj%2F%2BFAZM2IrKDbXe8n7p5%2FPN1zoX8FYe8OR96WYU785G7yIHzkUwqVF3iomEipSV28L%2F2Oo\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=9, limit;dur=0, fts;dur=16, hydrate;dur=15, total;dur=40",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"advanced molecular biology 4000 level\",\n  \"filters\": {\n    \"sem\": 2,\n    \"ng\": true\n  },\n  \"count\": 50,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 50,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"LSM3225\",\n      \"title\": \"Molecular Microbiology in Human Diseases\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"LSM3242\",\n      \"title\": \"Translational Microbiology\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"HSI2003\",\n      \"title\": \"From DNA to Gene Therapy\",\n      \"department\": \"Biochemistry\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"LSM4222\",\n      \"title\": \"Advanced Immunology\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"LSM2106\",\n      \"title\": \"Fundamental Biochemistry\",\n      \"department\": \"Biochemistry\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"LSM2233\",\n      \"title\": \"Cell Biology\",\n      \"department\": \"Biochemistry\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"CN2111\",\n      \"title\": \"Fundamentals of Biomolecular Engineering\",\n      \"department\": \"Chemical and Biomolecular Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"ZB2101\",\n      \"title\": \"Introductory Bioinformatics\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"PC3233\",\n      \"title\": \"Atomic & Molecular Physics I\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"LSM3247\",\n      \"title\": \"Practical Synthetic Biology\",\n      \"department\": \"Biochemistry\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"LSM2234\",\n      \"title\": \"Introduction to Quantitative Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"LSM2191A\",\n      \"title\": \"Laboratory Techniques in Life Sciences\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"LSM2191B\",\n      \"title\": \"Laboratory Techniques in Life Sciences\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"LSM3244\",\n      \"title\": \"Molecular Biotechnology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"LSM3243\",\n      \"title\": \"Molecular Biophysics\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"LSM2105\",\n      \"title\": \"Molecular Genetics\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"LSM2107\",\n      \"title\": \"Evolutionary Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"MLE4217\",\n      \"title\": \"Application of Big Data in Materials Science\",\n      \"department\": \"Materials Science and Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"LSM4231\",\n      \"title\": \"Structural Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"LSM4261\",\n      \"title\": \"Marine Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.0125\n    },\n    {\n      \"code\": \"LSM4264\",\n      \"title\": \"Freshwater Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012345679012345678\n    },\n    {\n      \"code\": \"LSM4227\",\n      \"title\": \"Stem Cell Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.012195121951219513\n    },\n    {\n      \"code\": \"PC3267\",\n      \"title\": \"Biophysics II\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012048192771084338\n    },\n    {\n      \"code\": \"LSM2254\",\n      \"title\": \"Fundamentals of Plant Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011904761904761904\n    },\n    {\n      \"code\": \"PC4243\",\n      \"title\": \"Atomic & Molecular Physics II\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011764705882352941\n    },\n    {\n      \"code\": \"LSM4252\",\n      \"title\": \"Reproductive Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011627906976744186\n    },\n    {\n      \"code\": \"LSM3259\",\n      \"title\": \"Fungal Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011494252873563218\n    },\n    {\n      \"code\": \"LSM3267\",\n      \"title\": \"Behavioural Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011363636363636364\n    },\n    {\n      \"code\": \"NST2006\",\n      \"title\": \"The Biology and Phenomenology of Pain\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011235955056179775\n    },\n    {\n      \"code\": \"LSM1301\",\n      \"title\": \"General Biology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.011111111111111112\n    },\n    {\n      \"code\": \"MA1301\",\n      \"title\": \"Introductory Mathematics\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.01098901098901099\n    },\n    {\n      \"code\": \"LSM3211\",\n      \"title\": \"Fundamental Pharmacology\",\n      \"department\": \"Pharmacology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.010869565217391304\n    },\n    {\n      \"code\": \"CM4236\",\n      \"title\": \"Spectroscopy & Imaging in Biophysical Chemistry\",\n      \"department\": \"Chemistry\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010752688172043012\n    },\n    {\n      \"code\": \"LSM4234\",\n      \"title\": \"Mechanobiology\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010638297872340425\n    },\n    {\n      \"code\": \"MLE4239\",\n      \"title\": \"Materials for Biointerfaces\",\n      \"department\": \"Materials Science and Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010526315789473684\n    },\n    {\n      \"code\": \"LSM2251\",\n      \"title\": \"Ecology and Environment\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.010416666666666666\n    },\n    {\n      \"code\": \"CM2122\",\n      \"title\": \"Organic Chemistry\",\n      \"department\": \"Chemistry\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.010309278350515464\n    },\n    {\n      \"code\": \"CG2027\",\n      \"title\": \"Transistor-level Digital Circuits\",\n      \"department\": \"Computing and Engineering Programme\",\n      \"faculty\": \"Multi Disciplinary Programme\",\n      \"credits\": 2,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.01020408163265306\n    },\n    {\n      \"code\": \"LSM3255\",\n      \"title\": \"Ecology of Terrestrial Environments\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.010101010101010102\n    },\n    {\n      \"code\": \"PC3295\",\n      \"title\": \"Radiation for Imaging and Therapy in Medicine\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01\n    },\n    {\n      \"code\": \"CN2110\",\n      \"title\": \"Heat and Mass Transfer\",\n      \"department\": \"Chemical and Biomolecular Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009900990099009901\n    },\n    {\n      \"code\": \"NST2002\",\n      \"title\": \"Evolution\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.00980392156862745\n    },\n    {\n      \"code\": \"LSM3223\",\n      \"title\": \"Immunology\",\n      \"department\": \"Microbiology and Immunology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009708737864077669\n    },\n    {\n      \"code\": \"PC1201\",\n      \"title\": \"Fundamentals of Physics\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009615384615384616\n    },\n    {\n      \"code\": \"NST2036\",\n      \"title\": \"Creating Wolverine in Real Life\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009523809523809525\n    },\n    {\n      \"code\": \"LSM3218\",\n      \"title\": \"Cardiopulmonary Pharmacology\",\n      \"department\": \"Pharmacology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009433962264150943\n    },\n    {\n      \"code\": \"LSM3257\",\n      \"title\": \"Applied Data Analysis in Ecology and Evolution\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009345794392523364\n    },\n    {\n      \"code\": \"QF3103\",\n      \"title\": \"Advanced Mathematics in Quantitative Finance\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.009259259259259259\n    },\n    {\n      \"code\": \"CM2112\",\n      \"title\": \"Chemistry of Elements\",\n      \"department\": \"Chemistry\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009174311926605505\n    },\n    {\n      \"code\": \"LSM3220\",\n      \"title\": \"Genes, Genomes and Biomedical Implications\",\n      \"department\": \"Biological Sciences\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.00909090909090909\n    }\n  ]\n}",
+ "body": {
+  "query": "advanced molecular biology 4000 level",
+  "filters": {
+   "sem": 2,
+   "ng": true
+  },
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "LSM3225",
+    "title": "Molecular Microbiology in Human Diseases",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "LSM3242",
+    "title": "Translational Microbiology",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "HSI2003",
+    "title": "From DNA to Gene Therapy",
+    "department": "Biochemistry",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "LSM4222",
+    "title": "Advanced Immunology",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.015625
+   },
+   {
+    "code": "LSM2106",
+    "title": "Fundamental Biochemistry",
+    "department": "Biochemistry",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "LSM2233",
+    "title": "Cell Biology",
+    "department": "Biochemistry",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "CN2111",
+    "title": "Fundamentals of Biomolecular Engineering",
+    "department": "Chemical and Biomolecular Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "ZB2101",
+    "title": "Introductory Bioinformatics",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "PC3233",
+    "title": "Atomic & Molecular Physics I",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "LSM3247",
+    "title": "Practical Synthetic Biology",
+    "department": "Biochemistry",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "LSM2234",
+    "title": "Introduction to Quantitative Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "LSM2191A",
+    "title": "Laboratory Techniques in Life Sciences",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "LSM2191B",
+    "title": "Laboratory Techniques in Life Sciences",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "LSM3244",
+    "title": "Molecular Biotechnology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "LSM3243",
+    "title": "Molecular Biophysics",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "LSM2105",
+    "title": "Molecular Genetics",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "LSM2107",
+    "title": "Evolutionary Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "MLE4217",
+    "title": "Application of Big Data in Materials Science",
+    "department": "Materials Science and Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "LSM4231",
+    "title": "Structural Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "LSM4261",
+    "title": "Marine Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.0125
+   },
+   {
+    "code": "LSM4264",
+    "title": "Freshwater Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "LSM4227",
+    "title": "Stem Cell Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "PC3267",
+    "title": "Biophysics II",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "LSM2254",
+    "title": "Fundamentals of Plant Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "PC4243",
+    "title": "Atomic & Molecular Physics II",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "LSM4252",
+    "title": "Reproductive Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "LSM3259",
+    "title": "Fungal Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "LSM3267",
+    "title": "Behavioural Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "NST2006",
+    "title": "The Biology and Phenomenology of Pain",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "LSM1301",
+    "title": "General Biology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "MA1301",
+    "title": "Introductory Mathematics",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "LSM3211",
+    "title": "Fundamental Pharmacology",
+    "department": "Pharmacology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "CM4236",
+    "title": "Spectroscopy & Imaging in Biophysical Chemistry",
+    "department": "Chemistry",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "LSM4234",
+    "title": "Mechanobiology",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "MLE4239",
+    "title": "Materials for Biointerfaces",
+    "department": "Materials Science and Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "LSM2251",
+    "title": "Ecology and Environment",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "CM2122",
+    "title": "Organic Chemistry",
+    "department": "Chemistry",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "CG2027",
+    "title": "Transistor-level Digital Circuits",
+    "department": "Computing and Engineering Programme",
+    "faculty": "Multi Disciplinary Programme",
+    "credits": 2,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "LSM3255",
+    "title": "Ecology of Terrestrial Environments",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "PC3295",
+    "title": "Radiation for Imaging and Therapy in Medicine",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01
+   },
+   {
+    "code": "CN2110",
+    "title": "Heat and Mass Transfer",
+    "department": "Chemical and Biomolecular Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "NST2002",
+    "title": "Evolution",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "LSM3223",
+    "title": "Immunology",
+    "department": "Microbiology and Immunology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "PC1201",
+    "title": "Fundamentals of Physics",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "NST2036",
+    "title": "Creating Wolverine in Real Life",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "LSM3218",
+    "title": "Cardiopulmonary Pharmacology",
+    "department": "Pharmacology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "LSM3257",
+    "title": "Applied Data Analysis in Ecology and Evolution",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "QF3103",
+    "title": "Advanced Mathematics in Quantitative Finance",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "CM2112",
+    "title": "Chemistry of Elements",
+    "department": "Chemistry",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "LSM3220",
+    "title": "Genes, Genomes and Biomedical Implications",
+    "department": "Biological Sciences",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}

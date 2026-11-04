@@ -1,0 +1,789 @@
+{
+ "n": "f2-22",
+ "id": "d-007",
+ "kind": "lexical",
+ "path": "/search?q=japanese+1&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 186,
+ "totalMs": 187,
+ "at": "2026-11-04T06:22:30.670Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a5518651ba6a885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:30 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=tJ%2BT%2F1ou0z3D%2BvEOWWAJVCso8fleG9nXycKY5UN8c%2B2T9L1GWc2MIOs5ASl%2BJ6rcGJBWf%2FNqGf%2Fi0jznqsXtgGd0a31p2eo8eo2ikPa14wOIzZ7HsGfiiArKgSRLuSQsEtMvktedPIeiukBd9NIvqZxJkYiSTozPQdCbj3HItAvN\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=8, limit;dur=0, fts;dur=16, hydrate;dur=16, total;dur=40",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"japanese 1\",\n  \"filters\": {},\n  \"count\": 50,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 50,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"LAJ1201\",\n      \"title\": \"Japanese 1\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"JS2101\",\n      \"title\": \"Approaches to Japanese Studies I\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"LAJ2201\",\n      \"title\": \"Japanese 2\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"JSC5880\",\n      \"title\": \"Selected Topics in Japanese Visual Cultures\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"JS3101\",\n      \"title\": \"Approaches to Japanese Studies II\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"JSC5302\",\n      \"title\": \"Advanced Japanese II (Coursework)\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"HY4233\",\n      \"title\": \"Grassroots Operations of the Japanese Empire\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"JS2222\",\n      \"title\": \"Japanese Society and Social Institutions\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"JSC5301\",\n      \"title\": \"Advanced Japanese I (Coursework)\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"JS6202\",\n      \"title\": \"Readings in Japanese Politics & Economics\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 6,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"JS3222\",\n      \"title\": \"Japanese Business Management\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"LAJ3204\",\n      \"title\": \"Business Japanese 2\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"LAJ3202\",\n      \"title\": \"Japanese 6\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"JS4229\",\n      \"title\": \"Japanese Translation - Theory & Practice\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"JSC5207\",\n      \"title\": \"Pre-Modern Japanese Visual Cultures\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"LAJ2202\",\n      \"title\": \"Japanese 3\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"JS2216\",\n      \"title\": \"Postwar Japanese Film and Anime\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"JS1101E\",\n      \"title\": \"Introduction to Japan\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"LAJ2203\",\n      \"title\": \"Japanese 4\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"LAJ3201\",\n      \"title\": \"Japanese 5\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.0125\n    },\n    {\n      \"code\": \"JS3216\",\n      \"title\": \"Japanese Literature Across Media\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012345679012345678\n    },\n    {\n      \"code\": \"LL4526\",\n      \"title\": \"Japanese Law\",\n      \"department\": \"FoL Dean's Office\",\n      \"faculty\": \"Law\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.012195121951219513\n    },\n    {\n      \"code\": \"LL5526\",\n      \"title\": \"Japanese Law\",\n      \"department\": \"FoL Dean's Office\",\n      \"faculty\": \"Law\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012048192771084338\n    },\n    {\n      \"code\": \"LLJ5526\",\n      \"title\": \"Japanese Law\",\n      \"department\": \"FoL Dean's Office\",\n      \"faculty\": \"Law\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011904761904761904\n    },\n    {\n      \"code\": \"LL6526\",\n      \"title\": \"Japanese Law\",\n      \"department\": \"FoL Dean's Office\",\n      \"faculty\": \"Law\",\n      \"credits\": 4,\n      \"level\": 6,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011764705882352941\n    },\n    {\n      \"code\": \"JSC5103\",\n      \"title\": \"Japanese Popular Culture - Theory and Methodology\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011627906976744186\n    },\n    {\n      \"code\": \"JSC5306\",\n      \"title\": \"Japanese Photography: A Visual History of Modernity\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011494252873563218\n    },\n    {\n      \"code\": \"JS2213\",\n      \"title\": \"Visual Analysis of Japanese Popular Culture\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.011363636363636364\n    },\n    {\n      \"code\": \"JSC5206\",\n      \"title\": \"Advanced Readings in Visual Cultures in Japan\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011235955056179775\n    },\n    {\n      \"code\": \"HY2208\",\n      \"title\": \"Pre-Modern Japan: History and Culture\",\n      \"department\": \"History\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011111111111111112\n    },\n    {\n      \"code\": \"JSC5203\",\n      \"title\": \"Commercial Art in Modern Japan\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01098901098901099\n    },\n    {\n      \"code\": \"JSC5401\",\n      \"title\": \"Advanced Research Project\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 8,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010869565217391304\n    },\n    {\n      \"code\": \"FDP2021\",\n      \"title\": \"Special Physics Class 1, 2\",\n      \"department\": \"FoS Dean's Office\",\n      \"faculty\": \"Science\",\n      \"credits\": 8,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010752688172043012\n    },\n    {\n      \"code\": \"LAK1201\",\n      \"title\": \"Korean 1\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.010638297872340425\n    },\n    {\n      \"code\": \"AUD5217\",\n      \"title\": \"Hearing Devices and Rehabilitation B (Part 1)\",\n      \"department\": \"NUS Medicine Dean's Office\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 3,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010526315789473684\n    },\n    {\n      \"code\": \"MUA1168\",\n      \"title\": \"Foundational Area Study 1\",\n      \"department\": \"YSTCM Dean's Office\",\n      \"faculty\": \"YST Conservatory of Music\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010416666666666666\n    },\n    {\n      \"code\": \"MUA2168\",\n      \"title\": \"Continuing Area Study 1\",\n      \"department\": \"YSTCM Dean's Office\",\n      \"faculty\": \"YST Conservatory of Music\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010309278350515464\n    },\n    {\n      \"code\": \"CM3221\",\n      \"title\": \"Organic Synthesis: The Disconnection Approach\",\n      \"department\": \"Chemistry\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01020408163265306\n    },\n    {\n      \"code\": \"PHC5102\",\n      \"title\": \"N-of-1 Pharmacology\",\n      \"department\": \"Pharmacology\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 2,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010101010101010102\n    },\n    {\n      \"code\": \"MUL1105\",\n      \"title\": \"Italian for Musicians 1\",\n      \"department\": \"YSTCM Dean's Office\",\n      \"faculty\": \"YST Conservatory of Music\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.01\n    },\n    {\n      \"code\": \"LAH1201\",\n      \"title\": \"Hindi 1\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009900990099009901\n    },\n    {\n      \"code\": \"AR5958A\",\n      \"title\": \"Topics in Urbanism 1\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.00980392156862745\n    },\n    {\n      \"code\": \"AR5956A\",\n      \"title\": \"Topics in Design and Built Environment 1\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009708737864077669\n    },\n    {\n      \"code\": \"FDP2011\",\n      \"title\": \"Special Mathematics Class 1, 2\",\n      \"department\": \"FoS Dean's Office\",\n      \"faculty\": \"Science\",\n      \"credits\": 8,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009615384615384616\n    },\n    {\n      \"code\": \"GMS6902\",\n      \"title\": \"Laboratory Rotation 1\",\n      \"department\": \"Duke-NUS Dean's Office\",\n      \"faculty\": \"Duke-NUS Medical School\",\n      \"credits\": 2,\n      \"level\": 6,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009523809523809525\n    },\n    {\n      \"code\": \"MUL2107\",\n      \"title\": \"French for Musicians 1\",\n      \"department\": \"YSTCM Dean's Office\",\n      \"faculty\": \"YST Conservatory of Music\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.009433962264150943\n    },\n    {\n      \"code\": \"AR1101A\",\n      \"title\": \"Design 1: Seeing, Thinking, Making\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 8,\n      \"level\": 1,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009345794392523364\n    },\n    {\n      \"code\": \"LAG1201\",\n      \"title\": \"German 1\",\n      \"department\": \"Centre for Language Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009259259259259259\n    },\n    {\n      \"code\": \"MUL2109\",\n      \"title\": \"German for Musicians 1\",\n      \"department\": \"YSTCM Dean's Office\",\n      \"faculty\": \"YST Conservatory of Music\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.009174311926605505\n    },\n    {\n      \"code\": \"JSC5305\",\n      \"title\": \"Internship\",\n      \"department\": \"Japanese Studies\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        4\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.00909090909090909\n    }\n  ]\n}",
+ "body": {
+  "query": "japanese 1",
+  "filters": {},
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "LAJ1201",
+    "title": "Japanese 1",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "JS2101",
+    "title": "Approaches to Japanese Studies I",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "LAJ2201",
+    "title": "Japanese 2",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "JSC5880",
+    "title": "Selected Topics in Japanese Visual Cultures",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "JS3101",
+    "title": "Approaches to Japanese Studies II",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "JSC5302",
+    "title": "Advanced Japanese II (Coursework)",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "HY4233",
+    "title": "Grassroots Operations of the Japanese Empire",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "JS2222",
+    "title": "Japanese Society and Social Institutions",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "JSC5301",
+    "title": "Advanced Japanese I (Coursework)",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "JS6202",
+    "title": "Readings in Japanese Politics & Economics",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "JS3222",
+    "title": "Japanese Business Management",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "LAJ3204",
+    "title": "Business Japanese 2",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "LAJ3202",
+    "title": "Japanese 6",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "JS4229",
+    "title": "Japanese Translation - Theory & Practice",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "JSC5207",
+    "title": "Pre-Modern Japanese Visual Cultures",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "LAJ2202",
+    "title": "Japanese 3",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "JS2216",
+    "title": "Postwar Japanese Film and Anime",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "JS1101E",
+    "title": "Introduction to Japan",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "LAJ2203",
+    "title": "Japanese 4",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "LAJ3201",
+    "title": "Japanese 5",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0125
+   },
+   {
+    "code": "JS3216",
+    "title": "Japanese Literature Across Media",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "LL4526",
+    "title": "Japanese Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "LL5526",
+    "title": "Japanese Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "LLJ5526",
+    "title": "Japanese Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "LL6526",
+    "title": "Japanese Law",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "JSC5103",
+    "title": "Japanese Popular Culture - Theory and Methodology",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "JSC5306",
+    "title": "Japanese Photography: A Visual History of Modernity",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "JS2213",
+    "title": "Visual Analysis of Japanese Popular Culture",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "JSC5206",
+    "title": "Advanced Readings in Visual Cultures in Japan",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "HY2208",
+    "title": "Pre-Modern Japan: History and Culture",
+    "department": "History",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "JSC5203",
+    "title": "Commercial Art in Modern Japan",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "JSC5401",
+    "title": "Advanced Research Project",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 8,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "FDP2021",
+    "title": "Special Physics Class 1, 2",
+    "department": "FoS Dean's Office",
+    "faculty": "Science",
+    "credits": 8,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "LAK1201",
+    "title": "Korean 1",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "AUD5217",
+    "title": "Hearing Devices and Rehabilitation B (Part 1)",
+    "department": "NUS Medicine Dean's Office",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 3,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "MUA1168",
+    "title": "Foundational Area Study 1",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "MUA2168",
+    "title": "Continuing Area Study 1",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "CM3221",
+    "title": "Organic Synthesis: The Disconnection Approach",
+    "department": "Chemistry",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "PHC5102",
+    "title": "N-of-1 Pharmacology",
+    "department": "Pharmacology",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "MUL1105",
+    "title": "Italian for Musicians 1",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.01
+   },
+   {
+    "code": "LAH1201",
+    "title": "Hindi 1",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "AR5958A",
+    "title": "Topics in Urbanism 1",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "AR5956A",
+    "title": "Topics in Design and Built Environment 1",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "FDP2011",
+    "title": "Special Mathematics Class 1, 2",
+    "department": "FoS Dean's Office",
+    "faculty": "Science",
+    "credits": 8,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "GMS6902",
+    "title": "Laboratory Rotation 1",
+    "department": "Duke-NUS Dean's Office",
+    "faculty": "Duke-NUS Medical School",
+    "credits": 2,
+    "level": 6,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "MUL2107",
+    "title": "French for Musicians 1",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "AR1101A",
+    "title": "Design 1: Seeing, Thinking, Making",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 8,
+    "level": 1,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "LAG1201",
+    "title": "German 1",
+    "department": "Centre for Language Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "MUL2109",
+    "title": "German for Musicians 1",
+    "department": "YSTCM Dean's Office",
+    "faculty": "YST Conservatory of Music",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "JSC5305",
+    "title": "Internship",
+    "department": "Japanese Studies",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     4
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}

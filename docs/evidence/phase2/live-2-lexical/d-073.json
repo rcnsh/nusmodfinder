@@ -1,0 +1,779 @@
+{
+ "n": "f2-20",
+ "id": "d-073",
+ "kind": "lexical",
+ "path": "/search?q=need+equivalent+of+our+%27Databases+and+Data+Management%27+%28relational+model%2C+SQL%2C+normalisation%2C+transactions%2C+intro+to+NoSQL%29&mode=lexical&topK=50",
+ "status": 200,
+ "ttfbMs": 185,
+ "totalMs": 187,
+ "at": "2026-11-04T06:22:23.197Z",
+ "headers": {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cache-control": "public, max-age=3600",
+  "cf-ray": "a55186231d56885b-SIN",
+  "content-encoding": "zstd",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Wed, 04 Nov 2026 06:22:23 GMT",
+  "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}",
+  "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=WKVRQ%2B%2FJp3V20bKtq9jCH%2FicmWl9I54%2F1pE7FmwcLI19EVmPNEfrikmblZ2vT7f7%2FqJJHA2Dq1WFjHrzEXnnKaouSz5cid9pBX%2FWePByNExvqnsctfyYz3%2FPOopykRZFDMk2vf%2FlH6tnv9UMN3C952JvF%2FpIzKC4jQBRy9zHyfHG\"}]}",
+  "server": "cloudflare",
+  "server-timing": "cache;desc=miss;dur=7, limit;dur=0, fts;dur=25, hydrate;dur=20, total;dur=52",
+  "x-app-version": "8d94982"
+ },
+ "bodyText": "{\n  \"query\": \"need equivalent of our 'databases and data management' (relational model, sql, normalisation, transactions, intro to nosql)\",\n  \"filters\": {},\n  \"count\": 50,\n  \"mode\": \"lexical\",\n  \"retrieval\": {\n    \"vector\": 0,\n    \"lexical\": 50,\n    \"fused\": 50\n  },\n  \"results\": [\n    {\n      \"code\": \"CS4221\",\n      \"title\": \"Database Applications Design and Tuning\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.01639344262295082\n    },\n    {\n      \"code\": \"CS5421\",\n      \"title\": \"Database Applications Design and Tuning\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.016129032258064516\n    },\n    {\n      \"code\": \"IT3010\",\n      \"title\": \"Data Management for Business Analytics\",\n      \"department\": \"Information Systems and Analytics\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.015873015873015872\n    },\n    {\n      \"code\": \"CS2102\",\n      \"title\": \"Database Systems\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015625\n    },\n    {\n      \"code\": \"TIC2601\",\n      \"title\": \"Database and Web Applications\",\n      \"department\": \"SCALE Dean's Office\",\n      \"faculty\": \"Cont and Lifelong Education\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015384615384615385\n    },\n    {\n      \"code\": \"TCX2003\",\n      \"title\": \"Database Systems and Management\",\n      \"department\": \"SCALE Dean's Office\",\n      \"faculty\": \"Cont and Lifelong Education\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        3\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.015151515151515152\n    },\n    {\n      \"code\": \"BT5110\",\n      \"title\": \"Data Management and Warehousing\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014925373134328358\n    },\n    {\n      \"code\": \"IT2002\",\n      \"title\": \"Database Technology and Management\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.014705882352941176\n    },\n    {\n      \"code\": \"IT5008\",\n      \"title\": \"Database Design and Programming\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014492753623188406\n    },\n    {\n      \"code\": \"CS3223\",\n      \"title\": \"Database Systems Implementation\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.014285714285714285\n    },\n    {\n      \"code\": \"DSA5104\",\n      \"title\": \"Principles of Data Management and Retrieval\",\n      \"department\": \"Mathematics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.014084507042253521\n    },\n    {\n      \"code\": \"CS5424\",\n      \"title\": \"Distributed Databases\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013888888888888888\n    },\n    {\n      \"code\": \"CS4224\",\n      \"title\": \"Distributed Databases\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.0136986301369863\n    },\n    {\n      \"code\": \"CE5316QA\",\n      \"title\": \"Water Resources for Smart and Liveable Cities: Intro\",\n      \"department\": \"Civil and Environmental Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 2,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013513513513513514\n    },\n    {\n      \"code\": \"BT2102\",\n      \"title\": \"Data Management and Visualisation\",\n      \"department\": \"Information Systems and Analytics\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013333333333333334\n    },\n    {\n      \"code\": \"CE3204\",\n      \"title\": \"Data Management for Civil Engineers\",\n      \"department\": \"Civil and Environmental Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 2,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.013157894736842105\n    },\n    {\n      \"code\": \"DSA2111\",\n      \"title\": \"Cloud-Based Data Science and Programming\",\n      \"department\": \"Statistics and Data Science\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012987012987012988\n    },\n    {\n      \"code\": \"CS6203\",\n      \"title\": \"Advanced Topics in Database Systems\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 6,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01282051282051282\n    },\n    {\n      \"code\": \"ECA5372\",\n      \"title\": \"Big Data Analytics and Technologies\",\n      \"department\": \"Economics\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012658227848101266\n    },\n    {\n      \"code\": \"CS5322\",\n      \"title\": \"Database Security\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.0125\n    },\n    {\n      \"code\": \"CS3231\",\n      \"title\": \"Theory of Computation\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.012345679012345678\n    },\n    {\n      \"code\": \"LCJ5002\",\n      \"title\": \"Intro To Legal Theory\",\n      \"department\": \"FoL Dean's Office\",\n      \"faculty\": \"Law\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012195121951219513\n    },\n    {\n      \"code\": \"FIN3761A\",\n      \"title\": \"TIF: Transaction Banking\",\n      \"department\": \"Finance\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.012048192771084338\n    },\n    {\n      \"code\": \"CS1231\",\n      \"title\": \"Discrete Structures\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.011904761904761904\n    },\n    {\n      \"code\": \"CS1231S\",\n      \"title\": \"Discrete Structures\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 1,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011764705882352941\n    },\n    {\n      \"code\": \"MLE4217\",\n      \"title\": \"Application of Big Data in Materials Science\",\n      \"department\": \"Materials Science and Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        2\n      ],\n      \"score\": 0.011627906976744186\n    },\n    {\n      \"code\": \"MLE5219\",\n      \"title\": \"Materials Informatics: The Role of Big Data\",\n      \"department\": \"Materials Science and Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011494252873563218\n    },\n    {\n      \"code\": \"BMI5207\",\n      \"title\": \"Medical Data and Data Processing\",\n      \"department\": \"Surgery\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011363636363636364\n    },\n    {\n      \"code\": \"TCE4282\",\n      \"title\": \"Building Information Modeling for Project Management\",\n      \"department\": \"SCALE Dean's Office\",\n      \"faculty\": \"Cont and Lifelong Education\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011235955056179775\n    },\n    {\n      \"code\": \"LAD2005\",\n      \"title\": \"Introductory GIS for Landscape Architecture\",\n      \"department\": \"Architecture\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 2,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.011111111111111112\n    },\n    {\n      \"code\": \"CLC3303\",\n      \"title\": \"Community Leadership\",\n      \"department\": \"Chua Thian Poh Comm Leader Center\",\n      \"faculty\": \"NUS\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01098901098901099\n    },\n    {\n      \"code\": \"DSS5103\",\n      \"title\": \"Geospatial Data Analysis\",\n      \"department\": \"Statistics and Data Science\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010869565217391304\n    },\n    {\n      \"code\": \"PC5253\",\n      \"title\": \"Complex Systems Analysis and Modelling\",\n      \"department\": \"Physics\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010752688172043012\n    },\n    {\n      \"code\": \"BMT5200\",\n      \"title\": \"Analytics and Data Management\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010638297872340425\n    },\n    {\n      \"code\": \"BMI5111\",\n      \"title\": \"Capstone Project\",\n      \"department\": \"Surgery\",\n      \"faculty\": \"Yong Loo Lin Sch of Medicine\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010526315789473684\n    },\n    {\n      \"code\": \"DBA3803\",\n      \"title\": \"Predictive Analytics in Business\",\n      \"department\": \"Analytics and Operations\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.010416666666666666\n    },\n    {\n      \"code\": \"DSS5105\",\n      \"title\": \"Data Science Projects in Practice\",\n      \"department\": \"Statistics and Data Science\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010309278350515464\n    },\n    {\n      \"code\": \"CS5246\",\n      \"title\": \"Text Mining\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01020408163265306\n    },\n    {\n      \"code\": \"GE3238\",\n      \"title\": \"GIS Design and Practices\",\n      \"department\": \"Geography\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.010101010101010102\n    },\n    {\n      \"code\": \"SH5401\",\n      \"title\": \"Safety, Health, Environment & Quality Management System\",\n      \"department\": \"Chemical and Biomolecular Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.01\n    },\n    {\n      \"code\": \"NM3245\",\n      \"title\": \"Managing Arts and Cultural Events\",\n      \"department\": \"Communications and New Media\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009900990099009901\n    },\n    {\n      \"code\": \"BMF5359\",\n      \"title\": \"Valuation and Mergers & Acquisitions\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.00980392156862745\n    },\n    {\n      \"code\": \"CS5228\",\n      \"title\": \"Knowledge Discovery and Data Mining\",\n      \"department\": \"Computer Science\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009708737864077669\n    },\n    {\n      \"code\": \"BMT5207\",\n      \"title\": \"Audit Analytics and Business Intelligence\",\n      \"department\": \"BIZ Dean's Office\",\n      \"faculty\": \"NUS Business School\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009615384615384616\n    },\n    {\n      \"code\": \"DSA4213\",\n      \"title\": \"Natural Language Processing for Data Science\",\n      \"department\": \"Statistics and Data Science\",\n      \"faculty\": \"Science\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009523809523809525\n    },\n    {\n      \"code\": \"BT4103\",\n      \"title\": \"Business Analytics Capstone Project\",\n      \"department\": \"Information Systems and Analytics\",\n      \"faculty\": \"Computing\",\n      \"credits\": 8,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009433962264150943\n    },\n    {\n      \"code\": \"GE3550A\",\n      \"title\": \"GIS Internship Course\",\n      \"department\": \"Geography\",\n      \"faculty\": \"Arts and Social Science\",\n      \"credits\": 4,\n      \"level\": 3,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009345794392523364\n    },\n    {\n      \"code\": \"BT4222\",\n      \"title\": \"Mining Web Data for Business Insights\",\n      \"department\": \"Information Systems and Analytics\",\n      \"faculty\": \"Computing\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1,\n        2\n      ],\n      \"score\": 0.009259259259259259\n    },\n    {\n      \"code\": \"MEM5102\",\n      \"title\": \"Applied Research Methodology\",\n      \"department\": \"NUS College Dean's Office\",\n      \"faculty\": \"NUS College\",\n      \"credits\": 4,\n      \"level\": 5,\n      \"semesters\": [\n        1\n      ],\n      \"ng\": false,\n      \"ngSemesters\": [],\n      \"score\": 0.009174311926605505\n    },\n    {\n      \"code\": \"EE4312\",\n      \"title\": \"Artificial Neural Networks\",\n      \"department\": \"Electrical and Computer Engineering\",\n      \"faculty\": \"College of Design and Engineering\",\n      \"credits\": 4,\n      \"level\": 4,\n      \"semesters\": [\n        1,\n        2\n      ],\n      \"ng\": true,\n      \"ngSemesters\": [\n        1\n      ],\n      \"score\": 0.00909090909090909\n    }\n  ]\n}",
+ "body": {
+  "query": "need equivalent of our 'databases and data management' (relational model, sql, normalisation, transactions, intro to nosql)",
+  "filters": {},
+  "count": 50,
+  "mode": "lexical",
+  "retrieval": {
+   "vector": 0,
+   "lexical": 50,
+   "fused": 50
+  },
+  "results": [
+   {
+    "code": "CS4221",
+    "title": "Database Applications Design and Tuning",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.01639344262295082
+   },
+   {
+    "code": "CS5421",
+    "title": "Database Applications Design and Tuning",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.016129032258064516
+   },
+   {
+    "code": "IT3010",
+    "title": "Data Management for Business Analytics",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.015873015873015872
+   },
+   {
+    "code": "CS2102",
+    "title": "Database Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015625
+   },
+   {
+    "code": "TIC2601",
+    "title": "Database and Web Applications",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015384615384615385
+   },
+   {
+    "code": "TCX2003",
+    "title": "Database Systems and Management",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     3
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.015151515151515152
+   },
+   {
+    "code": "BT5110",
+    "title": "Data Management and Warehousing",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014925373134328358
+   },
+   {
+    "code": "IT2002",
+    "title": "Database Technology and Management",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.014705882352941176
+   },
+   {
+    "code": "IT5008",
+    "title": "Database Design and Programming",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014492753623188406
+   },
+   {
+    "code": "CS3223",
+    "title": "Database Systems Implementation",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.014285714285714285
+   },
+   {
+    "code": "DSA5104",
+    "title": "Principles of Data Management and Retrieval",
+    "department": "Mathematics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.014084507042253521
+   },
+   {
+    "code": "CS5424",
+    "title": "Distributed Databases",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013888888888888888
+   },
+   {
+    "code": "CS4224",
+    "title": "Distributed Databases",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.0136986301369863
+   },
+   {
+    "code": "CE5316QA",
+    "title": "Water Resources for Smart and Liveable Cities: Intro",
+    "department": "Civil and Environmental Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 2,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013513513513513514
+   },
+   {
+    "code": "BT2102",
+    "title": "Data Management and Visualisation",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013333333333333334
+   },
+   {
+    "code": "CE3204",
+    "title": "Data Management for Civil Engineers",
+    "department": "Civil and Environmental Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 2,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.013157894736842105
+   },
+   {
+    "code": "DSA2111",
+    "title": "Cloud-Based Data Science and Programming",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012987012987012988
+   },
+   {
+    "code": "CS6203",
+    "title": "Advanced Topics in Database Systems",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 6,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01282051282051282
+   },
+   {
+    "code": "ECA5372",
+    "title": "Big Data Analytics and Technologies",
+    "department": "Economics",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012658227848101266
+   },
+   {
+    "code": "CS5322",
+    "title": "Database Security",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.0125
+   },
+   {
+    "code": "CS3231",
+    "title": "Theory of Computation",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.012345679012345678
+   },
+   {
+    "code": "LCJ5002",
+    "title": "Intro To Legal Theory",
+    "department": "FoL Dean's Office",
+    "faculty": "Law",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012195121951219513
+   },
+   {
+    "code": "FIN3761A",
+    "title": "TIF: Transaction Banking",
+    "department": "Finance",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.012048192771084338
+   },
+   {
+    "code": "CS1231",
+    "title": "Discrete Structures",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.011904761904761904
+   },
+   {
+    "code": "CS1231S",
+    "title": "Discrete Structures",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 1,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011764705882352941
+   },
+   {
+    "code": "MLE4217",
+    "title": "Application of Big Data in Materials Science",
+    "department": "Materials Science and Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     2
+    ],
+    "score": 0.011627906976744186
+   },
+   {
+    "code": "MLE5219",
+    "title": "Materials Informatics: The Role of Big Data",
+    "department": "Materials Science and Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011494252873563218
+   },
+   {
+    "code": "BMI5207",
+    "title": "Medical Data and Data Processing",
+    "department": "Surgery",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011363636363636364
+   },
+   {
+    "code": "TCE4282",
+    "title": "Building Information Modeling for Project Management",
+    "department": "SCALE Dean's Office",
+    "faculty": "Cont and Lifelong Education",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011235955056179775
+   },
+   {
+    "code": "LAD2005",
+    "title": "Introductory GIS for Landscape Architecture",
+    "department": "Architecture",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 2,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.011111111111111112
+   },
+   {
+    "code": "CLC3303",
+    "title": "Community Leadership",
+    "department": "Chua Thian Poh Comm Leader Center",
+    "faculty": "NUS",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01098901098901099
+   },
+   {
+    "code": "DSS5103",
+    "title": "Geospatial Data Analysis",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010869565217391304
+   },
+   {
+    "code": "PC5253",
+    "title": "Complex Systems Analysis and Modelling",
+    "department": "Physics",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010752688172043012
+   },
+   {
+    "code": "BMT5200",
+    "title": "Analytics and Data Management",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010638297872340425
+   },
+   {
+    "code": "BMI5111",
+    "title": "Capstone Project",
+    "department": "Surgery",
+    "faculty": "Yong Loo Lin Sch of Medicine",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010526315789473684
+   },
+   {
+    "code": "DBA3803",
+    "title": "Predictive Analytics in Business",
+    "department": "Analytics and Operations",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.010416666666666666
+   },
+   {
+    "code": "DSS5105",
+    "title": "Data Science Projects in Practice",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010309278350515464
+   },
+   {
+    "code": "CS5246",
+    "title": "Text Mining",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01020408163265306
+   },
+   {
+    "code": "GE3238",
+    "title": "GIS Design and Practices",
+    "department": "Geography",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.010101010101010102
+   },
+   {
+    "code": "SH5401",
+    "title": "Safety, Health, Environment & Quality Management System",
+    "department": "Chemical and Biomolecular Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.01
+   },
+   {
+    "code": "NM3245",
+    "title": "Managing Arts and Cultural Events",
+    "department": "Communications and New Media",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009900990099009901
+   },
+   {
+    "code": "BMF5359",
+    "title": "Valuation and Mergers & Acquisitions",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.00980392156862745
+   },
+   {
+    "code": "CS5228",
+    "title": "Knowledge Discovery and Data Mining",
+    "department": "Computer Science",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009708737864077669
+   },
+   {
+    "code": "BMT5207",
+    "title": "Audit Analytics and Business Intelligence",
+    "department": "BIZ Dean's Office",
+    "faculty": "NUS Business School",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009615384615384616
+   },
+   {
+    "code": "DSA4213",
+    "title": "Natural Language Processing for Data Science",
+    "department": "Statistics and Data Science",
+    "faculty": "Science",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009523809523809525
+   },
+   {
+    "code": "BT4103",
+    "title": "Business Analytics Capstone Project",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 8,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009433962264150943
+   },
+   {
+    "code": "GE3550A",
+    "title": "GIS Internship Course",
+    "department": "Geography",
+    "faculty": "Arts and Social Science",
+    "credits": 4,
+    "level": 3,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009345794392523364
+   },
+   {
+    "code": "BT4222",
+    "title": "Mining Web Data for Business Insights",
+    "department": "Information Systems and Analytics",
+    "faculty": "Computing",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1,
+     2
+    ],
+    "score": 0.009259259259259259
+   },
+   {
+    "code": "MEM5102",
+    "title": "Applied Research Methodology",
+    "department": "NUS College Dean's Office",
+    "faculty": "NUS College",
+    "credits": 4,
+    "level": 5,
+    "semesters": [
+     1
+    ],
+    "ng": false,
+    "ngSemesters": [],
+    "score": 0.009174311926605505
+   },
+   {
+    "code": "EE4312",
+    "title": "Artificial Neural Networks",
+    "department": "Electrical and Computer Engineering",
+    "faculty": "College of Design and Engineering",
+    "credits": 4,
+    "level": 4,
+    "semesters": [
+     1,
+     2
+    ],
+    "ng": true,
+    "ngSemesters": [
+     1
+    ],
+    "score": 0.00909090909090909
+   }
+  ]
+ }
+}
