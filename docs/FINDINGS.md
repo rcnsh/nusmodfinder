@@ -323,6 +323,9 @@ measured on the Phase 1 deploy, quoting only the local grid meanwhile.
 
 ## Search
 
+Restated for Workers Paid on 2026-11-04 (ADR 0004): 50M queried dims/month ≈ 123,400 uncached
+searches against D1's 25 billion rows read/month. Vectorize is still the binding limit.
+
 ### S1 · The eval is circular and mis-scoped
 
 **Status:** reproduced
