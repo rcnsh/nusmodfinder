@@ -75,6 +75,12 @@ export async function assertPinnedBaseline(run, options = {}) {
   if (r.ref !== ref) throw new BaselineError(`${name} ran ranker ref ${JSON.stringify(r.ref)}, not the pinned ${ref}`);
   if (r.sha !== sha) throw new BaselineError(`${name} ran ranker sha ${short(r.sha)}, not the pinned ${sha.slice(0, 7)}`);
   if (r.dirty !== false) throw new BaselineError(`${name} does not record a clean ranker (dirty: ${JSON.stringify(r.dirty)})`);
+  if (r.runner?.dirty !== false) throw new BaselineError(`${name} does not record a clean runner (runner.dirty: ${JSON.stringify(r.runner?.dirty)})`);
+  // The pin is the shipped configuration: filtered, hybrid. A run of the right ranker with other
+  // query parameters is a different baseline.
+  const c = /** @type {any} */ (run).config ?? {};
+  if (c.filters !== true) throw new BaselineError(`${name} was not run with the queries' filters (config.filters: ${JSON.stringify(c.filters)})`);
+  if ((c.mode ?? 'hybrid') !== 'hybrid') throw new BaselineError(`${name} ran mode ${JSON.stringify(c.mode)}, not hybrid`);
   const want = await pinnedTreeHash(repo);
   if (r.treeHash !== want) throw new BaselineError(`${name} has ranker treeHash ${short(r.treeHash)}, but the files of ${ref} hash to ${short(want)}`);
 }
