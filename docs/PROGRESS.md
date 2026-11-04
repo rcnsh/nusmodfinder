@@ -658,3 +658,30 @@ fails on the previous code.
   - nDCG@10: 0.758 → 0.712. P@5: 0.608 → 0.571. MRR@10: 0.872 → 0.820.
   - The same five-query emptying now fails the cutoff gate: correct-empty stays at 0 over 10
     no-answer queries.
+
+
+## 2026-11-04 — Phase 2 exit; Phase 3 plan converged
+
+- **Phase 2 exit red-team.** Every baseline figure reproduced from a clean clone. Three findings
+  blocked the exit, and three were custody or gate gaps. All six are fixed:
+  - **#29:** EVAL.md labels the baseline as the offline replica, and the reproduce block is
+    corrected.
+  - **#30:** the code-target rule grades. Five answerable code queries had been scored as
+    no-answer, and emptying them passed the cutoff gate. The changes:
+    - `qrels-dev-v2` and `qrels-holdout-v2` (the holdout only by counts, with no look);
+    - dev v0 hybrid reads nDCG@10 0.712 [0.644, 0.770] over 83 answerable queries.
+  - **#32** (replaces #31, which GitHub could not reopen during an outage). Six refusals:
+    - a cutoff must truncate the baseline;
+    - the rule applied and the baseline ranker sha are recorded in the ledger;
+    - the baseline must be `eval-v0` (filtered, hybrid, clean runner);
+    - a manifested run is never overwritten without `retire-run`;
+    - every ciphertext a verdict reads must match its manifest;
+    - judge merges record only the file they write.
+- **Phase 2 passed.** Holdout looks so far: 0 of 12.
+- **Phase 3 plan converged at r3.1** (#27; ADR 0006), after three critic rounds. Round counts:
+  - Round 1 raised 41 objections and round 2 raised 33.
+  - Round 3 raised 8 blocking and 18 non-blocking objections, all applied without a further
+    pass.
+  - Four are recorded as dissent.
+  - Jacob's answers to Q1 (SC5 set), Q2 (VPN for the counted SC7 run) and Q4 (failed
+    SC4-required changes) are due before the first holdout look.
