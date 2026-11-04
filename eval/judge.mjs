@@ -9,6 +9,7 @@
 //   npm run eval:judge -- adjudicate prepare --round <r> --adjudicator <id>
 //   npm run eval:judge -- adjudicate collect --round <r> --pass 1|2
 //   npm run eval:judge -- merge --round <r> [--base <qrels> | --no-base] [--out <file>] [--version <v>]
+//   npm run eval:judge -- code-rule [--set dev | --holdout] [--qrels <in>] [--out <file>] [--version <v>]
 //   npm run eval:judge -- calibrate export --qrels <file> [--n 150] [--out <csv>]      (dev only)
 //   npm run eval:judge -- calibrate import --csv <file> --qrels <file> [--baseline v0 --run <variant>]
 //   npm run eval:judge -- status --round <r>
@@ -25,10 +26,11 @@ import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { agreementBlock, agreementReport } from './lib/agreement.mjs';
+import { codeRuleGrades, countLines, withCodeRule } from './lib/code-rule.mjs';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { readEncryptedJson, updateManifest, writeEncryptedJson } from './lib/crypto.mjs';
-import { errorClass } from './lib/errors.mjs';
-import { loadGroups, withCorpusGroups } from './lib/groups.mjs';
+import { CorpusMismatchError, errorClass } from './lib/errors.mjs';
+import { GROUPS_VERSION, loadGroups, withCorpusGroups } from './lib/groups.mjs';
 import {
   ADJUDICATOR, DEFAULT_BATCH, DEFAULT_CALIBRATION_N, DEFAULT_DRIFT_RATE, DEFAULT_REPEAT_RATE, JUDGE_SLOTS,
   agreementUnits, buildAdjudication, buildRound, calibrationCsv, calibrationSample, collectOutputs, driftReport, dropJudge, finalJudgments,
@@ -144,11 +146,37 @@ const readOrNull = async (path) => (existsSync(path) ? readFile(path, 'utf8') : 
  */
 const cleanHint = (set, p, a) => `npm run eval:judge -- clean --set ${set.name}${a['set-dir'] ? ` --set-dir '${a['set-dir']}'` : ''}${a['work-dir'] ? ` --work-dir '${a['work-dir']}'` : ''} --round ${a.round}   (or: rm -rf '${p.plain}')`;
 
+/** The set's corpus: its own corpus.json (fixture sets), else the pinned one. @param {import('./lib/sets.mjs').SetLayout} set */
+async function setCorpus(set) {
+  const file = join(set.dir, 'corpus.json');
+  return existsSync(file) ? loadCorpusFile(file) : loadPinnedWith(REPO);
+}
+
 /** @param {import('./lib/sets.mjs').SetLayout} set */
 async function corpusModules(set) {
-  const file = join(set.dir, 'corpus.json');
-  const corpus = existsSync(file) ? await loadCorpusFile(file) : await loadPinnedWith(REPO);
+  const corpus = await setCorpus(set);
   return new Map(corpus.modules.map((m) => [m.code, m]));
+}
+
+/**
+ * The code-target rule grades (lib/code-rule.mjs) for a set's queries, from
+ * the corpus the qrels are for. Duplicate groups are groups.mjs's rule over
+ * that corpus (for the pinned corpus, exactly eval/groups.json).
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {import('./lib/metrics.mjs').CorpusIds | undefined} ids the qrels' (or pool's) corpus
+ */
+async function codeRuleFor(set, ids) {
+  const corpus = await setCorpus(set);
+  const moduleInfoSha256 = ids?.moduleInfoSha256;
+  if (moduleInfoSha256 !== corpus.info.moduleInfoSha256) {
+    throw new CorpusMismatchError(`the qrels were judged on a corpus with moduleInfoSha256 ${String(moduleInfoSha256).slice(0, 12)}…, but the ${set.name} corpus is ${corpus.info.moduleInfoSha256.slice(0, 12)}…`);
+  }
+  // The rule grades NG violations from the corpus's NG list, so it must be the one the qrels record.
+  if (ids?.ngSha256 && ids.ngSha256 !== corpus.info.ngSha256) {
+    throw new CorpusMismatchError(`the qrels were judged with NG list ngSha256 ${String(ids.ngSha256).slice(0, 12)}…, but the ${set.name} corpus has ${String(corpus.info.ngSha256).slice(0, 12)}…`);
+  }
+  const querySet = await loadQueries(set);
+  return { grades: codeRuleGrades(querySet.queries, corpus.modules), corpusSha256: corpus.info.moduleInfoSha256 };
 }
 
 /** @param {string} label @param {number} x */
@@ -407,7 +435,8 @@ async function cmdMerge(a) {
   if (a['no-base'] && existsSync(target) && !a.force) usage(`${a.out ? 'the --out file' : 'the set\'s qrels'} already exists; --no-base would overwrite it (pass --force to replace it)`);
   const basePath = a['no-base'] ? null : a.base ? resolve(a.base) : existsSync(target) ? target : null;
   const base = basePath ? await readSetJson(set, basePath) : null;
-  const qrels = mergeQrels(round, { base, version: a.version });
+  const { grades: codeRule } = await codeRuleFor(set, round.pool.corpus ?? undefined);
+  const qrels = mergeQrels(round, { base, version: a.version, codeRule });
   if (set.encrypted) {
     await writeEncryptedJson(target, qrels, await setKey(), set.name);
     if (!a['set-dir'] && !a.out) await updateManifest(set.dir);
@@ -421,6 +450,51 @@ async function cmdMerge(a) {
     ? `${sources.rule} rule, ${sources.judged} judged by A (single-judge)`
     : `${sources.rule} rule, ${sources.agreed} agreed, ${sources.adjudicated} adjudicated`;
   console.log(`qrels ${qrels.version} -> ${target}${base ? ` (base ${base.version})` : ''}: ${counts}`);
+  const entry = /** @type {any} */ (qrels.judging.at(-1));
+  if (entry?.codeRule) console.log(`code rule: ${countLines(entry.codeRule, entry.codeRule.pairs).join('; ')}`);
+}
+
+// ---------------------------------------------------------------------------
+// code-rule: the code-target rule grade over an existing qrels file
+
+/**
+ * Applies the code-target rule to the set's qrels and writes the next
+ * version. Prints counts only for an encrypted set; dev also lists each
+ * changed pair. Takes no ledger look (it scores nothing).
+ * @param {Args} a
+ */
+async function cmdCodeRule(a) {
+  const set = setOf(a);
+  const source = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
+  const target = a.out ? resolve(a.out) : source;
+  if (set.encrypted && !target.endsWith('.enc')) usage('encrypted-set qrels must be written to a .enc path');
+  if (!existsSync(source)) usage(`no qrels at ${source}; merge a judging round first`);
+  /** @type {import('./lib/metrics.mjs').Qrels & { judging?: unknown[] }} */
+  const qrels = await readSetJson(set, source);
+  const { grades, corpusSha256 } = await codeRuleFor(set, qrels.corpus);
+  const { qrels: next, stats, changes } = withCodeRule(qrels, grades, { version: a.version, groupsVersion: GROUPS_VERSION, corpusSha256 });
+  if (!changes.length) {
+    console.log(`qrels ${qrels.version}: the code rule changes nothing; not written`);
+    return;
+  }
+  if (set.encrypted) {
+    await writeEncryptedJson(target, next, await setKey(), set.name);
+    if (!a['set-dir'] && !a.out) await updateManifest(set.dir);
+  } else {
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, `${JSON.stringify(next, null, 1)}\n`);
+  }
+  console.log(`qrels ${next.version} -> ${target} (base ${qrels.version}), code rule ${GROUPS_VERSION} groups`);
+  for (const line of countLines(stats, grades.size)) console.log(`  ${line}`);
+  if (!set.perQueryOutput) return;
+  console.log('\nper query (code queries):');
+  /** @type {Map<string, typeof changes>} */
+  const byQuery = new Map();
+  for (const c of changes) byQuery.set(c.queryId, [...(byQuery.get(c.queryId) ?? []), c]);
+  for (const [qid, cs] of [...byQuery].sort(([x], [y]) => (x < y ? -1 : 1))) {
+    const was = (/** @type {typeof changes[number]} */ c) => (c.from === null ? 'unjudged' : `${c.from} (${c.fromSource})`);
+    console.log(`  ${qid}: ${cs.length} pair(s): ${cs.map((c) => `${c.code} ${was(c)} -> ${c.to}`).join(', ')}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -513,11 +587,11 @@ async function cmdClean(a) {
 const { positionals, values } = parseArgs({ options: OPTIONS, allowPositionals: true });
 if (values.help || !positionals[0]) {
   const src = await readFile(new URL(import.meta.url), 'utf8');
-  console.log(src.split('\n').slice(2, 16).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+  console.log(src.split('\n').slice(2, 17).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
   process.exit(values.help ? 0 : 1);
 }
 /** @type {Record<string, (a: Args, sub: string | undefined) => Promise<void>>} */
-const commands = { prepare: cmdPrepare, 'drop-judge': cmdDropJudge, collect: cmdCollect, agree: cmdAgree, adjudicate: cmdAdjudicate, merge: cmdMerge, calibrate: cmdCalibrate, status: cmdStatus, clean: cmdClean };
+const commands = { prepare: cmdPrepare, 'drop-judge': cmdDropJudge, collect: cmdCollect, agree: cmdAgree, adjudicate: cmdAdjudicate, merge: cmdMerge, 'code-rule': cmdCodeRule, calibrate: cmdCalibrate, status: cmdStatus, clean: cmdClean };
 const fn = commands[positionals[0]];
 
 /** The encrypted set this invocation touches, if any. */

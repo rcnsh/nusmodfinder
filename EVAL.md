@@ -18,31 +18,35 @@ Phase 3 changes are measured against.
   - Δ between two replicas is unbiased. Absolute numbers describe production only approximately.
 - **Corpus:** pinned `data-2026-2027-20260904`, 6,771 offered modules.
 - **Query embeddings:** `emb-bge-small-v0`, committed vectors.
-- **Queries:** dev queries v2.1, 98 in total. 78 are primary answerable; the rest are 5
-  feature-gap and 15 no-answer.
-- **Qrels:** `qrels-dev-v1`, 1,616 pairs (25 graded by rule, the rest by judge A
-  `claude-opus-5-5`, single-judge mode, ADR 0004).
+- **Queries:** dev queries v2.1, 98 in total. 83 are primary answerable; the rest are 5
+  feature-gap and 10 no-answer.
+- **Qrels:** `qrels-dev-v2`, 1,666 pairs (81 graded by rule, the rest by judge A
+  `claude-opus-5-5`, single-judge mode, ADR 0004). The rule covers hard-constraint
+  violations and the code-target rule (`eval/lib/code-rule.mjs`, JUDGING.md "Code-target rule").
+  The code-target rule makes 5 code queries answerable that no pooled run had found a target
+  for. Under `qrels-dev-v1` those 5 scored as no-answer, and v0 read 0.758 nDCG@10 over 78
+  queries.
 - **Duplicate groups:** `groups-v1` (509 groups, `eval/groups.json`). Within a group, only the
   first member to appear earns gain.
 - **Judged@10:** 100% for all three runs.
 
-**Primary answerable queries (n = 78), 95% bootstrap CIs (10,000 resamples, seeded):**
+**Primary answerable queries (n = 83), 95% bootstrap CIs (10,000 resamples, seeded):**
 
 | run | nDCG@10 [BCa CI] | P@5 [BCa CI] | MRR@10 [BCa CI] |
 |---|---|---|---|
-| **v0 hybrid** | **0.758** [0.703, 0.804] | **0.608** [0.538, 0.674] | **0.872** [0.805, 0.924] |
-| v0 lexical only | 0.648 [0.575, 0.709] | 0.482 [0.413, 0.551] | 0.800 [0.713, 0.868] |
-| v0 vector only | 0.715 [0.652, 0.768] | 0.572 [0.503, 0.636] | 0.848 [0.769, 0.906] |
+| **v0 hybrid** | **0.712** [0.644, 0.770] | **0.571** [0.494, 0.641] | **0.820** [0.740, 0.884] |
+| v0 lexical only | 0.609 [0.532, 0.678] | 0.453 [0.383, 0.525] | 0.752 [0.661, 0.830] |
+| v0 vector only | 0.672 [0.599, 0.731] | 0.537 [0.463, 0.605] | 0.797 [0.712, 0.865] |
 
 **Paired differences (hybrid minus each half):**
 
 | | ΔnDCG@10 [BCa CI] | ΔP@5 [BCa CI] | ΔMRR@10 [BCa CI] |
 |---|---|---|---|
-| hybrid − lexical | +0.110 [0.060, 0.169], p = 0.0001 | +0.126 [0.085, 0.179], p = 0.0001 | +0.073 [0.005, 0.146], p = 0.044 |
-| hybrid − vector | +0.043 [−0.004, 0.090], p = 0.080 | +0.036 [−0.003, 0.072], p = 0.088 | +0.025 [−0.034, 0.080], p = 0.41 |
+| hybrid − lexical | +0.103 [0.055, 0.158], p = 0.0001 | +0.118 [0.077, 0.169], p = 0.0001 | +0.068 [0.003, 0.137], p = 0.044 |
+| hybrid − vector | +0.040 [−0.003, 0.085], p = 0.080 | +0.034 [−0.002, 0.067], p = 0.088 | +0.023 [−0.031, 0.076], p = 0.41 |
 
 The p values are from a paired sign-flip test. For hybrid − vector, the persona-clustered
-intervals are [0.010, 0.083] for nDCG and [0.006, 0.060] for P@5. Those exclude 0, while the BCa
+intervals are [0.009, 0.078] for nDCG and [0.005, 0.059] for P@5. Those exclude 0, while the BCa
 intervals don't. The script prints both.
 
 **Reading:**
@@ -55,10 +59,11 @@ intervals don't. The script prints both.
 
 **Outside the primary set (v0 hybrid):**
 - **Feature-gap (constraint queries, n = 5):** nDCG@10 0.604.
-- **No-answer queries (n = 15):** correct-empty 0%, with 11 false positives and 4 errors. The 4
+- **No-answer queries (n = 10):** correct-empty 0%, with 6 false positives and 4 errors. The 4
   are the 400 responses to home-course pastes over 200 characters.
 - **Hard-constraint violations:** 12 in the top 10s.
-- **Weakest dev shapes:** `ge` 0.482, `equivalence` 0.507, `typo` 0.529, `constraint` 0.604.
+- **Weakest dev shapes:** `code-partial` 0.000 (n = 3), `code-space` 0.210 (n = 3), `ge` 0.402,
+  `equivalence` 0.507, `typo` 0.529, `constraint` 0.604.
 
 **Judge quality:**
 - **Self-consistency:** planted repeats were graded identically 80 of 80 times on dev and 65 of
@@ -72,8 +77,9 @@ intervals don't. The script prints both.
 
   A is slightly lenient: it graded 12 pairs higher and 6 lower. No human has graded a pair.
 
-**Holdout:** `qrels-holdout-v1` is committed only as ciphertext, with 23 rule pairs and 1,296
-pairs graded by A. No look has been taken (`eval/holdout-ledger.md`). Looks are spent only on
+**Holdout:** `qrels-holdout-v2` is committed only as ciphertext: `qrels-holdout-v1` (23 rule pairs
+and 1,296 pairs graded by A) plus the code-target rule (15 rule pairs over 4 queries, 14 of
+them unpooled before). No look has been taken (`eval/holdout-ledger.md`). Looks are spent only on
 Phase 3 candidates, at most 12.
 
 **Reproduce** (from a clean clone, with the release assets):

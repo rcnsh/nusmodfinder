@@ -1,7 +1,7 @@
 {
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
- "version": "qrels-dev-v1",
+ "version": "qrels-dev-v2",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
   "ngSha256": "092d021db4ccff2ea45e75bfc073623fa502aace082a8d5bd627f41d79c3f169"
@@ -27,6 +27,29 @@
    "pairs": 1616,
    "pool": "4826833165b3cb6a91cfd28d1cd3b37dec7859bc9aabd05d964a520d27e528ca",
    "createdAt": "2026-11-04T06:15:38.782Z"
+  },
+  {
+   "round": "code-rule-v1",
+   "mode": "rule",
+   "rule": "JUDGING.md rule 4 (code target), applied mechanically from public corpus fields",
+   "corpus": {
+    "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1"
+   },
+   "groups": "groups-v1",
+   "pairs": 56,
+   "added": {
+    "0": 11,
+    "1": 1,
+    "2": 38
+   },
+   "changed": {},
+   "overrides": {
+    "total": 6,
+    "up": 0,
+    "down": 0,
+    "same": 6
+   },
+   "createdAt": "2026-11-04T10:31:51.745Z"
   }
  ],
  "queries": {
@@ -17058,13 +17081,18 @@
    "judgments": {
     "BN4207": {
      "grade": 2,
-     "source": "judged",
-     "round": "r1",
+     "source": "rule",
+     "round": "code-rule-v1",
      "judges": {
       "claude-opus-5-5": {
        "slot": "A",
        "grade": 2,
        "rationale": "Exactly BN4207 Microrobotics, offered and open to NG students in semester 2."
+      },
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: the exact code"
       }
      }
     },
@@ -17290,13 +17318,54 @@
     },
     "LL4541V": {
      "grade": 2,
-     "source": "judged",
-     "round": "r1",
+     "source": "rule",
+     "round": "code-rule-v1",
      "judges": {
       "claude-opus-5-5": {
        "slot": "A",
        "grade": 2,
        "rationale": "Exactly LL4541V Philosophical Issues in Law, offered and NG-open in semester 2."
+      },
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: the exact code"
+      }
+     }
+    },
+    "LL5541V": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
+      }
+     }
+    },
+    "LL6541V": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
+      }
+     }
+    },
+    "LLJ5541V": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
       }
      }
     }
@@ -17390,13 +17459,18 @@
     },
     "MLE2105": {
      "grade": 2,
-     "source": "judged",
-     "round": "r1",
+     "source": "rule",
+     "round": "code-rule-v1",
      "judges": {
       "claude-opus-5-5": {
        "slot": "A",
        "grade": 2,
        "rationale": "This is MLE2105 itself, offered and open to NG students in semester 2."
+      },
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: the exact code"
       }
      }
     },
@@ -17454,13 +17528,18 @@
     },
     "MA2101": {
      "grade": 2,
-     "source": "judged",
-     "round": "r1",
+     "source": "rule",
+     "round": "code-rule-v1",
      "judges": {
       "claude-opus-5-5": {
        "slot": "A",
        "grade": 2,
        "rationale": "This is MA2101 Linear Algebra II itself, open to NG students."
+      },
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: the exact code"
       }
      }
     },
@@ -17547,6 +17626,18 @@
        "rationale": "Project management law; not MA2101."
       }
      }
+    },
+    "MA2101S": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
+      }
+     }
     }
    }
   },
@@ -17626,13 +17717,18 @@
     },
     "EE4502": {
      "grade": 2,
-     "source": "judged",
-     "round": "r1",
+     "source": "rule",
+     "round": "code-rule-v1",
      "judges": {
       "claude-opus-5-5": {
        "slot": "A",
        "grade": 2,
        "rationale": "This is EE4502 itself, offered and open to NG students in semester 1."
+      },
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: the exact code"
       }
      }
     },
@@ -17795,6 +17891,18 @@
        "rationale": "PS2248, not CN2109 or a variant."
       }
      }
+    },
+    "CN2109": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: the exact code"
+      }
+     }
     }
    }
   },
@@ -17814,13 +17922,18 @@
     },
     "CS2030": {
      "grade": 2,
-     "source": "judged",
-     "round": "r1",
+     "source": "rule",
+     "round": "code-rule-v1",
      "judges": {
       "claude-opus-5-5": {
        "slot": "A",
        "grade": 2,
        "rationale": "Exactly CS2030 Programming Methodology II, open to NG students."
+      },
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: the exact code"
       }
      }
     },
@@ -17917,6 +18030,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "NM2207, not CS2030."
+      }
+     }
+    },
+    "CS2030DE": {
+     "grade": 1,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 1,
+       "rationale": "code rule: a variant of CS2030"
+      }
+     }
+    },
+    "CS2030S": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
       }
      }
     }
@@ -18043,6 +18180,18 @@
        "rationale": "ST2132 is a different course, not IS4246 or a variant."
       }
      }
+    },
+    "IS4246": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: the exact code"
+      }
+     }
     }
    }
   },
@@ -18165,6 +18314,54 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Code MLE4221 does not start with MUL21; unrelated."
+      }
+     }
+    },
+    "MUL2107": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with MUL21"
+      }
+     }
+    },
+    "MUL2108": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
+      }
+     }
+    },
+    "MUL2109": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with MUL21"
+      }
+     }
+    },
+    "MUL2110": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
       }
      }
     }
@@ -18291,6 +18488,30 @@
        "rationale": "MLE4230 Materials AI; not a DAO17 course."
       }
      }
+    },
+    "DAO1704": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
+      }
+     }
+    },
+    "DAO1704X": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with DAO17"
+      }
+     }
     }
    }
   },
@@ -18413,6 +18634,438 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Code MLE4225 does not start with GEC; unrelated to that prefix."
+      }
+     }
+    },
+    "GEC1001": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
+      }
+     }
+    },
+    "GEC1002": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1003": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1004": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1005": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1007": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1011": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1013": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1014": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1015": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1016": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1017": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1023": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1024": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
+      }
+     }
+    },
+    "GEC1028": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1030": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1031": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1032": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1034": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1037": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1038": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1039": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1040": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1040T": {
+     "grade": 0,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students"
+      }
+     }
+    },
+    "GEC1041": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1043": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1044": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1045": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1046": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1048": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1049": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1050": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1051": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1053": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1054": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
+      }
+     }
+    },
+    "GEC1055": {
+     "grade": 2,
+     "source": "rule",
+     "round": "code-rule-v1",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 2,
+       "rationale": "code rule: code starts with GEC"
       }
      }
     }
