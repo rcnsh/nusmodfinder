@@ -13,8 +13,8 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:
 import { chmod, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { basename, dirname, join } from 'node:path';
-import { DecryptionError, KeyFileError } from './errors.mjs';
+import { basename, dirname, isAbsolute, join, relative, sep } from 'node:path';
+import { DecryptionError, KeyFileError, ManifestError } from './errors.mjs';
 
 const MAGIC = Buffer.from('VNMENC2\n', 'latin1');
 const IV_BYTES = 12;
@@ -150,9 +150,86 @@ export async function updateManifest(dir) {
   /** @type {Record<string, string>} */
   const files = {};
   for (const f of await encFiles(dir)) files[f] = sha256(await readFile(join(dir, f)));
-  await mkdir(dir, { recursive: true });
-  await writeFile(join(dir, MANIFEST), `${JSON.stringify({ schema: 'vnm-holdout-manifest/1', files }, null, 2)}\n`);
+  await writeManifest(dir, files);
   return files;
+}
+
+/**
+ * The manifest's path for `file`, relative to `dir` with "/" separators, or
+ * null when `file` is outside `dir`.
+ * @param {string} dir
+ * @param {string} file
+ */
+function manifestName(dir, file) {
+  const rel = relative(dir, file);
+  if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) return null;
+  return rel.split(sep).join('/');
+}
+
+/**
+ * The `files` map of `<dir>/MANIFEST.json`, or null when there is none.
+ * @param {string} dir
+ * @returns {Promise<Record<string, string> | null>}
+ */
+export async function manifestFiles(dir) {
+  const path = join(dir, MANIFEST);
+  if (!existsSync(path)) return null;
+  return JSON.parse(await readFile(path, 'utf8')).files ?? {};
+}
+
+/** @param {string} dir @param {Record<string, string>} files */
+async function writeManifest(dir, files) {
+  const sorted = Object.fromEntries(Object.keys(files).sort().map((k) => [k, files[k]]));
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, MANIFEST), `${JSON.stringify({ schema: 'vnm-holdout-manifest/1', files: sorted }, null, 2)}\n`);
+}
+
+/**
+ * Adds or updates the manifest entries of `paths` only (files under `dir`),
+ * creating the manifest if there is none. Unlike updateManifest it never
+ * re-hashes other ciphertexts, so a tampered file stays flagged.
+ * @param {string} dir
+ * @param {string[]} paths
+ */
+export async function recordInManifest(dir, paths) {
+  const files = (await manifestFiles(dir)) ?? {};
+  for (const p of paths) {
+    const name = manifestName(dir, p);
+    if (!name) throw new ManifestError(`${p} is outside ${dir}; only files under it can be in its ${MANIFEST}`);
+    files[name] = sha256(await readFile(p));
+  }
+  await writeManifest(dir, files);
+  return files;
+}
+
+/**
+ * Removes one entry from the manifest (the file itself is the caller's).
+ * @param {string} dir
+ * @param {string} path
+ */
+export async function removeFromManifest(dir, path) {
+  const files = (await manifestFiles(dir)) ?? {};
+  const name = manifestName(dir, path);
+  if (name) delete files[name];
+  await writeManifest(dir, files);
+}
+
+/**
+ * Throws ManifestError unless `<dir>/MANIFEST.json` exists and lists `path`
+ * with the sha256 of `bytes` (default: the file's contents): the check
+ * `eval:verify` makes, for one file a verdict is about to read.
+ * @param {string} dir the set directory
+ * @param {string} path
+ * @param {Buffer} [bytes] the contents already read, so what is checked is what is decrypted
+ */
+export async function assertInManifest(dir, path, bytes) {
+  const files = await manifestFiles(dir);
+  if (!files) throw new ManifestError(`${dir} has no ${MANIFEST}, so its ciphertexts are unchecked; a verdict reads only files the manifest lists`);
+  const name = manifestName(dir, path);
+  if (!name) throw new ManifestError(`${path} is outside the set directory ${dir}, so its ${MANIFEST} cannot vouch for it`);
+  if (!(name in files)) throw new ManifestError(`${name} is not in ${join(dir, MANIFEST)}`);
+  const got = sha256(bytes ?? await readFile(path));
+  if (got !== files[name]) throw new ManifestError(`${name} sha256 ${got} != manifest ${files[name]}`);
 }
 
 /**

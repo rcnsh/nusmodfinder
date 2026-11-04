@@ -41,6 +41,7 @@ npm run eval -- --variant typo-fix --baseline v0 --target-shapes typo
 npm run eval -- --variant cutoff --baseline v0 --change-kind cutoff
 npm run eval -- --variant head-unf --unfiltered           # secondary: filters dropped
 npm run eval:report -- --run head --baseline v0           # recompute from run files + qrels only
+npm run eval -- retire-run --holdout --variant v0 --reason "<why>"   # custodian: retire a stored encrypted run (logged)
 npm run eval -- --variant v0-lexical --ref eval-v0 --mode lexical   # pool variant: one retrieval half only
 npm run eval:pool -- --runs v0,head [--unjudged [--qrels <file>]]   # blind pool for judges
 npm run eval:judge -- <command>                           # judging (see "Judging" below)
@@ -168,7 +169,15 @@ Per change, vs the shipped ranker:
 - **holdout**: ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates), no exact-code regression (no
   `code-exact` query whose baseline rank-1 is relevant gets a lower-graded rank-1), judged@10 100%.
 - **cutoff changes** (`--change-kind cutoff`): the no-answer trade-off replaces the Δ rules on
-  both sets: correct-empty gain ≥ 0.25 and answerable ΔnDCG@10 ≥ −0.01.
+  both sets: correct-empty gain ≥ 0.25 and answerable ΔnDCG@10 ≥ −0.01. It is looser than the
+  Δ rules, so it is not taken on the declaration alone: the candidate's result list for every
+  query must be the baseline's or a prefix of it, with the same status (a cutoff truncates; it
+  never reorders or adds). Anything else is refused (`CutoffError`) before any verdict or look.
+  `--change-kind cutoff` takes no `--target-shapes`.
+- **The rule applied** is printed with every verdict (`gate (dev): PASS · rule cutoff`;
+  `holdout verdict: PASS · rule cutoff · baseline eval-v0 7ac9841 · qrels …`) and recorded in
+  the ledger's `rule` column: `general`, `targeted: <shape,…>`, `cutoff` or `sc5` (the test
+  set, which takes no `--change-kind` or `--target-shapes`).
 - **SC5** (test set): BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0, judged 100%.
 
 Small samples (every gate, every set):
@@ -327,15 +336,48 @@ and `decrypt` infer the set for `eval/holdout` and `eval/sealed` and need `--set
 That binding is what lets the `selftest` set keep its ledger in its own directory: real holdout
 ciphertexts cannot be read through it.
 
+**What a verdict refuses** (every holdout and test-set verdict, `run` and `report`; all before
+a look is reserved or appended, so a refusal uses no look):
+- **A baseline that is not the pinned `eval-v0`** (`BaselineError`). ADR 0003 pins `eval-v0` =
+  7ac9841 (`lib/baseline.mjs`). The tag must still resolve to that commit, and the baseline
+  run file must record ranker ref `eval-v0`, that sha, `dirty: false`, and the `treeHash` of
+  that commit's ranker files (`git archive`, the paths `lib/workspace.mjs` hashes). The ledger's
+  `baseline ranker` column records the baseline run's ranker sha.
+- **A ciphertext the manifest does not vouch for** (`ManifestError`). Every encrypted file a
+  verdict reads (queries, qrels, both run files, and for `run` the query-embedding cache) must
+  be listed in the set directory's `MANIFEST.json` with its sha256, the check `eval:verify`
+  makes; the bytes checked are the bytes decrypted. A `--set-dir` with no manifest, a file it
+  does not list, a mismatch, or a run file outside the set directory is refused.
+- **A cutoff candidate that is not a truncation** (`CutoffError`, above). On an encrypted set
+  the candidate of `npm run eval` does not exist until after its look is reserved, so a cutoff
+  verdict is taken on a stored run: `--store-only`, then `eval:report --change-kind cutoff`.
+
+**Stored runs are never overwritten.** `npm run eval` (with or without `--store-only`) refuses
+to write an encrypted run file the manifest already lists. Writing a run adds that one file
+to the manifest and re-hashes nothing else, so a tampered ciphertext stays flagged by
+`eval:verify` (`holdout.mjs manifest` remains the custodian's explicit full rewrite).
+Replacing a stored run is a separate, logged command:
+
+```bash
+npm run eval -- retire-run --holdout --variant v0 --reason "<why>"
+```
+
+It appends a row (date, set, file, the retired ciphertext's sha256, reason) to
+`eval/retired-runs.md` (the `selftest` set: `<set-dir>/retired-runs.md`), deletes the
+ciphertext and drops its manifest entry; `--store-only` can then write the replacement.
+Retiring needs no key and is not a look. Commit the log with the new manifest.
+
 `$VNM_HOLDOUT_KEY_FILE` overrides the key path. The key never enters the repo, CI, logs or
 error messages. Plaintext is decrypted in memory; `decrypt` refuses to write inside the repo.
 Holdout runs use only the eval reporter, with console output silenced, so no id, text or
 per-query error reaches the terminal. Any error in a holdout or test command prints one line,
 `eval: holdout run failed (<error class>); details withheld`, and nothing else; the class
 (`DecryptionError`, `KeyFileError`, `LookLimitError`, `LedgerTamperError`, `LedgerLockError`,
-`CorpusMismatchError`, `QrelsError`, `RunFileError`, see `lib/errors.mjs`) says what went wrong.
+`CorpusMismatchError`, `QrelsError`, `RunFileError`, `ManifestError`, `BaselineError`,
+`CutoffError`, see `lib/errors.mjs`) says what went wrong.
 Metrics errors carry no judgment content in any set: a bad grade is reported by its value and
-position (`query #3, judgment #2 has grade 7`), never its rationale, query id or code. Every verdict appends a row to `eval/holdout-ledger.md`;
+position (`query #3, judgment #2 has grade 7`), never its rationale, query id or code. Every verdict appends a row to `eval/holdout-ledger.md` (with the rule applied and the
+baseline's ranker sha);
 a 13th holdout look (2nd test-set look) is refused before any retrieval runs. Every table row
 except the header and separator lines counts, however it is spaced; a row whose set cell is not
 a known set counts against every set. A look is also refused (`LedgerTamperError`) when the

@@ -23,12 +23,12 @@
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { agreementBlock, agreementReport } from './lib/agreement.mjs';
 import { codeRuleGrades, countLines, withCodeRule } from './lib/code-rule.mjs';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
-import { readEncryptedJson, updateManifest, writeEncryptedJson } from './lib/crypto.mjs';
+import { readEncryptedJson, recordInManifest, writeEncryptedJson } from './lib/crypto.mjs';
 import { CorpusMismatchError, errorClass } from './lib/errors.mjs';
 import { GROUPS_VERSION, loadGroups, withCorpusGroups } from './lib/groups.mjs';
 import {
@@ -157,6 +157,12 @@ async function corpusModules(set) {
   const corpus = await setCorpus(set);
   return new Map(corpus.modules.map((m) => [m.code, m]));
 }
+
+/** True when `p` is inside `dir`: only those files belong in its manifest. @param {string} dir @param {string} p */
+const isUnder = (dir, p) => {
+  const rel = relative(dir, p);
+  return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
+};
 
 /**
  * The code-target rule grades (lib/code-rule.mjs) for a set's queries, from
@@ -439,7 +445,8 @@ async function cmdMerge(a) {
   const qrels = mergeQrels(round, { base, version: a.version, codeRule });
   if (set.encrypted) {
     await writeEncryptedJson(target, qrels, await setKey(), set.name);
-    if (!a['set-dir'] && !a.out) await updateManifest(set.dir);
+    // Only the file just written: a full re-hash would vouch for a tampered ciphertext.
+    if (isUnder(set.dir, target)) await recordInManifest(set.dir, [target]);
   } else {
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, `${JSON.stringify(qrels, null, 1)}\n`);
@@ -479,7 +486,8 @@ async function cmdCodeRule(a) {
   }
   if (set.encrypted) {
     await writeEncryptedJson(target, next, await setKey(), set.name);
-    if (!a['set-dir'] && !a.out) await updateManifest(set.dir);
+    // Only the file just written: a full re-hash would vouch for a tampered ciphertext.
+    if (isUnder(set.dir, target)) await recordInManifest(set.dir, [target]);
   } else {
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, `${JSON.stringify(next, null, 1)}\n`);

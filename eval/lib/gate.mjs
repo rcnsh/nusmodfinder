@@ -14,7 +14,11 @@
 //   cutoff  For a change whose purpose is the no-answer cutoff, the trade-off
 //           rule replaces the Δ rules on both sets: correct-empty gain >= 0.25
 //           and answerable ΔnDCG@10 >= -0.01. Dev applies it as the screen;
-//           holdout governs.
+//           holdout governs. Because it is looser than the Δ rules, it is
+//           not taken on the operator's word: `assertTruncation` refuses a
+//           candidate whose result list for any query is neither the
+//           baseline's nor a prefix of it (a cutoff truncates; it never
+//           reorders or adds).
 //   SC5     On the sealed test set: BCa 95% lower bounds of ΔnDCG@10 and ΔP@5
 //           both > 0; judged@10 = 100%.
 //
@@ -28,6 +32,8 @@
 // check never passes on a degenerate interval (stats.mjs: one query, or every
 // delta equal), and a target-shape tripwire over fewer than
 // RULES.minShapeQueriesForCi queries falls back to "point estimate >= 0".
+
+import { CutoffError } from './errors.mjs';
 
 /** Tolerance for "point estimate >= 0" so float summation noise cannot flip a verdict. */
 const EPS = 1e-12;
@@ -49,7 +55,7 @@ export const RULES = Object.freeze({
 /**
  * @typedef {{ kind?: 'general' | 'cutoff', targetShapes?: string[] }} Change
  * @typedef {{ name: string, pass: boolean, detail: string }} Check
- * @typedef {{ set: string, verdict: 'pass' | 'fail', checks: Check[] }} Verdict
+ * @typedef {{ set: string, verdict: 'pass' | 'fail', checks: Check[], rule?: string }} Verdict
  * @typedef {import('./metrics.mjs').Comparison} Comparison
  */
 
@@ -216,13 +222,50 @@ export function sc5Gate(cmp) {
 }
 
 /**
- * The gate for a set.
+ * The rule a verdict applies, as printed and recorded in the ledger:
+ * `sc5` (the test set), `cutoff`, `targeted: <shape,...>` or `general`.
+ * Shape names are cut to [A-Za-z0-9._-].
+ * @param {string} set dev | holdout | test
+ * @param {Change} [change]
+ */
+export function ruleOf(set, change = {}) {
+  if (set === 'test') return 'sc5';
+  if (change.kind === 'cutoff') return 'cutoff';
+  const targets = (change.targetShapes ?? []).map((t) => t.replace(/[^A-Za-z0-9._-]/g, '?').slice(0, 40));
+  return targets.length ? `targeted: ${targets.join(',')}` : 'general';
+}
+
+/**
+ * Throws CutoffError unless, for every query, the candidate's result has the
+ * baseline's status and its codes are the baseline's or a prefix of them.
+ * The message counts queries and names none.
+ * @param {import('./metrics.mjs').RunFile} base
+ * @param {import('./metrics.mjs').RunFile} cand
+ */
+export function assertTruncation(base, cand) {
+  const ids = new Set([...Object.keys(base.results), ...Object.keys(cand.results)]);
+  let bad = 0;
+  for (const id of ids) {
+    const b = base.results[id], c = cand.results[id];
+    const bc = b?.codes ?? [], cc = c?.codes ?? [];
+    if (!b || !c || b.status !== c.status || cc.length > bc.length || cc.some((code, i) => code !== bc[i])) bad++;
+  }
+  if (bad) {
+    throw new CutoffError(`--change-kind cutoff: candidate ${cand.variant} is not a truncation of baseline ${base.variant} on ${bad} of ${ids.size} queries`
+      + ' (a cutoff only shortens result lists: each must be the baseline\'s, or a prefix of it, with the same status); judge it as --change-kind general');
+  }
+}
+
+/**
+ * The gate for a set; the verdict carries the rule it applied (`ruleOf`).
  * @param {string} set dev | holdout | test (anything else is screened as dev)
  * @param {Comparison} cmp
  * @param {Change} [change]
+ * @returns {Verdict}
  */
 export function gateFor(set, cmp, change) {
-  if (set === 'holdout') return holdoutGate(cmp, change);
-  if (set === 'test') return sc5Gate(cmp);
-  return devGate(cmp, change);
+  const rule = ruleOf(set, change);
+  if (set === 'holdout') return { ...holdoutGate(cmp, change), rule };
+  if (set === 'test') return { ...sc5Gate(cmp), rule };
+  return { ...devGate(cmp, change), rule };
 }
