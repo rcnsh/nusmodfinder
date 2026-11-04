@@ -10,7 +10,7 @@ Judging uses one judge: judge A. There is no second judge and no adjudicator.
 
 | slot | grader | sees |
 |---|---|---|
-| `rule` | mechanical pre-grading | every pooled pair; grades hard-constraint violations 0 |
+| `rule` | mechanical grading | every pooled pair (hard-constraint violations get 0), and every code target, pooled or not (see [Code-target rule](#code-target-rule)) |
 | `A` | judge `claude-opus-5-5` | a packet: the pairs `rule` did not grade |
 
 The final grade is `rule`'s where it applies, else A's grade (qrels `source: judged`).
@@ -59,6 +59,37 @@ violating candidate gets grade 0 from judge `rule`, with the broken constraint a
 rationale, and is left out of every judge packet. Soft preferences written only in the
 narrative ("ideally 3rd-year", "taught in English") are not hard constraints. Judges weigh
 them between 2 and 1.
+
+## Code-target rule
+
+Rule 4 of the judge instructions, applied mechanically by judge `rule` to every code-origin
+query (`origin: "code"`, with `codeForm` and `target` in the query file). It exists because
+pooling can miss a target: if no pooled run puts it in its top 10, the query has no grade of 1
+or more, scores as no-answer, and the cutoff gate rewards a ranker that returns nothing for it.
+The rule grades every offered module it names, pooled or not:
+
+- **exact or space form:** the module whose code is `target` gets 2. Its variants (the same
+  prefix letters and four digits with other suffix letters, `familyOf` in `eval/lib/groups.mjs`)
+  get 1. Its cross-listings (a module in the target's duplicate group, `groups-v1`, with another
+  stem) also get 1.
+- **partial form:** every offered module whose code starts with `target` gets 2, as the
+  narrative says.
+- **Hard constraints still win:** a named module that breaks the query's hard constraints gets 0,
+  with the broken constraint as its rationale (the pre-grading rule above).
+
+Other candidates of a code query are left to judge A. The rule reads only public corpus fields
+of the pinned corpus (code, title, description, level, credits, semesters, NG semesters,
+faculty) and the query's own fields; it never reads a judge's output. Where A already graded
+a pair the rule names, the rule's grade replaces it (`source: rule`, round `code-rule-v1`) and
+A's grade stays in the judgment's `judges` for provenance. `merge` applies the rule last, and
+`npm run eval:judge -- code-rule` applies it to existing qrels, bumping the version. The qrels'
+`judging` entry records the corpus, the groups version and the counts: pairs added by grade,
+pairs changed, and A grades overridden (up, down, unchanged). On an encrypted set the command
+prints those counts only. It takes no look.
+
+Applied to `qrels-dev-v1`, giving `qrels-dev-v2`: 56 rule pairs over the 11 dev code queries,
+50 of them unpooled before. It overrode 6 A grades, all with the same grade. `d-087`, `d-089`,
+`d-090`, `d-091` and `d-092` became answerable.
 
 ## Worked examples (dev queries only)
 

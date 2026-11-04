@@ -210,6 +210,7 @@ npm run eval:judge -- calibrate import --csv <filled.csv> --baseline v0 --run <c
 # later rounds: new variants' unjudged top-10 plus a 5% drift sample of old pairs
 npm run eval:pool -- --runs v0,cand --unjudged
 npm run eval:judge -- prepare --round r2 --judges claude-opus-5-5 --drift-from eval/dev/qrels.json
+npm run eval:judge -- code-rule [--holdout]                       # code-target rule grades onto the set's qrels (version bumped)
 npm run eval:judge -- status --round r1                           # mode, dropped slots, progress
 npm run eval:judge -- clean --round r1 [--state]                  # removes the packet directory
 
@@ -253,6 +254,13 @@ a judge that already has collected grades; refused once adjudication has started
   (`collect`), and Jacob's human calibration. Inter-judge κ and α do not apply.
 - **Agreement** (`agree`, two-judge rounds only): raw, Krippendorff's ordinal α, binary κ
   (grade ≥ 1), quadratic κ, overall and per shape with n; `—` when undefined (one category only).
+- **Code-target rule** (`lib/code-rule.mjs`, JUDGING.md "Code-target rule"). For code-origin
+  queries, judge `rule` grades the target (2), its variants and cross-listings (1), or for a
+  partial code every offered module with that prefix (2), from public corpus fields only.
+  Pooled or not, hard constraints still give 0. `merge` applies it last, replacing A's grade on
+  the pairs it names; `code-rule` applies it to existing qrels (`--qrels`, `--out`, `--version`
+  as for `merge`). On an encrypted set it prints counts only (queries affected, pairs added and
+  changed by grade, A grades overridden) and takes no look.
 - **Final grade** = `rule`, else A's grade (`judged`). In a two-judge round: `rule`, else
   A = B (`agreed`), else the adjudicator's pass-2 grade (`adjudicated`). `merge` refuses while
   any pooled pair lacks one (an ungraded A pair; counts only), refuses pairs already in the base
