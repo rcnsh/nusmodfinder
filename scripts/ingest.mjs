@@ -20,8 +20,8 @@
 //   --write-budget <n>     stop before D1 rows written would pass n (default 40000, ADR 0002)
 //   --allow-mass-delete    proceed even if the run would delete > 5% of the codes D1 holds
 //   --allow-year-change    proceed even if D1 holds another acad year than --year (rewrites every row)
-//   --offline              use the .data/ cache as it is; never contact api.nusmods.com
-//   --max-age <dur>        revalidate .data/ entries older than this (default 24h; 90s, 30m, 2d)
+//   --offline              use the .data/cache/ download cache as it is; never contact api.nusmods.com
+//   --max-age <dur>        revalidate .data/cache/ entries older than this (default 24h; 90s, 30m, 2d)
 //   --batch <n>            modules per /admin/ingest call (default 50, max 100)
 //   --concurrency <n>      parallel batches (default 4)
 //   --wait-timeout <dur>   how long to wait for Vectorize to apply the last mutation (default 10m)
