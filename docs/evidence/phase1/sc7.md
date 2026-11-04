@@ -40,7 +40,17 @@ and its parsed spans, and the response's `count`/`degraded`.
 - **Budget:** at most 45 `/search` calls in total, enforced by the collector; no pilot.
 
 **Colo rule.** Only samples whose `cf-ray` ends in `-SIN` are judged. Others are kept, listed
-and reported separately. Client network state at collection time is recorded under Results.
+and reported separately.
+
+**Deviation: VPN on.** The rule says "VPN off". At collection time this Mac's default route is a
+Mullvad VPN tunnel (exit `146.70.199.165`, AS9009 M247, Singapore). Jacob decided to keep it on
+(it is a machine-level privacy setting) and collect through the Singapore exit, since the rule's
+intent is SIN-colo samples; non-SIN samples stay out of the pool. Five `/health` probes through it
+before collection were served by SIN, HKG, SIN, SIN, NRT. Node `fetch` reuses a keep-alive
+connection between warm calls 3 s apart, so warm samples likely share the first connection's colo;
+sparse calls 10 min apart open new connections. If the 45-call cap leaves fewer than 30 warm or
+10 sparse SIN samples, collection stops at the cap and the shortfall is reported; the cap is not
+exceeded.
 
 **Exclusions.** Non-200 responses, any response that is not `cache;desc=miss`, and samples inside
 an ingest window the lead declares (by UTC timestamps) are left out of the pool and listed.
