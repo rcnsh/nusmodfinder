@@ -520,3 +520,23 @@ fails on the previous code.
   cycle on the fixture set and on an encrypted copy, with scripted judges and a throwaway key.
 - No LLM, Cloudflare or live call; no holdout file decrypted. Next: the lead runs round r1 on
   dev, then holdout.
+
+
+## 2026-11-04 (UTC morning): Jacob's decisions; Phase 1 forced re-ingest
+
+- **Decisions (ADR 0004).**
+  - The account is on Workers Paid. There is no daily D1 cap; the budget is the included monthly
+    allowance, with no overage allowed. Vectorize queried dims, at ~123,400 uncached searches a
+    month, stay the binding limit.
+  - Relevance judging uses one judge, A (`claude-opus-5-5`); there is no judge B or adjudicator.
+    Judge A finished round r1 on dev: 1,671 of 1,671 items, 80 of 80 planted repeats exact.
+    The single-judge tooling is a separate PR.
+- **Small batch:** 10 modules, 52 rows written (5.2 per module).
+- **Forced full re-ingest** from the pinned snapshot: 6,771 upserted and embedded, 0 deleted,
+  **34,383 rows written** (local 34,381), 2,395 neurons. Verify is clean. Data version
+  `c25f43ebfbdb`. SC6 is measured (`docs/evidence/phase1/remote-ops.md`).
+- **Finding.** The small batch's fresh fetch overwrote the pinned snapshot, because the ingest
+  cache and `scripts/pinned-corpus.mjs` shared a path. The snapshot was restored from the release,
+  and the cache moves to `.data/cache/` (PR #16).
+- **Upstream changed.** NUSMods published a new catalogue at 05:35 UTC: 97 modules dropped, 104
+  added, 302 changed. It lands as an incremental ingest after the second fidelity check.

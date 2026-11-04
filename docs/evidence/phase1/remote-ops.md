@@ -1,7 +1,8 @@
 # Phase 1 remote operations log
 
 Every remote write step, its estimate and the actual D1 `meta`, in order. Times are UTC.
-Headroom rule (ADR 0002): proceed only if `estimate × 1.5 < 100k − account writes today`.
+Headroom rule: ADR 0002 (Free plan, until 2026-11-04) was `estimate × 1.5 < 100k − account writes today`;
+ADR 0004 (Workers Paid) is `estimate × 1.5 <` the month's remaining included writes (50M/month).
 
 ## 2026-11-03
 
@@ -24,7 +25,30 @@ close to `total_changes()` alone, so remote D1 does not bill index entries as se
 Reads (41,440) were under the ~48k estimate. The forced re-ingest estimate (37,251 charged) keeps
 its margin; the real figure is measured on a small batch first (plan step 4).
 
-**Still to do (plan order):** small-batch remote ingest measurement, then the forced full
-re-ingest on a **different UTC day** (2026-11-04, 20:00–23:00 UTC, after the headroom check);
-SC7 measurement; second fidelity check; `served_by_region` check of read replication in the
-structured logs.
+## 2026-11-04
+
+Account on Workers Paid (ADR 0004): no daily write cap, so the forced re-ingest ran the same
+morning instead of in the 20:00 UTC window. All runs went through `wrangler dev --remote --port 8787`
+from `main` (`src/` identical to the deployed `c2d37d5`), secret from `.dev.vars`.
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 05:39 | Headroom check (GraphQL, account-wide, today) | — | 191,499 read / 503 written; Workers AI 0 neurons |
+| 05:42 | **Small batch**: `ingest --force --batch 10 --concurrency 1 --write-budget 100` (fresh NUSMods fetch) | ~55 written, ~7k read (hashes) | 10 modules: **52 written** (5.2/module), 71 charged, 10 read by the ingest calls; stopped by the budget as intended (exit 2), no deletes, facets rebuilt. Extrapolated ×677: ~35.2k written, well under the plan's 60k / 250k gate |
+| 05:42 | Finding: the fresh fetch overwrote `.data/2026-2027-moduleInfo.json`, which is also the pinned snapshot path | — | restored from release `data-2026-2027-20260904` (sha256 `2d138795…` checked); cache moved to `.data/cache/` in PR #16 |
+| 05:44–05:47 | **Forced full re-ingest** from the pinned snapshot: `ingest --force --offline --write-budget 45000` | ~35.2k written (37.3k charged), ~35k read incl. hashes and facets, 2–3k neurons | **6,771 upserted, 6,771 embedded, 0 deleted; D1 reported 34,383 written** (local: 34,381), 37,267 charged, 6,771 read by the ingest calls; 101 s of batches, Vectorize confirmed the last mutation after 19 polls; **2,395 neurons**; data version `2d138795d387` → `c25f43ebfbdb` |
+| 05:48 | `npm run verify` | 6,771 read | OK: 6,771 rows, 6,771 vectors, 0 missing, 0 extra, 0 row_hash drift, 100-vector metadata sample 0 drift |
+| 05:49 | Headroom re-check (GraphQL lags a few minutes) | — | 239,690 read / 26,209 written so far today; 2,394.7 neurons |
+
+**SC6.** A forced full re-ingest against production writes 34,383 rows (local measurement 34,381) and
+its metered ingest calls read 6,771 rows, far under the SC6 gate of 500,000 read.
+
+**Why the pinned snapshot.** NUSMods published a new `moduleInfo.json` at 05:35 UTC: 6,778 offered
+modules, 97 dropped and 104 added against the pinned 6,771, and 302 changed (prerequisites 97,
+semesters 82, preclusions 57, department 48, descriptions 27). The forced run uses the pinned file so
+production keeps matching the eval corpus for the second fidelity check. The new catalogue lands
+afterwards as an ordinary incremental ingest.
+
+**Still to do:** deploy the new data version; second fidelity check (before the catalogue update);
+incremental ingest of the 2026-11-04 catalogue; SC7 measurement; `served_by_region` check of read
+replication in the structured logs.
