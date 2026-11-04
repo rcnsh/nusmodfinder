@@ -171,8 +171,9 @@ git add src/data-version.json && git commit -m "chore(data): data version after 
 npm run deploy                                      # new cache key, so no stale /search hits
 ```
 
-Before any remote write, check the account-wide D1 headroom for the UTC day
-(`docs/decisions/0002-phase1-remote-ops.md`): proceed only if the estimate × 1.5 fits.
+Before any remote write, estimate it and check the month's account-wide D1 usage
+(`docs/decisions/0004-workers-paid-and-single-judge.md`): proceed only if the estimate × 1.5
+fits in the remaining included writes.
 
 A run for a different acad year than D1 holds is refused unless you pass
 `--allow-year-change` (it rewrites every row to the new year). Pass `--allow-mass-delete`
@@ -266,10 +267,9 @@ forced re-ingest of rows this script wrote costs the same.
 
 **Do not cold-load the remote database with the default budget.** Loading an empty
 database writes ~48k table and index rows plus ~89k FTS5 shadow rows, about 137k in all.
-That is over the 100k/day account cap, and the remote billing of FTS writes has not been
-measured. The budget charges ~149k for it and would stop a run at 40k, but until remote
-metering of FTS writes is measured, the charged figure is only an estimate. Rebuild
-production from empty only after measuring it, spread over several UTC days
+That fits the Workers Paid allowance (50M a month, ADR 0004), but the budget charges ~149k
+and stops a run at the 40k default, so pass `--write-budget` explicitly. The remote billing of
+FTS writes on inserts has not been measured
 ([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md)).
 
 **Download cache.** Downloads live in `.data/cache/`, never in `.data/` itself:
@@ -313,25 +313,25 @@ describes it.
 ## Cost
 
 **Vectorize queried dimensions are the binding limit, not D1.** An earlier version of
-this README said the opposite; its own numbers did not support it (FINDINGS B9).
+this README said the opposite; its own numbers did not support it (FINDINGS B9). The account
+is on **Workers Paid** ($5/month, ADR 0004). Going over an included allowance there is billed,
+not refused, and this project stays inside them.
 
-| | Workers Free | cost here |
+| | Workers Paid, included | cost here |
 |---|---|---|
-| **D1 rows read** | **5,000,000 / day** (enforced since 1 Sep 2026) | per search: pending: measured after the Phase 1 deploy (local grid: [`lexical-cost.md`](docs/evidence/phase1/lexical-cost.md)); 1 per page load |
-| D1 rows written | 100,000 / day | ~34,400 per forced full re-ingest (and ~35,100 read), measured locally ([`ingest-cost.md`](docs/evidence/phase1/ingest-cost.md)); a rerun with nothing changed writes 2 |
-| Vectorize stored dims | 5,000,000 | 6,771 × 384 = **2,600,064** (52%) |
-| Vectorize queried dims | 30,000,000 / month | ~71,354 searches/month (below) |
+| D1 rows read | 25,000,000,000 / month | per search: pending (measured with SC7; local grid: [`lexical-cost.md`](docs/evidence/phase1/lexical-cost.md)); 1 per page load |
+| D1 rows written | 50,000,000 / month | 34,383 per forced full re-ingest, measured against production on 2026-11-04 ([`remote-ops.md`](docs/evidence/phase1/remote-ops.md)); a rerun with nothing changed writes 2 |
+| Vectorize stored dims | 10,000,000 | 6,771 × 384 = **2,600,064** (26%) |
+| **Vectorize queried dims** | **50,000,000 / month** | ~123,400 uncached searches/month (below) |
+| Workers AI | 10,000 neurons / day | ~0.03 per search; ~2,400 per forced re-ingest (measured) |
+| CPU per request | 30 s | p99 18.5 ms (production, Phase 1 baseline) |
 
-The arithmetic. Vectorize bills a query as (stored vectors + 1) × 384 dimensions against
-30,000,000 a month: 30,000,000 / 384 − 6,771 ≈ **71,354 uncached searches a month**,
-about 2,378 a day. D1 allows 5,000,000 rows read a day: at the ~50 rows per search measured in
-Phase 0, 5,000,000 / 50 ≈ 100,000 searches a day, about 3,000,000 a month, about 42× more
-than Vectorize allows. D1 would bind first only if uncached searches averaged more than
-5,000,000 / 2,378 ≈ 2,100 rows read. Unfiltered searches stay far below that, but filtered
-ones cost more since Phase 1 made them exact (FINDINGS B1): on the local test grid, which
-leans on broad queries, single-filter searches averaged 2,160 rows and the worst read 7,772.
-So the traffic mix decides, and the per-search numbers measured after the Phase 1 deploy
-replace these local ones. Cached repeats cost neither.
+The arithmetic. Vectorize bills a month's queries as (queries + stored vectors) × 384
+dimensions against 50,000,000:
+50,000,000 / 384 − 6,771 ≈ **123,400 uncached searches a month**, about 4,100 a day. D1's 25 billion reads a month would cover ~200,000 rows read per
+uncached search at that rate, so even the worst filtered search measured on the local grid
+(7,772 rows) is far from binding. Workers AI's 10,000 neurons a day cover ~350,000 query
+embeddings, or about four forced re-ingests. Cached repeats cost none of these.
 
 ### How that number was brought down
 
@@ -382,7 +382,8 @@ records in `moduleInfo.json`. The rest are catalogue entries not offered this ye
 
 ## Known limitations
 
-- **One acad year.** Indexing more would exceed the free stored-dimension cap.
+- **One acad year.** Two years would fit the Paid stored-dimension allowance (5.2M of 10M)
+  but halve the uncached searches the queried-dimension allowance covers.
 - **The exchange-student list is a manual snapshot.** It comes from a PDF that must be
   downloaded by hand (NUS blocks automated fetching) and re-extracted when NUS updates it.
   The UI shows the extract's date so staleness is visible.

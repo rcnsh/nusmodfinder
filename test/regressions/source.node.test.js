@@ -175,20 +175,18 @@ describe('ops', () => {
     expect(readme).not.toContain('D1 row reads are the binding constraint');
     const cost = readme.slice(readme.indexOf('## Cost'), readme.indexOf('## Data source'));
     expect(cost).toContain('**Vectorize queried dimensions are the binding limit, not D1.**');
-    // FINDINGS B9: 30,000,000 queried dims/month, billed as (stored vectors +
-    // queries) x 384; D1 5,000,000 rows/day at Phase 0's ~50 rows per search.
-    const vectorizePerMonth = 30_000_000 / 384 - 6771;
-    const d1PerMonth = (5_000_000 / 50) * 30;
-    expect(Math.round(vectorizePerMonth)).toBe(71354);
-    expect(Math.round(d1PerMonth / vectorizePerMonth)).toBe(42);
-    expect(cost).toContain('30,000,000 / 384 − 6,771 ≈ **71,354 uncached searches a month**');
-    expect(cost).toContain(`about ${Math.round(vectorizePerMonth / 30).toLocaleString('en-US')} a day`);
-    expect(cost).toContain('5,000,000 / 50 ≈ 100,000 searches a day');
-    expect(cost).toContain('about 42× more');
-    expect(cost).toContain('**5,000,000 / day**');
-    expect(cost).toContain('30,000,000 / month');
-    // Per-search D1 numbers after Phase 1 are measured after the deploy, not invented.
-    expect(cost).toMatch(/\| \*\*D1 rows read\*\* \|[^\n]*\| per search: pending: measured after the Phase 1 deploy/);
+    // FINDINGS B9, on Workers Paid (ADR 0004): 50,000,000 queried dims/month,
+    // billed as (stored vectors + queries) x 384; D1 25 billion rows read/month.
+    const vectorizePerMonth = 50_000_000 / 384 - 6771;
+    expect(Math.round(vectorizePerMonth / 100) * 100).toBe(123400);
+    expect(cost).toContain('50,000,000 / 384 − 6,771 ≈ **123,400 uncached searches a month**');
+    expect(cost).toContain(`about ${(Math.round(vectorizePerMonth / 30 / 100) * 100).toLocaleString('en-US')} a day`);
+    expect(Math.round(25e9 / vectorizePerMonth / 1000) * 1000).toBe(203000);
+    expect(cost).toContain('~200,000 rows read per\nuncached search');
+    expect(cost).toContain('**50,000,000 / month**');
+    expect(cost).toContain('25,000,000,000 / month');
+    // Per-search D1 numbers after Phase 1 are measured, not invented.
+    expect(cost).toMatch(/\| D1 rows read \|[^\n]*\| per search: pending \(measured with SC7/);
   });
 });
 
