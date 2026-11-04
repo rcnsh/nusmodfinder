@@ -687,5 +687,6 @@ describe('graderLabels', () => {
     expect(graderLabels(['A', 'B'])).toEqual({ note: '', final: 'final (adjudicated)' });
     expect(graderLabels(['A'])).toEqual({ note: '; single-judge qrels (judge A only)', final: 'final (rule, else A)' });
     expect(graderLabels([])).toEqual({ note: '; the qrels record no judge grades', final: 'final' });
+    expect(graderLabels(['A', 'B'], true)).toEqual({ note: '; mixes single- and two-judge rounds', final: 'final (adjudicated, or rule, else A)' });
   });
 });

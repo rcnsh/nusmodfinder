@@ -455,7 +455,7 @@ async function cmdCalibrate(a, sub) {
   const h = humanAgreement(graded, qrels, agreementBlock);
   // Only the judges the qrels record: a single-judge qrels has no B row.
   const slots = qrelsSlots(qrels);
-  const labels = graderLabels(slots);
+  const labels = graderLabels(slots, (/** @type {any} */ (qrels).judging ?? []).some((/** @type {any} */ r) => r?.mode === 'single'));
   console.log(`human calibration: ${graded.length} graded rows (${blank} blank, ${h.unknown} not in qrels ${qrels.version})${labels.note}`);
   console.log(table([['human vs', ...AGREEMENT_HEADER], ...Object.keys(h.bySource).map((s) => [s, ...agreementRow(/** @type {any} */ (h.bySource[s]))])]));
   if (!a.run || !a.baseline) {

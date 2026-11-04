@@ -1086,10 +1086,12 @@ export function gradeBy(j, source) {
 /**
  * How the calibration report names its graders, from the slots the qrels
  * record: two judges are adjudicated, A alone is "rule, else A", none is just
- * the qrels grade.
+ * the qrels grade. `mixed`: the qrels also hold a single-judge round.
  * @param {Slot[]} slots
+ * @param {boolean} [mixed]
  */
-export function graderLabels(slots) {
+export function graderLabels(slots, mixed = false) {
+  if (slots.includes('B') && mixed) return { note: '; mixes single- and two-judge rounds', final: 'final (adjudicated, or rule, else A)' };
   if (slots.includes('B')) return { note: '', final: 'final (adjudicated)' };
   if (slots.length === 1 && slots[0] === 'A') return { note: '; single-judge qrels (judge A only)', final: 'final (rule, else A)' };
   return { note: '; the qrels record no judge grades', final: 'final' };
