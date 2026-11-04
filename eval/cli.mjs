@@ -7,15 +7,17 @@
 //   npm run eval:report -- --run <variant> [--baseline <variant>] [--set dev]
 //   npm run eval -- --variant <name> --ref eval-v0 --mode lexical|vector   (pool variants)
 //   npm run eval:pool -- --runs <a,b,...> [--set dev] [--unjudged [--qrels <path>]]
+//   npm run eval -- retire-run --holdout --variant <name> --reason "<why>"   (custodian; logged)
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { appendFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
-import { writeEncryptedJson } from './lib/crypto.mjs';
+import { assertPinnedBaseline, pinnedLabel } from './lib/baseline.mjs';
+import { assertInManifest, manifestFiles, MANIFEST, recordInManifest, removeFromManifest, sha256, writeEncryptedJson } from './lib/crypto.mjs';
 import { EmbeddingError, errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
-import { gateFor } from './lib/gate.mjs';
+import { assertTruncation, gateFor, ruleOf } from './lib/gate.mjs';
 import { loadGroups, withCorpusGroups } from './lib/groups.mjs';
 import { poolCandidate } from './lib/judging.mjs';
 import { appendLook, assertLookAllowed, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
@@ -39,6 +41,7 @@ const OPTIONS = /** @type {const} */ ({
   mode: { type: 'string', default: 'hybrid' },
   embedding: { type: 'string' },
   'store-only': { type: 'boolean', default: false },
+  reason: { type: 'string' },
   'embed-missing': { type: 'boolean', default: false },
   out: { type: 'string' },
   qrels: { type: 'string' },
@@ -64,15 +67,27 @@ function setOf(a) {
   return layout(a.holdout ? 'holdout' : /** @type {string} */ (a.set), a['set-dir'] ? resolve(a['set-dir']) : undefined);
 }
 
-/** @param {Args} a @returns {import('./lib/gate.mjs').Change} */
-function changeOf(a) {
+/**
+ * The declared change, checked before any look (and before the ledger lock,
+ * since fail() exits). `targeted` is a general change with --target-shapes.
+ * @param {Args} a
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @returns {import('./lib/gate.mjs').Change}
+ */
+function changeOf(a, set) {
   const kind = a['change-kind'];
   if (kind !== 'general' && kind !== 'cutoff') fail(`--change-kind must be general or cutoff, got ${kind}`);
-  return {
-    kind: /** @type {'general' | 'cutoff'} */ (kind),
-    targetShapes: a['target-shapes'] ? a['target-shapes'].split(',').map((s) => s.trim()).filter(Boolean) : [],
-  };
+  const targetShapes = a['target-shapes'] ? a['target-shapes'].split(',').map((s) => s.trim()).filter(Boolean) : [];
+  if (kind === 'cutoff' && targetShapes.length) fail('--change-kind cutoff takes no --target-shapes: the cutoff rule replaces the Δ rules and has no targets');
+  if (set.gate === 'test' && (kind !== 'general' || targetShapes.length)) fail('the test set has one rule, SC5; --change-kind and --target-shapes do not apply to it');
+  return { kind: /** @type {'general' | 'cutoff'} */ (kind), targetShapes };
 }
+
+/** The custody gates (holdout, SC5) take verdicts only against the pinned baseline. */
+const custodyGate = (/** @type {import('./lib/sets.mjs').SetLayout} */ set) => set.gate === 'holdout' || set.gate === 'test';
+
+/** The baseline ranker as a ledger cell: its sha, 7 characters. @param {import('./lib/metrics.mjs').RunFile} run */
+const rankerCell = (run) => String(/** @type {any} */ (run.ranker)?.sha ?? 'unknown').slice(0, 7);
 
 /**
  * A variant name or a path to a run file.
@@ -84,11 +99,27 @@ const runPath = (set, v) => (v.includes('/') || v.endsWith('.json') || v.endsWit
 /**
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {string} path
+ * @param {import('./lib/sets.mjs').ReadOptions} [options] `verify` for a verdict on an encrypted set
  * @returns {Promise<import('./lib/metrics.mjs').RunFile>}
  */
-async function readRun(set, path) {
+async function readRun(set, path, options = {}) {
   if (!existsSync(path)) throw new RunFileError(`no run file at ${path}`);
-  return readSetJson(set, path);
+  return readSetJson(set, path, options);
+}
+
+/**
+ * An encrypted run file the manifest lists is never overwritten (by
+ * --store-only or a look): replacing a stored run is `retire-run`, which logs
+ * it. Checked before any look and any retrieval.
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {string} variant
+ */
+async function assertRunSlotFree(set, variant) {
+  const path = runFile(set, variant);
+  const name = relative(set.dir, path);
+  if (!existsSync(path) || !(name in ((await manifestFiles(set.dir)) ?? {}))) return;
+  const dirArg = set.dir === layout(set.name).dir ? '' : ` --set-dir ${relative(process.cwd(), set.dir) || '.'}`;
+  fail(`${name} is already in ${join(set.dir, MANIFEST)}; a stored run is never overwritten. To replace it, retire it first (logged in ${set.retiredLog}):\n  npm run eval -- retire-run --set ${set.name}${dirArg} --variant ${variant} --reason "<why>"`);
 }
 
 /** @param {import('./lib/metrics.mjs').RunFile[]} runs */
@@ -121,8 +152,9 @@ function assertGateable(runs) {
  * @param {string} candPath
  * @param {string | undefined} basePath
  * @param {Args} a
+ * @param {import('./lib/gate.mjs').Change} change
  */
-async function fullReport(set, candPath, basePath, a) {
+async function fullReport(set, candPath, basePath, a, change) {
   const querySet = await loadQueries(set);
   const qrelsPath = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
   if (!existsSync(qrelsPath)) {
@@ -134,6 +166,7 @@ async function fullReport(set, candPath, basePath, a) {
   const cand = await readRun(set, candPath);
   const base = basePath ? await readRun(set, basePath) : null;
   assertComparable(base ? [base, cand] : [cand]);
+  if (base && change.kind === 'cutoff') assertTruncation(base, cand);
   assertSameCorpus(qrels, base ? [base, cand] : [cand]);
   const groups = await loadGroups();
   const scored = withCorpusGroups(qrels, groups);
@@ -154,7 +187,7 @@ async function fullReport(set, candPath, basePath, a) {
     assertGateable([base, cand]);
     cmp = compare(baseScores, candScores);
     console.log(`\n${comparisonTable(cmp, base.variant, cand.variant, qrels.version)}`);
-    const v = gateFor(set.gate, cmp, changeOf(a));
+    const v = gateFor(set.gate, cmp, change);
     console.log(`\n${verdictBlock(v)}`);
     Object.assign(json, { baseline: base.variant, baseSummary: summarise(baseScores), comparison: { ...cmp, shapes: undefined }, verdict: v });
   }
@@ -178,20 +211,27 @@ const today = () => new Date().toISOString().slice(0, 10);
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {string} candPath
  * @param {string} basePath
+ * Every ciphertext it reads must match the set's MANIFEST.json, a custody
+ * gate's baseline must be the pinned eval-v0, and a cutoff candidate a
+ * truncation of it; any refusal comes before a look is appended.
  * @param {Args} a
+ * @param {import('./lib/gate.mjs').Change} change
  * @param {string | null} [reserved] the ledger line `run` reserved
  */
-async function verdictReport(set, candPath, basePath, a, reserved = null) {
+async function verdictReport(set, candPath, basePath, a, change, reserved = null) {
   const ledger = /** @type {string} */ (set.ledger);
   /** @param {import('./lib/ledger.mjs').LockHandle} [lock] held by `report`; `run`'s finaliseLook takes its own */
   const body = async (lock) => {
     if (!reserved) await assertLookAllowed(ledger, set.name, set.maxLooks);
-    const querySet = await loadQueries(set);
-    const qrels = await loadQrels(set);
-    const cand = await readRun(set, candPath);
-    const base = await readRun(set, basePath);
+    const verify = { verify: true };
+    const querySet = await loadQueries(set, verify);
+    const qrels = await loadQrels(set, verify);
+    const cand = await readRun(set, candPath, verify);
+    const base = await readRun(set, basePath, verify);
     assertComparable([base, cand]);
     assertGateable([base, cand]);
+    if (custodyGate(set)) await assertPinnedBaseline(base);
+    if (change.kind === 'cutoff') assertTruncation(base, cand);
     assertSameCorpus(qrels, [base, cand]);
     const scored = withCorpusGroups(qrels, await loadGroups());
     const candScores = scoreRun(cand, querySet.queries, scored);
@@ -204,6 +244,8 @@ async function verdictReport(set, candPath, basePath, a, reserved = null) {
       commit: `${String(ranker.sha ?? 'unknown').slice(0, 7)}${ranker.dirty ? '+dirty' : ''}`,
       variant: cand.variant,
       baseline: base.variant,
+      rule: ruleOf(set.gate, change),
+      baselineRanker: rankerCell(base),
     };
     if (cmp.judged.base < 1 || cmp.judged.cand < 1) {
       if (reserved) await finaliseLook(ledger, reserved, { ...row, verdict: 'unjudged', ndcg: '—', p5: '—' });
@@ -211,8 +253,8 @@ async function verdictReport(set, candPath, basePath, a, reserved = null) {
       process.exitCode = 2;
       return;
     }
-    const v = gateFor(set.gate, cmp, changeOf(a));
-    const out = verdictOnly(v, cmp, qrels.version);
+    const v = gateFor(set.gate, cmp, change);
+    const out = verdictOnly(v, cmp, qrels.version, custodyGate(set) ? pinnedLabel() : `${String(/** @type {any} */ (base.ranker)?.ref ?? 'unknown')} ${rankerCell(base)}`);
     const final = { ...row, verdict: v.verdict, ndcg: out.ndcg, p5: out.p5 };
     if (reserved) {
       await finaliseLook(ledger, reserved, final);
@@ -237,26 +279,38 @@ async function cmdRun(a) {
   if (!MODES.includes(/** @type {string} */ (a.mode))) fail(`--mode must be one of ${MODES.join(', ')}, got ${a.mode}`);
   // Before any look is reserved: a pool variant never meets a gate.
   if (a.mode !== 'hybrid' && (a.baseline || (setOf(a).encrypted && !a['store-only']))) fail('--mode lexical|vector makes a pool variant; it takes no --baseline and no verdict (use --store-only on an encrypted set)');
+  const change = changeOf(a, set);
   /** @type {string | null} */
   let reserved = null;
+  /** @type {import('./lib/ledger.mjs').LedgerRow | null} */
+  let look = null;
   if (set.encrypted) {
     if (a.out) fail('--out is not allowed for encrypted sets');
     if (!a['store-only'] && !a.baseline) fail(`the ${set.name} set needs --baseline <variant> (or --store-only to store a run without a verdict)`);
+    // The candidate does not exist until retrieval, which runs after the look
+    // is reserved; a cutoff verdict is taken on a stored run, so the
+    // truncation is checked before any look is counted.
+    if (!a['store-only'] && change.kind === 'cutoff') {
+      fail(`a cutoff verdict on the ${set.name} set is taken on a stored run, so the truncation check comes before a look is counted: store the candidate with --store-only, then npm run eval:report -- --set ${set.name}${a['set-dir'] ? ` --set-dir ${a['set-dir']}` : ''} --run ${a.variant} --baseline ${a.baseline} --change-kind cutoff`);
+    }
     await setKey(); // fail before any work if the key is not there
+    await assertRunSlotFree(set, /** @type {string} */ (a.variant));
     if (!a['store-only']) {
-      await precheckCorpus(set, a); // before the look is reserved
+      const baseRun = await precheckCorpus(set, a); // before the look is reserved
+      look = {
+        date: today(), set: set.name, commit: 'pending', variant: /** @type {string} */ (a.variant), baseline: /** @type {string} */ (a.baseline),
+        verdict: 'aborted', ndcg: '—', p5: '—', rule: ruleOf(set.gate, change), baselineRanker: baseRun ? rankerCell(baseRun) : 'unknown',
+      };
       // Reserve the look before any retrieval: the reserved row counts, so
       // parallel runs cannot all get past the limit.
-      reserved = await reserveLook(/** @type {string} */ (set.ledger), set.maxLooks, {
-        date: today(), set: set.name, commit: 'pending', variant: /** @type {string} */ (a.variant), baseline: /** @type {string} */ (a.baseline),
-      });
+      reserved = await reserveLook(/** @type {string} */ (set.ledger), set.maxLooks, look);
     }
   }
   if (!set.encrypted && a.baseline) await precheckCorpus(set, a);
   try {
-    await runAndReport(a, set, reserved);
+    await runAndReport(a, set, change, reserved && look ? { line: reserved, row: look } : null);
   } catch (err) {
-    if (reserved) await abortLook(set, a, reserved);
+    if (reserved && look) await abortLook(set, reserved, look);
     throw err;
   }
 }
@@ -264,45 +318,53 @@ async function cmdRun(a) {
 /**
  * Before any retrieval (and any look): the baseline run must be a hybrid run
  * on the corpus the qrels were judged on, and the duplicate groups built from
- * it (the candidate is checked again after it runs).
+ * it (the candidate is checked again after it runs). On an encrypted set,
+ * every ciphertext the run and its verdict read must match the manifest, and
+ * a custody gate's baseline must be the pinned eval-v0.
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {Args} a
+ * @returns {Promise<import('./lib/metrics.mjs').RunFile | null>} the baseline run (null on dev before judging)
  */
 async function precheckCorpus(set, a) {
-  const baseRun = await readRun(set, runPath(set, /** @type {string} */ (a.baseline)));
+  const verify = { verify: set.encrypted };
+  const baseRun = await readRun(set, runPath(set, /** @type {string} */ (a.baseline)), verify);
   // A pool-variant baseline is refused here, before any look is reserved.
   assertGateable([baseRun]);
   /** @type {import('./lib/metrics.mjs').Qrels} */
   let qrels;
   if (set.encrypted) {
-    qrels = await loadQrels(set); // throws if the set is not judged yet, before a look is reserved
+    qrels = await loadQrels(set, verify); // throws if the set is not judged yet, before a look is reserved
+    await loadQueries(set, verify);
+    const cache = setFile(set, 'embeddings.json');
+    if (existsSync(cache)) await assertInManifest(set.dir, cache);
+    if (custodyGate(set)) await assertPinnedBaseline(baseRun);
   } else {
     const qrelsPath = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
-    if (!existsSync(qrelsPath)) return; // dev before judging: nothing to score yet
+    if (!existsSync(qrelsPath)) return null; // dev before judging: nothing to score yet
     qrels = JSON.parse(await readFile(qrelsPath, 'utf8'));
   }
   assertSameCorpus(qrels, [baseRun]);
   withCorpusGroups(qrels, await loadGroups()); // throws if the groups are for another corpus
+  return baseRun;
 }
 
 /**
  * Marks a reserved look as aborted (it still counts).
  * @param {import('./lib/sets.mjs').SetLayout} set
- * @param {Args} a
  * @param {string} reserved
+ * @param {import('./lib/ledger.mjs').LedgerRow} row
  */
-function abortLook(set, a, reserved) {
-  return finaliseLook(/** @type {string} */ (set.ledger), reserved, {
-    date: today(), set: set.name, commit: 'unknown', variant: /** @type {string} */ (a.variant), baseline: /** @type {string} */ (a.baseline), verdict: 'aborted', ndcg: '—', p5: '—',
-  });
+function abortLook(set, reserved, row) {
+  return finaliseLook(/** @type {string} */ (set.ledger), reserved, { ...row, commit: 'unknown', verdict: 'aborted', ndcg: '—', p5: '—' });
 }
 
 /**
  * @param {Args} a
  * @param {import('./lib/sets.mjs').SetLayout} set
- * @param {string | null} reserved
+ * @param {import('./lib/gate.mjs').Change} change
+ * @param {{ line: string, row: import('./lib/ledger.mjs').LedgerRow } | null} reserved
  */
-async function runAndReport(a, set, reserved) {
+async function runAndReport(a, set, change, reserved) {
   const { runVariant } = await import('./runner/run.mjs');
   const embedMissing = a['embed-missing'];
   // Plan Final §1: locally, texts missing from the cache (new queries, or texts a
@@ -337,7 +399,7 @@ async function runAndReport(a, set, reserved) {
     // Encrypted sets: the problems can name ids or carry query text, so throw
     // and let the top-level handler print the withheld line (cmdRun aborts the look).
     if (set.encrypted) throw new RunFailedError(res.problems.join('; '));
-    if (reserved) await abortLook(set, a, reserved);
+    if (reserved) await abortLook(set, reserved.line, reserved.row);
     console.error(`eval: run ${a.variant} failed:\n  ${res.problems.join('\n  ')}`);
     process.exit(1);
   }
@@ -348,13 +410,12 @@ async function runAndReport(a, set, reserved) {
     const all = Object.values(written.results);
     console.log(`errors: ${all.filter((r) => r.status !== 200).length} of ${all.length} queries returned a non-200 response`);
   }
-  if (set.encrypted && !a['set-dir']) {
-    const { updateManifest } = await import('./lib/crypto.mjs');
-    await updateManifest(set.dir);
-  }
+  // The new run file joins the manifest; no other entry is re-hashed, so a
+  // tampered ciphertext stays flagged by eval:verify.
+  if (set.encrypted) await recordInManifest(set.dir, [res.output]);
   if (a['store-only']) return;
-  if (set.encrypted) return verdictReport(set, res.output, runPath(set, /** @type {string} */ (a.baseline)), a, reserved);
-  return fullReport(set, res.output, a.baseline ? runPath(set, a.baseline) : undefined, a);
+  if (set.encrypted) return verdictReport(set, res.output, runPath(set, /** @type {string} */ (a.baseline)), a, change, reserved?.line ?? null);
+  return fullReport(set, res.output, a.baseline ? runPath(set, a.baseline) : undefined, a, change);
 }
 
 /** @param {Args} a */
@@ -362,12 +423,43 @@ async function cmdReport(a) {
   if (!a.run) fail('--run <variant or path> is required');
   const set = setOf(a);
   const cand = runPath(set, /** @type {string} */ (a.run));
+  const change = changeOf(a, set);
   if (set.encrypted) {
     if (!a.baseline) fail(`the ${set.name} set reports only a verdict against --baseline <variant>`);
     if (a.qrels || a.json) fail('--qrels and --json are not allowed for encrypted sets');
-    return verdictReport(set, cand, runPath(set, a.baseline), a);
+    return verdictReport(set, cand, runPath(set, a.baseline), a, change);
   }
-  return fullReport(set, cand, a.baseline ? runPath(set, a.baseline) : undefined, a);
+  return fullReport(set, cand, a.baseline ? runPath(set, a.baseline) : undefined, a, change);
+}
+
+/**
+ * Retires a stored encrypted run so `--store-only` can write its replacement:
+ * appends a row (date, set, file, the retired ciphertext's sha256, reason) to
+ * the set's retired-runs log, deletes the ciphertext and drops its manifest
+ * entry. Needs no key. Not a look.
+ * @param {Args} a
+ */
+async function cmdRetireRun(a) {
+  if (!a.variant) fail('--variant <name> is required');
+  const set = setOf(a);
+  if (!set.encrypted || !set.retiredLog) fail(`retire-run is for encrypted sets; the ${set.name} set's run files are plain and are simply overwritten`);
+  const reason = a.reason?.trim();
+  if (!reason) fail('--reason "<why>" is required: every retired run is logged');
+  const path = runFile(set, /** @type {string} */ (a.variant));
+  const name = relative(set.dir, path);
+  const listed = (await manifestFiles(set.dir)) ?? {};
+  if (!(name in listed)) fail(`${name} is not in ${join(set.dir, MANIFEST)}; there is nothing to retire (--store-only can write it)`);
+  const sha = existsSync(path) ? sha256(await readFile(path)) : `missing (manifest ${listed[name]})`;
+  const log = set.retiredLog;
+  if (!existsSync(log)) {
+    await mkdir(dirname(log), { recursive: true });
+    await writeFile(log, `# Retired runs\n\nAppend-only. One row per stored encrypted run retired with \`npm run eval -- retire-run\` so that\n\`--store-only\` may write its replacement. Retiring is not a look.\n\n| date | set | file | sha256 | reason |\n|---|---|---|---|---|\n`);
+  }
+  const clean = (/** @type {string} */ s) => s.replace(/[|\n]/g, ' ');
+  await appendFile(log, `| ${[today(), set.name, name, sha, reason].map(clean).join(' | ')} |\n`);
+  await rm(path, { force: true });
+  await removeFromManifest(set.dir, path);
+  console.log(`retired ${name} (sha256 ${sha.slice(0, 12)}…), logged in ${log}; --store-only can now write ${set.name}/${a.variant}`);
 }
 
 /** @param {Args} a */
@@ -439,12 +531,12 @@ async function cmdPool(a) {
 const { positionals, values } = parseArgs({ options: OPTIONS, allowPositionals: true });
 const command = positionals[0] ?? 'run';
 if (values.help) {
-  console.log(spawnSync('sed', ['-n', '3,11p', new URL(import.meta.url).pathname]).stdout.toString());
+  console.log(spawnSync('sed', ['-n', '3,12p', new URL(import.meta.url).pathname]).stdout.toString());
   process.exit(0);
 }
-const commands = { run: cmdRun, report: cmdReport, pool: cmdPool };
+const commands = { run: cmdRun, report: cmdReport, pool: cmdPool, 'retire-run': cmdRetireRun };
 const fn = /** @type {Record<string, (a: Args) => Promise<void>>} */ (commands)[command];
-if (!fn) fail(`unknown command "${command}"; expected run, report or pool`);
+if (!fn) fail(`unknown command "${command}"; expected run, report, pool or retire-run`);
 /**
  * The encrypted set this invocation touches, if any. Its errors may carry
  * holdout content (a query id, a judge's rationale), so they are withheld.

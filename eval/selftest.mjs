@@ -12,9 +12,10 @@
 //   4. holdout custody with a throwaway key, on the `selftest` set (the
 //      holdout rules with its ledger in its own directory; its ciphertexts are
 //      bound to that name, so real holdout files cannot be read through it):
-//      encrypted-only output, a verdict-only terminal, ledger append, 13th
-//      look refused, pool refused without --custodian, tampering and a wrong
-//      key detected, errors withheld;
+//      encrypted-only output, a verdict-only terminal (naming the rule and
+//      the pinned baseline), ledger append, 13th look refused, a stored run
+//      never overwritten, pool refused without --custodian, tampering and a
+//      wrong key detected, errors withheld;
 //   5. a probe ranker whose Worker logs, throws and throws uncaught with the
 //      query text: the fixture set shows it (the probe works), the encrypted
 //      set prints only the withheld line; a ranker answering `degraded` fails
@@ -30,7 +31,7 @@
 //   7. the same judging cycle on an encrypted copy of the fixture set: state
 //      and qrels only as ciphertext, plaintext only in the 0700 round
 //      directory until clean, nothing set-specific printed, a verdict on the
-//      merged qrels, calibration refused.
+//      merged qrels only once the manifest lists them, calibration refused.
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
@@ -183,13 +184,17 @@ ok(look, 'holdout look');
 assertNoLeak(look.out, 'holdout look');
 const verdictLines = look.out.trim().split('\n').filter((l) => !/^(wrote |selftest\/cand: ranker )/.test(l));
 assert.equal(verdictLines.length, 3, `holdout prints only the verdict and two Δ lines, got:\n${look.out}`);
-assert.match(verdictLines[0], /^holdout verdict: (PASS|FAIL) · qrels fixture-qrels-v1$/);
+assert.match(verdictLines[0], /^holdout verdict: (PASS|FAIL) · rule general · baseline eval-v0 7ac9841 · qrels fixture-qrels-v1$/);
 assert.match(verdictLines[1], /^ΔnDCG@10 [+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 assert.match(verdictLines[2], /^ΔP@5 +[+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 const ledgerPath = join(H, 'ledger.md');
 const rows1 = await readLedger(ledgerPath);
 assert.equal(rows1.length, 1, 'one ledger row per look');
 assert.ok(['pass', 'fail'].includes(rows1[0].verdict), `the reserved row is finalised with the verdict, got ${rows1[0].verdict}`);
+// A stored run is never overwritten: replacing it is `retire-run`, logged.
+const overwrite = node(CLI, ['run', ...hargs, '--variant', 'base', '--ref', 'eval-v0', '--store-only'], env);
+assert.notEqual(overwrite.code, 0);
+assert.match(overwrite.out, /runs\/run-base\.json\.enc is already in .*retire-run/s);
 // A pool-variant baseline is refused before a look is reserved (PR #15 review).
 ok(node(CLI, ['run', ...hargs, '--variant', 'lexbase', '--ref', 'eval-v0', '--mode', 'lexical', '--store-only'], env), 'holdout lexical pool run');
 const lexBase = node(CLI, ['run', ...hargs, '--variant', 'cand-l', '--baseline', 'lexbase'], env);
@@ -573,9 +578,13 @@ assertNoLeak(hmerge, 'encrypted merge');
 const hq = await readEncryptedJson(join(H2, 'qrels.json.enc'), throwaway, 'selftest');
 assert.equal(hq.version, 'qrels-selftest-v1');
 assert.ok(Object.values(hq.queries).some((/** @type {any} */ q) => Object.values(q.judgments).some((/** @type {any} */ j) => j.judges?.['judge-a'])), 'judges recorded');
+// A verdict reads only ciphertexts the manifest lists: H2 was copied without
+// one, and merge records it only for the default directory.
+assert.equal(node(CLI, ['report', ...h2, '--run', 'cand', '--baseline', 'base'], env).out, 'eval: selftest run failed (ManifestError); details withheld\n');
+ok(node(HOLDOUT, ['manifest', '--dir', H2]), 'custodian writes the manifest');
 const hlook = ok(node(CLI, ['report', ...h2, '--run', 'cand', '--baseline', 'base'], env), 'verdict on the merged encrypted qrels');
 assertNoLeak(hlook, 'encrypted verdict');
-assert.match(hlook, /^holdout verdict: (PASS|FAIL) · qrels qrels-selftest-v1$/m);
+assert.match(hlook, /^holdout verdict: (PASS|FAIL) · rule general · baseline eval-v0 7ac9841 · qrels qrels-selftest-v1$/m);
 assert.match(node(JUDGE, ['calibrate', 'export', ...h2], env).out, /human calibration is dev-only/);
 const corruptState = join(WORK, 'judging-corrupt');
 await mkdir(corruptState, { recursive: true });
