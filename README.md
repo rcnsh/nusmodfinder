@@ -92,7 +92,7 @@ npx wrangler login
 Resources (already created for this deployment; do not re-run these against it):
 
 ```bash
-npx wrangler d1 create nusmods-apac --location apac   # ADR 0005; the WEUR "nusmods" is the rollback copy
+npx wrangler d1 create nusmods-apac --location apac   # APAC primary (ADR 0005)
 npx wrangler vectorize create nusmods-modules --dimensions=384 --metric=cosine
 ```
 
@@ -100,8 +100,7 @@ The schema lives only in `migrations/` (`0001_init.sql` onwards); there is no se
 `schema.sql`. `wrangler d1 migrations apply` records what it ran in a `d1_migrations`
 table. The production database `nusmods-apac` (APAC primary, ADR 0005) was created empty and built
 with `npx wrangler d1 migrations apply nusmods-apac --remote`, so its `d1_migrations` table is
-complete. The old WEUR database `nusmods` was built by hand and bootstrapped later
-([ADR 0001](docs/decisions/0001-migrations-and-remote-bootstrap.md)). A local database needs no
+complete. A local database needs no
 bootstrap: `npx wrangler d1 migrations apply nusmods-apac --local`.
 
 Then the eight filterable metadata indexes — **these cannot be added retroactively**, so
