@@ -16,18 +16,34 @@
 //           3 draws (separate seeds), with base and re-embedded queries.
 //
 //   node docs/evidence/phase2/noise.mjs      -> docs/evidence/phase2/noise.json
+//   node docs/evidence/phase2/noise.mjs --ref <sha> --probe head --out noise-2.json
+//                                            (second check: a Phase 1 ranker, probe-head.eval.js)
+//
+// Rankers since PR #7 embed the canonical query (queryTextForms), so every
+// override vector is keyed under both forms: the raw form keeps the vector
+// eval-v0 sees, the canonical form gets the same perturbation (same
+// direction and cosine) applied to the canonical form's own dev vector. The
+// random draws are made once per query, in the same order as before, so the
+// eval-v0 conditions are unchanged.
 import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { cachePart, base64ToF32, embeddingKey, readCache, DIMS, MODEL } from '../../../eval/lib/embeddings.mjs';
+import { isAbsolute, join } from 'node:path';
+import { parseArgs } from 'node:util';
+import { cachePart, base64ToF32, embeddingKey, queryTextForms, readCache, DIMS, MODEL } from '../../../eval/lib/embeddings.mjs';
 import { REPO } from '../../../eval/lib/sets.mjs';
 import { rng } from '../../../eval/lib/stats.mjs';
 import { FIDELITY } from './ids.mjs';
-import { loadVectors, runProbe, searchPath } from './probe.mjs';
+import { HEAD_SPEC, loadVectors, runProbe, searchPath } from './probe.mjs';
 import { overlap, rbo } from './rank.mjs';
 
 const DRAWS = 5;
 const CORPUS_DRAWS = 3;
 const LEVELS = [0.9996, 0.9957, 0.9797];
+
+const { values: argv } = parseArgs({ options: { ref: { type: 'string', default: 'eval-v0' }, probe: { type: 'string', default: 'v0' }, out: { type: 'string', default: 'noise.json' } } });
+if (argv.probe !== 'v0' && argv.probe !== 'head') throw new Error('--probe must be v0 or head');
+const REF = /** @type {string} */ (argv.ref);
+const SPEC = argv.probe === 'head' ? HEAD_SPEC : undefined;
+const OUT = isAbsolute(/** @type {string} */ (argv.out)) ? /** @type {string} */ (argv.out) : join(REPO, 'docs/evidence/phase2', /** @type {string} */ (argv.out));
 
 /** @param {Float32Array} a @param {Float32Array} b */
 const dot = (a, b) => { let d = 0; for (let i = 0; i < a.length; i++) d += a[i] * b[i]; return d; };
@@ -106,7 +122,8 @@ const targets = [
 
 /** @type {Record<string, { keys: string[], vectors: Float32Array }>} */
 const overrides = {};
-overrides.real = part1([...reVec].map(([id, v]) => [byId.get(id).text, v]));
+// The re-embedding was of the raw text; bge-small is uncased, so it stands for the canonical form too.
+overrides.real = part1([...reVec].flatMap(([id, v]) => queryTextForms(byId.get(id).text).map((t) => [t, v])));
 const rand = rng(20261104);
 /** @type {string[]} */
 const synth = [];
@@ -114,7 +131,10 @@ for (const c of LEVELS) {
   for (let d = 1; d <= DRAWS; d++) {
     const name = `q${String(c).slice(2)}-${d}`;
     synth.push(name);
-    overrides[name] = part1(valid.map((/** @type {any} */ q) => [q.text, perturb(qv(q.text), qDeltas[Math.floor(rand() * qDeltas.length)].map((x) => (rand() < 0.5 ? -x : x)), c)]));
+    overrides[name] = part1(valid.flatMap((/** @type {any} */ q) => {
+      const dir = qDeltas[Math.floor(rand() * qDeltas.length)].map((x) => (rand() < 0.5 ? -x : x));
+      return queryTextForms(q.text).map((t) => [t, perturb(qv(t), dir, c)]);
+    }));
   }
 }
 
@@ -138,6 +158,8 @@ const collect = (res, prefix) => {
 
 console.log(`session S0: base corpus, ${2 + synth.length} query conditions`);
 collect(await runProbe({
+  ref: REF,
+  spec: SPEC,
   name: 'noise-s0',
   overrides,
   requests: [...reqs('base'), ...reqs('real', inRe), ...synth.flatMap((s) => reqs(s))],
@@ -153,6 +175,8 @@ for (let s = 1; s <= CORPUS_DRAWS; s++) {
   }
   console.log(`session S${s}: corpus noise draw ${s}`);
   collect(await runProbe({
+    ref: REF,
+    spec: SPEC,
     name: `noise-s${s}`,
     corpusVectors: { keys: corpus.keys, vectors },
     queryVectors: dev,
@@ -188,13 +212,13 @@ for (const [k, m] of Object.entries(per)) {
 const out = {
   schema: 'vnm-phase2-noise/1',
   createdAt: new Date().toISOString(),
-  ranker: 'eval-v0',
+  ranker: REF,
   realQueryCosines: reCos,
   fixtureCorpusCosines: fxCos.sort((a, b) => a - b),
   summary,
   perQuery: per,
 };
-await writeFile(join(REPO, 'docs/evidence/phase2/noise.json'), `${JSON.stringify(out, null, 1)}\n`);
+await writeFile(OUT, `${JSON.stringify(out, null, 1)}\n`);
 for (const [k, s] of Object.entries(summary)) {
   console.log(`${k.padEnd(18)} n=${String(s.n).padStart(2)} top10 changed ${String(s.changed10).padStart(2)} · set changed ${String(s.setChanged10).padStart(2)} · mean overlap@10 ${s.meanOverlap10.toFixed(2)} · min ${s.minOverlap10} · min RBO ${s.minRbo10.toFixed(3)}`);
 }
