@@ -2,9 +2,10 @@
 // @ts-check
 // Phase 2d judging CLI. Protocol: eval/JUDGING.md. Commands: eval/README.md.
 //
-//   npm run eval:judge -- prepare --round <r> --judges <idA>,<idB> [--set dev] [--pool <file>] [--drift-from <qrels>]
+//   npm run eval:judge -- prepare --round <r> --judges <idA>[,<idB>] [--set dev] [--pool <file>] [--drift-from <qrels>]
+//   npm run eval:judge -- drop-judge --round <r> --slot B --reason <text> [--force]
 //   npm run eval:judge -- collect --round <r> [--slot A|B]
-//   npm run eval:judge -- agree --round <r> [--json <file>]
+//   npm run eval:judge -- agree --round <r> [--json <file>]                       (two-judge rounds)
 //   npm run eval:judge -- adjudicate prepare --round <r> --adjudicator <id>
 //   npm run eval:judge -- adjudicate collect --round <r> --pass 1|2
 //   npm run eval:judge -- merge --round <r> [--base <qrels> | --no-base] [--out <file>] [--version <v>]
@@ -29,9 +30,9 @@ import { readEncryptedJson, updateManifest, writeEncryptedJson } from './lib/cry
 import { errorClass } from './lib/errors.mjs';
 import {
   ADJUDICATOR, DEFAULT_BATCH, DEFAULT_CALIBRATION_N, DEFAULT_DRIFT_RATE, DEFAULT_REPEAT_RATE, JUDGE_SLOTS,
-  agreementUnits, buildAdjudication, buildRound, calibrationCsv, calibrationSample, collectOutputs, driftReport, finalJudgments,
-  humanAgreement, judgedPairKeys, mergeQrels, ndcgDelta, outputPath, poolCandidate, qrelsUnder, readCalibration,
-  renderAdjudicationPacket, renderJudgePacket, sampleDrift, selfConsistency, sign,
+  agreementUnits, buildAdjudication, buildRound, calibrationCsv, calibrationSample, collectOutputs, driftReport, dropJudge, finalJudgments,
+  humanAgreement, isSingleJudge, judgeSlots, judgedPairKeys, mergeQrels, ndcgDelta, outputPath, poolCandidate, qrelsSlots, qrelsUnder,
+  readCalibration, renderAdjudicationPacket, renderJudgePacket, sampleDrift, selfConsistency, sign,
 } from './lib/judging.mjs';
 import { fmt, table } from './lib/report.mjs';
 import { REPO, layout, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
@@ -64,6 +65,7 @@ const OPTIONS = /** @type {const} */ ({
   baseline: { type: 'string' },
   run: { type: 'string' },
   json: { type: 'string' },
+  reason: { type: 'string' },
   state: { type: 'boolean', default: false },
   help: { type: 'boolean', default: false },
 });
@@ -164,7 +166,7 @@ async function cmdPrepare(a) {
   const p = paths(set, a);
   if (existsSync(p.state)) usage(`round ${a.round} already exists (${p.state}); pick a new --round name`);
   const judges = (a.judges ?? '').split(',').map((s) => s.trim()).filter(Boolean);
-  if (judges.length !== 2) usage('--judges <idA>,<idB> names the two judges (e.g. claude-opus-5-5,gemini-3.1-pro-low)');
+  if (judges.length !== 1 && judges.length !== 2) usage('--judges <idA> names the judge (e.g. claude-opus-5-5); --judges <idA>,<idB> makes a two-judge round');
   const poolPath = resolve(a.pool ?? join(REPO, '.eval-work', `pool-${set.name}.json${set.encrypted ? '.enc' : ''}`));
   if (!existsSync(poolPath)) usage(`no pool at ${poolPath}; run npm run eval:pool first`);
   const poolBytes = await readFile(poolPath);
@@ -186,7 +188,7 @@ async function cmdPrepare(a) {
   }
   const round = buildRound({
     pool, poolSha256: createHash('sha256').update(poolBytes).digest('hex'), queries: querySet.queries, set: set.name,
-    round: /** @type {string} */ (a.round), judges: { A: judges[0], B: judges[1] }, seed,
+    round: /** @type {string} */ (a.round), judges: judges.length === 1 ? { A: judges[0] } : { A: judges[0], B: judges[1] }, seed,
     batchSize: num('--batch-size', Number(a['batch-size'])), repeatRate: num('--repeat-rate', Number(a['repeat-rate'])),
     drift, driftFrom: a['drift-from'] ? (set.encrypted ? 'encrypted qrels' : a['drift-from']) : null,
   });
@@ -196,7 +198,7 @@ async function cmdPrepare(a) {
   const judging = await readFile(join(REPO, 'eval', 'JUDGING.md'), 'utf8');
   /** @type {string[]} */
   const written = [];
-  for (const slot of JUDGE_SLOTS) {
+  for (const slot of judgeSlots(round)) {
     for (const b of round.batches[slot]) {
       const file = join(p.packets, `${slot}-${b.id}.md`);
       await writeFile(file, renderJudgePacket(round, slot, b.id, { judging, queries: querySet.queries, outDir: p.out }), { mode: 0o600 });
@@ -207,13 +209,39 @@ async function cmdPrepare(a) {
   await writeState(set, p, round);
   const items = Object.values(round.items);
   const count = (/** @type {string} */ slot, /** @type {string} */ kind) => items.filter((i) => i.slot === slot && i.kind === kind).length;
-  console.log(`round ${round.round} (${set.name}): ${Object.keys(round.queries).length} queries, ${judgedPairKeys(round).length + Object.keys(round.rule).length} pooled pairs, ${Object.keys(round.rule).length} graded 0 by rule (hard constraints)`);
-  for (const slot of JUDGE_SLOTS) {
+  console.log(`round ${round.round} (${set.name}, ${isSingleJudge(round) ? 'single-judge' : 'two judges'}): ${Object.keys(round.queries).length} queries, ${judgedPairKeys(round).length + Object.keys(round.rule).length} pooled pairs, ${Object.keys(round.rule).length} graded 0 by rule (hard constraints)`);
+  for (const slot of judgeSlots(round)) {
     console.log(`judge ${slot} (${round.judges[slot]}): ${round.batches[slot].length} packets, ${count(slot, 'new')} items + ${count(slot, 'repeat')} planted repeats + ${count(slot, 'drift')} drift`);
   }
   console.log(`state: ${p.state}`);
   console.log(`packets (give each judge run one path; it writes its outputs where the packet says):\n  ${written.join('\n  ')}`);
   if (set.encrypted) console.log(`plaintext holdout content is in ${p.plain} (0700). Delete it once collected:\n  ${cleanHint(set, p, a)}`);
+}
+
+// ---------------------------------------------------------------------------
+// drop-judge
+
+/** @param {Args} a */
+async function cmdDropJudge(a) {
+  const set = setOf(a);
+  const p = paths(set, a);
+  const round = await readState(set, p);
+  if (!a.slot) usage('--slot B names the judge slot to drop');
+  if (!JUDGE_SLOTS.includes(/** @type {any} */ (a.slot))) usage(`--slot must be ${JUDGE_SLOTS.join(' or ')}`);
+  if (a.slot === 'A') usage('judge A cannot be dropped: a round always keeps judge A');
+  if (!round.judges[/** @type {'A' | 'B'} */ (a.slot)]) usage(`round ${round.round} has no judge in slot ${a.slot} (it is already single-judge)`);
+  if (!a.reason?.trim()) usage('--reason <text> says why the judge is dropped (recorded in the round and the qrels)');
+  if (round.adjudication) usage('this round is already in adjudication; a judge cannot be dropped (start a new round)');
+  const graded = Object.keys(round.grades[a.slot] ?? {}).length;
+  if (graded && !a.force) usage(`judge ${a.slot} has ${graded} collected grade(s); dropping it discards them (pass --force to drop anyway)`);
+  const judge = round.judges[/** @type {'A' | 'B'} */ (a.slot)];
+  const removed = Object.values(round.items).filter((i) => i.slot === a.slot).length;
+  const batches = round.batches[a.slot].map((b) => b.id);
+  dropJudge(round, { slot: a.slot, reason: a.reason, force: a.force });
+  await writeState(set, p, round);
+  // Its packets must not be handed out any more. Its output directory is left alone.
+  for (const b of batches) await rm(join(p.packets, `${a.slot}-${b}.md`), { force: true });
+  console.log(`round ${round.round}: dropped judge ${a.slot} (${judge}): ${batches.length} packets, ${removed} items${graded ? `, ${graded} grades` : ''} removed; now single-judge (judge A, ${round.judges.A}: ${Object.keys(round.grades.A).length} of ${Object.values(round.items).length} items graded)`);
 }
 
 // ---------------------------------------------------------------------------
@@ -238,8 +266,9 @@ async function cmdCollect(a) {
   // now could leave a disagreement with no adjudication, or one made against
   // grades that no longer exist.
   if (round.adjudication) usage('this round is already in adjudication; the judges\' grades are frozen (start a new round to re-judge)');
-  const slots = a.slot ? [a.slot] : [...JUDGE_SLOTS];
+  const slots = a.slot ? [a.slot] : judgeSlots(round);
   for (const s of slots) if (!JUDGE_SLOTS.includes(/** @type {any} */ (s))) usage('--slot must be A or B');
+  for (const s of slots) if (!round.judges[/** @type {'A' | 'B'} */ (s)]) usage(`round ${round.round} is single-judge: it has no judge ${s}`);
   /** @type {string[]} */
   const problems = [];
   for (const slot of slots) {
@@ -271,6 +300,16 @@ async function collectAsync(batches, store, pathOf, who) {
 // ---------------------------------------------------------------------------
 // agreement
 
+/**
+ * agree and adjudicate compare two judges; a single-judge round has neither.
+ * @param {Round} round
+ * @param {string} cmd
+ */
+function needsTwoJudges(round, cmd) {
+  if (!isSingleJudge(round)) return;
+  usage(`round ${round.round} is single-judge (judge A only): ${cmd} needs two judges. Its quality checks are the planted repeats and drift sample (collect) and the human calibration (calibrate); its final grade is rule, else judge A (merge)`);
+}
+
 /** @param {import('./lib/agreement.mjs').AgreementBlock} b */
 const agreementRow = (b) => [String(b.n), fmt(b.raw), fmt(b.alpha), fmt(b.binaryKappa), fmt(b.quadraticKappa)];
 const AGREEMENT_HEADER = ['n', 'raw', 'Krippendorff α (ordinal)', 'κ binary (≥ 1)', 'κ quadratic'];
@@ -280,6 +319,7 @@ async function cmdAgree(a) {
   const set = setOf(a);
   const p = paths(set, a);
   const round = await readState(set, p);
+  needsTwoJudges(round, 'agree');
   const units = agreementUnits(round);
   const r = agreementReport(units);
   console.log(`agreement, judge A (${round.judges.A}) vs judge B (${round.judges.B}), round ${round.round}: ${units.length} pairs graded by both`);
@@ -301,6 +341,7 @@ async function cmdAdjudicate(a, sub) {
   const set = setOf(a);
   const p = paths(set, a);
   const round = await readState(set, p);
+  needsTwoJudges(round, 'adjudicate');
   const judging = await readFile(join(REPO, 'eval', 'JUDGING.md'), 'utf8');
   const { queries } = await loadQueries(set);
   const writePackets = async (/** @type {1 | 2} */ pass) => {
@@ -373,9 +414,12 @@ async function cmdMerge(a) {
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, `${JSON.stringify(qrels, null, 1)}\n`);
   }
-  const sources = { rule: 0, agreed: 0, adjudicated: 0 };
+  const sources = { rule: 0, agreed: 0, adjudicated: 0, judged: 0 };
   for (const j of finalJudgments(round).values()) sources[j.source]++;
-  console.log(`qrels ${qrels.version} -> ${target}${base ? ` (base ${base.version})` : ''}: ${sources.rule} rule, ${sources.agreed} agreed, ${sources.adjudicated} adjudicated`);
+  const counts = isSingleJudge(round)
+    ? `${sources.rule} rule, ${sources.judged} judged by A (single-judge)`
+    : `${sources.rule} rule, ${sources.agreed} agreed, ${sources.adjudicated} adjudicated`;
+  console.log(`qrels ${qrels.version} -> ${target}${base ? ` (base ${base.version})` : ''}: ${counts}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -409,8 +453,10 @@ async function cmdCalibrate(a, sub) {
   if (!a.csv) usage('--csv <file> is the filled-in calibration sheet');
   const { graded, blank } = readCalibration(await readFile(resolve(a.csv), 'utf8'));
   const h = humanAgreement(graded, qrels, agreementBlock);
-  console.log(`human calibration: ${graded.length} graded rows (${blank} blank, ${h.unknown} not in qrels ${qrels.version})`);
-  console.log(table([['human vs', ...AGREEMENT_HEADER], ...['A', 'B', 'final'].map((s) => [s, ...agreementRow(/** @type {any} */ (h.bySource[s]))])]));
+  // Only the judges the qrels record: a single-judge qrels has no B row.
+  const slots = qrelsSlots(qrels);
+  console.log(`human calibration: ${graded.length} graded rows (${blank} blank, ${h.unknown} not in qrels ${qrels.version})${slots.includes('B') ? '' : '; single-judge qrels (judge A only)'}`);
+  console.log(table([['human vs', ...AGREEMENT_HEADER], ...Object.keys(h.bySource).map((s) => [s, ...agreementRow(/** @type {any} */ (h.bySource[s]))])]));
   if (!a.run || !a.baseline) {
     console.log('(pass --baseline <variant> --run <variant> for the sign of Δ nDCG@10 under each grader)');
     return;
@@ -419,10 +465,10 @@ async function cmdCalibrate(a, sub) {
   const base = await readRun(a.baseline), cand = await readRun(a.run);
   const subset = new Map(graded.map((g) => [`${g.queryId}\t${g.code}`, g.grade]));
   const rows = [['grades', 'Δ nDCG@10 (all judged)', 'sign', 'n', 'Δ nDCG@10 (calibrated subset)', 'sign', 'n']];
-  for (const source of ['A', 'B', 'final', 'human']) {
+  for (const source of [...slots, 'final', 'human']) {
     const full = source === 'human' ? null : ndcgDelta(base, cand, queries, qrelsUnder(qrels, source));
     const sub = ndcgDelta(base, cand, queries, qrelsUnder(qrels, source, subset));
-    rows.push([source === 'final' ? 'final (adjudicated)' : source, full ? fmt(full.delta) : '', full ? sign(full.delta) : '', full ? String(full.n) : '', fmt(sub.delta), sign(sub.delta), String(sub.n)]);
+    rows.push([source === 'final' ? (slots.includes('B') ? 'final (adjudicated)' : 'final (rule, else A)') : source, full ? fmt(full.delta) : '', full ? sign(full.delta) : '', full ? String(full.n) : '', fmt(sub.delta), sign(sub.delta), String(sub.n)]);
   }
   console.log(`\nΔ = ${cand.variant} − ${base.variant}`);
   console.log(table(rows));
@@ -438,9 +484,11 @@ async function cmdStatus(a) {
   const round = await readState(set, p);
   const items = Object.values(round.items);
   const lines = [`round ${round.round} (${set.name}), created ${round.createdAt}, seed ${round.seed}`, `rule-graded: ${Object.keys(round.rule).length}; pairs for judges: ${judgedPairKeys(round).length}`];
-  for (const slot of JUDGE_SLOTS) lines.push(`judge ${slot} (${round.judges[slot]}): ${Object.keys(round.grades[slot]).length} of ${items.filter((i) => i.slot === slot).length} items graded`);
+  lines.push(isSingleJudge(round) ? 'mode: single-judge (judge A only; no agreement or adjudication)' : 'mode: two judges (A and B, adjudicated)');
+  for (const d of round.dropped ?? []) lines.push(`dropped: judge ${d.slot} (${d.judge}) at ${d.at}: ${d.reason}`);
+  for (const slot of judgeSlots(round)) lines.push(`judge ${slot} (${round.judges[slot]}): ${Object.keys(round.grades[slot]).length} of ${items.filter((i) => i.slot === slot).length} items graded`);
   const adj = round.adjudication;
-  lines.push(adj ? `adjudication (${adj.adjudicator}): ${Object.keys(adj.items).length} items; pass 1 ${Object.keys(adj.pass1).length}, pass 2 ${Object.keys(adj.pass2).length}` : 'adjudication: not started');
+  if (!isSingleJudge(round)) lines.push(adj ? `adjudication (${adj.adjudicator}): ${Object.keys(adj.items).length} items; pass 1 ${Object.keys(adj.pass1).length}, pass 2 ${Object.keys(adj.pass2).length}` : 'adjudication: not started');
   lines.push(`plaintext directory: ${existsSync(p.plain) ? p.plain : 'cleaned'}`);
   console.log(lines.join('\n'));
 }
@@ -462,11 +510,11 @@ async function cmdClean(a) {
 const { positionals, values } = parseArgs({ options: OPTIONS, allowPositionals: true });
 if (values.help || !positionals[0]) {
   const src = await readFile(new URL(import.meta.url), 'utf8');
-  console.log(src.split('\n').slice(2, 15).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+  console.log(src.split('\n').slice(2, 16).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
   process.exit(values.help ? 0 : 1);
 }
 /** @type {Record<string, (a: Args, sub: string | undefined) => Promise<void>>} */
-const commands = { prepare: cmdPrepare, collect: cmdCollect, agree: cmdAgree, adjudicate: cmdAdjudicate, merge: cmdMerge, calibrate: cmdCalibrate, status: cmdStatus, clean: cmdClean };
+const commands = { prepare: cmdPrepare, 'drop-judge': cmdDropJudge, collect: cmdCollect, agree: cmdAgree, adjudicate: cmdAdjudicate, merge: cmdMerge, calibrate: cmdCalibrate, status: cmdStatus, clean: cmdClean };
 const fn = commands[positionals[0]];
 
 /** The encrypted set this invocation touches, if any. */

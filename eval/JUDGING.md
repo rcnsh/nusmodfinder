@@ -6,15 +6,23 @@ How the pooled search results of every query set are graded. Plan: `docs/plans/p
 
 ## Who grades
 
+Judging uses one judge: judge A. There is no second judge and no adjudicator.
+
 | slot | grader | sees |
 |---|---|---|
 | `rule` | mechanical pre-grading | every pooled pair; grades hard-constraint violations 0 |
 | `A` | judge `claude-opus-5-5` | a packet: the pairs `rule` did not grade |
-| `B` | judge `gemini-3.1-pro-low` (via T3 `delegate_task`) | its own packet over the same pairs, shuffled independently |
-| adjudicator | `claude-sonnet-5-5` | only pairs where A and B differ (\|A − B\| ≥ 1): blind first, then both grades |
 
-The final grade is `rule`'s where it applies, else the A = B grade, else the adjudicator's
-second-pass grade.
+The final grade is `rule`'s where it applies, else A's grade (qrels `source: judged`).
+
+`prepare --judges claude-opus-5-5` makes a single-judge round. `drop-judge --slot B --reason
+<text>` turns a round prepared with two judges into a single-judge round: B's packets, items and
+grades go, A's stay as they were (same item ids, so A's outputs still validate), and the drop is
+recorded with its reason in the round state and in the qrels' `judging` entry. It is refused once
+adjudication has started, and when B has collected grades unless `--force`.
+
+The tooling still supports a two-judge round (`--judges <idA>,<idB>`): see
+[Two-judge rounds](#two-judge-rounds) below. Nothing in the current protocol uses it.
 
 ## What a judge sees, and what it never sees
 
@@ -126,7 +134,15 @@ Worked examples (from other queries; for calibration only, not part of your task
   - MA2101S Linear Algebra II (S), not open to NG students in any semester: grade 0 (would otherwise be 1).
 <!-- END judge-examples -->
 
-## Adjudicator instructions (verbatim)
+## Two-judge rounds
+
+Only for a round prepared with two judges. Judge B gets its own packet over the same pairs,
+shuffled independently; `agree` reports A vs B agreement; the adjudicator grades only the pairs
+where A and B differ (\|A − B\| ≥ 1), blind first, then with both grades. The final grade is
+`rule`'s, else the A = B grade (`agreed`), else the adjudicator's second-pass grade
+(`adjudicated`). `agree` and `adjudicate` refuse a single-judge round.
+
+### Adjudicator instructions (verbatim)
 
 The adjudicator works in two passes over the same items, from two packet files. The lead passes
 the second only after the first pass is collected (`adjudicate collect --pass 1` writes it).
@@ -151,6 +167,10 @@ Change your first-pass grade only when another grader's rationale points to evid
 
 ## Self-consistency, drift and calibration
 
+With one judge, three checks stand in for inter-judge agreement: planted-repeat
+self-consistency, the drift re-judge sample, and Jacob's human calibration. Inter-judge κ and α
+do not apply.
+
 - **Planted repeats.** About 5% of each judge batch's items appear a second time, under a new
   item id, in a later section of the same query, at least one section after the original
   where the batch allows. `collect` reports exact agreement and mean |Δ| between the two grades
@@ -158,15 +178,17 @@ Change your first-pass grade only when another grader's rationale points to evid
 - **Drift.** `prepare --drift-from <qrels>` re-judges a 5% sample of already-judged pairs
   (rule-graded pairs excluded) in the new round's packets. `collect` reports agreement with the
   stored final grade. Drift items never change the qrels.
-- **Agreement** between A and B (`agree`): raw agreement, Krippendorff's ordinal α, binary
-  Cohen's κ at grade ≥ 1, and quadratic-weighted κ, overall and per shape, with n. The plan's
-  target is quadratic κ ≥ 0.6; the number is reported whatever it is. A statistic with no
-  chance variation (everyone used one grade) is printed as `—` and flagged degenerate.
 - **Human calibration** (dev only; Jacob is not custodian-briefed for holdout plaintext).
   About 150 pairs stratified by grade (equal shares where available) and by shape within
   each grade, rule-graded pairs excluded. Jacob grades them blind in a CSV. The importer reports
-  agreement between Jacob and A, B and the final grade, and Δ(final − v0) nDCG@10 with its
-  sign under A's, B's, the final and, on the calibrated subset, Jacob's grades.
+  agreement between Jacob and A and between Jacob and the final grade, and Δ(candidate −
+  baseline) nDCG@10 with its sign under A's grades, the final grades and, on the calibrated
+  subset, Jacob's. A judge the qrels hold no grades from (B) gets no row.
+- **Agreement** between A and B (`agree`, two-judge rounds only): raw agreement,
+  Krippendorff's ordinal α, binary Cohen's κ at grade ≥ 1, and quadratic-weighted κ, overall
+  and per shape, with n. A statistic with no chance variation (everyone used one grade) is
+  printed as `—` and flagged degenerate. On a two-judge qrels the calibration import also
+  reports B.
 
 ## Limits
 
@@ -174,8 +196,9 @@ Change your first-pass grade only when another grader's rationale points to evid
   independent.
 - A judge can notice a planted repeat (the same course under the same query twice). The
   measure is a floor on inconsistency, not an estimate of it.
-- Holdout judging goes through `delegate_task` for the Gemini judge: custody is procedural
-  (ADR 0003). Holdout packets exist in plaintext only in the round's `0700` directory under
-  `.eval-work/` until `clean`.
+- With one judge there is no independent second grade: a systematic bias of judge A is
+  visible only through Jacob's calibration (dev) and not at all on holdout.
+- Holdout packets exist in plaintext only in the round's `0700` directory under `.eval-work/`
+  until `clean`.
 - Duplicate groups (variant families, cross-listings) are not marked by this tooling; a merge
   keeps the base qrels' groups.

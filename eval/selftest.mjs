@@ -23,7 +23,10 @@
 //      four runs, prepare (rule pre-grading, packets) -> scripted judges ->
 //      collect (a bad output refused) -> agree -> adjudicate (blind pass 1,
 //      then pass 2) -> merge -> eval:report on the merged qrels; calibration
-//      export/import; a drift round; clean;
+//      export/import; a drift round; a single-judge round (prepare with one
+//      judge) and a two-judge round turned single-judge by drop-judge ->
+//      collect -> agree/adjudicate refused -> merge (rule, else A) ->
+//      calibration without a B row; clean;
 //   7. the same judging cycle on an encrypted copy of the fixture set: state
 //      and qrels only as ciphertext, plaintext only in the 0700 round
 //      directory until clean, nothing set-specific printed, a verdict on the
@@ -454,9 +457,73 @@ const driftN = Object.keys(s2.drift).length;
 assert.ok(driftN >= 1);
 for (const slot of ['A', 'B']) await scriptedJudge(s2, join(JW, 'plain-fx2', 'out'), slot, (q, c) => mq.queries[q].judgments[c].grade);
 assert.match(ok(node(JUDGE, ['collect', ...fx2]), 'collect drift'), new RegExp(`drift ${driftN}: agreement with stored grade 1\\.000`));
+// Single-judge: prepare with one judge makes only A packets, items and grades.
+const fx4 = ['--set', 'fixture', '--work-dir', JW, '--round', 'fx4'];
+assert.match(ok(node(JUDGE, ['prepare', ...fx4, '--judges', 'judge-a', '--pool', pool4, '--batch-size', '4']), 'single-judge prepare'), /single-judge/);
+const s4 = await json(join(JW, 'state-fx4.json'));
+assert.deepEqual(s4.judges, { A: 'judge-a' });
+assert.deepEqual(Object.keys(s4.batches), ['A']);
+assert.ok(Object.values(s4.items).every((/** @type {any} */ i) => i.slot === 'A'), 'only A items');
+assert.ok(Object.values(s4.items).some((/** @type {any} */ i) => i.kind === 'repeat'), 'planted repeats go to A');
+assert.ok(readdirSync(join(JW, 'plain-fx4', 'packets')).every((f) => f.startsWith('A-')), 'only A packets');
+assert.match(node(JUDGE, ['collect', ...fx4, '--slot', 'B']).out, /single-judge: it has no judge B/);
+
+// drop-judge: a two-judge round with A collected and no B grades becomes single-judge.
+const fx3 = ['--set', 'fixture', '--work-dir', JW, '--round', 'fx3'];
+ok(node(JUDGE, ['prepare', ...fx3, '--judges', 'judge-a,judge-b', '--pool', pool4, '--batch-size', '4']), 'prepare fx3');
+let s3 = await json(join(JW, 'state-fx3.json'));
+const out3 = join(JW, 'plain-fx3', 'out');
+await scriptedJudge(s3, out3, 'A', truth);
+ok(node(JUDGE, ['collect', ...fx3, '--slot', 'A']), 'collect fx3 A');
+s3 = await json(join(JW, 'state-fx3.json'));
+const aBefore = { items: Object.fromEntries(Object.entries(s3.items).filter(([, i]) => /** @type {any} */ (i).slot === 'A')), batches: s3.batches.A, grades: s3.grades.A };
+assert.match(node(JUDGE, ['drop-judge', ...fx3, '--slot', 'A', '--reason', 'x']).out, /judge A cannot be dropped/);
+assert.match(node(JUDGE, ['drop-judge', ...fx3, '--slot', 'C', '--reason', 'x']).out, /--slot must be A or B/);
+assert.match(node(JUDGE, ['drop-judge', ...fx3, '--slot', 'B']).out, /--reason <text>/);
+const drop = ok(node(JUDGE, ['drop-judge', ...fx3, '--slot', 'B', '--reason', 'owner decision: one judge']), 'drop-judge');
+assert.match(drop, /dropped judge B \(judge-b\).*now single-judge \(judge A, judge-a: (\d+) of \1 items graded\)/);
+s3 = await json(join(JW, 'state-fx3.json'));
+assert.deepEqual({ items: s3.items, batches: s3.batches.A, grades: s3.grades.A }, aBefore, 'A untouched by drop-judge');
+assert.deepEqual(Object.keys(s3.batches), ['A']);
+assert.equal(s3.dropped[0].judge, 'judge-b');
+assert.ok(readdirSync(join(JW, 'plain-fx3', 'packets')).every((f) => f.startsWith('A-')), 'B packets removed');
+assert.match(node(JUDGE, ['drop-judge', ...fx3, '--slot', 'B', '--reason', 'x']).out, /no judge in slot B/);
+const st3 = ok(node(JUDGE, ['status', ...fx3]), 'status fx3');
+assert.match(st3, /^mode: single-judge/m);
+assert.match(st3, /^dropped: judge B \(judge-b\) at \S+: owner decision: one judge$/m);
+assert.ok(!/adjudication/.test(st3.replace(/no agreement or adjudication/, '')), 'status of a single-judge round has no adjudication line');
+// A's outputs still validate after the drop.
+assert.match(ok(node(JUDGE, ['collect', ...fx3]), 'collect fx3 after drop'), /judge A: (\d+) of \1 items graded/);
+assert.match(node(JUDGE, ['agree', ...fx3]).out, /single-judge \(judge A only\): agree needs two judges/);
+assert.match(node(JUDGE, ['adjudicate', 'prepare', ...fx3, '--adjudicator', 'judge-c']).out, /single-judge \(judge A only\): adjudicate needs two judges/);
+const merged3 = join(WORK, 'qrels-single.json');
+assert.match(ok(node(JUDGE, ['merge', ...fx3, '--no-base', '--out', merged3]), 'single-judge merge'), new RegExp(`: ${ruled.length} rule, \\d+ judged by A \\(single-judge\\)`));
+const mq3 = await json(merged3);
+assert.deepEqual({ ...mq3.judging[0], createdAt: null, pool: null }, { round: 'fx3', mode: 'single', judges: { A: 'judge-a' }, adjudicator: null, dropped: s3.dropped, pairs: mq3.judging[0].pairs, pool: null, createdAt: null });
+for (const qq of poolJson.queries) {
+  for (const c of qq.candidates) {
+    const j = mq3.queries[qq.id].judgments[c.code];
+    const key = `${qq.id}\t${c.code}`;
+    assert.equal(j.source, s3.rule[key] ? 'rule' : 'judged');
+    assert.equal(j.grade, s3.rule[key] ? 0 : truth(qq.id, c.code), 'single-judge final = rule, else A');
+  }
+}
+const calib3 = join(WORK, 'calibration-single.csv');
+ok(node(JUDGE, ['calibrate', 'export', '--set', 'fixture', '--qrels', merged3, '--n', '20', '--out', calib3]), 'single-judge calibrate export');
+const [hdr3, ...rws3] = parseCsv(await readFile(calib3, 'utf8'));
+for (const r of rws3) r[hdr3.indexOf('your_grade')] = String(mq3.queries[r[hdr3.indexOf('query_id')]].judgments[r[hdr3.indexOf('code')]].grade);
+await writeFile(calib3, toCsv([hdr3, ...rws3]));
+const imp3 = ok(node(JUDGE, ['calibrate', 'import', '--set', 'fixture', '--csv', calib3, '--qrels', merged3, '--baseline', v0Path, '--run', headPath]), 'single-judge calibrate import');
+assert.match(imp3, /single-judge qrels \(judge A only\)/);
+assert.match(imp3, /^A +\d+ +1\.000/m);
+assert.match(imp3, /^final +\d+ +1\.000/m);
+assert.match(imp3, /^final \(rule, else A\) /m);
+assert.ok(!/^B /m.test(imp3) && !/NaN/.test(imp3), 'no B row, no NaN');
+for (const r of ['fx3', 'fx4']) ok(node(JUDGE, ['clean', '--set', 'fixture', '--work-dir', JW, '--round', r]), `clean ${r}`);
+
 ok(node(JUDGE, ['clean', ...fx]), 'clean');
 assert.ok(!existsSync(plainDir), 'clean removes the round directory');
-console.log(`ok: ${ruled.length} rule-graded, ${judgedPairs} judged pairs, ${agreement.disagreements} adjudicated; qrels-fixture-v1 scored; calibration and drift`);
+console.log(`ok: ${ruled.length} rule-graded, ${judgedPairs} judged pairs, ${agreement.disagreements} adjudicated; qrels-fixture-v1 scored; calibration and drift; single-judge and drop-judge rounds`);
 
 step('7. judging cycle on an encrypted fixture set');
 // A fresh copy of the encrypted set (its own ledger), without its qrels.
