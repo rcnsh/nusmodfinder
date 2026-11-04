@@ -141,7 +141,7 @@ describe('ops', () => {
   it('[O1 fixed] the README rebuilds the schema from migrations/, which start at 0001 and include ng in the metadata loop', () => {
     expect(exists('schema.sql')).toBe(false);
     for (const f of ['0001_init.sql', '0002_fts.sql', '0003_ng.sql', '0004_meta.sql', '0005_rank.sql']) expect(exists(`migrations/${f}`)).toBe(true);
-    expect(readme).toContain('npx wrangler d1 migrations apply nusmods --local');
+    expect(readme).toContain('npx wrangler d1 migrations apply nusmods-apac --local');
     expect(readme).toContain('ng:boolean; do');
     expect(JSON.parse(read('package.json')).scripts['db:rebuild-check']).toBe('node scripts/schema-snapshot.mjs');
   });
