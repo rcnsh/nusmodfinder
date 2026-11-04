@@ -1,7 +1,9 @@
 # 0005: Move the D1 primary to APAC
 
 Status: accepted (Jacob, 2026-11-04). Amends the brief's "do not delete or recreate the D1
-database": Jacob approved a **new** database. The old one is kept, not deleted.
+database": Jacob approved a **new** database, and on 2026-11-04 the deletion of the old WEUR
+`nusmods` (`c6a769d3-…`) once production ran on the new one. The rollback section below no longer
+applies, and Worker versions deployed before `597c2b7` are bound to the deleted database.
 
 ## Context
 SC7 failed on 2026-11-04 (`docs/evidence/phase1/sc7.md`): the p50 of `total` was 351 ms against

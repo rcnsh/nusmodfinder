@@ -9,8 +9,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      // APAC primary since 2026-11-04 (ADR 0005). The WEUR database "nusmods"
-      // (c6a769d3-8713-4c32-819a-7755b49b5edf) is kept as the rollback target.
+      // APAC primary (ADR 0005).
       "database_name": "nusmods-apac",
       "database_id": "de4527ff-19ec-4a5b-9c5c-4d1791078b25"
     }
