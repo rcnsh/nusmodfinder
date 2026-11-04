@@ -48,6 +48,7 @@ npm run eval:embed                                        # embed dev query text
 npm run eval -- --variant rewrite --embed-missing         # embed missing texts (cap 500), then run; local only
 npm run test:eval                                         # self-test on the fixture set (CI)
 npm run eval:verify                                       # ciphertext sha256 vs manifests (CI, no key)
+npm run eval:groups [-- --check]                          # rebuild (or check) eval/groups.json from the pinned corpus
 ```
 
 `--mode hybrid|lexical|vector` (default `hybrid`, which sends no parameter) runs one retrieval
@@ -99,13 +100,30 @@ ciphertexts, or a copy of them, cannot start a fresh count. `--embedding <versio
                           "groups": [] } } }
 ```
 Grades 0/1/2; a judgment is a number or an object with `grade` (judge ids and rationales may
-ride along). `groups` (global and per query) mark duplicate groups. `corpus` is required:
+ride along). `groups` (global and per query) mark extra duplicate groups; the corpus groups
+come from `eval/groups.json` (below), so qrels do not need to carry them. `corpus` is required:
 `eval:report` and `npm run eval` refuse (`CorpusMismatchError`) when a run's corpus
 `moduleInfoSha256` differs from the qrels', or its `ngSha256` does when the qrels record one.
 `npm run eval` checks the baseline before any retrieval (on an encrypted set, before the look
 is reserved) and the candidate after. Comparison output names the qrels version (`paired over
 n primary answerable queries · qrels <version>`; holdout `holdout verdict: PASS · qrels
 <version>`).
+
+**Duplicate groups (`eval/groups.json`, `vnm-eval-groups/1`).** Built by `eval/groups.mjs`
+(`npm run eval:groups`) from the offered modules of the pinned corpus: public fields only (code,
+title, description), never qrels or grades, so the same groups score dev, holdout and test. The
+rule (`lib/groups.mjs`): a **variant family** is codes with the same prefix letters and four
+digits differing only in suffix letters (TR3202I/S/T, ACC1701X/XA) and the same title; a
+**cross-listing** is different codes with the same title and the same description, except the
+placeholder `Not Available` or an empty description, which never makes two codes cross-listed.
+Titles and descriptions are compared lower-cased with whitespace collapsed. Groups are
+transitive; singletons are dropped. groups-v1: 509 groups, 1,562 members, largest 38 (the UTOP
+modules). The file records `corpus.moduleInfoSha256`; at scoring time (`eval:report`,
+`npm run eval`, calibration's Δ nDCG@10) the harness adds its groups to whatever groups the
+qrels carry (overlapping groups join) and refuses (`CorpusMismatchError`) a groups file built
+from another corpus than the qrels were judged on, before any retrieval or look. Nothing
+rewrites the qrels, encrypted or not. `test/full/groups.node.test.js` (the full-corpus CI job)
+checks the committed file is what the builder produces.
 
 Run file (`vnm-eval-run/1`): `variant`, `set`, `ranker` (ref, sha, dirty, `treeHash`, runner sha), `corpus`
 (release, moduleInfo sha256, NG sha256, module count, sha256 of all embedding texts),
@@ -115,8 +133,9 @@ returned code, for violations). No query text.
 
 ## Metrics (`lib/metrics.mjs`, `lib/stats.mjs`)
 
-- nDCG@10, gain 2^g − 1, discount log2(rank + 1). Duplicate-group aware: only the first member
-  of a group to appear earns gain; the ideal ranking has one document per group (best grade).
+- nDCG@10, gain 2^g − 1, discount log2(rank + 1). Duplicate-group aware (groups from
+  `eval/groups.json` plus the qrels'): only the first member of a group to appear earns gain;
+  the ideal ranking has one document per group (best grade).
 - P@5: group-first documents with grade ≥ 1 in the top 5, divided by 5. MRR@10 likewise.
 - Unjudged = grade 0; judged@10 coverage reported; gates need 100%.
 - Answerable iff some judged document has grade ≥ 1 and not `noAnswerByRule`. Primary metrics

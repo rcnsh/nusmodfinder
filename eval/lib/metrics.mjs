@@ -76,12 +76,23 @@ export function qrelsFor(qrels, id, position) {
   /** @type {Map<string, number>} */
   const grades = new Map();
   Object.entries(q?.judgments ?? {}).forEach(([code, j], k) => grades.set(code, gradeOf(j, `${at}, judgment #${k + 1}`)));
+  // Overlapping groups join (union-find): a code in two groups links them.
   /** @type {Map<string, string>} */
-  const groupOf = new Map();
+  const parent = new Map();
+  /** @param {string} x @returns {string} */
+  const find = (x) => {
+    while (parent.get(x) !== x) x = /** @type {string} */ (parent.get(x));
+    return x;
+  };
   for (const group of [...(qrels.groups ?? []), ...(q?.groups ?? [])]) {
-    const key = `group:${[...group].sort()[0]}`;
-    for (const code of group) groupOf.set(code, key);
+    for (const code of group) if (!parent.has(code)) parent.set(code, code);
+    for (const code of group.slice(1)) {
+      const a = find(group[0]), b = find(code);
+      if (a !== b) parent.set(a < b ? b : a, a < b ? a : b);
+    }
   }
+  /** @type {Map<string, string>} */
+  const groupOf = new Map([...parent.keys()].map((code) => [code, `group:${find(code)}`]));
   return { grades, groupOf };
 }
 
