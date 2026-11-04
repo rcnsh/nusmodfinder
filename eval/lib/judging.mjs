@@ -1084,6 +1084,18 @@ export function gradeBy(j, source) {
 }
 
 /**
+ * How the calibration report names its graders, from the slots the qrels
+ * record: two judges are adjudicated, A alone is "rule, else A", none is just
+ * the qrels grade.
+ * @param {Slot[]} slots
+ */
+export function graderLabels(slots) {
+  if (slots.includes('B')) return { note: '', final: 'final (adjudicated)' };
+  if (slots.length === 1 && slots[0] === 'A') return { note: '; single-judge qrels (judge A only)', final: 'final (rule, else A)' };
+  return { note: '; the qrels record no judge grades', final: 'final' };
+}
+
+/**
  * The judge slots (A, B) whose grades the qrels record, in slot order. A
  * single-judge qrels gives ['A'].
  * @param {Qrels} qrels
@@ -1132,7 +1144,8 @@ export function humanAgreement(graded, qrels, block) {
  * Jacob's), only those pairs are kept: graded by the subset itself when
  * `source` is "human", else by `source`. A judge slot the qrels hold no
  * grades from (B in a single-judge qrels) is refused rather than silently
- * falling back to the final grade.
+ * falling back to the final grade; in qrels that mix rounds, pairs a slot did
+ * not grade are left out of its column (rule pairs are 0 for every slot).
  * @param {Qrels} qrels
  * @param {string} source final | A | B | human
  * @param {Map<string, number>} [subset]
@@ -1150,7 +1163,9 @@ export function qrelsUnder(qrels, source, subset) {
     for (const [code, j] of Object.entries(q.judgments)) {
       const key = pairKey(qid, code);
       if (subset && !subset.has(key)) continue;
-      const g = source === 'human' ? subset?.get(key) : gradeBy(j, source) ?? gradeOf(j);
+      const g = source === 'human' ? subset?.get(key)
+        : JUDGE_SLOTS.includes(/** @type {any} */ (source)) ? gradeBy(j, source)
+          : gradeBy(j, source) ?? gradeOf(j);
       if (g === undefined || g === null) continue;
       judgments[code] = g;
     }

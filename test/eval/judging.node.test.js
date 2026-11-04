@@ -8,7 +8,7 @@ import { agreementBlock } from '../../eval/lib/agreement.mjs';
 import {
   agreementUnits, allocate, buildAdjudication, buildRound, calibrationCsv, calibrationSample, chunkEvenly, collectOutputs,
   constraintText, driftReport, dropJudge, finalJudgments, gradeBy, humanAgreement, isRuleJudgment, isSingleJudge, judgeSlots,
-  judgedPairKeys, mergeQrels, ndcgDelta, nextVersion, pairKey, parseCsv, poolCandidate, preGrade, qrelsSlots, qrelsUnder,
+  graderLabels, judgedPairKeys, mergeQrels, ndcgDelta, nextVersion, pairKey, parseCsv, poolCandidate, preGrade, qrelsSlots, qrelsUnder,
   readCalibration, renderAdjudicationPacket, renderJudgePacket, sampleDrift, selfConsistency, toCsv, validateSectionOutput,
   verbatimBlock,
 } from '../../eval/lib/judging.mjs';
@@ -668,5 +668,24 @@ describe('calibration on single-judge qrels', () => {
   it('refuses to re-grade the qrels under a judge they have no grades from', () => {
     expect(() => qrelsUnder(qrels, 'B')).toThrow(/no grades from judge B/);
     expect(Object.keys(qrelsUnder(qrels, 'A').queries['q-02'].judgments)).toHaveLength(8);
+  });
+
+  it('leaves out of a judge column the pairs that judge did not grade (mixed qrels), keeping rule pairs', () => {
+    /** @type {any} */
+    const mixed = JSON.parse(JSON.stringify(qrels));
+    mixed.queries['q-02'].judgments.CS200.judges['judge-b'] = { slot: 'B', grade: 0, rationale: 'x' };
+    expect(qrelsSlots(mixed)).toEqual(['A', 'B']);
+    const underB = qrelsUnder(mixed, 'B');
+    expect(underB.queries['q-02'].judgments).toEqual({ CS200: 0 });
+    expect(underB.queries['q-01'].judgments.RUL9901).toBe(0);
+    expect(Object.keys(qrelsUnder(mixed, 'A').queries['q-02'].judgments)).toHaveLength(8);
+  });
+});
+
+describe('graderLabels', () => {
+  it('names the final grade by what the qrels record', () => {
+    expect(graderLabels(['A', 'B'])).toEqual({ note: '', final: 'final (adjudicated)' });
+    expect(graderLabels(['A'])).toEqual({ note: '; single-judge qrels (judge A only)', final: 'final (rule, else A)' });
+    expect(graderLabels([])).toEqual({ note: '; the qrels record no judge grades', final: 'final' });
   });
 });

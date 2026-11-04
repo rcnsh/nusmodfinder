@@ -31,7 +31,7 @@ import { errorClass } from './lib/errors.mjs';
 import {
   ADJUDICATOR, DEFAULT_BATCH, DEFAULT_CALIBRATION_N, DEFAULT_DRIFT_RATE, DEFAULT_REPEAT_RATE, JUDGE_SLOTS,
   agreementUnits, buildAdjudication, buildRound, calibrationCsv, calibrationSample, collectOutputs, driftReport, dropJudge, finalJudgments,
-  humanAgreement, isSingleJudge, judgeSlots, judgedPairKeys, mergeQrels, ndcgDelta, outputPath, poolCandidate, qrelsSlots, qrelsUnder,
+  graderLabels, humanAgreement, isSingleJudge, judgeSlots, judgedPairKeys, mergeQrels, ndcgDelta, outputPath, poolCandidate, qrelsSlots, qrelsUnder,
   readCalibration, renderAdjudicationPacket, renderJudgePacket, sampleDrift, selfConsistency, sign,
 } from './lib/judging.mjs';
 import { fmt, table } from './lib/report.mjs';
@@ -455,7 +455,8 @@ async function cmdCalibrate(a, sub) {
   const h = humanAgreement(graded, qrels, agreementBlock);
   // Only the judges the qrels record: a single-judge qrels has no B row.
   const slots = qrelsSlots(qrels);
-  console.log(`human calibration: ${graded.length} graded rows (${blank} blank, ${h.unknown} not in qrels ${qrels.version})${slots.includes('B') ? '' : '; single-judge qrels (judge A only)'}`);
+  const labels = graderLabels(slots);
+  console.log(`human calibration: ${graded.length} graded rows (${blank} blank, ${h.unknown} not in qrels ${qrels.version})${labels.note}`);
   console.log(table([['human vs', ...AGREEMENT_HEADER], ...Object.keys(h.bySource).map((s) => [s, ...agreementRow(/** @type {any} */ (h.bySource[s]))])]));
   if (!a.run || !a.baseline) {
     console.log('(pass --baseline <variant> --run <variant> for the sign of Δ nDCG@10 under each grader)');
@@ -468,7 +469,7 @@ async function cmdCalibrate(a, sub) {
   for (const source of [...slots, 'final', 'human']) {
     const full = source === 'human' ? null : ndcgDelta(base, cand, queries, qrelsUnder(qrels, source));
     const sub = ndcgDelta(base, cand, queries, qrelsUnder(qrels, source, subset));
-    rows.push([source === 'final' ? (slots.includes('B') ? 'final (adjudicated)' : 'final (rule, else A)') : source, full ? fmt(full.delta) : '', full ? sign(full.delta) : '', full ? String(full.n) : '', fmt(sub.delta), sign(sub.delta), String(sub.n)]);
+    rows.push([source === 'final' ? labels.final : source, full ? fmt(full.delta) : '', full ? sign(full.delta) : '', full ? String(full.n) : '', fmt(sub.delta), sign(sub.delta), String(sub.n)]);
   }
   console.log(`\nΔ = ${cand.variant} − ${base.variant}`);
   console.log(table(rows));
