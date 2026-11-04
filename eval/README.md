@@ -162,8 +162,9 @@ Small samples (every gate, every set):
 
 ## Judging (2d)
 
-Protocol, grades, the judge and adjudicator instructions (verbatim) and worked examples:
-[`JUDGING.md`](JUDGING.md). Tooling: `eval/judge.mjs` (`npm run eval:judge`), pure logic in
+Protocol, grades, the judge instructions (verbatim) and worked examples:
+[`JUDGING.md`](JUDGING.md). Judging uses one judge, judge A (`claude-opus-5-5`); the final grade
+is `rule`, else A's. Tooling: `eval/judge.mjs` (`npm run eval:judge`), pure logic in
 `lib/judging.mjs` and `lib/agreement.mjs`. The lead dispatches the judge agents; the tooling
 makes no LLM or Cloudflare call.
 
@@ -173,28 +174,32 @@ npm run eval -- --variant v0 --ref eval-v0
 npm run eval -- --variant v0-lexical --ref eval-v0 --mode lexical
 npm run eval -- --variant v0-vector --ref eval-v0 --mode vector
 npm run eval:pool -- --runs v0,v0-lexical,v0-vector               # -> .eval-work/pool-dev.json
-# 2. rule pre-grading + packets (one per judge per ~12 queries)
-npm run eval:judge -- prepare --round r1 --judges claude-opus-5-5,gemini-3.1-pro-low
-#    -> .eval-work/judging/dev/plain-r1/packets/{A,B}-bNN.md: hand each path to one judge run
+# 2. rule pre-grading + packets (one per ~12 queries), single-judge round
+npm run eval:judge -- prepare --round r1 --judges claude-opus-5-5
+#    -> .eval-work/judging/dev/plain-r1/packets/A-bNN.md: hand each path to one judge run
 # 3. collect (validates; reports planted-repeat self-consistency and drift)
-npm run eval:judge -- collect --round r1 [--slot A]
-# 4. agreement A vs B, overall and per shape
-npm run eval:judge -- agree --round r1 [--json .eval-work/agree-r1.json]
-# 5. adjudication of |A − B| ≥ 1: blind pass 1, then pass 2 with both grades
-npm run eval:judge -- adjudicate prepare --round r1 --adjudicator claude-sonnet-5-5
-npm run eval:judge -- adjudicate collect --round r1 --pass 1     # writes the pass-2 packets
-npm run eval:judge -- adjudicate collect --round r1 --pass 2
-# 6. merge into qrels (base = the existing qrels file, if any; version bumped)
+npm run eval:judge -- collect --round r1
+# 4. merge into qrels (base = the existing qrels file, if any; version bumped)
 npm run eval:judge -- merge --round r1                            # -> eval/dev/qrels.json
 npm run eval:report -- --run v0                                   # scores with it
-# 7. human calibration (dev only)
+# 5. human calibration (dev only)
 npm run eval:judge -- calibrate export [--n 150]                  # -> .eval-work/calibration-dev.csv
 npm run eval:judge -- calibrate import --csv <filled.csv> --baseline v0 --run <candidate>
 # later rounds: new variants' unjudged top-10 plus a 5% drift sample of old pairs
 npm run eval:pool -- --runs v0,cand --unjudged
-npm run eval:judge -- prepare --round r2 --judges … --drift-from eval/dev/qrels.json
-npm run eval:judge -- status --round r1
+npm run eval:judge -- prepare --round r2 --judges claude-opus-5-5 --drift-from eval/dev/qrels.json
+npm run eval:judge -- status --round r1                           # mode, dropped slots, progress
 npm run eval:judge -- clean --round r1 [--state]                  # removes the packet directory
+
+# a round prepared with two judges becomes single-judge (B's packets, items, grades removed)
+npm run eval:judge -- drop-judge --round r1 --slot B --reason "<why>" [--force]
+
+# two-judge rounds only (refused on a single-judge round)
+npm run eval:judge -- prepare --round rX --judges claude-opus-5-5,<idB>
+npm run eval:judge -- agree --round rX [--json .eval-work/agree-rX.json]
+npm run eval:judge -- adjudicate prepare --round rX --adjudicator <id>
+npm run eval:judge -- adjudicate collect --round rX --pass 1     # writes the pass-2 packets
+npm run eval:judge -- adjudicate collect --round rX --pass 2
 ```
 
 Common flags: `--set` / `--holdout` / `--set-dir` as for `npm run eval`; `--work-dir` moves
@@ -202,6 +207,8 @@ Common flags: `--set` / `--holdout` / `--set-dir` as for `npm run eval`; `--work
 `.eval-work/pool-<set>.json[.enc]`), `--batch-size 12`, `--repeat-rate 0.05`, `--drift-rate
 0.05`, `--seed 20261104` (every shuffle, item id, repeat and drift pick derives from it and is
 recorded in the state). `merge`: `--base <qrels>` or `--no-base` (refused over an existing target unless `--force`), `--out`, `--version`.
+`drop-judge`: `--slot B` (A cannot be dropped), `--reason <text>` (required), `--force` to drop
+a judge that already has collected grades; refused once adjudication has started.
 
 - **Pre-grading.** A pooled candidate breaking its query's hard constraints (`constraints`, else
   `filters`: semester, NG in that semester, level, credits, faculty; `violationReason` in
@@ -210,30 +217,37 @@ recorded in the state). `merge`: `--base <qrels>` or `--no-base` (refused over a
   examples from `JUDGING.md` verbatim, then per section the query text, intent and constraints in
   words, each candidate (item id, code, title, level, credits, semesters, NG semesters,
   faculty/department, description), the output path and a JSON template
-  `{ itemId: { grade, rationale } }`. A and B get the same pairs, shuffled independently.
-  About 5% of each batch's items come back in a later section under new ids (planted repeats).
+  `{ itemId: { grade, rationale } }`. In a two-judge round A and B get the same pairs, shuffled
+  independently. About 5% of each batch's items come back in a later section under new ids (planted repeats).
 - **Collect** validates every section file: valid JSON object, every item graded, no unknown
   ids, grades in {0, 1, 2}, a non-empty rationale, no other keys. A valid file replaces the
   section's grades, an invalid one drops them; problems are listed by file, section and item
-  id, and the command exits 1. Re-run after the judge fixes its files. Once `adjudicate
-  prepare` has run, the judges' grades are frozen (`collect` refuses), and pass 1 closes when
+  id, and the command exits 1. Re-run after the judge fixes its files. In a two-judge round,
+  once `adjudicate prepare` has run, the judges' grades are frozen (`collect` refuses), and pass 1 closes when
   the pass-2 packets are written, so the stored `blind` grade really was given blind.
 - Judge ids `rule` and `adjudicator` are reserved. `--mode lexical|vector` runs are pool
   variants: `npm run eval` refuses them with `--baseline`, and every gate refuses them.
-- **Agreement**: raw, Krippendorff's ordinal α, binary κ (grade ≥ 1), quadratic κ, overall and
-  per shape with n; `—` when undefined (one category only).
-- **Final grade** = `rule`, else A = B, else the adjudicator's pass-2 grade. `merge` refuses
-  while any pooled pair lacks one, refuses pairs already in the base qrels, and refuses a base
-  judged on another corpus.
+- **Quality checks** with one judge: planted-repeat self-consistency and the drift sample
+  (`collect`), and Jacob's human calibration. Inter-judge κ and α do not apply.
+- **Agreement** (`agree`, two-judge rounds only): raw, Krippendorff's ordinal α, binary κ
+  (grade ≥ 1), quadratic κ, overall and per shape with n; `—` when undefined (one category only).
+- **Final grade** = `rule`, else A's grade (`judged`). In a two-judge round: `rule`, else
+  A = B (`agreed`), else the adjudicator's pass-2 grade (`adjudicated`). `merge` refuses while
+  any pooled pair lacks one (an ungraded A pair; counts only), refuses pairs already in the base
+  qrels, and refuses a base judged on another corpus.
 - **Qrels written** (`vnm-eval-qrels/1`): `version` bumped (`qrels-<set>-v1`, then `-v2`, …),
   `corpus` (`moduleInfoSha256`, `ngSha256`) and `embedding` from the pool's runs, the base's
   `groups` kept, a `judging` log of rounds, and per judgment
-  `{ grade, source: rule|agreed|adjudicated, round, judges }`, where `judges` maps each judge id
-  to `{ slot, grade, rationale }` (the adjudicator's also carries its `blind` pass-1 grade).
+  `{ grade, source: rule|judged|agreed|adjudicated, round, judges }`, where `judges` maps each
+  judge id to `{ slot, grade, rationale }` (the adjudicator's also carries its `blind` pass-1
+  grade). A single-judge round's `judging` entry has `mode: "single"`, `judges: { A }`,
+  `adjudicator: null` and, after `drop-judge`, `dropped: [{ slot, judge, reason, at }]`; a
+  two-judge entry has no `mode`.
 - **Calibration** exports ~150 pairs stratified by grade and by shape (rule pairs excluded) as a
-  blind CSV (`your_grade` to fill). The import reports agreement of Jacob's grades with A, B and
-  the final grade, and Δ nDCG@10 (candidate − baseline) with its sign under A's, B's, the final
-  and, on the calibrated subset, Jacob's grades. Refused for encrypted sets.
+  blind CSV (`your_grade` to fill). The import reports agreement of Jacob's grades with A and
+  the final grade, and Δ nDCG@10 (candidate − baseline) with its sign under A's, the final and,
+  on the calibrated subset, Jacob's grades. On a two-judge qrels it also reports B; a judge the
+  qrels hold no grades from gets no row. Refused for encrypted sets.
 
 **Encrypted sets (custodian only).** Pool with `--custodian`, then the same commands with
 `--holdout`. The round's state (`.eval-work/judging/holdout/state-<round>.json.enc`) and the
