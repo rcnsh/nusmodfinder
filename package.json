@@ -17,6 +17,7 @@
     "eval:judge": "node eval/judge.mjs",
     "eval:embed": "node scripts/embed.mjs",
     "eval:verify": "node scripts/holdout.mjs verify",
+    "eval:groups": "node eval/groups.mjs",
     "test:eval": "node eval/selftest.mjs",
     "dev": "wrangler dev -c test/wrangler.test.jsonc --local",
     "deploy": "node scripts/deploy.mjs",

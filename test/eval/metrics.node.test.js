@@ -71,6 +71,15 @@ describe('qrelsFor', () => {
     expect(groupOf.get('Y')).toBe(groupOf.get('X'));
   });
 
+  it('joins overlapping groups (qrels groups plus the corpus groups) into one', () => {
+    const { groupOf } = qrelsFor({
+      version: 'v',
+      groups: [['A', 'B'], ['C', 'D']],
+      queries: { q1: { judgments: { A: 2 }, groups: [['B', 'C']] } },
+    }, 'q1');
+    expect(new Set(['A', 'B', 'C', 'D'].map((c) => groupOf.get(c))).size).toBe(1);
+  });
+
   it('rejects grades outside 0..2', () => {
     expect(() => qrelsFor({ version: 'v', queries: { q: { judgments: { A: 3 } } } }, 'q')).toThrow(/has grade 3; grades must be 0, 1 or 2/);
     expect(() => qrelsFor(/** @type {any} */ ({ version: 'v', queries: { q: { judgments: { A: { grade: 'two', note: 'x' } } } } }), 'q', 0)).toThrow(/^qrels: query #1, judgment #1 has grade a string;/);

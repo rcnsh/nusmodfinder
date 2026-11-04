@@ -3,7 +3,9 @@
 // Rules (docs/plans/phase2.md, r2/r3/Final):
 // - nDCG@10, gain 2^g - 1, log2(rank + 1) discount. Duplicate-group aware:
 //   only the first member of a group to appear in the ranking earns gain, and
-//   the ideal ranking holds one document per group (its best grade).
+//   the ideal ranking holds one document per group (its best grade). A
+//   returned document breaking the query's hard constraints belongs to no
+//   group for that query (groups ignore level, semester, NG, credits, faculty).
 // - P@5: group-first documents with grade >= 1 in the top 5, divided by 5.
 // - MRR@10: 1 / rank of the first group-first document with grade >= 1.
 // - Unjudged documents count as grade 0; judged@10 coverage is reported.
@@ -76,12 +78,23 @@ export function qrelsFor(qrels, id, position) {
   /** @type {Map<string, number>} */
   const grades = new Map();
   Object.entries(q?.judgments ?? {}).forEach(([code, j], k) => grades.set(code, gradeOf(j, `${at}, judgment #${k + 1}`)));
+  // Overlapping groups join (union-find): a code in two groups links them.
   /** @type {Map<string, string>} */
-  const groupOf = new Map();
+  const parent = new Map();
+  /** @param {string} x @returns {string} */
+  const find = (x) => {
+    while (parent.get(x) !== x) x = /** @type {string} */ (parent.get(x));
+    return x;
+  };
   for (const group of [...(qrels.groups ?? []), ...(q?.groups ?? [])]) {
-    const key = `group:${[...group].sort()[0]}`;
-    for (const code of group) groupOf.set(code, key);
+    for (const code of group) if (!parent.has(code)) parent.set(code, code);
+    for (const code of group.slice(1)) {
+      const a = find(group[0]), b = find(code);
+      if (a !== b) parent.set(a < b ? b : a, a < b ? a : b);
+    }
   }
+  /** @type {Map<string, string>} */
+  const groupOf = new Map([...parent.keys()].map((code) => [code, `group:${find(code)}`]));
   return { grades, groupOf };
 }
 
@@ -212,10 +225,14 @@ export function scoreRun(run, queries, qrels) {
     const { grades, groupOf } = qrelsFor(qrels, q.id, i);
     const ok = r.status === 200;
     const codes = ok ? r.codes : [];
-    const s = scoreRanking(codes, grades, groupOf);
     const top = codes.slice(0, K);
     const shapes = q.shapes ?? [];
     const constraints = q.constraints ?? q.filters ?? {};
+    // Groups ignore hard-constraint fields (level, semesters, NG, credits,
+    // faculty), so a returned member breaking this query's constraints (graded
+    // 0 by rule) is no duplicate here: it must not take its siblings' slot.
+    for (const c of top) if (violates(run.docs[c], constraints)) groupOf.delete(c);
+    const s = scoreRanking(codes, grades, groupOf);
     return {
       id: q.id,
       shapes,

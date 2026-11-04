@@ -28,6 +28,7 @@ import { agreementBlock, agreementReport } from './lib/agreement.mjs';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { readEncryptedJson, updateManifest, writeEncryptedJson } from './lib/crypto.mjs';
 import { errorClass } from './lib/errors.mjs';
+import { loadGroups, withCorpusGroups } from './lib/groups.mjs';
 import {
   ADJUDICATOR, DEFAULT_BATCH, DEFAULT_CALIBRATION_N, DEFAULT_DRIFT_RATE, DEFAULT_REPEAT_RATE, JUDGE_SLOTS,
   agreementUnits, buildAdjudication, buildRound, calibrationCsv, calibrationSample, collectOutputs, driftReport, dropJudge, finalJudgments,
@@ -465,10 +466,11 @@ async function cmdCalibrate(a, sub) {
   const readRun = async (/** @type {string} */ v) => JSON.parse(await readFile(v.includes('/') || v.endsWith('.json') ? resolve(v) : runFile(set, v), 'utf8'));
   const base = await readRun(a.baseline), cand = await readRun(a.run);
   const subset = new Map(graded.map((g) => [`${g.queryId}\t${g.code}`, g.grade]));
+  const scored = withCorpusGroups(qrels, await loadGroups()); // Δ nDCG@10 is scored like eval:report
   const rows = [['grades', 'Δ nDCG@10 (all judged)', 'sign', 'n', 'Δ nDCG@10 (calibrated subset)', 'sign', 'n']];
   for (const source of [...slots, 'final', 'human']) {
-    const full = source === 'human' ? null : ndcgDelta(base, cand, queries, qrelsUnder(qrels, source));
-    const sub = ndcgDelta(base, cand, queries, qrelsUnder(qrels, source, subset));
+    const full = source === 'human' ? null : ndcgDelta(base, cand, queries, qrelsUnder(scored, source));
+    const sub = ndcgDelta(base, cand, queries, qrelsUnder(scored, source, subset));
     rows.push([source === 'final' ? labels.final : source, full ? fmt(full.delta) : '', full ? sign(full.delta) : '', full ? String(full.n) : '', fmt(sub.delta), sign(sub.delta), String(sub.n)]);
   }
   console.log(`\nΔ = ${cand.variant} − ${base.variant}`);
