@@ -12,7 +12,7 @@ log in [`PROGRESS.md`](PROGRESS.md), decisions in [`decisions/`](decisions/).
 | 0 | Safety net | **passed** (PRs #1, #2) | CI green on main; every finding triaged; DB rebuilds from scratch |
 | 1 | Backend correctness and pipeline | planned ([plan](plans/phase1.md), converged r3) | SC6, SC7 measured; README cost section fixed |
 | 2 | A real eval (may run parallel to 1) | planned ([plan](plans/phase2.md), converged r3) | one-command harness; baseline in EVAL.md |
-| 3 | Search that understands students | planning ([plan](plans/phase3.md), draft r1) | SC4, SC5 (+ SC7 carried over) |
+| 3 | Search that understands students | planning ([plan](plans/phase3.md), draft r2) | SC4, SC5 (+ SC7 carried over) |
 | 4 | Exchange mode that is correct | not started | SC1; persona red team finds nothing |
 | 5 | Frontend and design overhaul | not started | SC2, SC8; design gate |
 | 6 | Shortlist and export | not started | SC3 |
