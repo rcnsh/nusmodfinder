@@ -163,12 +163,17 @@ async function corpusModules(set) {
  * the corpus the qrels are for. Duplicate groups are groups.mjs's rule over
  * that corpus (for the pinned corpus, exactly eval/groups.json).
  * @param {import('./lib/sets.mjs').SetLayout} set
- * @param {string | undefined} moduleInfoSha256 the qrels' (or pool's) corpus
+ * @param {import('./lib/metrics.mjs').CorpusIds | undefined} ids the qrels' (or pool's) corpus
  */
-async function codeRuleFor(set, moduleInfoSha256) {
+async function codeRuleFor(set, ids) {
   const corpus = await setCorpus(set);
+  const moduleInfoSha256 = ids?.moduleInfoSha256;
   if (moduleInfoSha256 !== corpus.info.moduleInfoSha256) {
     throw new CorpusMismatchError(`the qrels were judged on a corpus with moduleInfoSha256 ${String(moduleInfoSha256).slice(0, 12)}…, but the ${set.name} corpus is ${corpus.info.moduleInfoSha256.slice(0, 12)}…`);
+  }
+  // The rule grades NG violations from the corpus's NG list, so it must be the one the qrels record.
+  if (ids?.ngSha256 && ids.ngSha256 !== corpus.info.ngSha256) {
+    throw new CorpusMismatchError(`the qrels were judged with NG list ngSha256 ${String(ids.ngSha256).slice(0, 12)}…, but the ${set.name} corpus has ${String(corpus.info.ngSha256).slice(0, 12)}…`);
   }
   const querySet = await loadQueries(set);
   return { grades: codeRuleGrades(querySet.queries, corpus.modules), corpusSha256: corpus.info.moduleInfoSha256 };
@@ -430,7 +435,7 @@ async function cmdMerge(a) {
   if (a['no-base'] && existsSync(target) && !a.force) usage(`${a.out ? 'the --out file' : 'the set\'s qrels'} already exists; --no-base would overwrite it (pass --force to replace it)`);
   const basePath = a['no-base'] ? null : a.base ? resolve(a.base) : existsSync(target) ? target : null;
   const base = basePath ? await readSetJson(set, basePath) : null;
-  const { grades: codeRule } = await codeRuleFor(set, round.pool.corpus?.moduleInfoSha256 ?? undefined);
+  const { grades: codeRule } = await codeRuleFor(set, round.pool.corpus ?? undefined);
   const qrels = mergeQrels(round, { base, version: a.version, codeRule });
   if (set.encrypted) {
     await writeEncryptedJson(target, qrels, await setKey(), set.name);
@@ -466,7 +471,7 @@ async function cmdCodeRule(a) {
   if (!existsSync(source)) usage(`no qrels at ${source}; merge a judging round first`);
   /** @type {import('./lib/metrics.mjs').Qrels & { judging?: unknown[] }} */
   const qrels = await readSetJson(set, source);
-  const { grades, corpusSha256 } = await codeRuleFor(set, qrels.corpus?.moduleInfoSha256);
+  const { grades, corpusSha256 } = await codeRuleFor(set, qrels.corpus);
   const { qrels: next, stats, changes } = withCodeRule(qrels, grades, { version: a.version, groupsVersion: GROUPS_VERSION, corpusSha256 });
   if (!changes.length) {
     console.log(`qrels ${qrels.version}: the code rule changes nothing; not written`);

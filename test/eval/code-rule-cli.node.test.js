@@ -133,6 +133,18 @@ describe('eval:judge -- code-rule on an encrypted set', () => {
     expect(existsSync(join(dir, 'qrels.json'))).toBe(false);
   });
 
+  it('refuses qrels judged under another NG list (ngSha256 mismatch)', async () => {
+    const dir = await makeSet('dev-fixture-ng', false);
+    const path = join(dir, 'qrels.json');
+    const q = JSON.parse(await readFile(path, 'utf8'));
+    q.corpus.ngSha256 = 'ng-OLD';
+    await writeFile(path, JSON.stringify(q));
+    const r = node('eval/judge.mjs', ['code-rule', '--set', 'dev', '--set-dir', dir]);
+    expect(r.code).not.toBe(0);
+    expect(r.stdout + r.stderr).toMatch(/ngSha256/);
+    expect(JSON.parse(await readFile(path, 'utf8')).version).toBe('qrels-dev-v1');
+  });
+
   it('the plaintext twin (dev) prints the per-query changes the holdout run withholds', async () => {
     const dir = await makeSet('dev-fixture', false);
     const r = node('eval/judge.mjs', ['code-rule', '--set', 'dev', '--set-dir', dir]);
