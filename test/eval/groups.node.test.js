@@ -132,4 +132,22 @@ describe('withCorpusGroups', () => {
     const zero = { ...grouped, queries: { q1: { judgments: { TR3202I: 0, TR3202S: 2, X: 1 } } } };
     expect(scoreRun(run(['TR3202I', 'TR3202S', 'X']), queries, zero)[0].rr).toBe(1 / 3);
   });
+
+  it('a returned member that breaks the query\'s constraints is no duplicate for it', () => {
+    // ACC3704 and ACC4702 are one cross-listing (eval/groups.json) at levels 3 and 4. For a
+    // level-4 query ACC3704 is graded 0 by rule; ranked first it must not take ACC4702's slot.
+    const queries = [{ id: 'q1', text: 'audit', constraints: { level: 4 } }];
+    const qrels = withCorpusGroups({
+      version: 'q-test', corpus: { moduleInfoSha256: MI }, queries: { q1: { judgments: { ACC3704: 0, ACC4702: 2 } } },
+    }, groupsFile([m('ACC3704', 'Audit', 'Same.'), m('ACC4702', 'Audit', 'Same.')], { release: PINNED_RELEASE, moduleInfoSha256: MI }));
+    expect(qrels.groups).toEqual([['ACC3704', 'ACC4702']]);
+    const doc = (/** @type {number} */ level) => ({ level, semesters: [1], ng: false, ngSemesters: [], credits: 4, faculty: 'Business' });
+    /** @type {import('../../eval/lib/metrics.mjs').RunFile} */
+    const r = { schema: 'vnm-eval-run/1', variant: 'v', set: 'dev', docs: { ACC3704: doc(3), ACC4702: doc(4) }, results: { q1: { status: 200, codes: ['ACC3704', 'ACC4702'] } } };
+    const [s] = scoreRun(r, queries, qrels);
+    expect(s.ndcg).toBeCloseTo(1 / Math.log2(3), 12);
+    expect(s.p5).toBe(1 / 5);
+    expect(s.rr).toBe(1 / 2);
+    expect(s.violations).toBe(1);
+  });
 });

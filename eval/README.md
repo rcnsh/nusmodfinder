@@ -121,8 +121,9 @@ transitive; singletons are dropped. groups-v1: 509 groups, 1,562 members, larges
 modules). The file records `corpus.moduleInfoSha256`; at scoring time (`eval:report`,
 `npm run eval`, calibration's Δ nDCG@10) the harness adds its groups to whatever groups the
 qrels carry (overlapping groups join) and refuses (`CorpusMismatchError`) a groups file built
-from another corpus than the qrels were judged on, before any retrieval or look. Nothing
-rewrites the qrels, encrypted or not. `test/full/groups.node.test.js` (the full-corpus CI job)
+from another corpus than the qrels were judged on. Like the qrels/run corpus check, `npm run eval`
+checks it with the baseline before any retrieval (on an encrypted set, before the look is
+reserved). Nothing rewrites the qrels, encrypted or not. `test/full/groups.node.test.js` (the full-corpus CI job)
 checks the committed file is what the builder produces.
 
 Run file (`vnm-eval-run/1`): `variant`, `set`, `ranker` (ref, sha, dirty, `treeHash`, runner sha), `corpus`
@@ -135,7 +136,9 @@ returned code, for violations). No query text.
 
 - nDCG@10, gain 2^g − 1, discount log2(rank + 1). Duplicate-group aware (groups from
   `eval/groups.json` plus the qrels'): only the first member of a group to appear earns gain;
-  the ideal ranking has one document per group (best grade).
+  the ideal ranking has one document per group (best grade). Groups ignore level, semesters,
+  NG, credits and faculty, so a returned member breaking the query's `constraints` (graded 0
+  by rule) is no member for that query and never takes a sibling's slot.
 - P@5: group-first documents with grade ≥ 1 in the top 5, divided by 5. MRR@10 likewise.
 - Unjudged = grade 0; judged@10 coverage reported; gates need 100%.
 - Answerable iff some judged document has grade ≥ 1 and not `noAnswerByRule`. Primary metrics
