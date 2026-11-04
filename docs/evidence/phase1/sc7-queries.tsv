@@ -1,0 +1,46 @@
+id	set	q	params
+w01	warm	intro to python programming for beginners
+w02	warm	making charts and dashboards from data	sem=1
+w03	warm	game theory economics
+w04	warm	intro to sociology	ng=1
+w05	warm	how to write a research paper
+w06	warm	quantum mechanics	level=3
+w07	warm	korean language beginner
+w08	warm	southeast asian history	sem=1&ng=1
+w09	warm	sustainable urban planning
+w10	warm	operating systems	level=2
+w11	warm	financial accounting basics
+w12	warm	ethics of artificial intelligence	sem=2
+w13	warm	music composition and songwriting
+w14	warm	japanese pop culture anime	ng=1
+w15	warm	cognitive psychology memory
+w16	warm	supply chain management	level=4
+w17	warm	climate change policy southeast asia
+w18	warm	creative writing workshop	sem=2&ng=1
+w19	warm	digital marketing social media
+w20	warm	investment and portfolio	sem=1&level=3
+w21	warm	organic chemistry lab
+w22	warm	mobile app development	sem=2
+w23	warm	film studies cinema history
+w24	warm	gender and society	ng=1
+w25	warm	human rights law
+w26	warm	machine vision image processing	level=4
+w27	warm	robotics and control systems
+w28	warm	environmental engineering water	sem=1
+w29	warm	public speaking communication skills
+w30	warm	behavioural economics nudges	sem=2&ng=1
+w31	warm	nutrition and food science
+w32	warm	graph algorithms	sem=1&level=3
+w33	warm	philosophy of mind consciousness
+s01	sparse	cybersecurity network attacks
+s02	sparse	tropical diseases public health	sem=2
+s03	sparse	linear algebra for engineers
+s04	sparse	theatre and performance	ng=1
+s05	sparse	entrepreneurship startup
+s06	sparse	urban sociology singapore housing	sem=1
+s07	sparse	marine biology coral reefs
+s08	sparse	bioinformatics genomics	level=4
+s09	sparse	chinese calligraphy
+s10	sparse	accounting for non accountants	ng=1
+s11	sparse	statistics with r
+s12	sparse	pharmacology drug action	level=3
