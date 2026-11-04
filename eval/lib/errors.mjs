@@ -31,6 +31,12 @@ export class EmbeddingError extends EvalError {}
 export class RunFailedError extends EvalError {}
 /** A run file is missing a result or does not match the query set. */
 export class RunFileError extends EvalError {}
+/** A ciphertext a verdict reads is missing from MANIFEST.json, differs from it, or the set has no manifest. */
+export class ManifestError extends EvalError {}
+/** A holdout or SC5 baseline is not the pinned eval-v0 ranker (ref, sha, treeHash or the tag's resolution). */
+export class BaselineError extends EvalError {}
+/** A `--change-kind cutoff` candidate is not a truncation of its baseline. */
+export class CutoffError extends EvalError {}
 
 /**
  * The class name to print for an error whose message must stay hidden.

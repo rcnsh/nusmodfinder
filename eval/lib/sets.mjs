@@ -10,26 +10,35 @@
 // them, cannot start a fresh count. Only `selftest` keeps its ledger in its
 // directory; its ciphertexts are bound to the name "selftest" (crypto.mjs), so
 // real holdout files cannot be read through it.
+//
+// A verdict reads an encrypted set only through `{ verify: true }`: each
+// ciphertext must be listed, with its sha256, in the set directory's
+// MANIFEST.json (the check `eval:verify` makes), so a `--set-dir` of files
+// the manifest never saw cannot be scored.
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readEncryptedJson, readKey } from './crypto.mjs';
+import { assertInManifest, decrypt, readKey } from './crypto.mjs';
 
 export const REPO = fileURLToPath(new URL('../../', import.meta.url)).replace(/\/$/, '');
 
 /**
  * `gate` is the gate the set's verdicts use (gate.mjs `gateFor`).
+ * `retiredLog` is where `retire-run` logs a stored run it retires (encrypted
+ * sets; beside the ledger, by the same rule).
  * @typedef {{
  *   name: string, dir: string, runsDir: string, encrypted: boolean,
- *   maxLooks: number, ledger: string | null, perQueryOutput: boolean, gate: 'dev' | 'holdout' | 'test',
+ *   maxLooks: number, ledger: string | null, retiredLog: string | null, perQueryOutput: boolean, gate: 'dev' | 'holdout' | 'test',
  * }} SetLayout
  */
 
 /** The fixed look ledger of the custody sets (repo-relative). */
 export const LEDGER = 'eval/holdout-ledger.md';
+/** The fixed log of stored runs retired from the custody sets (repo-relative). */
+export const RETIRED_LOG = 'eval/retired-runs.md';
 
-/** @type {Record<string, Omit<SetLayout, 'name' | 'ledger'> & { ledger: string | null | 'in-dir' }>} */
+/** @type {Record<string, Omit<SetLayout, 'name' | 'ledger' | 'retiredLog'> & { ledger: string | null | 'in-dir' }>} */
 const LAYOUTS = {
   dev: { dir: 'eval/dev', runsDir: 'eval/runs', encrypted: false, maxLooks: Infinity, ledger: null, perQueryOutput: true, gate: 'dev' },
   fixture: { dir: 'eval/fixtures', runsDir: '.eval-work/runs', encrypted: false, maxLooks: Infinity, ledger: null, perQueryOutput: true, gate: 'dev' },
@@ -55,9 +64,16 @@ export function layout(name, dirOverride) {
   const runsDir = dirOverride ? join(dirOverride, 'runs') : join(REPO, base.runsDir);
   /** @type {string | null} */
   let ledger = null;
-  if (base.ledger === 'in-dir') ledger = join(dir, 'ledger.md');
-  else if (base.ledger) ledger = join(REPO, base.ledger); // fixed, whatever --set-dir says
-  return { name, ...base, dir, runsDir, ledger };
+  /** @type {string | null} */
+  let retiredLog = null;
+  if (base.ledger === 'in-dir') {
+    ledger = join(dir, 'ledger.md');
+    retiredLog = join(dir, 'retired-runs.md');
+  } else if (base.ledger) {
+    ledger = join(REPO, base.ledger); // fixed, whatever --set-dir says
+    retiredLog = join(REPO, RETIRED_LOG);
+  }
+  return { name, ...base, dir, runsDir, ledger, retiredLog };
 }
 
 /** @param {SetLayout} set @param {string} file e.g. "queries.json" */
@@ -79,38 +95,49 @@ export async function setKey() {
 }
 
 /**
- * Reads a JSON file of a set, decrypting when the set is encrypted.
+ * @typedef {{ verify?: boolean }} ReadOptions `verify`: an encrypted file must
+ *   match the set directory's MANIFEST.json (ManifestError otherwise)
+ */
+
+/**
+ * Reads a JSON file of a set, decrypting when the set is encrypted. With
+ * `verify`, the bytes checked against the manifest are the bytes decrypted.
  * @param {SetLayout} set
  * @param {string} path
+ * @param {ReadOptions} [options]
  */
-export async function readSetJson(set, path) {
+export async function readSetJson(set, path, options = {}) {
   if (!existsSync(path)) throw new Error(`${path} does not exist`);
-  if (set.encrypted) return readEncryptedJson(path, await setKey(), set.name);
-  return JSON.parse(await readFile(path, 'utf8'));
+  const bytes = await readFile(path);
+  if (!set.encrypted) return JSON.parse(bytes.toString('utf8'));
+  if (options.verify) await assertInManifest(set.dir, path, bytes);
+  return JSON.parse(decrypt(bytes, await setKey(), path, set.name).toString('utf8'));
 }
 
 /**
  * @param {SetLayout} set
+ * @param {ReadOptions} [options]
  * @returns {Promise<import('./metrics.mjs').QuerySet>}
  */
-export async function loadQueries(set) {
+export async function loadQueries(set, options = {}) {
   const path = setFile(set, 'queries.json');
   if (!existsSync(path)) {
     throw new Error(`${path} does not exist: the ${set.name} query set has not been written yet (workstream 2b)`);
   }
-  const qs = await readSetJson(set, path);
+  const qs = await readSetJson(set, path, options);
   validateQueries(qs, path);
   return qs;
 }
 
 /**
  * @param {SetLayout} set
+ * @param {ReadOptions} [options]
  * @returns {Promise<import('./metrics.mjs').Qrels>}
  */
-export async function loadQrels(set) {
+export async function loadQrels(set, options = {}) {
   const path = setFile(set, 'qrels.json');
   if (!existsSync(path)) throw new Error(`${path} does not exist: the ${set.name} set has not been judged yet (workstream 2d)`);
-  return readSetJson(set, path);
+  return readSetJson(set, path, options);
 }
 
 /**

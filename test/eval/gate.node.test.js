@@ -1,6 +1,6 @@
 // @ts-check
 import { describe, expect, it } from 'vitest';
-import { devGate, gateFor, holdoutGate, sc5Gate } from '../../eval/lib/gate.mjs';
+import { assertTruncation, devGate, gateFor, holdoutGate, ruleOf, sc5Gate } from '../../eval/lib/gate.mjs';
 import { compare, scoreRun, summarise } from '../../eval/lib/metrics.mjs';
 
 /** @typedef {import('../../eval/lib/metrics.mjs').QueryScore} QueryScore */
@@ -299,5 +299,48 @@ describe('decisive-comparison floors (PR #6 review round 2, finding 5)', () => {
       [...rest.cand, q('x', 0.6, { shapes: ['t'] }), q('y', 0.2, { shapes: ['t'] }), q('z', 0.2, { shapes: ['t'] })],
     );
     expect(devGate(three, { targetShapes: ['t'] }).verdict).toBe('pass');
+  });
+});
+
+describe('the rule a verdict applies (red-team gap 1)', () => {
+  it('names general, targeted with its targets, cutoff and sc5', () => {
+    expect(ruleOf('holdout')).toBe('general');
+    expect(ruleOf('holdout', { targetShapes: ['typo', 'jargon'] })).toBe('targeted: typo,jargon');
+    expect(ruleOf('dev', { kind: 'cutoff' })).toBe('cutoff');
+    expect(ruleOf('test', { kind: 'cutoff' })).toBe('sc5');
+    expect(ruleOf('holdout', { targetShapes: ['a|b\nc'] })).toBe('targeted: a?b?c');
+  });
+
+  it('gateFor carries the rule on the verdict', () => {
+    const cmp = compare([q('a', 0.5)], [q('a', 0.5)]);
+    expect(gateFor('holdout', cmp, { kind: 'cutoff' }).rule).toBe('cutoff');
+    expect(gateFor('dev', cmp, { targetShapes: ['t'] }).rule).toBe('targeted: t');
+    expect(gateFor('test', cmp).rule).toBe('sc5');
+  });
+});
+
+describe('assertTruncation: a cutoff only shortens result lists (red-team gap 1)', () => {
+  /** @param {Record<string, { status?: number, codes: string[] }>} results */
+  const run = (results) => /** @type {any} */ ({ variant: 'r', results: Object.fromEntries(Object.entries(results).map(([id, r]) => [id, { status: 200, ...r }])) });
+  const base = run({ a: { codes: ['X', 'Y', 'Z'] }, b: { codes: ['P'] }, c: { codes: [] } });
+
+  it('accepts identical lists, prefixes and emptied lists', () => {
+    expect(() => assertTruncation(base, run({ a: { codes: ['X', 'Y'] }, b: { codes: [] }, c: { codes: [] } }))).not.toThrow();
+    expect(() => assertTruncation(base, base)).not.toThrow();
+  });
+
+  it.each([
+    ['a reorder', { a: { codes: ['Y', 'X'] } }],
+    ['an added code', { a: { codes: ['X', 'Y', 'Z', 'W'] } }],
+    ['a swapped-in code', { a: { codes: ['X', 'W'] } }],
+    ['a status change', { a: { status: 500, codes: [] } }],
+  ])('refuses %s', (_, edit) => {
+    const cand = run({ ...base.results, ...edit });
+    expect(() => assertTruncation(base, cand)).toThrow(/is not a truncation of baseline r on 1 of 3 queries/);
+  });
+
+  it('refuses a query missing from either run', () => {
+    expect(() => assertTruncation(base, run({ a: { codes: [] }, b: { codes: [] } }))).toThrow(/on 1 of 3 queries/);
+    expect(() => assertTruncation(base, run({ ...base.results, d: { codes: [] } }))).toThrow(/on 1 of 4 queries/);
   });
 });

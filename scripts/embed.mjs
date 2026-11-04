@@ -22,7 +22,7 @@ import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { gzipSync } from 'node:zlib';
 import { loadPinnedWith } from '../eval/lib/corpus.mjs';
-import { readEncryptedJson, sha256, updateManifest } from '../eval/lib/crypto.mjs';
+import { readEncryptedJson, recordInManifest, sha256 } from '../eval/lib/crypto.mjs';
 import {
   DIMS, EMB_DIR, MODEL, embeddingKey, estimateTokens, f32ToBase64, neuronsFor, readCache, writeCache, queryTextForms,
 } from '../eval/lib/embeddings.mjs';
@@ -243,7 +243,8 @@ if (a.corpus) {
   await logSpend(`set:${set.name}`, est, a.note ?? '');
   todo.forEach((t, i) => { cache.entries[embeddingKey(MODEL, t)] = f32ToBase64(Float32Array.from(vectors[i])); });
   await writeCache(cachePath, cache, key, set.name);
-  if (key && !a['set-dir']) await updateManifest(set.dir);
+  // Only the cache joins the manifest: no other ciphertext is re-hashed.
+  if (key) await recordInManifest(set.dir, [cachePath]);
   await rm(missingFile, { force: true });
   console.log(`added ${todo.length} vectors to ${cachePath} (${Object.keys(cache.entries).length} total)`);
 }

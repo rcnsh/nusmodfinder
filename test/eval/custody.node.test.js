@@ -244,7 +244,7 @@ describe('ledger concurrency (review finding 3)', () => {
     const base = { date: row.date, set: row.set, commit: row.commit, variant: row.variant, baseline: row.baseline };
     const r1 = await reserveLook(path, 12, { ...base, commit: 'pending', variant: 'r1' });
     const r2 = await reserveLook(path, 12, { ...base, commit: 'pending', variant: 'r2' });
-    expect(r1).toMatch(/^\| 2026-11-04 \| holdout \| pending \| r1 \| v0 \| reserved [0-9a-f]{8} \| — \| — \|$/);
+    expect(r1).toMatch(/^\| 2026-11-04 \| holdout \| pending \| r1 \| v0 \| reserved [0-9a-f]{8} \| — \| — \| — \| — \|$/);
     expect(await looks(path, 'holdout')).toBe(12);
     await expect(reserveLook(path, 12, { ...base, variant: 'r3' })).rejects.toMatchObject({ name: 'LookLimitError' });
     await finaliseLook(path, r2, { ...row, variant: 'r2', verdict: 'pass' });
