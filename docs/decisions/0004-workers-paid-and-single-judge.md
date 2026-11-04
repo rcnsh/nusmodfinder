@@ -80,6 +80,18 @@ else judge A's grade. There is no adjudicator.
 - The round-r1 B packets are discarded unjudged. `drop-judge` records the slot, judge and
   reason in the round state, and the merged qrels record `mode: single`.
 
+### Amendment (Jacob, 2026-11-04): model cross-check instead of human calibration
+Jacob chose not to grade the calibration sheet himself. Instead:
+- a different-family model (`gemini-3.8-flash-high`) graded the same 150 stratified pairs blind to A;
+- fresh Claude Sonnet verifiers checked every Gemini grade, also blind to A.
+
+Verified grades vs A: raw agreement 0.880, quadratic κ 0.915, α 0.915. A is slightly lenient
+(12 higher, 6 lower, never 0 against 2), and the Δ sign matches on the subset. Details are in
+`docs/evidence/phase2/calibration/`.
+
+This lowers the same-family risk above but does not remove it. The verifiers are Claude, and no
+human has graded any pair.
+
 ### Dissent
 None recorded. The planning critics' preference for two families (Phase 2 plan, objection 9)
 is the overridden position.
