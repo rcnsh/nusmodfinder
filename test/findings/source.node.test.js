@@ -171,7 +171,7 @@ describe('ops', () => {
     expect(read('wrangler.jsonc')).not.toMatch(/"triggers"|"crons"/);
   });
 
-  it('[B9 fixed] README names Vectorize queried dims as the binding limit, with the arithmetic, and marks per-search D1 costs pending', () => {
+  it('[B9 fixed] README names Vectorize queried dims as the binding limit, with the arithmetic, and states the per-search D1 rows read measured with SC7', () => {
     expect(readme).not.toContain('D1 row reads are the binding constraint');
     const cost = readme.slice(readme.indexOf('## Cost'), readme.indexOf('## Data source'));
     expect(cost).toContain('**Vectorize queried dimensions are the binding limit, not D1.**');
@@ -186,7 +186,7 @@ describe('ops', () => {
     expect(cost).toContain('**50,000,000 / month**');
     expect(cost).toContain('25,000,000,000 / month');
     // Per-search D1 numbers after Phase 1 are measured, not invented.
-    expect(cost).toMatch(/\| D1 rows read \|[^\n]*\| per search: pending \(measured with SC7/);
+    expect(cost).toMatch(/\| D1 rows read \|[^\n]*\| per search: unfiltered 137–239 \(median 239\), filtered 249–1,784 \(median 497\), measured on 36 production searches with SC7 \(\[`sc7\.md`\]\(docs\/evidence\/phase1\/sc7\.md\)/);
   });
 });
 

@@ -309,7 +309,7 @@ can rank differently.
 first.
 
 **Evidence:**
-- test `[B9 fixed] README names Vectorize queried dims as the binding limit, with the arithmetic, and marks per-search D1 costs pending` (`test/findings/source.node.test.js`)
+- test `[B9 fixed] README names Vectorize queried dims as the binding limit, with the arithmetic, and states the per-search D1 rows read measured with SC7` (`test/findings/source.node.test.js`)
 
 **Notes:** Was `README.md:169` versus its own table (`:175-178`). D1 allows 5M rows/day ÷ ~50
 per search ≈ 3M searches/month. Vectorize allows 30M queried dims/month ÷ 384 − 6,771 stored ≈
