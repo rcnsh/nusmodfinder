@@ -21,7 +21,9 @@ export const EMBEDDING_MODEL = '@cf/baai/bge-small-en-v1.5';
  */
 export const EMBEDDING_TEXT_VERSION = 1;
 export { EMBEDDING_DIMS } from '../src/embedding.js';
-export const CACHE_DIR = new URL('../.data/', import.meta.url);
+// NUSMods downloads. Not .data/ itself: .data/<year>-moduleInfo.json is the
+// pinned snapshot the eval and full-corpus tests read (scripts/pinned-corpus.mjs).
+export const CACHE_DIR = new URL('../.data/cache/', import.meta.url);
 
 // bge-small-en-v1.5 accepts 512 input tokens. ~4 chars/token, kept short of the
 // ceiling so the tail of a long description is never silently dropped mid-run.
