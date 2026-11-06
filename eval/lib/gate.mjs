@@ -28,7 +28,7 @@
 //                      Exempt ids leave only that figure: every other check
 //                      (errors, exact-code, query count) is on the full set.
 //   answerable-floor   (dev screen only; 3G) ΔnDCG@10 >= -0.01 over the
-//                      primary answerable set, the no-answer set fixed by tag.
+//                      primary answerable set.
 //
 // Every gate fails a candidate with more errored (non-200) queries than its
 // baseline ("no new errors"), and needs at least RULES.minQueries primary

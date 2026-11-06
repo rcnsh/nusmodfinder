@@ -91,9 +91,11 @@ ciphertexts, or a copy of them, cannot start a fresh count. `--embedding <versio
 - `shapes` tags: `topical`, `home-course`, `alternatives`, `language`, `sea-content`,
   `level-equivalence`, `jargon`, `typo`, `code-exact`, `code-space`, `code-partial`,
   `ge-pillar`, `level-intent`, `constraint` (feature-gap block), `noanswer`, `code-nonexistent`.
-- `noAnswerByRule: true` for non-existent codes: never answerable, scored on correct-empty.
-- **The no-answer set is fixed by tag:** `noanswer`, `code-nonexistent` or `noAnswerByRule`
-  (ADR 0003, amendment 2026-11-06). Grades never move a query into or out of it.
+- `noAnswerByRule: true` for non-existent codes: tags the query no-answer, like the two tags.
+- **No-answer is tagged and unanswered:** a query is no-answer iff it is tagged `noanswer` or
+  `code-nonexistent`, or carries `noAnswerByRule`, and no judged document has grade ≥ 1 (ADR
+  0003, amendment 2026-11-06). The tag is necessary, not sufficient: a judged grade ≥ 1 makes
+  any query answerable.
 - `source`: the id a derived typo/code variant came from (splits follow provenance).
 
 `qrels.json`:
@@ -147,12 +149,14 @@ returned code, for violations). No query text.
   by rule) is no member for that query and never takes a sibling's slot.
 - P@5: group-first documents with grade ≥ 1 in the top 5, divided by 5. MRR@10 likewise.
 - Unjudged = grade 0; judged@10 coverage reported; gates need 100%.
-- Each query is in exactly one of three sets (`isTaggedNoAnswer`, ADR 0003 amendment 2026-11-06):
-  - **no-answer**: tagged `noanswer` or `code-nonexistent`, or `noAnswerByRule`, whatever its
-    grades. Scored on correct-empty rate (nothing returned) and false positives.
-  - **answerable**: untagged, with some judged document at grade ≥ 1. Primary metrics are macro
-    means over answerable queries **without** a feature-gap shape (`constraint`); those are
-    reported as their own block.
+- Each query is in exactly one of three sets (`lib/metrics.mjs`, ADR 0003 amendment 2026-11-06):
+  - **answerable**: some judged document at grade ≥ 1, tagged or not; the judges' grades are
+    the ground truth. Primary metrics are macro means over answerable queries **without** a
+    feature-gap shape (`constraint`); those are reported as their own block.
+  - **no-answer**: tagged `noanswer` or `code-nonexistent`, or `noAnswerByRule`
+    (`isTaggedNoAnswer`), and no grade-≥1 document. Scored on correct-empty rate (nothing
+    returned) and false positives. The cutoff rule needs at least 3; dev has 2 (d-012, d-025),
+    so a cutoff verdict cannot pass on dev.
   - **unscored**: untagged, with no grade-≥1 document. In neither set and in no metric.
     Dev reports list the ids (`unscored (…): n: d-005, …`, and an `unscored n` row). Holdout
     and test verdicts print only the count (`unscored queries: n`).
@@ -181,12 +185,12 @@ Per change, vs the shipped ranker:
 - **no-loss** (`--change-kind no-loss`, dev only; 3F and 3H's dev screen): the CI rule is
   replaced by ΔnDCG@10 ≥ 0 (point estimate). The other dev checks still apply.
   `--exempt <file>` (a JSON array of dev ids, or `{ "ids": [...] }`; no-loss only, refused on
-  encrypted sets) leaves those queries out of the no-loss comparison. 3H's constraint-exempt
-  queries (C3-8) use it. The report prints each exempt id with its ΔnDCG@10 (`—` when the
+  encrypted sets) leaves those queries out of the no-loss ΔnDCG@10 and its n only: no new
+  errors, the query floor and the exact-code check still run over every query. 3H's
+  constraint-exempt queries (C3-8) use it. The report prints each exempt id with its ΔnDCG@10 (`—` when the
   query is not primary answerable).
 - **answerable-floor** (`--change-kind answerable-floor`, dev only; 3G): the CI rule is
-  replaced by answerable ΔnDCG@10 ≥ −0.01, over the primary set with the no-answer set fixed
-  by tag.
+  replaced by answerable ΔnDCG@10 ≥ −0.01, over the primary answerable set.
 - `no-loss` and `answerable-floor` take no `--target-shapes`. No holdout or test verdict takes
   them: the CLI refuses them on an encrypted set before any look, and `gateFor` throws
   `GateRuleError`.
@@ -420,7 +424,7 @@ the ledger is append-only, so commit it after every look.
 is custodian-only: it refuses without `--custodian`, on dev and the fixture, and with any option
 outside `--custodian`, `--set`, `--holdout`, `--set-dir`, `--answerable`, `--emptied-untagged`
 and `--run`. It prints one integer and nothing else:
-- `--set test --answerable`: the test set's primary answerable queries (untagged, some grade ≥ 1,
+- `--set test --answerable`: the test set's primary answerable queries (some grade ≥ 1,
   no feature-gap shape), for SC5's stopping rule;
 - `--holdout --emptied-untagged --run <variant>`: holdout queries not tagged no-answer that the
   stored run returns empty (status 200, no codes; an error is not empty), for 3G's gate.

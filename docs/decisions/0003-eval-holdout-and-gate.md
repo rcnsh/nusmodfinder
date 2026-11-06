@@ -205,28 +205,34 @@ above do not allow; each is now refused mechanically, before a look is reserved 
 ## Amendment 2026-11-06: Phase 3 gate rules (P-5, P-5b)
 Made before the first holdout look, for the Phase 3 plan (`docs/plans/phase3.md` §3 P-5 and
 P-5b, §9). Each rule is in the code and tested.
-- **The no-answer set is fixed by tag** (A-1, C-3, A2-2, A2-11). For any change, a query is
-  no-answer iff it is tagged `noanswer` or `code-nonexistent`, or carries `noAnswerByRule`
-  (`isTaggedNoAnswer`, `eval/lib/metrics.mjs`). Grades never move a query into or out of the
-  set, so emptying any other query is answerable loss.
+- **The no-answer set is tagged and unanswered** (A-1, C-3, A2-2, A2-11; lead decision on PR
+  #34). For any change, a query is no-answer iff it is tagged `noanswer` or `code-nonexistent`,
+  or carries `noAnswerByRule` (`isTaggedNoAnswer`, `eval/lib/metrics.mjs`), **and** no judged
+  document has grade ≥ 1. The judges' grades are the ground truth: the tag is necessary, not
+  sufficient. A tagged query with a grade-≥1 document is answerable (primary unless it has a
+  feature-gap shape), so emptying it is answerable loss.
   - An untagged query with no grade-≥1 document is **unscored**: it is in neither set and in no
     metric.
   - Reports list unscored ids on dev only. Holdout and test verdicts print the count alone
     (`unscored queries: n`).
-  - On dev this moves the baseline. d-013, d-051 and d-065 are tagged `noanswer` but have
-    grade-≥1 documents, so they leave the primary set: 80 primary answerable queries, not 83.
-    v0 hybrid reads nDCG@10 0.713, P@5 0.583 and MRR@10 0.824, against 0.712, 0.571 and 0.820
-    before (`EVAL.md`). The no-answer set is 5 queries, and 8 are unscored.
+  - On dev the primary set is unchanged: 83 queries, v0 hybrid nDCG@10 0.712, P@5 0.571, MRR@10
+    0.820 (`EVAL.md`). d-013, d-051 and d-065 are tagged `noanswer` but have grade-≥1
+    documents, so they stay primary. The no-answer set is d-012 and d-025, and 8 queries are
+    unscored (they were no-answer before).
+  - Dev's 2 no-answer queries are below the cutoff rule's floor of 3, so a cutoff verdict
+    cannot pass on dev. The floor stands: no Phase 3 change takes the cutoff kind on dev (3G
+    uses `answerable-floor`).
 - **Change kinds `no-loss` and `answerable-floor`** (A2-2, A2-4, C3-8). Both screen on dev only.
   The CLI refuses them on an encrypted set before any look, and `gateFor` throws
   `GateRuleError` if a holdout or test verdict is asked for one.
   - `no-loss` (3F, and 3H's dev screen) replaces the dev CI rule with ΔnDCG@10 ≥ 0 as a point
     estimate.
-  - `--exempt <file>` (no-loss only, dev only) names dev ids to leave out of that comparison:
-    3H's constraint-exempt queries, which a committed script computes per candidate. The report
-    prints each exempt id with its Δ.
-  - `answerable-floor` (3G) replaces it with answerable ΔnDCG@10 ≥ −0.01, over the primary set
-    with the no-answer set fixed by tag.
+  - `--exempt <file>` (no-loss only, dev only) names dev ids to leave out of the no-loss
+    ΔnDCG@10 and its n, and nothing else: no new errors, the query floor and the exact-code
+    check still run over every query. They are 3H's constraint-exempt queries, which a
+    committed script computes per candidate. The report prints each exempt id with its Δ.
+  - `answerable-floor` (3G) replaces it with answerable ΔnDCG@10 ≥ −0.01, over the primary
+    answerable set.
   - The other dev checks still apply to both kinds: no new errors, ≥ 10 queries, judged@10 100%,
     and no exact-code regression.
 - **`--gate sc5` on the holdout** (A2-2, A2-10). `eval:report --gate sc5` takes the SC5 rule (the

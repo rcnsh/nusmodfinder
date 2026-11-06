@@ -18,13 +18,14 @@ Phase 3 changes are measured against.
   - Δ between two replicas is unbiased. Absolute numbers describe production only approximately.
 - **Corpus:** pinned `data-2026-2027-20260904`, 6,771 offered modules.
 - **Query embeddings:** `emb-bge-small-v0`, committed vectors.
-- **Queries:** dev queries v2.1, 98 in total. 80 are primary answerable; the rest are 5
-  feature-gap, 5 no-answer and 8 unscored.
-  - **The no-answer set is fixed by tag** (ADR 0003, amendment 2026-11-06): a query is
-    no-answer iff it is tagged `noanswer` or `code-nonexistent`, or carries `noAnswerByRule`.
-    Dev has 5, all `noanswer`.
-  - Three of them (d-013, d-051, d-065) have grade-≥1 documents. Before the amendment they
-    counted as primary answerable (83). Under the tag rule they are no-answer (80).
+- **Queries:** dev queries v2.1, 98 in total. 83 are primary answerable; the rest are 5
+  feature-gap, 2 no-answer and 8 unscored.
+  - **No-answer is tagged and unanswered** (ADR 0003, amendment 2026-11-06): a query is
+    no-answer iff it is tagged `noanswer` or `code-nonexistent`, or carries `noAnswerByRule`,
+    and no judged document has grade ≥ 1. The grades are the ground truth; the tag is
+    necessary, not sufficient. Dev has 2: d-012 and d-025.
+  - Five dev queries are tagged `noanswer`. Three of them (d-013, d-051, d-065) have grade-≥1
+    documents, so they are primary answerable.
   - An untagged query with no grade-≥1 document is **unscored**: it is in neither set, and
     reports list its id (dev only). The 8 are d-005, d-017, d-032 and d-042 (home-course pastes
     over 200 characters, which `/search` rejects with a 400), d-009, d-020, d-061 and d-093.
@@ -39,32 +40,31 @@ Phase 3 changes are measured against.
   first member to appear earns gain.
 - **Judged@10:** 100% for all three runs.
 
-**Primary answerable queries (n = 80), 95% bootstrap CIs (10,000 resamples, seeded):**
+**Primary answerable queries (n = 83), 95% bootstrap CIs (10,000 resamples, seeded):**
 
 | run | nDCG@10 [BCa CI] | P@5 [BCa CI] | MRR@10 [BCa CI] |
 |---|---|---|---|
-| **v0 hybrid** | **0.713** [0.641, 0.770] | **0.583** [0.505, 0.653] | **0.824** [0.741, 0.887] |
-| v0 lexical only | 0.621 [0.544, 0.690] | 0.463 [0.390, 0.537] | 0.771 [0.679, 0.845] |
-| v0 vector only | 0.678 [0.604, 0.740] | 0.548 [0.472, 0.615] | 0.805 [0.715, 0.873] |
+| **v0 hybrid** | **0.712** [0.644, 0.770] | **0.571** [0.494, 0.641] | **0.820** [0.740, 0.884] |
+| v0 lexical only | 0.609 [0.532, 0.678] | 0.453 [0.383, 0.525] | 0.752 [0.661, 0.830] |
+| v0 vector only | 0.672 [0.599, 0.731] | 0.537 [0.463, 0.605] | 0.797 [0.712, 0.865] |
 
-Under the earlier no-answer rule (83 queries, the three tagged queries with answers included)
-v0 hybrid read 0.712 [0.644, 0.770], P@5 0.571 and MRR@10 0.820 (PR #30).
+The amendment leaves the primary set as it was (PR #30): it moves only the 8 unscored queries,
+which were no-answer and are now in neither set.
 
 **Paired differences (hybrid minus each half):**
 
 | | ΔnDCG@10 [BCa CI] | ΔP@5 [BCa CI] | ΔMRR@10 [BCa CI] |
 |---|---|---|---|
-| hybrid − lexical | +0.091 [0.044, 0.148], p = 0.0008 | +0.120 [0.080, 0.172], p = 0.0001 | +0.053 [−0.011, 0.120], p = 0.12 |
-| hybrid − vector | +0.035 [−0.011, 0.079], p = 0.13 | +0.035 [−0.002, 0.070], p = 0.080 | +0.019 [−0.036, 0.070], p = 0.49 |
+| hybrid − lexical | +0.103 [0.055, 0.158], p = 0.0001 | +0.118 [0.077, 0.169], p = 0.0001 | +0.068 [0.003, 0.137], p = 0.044 |
+| hybrid − vector | +0.040 [−0.003, 0.085], p = 0.080 | +0.034 [−0.002, 0.067], p = 0.088 | +0.023 [−0.031, 0.076], p = 0.41 |
 
 The p values are from a paired sign-flip test. For hybrid − vector, the persona-clustered
-intervals are [0.007, 0.074] for nDCG and [0.005, 0.062] for P@5. Those exclude 0, while the BCa
+intervals are [0.009, 0.078] for nDCG and [0.005, 0.059] for P@5. Those exclude 0, while the BCa
 intervals don't. The script prints both.
 
 **Reading:**
-- Hybrid clearly beats lexical alone on nDCG@10 and P@5. Its MRR@10 lead (+0.053) is no longer
-  clear: the BCa interval includes 0. It excluded 0 over the 83 queries.
-- Hybrid's lead over vector alone is about +0.035 nDCG and is borderline: whether it clears 0
+- Hybrid clearly beats lexical alone.
+- Hybrid's lead over vector alone is about +0.04 nDCG and is borderline: whether it clears 0
   depends on the interval method. On this dev set the keyword half adds little beyond the
   dense half.
 - This reverses v1's conclusion below (lexical ≈ hybrid). v1 graded relevance with a title regex
@@ -72,7 +72,10 @@ intervals don't. The script prints both.
 
 **Outside the primary set (v0 hybrid):**
 - **Feature-gap (constraint queries, n = 5):** nDCG@10 0.604.
-- **No-answer queries (n = 5, by tag):** correct-empty 0%, with 5 false positives and no errors.
+- **No-answer queries (n = 2, d-012 and d-025):** correct-empty 0%, with 2 false positives and
+  no errors. That is below the cutoff rule's floor of 3 no-answer queries, so a cutoff verdict
+  cannot pass on dev (`insufficient queries: 2 no-answer …`). No Phase 3 change takes the cutoff
+  kind on dev: 3G uses `answerable-floor`.
 - **Unscored queries (n = 8):** d-005, d-009, d-017, d-020, d-032, d-042, d-061, d-093. The 4 non-200
   responses are among them: the 400s to the home-course pastes over 200 characters.
 - **Hard-constraint violations:** 12 in the top 10s.

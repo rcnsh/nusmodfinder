@@ -94,11 +94,11 @@ Applied to `qrels-dev-v1`, giving `qrels-dev-v2`: 56 rule pairs over the 11 dev 
 
 ## Grades and the no-answer set
 
-A grade never moves a query into or out of the no-answer set: a query tagged `noanswer` or
-`code-nonexistent`, or carrying `noAnswerByRule`, is no-answer whatever its documents are graded
-(ADR 0003, amendment 2026-11-06). Judges grade its candidates as usual, and the grades are kept,
-but they score nothing. An untagged query whose documents are all graded 0 is unscored, not
-no-answer.
+The grades are the ground truth. A query is no-answer only if it is tagged `noanswer` or
+`code-nonexistent`, or carries `noAnswerByRule`, **and** no judged document has grade ≥ 1 (ADR
+0003, amendment 2026-11-06). Judges grade a tagged query's candidates as usual; one grade ≥ 1
+makes it answerable, scored like any other. An untagged query whose documents are all graded 0
+is unscored, not no-answer.
 
 ## Worked examples (dev queries only)
 
