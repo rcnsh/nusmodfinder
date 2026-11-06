@@ -254,8 +254,9 @@ P-5b, §9). Each rule is in the code and tested.
   nothing else:
   - `--set test --answerable`: the sealed test set's primary answerable count, which §5's
     stopping rule reads;
-  - `--holdout --emptied-untagged --run <variant>`: how many holdout queries not tagged
-    no-answer the stored run returns empty, which 3G's gate reads.
+  - `--holdout --emptied-untagged --run <variant>`: how many holdout queries outside the
+    no-answer set the stored run returns empty, which 3G's gate reads. A tagged query with a
+    grade-≥1 document is outside the set, so emptying it counts.
 
   Every call appends a row (date, set, kind, run, count) to `eval/count-log.md`, a separate
   committed file the ledger never reads. The ledger refuses a row copied from it

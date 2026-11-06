@@ -150,13 +150,13 @@ describe('eval:count prints one integer and logs the call', () => {
     expect(await looks(cloneLedger(), 'test')).toBe(looksBefore);
   });
 
-  it('--holdout --emptied-untagged --run: untagged queries the stored run returns empty (an error is not empty)', async () => {
+  it('--holdout --emptied-untagged --run: queries outside the no-answer set the stored run returns empty, a tagged query with a grade-≥1 document included (an error is not empty)', async () => {
     const { dir } = await encSet('holdout-emptied', 'holdout');
     const looksBefore = await looks(cloneLedger(), 'holdout');
     const r = count(['--custodian', '--holdout', '--set-dir', dir, '--emptied-untagged', '--run', 'cand']);
     expect(r.stderr).toBe('');
-    expect(r.stdout).toBe('3\n');
-    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'holdout', 'count: emptied-untagged', 'cand', '3']]);
+    expect(r.stdout).toBe('4\n');
+    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'holdout', 'count: emptied-untagged', 'cand', '4']]);
     expect(await looks(cloneLedger(), 'holdout')).toBe(looksBefore);
     // A second call appends a second row.
     expect(count(['--custodian', '--holdout', '--set-dir', dir, '--emptied-untagged', '--run', 'base']).stdout).toBe('0\n');
@@ -166,7 +166,7 @@ describe('eval:count prints one integer and logs the call', () => {
   it('the self-test set logs beside its own ledger', async () => {
     const { dir } = await encSet('selftest-emptied', 'selftest');
     const r = count(['--custodian', '--set', 'selftest', '--set-dir', dir, '--emptied-untagged', '--run', 'cand']);
-    expect(r.stdout).toBe('3\n');
+    expect(r.stdout).toBe('4\n');
     expect(await rowsOf(join(dir, 'count-log.md'))).toHaveLength(1);
     expect(await rowsOf(cloneCountLog())).toHaveLength(0);
   });
@@ -245,7 +245,7 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
 describe('a count is never a look', () => {
   it('a count-log row placed in the ledger is refused as tampering, and no look can be taken past it', async () => {
     const { dir } = await encSet('count-into-ledger', 'holdout');
-    expect(count(['--custodian', '--holdout', '--set-dir', dir, '--emptied-untagged', '--run', 'cand']).stdout).toBe('3\n');
+    expect(count(['--custodian', '--holdout', '--set-dir', dir, '--emptied-untagged', '--run', 'cand']).stdout).toBe('4\n');
     const row = (await readFile(cloneCountLog(), 'utf8')).split('\n').filter((l) => l.includes('count: emptied-untagged'))[0];
     expect(row).toBeTruthy();
     await appendFile(cloneLedger(), `${row}\n`);

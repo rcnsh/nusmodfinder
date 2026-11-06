@@ -440,8 +440,9 @@ outside `--custodian`, `--set`, `--holdout`, `--set-dir`, `--answerable`, `--emp
 and `--run`. It prints one integer and nothing else:
 - `--set test --answerable`: the test set's primary answerable queries (some grade ≥ 1,
   no feature-gap shape), for SC5's stopping rule;
-- `--holdout --emptied-untagged --run <variant>`: holdout queries not tagged no-answer that the
-  stored run returns empty (status 200, no codes; an error is not empty), for 3G's gate.
+- `--holdout --emptied-untagged --run <variant>`: holdout queries outside the no-answer set
+  (tagged and no grade-≥1 document) that the stored run returns empty (status 200, no codes; an
+  error is not empty), for 3G's gate. A tagged query that has an answer counts.
 
 Both read their ciphertexts through the manifest check. A run must have been made on the set's
 current queries (`RunFileError`). Any failure prints only `eval: <set> count failed

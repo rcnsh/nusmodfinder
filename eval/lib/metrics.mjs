@@ -189,7 +189,7 @@ export const isTaggedNoAnswer = (q) => q.noAnswerByRule === true || (q.shapes ??
  * @param {EvalQuery} q
  * @param {Map<string, number>} grades
  */
-function scoredSet(q, grades) {
+export function scoredSet(q, grades) {
   const answerable = [...grades.values()].some((g) => g >= 1);
   const noAnswer = !answerable && isTaggedNoAnswer(q);
   return { noAnswer, answerable, unscored: !answerable && !noAnswer };

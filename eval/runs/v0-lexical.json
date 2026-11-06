@@ -1,0 +1,11002 @@
+{
+ "schema": "vnm-eval-run/1",
+ "variant": "v0-lexical",
+ "set": "dev",
+ "createdAt": "2026-11-03T23:02:11.852Z",
+ "ranker": {
+  "ref": "eval-v0",
+  "sha": "7ac984174ded88cb2b6497d9835b456981acdd99",
+  "dirty": false,
+  "treeHash": "9dc69d200ebb348cfffc2429df6717080be0744c81dd88d394203e0ed7f72e67",
+  "runner": {
+   "sha": "af577b1878c594883120f5887e3f8d39dcbbe299",
+   "dirty": false
+  }
+ },
+ "corpus": {
+  "source": "pinned",
+  "release": "data-2026-2027-20260904",
+  "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
+  "ngSha256": "092d021db4ccff2ea45e75bfc073623fa502aace082a8d5bd627f41d79c3f169",
+  "modules": 6771,
+  "textSha256": "47ab2421e69628d6129792a3182967a1a206f9362fe7dbf085adbb6309b92f07"
+ },
+ "embedding": {
+  "corpus": "emb-bge-small-v0",
+  "model": "@cf/baai/bge-small-en-v1.5",
+  "textRef": "eval-v0"
+ },
+ "queries": {
+  "version": "v2.1",
+  "sha256": "95710e437e65eb710b1085a20311783eda6d50a5e2e765d26e0d77e5eee16107",
+  "count": 98
+ },
+ "config": {
+  "topK": "worker default",
+  "filters": true,
+  "mode": "lexical"
+ },
+ "results": {
+  "d-001": {
+   "status": 200,
+   "codes": [
+    "FIN2704X",
+    "LL4527V",
+    "FIN3701A",
+    "RE3706",
+    "SC2209",
+    "LL4009V",
+    "DOS3704",
+    "EC3343",
+    "QF1100",
+    "QF2104",
+    "BSP3701",
+    "IE4246",
+    "AN4201",
+    "EC2383",
+    "FIN3702A",
+    "FIN3702B",
+    "IS4228",
+    "GL2102",
+    "LL4322",
+    "RE3701"
+   ]
+  },
+  "d-002": {
+   "status": 200,
+   "codes": [
+    "MKT3702A",
+    "MKT3702B",
+    "JS2225",
+    "ID3130",
+    "MNO1706X",
+    "FST3107",
+    "MKT1705X",
+    "NM2219",
+    "FST3108",
+    "SPH2004",
+    "DOS3701",
+    "CE3155A",
+    "LSM4213",
+    "GESS1007",
+    "PL3102",
+    "IS4228",
+    "PL1101E",
+    "PF3211",
+    "LSM4267",
+    "NM2209"
+   ]
+  },
+  "d-003": {
+   "status": 200,
+   "codes": [
+    "BSE3702",
+    "BSP1703",
+    "DOS3704",
+    "CDE2301",
+    "NST2051",
+    "IS3240",
+    "DBA3803",
+    "BSP3701",
+    "IS2218",
+    "MA3264",
+    "ST3248",
+    "LL4004V",
+    "CM3296",
+    "BSE3703",
+    "BT2101",
+    "IS4401",
+    "MKT3701A",
+    "MKT3701B",
+    "LL4228",
+    "NHS2075"
+   ]
+  },
+  "d-004": {
+   "status": 200,
+   "codes": [
+    "FIN3701A",
+    "SC2209",
+    "LL4009V",
+    "DOS3704",
+    "EC3343",
+    "FIN2704X",
+    "PC3274A",
+    "QF1100",
+    "IE4210",
+    "MA3201",
+    "CS2030DE",
+    "QF2104",
+    "PC3231",
+    "CS2030",
+    "MA3210",
+    "MUH2204",
+    "EC3102",
+    "PC4249",
+    "PC3193",
+    "PC3130"
+   ]
+  },
+  "d-005": {
+   "status": 400,
+   "codes": [],
+   "error": "bad_request: Query parameter \"q\" was 446 characters; the maximum is 200."
+  },
+  "d-006": {
+   "status": 200,
+   "codes": [
+    "PH4240",
+    "QF3101",
+    "RE3701",
+    "QF1100",
+    "NST2051",
+    "FIN3702A",
+    "FIN3702B",
+    "PS2300",
+    "QF4102",
+    "SPH2002",
+    "NHS2075",
+    "LL4475V",
+    "FST3108",
+    "AR5801",
+    "BT3102",
+    "SC2209",
+    "QF4103",
+    "LL4009V",
+    "IS4228",
+    "LL4335V"
+   ]
+  },
+  "d-007": {
+   "status": 200,
+   "codes": [
+    "LAJ1201",
+    "JS3222",
+    "JS2216",
+    "JS1101E",
+    "JS2213",
+    "LAK1201",
+    "MUL1105",
+    "LAH1201",
+    "MUL2107",
+    "LAG1201",
+    "MUL2109",
+    "LAR1201",
+    "LAS1201",
+    "AR5801",
+    "LAM1201",
+    "LAT1201",
+    "LAV1201",
+    "LAB1201",
+    "LAF1201",
+    "LAC1201"
+   ]
+  },
+  "d-008": {
+   "status": 200,
+   "codes": [
+    "GEC1005",
+    "PC1201",
+    "ME4223",
+    "PC4230",
+    "IS2238",
+    "CS4223",
+    "MKT1705X",
+    "MKT3701A",
+    "MKT3701B",
+    "BT4211",
+    "BSP1703",
+    "FIN3703A",
+    "FIN3703B",
+    "LL4556V",
+    "CS3223",
+    "JS2225",
+    "GESS1025",
+    "LL4042V",
+    "GEC1055",
+    "BSP3701"
+   ]
+  },
+  "d-009": {
+   "status": 200,
+   "codes": [
+    "LAS1201",
+    "CN4215R",
+    "QF4102",
+    "PL3102",
+    "EC3312",
+    "EC3101",
+    "MS5101",
+    "TS1101E",
+    "CS3241",
+    "LL4454V",
+    "CN4233R",
+    "SN3275",
+    "LAH1201",
+    "PL3103",
+    "PS3232",
+    "SC3209",
+    "EE2028",
+    "EE2026",
+    "BN2201",
+    "PC3274A"
+   ]
+  },
+  "d-010": {
+   "status": 200,
+   "codes": [
+    "QF4103",
+    "QF4102",
+    "QF2104",
+    "PF3209",
+    "EC3333",
+    "IS4228",
+    "GESS1016",
+    "FIN3702A",
+    "FIN3702B",
+    "FIN3703A",
+    "FIN3703B",
+    "LI5204",
+    "LL4556V",
+    "LSM4228",
+    "FIN2704X",
+    "ACC1701XA",
+    "ACC1701XC",
+    "EC3332",
+    "ME2102",
+    "QF3101"
+   ]
+  },
+  "d-011": {
+   "status": 200,
+   "codes": [
+    "LL4073V",
+    "ACC2706",
+    "ACC1701XA",
+    "ACC1701XC",
+    "PC2135",
+    "ST4233",
+    "ST2132",
+    "ST4231",
+    "QF1100",
+    "LAH1201",
+    "LAJ1201",
+    "PS2237",
+    "LAS1201",
+    "LSM4213",
+    "LAC1201",
+    "EC3343",
+    "GEC1013",
+    "GE3249",
+    "NST2051",
+    "PS2266"
+   ]
+  },
+  "d-012": {
+   "status": 200,
+   "codes": [
+    "LAG1201",
+    "MUL2109",
+    "LL4534V",
+    "RE3701",
+    "RE3706",
+    "LL4276V",
+    "LL4070V",
+    "LL4042V",
+    "LL4009V",
+    "LL4287V",
+    "PH3202",
+    "LL4099",
+    "LL4050V",
+    "LL4454V",
+    "LL4503",
+    "LL4097V",
+    "LL4335V",
+    "LL4540V",
+    "LL4073V",
+    "LL4228"
+   ]
+  },
+  "d-013": {
+   "status": 200,
+   "codes": [
+    "PC4274A",
+    "PC4267",
+    "PC4230",
+    "CS4226",
+    "CM4271",
+    "ENV3101",
+    "CS4234",
+    "CS2220",
+    "EE4204",
+    "LSM2105",
+    "LSM4267"
+   ]
+  },
+  "d-014": {
+   "status": 200,
+   "codes": [
+    "ID3131",
+    "CS4249",
+    "CS3240",
+    "CS4240",
+    "IS4400",
+    "CS3247",
+    "PL3268",
+    "EE2028",
+    "ID1121",
+    "CG2028",
+    "MLE4239",
+    "BT4222",
+    "CG3207",
+    "IS1108",
+    "NM1101E",
+    "NM2207",
+    "NST2068",
+    "GEC1011",
+    "GEH1043",
+    "IT2002"
+   ]
+  },
+  "d-015": {
+   "status": 200,
+   "codes": [
+    "EE4212",
+    "CS4243",
+    "CS4277",
+    "PL3102",
+    "CS3210",
+    "CS2100DE",
+    "COS1000",
+    "ID4400",
+    "PH2113",
+    "CS2100",
+    "CS4268",
+    "EN2215",
+    "NM2207",
+    "CG2028",
+    "CS3235",
+    "CG4002",
+    "ST2137",
+    "EE2012",
+    "BN4202A",
+    "CG3207"
+   ]
+  },
+  "d-016": {
+   "status": 200,
+   "codes": [
+    "DOS3703",
+    "DAO2703",
+    "ESP4401",
+    "IE3120",
+    "EE4308",
+    "ME4262",
+    "IE4108",
+    "CS2100DE",
+    "CS4262",
+    "DOS3704",
+    "PC2130",
+    "ESE4401",
+    "AR3102",
+    "CG3207",
+    "MA2101",
+    "MA4211",
+    "IS1128",
+    "EE2027",
+    "EE4513",
+    "CG2027"
+   ]
+  },
+  "d-017": {
+   "status": 400,
+   "codes": [],
+   "error": "bad_request: Query parameter \"q\" was 452 characters; the maximum is 200."
+  },
+  "d-018": {
+   "status": 200,
+   "codes": [
+    "SPH2002",
+    "CS4262",
+    "EN2203",
+    "ST4248",
+    "GEC1004",
+    "SN2285",
+    "IS4402",
+    "MA4275",
+    "SN1101E",
+    "MA4261",
+    "EN3219",
+    "NST2053",
+    "GEC1041",
+    "HY2208",
+    "MLE2105",
+    "SC2220",
+    "EC2880C",
+    "PH2207",
+    "MNO1706X",
+    "ME2162"
+   ]
+  },
+  "d-019": {
+   "status": 200,
+   "codes": [
+    "LL4436V",
+    "LL4019V",
+    "CS1231",
+    "MA4275",
+    "PS3276",
+    "PC3411",
+    "ID3109",
+    "ID3110",
+    "CS3230",
+    "PS3238",
+    "MA4273",
+    "EC3102",
+    "MA1100",
+    "MA4255",
+    "MA1301",
+    "CM3221",
+    "AR2225",
+    "EC2303",
+    "LSM4264",
+    "PC4245"
+   ]
+  },
+  "d-020": {
+   "status": 200,
+   "codes": [
+    "FST4102",
+    "HY2216",
+    "CN4201R",
+    "LL4387",
+    "LSM4264",
+    "CS1231",
+    "ESE3401",
+    "PF3210",
+    "CS4218",
+    "CN3104",
+    "LSM3266",
+    "CN3106",
+    "EE4503",
+    "ESE4401",
+    "CS4243",
+    "LL4322",
+    "NST2006",
+    "CM4282",
+    "CM3221",
+    "MLE2108"
+   ]
+  },
+  "d-021": {
+   "status": 200,
+   "codes": [
+    "ID3131",
+    "CS4249",
+    "CS3240"
+   ]
+  },
+  "d-022": {
+   "status": 200,
+   "codes": [
+    "GEX1023",
+    "SN2234",
+    "EL3206",
+    "LL4014V",
+    "GESS1004",
+    "LI5204",
+    "BT4014",
+    "GEH1018",
+    "GESS1020",
+    "ST3247",
+    "ST3131",
+    "ST4234",
+    "GESS1029",
+    "PS3249",
+    "EE2022",
+    "ST4245",
+    "AR5221",
+    "LL4308V",
+    "DBA3702",
+    "LSM3227"
+   ]
+  },
+  "d-023": {
+   "status": 200,
+   "codes": [
+    "NST2006",
+    "LAS1201",
+    "LL4438V",
+    "LL4133V",
+    "PC2135",
+    "SC2208",
+    "FST3112",
+    "ST2132",
+    "MA4229",
+    "ST3247",
+    "GEC1031",
+    "QF1100",
+    "LAH1201",
+    "LAJ1201",
+    "PS3276",
+    "MUA3219",
+    "LAC1201",
+    "EC2314",
+    "QF2103",
+    "PC3270"
+   ]
+  },
+  "d-024": {
+   "status": 200,
+   "codes": [
+    "QF1100",
+    "CDE2300",
+    "CG4002",
+    "SC2208",
+    "LL4454V",
+    "AR4101",
+    "CS4277",
+    "LL4339",
+    "ID3109",
+    "ID3110",
+    "DBA3803",
+    "LAH1201",
+    "LAJ1201",
+    "PS3276",
+    "ENV3104",
+    "SPH3501",
+    "LAS1201",
+    "IS4403",
+    "LAC1201",
+    "EC2314"
+   ]
+  },
+  "d-025": {
+   "status": 200,
+   "codes": []
+  },
+  "d-026": {
+   "status": 200,
+   "codes": [
+    "PC2135",
+    "ME2121",
+    "CN2104",
+    "ME4223",
+    "MLE2102",
+    "ME2134",
+    "ESE2000",
+    "CN2105",
+    "CM2133",
+    "ME4252",
+    "CE2134",
+    "ME3115",
+    "PC4267",
+    "MLE2301",
+    "ME4233",
+    "MLE3104",
+    "ME2102",
+    "ME4291",
+    "BN4403",
+    "PC2032"
+   ]
+  },
+  "d-027": {
+   "status": 200,
+   "codes": [
+    "CE2134",
+    "ME2134",
+    "ME4233",
+    "CN2109",
+    "CN2106",
+    "ESP3106",
+    "PC3238",
+    "ME4223",
+    "PC2032",
+    "PC2135",
+    "ME3115",
+    "PC4230",
+    "PC3130",
+    "ME4245",
+    "CS4261",
+    "PC2130",
+    "ME4291",
+    "PC1201",
+    "LSM4222",
+    "FST3203"
+   ]
+  },
+  "d-028": {
+   "status": 200,
+   "codes": [
+    "ME2102",
+    "RE4701",
+    "CG3201",
+    "PL3102",
+    "ME3261",
+    "PF3211",
+    "CS3244",
+    "ME3263",
+    "ME3115",
+    "GESS1006",
+    "HS1502",
+    "GEX1015",
+    "RB2202",
+    "IS4246",
+    "DSA4212",
+    "IS1108",
+    "PS2300",
+    "BT4222",
+    "CS4236",
+    "ID2114"
+   ]
+  },
+  "d-029": {
+   "status": 200,
+   "codes": [
+    "CN2106",
+    "ME2121",
+    "PC3442",
+    "PC4441",
+    "ME4233",
+    "CN3103",
+    "PC3294",
+    "ME4226",
+    "ME4223",
+    "ESP3106",
+    "CN4203R",
+    "PC3193",
+    "CN4205R",
+    "EE4101",
+    "ME4291",
+    "PC3231",
+    "PC2135",
+    "HSI2014",
+    "CM4215",
+    "LL4537V"
+   ]
+  },
+  "d-030": {
+   "status": 200,
+   "codes": [
+    "ME2162",
+    "ME3263",
+    "ME3261",
+    "BN1112",
+    "ME2102",
+    "MLE4207",
+    "NST2048",
+    "ID2322",
+    "CN4233R",
+    "BN4304",
+    "CM4254",
+    "CM4242",
+    "MLE4201",
+    "CM4228",
+    "GEX1000",
+    "CG3201",
+    "PF3211",
+    "EE3731C",
+    "BT4222",
+    "CS3244"
+   ]
+  },
+  "d-031": {
+   "status": 200,
+   "codes": [
+    "PC2135",
+    "ME2121",
+    "CN2104",
+    "MLE2102",
+    "CM3131",
+    "ESE2000",
+    "CM2133",
+    "PC4267",
+    "CN2105",
+    "ME4223",
+    "ME4252",
+    "PH3207",
+    "BN4301",
+    "MLE2103A",
+    "EC2303",
+    "PL1101E",
+    "AN3101",
+    "LSM3266",
+    "EE4704",
+    "EC3332"
+   ]
+  },
+  "d-032": {
+   "status": 400,
+   "codes": [],
+   "error": "bad_request: Query parameter \"q\" was 340 characters; the maximum is 200."
+  },
+  "d-033": {
+   "status": 200,
+   "codes": [
+    "ME3261",
+    "ME2102",
+    "BN1112",
+    "CG4002",
+    "CS3240",
+    "CDE2300",
+    "ME4291",
+    "CE2134",
+    "BN4501",
+    "ID3131",
+    "CS4211",
+    "CM3296",
+    "AR5801",
+    "ME4223",
+    "EE4101",
+    "ME4245",
+    "LAS1201",
+    "CS4226",
+    "CS4261",
+    "ME2134"
+   ]
+  },
+  "d-034": {
+   "status": 200,
+   "codes": [
+    "LAJ1201",
+    "JS3222",
+    "GEC1005",
+    "LAH1201",
+    "JS2216",
+    "JS1101E",
+    "LAS1201",
+    "JS2213",
+    "LAK1201",
+    "GE3255",
+    "PF3209",
+    "MUL1105",
+    "BN4301",
+    "MUL2107",
+    "LAG1201",
+    "MUL2109",
+    "LAR1201",
+    "EC3343",
+    "AR5801",
+    "LAT1201"
+   ]
+  },
+  "d-035": {
+   "status": 200,
+   "codes": [
+    "GESS1020",
+    "HY3250",
+    "GESS1009",
+    "GESS1035",
+    "GES1034",
+    "GESS1024",
+    "GESS1007",
+    "GESS1013",
+    "GEC1037",
+    "HSI2018",
+    "HY3226",
+    "GEC1023",
+    "HSI2017",
+    "PS2249",
+    "GESS1015",
+    "HY3267",
+    "GESS1025",
+    "GEC1055",
+    "JS1101E",
+    "GESS1029"
+   ]
+  },
+  "d-036": {
+   "status": 200,
+   "codes": [
+    "LL4322",
+    "PC2135",
+    "HSI2017",
+    "LSM4222",
+    "CS4261",
+    "PC1201",
+    "BSP1703",
+    "LL4482V",
+    "LSM3266",
+    "ME4223",
+    "PC2032",
+    "AR2101",
+    "ME3115",
+    "PC4230",
+    "PC3130",
+    "ME4245",
+    "ME2134",
+    "CE2134",
+    "PC2130",
+    "ME4233"
+   ]
+  },
+  "d-037": {
+   "status": 200,
+   "codes": [
+    "CG4002",
+    "CN4203R",
+    "CE3165",
+    "BT4212",
+    "CDE2300",
+    "ME4223",
+    "CS4211",
+    "CS2113",
+    "LL4539V",
+    "LL4454V",
+    "AR4101",
+    "MA3264",
+    "ME2116",
+    "ZB4171",
+    "MUA3228",
+    "MLE3104",
+    "ME2102",
+    "ESE2000",
+    "CS3219",
+    "EE3731C"
+   ]
+  },
+  "d-038": {
+   "status": 200,
+   "codes": [
+    "HY3204",
+    "HSI2018",
+    "GEC1046",
+    "SE4218",
+    "GEC1002",
+    "SE1101E",
+    "SE2217",
+    "AN2203",
+    "PS2245",
+    "HY2253",
+    "HY2208",
+    "MS4208",
+    "SE3219",
+    "SE3220",
+    "SE2214",
+    "LL4437V",
+    "PP5206",
+    "SN2213",
+    "HY1101E",
+    "SN2278"
+   ]
+  },
+  "d-039": {
+   "status": 200,
+   "codes": [
+    "NHS2053",
+    "GESS1020",
+    "AR2227",
+    "HY2253",
+    "HSI2018",
+    "HY1101E",
+    "GEC1030",
+    "AN2203",
+    "ST3244",
+    "AH2101",
+    "HSI2017",
+    "GEC1011",
+    "GEH1043",
+    "GEC1023",
+    "HY2260",
+    "GEH1018",
+    "GESS1026",
+    "HS2923",
+    "SE3219",
+    "SC2208"
+   ]
+  },
+  "d-040": {
+   "status": 200,
+   "codes": [
+    "PS3237",
+    "GE3206",
+    "SN2234",
+    "GESS1020",
+    "SN2285",
+    "SN3283",
+    "MS3216",
+    "SC2220",
+    "NHS3001",
+    "MS1102E",
+    "EN3248",
+    "EN2211",
+    "GEC1032",
+    "SC2229",
+    "SE1101E",
+    "SE3219",
+    "GEC1046",
+    "MUH3203",
+    "NHS2086",
+    "AN2205"
+   ]
+  },
+  "d-041": {
+   "status": 200,
+   "codes": [
+    "PS2234",
+    "PS1101E",
+    "PS3276",
+    "PS3263",
+    "SC3219",
+    "PS2255",
+    "PE2101P",
+    "PS2258",
+    "PS3225",
+    "AH2101",
+    "PS2245",
+    "PS2248",
+    "MS4880A",
+    "TRA2111",
+    "PH4213",
+    "GEC1038",
+    "LSM3258",
+    "HS2936",
+    "SC2222",
+    "AN3203"
+   ]
+  },
+  "d-042": {
+   "status": 400,
+   "codes": [],
+   "error": "bad_request: Query parameter \"q\" was 442 characters; the maximum is 200."
+  },
+  "d-043": {
+   "status": 200,
+   "codes": [
+    "HY3250",
+    "GESS1007",
+    "GESS1026",
+    "GESS1013",
+    "GESS1009",
+    "GESS1021",
+    "GESS1020",
+    "HSI2018",
+    "GESS1035",
+    "GESS1025",
+    "GES1034",
+    "GESS1024",
+    "MS3209",
+    "GEC1055",
+    "GESS1028",
+    "GESS1003",
+    "AH3204",
+    "AR2227",
+    "HY2206",
+    "HY2235"
+   ]
+  },
+  "d-044": {
+   "status": 200,
+   "codes": [
+    "GESS1029",
+    "GESS1005",
+    "GESS1020",
+    "LL4042V",
+    "EN2211",
+    "GE2205",
+    "GEC1013",
+    "AN2205",
+    "PS2249",
+    "GESS1015",
+    "GESS1035",
+    "MS4880A",
+    "GES1034",
+    "GESS1024",
+    "GESS1012",
+    "GESS1009",
+    "EL2151",
+    "EN2214",
+    "MS1102E",
+    "SN3275"
+   ]
+  },
+  "d-045": {
+   "status": 200,
+   "codes": [
+    "MA1100",
+    "PS3276",
+    "MA1301",
+    "GEC1005",
+    "ME4245",
+    "PC1201",
+    "HY3267",
+    "PC4236",
+    "GE2205",
+    "PC4230",
+    "CS1231",
+    "ACC1701XA",
+    "ACC1701XB",
+    "ACC1701XC",
+    "LSM4211",
+    "CG2027",
+    "LL4438V",
+    "RE3701",
+    "CS4223",
+    "LL4140V"
+   ]
+  },
+  "d-046": {
+   "status": 200,
+   "codes": [
+    "GESS1035",
+    "LL4008AV",
+    "LL4140V",
+    "LL4246",
+    "SE2224",
+    "LSM4261",
+    "GEC1003",
+    "LL4343V",
+    "LSM4270",
+    "LL4008BV",
+    "LL4452V",
+    "LSM3275",
+    "LL4034V",
+    "PP5206",
+    "LI5202",
+    "MUA4161",
+    "MUA3224",
+    "MS5201",
+    "MS5101",
+    "CN4251"
+   ]
+  },
+  "d-047": {
+   "status": 200,
+   "codes": [
+    "GEX1023",
+    "SN2234",
+    "GEH1018",
+    "JS2222",
+    "EL2151",
+    "SN3275",
+    "AN1101E",
+    "GESS1020",
+    "HY2206",
+    "NHS2070",
+    "CH2250",
+    "NM3205",
+    "NST2046",
+    "AN2202",
+    "CH2230",
+    "JS1101E",
+    "SC2222",
+    "SPH2005",
+    "MS5101",
+    "SC2220"
+   ]
+  },
+  "d-048": {
+   "status": 200,
+   "codes": [
+    "LL4073V",
+    "NST2051",
+    "LL4133V",
+    "PC2135",
+    "SC2208",
+    "FST3112",
+    "ST4233",
+    "AH3204",
+    "ST2132",
+    "MA4229",
+    "HY3250",
+    "HY2206",
+    "AR2227",
+    "HY2235",
+    "HY2251",
+    "HY2253",
+    "HSI2018",
+    "HY3226",
+    "ST3247",
+    "HY1101E"
+   ]
+  },
+  "d-049": {
+   "status": 200,
+   "codes": [
+    "NST2051",
+    "HY3226",
+    "PS3276",
+    "HS2923",
+    "HY3204",
+    "HSI2008",
+    "AR2227",
+    "CH1101E",
+    "GEC1043",
+    "HSI2017",
+    "HS1502",
+    "NHS2093",
+    "BN4206",
+    "LL4133V",
+    "GE3249",
+    "SC2208",
+    "GEC1055",
+    "HY2245",
+    "EL2207",
+    "AH3204"
+   ]
+  },
+  "d-050": {
+   "status": 200,
+   "codes": [
+    "PS3276",
+    "GEC1013",
+    "SC2208",
+    "LL4133V",
+    "PS1101E",
+    "PS2249",
+    "PS3236",
+    "MS3211",
+    "PS2234",
+    "PS2248",
+    "PS3238",
+    "PE2101P",
+    "PS3257",
+    "PH4202",
+    "PS3225",
+    "PS2258",
+    "QF1100",
+    "LAH1201",
+    "NHS2053",
+    "LL4251V"
+   ]
+  },
+  "d-051": {
+   "status": 200,
+   "codes": [
+    "PS3236",
+    "PC3411",
+    "HSI2017",
+    "LSM4221",
+    "PL3257",
+    "LAH1201",
+    "AR2101",
+    "LAJ1201",
+    "LAS1201",
+    "GESS1025",
+    "BN4403",
+    "GEC1055",
+    "LSM4222",
+    "LSM3218",
+    "CM3221",
+    "AR2225",
+    "LSM2212",
+    "PH3207",
+    "BN4301",
+    "AR5801"
+   ]
+  },
+  "d-052": {
+   "status": 200,
+   "codes": [
+    "LSM3225",
+    "LSM2233",
+    "LSM3242",
+    "CN2111",
+    "HSI2003",
+    "ZB2101",
+    "LSM2106",
+    "LSM2191A",
+    "LSM2191B",
+    "LSM4222",
+    "LSM3247",
+    "LSM3243",
+    "LSM2105",
+    "PC3233",
+    "LSM2107",
+    "LSM4231",
+    "LSM4261",
+    "LSM4264",
+    "LSM2234",
+    "LSM4227"
+   ]
+  },
+  "d-053": {
+   "status": 200,
+   "codes": [
+    "LSM3210B",
+    "CM3225",
+    "CN4247R",
+    "LSM2106",
+    "LSM4210",
+    "LSM2191B",
+    "LSM2191A",
+    "LSM3247",
+    "LSM3242",
+    "CM3131",
+    "CN2111",
+    "CM1102",
+    "CM4236",
+    "FST2201"
+   ]
+  },
+  "d-054": {
+   "status": 200,
+   "codes": [
+    "LSM2191A",
+    "LSM2191B",
+    "BN3402",
+    "LSM3243",
+    "PC3267",
+    "PH4210",
+    "GESS1015",
+    "FST4103",
+    "PC4243",
+    "LL4219",
+    "CM4236",
+    "ZB2101",
+    "LSM3225",
+    "LSM2105",
+    "PC3233",
+    "GEC1041",
+    "LSM3244",
+    "CS4215",
+    "PH2203",
+    "LSM3242"
+   ]
+  },
+  "d-055": {
+   "status": 200,
+   "codes": [
+    "LSM3275",
+    "LSM4261",
+    "NST2006",
+    "LSM2234",
+    "LL4043",
+    "LSM3247",
+    "LSM2107",
+    "HSI2017",
+    "LSM4231",
+    "LSM4264",
+    "LSM4227",
+    "PH3250",
+    "LSM2254",
+    "LSM2233",
+    "LSM4252",
+    "LSM3259",
+    "LSM3267",
+    "LSM1301",
+    "LSM3242",
+    "CN2111"
+   ]
+  },
+  "d-056": {
+   "status": 200,
+   "codes": [
+    "LSM4227",
+    "LSM2233",
+    "BN4302",
+    "LSM4218",
+    "LSM4234",
+    "LSM4214",
+    "LSM3247",
+    "CG2023",
+    "EE2023",
+    "EE4438",
+    "HSI2004",
+    "LSM3223",
+    "LSM4222",
+    "CN4247R",
+    "PC3295",
+    "LSM4241",
+    "LSM3210B",
+    "FST3109",
+    "EE2012",
+    "ME2162"
+   ]
+  },
+  "d-057": {
+   "status": 200,
+   "codes": [
+    "LSM3232",
+    "ESE3301",
+    "LSM3242",
+    "LSM2291",
+    "LSM3225",
+    "LSM2191B"
+   ]
+  },
+  "d-058": {
+   "status": 200,
+   "codes": [
+    "LSM2191A",
+    "CN4247R",
+    "LSM2191B",
+    "CM4236",
+    "CM3131",
+    "CM3225",
+    "LSM3210B",
+    "CN2111",
+    "HSI2004",
+    "LSM4231",
+    "LSM3243",
+    "CN2105",
+    "LSM2233",
+    "CM2143",
+    "LSM4218",
+    "ME3115",
+    "MLE4202",
+    "LSM3242",
+    "CM2133",
+    "CM1102"
+   ]
+  },
+  "d-059": {
+   "status": 200,
+   "codes": [
+    "LSM3244",
+    "LSM4225",
+    "LSM3247",
+    "ZB2101",
+    "LSM2105",
+    "LSM3242",
+    "LSM4237",
+    "LSM3220",
+    "NST2006",
+    "LSM2107",
+    "LSM2234",
+    "LSM3225",
+    "LSM4252",
+    "LSM2233",
+    "CN2111",
+    "HSI2003",
+    "PC3267",
+    "LSM4241",
+    "ZB3101",
+    "GEC1041"
+   ]
+  },
+  "d-060": {
+   "status": 200,
+   "codes": [
+    "LSM3256",
+    "AN2203",
+    "HSI2018",
+    "MS4208",
+    "SE3219",
+    "GEC1046",
+    "LSM3272",
+    "PS3276",
+    "LSM3275",
+    "MS5201",
+    "HY2208",
+    "SC3205",
+    "LSM4264",
+    "GEC1007",
+    "LSM2252",
+    "NST2059",
+    "GEC1039",
+    "SN1101E",
+    "HY1101E",
+    "SN3282"
+   ]
+  },
+  "d-061": {
+   "status": 200,
+   "codes": []
+  },
+  "d-062": {
+   "status": 200,
+   "codes": [
+    "EC3343",
+    "EC2880C",
+    "SC2220",
+    "QF2104",
+    "FST2109",
+    "PF3504",
+    "GEC1044",
+    "GEX1023",
+    "DBA3702",
+    "CE3132",
+    "CM4282",
+    "AR5802",
+    "ESE4401",
+    "PC3236",
+    "CN2110",
+    "EE4511",
+    "EN3219",
+    "LL4188V",
+    "JS2222",
+    "BT4014"
+   ]
+  },
+  "d-063": {
+   "status": 200,
+   "codes": [
+    "LSM3225",
+    "LSM3242",
+    "HSI2003",
+    "LSM4222",
+    "LSM2106",
+    "LSM2233",
+    "CN2111",
+    "ZB2101",
+    "PC3233",
+    "LSM3247",
+    "LSM2234",
+    "LSM2191A",
+    "LSM2191B",
+    "LSM3244",
+    "LSM3243",
+    "LSM2105",
+    "LSM2107",
+    "MLE4217",
+    "LSM4231",
+    "LSM4261"
+   ]
+  },
+  "d-064": {
+   "status": 200,
+   "codes": [
+    "LSM2234",
+    "AR5802",
+    "LSM2106",
+    "PC1201",
+    "GESS1025",
+    "LSM4222",
+    "LSM2191B",
+    "GEC1044",
+    "CM3225",
+    "LL4438V",
+    "BSP1703",
+    "EL2111",
+    "MUA4161",
+    "RB2302",
+    "EE4312",
+    "LSM2191A",
+    "PC2193",
+    "PC4241",
+    "PC4243",
+    "CM5268"
+   ]
+  },
+  "d-065": {
+   "status": 200,
+   "codes": [
+    "LSM4237",
+    "LSM1303",
+    "HS2923",
+    "CS3242",
+    "LSM3259",
+    "LL4277V",
+    "GEC1044",
+    "PC3233",
+    "CS4248",
+    "ST4248",
+    "LSM3267",
+    "LSM4225",
+    "PC3295",
+    "LSM4252",
+    "NST2036",
+    "JS3216",
+    "PC2032",
+    "LSM4221",
+    "PL3257",
+    "CS4243"
+   ]
+  },
+  "d-066": {
+   "status": 200,
+   "codes": [
+    "CS3210",
+    "CS2104",
+    "CS4223",
+    "PS2204",
+    "PS3232",
+    "IS3107",
+    "CS4224",
+    "CG3207",
+    "CS2030DE",
+    "CS2030",
+    "CS3223",
+    "CS1010",
+    "CS1010E",
+    "EE2028",
+    "CM3267",
+    "MA3236",
+    "AN3203",
+    "CS2113",
+    "IE4210",
+    "RB2301"
+   ]
+  },
+  "d-067": {
+   "status": 200,
+   "codes": [
+    "CS2113",
+    "CS3219",
+    "CS2030DE",
+    "CS2030",
+    "CS4211",
+    "BN1112",
+    "DOS3703",
+    "CS2040C",
+    "CS3213",
+    "EE4112",
+    "CG4002",
+    "EL2102",
+    "CE3166",
+    "CG2028",
+    "EE4218",
+    "CS3247",
+    "ME2102",
+    "CS4240",
+    "ME3261",
+    "ME4261"
+   ]
+  },
+  "d-068": {
+   "status": 200,
+   "codes": [
+    "PH4210",
+    "PH3207",
+    "PH2224",
+    "PH3217",
+    "PH2113",
+    "PH2222",
+    "PH2211",
+    "PH3222",
+    "NST2062",
+    "PH4202",
+    "PH3203",
+    "PE2101P",
+    "PH4213",
+    "PH3208",
+    "PH2242",
+    "PH2212",
+    "PH4203",
+    "PH2227",
+    "PH2301",
+    "PH2216"
+   ]
+  },
+  "d-069": {
+   "status": 200,
+   "codes": [
+    "PH3203",
+    "PH4203",
+    "PH3202",
+    "PH2208",
+    "PH2216",
+    "PH2242",
+    "PH3230",
+    "GESS1029",
+    "PH4202",
+    "PH4210",
+    "PH2227",
+    "PH3222",
+    "PS3311",
+    "PF3105",
+    "PH2203",
+    "NHS2101",
+    "PH3207",
+    "PH2224",
+    "PH3217",
+    "PH2113"
+   ]
+  },
+  "d-070": {
+   "status": 200,
+   "codes": [
+    "EC2101",
+    "EC3101",
+    "EC2303",
+    "ZB2101",
+    "MA1301",
+    "GEC1013",
+    "GE2101",
+    "EC1101E",
+    "EC2104",
+    "MA4207",
+    "EC2383",
+    "EC3333",
+    "BSE3702",
+    "ACC1701XA",
+    "ACC1701XC",
+    "LAH1201",
+    "IS2238",
+    "RE2705",
+    "EC3312",
+    "CM3111"
+   ]
+  },
+  "d-071": {
+   "status": 200,
+   "codes": [
+    "CS3235",
+    "CS2113",
+    "CS2107",
+    "BT4222",
+    "CS4211",
+    "CS4218",
+    "CS2030",
+    "MA4261",
+    "CS3236",
+    "NM2207",
+    "CS3211",
+    "ME4233",
+    "EL3216",
+    "CS3219",
+    "NST2045",
+    "DBA3702",
+    "PF3502",
+    "LSM3245",
+    "CS3213",
+    "IS4231"
+   ]
+  },
+  "d-072": {
+   "status": 200,
+   "codes": [
+    "CS3211",
+    "CS2104",
+    "PF3207",
+    "CS2030DE",
+    "CS2030",
+    "CS3223",
+    "CS1010",
+    "CS1010E",
+    "CS4215",
+    "EE2028",
+    "CS4212",
+    "CM3267",
+    "ST2137",
+    "MA3236",
+    "AN3203",
+    "CS2113",
+    "CS3234",
+    "IE4210",
+    "RB2301",
+    "DAO2702X"
+   ]
+  },
+  "d-073": {
+   "status": 200,
+   "codes": [
+    "CS4221",
+    "IT3010",
+    "IT2002",
+    "CS3223",
+    "CS1231",
+    "MLE4217",
+    "DBA3803",
+    "BT4222",
+    "EE4312",
+    "LL4342V",
+    "ZB2101",
+    "ZB3101",
+    "QF2103",
+    "LL4056BV",
+    "EC3102",
+    "CS4220",
+    "MNO3701",
+    "DOS3701",
+    "HSI2005",
+    "PL3240"
+   ]
+  },
+  "d-074": {
+   "status": 200,
+   "codes": [
+    "CS3235",
+    "CS2107",
+    "NST2045",
+    "CS4230",
+    "CS4261",
+    "IS4231",
+    "CS3237",
+    "LL4019V",
+    "MA3233",
+    "CS3236",
+    "PH4240",
+    "PP5291",
+    "LL4287V",
+    "LL4412",
+    "QF3101",
+    "LSM4202",
+    "LSM4264",
+    "MA2116",
+    "ST2131",
+    "LL4089V"
+   ]
+  },
+  "d-075": {
+   "status": 200,
+   "codes": [
+    "CS4224",
+    "CS4221",
+    "IT2002",
+    "IT3010",
+    "MLE4217",
+    "IS3107",
+    "CS3223",
+    "IS4236",
+    "BN4304",
+    "IE2110",
+    "ZB2101",
+    "ZB3101",
+    "ESE4401",
+    "EC2314",
+    "EE4802",
+    "IE4213",
+    "AR5801",
+    "AR5802",
+    "BT3017",
+    "QF4103"
+   ]
+  },
+  "d-076": {
+   "status": 200,
+   "codes": []
+  },
+  "d-077": {
+   "status": 200,
+   "codes": [
+    "IT3010",
+    "IT2002",
+    "CS4221"
+   ]
+  },
+  "d-078": {
+   "status": 200,
+   "codes": [
+    "EL3206",
+    "GEX1023",
+    "CS3231",
+    "MA4254",
+    "LI5204",
+    "BT4014",
+    "GEH1018",
+    "BN2102",
+    "AR5221",
+    "LSM3227",
+    "JS2230",
+    "LSM1303",
+    "IS4401",
+    "PC4248",
+    "EE4511",
+    "NST2046",
+    "ME2102",
+    "LSM1301",
+    "JS2222",
+    "CDE2311"
+   ]
+  },
+  "d-079": {
+   "status": 200,
+   "codes": [
+    "SN3275",
+    "SC3210",
+    "SC3211",
+    "HSI2014",
+    "SC2222",
+    "MLE4221",
+    "MA3201",
+    "SPH2005",
+    "HY2251",
+    "NST2046",
+    "GEC1037",
+    "HY2272",
+    "SC2209",
+    "IT1244",
+    "ME2162",
+    "NST2008",
+    "IS4302",
+    "AR5601",
+    "IS4228",
+    "MLE4208"
+   ]
+  },
+  "d-080": {
+   "status": 200,
+   "codes": [
+    "PH3202",
+    "PH4210",
+    "PH3207",
+    "PH2224",
+    "PH3217",
+    "PH2113",
+    "PH2222",
+    "PH2211",
+    "PH3222",
+    "PH4202",
+    "PH3203",
+    "PE2101P",
+    "PH4213",
+    "PH3208",
+    "PH2242",
+    "PH2212",
+    "PH4203",
+    "PH2227",
+    "PH2301",
+    "LL4073V"
+   ]
+  },
+  "d-081": {
+   "status": 200,
+   "codes": [
+    "CG4002",
+    "CM3267",
+    "CS4277",
+    "HS1502",
+    "ZB2201",
+    "QF2103",
+    "MLE4217",
+    "NST2030",
+    "IE4243",
+    "BN4202A",
+    "MA4270",
+    "COS1000",
+    "PC4236",
+    "MA4230",
+    "BT3102",
+    "QF4102",
+    "CS4243",
+    "MA2213",
+    "EE4204",
+    "SC2208"
+   ]
+  },
+  "d-082": {
+   "status": 200,
+   "codes": [
+    "BN4207"
+   ]
+  },
+  "d-083": {
+   "status": 200,
+   "codes": [
+    "LL4541V"
+   ]
+  },
+  "d-084": {
+   "status": 200,
+   "codes": [
+    "MLE2105"
+   ]
+  },
+  "d-085": {
+   "status": 200,
+   "codes": [
+    "MA2101"
+   ]
+  },
+  "d-086": {
+   "status": 200,
+   "codes": [
+    "EE4502"
+   ]
+  },
+  "d-087": {
+   "status": 200,
+   "codes": []
+  },
+  "d-088": {
+   "status": 200,
+   "codes": []
+  },
+  "d-089": {
+   "status": 200,
+   "codes": []
+  },
+  "d-090": {
+   "status": 200,
+   "codes": []
+  },
+  "d-091": {
+   "status": 200,
+   "codes": []
+  },
+  "d-092": {
+   "status": 200,
+   "codes": []
+  },
+  "d-093": {
+   "status": 200,
+   "codes": [
+    "MA1301",
+    "CG2027",
+    "PC1201",
+    "QF3103",
+    "AR5321",
+    "MA2311",
+    "MA1100",
+    "CM3121",
+    "CM5268",
+    "FST4102",
+    "LAL1201",
+    "MUA4161",
+    "PC5211",
+    "ESE4401",
+    "MLE4231",
+    "LSM4222",
+    "ACC1701XA",
+    "ACC1701XB",
+    "LAM1201",
+    "MLE4202"
+   ]
+  },
+  "d-094": {
+   "status": 200,
+   "codes": [
+    "GESS1029",
+    "GESS1005",
+    "GESS1020",
+    "EN2211",
+    "GE2205",
+    "AN2205",
+    "PS2249",
+    "GESS1015",
+    "GESS1035",
+    "GES1034",
+    "GESS1024",
+    "GESS1012",
+    "GESS1009",
+    "EL2151",
+    "EN2214",
+    "MS1102E",
+    "SN3275",
+    "LL4537V",
+    "SE3220",
+    "EN3264"
+   ]
+  },
+  "d-095": {
+   "status": 200,
+   "codes": []
+  },
+  "d-096": {
+   "status": 200,
+   "codes": [
+    "EC1101E",
+    "EC2104",
+    "EC2383",
+    "EC3333",
+    "BSE3702",
+    "IS2238",
+    "RE2705",
+    "EC3312",
+    "BSP1703",
+    "PP5906",
+    "SPH3403",
+    "GEX1010",
+    "GEC1034",
+    "LL4534V",
+    "EC3303",
+    "EC2101",
+    "PP5166",
+    "CS4261",
+    "SE4218",
+    "BSE3703"
+   ]
+  },
+  "d-097": {
+   "status": 200,
+   "codes": [
+    "ME2102",
+    "PL3102",
+    "RE4701",
+    "CG3201",
+    "PF3211",
+    "CS3244",
+    "ME3115",
+    "GESS1006",
+    "HS1502",
+    "GEX1015",
+    "ME3261",
+    "DSA4212",
+    "PS2300",
+    "BT4222",
+    "EE3731C",
+    "MA4270",
+    "MA3270",
+    "ME3263",
+    "RB2202",
+    "ME2162"
+   ]
+  },
+  "d-099": {
+   "status": 200,
+   "codes": [
+    "QF1100",
+    "LAH1201",
+    "LAJ1201",
+    "PS2237",
+    "LAS1201",
+    "LSM4213",
+    "LAC1201",
+    "GEC1013",
+    "GE3249",
+    "NST2051",
+    "PS2266",
+    "HS1502",
+    "PH3202",
+    "BN4304",
+    "LL4534V",
+    "LL4070V",
+    "LL4073V"
+   ]
+  }
+ },
+ "docs": {
+  "ACC1701XA": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "ACC1701XB": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "ACC1701XC": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "ACC2706": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "AH2101": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "AH3204": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "AN1101E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "AN2202": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "AN2203": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "AN2205": {
+   "level": 2,
+   "semesters": [
+    1,
+    4
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "AN3101": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "AN3203": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "AN4201": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "AR2101": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 8,
+   "faculty": "College of Design and Engineering"
+  },
+  "AR2225": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "AR2227": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "AR3102": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 8,
+   "faculty": "College of Design and Engineering"
+  },
+  "AR4101": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 8,
+   "faculty": "College of Design and Engineering"
+  },
+  "AR5221": {
+   "level": 5,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "AR5321": {
+   "level": 5,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "AR5601": {
+   "level": 5,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "AR5801": {
+   "level": 5,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 8,
+   "faculty": "College of Design and Engineering"
+  },
+  "AR5802": {
+   "level": 5,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 8,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN1112": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN2102": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN2201": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN3402": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN4202A": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN4206": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN4207": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN4301": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN4302": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN4304": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN4403": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BN4501": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "BSE3702": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "BSE3703": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "BSP1703": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "BSP3701": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "BT2101": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "BT3017": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "BT3102": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "BT4014": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "BT4211": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "BT4212": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "BT4222": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CDE2300": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CDE2301": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CDE2311": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CE2134": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CE3132": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CE3155A": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 2,
+   "faculty": "College of Design and Engineering"
+  },
+  "CE3165": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CE3166": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CG2023": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Multi Disciplinary Programme"
+  },
+  "CG2027": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 2,
+   "faculty": "Multi Disciplinary Programme"
+  },
+  "CG2028": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 2,
+   "faculty": "Multi Disciplinary Programme"
+  },
+  "CG3201": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Multi Disciplinary Programme"
+  },
+  "CG3207": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Multi Disciplinary Programme"
+  },
+  "CG4002": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 8,
+   "faculty": "Multi Disciplinary Programme"
+  },
+  "CH1101E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "CH2230": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "CH2250": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "CM1102": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM2133": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM2143": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM3111": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM3121": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM3131": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM3221": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM3225": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM3267": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM3296": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM4215": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM4228": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM4236": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM4242": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM4254": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM4271": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM4282": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CM5268": {
+   "level": 5,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CN2104": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN2105": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN2106": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN2109": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN2110": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN2111": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN3103": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN3104": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN3106": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN4201R": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN4203R": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN4205R": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN4215R": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN4233R": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN4247R": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CN4251": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "COS1000": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "CS1010": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS1010E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2,
+    4
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS1231": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS2030": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS2030DE": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CS2040C": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS2100": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS2100DE": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "CS2104": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS2107": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS2113": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS2220": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3210": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3211": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3213": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3219": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3223": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3230": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3231": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3234": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3235": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3236": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3237": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3240": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3241": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3242": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3244": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS3247": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4211": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4212": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4215": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4218": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4220": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4221": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4223": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4224": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4226": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4230": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4234": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4236": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4240": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4243": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4248": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4249": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4261": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4262": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4268": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "CS4277": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "DAO2702X": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "DAO2703": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "DBA3702": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "DBA3803": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "DOS3701": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "DOS3703": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "DOS3704": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "DSA4212": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "EC1101E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC2101": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC2104": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC2303": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC2314": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC2383": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC2880C": {
+   "level": 2,
+   "semesters": [
+    2,
+    4
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC3101": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC3102": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC3303": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC3312": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC3332": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC3333": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EC3343": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EE2012": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE2022": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE2023": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE2026": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE2027": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE2028": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE3731C": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4101": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4112": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4204": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4212": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4218": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4308": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4312": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4438": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4502": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4503": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4511": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4513": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4704": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EE4802": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "EL2102": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EL2111": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EL2151": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EL2207": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EL3206": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EL3216": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EN2203": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EN2211": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EN2214": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EN2215": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EN3219": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EN3248": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "EN3264": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "ENV3101": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ENV3104": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ESE2000": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ESE3301": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ESE3401": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ESE4401": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ESP3106": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ESP4401": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "FIN2704X": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "FIN3701A": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "FIN3702A": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "FIN3702B": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "FIN3703A": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "FIN3703B": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "FST2109": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "FST2201": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "FST3107": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "FST3108": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "FST3109": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "FST3112": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "FST3203": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "FST4102": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "FST4103": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "GE2101": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GE2205": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GE3206": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GE3249": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GE3255": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1002": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1003": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1004": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1005": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1007": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1011": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "GEC1013": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1023": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "YST Conservatory of Music"
+  },
+  "GEC1030": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1031": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1032": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1034": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1037": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1038": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1039": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1041": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1043": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1044": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1046": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEC1055": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEH1018": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "GEH1043": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "GES1034": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1003": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1004": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1005": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1006": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1007": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1009": {
+   "level": 1,
+   "semesters": [
+    1,
+    4
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1012": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1013": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1015": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "YST Conservatory of Music"
+  },
+  "GESS1016": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "GESS1020": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1021": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1024": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1025": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1026": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1028": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1029": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GESS1035": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEX1000": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEX1010": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEX1015": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GEX1023": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "GL2102": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HS1502": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "HS2923": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HS2936": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HSI2003": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "HSI2004": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "HSI2005": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "HSI2008": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "HSI2014": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "HSI2017": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "HSI2018": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "HY1101E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2,
+    4
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY2206": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY2208": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY2216": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY2235": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY2245": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY2251": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY2253": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY2260": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY2272": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY3204": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY3226": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY3250": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "HY3267": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "ID1121": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ID2114": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ID2322": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ID3109": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ID3110": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ID3130": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ID3131": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ID4400": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "IE2110": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "IE3120": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "IE4108": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "IE4210": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "IE4213": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "IE4243": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "IE4246": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "IS1108": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS1128": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS2218": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS2238": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS3107": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS3240": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS4228": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS4231": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS4236": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS4246": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS4302": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS4400": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS4401": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS4402": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IS4403": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IT1244": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IT2002": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "IT3010": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Computing"
+  },
+  "JS1101E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "JS2213": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "JS2216": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "JS2222": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "JS2225": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "JS2230": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "JS3216": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "JS3222": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAB1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAC1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAF1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2,
+    3,
+    4
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAG1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAH1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAJ1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAK1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAL1201": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAM1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2,
+    3
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAR1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2,
+    3
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAS1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAT1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2,
+    3
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LAV1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "LI5202": {
+   "level": 5,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Logistics Inst-Asia Pac"
+  },
+  "LI5204": {
+   "level": 5,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Logistics Inst-Asia Pac"
+  },
+  "LL4004V": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4008AV": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4008BV": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4009V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4014V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4019V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4034V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4042V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4043": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Law"
+  },
+  "LL4050V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4056BV": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4070V": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4073V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4089V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4097V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4099": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Law"
+  },
+  "LL4133V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4140V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4188V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4219": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Law"
+  },
+  "LL4228": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Law"
+  },
+  "LL4246": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Law"
+  },
+  "LL4251V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4276V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4277V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4287V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4308V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4322": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Law"
+  },
+  "LL4335V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4339": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Law"
+  },
+  "LL4342V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4343V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4387": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Law"
+  },
+  "LL4412": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 8,
+   "faculty": "Law"
+  },
+  "LL4436V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4437V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4438V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4452V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4454V": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4475V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4482V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4503": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Law"
+  },
+  "LL4527V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4534V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4537V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4539V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4540V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4541V": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LL4556V": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 5,
+   "faculty": "Law"
+  },
+  "LSM1301": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM1303": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM2105": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM2106": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM2107": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM2191A": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM2191B": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM2212": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM2233": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM2234": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM2252": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM2254": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM2291": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM3210B": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3218": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM3220": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3223": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM3225": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM3227": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3232": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM3242": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM3243": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3244": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3245": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM3247": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM3256": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3258": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3259": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3266": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3267": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3272": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM3275": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4202": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4210": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4211": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM4213": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM4214": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM4218": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4221": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM4222": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM4225": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM4227": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4228": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4231": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4234": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4237": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM4241": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Yong Loo Lin Sch of Medicine"
+  },
+  "LSM4252": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4261": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4264": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4267": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "LSM4270": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA1100": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA1301": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA2101": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA2116": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA2213": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA2311": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA3201": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA3210": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA3233": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA3236": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA3264": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA3270": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4207": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4211": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4229": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4230": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4254": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4255": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4261": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4270": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4273": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "MA4275": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ME2102": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME2116": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME2121": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME2134": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME2162": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME3115": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME3261": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME3263": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME4223": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME4226": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME4233": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME4245": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME4252": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME4261": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME4262": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "ME4291": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MKT1705X": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "MKT3701A": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "MKT3701B": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "MKT3702A": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "MKT3702B": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "MLE2102": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE2103A": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 2,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE2105": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE2108": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE2301": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE3104": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE4201": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE4202": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE4207": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE4208": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE4217": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE4221": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE4231": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MLE4239": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "MNO1706X": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "MNO3701": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "MS1102E": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "MS3209": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "MS3211": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "MS3216": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "MS4208": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "MS4880A": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "MS5101": {
+   "level": 5,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "MS5201": {
+   "level": 5,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "MUA3219": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "YST Conservatory of Music"
+  },
+  "MUA3224": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "YST Conservatory of Music"
+  },
+  "MUA3228": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 2,
+   "faculty": "YST Conservatory of Music"
+  },
+  "MUA4161": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 6,
+   "faculty": "YST Conservatory of Music"
+  },
+  "MUH2204": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "YST Conservatory of Music"
+  },
+  "MUH3203": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "YST Conservatory of Music"
+  },
+  "MUL1105": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "YST Conservatory of Music"
+  },
+  "MUL2107": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "YST Conservatory of Music"
+  },
+  "MUL2109": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "YST Conservatory of Music"
+  },
+  "NHS2053": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NHS2070": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NHS2075": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NHS2086": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NHS2093": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NHS2101": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NHS3001": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NM1101E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "NM2207": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "NM2209": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "NM2219": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "NM3205": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "NST2006": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2008": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2030": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2036": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2045": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2046": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2048": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2051": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2053": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2059": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2062": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "NST2068": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS College"
+  },
+  "PC1201": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC2032": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC2130": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC2135": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC2193": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3130": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3193": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3231": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3233": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3236": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3238": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3267": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3270": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3274A": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3294": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3295": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3411": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC3442": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4230": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4236": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4241": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4243": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4245": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4248": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4249": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4267": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4274A": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC4441": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PC5211": {
+   "level": 5,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "PE2101P": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PF3105": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "PF3207": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "PF3209": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "PF3210": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "PF3211": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "PF3502": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "PF3504": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "PH2113": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2203": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2207": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2208": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2211": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2212": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2216": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2222": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2224": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2227": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2242": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH2301": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH3202": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH3203": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH3207": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH3208": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH3217": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH3222": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH3230": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH3250": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH4202": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH4203": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH4210": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH4213": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PH4240": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PL1101E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2,
+    4
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PL3102": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PL3103": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PL3240": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PL3257": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PL3268": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PP5166": {
+   "level": 5,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "LKY School of Public Policy"
+  },
+  "PP5206": {
+   "level": 5,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "LKY School of Public Policy"
+  },
+  "PP5291": {
+   "level": 5,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "LKY School of Public Policy"
+  },
+  "PP5906": {
+   "level": 5,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "LKY School of Public Policy"
+  },
+  "PS1101E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2204": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2234": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2237": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2245": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2248": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2249": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2255": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2258": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2266": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS2300": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3225": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3232": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3236": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3237": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3238": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3249": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3257": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3263": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3276": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "PS3311": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "QF1100": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "QF2103": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "QF2104": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "QF3101": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "QF3103": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "QF4102": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "QF4103": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "RB2202": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "RB2301": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "RB2302": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "College of Design and Engineering"
+  },
+  "RE2705": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "RE3701": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "RE3706": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "RE4701": {
+   "level": 4,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "NUS Business School"
+  },
+  "SC2208": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SC2209": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SC2220": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SC2222": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SC2229": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SC3205": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SC3209": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SC3210": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SC3211": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SC3219": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SE1101E": {
+   "level": 1,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SE2214": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SE2217": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SE2224": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SE3219": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SE3220": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SE4218": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SN1101E": {
+   "level": 1,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SN2213": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SN2234": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SN2278": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SN2285": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SN3275": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SN3282": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SN3283": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "SPH2002": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "SSH School of Public Health"
+  },
+  "SPH2004": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "SSH School of Public Health"
+  },
+  "SPH2005": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "SSH School of Public Health"
+  },
+  "SPH3403": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "SSH School of Public Health"
+  },
+  "SPH3501": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "SSH School of Public Health"
+  },
+  "ST2131": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST2132": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST2137": {
+   "level": 2,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST3131": {
+   "level": 3,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST3244": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST3247": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST3248": {
+   "level": 3,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST4231": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST4233": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST4234": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST4245": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ST4248": {
+   "level": 4,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "TRA2111": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "TS1101E": {
+   "level": 1,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Arts and Social Science"
+  },
+  "ZB2101": {
+   "level": 2,
+   "semesters": [
+    1,
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1,
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ZB2201": {
+   "level": 2,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ZB3101": {
+   "level": 3,
+   "semesters": [
+    2
+   ],
+   "ng": true,
+   "ngSemesters": [
+    2
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  },
+  "ZB4171": {
+   "level": 4,
+   "semesters": [
+    1
+   ],
+   "ng": true,
+   "ngSemesters": [
+    1
+   ],
+   "credits": 4,
+   "faculty": "Science"
+  }
+ }
+}

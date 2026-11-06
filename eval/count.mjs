@@ -22,7 +22,7 @@ import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { errorClass, RunFileError } from './lib/errors.mjs';
-import { answerableCount, isTaggedNoAnswer } from './lib/metrics.mjs';
+import { answerableCount, qrelsFor, scoredSet } from './lib/metrics.mjs';
 import { layout, loadQrels, loadQueries, readSetJson, runFile, setKey } from './lib/sets.mjs';
 
 const OPTIONS = /** @type {const} */ ({
@@ -91,11 +91,14 @@ async function counted() {
   const run = await readSetJson(set, runFile(set, /** @type {string} */ (a.run)), verify);
   const sha = createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex');
   if (/** @type {any} */ (run.queries)?.sha256 !== sha) throw new RunFileError(`run ${a.run} was not made on these queries`);
+  // Every query outside the no-answer set counts: a tagged query with a grade-≥1 document is
+  // answerable, so emptying it is a loss too (ADR 0003, 2026-11-06).
+  const qrels = await loadQrels(set, verify);
   let n = 0;
   querySet.queries.forEach((q, i) => {
     const r = run.results?.[q.id];
     if (!r) throw new RunFileError(`run ${a.run} has no result for query #${i + 1}`);
-    if (!isTaggedNoAnswer(q) && r.status === 200 && r.codes.length === 0) n++;
+    if (!scoredSet(q, qrelsFor(qrels, q.id, i).grades).noAnswer && r.status === 200 && r.codes.length === 0) n++;
   });
   return n;
 }
