@@ -1,7 +1,7 @@
 # 0003 — Eval query sets, holdout custody and the pre-committed gate
 
-Status: accepted (Phase 2), written before any Phase 3 change. One part (the SC5 reading,
-below) waits for Jacob's sign-off.
+Status: accepted (Phase 2), written before any Phase 3 change. The SC5 reading below was
+signed off by Jacob on 2026-11-06.
 
 ## Context
 SC5 needs a rebuilt eval: the shipped ranker must beat the current one on held-out queries on
@@ -148,10 +148,12 @@ This departs from the pre-registered rule ("no gating until investigated"): the 
 the analysis above; the residual cause (ANN vs exact search, batch noise) cannot be reproduced
 offline within the plan's quotas.
 
-## SC5 reading (needs Jacob's sign-off)
-"The held-out set" in SC5 is read as the **sealed test set**. The holdout result is reported as
-secondary, and the test set governs if they disagree. If Jacob rejects this reading, SC5 is
-reported on the holdout with its look count and an explicit caveat about adaptive reuse.
+## SC5 reading (Jacob, 2026-11-06)
+"The held-out set" in SC5 means the **sealed test set**, written after Phase 3 freezes and
+looked at once. Jacob chose it before any holdout look. The holdout is not reported for SC5:
+reporting final against v0 on it would print a verdict, which is a look, and none is budgeted.
+So the plan's L12 is unused under this reading, and all 5 spare holdout looks stay available
+for retries (`docs/plans/phase3.md` §3 and §5).
 
 ## Deviations from the plan
 - **Encryption.** AES-256-GCM with a hex key file instead of `age`. The key is not in the macOS
