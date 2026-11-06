@@ -272,7 +272,7 @@ describe('decisive-comparison floors (PR #6 review round 2, finding 5)', () => {
       const v = gate(one, { kind: 'cutoff' });
       expect(v.verdict).toBe('fail');
       expect(names(v)['sufficient no-answer queries (>= 3)']).toBe(false);
-      expect(detail(v, 'sufficient no-answer queries (>= 3)')).toBe('insufficient queries: 1 no-answer, need 3');
+      expect(detail(v, 'sufficient no-answer queries (>= 3)')).toBe('insufficient queries: 1 no-answer (tagged, no grade-≥1 document), need 3; a cutoff verdict cannot pass on this set');
     }
     const three = compare(judgedAll([...answerable.base, ...noAnswer([false, false, false])]), judgedAll([...answerable.cand, ...noAnswer([true, false, false])]));
     expect(holdoutGate(three, { kind: 'cutoff' }).verdict).toBe('pass');

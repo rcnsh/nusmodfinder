@@ -67,7 +67,10 @@ beforeEach(async () => {
   if (existsSync(join(REPO, 'eval', 'count-log.md'))) await cp(join(REPO, 'eval', 'count-log.md'), cloneCountLog());
 });
 
-/** As gate-rules.node.test.js: 12 answerable, 4 tagged `noanswer` (one with a grade-2 code), 4 unscored. */
+/**
+ * As gate-rules.node.test.js: 12 answerable, 4 tagged `noanswer` (the first with a grade-2
+ * code, so answerable: 13 primary answerable, 3 no-answer), 4 unscored.
+ */
 async function derived() {
   const dev = JSON.parse(await readFile(join(REPO, 'eval', 'dev', 'queries.json'), 'utf8'));
   const picked = dev.queries.slice(0, ANSWERABLE + TAGGED + UNSCORED);
@@ -133,15 +136,15 @@ const rowsOf = async (path) => (existsSync(path) ? ledgerRows(await readFile(pat
 const today = () => new Date().toISOString().slice(0, 10);
 
 describe('eval:count prints one integer and logs the call', () => {
-  it('--set test --answerable: the primary answerable count; tagged and unscored queries are not counted', async () => {
+  it('--set test --answerable: the primary answerable count, the tagged query with a grade-2 code included; no-answer and unscored queries are not', async () => {
     const { dir } = await encSet('test-answerable', 'test');
     const ledgerBefore = await readFile(cloneLedger(), 'utf8');
     const looksBefore = await looks(cloneLedger(), 'test');
     const r = count(['--custodian', '--set', 'test', '--set-dir', dir, '--answerable']);
     expect(r.stderr).toBe('');
     expect(r.code).toBe(0);
-    expect(r.stdout).toBe(`${ANSWERABLE}\n`);
-    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'test', 'count: answerable', '—', String(ANSWERABLE)]]);
+    expect(r.stdout).toBe(`${ANSWERABLE + 1}\n`);
+    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'test', 'count: answerable', '—', String(ANSWERABLE + 1)]]);
     // Not a look: the ledger is byte-for-byte unchanged.
     expect(await readFile(cloneLedger(), 'utf8')).toBe(ledgerBefore);
     expect(await looks(cloneLedger(), 'test')).toBe(looksBefore);

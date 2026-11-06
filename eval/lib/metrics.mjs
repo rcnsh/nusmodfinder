@@ -9,12 +9,13 @@
 // - P@5: group-first documents with grade >= 1 in the top 5, divided by 5.
 // - MRR@10: 1 / rank of the first group-first document with grade >= 1.
 // - Unjudged documents count as grade 0; judged@10 coverage is reported.
-// - The no-answer set is fixed by tag (ADR 0003, amendment 2026-11-06): a
-//   query is no-answer iff it carries a NO_ANSWER_TAGS shape or
-//   `noAnswerByRule` (non-existent codes), whatever its grades. Any other
-//   query is answerable iff some judged document has grade >= 1, and
-//   otherwise unscored: in neither set, counted, never in a metric. Answerable
-//   queries tagged with a feature-gap shape are scored in their own block,
+// - The no-answer set (ADR 0003, amendment 2026-11-06): a query is no-answer
+//   iff it is tagged (a NO_ANSWER_TAGS shape, or `noAnswerByRule` for
+//   non-existent codes) AND no judged document has grade >= 1. The judges'
+//   grades are the ground truth; the tag is necessary, not sufficient. A query
+//   with a grade->=1 document is answerable, tagged or not. An untagged query
+//   with none is unscored: in neither set, counted, never in a metric.
+//   Answerable queries with a feature-gap shape are scored in their own block,
 //   not the primary.
 // - No-answer queries score correct-empty (the run returned nothing).
 // - A non-200 response is an error, never a result: it is never correct-empty
@@ -176,27 +177,28 @@ export function violationReason(doc, c) {
 }
 
 /**
- * Is the query in the no-answer set? By tag only, never by its grades.
+ * Is the query tagged no-answer (a NO_ANSWER_TAGS shape, or `noAnswerByRule`)?
+ * Necessary for the no-answer set, not sufficient: see `scoredSet`.
  * @param {Pick<EvalQuery, 'shapes' | 'noAnswerByRule'>} q
  */
 export const isTaggedNoAnswer = (q) => q.noAnswerByRule === true || (q.shapes ?? []).some((t) => NO_ANSWER_TAGS.includes(t));
 
 /**
- * Which set a query is scored in: `noAnswer` (by tag), `answerable` (untagged,
- * some grade >= 1) or `unscored` (untagged, no grade >= 1).
+ * Which set a query is scored in: `answerable` (some grade >= 1, tagged or
+ * not), `noAnswer` (tagged, no grade >= 1) or `unscored` (untagged, no grade >= 1).
  * @param {EvalQuery} q
  * @param {Map<string, number>} grades
  */
 function scoredSet(q, grades) {
-  const noAnswer = isTaggedNoAnswer(q);
-  const answerable = !noAnswer && [...grades.values()].some((g) => g >= 1);
-  return { noAnswer, answerable, unscored: !noAnswer && !answerable };
+  const answerable = [...grades.values()].some((g) => g >= 1);
+  const noAnswer = !answerable && isTaggedNoAnswer(q);
+  return { noAnswer, answerable, unscored: !answerable && !noAnswer };
 }
 
 /**
- * The primary answerable queries of a set (untagged, some grade >= 1, no
- * feature-gap shape), from its queries and qrels alone: what `eval:count
- * --answerable` prints.
+ * The primary answerable queries of a set (some grade >= 1, no feature-gap
+ * shape), from its queries and qrels alone: what `eval:count --answerable`
+ * prints.
  * @param {EvalQuery[]} queries
  * @param {Qrels} qrels
  */

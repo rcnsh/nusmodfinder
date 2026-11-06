@@ -158,7 +158,7 @@ function cutoffChecks(cmp) {
     {
       name: `sufficient no-answer queries (>= ${RULES.minNoAnswerQueries})`,
       pass: enough,
-      detail: enough ? `${cmp.noAnswer.n} no-answer queries` : `insufficient queries: ${cmp.noAnswer.n} no-answer, need ${RULES.minNoAnswerQueries}`,
+      detail: enough ? `${cmp.noAnswer.n} no-answer queries` : `insufficient queries: ${cmp.noAnswer.n} no-answer (tagged, no grade-≥1 document), need ${RULES.minNoAnswerQueries}; a cutoff verdict cannot pass on this set`,
     },
     {
       name: `correct-empty gain >= ${RULES.cutoffMinCorrectEmptyGain}`,

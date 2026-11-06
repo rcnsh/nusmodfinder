@@ -2,8 +2,8 @@
 // Phase 3 gate rules (docs/plans/phase3.md §3 P-5b), end to end through the
 // CLI, on sets built here from dev-derived synthetic data with a throwaway
 // key (no workerd, no Cloudflare, no real holdout file):
-//   - the no-answer set by tag: dev reports list unscored ids, encrypted sets
-//     print only their count;
+//   - the no-answer set (tagged AND no grade-≥1 document): dev reports list
+//     unscored ids, encrypted sets print only their count;
 //   - change kinds `no-loss` (with `--exempt`) and `answerable-floor`, dev only;
 //   - `--gate sc5`, refused on the holdout under the recorded sealed reading,
 //     and, in a temporary clone whose SC5_READING says `holdout`, the SC5
@@ -59,8 +59,8 @@ const UNSCORED = 4;
 /**
  * The first 20 dev ids and texts: 12 answerable (`topical`, ten judged
  * codes), 4 tagged `noanswer` (three grade-0 codes; the first also has a
- * grade-2 code, which the tag overrides) and 4 untagged with only grade-0
- * codes (unscored). Codes are made up.
+ * grade-2 code, so the grades make it answerable: 13 primary, 3 no-answer)
+ * and 4 untagged with only grade-0 codes (unscored). Codes are made up.
  */
 async function derived() {
   const dev = JSON.parse(await readFile(join(REPO, 'eval', 'dev', 'queries.json'), 'utf8'));
@@ -87,6 +87,8 @@ async function derived() {
     answerable: ids.slice(0, ANSWERABLE),
     tagged: ids.slice(ANSWERABLE, ANSWERABLE + TAGGED),
     unscored: ids.slice(ANSWERABLE + TAGGED),
+    /** The primary answerable set: the 12 answerable and the tagged query with a grade-2 code. */
+    primary: [...ids.slice(0, ANSWERABLE), ids[ANSWERABLE]],
   };
 }
 /** @typedef {Awaited<ReturnType<typeof derived>>} Derived */
@@ -155,13 +157,13 @@ async function devSet(name, cand, options = {}) {
 }
 
 describe('dev reports list unscored queries by id', () => {
-  it('names each unscored id once, and counts the tagged query with a grade-2 document as no-answer', async () => {
+  it('names each unscored id once, and counts the tagged query with a grade-2 document as answerable', async () => {
     const { d, report } = await devSet('dev-unscored', (x) => copy(x.ranked));
     const r = report();
     expect(r.stderr).toBe('');
     expect(r.code).toBe(0);
-    expect(r.stdout).toMatch(/^answerable \(primary\) n\s+12\s+12$/m);
-    expect(r.stdout).toMatch(/^no-answer n\s+4\s+4$/m);
+    expect(r.stdout).toMatch(/^answerable \(primary\) n\s+13\s+13$/m);
+    expect(r.stdout).toMatch(/^no-answer n\s+3\s+3$/m);
     expect(r.stdout).toMatch(/^unscored n\s+4\s+4$/m);
     expect(r.stdout).toContain(`\nunscored (untagged, no grade-≥1 document; in neither set): ${d.unscored.length}: ${d.unscored.join(', ')}\n`);
   });
@@ -174,7 +176,7 @@ describe('change kind no-loss (dev only)', () => {
     const r = report(['--change-kind', 'no-loss']);
     expect(r.stderr).toBe('');
     expect(r.stdout).toMatch(/^gate \(dev\): PASS · rule no-loss$/m);
-    expect(r.stdout).toMatch(/^ {2}\[pass\] ΔnDCG@10 >= 0 \(no-loss\) — ΔnDCG@10 0\.0000 over 12 primary answerable queries$/m);
+    expect(r.stdout).toMatch(/^ {2}\[pass\] ΔnDCG@10 >= 0 \(no-loss\) — ΔnDCG@10 0\.0000 over 13 primary answerable queries$/m);
   });
 
   it('fails any loss; --exempt leaves the named dev ids out and prints each with its Δ', async () => {
@@ -186,7 +188,7 @@ describe('change kind no-loss (dev only)', () => {
     const r = report(['--change-kind', 'no-loss', '--exempt', exempt]);
     expect(r.stderr).toBe('');
     expect(r.stdout).toMatch(/^gate \(dev\): PASS · rule no-loss$/m);
-    expect(r.stdout).toMatch(/over 11 primary answerable queries, 2 exempt left out$/m);
+    expect(r.stdout).toMatch(/over 12 primary answerable queries, 2 exempt left out$/m);
     expect(r.stdout).toMatch(new RegExp(`^exempt from no-loss \\(dev only\\): 2\\n {2}${d.answerable[0]}  ΔnDCG@10 -0\\.\\d{3}\\n {2}${d.unscored[0]}  ΔnDCG@10 — \\(not primary answerable\\)$`, 'm'));
   });
 
@@ -201,8 +203,8 @@ describe('change kind no-loss (dev only)', () => {
     expect(r.stdout).toMatch(/^gate \(dev\): FAIL · rule no-loss$/m);
     expect(r.stdout).toMatch(/^ {2}\[FAIL\] no new errors — non-200 responses: baseline 0, candidate 1$/m);
     expect(r.stdout).toMatch(/^ {2}\[FAIL\] no exact-code regression — 1 exact-code queries lost their rank-1 hit$/m);
-    expect(r.stdout).toMatch(new RegExp(`^ {2}\\[pass\\] sufficient queries \\(>= 10 answerable\\) — ${d.answerable.length} primary answerable queries$`, 'm'));
-    expect(r.stdout).toMatch(new RegExp(`^ {2}\\[pass\\] ΔnDCG@10 >= 0 \\(no-loss\\) — ΔnDCG@10 0\\.0000 over ${d.answerable.length - 1} primary answerable queries, 1 exempt left out$`, 'm'));
+    expect(r.stdout).toMatch(new RegExp(`^ {2}\\[pass\\] sufficient queries \\(>= 10 answerable\\) — ${d.primary.length} primary answerable queries$`, 'm'));
+    expect(r.stdout).toMatch(new RegExp(`^ {2}\\[pass\\] ΔnDCG@10 >= 0 \\(no-loss\\) — ΔnDCG@10 0\\.0000 over ${d.primary.length - 1} primary answerable queries, 1 exempt left out$`, 'm'));
   });
 
   it('takes an { ids } object as well, and refuses an id the set does not have', async () => {
@@ -234,7 +236,7 @@ describe('change kind answerable-floor (dev only)', () => {
     const ok = small.report(['--change-kind', 'answerable-floor']);
     expect(ok.stderr).toBe('');
     expect(ok.stdout).toMatch(/^gate \(dev\): PASS · rule answerable-floor$/m);
-    expect(ok.stdout).toMatch(/^ {2}\[pass\] answerable ΔnDCG@10 >= -0\.01 — ΔnDCG@10 -0\.0\d{3} over 12 primary answerable queries$/m);
+    expect(ok.stdout).toMatch(/^ {2}\[pass\] answerable ΔnDCG@10 >= -0\.01 — ΔnDCG@10 -0\.0\d{3} over 13 primary answerable queries$/m);
     const big = await devSet('floor-big', bigLoss);
     expect(big.report(['--change-kind', 'answerable-floor']).stdout).toMatch(/^gate \(dev\): FAIL · rule answerable-floor$/m);
   });
