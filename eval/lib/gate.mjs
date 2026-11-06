@@ -25,6 +25,8 @@
 //           ADR 0003's "SC5 reading" by test/eval/gate.node.test.js).
 //   no-loss            (dev screen only; 3F, 3H) ΔnDCG@10 >= 0, point
 //                      estimate, over the primary set less any `exempt` ids.
+//                      Exempt ids leave only that figure: every other check
+//                      (errors, exact-code, query count) is on the full set.
 //   answerable-floor   (dev screen only; 3G) ΔnDCG@10 >= -0.01 over the
 //                      primary answerable set, the no-answer set fixed by tag.
 //
@@ -172,19 +174,22 @@ function cutoffChecks(cmp) {
 }
 
 /**
- * The dev-only kinds' decisive check.
+ * The dev-only kinds' decisive check. `noLoss` is the comparison without the
+ * exempt ids, used for the no-loss ΔnDCG@10 and its n only.
  * @param {Comparison} cmp
  * @param {Change} change
+ * @param {Comparison} [noLoss]
  * @returns {Check}
  */
-function devKindCheck(cmp, change) {
+function devKindCheck(cmp, change, noLoss = cmp) {
   const d = cmp.overall.ndcg.delta;
   if (change.kind === 'no-loss') {
     const exempt = change.exempt?.length ?? 0;
+    const dn = noLoss.overall.ndcg.delta;
     return {
       name: 'ΔnDCG@10 >= 0 (no-loss)',
-      pass: Number.isFinite(d) && d >= -EPS,
-      detail: `ΔnDCG@10 ${f(d)} over ${cmp.n} primary answerable queries${exempt ? `, ${exempt} exempt left out` : ''}`,
+      pass: Number.isFinite(dn) && dn >= -EPS,
+      detail: `ΔnDCG@10 ${f(dn)} over ${noLoss.n} primary answerable queries${exempt ? `, ${exempt} exempt left out` : ''}`,
     };
   }
   return {
@@ -202,16 +207,19 @@ function devKindCheck(cmp, change) {
 const verdict = (set, checks) => ({ set, verdict: checks.every((c) => c.pass) ? 'pass' : 'fail', checks });
 
 /**
- * Dev screen for one change.
+ * Dev screen for one change. Every check reads `cmp`, the full comparison;
+ * `noLoss` (no-loss with `exempt` ids: the comparison without them) feeds the
+ * no-loss ΔnDCG@10 alone.
  * @param {Comparison} cmp
  * @param {Change} [change]
+ * @param {Comparison} [noLoss]
  * @returns {Verdict}
  */
-export function devGate(cmp, change = {}) {
+export function devGate(cmp, change = {}, noLoss = cmp) {
   // Exact-code check on dev too: the holdout has a single exact-code query (ADR 0003 v2.1).
   const checks = [noNewErrorsCheck(cmp), sufficientCheck(cmp), judgedCheck(cmp), exactCodeCheck(cmp)];
   if (change.kind === 'cutoff') return verdict('dev', [...checks, ...cutoffChecks(cmp)]);
-  if (change.kind && DEV_ONLY_KINDS.includes(change.kind)) return verdict('dev', [...checks, devKindCheck(cmp, change)]);
+  if (change.kind && DEV_ONLY_KINDS.includes(change.kind)) return verdict('dev', [...checks, devKindCheck(cmp, change, noLoss)]);
 
   const targets = change.targetShapes ?? [];
   const ndcg = cmp.overall.ndcg;
@@ -326,7 +334,8 @@ export function assertTruncation(base, cand) {
  * @param {string} set dev | holdout | test (anything else is screened as dev)
  * @param {Comparison} cmp
  * @param {Change} [change]
- * @param {{ reading?: 'sealed' | 'holdout' }} [options] the SC5 reading (default: the recorded SC5_READING)
+ * @param {{ reading?: 'sealed' | 'holdout', noLoss?: Comparison }} [options] the SC5 reading (default: the
+ *   recorded SC5_READING); `noLoss`, the comparison without no-loss's exempt ids (dev only)
  * @returns {Verdict}
  */
 export function gateFor(set, cmp, change = {}, options = {}) {
@@ -340,5 +349,5 @@ export function gateFor(set, cmp, change = {}, options = {}) {
   }
   if (set === 'holdout') return { ...holdoutGate(cmp, change), rule };
   if (set === 'test') return { ...sc5Gate(cmp), rule };
-  return { ...devGate(cmp, change), rule };
+  return { ...devGate(cmp, change, options.noLoss), rule };
 }

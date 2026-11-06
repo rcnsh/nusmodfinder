@@ -91,14 +91,17 @@ async function derived() {
 }
 /** @typedef {Awaited<ReturnType<typeof derived>>} Derived */
 
-/** @param {any} querySet @param {string} variant @param {string} set @param {any} ranker @param {Record<string, string[]>} codes */
-function runFile(querySet, variant, set, ranker, codes) {
+/**
+ * @param {any} querySet @param {string} variant @param {string} set @param {any} ranker @param {Record<string, string[]>} codes
+ * @param {Record<string, number>} [status] non-200 statuses by id (their codes are dropped)
+ */
+function runFile(querySet, variant, set, ranker, codes, status = {}) {
   return {
     schema: 'vnm-eval-run/1', variant, set, ranker,
     corpus: { moduleInfoSha256: corpusSha },
     queries: { version: querySet.version, sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'), count: querySet.queries.length },
     config: { mode: 'hybrid', filters: true },
-    results: Object.fromEntries(Object.entries(codes).map(([id, c]) => [id, { status: 200, codes: c }])),
+    results: Object.fromEntries(Object.entries(codes).map(([id, c]) => [id, status[id] ? { status: status[id], codes: [] } : { status: 200, codes: c }])),
     docs: {},
   };
 }
@@ -133,15 +136,20 @@ const rowsOf = async (path) => (existsSync(path) ? ledgerRows(await readFile(pat
 // ---------------------------------------------------------------------------
 // dev (the fixture set name, at a temporary --set-dir)
 
-/** @param {string} name @param {(d: Derived) => Record<string, string[]>} cand */
-async function devSet(name, cand) {
+/**
+ * @param {string} name @param {(d: Derived) => Record<string, string[]>} cand
+ * @param {{ prep?: (d: Derived) => void, candStatus?: (d: Derived) => Record<string, number> }} [options]
+ *   `prep` edits the derived set before any file is written; `candStatus` gives the candidate non-200s
+ */
+async function devSet(name, cand, options = {}) {
   const dir = join(tmp, name);
   await mkdir(dir, { recursive: true });
   const d = await derived();
+  options.prep?.(d);
   await writeFile(join(dir, 'queries.json'), JSON.stringify({ ...d.querySet, set: 'fixture' }));
   await writeFile(join(dir, 'qrels.json'), JSON.stringify({ ...d.qrels, set: 'fixture' }));
   await writeFile(join(dir, 'base.json'), JSON.stringify(runFile(d.querySet, 'base', 'fixture', pinnedRanker(), copy(d.ranked))));
-  await writeFile(join(dir, 'cand.json'), JSON.stringify(runFile(d.querySet, 'cand', 'fixture', candRanker(), cand(d))));
+  await writeFile(join(dir, 'cand.json'), JSON.stringify(runFile(d.querySet, 'cand', 'fixture', candRanker(), cand(d), options.candStatus?.(d))));
   const report = (/** @type {string[]} */ extra = []) => cli(['report', '--set', 'fixture', '--set-dir', dir, '--run', join(dir, 'cand.json'), '--baseline', join(dir, 'base.json'), ...extra]);
   return { dir, d, report };
 }
@@ -180,6 +188,21 @@ describe('change kind no-loss (dev only)', () => {
     expect(r.stdout).toMatch(/^gate \(dev\): PASS · rule no-loss$/m);
     expect(r.stdout).toMatch(/over 11 primary answerable queries, 2 exempt left out$/m);
     expect(r.stdout).toMatch(new RegExp(`^exempt from no-loss \\(dev only\\): 2\\n {2}${d.answerable[0]}  ΔnDCG@10 -0\\.\\d{3}\\n {2}${d.unscored[0]}  ΔnDCG@10 — \\(not primary answerable\\)$`, 'm'));
+  });
+
+  it('--exempt leaves ids out of the no-loss ΔnDCG only: an exempt id that errors and loses its exact-code hit still fails', async () => {
+    const { dir, d, report } = await devSet('noloss-exempt-checks', (x) => copy(x.ranked), {
+      prep: (x) => { x.querySet.queries[0].shapes = ['topical', 'code-exact']; },
+      candStatus: (x) => ({ [x.answerable[0]]: 500 }),
+    });
+    await writeFile(join(dir, 'ex.json'), JSON.stringify([d.answerable[0]]));
+    const r = report(['--change-kind', 'no-loss', '--exempt', join(dir, 'ex.json')]);
+    expect(r.stderr).toBe('');
+    expect(r.stdout).toMatch(/^gate \(dev\): FAIL · rule no-loss$/m);
+    expect(r.stdout).toMatch(/^ {2}\[FAIL\] no new errors — non-200 responses: baseline 0, candidate 1$/m);
+    expect(r.stdout).toMatch(/^ {2}\[FAIL\] no exact-code regression — 1 exact-code queries lost their rank-1 hit$/m);
+    expect(r.stdout).toMatch(new RegExp(`^ {2}\\[pass\\] sufficient queries \\(>= 10 answerable\\) — ${d.answerable.length} primary answerable queries$`, 'm'));
+    expect(r.stdout).toMatch(new RegExp(`^ {2}\\[pass\\] ΔnDCG@10 >= 0 \\(no-loss\\) — ΔnDCG@10 0\\.0000 over ${d.answerable.length - 1} primary answerable queries, 1 exempt left out$`, 'm'));
   });
 
   it('takes an { ids } object as well, and refuses an id the set does not have', async () => {

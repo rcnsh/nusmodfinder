@@ -242,10 +242,10 @@ async function fullReport(set, candPath, basePath, a, change) {
     assertGateable([base, cand]);
     cmp = compare(baseScores, candScores);
     console.log(`\n${comparisonTable(cmp, base.variant, cand.variant, qrels.version)}`);
-    // no-loss --exempt: the gate compares the primary set less the exempt ids.
+    // no-loss --exempt: only the no-loss ΔnDCG@10 leaves the exempt ids out; every other check is on the full set.
     const kept = (/** @type {import('./lib/metrics.mjs').QueryScore} */ s) => !exempt.includes(s.id);
-    const gateCmp = exempt.length ? compare(baseScores.filter(kept), candScores.filter(kept)) : cmp;
-    const v = gateFor(set.gate, gateCmp, exempt.length ? { ...change, exempt } : change);
+    const noLoss = exempt.length ? compare(baseScores.filter(kept), candScores.filter(kept)) : undefined;
+    const v = gateFor(set.gate, cmp, exempt.length ? { ...change, exempt } : change, { noLoss });
     console.log(`\n${verdictBlock(v)}`);
     if (exempt.length) {
       const byId = new Map(candScores.map((c, i) => [c.id, { b: baseScores[i], c }]));
