@@ -30,6 +30,13 @@ describe('query-set locks (ADR 0003)', () => {
     expect(sha256(await readFile(join(REPO, 'eval/holdout/queries.json.enc')))).toBe(recorded(adr, 'holdout ciphertext'));
   });
 
+  it('the duplicate groups every set is scored with match the groups-v1 hash the ADR records', async () => {
+    const adr = await readFile(join(REPO, ADR), 'utf8');
+    const groups = await readFile(join(REPO, 'eval/groups.json'));
+    expect(JSON.parse(groups.toString('utf8')).version).toBe('groups-v1');
+    expect(sha256(groups)).toBe(recorded(adr, 'groups-v1 `eval/groups.json`'));
+  });
+
   it('a plaintext file in an encrypted-set directory fails verification', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'vnm-lock-'));
     try {

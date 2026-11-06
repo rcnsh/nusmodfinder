@@ -129,7 +129,8 @@ qrels carry (overlapping groups join) and refuses (`CorpusMismatchError`) a grou
 from another corpus than the qrels were judged on. Like the qrels/run corpus check, `npm run eval`
 checks it with the baseline before any retrieval (on an encrypted set, before the look is
 reserved). Nothing rewrites the qrels, encrypted or not. `test/full/groups.node.test.js` (the full-corpus CI job)
-checks the committed file is what the builder produces.
+checks the committed file is what the builder produces. Its sha256 is one of ADR 0003's locks
+(`test/eval/lock.node.test.js`), so changing the groups means changing the ADR in the same PR.
 
 Run file (`vnm-eval-run/1`): `variant`, `set`, `ranker` (ref, sha, dirty, `treeHash`, runner sha), `corpus`
 (release, moduleInfo sha256, NG sha256, module count, sha256 of all embedding texts),

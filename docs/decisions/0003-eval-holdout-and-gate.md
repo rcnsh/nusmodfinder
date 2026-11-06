@@ -257,6 +257,52 @@ P-5b, §9). Each rule is in the code and tested.
   "Custody" ("any run or report that prints a verdict for an encrypted set") stands, with this
   exception.
 
+- **3G is gated without a look** (A-1, C-3, A2-9, A3-1, A3-2, A3-6). The no-match change passes
+  iff all of these hold:
+  - the SC4 suite is green with 3G in place. Items owned by a workstream that has not merged, or
+    that Jacob dropped, are listed and skipped. The typo, gibberish, non-existent-code and guard
+    items are never skipped;
+  - ≥ 90% of the gibberish set's gate half returns `count: 0`. τ is derived on the other half;
+  - no dev query outside the no-answer tags returns `noMatch.reason` `no-signal`, and the report
+    lists any that does (dev is open);
+  - `answerable-floor` on dev;
+  - the custodian's `eval:count --holdout --emptied-untagged` of the stored candidate is 0. The
+    fallback τ gets one count of its own.
+
+  None of these is a look, so 3G spends none.
+- **3F is gated without a look** (A2-4). The eval scores only a group's first member, so a
+  holdout look could not fail the collapse. 3F passes iff:
+  - on dev and the fixture, the collapsed list equals the group-first projection of the
+    uncollapsed list, fetched deep enough to fill the page;
+  - `no-loss` holds on dev;
+  - the S8 finding test is green.
+- **Look procedure** (A3-4). For each look the custodian:
+  1. stores the candidate with `--holdout --store-only`, and the baseline too, unless it is
+     already stored and fully judged;
+  2. pools every run stored in step 1, encrypted (`eval:pool --holdout --custodian --unjudged`);
+  3. judges the pool and merges, so judged@10 is 100% for both runs;
+  4. only then takes the verdict with `npm run eval:report -- --holdout --run <candidate>
+     --baseline <shipped>` on the stored runs. `report` runs no retrieval and records a look
+     only for a fully judged pair, so no look is spent `unjudged`.
+
+  `npm run eval -- --holdout` is not used for looks, because it reserves its row before
+  retrieval. The ledger is committed after each look. Retries are the plan's named ones only.
+  The baseline-pin rule (amendment 2026-11-04) still applies: a holdout verdict against a
+  baseline other than `eval-v0` needs the pin and this ADR changed in the same PR first.
+- **groups-v1 is the duplicate-group rule** (A-2, C-8) for dev, holdout, test and, from 3F, the
+  product: `eval/lib/groups.mjs` over the pinned corpus, committed as `eval/groups.json` (509
+  groups). It joins the locks:
+  groups-v1 `eval/groups.json` sha256 `aee97d57a7201118601562bc90864dd83a386bf14f3945646abc9ac478878a22`.
+  `test/eval/lock.node.test.js` fails if the file differs, so changing the groups means changing
+  this ADR in the same PR.
+- **SC4 custody and the test-set exclusions** (A-N1).
+  - No holdout text enters the SC4 suite. The custodian runs the v2.1 code-overlap rule and the
+    query-embedding cosine ≥ 0.9 check of every suite query against the holdout. The check
+    prints only the hit count and the hitting suite ids, and those suite queries are replaced.
+  - The SC4 suite's texts and code targets, and the gibberish set, join dev and the holdout in
+    the sealed test set's exclusion list and its leak filter ("Test set, pre-registered now",
+    above): a test query with cosine ≥ 0.9 to any of them, or a shared source, is dropped.
+
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.
 - The cutoff rule screens on dev and governs on holdout.
