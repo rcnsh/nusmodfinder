@@ -172,8 +172,76 @@ export function semestersOf(record) {
   return [...new Set(sems)].sort((a, b) => a - b);
 }
 
+/**
+ * The level label in 3A-2's embedding text (docs/plans/phase3-prereg.md §2,
+ * eval/prereg/grids.json `3A-2`.levelLabels; level 8 is choice C24). Levels
+ * with no label (0, 9, none) get null and the Level field is left out.
+ * @param {number | null} level
+ */
+export function levelLabel(level) {
+  if (level === 1) return 'introductory';
+  if (level === 2 || level === 3) return 'intermediate';
+  if (level === 4) return 'advanced';
+  if (level !== null && level >= 5 && level <= 8) return 'graduate';
+  return null;
+}
+
+/**
+ * 3A-2's pre-registered embedding texts (docs/plans/phase3.md 3A-2,
+ * eval/prereg/grids.json `3A-2`.variants): the fields, in order.
+ */
+export const EMBEDDING_TEXT_VARIANTS = /** @type {const} */ ({
+  v1: ['code', 'title', 'level', 'description', 'department', 'faculty'],
+  v2: ['code', 'title', 'level', 'description'],
+  v3: ['title', 'level', 'description', 'department', 'faculty'],
+});
+/** @typedef {keyof typeof EMBEDDING_TEXT_VARIANTS} EmbeddingTextVariant */
+
+/**
+ * Which text embeddingText() builds: a 3A-2 variant, or null for the text
+ * before 3A-2 (title, department, faculty, description). Each 3A-2 ref
+ * (tags 3a2-v1…v3) differs from the next only here, so the ranker tree hash
+ * names the text the eval scored.
+ * @type {EmbeddingTextVariant | null}
+ */
+export const EMBEDDING_TEXT_VARIANT = null;
+
+/**
+ * A 3A-2 variant's text. Each field is whitespace-collapsed and ends with one
+ * sentence mark: a "." is added unless it already ends in ".", "!" or "?", so
+ * a description's own full stop is not doubled. Empty fields are skipped; the
+ * whole is cut at MAX_BLOB_CHARS.
+ * @param {NusModsRecord} record
+ * @param {EmbeddingTextVariant} variant
+ */
+export function embeddingTextFor(record, variant) {
+  const fields = EMBEDDING_TEXT_VARIANTS[variant];
+  if (!fields) throw new Error(`unknown embedding text variant "${variant}"`);
+  const level = typeof record.moduleCode === 'string' ? levelOf(record.moduleCode) : null;
+  const label = levelLabel(level);
+  /** @type {Record<(typeof fields)[number], unknown>} */
+  const value = {
+    code: record.moduleCode,
+    title: record.title,
+    level: label ? `Level ${level} (${label})` : null,
+    description: record.description,
+    department: record.department,
+    faculty: record.faculty,
+  };
+  const blob = fields
+    .map((f) => value[f])
+    .filter((part) => typeof part === 'string' && part.trim())
+    .map((part) => {
+      const s = /** @type {string} */ (part).replace(/\s+/g, ' ').trim();
+      return /[.!?]$/.test(s) ? s : `${s}.`;
+    })
+    .join(' ');
+  return blob.length > MAX_BLOB_CHARS ? blob.slice(0, MAX_BLOB_CHARS) : blob;
+}
+
 /** @param {NusModsRecord} record */
 export function embeddingText(record) {
+  if (EMBEDDING_TEXT_VARIANT) return embeddingTextFor(record, EMBEDDING_TEXT_VARIANT);
   const blob = [record.title, record.department, record.faculty, record.description]
     .filter((part) => typeof part === 'string' && part.trim())
     .join('. ')
