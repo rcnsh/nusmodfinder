@@ -78,6 +78,17 @@ from its file.
   - Labels: 1 introductory, 2–3 intermediate, 4 advanced, 5–6 graduate (plan 470). **Level 8
     is "graduate"** (choice C24): the pinned corpus has 6 level-8 modules and the plan names no
     label for them.
+  - **Note added 2026-11-06, after the v1 and v2 corpus passes and before any 3A-2 dev score
+    was read** (PR #41 review). Each variant keeps the existing `MAX_BLOB_CHARS` = 1,900 cut,
+    which applies after the fields are joined. On the pinned corpus it cuts 15 long modules
+    mid-word, and they lose "Department. Faculty.":
+    - BMA5013, BME5801, BMS5130, BMS5305, BMS5900, EBA5012, GMS5224, IS5007, LL4322, LL5322,
+      LL6322, LLD5322, LLJ5322, MLE2102, RE1708.
+    - So for 14 of them, v1 and v2 give the same text.
+    - Four v3 texts end in a space: BMS5900, GMS5224, IS5007, MLE2102.
+
+    The rule is the shipped one, already covered by a test. It is recorded here, not changed,
+    because the v1 and v2 vectors are built on it.
 - Selection: the general statistic (§8). Named retry: the second-ranked variant (plan 909–911:
   a change SC4 does not need, with a grid).
 
