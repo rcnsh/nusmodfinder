@@ -2,18 +2,18 @@
 // The eval CLI's `report` path end to end on a small encrypted set built here
 // with a throwaway key (no workerd, no Cloudflare). Run files are synthetic:
 // every returned code is judged, so the set is fully judged. The baseline
-// carries the pinned eval-v0 ranker block and every set has a MANIFEST.json,
+// carries the shipped-ranker pin's block and every set has a MANIFEST.json,
 // as a custody verdict requires (gate-custody.node.test.js tests both).
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { generateKey, readKey, updateManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { appendLook, readLedger } from '../../eval/lib/ledger.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
-import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
+import { archiveTree, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
 // The self-test twin of the holdout set: same rules, ledger in its own
@@ -26,18 +26,13 @@ let tmp;
 let keyFile;
 /** @type {Buffer} */
 let key;
-/** The ranker block of a genuine `--ref eval-v0` run (ADR 0003's pin). */
+/** The ranker block of a genuine run of the shipped pin, the baseline of a per-change holdout look. */
 let pinned = {};
 beforeAll(async () => {
   tmp = await mkdtemp(join(tmpdir(), 'vnm-cli-'));
   keyFile = await generateKey(join(tmp, 'throwaway.key'));
   key = await readKey(keyFile);
-  const archive = join(tmp, 'eval-v0-archive');
-  const present = HASHED.filter((p) => spawnSync('git', ['cat-file', '-e', `eval-v0:${p}`], { cwd: REPO }).status === 0);
-  const tar = spawnSync('git', ['archive', '--format=tar', 'eval-v0', '--', ...present], { cwd: REPO, maxBuffer: 1 << 30 });
-  await mkdir(archive, { recursive: true });
-  spawnSync('tar', ['-x', '-C', archive], { input: tar.stdout });
-  pinned = { ref: 'eval-v0', sha: '7ac984174ded88cb2b6497d9835b456981acdd99', dirty: false, treeHash: await treeHash(archive), runner: { sha: '0'.repeat(40), dirty: false } };
+  pinned = rankerAt(SHIPPED_PIN, await archiveTree(SHIPPED_PIN.sha));
 });
 afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 

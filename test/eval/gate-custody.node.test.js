@@ -25,6 +25,7 @@ import { generateKey, readKey, updateManifest, verifyManifest, writeEncryptedJso
 import { ledgerRows, readLedger } from '../../eval/lib/ledger.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
+import { archiveTree, labelRe, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
 const SET = 'selftest';
@@ -39,6 +40,8 @@ let keyFile;
 let key;
 /** treeHash of `git archive eval-v0` over the hashed ranker paths, computed independently. */
 let v0Tree = '';
+/** treeHash of the shipped pin's commit (ADR 0003's last shipped-pin line). */
+let holdoutTree = '';
 /** @type {string} */
 let corpusSha;
 
@@ -53,12 +56,16 @@ beforeAll(async () => {
   expect(tar.status).toBe(0);
   expect(spawnSync('tar', ['-x', '-C', archive], { input: tar.stdout }).status).toBe(0);
   v0Tree = await treeHash(archive);
+  holdoutTree = await archiveTree(SHIPPED_PIN.sha);
   corpusSha = JSON.parse(await readFile(join(REPO, 'eval', 'groups.json'), 'utf8')).corpus.moduleInfoSha256;
 });
 afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 
 /** The ranker block of a genuine `--ref eval-v0` run. */
 const pinnedRanker = () => ({ ref: 'eval-v0', sha: PINNED_SHA, dirty: false, treeHash: v0Tree, runner: { sha: PINNED_SHA, dirty: false } });
+/** The ranker block of a genuine run of the shipped pin: the baseline of a per-change holdout look. */
+const holdoutRanker = () => rankerAt(SHIPPED_PIN, holdoutTree);
+const SHIPPED_LABEL = labelRe(SHIPPED_PIN);
 const candRanker = () => ({ ref: 'WORKTREE', sha: 'c'.repeat(40), dirty: false, treeHash: 'd'.repeat(64), runner: { sha: 'c'.repeat(40), dirty: false } });
 
 /** Grades of an answerable query's ten returned codes, best first. */
@@ -124,7 +131,7 @@ async function makeSet(name, spec) {
   const dir = join(tmp, name);
   const d = await derived();
   spec.qrels?.(d.qrels, d);
-  const base = runFile(d.querySet, 'base', as, spec.base?.ranker ?? pinnedRanker(), spec.base?.codes?.(d) ?? copy(d.ranked), spec.base?.config);
+  const base = runFile(d.querySet, 'base', as, spec.base?.ranker ?? (as === 'test' ? pinnedRanker() : holdoutRanker()), spec.base?.codes?.(d) ?? copy(d.ranked), spec.base?.config);
   const cand = runFile(d.querySet, 'cand', as, candRanker(), spec.cand(d));
   await writeEncryptedJson(join(dir, 'queries.json.enc'), d.querySet, key, as);
   await writeEncryptedJson(join(dir, 'qrels.json.enc'), d.qrels, key, as);
@@ -171,7 +178,7 @@ describe('gap 1: a cutoff verdict needs a truncation, and the rule is recorded',
     const { dir } = await makeSet('cutoff-reorders', { cand: reorderingCutoff });
     const general = report(dir, ['--change-kind', 'general']);
     expect(general.stderr).toBe('');
-    expect(general.stdout).toMatch(/^holdout verdict: FAIL · rule general · baseline eval-v0 7ac9841 · qrels qrels-derived-v1$/m);
+    expect(general.stdout).toMatch(new RegExp(`^holdout verdict: FAIL · rule general · baseline ${SHIPPED_LABEL} · qrels qrels-derived-v1$`, 'm'));
     const cutoff = report(dir, ['--change-kind', 'cutoff']);
     expect(cutoff.code).toBe(1);
     expect(`${cutoff.stdout}${cutoff.stderr}`).toBe(withheld('CutoffError'));
@@ -186,7 +193,7 @@ describe('gap 1: a cutoff verdict needs a truncation, and the rule is recorded',
     const r = report(dir, ['--change-kind', 'cutoff']);
     expect(r.stderr).toBe('');
     expect(r.code).toBe(0);
-    expect(r.stdout).toMatch(/^holdout verdict: PASS · rule cutoff · baseline eval-v0 7ac9841 · qrels qrels-derived-v1$/m);
+    expect(r.stdout).toMatch(new RegExp(`^holdout verdict: PASS · rule cutoff · baseline ${SHIPPED_LABEL} · qrels qrels-derived-v1$`, 'm'));
     const rows = await rowsOf(ledgerOf(dir));
     expect(rows.map((c) => [c[3], c[5], c[8]])).toEqual([['cand', 'pass', 'cutoff']]);
   });
@@ -195,7 +202,7 @@ describe('gap 1: a cutoff verdict needs a truncation, and the rule is recorded',
     const { dir } = await makeSet('targeted', { cand: truncatingCutoff });
     const r = report(dir, ['--target-shapes', 'topical,noanswer']);
     expect(r.stderr).toBe('');
-    expect(r.stdout).toMatch(/^holdout verdict: (PASS|FAIL) · rule targeted: topical,noanswer · baseline eval-v0 7ac9841 · /m);
+    expect(r.stdout).toMatch(new RegExp(`^holdout verdict: (PASS|FAIL) · rule targeted: topical,noanswer · baseline ${SHIPPED_LABEL} · `, 'm'));
     expect((await rowsOf(ledgerOf(dir)))[0][8]).toBe('targeted: topical,noanswer');
   });
 
@@ -235,12 +242,12 @@ describe('gap 1: a cutoff verdict needs a truncation, and the rule is recorded',
   });
 });
 
-describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not the pinned eval-v0', () => {
+describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not their pin', () => {
   /** Top-10s worst first: the baseline a forger wants. */
   const reversed = (/** @type {Awaited<ReturnType<typeof derived>>} */ d) => Object.fromEntries(Object.entries(copy(d.ranked)).map(([id, c]) => [id, c.reverse()]));
 
   it('refuses a baseline with an all-zero ranker sha and reversed top-10s; no look is recorded', async () => {
-    const { dir } = await makeSet('forged-sha', { base: { ranker: { ...pinnedRanker(), sha: '0'.repeat(40) }, codes: reversed }, cand: (d) => copy(d.ranked) });
+    const { dir } = await makeSet('forged-sha', { base: { ranker: { ...holdoutRanker(), sha: '0'.repeat(40) }, codes: reversed }, cand: (d) => copy(d.ranked) });
     const r = report(dir);
     expect(`${r.stdout}${r.stderr}`).toBe(withheld('BaselineError'));
     expect(r.code).toBe(1);
@@ -248,21 +255,21 @@ describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not the pinn
   });
 
   it.each([
-    ['a ranker ref other than eval-v0', { ref: 'WORKTREE' }],
+    ['a ranker ref other than the pin\'s', { ref: 'WORKTREE' }],
     ['a dirty ranker', { dirty: true }],
-    ['a treeHash that is not eval-v0\'s', { treeHash: 'e'.repeat(64) }],
+    ['a treeHash that is not the pin\'s', { treeHash: 'e'.repeat(64) }],
     ['no treeHash', { treeHash: undefined }],
   ])('refuses %s', async (_, edit) => {
-    const { dir } = await makeSet(`forged-${Object.keys(edit)[0]}`, { base: { ranker: { ...pinnedRanker(), ...edit } }, cand: (d) => copy(d.ranked) });
+    const { dir } = await makeSet(`forged-${Object.keys(edit)[0]}`, { base: { ranker: { ...holdoutRanker(), ...edit } }, cand: (d) => copy(d.ranked) });
     const r = report(dir);
     expect(`${r.stdout}${r.stderr}`).toBe(withheld('BaselineError'));
     expect(await rowsOf(ledgerOf(dir))).toHaveLength(0);
   });
 
   it.each([
-    ['an unfiltered eval-v0 run', { config: { mode: 'hybrid', filters: false } }, 'BaselineError'],
-    ['a lexical-mode eval-v0 run', { config: { mode: 'lexical', filters: true } }, 'RunFileError'], // a pool variant, refused first
-    ['a run made by a dirty runner', { ranker: { ...pinnedRanker(), runner: { sha: PINNED_SHA, dirty: true } } }, 'BaselineError'],
+    ['an unfiltered run of the pin', { config: { mode: 'hybrid', filters: false } }, 'BaselineError'],
+    ['a lexical-mode run of the pin', { config: { mode: 'lexical', filters: true } }, 'RunFileError'], // a pool variant, refused first
+    ['a run made by a dirty runner', { ranker: { ...holdoutRanker(), runner: { sha: SHIPPED_PIN.sha, dirty: true } } }, 'BaselineError'],
   ])('refuses %s as the baseline', async (_, base, error) => {
     const { dir } = await makeSet(`forged-${_.replace(/\W+/g, '-')}`, { base, cand: (d) => copy(d.ranked) });
     const r = report(dir);
@@ -271,7 +278,7 @@ describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not the pinn
   });
 
   it('`run` refuses a forged baseline before reserving a look', async () => {
-    const { dir } = await makeSet('forged-run', { base: { ranker: { ...pinnedRanker(), sha: '0'.repeat(40) } }, cand: (d) => copy(d.ranked) });
+    const { dir } = await makeSet('forged-run', { base: { ranker: { ...holdoutRanker(), sha: '0'.repeat(40) } }, cand: (d) => copy(d.ranked) });
     const r = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'never', '--baseline', 'base']);
     expect(`${r.stdout}${r.stderr}`).toBe(withheld('BaselineError'));
     expect(await rowsOf(ledgerOf(dir))).toHaveLength(0);
@@ -283,7 +290,7 @@ describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not the pinn
     expect(r.stderr).toBe('');
     expect(r.code).toBe(0);
     const rows = await rowsOf(ledgerOf(dir));
-    expect(rows.map((c) => [c[2], c[3], c[4], c[9]])).toEqual([['ccccccc', 'cand', 'base', '7ac9841']]);
+    expect(rows.map((c) => [c[2], c[3], c[4], c[9]])).toEqual([['ccccccc', 'cand', 'base', SHIPPED_PIN.sha.slice(0, 7)]]);
   });
 
   describe('SC5 (the test set), from a temporary clone so its fixed ledger is the clone\'s', () => {
@@ -499,8 +506,8 @@ describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is
     }
     const baseline = join(clone, 'eval', 'lib', 'baseline.mjs');
     const src = await readFile(baseline, 'utf8');
-    const line = `export const SHIPPED_BASELINE = Object.freeze({ ref: 'eval-v0', sha: '${PINNED_SHA}' });`;
-    expect(src).toContain(line);
+    const line = /^export const SHIPPED_BASELINE = Object\.freeze\(\{ ref: '[^']+', sha: '[0-9a-f]{40}' \}\);$/m;
+    expect(src).toMatch(line);
     await writeFile(baseline, src.replace(line, `export const SHIPPED_BASELINE = Object.freeze({ ref: '${shippedSha}', sha: '${shippedSha}' });`));
     cloneCli = join(clone, 'eval', 'cli.mjs');
   });
@@ -508,7 +515,7 @@ describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is
   const look = (dir, set = SET) => cli(['report', '--set', set, '--set-dir', dir, '--run', 'cand', '--baseline', 'base'], { cli: cloneCli });
 
   it('a per-change holdout look refuses an eval-v0 baseline (report and run), before any look', async () => {
-    const { dir } = await makeSet('shipped-v0-base', { cand: (d) => copy(d.ranked) });
+    const { dir } = await makeSet('shipped-v0-base', { base: { ranker: pinnedRanker() }, cand: (d) => copy(d.ranked) });
     expect(`${look(dir).stdout}${look(dir).stderr}`).toBe(withheld('BaselineError'));
     const run = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'never', '--baseline', 'base'], { cli: cloneCli });
     expect(`${run.stdout}${run.stderr}`).toBe(withheld('BaselineError'));

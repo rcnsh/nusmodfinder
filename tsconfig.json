@@ -15,5 +15,5 @@
     "skipLibCheck": true
   },
   "include": ["worker-configuration.d.ts", "scripts/corpus-types.d.ts", "src/**/*", "test/**/*", "eval/runner/**/*.js", "eval/runner/types.d.ts", "eval/runner/vitest.d.ts"],
-  "exclude": ["test/fixtures/**", "test/**/*.node.test.js"]
+  "exclude": ["test/fixtures/**", "test/**/*.node.test.js", "test/**/*.node.mjs"]
 }

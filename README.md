@@ -392,16 +392,14 @@ billed, not refused, and this project stays inside them.
 | D1 rows written | 50,000,000 / month | 34,383 per forced full re-ingest, measured against production on 2026-11-04 ([`remote-ops.md`](docs/evidence/phase1/remote-ops.md)); a rerun with nothing changed writes 2; the standby refresh writes 0 |
 | Vectorize stored dims | 10,000,000 | 6,778 × 384 = **2,602,752** (26%), the standby |
 | Vectorize queried dims | 50,000,000 / month | **~0 per search** (only under `DENSE_BACKEND=vectorize`); the stored term, ~2.6M, still counts once a month |
-| **Workers CPU** | **30,000,000 ms / month** | the exact search is **1.44 ms** warm, unfiltered, locally ([`3-0.md`](docs/evidence/phase3/3-0.md)); the whole request was p99 18.5 ms in Phase 1; the 3-0 smoke reads the live mean `CPUTimeMs` |
+| **Workers CPU** | **30,000,000 ms / month** | live, version `343ea371`: **p50 9.1 ms, p75 15.5 ms** CPU per request (first 18 requests after the cutover, `/health` included), 33–34 ms on a fresh isolate's first search ([`3-0-cutover.md`](docs/evidence/phase3/3-0-cutover.md)); the exact search alone is 1.44 ms locally and 3.4 ms on a CI runner ([`3-0.md`](docs/evidence/phase3/3-0.md)) |
 | Workers AI | 10,000 neurons / day | ~0.03 per search; ~2,400 per forced re-ingest (measured); a bundle build embeds only texts the eval asset lacks (~54 for the 3-0 cutover, est.) |
 | CPU per request | 30 s | as above |
 
-The arithmetic. **CPU is the smaller limit.** At the plan's 5 ms of CPU a search, 30M CPU-ms
-cover **~6.0M searches a month**. Every millisecond of the rest of the request (FTS, JSON,
-hydrate) comes out of the same allowance, so the live mean `CPUTimeMs` from the 3-0 smoke
-replaces this estimate. Workers AI's 10,000 neurons a day at ~0.03 a search cover ~10M a month,
-or ~6.0M at 3A-1's ~0.05. At 6M searches a month, D1's 25 billion reads cover ~4,000 rows read per
-search. The measured medians (239–497) are well inside that; the worst filtered search on the
+The arithmetic. **CPU is the smaller limit.** At the measured ~12 ms of CPU a request, 30M
+CPU-ms cover **~2.5M searches a month**, about 20 times the old Vectorize-bound ~123,400.
+Workers AI's 10,000 neurons a day at ~0.03 a search cover ~10M a month, or ~6.0M at 3A-1's
+~0.05. At 2.5M searches a month, D1's 25 billion reads cover ~10,000 rows read per search. The measured medians (239–497) are well inside that; the worst filtered search on the
 local grid (7,772 rows) is not. Cached repeats cost none of these.
 
 ### How that number was brought down
