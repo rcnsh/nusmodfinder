@@ -295,8 +295,19 @@ P-5b, §9). Each rule is in the code and tested.
 
   `npm run eval -- --holdout` is not used for looks, because it reserves its row before
   retrieval. The ledger is committed after each look. Retries are the plan's named ones only.
-  The baseline-pin rule (amendment 2026-11-04) still applies: a holdout verdict against a
-  baseline other than `eval-v0` needs the pin and this ADR changed in the same PR first.
+  `<shipped>` is a stored run of the shipped-ranker pin (next item).
+- **Two baseline pins** (A3-4; lead decision on PR #34). The 2026-11-04 pin is split in two
+  (`eval/lib/baseline.mjs`):
+  - **The SC5 / test-set baseline** (`PINNED_BASELINE`) stays `eval-v0` = 7ac9841 and never
+    moves. The test set's verdict and `--gate sc5` compare against it.
+  - **The shipped-ranker pin** (`SHIPPED_BASELINE`, a ref name and a full sha) is the baseline
+    of every per-change holdout look. It starts equal to `eval-v0`. It moves only in the PR
+    that ships a change, and that PR adds a line to "Shipped-ranker pin" below;
+    `test/eval/baseline.node.test.js` fails unless the constant equals that section's last line.
+  - A baseline run is checked against its pin as before: the ref still resolves to the pinned
+    sha, and the run records that ref and sha, a clean ranker and runner, the commit's ranker
+    `treeHash`, `config.filters === true` and hybrid mode (`BaselineError`). The ledger's
+    `baseline ranker` column still records the baseline run's sha.
 - **groups-v1 is the duplicate-group rule** (A-2, C-8) for dev, holdout, test and, from 3F, the
   product: `eval/lib/groups.mjs` over the pinned corpus, committed as `eval/groups.json` (509
   groups). It joins the locks:
@@ -310,6 +321,12 @@ P-5b, §9). Each rule is in the code and tested.
   - The SC4 suite's texts and code targets, and the gibberish set, join dev and the holdout in
     the sealed test set's exclusion list and its leak filter ("Test set, pre-registered now",
     above): a test query with cosine ≥ 0.9 to any of them, or a shared source, is dropped.
+
+## Shipped-ranker pin
+The baseline of per-change holdout looks (`SHIPPED_BASELINE`, `eval/lib/baseline.mjs`). The
+last line is the current pin; a PR that ships a change appends one line, with the ranker it
+ships, in the same PR as the constant.
+- shipped pin: `eval-v0` 7ac984174ded88cb2b6497d9835b456981acdd99 (the Phase 2 baseline; nothing shipped yet)
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.

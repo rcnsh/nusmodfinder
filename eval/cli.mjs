@@ -15,7 +15,7 @@ import { appendFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
-import { assertPinnedBaseline, pinnedLabel } from './lib/baseline.mjs';
+import { assertBaselineAt, baselinePinFor, pinLabel } from './lib/baseline.mjs';
 import { assertInManifest, manifestFiles, MANIFEST, recordInManifest, removeFromManifest, sha256, writeEncryptedJson } from './lib/crypto.mjs';
 import { EmbeddingError, errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
 import { assertSc5Allowed, assertTruncation, CHANGE_KINDS, DEV_ONLY_KINDS, gateFor, ruleOf, SC5_READING } from './lib/gate.mjs';
@@ -146,7 +146,11 @@ async function readExempt(path, queries, setName) {
   return [...new Set(ids)];
 }
 
-/** The custody gates (holdout, SC5) take verdicts only against the pinned baseline. */
+/**
+ * The custody gates (holdout, SC5) take verdicts only against a pinned
+ * baseline: SC5 against eval-v0, a per-change holdout look against the
+ * shipped-ranker pin (lib/baseline.mjs `baselinePinFor`).
+ */
 const custodyGate = (/** @type {import('./lib/sets.mjs').SetLayout} */ set) => set.gate === 'holdout' || set.gate === 'test';
 
 /** The baseline ranker as a ledger cell: its sha, 7 characters. @param {import('./lib/metrics.mjs').RunFile} run */
@@ -293,8 +297,9 @@ const today = () => new Date().toISOString().slice(0, 10);
  * @param {string} candPath
  * @param {string} basePath
  * Every ciphertext it reads must match the set's MANIFEST.json, a custody
- * gate's baseline must be the pinned eval-v0, and a cutoff candidate a
- * truncation of it; any refusal comes before a look is appended.
+ * gate's baseline must be its pin (eval-v0 for SC5, the shipped ranker for a
+ * per-change look), and a cutoff candidate a truncation of it; any refusal
+ * comes before a look is appended.
  * @param {Args} a
  * @param {import('./lib/gate.mjs').Change} change
  * @param {string | null} [reserved] the ledger line `run` reserved
@@ -314,7 +319,7 @@ async function verdictReport(set, candPath, basePath, a, change, reserved = null
     const base = await readRun(set, basePath, verify);
     assertComparable([base, cand]);
     assertGateable([base, cand]);
-    if (custodyGate(set)) await assertPinnedBaseline(base);
+    if (custodyGate(set)) await assertBaselineAt(base, baselinePinFor(set.gate, change));
     if (change.kind === 'cutoff') assertTruncation(base, cand);
     assertSameCorpus(qrels, [base, cand]);
     const scored = withCorpusGroups(qrels, await loadGroups());
@@ -338,7 +343,7 @@ async function verdictReport(set, candPath, basePath, a, change, reserved = null
       return;
     }
     const v = gateFor(set.gate, cmp, change);
-    const out = verdictOnly(v, cmp, qrels.version, custodyGate(set) ? pinnedLabel() : `${String(/** @type {any} */ (base.ranker)?.ref ?? 'unknown')} ${rankerCell(base)}`);
+    const out = verdictOnly(v, cmp, qrels.version, custodyGate(set) ? pinLabel(baselinePinFor(set.gate, change)) : `${String(/** @type {any} */ (base.ranker)?.ref ?? 'unknown')} ${rankerCell(base)}`);
     const final = { ...row, verdict: v.verdict, ndcg: out.ndcg, p5: out.p5 };
     if (reserved) {
       await finaliseLook(ledger, reserved, final);
@@ -381,7 +386,7 @@ async function cmdRun(a) {
     await setKey(); // fail before any work if the key is not there
     await assertRunSlotFree(set, /** @type {string} */ (a.variant));
     if (!a['store-only']) {
-      const baseRun = await precheckCorpus(set, a); // before the look is reserved
+      const baseRun = await precheckCorpus(set, a, change); // before the look is reserved
       look = {
         date: today(), set: set.name, commit: 'pending', variant: /** @type {string} */ (a.variant), baseline: /** @type {string} */ (a.baseline),
         verdict: 'aborted', ndcg: '—', p5: '—', rule: ruleOf(set.gate, change), baselineRanker: baseRun ? rankerCell(baseRun) : 'unknown',
@@ -391,7 +396,7 @@ async function cmdRun(a) {
       reserved = await reserveLook(/** @type {string} */ (set.ledger), lookMax(set, change), look, { check: () => sc5Order(set, change) });
     }
   }
-  if (!set.encrypted && a.baseline) await precheckCorpus(set, a);
+  if (!set.encrypted && a.baseline) await precheckCorpus(set, a, change);
   try {
     await runAndReport(a, set, change, reserved && look ? { line: reserved, row: look } : null);
   } catch (err) {
@@ -405,12 +410,13 @@ async function cmdRun(a) {
  * on the corpus the qrels were judged on, and the duplicate groups built from
  * it (the candidate is checked again after it runs). On an encrypted set,
  * every ciphertext the run and its verdict read must match the manifest, and
- * a custody gate's baseline must be the pinned eval-v0.
+ * a custody gate's baseline must be its pin.
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {Args} a
+ * @param {import('./lib/gate.mjs').Change} change
  * @returns {Promise<import('./lib/metrics.mjs').RunFile | null>} the baseline run (null on dev before judging)
  */
-async function precheckCorpus(set, a) {
+async function precheckCorpus(set, a, change) {
   const verify = { verify: set.encrypted };
   const baseRun = await readRun(set, runPath(set, /** @type {string} */ (a.baseline)), verify);
   // A pool-variant baseline is refused here, before any look is reserved.
@@ -422,7 +428,7 @@ async function precheckCorpus(set, a) {
     await loadQueries(set, verify);
     const cache = setFile(set, 'embeddings.json');
     if (existsSync(cache)) await assertInManifest(set.dir, cache);
-    if (custodyGate(set)) await assertPinnedBaseline(baseRun);
+    if (custodyGate(set)) await assertBaselineAt(baseRun, baselinePinFor(set.gate, change));
   } else {
     const qrelsPath = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
     if (!existsSync(qrelsPath)) return null; // dev before judging: nothing to score yet

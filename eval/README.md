@@ -374,11 +374,25 @@ ciphertexts cannot be read through it.
 
 **What a verdict refuses** (every holdout and test-set verdict, `run` and `report`; all before
 a look is reserved or appended, so a refusal uses no look):
-- **A baseline that is not the pinned `eval-v0`** (`BaselineError`). ADR 0003 pins `eval-v0` =
-  7ac9841 (`lib/baseline.mjs`). The tag must still resolve to that commit, and the baseline
-  run file must record ranker ref `eval-v0`, that sha, `dirty: false`, and the `treeHash` of
-  that commit's ranker files (`git archive`, the paths `lib/workspace.mjs` hashes). The ledger's
+- **A baseline that is not its pin** (`BaselineError`). There are two pins (`lib/baseline.mjs`,
+  ADR 0003):
+  - SC5 verdicts (the test set, and `--gate sc5`) compare against `PINNED_BASELINE`, `eval-v0`
+    = 7ac9841. It never moves.
+  - Per-change holdout looks compare against `SHIPPED_BASELINE`, the shipped ranker (a ref
+    name and a full sha). It starts equal to `eval-v0`.
+
+  Either way the ref must still resolve to the pinned sha, and the baseline run file must
+  record that ranker ref and sha, `dirty: false`, a clean runner, the `treeHash` of that
+  commit's ranker files (`git archive`, the paths `lib/workspace.mjs` hashes),
+  `config.filters: true` and hybrid mode. Store it with `--ref <the pin's ref>`. The ledger's
   `baseline ranker` column records the baseline run's ranker sha.
+
+  **Moving the shipped pin.** Only the PR that ships a change moves it, and in that PR:
+  set `SHIPPED_BASELINE` to the shipped commit (a tag pointing at it, or the sha as its own
+  ref) and append a `` - shipped pin: `<ref>` <full sha> `` line to ADR 0003's
+  "Shipped-ranker pin" section. `test/eval/baseline.node.test.js` fails if the constant and
+  the section's last line differ. Store the new baseline run with `--ref <ref>` before the
+  next look.
 - **A ciphertext the manifest does not vouch for** (`ManifestError`). Every encrypted file a
   verdict reads (queries, qrels, both run files, and for `run` the query-embedding cache) must
   be listed in the set directory's `MANIFEST.json` with its sha256, the check `eval:verify`
