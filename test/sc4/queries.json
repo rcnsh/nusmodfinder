@@ -2212,14 +2212,17 @@
   {
    "id": "sc4-085",
    "row": "guard",
-   "text": "lab safety training",
+   "text": "psychology electives for cs majors",
    "topK": 20,
    "rule": "guard",
    "params": {
-    "collisionTokens": [
-     "lab"
-    ],
-    "letterTokens": []
+    "collisionTokens": [],
+    "letterTokens": [
+     "psychology",
+     "electives",
+     "cs",
+     "majors"
+    ]
    },
    "interpreted": {
     "pin": null,
@@ -2262,14 +2265,16 @@
   {
    "id": "sc4-087",
    "row": "guard",
-   "text": "ma thesis writing",
+   "text": "philosophy for lsm students",
    "topK": 20,
    "rule": "guard",
    "params": {
-    "collisionTokens": [
-     "ma"
-    ],
-    "letterTokens": []
+    "collisionTokens": [],
+    "letterTokens": [
+     "philosophy",
+     "lsm",
+     "students"
+    ]
    },
    "interpreted": {
     "pin": null,

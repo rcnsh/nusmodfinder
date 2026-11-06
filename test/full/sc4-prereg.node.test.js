@@ -185,6 +185,27 @@ describe.skipIf(!available)('SC4 suite against the pinned corpus (P-6)', () => {
     }
   });
 
+  it('the guard count rule binds: two guards carry an off-list prefix token with ≥ M members, a prefix the suite also joins or routes', () => {
+    // A count-rule token that is not an offered prefix can never fail the rule.
+    // These two can: a ranker that prefix-routed the letter-only token (as a
+    // third list, like a code token) would put its members in the top 10.
+    /** @type {Record<string, string[]>} */
+    const binding = {};
+    for (const it of items.filter((x) => x.rule === 'guard' && x.params.collisionTokens.length === 0)) {
+      const toks = it.params.letterTokens.filter((/** @type {string} */ t) => prefixes.has(t.toUpperCase()));
+      if (toks.length) binding[it.id] = toks;
+    }
+    expect(binding).toEqual({ 'sc4-085': ['cs'], 'sc4-087': ['lsm'] });
+    const M = readJson('test/sc4/queries.json').thresholds.M;
+    for (const t of Object.values(binding).flat()) {
+      const P = t.toUpperCase();
+      expect(collision.list, t).not.toContain(P);
+      expect(membersOf(codes, P).length, t).toBeGreaterThanOrEqual(M);
+      // Off the list by the suite's own items: the joins and routes on P need it there.
+      expect(items.some((x) => (x.interpreted.pin ?? []).some((/** @type {string} */ c) => c.startsWith(P) && /^\d/.test(c.slice(P.length))) || x.interpreted.prefix === P), t).toBe(true);
+    }
+  });
+
   it('every collision-list entry and pillar prefix is an offered-module prefix; the plan\'s non-prefixes are not', () => {
     for (const p of [...collision.list, ...pillars]) expect(prefixes.has(p), p).toBe(true);
     for (const p of collision.notPrefixes) expect(prefixes.has(p), p).toBe(false);

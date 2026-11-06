@@ -3,7 +3,7 @@
 Plan: [`phase3.md`](phase3.md), precondition P-6 (§3, lines 876–887). This commit fixes every
 value a later selection could be tuned on, before any 3B–3H code merges and before the first
 holdout look. Each value cites the plan line it comes from, or gives the reason it was chosen
-here. Every value the plan left open is also listed under "Choices made at P-6" (§9).
+here. Every value the plan left open is also listed under "Choices made at P-6" (§10).
 
 Nothing here changes ranker behaviour: no file under `src/` changes. The values bind the
 workstreams that implement them. A change to any of them goes through the lead, with the reason
@@ -220,10 +220,12 @@ No grid. groups-v1 by its version string; gate by identity with the group-first 
 
 ### 3G Gibberish and "no matches" (plan 710–749)
 - **The gibberish set**: `eval/dev/gibberish.json`, 40 strings in four kinds: keyboard mash (10),
-  filler (10), out-of-vocabulary slang (9), mixed letter-digit tokens (11). Written before any 3G
-  code, disjoint from SC4 and dev (tests). Every token has df 0 in the pinned corpus, no token of
+  filler (10), out-of-vocabulary slang (9), and mixed (11): eight strings that mix letters and
+  digits within or across tokens (g-31 to g-38) and three of letter-only nonce words (g-30, g-39,
+  g-40). Written before any 3G code, disjoint from SC4 and dev (tests). Every token has df 0 in the pinned corpus, no token of
   4+ letters is a prefix of a corpus token, and none is a module prefix or code-shaped
-  (`test/full/sc4-prereg.node.test.js`), so each string can only be decided by τ (choice C21).
+  (`test/full/sc4-prereg.node.test.js`), so each string can only be decided by τ (choice C21). This excludes the shape the plan names
+  for the mixed kind, d-025's keyboard mash around a known-prefix code token (ambiguity A12).
 - **Split** (A3-6): seed **20261106**; a Fisher–Yates shuffle with `eval/lib/stats.mjs` `rng`
   over the ids in file order; the first ⌊n/2⌋ form the derivation half, the rest the gate half.
   `node eval/prereg/gibberish-split.mjs --check` reproduces it. Derivation half: g-02, g-05,
@@ -300,9 +302,12 @@ does not exist, goes to Jacob (Q4).
 
 ## 9. SC4 acceptance suite (plan §4, 978–1043)
 
-**SC4 suite sha256 `6e0901f22f98f8847f7b85f99913d665be0646bc876f753cfc1e34bb165039c0`** (`test/sc4/queries.json`, version
+**SC4 suite sha256 `43bc618cd0e3fd45347e553d443a4e6813732b87ef8aa5cff5ffb81dbffa58e7`** (`test/sc4/queries.json`, version
 `sc4-v1`). `test/sc4/suite.node.test.js` fails if the file changes without this line.
 Implementers may not edit the suite; a change goes through the lead with the reason logged.
+`test/sc4/consistency.node.test.js` checks what the items mean: each item's `interpreted` intents
+are what the phrase rules (§3, §5, §7) give for its text, or for a typo item's clean form, in both
+directions, and each rule's params agree with its `interpreted`.
 
 ### The `interpreted` schema
 Every response echoes `interpreted` with exactly these eight keys, in this order. A key is `null`
@@ -406,7 +411,7 @@ The GE-inside-a-longer-query items count groups among all 141 pillar members: 10
 | gibberish | 5 | `asdfgh`, `lmao idk`, `skibidi`, `xqzv 4412`, `frobnicate quux` |
 | non-existent code | 3 | `CS9999`, `lsm 9876`, `ACC9123` |
 | not-offered code | 2 | `GEQ1000` (Asking Questions), `GEH1001` (Globalisation and New Media) |
-| guards | 29 | §4's 18 (`art history` … `give me 3000 level electives`), `what is 2000 level`, `is it 3000 level` (both from 3B's text), and `ee 2211 workload`, `it`, `it security`, `lab safety training`, `final year project`, `ma thesis writing`, `se asia history`, `non graduate data science`, `beyond first year calculus` |
+| guards | 29 | §4's 18 (`art history` … `give me 3000 level electives`), `what is 2000 level`, `is it 3000 level` (both from 3B's text), and `ee 2211 workload`, `it`, `it security`, `psychology electives for cs majors`, `final year project`, `philosophy for lsm students`, `se asia history`, `non graduate data science`, `beyond first year calculus` |
 | **total** | **90** | |
 
 ### Custody and dev
@@ -452,9 +457,10 @@ Each is a value the plan leaves open, with its one-line reason.
   nor the catalogue, not `XX N000`); and every typo, level, constraint, gibberish and extra guard
   text in §9's table. Each targets one rule and was checked against dev.
 - **C8.** The 11 extra guards cover the joins §3B names (`what is 2000 level`, `is it 3000
-  level`, `ee 2211 workload`), collision tokens alone and in context (`it`, `it security`,
-  `lab safety training`, `ma thesis writing`, `se asia history`), `final` outside an exam phrase
-  (`final year project`), and negation (`non graduate …`, `beyond first year …`).
+  level`, `ee 2211 workload`), collision tokens alone and in context (`it`, `it security`, `se asia history`), `final` outside
+  an exam phrase (`final year project`), negation (`non graduate …`, `beyond first year …`), and
+  the count rule on an off-list prefix (`psychology electives for cs majors`, `philosophy for lsm
+  students`; C30).
 - **C9.** The `interpreted` schema in §9, including `level.max = null` for graduate (levels reach
   8), `source` as a sorted array (the union can hold several kinds), and the `$selected`
   placeholder for the prereq semantics, which 3H fixes after P-6.
@@ -497,6 +503,18 @@ Each is a value the plan leaves open, with its one-line reason.
 - **C28.** "Grid order" for 3E ties is w_v/w_l ascending, then k ascending.
 - **C29.** The suite's and gibberish set's embeddings go in `test/sc4/embeddings.json`, the eval
   cache format, beside the suite.
+- **C30.** Two guards make the count rule binding: `psychology electives for cs majors` (CS, 164
+  offered modules) and `philosophy for lsm students` (LSM, 123). They replace two P-6 guards,
+  `lab safety training` and `ma thesis writing`, whose collision-in-context shape `it security`
+  and `se asia history` still cover. A count-rule token that is no offered prefix (`art`,
+  `law`, `comp`, `psych`, `korean` …) passes on any output, and §4's 18 guards have no other
+  kind, so before C30 the rule could not fail. `cs` and `lsm` belong off the collision list:
+  each is the department's own code, a student types it to mean that department, and the suite's
+  own joins and routes on it (`cs 1010s`, `cs 3000`, `cs 32`, `lsm 1301`, `lsm 9876`) need
+  it off. Inside these texts the token names the student's cohort, not the subject asked for, so
+  a correct ranking has few CS or LSM modules in its top 10, while a ranker that prefix-routed
+  the letter-only token (a third list, as for a code token) would add its members.
+  `test/full/sc4-prereg.node.test.js` checks that exactly these two guards bind.
 
 ## 11. Ambiguities and how they were resolved
 - **A1.** §4's examples `is 4246` and `gec` are dev queries d-089 and d-092, but §4 names only
@@ -520,6 +538,13 @@ Each is a value the plan leaves open, with its one-line reason.
   no suite item has that shape.
 - **A11.** The full-corpus CI job fails if any `test/full` test is skipped, so the
   embedding-dependent checks live in `test/sc4/`, under `npm test`, where a skip is allowed.
+- **A12.** 3G's set asks for "mixed tokens like d-025" (plan 719): d-025 is `asdkj qwpo cs44xx
+  zzz`, keyboard mash around `cs44xx`, whose letter part is a known prefix. The set leaves that
+  shape out (`test/full/sc4-prereg.node.test.js` forbids a token whose letter part is a module
+  prefix). A known-prefix code token inside a longer query fires the prefix route (third list,
+  plan 678), so 3G's first condition, "no code, prefix or GE route fired", cannot hold for it, and
+  such a string could not measure τ. Its mixed strings keep d-025's other half: nonce letters
+  mixed with digits, and code-like tokens off every prefix (`xj9k 2kq`, `zz9 xx8`).
 
 ## 12. Still to do, outside this commit
 - Embed the 143 texts in `test/sc4/needs-embedding.txt` (lead, < 1 neuron), then the skipped
