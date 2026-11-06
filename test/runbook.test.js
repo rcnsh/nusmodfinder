@@ -229,6 +229,25 @@ describe('runbook step 8: /admin/vectors and the standby run', () => {
     expect((await runVerify({ api: api(), listVectorIds, sample: [changed.code], bundle })).valueDrift).toEqual([changed.code]);
   });
 
+  it('the standby deletes every index id D1 no longer holds, even when the deletions file lost some (resumed or retried step 4)', async () => {
+    // Step 4 removed six codes from D1, but the file it left names none of them
+    // (a budget stop then resume, a clean rerun, or a retried delete all lose codes).
+    const corpus = fixture.modules.slice(6);
+    const step4 = await runIngest({
+      modules: corpus, facetsBody, api: api(), sleep, now,
+      options: { embeddingModel: MODEL, d1Only: true, expectedDataVersion: await versionOf(corpus), allowMassDelete: true },
+    });
+    expect(step4.status).toBe('done');
+    const listVectorIds = async () => [...fakes.vectorize.vectors.keys()];
+    const bundle = await bundleFor(corpus);
+    fakes.vectorize.processPerDescribe = 1;
+    const result = await runStandby({ api: api(), bundle, deletes: [], listVectorIds, sleep, now, waitIntervalMs: 1000 });
+    expect(result.status).toBe('done');
+    expect(result.deleted).toBe(6);
+    const report = await runVerify({ api: api(), listVectorIds, sampleSize: 100, bundle });
+    expect(report).toMatchObject({ ok: true, missingVectors: [], extraVectors: [] });
+  });
+
   it('the standby run refuses, sending nothing, a bundle that does not match D1\'s texts, or deletions D1 still holds', async () => {
     const changed = await withText(fixture.modules[5], 'never ingested');
     const wrong = await bundleFor([changed, ...fixture.modules.slice(0, 5), ...fixture.modules.slice(6)]);

@@ -227,7 +227,7 @@ npm run deploy
 # 7. Smoke (≤ 4 calls): /health says vectors.corpus "production"; read CPUTimeMs in Workers Logs.
 #    On failure: wrangler rollback <previous id>, restore D1 to the step-3 bookmark, revert step 2.
 # 8. The standby: upsert every code (bundle values, D1 metadata, ≤ 1,000 a batch), delete
-#    step 4's deletions, wait for the mutation, then verify, values included.
+#    every index id D1 no longer holds, wait for the mutation, then verify, values included.
 node scripts/vectors.mjs standby --url http://localhost:8787
 ```
 

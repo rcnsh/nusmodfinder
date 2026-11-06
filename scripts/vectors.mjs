@@ -241,7 +241,7 @@ async function standby(argv, log) {
   log(`standby: ${bundle.count} vectors from ${entry.asset} (sha256 ok), ${deletes.length} deletions${deletes.length ? ` from ${relative(ROOT, deletesPath)}` : ''}`);
   const api = httpAdminApi(base, secret);
   const result = await runStandby({
-    api, bundle, deletes, log,
+    api, bundle, deletes, log, listVectorIds: () => listVectorIds(DEFAULT_INDEX),
     ...(values['wait-timeout'] ? { waitTimeoutMs: parseDuration(values['wait-timeout']) } : {}),
   });
   if (result.status !== 'done') return result.status === 'wait-timeout' ? 3 : 1;

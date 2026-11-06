@@ -11,7 +11,10 @@
 //     them is the only complete rule), in batches of at most 1,000, the
 //     values from the bundle (the sha-checked asset) and the metadata from
 //     D1's rows (the route). Every batch's mutationId is kept.
-//  3. deleteByIds for the codes runbook step 4 deleted from D1 (D1-only).
+//  3. deleteByIds for every index id D1 no longer holds: the index's ids
+//     (listVectorIds) minus D1's codes, plus any codes the step-4 deletions
+//     file names. The file alone is not enough: a resumed or retried step 4
+//     loses codes it already deleted from D1 (PR #35 review).
 //  4. Wait for the last mutation with ingest-core's waitForMutation.
 // Then the caller runs `npm run verify` with a getByIds sample of values
 // against the bundle (scripts/verify-core.mjs).
@@ -38,13 +41,14 @@ export const bundleRow = (b, i) => b.vectors.subarray(i * b.dims, (i + 1) * b.di
 /**
  * @param {{
  *   api: import('./ingest-core.mjs').AdminApi, bundle: Bundle, deletes?: string[], batchSize?: number,
+ *   listVectorIds?: () => Promise<string[]>,
  *   waitTimeoutMs?: number, waitIntervalMs?: number, sleep?: (ms: number) => Promise<void>, now?: () => number,
  *   log?: (line: string) => void,
  * }} args
  * @returns {Promise<StandbyResult>}
  */
 export async function runStandby({
-  api, bundle, deletes = [], batchSize = STANDBY_BATCH, waitTimeoutMs = 10 * 60_000, waitIntervalMs = 5_000,
+  api, bundle, deletes: listed = [], listVectorIds, batchSize = STANDBY_BATCH, waitTimeoutMs = 10 * 60_000, waitIntervalMs = 5_000,
   sleep = (ms) => new Promise((r) => { setTimeout(r, ms); }), now = Date.now, log = () => {},
 }) {
   /** @type {StandbyResult} */
@@ -67,8 +71,13 @@ export async function runStandby({
       + `bundle ${bundle.header.rowsKey.slice(0, 12)}; ${missing.length} D1 codes not in the bundle${missing.length ? `: ${missing.slice(0, 5).join(', ')}` : ''}). `
       + 'Nothing was sent. Run runbook step 4 (the D1-only ingest) first, or build the bundle for what D1 holds.');
   }
-  const stillHeld = deletes.filter((c) => c in held);
+  const stillHeld = listed.filter((c) => c in held);
   if (stillHeld.length) return stop('refused', `The deletions list names codes D1 still holds: ${stillHeld.slice(0, 10).join(', ')}. Nothing was sent.`);
+
+  // Everything in the index that D1 no longer holds, with the file's codes as a floor.
+  const orphans = listVectorIds ? (await listVectorIds()).filter((id) => !(id in held)) : [];
+  const deletes = [...new Set([...listed, ...orphans])].sort();
+  if (orphans.length) log(`  ${orphans.length} index ids not in D1 will be deleted`);
 
   /** @param {any} body */
   const sent = (body) => {
