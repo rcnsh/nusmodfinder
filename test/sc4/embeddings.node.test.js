@@ -1,6 +1,6 @@
 // @ts-check
-// P-6 makes no Workers AI call, so the suite's and the gibberish set's new
-// texts have no query embedding yet. test/sc4/needs-embedding.txt lists every
+// The suite's and the gibberish set's new texts are embedded into
+// test/sc4/embeddings.json. test/sc4/needs-embedding.txt lists every
 // one of them; this file checks that list is exact, and holds the checks that
 // need the vectors, skipped until test/sc4/embeddings.json exists:
 // - every listed text has a vector for each form the rankers embed;

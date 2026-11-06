@@ -27,6 +27,8 @@ logged, before that workstream's pooling round.
 | `eval/dev/gibberish.json` | the gibberish set (40 strings) and its split |
 | `test/sc4/queries.json` | the SC4 acceptance suite (90 items) |
 | `test/sc4/needs-embedding.txt` | the 143 new texts that need a query embedding |
+| `test/sc4/embeddings.json` | their query embeddings (156 forms) |
+| `eval/prereg/sc4-custody.mjs` | the custodian's holdout overlap check of the suite (`--against dev` self-check) |
 | `test/sc4/*.node.test.js`, `test/full/sc4-prereg.node.test.js` | the tests that hold all of the above together |
 
 ### Machine-readable lists
@@ -430,18 +432,23 @@ The GE-inside-a-longer-query items count groups among all 141 pillar members: 10
   gibberish set is disjoint from the suite and dev by the same check.
 - §4's own examples `is 4246` and `gec` are dev texts d-089 and d-092, which §4 does not name, so
   they are replaced by `ee 2211` and `gess` (choice C6; ambiguity A1).
-- The custodian runs the v2.1 code-overlap rule and the cosine ≥ 0.9 check of every suite query
-  against the holdout before any 3B–3H code merges; hits are replaced through the lead. That is
-  outside this commit.
-- An embedding check against dev (cosine ≥ 0.9) is written and skipped until the vectors exist
-  (`test/sc4/embeddings.node.test.js`).
+- **Holdout check: 0 hits** (custodian, 2026-11-06, `eval/prereg/sc4-custody.mjs --custodian`).
+  It covered 147 texts: the 90 suite texts, the 17 clean forms and references they are compared
+  with, and the 40 gibberish strings. It applied the v2.1 code-overlap rule (a suite code token
+  and a holdout code target where either is a prefix of the other) and query-embedding cosine
+  ≥ 0.9 over every pair of embedded forms. It prints only the hit count and suite ids.
+  - Its self-check on the open dev set (`--against dev`) hits 5 items: the items that carry the
+    dev texts §4 names, and one code join on a dev target. So the check is not vacuous.
+- An embedding check against dev (cosine ≥ 0.9, `test/sc4/embeddings.node.test.js`) passes: no
+  text other than the four §4 names is a near-duplicate of a dev text.
 
 ### Query embeddings
-None of the new texts is embedded: P-6 makes no Workers AI call. `test/sc4/needs-embedding.txt`
-lists all **143** (156 forms with canonical variants): 86 suite item texts, 5 typo clean forms,
+The lead embedded every new text on 2026-11-06 (Workers AI REST, 2 requests, ~1.8 neurons,
+`docs/evidence/neurons.tsv`). `test/sc4/needs-embedding.txt` lists all **143** (156 forms with
+canonical variants): 86 suite item texts, 5 typo clean forms,
 12 constraint references and the 40 gibberish strings. The plan's estimate of ~130 (§4, §6)
 did not count the clean forms and references. They go into `test/sc4/embeddings.json` in the
-eval cache format; the skipped checks then run.
+eval cache format, and the embedding checks run.
 
 ## 10. Choices made at P-6
 Each is a value the plan leaves open, with its one-line reason.
@@ -567,8 +574,5 @@ Each is a value the plan leaves open, with its one-line reason.
   mixed with digits, and code-like tokens off every prefix (`xj9k 2kq`, `zz9 xx8`).
 
 ## 12. Still to do, outside this commit
-- Embed the 143 texts in `test/sc4/needs-embedding.txt` (lead, < 1 neuron), then the skipped
-  checks in `test/sc4/embeddings.node.test.js` run.
-- The custodian's holdout overlap check of the suite (v2.1 code rule and cosine ≥ 0.9).
 - 3B-0 confirms the GE page URL and re-runs critic C's prefix counts; 3H-0 re-derives the
   cohort-only matches.

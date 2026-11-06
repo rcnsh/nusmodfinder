@@ -1,5 +1,5 @@
 # P-6: texts that need a query embedding before the SC4 suite and 3G can run.
-# P-6 makes no Workers AI call, so none is embedded yet. One raw text per line, in suite order, then the
+# The lead embedded them on 2026-11-06 (docs/evidence/neurons.tsv). One raw text per line, in suite order, then the
 # gibberish set (eval/dev/gibberish.json). Embed every form eval/lib/query-forms.mjs `queryTextForms` gives
 # (the raw text, and its canonical form when that differs), keyed by sha256(model + "\n" + text), into
 # test/sc4/embeddings.json (vnm-eval-embeddings/1, @cf/baai/bge-small-en-v1.5). test/sc4/embeddings.node.test.js
