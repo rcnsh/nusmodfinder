@@ -1,0 +1,24 @@
+// Test-only Worker config. It is the production wrangler.jsonc minus every
+// binding that reaches a metered remote service: no `ai`, no `vectorize`, no
+// `ratelimits`. Tests inject fakes for those (test/fakes.js). It lives in
+// test/ so wrangler does not pick up the root .dev.vars (which holds a real
+// INGEST_SECRET). The D1 id is deliberately not the production id, so a
+// `--remote` command pointed at this file fails instead of touching prod.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "vector-nusmods-test",
+  "main": "../src/index.js",
+  "compatibility_date": "2026-09-01",
+  "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": false }],
+  // As wrangler.jsonc: the fixture bundle. The Vitest configs alias it too
+  // (resolve.alias), since the Vitest plugin does not read `alias`.
+  "alias": { "vectors-bundle": "./fixtures/vectors.js" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nusmods",
+      "database_id": "00000000-0000-4000-8000-000000000000",
+      "migrations_dir": "../migrations"
+    }
+  ]
+}
