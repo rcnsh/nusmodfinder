@@ -19,6 +19,7 @@ import { generateKey, readKey, updateManifest, writeEncryptedJson } from '../../
 import { ledgerRows } from '../../eval/lib/ledger.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
+import { archiveTree, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
 const PINNED_SHA = '7ac984174ded88cb2b6497d9835b456981acdd99';
@@ -44,11 +45,16 @@ beforeAll(async () => {
   expect(tar.status).toBe(0);
   expect(spawnSync('tar', ['-x', '-C', archive], { input: tar.stdout }).status).toBe(0);
   v0Tree = await treeHash(archive);
+  holdoutTree = await archiveTree(SHIPPED_PIN.sha);
   corpusSha = JSON.parse(await readFile(join(REPO, 'eval', 'groups.json'), 'utf8')).corpus.moduleInfoSha256;
 });
 afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 
 const pinnedRanker = () => ({ ref: 'eval-v0', sha: PINNED_SHA, dirty: false, treeHash: v0Tree, runner: { sha: PINNED_SHA, dirty: false } });
+/** treeHash of the shipped pin's commit. */
+let holdoutTree = '';
+/** A genuine run of the shipped pin: the baseline of a per-change holdout look. */
+const holdoutRanker = () => rankerAt(SHIPPED_PIN, holdoutTree);
 const candRanker = () => ({ ref: 'WORKTREE', sha: 'c'.repeat(40), dirty: false, treeHash: 'd'.repeat(64), runner: { sha: 'c'.repeat(40), dirty: false } });
 
 const GRADES = [2, 2, 1, 1, 1, 0, 0, 0, 0, 0];
@@ -263,15 +269,17 @@ describe('--gate sc5', () => {
 // encrypted sets
 
 /**
- * An encrypted set bound to `as`, with a pinned baseline and a candidate.
+ * An encrypted set bound to `as`, with a pinned baseline and a candidate. The
+ * baseline is the shipped pin's, which per-change looks take; `sc5: true` makes
+ * it eval-v0's, which SC5 looks take (always so on the test set).
  * @param {string} name @param {string} as @param {(d: Derived) => Record<string, string[]>} cand
  */
-async function encSet(name, as, cand) {
+async function encSet(name, as, cand, { sc5 = as === 'test' } = {}) {
   const dir = join(tmp, name);
   const d = await derived();
   await writeEncryptedJson(join(dir, 'queries.json.enc'), { ...d.querySet, set: as }, key, as);
   await writeEncryptedJson(join(dir, 'qrels.json.enc'), { ...d.qrels, set: as }, key, as);
-  await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), runFile(d.querySet, 'base', as, pinnedRanker(), copy(d.ranked)), key, as);
+  await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), runFile(d.querySet, 'base', as, sc5 ? pinnedRanker() : holdoutRanker(), copy(d.ranked)), key, as);
   await writeEncryptedJson(join(dir, 'runs', 'run-cand.json.enc'), runFile(d.querySet, 'cand', as, candRanker(), cand(d)), key, as);
   await updateManifest(dir);
   return { dir, d };
@@ -361,7 +369,7 @@ describe('the holdout reading, in a temporary clone whose SC5_READING is holdout
   };
 
   it('--gate sc5 is L12 only: refused unless the ledger holds exactly 11 holdout looks', async () => {
-    const { dir } = await encSet('holdout-sc5-early', 'holdout', (x) => copy(x.ranked));
+    const { dir } = await encSet('holdout-sc5-early', 'holdout', (x) => copy(x.ranked), { sc5: true });
     for (const n of [0, 1, 10]) {
       await ledgerWith(Array(n).fill('general'));
       const r = holdout(dir, ['--gate', 'sc5']);
@@ -373,7 +381,7 @@ describe('the holdout reading, in a temporary clone whose SC5_READING is holdout
 
   it('the 12th holdout look is the SC5 look: per-change refused at 11, SC5 taken once and recorded as rule sc5', async () => {
     await ledgerWith(Array(11).fill('general'));
-    const { dir } = await encSet('holdout-slot12', 'holdout', (x) => copy(x.ranked));
+    const { dir } = await encSet('holdout-slot12', 'holdout', (x) => copy(x.ranked), { sc5: true });
     const general = holdout(dir);
     expect(`${general.stdout}${general.stderr}`).toBe(withheld);
     expect(await rowsOf(cloneLedger())).toHaveLength(11);

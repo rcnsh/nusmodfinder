@@ -15,6 +15,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["scripts/**/*.mjs", "eval/**/*.mjs", "*.mjs", "scripts/corpus-types.d.ts", "eval/runner/types.d.ts", "test/**/*.node.test.js"],
+  "include": ["scripts/**/*.mjs", "eval/**/*.mjs", "*.mjs", "scripts/corpus-types.d.ts", "eval/runner/types.d.ts", "test/**/*.node.test.js", "test/**/*.node.mjs"],
   "exclude": ["eval/v1/**"]
 }

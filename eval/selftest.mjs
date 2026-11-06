@@ -589,7 +589,7 @@ assert.equal(node(CLI, ['report', ...h2, '--run', 'cand', '--baseline', 'base'],
 ok(node(HOLDOUT, ['manifest', '--dir', H2]), 'custodian writes the manifest');
 const hlook = ok(node(CLI, ['report', ...h2, '--run', 'cand', '--baseline', 'base'], env), 'verdict on the merged encrypted qrels');
 assertNoLeak(hlook, 'encrypted verdict');
-assert.match(hlook, /^holdout verdict: (PASS|FAIL) · rule general · baseline eval-v0 7ac9841 · qrels qrels-selftest-v1$/m);
+assert.match(hlook, new RegExp(`^holdout verdict: (PASS|FAIL) · rule general · baseline ${pinRe} · qrels qrels-selftest-v1$`, 'm'));
 assert.match(node(JUDGE, ['calibrate', 'export', ...h2], env).out, /human calibration is dev-only/);
 const corruptState = join(WORK, 'judging-corrupt');
 await mkdir(corruptState, { recursive: true });

@@ -182,13 +182,13 @@ describe('ops', () => {
     expect(cost).toContain('50,000,000 / 384 − 6,771 ≈ **123,400 uncached searches a month**');
     expect(cost).toContain(`about ${(Math.round(vectorizePerMonth / 30 / 100) * 100).toLocaleString('en-US')} a day`);
     expect(cost).toContain('**Since 3-0, Vectorize is off the search path, so the binding limit is Workers CPU or Workers AI\nneurons');
-    // B2-8: the README names whichever is smaller. CPU: 30M CPU-ms/month at the plan's
-    // 5 ms a search; neurons: 10k/day at ~0.03 a search (~0.05 after 3A-1).
-    expect(30_000_000 / 5).toBe(6_000_000);
+    // B2-8: the README names whichever is smaller. CPU: 30M CPU-ms/month at the ~12 ms a
+    // request measured after the 3-0 cutover; neurons: 10k/day at ~0.03 a search (~0.05 after 3A-1).
+    expect(30_000_000 / 12).toBe(2_500_000);
     expect(Math.round((10_000 * 30) / 0.03 / 1e6)).toBe(10);
     expect(Math.round((10_000 * 30) / 0.05 / 1e6)).toBe(6);
     expect(cost).toContain('**CPU is the smaller limit.**');
-    expect(cost).toContain('30M CPU-ms\ncover **~6.0M searches a month**');
+    expect(cost).toContain('30M\nCPU-ms cover **~2.5M searches a month**');
     expect(cost).toContain('**30,000,000 ms / month**');
     expect(cost).toContain('25,000,000,000 / month');
     // Per-search D1 numbers after Phase 1 are measured, not invented.
