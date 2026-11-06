@@ -32,13 +32,14 @@ can measure each retriever on its own — which is the only reason we know the v
 is not pulling its weight.
 
 `/search` returns at most 20 results by default; `topK` may raise that to 50, the
-Vectorize ceiling when metadata is returned. Queries over 200 characters are rejected.
+candidate depth of each retriever. Queries over 200 characters are rejected.
 
 ### How a search is answered
 
 1. If `q` looks like a module code and that module exists, it is pinned to position 1.
-2. The query is embedded with `@cf/baai/bge-small-en-v1.5` (384 dims) and used to query
-   Vectorize, with the structured filters applied as a metadata filter.
+2. The query is embedded with `@cf/baai/bge-small-en-v1.5` (384 dims) and scored by exact
+   cosine against every corpus vector, held **in the Worker** (below), after a mask for the
+   structured filters. The top 50 are kept, by score, then code.
 3. The same query runs against a D1 FTS5 index (`bm25(modules_fts, 0, 3, 1)`, porter
    stemming, stopwords removed), with the same filters applied in SQL.
 4. The two ranked lists are combined by reciprocal-rank fusion, `1/(60 + rank)`.
@@ -46,6 +47,31 @@ Vectorize ceiling when metadata is returned. Queries over 200 characters are rej
 
 Semesters are stored in Vectorize as four booleans (`sem1`..`sem4`) rather than an array,
 because Vectorize metadata indexes only support string, number and boolean.
+
+**The vectors bundle** (Phase 3 3-0, ADR 0006). Every corpus vector, L2-normalised float32,
+plus a 32-byte filter row per module (semesters, level, credits, faculty, NG; slots reserved
+for 3B's prefix id, 3F's group id and 3H's fields), is one binary file
+(`src/vector-bundle.js` documents the layout). The Worker imports it as a `Data` module
+through the wrangler `alias` `vectors-bundle`, and parses it on its first dense search. That
+costs no I/O per request and no Vectorize query, and the vectors deploy and roll back with
+the code that reads them. The bundles:
+
+| bundle | what | where |
+|---|---|---|
+| fixture | the ~400 test modules, fake embedder (632 KB) | `test/fixtures/vectors.bin`, committed; the alias's default, so `npm test`, `wrangler dev` and a fresh checkout build against it |
+| pinned | the 6,771 pinned modules, the eval's `emb-bge-small-v0` vectors (10.7 MB) | release asset, sha256 in `data/vectors.json`; `test/full` and the `full-corpus` CI job (`node scripts/vectors.mjs fetch --corpus pinned`) |
+| production | what D1 holds (6,778 at the 3-0 cutover) | release asset, sha256 in `data/vectors.json`; only `npm run deploy` uses it, and it refuses the other two |
+
+`scripts/vectors.mjs` builds all three. It looks each module's vector up in the eval's corpus
+asset by `embeddingKey(model, text)`, so codes that share a text share one vector, and
+production gets the replica's bits for every text the two share. Texts the asset lacks are
+embedded once (`npm run eval:embed -- --texts`, logged in `neurons.tsv`). The manifest records
+each bundle's data version, row count, sha256 and `rowsKey`, the sha256 of its sorted
+(code, `text_hash`) pairs.
+
+**Vectorize is the standby.** `DENSE_BACKEND=vectorize` (a wrangler var, flipped by a
+deploy) sends the dense half back to Vectorize, with the same filters. That is degraded
+service, kept identical to the bundle by runbook step 8 below.
 
 ### Exchange-student (Non-Graduating) availability
 
@@ -122,14 +148,28 @@ property are filterable.
 npm run deploy
 ```
 
-This is the only supported way to deploy. `scripts/deploy.mjs` refuses unless the working
-tree is clean and `HEAD` is already on `origin/main`, then runs
-`wrangler deploy --tag <short sha> --message "<sha> <subject>"` and prints the new version
-id. Plain `npx wrangler deploy` still works, but the version it creates carries no commit,
-so nobody can tell later what it was built from.
+This is the only supported way to deploy. `scripts/deploy.mjs`:
+
+1. refuses unless the working tree is clean and `HEAD` is already on `origin/main`;
+2. takes the production bundle `data/vectors.json` records (downloaded from its release if
+   absent), checks its sha256, and refuses the fixture or pinned bundle, or a data version that
+   is not `src/data-version.json`;
+3. **the guard**: reads D1's (code, `text_hash`, `row_hash`) through `/admin/hashes` on a
+   local `wrangler dev --remote` session with a one-off secret (~6.8k rows read; log it in
+   `remote-ops.md`), and refuses unless they hash to the manifest's `rowsKey` and the committed
+   data version. No production secret is ever bound;
+4. runs `wrangler check startup` locally with the bundle aliased in, then
+   `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`, and refuses to
+   promote a version whose reported startup time is missing or over 200 ms;
+5. only then `wrangler versions deploy <id>@100%`. Record the version id in `remote-ops.md`;
+   it is the rollback target (`wrangler rollback <id>`).
+
+Plain `npx wrangler deploy` would ship the fixture bundle. Don't use it.
 
 To check what's live: every response carries `x-app-version` (the tag, else the version
-id), and `GET /health` returns `{ ok, versionId, versionTag }` without touching D1.
+id), and `GET /health` returns `{ ok, versionId, versionTag, dataVersion, vectors }` without
+touching D1. `vectors` is the bundle's `{ corpus, count, dataVersion }`, so after a deploy it
+must say `production`.
 
 **Instrumentation.** `/search`, `/module/:code` and `/facets` responses carry a
 `Server-Timing` header. `/search` has spans `cache` (`desc=hit|miss`), `limit`, `pin`,
@@ -143,7 +183,8 @@ filters, result counts, the fallback (`degraded`), spans, D1 rows read and servi
 (`d1.servedByRegion`, `d1.servedByPrimary`), and the colo. Headers and IPs are never logged.
 
 **Failure behaviour.** Workers AI and Vectorize calls time out after 1.5 s, D1 calls after
-3 s. In hybrid mode, if embedding or Vectorize fails or times out, `/search` answers with
+3 s. In hybrid mode, if embedding or the dense index fails (a bundle that doesn't parse is
+`source: "dense-index"`; Vectorize under the standby flip), `/search` answers with
 the keyword results alone and says so: `"degraded": { "source", "reason" }` in the body,
 cached for 60 s instead of an hour. After 3 consecutive dense failures an isolate skips
 the dense half for 30 s (`reason: "circuit-open"`). `mode=vector` still answers 502, and
@@ -157,17 +198,45 @@ inside a Worker would crowd the 128 MB memory ceiling. Embedding and upserting h
 *in* the Worker, over authenticated admin routes, so no Cloudflare API token has to
 exist on disk.
 
-**Runbook** (ingest → verify → commit `src/data-version.json` → deploy):
+**Runbook** (Phase 3 3-0, `docs/plans/phase3.md` §2). The same order for every corpus change: a
+catalogue update, a re-embedding, a row-only change. The deploy guard refuses any commit whose
+manifest D1 does not yet hold, so the manifest merges first and D1 is written before the deploy.
+Vectorize, the standby, is written last.
 
 ```bash
+# 1. Offline, on a branch: the production bundle and the data version D1 will have.
+node scripts/vectors.mjs data-version --offline                   # what ingest would write
+node scripts/vectors.mjs build --corpus production --expect-count <rows> --offline
+#    If texts are missing from the eval asset, it writes .data/vectors/missing-production.json
+#    and stops; embed them (neurons logged), then rebuild with --extra:
+npm run eval:embed -- --texts .data/vectors/missing-production.json --out .data/vectors/extra-production.json
+node scripts/vectors.mjs build --corpus production --expect-count <rows> --offline --extra .data/vectors/extra-production.json
+gh release create <release> .data/vectors/<asset> --title <asset> --notes "vectors bundle, sha256 <sha256>"
+git add data/vectors.json src/data-version.json   # plus any code the change needs; open a PR
+# 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
+# 3. Record a D1 Time Travel bookmark in remote-ops.md.
 export INGEST_SECRET=$(openssl rand -hex 24)
 echo "INGEST_SECRET=$INGEST_SECRET" > .dev.vars     # gitignored
 npx wrangler dev --remote --port 8787 &             # binds the real D1/Vectorize/AI
-npm run ingest -- --year 2026-2027 --url http://localhost:8787
-npm run verify -- --url http://localhost:8787       # exits non-zero on drift
-git add src/data-version.json && git commit -m "chore(data): data version after ingest"
-npm run deploy                                      # new cache key, so no stale /search hits
+# 4. D1 only: no Workers AI, no Vectorize. Refuses unless the corpus hashes to the committed data version.
+npm run ingest -- --year 2026-2027 --url http://localhost:8787 --d1-only --offline
+# 5. D1 against the manifest and the bundle, before the deploy. Reads no Vectorize.
+npm run verify -- --url http://localhost:8787 --pre-deploy
+# 6. Guard, startup gate, promote. The guard starts its own dev session, on port 8799.
+npm run deploy
+# 7. Smoke (≤ 4 calls): /health says vectors.corpus "production"; read CPUTimeMs in Workers Logs.
+#    On failure: wrangler rollback <previous id>, restore D1 to the step-3 bookmark, revert step 2.
+# 8. The standby: upsert every code (bundle values, D1 metadata, ≤ 1,000 a batch), delete
+#    step 4's deletions, wait for the mutation, then verify, values included.
+node scripts/vectors.mjs standby --url http://localhost:8787
 ```
+
+Log every remote D1 operation, reads included, in `remote-ops.md`. Between steps 4 and 6 the
+live Worker searches its old bundle against the new D1, so `/search` re-checks every dense-only
+candidate's filters against its fresh D1 row after hydrate and drops those that fail.
+
+`npm run ingest` without `--d1-only` still embeds and upserts as described below, for a
+database with no bundle to match (a local one, or a cold load).
 
 Before any remote write, estimate it and check the month's account-wide D1 usage
 (`docs/decisions/0004-workers-paid-and-single-judge.md`): proceed only if the estimate × 1.5
@@ -310,26 +379,30 @@ describes it.
 
 ## Cost
 
-**Vectorize queried dimensions are the binding limit, not D1.** An earlier version of
-this README said the opposite; its own numbers did not support it (FINDINGS B9). The account
-is on **Workers Paid** ($5/month, ADR 0004). Going over an included allowance there is billed,
-not refused, and this project stays inside them.
+**Since 3-0, Vectorize is off the search path, so the binding limit is Workers CPU or Workers AI
+neurons, not Vectorize queried dimensions.** Before 3-0 every uncached search queried 384
+dimensions, billed as (queries + stored vectors) × 384 against 50,000,000 a month:
+50,000,000 / 384 − 6,771 ≈ **123,400 uncached searches a month**, about 4,100 a day
+(FINDINGS B9). The account is on **Workers Paid** ($5/month, ADR 0004). Going over an included allowance there is
+billed, not refused, and this project stays inside them.
 
 | | Workers Paid, included | cost here |
 |---|---|---|
-| D1 rows read | 25,000,000,000 / month | per search: unfiltered 137–239 (median 239), filtered 249–1,784 (median 497), measured on 36 production searches with SC7 ([`sc7.md`](docs/evidence/phase1/sc7.md); local grid: [`lexical-cost.md`](docs/evidence/phase1/lexical-cost.md)); 1 per page load |
-| D1 rows written | 50,000,000 / month | 34,383 per forced full re-ingest, measured against production on 2026-11-04 ([`remote-ops.md`](docs/evidence/phase1/remote-ops.md)); a rerun with nothing changed writes 2 |
-| Vectorize stored dims | 10,000,000 | 6,771 × 384 = **2,600,064** (26%) |
-| **Vectorize queried dims** | **50,000,000 / month** | ~123,400 uncached searches/month (below) |
-| Workers AI | 10,000 neurons / day | ~0.03 per search; ~2,400 per forced re-ingest (measured) |
-| CPU per request | 30 s | p99 18.5 ms (production, Phase 1 baseline) |
+| D1 rows read | 25,000,000,000 / month | per search: unfiltered 137–239 (median 239), filtered 249–1,784 (median 497), measured on 36 production searches with SC7 ([`sc7.md`](docs/evidence/phase1/sc7.md); local grid: [`lexical-cost.md`](docs/evidence/phase1/lexical-cost.md)); 1 per page load; ~6.8k per deploy (the guard) and per standby refresh |
+| D1 rows written | 50,000,000 / month | 34,383 per forced full re-ingest, measured against production on 2026-11-04 ([`remote-ops.md`](docs/evidence/phase1/remote-ops.md)); a rerun with nothing changed writes 2; the standby refresh writes 0 |
+| Vectorize stored dims | 10,000,000 | 6,778 × 384 = **2,602,752** (26%), the standby |
+| Vectorize queried dims | 50,000,000 / month | **~0 per search** (only under `DENSE_BACKEND=vectorize`); the stored term, ~2.6M, still counts once a month |
+| **Workers CPU** | **30,000,000 ms / month** | the exact search is **1.44 ms** warm, unfiltered, locally ([`3-0.md`](docs/evidence/phase3/3-0.md)); the whole request was p99 18.5 ms in Phase 1; the 3-0 smoke reads the live mean `CPUTimeMs` |
+| Workers AI | 10,000 neurons / day | ~0.03 per search; ~2,400 per forced re-ingest (measured); a bundle build embeds only texts the eval asset lacks (~54 for the 3-0 cutover, est.) |
+| CPU per request | 30 s | as above |
 
-The arithmetic. Vectorize bills a month's queries as (queries + stored vectors) × 384
-dimensions against 50,000,000:
-50,000,000 / 384 − 6,771 ≈ **123,400 uncached searches a month**, about 4,100 a day. D1's 25 billion reads a month would cover ~200,000 rows read per
-uncached search at that rate, so even the worst filtered search measured on the local grid
-(7,772 rows) is far from binding. Workers AI's 10,000 neurons a day cover ~350,000 query
-embeddings, or about four forced re-ingests. Cached repeats cost none of these.
+The arithmetic. **CPU is the smaller limit.** At the plan's 5 ms of CPU a search, 30M CPU-ms
+cover **~6.0M searches a month**. Every millisecond of the rest of the request (FTS, JSON,
+hydrate) comes out of the same allowance, so the live mean `CPUTimeMs` from the 3-0 smoke
+replaces this estimate. Workers AI's 10,000 neurons a day at ~0.03 a search cover ~10M a month,
+or ~6.0M at 3A-1's ~0.05. At 6M searches a month, D1's 25 billion reads cover ~4,000 rows read per
+search. The measured medians (239–497) are well inside that; the worst filtered search on the
+local grid (7,772 rows) is not. Cached repeats cost none of these.
 
 ### How that number was brought down
 
@@ -348,8 +421,10 @@ load testing. Three fixes, each measured with the `meta.rows_read` field D1 retu
 3. **`/search` responses are cached** (Workers Cache API, 1 hour). The key is built from
    the validated parameters only — query trimmed, whitespace collapsed and lower-cased,
    parameters sorted, defaults and unknown parameters dropped — plus the data version in
-   `src/data-version.json`, so a deploy after an ingest that bumps it starts a fresh
-   cache. A repeated search — a shared link, a reload, an evaluation run — costs zero D1
+   `src/data-version.json` and the deployed version's id (`CF_VERSION_METADATA.id`), so
+   every deploy (a ranker change, new vectors, a `DENSE_BACKEND` flip) starts a fresh
+   cache. A parameter added later joins the key in parsed form, in the PR that adds it:
+   3H adds `exam`, `su`, `hoursBelow` and `prereq`, and `ignore` as a sorted list. A repeated search — a shared link, a reload, an evaluation run — costs zero D1
    rows, zero Vectorize queries and zero Workers AI calls, however it is spelled.
 
 The join to `modules` is also skipped unless a filter needs a column from it.

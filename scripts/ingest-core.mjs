@@ -30,6 +30,14 @@
 //     run sent and never saw confirmed; report the data version for
 //     src/data-version.json. A mutation id that could not be recorded in the
 //     pending store does not stop the run, but it ends 'failed', naming it.
+//
+// D1-only (`d1Only`, Phase 3 runbook step 4, B3-5): the same plan and guards,
+// but every write goes to D1 alone (`?d1Only=1`: no getByIds, AI.run or
+// Vectorize call). The data version is computed from the corpus before any
+// write and must equal `expectedDataVersion`, the committed
+// src/data-version.json (runbook step 1 computed it offline); a mismatch
+// refuses the run. There is no mutation to wait for, so the pending store is
+// neither read nor written. The deleted codes are returned for step 8.
 import { dataVersion, ftsHash, rowHash } from '../src/rowhash.js';
 
 export const DEFAULTS = Object.freeze({
@@ -99,7 +107,9 @@ export const REQUIRED_SCHEMA = 6;
  *   maxAttempts?: number, waitTimeoutMs?: number, waitIntervalMs?: number, embeddingModel?: string | null,
  *   writesPerInsert?: number, writesPerUpdate?: number, ftsWritesPerInsert?: number,
  *   ftsWritesPerTextChange?: number, writesPerDelete?: number, signal?: AbortSignal,
- * }} IngestOptions `signal`: once aborted (scripts/ingest.mjs on SIGINT/SIGTERM),
+ *   d1Only?: boolean, expectedDataVersion?: string | null,
+ * }} IngestOptions `d1Only` and `expectedDataVersion`: the D1-only mode (header).
+ *   `signal`: once aborted (scripts/ingest.mjs on SIGINT/SIGTERM),
  *   no new request starts; those in flight finish and are recorded, and the
  *   run ends 'interrupted'.
  * @typedef {'done' | 'refused' | 'failed' | 'budget' | 'wait-timeout' | 'interrupted'} IngestStatus
@@ -108,8 +118,8 @@ export const REQUIRED_SCHEMA = 6;
  *   plan: { embed: number, rowOnly: number, unchanged: number, deletes: number },
  *   upserted: number, embedded: number, failed: number, deleted: number,
  *   rowsRead: number, rowsWritten: number, rowsCharged: number, resumeFrom: string | null,
- *   lastMutationId: string | null, dataVersion: string | null,
- * }} IngestResult `rowsWritten` sums D1's meta.rows_written; `rowsCharged`
+ *   lastMutationId: string | null, dataVersion: string | null, deletedCodes: string[],
+ * }} IngestResult `deletedCodes`: what /admin/delete removed (for runbook step 8 in D1-only mode). `rowsWritten` sums D1's meta.rows_written; `rowsCharged`
  *   is what the write budget counts (per batch, the larger of that and the
  *   estimate).
  * @typedef {'insert' | 'fts' | 'row'} WriteKind what an upsert does to D1:
@@ -178,12 +188,16 @@ export function writeKind(m, stored) {
 export async function runIngest({
   modules, facetsBody, api, options = {}, pending = memoryPendingStore(), log = () => {}, sleep = defaultSleep, now = Date.now,
 }) {
-  const o = { ...DEFAULTS, force: false, from: null, allowMassDelete: false, allowYearChange: false, embeddingModel: null, ...options };
+  const o = {
+    ...DEFAULTS, force: false, from: null, allowMassDelete: false, allowYearChange: false, embeddingModel: null,
+    d1Only: false, expectedDataVersion: null, ...options,
+  };
+  const mode = o.d1Only ? '?d1Only=1' : '';
   /** @type {IngestResult} */
   const result = {
     status: 'done', message: '', plan: { embed: 0, rowOnly: 0, unchanged: 0, deletes: 0 },
     upserted: 0, embedded: 0, failed: 0, deleted: 0, rowsRead: 0, rowsWritten: 0, rowsCharged: 0,
-    resumeFrom: null, lastMutationId: null, dataVersion: null,
+    resumeFrom: null, lastMutationId: null, dataVersion: null, deletedCodes: [],
   };
   /** Writes of `pending`, in the order the mutation ids arrived. Never rejects. */
   /** @type {Promise<void>} */
@@ -197,7 +211,7 @@ export async function runIngest({
    * that the last one is, however late its processedUpToDatetime. An
    * unreadable store is reported at the end (step 6), not here.
    */
-  const carried = await pending.read().catch(() => null);
+  const carried = o.d1Only ? null : await pending.read().catch(() => null);
   /** @type {string[]} */
   const ownIds = carried ? [...(carried.earlier ?? []), carried.id] : [];
   /**
@@ -297,6 +311,17 @@ export async function runIngest({
   // 2. Plan.
   /** @type {HashedModule[]} */
   const hashed = await Promise.all(modules.map(async (m) => ({ ...m, rowHash: await rowHash(m), ftsHash: await ftsHash(m) })));
+  if (o.d1Only) {
+    // Runbook step 4 writes the rows step 1 hashed offline, and nothing else.
+    const computed = await dataVersion(hashed);
+    if (!o.expectedDataVersion) {
+      return stop('refused', 'A D1-only run needs the committed data version (src/data-version.json) to check against. Nothing was written.');
+    }
+    if (computed !== o.expectedDataVersion) {
+      return stop('refused', `D1-only: the corpus has data version ${computed}, but src/data-version.json says ${o.expectedDataVersion}. `
+        + 'The rows this run would write are not the ones runbook step 1 merged. Nothing was written.');
+    }
+  }
   const plan = planIngest(hashed, stored, { force: o.force });
   result.plan = { embed: plan.embed.length, rowOnly: plan.rowOnly.length, unchanged: plan.unchanged, deletes: plan.deletes.length };
   log(`plan               ${plan.embed.length} to embed, ${plan.rowOnly.length} row-only, ${plan.unchanged} unchanged, ${plan.deletes.length} to delete`);
@@ -357,7 +382,7 @@ export async function runIngest({
       const res = await api.post(path, body);
       if (res.status === 200) return res.body;
       // Workers AI throttles under load; back off rather than losing the batch.
-      if (res.status >= 500 && (path === '/admin/ingest' || path === '/admin/delete')) markIdOnly();
+      if (res.status >= 500 && !o.d1Only && (path === '/admin/ingest' || path === '/admin/delete')) markIdOnly();
       if (attempt < o.maxAttempts && (res.status === 429 || res.status >= 500)) {
         const wait = 2 ** attempt * 1000;
         log(`  ${label}: HTTP ${res.status}, retrying in ${wait / 1000}s`);
@@ -383,7 +408,7 @@ export async function runIngest({
   /** @param {WorkItem[]} batch @param {number} estimate @param {number} held */
   const upsertBatch = async (batch, estimate, held) => {
     // rowHash and ftsHash travel along but the Worker recomputes row_hash from what it binds.
-    const body = await send('/admin/ingest', { modules: batch }, `batch ${batch[0].code}…`);
+    const body = await send(`/admin/ingest${mode}`, { modules: batch }, `batch ${batch[0].code}…`);
     reserved -= held;
     if (!body) { result.failed += batch.length; return; }
     account(body, estimate);
@@ -467,7 +492,7 @@ export async function runIngest({
       return stop('budget', `Write budget reached before deleting ${plan.deletes.length - result.deleted} modules `
         + `(${result.rowsCharged} rows charged). Rerun the same command to finish the deletes.`);
     }
-    const body = await send('/admin/delete', { codes }, `delete ${codes[0]}…`);
+    const body = await send(`/admin/delete${mode}`, { codes }, `delete ${codes[0]}…`);
     reserved -= held;
     if (!body) {
       await facets();
@@ -475,6 +500,7 @@ export async function runIngest({
     }
     account(body, estimate);
     result.deleted += Number(body.deleted ?? 0);
+    if (Array.isArray(body.codes)) result.deletedCodes.push(...body.codes.map(String));
     if (body.mutationId) sent(String(body.mutationId), body.sentAt);
   }
   if (plan.deletes.length) log(`deleted            ${result.deleted} (${plan.deletes.slice(0, 10).join(', ')}${plan.deletes.length > 10 ? ', …' : ''})`);
@@ -485,6 +511,12 @@ export async function runIngest({
   // sent nothing waits for the one an earlier run left unconfirmed.
   await facets();
   await persisted;
+  if (o.d1Only) {
+    result.dataVersion = await dataVersion(hashed);
+    return stop('done', `done (D1 only)     ${result.upserted} rows written, ${result.deleted} deleted, `
+      + `${result.rowsRead} rows read, ${result.rowsCharged} rows charged (${result.rowsWritten} reported by D1); `
+      + `data version ${result.dataVersion} = src/data-version.json; no Vectorize or Workers AI call`);
+  }
   if (unrecorded.ids.length) {
     return stop('failed', `D1 and Vectorize writes are complete (${result.upserted} upserted, ${result.deleted} deleted), `
       + 'but src/data-version.json was not written.');

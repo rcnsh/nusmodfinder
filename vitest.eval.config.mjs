@@ -27,6 +27,10 @@ export default defineConfig(async () => {
         miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
       }),
     ],
+    // The workspace's test/wrangler.test.jsonc `alias` (the plugin does not
+    // read it): the bundle eval/runner/run.mjs built for this run. Unused by
+    // rankers without in-Worker vectors (eval-v0).
+    resolve: { alias: { 'vectors-bundle': join(ws, 'test/fixtures/vectors.js') } },
     test: {
       name: 'eval',
       include: [`${relative(ROOT, ws)}/eval/runner/retrieval.eval.js`],

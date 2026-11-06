@@ -6,6 +6,15 @@
   "observability": { "enabled": true },
   "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": false }],
 
+  // The bundled corpus vectors (src/dense.js, Phase 3 3-0). Defaults to the
+  // committed fixture, so a fresh checkout, `wrangler dev` and CI build
+  // without the 10 MB production bundle. `npm run deploy` overrides it with
+  // --alias to the sha-checked production bundle and refuses the fixture and
+  // the pinned bundle; a plain `wrangler deploy` would ship the fixture.
+  // An alias to a .bin file directly is not collected as a Data module, so it
+  // points at a two-line module that imports one.
+  "alias": { "vectors-bundle": "./test/fixtures/vectors.js" },
+
   "d1_databases": [
     {
       "binding": "DB",
@@ -25,6 +34,12 @@
   // Which Worker version is serving: returned as `x-app-version` and by
   // GET /health. `npm run deploy` tags each version with its commit SHA.
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
+
+  // Which dense retriever /search uses: "bundle" (exact search over the
+  // bundled vectors) or "vectorize" (the cold standby, degraded service;
+  // docs/plans/phase3.md 3-0, B3-6). Flipped by a deploy; every deploy gets a
+  // new version id, which is in the /search cache key.
+  "vars": { "DENSE_BACKEND": "bundle" },
 
   // /search costs a Workers AI embedding and a Vectorize query per request. A
   // Cloudflare rate-limiting RULE is not an option here — workers.dev is not a

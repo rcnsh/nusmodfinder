@@ -113,8 +113,14 @@ describe('P1', () => {
 
   it('[P1 known-bug] the Vectorize filter is the yearly ng boolean, not per semester', async () => {
     const before = fakes.vectorize.calls.length;
-    await callJson('/search?q=machine%20learning%20vecfilter&ng=1&sem=1', { fakes });
+    await callJson('/search?q=machine%20learning%20vecfilter&ng=1&sem=1', { fakes, env: { DENSE_BACKEND: 'vectorize' } });
     expect(/** @type {any} */ (fakes.vectorize.calls[before].args[1]).filter).toEqual({ sem1: true, ng: true });
+  });
+
+  it('[P1 known-bug] the bundle\'s filter mask is the same yearly ng boolean (3-0 keeps the semantics)', async () => {
+    const { body } = await callJson('/search?q=machine%20learning&ng=1&sem=1&mode=vector&topK=50', { fakes });
+    const wrong = body.results.filter((/** @type {any} */ r) => !r.ngSemesters.includes(1));
+    expect(codes(wrong)).toEqual(expect.arrayContaining(['CS3244', 'CG3201']));
   });
 });
 

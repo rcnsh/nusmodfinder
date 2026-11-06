@@ -25,6 +25,10 @@
 //   --batch <n>            modules per /admin/ingest call (default 50, max 100)
 //   --concurrency <n>      parallel batches (default 4)
 //   --wait-timeout <dur>   how long to wait for Vectorize to apply the last mutation (default 10m)
+//   --d1-only              Phase 3 runbook step 4: write D1 only (no Workers AI, no Vectorize);
+//                          refuses unless the corpus's data version equals the committed
+//                          src/data-version.json, which it never writes; the codes it deletes
+//                          go to .data/d1-only-deletes.json for runbook step 8
 //
 // Exit codes: 0 done; 1 refused or failed; 2 stopped by the write budget
 // (resumable); 3 Vectorize did not confirm the last mutation in time.
@@ -50,6 +54,8 @@ import {
 export const DATA_VERSION_PATH = fileURLToPath(new URL('../src/data-version.json', import.meta.url));
 /** Unconfirmed Vectorize mutations, per Worker URL. Under .data/, so git-ignored. */
 export const STATE_PATH = fileURLToPath(new URL('../.data/ingest-state.json', import.meta.url));
+/** What a --d1-only run deleted from D1, for runbook step 8 (scripts/vectors.mjs standby). */
+export const D1_ONLY_DELETES = fileURLToPath(new URL('../.data/d1-only-deletes.json', import.meta.url));
 
 /**
  * The pending-mutation store for one Worker URL, in a JSON file shared by all
@@ -209,7 +215,7 @@ export function parseIngestArgs(argv, envVars = process.env) {
       'write-budget': { type: 'string' }, 'allow-mass-delete': { type: 'boolean' },
       'allow-year-change': { type: 'boolean' }, offline: { type: 'boolean' },
       'max-age': { type: 'string' }, batch: { type: 'string' }, concurrency: { type: 'string' },
-      'wait-timeout': { type: 'string' },
+      'wait-timeout': { type: 'string' }, 'd1-only': { type: 'boolean' },
     },
     strict: true,
   });
@@ -231,6 +237,7 @@ export function parseIngestArgs(argv, envVars = process.env) {
       concurrency: values.concurrency ? positiveInt('concurrency', values.concurrency) : DEFAULTS.concurrency,
       waitTimeoutMs: values['wait-timeout'] ? parseDuration(values['wait-timeout']) : DEFAULTS.waitTimeoutMs,
       embeddingModel: EMBEDDING_MODEL,
+      d1Only: values['d1-only'] ?? false,
     },
   };
 }
@@ -271,13 +278,14 @@ export const dataVersionFile = (version) => `${JSON.stringify({ version }, null,
 /**
  * @param {string[]} argv
  * @param {{ fetchImpl?: typeof fetch, log?: (line: string) => void, dataVersionPath?: string,
- *   envVars?: Record<string, string | undefined>, cacheDir?: URL, statePath?: string,
+ *   envVars?: Record<string, string | undefined>, cacheDir?: URL, statePath?: string, deletesPath?: string,
  *   proc?: Pick<NodeJS.Process, 'on' | 'off' | 'exit'> }} [deps]
  * @returns {Promise<number>} exit code
  */
 export async function main(argv, deps = {}) {
   const {
     fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, cacheDir, statePath = STATE_PATH, proc = process,
+    deletesPath = D1_ONLY_DELETES,
   } = deps;
   const secret = envVars.INGEST_SECRET;
   if (!secret) {
@@ -294,7 +302,7 @@ export async function main(argv, deps = {}) {
   const signals = handleSignals(lock, controller, proc, log);
   try {
     const code = await ingestLocked({ ...args, options: { ...args.options, signal: controller.signal } },
-      { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret });
+      { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret, deletesPath });
     return code === 130 ? (signals.exitCode() ?? code) : code;
   } finally {
     signals.off();
@@ -306,10 +314,10 @@ export async function main(argv, deps = {}) {
  * The run, once the lock is held.
  * @param {ReturnType<typeof parseIngestArgs>} args
  * @param {{ fetchImpl: typeof fetch, log: (line: string) => void, dataVersionPath: string, cacheDir?: URL,
- *   statePath: string, secret: string }} deps
+ *   statePath: string, secret: string, deletesPath: string }} deps
  * @returns {Promise<number>}
  */
-async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret }) {
+async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret, deletesPath }) {
   const info = await fetchAcadYearFile(args.acadYear, 'moduleInfo.json', {
     offline: args.offline, maxAgeMs: args.maxAgeMs, fetchImpl, ...(cacheDir ? { cacheDir } : {}),
   });
@@ -338,10 +346,21 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, s
   const facetsBody = facetsPayload(ngCourses);
   const api = httpAdminApi(args.base, secret, fetchImpl);
   const pending = fileStateStore(statePath, args.base);
-  const result = await runIngest({ modules, facetsBody, api, options: args.options, pending, log });
+  const options = args.options.d1Only
+    ? { ...args.options, expectedDataVersion: String(JSON.parse(await readFile(dataVersionPath, 'utf8')).version) }
+    : args.options;
+  if (options.d1Only) log(`mode               D1 only (runbook step 4): no Workers AI, no Vectorize; expecting data version ${options.expectedDataVersion}`);
+  const result = await runIngest({ modules, facetsBody, api, options, pending, log });
 
   log(`rows read          ${result.rowsRead} (ingest and delete calls; /admin/hashes and facets not metered here)`);
   log(`rows written       ${result.rowsWritten} reported by D1; ${result.rowsCharged} charged to the budget (with FTS estimate)`);
+  if (result.status === 'done' && options.d1Only) {
+    await mkdir(dirname(deletesPath), { recursive: true });
+    await writeFile(deletesPath, `${JSON.stringify({ dataVersion: result.dataVersion, codes: result.deletedCodes }, null, 2)}\n`);
+    log(`deleted codes      ${result.deletedCodes.length} -> ${deletesPath} (runbook step 8 deletes their vectors)`);
+    log('next               npm run verify -- --pre-deploy, then npm run deploy (runbook steps 5-6)');
+    return 0;
+  }
   if (result.status === 'done' && result.dataVersion) {
     await writeFile(dataVersionPath, dataVersionFile(result.dataVersion));
     log(`data version       ${result.dataVersion} -> src/data-version.json`);
