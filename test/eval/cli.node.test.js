@@ -6,14 +6,14 @@
 // as a custody verdict requires (gate-custody.node.test.js tests both).
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { generateKey, readKey, updateManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { appendLook, readLedger } from '../../eval/lib/ledger.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
-import { archiveTree, rankerAt, SHIPPED_PIN } from './pins.mjs';
+import { archiveTree, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
 // The self-test twin of the holdout set: same rules, ledger in its own

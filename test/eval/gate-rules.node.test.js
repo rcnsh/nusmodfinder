@@ -19,7 +19,7 @@ import { generateKey, readKey, updateManifest, writeEncryptedJson } from '../../
 import { ledgerRows } from '../../eval/lib/ledger.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
-import { archiveTree, rankerAt, SHIPPED_PIN } from './pins.mjs';
+import { archiveTree, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
 const PINNED_SHA = '7ac984174ded88cb2b6497d9835b456981acdd99';

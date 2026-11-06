@@ -25,7 +25,7 @@ import { generateKey, readKey, updateManifest, verifyManifest, writeEncryptedJso
 import { ledgerRows, readLedger } from '../../eval/lib/ledger.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
-import { archiveTree, labelRe, rankerAt, SHIPPED_PIN } from './pins.mjs';
+import { archiveTree, labelRe, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
 const SET = 'selftest';

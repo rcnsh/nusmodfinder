@@ -20,7 +20,7 @@ export const SC5_PIN = { ref: 'eval-v0', sha: '7ac984174ded88cb2b6497d9835b45698
 /** The shipped-ranker pin: the last line of ADR 0003's "Shipped-ranker pin" section. @type {Pin} */
 export const SHIPPED_PIN = (() => {
   const adr = readFileSync(join(REPO, 'docs', 'decisions', '0003-eval-holdout-and-gate.md'), 'utf8');
-  const section = adr.split(/^## /m).find((s) => s.startsWith('Shipped-ranker pin')) ?? '';
+  const section = adr.split(/^## /m).find((/** @type {string} */ s) => s.startsWith('Shipped-ranker pin')) ?? '';
   const last = [...section.matchAll(/^- shipped pin: `([^`]+)` ([0-9a-f]{40})\b/gm)].at(-1);
   if (!last) throw new Error('ADR 0003 lists no shipped pin');
   return { ref: last[1], sha: last[2] };
