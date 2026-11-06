@@ -1,0 +1,53 @@
+{
+ "schema": "vnm-p6-grids/1",
+ "fixedAt": "P-6",
+ "plan": "docs/plans/phase3.md §2 (3A-2, 3C, 3D, 3E, 3H) and §3 'Selection statistic'",
+ "3A-2": {
+  "variants": {
+   "v1": "CODE. Title. Level N (label). Description. Department. Faculty.",
+   "v2": "CODE. Title. Level N (label). Description.",
+   "v3": "Title. Level N (label). Description. Department. Faculty."
+  },
+  "levelLabels": { "1": "introductory", "2": "intermediate", "3": "intermediate", "4": "advanced", "5": "graduate", "6": "graduate", "8": "graduate" },
+  "embeddingVersions": ["emb-bge-small-v1", "emb-bge-small-v2", "emb-bge-small-v3"],
+  "fallback": "the second-ranked variant"
+ },
+ "3C": { "variants": ["3C-1", "3C-2"], "eligibility": "passes the SC4 typo rule", "fallback": "the other eligible variant" },
+ "3D": {
+  "alpha": [0, 0.1, 0.2, 0.35],
+  "alphaPenalty": { "1": 0, "2": 0, "3": 0.5, "4": 1 },
+  "beta": [0.1, 0.2, 0.35],
+  "betaBaseline": 0,
+  "fallback": "the rules with alpha = 0 and no beta"
+ },
+ "3E": {
+  "wvOverWl": [1, 1.25, 1.5, 2],
+  "wl": 1,
+  "k": [20, 60],
+  "wc": 1,
+  "gridOrder": [[1, 20], [1, 60], [1.25, 20], [1.25, 60], [1.5, 20], [1.5, 60], [2, 20], [2, 60]],
+  "tiebreak": ["best single-list rank", "dense rank", "code"],
+  "fallback": "the second-ranked point"
+ },
+ "3G": {
+  "tauCandidates": "derivation half's top-1 cosine at p90 and p95 by nearest rank (the ceil(p*n)-th smallest) and its maximum, each + 1e-6, distinct values",
+  "selection": "the largest candidate that passes every dev condition",
+  "fallback": "the next smaller candidate that passes on dev",
+  "gateHalfThreshold": 0.9
+ },
+ "3H": {
+  "prereqSemantics": ["i", "ii"],
+  "denseQuery": ["stripped", "raw"],
+  "pooled": [["i", "stripped"], ["i", "raw"], ["ii", "stripped"], ["ii", "raw"]],
+  "rawMargin": 0.05,
+  "light": 10,
+  "fallback": "the other prereq semantics with the same raw/stripped choice"
+ },
+ "selection": {
+  "general": "dev primary mean ΔnDCG@10 vs the shipped ranker",
+  "targeted": "mean ΔnDCG@10 over the declared targets' answerable queries, among points with overall Δ ≥ 0",
+  "ties": "equal to 3 decimals → fewest changed parameters, then the smallest change, then grid order",
+  "prereq": "mean ΔnDCG@10 over dev queries with a parsed prereq intent; (i) wins ties to 3 decimals",
+  "rawStripped": "stripped unless raw's constraint-block mean nDCG@10 is higher by ≥ 0.05 and raw's overall dev Δ ≥ 0"
+ }
+}

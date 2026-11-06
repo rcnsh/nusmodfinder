@@ -1,0 +1,2365 @@
+{
+ "schema": "vnm-sc4-suite/1",
+ "version": "sc4-v1",
+ "fixedAt": "P-6",
+ "plan": "docs/plans/phase3.md §4; schema and rules in docs/plans/phase3-prereg.md",
+ "thresholds": {
+  "T": 5,
+  "M": 3
+ },
+ "interpretedKeys": [
+  "pin",
+  "prefix",
+  "ge",
+  "level",
+  "exam",
+  "su",
+  "hoursBelow",
+  "prereq"
+ ],
+ "items": [
+  {
+   "id": "sc4-001",
+   "row": "space-code",
+   "text": "cs 1010s",
+   "topK": 20,
+   "rule": "code-at-rank-1",
+   "params": {
+    "code": "CS1010S"
+   },
+   "interpreted": {
+    "pin": [
+     "CS1010S"
+    ],
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-002",
+   "row": "space-code",
+   "text": "ma 1521",
+   "topK": 20,
+   "rule": "code-at-rank-1",
+   "params": {
+    "code": "MA1521"
+   },
+   "interpreted": {
+    "pin": [
+     "MA1521"
+    ],
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-003",
+   "row": "space-code",
+   "text": "cs1010 s",
+   "topK": 20,
+   "rule": "code-at-rank-1",
+   "params": {
+    "code": "CS1010S"
+   },
+   "interpreted": {
+    "pin": [
+     "CS1010S"
+    ],
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-004",
+   "row": "space-code",
+   "text": "ee 2211",
+   "topK": 20,
+   "rule": "code-at-rank-1",
+   "params": {
+    "code": "EE2211"
+   },
+   "interpreted": {
+    "pin": [
+     "EE2211"
+    ],
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6 (replaces the plan example `is 4246`, which is dev d-089)"
+  },
+  {
+   "id": "sc4-005",
+   "row": "space-code",
+   "text": "lsm 1301",
+   "topK": 20,
+   "rule": "code-at-rank-1",
+   "params": {
+    "code": "LSM1301"
+   },
+   "interpreted": {
+    "pin": [
+     "LSM1301"
+    ],
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-006",
+   "row": "code-vs-level",
+   "text": "GEA1000",
+   "topK": 20,
+   "rule": "code-at-rank-1",
+   "params": {
+    "code": "GEA1000"
+   },
+   "interpreted": {
+    "pin": [
+     "GEA1000"
+    ],
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-007",
+   "row": "code-vs-level",
+   "text": "ES1000",
+   "topK": 20,
+   "rule": "code-at-rank-1",
+   "params": {
+    "code": "ES1000"
+   },
+   "interpreted": {
+    "pin": [
+     "ES1000"
+    ],
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-008",
+   "row": "code-vs-level",
+   "text": "cs 3000",
+   "topK": 20,
+   "rule": "prefix-level-mask",
+   "params": {
+    "prefix": "CS",
+    "level": 3
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": "CS",
+    "ge": null,
+    "level": {
+     "min": 3,
+     "max": 3,
+     "source": [
+      "level"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-009",
+   "row": "code-join",
+   "text": "cs2040 or cs2030",
+   "topK": 20,
+   "rule": "codes-at-ranks",
+   "params": {
+    "codes": [
+     "CS2040",
+     "CS2030"
+    ]
+   },
+   "interpreted": {
+    "pin": [
+     "CS2040",
+     "CS2030"
+    ],
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-010",
+   "row": "code-join",
+   "text": "cs1231 s/u",
+   "topK": 20,
+   "rule": "code-at-rank-1",
+   "params": {
+    "code": "CS1231",
+    "allSatisfy": {
+     "su": "1"
+    }
+   },
+   "interpreted": {
+    "pin": [
+     "CS1231"
+    ],
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": {
+     "value": 1,
+     "basis": [
+      "CS/CU",
+      "su"
+     ]
+    },
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-011",
+   "row": "partial-code",
+   "text": "CS32",
+   "topK": 50,
+   "rule": "partial-mask",
+   "params": {
+    "prefix": "CS32",
+    "G": 27
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": "CS32",
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-012",
+   "row": "partial-code",
+   "text": "cs101",
+   "topK": 50,
+   "rule": "partial-mask",
+   "params": {
+    "prefix": "CS101",
+    "G": 1
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": "CS101",
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-013",
+   "row": "partial-code",
+   "text": "cs 32",
+   "topK": 50,
+   "rule": "partial-mask",
+   "params": {
+    "prefix": "CS32",
+    "G": 27
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": "CS32",
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-014",
+   "row": "partial-code",
+   "text": "GEA",
+   "topK": 50,
+   "rule": "partial-mask",
+   "params": {
+    "prefix": "GEA",
+    "G": 1
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": "GEA",
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-015",
+   "row": "partial-code",
+   "text": "gess",
+   "topK": 50,
+   "rule": "partial-mask",
+   "params": {
+    "prefix": "GESS",
+    "G": 27
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": "GESS",
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6 (replaces the plan example `gec`, which is dev d-092)"
+  },
+  {
+   "id": "sc4-016",
+   "row": "partial-code",
+   "text": "GEX",
+   "topK": 50,
+   "rule": "partial-mask",
+   "params": {
+    "prefix": "GEX",
+    "G": 14
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": "GEX",
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-017",
+   "row": "code-in-longer",
+   "text": "cs32 machine learning",
+   "topK": 20,
+   "rule": "mixed-prefix",
+   "params": {
+    "prefix": "CS32",
+    "M": 3
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": "CS32",
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-018",
+   "row": "code-in-longer",
+   "text": "pl32 psychology lab",
+   "topK": 20,
+   "rule": "mixed-prefix",
+   "params": {
+    "prefix": "PL32",
+    "M": 3
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": "PL32",
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-019",
+   "row": "unrouted-code-in-longer",
+   "text": "CS 4400 Operating Systems",
+   "topK": 20,
+   "rule": "routes-nothing",
+   "params": {
+    "code": "CS4400"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "dev:d-016"
+  },
+  {
+   "id": "sc4-020",
+   "row": "unrouted-code-in-longer",
+   "text": "something like ACC1701X for engineers",
+   "topK": 20,
+   "rule": "routes-nothing",
+   "params": {
+    "code": "ACC1701X"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-021",
+   "row": "ge-in-longer",
+   "text": "GE module about technology and society",
+   "topK": 20,
+   "rule": "ge-mask",
+   "params": {
+    "prefixes": [
+     "GEA",
+     "GEC",
+     "GEH",
+     "GEI",
+     "GEN",
+     "GEQ",
+     "GES",
+     "GESS",
+     "GET",
+     "GEX"
+    ],
+    "pillarGroups": 102,
+    "minCount": 10
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": [
+     "GEA",
+     "GEC",
+     "GEH",
+     "GEI",
+     "GEN",
+     "GEQ",
+     "GES",
+     "GESS",
+     "GET",
+     "GEX"
+    ],
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "dev:d-079"
+  },
+  {
+   "id": "sc4-022",
+   "row": "ge-in-longer",
+   "text": "general education course that's easy and interesting",
+   "topK": 20,
+   "rule": "ge-mask",
+   "params": {
+    "prefixes": [
+     "GEA",
+     "GEC",
+     "GEH",
+     "GEI",
+     "GEN",
+     "GEQ",
+     "GES",
+     "GESS",
+     "GET",
+     "GEX"
+    ],
+    "pillarGroups": 102,
+    "minCount": 10
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": [
+     "GEA",
+     "GEC",
+     "GEH",
+     "GEI",
+     "GEN",
+     "GEQ",
+     "GES",
+     "GESS",
+     "GET",
+     "GEX"
+    ],
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "dev:d-022"
+  },
+  {
+   "id": "sc4-023",
+   "row": "typo",
+   "text": "psycholgy of learning and memory",
+   "topK": 20,
+   "rule": "typo-overlap",
+   "params": {
+    "clean": "psychology of learning and memory",
+    "T": 5
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-024",
+   "row": "typo",
+   "text": "enviromental policy and sustainabilty",
+   "topK": 20,
+   "rule": "typo-overlap",
+   "params": {
+    "clean": "environmental policy and sustainability",
+    "T": 5
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-025",
+   "row": "typo",
+   "text": "orgainc chemistry reactions",
+   "topK": 20,
+   "rule": "typo-overlap",
+   "params": {
+    "clean": "organic chemistry reactions",
+    "T": 5
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-026",
+   "row": "typo",
+   "text": "introductry statistics",
+   "topK": 20,
+   "rule": "typo-overlap",
+   "params": {
+    "clean": "introductory statistics",
+    "T": 5
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 1,
+     "max": 4,
+     "source": [
+      "beginner"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-027",
+   "row": "typo",
+   "text": "marketting strategy for startups",
+   "topK": 20,
+   "rule": "typo-overlap",
+   "params": {
+    "clean": "marketing strategy for startups",
+    "T": 5
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-028",
+   "row": "level-beginner",
+   "text": "introductory machine learning",
+   "topK": 20,
+   "rule": "beginner",
+   "params": {
+    "answers": [
+     "CS2109S",
+     "CS2109HS",
+     "EE2211",
+     "EE2213",
+     "HS1502",
+     "IS2109",
+     "IT1244",
+     "TCX2006"
+    ],
+    "topN": 3
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 1,
+     "max": 4,
+     "source": [
+      "beginner"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-029",
+   "row": "level-beginner",
+   "text": "programming for beginners",
+   "topK": 20,
+   "rule": "beginner",
+   "params": {
+    "answers": [
+     "CS1010",
+     "CS1010A",
+     "CS1010E",
+     "CS1010HS",
+     "CS1010R",
+     "CS1010S",
+     "CS1010X",
+     "CS1101S",
+     "COS1000",
+     "DAO2702",
+     "DAO2702X",
+     "GEI1000",
+     "RE2708",
+     "TCX1002",
+     "TEE2101",
+     "TIE2030",
+     "ZB2201"
+    ],
+    "topN": 3
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 1,
+     "max": 4,
+     "source": [
+      "beginner"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-030",
+   "row": "level-beginner",
+   "text": "first year chemistry",
+   "topK": 20,
+   "rule": "beginner",
+   "params": {
+    "answers": [
+     "CM1102",
+     "CM1417",
+     "CM2112",
+     "CM2122",
+     "CM2133",
+     "CM2143"
+    ],
+    "topN": 3
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 1,
+     "max": 4,
+     "source": [
+      "beginner"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-031",
+   "row": "level-beginner",
+   "text": "economics with no background",
+   "topK": 20,
+   "rule": "beginner",
+   "params": {
+    "answers": [
+     "EC1101E",
+     "EC2104",
+     "EC2303",
+     "EC2314",
+     "GEC1034",
+     "GET1023",
+     "GEX1010"
+    ],
+    "topN": 3
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 1,
+     "max": 4,
+     "source": [
+      "beginner"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": {
+     "value": "none",
+     "semantics": "$selected"
+    }
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-032",
+   "row": "level-graduate",
+   "text": "graduate machine learning theory",
+   "topK": 20,
+   "rule": "top10-level-window",
+   "params": {
+    "min": 5,
+    "max": null
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 5,
+     "max": null,
+     "source": [
+      "graduate"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-033",
+   "row": "level-graduate",
+   "text": "masters level corporate finance",
+   "topK": 20,
+   "rule": "top10-level-window",
+   "params": {
+    "min": 5,
+    "max": null
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 5,
+     "max": null,
+     "source": [
+      "graduate"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-034",
+   "row": "level-n",
+   "text": "4000 level marketing",
+   "topK": 20,
+   "rule": "top10-level-window",
+   "params": {
+    "min": 4,
+    "max": 4
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 4,
+     "max": 4,
+     "source": [
+      "level"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan phrase"
+  },
+  {
+   "id": "sc4-035",
+   "row": "level-n",
+   "text": "level 3000 econometrics",
+   "topK": 20,
+   "rule": "top10-level-window",
+   "params": {
+    "min": 3,
+    "max": 3
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 3,
+     "max": 3,
+     "source": [
+      "level"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan phrase"
+  },
+  {
+   "id": "sc4-036",
+   "row": "level-n",
+   "text": "lvl 3000 urban planning",
+   "topK": 20,
+   "rule": "top10-level-window",
+   "params": {
+    "min": 3,
+    "max": 3
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 3,
+     "max": 3,
+     "source": [
+      "level"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan phrase"
+  },
+  {
+   "id": "sc4-037",
+   "row": "level-year",
+   "text": "software engineering electives for 3rd year",
+   "topK": 20,
+   "rule": "top10-level-window",
+   "params": {
+    "min": 3,
+    "max": 4
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 3,
+     "max": 4,
+     "source": [
+      "year"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan phrase"
+  },
+  {
+   "id": "sc4-038",
+   "row": "level-year",
+   "text": "2nd year data analytics",
+   "topK": 20,
+   "rule": "top10-level-window",
+   "params": {
+    "min": 2,
+    "max": 4
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 2,
+     "max": 4,
+     "source": [
+      "year"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan phrase"
+  },
+  {
+   "id": "sc4-039",
+   "row": "level-year",
+   "text": "third year organic synthesis",
+   "topK": 20,
+   "rule": "top10-level-window",
+   "params": {
+    "min": 3,
+    "max": 4
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 3,
+     "max": 4,
+     "source": [
+      "year"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan phrase"
+  },
+  {
+   "id": "sc4-040",
+   "row": "no-exam",
+   "text": "no final exam, project based CS course",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "exam": "0"
+    },
+    "reference": "project based CS course",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": 0,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "dev:d-024"
+  },
+  {
+   "id": "sc4-041",
+   "row": "no-exam",
+   "text": "sociology module without final exam",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "exam": "0"
+    },
+    "reference": "sociology module",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": 0,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan phrase"
+  },
+  {
+   "id": "sc4-042",
+   "row": "no-exam",
+   "text": "no finals creative writing",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "exam": "0"
+    },
+    "reference": "creative writing",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": 0,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-043",
+   "row": "su",
+   "text": "s/u-able chemistry module",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "su": "1"
+    },
+    "reference": "chemistry module",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": {
+     "value": 1,
+     "basis": [
+      "CS/CU",
+      "su"
+     ]
+    },
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-044",
+   "row": "su",
+   "text": "pass/fail art modules",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "su": "1"
+    },
+    "reference": "art modules",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": {
+     "value": 1,
+     "basis": [
+      "CS/CU",
+      "su"
+     ]
+    },
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-045",
+   "row": "su",
+   "text": "su-able statistics",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "su": "1"
+    },
+    "reference": "statistics",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": {
+     "value": 1,
+     "basis": [
+      "CS/CU",
+      "su"
+     ]
+    },
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-046",
+   "row": "workload",
+   "text": "light workload history elective",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "hoursBelow": "10"
+    },
+    "reference": "history elective",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": 10,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-047",
+   "row": "workload",
+   "text": "philosophy under 8 hours",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "hoursBelow": "8"
+    },
+    "reference": "philosophy",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": 8,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-048",
+   "row": "workload",
+   "text": "low workload music module",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "hoursBelow": "10"
+    },
+    "reference": "music module",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": 10,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-049",
+   "row": "no-prereq",
+   "text": "no prerequisites calculus",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "prereq": "none"
+    },
+    "reference": "calculus",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": {
+     "value": "none",
+     "semantics": "$selected"
+    }
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-050",
+   "row": "no-prereq",
+   "text": "no prereq data visualisation",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "prereq": "none"
+    },
+    "reference": "data visualisation",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": {
+     "value": "none",
+     "semantics": "$selected"
+    }
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-051",
+   "row": "no-prereq",
+   "text": "linguistics no prerequisite",
+   "topK": 20,
+   "rule": "constraint",
+   "params": {
+    "param": {
+     "prereq": "none"
+    },
+    "reference": "linguistics",
+    "minOverlap": 7
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": {
+     "value": "none",
+     "semantics": "$selected"
+    }
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-052",
+   "row": "gibberish",
+   "text": "asdfgh",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "no-signal"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-053",
+   "row": "gibberish",
+   "text": "lmao idk",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "no-signal"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-054",
+   "row": "gibberish",
+   "text": "skibidi",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "no-signal"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-055",
+   "row": "gibberish",
+   "text": "xqzv 4412",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "no-signal"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-056",
+   "row": "gibberish",
+   "text": "frobnicate quux",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "no-signal"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-057",
+   "row": "nonexistent-code",
+   "text": "CS9999",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "unknown-code",
+    "code": "CS9999"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-058",
+   "row": "nonexistent-code",
+   "text": "lsm 9876",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "unknown-code",
+    "code": "LSM9876"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-059",
+   "row": "nonexistent-code",
+   "text": "ACC9123",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "unknown-code",
+    "code": "ACC9123"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-060",
+   "row": "not-offered-code",
+   "text": "GEQ1000",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "not-offered",
+    "code": "GEQ1000",
+    "title": "Asking Questions"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-061",
+   "row": "not-offered-code",
+   "text": "GEH1001",
+   "topK": 20,
+   "rule": "no-match",
+   "params": {
+    "reason": "not-offered",
+    "code": "GEH1001",
+    "title": "Globalisation and New Media"
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-062",
+   "row": "guard",
+   "text": "art history",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "art",
+     "history"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-063",
+   "row": "guard",
+   "text": "law and society",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "law",
+     "society"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-064",
+   "row": "guard",
+   "text": "intro to psych",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "intro",
+     "psych"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 1,
+     "max": 4,
+     "source": [
+      "beginner"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-065",
+   "row": "guard",
+   "text": "learn korean",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "learn",
+     "korean"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-066",
+   "row": "guard",
+   "text": "AI",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "ai"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-067",
+   "row": "guard",
+   "text": "ai ethics",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "ai"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-068",
+   "row": "guard",
+   "text": "js",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "js"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-069",
+   "row": "guard",
+   "text": "pr",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "pr"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-070",
+   "row": "guard",
+   "text": "dsa",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "dsa"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-071",
+   "row": "guard",
+   "text": "comp 1010",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "comp"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-072",
+   "row": "guard",
+   "text": "math 1001",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "math"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-073",
+   "row": "guard",
+   "text": "econ 1101",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "econ"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-074",
+   "row": "guard",
+   "text": "advanced calculus",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "advanced",
+     "calculus"
+    ],
+    "mustInclude": [
+     "MA2311"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-075",
+   "row": "guard",
+   "text": "not first year basics",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "not",
+     "first",
+     "year",
+     "basics"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-076",
+   "row": "guard",
+   "text": "give me 2 easy electives",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "me"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-077",
+   "row": "guard",
+   "text": "how many units is 3 US credits",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "is"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-078",
+   "row": "guard",
+   "text": "show me 4000 level courses",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "me"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 4,
+     "max": 4,
+     "source": [
+      "level"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-079",
+   "row": "guard",
+   "text": "give me 3000 level electives",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "me"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 3,
+     "max": 3,
+     "source": [
+      "level"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan"
+  },
+  {
+   "id": "sc4-080",
+   "row": "guard",
+   "text": "what is 2000 level",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "is"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 2,
+     "max": 2,
+     "source": [
+      "level"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan text (3B joins)"
+  },
+  {
+   "id": "sc4-081",
+   "row": "guard",
+   "text": "is it 3000 level",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "is",
+     "it"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": {
+     "min": 3,
+     "max": 3,
+     "source": [
+      "level"
+     ]
+    },
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "plan text (3B joins)"
+  },
+  {
+   "id": "sc4-082",
+   "row": "guard",
+   "text": "ee 2211 workload",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "ee"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-083",
+   "row": "guard",
+   "text": "it",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "it"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-084",
+   "row": "guard",
+   "text": "it security",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "it"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-085",
+   "row": "guard",
+   "text": "lab safety training",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "lab"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-086",
+   "row": "guard",
+   "text": "final year project",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "final",
+     "year",
+     "project"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-087",
+   "row": "guard",
+   "text": "ma thesis writing",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "ma"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-088",
+   "row": "guard",
+   "text": "se asia history",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [
+     "se"
+    ],
+    "letterTokens": []
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-089",
+   "row": "guard",
+   "text": "non graduate data science",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "non",
+     "graduate",
+     "data",
+     "science"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  },
+  {
+   "id": "sc4-090",
+   "row": "guard",
+   "text": "beyond first year calculus",
+   "topK": 20,
+   "rule": "guard",
+   "params": {
+    "collisionTokens": [],
+    "letterTokens": [
+     "beyond",
+     "first",
+     "year",
+     "calculus"
+    ]
+   },
+   "interpreted": {
+    "pin": null,
+    "prefix": null,
+    "ge": null,
+    "level": null,
+    "exam": null,
+    "su": null,
+    "hoursBelow": null,
+    "prereq": null
+   },
+   "origin": "p6"
+  }
+ ]
+}

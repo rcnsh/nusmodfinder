@@ -1,0 +1,14 @@
+{
+ "schema": "vnm-p6-stopwords/1",
+ "fixedAt": "P-6",
+ "plan": "docs/plans/phase3.md 3B 'Keyword brittleness' (A-4); src/fts-query.js STOPWORDS",
+ "current": ["a", "an", "and", "are", "as", "at", "be", "by", "do", "for", "from", "how", "i", "in", "is", "it", "me", "my", "of", "on", "or", "own", "the", "to", "with", "you", "your"],
+ "v2Additions": ["class", "course", "courses", "module", "modules", "nus", "something", "teach"],
+ "v2": ["a", "an", "and", "are", "as", "at", "be", "by", "class", "course", "courses", "do", "for", "from", "how", "i", "in", "is", "it", "me", "module", "modules", "my", "nus", "of", "on", "or", "own", "something", "teach", "the", "to", "with", "you", "your"],
+ "notStopwords": ["intro", "introductory"],
+ "notes": [
+  "`v2` is candidate stopwords-v2: `current` plus `v2Additions`. It is screened alone under the general CI rule and joins L3 only if it passes dev alone.",
+  "`intro` and `introductory` go to the 3D intent parser, never the stopword list.",
+  "The code-join guard ('letters on the collision or stopword list') reads the stopword list in force. No v2 addition is a corpus prefix, so the guard is the same under `current` and `v2`."
+ ]
+}
