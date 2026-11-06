@@ -1,7 +1,8 @@
 # 0006: Phase 3 search-quality plan
 
-Status: accepted (lead, 2026-11-04), pending Jacob's answers to Q1–Q4 (`docs/plans/phase3.md`
-§10). The plan converged at r3.1 after three critic rounds (eval discipline; vectors, deploy and
+Status: accepted (lead, 2026-11-04). Jacob answered the gate questions on 2026-11-06
+(`docs/plans/phase3.md` §10): Q1 sealed test set, Q2 VPN off, Q4 the standing rule as written.
+Q3 did not trigger (`docs/evidence/phase3/embed-latency.md`). The plan converged at r3.1 after three critic rounds (eval discipline; vectors, deploy and
 cost; SC4 and student queries). Its §11 logs every objection and where it landed.
 
 ## Context

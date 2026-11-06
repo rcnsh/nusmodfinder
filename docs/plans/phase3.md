@@ -831,7 +831,7 @@ then the holdout step planned in §3.
     (`eval/lib/code-rule.mjs`). It produced `qrels-dev-v2` (56 rule pairs over 11 queries) and
     `qrels-holdout-v2` (15 rule pairs over 4 queries, counts only, no look), and made d-087,
     d-089, d-090, d-091 and d-092 answerable.
-  - **P-0b. Gate and custody hardening** (lead, in progress):
+  - **P-0b. Gate and custody hardening: done** (PR #32, `66b5cb7`):
     - a cutoff must truncate the baseline;
     - the ledger records the rule applied;
     - the baseline ranker's sha is checked;
@@ -839,7 +839,8 @@ then the holdout step planned in §3.
     - `--set-dir` is checked against its manifest.
   - **P-1. groups-v1: done** (PR #28, `87107a1`). `eval/groups.json` is the duplicate-group source
     for every set.
-  - **P-2. Step 3-0.0**, the embed-latency check. Q3 goes to Jacob only if it triggers.
+  - **P-2. Step 3-0.0: done** (2026-11-06, `docs/evidence/phase3/embed-latency.md`). The
+    projected warm p67 is 160.6 ms over 12 SIN samples, so Q3 does not trigger.
   - **P-3. 3-0** is built, proven identical on dev and the fixture, and deployed. Runbook step 8
     upserts the standby. No look.
   - **P-4. The dev baseline: done** (PR #30, `EVAL.md`), under `qrels-dev-v2` and groups-v1
@@ -883,7 +884,8 @@ then the holdout step planned in §3.
       derivation and gate halves, the 90% threshold, and the τ candidate rule with its
       nearest-rank percentile method;
     - the SC4 suite, with its typo threshold T and mixed-query count.
-  - **P-7. Jacob answers Q1** (SC5 reading), batched with Q2 (VPN) (§10).
+  - **P-7. Jacob answers Q1** (SC5 reading), batched with Q2 (VPN) (§10): **done** (2026-11-06,
+    the sealed test set; the VPN is off).
 - **Dev is open.** Every candidate runs `npm run eval -- --variant <v> --baseline <shipped>`
   (with `--target-shapes` or `--change-kind` where declared) and must pass the dev screen before
   its look. Every comparison scores both runs under the same, latest qrels version.
@@ -1208,6 +1210,15 @@ Other rules:
 | 0006 (new) | [Written with this plan](../decisions/0006-phase3-search-quality-plan.md): the key Phase 3 decisions and the dissent from all three rounds. 3-0's PR adds the measured bundle size, startup time and CPU per query. | all three rounds | r3.1 (this PR); 3-0's PR |
 
 ## 10. Gate questions for Jacob
+**Answered (Jacob, 2026-11-06):**
+- **Q1:** the sealed test set decides SC5. L12 is unused, and 5 holdout looks stay spare.
+- **Q2:** the VPN is off. Before the counted SC7 run, the lead confirms it is still off.
+- **Q3:** not triggered. Step 3-0.0 projected a warm p67 of 160.6 ms
+  (`docs/evidence/phase3/embed-latency.md`).
+- **Q4:** the standing rule stands as written.
+
+The questions as they were asked:
+
 Q1 and Q2 go together, before the first holdout look. Q3 is asked only if step 3-0.0 triggers
 it. Q4 is a standing rule that comes up only if a change fails.
 
