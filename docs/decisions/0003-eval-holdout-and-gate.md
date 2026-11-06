@@ -202,6 +202,46 @@ above do not allow; each is now refused mechanically, before a look is reserved 
   `eval:verify` check, on the bytes decrypted; `ManifestError`); a set directory with no
   manifest is refused.
 
+## Amendment 2026-11-06: Phase 3 gate rules (P-5, P-5b)
+Made before the first holdout look, for the Phase 3 plan (`docs/plans/phase3.md` §3 P-5 and
+P-5b, §9). Each rule is in the code and tested.
+- **The no-answer set is fixed by tag** (A-1, C-3, A2-2, A2-11). For any change, a query is
+  no-answer iff it is tagged `noanswer` or `code-nonexistent`, or carries `noAnswerByRule`
+  (`isTaggedNoAnswer`, `eval/lib/metrics.mjs`). Grades never move a query into or out of the
+  set, so emptying any other query is answerable loss.
+  - An untagged query with no grade-≥1 document is **unscored**: it is in neither set and in no
+    metric.
+  - Reports list unscored ids on dev only. Holdout and test verdicts print the count alone
+    (`unscored queries: n`).
+  - On dev this moves the baseline. d-013, d-051 and d-065 are tagged `noanswer` but have
+    grade-≥1 documents, so they leave the primary set: 80 primary answerable queries, not 83.
+    v0 hybrid reads nDCG@10 0.713, P@5 0.583 and MRR@10 0.824, against 0.712, 0.571 and 0.820
+    before (`EVAL.md`). The no-answer set is 5 queries, and 8 are unscored.
+- **Change kinds `no-loss` and `answerable-floor`** (A2-2, A2-4, C3-8). Both screen on dev only.
+  The CLI refuses them on an encrypted set before any look, and `gateFor` throws
+  `GateRuleError` if a holdout or test verdict is asked for one.
+  - `no-loss` (3F, and 3H's dev screen) replaces the dev CI rule with ΔnDCG@10 ≥ 0 as a point
+    estimate.
+  - `--exempt <file>` (no-loss only, dev only) names dev ids to leave out of that comparison:
+    3H's constraint-exempt queries, which a committed script computes per candidate. The report
+    prints each exempt id with its Δ.
+  - `answerable-floor` (3G) replaces it with answerable ΔnDCG@10 ≥ −0.01, over the primary set
+    with the no-answer set fixed by tag.
+  - The other dev checks still apply to both kinds: no new errors, ≥ 10 queries, judged@10 100%,
+    and no exact-code regression.
+- **`--gate sc5` on the holdout** (A2-2, A2-10). `eval:report --gate sc5` takes the SC5 rule (the
+  test set's row of the gate table) on stored holdout runs, against the pinned baseline, and the
+  ledger records rule `sc5`.
+  - It is accepted only under the holdout reading of SC5. `SC5_READING` in `eval/lib/gate.mjs`
+    is the reading the "SC5 reading" section above records, and `test/eval/gate.node.test.js`
+    fails if the two differ.
+  - The reading is the sealed test set, so `--gate sc5` is refused on the holdout before any
+    look, and L12 is unused.
+  - Under a holdout reading, one `sc5` look per ledger would be accepted, and a per-change
+    holdout look would be refused at 11 looks, so L12 stays the SC5 look.
+  - `npm run eval` refuses `--gate`: an SC5 verdict is taken on stored, fully judged runs, as
+    every look is (the plan's look procedure, §3).
+
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.
 - The cutoff rule screens on dev and governs on holdout.

@@ -183,10 +183,12 @@ const look = node(CLI, ['run', ...hargs, '--variant', 'cand', '--baseline', 'bas
 ok(look, 'holdout look');
 assertNoLeak(look.out, 'holdout look');
 const verdictLines = look.out.trim().split('\n').filter((l) => !/^(wrote |selftest\/cand: ranker )/.test(l));
-assert.equal(verdictLines.length, 3, `holdout prints only the verdict and two Δ lines, got:\n${look.out}`);
+assert.equal(verdictLines.length, 4, `holdout prints only the verdict, two Δ lines and the unscored count, got:\n${look.out}`);
 assert.match(verdictLines[0], /^holdout verdict: (PASS|FAIL) · rule general · baseline eval-v0 7ac9841 · qrels fixture-qrels-v1$/);
 assert.match(verdictLines[1], /^ΔnDCG@10 [+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 assert.match(verdictLines[2], /^ΔP@5 +[+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
+// fx-05 is untagged with no grade-≥1 document: unscored, a count and never an id (ADR 0003, 2026-11-06).
+assert.equal(verdictLines[3], 'unscored queries: 1 (untagged, no grade-≥1 document; in neither set)');
 const ledgerPath = join(H, 'ledger.md');
 const rows1 = await readLedger(ledgerPath);
 assert.equal(rows1.length, 1, 'one ledger row per look');

@@ -75,7 +75,7 @@ async function derived() {
   const dev = JSON.parse(await readFile(join(REPO, 'eval', 'dev', 'queries.json'), 'utf8'));
   const picked = dev.queries.slice(0, ANSWERABLE + NO_ANSWER);
   const queries = picked.map((/** @type {any} */ q, /** @type {number} */ i) => ({
-    id: q.id, text: q.text, persona: q.persona, shapes: [i < ANSWERABLE ? 'topical' : 'no-answer'],
+    id: q.id, text: q.text, persona: q.persona, shapes: [i < ANSWERABLE ? 'topical' : 'noanswer'],
   }));
   const querySet = { schema: 'vnm-eval-queries/1', set: SET, version: 'derived-v1', queries };
   /** @type {Record<string, string[]>} codes best first */
@@ -192,10 +192,10 @@ describe('gap 1: a cutoff verdict needs a truncation, and the rule is recorded',
 
   it('a targeted change is recorded with its targets', async () => {
     const { dir } = await makeSet('targeted', { cand: truncatingCutoff });
-    const r = report(dir, ['--target-shapes', 'topical,no-answer']);
+    const r = report(dir, ['--target-shapes', 'topical,noanswer']);
     expect(r.stderr).toBe('');
-    expect(r.stdout).toMatch(/^holdout verdict: (PASS|FAIL) · rule targeted: topical,no-answer · baseline eval-v0 7ac9841 · /m);
-    expect((await rowsOf(ledgerOf(dir)))[0][8]).toBe('targeted: topical,no-answer');
+    expect(r.stdout).toMatch(/^holdout verdict: (PASS|FAIL) · rule targeted: topical,noanswer · baseline eval-v0 7ac9841 · /m);
+    expect((await rowsOf(ledgerOf(dir)))[0][8]).toBe('targeted: topical,noanswer');
   });
 
   it('`run --change-kind cutoff` on an encrypted set is refused before a look is reserved', async () => {

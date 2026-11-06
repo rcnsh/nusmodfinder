@@ -20,7 +20,13 @@
 //           baseline's nor a prefix of it (a cutoff truncates; it never
 //           reorders or adds).
 //   SC5     On the sealed test set: BCa 95% lower bounds of ΔnDCG@10 and ΔP@5
-//           both > 0; judged@10 = 100%.
+//           both > 0; judged@10 = 100%. On the holdout only by `--gate sc5`,
+//           and only under the holdout reading of SC5 (SC5_READING, tied to
+//           ADR 0003's "SC5 reading" by test/eval/gate.node.test.js).
+//   no-loss            (dev screen only; 3F, 3H) ΔnDCG@10 >= 0, point
+//                      estimate, over the primary set less any `exempt` ids.
+//   answerable-floor   (dev screen only; 3G) ΔnDCG@10 >= -0.01 over the
+//                      primary answerable set, the no-answer set fixed by tag.
 //
 // Every gate fails a candidate with more errored (non-200) queries than its
 // baseline ("no new errors"), and needs at least RULES.minQueries primary
@@ -33,7 +39,7 @@
 // delta equal), and a target-shape tripwire over fewer than
 // RULES.minShapeQueriesForCi queries falls back to "point estimate >= 0".
 
-import { CutoffError } from './errors.mjs';
+import { CutoffError, GateRuleError } from './errors.mjs';
 
 /** Tolerance for "point estimate >= 0" so float summation noise cannot flip a verdict. */
 const EPS = 1e-12;
@@ -42,6 +48,8 @@ export const RULES = Object.freeze({
   judgedRequired: 1,
   cutoffMinCorrectEmptyGain: 0.25,
   cutoffMaxNdcgLoss: 0.01,
+  /** answerable-floor: the largest answerable ΔnDCG@10 loss allowed. */
+  floorMaxNdcgLoss: 0.01,
   /** Fewer primary answerable queries than this and no gate can pass. */
   minQueries: 10,
   /** Fewer no-answer queries than this and a cutoff verdict cannot pass. */
@@ -53,7 +61,37 @@ export const RULES = Object.freeze({
 });
 
 /**
- * @typedef {{ kind?: 'general' | 'cutoff', targetShapes?: string[] }} Change
+ * Which set decides SC5, as ADR 0003 "SC5 reading" records it: `sealed` (the
+ * sealed test set, one look) or `holdout` (L12 on the holdout, `--gate sc5`).
+ * A test ties this to the ADR's text, so changing the reading means changing
+ * the ADR in the same PR.
+ * @type {'sealed' | 'holdout'}
+ */
+export const SC5_READING = 'sealed';
+
+/** Change kinds that screen on dev only: no holdout or test verdict uses them. */
+export const DEV_ONLY_KINDS = Object.freeze(['no-loss', 'answerable-floor']);
+/** Every change kind `--change-kind` takes. */
+export const CHANGE_KINDS = Object.freeze(['general', 'cutoff', ...DEV_ONLY_KINDS]);
+
+/**
+ * Throws GateRuleError unless the SC5 rule may be taken on `set`'s gate: the
+ * test set always; the holdout only under the holdout reading; dev never.
+ * @param {string} set dev | holdout | test
+ * @param {'sealed' | 'holdout'} [reading]
+ */
+export function assertSc5Allowed(set, reading = SC5_READING) {
+  if (set === 'test') return;
+  if (set !== 'holdout') throw new GateRuleError(`--gate sc5 is not taken on dev: SC5 is decided on the sealed test set or, under the holdout reading, on the holdout`);
+  if (reading !== 'holdout') {
+    throw new GateRuleError('--gate sc5 is refused on the holdout: ADR 0003 records the sealed-test-set reading of SC5, so the holdout is never read for SC5 (L12 is unused)');
+  }
+}
+
+/**
+ * `gate: 'sc5'` takes the SC5 rule on the holdout (assertSc5Allowed).
+ * `exempt` (no-loss only, dev only): ids left out of the no-loss comparison.
+ * @typedef {{ kind?: 'general' | 'cutoff' | 'no-loss' | 'answerable-floor', targetShapes?: string[], gate?: 'sc5', exempt?: string[] }} Change
  * @typedef {{ name: string, pass: boolean, detail: string }} Check
  * @typedef {{ set: string, verdict: 'pass' | 'fail', checks: Check[], rule?: string }} Verdict
  * @typedef {import('./metrics.mjs').Comparison} Comparison
@@ -134,6 +172,29 @@ function cutoffChecks(cmp) {
 }
 
 /**
+ * The dev-only kinds' decisive check.
+ * @param {Comparison} cmp
+ * @param {Change} change
+ * @returns {Check}
+ */
+function devKindCheck(cmp, change) {
+  const d = cmp.overall.ndcg.delta;
+  if (change.kind === 'no-loss') {
+    const exempt = change.exempt?.length ?? 0;
+    return {
+      name: 'ΔnDCG@10 >= 0 (no-loss)',
+      pass: Number.isFinite(d) && d >= -EPS,
+      detail: `ΔnDCG@10 ${f(d)} over ${cmp.n} primary answerable queries${exempt ? `, ${exempt} exempt left out` : ''}`,
+    };
+  }
+  return {
+    name: `answerable ΔnDCG@10 >= -${RULES.floorMaxNdcgLoss}`,
+    pass: Number.isFinite(d) && -d <= RULES.floorMaxNdcgLoss + EPS,
+    detail: `ΔnDCG@10 ${f(d)} over ${cmp.n} primary answerable queries`,
+  };
+}
+
+/**
  * @param {string} set
  * @param {Check[]} checks
  * @returns {Verdict}
@@ -150,6 +211,7 @@ export function devGate(cmp, change = {}) {
   // Exact-code check on dev too: the holdout has a single exact-code query (ADR 0003 v2.1).
   const checks = [noNewErrorsCheck(cmp), sufficientCheck(cmp), judgedCheck(cmp), exactCodeCheck(cmp)];
   if (change.kind === 'cutoff') return verdict('dev', [...checks, ...cutoffChecks(cmp)]);
+  if (change.kind && DEV_ONLY_KINDS.includes(change.kind)) return verdict('dev', [...checks, devKindCheck(cmp, change)]);
 
   const targets = change.targetShapes ?? [];
   const ndcg = cmp.overall.ndcg;
@@ -207,12 +269,14 @@ export function holdoutGate(cmp, change = {}) {
 }
 
 /**
- * SC5 on the sealed test set: final shipped ranker vs eval-v0.
+ * SC5: final shipped ranker vs eval-v0, on the sealed test set (or, under the
+ * holdout reading, on the holdout: `set` names it).
  * @param {Comparison} cmp
+ * @param {string} [set]
  * @returns {Verdict}
  */
-export function sc5Gate(cmp) {
-  return verdict('test', [
+export function sc5Gate(cmp, set = 'test') {
+  return verdict(set, [
     noNewErrorsCheck(cmp),
     sufficientCheck(cmp),
     judgedCheck(cmp),
@@ -223,14 +287,15 @@ export function sc5Gate(cmp) {
 
 /**
  * The rule a verdict applies, as printed and recorded in the ledger:
- * `sc5` (the test set), `cutoff`, `targeted: <shape,...>` or `general`.
+ * `sc5` (the test set, or `--gate sc5`), `cutoff`, `no-loss`,
+ * `answerable-floor`, `targeted: <shape,...>` or `general`.
  * Shape names are cut to [A-Za-z0-9._-].
  * @param {string} set dev | holdout | test
  * @param {Change} [change]
  */
 export function ruleOf(set, change = {}) {
-  if (set === 'test') return 'sc5';
-  if (change.kind === 'cutoff') return 'cutoff';
+  if (set === 'test' || change.gate === 'sc5') return 'sc5';
+  if (change.kind === 'cutoff' || (change.kind && DEV_ONLY_KINDS.includes(change.kind))) return change.kind;
   const targets = (change.targetShapes ?? []).map((t) => t.replace(/[^A-Za-z0-9._-]/g, '?').slice(0, 40));
   return targets.length ? `targeted: ${targets.join(',')}` : 'general';
 }
@@ -261,10 +326,18 @@ export function assertTruncation(base, cand) {
  * @param {string} set dev | holdout | test (anything else is screened as dev)
  * @param {Comparison} cmp
  * @param {Change} [change]
+ * @param {{ reading?: 'sealed' | 'holdout' }} [options] the SC5 reading (default: the recorded SC5_READING)
  * @returns {Verdict}
  */
-export function gateFor(set, cmp, change) {
+export function gateFor(set, cmp, change = {}, options = {}) {
   const rule = ruleOf(set, change);
+  if ((set === 'holdout' || set === 'test') && change.kind && DEV_ONLY_KINDS.includes(change.kind)) {
+    throw new GateRuleError(`--change-kind ${change.kind} is a dev screen only: no ${set} verdict takes it`);
+  }
+  if (change.gate === 'sc5') {
+    assertSc5Allowed(set, options.reading);
+    return { ...sc5Gate(cmp, set), rule };
+  }
   if (set === 'holdout') return { ...holdoutGate(cmp, change), rule };
   if (set === 'test') return { ...sc5Gate(cmp), rule };
   return { ...devGate(cmp, change), rule };

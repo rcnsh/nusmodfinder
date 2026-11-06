@@ -5,6 +5,7 @@
 //   npm run eval -- --variant <name> [--ref <git ref>] [--set dev|holdout|test] [--baseline <variant>]
 //   npm run eval -- --holdout --variant <name> --baseline <variant>      (custodian only)
 //   npm run eval:report -- --run <variant> [--baseline <variant>] [--set dev]
+//       [--change-kind general|cutoff|no-loss|answerable-floor] [--exempt <file>] [--gate sc5]
 //   npm run eval -- --variant <name> --ref eval-v0 --mode lexical|vector   (pool variants)
 //   npm run eval:pool -- --runs <a,b,...> [--set dev] [--unjudged [--qrels <path>]]
 //   npm run eval -- retire-run --holdout --variant <name> --reason "<why>"   (custodian; logged)
@@ -16,13 +17,13 @@ import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { assertPinnedBaseline, pinnedLabel } from './lib/baseline.mjs';
 import { assertInManifest, manifestFiles, MANIFEST, recordInManifest, removeFromManifest, sha256, writeEncryptedJson } from './lib/crypto.mjs';
-import { EmbeddingError, errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
-import { assertTruncation, gateFor, ruleOf } from './lib/gate.mjs';
+import { EmbeddingError, errorClass, LookLimitError, RunFailedError, RunFileError } from './lib/errors.mjs';
+import { assertSc5Allowed, assertTruncation, CHANGE_KINDS, DEV_ONLY_KINDS, gateFor, ruleOf, SC5_READING } from './lib/gate.mjs';
 import { loadGroups, withCorpusGroups } from './lib/groups.mjs';
 import { poolCandidate } from './lib/judging.mjs';
-import { appendLook, assertLookAllowed, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
-import { assertSameCorpus, byShape, compare, K, scoreRun, summarise } from './lib/metrics.mjs';
-import { comparisonTable, shapeTable, summaryTable, verdictBlock, verdictOnly } from './lib/report.mjs';
+import { appendLook, assertLookAllowed, finaliseLook, readLedger, reserveLook, withLedgerLock } from './lib/ledger.mjs';
+import { assertSameCorpus, byShape, compare, K, scoreRun, summarise, unscoredIds } from './lib/metrics.mjs';
+import { comparisonTable, fmt, shapeTable, summaryTable, UNSCORED_NOTE, verdictBlock, verdictOnly } from './lib/report.mjs';
 import { MODES, REPO, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
 import { rng } from './lib/stats.mjs';
 
@@ -37,6 +38,8 @@ const OPTIONS = /** @type {const} */ ({
   runs: { type: 'string' },
   'change-kind': { type: 'string', default: 'general' },
   'target-shapes': { type: 'string' },
+  gate: { type: 'string' },
+  exempt: { type: 'string' },
   unfiltered: { type: 'boolean', default: false },
   mode: { type: 'string', default: 'hybrid' },
   embedding: { type: 'string' },
@@ -75,12 +78,59 @@ function setOf(a) {
  * @returns {import('./lib/gate.mjs').Change}
  */
 function changeOf(a, set) {
-  const kind = a['change-kind'];
-  if (kind !== 'general' && kind !== 'cutoff') fail(`--change-kind must be general or cutoff, got ${kind}`);
+  const kind = /** @type {string} */ (a['change-kind']);
+  if (!CHANGE_KINDS.includes(kind)) fail(`--change-kind must be one of ${CHANGE_KINDS.join(', ')}, got ${kind}`);
   const targetShapes = a['target-shapes'] ? a['target-shapes'].split(',').map((s) => s.trim()).filter(Boolean) : [];
-  if (kind === 'cutoff' && targetShapes.length) fail('--change-kind cutoff takes no --target-shapes: the cutoff rule replaces the Δ rules and has no targets');
+  if (kind !== 'general' && targetShapes.length) fail(`--change-kind ${kind} takes no --target-shapes: ${kind === 'cutoff' ? 'the cutoff rule replaces the Δ rules and has no targets' : 'its one check is over the primary set'}`);
+  if (a.exempt !== undefined) {
+    if (set.encrypted) fail(`--exempt is dev only: the ${set.name} set never leaves a query out of its verdict`);
+    if (kind !== 'no-loss') fail('--exempt is for --change-kind no-loss only (3H\'s constraint-exempt dev queries, C3-8)');
+  }
+  if (set.encrypted && DEV_ONLY_KINDS.includes(kind)) fail(`--change-kind ${kind} is a dev screen only: no ${set.name} verdict takes it`);
+  if (a.gate !== undefined) {
+    if (a.gate !== 'sc5') fail(`--gate takes only sc5, got ${a.gate}`);
+    if (kind !== 'general' || targetShapes.length) fail('--gate sc5 takes no --change-kind or --target-shapes: SC5 has one rule');
+    try {
+      assertSc5Allowed(set.gate);
+    } catch (err) {
+      fail(/** @type {Error} */ (err).message);
+    }
+  }
   if (set.gate === 'test' && (kind !== 'general' || targetShapes.length)) fail('the test set has one rule, SC5; --change-kind and --target-shapes do not apply to it');
-  return { kind: /** @type {'general' | 'cutoff'} */ (kind), targetShapes };
+  return { kind: /** @type {import('./lib/gate.mjs').Change['kind']} */ (kind), targetShapes, ...(a.gate ? { gate: /** @type {'sc5'} */ ('sc5') } : {}) };
+}
+
+/**
+ * Under the holdout reading of SC5 the holdout's last look (L12) is kept for
+ * the SC5 look: a per-change look may use one fewer, and `--gate sc5` is
+ * taken once. Under the sealed reading the limit is the set's own.
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {import('./lib/gate.mjs').Change} change
+ */
+const lookMax = (set, change) => (set.gate === 'holdout' && SC5_READING === 'holdout' && change.gate !== 'sc5' ? set.maxLooks - 1 : set.maxLooks);
+
+/**
+ * `--exempt <file>`: a JSON array of query ids, or `{ ids: [...] }`; every id
+ * must be one of the set's.
+ * @param {string} path
+ * @param {import('./lib/metrics.mjs').EvalQuery[]} queries
+ * @param {string} setName
+ * @returns {Promise<string[]>}
+ */
+async function readExempt(path, queries, setName) {
+  /** @type {unknown} */
+  let raw;
+  try {
+    raw = JSON.parse(await readFile(path, 'utf8'));
+  } catch (err) {
+    fail(`--exempt ${path}: ${/** @type {Error} */ (err).message}`);
+  }
+  const ids = Array.isArray(raw) ? raw : /** @type {any} */ (raw)?.ids;
+  if (!Array.isArray(ids) || ids.some((id) => typeof id !== 'string')) fail(`--exempt ${path} must hold a JSON array of query ids, or { "ids": [...] }`);
+  const known = new Set(queries.map((q) => q.id));
+  const unknown = ids.filter((id) => !known.has(id));
+  if (unknown.length) fail(`--exempt ${path} names ${unknown.length} id${unknown.length === 1 ? '' : 's'} the ${setName} set does not have: ${unknown.join(', ')}`);
+  return [...new Set(ids)];
 }
 
 /** The custody gates (holdout, SC5) take verdicts only against the pinned baseline. */
@@ -176,21 +226,38 @@ async function fullReport(set, candPath, basePath, a, change) {
   const nowSha = createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex');
   if (currentSha !== nowSha) console.warn(`warning: ${cand.variant} was run on a different version of the ${set.name} queries; re-run it`);
 
+  const exempt = a.exempt ? await readExempt(resolve(a.exempt), querySet.queries, set.name) : [];
   const candScores = scoreRun(cand, querySet.queries, scored);
   const baseScores = base ? scoreRun(base, querySet.queries, scored) : null;
   console.log(`\nset ${set.name} · queries ${querySet.version} (${querySet.queries.length}) · qrels ${qrels.version} · duplicate groups ${groups.version} · metrics on top ${K}`);
   console.log(summaryTable([...(base && baseScores ? [{ name: base.variant, summary: summarise(baseScores) }] : []), { name: cand.variant, summary: summarise(candScores) }]));
+  // Dev is open: the unscored queries are listed by id (A2-11; encrypted sets give the count only).
+  const unscored = unscoredIds(candScores);
+  console.log(`\nunscored (${UNSCORED_NOTE}): ${unscored.length}${unscored.length ? `: ${unscored.join(', ')}` : ''}`);
 
   /** @type {Record<string, unknown>} */
-  const json = { set: set.name, queries: querySet.version, qrels: qrels.version, candidate: cand.variant, summary: summarise(candScores), shapes: byShape(candScores) };
+  const json = { set: set.name, queries: querySet.version, qrels: qrels.version, candidate: cand.variant, summary: summarise(candScores), unscored, shapes: byShape(candScores) };
   let cmp = null;
   if (base && baseScores) {
     assertGateable([base, cand]);
     cmp = compare(baseScores, candScores);
     console.log(`\n${comparisonTable(cmp, base.variant, cand.variant, qrels.version)}`);
-    const v = gateFor(set.gate, cmp, change);
+    // no-loss --exempt: the gate compares the primary set less the exempt ids.
+    const kept = (/** @type {import('./lib/metrics.mjs').QueryScore} */ s) => !exempt.includes(s.id);
+    const gateCmp = exempt.length ? compare(baseScores.filter(kept), candScores.filter(kept)) : cmp;
+    const v = gateFor(set.gate, gateCmp, exempt.length ? { ...change, exempt } : change);
     console.log(`\n${verdictBlock(v)}`);
-    Object.assign(json, { baseline: base.variant, baseSummary: summarise(baseScores), comparison: { ...cmp, shapes: undefined }, verdict: v });
+    if (exempt.length) {
+      const byId = new Map(candScores.map((c, i) => [c.id, { b: baseScores[i], c }]));
+      console.log(`\nexempt from no-loss (dev only): ${exempt.length}`);
+      for (const id of exempt) {
+        const { b, c } = /** @type {{ b: import('./lib/metrics.mjs').QueryScore, c: import('./lib/metrics.mjs').QueryScore }} */ (byId.get(id));
+        const primary = b.answerable && !b.featureGap;
+        const d = c.ndcg - b.ndcg;
+        console.log(`  ${id}  ΔnDCG@10 ${primary ? `${d >= 0 ? '+' : ''}${fmt(d)}` : '— (not primary answerable)'}`);
+      }
+    }
+    Object.assign(json, { baseline: base.variant, baseSummary: summarise(baseScores), comparison: { ...cmp, shapes: undefined }, verdict: v, ...(exempt.length ? { exempt } : {}) });
   }
   console.log(`\nper shape (${set.name} only)`);
   console.log(shapeTable(baseScores ? byShape(baseScores) : {}, byShape(candScores), cmp));
@@ -223,7 +290,11 @@ async function verdictReport(set, candPath, basePath, a, change, reserved = null
   const ledger = /** @type {string} */ (set.ledger);
   /** @param {import('./lib/ledger.mjs').LockHandle} [lock] held by `report`; `run`'s finaliseLook takes its own */
   const body = async (lock) => {
-    if (!reserved) await assertLookAllowed(ledger, set.name, set.maxLooks);
+    if (!reserved) await assertLookAllowed(ledger, set.name, lookMax(set, change));
+    if (change.gate === 'sc5' && set.gate === 'holdout') {
+      const sc5Looks = (await readLedger(ledger)).filter((r) => r.set === set.name && r.rule === 'sc5').length;
+      if (sc5Looks) throw new LookLimitError(`refusing a second SC5 look at the ${set.name} set: the ledger (${ledger}) already records one`);
+    }
     const verify = { verify: true };
     const querySet = await loadQueries(set, verify);
     const qrels = await loadQrels(set, verify);
@@ -275,6 +346,7 @@ async function verdictReport(set, candPath, basePath, a, change, reserved = null
 /** @param {Args} a */
 async function cmdRun(a) {
   if (!a.variant) fail('--variant <name> is required');
+  if (a.gate !== undefined) fail('--gate sc5 is taken with eval:report on stored runs: store the candidate with --store-only, then npm run eval:report -- --run <candidate> --baseline <eval-v0 run> --gate sc5');
   const set = setOf(a);
   if (a['embed-missing'] && process.env.CI) fail('--embed-missing calls Workers AI and never runs in CI');
   if (!MODES.includes(/** @type {string} */ (a.mode))) fail(`--mode must be one of ${MODES.join(', ')}, got ${a.mode}`);
@@ -304,7 +376,7 @@ async function cmdRun(a) {
       };
       // Reserve the look before any retrieval: the reserved row counts, so
       // parallel runs cannot all get past the limit.
-      reserved = await reserveLook(/** @type {string} */ (set.ledger), set.maxLooks, look);
+      reserved = await reserveLook(/** @type {string} */ (set.ledger), lookMax(set, change), look);
     }
   }
   if (!set.encrypted && a.baseline) await precheckCorpus(set, a);

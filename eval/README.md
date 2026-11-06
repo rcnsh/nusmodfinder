@@ -88,8 +88,10 @@ ciphertexts, or a copy of them, cannot start a fresh count. `--embedding <versio
   `filters`) are the hard constraints used for violations@10.
 - `shapes` tags: `topical`, `home-course`, `alternatives`, `language`, `sea-content`,
   `level-equivalence`, `jargon`, `typo`, `code-exact`, `code-space`, `code-partial`,
-  `ge-pillar`, `level-intent`, `constraint` (feature-gap block), `no-answer`.
+  `ge-pillar`, `level-intent`, `constraint` (feature-gap block), `noanswer`, `code-nonexistent`.
 - `noAnswerByRule: true` for non-existent codes: never answerable, scored on correct-empty.
+- **The no-answer set is fixed by tag:** `noanswer`, `code-nonexistent` or `noAnswerByRule`
+  (ADR 0003, amendment 2026-11-06). Grades never move a query into or out of it.
 - `source`: the id a derived typo/code variant came from (splits follow provenance).
 
 `qrels.json`:
@@ -142,10 +144,15 @@ returned code, for violations). No query text.
   by rule) is no member for that query and never takes a sibling's slot.
 - P@5: group-first documents with grade ≥ 1 in the top 5, divided by 5. MRR@10 likewise.
 - Unjudged = grade 0; judged@10 coverage reported; gates need 100%.
-- Answerable iff some judged document has grade ≥ 1 and not `noAnswerByRule`. Primary metrics
-  are macro means over answerable queries **without** a feature-gap shape (`constraint`); those
-  are reported as their own block. No-answer queries: correct-empty rate (nothing returned) and
-  false positives.
+- Each query is in exactly one of three sets (`isTaggedNoAnswer`, ADR 0003 amendment 2026-11-06):
+  - **no-answer**: tagged `noanswer` or `code-nonexistent`, or `noAnswerByRule`, whatever its
+    grades. Scored on correct-empty rate (nothing returned) and false positives.
+  - **answerable**: untagged, with some judged document at grade ≥ 1. Primary metrics are macro
+    means over answerable queries **without** a feature-gap shape (`constraint`); those are
+    reported as their own block.
+  - **unscored**: untagged, with no grade-≥1 document. In neither set and in no metric.
+    Dev reports list the ids (`unscored (…): n: d-005, …`, and an `unscored n` row). Holdout
+    and test verdicts print only the count (`unscored queries: n`).
 - **Errors.** A non-200 response is an error, never an answer: it is never correct-empty, and
   nothing in it is relevant (nDCG, P@5 and MRR are 0). `summarise().errors` counts them (the
   `non-200 responses` row), and `npm run eval` prints `errors: n of N queries returned a non-200
@@ -168,6 +175,18 @@ Per change, vs the shipped ranker:
   ΔnDCG@10 is below 0.
 - **holdout**: ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates), no exact-code regression (no
   `code-exact` query whose baseline rank-1 is relevant gets a lower-graded rank-1), judged@10 100%.
+- **no-loss** (`--change-kind no-loss`, dev only; 3F and 3H's dev screen): the CI rule is
+  replaced by ΔnDCG@10 ≥ 0 (point estimate). The other dev checks still apply.
+  `--exempt <file>` (a JSON array of dev ids, or `{ "ids": [...] }`; no-loss only, refused on
+  encrypted sets) leaves those queries out of the no-loss comparison. 3H's constraint-exempt
+  queries (C3-8) use it. The report prints each exempt id with its ΔnDCG@10 (`—` when the
+  query is not primary answerable).
+- **answerable-floor** (`--change-kind answerable-floor`, dev only; 3G): the CI rule is
+  replaced by answerable ΔnDCG@10 ≥ −0.01, over the primary set with the no-answer set fixed
+  by tag.
+- `no-loss` and `answerable-floor` take no `--target-shapes`. No holdout or test verdict takes
+  them: the CLI refuses them on an encrypted set before any look, and `gateFor` throws
+  `GateRuleError`.
 - **cutoff changes** (`--change-kind cutoff`): the no-answer trade-off replaces the Δ rules on
   both sets: correct-empty gain ≥ 0.25 and answerable ΔnDCG@10 ≥ −0.01. It is looser than the
   Δ rules, so it is not taken on the declaration alone: the candidate's result list for every
@@ -176,9 +195,17 @@ Per change, vs the shipped ranker:
   `--change-kind cutoff` takes no `--target-shapes`.
 - **The rule applied** is printed with every verdict (`gate (dev): PASS · rule cutoff`;
   `holdout verdict: PASS · rule cutoff · baseline eval-v0 7ac9841 · qrels …`) and recorded in
-  the ledger's `rule` column: `general`, `targeted: <shape,…>`, `cutoff` or `sc5` (the test
-  set, which takes no `--change-kind` or `--target-shapes`).
+  the ledger's `rule` column: `general`, `targeted: <shape,…>`, `cutoff`, `no-loss`,
+  `answerable-floor` (dev only) or `sc5` (the test set, which takes no `--change-kind` or
+  `--target-shapes`, or `--gate sc5`).
 - **SC5** (test set): BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0, judged 100%.
+- **`--gate sc5`** (`eval:report` only, on stored runs) takes the SC5 rule on the holdout, for
+  L12 under the holdout reading of SC5. It takes no `--change-kind` or `--target-shapes`, and
+  `npm run eval` refuses it. `SC5_READING` in `lib/gate.mjs` is the reading ADR 0003 records,
+  and `test/eval/gate.node.test.js` ties the two together. The reading is `sealed`, so
+  `--gate sc5` is refused on the holdout (`GateRuleError`, before any look) and on dev. Under
+  a `holdout` reading it would be accepted once per ledger, and a per-change holdout look
+  would be refused at 11 looks, keeping the 12th for SC5.
 
 Small samples (every gate, every set):
 - **Insufficient queries.** A gate whose decisive comparison (the paired primary answerable

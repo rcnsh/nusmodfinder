@@ -69,11 +69,11 @@ export function ledgerRows(text) {
 
 /**
  * @param {string} path
- * @returns {Promise<{ set: string, variant: string, verdict: string }[]>}
+ * @returns {Promise<{ set: string, variant: string, verdict: string, rule: string }[]>}
  */
 export async function readLedger(path) {
   if (!existsSync(path)) return [];
-  return ledgerRows(await readFile(path, 'utf8')).map((cells) => ({ set: cells[1] ?? '', variant: cells[3] ?? '', verdict: cells[5] ?? '' }));
+  return ledgerRows(await readFile(path, 'utf8')).map((cells) => ({ set: cells[1] ?? '', variant: cells[3] ?? '', verdict: cells[5] ?? '', rule: cells[8] ?? '' }));
 }
 
 /**
