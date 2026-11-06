@@ -19,3 +19,4 @@ eval/sealed/**
 # macOS Finder files, even ones ending in .enc (after the negations above).
 .DS_Store
 ._*
+eval/runs/
