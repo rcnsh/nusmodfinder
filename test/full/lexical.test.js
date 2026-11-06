@@ -23,6 +23,7 @@ import { call, TEST_INGEST_SECRET } from '../helpers.js';
 import queryFixture from '../fixtures/lexical-queries.json';
 
 const corpus = inject('corpus');
+const SAMPLED = inject('lexicalGrid') === 'sample';
 
 /** docs/plans/phase1.md Final #1. */
 const ROWS_READ_GATE = 8000;
@@ -174,9 +175,11 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
    * Runs every case through lexicalSearch and compares it with brute force:
    * every match of the MATCH expression sorted by (rank, rowid), filtered in
    * JS from the JSON semesters and the plain columns, cut to the depth.
-   * @param {{ q: string, echo: FilterEcho, limits: number[] }[]} cases
+   * @param {{ q: string, echo: FilterEcho, limits: number[] }[]} all
    */
-  async function grid(cases) {
+  async function grid(all) {
+    // A fixed 1-in-10 sample under LEXICAL_GRID=sample: every 10th case, in grid order.
+    const cases = SAMPLED ? all.filter((_, i) => i % 10 === 0) : all;
     const { results: rows } = /** @type {D1Result<Row>} */ (await env.DB.prepare(
       'SELECT rowid AS r, code, semesters, level, faculty, credits, ng FROM modules').all());
     const byRowid = new Map(rows.map((r) => [r.r, r]));
@@ -349,7 +352,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
     };
     console.log(`[1A] ${JSON.stringify({ filteredCost: report })}`);
     for (const g of [single, two, more, fixedTwo, fixedMore]) expect(g.mismatches.slice(0, 20)).toEqual([]);
-    expect(single.summary.searches + two.summary.searches + more.summary.searches).toBeGreaterThan(30000);
+    expect(single.summary.searches + two.summary.searches + more.summary.searches).toBeGreaterThan(SAMPLED ? 3000 : 30000);
     for (const g of [single, two, more]) expect(g.max).toBeLessThanOrEqual(ROWS_READ_GATE);
   }, 1_800_000);
 

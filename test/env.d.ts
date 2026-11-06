@@ -18,5 +18,7 @@ declare module 'vitest' {
     corpus: FullCorpus | null;
     /** Which bundle the `vectors-bundle` alias resolves to in the test/full project (vitest.config.mjs). */
     vectorsBundle: 'pinned' | 'fixture';
+    /** test/full's lexical brute-force grid: every case, or a fixed 1-in-10 sample (LEXICAL_GRID, vitest.config.mjs). */
+    lexicalGrid: 'full' | 'sample';
   }
 }

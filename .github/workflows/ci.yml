@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths-ignore: ['docs/*.md', 'docs/decisions/**', '*.md']
   pull_request:
+    # Draft PRs run nothing; CI starts when the PR is marked ready.
+    types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore: ['docs/*.md', 'docs/decisions/**', '*.md']
   workflow_dispatch:
 
@@ -21,6 +23,7 @@ env:
 
 jobs:
   check:
+    if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -47,6 +50,7 @@ jobs:
         run: npm run db:rebuild-check
 
   full-corpus:
+    if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -56,6 +60,22 @@ jobs:
       MODULE_INFO_SHA256: 2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # The lexical brute-force grid (~12 min of this job) runs in full only
+      # when code it covers changes, or on a manual run; otherwise a fixed
+      # 1-in-10 sample (test/full/lexical.test.js, vitest.config.mjs).
+      - name: Full or sampled lexical grid
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          grid=full
+          if [ "$GITHUB_EVENT_NAME" != workflow_dispatch ] && git cat-file -e "$BASE^{commit}" 2>/dev/null \
+            && git diff --quiet "$BASE" HEAD -- src migrations scripts test/full vitest.config.mjs test/wrangler.test.jsonc package-lock.json; then
+            grid=sample
+          fi
+          echo "lexical grid: $grid"
+          echo "LEXICAL_GRID=$grid" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
