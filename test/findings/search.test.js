@@ -22,12 +22,13 @@ async function matchExpression(/** @type {string} */ q) {
 }
 
 describe('S3', () => {
-  it('[S3 known-bug] the query is embedded verbatim, with no bge query instruction prefix', async () => {
+  // Was `[S3 known-bug] the query is embedded verbatim, with no bge query instruction prefix` (fixed by 3A-1).
+  it('[S3 fixed] the query is embedded with bge\'s query instruction prefix in front', async () => {
     const before = fakes.ai.calls.length;
     await callJson('/search?q=machine%20learning%20prefix', { fakes });
     const [model, input] = /** @type {[string, { text: string[] }]} */ (fakes.ai.calls[before].args);
     expect(model).toBe('@cf/baai/bge-small-en-v1.5');
-    expect(input).toEqual({ text: ['machine learning prefix'] });
+    expect(input).toEqual({ text: ['Represent this sentence for searching relevant passages: machine learning prefix'] });
   });
 });
 

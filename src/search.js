@@ -5,7 +5,7 @@
 // Server-Timing, and each request writes one structured log line.
 import dataVersion from './data-version.json';
 import { bundleSearch } from './dense.js';
-import { DEFAULT_MODEL } from './embedding.js';
+import { DEFAULT_MODEL, QUERY_INSTRUCTION } from './embedding.js';
 import { appVersion, bad, json, upstream, withHeaders } from './http.js';
 import { lexicalSearch } from './lexical.js';
 import { MODULE_CODE_RE, RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
@@ -288,7 +288,8 @@ class DenseFailure extends Error {
 }
 
 /**
- * Embed the query, then search the corpus vectors: the bundled exact search,
+ * Embed the query (bge's retrieval instruction + the canonical query, 3A-1),
+ * then search the corpus vectors: the bundled exact search,
  * or Vectorize under `DENSE_BACKEND=vectorize`. Embedding and vector search
  * are attributed separately: guessing the source from the message text
  * mislabelled Workers AI failures as Vectorize.
@@ -306,7 +307,7 @@ async function denseSearch(env, q, echo, filter, depth, trace) {
   try {
     const embedded = /** @type {{ data?: number[][] }} */ (await trace.time('embed', () =>
       withTimeout('Workers AI', AI_TIMEOUT_MS, (signal) =>
-        env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: [q] }, { signal }))));
+        env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: [`${QUERY_INSTRUCTION}${q}`] }, { signal }))));
     values = embedded?.data?.[0];
     if (!Array.isArray(values)) throw new Error('Workers AI returned no embedding for the query.');
   } catch (err) {

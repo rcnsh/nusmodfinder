@@ -8,8 +8,14 @@
 // The pre-1B route queries Vectorize, so the live Worker runs under the
 // Vectorize standby (DENSE_BACKEND=vectorize, Phase 3 3-0); the bundle's
 // identity with that path is test/dense.test.js.
+// 3A-1 puts bge's query instruction in front of the text the live Worker
+// embeds (test/query-instruction.test.js pins it). The frozen route embeds
+// the bare query, so its Workers AI binding prepends the same instruction:
+// both paths then search with the same query vector, and every other
+// difference still fails the comparison.
 import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { QUERY_INSTRUCTION } from '../src/embedding.js';
 import { Trace } from '../src/timing.js';
 import { BASE, buildEnv, callJson, fixture, seed } from './helpers.js';
 import { searchRoute as legacySearchRoute } from './legacy/search-f61072e.js';
@@ -36,9 +42,21 @@ async function legacy(path) {
   const url = new URL(path, BASE);
   await caches.default.delete(new Request(url.toString(), { method: 'GET' }));
   const ctx = createExecutionContext();
-  const res = await legacySearchRoute(new Request(url), buildEnv(fakes), ctx, new Trace());
+  const res = await legacySearchRoute(new Request(url), buildEnv(fakes, { AI: instructed(fakes.ai) }), ctx, new Trace());
   await waitOnExecutionContext(ctx);
   return { status: res.status, body: await res.json() };
+}
+
+/**
+ * The fake Workers AI, with QUERY_INSTRUCTION prepended to every text: what
+ * the live Worker sends for the same query (3A-1).
+ * @param {import('./fakes.js').FakeAI} ai
+ */
+function instructed(ai) {
+  return {
+    /** @param {string} model @param {{ text: string[] }} input */
+    run: (model, input) => ai.run(model, { ...input, text: input.text.map((t) => `${QUERY_INSTRUCTION}${t}`) }),
+  };
 }
 
 /** Deterministic PRNG (mulberry32), so the request set is the same every run. */

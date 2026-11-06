@@ -6,6 +6,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { denseBundle } from '../src/dense.js';
+import { QUERY_INSTRUCTION } from '../src/embedding.js';
 import { decodeFilterRow, rowsKey } from '../src/vector-bundle.js';
 import { fieldsFromRow } from '../src/rowhash.js';
 import manifest from '../data/vectors.json';
@@ -34,10 +35,12 @@ const textOf = new Map(fixture.modules.map((m) => [m.code, m.text]));
 /**
  * Where two ranked lists differ, position by position, with the exact cosine
  * of each side's item for `q`. Every difference must be a near-tie swap.
+ * `q` is canonical (QUERIES are), and the query vector is the one /search
+ * asks for: the 3A-1 instruction + the canonical query.
  * @param {string} q @param {string[]} a @param {string[]} b
  */
 function differences(q, a, b) {
-  const qv = hashEmbed(q);
+  const qv = hashEmbed(`${QUERY_INSTRUCTION}${q}`);
   /** @type {{ at: number, a: string, b: string, delta: number }[]} */
   const out = [];
   for (let i = 0; i < Math.max(a.length, b.length); i++) {
@@ -76,6 +79,8 @@ describe('3-0 identity on the fixture (A-N6)', () => {
           expect(bundle.status, path).toBe(200);
           expect(standby.status, path).toBe(200);
           expect(bundle.body.degraded, path).toBeUndefined();
+          // q is already canonical, so differences() embeds what /search embedded.
+          expect(bundle.body.query, path).toBe(q);
           return { path, a: bundle.body.results.map((/** @type {any} */ r) => r.code), b: standby.body.results.map((/** @type {any} */ r) => r.code) };
         };
         // mode=vector is the whole dense list (depth 50 = topK 50).
