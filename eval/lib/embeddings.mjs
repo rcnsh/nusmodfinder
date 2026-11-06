@@ -13,6 +13,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 import { readEncryptedJson, writeEncryptedJson } from './crypto.mjs';
 import { REPO } from './sets.mjs';
@@ -20,6 +21,22 @@ import { REPO } from './sets.mjs';
 export const MODEL = '@cf/baai/bge-small-en-v1.5';
 
 export { queryTextForms } from './query-forms.mjs';
+
+/**
+ * The query instruction the ranker at `root` embeds in front of each query
+ * (3A-1: its src/embedding.js QUERY_INSTRUCTION), or '' when it has none
+ * (eval-v0 has no src/embedding.js; the 3-0 ranker's has no such export).
+ * @param {string} root a ranker workspace (or the repo, for the working tree)
+ * @returns {Promise<string>}
+ */
+export async function rankerQueryInstruction(root) {
+  const file = join(root, 'src', 'embedding.js');
+  if (!existsSync(file)) return '';
+  const { QUERY_INSTRUCTION } = await import(pathToFileURL(file).href);
+  if (QUERY_INSTRUCTION === undefined) return '';
+  if (typeof QUERY_INSTRUCTION !== 'string') throw new Error(`${file}: QUERY_INSTRUCTION is ${typeof QUERY_INSTRUCTION}, not a string`);
+  return QUERY_INSTRUCTION;
+}
 export const DIMS = 384;
 /** Workers AI price for bge-small-en-v1.5: 1,841 neurons per million input tokens. */
 export const NEURONS_PER_M_TOKENS = 1841;

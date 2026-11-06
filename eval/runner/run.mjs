@@ -10,7 +10,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
-import { base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
+import { base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, rankerQueryInstruction, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
 import { REPO, loadQueries, runFile, searchParams, setFile, setKey } from '../lib/sets.mjs';
 import { buildWorkspace } from '../lib/workspace.mjs';
 
@@ -64,8 +64,11 @@ export async function runVariant(options) {
     throw new Error(`${missingCorpus.length} of ${corpus.modules.length} corpus texts have no vector in ${embedding.corpus} `
       + `(the ranker's embedding text differs from the one embedded). Embed a new corpus version: npm run eval:embed -- --corpus --ref <ref> --version <new>`);
   }
-  // Both the raw and the canonical form (queryTextForms): which one a ranker embeds depends on its ref.
-  const missingQueries = querySet.queries.filter((q) => queryTextForms(q.text).some((t) => !have.has(embeddingKey(MODEL, t))));
+  // The raw and the canonical form, and the instruction + canonical form when
+  // this ranker has a query instruction (queryTextForms): which one a ranker
+  // embeds depends on its ref.
+  const instruction = await rankerQueryInstruction(ws.root);
+  const missingQueries = querySet.queries.filter((q) => queryTextForms(q.text, instruction).some((t) => !have.has(embeddingKey(MODEL, t))));
   if (missingQueries.length) {
     throw new Error(`${missingQueries.length} query text(s) of the ${set.name} set have no embedding; run \`npm run eval:embed -- --set ${set.name}\` locally`);
   }
