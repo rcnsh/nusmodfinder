@@ -9,3 +9,5 @@ date	mode	texts	est_tokens	est_neurons	requests	note
 2026-11-03T19:42:22.699Z	reembed	20	249	0.5	1	phase2/baseline 2c item 3: 20 dev query texts re-embedded once (HTTP 200)
 2026-11-06T10:15:58.701Z	vectors:production	169	29047	53.5	2	
 2026-11-06T12:10:30.574Z	vectors:production	156	984	1.8	2	P-6 SC4 suite + gibberish set (not production)
+2026-11-06T13:10:30.512Z	set:dev	98	2994	5.5	1	3A-1 prefixed dev queries
+2026-11-06T13:10:39.453Z	set:fixture	10	269	0.5	1	3A-1 prefixed fixture queries
