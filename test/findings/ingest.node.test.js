@@ -206,8 +206,8 @@ const withHash = async (m) => ({ ...m, rowHash: await rowHash(m) });
 
 describe('S3', () => {
   it('[S3 3A-2] the embedded text is the selected 3A-2 variant, with the code\'s level and its label', () => {
-    expect(EMBEDDING_TEXT_VARIANT).toBe('v1');
+    expect(EMBEDDING_TEXT_VARIANT).toBe('v2');
     expect(embeddingText(record)).toBe(
-      'CS1010S. Programming Methodology. Level 1 (introductory). This course introduces the fundamental concepts of problem solving by computing. Computer Science. Computing.');
+      'CS1010S. Programming Methodology. Level 1 (introductory). This course introduces the fundamental concepts of problem solving by computing.');
   });
 });
