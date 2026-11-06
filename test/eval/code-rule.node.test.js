@@ -153,11 +153,11 @@ describe('merge applies the rule', () => {
   });
 });
 
-describe('the committed dev qrels (qrels-dev-v2)', () => {
+describe('the committed dev qrels (qrels-dev-v2 and later)', () => {
   it('make the five red-team code queries answerable, with the rule grades', async () => {
     const qrels = JSON.parse(await readFile(join(REPO, 'eval/dev/qrels.json'), 'utf8'));
-    expect(qrels.version).toBe('qrels-dev-v2');
-    expect(qrels.judging.at(-1)).toMatchObject({ round: CODE_RULE, mode: 'rule', groups: 'groups-v1' });
+    expect(Number(/^qrels-dev-v(\d+)$/.exec(qrels.version)?.[1])).toBeGreaterThanOrEqual(2);
+    expect(qrels.judging).toContainEqual(expect.objectContaining({ round: CODE_RULE, mode: 'rule', groups: 'groups-v1' }));
     const g = (/** @type {string} */ qid) => qrelsFor(qrels, qid, 0).grades;
     expect(g('d-087').get('CN2109')).toBe(2);
     expect(g('d-089').get('IS4246')).toBe(2);
