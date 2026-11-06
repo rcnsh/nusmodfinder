@@ -65,7 +65,8 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the pinned vectors bundle',
     }
   });
 
-  it('[B-5] CPU per exact search over 6,771 x 384 float32 rows, warm, unfiltered and filtered', () => {
+  // A measurement, not a gate: 1,000+ searches take ~7 s on a CI runner (3.4 ms each), so it gets room.
+  it('[B-5] CPU per exact search over 6,771 x 384 float32 rows, warm, unfiltered and filtered', { timeout: 60_000 }, () => {
     const b = denseBundle();
     // The clock ticks in whole milliseconds here, so each figure is a batch of
     // N searches timed together; five batches, their per-search means reported.
