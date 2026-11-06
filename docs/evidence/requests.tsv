@@ -84,3 +84,5 @@ o7	browser other	/facets	phase0 0b fe.mjs
 78	ref	Workers AI REST embed: 156 query forms (P-6 SC4 suite, comparison texts, gibberish set) in 2 requests, ~1.8 neurons, into test/sc4/embeddings.json	Phase 3 P-6, 2026-11-06 12:10 UTC
 79	ref	Workers AI REST embed: 3A-1 prefixed fixture queries; a first attempt crashed with its output lost and may have reached Workers AI (≤ 1 request, ~0.5 neurons, unlogged), then 10 texts in 1 request, 0.5 neurons	Phase 3 3A-1, 2026-11-06 13:10 UTC
 80	ref	Workers AI REST embed: 3A-1 prefixed dev queries, 98 texts in 1 request, 5.5 neurons	Phase 3 3A-1, 2026-11-06 13:10 UTC
+81	ref	Workers AI REST embed: 3A-2 v1 pinned-corpus pass, 6,771 texts in 68 requests, 2,187.1 neurons, plus a 3-text determinism check (1.4 neurons)	Phase 3 3A-2, 2026-11-06 13:56 UTC
+82	ref	Workers AI REST embed: 3A-2 v2 pinned-corpus pass, 6,771 texts in 68 requests, 2,048.8 neurons, plus a 3-text determinism check (1.3 neurons)	Phase 3 3A-2, 2026-11-06 13:57 UTC
