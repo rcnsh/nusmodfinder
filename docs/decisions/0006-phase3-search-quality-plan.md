@@ -79,6 +79,18 @@ holdout allows 12 looks.
   replica, hybrid and dense-only. On the fixture, all 111 dense differences are swaps of exact
   ties (|Δ| ≤ 2.2e-16), each one listed.
 
+## Measured live (version `343ea371`, 2026-11-06; [`3-0-cutover.md`](../evidence/phase3/3-0-cutover.md))
+- **Startup.** The deploy gate passed it under 200 ms, but the figure is not recorded; the next
+  deploy records it.
+- **CPU per request.** GraphQL `workersInvocationsAdaptive` over the first 18 requests (searches
+  and `/health` mixed): p50 9.1 ms, p75 15.5 ms, p99 34.2 ms. A fresh isolate's first search
+  takes 33–34 ms. At ~12 ms a request, the 30M included CPU-ms cover ~2.5M requests a month,
+  so CPU is the binding allowance.
+- **Latency.** A warm SIN burst of 12 fresh queries reads server `total` p50 131 ms and p67
+  156.8 ms (Vectorize before: 332 / 335.4). That is the warm half of SC7 only; the counted run
+  is at the freeze.
+- **Standby.** Vectorize holds all 6,778 rows and agrees with D1 (runbook step 8).
+
 ## Dissent
 No objection was rejected outright. Four were applied in part:
 1. **B-8 (round 1): delay the D1 write until the smoke passes.** The deploy guard needs D1 to

@@ -841,8 +841,9 @@ then the holdout step planned in §3.
     for every set.
   - **P-2. Step 3-0.0: done** (2026-11-06, `docs/evidence/phase3/embed-latency.md`). The
     projected warm p67 is 160.6 ms over 12 SIN samples, so Q3 does not trigger.
-  - **P-3. 3-0** is built, proven identical on dev and the fixture, and deployed. Runbook step 8
-    upserts the standby. No look.
+  - **P-3. 3-0: done** (PRs #35, #36; live as version `343ea371`, 2026-11-06,
+    `docs/evidence/phase3/3-0-cutover.md`). The standby agrees with D1. The shipped-ranker pin
+    moves to `e8a7124`. No look.
   - **P-4. The dev baseline: done** (PR #30, `EVAL.md`), under `qrels-dev-v2` and groups-v1
     (§1). r2's deep pool of the four mapping pastes is dropped (A2-1).
   - **P-5. The ADR 0003 and 0004 amendments** merge (§9).

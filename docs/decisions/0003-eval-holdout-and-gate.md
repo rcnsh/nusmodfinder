@@ -328,6 +328,7 @@ The baseline of per-change holdout looks (`SHIPPED_BASELINE`, `eval/lib/baseline
 last line is the current pin; a PR that ships a change appends one line, with the ranker it
 ships, in the same PR as the constant.
 - shipped pin: `eval-v0` 7ac984174ded88cb2b6497d9835b456981acdd99 (the Phase 2 baseline; nothing shipped yet)
+- shipped pin: `e8a712468b2f59c4d9dcaeef2fe9680a8b8b0f7d` e8a712468b2f59c4d9dcaeef2fe9680a8b8b0f7d (3-0, in-Worker exact vectors, deployed 2026-11-06 as version `343ea371`; ranker-identical to `eval-v0` on dev)
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Phase 3 step 3-0.0 (plan §2, 3-0.0): one warm burst of at most 12 fresh queries on the
 // current deployment, on one keep-alive connection that reached SIN.
-//   node embed-burst.mjs <out.jsonl>
+//   node embed-burst.mjs <out.jsonl> [queries.tsv]   (default embed-burst-queries.tsv)
 // 1. Probe /health (no binding touched) on the connection, at most 20 times, until cf-ray ends in SIN.
 // 2. Send the burst on that connection, >= 2 s between request starts, no retries.
 // Records time to response headers (ttfbMs) and to the end of the body (clientMs).
@@ -16,7 +16,7 @@ const out = process.argv[2];
 if (!out) { console.error('usage: embed-burst.mjs <out.jsonl>'); process.exit(2); }
 if (existsSync(out)) { console.error(`${out} exists; the burst runs once`); process.exit(2); }
 const here = dirname(fileURLToPath(import.meta.url));
-const queries = readFileSync(join(here, 'embed-burst-queries.tsv'), 'utf8').trim().split('\n').slice(1)
+const queries = readFileSync(process.argv[3] ?? join(here, 'embed-burst-queries.tsv'), 'utf8').trim().split('\n').slice(1)
   .map((l) => l.split('\t')).map(([id, q]) => ({ id, q })).slice(0, 12);
 
 let agent = new https.Agent({ keepAlive: true, maxSockets: 1 });

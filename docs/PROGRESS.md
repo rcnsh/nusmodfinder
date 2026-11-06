@@ -685,3 +685,20 @@ fails on the previous code.
   - Four are recorded as dissent.
   - Jacob's answers to Q1 (SC5 set), Q2 (VPN for the counted SC7 run) and Q4 (failed
     SC4-required changes) are due before the first holdout look.
+
+## 2026-11-06 — 3-0 live; Phase 3 gate answers
+
+- **Jacob's answers:** the sealed test set decides SC5 (Q1); the counted SC7 run is VPN off
+  (Q2); a failed SC4-required change goes to Jacob, as written (Q4). Recorded in ADR 0003,
+  ADR 0006 and plan §10 (#33).
+- **Gate rules merged (#34):** no-answer is tagged AND has no grade-≥1 judgment; change kinds
+  `no-loss` and `answerable-floor`; `--gate sc5` only at L12; `eval:count`; split baseline
+  pins.
+- **3-0 live (#35, #36):** in-Worker exact vector search, version `343ea371` (tag `e8a7124`).
+  Runbook steps 1–8 ran; D1 needed no write; Vectorize is a level standby. Rollback:
+  `npx wrangler rollback ee96bbd0-add9-4aa6-8f2f-78e219087817`.
+  - Warm server `total` p50 131 ms, down from 332 ms.
+  - CPU p50 9.1 ms per request; CPU is now the binding allowance at ~2.5M requests a month.
+  - Startup time was not recorded.
+- **Shipped-ranker pin** moves to `e8a7124`. Holdout looks so far: 0 of 12.
+- **Next:** P-6, the pre-registration commit; then L1 (3A-1).
