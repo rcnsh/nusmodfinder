@@ -702,3 +702,22 @@ fails on the previous code.
   - Startup time was not recorded.
 - **Shipped-ranker pin** moves to `e8a7124`. Holdout looks so far: 0 of 12.
 - **Next:** P-6, the pre-registration commit; then L1 (3A-1).
+
+## 2026-11-06 — P-6 pre-registration
+
+- **P-6 merged (#38):** `docs/plans/phase3-prereg.md` and `eval/prereg/` fix every grid, list,
+  threshold and rule before any 3B–3H code or holdout look. That covers the 90-item SC4 suite
+  (`test/sc4/queries.json`, sha-pinned), the 40-string gibberish set and its seeded split.
+  - T = 5: the minimum oracle overlap@10 over the 6 dev typo pairs.
+  - M = 3.
+  - The collision list is completed by a stated rule over all 241 off-list prefixes, now 116
+    entries.
+- **Review:** a fresh-context reviewer found that the suite's tests checked shape, not meaning.
+  Consistency tests now catch all six of its mutations. It also found that the guard count rule
+  was vacuous: two of P-6's own guards now use the `cs` and `lsm` department tokens. The d-025
+  gibberish shape is excluded, with its reason logged.
+- **Embeddings:** 156 query forms, ~1.8 neurons (`requests.tsv` row 78). No text is a
+  near-duplicate of a dev text.
+- **Custody:** the holdout check (`eval/prereg/sc4-custody.mjs`) found 0 hits over 147 texts. Its
+  dev self-check hits 5. Holdout looks so far: 0 of 12.
+- **Next:** L1, 3A-1 (query instruction prefix), against the shipped pin `e8a7124`.

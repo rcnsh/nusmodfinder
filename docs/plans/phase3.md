@@ -873,7 +873,8 @@ then the holdout step planned in §3.
       the ledger's look count is unchanged after a count. **ADR 0003's look definition is
       amended in the same commit**: a count from `eval:count` prints no verdict and is not a
       look, even when a pre-registered gate reads it.
-  - **P-6. The pre-registration commit** (A-N3, A-6). It fixes:
+  - **P-6. The pre-registration commit: done** (PR #38, `docs/plans/phase3-prereg.md`; A-N3,
+    A-6). It fixes:
     - every grid and finite candidate set: 3A-2 v1–v3, 3C-1/3C-2, α ∈ {0, 0.1, 0.2, 0.35}, β,
       the 8-point 3E grid, w_c = 1, the two prereq semantics, raw/stripped;
     - the selection statistic, the tie-break, and each SC4-required change's fallback, 3H's
