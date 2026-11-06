@@ -1,0 +1,30 @@
+{
+ "schema": "vnm-p6-ge-pillars/1",
+ "fixedAt": "P-6",
+ "plan": "docs/plans/phase3.md 3B-0 and 'GE intent' (C-2, C2-3)",
+ "source": {
+  "url": "https://www.nus.edu.sg/registrar/academic-information-policies/undergraduate-students/general-education",
+  "fetched": false,
+  "note": "P-6 makes no remote call. Pillar names are the NUS GE curriculum's (AY2021/22 on: GEA, GEC, GEI, GEN, GES/GESS, GEX) and the earlier pillars still offered (GEH, GEQ, GET); each prefix and its modules' titles were checked against the pinned corpus. 3B-0 confirms the URL and names, and any change goes through the lead."
+ },
+ "prefixes": ["GEA", "GEC", "GEH", "GEI", "GEN", "GEQ", "GES", "GESS", "GET", "GEX"],
+ "genericPhrases": ["ge", "gen ed", "general education"],
+ "pillars": [
+  { "name": "data literacy", "prefixes": ["GEA"] },
+  { "name": "cultures and connections", "prefixes": ["GEC"] },
+  { "name": "human cultures", "prefixes": ["GEH"] },
+  { "name": "digital literacy", "prefixes": ["GEI"] },
+  { "name": "communities and engagement", "prefixes": ["GEN"] },
+  { "name": "asking questions", "prefixes": ["GEQ"] },
+  { "name": "singapore studies", "prefixes": ["GES", "GESS"] },
+  { "name": "thinking and expression", "prefixes": ["GET"] },
+  { "name": "critique and expression", "prefixes": ["GEX"] }
+ ],
+ "rules": [
+  "a generic phrase maps to every prefix in `prefixes`; a pillar name maps to its own prefixes; several in one query take the union",
+  "never GE\\d (Geography)",
+  "matched at parse step 7, with the 3D phrases, on tokens no join consumed",
+  "interpreted.ge echoes the sorted prefixes; ignore=ge undoes it",
+  "a bare pillar prefix (`GEX`, `gess`) is a partial code (interpreted.prefix), not the GE intent"
+ ]
+}

@@ -1,0 +1,231 @@
+{
+ "schema": "vnm-p6-typo-threshold/1",
+ "rule": "T = min over the 6 dev typo pairs of overlap@10(oracle, clean), capped at 7; oracle = lexical half on the clean form, dense half on the typo form",
+ "ranker": {
+  "ref": "e8a712468b2f59c4d9dcaeef2fe9680a8b8b0f7d",
+  "sha": "e8a712468b2f59c4d9dcaeef2fe9680a8b8b0f7d",
+  "treeHash": "31a9ba34f58ae022e0103443234f0d23b627be9d164f10dcb6c80f78b9efa80a"
+ },
+ "corpus": "data-2026-2027-20260904",
+ "embedding": "emb-bge-small-v0",
+ "cap": 7,
+ "T": 5,
+ "perPair": [
+  {
+   "id": "d-093",
+   "source": "d-063",
+   "typo": "advanced molecuular bioogy 4000 level",
+   "clean": "advanced molecular biology 4000 level",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "oracleOverlapAt10": 5,
+   "uncorrectedOverlapAt10": 1,
+   "cleanTop10": [
+    "LSM3225",
+    "ZB2101",
+    "LSM4222",
+    "HSI2003",
+    "LSM2105",
+    "LSM4231",
+    "LSM2234",
+    "LSM2191A",
+    "LSM3242",
+    "LSM2191B"
+   ],
+   "oracleTop10": [
+    "ZB2101",
+    "LSM4222",
+    "CM4236",
+    "MLE4239",
+    "LSM2234",
+    "LSM3267",
+    "LSM4231",
+    "LSM2191A",
+    "LSM4234",
+    "LSM3257"
+   ]
+  },
+  {
+   "id": "d-094",
+   "source": "d-044",
+   "typo": "Singapore society, multiculturalism, race and reliion",
+   "clean": "Singapore society, multiculturalism, race and religion",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "oracleOverlapAt10": 10,
+   "uncorrectedOverlapAt10": 10,
+   "cleanTop10": [
+    "GESS1029",
+    "GESS1005",
+    "GESS1020",
+    "GESS1012",
+    "GES1034",
+    "GESS1035",
+    "GESS1024",
+    "NHS2053",
+    "GESS1009",
+    "GESS1015"
+   ],
+   "oracleTop10": [
+    "GESS1005",
+    "GESS1029",
+    "GESS1020",
+    "GESS1012",
+    "GESS1009",
+    "GES1034",
+    "GESS1024",
+    "GESS1035",
+    "GESS1015",
+    "NHS2053"
+   ]
+  },
+  {
+   "id": "d-095",
+   "source": "d-057",
+   "typo": "microbbiology bacteia",
+   "clean": "microbiology bacteria",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "oracleOverlapAt10": 5,
+   "uncorrectedOverlapAt10": 3,
+   "cleanTop10": [
+    "LSM3232",
+    "LSM3242",
+    "ESE3301",
+    "LSM3225",
+    "LSM2291",
+    "LSM2191B",
+    "GEH1043",
+    "GEC1011",
+    "CM3225",
+    "LSM3227"
+   ],
+   "oracleTop10": [
+    "LSM2291",
+    "ESE3301",
+    "LSM3242",
+    "LSM3232",
+    "LSM3225",
+    "CS4330",
+    "ZB2101",
+    "BN4207",
+    "LSM3234",
+    "LSM4234"
+   ]
+  },
+  {
+   "id": "d-096",
+   "source": "d-070",
+   "typo": "introducttory economics microoeconomics",
+   "clean": "introductory economics microeconomics",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "oracleOverlapAt10": 5,
+   "uncorrectedOverlapAt10": 3,
+   "cleanTop10": [
+    "EC3101",
+    "EC2101",
+    "EC2303",
+    "EC1101E",
+    "EC2104",
+    "EC3312",
+    "BSE3702",
+    "RE2705",
+    "BSP1703",
+    "EC3333"
+   ],
+   "oracleTop10": [
+    "EC3101",
+    "EC2303",
+    "ZB2101",
+    "EC2383",
+    "EC2101",
+    "IS2238",
+    "GEC1034",
+    "BSE3702",
+    "SPH3403",
+    "RE2705"
+   ]
+  },
+  {
+   "id": "d-097",
+   "source": "d-028",
+   "typo": "machine desgin course gears bearings shafts",
+   "clean": "machine design course gears bearings shafts",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "oracleOverlapAt10": 7,
+   "uncorrectedOverlapAt10": 7,
+   "cleanTop10": [
+    "ME2102",
+    "ME3261",
+    "ME3115",
+    "ME3263",
+    "CG3201",
+    "PF3211",
+    "RB2202",
+    "ID2114",
+    "CE4221",
+    "BN1112"
+   ],
+   "oracleTop10": [
+    "ME3261",
+    "ME3263",
+    "ME2102",
+    "ME3115",
+    "CG3201",
+    "PF3211",
+    "RB2202",
+    "BT4212",
+    "MA3270",
+    "RE4701"
+   ]
+  },
+  {
+   "id": "d-099",
+   "source": "d-011",
+   "typo": "intro accunting no prerqeuisites",
+   "clean": "intro accounting no prerequisites",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "oracleOverlapAt10": 7,
+   "uncorrectedOverlapAt10": 5,
+   "cleanTop10": [
+    "ACC1701XA",
+    "ACC1701XC",
+    "ACC2706",
+    "QF1100",
+    "LAJ1201",
+    "LAC1201",
+    "PS2237",
+    "LAS1201",
+    "PS1101E",
+    "LL4073V"
+   ],
+   "oracleTop10": [
+    "LAS1201",
+    "QF1100",
+    "LAC1201",
+    "ST2132",
+    "PS1101E",
+    "PS2237",
+    "EL1101E",
+    "LL4073V",
+    "PH2212",
+    "ACC2706"
+   ]
+  }
+ ]
+}

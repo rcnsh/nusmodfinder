@@ -1,0 +1,151 @@
+# P-6: texts that need a query embedding before the SC4 suite and 3G can run.
+# The lead embedded them on 2026-11-06 (docs/evidence/neurons.tsv). One raw text per line, in suite order, then the
+# gibberish set (eval/dev/gibberish.json). Embed every form eval/lib/query-forms.mjs `queryTextForms` gives
+# (the raw text, and its canonical form when that differs), keyed by sha256(model + "\n" + text), into
+# test/sc4/embeddings.json (vnm-eval-embeddings/1, @cf/baai/bge-small-en-v1.5). test/sc4/embeddings.node.test.js
+# checks this list is exact, and runs its embedding checks once that file exists.
+# 143 texts, 156 forms. The four dev texts §4 names (d-016, d-022, d-024, d-079) are already embedded.
+# 3A-1 (query instruction prefix) will need these again with its prefix; that is 3A-1's embedding pass, not this one.
+cs 1010s
+ma 1521
+cs1010 s
+ee 2211
+lsm 1301
+GEA1000
+ES1000
+cs 3000
+cs2040 or cs2030
+cs1231 s/u
+CS32
+cs101
+cs 32
+GEA
+gess
+GEX
+cs32 machine learning
+pl32 psychology lab
+something like ACC1701X for engineers
+psycholgy of learning and memory
+psychology of learning and memory
+enviromental policy and sustainabilty
+environmental policy and sustainability
+orgainc chemistry reactions
+organic chemistry reactions
+introductry statistics
+introductory statistics
+marketting strategy for startups
+marketing strategy for startups
+introductory machine learning
+programming for beginners
+first year chemistry
+economics with no background
+graduate machine learning theory
+masters level corporate finance
+4000 level marketing
+level 3000 econometrics
+lvl 3000 urban planning
+software engineering electives for 3rd year
+2nd year data analytics
+third year organic synthesis
+project based CS course
+sociology module without final exam
+sociology module
+no finals creative writing
+creative writing
+s/u-able chemistry module
+chemistry module
+pass/fail art modules
+art modules
+su-able statistics
+statistics
+light workload history elective
+history elective
+philosophy under 8 hours
+philosophy
+low workload music module
+music module
+no prerequisites calculus
+calculus
+no prereq data visualisation
+data visualisation
+linguistics no prerequisite
+linguistics
+asdfgh
+lmao idk
+skibidi
+xqzv 4412
+frobnicate quux
+CS9999
+lsm 9876
+ACC9123
+GEQ1000
+GEH1001
+art history
+law and society
+intro to psych
+learn korean
+AI
+ai ethics
+js
+pr
+dsa
+comp 1010
+math 1001
+econ 1101
+advanced calculus
+not first year basics
+give me 2 easy electives
+how many units is 3 US credits
+show me 4000 level courses
+give me 3000 level electives
+what is 2000 level
+is it 3000 level
+ee 2211 workload
+it
+it security
+psychology electives for cs majors
+final year project
+philosophy for lsm students
+se asia history
+non graduate data science
+beyond first year calculus
+qwertyuiop
+zxcvbnm
+jkl jkl jkl
+hjkl hjkl
+aaaaaaaa
+sdfsdf ghjghj
+qazwsx
+plmokn
+lkjhgf poiuy
+kxcd vvbn
+lol
+uhh hmm
+ummm
+hehe
+idk tbh
+brb afk
+smh fr
+pfft meh
+oof ouch
+mmmmm
+rizz
+yeet
+gyatt
+bussin fr fr
+ong bestie
+sheesh
+mewing
+delulu
+kekw
+zzkx qq
+k9x 77qz
+zq3 vv7
+xj9k 2kq
+h4x0r
+b0rk b0rk
+qw3rty
+zz9 xx8
+pqz 8812 wvx
+blorp fizzwick
+wug wugs
