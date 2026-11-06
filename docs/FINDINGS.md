@@ -373,11 +373,16 @@ department/faculty boilerplate; a 768-d model won't fit the free stored-dims cap
 
 **Evidence:**
 - test `[S3 known-bug] the query is embedded verbatim, with no bge query instruction prefix` (`test/findings/search.test.js`)
-- test `[S3 known-bug] the embedded text has no module code or level and puts department/faculty before the description` (`test/findings/ingest.node.test.js`)
+- test `[S3 3A-2] the embedded text is the selected 3A-2 variant, with the code's level and its label` (`test/findings/ingest.node.test.js`)
 
-**Notes:** Query `src/index.js:329`; passage text `scripts/lib.mjs:94-101`. One nuance: the
-text starts with the **title**, then department and faculty, then the description, so "starts
-with boilerplate" is slightly overstated; the boilerplate sits between title and description.
+**Notes:** Query `src/index.js:329`; passage text `scripts/lib.mjs` `embeddingText`. The
+passage-text half is 3A-2's: the text is the pre-registered variant `EMBEDDING_TEXT_VARIANT`
+selects (`EMBEDDING_TEXT_VERSION` 2; `docs/plans/phase3-prereg.md` §2). v1 and v2 lead with the
+code, all three carry the level and its label and put the description before department and
+faculty, and the test pins the selected variant's exact text. The query-prefix half still
+reproduces (3A-1 is dropped). The finding as raised: the text started with the **title**, then
+department and faculty, then the description, so the boilerplate sat between title and
+description.
 768-d: 6,771 × 768 = 5.2M > the 5M stored-dims cap (README cost table), arithmetic only.
 
 ### S4 · Keyword half is brittle

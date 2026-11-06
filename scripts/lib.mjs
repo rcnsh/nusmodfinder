@@ -19,7 +19,7 @@ export const EMBEDDING_MODEL = '@cf/baai/bge-small-en-v1.5';
  * Bump when embeddingText() changes, so text_hash changes and every module is
  * re-embedded once (FINDINGS B2: text_hash = hash(model + this + text)).
  */
-export const EMBEDDING_TEXT_VERSION = 1;
+export const EMBEDDING_TEXT_VERSION = 2;
 export { EMBEDDING_DIMS } from '../src/embedding.js';
 // NUSMods downloads. Not .data/ itself: .data/<year>-moduleInfo.json is the
 // pinned snapshot the eval and full-corpus tests read (scripts/pinned-corpus.mjs).
@@ -198,13 +198,12 @@ export const EMBEDDING_TEXT_VARIANTS = /** @type {const} */ ({
 /** @typedef {keyof typeof EMBEDDING_TEXT_VARIANTS} EmbeddingTextVariant */
 
 /**
- * Which text embeddingText() builds: a 3A-2 variant, or null for the text
- * before 3A-2 (title, department, faculty, description). Each 3A-2 ref
- * (tags 3a2-v1…v3) differs from the next only here, so the ranker tree hash
- * names the text the eval scored.
- * @type {EmbeddingTextVariant | null}
+ * The 3A-2 variant embeddingText() builds (EMBEDDING_TEXT_VERSION 2). Each
+ * 3A-2 ref (tags 3a2-v1…v3) differs from the next only here, so the ranker
+ * tree hash names the text the eval scored.
+ * @type {EmbeddingTextVariant}
  */
-export const EMBEDDING_TEXT_VARIANT = null;
+export const EMBEDDING_TEXT_VARIANT = 'v1';
 
 /**
  * A 3A-2 variant's text. Each field is whitespace-collapsed and ends with one
@@ -241,13 +240,7 @@ export function embeddingTextFor(record, variant) {
 
 /** @param {NusModsRecord} record */
 export function embeddingText(record) {
-  if (EMBEDDING_TEXT_VARIANT) return embeddingTextFor(record, EMBEDDING_TEXT_VARIANT);
-  const blob = [record.title, record.department, record.faculty, record.description]
-    .filter((part) => typeof part === 'string' && part.trim())
-    .join('. ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return blob.length > MAX_BLOB_CHARS ? blob.slice(0, MAX_BLOB_CHARS) : blob;
+  return embeddingTextFor(record, EMBEDDING_TEXT_VARIANT);
 }
 
 /** @param {string} text */

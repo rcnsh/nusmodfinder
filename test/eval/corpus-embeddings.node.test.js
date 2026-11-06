@@ -55,11 +55,11 @@ describe('assertCorpusTextsEmbedded', () => {
 
   // The pinned corpus and the v0 asset, if this checkout has them (never downloaded here).
   const local = existsSync(MODULE_INFO_PATH) && existsSync(join(EMB_DIR, 'emb-bge-small-v0', 'corpus.index.json'));
-  it.skipIf(!local)('on real data: the v0 asset serves this checkout\'s ranker only while it builds the text before 3A-2', async () => {
+  it.skipIf(!local)('on real data: the v0 asset refuses this checkout\'s 3A-2 ranker, every module of it', async () => {
+    expect(EMBEDDING_TEXT_VARIANT).toMatch(/^v[123]$/);
     const corpus = await loadPinnedWith(REPO);
     const emb = await loadCorpusEmbeddings('emb-bge-small-v0');
-    const check = () => assertCorpusTextsEmbedded(corpus.modules, emb, 'WORKTREE');
-    if (EMBEDDING_TEXT_VARIANT === null) expect(check).not.toThrow();
-    else expect(check).toThrow(/^6771 of 6771 corpus texts of ranker WORKTREE have no vector in corpus embedding emb-bge-small-v0 \(embedded from eval-v0;/);
+    expect(() => assertCorpusTextsEmbedded(corpus.modules, emb, 'WORKTREE'))
+      .toThrow(/^6771 of 6771 corpus texts of ranker WORKTREE have no vector in corpus embedding emb-bge-small-v0 \(embedded from eval-v0;/);
   });
 });

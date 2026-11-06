@@ -13,7 +13,7 @@ import { adminCall, fixture, seed } from './helpers.js';
 import { adminApi } from './ingest-support.js';
 
 /** scripts/lib.mjs EMBEDDING_TEXT_VERSION (lib.mjs needs node:crypto, which workerd lacks here). */
-const EMBEDDING_TEXT_VERSION = 1;
+const EMBEDDING_TEXT_VERSION = 2;
 
 const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 const MODEL = '@cf/baai/bge-small-en-v1.5';

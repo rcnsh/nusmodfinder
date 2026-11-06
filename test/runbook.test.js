@@ -23,7 +23,7 @@ import { adminApi } from './ingest-support.js';
 
 const MODEL = '@cf/baai/bge-small-en-v1.5';
 /** scripts/lib.mjs EMBEDDING_TEXT_VERSION. */
-const EMBEDDING_TEXT_VERSION = 1;
+const EMBEDDING_TEXT_VERSION = 2;
 const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 
 /** @type {import('./fakes.js').Fakes} */

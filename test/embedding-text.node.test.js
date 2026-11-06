@@ -126,7 +126,7 @@ describe('3A-2 variant texts', () => {
   });
 
   it('embeddingText builds the selected variant\'s text', () => {
-    if (EMBEDDING_TEXT_VARIANT) expect(embeddingText(CS5242)).toBe(embeddingTextFor(CS5242, EMBEDDING_TEXT_VARIANT));
-    else expect(embeddingText(CS5242)).toBe(`Neural Networks and Deep Learning. Computer Science. Computing. ${D(CS5242)}`);
+    for (const r of [CS5242, PLS8001, CS3244_NO_DEPARTMENT, BMS5130]) expect(embeddingText(r)).toBe(embeddingTextFor(r, EMBEDDING_TEXT_VARIANT));
+    expect(EMBEDDING_TEXT_VERSION).toBe(2);
   });
 });
