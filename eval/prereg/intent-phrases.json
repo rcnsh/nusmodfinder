@@ -1,0 +1,68 @@
+{
+ "schema": "vnm-p6-intent-phrases/1",
+ "fixedAt": "P-6",
+ "plan": "docs/plans/phase3.md 3D 'Intent rules, per direction' (C-6, C-13, C2-6, C3-2) and 3H 'Query side'",
+ "matching": {
+  "text": "the canonical query (trimmed, whitespace collapsed, lower-cased) after 3C's correction (C2-4)",
+  "boundary": "a phrase matches only where it is neither preceded nor followed by [a-z0-9]",
+  "space": "a space inside a phrase matches a run of one or more whitespace or '-' characters; every other character is literal",
+  "placeholders": { "N": "level phrases: one digit 1-9; hours phrases: an integer 1-99 (\\d{1,2})" },
+  "longest": "leftmost-longest, non-overlapping: at each position the longest phrase of the pass wins, and a phrase inside a longer match is not read on its own",
+  "passes": [
+   "pass A, parse step 4: every `constraints` phrase, matched and stripped from the lexical query before any code join (C3-1)",
+   "pass B, parse step 7: every `level` phrase and the GE phrases (eval/prereg/ge-pillars.json), on the text left after steps 4-6"
+  ],
+  "shared": "`no background` is in both `constraints.prereq` and `level.beginner`: pass A matches and strips it, and it sets the beginner intent as if pass B had read it",
+  "strip": "matched phrases are stripped from the lexical query only; the dense query stays raw for 3D and GE, and is raw or stripped for 3H by the pre-registered diagnostic",
+  "negation": "pass B only: a level phrase with a negator among the two tokens before it (tokens as src/fts-query.js queryTokens splits them) sets no intent and stays in the query text"
+ },
+ "negators": ["not", "non", "except", "beyond"],
+ "negationWindow": 2,
+ "constraints": {
+  "exam": {
+   "param": "exam=0",
+   "phrases": ["no exam", "no exams", "no final", "no finals", "no final exam", "no final exams", "without exam", "without exams", "without final", "without finals", "without final exam", "without final exams"],
+   "interpreted": 0
+  },
+  "su": {
+   "param": "su=1",
+   "phrases": ["s/u", "su-able", "s/u-able", "pass/fail"],
+   "interpreted": { "value": 1, "basis": ["CS/CU", "su"] }
+  },
+  "hoursBelow": {
+   "param": "hoursBelow=N",
+   "phrases": ["light workload", "low workload", "under N hours", "less than N hours", "< N hours"],
+   "light": 10,
+   "notes": "`light workload` and `low workload` set hoursBelow=10 (\"light\" = 10 h, fixed at P-6); the others set N"
+  },
+  "prereq": {
+   "param": "prereq=none",
+   "phrases": ["no prereq", "no prereqs", "no prerequisite", "no prerequisites", "no background"],
+   "interpreted": { "value": "none", "semantics": "$selected" },
+   "notes": "`$selected` stands for the semantics 3H selects (\"i\" or \"ii\"); the SC4 harness substitutes it, since P-6 precedes the selection"
+  }
+ },
+ "level": {
+  "beginner": {
+   "phrases": ["intro", "introductory", "beginner", "beginners", "for beginners", "no background", "first year", "1st year", "year 1"],
+   "window": { "min": 1, "max": 4 },
+   "alpha": true
+  },
+  "graduate": {
+   "phrases": ["graduate", "postgraduate", "masters", "phd"],
+   "window": { "min": 5, "max": null }
+  },
+  "levelN": {
+   "phrases": ["level N000", "lvl N000", "N000 level", "N000-level", "Nk"],
+   "window": { "min": "N", "max": "N" },
+   "alsoFromCodes": "`XX N000` sets level N through code resolution step 3 (3B), not through this list"
+  },
+  "year": {
+   "phrases": ["2nd year", "3rd year", "4th year", "second year", "third year", "fourth year", "year 2", "year 3", "year 4"],
+   "N": { "2nd year": 2, "3rd year": 3, "4th year": 4, "second year": 2, "third year": 3, "fourth year": 4, "year 2": 2, "year 3": 3, "year 4": 4 },
+   "window": { "min": "N", "max": 4 }
+  },
+  "union": "several level phrases (and an `XX N000` level) in one query: interpreted.level.min is the smallest min, max the largest max (null when any is null), source the sorted distinct kinds; α applies iff `beginner` is among them",
+  "interpreted": "{ min, max, source } with source a sorted array of 'beginner' | 'graduate' | 'level' | 'year'; null when no level intent"
+ }
+}

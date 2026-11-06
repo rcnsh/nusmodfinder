@@ -1,0 +1,256 @@
+{
+ "schema": "vnm-gibberish/1",
+ "version": "gibberish-v1",
+ "fixedAt": "P-6",
+ "plan": "docs/plans/phase3.md 3G (C-3, A3-6): ≥ 40 strings written before any 3G code, disjoint from SC4, split by a recorded seed into a derivation half and a gate half of ≥ 20 each",
+ "strings": [
+  {
+   "id": "g-01",
+   "kind": "keyboard-mash",
+   "text": "qwertyuiop"
+  },
+  {
+   "id": "g-02",
+   "kind": "keyboard-mash",
+   "text": "zxcvbnm"
+  },
+  {
+   "id": "g-03",
+   "kind": "keyboard-mash",
+   "text": "jkl jkl jkl"
+  },
+  {
+   "id": "g-04",
+   "kind": "keyboard-mash",
+   "text": "hjkl hjkl"
+  },
+  {
+   "id": "g-05",
+   "kind": "keyboard-mash",
+   "text": "aaaaaaaa"
+  },
+  {
+   "id": "g-06",
+   "kind": "keyboard-mash",
+   "text": "sdfsdf ghjghj"
+  },
+  {
+   "id": "g-07",
+   "kind": "keyboard-mash",
+   "text": "qazwsx"
+  },
+  {
+   "id": "g-08",
+   "kind": "keyboard-mash",
+   "text": "plmokn"
+  },
+  {
+   "id": "g-09",
+   "kind": "keyboard-mash",
+   "text": "lkjhgf poiuy"
+  },
+  {
+   "id": "g-10",
+   "kind": "keyboard-mash",
+   "text": "kxcd vvbn"
+  },
+  {
+   "id": "g-11",
+   "kind": "filler",
+   "text": "lol"
+  },
+  {
+   "id": "g-12",
+   "kind": "filler",
+   "text": "uhh hmm"
+  },
+  {
+   "id": "g-13",
+   "kind": "filler",
+   "text": "ummm"
+  },
+  {
+   "id": "g-14",
+   "kind": "filler",
+   "text": "hehe"
+  },
+  {
+   "id": "g-15",
+   "kind": "filler",
+   "text": "idk tbh"
+  },
+  {
+   "id": "g-16",
+   "kind": "filler",
+   "text": "brb afk"
+  },
+  {
+   "id": "g-17",
+   "kind": "filler",
+   "text": "smh fr"
+  },
+  {
+   "id": "g-18",
+   "kind": "filler",
+   "text": "pfft meh"
+  },
+  {
+   "id": "g-19",
+   "kind": "filler",
+   "text": "oof ouch"
+  },
+  {
+   "id": "g-20",
+   "kind": "filler",
+   "text": "mmmmm"
+  },
+  {
+   "id": "g-21",
+   "kind": "slang",
+   "text": "rizz"
+  },
+  {
+   "id": "g-22",
+   "kind": "slang",
+   "text": "yeet"
+  },
+  {
+   "id": "g-23",
+   "kind": "slang",
+   "text": "gyatt"
+  },
+  {
+   "id": "g-24",
+   "kind": "slang",
+   "text": "bussin fr fr"
+  },
+  {
+   "id": "g-25",
+   "kind": "slang",
+   "text": "ong bestie"
+  },
+  {
+   "id": "g-26",
+   "kind": "slang",
+   "text": "sheesh"
+  },
+  {
+   "id": "g-27",
+   "kind": "slang",
+   "text": "mewing"
+  },
+  {
+   "id": "g-28",
+   "kind": "slang",
+   "text": "delulu"
+  },
+  {
+   "id": "g-29",
+   "kind": "slang",
+   "text": "kekw"
+  },
+  {
+   "id": "g-30",
+   "kind": "mixed",
+   "text": "zzkx qq"
+  },
+  {
+   "id": "g-31",
+   "kind": "mixed",
+   "text": "k9x 77qz"
+  },
+  {
+   "id": "g-32",
+   "kind": "mixed",
+   "text": "zq3 vv7"
+  },
+  {
+   "id": "g-33",
+   "kind": "mixed",
+   "text": "xj9k 2kq"
+  },
+  {
+   "id": "g-34",
+   "kind": "mixed",
+   "text": "h4x0r"
+  },
+  {
+   "id": "g-35",
+   "kind": "mixed",
+   "text": "b0rk b0rk"
+  },
+  {
+   "id": "g-36",
+   "kind": "mixed",
+   "text": "qw3rty"
+  },
+  {
+   "id": "g-37",
+   "kind": "mixed",
+   "text": "zz9 xx8"
+  },
+  {
+   "id": "g-38",
+   "kind": "mixed",
+   "text": "pqz 8812 wvx"
+  },
+  {
+   "id": "g-39",
+   "kind": "mixed",
+   "text": "blorp fizzwick"
+  },
+  {
+   "id": "g-40",
+   "kind": "mixed",
+   "text": "wug wugs"
+  }
+ ],
+ "split": {
+  "seed": 20261106,
+  "method": "eval/prereg/gibberish-split.mjs: seeded Fisher–Yates (eval/lib/stats.mjs rng) over the ids in file order; the first floor(n/2) are the derivation half",
+  "derivation": [
+   "g-02",
+   "g-05",
+   "g-09",
+   "g-11",
+   "g-13",
+   "g-16",
+   "g-17",
+   "g-18",
+   "g-20",
+   "g-21",
+   "g-23",
+   "g-25",
+   "g-26",
+   "g-29",
+   "g-30",
+   "g-33",
+   "g-34",
+   "g-37",
+   "g-38",
+   "g-40"
+  ],
+  "gate": [
+   "g-01",
+   "g-03",
+   "g-04",
+   "g-06",
+   "g-07",
+   "g-08",
+   "g-10",
+   "g-12",
+   "g-14",
+   "g-15",
+   "g-19",
+   "g-22",
+   "g-24",
+   "g-27",
+   "g-28",
+   "g-31",
+   "g-32",
+   "g-35",
+   "g-36",
+   "g-39"
+  ]
+ }
+}

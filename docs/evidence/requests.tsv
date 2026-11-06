@@ -81,3 +81,4 @@ o7	browser other	/facets	phase0 0b fe.mjs
 75	ref	embed burst: 3 /health probes + 12 /search (b01-b12), docs/evidence/phase3/embed-burst.jsonl	Phase 3 step 3-0.0, SIN, VPN off, 2026-11-06 07:56-07:57 UTC
 76	ref	3-0 smoke: GET /health + /search?q=coastal+geomorphology+field+methods + /search?q=accounting+for+startups on 343ea371 (SIN, 200, server total 198 / 138 ms)	Phase 3 runbook step 7, 2026-11-06 10:29 UTC
 77	ref	post-3-0 burst: 4 /health probes + 12 /search (p01-p12), docs/evidence/phase3/post-3-0-burst.jsonl	Phase 3 3-0 latency and TTFB after the cutover, SIN, VPN off, 2026-11-06 10:36 UTC
+78	ref	Workers AI REST embed: 156 query forms (P-6 SC4 suite, comparison texts, gibberish set) in 2 requests, ~1.8 neurons, into test/sc4/embeddings.json	Phase 3 P-6, 2026-11-06 12:10 UTC
