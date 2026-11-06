@@ -78,6 +78,20 @@ jobs:
           gunzip -c "$dl/2026-2027-moduleInfo.json.gz" > "$MODULE_INFO"
       - name: Verify raw sha256
         run: echo "$MODULE_INFO_SHA256  $MODULE_INFO" | sha256sum -c -
+      # Phase 3 3-0 (B2-4): test/full searches the pinned vectors bundle, the
+      # catalogue the eval scores. data/vectors.json names its release asset
+      # and sha256; the fetch checks it, and FULL_CORPUS=1 makes a missing or
+      # mismatched bundle fail the run (vitest.config.mjs).
+      - name: Restore the pinned vectors bundle
+        id: vectors
+        uses: actions/cache@v6
+        with:
+          path: .data/vectors
+          key: vectors-${{ hashFiles('data/vectors.json') }}
+      - name: Download the pinned vectors bundle from its release, sha-checked
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/vectors.mjs fetch --corpus pinned
       - name: Run test/full
         run: npx vitest run test/full --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/full.json"
       - name: Fail if no full-corpus test ran

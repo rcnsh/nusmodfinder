@@ -34,9 +34,21 @@ describe('/search', () => {
     expect(fakes.vectorize.calls).toHaveLength(0);
   });
 
-  it('answers a hybrid search through the fake embedder and index', async () => {
+  it('answers a hybrid search through the fake embedder and the bundled vectors, without Vectorize', async () => {
     const before = { ai: fakes.ai.calls.length, vec: fakes.vectorize.calls.length };
     const { status, body } = await callJson('/search?q=machine%20learning%20for%20physicists', { fakes });
+    expect(status).toBe(200);
+    expect(body.mode).toBe('hybrid');
+    expect(body.retrieval.vector).toBeGreaterThan(0);
+    expect(body.retrieval.lexical).toBeGreaterThan(0);
+    expect(body.results.map((/** @type {{ code: string }} */ r) => r.code)).toContain('PC3270');
+    expect(fakes.ai.calls.length - before.ai).toBe(1);
+    expect(fakes.vectorize.calls.length - before.vec).toBe(0);
+  });
+
+  it('answers a hybrid search through the fake embedder and index under DENSE_BACKEND=vectorize', async () => {
+    const before = { ai: fakes.ai.calls.length, vec: fakes.vectorize.calls.length };
+    const { status, body } = await callJson('/search?q=machine%20learning%20for%20physicists', { fakes, env: { DENSE_BACKEND: 'vectorize' } });
     expect(status).toBe(200);
     expect(body.mode).toBe('hybrid');
     expect(body.retrieval.vector).toBeGreaterThan(0);

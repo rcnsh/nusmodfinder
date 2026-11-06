@@ -6,12 +6,19 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import worker from '../../src/index.js';
 import { lexicalSearch } from '../../src/lexical.js';
 import { RESULT_COLUMNS } from '../../src/modules.js';
-import { DATA_VERSION, searchCacheKey } from '../../src/search.js';
+import { DATA_VERSION, NO_VERSION_ID, searchCacheKey } from '../../src/search.js';
 import { Trace } from '../../src/timing.js';
 import { denseCircuit } from '../../src/upstream.js';
 import { createFakes, hashEmbed } from '../fakes.js';
 import { BASE, NG_LIST, adminCall, call, callJson, fixture, seed } from '../helpers.js';
 import { codes, ftsCalls, recordingDb, settlesWithin } from './support.js';
+
+/**
+ * The Vectorize standby (DENSE_BACKEND=vectorize, Phase 3 3-0): the tests of
+ * how /search treats the Vectorize binding run under it; test/dense.test.js
+ * covers the bundled default.
+ */
+const STANDBY = { DENSE_BACKEND: 'vectorize' };
 
 /** @type {import('../fakes.js').Fakes} */
 let fakes;
@@ -90,7 +97,7 @@ describe('B4', () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
     const db = recordingDb(log);
-    const pending = callJson('/search?q=cs1010s%20programming', { fakes: f, env: { DB: db } });
+    const pending = callJson('/search?q=cs1010s%20programming', { fakes: f, env: { DB: db, ...STANDBY } });
     // While the embedding is held back, pin and FTS have both been issued and nothing has been hydrated.
     expect(await settlesWithin(pending, 50)).toBe('pending');
     const kinds = () => log.map((c) => (c.sql.includes('MATCH') ? 'fts' : c.sql.includes('IN (') ? 'hydrate' : 'pin'));
@@ -142,7 +149,7 @@ describe('B5', () => {
     const hanging = createFakes();
     hanging.vectorize.vectors = fakes.vectorize.vectors;
     (which === 'ai' ? hanging.ai : hanging.vectorize).hangs();
-    const pending = callJson('/search?q=programming%20methodology%20hang', { fakes: hanging });
+    const pending = callJson('/search?q=programming%20methodology%20hang', { fakes: hanging, env: STANDBY });
     expect(await settlesWithin(pending, 1350)).toBe('pending');
     expect(await settlesWithin(pending, 350)).toBe('settled'); // by ~1.7 s
     const { status, body } = await pending;
@@ -204,7 +211,7 @@ describe('B6', () => {
     const logs = vi.spyOn(console, 'log');
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
-      const res = await call('/search?q=programming%20methodology', { fakes: f });
+      const res = await call('/search?q=programming%20methodology', { fakes: f, env: STANDBY });
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.mode).toBe('hybrid');
@@ -227,7 +234,7 @@ describe('B6', () => {
       const f = createFakes();
       f.vectorize.vectors = fakes.vectorize.vectors;
       (which === 'ai' ? f.ai : f.vectorize).throws('down');
-      const { status, body } = await callJson('/search?q=programming%20methodology&mode=vector', { fakes: f });
+      const { status, body } = await callJson('/search?q=programming%20methodology&mode=vector', { fakes: f, env: STANDBY });
       expect(status).toBe(502);
       expect(body).toEqual({ error: 'upstream_failure', source, message: 'down' });
     }
@@ -281,7 +288,7 @@ describe('B7', () => {
     ];
     const key = /** @type {Request} */ (searchCacheKey(new URL(urls[0], BASE)));
     for (const u of urls) expect(searchCacheKey(new URL(u, BASE))?.url).toBe(key.url);
-    expect(key.url).toBe(`${BASE}/search?q=data+visualisation&sem=2&topK=7&v=${DATA_VERSION}`);
+    expect(key.url).toBe(`${BASE}/search?dv=${DATA_VERSION}&q=data+visualisation&sem=2&topK=7&v=${NO_VERSION_ID}`);
     await caches.default.delete(key);
 
     const before = fakes.ai.calls.length;
@@ -307,6 +314,41 @@ describe('B7', () => {
     }
     // Invalid requests have no key and are never cached.
     expect(searchCacheKey(new URL('/search?q=x&sem=9', BASE))).toBeNull();
+  });
+
+  // Phase 3 3-0 (B3-1): every parameter that changes the answer, in parsed
+  // form, and the deployed version id. 3H's exam/su/hoursBelow/prereq and the
+  // sorted `ignore` list add their own cases here, in the PR that adds them.
+  it.each([
+    ['sem', 'sem=2'], ['level', 'level=3'], ['credits', 'credits=4'], ['faculty', 'faculty=Computing'], ['ng', 'ng=1'],
+    ['mode', 'mode=vector'], ['topK', 'topK=7'],
+  ])('[B3-1] a request with %s has a different key from one without', (_name, param) => {
+    const without = searchCacheKey(new URL('/search?q=data%20visualisation', BASE));
+    const withIt = searchCacheKey(new URL(`/search?q=data%20visualisation&${param}`, BASE));
+    expect(withIt?.url).not.toBe(without?.url);
+    // In parsed form: another spelling of the same value shares the key.
+    const spelled = param.replace(/^(\w+)=(.*)$/, (_m, k, v) => `${k}=${k === 'faculty' ? ` ${v} ` : k === 'ng' ? 'true' : k === 'topK' ? `${v}.4` : v}`);
+    expect(searchCacheKey(new URL(`/search?_x=1&${spelled}&q=Data%20%20Visualisation`, BASE))?.url).toBe(withIt?.url);
+  });
+
+  it('[B-7, B2-6] the key carries the deployed version id, so every deploy (ranker, vectors, DENSE_BACKEND) starts a fresh cache', async () => {
+    const url = new URL('/search?q=data%20visualisation', BASE);
+    const a = searchCacheKey(url, 'version-a')?.url;
+    expect(a).toContain('v=version-a');
+    expect(searchCacheKey(url, 'version-b')?.url).not.toBe(a);
+    expect(searchCacheKey(url, 'version-a')?.url).toBe(a);
+    // The Worker keys by its own version_metadata id.
+    const f = createFakes();
+    f.vectorize.vectors = fakes.vectorize.vectors;
+    const meta = (/** @type {string} */ id) => ({ CF_VERSION_METADATA: { id, tag: 'test', timestamp: '' } });
+    await caches.default.delete(/** @type {Request} */ (searchCacheKey(url, 'version-a')));
+    await caches.default.delete(/** @type {Request} */ (searchCacheKey(url, 'version-b')));
+    const first = await call('/search?q=data%20visualisation', { fakes: f, keepCache: true, env: meta('version-a') });
+    expect(first.headers.get('server-timing')).toContain('cache;desc=miss');
+    const again = await call('/search?q=data%20visualisation', { fakes: f, keepCache: true, env: meta('version-a') });
+    expect(again.headers.get('server-timing')).toContain('cache;desc=hit');
+    const next = await call('/search?q=data%20visualisation', { fakes: f, keepCache: true, env: meta('version-b') });
+    expect(next.headers.get('server-timing')).toContain('cache;desc=miss');
   });
 
   it('[B7 evidence] every stage is case- and whitespace-insensitive, so the key may lower-case q', async () => {
@@ -345,7 +387,7 @@ describe('B8', () => {
   it('[B8 fixed] a candidate missing from D1 (stale vector) is skipped and the next one hydrated', async () => {
     const f = createFakes();
     f.vectorize.vectors = new Map(fakes.vectorize.vectors);
-    const top = (await callJson('/search?q=machine%20learning%20stale&mode=vector&topK=5', { fakes: f })).body.results;
+    const top = (await callJson('/search?q=machine%20learning%20stale&mode=vector&topK=5', { fakes: f, env: STANDBY })).body.results;
     // A vector identical to the best match, for a module D1 does not have.
     const ghost = /** @type {import('../fakes.js').StoredVector} */ (f.vectorize.vectors.get(top[0].code));
     f.vectorize.vectors.set('ZZ9999', { ...ghost, id: 'ZZ9999' });
@@ -353,7 +395,7 @@ describe('B8', () => {
     const log = [];
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
-      const { body } = await callJson('/search?q=machine%20learning%20stale&mode=vector&topK=5', { fakes: f, env: { DB: recordingDb(log) } });
+      const { body } = await callJson('/search?q=machine%20learning%20stale&mode=vector&topK=5', { fakes: f, env: { DB: recordingDb(log), ...STANDBY } });
       expect(codes(body.results)).toEqual(codes(top));
       expect(log.filter((c) => c.sql.includes('WHERE code IN')).map((c) => c.binds.length)).toEqual([5, 1]);
     } finally { warn.mockRestore(); }
@@ -361,7 +403,7 @@ describe('B8', () => {
 
   it('[B8 fixed] Vectorize is asked for ids only; the candidate depth stays 50', async () => {
     const before = fakes.vectorize.calls.length;
-    const { body } = await callJson('/search?q=machine%20learning%20ceiling&topK=100', { fakes });
+    const { body } = await callJson('/search?q=machine%20learning%20ceiling&topK=100', { fakes, env: STANDBY });
     const opts = /** @type {any} */ (fakes.vectorize.calls[before].args[1]);
     expect(opts).toEqual({ topK: 50 });
     expect(body.count).toBe(50);

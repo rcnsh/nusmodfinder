@@ -4,6 +4,7 @@
 // keyword-only fallback when the dense half fails. Every response carries
 // Server-Timing, and each request writes one structured log line.
 import dataVersion from './data-version.json';
+import { bundleSearch } from './dense.js';
 import { DEFAULT_MODEL } from './embedding.js';
 import { appVersion, bad, json, upstream, withHeaders } from './http.js';
 import { lexicalSearch } from './lexical.js';
@@ -20,6 +21,9 @@ import {
  * @typedef {'hybrid' | 'vector' | 'lexical'} Mode
  * @typedef {{ q: string, echo: FilterEcho, filter: VectorFilter, mode: Mode, topK: number }} SearchQuery
  * @typedef {{ source: string, reason: 'error' | 'timeout' | 'circuit-open' }} Degraded
+ * @typedef {{ code: string, score: number }} DenseHit A dense candidate with its cosine score. Kept
+ *   inside the search (3B's masks and 3G read them); the response's `score` stays the fused one.
+ * @typedef {'bundle' | 'vectorize'} DenseBackend
  */
 
 const MAX_QUERY_CHARS = 200;
@@ -40,6 +44,35 @@ const DEGRADED_CACHE_TTL_S = 60;
 // Bumped by ingest (src/data-version.json), so a deploy after an ingest gets
 // fresh cache keys without a D1 read on every request.
 export const DATA_VERSION = String(dataVersion.version);
+
+/**
+ * The cache key's version part when the Worker has no version_metadata id
+ * (tests, `wrangler dev` without one).
+ */
+export const NO_VERSION_ID = 'dev';
+
+/**
+ * The deployed version's id (version_metadata), which every deploy changes:
+ * a new ranker, new vectors or a DENSE_BACKEND flip each get fresh cache keys
+ * (B-7, B2-6), with no hand-bumped constant to forget.
+ * @param {Env} env
+ */
+export function versionId(env) {
+  const meta = /** @type {WorkerVersionMetadata | undefined} */ (env.CF_VERSION_METADATA);
+  return meta?.id || NO_VERSION_ID;
+}
+
+/**
+ * Which dense retriever /search uses (wrangler.jsonc `vars.DENSE_BACKEND`).
+ * `bundle`, the default, is the exact search over the bundled vectors;
+ * `vectorize` is the cold standby (B-1): it swaps only the retriever, so the
+ * filters still apply the same way, and it is degraded service (B3-6).
+ * @param {Env} env
+ * @returns {DenseBackend}
+ */
+export function denseBackend(env) {
+  return /** @type {string | undefined} */ (env.DENSE_BACKEND) === 'vectorize' ? 'vectorize' : 'bundle';
+}
 
 // Reciprocal-rank fusion constant. 60 is the value from the original Cormack et
 // al. RRF paper and the usual default; it damps the top of each list so neither
@@ -160,13 +193,19 @@ export function parseSearch(params) {
 /**
  * The cache key for a validated search (B7): only the parameters that change
  * the answer, in their parsed form, sorted, with defaults omitted, plus the
- * data version. Spelling, order and junk parameters all map to one entry.
+ * data version (`dv`) and the deployed version id (`v`, B3-1). Spelling,
+ * order and junk parameters all map to one entry. Every parameter a later
+ * workstream adds joins the key here, parsed, in the PR that adds it (3H's
+ * `exam`, `su`, `hoursBelow`, `prereq`; `ignore` as a sorted, de-duplicated
+ * list), with its own test beside the B7 key tests; intents parsed from `q`
+ * need none, since `q` is in the key.
  * @param {string} origin
  * @param {SearchQuery} query
+ * @param {string} [version] the deployed version id (versionId(env))
  */
-export function canonicalCacheKey(origin, { q, echo, mode, topK }) {
+export function canonicalCacheKey(origin, { q, echo, mode, topK }, version = NO_VERSION_ID) {
   /** @type {[string, string][]} */
-  const pairs = [['q', q], ['v', DATA_VERSION]];
+  const pairs = [['q', q], ['dv', DATA_VERSION], ['v', version]];
   if (echo.sem !== undefined) pairs.push(['sem', String(echo.sem)]);
   if (echo.level !== undefined) pairs.push(['level', String(echo.level)]);
   if (echo.credits !== undefined) pairs.push(['credits', String(echo.credits)]);
@@ -182,11 +221,12 @@ export function canonicalCacheKey(origin, { q, echo, mode, topK }) {
  * The cache key a /search URL maps to, or null if its parameters are invalid
  * (invalid requests are never cached).
  * @param {string | URL} url
+ * @param {string} [version] the deployed version id, as canonicalCacheKey
  */
-export function searchCacheKey(url) {
+export function searchCacheKey(url, version = NO_VERSION_ID) {
   const u = new URL(url);
   const { query } = parseSearch(u.searchParams);
-  return query ? canonicalCacheKey(u.origin, query) : null;
+  return query ? canonicalCacheKey(u.origin, query, version) : null;
 }
 
 /**
@@ -237,9 +277,9 @@ function fuse(lists) {
  */
 const settle = (p) => p.then((value) => ({ ok: /** @type {const} */ (true), value }), (error) => ({ ok: /** @type {const} */ (false), error }));
 
-/** A dense-half failure, attributed to the binding that failed. */
+/** A dense-half failure, attributed to the binding (or the bundle) that failed. */
 class DenseFailure extends Error {
-  /** @param {'workers-ai' | 'vectorize'} source @param {any} cause */
+  /** @param {'workers-ai' | 'vectorize' | 'dense-index'} source @param {any} cause */
   constructor(source, cause) {
     super(cause?.message ?? String(cause), { cause });
     this.source = source;
@@ -248,17 +288,19 @@ class DenseFailure extends Error {
 }
 
 /**
- * Embed the query, then ask Vectorize. Embedding and vector search are
- * attributed separately: guessing the source from the message text
+ * Embed the query, then search the corpus vectors: the bundled exact search,
+ * or Vectorize under `DENSE_BACKEND=vectorize`. Embedding and vector search
+ * are attributed separately: guessing the source from the message text
  * mislabelled Workers AI failures as Vectorize.
  * @param {Env} env
  * @param {string} q
- * @param {VectorFilter} filter
+ * @param {FilterEcho} echo the filters, for the bundle's mask
+ * @param {VectorFilter} filter the same filters as a Vectorize metadata filter
  * @param {number} depth
  * @param {Trace} trace
- * @returns {Promise<string[]>}
+ * @returns {Promise<DenseHit[]>}
  */
-async function denseSearch(env, q, filter, depth, trace) {
+async function denseSearch(env, q, echo, filter, depth, trace) {
   /** @type {number[] | undefined} */
   let values;
   try {
@@ -271,11 +313,20 @@ async function denseSearch(env, q, filter, depth, trace) {
     throw new DenseFailure('workers-ai', err);
   }
   const vector = values;
+  if (denseBackend(env) === 'bundle') {
+    // CPU only: the `vector` span reads ~0 because workerd's clock does not
+    // advance without I/O. Kept for comparability with Vectorize, not as a measure.
+    try {
+      return await trace.time('vector', async () => bundleSearch(vector, echo, depth));
+    } catch (err) {
+      throw new DenseFailure('dense-index', err);
+    }
+  }
   try {
-    // Only ids are read, so no metadata or values are requested.
+    // Only ids and scores are read, so no metadata or values are requested.
     const result = await trace.time('vector', () => withTimeout('Vectorize', VECTORIZE_TIMEOUT_MS, () =>
       env.VECTORIZE.query(vector, { topK: depth, ...(Object.keys(filter).length ? { filter } : {}) })));
-    return (result?.matches ?? []).map((m) => m.id);
+    return (result?.matches ?? []).map((m) => ({ code: m.id, score: m.score }));
   } catch (err) {
     throw new DenseFailure('vectorize', err);
   }
@@ -326,7 +377,7 @@ async function runSearch({ q, echo, filter, mode, topK }, env, trace, log) {
   let degraded = null;
   let dense = null;
   if (mode === 'vector' || (mode === 'hybrid' && !denseCircuit.open())) {
-    dense = settle(denseSearch(env, q, filter, depth, trace).then(
+    dense = settle(denseSearch(env, q, echo, filter, depth, trace).then(
       (codes) => { denseCircuit.success(); return codes; },
       (err) => { denseCircuit.failure(err.source); throw err; },
     ));
@@ -351,9 +402,9 @@ async function runSearch({ q, echo, filter, mode, topK }, env, trace, log) {
     if (row && localMatchesFilters(row, echo)) pinned = rowToModule(row, 1);
   }
 
-  /** @type {string[]} */
-  let vectorCodes = [];
-  if (vec && vec.ok) vectorCodes = vec.value;
+  /** @type {DenseHit[]} */
+  let denseHits = [];
+  if (vec && vec.ok) denseHits = vec.value;
   else if (vec) {
     const err = /** @type {DenseFailure} */ (vec.error);
     if (mode === 'vector') return { response: upstream(err.source, err), degraded: null };
@@ -365,6 +416,7 @@ async function runSearch({ q, echo, filter, mode, topK }, env, trace, log) {
   let lexicalCodes = [];
   if (lex && !lex.ok) return { response: upstream('d1-fts', lex.error), degraded: null };
   if (lex) lexicalCodes = lex.value;
+  const vectorCodes = denseHits.map((h) => h.code);
 
   if (degraded) {
     log.degraded = degraded;
@@ -379,9 +431,17 @@ async function runSearch({ q, echo, filter, mode, topK }, env, trace, log) {
   // Hydrate only as many fused candidates as the response shows (B8). A
   // candidate missing from D1 means a stale index: drop it and hydrate the
   // next one, so the page is the same as hydrating every candidate would give.
+  // A dense-only candidate whose fresh D1 row fails the filters is dropped
+  // the same way (B-3): between a D1-only ingest and the deploy that bundles
+  // its vectors, the live bundle's filter table (or the standby's metadata)
+  // can be older than D1. Lexical candidates were filtered by D1 itself.
   const results = pinned ? [pinned] : [];
+  const lexicalSet = new Set(lexicalCodes);
+  const denseOnly = new Set(vectorCodes.filter((c) => !lexicalSet.has(c)));
   /** @type {string[]} */
   const stale = [];
+  /** @type {string[]} */
+  const filteredOut = [];
   let next = 0;
   while (results.length < topK && next < fused.length) {
     const chunk = fused.slice(next, next + topK - results.length);
@@ -396,16 +456,19 @@ async function runSearch({ q, echo, filter, mode, topK }, env, trace, log) {
     for (const { code, score } of chunk) {
       const row = rows.get(code);
       if (!row) { stale.push(code); continue; }
+      if (denseOnly.has(code) && !localMatchesFilters(row, echo)) { filteredOut.push(code); continue; }
       results.push(rowToModule(row, score));
     }
   }
   if (stale.length) console.warn(`stale vectors not present in D1: ${stale.join(', ')}`);
-  // Candidates after fusion that exist in D1, as far as hydration saw.
-  const fusedCount = (pinned ? 1 : 0) + fused.length - stale.length;
+  if (filteredOut.length) console.warn(`dense rows whose D1 row fails the filters: ${filteredOut.join(', ')}`);
+  // Candidates after fusion that exist in D1 (and pass the filters), as far as hydration saw.
+  const fusedCount = (pinned ? 1 : 0) + fused.length - stale.length - filteredOut.length;
   log.counts = {
     vector: vectorCodes.length, lexical: lexicalCodes.length, fused: fusedCount,
-    returned: results.length, stale: stale.length,
+    returned: results.length, stale: stale.length, filtered: filteredOut.length,
   };
+  log.dense = mode === 'lexical' ? null : denseBackend(env);
 
   return {
     degraded,
@@ -459,7 +522,7 @@ export async function searchRoute(request, env, ctx, trace) {
   // those from cache costs zero D1 rows, zero Vectorize queries and zero
   // Workers AI calls. The key is canonical (B7), and needs no D1 read.
   const cache = caches.default;
-  const cacheKey = canonicalCacheKey(url.origin, parsed.query);
+  const cacheKey = canonicalCacheKey(url.origin, parsed.query, versionId(env));
   const hit = await trace.time('cache', () => cache.match(cacheKey));
   trace.describe('cache', hit ? 'hit' : 'miss');
   // The stored copy has no Server-Timing; this request's spans are set fresh.

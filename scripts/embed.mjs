@@ -13,6 +13,10 @@
 //   npm run eval:embed -- --set fixture       fixture corpus + queries (committed cache)
 //   npm run eval:embed -- --corpus [--ref eval-v0] [--version emb-bge-small-v0]
 //                                             full corpus pass -> .data/emb/<version>/ (cap 2,500)
+//   npm run eval:embed -- --texts <file.json> --out <cache.json>
+//                                             the texts a production vectors build lacks
+//                                             (scripts/vectors.mjs writes the file) -> a cache
+//                                             it reads with --extra (cap 2,500)
 //   add --dry-run to print the estimate and stop.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -44,6 +48,8 @@ const { values: a } = parseArgs({
     'max-neurons': { type: 'string' },
     'dry-run': { type: 'boolean', default: false },
     note: { type: 'string', default: '' },
+    texts: { type: 'string' },
+    out: { type: 'string' },
   },
 });
 
@@ -53,7 +59,7 @@ function fail(msg) {
   process.exit(1);
 }
 
-const cap = Number(a['max-neurons'] ?? (a.corpus ? CORPUS_CAP : QUERY_CAP));
+const cap = Number(a['max-neurons'] ?? (a.corpus || a.texts ? CORPUS_CAP : QUERY_CAP));
 if (!Number.isFinite(cap) || cap <= 0 || cap > CORPUS_CAP) fail(`--max-neurons must be in (0, ${CORPUS_CAP}]`);
 
 /** @param {string[]} texts */
@@ -159,7 +165,27 @@ async function gate(mode, texts) {
 
 // ---------------------------------------------------------------------------
 
-if (a.corpus) {
+if (a.texts) {
+  // Phase 3 3-0: the texts the production bundle has no vector for, into a
+  // plaintext cache (the QueryCache format) that `scripts/vectors.mjs build
+  // --extra` reads. Texts already in --out are not embedded again.
+  if (!a.out) fail('--texts needs --out <cache.json>');
+  const out = resolve(/** @type {string} */ (a.out));
+  const { texts } = JSON.parse(await readFile(resolve(a.texts), 'utf8'));
+  if (!Array.isArray(texts) || !texts.every((t) => typeof t === 'string')) fail(`${a.texts} has no "texts" array of strings`);
+  const cache = await readCache(out, null, 'extra');
+  const todo = [...new Set(/** @type {string[]} */ (texts))].filter((t) => !(embeddingKey(MODEL, t) in cache.entries));
+  if (todo.length === 0) {
+    console.log(`every text already has a vector in ${out}`);
+    process.exit(0);
+  }
+  const est = await gate('production vectors (missing texts)', todo);
+  const { vectors } = await embedAll(todo);
+  await logSpend('vectors:production', est, a.note ?? '');
+  todo.forEach((t, i) => { cache.entries[embeddingKey(MODEL, t)] = f32ToBase64(Float32Array.from(vectors[i])); });
+  await writeCache(out, cache, null, 'extra');
+  console.log(`added ${todo.length} vectors to ${out} (${Object.keys(cache.entries).length} total); rebuild with --extra ${a.out}`);
+} else if (a.corpus) {
   const version = /** @type {string} */ (a.version);
   if (!/^[a-z0-9.-]+$/.test(version)) fail('--version must be lowercase letters, digits, "." and "-"');
   const dir = join(EMB_DIR, version);

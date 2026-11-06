@@ -16,3 +16,10 @@ declare namespace Cloudflare {
     EMBEDDING_MODEL?: string;
   }
 }
+
+// The bundled corpus vectors (src/dense.js): a wrangler `alias` to a module
+// re-exporting a `.bin` Data module, so an ArrayBuffer.
+declare module 'vectors-bundle' {
+  const value: ArrayBuffer;
+  export default value;
+}

@@ -3,7 +3,8 @@
 // line, x-app-version and GET /health.
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createFakes } from './fakes.js';
-import { searchCacheKey } from '../src/search.js';
+import manifest from '../data/vectors.json';
+import { DATA_VERSION, searchCacheKey } from '../src/search.js';
 import { BASE, call, callJson, seed } from './helpers.js';
 
 /** @type {import('./fakes.js').Fakes} */
@@ -192,11 +193,14 @@ describe('version traceability', () => {
   it('GET /health reports the version without touching D1', async () => {
     const { status, headers, body } = await callJson('/health', { env: { CF_VERSION_METADATA: VERSION, DB: undefined } });
     expect(status).toBe(200);
-    expect(body).toEqual({ ok: true, versionId: VERSION.id, versionTag: 'abc1234' });
+    // Phase 3 3-0 (plan §7): the bundled vectors' corpus and data version, beside the committed one,
+    // so a smoke can see which bundle is live (here the fixture, the default alias).
+    const vectors = { corpus: 'fixture', count: manifest.bundles.fixture.count, dataVersion: manifest.bundles.fixture.dataVersion };
+    expect(body).toEqual({ ok: true, versionId: VERSION.id, versionTag: 'abc1234', dataVersion: DATA_VERSION, vectors });
     expect(headers.get('cache-control')).toBe('no-store');
 
     const local = await callJson('/health');
-    expect(local.body).toEqual({ ok: true, versionId: null, versionTag: null });
+    expect(local.body).toEqual({ ok: true, versionId: null, versionTag: null, dataVersion: DATA_VERSION, vectors });
   });
 });
 

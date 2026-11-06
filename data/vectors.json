@@ -1,0 +1,29 @@
+{
+  "schema": "vnm-vectors-manifest/1",
+  "bundles": {
+    "fixture": {
+      "corpus": "fixture",
+      "embedding": "fake-hash-embed",
+      "model": "fake",
+      "count": 400,
+      "dataVersion": "e6ffd6323064",
+      "rowsKey": "a82ebbf053ca980b349a3df90d486436a248411abd0c60234fa255f4a9de5b8c",
+      "sha256": "6cf51815419cf3e4fe8824ac16b6f52a45dcf718fd5872987c36c4924a271819",
+      "bytes": 631976,
+      "path": "test/fixtures/vectors.bin"
+    },
+    "pinned": {
+      "corpus": "pinned",
+      "embedding": "emb-bge-small-v0",
+      "model": "@cf/baai/bge-small-en-v1.5",
+      "count": 6771,
+      "dataVersion": "c25f43ebfbdb",
+      "rowsKey": "762fd74e5da5f6f09a0333a82ccf195f40770e9c12de455e2d1b08ac016b4b46",
+      "sha256": "bbdeff7c56ec5acc94ec8cde37f215f9d7c9e899174e1c02a65594772cbf9daf",
+      "bytes": 10683976,
+      "release": "vec-pinned-c25f43ebfbdb-emb-bge-small-v0",
+      "asset": "vec-pinned-c25f43ebfbdb-emb-bge-small-v0.bin"
+    },
+    "production": null
+  }
+}

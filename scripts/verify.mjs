@@ -12,12 +12,24 @@
 // Flags: --url <base> (default $WORKER_URL or http://localhost:8787),
 // --index <name> (default the wrangler.jsonc index), --sample <n> (default 100,
 // max 100), --json (print the report as JSON).
+//
+// Phase 3 splits verify in two (docs/plans/phase3.md 3-0, B2-1):
+//   --pre-deploy [--bundle production|pinned|fixture]   runbook step 5, before
+//     the deploy: D1's (code, text_hash) pairs equal the manifest's rowsKey,
+//     D1's data version equals the committed one, and the bundle's codes and
+//     filter table equal D1's fields. Reads no Vectorize.
+//   (default)   after runbook step 8: today's check (Vectorize metadata
+//     against D1, and the id list). `--values` (or scripts/vectors.mjs
+//     standby) also compares a getByIds sample of values with the production
+//     bundle's bits.
 // Exit codes: 0 agree; 1 drift; 2 could not verify.
+import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { run } from './deploy.mjs';
-import { httpAdminApi } from './ingest.mjs';
-import { formatReport, runVerify } from './verify-core.mjs';
+import { DATA_VERSION_PATH, httpAdminApi } from './ingest.mjs';
+import { formatPreDeployReport, formatReport, runPreDeployVerify, runVerify } from './verify-core.mjs';
+import { loadCheckedBundle, readVectorsManifest } from './vectors-manifest.mjs';
 
 /** The binding's index in wrangler.jsonc (a test keeps them equal). */
 export const DEFAULT_INDEX = 'nusmods-modules';
@@ -64,7 +76,10 @@ export async function main(argv, deps = {}) {
   const { fetchImpl = fetch, exec = run, log = console.log, envVars = process.env } = deps;
   const { values } = parseArgs({
     args: argv,
-    options: { url: { type: 'string' }, index: { type: 'string' }, sample: { type: 'string' }, json: { type: 'boolean' } },
+    options: {
+      url: { type: 'string' }, index: { type: 'string' }, sample: { type: 'string' }, json: { type: 'boolean' },
+      'pre-deploy': { type: 'boolean' }, bundle: { type: 'string' }, values: { type: 'boolean' },
+    },
     strict: true,
   });
   const secret = envVars.INGEST_SECRET;
@@ -79,10 +94,26 @@ export async function main(argv, deps = {}) {
     return 2;
   }
   try {
+    const corpus = /** @type {'production' | 'pinned' | 'fixture'} */ (values.bundle ?? 'production');
+    if (!['production', 'pinned', 'fixture'].includes(corpus)) { log('--bundle must be production, pinned or fixture'); return 2; }
+    const loadBundle = async () => {
+      const entry = (await readVectorsManifest()).bundles[corpus];
+      if (!entry) throw new Error(`data/vectors.json has no ${corpus} bundle`);
+      return { entry, ...(await loadCheckedBundle(entry)) };
+    };
+    if (values['pre-deploy']) {
+      const { entry, bundle } = await loadBundle();
+      const committedDataVersion = String(JSON.parse(await readFile(DATA_VERSION_PATH, 'utf8')).version);
+      const report = await runPreDeployVerify({ api: httpAdminApi(base, secret, fetchImpl), bundle, manifest: entry, committedDataVersion });
+      if (values.json) log(JSON.stringify(report, null, 2));
+      else for (const l of formatPreDeployReport(report)) log(l);
+      return report.ok ? 0 : 1;
+    }
     const report = await runVerify({
       api: httpAdminApi(base, secret, fetchImpl),
       listVectorIds: () => listVectorIds(values.index ?? DEFAULT_INDEX, exec),
       sampleSize,
+      ...(values.values ? { bundle: (await loadBundle()).bundle } : {}),
     });
     if (values.json) log(JSON.stringify(report, null, 2));
     else for (const l of formatReport(report)) log(l);
