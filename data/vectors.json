@@ -24,6 +24,17 @@
       "release": "vec-pinned-c25f43ebfbdb-emb-bge-small-v0",
       "asset": "vec-pinned-c25f43ebfbdb-emb-bge-small-v0.bin"
     },
-    "production": null
+    "production": {
+      "corpus": "production",
+      "embedding": "emb-bge-small-v0-xd4228f1d",
+      "model": "@cf/baai/bge-small-en-v1.5",
+      "count": 6778,
+      "dataVersion": "c1cf88518972",
+      "rowsKey": "aeebeb1ede9334b070b68a89729b4b59341d1520ef1e3b573f557caaa57e1541",
+      "sha256": "ef62a3facef8a6700bf313cbd3b9e40f30b324d9d862635f0341669c34f783b3",
+      "bytes": 10695040,
+      "release": "vec-production-c1cf88518972-emb-bge-small-v0-xd4228f1d",
+      "asset": "vec-production-c1cf88518972-emb-bge-small-v0-xd4228f1d.bin"
+    }
   }
 }
