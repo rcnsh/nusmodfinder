@@ -58,7 +58,7 @@ describe('the red-team cutoff demo (dev)', () => {
     const r = node('eval/cli.mjs', ['report', '--run', join(dir, 'cand.json'), '--baseline', join(dir, 'base.json'), '--change-kind', 'cutoff', '--json', join(dir, 'out.json')]);
     expect(r.code, r.stderr).toBe(0);
     const out = JSON.parse(await readFile(join(dir, 'out.json'), 'utf8'));
-    expect(out.qrels).toBe('qrels-dev-v2');
+    expect(out.qrels).toBe(JSON.parse(await readFile(join(REPO, 'eval/dev/qrels.json'), 'utf8')).version);
     expect(out.verdict.verdict).toBe('fail');
     expect(out.verdict.checks.find((/** @type {{ name: string }} */ c) => /judged@10/.test(c.name)).pass).toBe(true);
     const check = (/** @type {RegExp} */ re) => out.verdict.checks.find((/** @type {{ name: string }} */ c) => re.test(c.name));

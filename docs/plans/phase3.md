@@ -454,7 +454,9 @@ then the holdout step planned in §3.
   - VPN: §10, Q2.
 
 ### 3A Vector half setup (S3)
-- **3A-1 query instruction prefix.** Prepend bge's retrieval instruction ("Represent this sentence
+- **3A-1 query instruction prefix: dropped at the dev screen** (2026-11-06, ΔnDCG@10 +0.005
+  [−0.016, 0.029] under qrels-dev-v3; `docs/evidence/phase3/3a1-dev-screen.md`). No look spent.
+  Prepend bge's retrieval instruction ("Represent this sentence
   for searching relevant passages: ") to the query text only. Corpus vectors are unchanged.
   - New query embeddings are needed for dev, holdout, the SC4 suite and the gibberish set: ~300
     texts, *est.* < 15 neurons.
@@ -945,7 +947,7 @@ then the holdout step planned in §3.
   | look | candidate | rule |
   |---|---|---|
   | — | 3-0 exact search | identity on dev + fixture; no look |
-  | L1 | 3A-1 query prefix | general |
+  | L1 | 3A-1 query prefix: **dropped at the dev screen, slot unspent** (reserve +1) | general |
   | L2 | 3A-2 selected text variant (on top of L1's result) | general |
   | L3 | 3B codes + GE (+ `stopwords-v2` only if it passed dev alone under the CI rule) | general (targets after the A-5 drop) |
   | L4 | 3C selected variant (3C-1 or 3C-2), with the prefix step | general |

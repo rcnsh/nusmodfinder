@@ -721,3 +721,18 @@ fails on the previous code.
 - **Custody:** the holdout check (`eval/prereg/sc4-custody.mjs`) found 0 hits over 147 texts. Its
   dev self-check hits 5. Holdout looks so far: 0 of 12.
 - **Next:** L1, 3A-1 (query instruction prefix), against the shipped pin `e8a7124`.
+
+## 2026-11-06 — 3A-1 dropped at the dev screen
+
+- **3A-1** (bge query instruction prefix, draft PR #39) fails the dev screen. ΔnDCG@10 is
+  +0.005 [−0.016, 0.029] against the shipped ranker under `qrels-dev-v3`, with every pair judged.
+  It has no named retry and SC4 does not require it, so it is dropped. **No holdout look is
+  spent:** 0 of 12, and the reserve gains the L1 slot.
+- **qrels-dev-v3:** judging round `p3a1` (judge A, 108 pooled documents plus a 5% drift sample;
+  drift agreement 0.911). Two more queries are answerable, and the shipped ranker reads
+  nDCG@10 0.688 over 85 queries.
+- **Embedding:** 6.0 neurons for prefixed dev and fixture queries (`requests.tsv` rows 79–80).
+  One fixture attempt crashed with its output lost, so ≤ 1 request may be unlogged.
+- **Holdout:** the shipped ranker's holdout run is stored (no look) as L2's baseline.
+- **Next:** 3A-2, the three embedding-text variants. Each needs a full pinned-corpus embedding
+  pass (~2.4k neurons each, at most 2 a UTC day).
