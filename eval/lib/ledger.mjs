@@ -12,7 +12,11 @@
 // - a look is refused if, for any known set, the ledger records fewer looks
 //   than git's copy at HEAD or origin/main (so moving a row to another set
 //   is caught), if it has fewer rows in total, or if the file is missing
-//   while git has it.
+//   while git has it;
+// - a row with a `count: …` cell is an eval:count log row (eval/count-log.md),
+//   and the ledger refuses it: a count is not a look (ADR 0003, amendment
+//   2026-11-06), so it can never be recorded, or spent, as one. The ledger
+//   never reads the count log.
 //
 // Concurrency: check-then-append runs under an exclusive lock file
 // (`<ledger>.lock`, created with O_EXCL and holding a random token), so
@@ -42,6 +46,9 @@ by \`npm run eval -- --holdout\`. Phase 3 tuning stops at 12 holdout looks.
 
 /** Set names a row can belong to; any other set cell counts against all of them. */
 const KNOWN_SETS = ['holdout', 'test', 'selftest'];
+
+/** The kind cell of an eval:count log row ("count: answerable"); no ledger row has one. */
+export const COUNT_CELL = /^count:\s/;
 
 /** Refs whose committed ledger the local one may not fall behind. */
 const COMMITTED_REFS = ['HEAD', 'origin/main'];
@@ -136,7 +143,12 @@ export async function assertLedgerIntact(path, repo = REPO) {
     return;
   }
   const text = await readFile(path, 'utf8');
-  const local = ledgerRows(text).length;
+  const rows = ledgerRows(text);
+  const counted = rows.findIndex((cells) => cells.some((c) => COUNT_CELL.test(c)));
+  if (counted >= 0) {
+    throw new LedgerTamperError(`row ${counted + 1} of the ledger ${path} is an eval:count count-log row ("count: …"); counts are not looks and are logged only in their own count log`);
+  }
+  const local = rows.length;
   const localLooks = lookCounts(text);
   for (const c of committed) {
     if (local < c.rows) {

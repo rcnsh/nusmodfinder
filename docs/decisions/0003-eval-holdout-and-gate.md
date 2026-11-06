@@ -241,6 +241,21 @@ P-5b, §9). Each rule is in the code and tested.
     holdout look would be refused at 11 looks, so L12 stays the SC5 look.
   - `npm run eval` refuses `--gate`: an SC5 verdict is taken on stored, fully judged runs, as
     every look is (the plan's look procedure, §3).
+- **Look definition: counts are not looks** (A3-1, A-N9). `npm run eval:count` (`eval/count.mjs`)
+  is custodian-only (refused without `--custodian`, and on dev). It prints one integer and
+  nothing else:
+  - `--set test --answerable`: the sealed test set's primary answerable count, which §5's
+    stopping rule reads;
+  - `--holdout --emptied-untagged --run <variant>`: how many holdout queries not tagged
+    no-answer the stored run returns empty, which 3G's gate reads.
+
+  Every call appends a row (date, set, kind, run, count) to `eval/count-log.md`, a separate
+  committed file the ledger never reads. The ledger refuses a row copied from it
+  (`LedgerTamperError`). Any other option is refused, so no flag can make it print ids or
+  metrics, and an error prints only its class. **A count from `eval:count` prints no verdict
+  and is not a look, even when a pre-registered gate reads it.** The look definition under
+  "Custody" ("any run or report that prints a verdict for an encrypted set") stands, with this
+  exception.
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.

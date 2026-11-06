@@ -50,6 +50,8 @@ npm run eval -- --variant rewrite --embed-missing         # embed missing texts 
 npm run test:eval                                         # self-test on the fixture set (CI)
 npm run eval:verify                                       # ciphertext sha256 vs manifests (CI, no key)
 npm run eval:groups [-- --check]                          # rebuild (or check) eval/groups.json from the pinned corpus
+npm run eval:count -- --custodian --set test --answerable   # custodian: one integer, logged, not a look
+npm run eval:count -- --custodian --holdout --emptied-untagged --run <variant>
 ```
 
 `--mode hybrid|lexical|vector` (default `hybrid`, which sends no parameter) runs one retrieval
@@ -410,6 +412,22 @@ except the header and separator lines counts, however it is spaced; a row whose 
 a known set counts against every set. A look is also refused (`LedgerTamperError`) when the
 ledger has fewer rows than its copy at `HEAD` or `origin/main`, or is missing while git has it:
 the ledger is append-only, so commit it after every look.
+
+**Counts are not looks** (`eval/count.mjs`, ADR 0003 amendment 2026-11-06). `npm run eval:count`
+is custodian-only: it refuses without `--custodian`, on dev and the fixture, and with any option
+outside `--custodian`, `--set`, `--holdout`, `--set-dir`, `--answerable`, `--emptied-untagged`
+and `--run`. It prints one integer and nothing else:
+- `--set test --answerable`: the test set's primary answerable queries (untagged, some grade ≥ 1,
+  no feature-gap shape), for SC5's stopping rule;
+- `--holdout --emptied-untagged --run <variant>`: holdout queries not tagged no-answer that the
+  stored run returns empty (status 200, no codes; an error is not empty), for 3G's gate.
+
+Both read their ciphertexts through the manifest check. A run must have been made on the set's
+current queries (`RunFileError`). Any failure prints only `eval: <set> count failed
+(<ErrorClass>); details withheld`. Each call appends `| date | set | count: <kind> | run | n |`
+to `eval/count-log.md` (for `selftest`, `<set-dir>/count-log.md`). Commit it with the work the
+count served. The ledger never reads the count log, and it refuses a row carrying a `count: …`
+cell (`LedgerTamperError`), so a count can never be recorded or spent as a look.
 
 Parallel looks cannot pass the limit. Check-then-append runs under an exclusive lock,
 `<ledger>.lock` (created with `O_EXCL`, removed when done). A second eval waits up to 2 minutes
