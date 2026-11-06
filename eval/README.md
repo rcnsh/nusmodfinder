@@ -207,8 +207,10 @@ Per change, vs the shipped ranker:
   `npm run eval` refuses it. `SC5_READING` in `lib/gate.mjs` is the reading ADR 0003 records,
   and `test/eval/gate.node.test.js` ties the two together. The reading is `sealed`, so
   `--gate sc5` is refused on the holdout (`GateRuleError`, before any look) and on dev. Under
-  a `holdout` reading it would be accepted once per ledger, and a per-change holdout look
-  would be refused at 11 looks, keeping the 12th for SC5.
+  a `holdout` reading the SC5 look is L12 and the last: `--gate sc5` is refused
+  (`LookLimitError`) unless the ledger holds exactly 11 holdout looks and no `sc5` row, a
+  per-change holdout look is refused at 11 looks, and any per-change look (`report` or `run`)
+  is refused once an `sc5` row exists.
 
 Small samples (every gate, every set):
 - **Insufficient queries.** A gate whose decisive comparison (the paired primary answerable

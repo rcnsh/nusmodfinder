@@ -348,37 +348,59 @@ describe('the holdout reading, in a temporary clone whose SC5_READING is holdout
   /** @param {string} dir @param {string[]} [extra] */
   const holdout = (dir, extra = []) => cli(['report', '--holdout', '--set-dir', dir, '--run', 'cand', '--baseline', 'base', ...extra], { cli: cloneCli });
 
-  it('--gate sc5 takes the SC5 rule on the holdout and the ledger records rule sc5; a second SC5 look is refused', async () => {
+  const withheld = 'eval: holdout run failed (LookLimitError); details withheld\n';
+  /** @param {string} rule */
+  const filler = (rule) => `| 2026-11-06 | holdout | ccccccc | filler | base | pass | +0.000 | +0.000 | ${rule} | 7ac9841 |\n`;
+  /** Restores the clone's ledger and appends one filler holdout row per rule. @param {string[]} rules */
+  const ledgerWith = async (rules) => {
     await restoreLedger();
-    const before = (await rowsOf(cloneLedger())).length;
-    const { dir } = await encSet('holdout-sc5', 'holdout', (x) => copy(x.ranked));
-    const r = holdout(dir, ['--gate', 'sc5']);
-    expect(r.stderr).toBe('');
-    // An unchanged candidate passes the per-change rule but not SC5.
-    expect(r.stdout).toMatch(/^holdout verdict: FAIL · rule sc5 · baseline eval-v0 7ac9841 · qrels qrels-derived-v1$/m);
-    const rows = await rowsOf(cloneLedger());
-    expect(rows).toHaveLength(before + 1);
-    expect(rows.at(-1)?.slice(1, 2).concat(rows.at(-1)?.slice(5, 6) ?? [], rows.at(-1)?.slice(8) ?? [])).toEqual(['holdout', 'fail', 'sc5', '7ac9841']);
-    const again = holdout(dir, ['--gate', 'sc5']);
-    expect(`${again.stdout}${again.stderr}`).toBe('eval: holdout run failed (LookLimitError); details withheld\n');
-    expect(await rowsOf(cloneLedger())).toHaveLength(before + 1);
-    const general = holdout(dir);
-    expect(general.stdout).toMatch(/^holdout verdict: PASS · rule general · /m);
+    expect((await rowsOf(cloneLedger())).filter((c) => c[1] === 'holdout')).toHaveLength(0);
+    await appendFile(cloneLedger(), rules.map(filler).join(''));
+  };
+
+  it('--gate sc5 is L12 only: refused unless the ledger holds exactly 11 holdout looks', async () => {
+    const { dir } = await encSet('holdout-sc5-early', 'holdout', (x) => copy(x.ranked));
+    for (const n of [0, 1, 10]) {
+      await ledgerWith(Array(n).fill('general'));
+      const r = holdout(dir, ['--gate', 'sc5']);
+      expect(`${r.stdout}${r.stderr}`, `SC5 look after ${n} looks`).toBe(withheld);
+      expect(await rowsOf(cloneLedger())).toHaveLength(n);
+    }
+    await restoreLedger();
   });
 
-  it('the 12th holdout look is kept for SC5: a per-change look is refused at 11, the SC5 look is not', async () => {
-    await restoreLedger();
-    const filler = '| 2026-11-06 | holdout | ccccccc | filler | base | pass | +0.000 | +0.000 | general | 7ac9841 |\n';
-    const have = (await rowsOf(cloneLedger())).filter((c) => c[1] === 'holdout').length;
-    await appendFile(cloneLedger(), filler.repeat(11 - have));
+  it('the 12th holdout look is the SC5 look: per-change refused at 11, SC5 taken once and recorded as rule sc5', async () => {
+    await ledgerWith(Array(11).fill('general'));
     const { dir } = await encSet('holdout-slot12', 'holdout', (x) => copy(x.ranked));
     const general = holdout(dir);
-    expect(`${general.stdout}${general.stderr}`).toBe('eval: holdout run failed (LookLimitError); details withheld\n');
+    expect(`${general.stdout}${general.stderr}`).toBe(withheld);
     expect(await rowsOf(cloneLedger())).toHaveLength(11);
     const sc5 = holdout(dir, ['--gate', 'sc5']);
     expect(sc5.stderr).toBe('');
-    expect(sc5.stdout).toMatch(/^holdout verdict: FAIL · rule sc5 · /m);
+    // An unchanged candidate passes the per-change rule but not SC5.
+    expect(sc5.stdout).toMatch(/^holdout verdict: FAIL · rule sc5 · baseline eval-v0 7ac9841 · qrels qrels-derived-v1$/m);
+    const rows = await rowsOf(cloneLedger());
+    expect(rows).toHaveLength(12);
+    expect(rows.at(-1)?.slice(1, 2).concat(rows.at(-1)?.slice(5, 6) ?? [], rows.at(-1)?.slice(8) ?? [])).toEqual(['holdout', 'fail', 'sc5', '7ac9841']);
+    const again = holdout(dir, ['--gate', 'sc5']);
+    expect(`${again.stdout}${again.stderr}`).toBe(withheld);
     expect(await rowsOf(cloneLedger())).toHaveLength(12);
+    await restoreLedger();
+  });
+
+  it('once an sc5 row exists, every per-change holdout look is refused (report and run) and so is a second SC5 look', async () => {
+    await ledgerWith(['general', 'general', 'sc5']);
+    const { dir } = await encSet('holdout-after-sc5', 'holdout', (x) => copy(x.ranked));
+    for (const extra of [[], ['--target-shapes', 'topical']]) {
+      const r = holdout(dir, extra);
+      expect(`${r.stdout}${r.stderr}`, extra.join(' ') || 'general').toBe(withheld);
+    }
+    // `run` is refused when it reserves its look, before any retrieval.
+    const run = cli(['run', '--holdout', '--set-dir', dir, '--variant', 'never', '--baseline', 'base'], { cli: cloneCli });
+    expect(`${run.stdout}${run.stderr}`).toBe(withheld);
+    const sc5 = holdout(dir, ['--gate', 'sc5']);
+    expect(`${sc5.stdout}${sc5.stderr}`).toBe(withheld);
+    expect(await rowsOf(cloneLedger())).toHaveLength(3);
     await restoreLedger();
   });
 });

@@ -17,11 +17,11 @@ import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { assertPinnedBaseline, pinnedLabel } from './lib/baseline.mjs';
 import { assertInManifest, manifestFiles, MANIFEST, recordInManifest, removeFromManifest, sha256, writeEncryptedJson } from './lib/crypto.mjs';
-import { EmbeddingError, errorClass, LookLimitError, RunFailedError, RunFileError } from './lib/errors.mjs';
+import { EmbeddingError, errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
 import { assertSc5Allowed, assertTruncation, CHANGE_KINDS, DEV_ONLY_KINDS, gateFor, ruleOf, SC5_READING } from './lib/gate.mjs';
 import { loadGroups, withCorpusGroups } from './lib/groups.mjs';
 import { poolCandidate } from './lib/judging.mjs';
-import { appendLook, assertLookAllowed, finaliseLook, readLedger, reserveLook, withLedgerLock } from './lib/ledger.mjs';
+import { appendLook, assertLookAllowed, assertSc5Order, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
 import { assertSameCorpus, byShape, compare, K, scoreRun, summarise, unscoredIds } from './lib/metrics.mjs';
 import { comparisonTable, fmt, shapeTable, summaryTable, UNSCORED_NOTE, verdictBlock, verdictOnly } from './lib/report.mjs';
 import { MODES, REPO, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
@@ -100,14 +100,27 @@ function changeOf(a, set) {
   return { kind: /** @type {import('./lib/gate.mjs').Change['kind']} */ (kind), targetShapes, ...(a.gate ? { gate: /** @type {'sc5'} */ ('sc5') } : {}) };
 }
 
+/** Is the holdout reading of SC5 in force for this set? */
+const holdoutSc5 = (/** @type {import('./lib/sets.mjs').SetLayout} */ set) => set.gate === 'holdout' && SC5_READING === 'holdout';
+
 /**
- * Under the holdout reading of SC5 the holdout's last look (L12) is kept for
- * the SC5 look: a per-change look may use one fewer, and `--gate sc5` is
- * taken once. Under the sealed reading the limit is the set's own.
+ * Under the holdout reading of SC5 the holdout's last look (L12) is the SC5
+ * look: a per-change look may use one fewer. Under the sealed reading the
+ * limit is the set's own.
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {import('./lib/gate.mjs').Change} change
  */
-const lookMax = (set, change) => (set.gate === 'holdout' && SC5_READING === 'holdout' && change.gate !== 'sc5' ? set.maxLooks - 1 : set.maxLooks);
+const lookMax = (set, change) => (holdoutSc5(set) && change.gate !== 'sc5' ? set.maxLooks - 1 : set.maxLooks);
+
+/**
+ * Under the holdout reading, `--gate sc5` is L12 only and no per-change look
+ * follows it (ledger.mjs `assertSc5Order`). Run under the ledger lock.
+ * @param {import('./lib/sets.mjs').SetLayout} set
+ * @param {import('./lib/gate.mjs').Change} change
+ */
+const sc5Order = async (set, change) => {
+  if (holdoutSc5(set)) await assertSc5Order(/** @type {string} */ (set.ledger), set.name, set.maxLooks, change.gate === 'sc5');
+};
 
 /**
  * `--exempt <file>`: a JSON array of query ids, or `{ ids: [...] }`; every id
@@ -290,10 +303,9 @@ async function verdictReport(set, candPath, basePath, a, change, reserved = null
   const ledger = /** @type {string} */ (set.ledger);
   /** @param {import('./lib/ledger.mjs').LockHandle} [lock] held by `report`; `run`'s finaliseLook takes its own */
   const body = async (lock) => {
-    if (!reserved) await assertLookAllowed(ledger, set.name, lookMax(set, change));
-    if (change.gate === 'sc5' && set.gate === 'holdout') {
-      const sc5Looks = (await readLedger(ledger)).filter((r) => r.set === set.name && r.rule === 'sc5').length;
-      if (sc5Looks) throw new LookLimitError(`refusing a second SC5 look at the ${set.name} set: the ledger (${ledger}) already records one`);
+    if (!reserved) {
+      await assertLookAllowed(ledger, set.name, lookMax(set, change));
+      await sc5Order(set, change);
     }
     const verify = { verify: true };
     const querySet = await loadQueries(set, verify);
@@ -376,7 +388,7 @@ async function cmdRun(a) {
       };
       // Reserve the look before any retrieval: the reserved row counts, so
       // parallel runs cannot all get past the limit.
-      reserved = await reserveLook(/** @type {string} */ (set.ledger), lookMax(set, change), look);
+      reserved = await reserveLook(/** @type {string} */ (set.ledger), lookMax(set, change), look, { check: () => sc5Order(set, change) });
     }
   }
   if (!set.encrypted && a.baseline) await precheckCorpus(set, a);

@@ -237,8 +237,10 @@ P-5b, §9). Each rule is in the code and tested.
     fails if the two differ.
   - The reading is the sealed test set, so `--gate sc5` is refused on the holdout before any
     look, and L12 is unused.
-  - Under a holdout reading, one `sc5` look per ledger would be accepted, and a per-change
-    holdout look would be refused at 11 looks, so L12 stays the SC5 look.
+  - Under a holdout reading, the SC5 look is L12 and the last holdout look. `--gate sc5` is
+    refused unless the ledger already holds exactly 11 holdout looks and no `sc5` row; a
+    per-change holdout look is refused at 11 looks, and refused at any count once an `sc5`
+    row exists.
   - `npm run eval` refuses `--gate`: an SC5 verdict is taken on stored, fully judged runs, as
     every look is (the plan's look procedure, §3).
 - **Look definition: counts are not looks** (A3-1, A-N9). `npm run eval:count` (`eval/count.mjs`)
