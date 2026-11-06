@@ -211,6 +211,14 @@ describe.skipIf(!available)('SC4 suite against the pinned corpus (P-6)', () => {
     for (const p of collision.notPrefixes) expect(prefixes.has(p), p).toBe(false);
   });
 
+  it('the collision review covers every offered prefix that is on neither the list nor the pillar list, once (C13)', () => {
+    const r = readJson('eval/prereg/collision-review.json');
+    const reviewed = [...Object.keys(r.added), ...Object.keys(r.keptOff), ...Object.keys(r.dictionaryHitKeptOff)].sort();
+    const before = collision.list.filter((/** @type {string} */ p) => !(p in r.added));
+    expect(reviewed).toEqual([...prefixes].filter((p) => !before.includes(p) && !pillars.includes(p)).sort());
+    expect(prefixes.size).toBe(304);
+  });
+
   it('the cohort-only rule: d-011\'s modules as the plan reads them, and 65 offered modules in all', () => {
     for (const c of ['ACC1701XA', 'ACC1701XC']) expect(isCohortOnly(offered.get(c).prerequisite), c).toBe(true);
     for (const c of ['ACC2706', 'FIN2704X', 'QF1100']) expect(isCohortOnly(offered.get(c).prerequisite), c).toBe(false);

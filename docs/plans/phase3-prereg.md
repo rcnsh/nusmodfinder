@@ -16,6 +16,7 @@ logged, before that workstream's pooling round.
 | `docs/plans/phase3-prereg.md` | this document: every value, with its citation or reason |
 | `eval/prereg/stopwords.json` | the stopword list now, and `stopwords-v2` |
 | `eval/prereg/collision-list.json` | the collision list, with a reason per added entry |
+| `eval/prereg/collision-review.json` | the C13 rule applied to every other offered prefix: each decision and its reason |
 | `eval/prereg/ge-pillars.json` | the GE pillar table and the GE phrases |
 | `eval/prereg/intent-phrases.json` | the 3D and 3H phrase lists, matching rules, precedence, negation, year window, union |
 | `eval/prereg/cohort-only-prereq.json` | the cohort-only prerequisite pattern list (A3-7) |
@@ -38,8 +39,11 @@ from its file.
 | stopwords-v2 additions | `eval/prereg/stopwords.json` | `v2Additions` | 8 |
 | stopwords-v2 | `eval/prereg/stopwords.json` | `v2` | 35 |
 | collision list, the plan's seed | `eval/prereg/collision-list.json` | `seed` | 16 |
-| collision list, added at P-6 | `eval/prereg/collision-list.json` | `added` | 37 |
-| collision list | `eval/prereg/collision-list.json` | `list` | 53 |
+| collision list, added at P-6 | `eval/prereg/collision-list.json` | `added` | 100 |
+| collision list | `eval/prereg/collision-list.json` | `list` | 116 |
+| collision review, added | `eval/prereg/collision-review.json` | `added` | 63 |
+| collision review, kept off | `eval/prereg/collision-review.json` | `keptOff` | 156 |
+| collision review, dictionary hit kept off | `eval/prereg/collision-review.json` | `dictionaryHitKeptOff` | 22 |
 | GE pillar prefixes | `eval/prereg/ge-pillars.json` | `prefixes` | 10 |
 | GE pillar names | `eval/prereg/ge-pillars.json` | `pillars` | 9 |
 | GE generic phrases | `eval/prereg/ge-pillars.json` | `genericPhrases` | 3 |
@@ -130,10 +134,15 @@ query text.
 
 ### Collision list (plan 491–495, §1 167–171), `eval/prereg/collision-list.json`
 - The plan's seed (16): AI, AN, CE, DSA, EE, GE, IS, IT, JS, LAB, LL, MA, ME, PE, PR, SE.
-- Added at P-6 (37), each an offered prefix that is an English word or a common abbreviation,
-  with its reason in the file: AC, ACE, ADS, AH, BS, COS, DOS, EG, FT, HE, HI, ID, IDE, IE, LA,
-  LAD, LAG, MD, MIC, MS, NG, NM, OPT, OT, PC, PLS, PM, PS, QT, RE, SEA, SWE, TBA, TIE, TS, UTC, VM
-  (choice C13).
+- Added at P-6 (100), each an offered prefix that is an English word or a common abbreviation,
+  with its reason in the file (choice C13). The first 37:
+  AC, ACE, ADS, AH, BS, COS, DOS, EG, FT, HE, HI, ID, IDE, IE, LA, LAD, LAG, MD, MIC, MS, NG, NM,
+  OPT, OT, PC, PLS, PM, PS, QT, RE, SEA, SWE, TBA, TIE, TS, UTC, VM.
+- The other 63 come from applying C13's rule to all 241 offered prefixes that were on neither
+  list; `eval/prereg/collision-review.json` records every decision and its reason:
+  ABM, AIS, AR, ASP, AUD, BAA, BI, BIS, BL, BME, BMI, BMX, BPM, BPS, BST, CFA, CFG, CG, CL, CM, CP,
+  DBA, DE, DL, DMA, DMS, EDT, EEK, ESP, FE, GI, GL, HM, HS, IDS, IFS, INT, IPS, LAH, LAT, LAV, LC,
+  LCD, MB, MEM, MLE, MST, MT, MUA, NHS, PH, PLC, PP, SA, SH, SM, SN, SP, ST, STR, SW, TEE, TIC.
 - Pillar prefixes are exempt (GEA, GEC, GEH, GEI, GEN, GEQ, GES, GESS, GET, GEX).
 
 ### GE (plan 497–498, 570–577), `eval/prereg/ge-pillars.json`
@@ -471,8 +480,19 @@ Each is a value the plan leaves open, with its one-line reason.
   phrase needs removing.
 - **C12.** The guard count rule's tokens are the query's letter-only non-stopword tokens when it
   has no collision token; with a collision token there is no count rule (C2-8).
-- **C13.** 37 collision-list additions, each an offered prefix that a student types as a word or
-  an abbreviation; the cost of an extra entry is only that the bare letters stay topical.
+- **C13.** The collision list adds 100 offered prefixes to the plan's 16. The rule: add a prefix
+  if its lowercase form is an English word, or a common abbreviation outside NUS that a student
+  could type meaning something other than that department (units, chemistry, tech and chat terms:
+  `cm`, `ph`, `dl`, `bmi`, `str` …). Leave it off if it is a department or subject code a student
+  types to mean that department (`cs`, `lsm`, `fin`, `acc`), or if the suite routes or joins on
+  it. When unsure, add it: an extra entry costs only its bare letters, which stay topical, and
+  its spaced form, which joins only as the whole query (`st 2131`) and never level-routes
+  (`st 2000`); the unspaced code (`st2131`) still pins. 37 were added first; the rule
+  was then applied to all 241 offered prefixes on neither the list nor the pillar list (304
+  in the pinned corpus): 63 added, 156 kept off, and 22 dictionary hits kept off as words a
+  student would not type (obscure, a proper noun only, or a department code). The English-word
+  source was `/usr/share/dict/words` (web2), read once; `eval/prereg/collision-review.json` is
+  the committed result, so nothing reads the dictionary in CI.
 - **C14.** The GE pillar names and their prefixes; GES and GESS both map to Singapore Studies;
   GE phrases are read in pass B (after joins), so `ge` never joins.
 - **C15.** Phrase matching: token-boundary anchored, space matches whitespace or `-`,

@@ -39,6 +39,9 @@ const REQUIRED = [
   ['eval/prereg/collision-list.json', 'seed'],
   ['eval/prereg/collision-list.json', 'added'],
   ['eval/prereg/collision-list.json', 'list'],
+  ['eval/prereg/collision-review.json', 'added'],
+  ['eval/prereg/collision-review.json', 'keptOff'],
+  ['eval/prereg/collision-review.json', 'dictionaryHitKeptOff'],
   ['eval/prereg/ge-pillars.json', 'prefixes'],
   ['eval/prereg/ge-pillars.json', 'pillars'],
   ['eval/prereg/ge-pillars.json', 'genericPhrases'],
@@ -95,6 +98,17 @@ describe('P-6 machine-readable lists', () => {
     const pillars = readJson(join(PREREG, 'ge-pillars.json')).prefixes;
     expect(c.exempt).toEqual(pillars);
     expect(c.list.filter((/** @type {string} */ p) => pillars.includes(p))).toEqual([]);
+  });
+
+  it('collision review: its additions are on the list with the same reason, and nothing it keeps off is (C13)', () => {
+    const c = readJson(join(PREREG, 'collision-list.json'));
+    const r = readJson(join(PREREG, 'collision-review.json'));
+    for (const [p, why] of Object.entries(r.added)) expect(c.added[p], p).toBe(why);
+    const off = [...Object.keys(r.keptOff), ...Object.keys(r.dictionaryHitKeptOff)];
+    expect(new Set([...Object.keys(r.added), ...off]).size, 'groups are disjoint').toBe(Object.keys(r.added).length + off.length);
+    for (const p of off) expect(c.list, p).not.toContain(p);
+    expect(r.counts).toEqual({ reviewed: Object.keys(r.added).length + off.length, added: Object.keys(r.added).length, keptOff: Object.keys(r.keptOff).length, dictionaryHitKeptOff: Object.keys(r.dictionaryHitKeptOff).length });
+    for (const p of r.source.dictionaryHitsAdded) expect(r.added, p).toHaveProperty(p);
   });
 
   it('GE table: every pillar maps into the ten pillar prefixes, and every prefix has a pillar', () => {
