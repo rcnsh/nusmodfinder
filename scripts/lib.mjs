@@ -203,7 +203,7 @@ export const EMBEDDING_TEXT_VARIANTS = /** @type {const} */ ({
  * tree hash names the text the eval scored.
  * @type {EmbeddingTextVariant}
  */
-export const EMBEDDING_TEXT_VARIANT = 'v2';
+export const EMBEDDING_TEXT_VARIANT = 'v3';
 
 /**
  * A 3A-2 variant's text. Each field is whitespace-collapsed and ends with one
