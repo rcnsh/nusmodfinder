@@ -1,7 +1,12 @@
 // @ts-check
-// Admin routes used by scripts/ingest.mjs and scripts/verify.mjs:
-// /admin/hashes, /admin/ingest, /admin/delete, /admin/facets,
-// /admin/vectorize and /admin/verify.
+// Admin routes used by scripts/ingest.mjs, scripts/verify.mjs and
+// scripts/vectors.mjs: /admin/hashes, /admin/ingest, /admin/delete,
+// /admin/facets, /admin/vectorize, /admin/verify and /admin/vectors.
+//
+// D1-only mode (Phase 3 runbook step 4, B3-5): `?d1Only=1` on /admin/ingest
+// and /admin/delete writes D1 and nothing else, with no getByIds, AI.run or
+// Vectorize call. The vectors reach Vectorize later, from the sha-checked
+// bundle, through /admin/vectors (runbook step 8).
 //
 // Embedding runs here rather than in the ingest script so no Cloudflare API
 // token has to exist on disk; the script streams batches in over HTTP and the
@@ -11,6 +16,7 @@ import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
 import { ROW_COLUMNS, boundTuple, fieldsFromRow, ftsHash, rowHash, storedVectorMetadata } from './rowhash.js';
+import { base64ToFloat32, float32ToBase64 } from './vector-bundle.js';
 
 /**
  * @typedef {{
@@ -60,6 +66,32 @@ const GET_BY_IDS_CHUNK = 20;
 const DELETE_LIMIT = 100;
 /** Most vectors /admin/verify compares, per call. */
 const VERIFY_SAMPLE_LIMIT = 100;
+/** Most vectors one /admin/vectors call upserts or deletes (the binding's upsert limit). */
+export const VECTORS_LIMIT = 1000;
+/** D1 binds at most 100 parameters per statement. */
+const D1_PARAMS = 100;
+
+/** @param {Request} request whether the call asks for the D1-only mode */
+const d1OnlyOf = (request) => new URL(request.url).searchParams.get('d1Only') === '1';
+
+/**
+ * The `modules` rows for `codes`, by code, read in statements of at most 100
+ * parameters, batched.
+ * @param {D1Database} db
+ * @param {string[]} codes
+ * @returns {Promise<{ rows: Map<string, import('./rowhash.js').ModuleRow>, results: D1Result[] }>}
+ */
+async function rowsFor(db, codes) {
+  if (codes.length === 0) return { rows: new Map(), results: [] };
+  /** @type {D1PreparedStatement[]} */
+  const stmts = [];
+  for (let i = 0; i < codes.length; i += D1_PARAMS) {
+    const chunk = codes.slice(i, i + D1_PARAMS);
+    stmts.push(db.prepare(`SELECT ${ROW_COLUMNS.join(', ')}, row_hash FROM modules WHERE code IN (${chunk.map(() => '?').join(',')})`).bind(...chunk));
+  }
+  const results = /** @type {D1Result<import('./rowhash.js').ModuleRow>[]} */ (await db.batch(stmts));
+  return { rows: new Map(results.flatMap((r) => r.results).map((r) => [r.code, r])), results };
+}
 
 /**
  * Sums D1 meta over the results of one batch or statement.
@@ -157,7 +189,10 @@ async function getVectors(env, ids) {
 }
 
 /**
- * POST /admin/ingest `{ modules: [...] }` (at most 100). Each module may carry
+ * POST /admin/ingest `{ modules: [...] }` (at most 100). With `?d1Only=1`
+ * (runbook step 4) it writes the D1 rows and nothing else: no getByIds, no
+ * AI.run, no Vectorize upsert, so `embedded` is 0 and `mutationId` null.
+ * Otherwise each module may carry
  * `reembed: false` (scripts/ingest-core.mjs: its text_hash is unchanged, only
  * the row changed): its stored vector values are re-upserted with the new
  * metadata instead of being embedded again, but only if the stored vector says
@@ -182,6 +217,7 @@ export async function handleIngest(request, env) {
   const batch = body?.modules;
   if (!Array.isArray(batch) || batch.length === 0) return bad('Body must be { modules: [...] } with at least one module.');
   if (batch.length > 100) return bad(`Batch of ${batch.length} exceeds the 100-module limit.`);
+  if (d1OnlyOf(request)) return writeRows(env, batch, { embedded: 0, mutationId: null, sentAt: null, d1Only: true });
 
   /** @type {Map<string, VectorizeVector['values']>} */
   const values = new Map();
@@ -227,7 +263,17 @@ export async function handleIngest(request, env) {
   } catch (err) {
     return upstream('vectorize', err);
   }
+  return writeRows(env, batch, { embedded: toEmbed.length, mutationId, sentAt });
+}
 
+/**
+ * The D1 half of /admin/ingest: one batch writing every column plus the
+ * row_hash computed here from exactly the bound values.
+ * @param {Env} env
+ * @param {IngestModule[]} batch
+ * @param {{ embedded: number, mutationId: string | null, sentAt: number | null, d1Only?: boolean }} done what the Vectorize half did
+ */
+async function writeRows(env, batch, { embedded, mutationId, sentAt, d1Only }) {
   try {
     const hashes = await Promise.all(batch.map((m) => rowHash(m)));
     const stmt = env.DB.prepare(
@@ -243,8 +289,8 @@ export async function handleIngest(request, env) {
     );
     const results = await env.DB.batch(batch.map((m, i) => stmt.bind(...boundTuple(m), hashes[i])));
     return json({
-      upserted: batch.length, embedded: toEmbed.length, reused: batch.length - toEmbed.length,
-      mutationId, sentAt, meta: metaOf(results),
+      upserted: batch.length, embedded, reused: d1Only ? 0 : batch.length - embedded,
+      mutationId, sentAt, ...(d1Only ? { d1Only: true } : {}), meta: metaOf(results),
     });
   } catch (err) {
     return upstream('d1', err);
@@ -263,8 +309,11 @@ export async function handleIngest(request, env) {
  *  3. D1 DELETE. If it fails, the row is still in D1, so the next run plans
  *     its delete again; deleting from D1 first would orphan the vector,
  *     invisible to a plan built from D1's codes (plan r2, objection #11).
- * Answers `{ deleted, mutationId, sentAt, meta }`; meta covers both D1
+ * Answers `{ deleted, codes, mutationId, sentAt, meta }`; meta covers both D1
  * statements; sentAt as for /admin/ingest.
+ * With `?d1Only=1` (runbook step 4) only step 3 runs: the D1 rows are deleted
+ * and their codes returned, for runbook step 8's deleteByIds. No Vectorize
+ * call, so `mutationId` is null.
  * @param {Request} request
  * @param {Env} env
  */
@@ -280,6 +329,15 @@ export async function handleDelete(request, env) {
   }
   if (codes.length > DELETE_LIMIT) return bad(`${codes.length} codes exceed the ${DELETE_LIMIT}-code limit.`);
   const marks = codes.map(() => '?').join(',');
+  if (d1OnlyOf(request)) {
+    try {
+      const res = /** @type {D1Result<{ code: string }>} */ (await env.DB.prepare(
+        `DELETE FROM modules WHERE code IN (${marks}) RETURNING code`).bind(...codes).all());
+      return json({ deleted: res.results.length, codes: res.results.map((r) => r.code), mutationId: null, sentAt: null, d1Only: true, meta: metaOf([res]) });
+    } catch (err) {
+      return upstream('d1', err);
+    }
+  }
 
   /** @type {D1Result} */
   let cleared;
@@ -328,11 +386,17 @@ const canonicalMetadata = (m) => JSON.stringify(Object.fromEntries(
   Object.entries(m ?? {}).filter(([, v]) => v !== null && v !== undefined).sort(([a], [b]) => (a < b ? -1 : 1))));
 
 /**
- * POST /admin/verify `{ sampleSize?: number, sample?: string[] }`: the D1 half
- * of `npm run verify`. Reads every row once, recomputes its row_hash from the
+ * POST /admin/verify `{ sampleSize?: number, sample?: string[], returnValues?: boolean, preDeploy?: boolean }`:
+ * the D1 half of `npm run verify`. Reads every row once, recomputes its row_hash from the
  * stored columns, and compares Vectorize metadata (getByIds, textHash
  * included) with what the row implies for a sample of at most 100 codes (random unless `sample` names
  * them). The vector id listing comes from wrangler (scripts/verify.mjs).
+ * - `returnValues`: each sampled vector's values come back as base64 float32
+ *   (`sample.values`), so the script can compare them with the bundle's bits.
+ * - `preDeploy` (runbook step 5, `npm run verify -- --pre-deploy`): no
+ *   Vectorize call at all. Answers the row_hash check plus every row's code,
+ *   text and row hashes and filter fields (`rows`), for the comparison with
+ *   the manifest and the bundle.
  * @param {Request} request
  * @param {Env} env
  */
@@ -362,6 +426,20 @@ export async function handleVerify(request, env) {
     const recomputed = await rowHash(fieldsFromRow(r));
     if (recomputed !== r.row_hash) rowHashDrift.push({ code: r.code, stored: r.row_hash, recomputed });
   }
+  if (body?.preDeploy === true) {
+    return json({
+      codes: [...byCode.keys()],
+      rowHash: { checked: rows.results.length, drift: rowHashDrift, missing: missingRowHash },
+      rows: rows.results.map((r) => {
+        const f = fieldsFromRow(r);
+        return {
+          code: r.code, textHash: r.text_hash, rowHash: r.row_hash ?? null, semesters: f.semesters, level: f.level,
+          credits: f.credits, faculty: f.faculty, ng: f.ng, ngSemesters: f.ngSemesters ?? [],
+        };
+      }),
+      meta: metaOf([rows]),
+    });
+  }
 
   /** @type {string[]} */
   let sample = body?.sample ?? [];
@@ -382,10 +460,13 @@ export async function handleVerify(request, env) {
   }
   const missingVectors = [];
   const metadataDrift = [];
+  /** @type {Record<string, string>} */
+  const values = {};
   for (const code of sample) {
     const row = byCode.get(code);
     const v = vectors.get(code);
     if (!v) { if (row) missingVectors.push(code); continue; }
+    if (body?.returnValues === true && v.values) values[code] = float32ToBase64(/** @type {ArrayLike<number>} */ (v.values));
     if (!row) continue; // an extra vector: the id listing reports it
     // textHash included: a vector whose values embed another text drifts.
     const expected = storedVectorMetadata(fieldsFromRow(row));
@@ -396,9 +477,82 @@ export async function handleVerify(request, env) {
   return json({
     codes: [...byCode.keys()],
     rowHash: { checked: rows.results.length, drift: rowHashDrift, missing: missingRowHash },
-    sample: { checked: sample.length, codes: sample, missingVectors, metadataDrift },
+    sample: { checked: sample.length, codes: sample, missingVectors, metadataDrift, ...(body?.returnValues === true ? { values } : {}) },
     meta: metaOf([rows]),
   });
+}
+
+/**
+ * POST /admin/vectors (runbook step 8, B2-1, B3-3): brings the Vectorize
+ * standby level with the bundle.
+ * - `{ ids: string[], values: string }`: upserts at most 1,000 vectors.
+ *   `values` is base64 little-endian float32, ids.length × 384 of them, read
+ *   by scripts/vectors.mjs from the sha-checked bundle asset, never from this
+ *   Worker's own bundle (the fixture, in a dev session). Each vector gets its
+ *   full metadata from its D1 row (storedVectorMetadata, the new textHash
+ *   included), so an upsert never wipes the filter properties. Refuses, with
+ *   nothing written, ids that D1 does not hold.
+ * - `{ deleteIds: string[] }`: deleteByIds for at most 1,000 codes that D1 no
+ *   longer holds (runbook step 4's D1-only deletions). Refuses any code D1
+ *   still holds.
+ * Answers `{ upserted | deleted, mutationId, sentAt, meta }`; no D1 write,
+ * no neuron.
+ * @param {Request} request
+ * @param {Env} env
+ */
+export async function handleVectors(request, env) {
+  const denied = ingestGuard(request, env);
+  if (denied) return denied;
+  /** @type {any} */
+  let body;
+  try { body = await request.json(); } catch { return bad('Body must be JSON.'); }
+  const codesOk = (/** @type {unknown} */ xs) => Array.isArray(xs) && xs.length > 0 && xs.length <= VECTORS_LIMIT
+    && xs.every((c) => typeof c === 'string' && c.length > 0) && new Set(xs).size === xs.length;
+
+  if (body?.deleteIds !== undefined) {
+    if (!codesOk(body.deleteIds)) return bad(`deleteIds must be 1 to ${VECTORS_LIMIT} distinct module codes.`);
+    /** @type {string[]} */
+    const ids = body.deleteIds;
+    let read;
+    try { read = await rowsFor(env.DB, ids); } catch (err) { return upstream('d1', err); }
+    const held = ids.filter((c) => read.rows.has(c));
+    if (held.length) return bad(`Refusing to delete vectors D1 still holds: ${held.slice(0, 10).join(', ')}${held.length > 10 ? ', …' : ''}.`);
+    try {
+      const { mutationId } = await vectorize(env).deleteByIds(ids);
+      return json({ deleted: ids.length, mutationId, sentAt: acceptedAt(), meta: metaOf(read.results) });
+    } catch (err) {
+      return upstream('vectorize', err);
+    }
+  }
+
+  if (!codesOk(body?.ids) || typeof body?.values !== 'string') {
+    return bad(`Body must be { ids: [1 to ${VECTORS_LIMIT} distinct codes], values: base64 float32 } or { deleteIds: [...] }.`);
+  }
+  /** @type {string[]} */
+  const ids = body.ids;
+  /** @type {Float32Array} */
+  let values;
+  try { values = base64ToFloat32(body.values); } catch (err) { return bad(`values: ${/** @type {Error} */ (err).message}`); }
+  if (values.length !== ids.length * EMBEDDING_DIMS) {
+    return bad(`values holds ${values.length} floats; ${ids.length} ids need ${ids.length * EMBEDDING_DIMS}.`);
+  }
+  if (!values.every((x) => Number.isFinite(x))) return bad('values must all be finite.');
+  let read;
+  try { read = await rowsFor(env.DB, ids); } catch (err) { return upstream('d1', err); }
+  const unknown = ids.filter((c) => !read.rows.has(c));
+  if (unknown.length) return bad(`D1 holds no row for ${unknown.slice(0, 10).join(', ')}${unknown.length > 10 ? ', …' : ''}; nothing was upserted.`);
+  try {
+    const { mutationId } = await vectorize(env).upsert(ids.map((id, i) => ({
+      id,
+      values: Array.from(values.subarray(i * EMBEDDING_DIMS, (i + 1) * EMBEDDING_DIMS)),
+      // level/credits may be null; written as /admin/ingest writes them.
+      metadata: /** @type {Record<string, VectorizeVectorMetadata>} */ (
+        storedVectorMetadata(fieldsFromRow(/** @type {import('./rowhash.js').ModuleRow} */ (read.rows.get(id))))),
+    })));
+    return json({ upserted: ids.length, mutationId, sentAt: acceptedAt(), meta: metaOf(read.results) });
+  } catch (err) {
+    return upstream('vectorize', err);
+  }
 }
 
 // Guarded: rebuilds the precomputed facet row. Called by the ingest script once

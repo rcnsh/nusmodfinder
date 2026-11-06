@@ -5,11 +5,16 @@
 // identical. The only allowed differences are the bug fixes 1B makes, each
 // asserted explicitly: an empty `topK=` means the default (B8), and the body
 // echoes the canonical query (B7). Both paths share src/lexical.js.
+// The pre-1B route queries Vectorize, so the live Worker runs under the
+// Vectorize standby (DENSE_BACKEND=vectorize, Phase 3 3-0); the bundle's
+// identity with that path is test/dense.test.js.
 import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Trace } from '../src/timing.js';
 import { BASE, buildEnv, callJson, fixture, seed } from './helpers.js';
 import { searchRoute as legacySearchRoute } from './legacy/search-f61072e.js';
+
+const STANDBY = { DENSE_BACKEND: 'vectorize' };
 
 /** @type {import('./fakes.js').Fakes} */
 let fakes;
@@ -99,7 +104,7 @@ async function compare(path) {
   const legacyUrl = new URL(url);
   if (legacyUrl.searchParams.get('topK')?.trim() === '') legacyUrl.searchParams.delete('topK');
   const before = await legacy(legacyUrl.pathname + legacyUrl.search);
-  const after = await callJson(path, { fakes });
+  const after = await callJson(path, { fakes, env: STANDBY });
   if (before.status !== after.status) return `${path}: status ${before.status} -> ${after.status}`;
   const expected = before.status === 200
     // B7: the body echoes the canonical query (trimmed, whitespace collapsed, ASCII lower-cased).
@@ -121,7 +126,7 @@ describe('1B is ranking-neutral', () => {
     for (const p of paths) {
       const diff = await compare(p);
       if (diff) diffs.push(diff);
-      const { status, body } = await callJson(p, { fakes, keepCache: true });
+      const { status, body } = await callJson(p, { fakes, keepCache: true, env: STANDBY });
       if (status === 200) { ok += 1; if (body.results.length) withResults += 1; }
     }
     expect(diffs).toEqual([]);
@@ -146,7 +151,7 @@ describe('1B is ranking-neutral', () => {
       let compared = 0;
       for (const p of paths) {
         const before = await legacy(p.replace(/topK=(&|$)/, ''));
-        const after = await callJson(p.replace(/topK=(&|$)/, ''), { fakes });
+        const after = await callJson(p.replace(/topK=(&|$)/, ''), { fakes, env: STANDBY });
         expect(after.status, p).toBe(before.status);
         if (before.status !== 200) continue;
         // Same page of results. retrieval.fused can only differ here, and only

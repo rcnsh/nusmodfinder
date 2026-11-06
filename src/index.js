@@ -2,23 +2,34 @@
 // The Worker entry point: routing only. Each route lives in its own module so
 // search (search.js), module/facet reads (modules.js) and the admin ingest
 // routes (ingest.js) can change independently.
+import { denseBundle } from './dense.js';
 import { appVersion, json, withHeaders } from './http.js';
 import {
-  handleDelete, handleFacetsRebuild, handleHashes, handleIngest, handleVectorizeInfo, handleVerify,
+  handleDelete, handleFacetsRebuild, handleHashes, handleIngest, handleVectorizeInfo, handleVectors, handleVerify,
 } from './ingest.js';
 import { handleFacets, handleModule } from './modules.js';
 import page from './page.html';
-import { searchRoute } from './search.js';
+import { DATA_VERSION, searchRoute } from './search.js';
 import { Trace } from './timing.js';
 
 /**
- * GET /health: which version is serving. Deliberately touches no binding but
- * version_metadata, so it costs nothing and works when D1 is down.
+ * GET /health: which version is serving, the committed data version, and the
+ * bundled vectors' corpus and data version (Phase 3 3-0; null if the bundle
+ * does not parse), so a smoke can see that the production bundle is live.
+ * Deliberately touches no binding but version_metadata, so it costs nothing
+ * and works when D1 is down.
  * @param {Env} env
  */
 function handleHealth(env) {
   const meta = /** @type {WorkerVersionMetadata | undefined} */ (env.CF_VERSION_METADATA);
-  const response = json({ ok: true, versionId: meta?.id ?? null, versionTag: meta?.tag || null });
+  let vectors = null;
+  try {
+    const { header } = denseBundle();
+    vectors = { corpus: header.corpus, count: header.count, dataVersion: header.dataVersion };
+  } catch { /* reported as null; /search degrades to keyword-only (dense-index) */ }
+  const response = json({
+    ok: true, versionId: meta?.id ?? null, versionTag: meta?.tag || null, dataVersion: DATA_VERSION, vectors,
+  });
   response.headers.set('cache-control', 'no-store');
   return response;
 }
@@ -46,6 +57,7 @@ function route(request, env, ctx, trace) {
   if (path === '/admin/delete' && request.method === 'POST') return handleDelete(request, env);
   if (path === '/admin/vectorize' && request.method === 'GET') return handleVectorizeInfo(request, env);
   if (path === '/admin/verify' && request.method === 'POST') return handleVerify(request, env);
+  if (path === '/admin/vectors' && request.method === 'POST') return handleVectors(request, env);
 
   return json({ error: 'not_found', message: `No route for ${path}.` }, 404);
 }

@@ -171,19 +171,25 @@ describe('ops', () => {
     expect(read('wrangler.jsonc')).not.toMatch(/"triggers"|"crons"/);
   });
 
-  it('[B9 fixed] README names Vectorize queried dims as the binding limit, with the arithmetic, and states the per-search D1 rows read measured with SC7', () => {
+  it('[B9 fixed] README names the binding limit with its arithmetic (Vectorize queried dims before 3-0; since 3-0, Workers CPU, the smaller of CPU and neurons, B2-8), and states the per-search D1 rows read measured with SC7', () => {
     expect(readme).not.toContain('D1 row reads are the binding constraint');
     const cost = readme.slice(readme.indexOf('## Cost'), readme.indexOf('## Data source'));
-    expect(cost).toContain('**Vectorize queried dimensions are the binding limit, not D1.**');
     // FINDINGS B9, on Workers Paid (ADR 0004): 50,000,000 queried dims/month,
-    // billed as (stored vectors + queries) x 384; D1 25 billion rows read/month.
+    // billed as (stored vectors + queries) x 384. It bound until 3-0 took
+    // Vectorize off the search path; the README keeps the arithmetic.
     const vectorizePerMonth = 50_000_000 / 384 - 6771;
     expect(Math.round(vectorizePerMonth / 100) * 100).toBe(123400);
     expect(cost).toContain('50,000,000 / 384 − 6,771 ≈ **123,400 uncached searches a month**');
     expect(cost).toContain(`about ${(Math.round(vectorizePerMonth / 30 / 100) * 100).toLocaleString('en-US')} a day`);
-    expect(Math.round(25e9 / vectorizePerMonth / 1000) * 1000).toBe(203000);
-    expect(cost).toContain('~200,000 rows read per\nuncached search');
-    expect(cost).toContain('**50,000,000 / month**');
+    expect(cost).toContain('**Since 3-0, Vectorize is off the search path, so the binding limit is Workers CPU or Workers AI\nneurons');
+    // B2-8: the README names whichever is smaller. CPU: 30M CPU-ms/month at the plan's
+    // 5 ms a search; neurons: 10k/day at ~0.03 a search (~0.05 after 3A-1).
+    expect(30_000_000 / 5).toBe(6_000_000);
+    expect(Math.round((10_000 * 30) / 0.03 / 1e6)).toBe(10);
+    expect(Math.round((10_000 * 30) / 0.05 / 1e6)).toBe(6);
+    expect(cost).toContain('**CPU is the smaller limit.**');
+    expect(cost).toContain('30M CPU-ms\ncover **~6.0M searches a month**');
+    expect(cost).toContain('**30,000,000 ms / month**');
     expect(cost).toContain('25,000,000,000 / month');
     // Per-search D1 numbers after Phase 1 are measured, not invented.
     expect(cost).toMatch(/\| D1 rows read \|[^\n]*\| per search: unfiltered 137–239 \(median 239\), filtered 249–1,784 \(median 497\), measured on 36 production searches with SC7 \(\[`sc7\.md`\]\(docs\/evidence\/phase1\/sc7\.md\)/);

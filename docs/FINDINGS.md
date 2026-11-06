@@ -309,7 +309,7 @@ can rank differently.
 first.
 
 **Evidence:**
-- test `[B9 fixed] README names Vectorize queried dims as the binding limit, with the arithmetic, and states the per-search D1 rows read measured with SC7` (`test/findings/source.node.test.js`)
+- test `[B9 fixed] README names the binding limit with its arithmetic (Vectorize queried dims before 3-0; since 3-0, Workers CPU, the smaller of CPU and neurons, B2-8), and states the per-search D1 rows read measured with SC7` (`test/findings/source.node.test.js`)
 
 **Notes:** Was `README.md:169` versus its own table (`:175-178`). D1 allows 5M rows/day ÷ ~50
 per search ≈ 3M searches/month. Vectorize allows 30M queried dims/month ÷ 384 − 6,771 stored ≈
@@ -325,6 +325,11 @@ measured on the Phase 1 deploy, quoting only the local grid meanwhile.
 
 Restated for Workers Paid on 2026-11-04 (ADR 0004): 50M queried dims/month ≈ 123,400 uncached
 searches against D1's 25 billion rows read/month. Vectorize is still the binding limit.
+
+Phase 3 3-0 takes Vectorize off the search path (in-Worker exact vectors, Vectorize as a
+standby), so queried dims fall to ~0 per search and the README names Workers CPU, the smaller
+of CPU and neurons (plan B2-8), with its arithmetic. B9's arithmetic stays in the README as
+the pre-3-0 limit.
 
 ### S1 · The eval is circular and mis-scoped
 

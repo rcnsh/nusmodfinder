@@ -13,7 +13,8 @@ holdout allows 12 looks.
 
 ## Decisions
 - **In-Worker exact vectors, Vectorize as standby.** Dense search is a brute-force dot product
-  over float32 corpus vectors bundled in the Worker as a `Data` module (10.4 MB of 64 MiB).
+  over float32 corpus vectors bundled in the Worker as a `Data` module (10.7 MB of 64 MiB,
+  measured below).
   - One keyed builder makes a pinned bundle for CI and SC4 and a production bundle for deploys.
     The manifest records `rowsKey`, and the deploy guard refuses any bundle that differs from D1.
   - Every corpus change follows one runbook. The manifest and an offline data version merge
@@ -60,7 +61,23 @@ holdout allows 12 looks.
   neurons, whichever measures smaller.
 - Every corpus change needs a deploy, and the guard blocks deploys from `main` between the
   merge and the D1 write.
-- 3-0's PR adds the measured bundle size, startup time and CPU per query to this ADR.
+- 3-0's PR adds the measured bundle size, startup time and CPU per query to this ADR (below).
+
+## Measured at 3-0 (local, 2026-11-06; [`3-0.md`](../evidence/phase3/3-0.md))
+- **Bundle size.** 32 B/row of filter table plus 384 float32 per row. That is pinned
+  10,683,976 B (6,771 rows) and production 10,695,040 B (6,778 rows, dry build). The Worker
+  uploads 10,520 KiB (gzip 8,666 KiB): 16% of 64 MiB. The filter row is 32 B, not the ~12 B
+  estimated, because 16 B are reserved for 3B's prefix id, 3F's group id and 3H's fields.
+- **Startup.** With `wrangler check startup` (local Miniflare, Apple M5 Pro), the 10.5 MB
+  bundle and the 0.7 MB fixture both show an 8–20 ms profile window and 0 ms active CPU. The
+  `Data` module is an ArrayBuffer, parsed on the first dense search (~1 ms). The binding gate,
+  `startup_time_ms` ≤ 200 from `wrangler versions upload`, runs at deploy.
+- **CPU per query.** The exact search over the pinned bundle in the Vitest workerd pool takes
+  **1.44 ms** warm and unfiltered, 0.17–0.99 ms filtered, and 3 ms on the first call. The live
+  figure is the 3-0 smoke's mean `CPUTimeMs`.
+- **Identity, no look.** On dev, 98 of 98 queries return the same `results` as the `eval-v0`
+  replica, hybrid and dense-only. On the fixture, all 111 dense differences are swaps of exact
+  ties (|Δ| ≤ 2.2e-16), each one listed.
 
 ## Dissent
 No objection was rejected outright. Four were applied in part:

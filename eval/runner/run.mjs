@@ -6,10 +6,11 @@
 import { fork } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
-import { cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
+import { base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
 import { REPO, loadQueries, runFile, searchParams, setFile, setKey } from '../lib/sets.mjs';
 import { buildWorkspace } from '../lib/workspace.mjs';
 
@@ -69,6 +70,8 @@ export async function runVariant(options) {
     throw new Error(`${missingQueries.length} query text(s) of the ${set.name} set have no embedding; run \`npm run eval:embed -- --set ${set.name}\` locally`);
   }
 
+  const dense = await writeBundle(ws.root, corpus.modules, lookup, String(embedding.corpus));
+
   const output = options.output ?? runFile(set, variant);
   const header = {
     schema: 'vnm-eval-run/1',
@@ -83,7 +86,7 @@ export async function runVariant(options) {
       sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'),
       count: querySet.queries.length,
     },
-    config: { topK: 'worker default', filters: !unfiltered, mode },
+    config: { topK: 'worker default', filters: !unfiltered, mode, dense },
   };
   const reporterOptions = {
     output,
@@ -112,6 +115,38 @@ export async function runVariant(options) {
     reporter: reporterOptions,
   }, ws.root, log);
   return { ok: outcome.ok, output, problems: outcome.problems };
+}
+
+/**
+ * A ranker with in-Worker vectors (Phase 3 3-0: it has src/vector-bundle.js)
+ * searches a bundle, not the fake Vectorize. Built here from this run's corpus
+ * and vectors, by the ranker's own encoder, at the path its `vectors-bundle`
+ * alias resolves to in the workspace (test/fixtures/vectors.js, which
+ * vitest.eval.config.mjs aliases). Older rankers (eval-v0) keep the fake
+ * Vectorize: the same exact cosine, with an id tiebreak.
+ * @param {string} root the workspace
+ * @param {NormalisedModule[]} modules
+ * @param {{ keys: string[], b64: string }} lookup
+ * @param {string} embedding
+ * @returns {Promise<'bundle' | 'vectorize'>} which dense index the run searches
+ */
+async function writeBundle(root, modules, lookup, embedding) {
+  const lib = join(root, 'src/vector-bundle.js');
+  if (!existsSync(lib)) return 'vectorize';
+  const { encodeBundle } = await import(pathToFileURL(lib).href);
+  const all = base64ToF32(lookup.b64);
+  const row = new Map(lookup.keys.map((k, i) => [k, i]));
+  const bytes = await encodeBundle({
+    corpus: 'eval', embedding, model: MODEL, modules,
+    vectorOf: (/** @type {NormalisedModule} */ m) => {
+      const i = row.get(embeddingKey(MODEL, m.text));
+      return i === undefined ? undefined : all.subarray(i * DIMS, (i + 1) * DIMS);
+    },
+  });
+  await mkdir(join(root, 'test/fixtures'), { recursive: true });
+  await writeFile(join(root, 'test/fixtures/vectors.bin'), bytes);
+  await writeFile(join(root, 'test/fixtures/vectors.js'), "import vectors from './vectors.bin';\n\nexport default vectors;\n");
+  return 'bundle';
 }
 
 /**

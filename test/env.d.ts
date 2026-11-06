@@ -16,5 +16,7 @@ declare module 'vitest' {
   interface ProvidedContext {
     /** The full pinned corpus, normalised; null when .data/ is absent. */
     corpus: FullCorpus | null;
+    /** Which bundle the `vectors-bundle` alias resolves to in the test/full project (vitest.config.mjs). */
+    vectorsBundle: 'pinned' | 'fixture';
   }
 }
