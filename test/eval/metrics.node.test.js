@@ -1,6 +1,6 @@
 // @ts-check
 import { describe, expect, it } from 'vitest';
-import { assertSameCorpus, byShape, compare, qrelsFor, scoreRanking, scoreRun, summarise, violates } from '../../eval/lib/metrics.mjs';
+import { answerableCount, assertSameCorpus, byShape, compare, isTaggedNoAnswer, NO_ANSWER_TAGS, qrelsFor, scoreRanking, scoreRun, summarise, unscoredIds, violates } from '../../eval/lib/metrics.mjs';
 
 /** @typedef {import('../../eval/lib/metrics.mjs').RunFile} RunFile */
 
@@ -108,7 +108,7 @@ describe('violates', () => {
 const queries = [
   { id: 'q1', text: 'a', shapes: ['topical'], persona: 'p1', filters: { sem: 1 } },
   { id: 'q2', text: 'b', shapes: ['code-exact'], persona: 'p2' },
-  { id: 'q3', text: 'c', shapes: ['no-answer'], persona: 'p1' },
+  { id: 'q3', text: 'c', shapes: ['noanswer'], persona: 'p1' },
   { id: 'q4', text: 'd', shapes: ['constraint'], persona: 'p2' },
   { id: 'q5', text: 'ZZZ9999', shapes: ['code-exact'], persona: 'p2', noAnswerByRule: true },
 ];
@@ -119,8 +119,8 @@ const qrels = {
     q2: { judgments: { CS1010: 2, CS1010S: 1 } },
     q3: { judgments: { N: 0 } },
     q4: { judgments: { F: 1 } },
-    // Graded >= 1 but excluded by rule: a non-existent code is never answerable.
-    q5: { judgments: { ZZZ: 1 } },
+    // A non-existent code (by rule) with no grade-≥1 document: no-answer.
+    q5: { judgments: { ZZZ: 0 } },
   },
 };
 const docs = {
@@ -170,7 +170,7 @@ describe('scoreRun / summarise', () => {
 
   it('breaks down by shape', () => {
     const shapes = byShape(scores);
-    expect(Object.keys(shapes)).toEqual(['code-exact', 'constraint', 'no-answer', 'topical']);
+    expect(Object.keys(shapes)).toEqual(['code-exact', 'constraint', 'noanswer', 'topical']);
     expect(shapes['code-exact']).toMatchObject({ n: 1, ndcg: 3 / (3 + 1 / L(3)), noAnswer: 1, correctEmpty: 0 });
     expect(shapes.topical.violationsAt10).toBe(1);
   });
@@ -242,5 +242,88 @@ describe('assertSameCorpus (review finding 7)', () => {
 
   it('refuses qrels that record no corpus', () => {
     expect(() => assertSameCorpus({ version: 'q0', queries: {} }, [runOn({ moduleInfoSha256: MI })])).toThrow(/qrels q0 record no corpus\.moduleInfoSha256/);
+  });
+});
+
+describe('no-answer is tagged AND no grade-≥1 document (P-5b; ADR 0003 amendment 2026-11-06)', () => {
+  /**
+   * A tagged query with a grade-2 document (answerable: the grades decide), each tag with
+   * no grade-≥1 document (no-answer), untagged queries with none (unscored), an answerable
+   * query and a feature-gap one.
+   */
+  const tagged = [
+    { id: 't1', text: 'a', shapes: ['noanswer'], persona: 'p1' },
+    { id: 't2', text: 'b', shapes: ['code', 'code-nonexistent'], persona: 'p1' },
+    { id: 't3', text: 'c', shapes: ['code-exact'], persona: 'p1', noAnswerByRule: true },
+    { id: 't4', text: 'h', shapes: ['noanswer'], persona: 'p1' },
+    { id: 't5', text: 'i', shapes: ['noanswer', 'constraint'], persona: 'p1' },
+    { id: 't6', text: 'j', shapes: ['code-exact'], persona: 'p1', noAnswerByRule: true },
+    { id: 'u1', text: 'd', shapes: ['topical'], persona: 'p2' },
+    { id: 'u2', text: 'e', shapes: ['constraint'], persona: 'p2' },
+    { id: 'a1', text: 'f', shapes: ['topical'], persona: 'p2' },
+    { id: 'g1', text: 'g', shapes: ['constraint'], persona: 'p2' },
+  ];
+  const grades = {
+    version: 'q',
+    queries: {
+      t1: { judgments: { A: 2 } }, // tagged, but a judge found an answer: answerable (primary)
+      t2: { judgments: { B: 0 } },
+      t3: { judgments: { C: 0 } },
+      // t4: tagged, never judged: no-answer
+      t5: { judgments: { H: 1 } }, // tagged, answered, feature-gap shape: answerable, feature-gap block
+      t6: { judgments: { J: 1 } }, // noAnswerByRule, but a judge graded a document >= 1: answerable
+      u1: { judgments: { D: 0 } }, // untagged, nothing relevant found: unscored
+      // u2: never judged at all: unscored
+      a1: { judgments: { E: 2 } },
+      g1: { judgments: { F: 1 } },
+    },
+  };
+  const r = run({ t1: ['A'], t2: ['B'], t3: [], t4: [], t5: ['H'], t6: ['J'], u1: [], u2: ['X'], a1: ['E'], g1: ['F'] });
+  const scores = scoreRun(r, tagged, grades);
+
+  it('names the tags', () => {
+    expect(NO_ANSWER_TAGS).toEqual(['noanswer', 'code-nonexistent']);
+    expect(tagged.map((x) => isTaggedNoAnswer(x))).toEqual([true, true, true, true, true, true, false, false, false, false]);
+  });
+
+  it('the tag is necessary, not sufficient: a tagged query with a grade-≥1 document is answerable; an untagged one with none is in neither set', () => {
+    expect(scores.map((s) => [s.id, s.noAnswer, s.answerable, s.unscored])).toEqual([
+      ['t1', false, true, false], ['t2', true, false, false], ['t3', true, false, false],
+      ['t4', true, false, false], ['t5', false, true, false], ['t6', false, true, false],
+      ['u1', false, false, true], ['u2', false, false, true],
+      ['a1', false, true, false], ['g1', false, true, false],
+    ]);
+  });
+
+  it('summarise: no-answer counts tagged queries with no grade-≥1 document; unscored is a count', () => {
+    const s = summarise(scores);
+    expect(s.primary.n).toBe(3); // a1, t1 and t6
+    expect(s.featureGap.n).toBe(2); // g1 and t5
+    expect(s.noAnswer).toEqual({ n: 3, correctEmpty: 2 / 3, falsePositives: 1, errors: 0 });
+    expect(s.unscored).toBe(2);
+    expect(unscoredIds(scores)).toEqual(['u1', 'u2']);
+  });
+
+  it('compare: correct-empty over tagged queries only, and the unscored count (never ids)', () => {
+    const cand = scoreRun(run({ t1: [], t2: [], t3: [], t4: [], t5: ['H'], t6: ['J'], u1: ['D'], u2: [], a1: ['E'], g1: ['F'] }), tagged, grades);
+    const cmp = compare(scores, cand);
+    expect(cmp.noAnswer).toMatchObject({ n: 3, base: 2 / 3, cand: 1 });
+    // t1 was answerable: emptying it is answerable loss.
+    expect(cmp.n).toBe(3);
+    expect(cmp.overall.ndcg.delta).toBeCloseTo(-1 / 3, 12);
+    expect(cmp.noAnswer.delta).toBeCloseTo(1 / 3, 12);
+    expect(cmp.unscored).toEqual({ n: 2 });
+    expect(JSON.stringify(cmp.unscored)).not.toMatch(/u1|u2/);
+  });
+
+  it('answerableCount counts the primary answerable queries from queries and qrels alone', () => {
+    expect(answerableCount(tagged, grades)).toBe(3);
+    expect(answerableCount(tagged, { version: 'q', queries: {} })).toBe(0);
+  });
+
+  it('byShape reports unscored queries per shape, apart from no-answer', () => {
+    const shapes = byShape(scores);
+    expect(shapes.topical).toMatchObject({ n: 1, noAnswer: 0, unscored: 1 });
+    expect(shapes.noanswer).toMatchObject({ n: 2, noAnswer: 1, unscored: 0 });
   });
 });

@@ -10,6 +10,9 @@ const pct = (x) => (Number.isFinite(x) ? `${(x * 100).toFixed(1)}%` : '—');
 /** @param {number} x */
 const signed = (x) => (Number.isFinite(x) ? `${x >= 0 ? '+' : ''}${x.toFixed(3)}` : '—');
 
+/** What an unscored query is, as every report says it. */
+export const UNSCORED_NOTE = 'untagged, no grade-≥1 document; in neither set';
+
 /**
  * @param {string[][]} rows first row is the header
  */
@@ -35,6 +38,7 @@ export function summaryTable(runs) {
   add('no-answer correct-empty', (s) => pct(s.noAnswer.correctEmpty));
   add('no-answer false positives', (s) => String(s.noAnswer.falsePositives));
   add('no-answer errors (non-200)', (s) => String(s.noAnswer.errors));
+  add('unscored n', (s) => String(s.unscored));
   add('violations@10 (total)', (s) => String(s.violationsAt10.total));
   add('judged@10', (s) => pct(s.judgedAt10.coverage));
   add('non-200 responses', (s) => String(s.errors));
@@ -66,10 +70,10 @@ export function comparisonTable(cmp, base, cand, qrelsVersion) {
  * @param {import('./metrics.mjs').Comparison | null} cmp
  */
 export function shapeTable(baseShapes, candShapes, cmp) {
-  const rows = [['shape', 'n', 'nDCG base', 'nDCG cand', 'Δ', 'one-sided 95% upper', 'P@5 cand', 'no-answer', 'violations@10']];
+  const rows = [['shape', 'n', 'nDCG base', 'nDCG cand', 'Δ', 'one-sided 95% upper', 'P@5 cand', 'no-answer', 'unscored', 'violations@10']];
   for (const shape of Object.keys(candShapes)) {
     const b = baseShapes[shape], c = candShapes[shape], d = cmp?.shapes[shape];
-    rows.push([shape, String(c.n), fmt(b?.ndcg), fmt(c.ndcg), d?.ndcg ? signed(d.ndcg.delta) : '—', d?.ndcg ? fmt(d.ndcg.bca.upper) : '—', fmt(c.p5), c.noAnswer ? `${c.noAnswer} (${pct(c.correctEmpty)} empty)` : '0', String(c.violationsAt10)]);
+    rows.push([shape, String(c.n), fmt(b?.ndcg), fmt(c.ndcg), d?.ndcg ? signed(d.ndcg.delta) : '—', d?.ndcg ? fmt(d.ndcg.bca.upper) : '—', fmt(c.p5), c.noAnswer ? `${c.noAnswer} (${pct(c.correctEmpty)} empty)` : '0', String(c.unscored ?? 0), String(c.violationsAt10)]);
   }
   return table(rows);
 }
@@ -84,7 +88,7 @@ export function verdictBlock(v) {
 /**
  * The only output an encrypted set ever produces. The first line names the
  * rule applied (gate.mjs `ruleOf`) and the baseline ranker it was taken
- * against ("eval-v0 7ac9841").
+ * against ("eval-v0 7ac9841"); the last gives the unscored count, never ids.
  * @param {import('./gate.mjs').Verdict} v
  * @param {import('./metrics.mjs').Comparison} cmp
  * @param {string} qrelsVersion
@@ -93,7 +97,7 @@ export function verdictBlock(v) {
 export function verdictOnly(v, cmp, qrelsVersion, baseline) {
   const ci = (/** @type {'ndcg' | 'p5'} */ m) => `${signed(cmp.overall[m].delta)} [${fmt(cmp.overall[m].bca.lower)}, ${fmt(cmp.overall[m].bca.upper)}]`;
   return {
-    text: [`${v.set} verdict: ${v.verdict.toUpperCase()} · rule ${v.rule ?? 'general'} · baseline ${baseline} · qrels ${qrelsLabel(qrelsVersion)}`, `ΔnDCG@10 ${ci('ndcg')} (BCa 95%)`, `ΔP@5     ${ci('p5')} (BCa 95%)`].join('\n'),
+    text: [`${v.set} verdict: ${v.verdict.toUpperCase()} · rule ${v.rule ?? 'general'} · baseline ${baseline} · qrels ${qrelsLabel(qrelsVersion)}`, `ΔnDCG@10 ${ci('ndcg')} (BCa 95%)`, `ΔP@5     ${ci('p5')} (BCa 95%)`, `unscored queries: ${cmp.unscored.n} (${UNSCORED_NOTE})`].join('\n'),
     ndcg: ci('ndcg'),
     p5: ci('p5'),
   };

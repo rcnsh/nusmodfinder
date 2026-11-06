@@ -5,8 +5,9 @@
 // holdout file):
 //   1. `--change-kind cutoff` must be a truncation of the baseline, and the
 //      rule applied is printed and recorded in the ledger;
-//   2. holdout and SC5 verdicts refuse a baseline that is not the pinned
-//      eval-v0 ranker, the ledger records the baseline's ranker sha, and
+//   2. holdout and SC5 verdicts refuse a baseline that is not their pin
+//      (eval-v0 for SC5, the shipped ranker for a per-change look), the
+//      ledger records the baseline's ranker sha, and
 //      `--store-only` never overwrites a manifested run file;
 //   3. every ciphertext a verdict reads is checked against MANIFEST.json.
 // The `selftest` set keeps its ledger in its own directory. The SC5 tests run
@@ -75,7 +76,7 @@ async function derived() {
   const dev = JSON.parse(await readFile(join(REPO, 'eval', 'dev', 'queries.json'), 'utf8'));
   const picked = dev.queries.slice(0, ANSWERABLE + NO_ANSWER);
   const queries = picked.map((/** @type {any} */ q, /** @type {number} */ i) => ({
-    id: q.id, text: q.text, persona: q.persona, shapes: [i < ANSWERABLE ? 'topical' : 'no-answer'],
+    id: q.id, text: q.text, persona: q.persona, shapes: [i < ANSWERABLE ? 'topical' : 'noanswer'],
   }));
   const querySet = { schema: 'vnm-eval-queries/1', set: SET, version: 'derived-v1', queries };
   /** @type {Record<string, string[]>} codes best first */
@@ -192,10 +193,10 @@ describe('gap 1: a cutoff verdict needs a truncation, and the rule is recorded',
 
   it('a targeted change is recorded with its targets', async () => {
     const { dir } = await makeSet('targeted', { cand: truncatingCutoff });
-    const r = report(dir, ['--target-shapes', 'topical,no-answer']);
+    const r = report(dir, ['--target-shapes', 'topical,noanswer']);
     expect(r.stderr).toBe('');
-    expect(r.stdout).toMatch(/^holdout verdict: (PASS|FAIL) · rule targeted: topical,no-answer · baseline eval-v0 7ac9841 · /m);
-    expect((await rowsOf(ledgerOf(dir)))[0][8]).toBe('targeted: topical,no-answer');
+    expect(r.stdout).toMatch(/^holdout verdict: (PASS|FAIL) · rule targeted: topical,noanswer · baseline eval-v0 7ac9841 · /m);
+    expect((await rowsOf(ledgerOf(dir)))[0][8]).toBe('targeted: topical,noanswer');
   });
 
   it('`run --change-kind cutoff` on an encrypted set is refused before a look is reserved', async () => {
@@ -464,5 +465,96 @@ describe('gap 3: every ciphertext a verdict reads matches MANIFEST.json', () => 
     const r = report(dir);
     expect(r.stderr).toBe('');
     expect(r.stdout).toMatch(/^holdout verdict: (PASS|FAIL) · rule general · /m);
+  });
+});
+
+describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is another commit', () => {
+  /** @type {string} */
+  let clone;
+  /** @type {string} */
+  let cloneCli;
+  /** This checkout's HEAD stands in for a later shipped ranker, pinned by plain sha. */
+  let shippedSha = '';
+  let shippedTree = '';
+  const shippedRanker = () => ({ ref: shippedSha, sha: shippedSha, dirty: false, treeHash: shippedTree, runner: { sha: shippedSha, dirty: false } });
+  beforeAll(async () => {
+    shippedSha = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: REPO, encoding: 'utf8' }).stdout.trim();
+    expect(shippedSha).toMatch(/^[0-9a-f]{40}$/);
+    expect(shippedSha).not.toBe(PINNED_SHA);
+    const archive = join(tmp, 'shipped-archive');
+    await mkdir(archive, { recursive: true });
+    const present = HASHED.filter((p) => spawnSync('git', ['cat-file', '-e', `${shippedSha}:${p}`], { cwd: REPO }).status === 0);
+    const tar = spawnSync('git', ['archive', '--format=tar', shippedSha, '--', ...present], { cwd: REPO, maxBuffer: 1 << 30 });
+    expect(tar.status).toBe(0);
+    expect(spawnSync('tar', ['-x', '-C', archive], { input: tar.stdout }).status).toBe(0);
+    shippedTree = await treeHash(archive);
+    expect(shippedTree).not.toBe(v0Tree);
+
+    clone = join(tmp, 'clone-shipped');
+    expect(spawnSync('git', ['clone', '--quiet', '--shared', '--no-checkout', REPO, clone]).status).toBe(0);
+    expect(spawnSync('git', ['checkout', '--quiet', 'HEAD'], { cwd: clone }).status).toBe(0);
+    for (const p of ['eval/cli.mjs', 'eval/lib', 'eval/groups.json', 'eval/holdout-ledger.md', 'scripts']) {
+      await rm(join(clone, p), { recursive: true, force: true });
+      await cp(join(REPO, p), join(clone, p), { recursive: true });
+    }
+    const baseline = join(clone, 'eval', 'lib', 'baseline.mjs');
+    const src = await readFile(baseline, 'utf8');
+    const line = `export const SHIPPED_BASELINE = Object.freeze({ ref: 'eval-v0', sha: '${PINNED_SHA}' });`;
+    expect(src).toContain(line);
+    await writeFile(baseline, src.replace(line, `export const SHIPPED_BASELINE = Object.freeze({ ref: '${shippedSha}', sha: '${shippedSha}' });`));
+    cloneCli = join(clone, 'eval', 'cli.mjs');
+  });
+  /** @param {string} dir @param {string} [set] */
+  const look = (dir, set = SET) => cli(['report', '--set', set, '--set-dir', dir, '--run', 'cand', '--baseline', 'base'], { cli: cloneCli });
+
+  it('a per-change holdout look refuses an eval-v0 baseline (report and run), before any look', async () => {
+    const { dir } = await makeSet('shipped-v0-base', { cand: (d) => copy(d.ranked) });
+    expect(`${look(dir).stdout}${look(dir).stderr}`).toBe(withheld('BaselineError'));
+    const run = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'never', '--baseline', 'base'], { cli: cloneCli });
+    expect(`${run.stdout}${run.stderr}`).toBe(withheld('BaselineError'));
+    expect(await rowsOf(ledgerOf(dir))).toHaveLength(0);
+  });
+
+  it('a per-change holdout look takes a genuine shipped baseline; the verdict names it and the ledger records its sha', async () => {
+    const { dir } = await makeSet('shipped-genuine', { base: { ranker: shippedRanker() }, cand: (d) => copy(d.ranked) });
+    const r = look(dir);
+    expect(r.stderr).toBe('');
+    expect(r.stdout).toMatch(new RegExp(`^holdout verdict: PASS · rule general · baseline ${shippedSha.slice(0, 7)} · qrels qrels-derived-v1$`, 'm'));
+    expect((await rowsOf(ledgerOf(dir))).map((c) => [c[8], c[9]])).toEqual([['general', shippedSha.slice(0, 7)]]);
+  });
+
+  it.each([
+    ['a dirty ranker', { dirty: true }],
+    ['a dirty runner', { runner: { sha: 'x', dirty: true } }],
+    ['another treeHash', { treeHash: 'e'.repeat(64) }],
+    ['another sha', { sha: PINNED_SHA }],
+  ])('refuses a shipped baseline with %s', async (_, edit) => {
+    const { dir } = await makeSet(`shipped-forged-${Object.keys(edit)[0]}`, { base: { ranker: { ...shippedRanker(), ...edit } }, cand: (d) => copy(d.ranked) });
+    expect(`${look(dir).stdout}${look(dir).stderr}`).toBe(withheld('BaselineError'));
+    expect(await rowsOf(ledgerOf(dir))).toHaveLength(0);
+  });
+
+  it.each([
+    ['unfiltered', { mode: 'hybrid', filters: false }],
+    ['lexical', { mode: 'lexical', filters: true }],
+  ])('refuses a %s run of the shipped ranker', async (name, config) => {
+    const { dir } = await makeSet(`shipped-config-${name}`, { base: { ranker: shippedRanker(), config }, cand: (d) => copy(d.ranked) });
+    const r = look(dir);
+    expect(r.code).toBe(1);
+    expect(r.stdout).toBe('');
+    expect(await rowsOf(ledgerOf(dir))).toHaveLength(0);
+  });
+
+  it('the SC5 baseline stays eval-v0: the test set takes an eval-v0 baseline and refuses the shipped one', async () => {
+    const cloneLedger = join(clone, 'eval', 'holdout-ledger.md');
+    const shipped = await makeSet('shipped-sc5-shipped', { as: 'test', base: { ranker: shippedRanker() }, cand: (d) => copy(d.ranked) });
+    const refused = look(shipped.dir, 'test');
+    expect(`${refused.stdout}${refused.stderr}`).toBe('eval: test run failed (BaselineError); details withheld\n');
+    expect(await readLedger(cloneLedger)).toHaveLength(0);
+    const v0 = await makeSet('shipped-sc5-v0', { as: 'test', cand: (d) => copy(d.ranked) });
+    const r = look(v0.dir, 'test');
+    expect(r.stderr).toBe('');
+    expect(r.stdout).toMatch(/^test verdict: FAIL · rule sc5 · baseline eval-v0 7ac9841 · qrels qrels-derived-v1$/m);
+    await cp(join(REPO, 'eval/holdout-ledger.md'), cloneLedger);
   });
 });

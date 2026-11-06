@@ -9,9 +9,14 @@
 // - P@5: group-first documents with grade >= 1 in the top 5, divided by 5.
 // - MRR@10: 1 / rank of the first group-first document with grade >= 1.
 // - Unjudged documents count as grade 0; judged@10 coverage is reported.
-// - A query is answerable iff some judged document has grade >= 1, unless it
-//   is marked `noAnswerByRule` (non-existent codes). Answerable queries tagged
-//   with a feature-gap shape are scored in their own block, not the primary.
+// - The no-answer set (ADR 0003, amendment 2026-11-06): a query is no-answer
+//   iff it is tagged (a NO_ANSWER_TAGS shape, or `noAnswerByRule` for
+//   non-existent codes) AND no judged document has grade >= 1. The judges'
+//   grades are the ground truth; the tag is necessary, not sufficient. A query
+//   with a grade->=1 document is answerable, tagged or not. An untagged query
+//   with none is unscored: in neither set, counted, never in a metric.
+//   Answerable queries with a feature-gap shape are scored in their own block,
+//   not the primary.
 // - No-answer queries score correct-empty (the run returned nothing).
 // - A non-200 response is an error, never a result: it is never correct-empty
 //   and nothing in it is relevant (it scores as an empty ranking that also
@@ -26,6 +31,8 @@ export const P_K = 5;
 export const FEATURE_GAP_SHAPES = ['constraint'];
 /** Shapes whose rank-1 hit must not regress (gate rule 3). */
 export const EXACT_CODE_SHAPES = ['code-exact'];
+/** Shapes that put a query in the no-answer set, with `noAnswerByRule`. */
+export const NO_ANSWER_TAGS = ['noanswer', 'code-nonexistent'];
 /** The per-query metrics compared between runs. */
 export const METRICS = /** @type {const} */ (['ndcg', 'p5', 'rr']);
 
@@ -170,6 +177,37 @@ export function violationReason(doc, c) {
 }
 
 /**
+ * Is the query tagged no-answer (a NO_ANSWER_TAGS shape, or `noAnswerByRule`)?
+ * Necessary for the no-answer set, not sufficient: see `scoredSet`.
+ * @param {Pick<EvalQuery, 'shapes' | 'noAnswerByRule'>} q
+ */
+export const isTaggedNoAnswer = (q) => q.noAnswerByRule === true || (q.shapes ?? []).some((t) => NO_ANSWER_TAGS.includes(t));
+
+/**
+ * Which set a query is scored in: `answerable` (some grade >= 1, tagged or
+ * not), `noAnswer` (tagged, no grade >= 1) or `unscored` (untagged, no grade >= 1).
+ * @param {EvalQuery} q
+ * @param {Map<string, number>} grades
+ */
+export function scoredSet(q, grades) {
+  const answerable = [...grades.values()].some((g) => g >= 1);
+  const noAnswer = !answerable && isTaggedNoAnswer(q);
+  return { noAnswer, answerable, unscored: !answerable && !noAnswer };
+}
+
+/**
+ * The primary answerable queries of a set (some grade >= 1, no feature-gap
+ * shape), from its queries and qrels alone: what `eval:count --answerable`
+ * prints.
+ * @param {EvalQuery[]} queries
+ * @param {Qrels} qrels
+ */
+export function answerableCount(queries, qrels) {
+  return queries.filter((q, i) => scoredSet(q, qrelsFor(qrels, q.id, i).grades).answerable
+    && !(q.shapes ?? []).some((t) => FEATURE_GAP_SHAPES.includes(t))).length;
+}
+
+/**
  * Does a returned document break the query's hard constraints?
  * @param {DocMeta | undefined} doc
  * @param {Constraints} c
@@ -180,9 +218,10 @@ export function violates(doc, c) {
 
 /**
  * `empty` is a correct empty answer (status 200, no codes); `error` is any
- * non-200 response.
+ * non-200 response. Exactly one of `noAnswer`, `answerable` and `unscored`
+ * holds.
  * @typedef {{
- *   id: string, shapes: string[], persona: string, answerable: boolean, featureGap: boolean,
+ *   id: string, shapes: string[], persona: string, answerable: boolean, noAnswer: boolean, unscored: boolean, featureGap: boolean,
  *   ndcg: number, p5: number, rr: number, empty: boolean, error: boolean, status: number,
  *   violations: number, judged: number, top: number, top1: string | null, top1Grade: number,
  * }} QueryScore
@@ -237,7 +276,7 @@ export function scoreRun(run, queries, qrels) {
       id: q.id,
       shapes,
       persona: q.persona ?? 'unknown',
-      answerable: !q.noAnswerByRule && [...grades.values()].some((g) => g >= 1),
+      ...scoredSet(q, grades),
       featureGap: shapes.some((t) => FEATURE_GAP_SHAPES.includes(t)),
       ndcg: s.ndcg,
       p5: s.p5,
@@ -273,7 +312,7 @@ function block(scores) {
 export function summarise(scores) {
   const primary = scores.filter((s) => s.answerable && !s.featureGap);
   const gap = scores.filter((s) => s.answerable && s.featureGap);
-  const noAnswer = scores.filter((s) => !s.answerable);
+  const noAnswer = scores.filter((s) => s.noAnswer);
   const top = scores.reduce((n, s) => n + s.top, 0);
   const judged = scores.reduce((n, s) => n + s.judged, 0);
   const violations = scores.reduce((n, s) => n + s.violations, 0);
@@ -287,11 +326,20 @@ export function summarise(scores) {
       falsePositives: noAnswer.filter((s) => !s.empty && !s.error).length,
       errors: noAnswer.filter((s) => s.error).length,
     },
+    /** Untagged queries with no grade-≥1 document: a count (ids: `unscoredIds`, dev only). */
+    unscored: scores.filter((s) => s.unscored).length,
     violationsAt10: { total: violations, perQuery: scores.length ? violations / scores.length : NaN },
     judgedAt10: { judged, top, coverage: top === 0 ? 1 : judged / top },
     errors: scores.filter((s) => s.error).length,
   };
 }
+
+/**
+ * The unscored queries' ids. Dev only: holdout and test reports give the
+ * count alone (A2-11).
+ * @param {QueryScore[]} scores
+ */
+export const unscoredIds = (scores) => scores.filter((s) => s.unscored).map((s) => s.id);
 
 /**
  * Per-shape blocks (dev only; the holdout CLI never calls this).
@@ -302,10 +350,11 @@ export function byShape(scores) {
   return Object.fromEntries(shapes.map((shape) => {
     const these = scores.filter((s) => s.shapes.includes(shape));
     const answerable = these.filter((s) => s.answerable);
-    const noAnswer = these.filter((s) => !s.answerable);
+    const noAnswer = these.filter((s) => s.noAnswer);
     return [shape, {
       ...block(answerable),
       noAnswer: noAnswer.length,
+      unscored: these.filter((s) => s.unscored).length,
       correctEmpty: noAnswer.length ? noAnswer.filter((s) => s.empty).length / noAnswer.length : NaN,
       violationsAt10: these.reduce((n, s) => n + s.violations, 0),
     }];
@@ -342,7 +391,7 @@ export function compare(base, cand, options = {}) {
     }];
   }));
 
-  const noAnswer = pairs.filter(({ b }) => !b.answerable);
+  const noAnswer = pairs.filter(({ b }) => b.noAnswer);
   const rate = (/** @type {QueryScore[]} */ xs) => (xs.length ? xs.filter((s) => s.empty).length / xs.length : NaN);
   const shapes = [...new Set(base.flatMap((s) => s.shapes))].sort();
 
@@ -355,6 +404,8 @@ export function compare(base, cand, options = {}) {
       cand: rate(noAnswer.map(({ c }) => c)),
       delta: rate(noAnswer.map(({ c }) => c)) - rate(noAnswer.map(({ b }) => b)),
     },
+    /** Untagged queries with no grade-≥1 document, in neither set: a count, never ids. */
+    unscored: { n: base.filter((s) => s.unscored).length },
     /**
      * One-sided 95% bounds per shape come from a two-sided 90% interval.
      * `members`: positions (in the baseline's query order, never ids) of the

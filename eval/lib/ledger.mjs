@@ -12,7 +12,11 @@
 // - a look is refused if, for any known set, the ledger records fewer looks
 //   than git's copy at HEAD or origin/main (so moving a row to another set
 //   is caught), if it has fewer rows in total, or if the file is missing
-//   while git has it.
+//   while git has it;
+// - a row with a `count: …` cell is an eval:count log row (eval/count-log.md),
+//   and the ledger refuses it: a count is not a look (ADR 0003, amendment
+//   2026-11-06), so it can never be recorded, or spent, as one. The ledger
+//   never reads the count log.
 //
 // Concurrency: check-then-append runs under an exclusive lock file
 // (`<ledger>.lock`, created with O_EXCL and holding a random token), so
@@ -43,6 +47,9 @@ by \`npm run eval -- --holdout\`. Phase 3 tuning stops at 12 holdout looks.
 /** Set names a row can belong to; any other set cell counts against all of them. */
 const KNOWN_SETS = ['holdout', 'test', 'selftest'];
 
+/** The kind cell of an eval:count log row ("count: answerable"); no ledger row has one. */
+export const COUNT_CELL = /^count:\s/;
+
 /** Refs whose committed ledger the local one may not fall behind. */
 const COMMITTED_REFS = ['HEAD', 'origin/main'];
 
@@ -69,11 +76,11 @@ export function ledgerRows(text) {
 
 /**
  * @param {string} path
- * @returns {Promise<{ set: string, variant: string, verdict: string }[]>}
+ * @returns {Promise<{ set: string, variant: string, verdict: string, rule: string }[]>}
  */
 export async function readLedger(path) {
   if (!existsSync(path)) return [];
-  return ledgerRows(await readFile(path, 'utf8')).map((cells) => ({ set: cells[1] ?? '', variant: cells[3] ?? '', verdict: cells[5] ?? '' }));
+  return ledgerRows(await readFile(path, 'utf8')).map((cells) => ({ set: cells[1] ?? '', variant: cells[3] ?? '', verdict: cells[5] ?? '', rule: cells[8] ?? '' }));
 }
 
 /**
@@ -136,7 +143,12 @@ export async function assertLedgerIntact(path, repo = REPO) {
     return;
   }
   const text = await readFile(path, 'utf8');
-  const local = ledgerRows(text).length;
+  const rows = ledgerRows(text);
+  const counted = rows.findIndex((cells) => cells.some((c) => COUNT_CELL.test(c)));
+  if (counted >= 0) {
+    throw new LedgerTamperError(`row ${counted + 1} of the ledger ${path} is an eval:count count-log row ("count: …"); counts are not looks and are logged only in their own count log`);
+  }
+  const local = rows.length;
   const localLooks = lookCounts(text);
   for (const c of committed) {
     if (local < c.rows) {
@@ -164,6 +176,29 @@ export async function assertLookAllowed(path, set, max, options = {}) {
     throw new LookLimitError(`refusing look ${n + 1} at the ${set} set: the ledger (${path}) already records ${n} of the allowed ${max}`);
   }
   return n;
+}
+
+/**
+ * Under the holdout reading of SC5 (gate.mjs `SC5_READING`) the SC5 look is
+ * L12 and nothing comes after it. Throws LookLimitError
+ * - for an SC5 look (`sc5`), unless the ledger records exactly `maxLooks - 1`
+ *   looks at `set` and no `sc5` row for it;
+ * - for a per-change look, once the ledger records an `sc5` row for `set`.
+ * Callers hold the ledger lock. The look limit itself is assertLookAllowed's.
+ * @param {string} path
+ * @param {string} set
+ * @param {number} maxLooks the set's limit, SC5 look included
+ * @param {boolean} sc5 is this the SC5 look?
+ */
+export async function assertSc5Order(path, set, maxLooks, sc5) {
+  const rows = await readLedger(path);
+  const n = countLooks(rows, set);
+  const sc5Rows = rows.filter((r) => r.set === set && r.rule === 'sc5').length;
+  if (sc5 && sc5Rows) throw new LookLimitError(`refusing a second SC5 look at the ${set} set: the ledger (${path}) already records one`);
+  if (sc5 && n !== maxLooks - 1) {
+    throw new LookLimitError(`refusing the SC5 look at the ${set} set: it is look ${maxLooks} and comes after exactly ${maxLooks - 1}, but the ledger (${path}) records ${n}`);
+  }
+  if (!sc5 && sc5Rows) throw new LookLimitError(`refusing a per-change look at the ${set} set: the ledger (${path}) records its SC5 look, which is the last`);
 }
 
 /**
@@ -299,17 +334,19 @@ export async function withLedgerLock(path, fn, options = {}) {
 }
 
 /**
- * Reserves a look before retrieval starts: checks the limit and appends a
+ * Reserves a look before retrieval starts: checks the limit (and `check`, a
+ * caller's further refusal, under the same lock) and appends a
  * `reserved <token>` row, atomically. The row counts as a look from now on.
  * @param {string} path
  * @param {number} max
  * @param {Omit<LedgerRow, 'verdict' | 'ndcg' | 'p5'>} row
- * @param {{ repo?: string, waitMs?: number }} [options]
+ * @param {{ repo?: string, waitMs?: number, check?: () => Promise<void> }} [options]
  * @returns {Promise<string>} the reserved line, for finaliseLook
  */
 export function reserveLook(path, max, row, options = {}) {
   return withLedgerLock(path, async (lock) => {
     await assertLookAllowed(path, row.set, max, options);
+    await options.check?.();
     const line = formatRow({ ...row, verdict: `reserved ${randomBytes(4).toString('hex')}`, ndcg: '—', p5: '—' });
     lock.assertHeld();
     await appendLook(path, row, line);

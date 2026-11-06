@@ -1,4 +1,5 @@
-// Phase 2 baseline table for EVAL.md: dev set, the committed qrels (qrels-dev-v2), duplicate groups applied.
+// Phase 2 baseline table for EVAL.md: dev set, the committed qrels (qrels-dev-v2), duplicate groups applied,
+// no-answer = tagged and no grade-≥1 document (ADR 0003, amendment 2026-11-06).
 // Absolute 95% CIs are BCa and persona-cluster bootstraps over the 83 primary answerable
 // queries; Δ CIs are the harness's paired compare(). Seeds and resample counts are the
 // harness defaults, so the output is deterministic.

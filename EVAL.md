@@ -19,7 +19,17 @@ Phase 3 changes are measured against.
 - **Corpus:** pinned `data-2026-2027-20260904`, 6,771 offered modules.
 - **Query embeddings:** `emb-bge-small-v0`, committed vectors.
 - **Queries:** dev queries v2.1, 98 in total. 83 are primary answerable; the rest are 5
-  feature-gap and 10 no-answer.
+  feature-gap, 2 no-answer and 8 unscored.
+  - **No-answer is tagged and unanswered** (ADR 0003, amendment 2026-11-06): a query is
+    no-answer iff it is tagged `noanswer` or `code-nonexistent`, or carries `noAnswerByRule`,
+    and no judged document has grade ≥ 1. The grades are the ground truth; the tag is
+    necessary, not sufficient. Dev has 2: d-012 and d-025.
+  - Five dev queries are tagged `noanswer`. Three of them (d-013, d-051, d-065) have grade-≥1
+    documents, so they are primary answerable.
+  - An untagged query with no grade-≥1 document is **unscored**: it is in neither set, and
+    reports list its id (dev only). The 8 are d-005, d-017, d-032 and d-042 (home-course pastes
+    over 200 characters, which `/search` rejects with a 400), d-009, d-020, d-061 and d-093.
+    Before the amendment they counted as no-answer.
 - **Qrels:** `qrels-dev-v2`, 1,666 pairs (81 graded by rule, the rest by judge A
   `claude-opus-5-5`, single-judge mode, ADR 0004). The rule covers hard-constraint
   violations and the code-target rule (`eval/lib/code-rule.mjs`, JUDGING.md "Code-target rule").
@@ -37,6 +47,9 @@ Phase 3 changes are measured against.
 | **v0 hybrid** | **0.712** [0.644, 0.770] | **0.571** [0.494, 0.641] | **0.820** [0.740, 0.884] |
 | v0 lexical only | 0.609 [0.532, 0.678] | 0.453 [0.383, 0.525] | 0.752 [0.661, 0.830] |
 | v0 vector only | 0.672 [0.599, 0.731] | 0.537 [0.463, 0.605] | 0.797 [0.712, 0.865] |
+
+The amendment leaves the primary set as it was (PR #30): it moves only the 8 unscored queries,
+which were no-answer and are now in neither set.
 
 **Paired differences (hybrid minus each half):**
 
@@ -59,8 +72,12 @@ intervals don't. The script prints both.
 
 **Outside the primary set (v0 hybrid):**
 - **Feature-gap (constraint queries, n = 5):** nDCG@10 0.604.
-- **No-answer queries (n = 10):** correct-empty 0%, with 6 false positives and 4 errors. The 4
-  are the 400 responses to home-course pastes over 200 characters.
+- **No-answer queries (n = 2, d-012 and d-025):** correct-empty 0%, with 2 false positives and
+  no errors. That is below the cutoff rule's floor of 3 no-answer queries, so a cutoff verdict
+  cannot pass on dev (`insufficient queries: 2 no-answer …`). No Phase 3 change takes the cutoff
+  kind on dev: 3G uses `answerable-floor`.
+- **Unscored queries (n = 8):** d-005, d-009, d-017, d-020, d-032, d-042, d-061, d-093. The 4 non-200
+  responses are among them: the 400s to the home-course pastes over 200 characters.
 - **Hard-constraint violations:** 12 in the top 10s.
 - **Weakest dev shapes:** `code-partial` 0.000 (n = 3), `code-space` 0.210 (n = 3), `ge` 0.402,
   `equivalence` 0.507, `typo` 0.529, `constraint` 0.604.
