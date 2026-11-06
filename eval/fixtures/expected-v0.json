@@ -249,11 +249,12 @@
    "mrr": 1
   },
   "noAnswer": {
-   "n": 2,
+   "n": 1,
    "correctEmpty": 0,
-   "falsePositives": 2,
+   "falsePositives": 1,
    "errors": 0
   },
+  "unscored": 1,
   "violationsAt10": {
    "total": 1,
    "perQuery": 0.09090909090909091

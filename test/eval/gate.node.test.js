@@ -1,6 +1,9 @@
 // @ts-check
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { assertTruncation, devGate, gateFor, holdoutGate, ruleOf, sc5Gate } from '../../eval/lib/gate.mjs';
+import { assertSc5Allowed, assertTruncation, devGate, gateFor, holdoutGate, ruleOf, SC5_READING, sc5Gate } from '../../eval/lib/gate.mjs';
+import { REPO } from '../../eval/lib/sets.mjs';
 import { compare, scoreRun, summarise } from '../../eval/lib/metrics.mjs';
 
 /** @typedef {import('../../eval/lib/metrics.mjs').QueryScore} QueryScore */
@@ -13,7 +16,7 @@ import { compare, scoreRun, summarise } from '../../eval/lib/metrics.mjs';
  * @returns {QueryScore}
  */
 const q = (id, ndcg, extra = {}) => ({
-  id, shapes: ['topical'], persona: 'p', answerable: true, featureGap: false,
+  id, shapes: ['topical'], persona: 'p', answerable: true, noAnswer: false, unscored: false, featureGap: false,
   ndcg, p5: ndcg, rr: ndcg, empty: false, error: false, status: 200, violations: 0, judged: 10, top: 10,
   top1: 'X', top1Grade: 2, ...extra,
 });
@@ -113,7 +116,7 @@ describe('holdoutGate', () => {
 
   it('cutoff changes use the no-answer trade-off rule instead', () => {
     const answerable = many(20, 0.5, 0.5);
-    const noAnswer = (/** @type {boolean[]} */ empties) => empties.map((e, i) => q(`n${i}`, 0, { answerable: false, empty: e, judged: 0, top: e ? 0 : 1 }));
+    const noAnswer = (/** @type {boolean[]} */ empties) => empties.map((e, i) => q(`n${i}`, 0, { shapes: ['noanswer'], answerable: false, noAnswer: true, empty: e, judged: 0, top: e ? 0 : 1 }));
     const base = [...answerable.base, ...noAnswer([false, false, false, false, false])];
     // Correct-empty 0 -> 0.4 (+0.4); answerable nDCG down 0.005 (allowed, <= 0.01).
     const cand = [...answerable.cand.map((s) => ({ ...s, ndcg: s.ndcg - 0.005, p5: s.p5 - 0.05 })), ...noAnswer([true, true, false, false, false])];
@@ -211,7 +214,7 @@ describe('errored queries (review finding 1)', () => {
   // returns HTTP 500 with no codes on the 4 no-answer queries.
   const queries = [
     ...Array.from({ length: 8 }, (_, i) => ({ id: `a${i}`, text: 'x', shapes: ['topical'], persona: `p${i % 3}` })),
-    ...Array.from({ length: 4 }, (_, i) => ({ id: `n${i}`, text: 'y', shapes: ['no-answer'], persona: 'p0' })),
+    ...Array.from({ length: 4 }, (_, i) => ({ id: `n${i}`, text: 'y', shapes: ['noanswer'], persona: 'p0' })),
   ];
   /** @type {import('../../eval/lib/metrics.mjs').Qrels} */
   const qrels = { version: 'r', queries: Object.fromEntries(queries.map((x) => [x.id, { judgments: /** @type {Record<string, number>} */ (x.id.startsWith('a') ? { A: 2 } : { N: 0 }) }])) };
@@ -259,7 +262,7 @@ describe('errored queries (review finding 1)', () => {
 
 describe('decisive-comparison floors (PR #6 review round 2, finding 5)', () => {
   const judgedAll = (/** @type {QueryScore[]} */ xs) => xs.map((s) => ({ ...s, judged: s.top }));
-  const noAnswer = (/** @type {boolean[]} */ empties) => empties.map((e, i) => q(`n${i}`, 0, { answerable: false, empty: e, judged: 0, top: e ? 0 : 1 }));
+  const noAnswer = (/** @type {boolean[]} */ empties) => empties.map((e, i) => q(`n${i}`, 0, { shapes: ['noanswer'], answerable: false, noAnswer: true, empty: e, judged: 0, top: e ? 0 : 1 }));
 
   it('a cutoff verdict over fewer than 3 no-answer queries fails, on dev and holdout', () => {
     const answerable = many(10, 0.5, 0.5);
@@ -269,7 +272,7 @@ describe('decisive-comparison floors (PR #6 review round 2, finding 5)', () => {
       const v = gate(one, { kind: 'cutoff' });
       expect(v.verdict).toBe('fail');
       expect(names(v)['sufficient no-answer queries (>= 3)']).toBe(false);
-      expect(detail(v, 'sufficient no-answer queries (>= 3)')).toBe('insufficient queries: 1 no-answer, need 3');
+      expect(detail(v, 'sufficient no-answer queries (>= 3)')).toBe('insufficient queries: 1 no-answer (tagged, no grade-≥1 document), need 3; a cutoff verdict cannot pass on this set');
     }
     const three = compare(judgedAll([...answerable.base, ...noAnswer([false, false, false])]), judgedAll([...answerable.cand, ...noAnswer([true, false, false])]));
     expect(holdoutGate(three, { kind: 'cutoff' }).verdict).toBe('pass');
@@ -342,5 +345,91 @@ describe('assertTruncation: a cutoff only shortens result lists (red-team gap 1)
   it('refuses a query missing from either run', () => {
     expect(() => assertTruncation(base, run({ a: { codes: [] }, b: { codes: [] } }))).toThrow(/on 1 of 3 queries/);
     expect(() => assertTruncation(base, run({ ...base.results, d: { codes: [] } }))).toThrow(/on 1 of 4 queries/);
+  });
+});
+
+describe('change kinds no-loss and answerable-floor (P-5b; dev screen only)', () => {
+  const NOLOSS = 'ΔnDCG@10 >= 0 (no-loss)';
+  const FLOOR = 'answerable ΔnDCG@10 >= -0.01';
+  /** 20 answerable queries; the candidate moves each by `d`. */
+  const shifted = (/** @type {number} */ d) => {
+    const base = spread(many(20, 0.5, 0.5).base);
+    return compare(base, base.map((s) => ({ ...s, ndcg: s.ndcg + d })));
+  };
+
+  it('no-loss passes an identical candidate, which the general dev rule fails', () => {
+    const same = shifted(0);
+    expect(devGate(same).verdict).toBe('fail');
+    const v = devGate(same, { kind: 'no-loss' });
+    expect(v.verdict).toBe('pass');
+    expect(names(v)).toMatchObject({ [NOLOSS]: true, 'no exact-code regression': true, 'no new errors': true, [ENOUGH]: true });
+  });
+
+  it('no-loss fails any point-estimate loss, however small', () => {
+    const v = devGate(shifted(-0.001), { kind: 'no-loss' });
+    expect(v.verdict).toBe('fail');
+    expect(names(v)[NOLOSS]).toBe(false);
+    expect(detail(v, NOLOSS)).toMatch(/^ΔnDCG@10 -0\.0010 over 20 primary answerable queries$/);
+  });
+
+  it('no-loss names the exempt queries it left out of its comparison', () => {
+    const v = devGate(shifted(0), { kind: 'no-loss', exempt: ['d-099', 'd-011'] });
+    expect(detail(v, NOLOSS)).toBe('ΔnDCG@10 0.0000 over 20 primary answerable queries, 2 exempt left out');
+  });
+
+  it('answerable-floor passes a loss of 0.01 and fails a larger one', () => {
+    expect(devGate(shifted(-0.01), { kind: 'answerable-floor' }).verdict).toBe('pass');
+    const v = devGate(shifted(-0.0101), { kind: 'answerable-floor' });
+    expect(v.verdict).toBe('fail');
+    expect(names(v)[FLOOR]).toBe(false);
+    // The other dev checks still apply.
+    expect(names(v)).toMatchObject({ 'no exact-code regression': true, 'no new errors': true, 'judged@10 = 100%': true });
+  });
+
+  it('the rule is printed as the kind', () => {
+    expect(ruleOf('dev', { kind: 'no-loss' })).toBe('no-loss');
+    expect(ruleOf('dev', { kind: 'answerable-floor' })).toBe('answerable-floor');
+    expect(gateFor('dev', shifted(0), { kind: 'no-loss' }).rule).toBe('no-loss');
+  });
+
+  it('the holdout and test gates refuse both kinds', () => {
+    for (const set of ['holdout', 'test']) {
+      for (const kind of /** @type {const} */ (['no-loss', 'answerable-floor'])) {
+        expect(() => gateFor(set, shifted(0), { kind })).toThrow(/dev screen only/);
+      }
+    }
+  });
+});
+
+describe('--gate sc5 on the holdout (P-5b)', () => {
+  it('applies the SC5 rule to a holdout comparison and records rule sc5', () => {
+    const { base } = many(40, 0.3, 0.4);
+    const cand = spread(many(40, 0.3, 0.4).cand);
+    expect(() => gateFor('holdout', compare(base, cand), { gate: 'sc5' })).toThrow(/sealed-test-set reading/);
+    const holdoutReading = /** @type {const} */ ({ reading: 'holdout' });
+    const v = gateFor('holdout', compare(base, cand), { gate: 'sc5' }, holdoutReading);
+    expect(v).toMatchObject({ set: 'holdout', rule: 'sc5', verdict: 'pass' });
+    expect(Object.keys(names(v))).toEqual(['no new errors', ENOUGH, 'judged@10 = 100%', 'ΔnDCG@10 BCa 95% lower bound > 0', 'ΔP@5 BCa 95% lower bound > 0']);
+    // A point-estimate gain whose interval spans 0 passes the per-change rule and fails SC5.
+    const noisy = base.map((s, i) => ({ ...s, ndcg: s.ndcg + (i % 2 ? 0.2 : -0.19), p5: s.p5 + (i % 2 ? 0.2 : -0.19) }));
+    expect(gateFor('holdout', compare(base, noisy)).verdict).toBe('pass');
+    expect(gateFor('holdout', compare(base, noisy), { gate: 'sc5' }, holdoutReading).verdict).toBe('fail');
+  });
+
+  it('SC5_READING is the reading ADR 0003 records', () => {
+    const adr = readFileSync(join(REPO, 'docs/decisions/0003-eval-holdout-and-gate.md'), 'utf8');
+    const section = adr.split(/^## /m).find((s) => s.startsWith('SC5 reading'));
+    expect(section, 'ADR 0003 has an "SC5 reading" section').toBeDefined();
+    const m = /** @type {string} */ (section).match(/\*\*(sealed test set|holdout)\*\*/);
+    expect(m, 'the section names the reading in bold').not.toBeNull();
+    expect(SC5_READING).toBe(/** @type {RegExpMatchArray} */ (m)[1] === 'holdout' ? 'holdout' : 'sealed');
+  });
+
+  it('is refused on the holdout unless the recorded reading is the holdout, and on dev always', () => {
+    expect(() => assertSc5Allowed('holdout', 'sealed')).toThrow(/ADR 0003 records the sealed-test-set reading/);
+    expect(() => assertSc5Allowed('holdout', 'holdout')).not.toThrow();
+    expect(() => assertSc5Allowed('test', 'sealed')).not.toThrow();
+    expect(() => assertSc5Allowed('dev', 'holdout')).toThrow(/dev/);
+    expect(() => assertSc5Allowed('holdout')).toThrow(/sealed/); // the recorded reading by default
   });
 });

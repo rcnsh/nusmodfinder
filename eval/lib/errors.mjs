@@ -37,6 +37,8 @@ export class ManifestError extends EvalError {}
 export class BaselineError extends EvalError {}
 /** A `--change-kind cutoff` candidate is not a truncation of its baseline. */
 export class CutoffError extends EvalError {}
+/** A gate rule asked of a set it does not apply to (a dev-only kind on an encrypted set, `--gate sc5` against the recorded SC5 reading). */
+export class GateRuleError extends EvalError {}
 
 /**
  * The class name to print for an error whose message must stay hidden.

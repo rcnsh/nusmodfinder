@@ -26,10 +26,12 @@ export const REPO = fileURLToPath(new URL('../../', import.meta.url)).replace(/\
 /**
  * `gate` is the gate the set's verdicts use (gate.mjs `gateFor`).
  * `retiredLog` is where `retire-run` logs a stored run it retires (encrypted
- * sets; beside the ledger, by the same rule).
+ * sets; beside the ledger, by the same rule). `countLog` is where
+ * `eval:count` logs each count (the same rule; never the ledger, which
+ * never reads it).
  * @typedef {{
  *   name: string, dir: string, runsDir: string, encrypted: boolean,
- *   maxLooks: number, ledger: string | null, retiredLog: string | null, perQueryOutput: boolean, gate: 'dev' | 'holdout' | 'test',
+ *   maxLooks: number, ledger: string | null, retiredLog: string | null, countLog: string | null, perQueryOutput: boolean, gate: 'dev' | 'holdout' | 'test',
  * }} SetLayout
  */
 
@@ -37,8 +39,10 @@ export const REPO = fileURLToPath(new URL('../../', import.meta.url)).replace(/\
 export const LEDGER = 'eval/holdout-ledger.md';
 /** The fixed log of stored runs retired from the custody sets (repo-relative). */
 export const RETIRED_LOG = 'eval/retired-runs.md';
+/** The fixed log of `eval:count` calls on the custody sets (repo-relative). Counts are not looks. */
+export const COUNT_LOG = 'eval/count-log.md';
 
-/** @type {Record<string, Omit<SetLayout, 'name' | 'ledger' | 'retiredLog'> & { ledger: string | null | 'in-dir' }>} */
+/** @type {Record<string, Omit<SetLayout, 'name' | 'ledger' | 'retiredLog' | 'countLog'> & { ledger: string | null | 'in-dir' }>} */
 const LAYOUTS = {
   dev: { dir: 'eval/dev', runsDir: 'eval/runs', encrypted: false, maxLooks: Infinity, ledger: null, perQueryOutput: true, gate: 'dev' },
   fixture: { dir: 'eval/fixtures', runsDir: '.eval-work/runs', encrypted: false, maxLooks: Infinity, ledger: null, perQueryOutput: true, gate: 'dev' },
@@ -66,14 +70,18 @@ export function layout(name, dirOverride) {
   let ledger = null;
   /** @type {string | null} */
   let retiredLog = null;
+  /** @type {string | null} */
+  let countLog = null;
   if (base.ledger === 'in-dir') {
     ledger = join(dir, 'ledger.md');
     retiredLog = join(dir, 'retired-runs.md');
+    countLog = join(dir, 'count-log.md');
   } else if (base.ledger) {
     ledger = join(REPO, base.ledger); // fixed, whatever --set-dir says
     retiredLog = join(REPO, RETIRED_LOG);
+    countLog = join(REPO, COUNT_LOG);
   }
-  return { name, ...base, dir, runsDir, ledger, retiredLog };
+  return { name, ...base, dir, runsDir, ledger, retiredLog, countLog };
 }
 
 /** @param {SetLayout} set @param {string} file e.g. "queries.json" */

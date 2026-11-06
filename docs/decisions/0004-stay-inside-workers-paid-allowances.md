@@ -1,7 +1,7 @@
 # 0004: Workers Paid quotas, and one relevance judge
 
-Status: accepted (Jacob, 2026-11-04). Amends ADR 0002 (write cap and ordering) and ADR 0003 and
-`docs/plans/phase2.md` §3 (judges).
+Status: accepted (Jacob, 2026-11-04); amended 2026-11-06 (per-round cross-family check, below).
+Amends ADR 0002 (write cap and ordering) and ADR 0003 and `docs/plans/phase2.md` §3 (judges).
 
 ## 1. The account is on Workers Paid
 
@@ -91,6 +91,23 @@ Verified grades vs A: raw agreement 0.880, quadratic κ 0.915, α 0.915. A is sl
 
 This lowers the same-family risk above but does not remove it. The verifiers are Claude, and no
 human has graded any pair.
+
+### Amendment (2026-11-06, Phase 3 P-5): a cross-family check every round
+For Phase 3 (`docs/plans/phase3.md` §3, objection A-N2), the one-off calibration above becomes a
+check made on every pooling round that decides a selection:
+- **Scope:** 3A-2, 3D and 3E on dev, and the SC5 test pool.
+- **Pairs:** every pair in the symmetric difference of the selected point's top 10 and the
+  shipped ranker's top 10.
+- **Grading:** `gemini-3.8-flash-high` grades them blind to judge A, through a T3 `delegate_task`
+  thread. A fresh Claude Sonnet verifier checks every Gemini grade, also blind to A.
+- **Report:** the verified grades' agreement with A, and the dev ΔnDCG@10 sign recomputed with
+  the verified grades on those pairs. The final grade of a pair is still the rule's, else A's.
+  The cross-check measures A and never replaces its grades.
+- **Stop:** on dev, if the recomputed sign is opposite to judge A's, the change does not go to
+  its look until the lead records a decision with a reason.
+
+It replaces the calibration Δ-sign report that "Same-family risk" above attaches to every gate
+verdict. The calibration subset's agreement figures stand as the Phase 2 record.
 
 ### Dissent
 None recorded. The planning critics' preference for two families (Phase 2 plan, objection 9)

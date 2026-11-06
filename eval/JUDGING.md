@@ -65,7 +65,8 @@ them between 2 and 1.
 Rule 4 of the judge instructions, applied mechanically by judge `rule` to every code-origin
 query (`origin: "code"`, with `codeForm` and `target` in the query file). It exists because
 pooling can miss a target: if no pooled run puts it in its top 10, the query has no grade of 1
-or more, scores as no-answer, and the cutoff gate rewards a ranker that returns nothing for it.
+or more. It then drops out of the metric as unscored (before ADR 0003's 2026-11-06 amendment it
+scored as no-answer, and the cutoff gate rewarded a ranker that returned nothing for it).
 The rule grades every offered module it names, pooled or not:
 
 - **exact or space form:** the module whose code is `target` gets 2. Its variants (the same
@@ -90,6 +91,14 @@ prints those counts only. It takes no look.
 Applied to `qrels-dev-v1`, giving `qrels-dev-v2`: 56 rule pairs over the 11 dev code queries,
 50 of them unpooled before. It overrode 6 A grades, all with the same grade. `d-087`, `d-089`,
 `d-090`, `d-091` and `d-092` became answerable.
+
+## Grades and the no-answer set
+
+The grades are the ground truth. A query is no-answer only if it is tagged `noanswer` or
+`code-nonexistent`, or carries `noAnswerByRule`, **and** no judged document has grade ≥ 1 (ADR
+0003, amendment 2026-11-06). Judges grade a tagged query's candidates as usual; one grade ≥ 1
+makes it answerable, scored like any other. An untagged query whose documents are all graded 0
+is unscored, not no-answer.
 
 ## Worked examples (dev queries only)
 

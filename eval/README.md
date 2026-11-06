@@ -50,6 +50,8 @@ npm run eval -- --variant rewrite --embed-missing         # embed missing texts 
 npm run test:eval                                         # self-test on the fixture set (CI)
 npm run eval:verify                                       # ciphertext sha256 vs manifests (CI, no key)
 npm run eval:groups [-- --check]                          # rebuild (or check) eval/groups.json from the pinned corpus
+npm run eval:count -- --custodian --set test --answerable   # custodian: one integer, logged, not a look
+npm run eval:count -- --custodian --holdout --emptied-untagged --run <variant>
 ```
 
 `--mode hybrid|lexical|vector` (default `hybrid`, which sends no parameter) runs one retrieval
@@ -88,8 +90,12 @@ ciphertexts, or a copy of them, cannot start a fresh count. `--embedding <versio
   `filters`) are the hard constraints used for violations@10.
 - `shapes` tags: `topical`, `home-course`, `alternatives`, `language`, `sea-content`,
   `level-equivalence`, `jargon`, `typo`, `code-exact`, `code-space`, `code-partial`,
-  `ge-pillar`, `level-intent`, `constraint` (feature-gap block), `no-answer`.
-- `noAnswerByRule: true` for non-existent codes: never answerable, scored on correct-empty.
+  `ge-pillar`, `level-intent`, `constraint` (feature-gap block), `noanswer`, `code-nonexistent`.
+- `noAnswerByRule: true` for non-existent codes: tags the query no-answer, like the two tags.
+- **No-answer is tagged and unanswered:** a query is no-answer iff it is tagged `noanswer` or
+  `code-nonexistent`, or carries `noAnswerByRule`, and no judged document has grade ≥ 1 (ADR
+  0003, amendment 2026-11-06). The tag is necessary, not sufficient: a judged grade ≥ 1 makes
+  any query answerable.
 - `source`: the id a derived typo/code variant came from (splits follow provenance).
 
 `qrels.json`:
@@ -125,7 +131,8 @@ qrels carry (overlapping groups join) and refuses (`CorpusMismatchError`) a grou
 from another corpus than the qrels were judged on. Like the qrels/run corpus check, `npm run eval`
 checks it with the baseline before any retrieval (on an encrypted set, before the look is
 reserved). Nothing rewrites the qrels, encrypted or not. `test/full/groups.node.test.js` (the full-corpus CI job)
-checks the committed file is what the builder produces.
+checks the committed file is what the builder produces. Its sha256 is one of ADR 0003's locks
+(`test/eval/lock.node.test.js`), so changing the groups means changing the ADR in the same PR.
 
 Run file (`vnm-eval-run/1`): `variant`, `set`, `ranker` (ref, sha, dirty, `treeHash`, runner sha), `corpus`
 (release, moduleInfo sha256, NG sha256, module count, sha256 of all embedding texts),
@@ -142,10 +149,17 @@ returned code, for violations). No query text.
   by rule) is no member for that query and never takes a sibling's slot.
 - P@5: group-first documents with grade ≥ 1 in the top 5, divided by 5. MRR@10 likewise.
 - Unjudged = grade 0; judged@10 coverage reported; gates need 100%.
-- Answerable iff some judged document has grade ≥ 1 and not `noAnswerByRule`. Primary metrics
-  are macro means over answerable queries **without** a feature-gap shape (`constraint`); those
-  are reported as their own block. No-answer queries: correct-empty rate (nothing returned) and
-  false positives.
+- Each query is in exactly one of three sets (`lib/metrics.mjs`, ADR 0003 amendment 2026-11-06):
+  - **answerable**: some judged document at grade ≥ 1, tagged or not; the judges' grades are
+    the ground truth. Primary metrics are macro means over answerable queries **without** a
+    feature-gap shape (`constraint`); those are reported as their own block.
+  - **no-answer**: tagged `noanswer` or `code-nonexistent`, or `noAnswerByRule`
+    (`isTaggedNoAnswer`), and no grade-≥1 document. Scored on correct-empty rate (nothing
+    returned) and false positives. The cutoff rule needs at least 3; dev has 2 (d-012, d-025),
+    so a cutoff verdict cannot pass on dev.
+  - **unscored**: untagged, with no grade-≥1 document. In neither set and in no metric.
+    Dev reports list the ids (`unscored (…): n: d-005, …`, and an `unscored n` row). Holdout
+    and test verdicts print only the count (`unscored queries: n`).
 - **Errors.** A non-200 response is an error, never an answer: it is never correct-empty, and
   nothing in it is relevant (nDCG, P@5 and MRR are 0). `summarise().errors` counts them (the
   `non-200 responses` row), and `npm run eval` prints `errors: n of N queries returned a non-200
@@ -168,6 +182,18 @@ Per change, vs the shipped ranker:
   ΔnDCG@10 is below 0.
 - **holdout**: ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates), no exact-code regression (no
   `code-exact` query whose baseline rank-1 is relevant gets a lower-graded rank-1), judged@10 100%.
+- **no-loss** (`--change-kind no-loss`, dev only; 3F and 3H's dev screen): the CI rule is
+  replaced by ΔnDCG@10 ≥ 0 (point estimate). The other dev checks still apply.
+  `--exempt <file>` (a JSON array of dev ids, or `{ "ids": [...] }`; no-loss only, refused on
+  encrypted sets) leaves those queries out of the no-loss ΔnDCG@10 and its n only: no new
+  errors, the query floor and the exact-code check still run over every query. 3H's
+  constraint-exempt queries (C3-8) use it. The report prints each exempt id with its ΔnDCG@10 (`—` when the
+  query is not primary answerable).
+- **answerable-floor** (`--change-kind answerable-floor`, dev only; 3G): the CI rule is
+  replaced by answerable ΔnDCG@10 ≥ −0.01, over the primary answerable set.
+- `no-loss` and `answerable-floor` take no `--target-shapes`. No holdout or test verdict takes
+  them: the CLI refuses them on an encrypted set before any look, and `gateFor` throws
+  `GateRuleError`.
 - **cutoff changes** (`--change-kind cutoff`): the no-answer trade-off replaces the Δ rules on
   both sets: correct-empty gain ≥ 0.25 and answerable ΔnDCG@10 ≥ −0.01. It is looser than the
   Δ rules, so it is not taken on the declaration alone: the candidate's result list for every
@@ -176,9 +202,19 @@ Per change, vs the shipped ranker:
   `--change-kind cutoff` takes no `--target-shapes`.
 - **The rule applied** is printed with every verdict (`gate (dev): PASS · rule cutoff`;
   `holdout verdict: PASS · rule cutoff · baseline eval-v0 7ac9841 · qrels …`) and recorded in
-  the ledger's `rule` column: `general`, `targeted: <shape,…>`, `cutoff` or `sc5` (the test
-  set, which takes no `--change-kind` or `--target-shapes`).
+  the ledger's `rule` column: `general`, `targeted: <shape,…>`, `cutoff`, `no-loss`,
+  `answerable-floor` (dev only) or `sc5` (the test set, which takes no `--change-kind` or
+  `--target-shapes`, or `--gate sc5`).
 - **SC5** (test set): BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0, judged 100%.
+- **`--gate sc5`** (`eval:report` only, on stored runs) takes the SC5 rule on the holdout, for
+  L12 under the holdout reading of SC5. It takes no `--change-kind` or `--target-shapes`, and
+  `npm run eval` refuses it. `SC5_READING` in `lib/gate.mjs` is the reading ADR 0003 records,
+  and `test/eval/gate.node.test.js` ties the two together. The reading is `sealed`, so
+  `--gate sc5` is refused on the holdout (`GateRuleError`, before any look) and on dev. Under
+  a `holdout` reading the SC5 look is L12 and the last: `--gate sc5` is refused
+  (`LookLimitError`) unless the ledger holds exactly 11 holdout looks and no `sc5` row, a
+  per-change holdout look is refused at 11 looks, and any per-change look (`report` or `run`)
+  is refused once an `sc5` row exists.
 
 Small samples (every gate, every set):
 - **Insufficient queries.** A gate whose decisive comparison (the paired primary answerable
@@ -338,11 +374,25 @@ ciphertexts cannot be read through it.
 
 **What a verdict refuses** (every holdout and test-set verdict, `run` and `report`; all before
 a look is reserved or appended, so a refusal uses no look):
-- **A baseline that is not the pinned `eval-v0`** (`BaselineError`). ADR 0003 pins `eval-v0` =
-  7ac9841 (`lib/baseline.mjs`). The tag must still resolve to that commit, and the baseline
-  run file must record ranker ref `eval-v0`, that sha, `dirty: false`, and the `treeHash` of
-  that commit's ranker files (`git archive`, the paths `lib/workspace.mjs` hashes). The ledger's
+- **A baseline that is not its pin** (`BaselineError`). There are two pins (`lib/baseline.mjs`,
+  ADR 0003):
+  - SC5 verdicts (the test set, and `--gate sc5`) compare against `PINNED_BASELINE`, `eval-v0`
+    = 7ac9841. It never moves.
+  - Per-change holdout looks compare against `SHIPPED_BASELINE`, the shipped ranker (a ref
+    name and a full sha). It starts equal to `eval-v0`.
+
+  Either way the ref must still resolve to the pinned sha, and the baseline run file must
+  record that ranker ref and sha, `dirty: false`, a clean runner, the `treeHash` of that
+  commit's ranker files (`git archive`, the paths `lib/workspace.mjs` hashes),
+  `config.filters: true` and hybrid mode. Store it with `--ref <the pin's ref>`. The ledger's
   `baseline ranker` column records the baseline run's ranker sha.
+
+  **Moving the shipped pin.** Only the PR that ships a change moves it, and in that PR:
+  set `SHIPPED_BASELINE` to the shipped commit (a tag pointing at it, or the sha as its own
+  ref) and append a `` - shipped pin: `<ref>` <full sha> `` line to ADR 0003's
+  "Shipped-ranker pin" section. `test/eval/baseline.node.test.js` fails if the constant and
+  the section's last line differ. Store the new baseline run with `--ref <ref>` before the
+  next look.
 - **A ciphertext the manifest does not vouch for** (`ManifestError`). Every encrypted file a
   verdict reads (queries, qrels, both run files, and for `run` the query-embedding cache) must
   be listed in the set directory's `MANIFEST.json` with its sha256, the check `eval:verify`
@@ -383,6 +433,23 @@ except the header and separator lines counts, however it is spaced; a row whose 
 a known set counts against every set. A look is also refused (`LedgerTamperError`) when the
 ledger has fewer rows than its copy at `HEAD` or `origin/main`, or is missing while git has it:
 the ledger is append-only, so commit it after every look.
+
+**Counts are not looks** (`eval/count.mjs`, ADR 0003 amendment 2026-11-06). `npm run eval:count`
+is custodian-only: it refuses without `--custodian`, on dev and the fixture, and with any option
+outside `--custodian`, `--set`, `--holdout`, `--set-dir`, `--answerable`, `--emptied-untagged`
+and `--run`. It prints one integer and nothing else:
+- `--set test --answerable`: the test set's primary answerable queries (some grade ≥ 1,
+  no feature-gap shape), for SC5's stopping rule;
+- `--holdout --emptied-untagged --run <variant>`: holdout queries outside the no-answer set
+  (tagged and no grade-≥1 document) that the stored run returns empty (status 200, no codes; an
+  error is not empty), for 3G's gate. A tagged query that has an answer counts.
+
+Both read their ciphertexts through the manifest check. A run must have been made on the set's
+current queries (`RunFileError`). Any failure prints only `eval: <set> count failed
+(<ErrorClass>); details withheld`. Each call appends `| date | set | count: <kind> | run | n |`
+to `eval/count-log.md` (for `selftest`, `<set-dir>/count-log.md`). Commit it with the work the
+count served. The ledger never reads the count log, and it refuses a row carrying a `count: …`
+cell (`LedgerTamperError`), so a count can never be recorded or spent as a look.
 
 Parallel looks cannot pass the limit. Check-then-append runs under an exclusive lock,
 `<ledger>.lock` (created with `O_EXCL`, removed when done). A second eval waits up to 2 minutes

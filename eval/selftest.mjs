@@ -40,6 +40,7 @@ import { join } from 'node:path';
 import { readEncryptedJson, readKey } from './lib/crypto.mjs';
 import { verbatimBlock } from './lib/judging.mjs';
 import { readLedger } from './lib/ledger.mjs';
+import { SHIPPED_BASELINE, pinLabel } from './lib/baseline.mjs';
 import { HASHED, treeHash } from './lib/workspace.mjs';
 import { REPO } from './lib/sets.mjs';
 
@@ -171,7 +172,8 @@ const assertNoLeak = (/** @type {string} */ out, /** @type {string} */ what) => 
   }
 };
 const hargs = ['--set', 'selftest', '--set-dir', H];
-const base = node(CLI, ['run', ...hargs, '--variant', 'base', '--ref', 'eval-v0', '--store-only'], env);
+// Per-change holdout looks compare against the shipped-ranker pin, so the stored baseline is that ranker.
+const base = node(CLI, ['run', ...hargs, '--variant', 'base', '--ref', SHIPPED_BASELINE.ref, '--store-only'], env);
 ok(base, 'holdout baseline run');
 assertNoLeak(base.out, 'holdout baseline run');
 assert.ok(existsSync(join(H, 'runs', 'run-base.json.enc')));
@@ -183,20 +185,23 @@ const look = node(CLI, ['run', ...hargs, '--variant', 'cand', '--baseline', 'bas
 ok(look, 'holdout look');
 assertNoLeak(look.out, 'holdout look');
 const verdictLines = look.out.trim().split('\n').filter((l) => !/^(wrote |selftest\/cand: ranker )/.test(l));
-assert.equal(verdictLines.length, 3, `holdout prints only the verdict and two Δ lines, got:\n${look.out}`);
-assert.match(verdictLines[0], /^holdout verdict: (PASS|FAIL) · rule general · baseline eval-v0 7ac9841 · qrels fixture-qrels-v1$/);
+assert.equal(verdictLines.length, 4, `holdout prints only the verdict, two Δ lines and the unscored count, got:\n${look.out}`);
+const pinRe = pinLabel(SHIPPED_BASELINE).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+assert.match(verdictLines[0], new RegExp(`^holdout verdict: (PASS|FAIL) · rule general · baseline ${pinRe} · qrels fixture-qrels-v1$`));
 assert.match(verdictLines[1], /^ΔnDCG@10 [+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 assert.match(verdictLines[2], /^ΔP@5 +[+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
+// fx-05 is untagged with no grade-≥1 document: unscored, a count and never an id (ADR 0003, 2026-11-06).
+assert.equal(verdictLines[3], 'unscored queries: 1 (untagged, no grade-≥1 document; in neither set)');
 const ledgerPath = join(H, 'ledger.md');
 const rows1 = await readLedger(ledgerPath);
 assert.equal(rows1.length, 1, 'one ledger row per look');
 assert.ok(['pass', 'fail'].includes(rows1[0].verdict), `the reserved row is finalised with the verdict, got ${rows1[0].verdict}`);
 // A stored run is never overwritten: replacing it is `retire-run`, logged.
-const overwrite = node(CLI, ['run', ...hargs, '--variant', 'base', '--ref', 'eval-v0', '--store-only'], env);
+const overwrite = node(CLI, ['run', ...hargs, '--variant', 'base', '--ref', SHIPPED_BASELINE.ref, '--store-only'], env);
 assert.notEqual(overwrite.code, 0);
 assert.match(overwrite.out, /runs\/run-base\.json\.enc is already in .*retire-run/s);
 // A pool-variant baseline is refused before a look is reserved (PR #15 review).
-ok(node(CLI, ['run', ...hargs, '--variant', 'lexbase', '--ref', 'eval-v0', '--mode', 'lexical', '--store-only'], env), 'holdout lexical pool run');
+ok(node(CLI, ['run', ...hargs, '--variant', 'lexbase', '--ref', SHIPPED_BASELINE.ref, '--mode', 'lexical', '--store-only'], env), 'holdout lexical pool run');
 const lexBase = node(CLI, ['run', ...hargs, '--variant', 'cand-l', '--baseline', 'lexbase'], env);
 assert.notEqual(lexBase.code, 0, 'a lexical baseline must be refused');
 assertNoLeak(lexBase.out, 'refused lexical baseline');

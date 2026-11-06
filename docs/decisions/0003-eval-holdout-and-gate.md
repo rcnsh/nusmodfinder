@@ -202,6 +202,133 @@ above do not allow; each is now refused mechanically, before a look is reserved 
   `eval:verify` check, on the bytes decrypted; `ManifestError`); a set directory with no
   manifest is refused.
 
+## Amendment 2026-11-06: Phase 3 gate rules (P-5, P-5b)
+Made before the first holdout look, for the Phase 3 plan (`docs/plans/phase3.md` §3 P-5 and
+P-5b, §9). Each rule is in the code and tested.
+- **The no-answer set is tagged and unanswered** (A-1, C-3, A2-2, A2-11; lead decision on PR
+  #34). For any change, a query is no-answer iff it is tagged `noanswer` or `code-nonexistent`,
+  or carries `noAnswerByRule` (`isTaggedNoAnswer`, `eval/lib/metrics.mjs`), **and** no judged
+  document has grade ≥ 1. The judges' grades are the ground truth: the tag is necessary, not
+  sufficient. A tagged query with a grade-≥1 document is answerable (primary unless it has a
+  feature-gap shape), so emptying it is answerable loss.
+  - An untagged query with no grade-≥1 document is **unscored**: it is in neither set and in no
+    metric.
+  - Reports list unscored ids on dev only. Holdout and test verdicts print the count alone
+    (`unscored queries: n`).
+  - On dev the primary set is unchanged: 83 queries, v0 hybrid nDCG@10 0.712, P@5 0.571, MRR@10
+    0.820 (`EVAL.md`). d-013, d-051 and d-065 are tagged `noanswer` but have grade-≥1
+    documents, so they stay primary. The no-answer set is d-012 and d-025, and 8 queries are
+    unscored (they were no-answer before).
+  - Dev's 2 no-answer queries are below the cutoff rule's floor of 3, so a cutoff verdict
+    cannot pass on dev. The floor stands: no Phase 3 change takes the cutoff kind on dev (3G
+    uses `answerable-floor`).
+- **Change kinds `no-loss` and `answerable-floor`** (A2-2, A2-4, C3-8). Both screen on dev only.
+  The CLI refuses them on an encrypted set before any look, and `gateFor` throws
+  `GateRuleError` if a holdout or test verdict is asked for one.
+  - `no-loss` (3F, and 3H's dev screen) replaces the dev CI rule with ΔnDCG@10 ≥ 0 as a point
+    estimate.
+  - `--exempt <file>` (no-loss only, dev only) names dev ids to leave out of the no-loss
+    ΔnDCG@10 and its n, and nothing else: no new errors, the query floor and the exact-code
+    check still run over every query. They are 3H's constraint-exempt queries, which a
+    committed script computes per candidate. The report prints each exempt id with its Δ.
+  - `answerable-floor` (3G) replaces it with answerable ΔnDCG@10 ≥ −0.01, over the primary
+    answerable set.
+  - The other dev checks still apply to both kinds: no new errors, ≥ 10 queries, judged@10 100%,
+    and no exact-code regression.
+- **`--gate sc5` on the holdout** (A2-2, A2-10). `eval:report --gate sc5` takes the SC5 rule (the
+  test set's row of the gate table) on stored holdout runs, against the pinned baseline, and the
+  ledger records rule `sc5`.
+  - It is accepted only under the holdout reading of SC5. `SC5_READING` in `eval/lib/gate.mjs`
+    is the reading the "SC5 reading" section above records, and `test/eval/gate.node.test.js`
+    fails if the two differ.
+  - The reading is the sealed test set, so `--gate sc5` is refused on the holdout before any
+    look, and L12 is unused.
+  - Under a holdout reading, the SC5 look is L12 and the last holdout look. `--gate sc5` is
+    refused unless the ledger already holds exactly 11 holdout looks and no `sc5` row; a
+    per-change holdout look is refused at 11 looks, and refused at any count once an `sc5`
+    row exists.
+  - `npm run eval` refuses `--gate`: an SC5 verdict is taken on stored, fully judged runs, as
+    every look is (the plan's look procedure, §3).
+- **Look definition: counts are not looks** (A3-1, A-N9). `npm run eval:count` (`eval/count.mjs`)
+  is custodian-only (refused without `--custodian`, and on dev). It prints one integer and
+  nothing else:
+  - `--set test --answerable`: the sealed test set's primary answerable count, which §5's
+    stopping rule reads;
+  - `--holdout --emptied-untagged --run <variant>`: how many holdout queries outside the
+    no-answer set the stored run returns empty, which 3G's gate reads. A tagged query with a
+    grade-≥1 document is outside the set, so emptying it counts.
+
+  Every call appends a row (date, set, kind, run, count) to `eval/count-log.md`, a separate
+  committed file the ledger never reads. The ledger refuses a row copied from it
+  (`LedgerTamperError`). Any other option is refused, so no flag can make it print ids or
+  metrics, and an error prints only its class. **A count from `eval:count` prints no verdict
+  and is not a look, even when a pre-registered gate reads it.** The look definition under
+  "Custody" ("any run or report that prints a verdict for an encrypted set") stands, with this
+  exception.
+
+- **3G is gated without a look** (A-1, C-3, A2-9, A3-1, A3-2, A3-6). The no-match change passes
+  iff all of these hold:
+  - the SC4 suite is green with 3G in place. Items owned by a workstream that has not merged, or
+    that Jacob dropped, are listed and skipped. The typo, gibberish, non-existent-code and guard
+    items are never skipped;
+  - ≥ 90% of the gibberish set's gate half returns `count: 0`. τ is derived on the other half;
+  - no dev query outside the no-answer tags returns `noMatch.reason` `no-signal`, and the report
+    lists any that does (dev is open);
+  - `answerable-floor` on dev;
+  - the custodian's `eval:count --holdout --emptied-untagged` of the stored candidate is 0. The
+    fallback τ gets one count of its own.
+
+  None of these is a look, so 3G spends none.
+- **3F is gated without a look** (A2-4). The eval scores only a group's first member, so a
+  holdout look could not fail the collapse. 3F passes iff:
+  - on dev and the fixture, the collapsed list equals the group-first projection of the
+    uncollapsed list, fetched deep enough to fill the page;
+  - `no-loss` holds on dev;
+  - the S8 finding test is green.
+- **Look procedure** (A3-4). For each look the custodian:
+  1. stores the candidate with `--holdout --store-only`, and the baseline too, unless it is
+     already stored and fully judged;
+  2. pools every run stored in step 1, encrypted (`eval:pool --holdout --custodian --unjudged`);
+  3. judges the pool and merges, so judged@10 is 100% for both runs;
+  4. only then takes the verdict with `npm run eval:report -- --holdout --run <candidate>
+     --baseline <shipped>` on the stored runs. `report` runs no retrieval and records a look
+     only for a fully judged pair, so no look is spent `unjudged`.
+
+  `npm run eval -- --holdout` is not used for looks, because it reserves its row before
+  retrieval. The ledger is committed after each look. Retries are the plan's named ones only.
+  `<shipped>` is a stored run of the shipped-ranker pin (next item).
+- **Two baseline pins** (A3-4; lead decision on PR #34). The 2026-11-04 pin is split in two
+  (`eval/lib/baseline.mjs`):
+  - **The SC5 / test-set baseline** (`PINNED_BASELINE`) stays `eval-v0` = 7ac9841 and never
+    moves. The test set's verdict and `--gate sc5` compare against it.
+  - **The shipped-ranker pin** (`SHIPPED_BASELINE`, a ref name and a full sha) is the baseline
+    of every per-change holdout look. It starts equal to `eval-v0`. It moves only in the PR
+    that ships a change, and that PR adds a line to "Shipped-ranker pin" below;
+    `test/eval/baseline.node.test.js` fails unless the constant equals that section's last line.
+  - A baseline run is checked against its pin as before: the ref still resolves to the pinned
+    sha, and the run records that ref and sha, a clean ranker and runner, the commit's ranker
+    `treeHash`, `config.filters === true` and hybrid mode (`BaselineError`). The ledger's
+    `baseline ranker` column still records the baseline run's sha.
+- **groups-v1 is the duplicate-group rule** (A-2, C-8) for dev, holdout, test and, from 3F, the
+  product: `eval/lib/groups.mjs` over the pinned corpus, committed as `eval/groups.json` (509
+  groups). It joins the locks:
+  groups-v1 `eval/groups.json` sha256 `aee97d57a7201118601562bc90864dd83a386bf14f3945646abc9ac478878a22`.
+  `test/eval/lock.node.test.js` fails if the file differs, so changing the groups means changing
+  this ADR in the same PR.
+- **SC4 custody and the test-set exclusions** (A-N1).
+  - No holdout text enters the SC4 suite. The custodian runs the v2.1 code-overlap rule and the
+    query-embedding cosine ≥ 0.9 check of every suite query against the holdout. The check
+    prints only the hit count and the hitting suite ids, and those suite queries are replaced.
+  - The SC4 suite's texts and code targets, and the gibberish set, join dev and the holdout in
+    the sealed test set's exclusion list and its leak filter ("Test set, pre-registered now",
+    above): a test query with cosine ≥ 0.9 to any of them, or a shared source, is dropped.
+
+## Shipped-ranker pin
+The baseline of per-change holdout looks (`SHIPPED_BASELINE`, `eval/lib/baseline.mjs`). The
+last line is the current pin; a PR that ships a change appends one line, with the ranker it
+ships, in the same PR as the constant.
+- shipped pin: `eval-v0` 7ac984174ded88cb2b6497d9835b456981acdd99 (the Phase 2 baseline; nothing shipped yet)
+
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.
 - The cutoff rule screens on dev and governs on holdout.
