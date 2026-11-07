@@ -6,3 +6,4 @@ holdout ledger never reads this file and refuses a row copied from it.
 
 | date | set | kind | run | count |
 |---|---|---|---|---|
+| 2026-11-07 | holdout | count: emptied-untagged | 3g-max | 0 |

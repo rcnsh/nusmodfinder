@@ -10,7 +10,7 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { appendFile, cp, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { appendFile, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -64,7 +64,11 @@ const cloneCountLog = () => join(clone, 'eval', 'count-log.md');
 beforeEach(async () => {
   await cp(join(REPO, 'eval', 'holdout-ledger.md'), cloneLedger());
   await rm(cloneCountLog(), { force: true });
-  if (existsSync(join(REPO, 'eval', 'count-log.md'))) await cp(join(REPO, 'eval', 'count-log.md'), cloneCountLog());
+  // The committed log's header, without its real rows: each test starts from an empty log.
+  if (existsSync(join(REPO, 'eval', 'count-log.md'))) {
+    const log = await readFile(join(REPO, 'eval', 'count-log.md'), 'utf8');
+    await writeFile(cloneCountLog(), `${log.slice(0, log.indexOf('|---|'))}|---|---|---|---|---|\n`);
+  }
 });
 
 /**
@@ -267,6 +271,7 @@ describe('a count is never a look', () => {
     const log = await readFile(join(REPO, 'eval', 'count-log.md'), 'utf8');
     expect(log).toMatch(/^# Count log\n/);
     expect(log).toContain('| date | set | kind | run | count |');
-    expect(ledgerRows(log)).toEqual([]);
+    // Only count rows: one with no `count: ` kind would be a look row in the wrong file.
+    for (const row of ledgerRows(log)) expect(row[2]).toMatch(/^count: /);
   });
 });
