@@ -24,6 +24,7 @@
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -84,14 +85,37 @@ async function productionBundle() {
 }
 
 /**
+ * Whether `port` on 127.0.0.1 can be bound now; 0 asks the OS for a free one.
+ * @param {number} port
+ * @returns {Promise<number | null>} the bound port, or null when it is in use
+ */
+const tryBind = (port) => new Promise((resolve) => {
+  const server = createServer();
+  server.once('error', () => resolve(null));
+  server.listen(port, '127.0.0.1', () => {
+    const bound = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
+    server.close(() => resolve(bound));
+  });
+});
+
+/** A port free on 127.0.0.1 now, for the guard's own `wrangler dev`. */
+export async function freePort() {
+  return /** @type {number} */ (await tryBind(0));
+}
+
+/**
  * GET /admin/hashes through a local `wrangler dev --remote` session (B2-2):
  * the session gets a one-off INGEST_SECRET from a 0600 env file in a fresh
  * temp directory (so .dev.vars is not read), is polled on /health until it
- * answers, asked once, and stopped.
+ * answers, asked once, and stopped. The port is a free one unless given; a
+ * given port already in use is refused, since another dev server on it could
+ * answer the guard's /health poll.
  * @param {{ port?: number, log?: (line: string) => void, fetchImpl?: typeof fetch, timeoutMs?: number }} [o]
  * @returns {Promise<D1Hashes>}
  */
-export async function remoteHashes({ port = 8799, log = console.log, fetchImpl = fetch, timeoutMs = 120_000 } = {}) {
+export async function remoteHashes({ port: given, log = console.log, fetchImpl = fetch, timeoutMs = 120_000 } = {}) {
+  if (given !== undefined && (await tryBind(given)) === null) throw new Error(`port ${given} is in use; the guard needs its own wrangler dev`);
+  const port = given ?? await freePort();
   const dir = await mkdtemp(join(tmpdir(), 'vnm-deploy-'));
   const secret = randomBytes(24).toString('hex');
   const envFile = join(dir, 'guard.env');
