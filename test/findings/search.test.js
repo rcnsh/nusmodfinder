@@ -77,13 +77,15 @@ describe('S5', () => {
 });
 
 describe('S7', () => {
-  it('[S7 known-bug] the schema has no exam, S/U, grading-basis or attributes columns', async () => {
+  it('[S7 fixed] 3H-0: the schema has exam, S/U, grading-basis, workload-hours and prerequisite columns', async () => {
     const { results } = await env.DB.prepare("SELECT name FROM pragma_table_info('modules') ORDER BY cid").all();
     expect(results.map((r) => r.name)).toEqual([
       'code', 'title', 'description', 'credits', 'department', 'faculty', 'level', 'semesters', 'workload',
-      // row_hash: 0006 (Phase 1C). The generated sem/ng_sem columns are hidden
-      // from table_info.
+      // row_hash: 0006 (Phase 1C). The generated sem/ng_sem/exam_sem columns
+      // are hidden from table_info.
       'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters', 'row_hash',
+      // 0007 (3H-0).
+      'exam_semesters', 'su', 'grading_basis', 'workload_hours', 'prereq_none', 'prereq_cohort_only',
     ]);
   });
 

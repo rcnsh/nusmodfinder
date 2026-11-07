@@ -6,7 +6,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { denseBundle } from '../src/dense.js';
-import { decodeFilterRow, rowsKey } from '../src/vector-bundle.js';
+import { decodeFilterRow, rowsKey, suGrading } from '../src/vector-bundle.js';
 import { fieldsFromRow } from '../src/rowhash.js';
 import manifest from '../data/vectors.json';
 import { createFakes, hashEmbed } from './fakes.js';
@@ -135,6 +135,8 @@ describe('3-0 identity on the fixture (A-N6)', () => {
       const f = fieldsFromRow(r);
       expect(decodeFilterRow(b, b.codes.indexOf(r.code)), r.code).toEqual({
         semesters: f.semesters, level: f.level, credits: f.credits, faculty: f.faculty, ng: f.ng, ngSemesters: f.ngSemesters,
+        examSemesters: f.examSemesters, su: f.su, suGrading: suGrading(f.gradingBasis), workloadHours: f.workloadHours,
+        prereqNone: f.prereqNone, prereqCohortOnly: f.prereqCohortOnly,
       });
     }
   });

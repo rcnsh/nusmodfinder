@@ -14,7 +14,7 @@
  * NUSMods record without the derived values themselves changing shape, so
  * every row is rewritten once.
  */
-export const NORMALISER_VERSION = 1;
+export const NORMALISER_VERSION = 2;
 
 /**
  * The fields of one module that D1 stores and Vectorize filters on.
@@ -24,14 +24,19 @@ export const NORMALISER_VERSION = 1;
  *   semesters: number[], workload: string | null, prerequisite: string | null,
  *   preclusion: string | null, acadYear: string, textHash: string,
  *   ng: boolean, ngSemesters?: number[],
+ *   examSemesters?: number[], su?: boolean, gradingBasis?: string | null, workloadHours?: number | null,
+ *   prereqNone?: boolean, prereqCohortOnly?: boolean,
  * }} RowFields
+ *   The 3H-0 fields (plan 3H "Data") are optional for callers that build
+ *   rows by hand (tests); a missing one is written as its neutral value.
  */
 
 /**
  * The `modules` columns /admin/ingest writes, in bind order (row_hash last).
  */
 export const ROW_COLUMNS = ['code', 'title', 'description', 'credits', 'department', 'faculty', 'level',
-  'semesters', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters'];
+  'semesters', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters',
+  'exam_semesters', 'su', 'grading_basis', 'workload_hours', 'prereq_none', 'prereq_cohort_only'];
 
 /**
  * Exactly the values /admin/ingest binds for ROW_COLUMNS, in order.
@@ -43,6 +48,8 @@ export function boundTuple(m) {
     m.code, m.title, m.description, m.credits, m.department, m.faculty, m.level,
     JSON.stringify(m.semesters), m.workload, m.prerequisite, m.preclusion, m.acadYear, m.textHash,
     m.ng ? 1 : 0, JSON.stringify(m.ngSemesters ?? []),
+    JSON.stringify(m.examSemesters ?? []), m.su ? 1 : 0, m.gradingBasis ?? null, m.workloadHours ?? null,
+    m.prereqNone ? 1 : 0, m.prereqCohortOnly ? 1 : 0,
   ];
 }
 
@@ -126,7 +133,8 @@ export async function ftsHash(m) {
  *   department: string | null, faculty: string | null, level: number | null,
  *   semesters: string | null, workload: string | null, prerequisite: string | null,
  *   preclusion: string | null, acad_year: string, text_hash: string, ng: number,
- *   ng_semesters: string | null, row_hash?: string | null,
+ *   ng_semesters: string | null, exam_semesters: string | null, su: number, grading_basis: string | null,
+ *   workload_hours: number | null, prereq_none: number, prereq_cohort_only: number, row_hash?: string | null,
  * }} ModuleRow
  */
 
@@ -143,6 +151,8 @@ export function fieldsFromRow(row) {
     semesters: JSON.parse(row.semesters ?? '[]'), workload: row.workload,
     prerequisite: row.prerequisite, preclusion: row.preclusion, acadYear: row.acad_year,
     textHash: row.text_hash, ng: row.ng === 1, ngSemesters: JSON.parse(row.ng_semesters ?? '[]'),
+    examSemesters: JSON.parse(row.exam_semesters ?? '[]'), su: row.su === 1, gradingBasis: row.grading_basis,
+    workloadHours: row.workload_hours, prereqNone: row.prereq_none === 1, prereqCohortOnly: row.prereq_cohort_only === 1,
   };
 }
 
