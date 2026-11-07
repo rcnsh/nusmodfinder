@@ -33,6 +33,17 @@
     "corpus.f32.gz": "19f3b8f1df2f08522dc01177ab11b520fe48867a85d4ef4fbd81d6d559241018",
     "corpus.index.json": "a51f3b96925f943335c1513cab245309197049caedfb0a2e7e7672b8996c785e"
    }
+  },
+  "emb-bge-small-v3": {
+   "release": "emb-bge-small-v3",
+   "model": "@cf/baai/bge-small-en-v1.5",
+   "dims": 384,
+   "textRef": "3a2-v3",
+   "count": 6197,
+   "files": {
+    "corpus.f32.gz": "474c3bf3d7e954da9439223ad4739978e39d877c5ad448de4fa1c8cb82776591",
+    "corpus.index.json": "9fad5b5ff7881a1eaf1b3281742c1d363395c608017f2ac1f2967616deb2a0a0"
+   }
   }
  }
 }
