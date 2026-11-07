@@ -100,7 +100,11 @@ export default defineConfig(async () => {
           test: {
             name: 'full',
             include: ['test/full/**/!(*.node).test.js'],
-            provide: { corpus: await fullCorpus(), vectorsBundle: full.corpus },
+            // LEXICAL_GRID=sample runs a fixed 1-in-10 sample of the lexical
+            // brute-force grid (~25 s instead of ~4 min locally, ~12 min on CI).
+            // CI runs the full grid whenever src/, migrations/, scripts/ or
+            // test/full/ change; anything else gets the sample.
+            provide: { corpus: await fullCorpus(), vectorsBundle: full.corpus, lexicalGrid: process.env.LEXICAL_GRID === 'sample' ? 'sample' : 'full' },
           },
         },
         {
