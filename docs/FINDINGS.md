@@ -39,7 +39,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | S5 | fixed | tests, live |
 | S6 | reproduced | live, full-corpus test |
 | S7 | reproduced | tests |
-| S8 | reproduced | tests, live |
+| S8 | fixed | tests |
 | P1 | reproduced | tests, live |
 | P2 | partially-reproduced | tests, live |
 | P3 | reproduced | test |
@@ -456,14 +456,14 @@ ranks on them.
 
 ### S8 · No "no match" state; near-duplicates crowd lists
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** `xqzvbnm flurble` returns 20 results; near-duplicate variants (TR3202I/S/T) crowd
 lists.
 
 **Evidence:**
-- test `[S8 known-bug] gibberish returns a full page of results in hybrid mode`
-- test `[S8 fixed] 3F: near-duplicate variants (TR3202*) collapse to one result, the others listed as its variants`: groups-v1 in the Worker; the gibberish half waits for 3G
+- test `[S8 fixed] 3G: gibberish answers count 0 with noMatch no-signal`: no route, no vocabulary match before correction, and a top cosine below τ (`src/no-signal.js`)
+- test `[S8 fixed] 3F: near-duplicate variants (TR3202*) collapse to one result, the others listed as its variants`: groups-v1 in the Worker
 - `docs/evidence/phase0/raw/S8_nonsense.body`: live 20 results, `retrieval.lexical: 0`. `docs/evidence/phase0/raw/S8_startup_intern.body`: TR3202N, TR3202I, TR3202T, TR3202S at #5–#8.
 
 **Notes:** Vector search always returns its topK nearest neighbours and there's no score floor

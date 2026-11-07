@@ -27,10 +27,12 @@ describe('no-signal', () => {
     }
   });
 
-  it('at or above τ the query searches as before', async () => {
-    const { body } = await callJson(GIBBERISH, { fakes, env: NEVER });
-    expect(body.count).toBe(20);
-    expect(body.noMatch).toBeUndefined();
+  it('at or above τ, or with NO_SIGNAL_TAU off, the query searches as before', async () => {
+    for (const env of [NEVER, { NO_SIGNAL_TAU: 'off' }]) {
+      const { body } = await callJson(GIBBERISH, { fakes, env });
+      expect(body.count).toBe(20);
+      expect(body.noMatch).toBeUndefined();
+    }
   });
 
   it('a query with a signal never fires, whatever τ', async () => {

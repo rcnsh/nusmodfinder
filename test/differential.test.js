@@ -107,10 +107,11 @@ function requests() {
 }
 
 /**
- * The new route without 3F's collapse: the collapsed list is checked against
- * this uncollapsed one, as its group-first projection (test/search-groups.test.js).
+ * The new route without 3F's collapse (the collapsed list is checked against
+ * this uncollapsed one, as its group-first projection: test/search-groups.test.js)
+ * or 3G's no-signal answer (test/search-no-signal.test.js).
  */
-const UNCOLLAPSED = { COLLAPSE_GROUPS: 'off' };
+const UNCOLLAPSED = { COLLAPSE_GROUPS: 'off', NO_SIGNAL_TAU: 'off' };
 
 /** `interpreted` for a query the 3B parse routes nothing in. */
 const UNROUTED = { pin: null, prefix: null, ge: null, level: null, exam: null, su: null, hoursBelow: null, prereq: null };

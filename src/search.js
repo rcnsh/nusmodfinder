@@ -474,12 +474,14 @@ async function fetchRows(db, codes, trace) {
 const VARIANT_COLUMNS = 'code, credits, level, faculty, semesters, ng, ng_semesters';
 
 /**
- * 3G's τ: NO_SIGNAL_TAU, or the NO_SIGNAL_TAU var (tests only; production sets none).
+ * 3G's τ: NO_SIGNAL_TAU, or the NO_SIGNAL_TAU var (tests only; production
+ * sets none): a number, or "off" for none.
  * @param {Env} env
  * @returns {number | null}
  */
 const noSignalTau = (env) => {
   const v = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (env)).NO_SIGNAL_TAU;
+  if (v === 'off') return null;
   return typeof v === 'string' && v !== '' && Number.isFinite(Number(v)) ? Number(v) : NO_SIGNAL_TAU;
 };
 
