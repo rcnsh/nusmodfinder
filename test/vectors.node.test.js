@@ -35,7 +35,7 @@ describe('the fixture bundle (B-9)', () => {
   it('is the default `vectors-bundle` alias in wrangler.jsonc, the test config and both Vitest configs', () => {
     expect(read('wrangler.jsonc').toString()).toContain('"alias": { "vectors-bundle": "./test/fixtures/vectors.js" }');
     expect(read('test/wrangler.test.jsonc').toString()).toContain('"alias": { "vectors-bundle": "./fixtures/vectors.js" }');
-    expect(read('vitest.config.mjs').toString()).toContain("'vectors-bundle': FIXTURE_BUNDLE");
+    expect(read('vitest.config.mjs').toString()).toContain("{ find: 'vectors-bundle', replacement: FIXTURE_BUNDLE }");
     expect(read('vitest.eval.config.mjs').toString()).toContain("'vectors-bundle': join(ws, 'test/fixtures/vectors.js')");
     expect(read('test/fixtures/vectors.js').toString()).toContain("import vectors from './vectors.bin';");
     expect(read('wrangler.jsonc').toString()).toContain('"vars": { "DENSE_BACKEND": "bundle" }');
