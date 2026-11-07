@@ -919,3 +919,23 @@ fails on the previous code.
 - **SC4's 14 parsed-intent items stay unmet** until Phase 4. Evidence:
   `docs/evidence/phase3/3h-dev-screen.md`.
 
+
+## 2026-11-08 — Phase 3 freeze; SC5 passes on the sealed test set
+
+- **Freeze:** `phase3-final` = `c787dea` (CI green). Live version `ea066ead` (tag `238e721`).
+- **SC5: pass, in one look on the sealed test set.** `phase3-final` against `eval-v0`:
+  ΔnDCG@10 +0.120 [0.083, 0.161] and ΔP@5 +0.059 [0.036, 0.090] over 195 primary answerable
+  queries (`qrels-test-v1`). The unfiltered secondary over 280 queries gives +0.100
+  [0.072, 0.134] and +0.051 [0.031, 0.076].
+- **The test set:**
+  - two persona rounds, 18 code queries from a custody seed and 15 typo variants, 327 queries in
+    all;
+  - the leak filter kept 227. It dropped 61 near-copies of dev or holdout queries, 1 of an SC4
+    query, 34 within-test duplicates and 5 typo variants of dropped sources.
+- **No cross-family check:** Gemini was rate-limited on all three attempts. Jacob skipped it, as
+  for 3D (an ADR 0004 deviation).
+- **SC4 live confirmation:** 20 calls with fresh texts. Every sampled rule agrees once two checks
+  are re-specified to the suite's own rules. SC4 itself is not fully met: its level and
+  parsed-intent items wait for Phase 4.
+- **SC7:** the method and 45 fresh queries are committed. The counted run waits on the VPN being
+  off. Evidence: `docs/evidence/phase3/sc5.md`, `sc4-live.txt`, `sc7.md`.

@@ -12,3 +12,4 @@ by `npm run eval -- --holdout`. Phase 3 tuning stops at 12 holdout looks.
 | 2026-11-07 | holdout | 6cb0a12 | 3d-r2 | shipped-89cb10e | fail | -0.004 [-0.019, 0.004] | -0.017 [-0.042, 0.003] | targeted: level | 89cb10e |
 | 2026-11-07 | holdout | 2476012 | 3h | shipped-f004351 | fail | -0.024 [-0.081, -0.005] | -0.014 [-0.084, 0.000] | general | f004351 |
 | 2026-11-07 | holdout | f9a4b6e | 3h-r | shipped-f004351 | fail | -0.024 [-0.081, -0.005] | -0.014 [-0.084, 0.000] | general | f004351 |
+| 2026-11-07 | test | c787dea | final | v0 | pass | +0.120 [0.083, 0.161] | +0.059 [0.036, 0.090] | sc5 | 7ac9841 |
