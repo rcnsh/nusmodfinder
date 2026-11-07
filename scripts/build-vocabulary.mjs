@@ -58,7 +58,7 @@ export async function vocabularyBytes(modules, corpus) {
  * download cache (offline by default: no network).
  * @param {{ online?: boolean }} [o]
  */
-async function productionModules({ online = false } = {}) {
+export async function productionModules({ online = false } = {}) {
   const info = await fetchAcadYearFile(DEFAULT_ACAD_YEAR, 'moduleInfo.json', { offline: !online });
   assertExpectedShape(info.data);
   return offeredModules(info.data, DEFAULT_ACAD_YEAR, await loadNgCourses(DEFAULT_ACAD_YEAR)).modules;

@@ -29,7 +29,8 @@ describe('/search', () => {
     expect(body.mode).toBe('lexical');
     expect(body.retrieval.vector).toBe(0);
     expect(body.results.length).toBeGreaterThan(0);
-    expect(body.results.map((/** @type {{ code: string }} */ r) => r.code)).toContain('CS1010S');
+    // CS1010S may stand in its duplicate group's variants (3F).
+    expect(body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)])).toContain('CS1010S');
     expect(fakes.ai.calls).toHaveLength(0);
     expect(fakes.vectorize.calls).toHaveLength(0);
   });

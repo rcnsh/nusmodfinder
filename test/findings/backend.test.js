@@ -11,7 +11,7 @@ import { Trace } from '../../src/timing.js';
 import { denseCircuit } from '../../src/upstream.js';
 import { createFakes, hashEmbed } from '../fakes.js';
 import { BASE, NG_LIST, adminCall, call, callJson, fixture, seed } from '../helpers.js';
-import { codes, ftsCalls, recordingDb, settlesWithin } from './support.js';
+import { codes, ftsCalls, recordingDb, settlesWithin, shownCodes } from './support.js';
 
 /**
  * The Vectorize standby (DENSE_BACKEND=vectorize, Phase 3 3-0): the tests of
@@ -98,7 +98,8 @@ describe('B4', () => {
     const log = [];
     const db = recordingDb(log);
     // No code in the text: since 3B an offered code inside a longer query pins too (prereg §3 step 1).
-    const pending = callJson('/search?q=programming%20methodology', { fakes: f, env: { DB: db, ...STANDBY } });
+    // The uncollapsed pipeline (3F's collapse adds hydrate and variants reads: test/search-groups.test.js).
+    const pending = callJson('/search?q=programming%20methodology', { fakes: f, env: { DB: db, ...STANDBY, COLLAPSE_GROUPS: 'off' } });
     // While the embedding is held back, pin and FTS have both been issued and nothing has been hydrated.
     expect(await settlesWithin(pending, 50)).toBe('pending');
     const kinds = () => log.map((c) => (c.sql.includes('MATCH') ? 'fts' : c.sql.includes('IN (') ? 'hydrate' : 'pin'));
@@ -116,7 +117,7 @@ describe('B4', () => {
     const held = createFakes();
     held.vectorize.vectors = fakes.vectorize.vectors;
     held.ai.hangs();
-    const pinned = callJson('/search?q=cs1010s', { fakes: held, env: { DB: db } });
+    const pinned = callJson('/search?q=cs1010s', { fakes: held, env: { DB: db, COLLAPSE_GROUPS: 'off' } });
     expect(await settlesWithin(pinned, 50)).toBe('pending');
     expect(kinds().sort()).toEqual(['fts', 'pin']);
     expect((await pinned).body.results[0]).toMatchObject({ code: 'CS1010S', score: 1 });
@@ -156,7 +157,7 @@ describe('B5', () => {
     const { status, body } = await pending;
     expect(status).toBe(200);
     expect(body.degraded).toEqual({ source, reason: 'timeout' });
-    expect(codes(body.results)).toContain('CS1010S');
+    expect(shownCodes(body.results)).toContain('CS1010S');
   });
 
   it('[B5 fixed] a hanging D1 query times out at 3 s with a 502 naming D1', async () => {
@@ -226,7 +227,7 @@ describe('B6', () => {
       // Exactly what keyword-only search returns.
       const lexical = await callJson('/search?q=programming%20methodology&mode=lexical', { fakes: f });
       expect(codes(body.results)).toEqual(codes(lexical.body.results));
-      expect(codes(body.results)).toContain('CS1010S');
+      expect(shownCodes(body.results)).toContain('CS1010S');
     } finally { logs.mockRestore(); warn.mockRestore(); }
   });
 
@@ -385,7 +386,8 @@ describe('B8', () => {
   it('[B8 fixed] hydration reads only the rows and columns the response renders', async () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
-    const { body } = await callJson('/search?q=machine%20learning%20hydrate&topK=20', { fakes, env: { DB: recordingDb(log) } });
+    // The uncollapsed pipeline; 3F's reads are checked in test/search-groups.test.js.
+    const { body } = await callJson('/search?q=machine%20learning%20hydrate&topK=20', { fakes, env: { DB: recordingDb(log), COLLAPSE_GROUPS: 'off' } });
     const hydrate = log.filter((c) => c.sql.includes('WHERE code IN'));
     expect(hydrate).toHaveLength(1);
     expect(body.results).toHaveLength(20);

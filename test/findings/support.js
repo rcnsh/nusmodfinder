@@ -89,3 +89,5 @@ export function syntheticModule(over) {
 
 /** @param {{ code: string }[]} results */
 export const codes = (results) => results.map((r) => r.code);
+/** Result codes and their 3F variants. @param {any[]} results @returns {string[]} */
+export const shownCodes = (results) => results.flatMap((r) => [r.code, ...(r.variants ?? []).map((/** @type {{ code: string }} */ v) => v.code)]);

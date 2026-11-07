@@ -5,7 +5,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { callJson, fixture, seed } from '../helpers.js';
-import { codes, ftsCalls, recordingDb } from './support.js';
+import { codes, ftsCalls, recordingDb, shownCodes } from './support.js';
 
 /** @type {import('../fakes.js').Fakes} */
 let fakes;
@@ -38,7 +38,8 @@ describe('S4', () => {
     const members = fixture.modules.map((m) => m.code).filter((c) => c >= (/\d$/.test(q) ? q : `${q}0`) && c < `${q}:`).sort();
     expect(members.length).toBeGreaterThan(0);
     expect(body.interpreted.prefix).toBe(q);
-    expect(codes(body.results)).toEqual(members);
+    // 3F: one result per duplicate group; the other members ride along as its variants.
+    expect(shownCodes(body.results).sort()).toEqual(members);
   });
 
   it('[S4 known-bug] "modules", "intro", "teach" and "something" are not stopwords', async () => {
@@ -71,7 +72,7 @@ describe('S5', () => {
     const members = fixture.modules.map((m) => m.code).filter((c) => c.startsWith('CS101')).sort();
     expect(members.length).toBeGreaterThan(1);
     expect(body.interpreted.prefix).toBe('CS101');
-    expect(codes(body.results)).toEqual(members);
+    expect(shownCodes(body.results).sort()).toEqual(members);
   });
 });
 

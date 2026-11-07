@@ -463,7 +463,7 @@ lists.
 
 **Evidence:**
 - test `[S8 known-bug] gibberish returns a full page of results in hybrid mode`
-- test `[S8 known-bug] near-duplicate variants (TR3202*) crowd the top of the list`
+- test `[S8 fixed] 3F: near-duplicate variants (TR3202*) collapse to one result, the others listed as its variants`: groups-v1 in the Worker; the gibberish half waits for 3G
 - `docs/evidence/phase0/raw/S8_nonsense.body`: live 20 results, `retrieval.lexical: 0`. `docs/evidence/phase0/raw/S8_startup_intern.body`: TR3202N, TR3202I, TR3202T, TR3202S at #5–#8.
 
 **Notes:** Vector search always returns its topK nearest neighbours and there's no score floor

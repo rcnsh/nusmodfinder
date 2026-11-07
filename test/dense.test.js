@@ -168,7 +168,8 @@ describe('3-0 between a D1-only ingest and the deploy (B-3)', () => {
     await seed();
     // Hybrid: a module both retrievers find, which still matches in D1.
     const { body } = await callJson('/search?q=programming%20methodology&sem=1');
-    expect(body.results.map((/** @type {any} */ r) => r.code)).toContain('CS1010S');
+    // CS1010S may stand in its duplicate group's variants (3F).
+    expect(body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)])).toContain('CS1010S');
   });
 
   it('a bundle row D1 no longer holds is dropped at hydrate, as a stale Vectorize id is', async () => {

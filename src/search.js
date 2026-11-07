@@ -11,6 +11,8 @@ import dataVersion from './data-version.json';
 import { bundleSearch, denseBundle } from './dense.js';
 import { DEFAULT_MODEL } from './embedding.js';
 import { appVersion, bad, json, upstream, withHeaders } from './http.js';
+import { groups } from './group-data.js';
+import { groupKeyOf } from './groups.js';
 import { intentContext } from './intent-data.js';
 import { lexicalSearch, rangeMembers } from './lexical.js';
 import { RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
@@ -453,6 +455,59 @@ async function fetchRows(db, codes, trace) {
 /** D1 binds at most 100 parameters per statement. */
 const D1_PARAMS = 100;
 
+/** The columns a variant needs: its code and credits, and the fields localMatchesFilters reads. */
+const VARIANT_COLUMNS = 'code, credits, level, faculty, semesters, ng, ng_semesters';
+
+/**
+ * Whether 3F's collapse runs: always, unless the COLLAPSE_GROUPS var is "off"
+ * (an operator's switch, and how the tests fetch the uncollapsed list).
+ * @param {Env} env
+ */
+const collapseOn = (env) => /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (env)).COLLAPSE_GROUPS !== 'off';
+
+/**
+ * 3F (plan 3F, C-8): each result in a duplicate group (groups-v1) carries its
+ * group's other members that pass the filters as `variants: [{ code, credits }]`,
+ * in code order, read from D1 (credits differ inside some groups). Results with
+ * none are left as they are.
+ * @param {D1DatabaseSession} db
+ * @param {ReturnType<typeof rowToModule>[]} results already collapsed: one per group
+ * @param {Constraints} echo the request's filters
+ * @param {Trace} trace
+ */
+async function attachVariants(db, results, echo, trace) {
+  const { groupOf, members } = groups();
+  const shown = new Set(results.map((r) => r.code));
+  /** @type {Map<string, string[]>} result code -> its candidate variants */
+  const want = new Map();
+  for (const r of results) {
+    const key = groupOf.get(r.code);
+    if (key === undefined) continue;
+    const others = /** @type {string[]} */ (members.get(key)).filter((c) => !shown.has(c));
+    if (others.length) want.set(r.code, others);
+  }
+  if (want.size === 0) return results;
+  const codes = [...new Set([...want.values()].flat())];
+  /** @type {Map<string, ResultRow>} */
+  const rows = new Map();
+  for (let i = 0; i < codes.length; i += D1_PARAMS) {
+    const chunk = codes.slice(i, i + D1_PARAMS);
+    // Only what a variant renders (code, credits) and what the filter check reads.
+    const res = /** @type {D1Result<ResultRow>} */ (await d1Timed(trace, 'variants', () => db.prepare(
+      `SELECT ${VARIANT_COLUMNS} FROM modules WHERE code IN (${chunk.map(() => '?').join(',')})`,
+    ).bind(...chunk).all()));
+    trace.d1Result(res);
+    for (const row of res.results) rows.set(row.code, row);
+  }
+  return results.map((r) => {
+    const variants = (want.get(r.code) ?? []).flatMap((code) => {
+      const row = rows.get(code);
+      return row && localMatchesFilters(row, echo) ? [{ code, credits: row.credits }] : [];
+    });
+    return variants.length ? { ...r, variants } : r;
+  });
+}
+
 /**
  * The parse, with "offered" answered from this Worker's corpus: the bundle's
  * code list first, then D1 for any code-shaped string the bundle lacks (one
@@ -624,8 +679,10 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     const maskConstraints = /** @type {Constraints & { ranges: CodeRange[] }} */ (constraints);
     /** @type {DenseHit[] | null} */
     let hits = null;
+    // With 3F's collapse a page of topK groups can need more members than topK.
+    const maskDepth = collapseOn(env) ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK * CANDIDATE_MULTIPLIER) : topK;
     if (tryDense && denseBackend(env) === 'bundle') {
-      const r = await settle(denseRun(env, denseTexts(parsed), trace, (vs) => bundleHits(vs, maskConstraints, topK, trace)));
+      const r = await settle(denseRun(env, denseTexts(parsed), trace, (vs) => bundleHits(vs, maskConstraints, maskDepth, trace)));
       if (r.ok) hits = r.value;
       else if (mode === 'vector') return { response: upstream(r.error.source, r.error), degraded: null };
       else degrade(r.error);
@@ -633,7 +690,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     /** @type {string[]} */
     let order;
     try {
-      order = hits ? hits.map((h) => h.code) : await withTimeout('D1', D1_TIMEOUT_MS, () => rangeMembers(db, maskConstraints, topK, trace));
+      order = hits ? hits.map((h) => h.code) : await withTimeout('D1', D1_TIMEOUT_MS, () => rangeMembers(db, maskConstraints, maskDepth, trace));
     } catch (err) {
       return { response: upstream('d1-fts', err), degraded: null };
     }
@@ -646,11 +703,24 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     }
     const score = new Map((hits ?? []).map((h) => [h.code, h.score]));
     // Dense members re-checked against their fresh D1 row (B-3); code-order members came from D1.
-    const results = order.flatMap((code) => {
+    let results = order.flatMap((code) => {
       const row = rows.get(code);
       if (!row || (hits && !localMatchesFilters(row, maskConstraints))) return [];
       return [rowToModule(row, score.get(code))];
     });
+    // 3F: after the filters, one result per duplicate group, the rest as its variants.
+    if (collapseOn(env)) {
+      const { groupOf } = groups();
+      const seen = new Set();
+      results = results.filter((r) => { const k = groupKeyOf(groupOf, r.code); return seen.has(k) ? false : (seen.add(k), true); }).slice(0, topK);
+      try {
+        results = await attachVariants(db, results, echo, trace);
+      } catch (err) {
+        return { response: upstream('d1', err), degraded: null };
+      }
+    } else {
+      results = results.slice(0, topK);
+    }
     log.counts = { members: order.length, returned: results.length, order: hits ? 'dense' : 'code' };
     return respond(results, { vector: hits ? order.length : 0, lexical: hits ? 0 : order.length, fused: results.length });
   }
@@ -744,7 +814,12 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   // ingest and the deploy that bundles its vectors, the live bundle's filter
   // table (or the standby's metadata, which has no 3B field) can be older than
   // D1. Lexical and code-order candidates were filtered by D1 itself.
-  const results = [...pinned];
+  let results = [...pinned];
+  // 3F: each duplicate group's first member stands for it, pins included; the
+  // later members are skipped after the filters, so one never stands in.
+  const collapsing = collapseOn(env);
+  const { groupOf } = groups();
+  const groupsShown = new Set(collapsing ? pinned.map((p) => groupKeyOf(groupOf, p.code)) : []);
   const lexicalSet = new Set(lexicalCodes);
   const denseOnly = new Set([...vectorCodes, ...(codeByDense ? codeCodes ?? [] : [])].filter((c) => !lexicalSet.has(c)));
   /** @type {string[]} */
@@ -766,11 +841,23 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
       const row = rows.get(code);
       if (!row) { stale.push(code); continue; }
       if (denseOnly.has(code) && !localMatchesFilters(row, constraints)) { filteredOut.push(code); continue; }
+      if (collapsing) {
+        const k = groupKeyOf(groupOf, code);
+        if (groupsShown.has(k)) continue;
+        groupsShown.add(k);
+      }
       results.push(rowToModule(row, score));
     }
   }
   if (stale.length) console.warn(`stale vectors not present in D1: ${stale.join(', ')}`);
   if (filteredOut.length) console.warn(`dense rows whose D1 row fails the filters: ${filteredOut.join(', ')}`);
+  if (collapsing) {
+    try {
+      results = await attachVariants(db, results, echo, trace);
+    } catch (err) {
+      return { response: upstream('d1', err), degraded: null };
+    }
+  }
   // Candidates after fusion that exist in D1 (and pass the filters), as far as hydration saw.
   const fusedCount = pinned.length + fused.length - stale.length - filteredOut.length;
   log.counts = {

@@ -9,6 +9,7 @@ import groupsFile from './fixtures/groups.json';
 import { parseGroupsFile } from '../src/groups.js';
 import { createFakes } from './fakes.js';
 import { callJson, fixture, seed } from './helpers.js';
+import { recordingDb } from './findings/support.js';
 
 const OFF = { COLLAPSE_GROUPS: 'off' };
 const STANDBY = { DENSE_BACKEND: 'vectorize' };
@@ -98,5 +99,21 @@ describe('the collapse', () => {
     const { body } = await callJson('/search?q=start-up%20internship&topK=10', { fakes: failing });
     expect(body.degraded).toMatchObject({ source: 'workers-ai' });
     expect(codes(body).filter((c) => c.startsWith('TR3202'))).toHaveLength(1);
+  });
+
+  it('costs one variants read with only the columns a variant needs; hydration reads the page and the duplicates it skipped', async () => {
+    /** @type {import('./findings/support.js').DbCall[]} */
+    const log = [];
+    const { body } = await callJson('/search?q=programming%20methodology%20cost&topK=20', { fakes, env: { DB: recordingDb(log) } });
+    const variants = log.filter((c) => c.sql.includes('WHERE code IN') && !c.sql.includes('title'));
+    const hydrate = log.filter((c) => c.sql.includes('WHERE code IN') && c.sql.includes('title'));
+    expect(variants).toHaveLength(1);
+    expect(variants[0].sql).toContain('SELECT code, credits, level, faculty, semesters, ng, ng_semesters FROM');
+    const listed = body.results.flatMap((/** @type {any} */ r) => (r.variants ?? []).map((/** @type {any} */ v) => v.code));
+    for (const c of listed) expect(/** @type {string[]} */ (variants[0].binds), c).toContain(c);
+    const hydrated = hydrate.flatMap((c) => /** @type {string[]} */ (c.binds));
+    for (const c of codes(body)) expect(hydrated, c).toContain(c);
+    // Every extra row hydrated is a duplicate of a result the page shows.
+    for (const c of hydrated.filter((x) => !codes(body).includes(x))) expect(codes(body).map(key), c).toContain(key(c));
   });
 });
