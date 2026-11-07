@@ -807,3 +807,14 @@ fails on the previous code.
 - **Embeddings:** 1.7 neurons for 3C-2's corrected forms (`requests.tsv` 87–88).
 - **Next:** ship 3C. A deploy only: the vocabulary is a committed Worker module, and there is no
   migration and no data-version change.
+
+## 2026-11-07 — 3C shipped
+
+- **Live:** version `c402a75d-d165-4c69-b7c1-4f5d1df24fb9` (tag `89cb10e`, PR #47). A deploy only:
+  no migration, no ingest, no data-version change, the standby untouched.
+  - Smoke: 4 calls, a typo and a prefix query among them (`remote-ops.md`).
+- **CI caught a test that assumed `.eval-work/` exists** (absent on a fresh checkout). Fixed in the
+  PR before merge.
+- **Shipped-ranker pin** moves to `89cb10e` (ADR 0003).
+- **Rollback target:** `8e743876` (tag `ad8e10c`).
+- **Next:** 3D (level intent; cross-family check required).
