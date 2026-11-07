@@ -53,3 +53,25 @@ so they are incomplete: judged@10 is 72.5% for shipped, 84.0% for 3C-1 and 95.3%
   the stored grade was 0.902 (mean Δ +0.071). The round merged as `qrels-dev-v6` (36 A grades).
 - **Report:** `npm run eval:report -- --run <ref> --baseline shipped-ad8e10c --target-shapes typo`.
 - **No cross-family check:** it is out of scope for 3C (ADR 0004 amendment).
+
+## L4 holdout look (custodian, 2026-11-07): pass, look 3 of 12
+- **Embed:** `npm run eval:embed -- --set holdout --corrected-from-ref 3c2` embedded 1 corrected
+  holdout form (`requests.tsv` 88).
+- **Store:** `npm run eval -- --holdout --variant 3c2 --ref 3c2 --store-only` stored a run on 81
+  queries, with no look. The baseline is `run-shipped-ad8e10c`, already stored and fully judged.
+- **Pool:** `eval:pool --holdout --custodian --unjudged --runs shipped-ad8e10c,3c2` found 31
+  documents.
+- **Judge:** round `h4` used judge A, with one fresh subagent for the single packet. It graded 30
+  of 30 items, and the planted repeat agreed exactly. The round merged as `qrels-holdout-v5` (29 A
+  grades and 2 rule grades), and its plaintext directory is deleted.
+- **Verdict:** `eval:report --holdout --run 3c2 --baseline shipped-ad8e10c --target-shapes typo`
+  gives **pass**. The holdout rule is point estimates ≥ 0, every pair judged and no exact-code
+  regression.
+
+| | Δ | BCa 95% CI |
+|---|---|---|
+| nDCG@10 | +0.006 | [−0.002, 0.019] |
+| P@5 | +0.020 | [0.006, 0.045] |
+
+ΔnDCG@10 is small and its interval includes 0; ΔP@5's lower bound is above 0. The holdout has few
+typo queries, so most of 3C's effect is on dev's typo shape (+0.390).

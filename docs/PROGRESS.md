@@ -793,3 +793,17 @@ fails on the previous code.
 - **Shipped-ranker pin** moves to `ad8e10c` (ADR 0003).
 - **Rollback target:** `8d1b85be` (tag `45bd716`).
 - **Next:** 3C (typos and prefixes), L4.
+
+## 2026-11-07 — 3C passes L4 (holdout look 3 of 12)
+
+- **3C** (PR #47): prefix terms for df-0 tokens, then OSA correction, with the original kept.
+  Both variants pass dev and the SC4 typo rule under `qrels-dev-v6`:
+  - 3C-1: ΔnDCG@10 +0.016 [0.005, 0.043], typo +0.162.
+  - 3C-2: +0.036 [0.012, 0.085], typo +0.390.
+
+  **3C-2 is selected**, and 3C-1 is the named retry.
+- **L4:** pass. ΔnDCG@10 is +0.006 [−0.002, 0.019] and ΔP@5 +0.020 [0.006, 0.045]
+  (`qrels-holdout-v5`). **Holdout looks: 3 of 12.**
+- **Embeddings:** 1.7 neurons for 3C-2's corrected forms (`requests.tsv` 87–88).
+- **Next:** ship 3C. A deploy only: the vocabulary is a committed Worker module, and there is no
+  migration and no data-version change.
