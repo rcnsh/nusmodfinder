@@ -9,9 +9,13 @@
 //   query's corrected form. The runner refuses a run that lacks one and names
 //   the command that adds them: `eval:embed --corrected-from-ref <ref>`, which
 //   asks the same corrector which texts it produces.
+// - A ranker with 3H's parse (src/intents.js) also embeds the query with its
+//   3H phrases stripped, under its `stripped` variant. `dense` asks the ranker's
+//   own parse for every text its dense half embeds beyond the query, so both
+//   commands cover those texts too.
 // A ranker without src/typo.js has no corrector (null) and needs nothing.
 import { createHash } from 'node:crypto';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -23,8 +27,12 @@ import { MODEL, embeddingKey } from './embeddings.mjs';
  *   serialized: string,
  *   embedsCorrected: boolean,
  *   corrected: (text: string) => string | null,
+ *   dense: ((text: string) => string[]) | null,
  * }} RankerCorrector `corrected`: the text the ranker embeds beside the query
  *   (its canonical q with 3C's corrections), or null when it corrects nothing.
+ *   `dense`: for a ranker with 3H's parse, every text its dense half embeds
+ *   beyond the canonical query (3C-2's corrected form, 3H's stripped form);
+ *   null for an older ranker, whose only extra text is `corrected`.
  */
 
 /**
@@ -44,7 +52,19 @@ export async function rankerCorrector(root, modules, label) {
   const { canonicalQuery } = await import(url('query-intent.js'));
   const file = buildVocabulary(modules, { corpus: 'eval', dataVersion: label });
   const vocab = parseVocabulary(file);
+  /** @type {RankerCorrector['dense']} */
+  let dense = null;
+  const parse = await rankerIntentParser(root, vocab);
+  if (parse) {
+    // As src/search.js denseTexts: the dense query, and under 3C-2 the corrected one.
+    dense = (text) => {
+      const q = canonicalQuery(text.trim());
+      const p = parse(q);
+      return [p.dense, ...(EMBED_CORRECTED === true && p.corrected !== null ? [p.corrected] : [])].filter((t) => t !== q);
+    };
+  }
   return {
+    dense,
     file,
     serialized: serializeVocabulary(file),
     embedsCorrected: EMBED_CORRECTED === true,
@@ -55,6 +75,32 @@ export async function rankerCorrector(root, modules, label) {
       return c.text === q ? null : c.text;
     },
   };
+}
+
+/**
+ * The 3H parse of the ranker at `root` (parseQuery over its own data files and
+ * the given vocabulary), or null for a ranker without src/intents.js. Takes a
+ * canonical query. Nothing is offered, so no code pins: callers read only the
+ * dense text, the corrected text and the 3H constraints.
+ * @param {string} root
+ * @param {unknown} vocab the ranker's parsed vocabulary
+ * @returns {Promise<((q: string) => { dense: string, corrected: string | null, constraints: Record<string, unknown> }) | null>}
+ */
+export async function rankerIntentParser(root, vocab) {
+  if (!existsSync(join(root, 'src/intents.js'))) return null;
+  const url = (/** @type {string} */ f) => pathToFileURL(join(root, 'src', f)).href;
+  const { buildIntentContext, parseQuery } = await import(url('query-intent.js'));
+  const { compileConstraintPhrases, PARSE_PHRASES } = await import(url('intents.js'));
+  const { STOPWORDS_IN_FORCE } = await import(url('fts-query.js'));
+  const data = (/** @type {string} */ f) => JSON.parse(readFileSync(join(root, 'data', f), 'utf8'));
+  // As src/intent-data.js: a ranker with PARSE_PHRASES off reads no 3H phrase.
+  const phrases = PARSE_PHRASES === false ? [] : compileConstraintPhrases(data('constraint-phrases.json'));
+  const ctx = buildIntentContext({
+    prefixes: Object.keys(data('prefixes.json').prefixes), catalogueCodes: data('catalogue-codes.json').codes,
+    collision: data('collision-list.json').list, ge: data('ge-pillars.json'), stopwords: STOPWORDS_IN_FORCE,
+    isOffered: () => false, vocabulary: vocab, constraintPhrases: phrases,
+  });
+  return (q) => parseQuery(q, ctx);
 }
 
 /**
@@ -72,15 +118,18 @@ export async function writeRankerVocabulary(root, corrector) {
 
 /**
  * The distinct corrected forms of `texts`, in first-seen order.
- * @param {Pick<RankerCorrector, 'corrected'>} corrector
+ * @param {Pick<RankerCorrector, 'corrected'> & Partial<Pick<RankerCorrector, 'dense'>>} corrector
  * @param {string[]} texts
  */
 export function correctedTexts(corrector, texts) {
   /** @type {Set<string>} */
   const out = new Set();
   for (const t of texts) {
-    const c = corrector.corrected(t);
-    if (c !== null) out.add(c);
+    if (corrector.dense) for (const d of corrector.dense(t)) out.add(d);
+    else {
+      const c = corrector.corrected(t);
+      if (c !== null) out.add(c);
+    }
   }
   return [...out];
 }
@@ -90,14 +139,14 @@ export function correctedTexts(corrector, texts) {
  * corrected text has no embedding. Names only a count, never a text (holdout).
  * @param {{
  *   set: string, setDirArg: string, ref: string, queries: { text: string }[],
- *   corrector: Pick<RankerCorrector, 'corrected' | 'embedsCorrected'> | null, have: Set<string>,
+ *   corrector: Pick<RankerCorrector, 'corrected' | 'embedsCorrected'> & Partial<Pick<RankerCorrector, 'dense'>> | null, have: Set<string>,
  * }} o `setDirArg`: ' --set-dir <dir>' or ''; `have`: embedding keys available to the run
  */
 export function assertCorrectedEmbedded({ set, setDirArg, ref, queries, corrector, have }) {
-  if (!corrector?.embedsCorrected) return;
+  if (!corrector?.embedsCorrected && !corrector?.dense) return;
   const missing = correctedTexts(corrector, queries.map((q) => q.text)).filter((t) => !have.has(embeddingKey(MODEL, t)));
   if (missing.length === 0) return;
-  throw new Error(`${missing.length} corrected query text(s) of the ${set} set have no embedding (the ranker embeds each query's corrected text, 3C-2); `
+  throw new Error(`${missing.length} dense query text(s) of the ${set} set have no embedding (the ranker embeds each query's corrected text, 3C-2, or its 3H-stripped text); `
     + `run \`npm run eval:embed -- --set ${set}${setDirArg} --corrected-from-ref ${ref}\` locally`);
 }
 

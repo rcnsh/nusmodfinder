@@ -862,3 +862,60 @@ fails on the previous code.
   keeps the code.
 - **qrels-dev-v8** (`p3e`). Evidence: `docs/evidence/phase3/3e-dev-screen.md`.
 - **Holdout looks: 5 of 12.** Next: 3F (near-duplicate collapse, no look).
+
+## 2026-11-07 — 3F shipped (no look)
+
+- **3F** (near-duplicate collapse): each groups-v1 group keeps its first-ranked member, and the
+  other members that pass the filters ride along as `variants`. The gate passes:
+  - identity with the group-first projection on dev and the fixture;
+  - dev ΔnDCG@10 +0.009 [0.005, 0.016] (`no-loss`).
+- **Live:** version `6e832483` (tag `2ce17c6`). Evidence: `docs/evidence/phase3/3f-dev-screen.md`.
+
+## 2026-11-07 — 3G shipped (no look)
+
+- **3G** ("no matches"): `/search` answers `count: 0`, `noMatch: { reason: "no-signal" }` when
+  three conditions hold: no route fires, no token is known, and the top exact cosine is below
+  τ = `max` (0.6013).
+- **The gate passes:**
+  - 18/20 of the gate half return count 0;
+  - no untagged dev query is emptied;
+  - dev answerable Δ is +0.000;
+  - SC4 passes 92/92.
+- **Live:** version `f638992b` (tag `47838db`). Evidence: `docs/evidence/phase3/3g-gate.md`.
+
+## 2026-11-08 — 3H-0 shipped (data only, no ranking change)
+
+- **3H-0** stores the intent fields (migration 0007, `NORMALISER_VERSION` 2, bundle schema
+  `vnm-vectors/2`): exam semesters, S/U, grading basis, workload hours, no-prerequisite and
+  cohort-only prerequisite. All 98 dev lists equal shipped's.
+- **Live:** version `0173bddf` (tag `f004351`), data version `4b6d12fab3d3`. Evidence:
+  `docs/evidence/phase3/3h-0.md`.
+
+## 2026-11-08 — 3H query side: (ii)-stripped to L7 (deviation)
+
+- **3H** parses no-exam, S/U, workload and no-prerequisite phrases as hard filters, strips them
+  from the keyword query, echoes them in `interpreted`, and accepts the explicit
+  `exam`/`su`/`hoursBelow`/`prereq` params.
+- **Selected: (ii) NULL-or-cohort-only, dense query stripped.**
+  - **Selection:** raw's constraint-block gain (+0.018) is short of the 0.05 margin. On the
+    prereq queries, (ii)'s mean Δ is −0.075 against (i)'s −0.299.
+  - **Dev screen:** it fails no-loss by −0.0044. The whole loss is d-011 and d-099, whose
+    relevant modules mostly have prerequisites the filter removes.
+  - **Other checks:** SC4 passes 75/75, and all 88 no-intent queries keep their top 10.
+- **Jacob sent it to L7 anyway** (ADR 0006 deviation). The named retry stays (i)-stripped,
+  which passes SC4 and passes the screen with d-011 and d-099 exempt.
+- **qrels-dev-v10** (`p3h`). Evidence: `docs/evidence/phase3/3h-dev-screen.md`.
+- **Holdout looks: 5 of 12.** Next: L7.
+
+## 2026-11-08 — 3H fails L7 and its retry; the explicit params ship alone (holdout looks 7 of 12)
+
+- **L7 (`3h`, (ii)-stripped):** fail. ΔnDCG@10 −0.024 [−0.081, −0.005], ΔP@5 −0.014
+  (`qrels-holdout-v7`).
+- **Retry (`3h-r`, (i)-stripped):** fail, with the same figures. On holdout the semantics differ
+  in 1 of 81 lists. **Holdout looks: 7 of 12.**
+- **Jacob's decision (Q4):** ship `exam=0`, `su=1`, `hoursBelow=N`, `prereq=none` as hard
+  filters, with phrase parsing off (`PARSE_PHRASES = false`). With no param set, every list
+  equals shipped's on dev (98/98) and holdout (81/81), so no look is needed.
+- **SC4's 14 parsed-intent items stay unmet** until Phase 4. Evidence:
+  `docs/evidence/phase3/3h-dev-screen.md`.
+

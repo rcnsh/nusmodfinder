@@ -89,11 +89,11 @@ describe('S7', () => {
     ]);
   });
 
-  it('[S7 known-bug] /search accepts no workload, exam, S/U or prerequisite filter: they are ignored', async () => {
-    const plain = await callJson('/search?q=programming&mode=lexical', { fakes });
-    const filtered = await callJson('/search?q=programming&mode=lexical&exam=none&su=1&workload=low&noPrereq=1', { fakes });
-    expect(filtered.body.filters).toEqual({});
-    expect(codes(filtered.body.results)).toEqual(codes(plain.body.results));
+  it('[S7 fixed] 3H: /search filters on no exam, S/U, workload and prerequisite params', async () => {
+    const plain = await callJson('/search?q=introduction&mode=lexical&topK=50', { fakes });
+    const filtered = await callJson('/search?q=introduction&mode=lexical&topK=50&exam=0&su=1&hoursBelow=10&prereq=none', { fakes });
+    expect(filtered.body.filters).toEqual({ exam: 0, su: 1, hoursBelow: 10, prereq: 'none' });
+    expect(filtered.body.count).toBeLessThan(plain.body.count);
   });
 });
 
