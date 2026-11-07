@@ -1,0 +1,40 @@
+{
+  "schema": "vnm-vectors-manifest/1",
+  "bundles": {
+    "fixture": {
+      "corpus": "fixture",
+      "embedding": "fake-hash-embed",
+      "model": "fake",
+      "count": 400,
+      "dataVersion": "e6ffd6323064",
+      "rowsKey": "a82ebbf053ca980b349a3df90d486436a248411abd0c60234fa255f4a9de5b8c",
+      "sha256": "6cf51815419cf3e4fe8824ac16b6f52a45dcf718fd5872987c36c4924a271819",
+      "bytes": 631976,
+      "path": "test/fixtures/vectors.bin"
+    },
+    "pinned": {
+      "corpus": "pinned",
+      "embedding": "emb-bge-small-v1",
+      "model": "@cf/baai/bge-small-en-v1.5",
+      "count": 6771,
+      "dataVersion": "b21292ab3713",
+      "rowsKey": "d9e7fb7accc7e853f92d439b3fc6d7d3bf176ce6dd60af40a14774d2c0deca46",
+      "sha256": "be683eaa7e6e3644a1783aa6ea1fc53c932fd45a20201dfd8f0cff0bb1d81977",
+      "bytes": 10683976,
+      "release": "vec-pinned-b21292ab3713-emb-bge-small-v1",
+      "asset": "vec-pinned-b21292ab3713-emb-bge-small-v1.bin"
+    },
+    "production": {
+      "corpus": "production",
+      "embedding": "emb-bge-small-v1-x4a990cd5",
+      "model": "@cf/baai/bge-small-en-v1.5",
+      "count": 6778,
+      "dataVersion": "32b590de51aa",
+      "rowsKey": "7c9b739622d99460fc68f03712d6e8bdf99f6b97f9f649bfd078f5a7b0dceb3a",
+      "sha256": "8157593fe981a295ba83836b45a9ea8c83e1fd273c9bb114411039c4d4276041",
+      "bytes": 10695040,
+      "release": "vec-production-32b590de51aa-emb-bge-small-v1-x4a990cd5",
+      "asset": "vec-production-32b590de51aa-emb-bge-small-v1-x4a990cd5.bin"
+    }
+  }
+}
