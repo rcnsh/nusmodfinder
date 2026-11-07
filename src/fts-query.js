@@ -7,8 +7,28 @@ import { FTS_SEPARATORS } from './fts-separators.js';
 // question like "how do i start my own company" matches every "Design Your Own
 // Course" record on the word "own" and buries the real answers. This is the same
 // list the offline BM25 baseline uses, so neither retriever gets an easier query.
-const STOPWORDS = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do', 'for', 'from',
+export const STOPWORDS_CURRENT = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do', 'for', 'from',
   'how', 'i', 'in', 'is', 'it', 'me', 'my', 'of', 'on', 'or', 'own', 'the', 'to', 'with', 'you', 'your']);
+
+// Candidate `stopwords-v2` (docs/plans/phase3.md 3B "Keyword brittleness",
+// eval/prereg/stopwords.json): the list above plus words that name the
+// catalogue itself rather than a subject. Screened alone under the general CI
+// rule; it ships only if it passes dev alone.
+export const STOPWORDS_V2 = new Set([...STOPWORDS_CURRENT,
+  'class', 'course', 'courses', 'module', 'modules', 'nus', 'something', 'teach']);
+
+/** @typedef {'current' | 'v2'} StopwordVariant */
+export const STOPWORD_VARIANTS = Object.freeze({ current: STOPWORDS_CURRENT, v2: STOPWORDS_V2 });
+
+/**
+ * The stopword list in force. Each screened ranker differs from the next only
+ * here (tags `3b`, `3b-sw2`, `sw2`), so the ranker tree hash names the list the
+ * eval scored. The 3B code-join guard reads the same list (src/query-intent.js).
+ * @type {StopwordVariant}
+ */
+export const STOPWORDS_VARIANT = 'current';
+
+export const STOPWORDS = STOPWORD_VARIANTS[STOPWORDS_VARIANT];
 
 /**
  * The query's tokens, split exactly where the modules_fts tokenizer

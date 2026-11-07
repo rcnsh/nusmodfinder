@@ -22,7 +22,7 @@ describe('stopword lists', () => {
     expect(['current', 'v2']).toContain(STOPWORDS_VARIANT);
     expect([...STOPWORDS].sort()).toEqual([...STOPWORD_VARIANTS[STOPWORDS_VARIANT]].sort());
     const dropped = STOPWORDS.has('modules');
-    expect(ftsMatch('nus modules about korean')).toBe(dropped ? '"korean"' : '"nus" OR "modules" OR "korean"');
+    expect(ftsMatch('nus modules on korean')).toBe(dropped ? '"korean"' : '"nus" OR "modules" OR "korean"');
   });
 
   it('intro and introductory are never stopwords (they go to 3D)', () => {
