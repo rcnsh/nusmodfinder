@@ -833,3 +833,9 @@ fails on the previous code.
   skipping it (ADR 0004 deviation).
 - **qrels-dev-v7** (`p3d`). Evidence: `docs/evidence/phase3/3d-dev-screen.md`.
 - **Next:** L5.
+
+## 2026-11-07 — 3D fails L5 (holdout look 4 of 12)
+
+- **L5:** fail. ΔnDCG@10 is −0.005 [−0.020, 0.004] and ΔP@5 −0.020 [−0.045, 0.003]
+  (`qrels-holdout-v6`). **Holdout looks: 4 of 12.**
+- **The named retry `a0` fails the dev screen**, so the next step is Jacob's (Q4).

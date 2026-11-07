@@ -87,3 +87,23 @@ input, and all are fixed with tests.
 - **Reports:** `npm run eval:report -- --run 3d-<k> --baseline shipped-89cb10e`, with
   `--target-shapes level` for the α points and the bundle.
 - **No remote call.**
+
+## L5 holdout look (custodian, 2026-11-07): fail, look 4 of 12
+- **Store:** `npm run eval -- --holdout --variant 3d --ref 3d --store-only` stored the bundle's
+  run (`55f41d2`) on 81 queries, with no look. The baseline is `run-shipped-89cb10e`, already
+  stored and fully judged.
+- **Pool:** `eval:pool --holdout --custodian --unjudged --runs shipped-89cb10e,3d` found 19
+  documents.
+- **Judge:** round `h5` used judge A, with one fresh subagent for the single packet. It graded 20
+  of 20 items, and the planted repeat agreed exactly. The round merged as `qrels-holdout-v6` (19 A
+  grades), and its plaintext directory is deleted.
+- **Verdict:** `eval:report --holdout --run 3d --baseline shipped-89cb10e --target-shapes level`
+  gives **fail**. The holdout rule needs both point estimates ≥ 0.
+
+| | Δ | BCa 95% CI |
+|---|---|---|
+| nDCG@10 | −0.005 | [−0.020, 0.004] |
+| P@5 | −0.020 | [−0.045, 0.003] |
+
+Both intervals include 0, and both point estimates are below it. The named retry `a0` fails the
+dev screen, so the decision goes to Jacob (plan §3, Q4). The look made no remote request.
