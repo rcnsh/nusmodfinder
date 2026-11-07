@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { planIngest } from '../../scripts/ingest-core.mjs';
 import {
-  EMBEDDING_MODEL, EMBEDDING_TEXT_VERSION, embeddingText, fetchAcadYearFile, hashOf, offeredModules,
+  EMBEDDING_MODEL, EMBEDDING_TEXT_VARIANT, EMBEDDING_TEXT_VERSION, embeddingText, fetchAcadYearFile, hashOf, offeredModules,
 } from '../../scripts/lib.mjs';
 import {
   NORMALISER_VERSION, ROW_COLUMNS, boundTuple, fieldsFromRow, rowHash, sha256Hex, vectorMetadata,
@@ -205,11 +205,9 @@ describe('B2', () => {
 const withHash = async (m) => ({ ...m, rowHash: await rowHash(m) });
 
 describe('S3', () => {
-  it('[S3 known-bug] the embedded text has no module code or level and puts department/faculty before the description', () => {
-    const text = embeddingText(record);
-    expect(text).toBe(
-      'Programming Methodology. Computer Science. Computing. This course introduces the fundamental concepts of problem solving by computing.');
-    expect(text).not.toContain('CS1010S');
-    expect(text).not.toMatch(/level|1000/i);
+  it('[S3 3A-2] the embedded text is the selected 3A-2 variant, with the code\'s level and its label', () => {
+    expect(EMBEDDING_TEXT_VARIANT).toBe('v1');
+    expect(embeddingText(record)).toBe(
+      'CS1010S. Programming Methodology. Level 1 (introductory). This course introduces the fundamental concepts of problem solving by computing. Computer Science. Computing.');
   });
 });

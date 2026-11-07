@@ -59,7 +59,7 @@ the code that reads them. The bundles:
 | bundle | what | where |
 |---|---|---|
 | fixture | the ~400 test modules, fake embedder (632 KB) | `test/fixtures/vectors.bin`, committed; the alias's default, so `npm test`, `wrangler dev` and a fresh checkout build against it |
-| pinned | the 6,771 pinned modules, the eval's `emb-bge-small-v0` vectors (10.7 MB) | release asset, sha256 in `data/vectors.json`; `test/full` and the `full-corpus` CI job (`node scripts/vectors.mjs fetch --corpus pinned`) |
+| pinned | the 6,771 pinned modules, the eval's default corpus vectors (`emb-bge-small-v1` since 3A-2; 10.7 MB) | release asset, sha256 in `data/vectors.json`; `test/full` and the `full-corpus` CI job (`node scripts/vectors.mjs fetch --corpus pinned`) |
 | production | what D1 holds (6,778 at the 3-0 cutover) | release asset, sha256 in `data/vectors.json`; only `npm run deploy` uses it, and it refuses the other two |
 
 `scripts/vectors.mjs` builds all three. It looks each module's vector up in the eval's corpus

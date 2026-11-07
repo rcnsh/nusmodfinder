@@ -1,0 +1,8 @@
+519 pairs, chunk 6 at judge A's grades: Δ 0.104
+chunk 6 pairs where A's grade is not already the worst case: 53
+  1 against: Δ 0.078
+  2 against: Δ 0.058
+  3 against: Δ 0.041
+  5 against: Δ 0.014
+  7 against: Δ -0.009
+sign turns after 7 of 84 chunk-6 grades go against 3a2-v1 (8% disagreement with A on chunk 6; observed on 435 pairs: 6.4%)

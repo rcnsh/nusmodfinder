@@ -23,6 +23,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import * as crypto from '../../eval/lib/crypto.mjs';
 import { generateKey, readKey, updateManifest, verifyManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { ledgerRows, readLedger } from '../../eval/lib/ledger.mjs';
+import { emptyCloneLedger, resetCloneLedger } from './clone.node.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
 import { archiveTree, labelRe, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
@@ -303,10 +304,11 @@ describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not their pi
       expect(spawnSync('git', ['clone', '--quiet', '--shared', '--no-checkout', REPO, clone]).status).toBe(0);
       expect(spawnSync('git', ['checkout', '--quiet', 'HEAD'], { cwd: clone }).status).toBe(0);
       // The code under test is this checkout's working tree.
-      for (const p of ['eval/cli.mjs', 'eval/lib', 'eval/groups.json', 'eval/holdout-ledger.md', 'scripts']) {
+      for (const p of ['eval/cli.mjs', 'eval/lib', 'eval/groups.json', 'scripts']) {
         await rm(join(clone, p), { recursive: true, force: true });
         await cp(join(REPO, p), join(clone, p), { recursive: true });
       }
+      emptyCloneLedger(clone);
       cloneCli = join(clone, 'eval', 'cli.mjs');
     });
     const cloneLedger = () => join(clone, 'eval', 'holdout-ledger.md');
@@ -328,12 +330,11 @@ describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not their pi
       const rows = await rowsOf(cloneLedger());
       expect(rows.map((c) => [c[1], c[8], c[9]])).toEqual([['test', 'sc5', '7ac9841']]);
       // Restore the clone's ledger for the next test (one test-set look only).
-      expect(spawnSync('git', ['checkout', '--quiet', 'HEAD', '--', 'eval/holdout-ledger.md'], { cwd: clone }).status).toBe(0);
-      await cp(join(REPO, 'eval/holdout-ledger.md'), cloneLedger());
+      resetCloneLedger(clone);
     });
 
     it('refuses when the eval-v0 tag no longer resolves to the pinned commit', async () => {
-      expect(spawnSync('git', ['tag', '-f', 'eval-v0', 'HEAD'], { cwd: clone }).status).toBe(0);
+      expect(spawnSync('git', ['-c', 'tag.gpgsign=false', 'tag', '-f', 'eval-v0', 'HEAD'], { cwd: clone }).status).toBe(0);
       const { dir } = await makeSet('sc5-moved-tag', { as: 'test', cand: (d) => copy(d.ranked) });
       const r = sc5(dir);
       expect(`${r.stdout}${r.stderr}`).toBe('eval: test run failed (BaselineError); details withheld\n');
@@ -500,10 +501,11 @@ describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is
     clone = join(tmp, 'clone-shipped');
     expect(spawnSync('git', ['clone', '--quiet', '--shared', '--no-checkout', REPO, clone]).status).toBe(0);
     expect(spawnSync('git', ['checkout', '--quiet', 'HEAD'], { cwd: clone }).status).toBe(0);
-    for (const p of ['eval/cli.mjs', 'eval/lib', 'eval/groups.json', 'eval/holdout-ledger.md', 'scripts']) {
+    for (const p of ['eval/cli.mjs', 'eval/lib', 'eval/groups.json', 'scripts']) {
       await rm(join(clone, p), { recursive: true, force: true });
       await cp(join(REPO, p), join(clone, p), { recursive: true });
     }
+    emptyCloneLedger(clone);
     const baseline = join(clone, 'eval', 'lib', 'baseline.mjs');
     const src = await readFile(baseline, 'utf8');
     const line = /^export const SHIPPED_BASELINE = Object\.freeze\(\{ ref: '[^']+', sha: '[0-9a-f]{40}' \}\);$/m;
@@ -562,6 +564,6 @@ describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is
     const r = look(v0.dir, 'test');
     expect(r.stderr).toBe('');
     expect(r.stdout).toMatch(/^test verdict: FAIL · rule sc5 · baseline eval-v0 7ac9841 · qrels qrels-derived-v1$/m);
-    await cp(join(REPO, 'eval/holdout-ledger.md'), cloneLedger);
+    resetCloneLedger(clone);
   });
 });

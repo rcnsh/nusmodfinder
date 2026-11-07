@@ -736,3 +736,20 @@ fails on the previous code.
 - **Holdout:** the shipped ranker's holdout run is stored (no look) as L2's baseline.
 - **Next:** 3A-2, the three embedding-text variants. Each needs a full pinned-corpus embedding
   pass (~2.4k neurons each, at most 2 a UTC day).
+
+## 2026-11-07 — 3A-2 passes L2 (holdout look 1 of 12)
+
+- **3A-2 v1** (embedding text `CODE. Title. Level N (label). Description. Department. Faculty.`)
+  is selected on dev. ΔnDCG@10 is +0.057 [0.027, 0.109] against the shipped ranker under
+  `qrels-dev-v4`. v2 also passes and is the named retry; v3 fails
+  (`docs/evidence/phase3/3a2-dev-screen.md`).
+- **Cross-family check:** Gemini grades, verified by Sonnet, on 435 of 519 pairs. Chunk 6 was
+  rate-limited, and Jacob accepted the 84%. Agreement with A is 0.936 (κ quadratic 0.892). The
+  verified-grade Δ sign is +, matching A's. Resampling chunk 6 never turns it (P(Δ ≤ 0) = 0 in
+  4,000 draws). A targeted worst case of 7 grades would.
+- **L2:** v1's holdout run was stored and pooled with `run-shipped-e8a7124` (149 documents).
+  Round `h2` (judge A) merged as `qrels-holdout-v3`. Verdict: **pass** under the holdout
+  general rule (point estimates ≥ 0). ΔnDCG@10 is +0.038 [−0.007, 0.092] and ΔP@5 +0.037
+  [−0.003, 0.085]. **Holdout looks: 1 of 12.**
+- **Next:** ship v1 by the runbook. Make `emb-bge-small-v1` the default embedding, then the
+  production bundle, a D1-only ingest, the standby upsert, the shipped-pin move and PR #41 ready.

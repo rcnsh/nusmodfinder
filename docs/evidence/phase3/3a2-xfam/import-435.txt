@@ -1,0 +1,12 @@
+human calibration: 435 graded rows (84 blank, 0 not in qrels qrels-dev-v4); single-judge qrels (judge A only)
+human vs    n    raw  Krippendorff α (ordinal)  κ binary (≥ 1)  κ quadratic
+--------  ---  -----  ------------------------  --------------  -----------
+A         435  0.936                     0.860           0.843        0.892
+final     435  0.936                     0.860           0.843        0.892
+
+Δ = 3a2-v1 − shipped
+grades                Δ nDCG@10 (all judged)  sign   n  Δ nDCG@10 (calibrated subset)  sign   n
+--------------------  ----------------------  ----  --  -----------------------------  ----  --
+A                                      0.045     +  76                          0.113     +  35
+final (rule, else A)                   0.057     +  85                          0.113     +  35
+human                                                                           0.111     +  35

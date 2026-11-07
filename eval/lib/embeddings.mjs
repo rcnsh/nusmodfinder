@@ -147,6 +147,28 @@ export async function loadCorpusEmbeddings(version) {
 }
 
 /**
+ * Refuses a run whose ranker's corpus texts are not the texts `version`
+ * embedded: every module's text must be a key of the corpus version itself,
+ * not of a query cache merged in beside it, so a run labelled with an
+ * embedding version scores only that version's corpus vectors. Vectors are
+ * keyed by sha256(model + text), so this is exactly "the ranker's
+ * embeddingText is the one embedded" (a v0 ranker on v1 vectors, or the
+ * reverse, fails it).
+ * @param {{ code: string, text: string }[]} modules the ranker's corpus
+ * @param {{ version: string, keys: string[], textRef?: string }} emb the corpus version
+ * @param {string} rankerRef the ref whose scripts/lib.mjs built `modules`
+ */
+export function assertCorpusTextsEmbedded(modules, emb, rankerRef) {
+  const keys = new Set(emb.keys);
+  const missing = modules.filter((m) => !keys.has(embeddingKey(MODEL, m.text)));
+  if (missing.length === 0) return;
+  throw new Error(`${missing.length} of ${modules.length} corpus texts of ranker ${rankerRef} have no vector in corpus embedding `
+    + `${emb.version} (embedded from ${emb.textRef ?? 'an unrecorded ref'}; first: ${missing[0].code}): the ranker's embedding text `
+    + `differs from the one embedded. Pass the --embedding version embedded from this ref, or embed one: `
+    + `npm run eval:embed -- --corpus --ref ${rankerRef} --version <new>`);
+}
+
+/**
  * Packs vectors for workerd: one base64 Float32 string plus keys in row order
  * (nested arrays crash the Vitest pool's provide/inject transport).
  * @param {{ keys: string[], vectors: Float32Array }[]} parts

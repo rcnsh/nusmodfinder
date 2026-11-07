@@ -10,7 +10,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
-import { base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
+import { assertCorpusTextsEmbedded, base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
 import { REPO, loadQueries, runFile, searchParams, setFile, setKey } from '../lib/sets.mjs';
 import { buildWorkspace } from '../lib/workspace.mjs';
 
@@ -53,6 +53,8 @@ export async function runVariant(options) {
   if (!existsSync(fixtureCorpus)) {
     const version = options.embedding ?? (await readManifest()).default;
     const emb = await loadCorpusEmbeddings(version);
+    // From the corpus version itself, never the query cache beside it.
+    assertCorpusTextsEmbedded(corpus.modules, emb, ws.ranker.ref);
     parts.unshift({ keys: emb.keys, vectors: emb.vectors });
     embedding = { corpus: version, model: emb.model, textRef: emb.textRef };
   }

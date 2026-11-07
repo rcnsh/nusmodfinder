@@ -17,6 +17,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { generateKey, readKey, updateManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { ledgerRows } from '../../eval/lib/ledger.mjs';
+import { emptyCloneLedger, resetCloneLedger } from './clone.node.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
 import { archiveTree, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
@@ -344,7 +345,7 @@ describe('the holdout reading, in a temporary clone whose SC5_READING is holdout
     clone = join(tmp, 'clone');
     expect(spawnSync('git', ['clone', '--quiet', '--shared', '--no-checkout', REPO, clone]).status).toBe(0);
     expect(spawnSync('git', ['checkout', '--quiet', 'HEAD'], { cwd: clone }).status).toBe(0);
-    for (const p of ['eval/cli.mjs', 'eval/lib', 'eval/groups.json', 'eval/holdout-ledger.md', 'scripts']) {
+    for (const p of ['eval/cli.mjs', 'eval/lib', 'eval/groups.json', 'scripts']) {
       await rm(join(clone, p), { recursive: true, force: true });
       await cp(join(REPO, p), join(clone, p), { recursive: true });
     }
@@ -352,9 +353,10 @@ describe('the holdout reading, in a temporary clone whose SC5_READING is holdout
     const src = await readFile(gate, 'utf8');
     expect(src).toContain("export const SC5_READING = 'sealed';");
     await writeFile(gate, src.replace("export const SC5_READING = 'sealed';", "export const SC5_READING = 'holdout';"));
+    emptyCloneLedger(clone);
     cloneCli = join(clone, 'eval', 'cli.mjs');
   });
-  const restoreLedger = () => cp(join(REPO, 'eval', 'holdout-ledger.md'), cloneLedger());
+  const restoreLedger = async () => resetCloneLedger(clone);
   /** @param {string} dir @param {string[]} [extra] */
   const holdout = (dir, extra = []) => cli(['report', '--holdout', '--set-dir', dir, '--run', 'cand', '--baseline', 'base', ...extra], { cli: cloneCli });
 

@@ -1,0 +1,2 @@
+observed A grade (row) → verified grade (col): [[342,16,0],[5,44,7],[0,0,21]]
+4000 draws: P(Δ ≤ 0) = 0.0000; median 0.101; 2.5% 0.068; 0.5% 0.056; min 0.031

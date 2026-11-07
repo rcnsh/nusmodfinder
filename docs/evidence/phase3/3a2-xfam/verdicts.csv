@@ -1,0 +1,436 @@
+pair_id,query_id,code,gemini_grade,verdict,verified_grade,reason
+c001,d-022,CS4230,0,correct,0,"Technical 4000-level computing course, which the not_relevant line names."
+c002,d-023,GEX1005,2,correct,2,1000-level intro course open to NG students in semester 2 with no prerequisites in the description.
+c003,d-052,PC3267,0,correct,0,"Physics department course on biomolecular physics and thermodynamics, not DNA replication, transcription or gene regulation."
+c004,d-077,BT4222,1,correct,1,"Business analytics course on web data mining, the partially relevant data analytics case, with no database design or SQL."
+c005,d-045,PS3251,2,correct,2,"3000-level Political Science course, matching the higher-level politics line, and open to NG students."
+c006,d-078,LSM1301,0,correct,0,"Science-faculty introductory biology course, neither a GE/common curriculum course nor a humanities elective."
+c007,d-081,CS3231,0,overturned,1,"A CS course whose description shows nothing on assessment, so by rule 5 it is partial on topic rather than 0 (consistent with the other grader's own grade 1 for HY2235 in c010)."
+c008,d-091,LSM4237,0,correct,0,Code LSM4237 does not start with DAO17 and the subject is unrelated.
+c009,d-092,CS4247,0,correct,0,Code CS4247 does not start with GEC and the subject is unrelated.
+c010,d-049,HY2235,1,correct,1,History course with research assignments but the description does not confirm no final exam.
+c011,d-016,ESP4401,0,correct,0,"Energy systems engineering, unrelated to operating systems."
+c012,d-033,ME3142,0,correct,0,Control systems theory course with no team design project or CAD/prototype content.
+c013,d-086,CS2030DE,0,correct,0,Code is not EE4502 nor an EE4502 variant.
+c014,d-061,GEC1004,0,correct,0,"Japanese cultural studies, unrelated to evo-devo."
+c015,d-011,LAS1201,0,correct,0,"Spanish language course, unrelated to accounting."
+c016,d-074,IS4231,0,correct,0,"Managerial information security with risk management and policies, matching the non-technical risk management not_relevant line."
+c017,d-091,MLE4230,0,correct,0,Code MLE4230 does not start with DAO17.
+c018,d-091,MA2101,0,correct,0,Code MA2101 does not start with DAO17.
+c019,d-095,GEC1011,1,correct,1,"Intro microbiology-department course on microorganisms and infectious disease, matching the partial microbes line."
+c020,d-051,PL3106,0,correct,0,"3000-level psychology course on mental health, not an introductory health sciences course."
+c021,d-025,CG4002,0,correct,0,Garbled query where any returned course is not relevant.
+c022,d-033,ME4245,0,correct,0,"Robot kinematics and control theory course, not a team design project course."
+c023,d-076,DAO2703,0,correct,0,"Business operations management, named as not relevant."
+c024,d-079,MLE4221,0,correct,0,"Materials engineering for fuels and water, an engineering device course named as not relevant."
+c025,d-069,PH4202,1,correct,1,Political philosophy touching morality but at 4000-level rather than an intro ethics course.
+c026,d-088,CS2100DE,0,correct,0,Code is not CS2030 nor a letter-suffix variant.
+c027,d-009,CS2040DE,0,correct,0,"Data structures course, unrelated to international business."
+c028,d-091,CS4248,0,correct,0,Code CS4248 does not start with DAO17.
+c029,d-084,IE4243,0,correct,0,Code is not MLE2105 nor a variant.
+c030,d-045,GEC1005,0,correct,0,"1000-level Japanese studies course, named as not relevant for level and not history or politics."
+c031,d-096,RE2705,1,correct,1,"Real estate course applying economic principles, related to intro economics but not an intro micro course."
+c032,d-029,CN4205R,0,correct,0,"Chemical engineering pinch analysis, not a heat transfer course on conduction, convection and radiation."
+c033,d-046,LL4140V,0,correct,0,"Law of the sea, named as not relevant for SEA."
+c034,d-096,GEX1010,2,correct,2,"1000-level introductory economics course assuming no background, open in semester 1."
+c035,d-076,CS3219,0,correct,0,"Software design and architecture, not operating systems or computer architecture."
+c036,d-095,LSM4234,0,correct,0,"Mechanobiology of cells, not bacterial microbiology."
+c037,d-082,BN4202A,0,correct,0,"Code BN4202A is a variant of BN4202, not BN4207."
+c038,d-025,CS4249,0,correct,0,Garbled query where any returned course is not relevant.
+c039,d-016,CS4221,0,correct,0,"Database design and tuning, not operating systems or architecture."
+c040,d-019,MA1301,0,correct,0,"1000-level maths course, intro-level and non-CS."
+c041,d-083,EE4513,0,correct,0,Code is not LL4541V.
+c042,d-086,EE2028,0,correct,0,Code is not EE4502.
+c043,d-075,BT3017,1,correct,1,"Machine learning feature engineering course, matching the partial ML-with-data-component line."
+c044,d-074,CS3241,0,correct,0,"Computer graphics, neither security-adjacent nor a systems course."
+c045,d-068,NST2062,1,correct,1,"Cognitive science and AI course, matching the partial cognitive science line."
+c046,d-022,EL3206,1,correct,1,"Humanities/social science course at 3000-level, matching the partial broad-interest line."
+c047,d-090,LSM4237,0,correct,0,Code does not start with MUL21.
+c048,d-084,IE2100,0,correct,0,Code is not MLE2105 nor a variant.
+c049,d-088,ESP2107,0,correct,0,Code is not CS2030 nor a variant.
+c050,d-006,PH4240,0,correct,0,"Metaphysics, unrelated to finance."
+c051,d-061,MUA1165,0,correct,0,"Music technology, unrelated to evo-devo."
+c052,d-013,DOS3704,0,correct,0,"Operations strategy from Analytics and Operations, not a finance course."
+c053,d-033,RB2202,0,correct,0,"Robotics kinematics theory, not a team design project course."
+c054,d-011,EC3343,0,correct,0,"3000-level international macroeconomics, neither accounting nor intro finance."
+c055,d-074,QF3101,0,correct,0,"Quantitative finance, unrelated to computer security."
+c056,d-061,DAO2703,0,correct,0,"Business operations course, unrelated to evo-devo."
+c057,d-088,CS4262,0,correct,0,Code is not CS2030 nor a variant.
+c058,d-093,ME3281,0,correct,0,"MEMS course, unrelated to molecular biology."
+c059,d-025,CG3207,0,correct,0,Garbled query where any returned course is not relevant.
+c060,d-085,LSM2191A,0,correct,0,Code is not MA2101 and LSM2191A is a variant of LSM2191.
+c061,d-082,CN4201R,0,correct,0,Code is not BN4207 nor a variant.
+c062,d-079,GESS1020,0,correct,0,Singapore society course with no technology focus.
+c063,d-024,CS3247,2,correct,2,"Semester 2 CS course built on lab programming exercises and game-building, the best available project-based evidence in the description."
+c064,d-008,BSP3701,0,correct,0,"Strategic management capstone, not marketing."
+c065,d-037,EE2012,0,overturned,1,"An engineering course open in semester 1 whose description shows nothing on assessment, so by rule 5 it is partial on topic rather than 0 (same reasoning as c007)."
+c066,d-036,PC1201,0,correct,0,"1000-level physics course, not 2000-level mechanical engineering."
+c067,d-085,CM3131,0,correct,0,Code is not MA2101.
+c068,d-086,EE2022,0,correct,0,Code is not EE4502.
+c069,d-025,CS2030,0,correct,0,Garbled query where any returned course is not relevant.
+c070,d-045,IT3010,0,correct,0,"Computing data management course, not history or politics."
+c071,d-076,CS2108,0,correct,0,"Media computing, not operating systems or architecture."
+c072,d-055,LSM3267,0,correct,0,Animal behaviour and ecology with no marine or aquatic content in the description.
+c073,d-048,HY2206,2,correct,2,Broad survey history course for all undergraduates with no prerequisites indicated.
+c074,d-064,CM2143,0,correct,0,"Analytical chemistry, not biochemistry."
+c075,d-013,AR2101,0,correct,0,Architecture studio with no finance connection.
+c076,d-085,MA2202,0,correct,0,Code is not MA2101 nor a variant.
+c077,d-084,MA2108,0,correct,0,Code is not MLE2105 nor a variant.
+c078,d-047,SN3275,1,correct,1,Humanities culture and society course open to NG students but a 3000-level departmental course rather than a GE module.
+c079,d-087,CN2105,0,correct,0,Code CN2105 is not CN2109.
+c080,d-049,EN3880A,0,correct,0,"Film studies in the English department, not a history course."
+c081,d-074,CS2100,1,correct,1,"Computer systems course, matching the partial any-systems-course line."
+c082,d-027,ME3115,0,correct,0,"Rigid body dynamics and vibration, not fluid mechanics."
+c083,d-078,CS4230,0,correct,0,"Technical CS course, named as not relevant."
+c084,d-078,CS3243,0,correct,0,"Technical CS course, named as not relevant."
+c085,d-020,FIN2704X,0,correct,0,Finance course giving no unit conversion information.
+c086,d-010,QF3101,1,correct,1,"Quantitative finance with a programming project, matching the partial less-hands-on quantitative finance line."
+c087,d-091,AR5321,0,correct,0,Code AR5321 does not start with DAO17.
+c088,d-016,IS1128,0,correct,0,"IS1128 is an intro IT and management course, which the intent names as not relevant for an operating systems query."
+c089,d-087,PS2248,0,correct,0,"PS2248 is not CN2109 or a letter-suffix variant, so rule 4 gives 0."
+c090,d-082,LL4246,0,correct,0,"LL4246 is not BN4207 or a letter-suffix variant, so rule 4 gives 0."
+c091,d-018,BT3017,2,correct,2,"BT3017 is a semester 2 machine learning course open to NG students, matching the relevant line for other ML courses."
+c092,d-061,CDE2000,0,correct,0,CDE2000 Creating Narratives is a design communication course with no link to evolutionary developmental biology.
+c093,d-025,CS4268,0,correct,0,"The query is garbled and the intent expects no results, so a returned Quantum Computing course is 0."
+c094,d-087,MUL2107,0,correct,0,"MUL2107 is not CN2109 or a letter-suffix variant, so rule 4 gives 0."
+c095,d-009,PS2237,0,correct,0,"PS2237 is international relations theory in political science, not international business or management."
+c096,d-088,CS4221,0,correct,0,"CS4221 is not CS2030 or a letter-suffix variant, so rule 4 gives 0."
+c097,d-036,NGN2001H,0,correct,0,"NGN2001H is an NUS College humanities course, not a mechanical or engineering course."
+c098,d-082,CM5225,0,correct,0,"CM5225 is not BN4207 or a letter-suffix variant, so rule 4 gives 0."
+c099,d-089,LSM4223,0,correct,0,"LSM4223 is not IS4246 or a letter-suffix variant, so rule 4 gives 0."
+c100,d-099,GEX1015,0,correct,0,GEX1015 is a philosophy course with no accounting or finance content.
+c101,d-023,MA1301,2,correct,2,"MA1301 is a 1000-level bridging mathematics course open in semester 2 with no prerequisites stated, matching the intro-elective intent."
+c102,d-061,GESS1026,0,correct,0,GESS1026 is Singapore history with no connection to evolutionary or developmental biology.
+c103,d-016,CG2023,0,correct,0,"CG2023 Signals and Systems covers Fourier analysis and filtering, not operating systems or systems programming."
+c104,d-012,LL4009V,0,correct,0,"LL4009V is modern Chinese law taught in Mandarin, not German accounting or tax law or international reporting standards."
+c105,d-021,AR5321,0,correct,0,"AR5321 is an architecture and building systems integration course, not HCI or UX."
+c106,d-088,CS2108,0,correct,0,"CS2108 is not CS2030 or a letter-suffix variant, so rule 4 gives 0."
+c107,d-083,LL4309V,0,correct,0,"LL4309V is not LL4541V or a letter-suffix variant, so rule 4 gives 0."
+c108,d-083,LL4342V,0,correct,0,"LL4342V is not LL4541V or a letter-suffix variant, so rule 4 gives 0."
+c109,d-086,EE2026,0,correct,0,"EE2026 is not EE4502 or a letter-suffix variant, so rule 4 gives 0."
+c110,d-090,MA2202,0,correct,0,"MA2202 does not start with MUL21 and is abstract algebra, unrelated to the MUL21 code family."
+c111,d-090,LSM4223,0,correct,0,"LSM4223 does not start with MUL21 and is microbiology, unrelated to the MUL21 code family."
+c112,d-054,LSM3243,0,correct,0,"LSM3243 is a theoretical biophysics course with no hands-on PCR, cloning or western blot practicals shown in its description."
+c113,d-088,CS2100,0,correct,0,"CS2100 is not CS2030 or a letter-suffix variant, so rule 4 gives 0."
+c114,d-063,LSM3243,1,correct,1,"LSM3243 is a 3000-level Biological Sciences course on biomolecular structure and interactions, plausibly the partial 'third-year molecular biology' line though it does not cover CRISPR or genome topics."
+c115,d-070,EC3333,0,correct,0,"EC3333 covers asset pricing and derivative securities, which the intent names as not relevant."
+c116,d-003,NM1101E,0,correct,0,NM1101E is an intro communications and new media course with no strategic management content.
+c117,d-066,EE2028,0,correct,0,"EE2028 teaches microcontroller programming in C, with no threads, locks or parallel programming in its description."
+c118,d-081,CS4243,1,correct,1,"CS4243 is a CS course but its description shows nothing about assessment, so by rule 5 it is only partially relevant."
+c119,d-051,LL4539V,0,correct,0,LL4539V is a civil litigation law course with no dentistry or health content.
+c120,d-087,CG2028,0,correct,0,"CG2028 is not CN2109 or a letter-suffix variant, so rule 4 gives 0."
+c121,d-062,QF2104,0,correct,0,"QF2104 is a major-specific quantitative finance course, not a general education course."
+c122,d-092,GEX1005,1,correct,1,"GEX1005 is in the general education GE-prefix family, matching the partial line for a similar code family."
+c123,d-020,FIN3702A,0,overturned,1,"The intent's relevant line includes 'courses of 4 units each' for any subject, and FIN3702A is a 4-credit course, but it gives no conversion information so it is only partial."
+c124,d-082,MLE4205,0,correct,0,"MLE4205 is not BN4207 or a letter-suffix variant, so rule 4 gives 0."
+c125,d-083,CG3201,0,correct,0,"CG3201 is not LL4541V or a letter-suffix variant, so rule 4 gives 0."
+c126,d-096,EC2104,0,correct,0,"EC2104 teaches mathematical methods for economics, not intro microeconomics or the intent's partial lines."
+c127,d-009,CS2030,0,correct,0,CS2030 is a programming methodology course with no international business content.
+c128,d-025,EE4415,0,correct,0,"The query is garbled and the intent expects no results, so a returned IC design course is 0."
+c129,d-036,MUL2107,0,correct,0,"MUL2107 is a French language course for musicians, not a mechanical or engineering course."
+c130,d-077,BT1101,1,correct,1,"BT1101 is an introductory business analytics course, matching the partial line for data analytics courses."
+c131,d-041,PS3225,0,correct,0,"PS3225 is a 3000-level course on Political Islam, not an intro comparative politics or intro political science course."
+c132,d-093,CM4236,0,correct,0,"CM4236 is biophysical chemistry spectroscopy, not molecular biology on CRISPR or RNA topics."
+c133,d-090,CS4330,0,correct,0,"CS4330 does not start with MUL21 and is bioinformatics, unrelated to the MUL21 code family."
+c134,d-052,LSM3244,1,correct,1,"LSM3244 is a 3000-level semester 2 genome engineering course, a molecular-mechanism course short of the core DNA replication and gene regulation topics, so partial."
+c135,d-040,GESS1024,0,correct,0,GESS1024 covers Singapore citizenship and politics with no gender focus.
+c136,d-036,NGN2001G,0,correct,0,"NGN2001G is an NUS College humanities course, not a mechanical or engineering course."
+c137,d-037,MA1301,0,correct,0,"MA1301 is a mathematics bridging course, not an engineering elective, and the intent excludes non-engineering courses."
+c138,d-021,IS4400,2,correct,2,"IS4400 Human-AI Interaction covers user experience and the design process for AI, matching the HCI/UX intent."
+c139,d-082,CS1231,0,correct,0,"CS1231 is not BN4207 or a letter-suffix variant, so rule 4 gives 0."
+c140,d-084,QF2104,0,correct,0,"QF2104 is not MLE2105 or a letter-suffix variant, so rule 4 gives 0."
+c141,d-038,MS4208,0,correct,0,"MS4208 is about Syariah law in modern Southeast Asia, not colonial history or decolonisation."
+c142,d-077,CS2040C,0,correct,0,"CS2040C covers data structures and algorithms, with no database, SQL or analytics content."
+c143,d-080,PH3217,0,correct,0,"PH3217 is a 3000-level feminist philosophy course, not a beginner intro, and not intro logic or critical thinking."
+c144,d-038,HSI2018,0,correct,0,"HSI2018 is about Wallace and the history of science, not colonialism or decolonisation in Southeast Asia."
+c145,d-013,EC3322,0,correct,0,"EC3322 Industrial Organisation is an economics course, not corporate finance or a general finance course."
+c146,d-096,EC1101E,2,correct,2,"EC1101E is a 1000-level intro economics course open in semester 1, matching the intro principles line."
+c147,d-047,EL2151,1,correct,1,"EL2151 is a humanities and social science course on language and society open to NG students, but it is not labelled a general education module, so partial."
+c148,d-096,IS2238,1,correct,1,"IS2238 teaches competitive market analysis and pricing for IT businesses, matching the partial managerial economics line."
+c149,d-089,EL2208,0,correct,0,"EL2208 is not IS4246 or a letter-suffix variant, so rule 4 gives 0."
+c150,d-012,LL4097V,0,correct,0,"LL4097V is Islamic law, not German accounting or tax law or international reporting standards."
+c151,d-034,JS2216,0,correct,0,"JS2216 is a Japanese studies film and anime course without language teaching, which the intent names as not relevant."
+c152,d-089,CS4248,0,correct,0,"CS4248 is not IS4246 or a letter-suffix variant, so rule 4 gives 0."
+c153,d-007,MUL1105,0,correct,0,"MUL1105 is Italian for musicians, not Japanese or an East Asian language."
+c154,d-010,MA3264,0,correct,0,"MA3264 is general mathematical modelling, which the intent names as not relevant, with no Excel financial modelling."
+c155,d-069,IS1108,1,correct,1,"IS1108 is an intro digital and AI ethics course, matching the partial ethics-of-technology line."
+c156,d-089,LSM4242,0,correct,0,"LSM4242 is not IS4246 or a letter-suffix variant, so rule 4 gives 0."
+c157,d-072,EE2028,0,correct,0,"EE2028 teaches microcontroller programming in C, with no threads or message passing in its description."
+c158,d-036,PC4230,0,correct,0,"PC4230 is advanced quantum mechanics in physics, not a mechanical or engineering course."
+c159,d-091,EE4435,0,correct,0,"EE4435 does not start with DAO17 and is a device physics course, unrelated to that code family."
+c160,d-051,ESE2000,0,correct,0,ESE2000 is environmental engineering chemistry with no dentistry or health content.
+c161,d-092,BN4102,0,correct,0,"BN4102 does not start with GEC and is a biomedical engineering course, not general education."
+c162,d-029,EE4101,0,correct,0,"EE4101 covers electromagnetic radiation in RF communications, which the intent names as not relevant for heat transfer."
+c163,d-083,LL4034V,0,correct,0,"LL4034V is not LL4541V or a letter-suffix variant, so rule 4 gives 0."
+c164,d-069,PH2242,0,correct,0,"PH2242 covers philosophy of language, not ethics or moral philosophy."
+c165,d-084,QF2103,0,correct,0,"QF2103 is not MLE2105 or a letter-suffix variant, so rule 4 gives 0."
+c166,d-036,CN2109,1,correct,1,"CN2109 is a 2000-level engineering course (Chemical and Biomolecular) showing 4 units, fitting the partial 'any engineering course' line since it is not a mechanical engineering department course."
+c167,d-088,NM2207,0,correct,0,"NM2207 is not CS2030 or a letter-suffix variant, so rule 4 gives 0."
+c168,d-013,LI5204,0,correct,0,"LI5204 is supply chain simulation, not corporate finance or a finance course."
+c169,d-024,SC2208,0,correct,0,"SC2208 is a sociology course on demography, not a CS course."
+c170,d-089,MA2108,0,correct,0,"MA2108 is not IS4246 or a letter-suffix variant, so rule 4 gives 0."
+c171,d-087,NHS2053,0,correct,0,"NHS2053 is not CN2109 or a letter-suffix variant, so rule 4 gives 0."
+c172,d-083,LL4100,0,correct,0,"LL4100 is not LL4541V or a letter-suffix variant, so rule 4 gives 0."
+c173,d-089,MA4254,0,correct,0,"MA4254 is not IS4246 or a letter-suffix variant, so rule 4 gives 0."
+c174,d-099,EL1101E,0,correct,0,"EL1101E is an introductory linguistics course, not accounting or finance."
+c175,d-099,GEC1013,0,correct,0,This course covers world religions rather than introductory accounting or finance.
+c176,d-065,PL3257,0,correct,0,This course focuses on human clinical psychology rather than veterinary clinical placement or animal physiology.
+c177,d-012,LL4042V,0,correct,0,This course examines law and religion rather than German tax law or international financial reporting.
+c178,d-045,AR2101,0,correct,0,This is an architecture design studio course rather than a history or politics course.
+c179,d-077,CS2100DE,0,correct,0,This course covers computer hardware and processor architecture rather than database systems or data analytics.
+c180,d-020,ST3131,0,correct,0,This regression analysis course is an unrelated academic subject that provides no information on credit conversion.
+c181,d-092,FST3111,0,correct,0,This course code begins with FST rather than GEC and is unrelated to the requested code prefix.
+c182,d-064,PC3267,1,correct,1,"This 3000-level molecular biophysics course covers protein structure and biomacromolecules, making it partially relevant as a related field to advanced biochemistry."
+c183,d-013,IS3240,0,correct,0,This course covers digital business platforms and IT strategy rather than corporate finance.
+c184,d-025,CG2027,0,correct,0,"The query is a garbled string for which the student expects no results, and this circuit design course is an unrelated match."
+c185,d-076,PF4309,0,correct,0,This course covers infrastructure operations and maintenance in facilities management rather than computer operating systems.
+c186,d-063,LSM2191A,1,correct,1,"While this course covers molecular biology techniques, it is a second-year laboratory course rather than the requested 4000-level advanced research course."
+c187,d-046,MS5201,1,correct,1,"This course covers Malay socio-cultural history in Southeast Asia, but at the 5000 graduate level focusing on theoretical critiques."
+c188,d-049,CH1101E,1,correct,1,"This course covers Chinese history and mentions a term essay, but the description does not confirm whether a final exam is completely absent."
+c189,d-085,MA2401,0,correct,0,This course is MA2401 rather than MA2101 or one of its variants.
+c190,d-024,PF4203,0,correct,0,This course covers project dispute resolution in built environment rather than computer science.
+c191,d-035,GESS1003,2,correct,2,"This introductory General Education course explores Singapore social and cultural history through everyday life, fitting the requested introductory Singapore history and society course."
+c192,d-013,LL4556V,1,correct,1,"This course focuses on financial markets law and instruments, providing a related legal perspective on finance rather than corporate finance."
+c193,d-045,CS3223,0,correct,0,This is a computer science course on database systems rather than a history or politics course.
+c194,d-015,CS4249,0,correct,0,This course covers quantitative methods in human-computer interaction rather than computer vision or image processing.
+c195,d-081,CM3267,0,correct,0,This is a chemistry course applying Python programming rather than a computer science course.
+c196,d-023,LAM1201,2,correct,2,"This is a level-1000 introductory language course designed for beginners with no prerequisites, meeting all semester 2 constraints."
+c197,d-085,MA2002,0,correct,0,This course is MA2002 Calculus rather than MA2101 or one of its variants.
+c198,d-067,IE4213,0,correct,0,This course covers machine learning and data analytics rather than software engineering or object-oriented design patterns.
+c199,d-045,EC3343,0,correct,0,This is an economics course in international finance rather than a history or politics course.
+c200,d-062,GESS1028,2,correct,2,This is a General Education course offered in semester 2 and explicitly open to non-graduating students.
+c201,d-056,CN4247R,0,correct,0,This course covers industrial enzyme technology and biocatalysis rather than cell signalling pathways or cancer biology.
+c202,d-086,EE4501,0,correct,0,This course is EE4501 rather than the requested course EE4502 or one of its variants.
+c203,d-084,MLE4205,0,correct,0,This course is MLE4205 rather than MLE2105 or a variant thereof.
+c204,d-089,LL4050V,0,correct,0,This course is LL4050V in international law rather than IS4246 or one of its variants.
+c205,d-085,MA1301,0,correct,0,This course is MA1301 rather than MA2101 or one of its variants.
+c206,d-083,EE4218,0,correct,0,This course is EE4218 in electrical engineering rather than LL4541V or one of its variants.
+c207,d-079,GEX1010,0,correct,0,This general education course introduces economic reasoning rather than the societal or ethical impacts of technology.
+c208,d-033,CE2134,0,correct,0,This is a civil engineering lecture course on fluid mechanics rather than a mechanical engineering design project course.
+c209,d-043,GESS1020,1,correct,1,"This course examines contemporary Singapore society from a sociological perspective with some recent history, making it partially relevant to a query on Singapore history."
+c210,d-086,EE4112,0,correct,0,This course is EE4112 rather than EE4502 or one of its variants.
+c211,d-092,IE4246,0,correct,0,This course code starts with IE rather than the requested GEC prefix.
+c212,d-090,CS4221,0,correct,0,This course is CS4221 in computer science and is unrelated to the MUL21 code prefix.
+c213,d-031,ESE2000,0,correct,0,This is an environmental chemistry course that only touches on chemical thermodynamics alongside other basic chemistry topics.
+c214,d-018,IE4213,2,correct,2,"This course in Industrial Systems Engineering covers core machine learning algorithms, providing an alternative to the standard CS machine learning course."
+c215,d-091,PC4236,0,correct,0,This course code is PC4236 rather than starting with the requested DAO17 prefix.
+c216,d-051,MLE3203,0,correct,0,This is an engineering materials course focusing on ceramics and metals rather than a clinical dentistry placement or health sciences course.
+c217,d-027,ME4291,0,correct,0,This course covers finite element analysis for solid mechanics and thermal problems rather than fluid mechanics.
+c218,d-097,MA3270,0,correct,0,This course covers mathematics for artificial intelligence rather than mechanical machine design.
+c219,d-090,ZB2101,0,correct,0,"This course code is ZB2101 in bioinformatics, which is unrelated to the MUL21 code prefix."
+c220,d-084,MA2116,0,correct,0,This course is MA2116 in probability rather than the requested course MLE2105.
+c221,d-021,MLE4230,0,correct,0,This course focuses on artificial intelligence applications in materials science rather than human-computer interaction or user experience design.
+c222,d-061,IE4280,0,correct,0,This course covers generative AI and financial technology rather than evolutionary developmental biology.
+c223,d-033,CE3165,0,correct,0,This is a civil engineering course on structural concrete design rather than a mechanical engineering design project course.
+c224,d-034,MUL2109,0,correct,0,This is a German language course for music students rather than Japanese 1 or another beginner Asian language course.
+c225,d-082,CS4330,0,correct,0,This course is CS4330 in computer science rather than BN4207 or one of its variants.
+c226,d-063,LSM3242,1,correct,1,"This is a 3000-level course covering advances in microbial molecular biology and genetics, matching the intent for a third-year course more advanced than intro."
+c227,d-089,MA2101,0,correct,0,This course is MA2101 Linear Algebra II rather than IS4246 or one of its variants.
+c228,d-061,LSM3247,0,correct,0,"This course focuses on synthetic biology and genetic circuits rather than evolutionary developmental biology, development, or evolution."
+c229,d-047,GESS1020,2,correct,2,"This is an introductory General Education course in the social sciences covering Singapore society and culture, open to non-graduating students."
+c230,d-083,LL4008BV,0,correct,0,This course is LL4008BV rather than LL4541V or one of its variants.
+c231,d-082,LSM4202,0,correct,0,This course is LSM4202 rather than the requested course BN4207 or one of its variants.
+c232,d-087,CG4002,0,correct,0,This course is CG4002 rather than CN2109 or one of its variants.
+c233,d-090,LSM2191B,0,correct,0,"This course code is LSM2191B, which does not match the MUL21 code prefix."
+c234,d-083,CS4330,0,correct,0,This course is CS4330 in computer science rather than LL4541V or one of its variants.
+c235,d-087,CN2103,0,correct,0,This course is CN2103 rather than CN2109 or a variant thereof.
+c236,d-025,LI5204,0,correct,0,"The query is an uninterpretable typo string for which no courses are relevant, making this supply chain course an unrelated result."
+c237,d-091,EE4415,0,correct,0,"This course code is EE4415, which is unrelated to the DAO17 code prefix."
+c238,d-089,MA3264,0,correct,0,This course is MA3264 in mathematics rather than IS4246 or one of its variants.
+c239,d-025,CS4243,0,correct,0,The intent explicitly specifies that the query was a garbled string expecting no results and that returned courses are not relevant.
+c240,d-073,ZB3101,0,correct,0,"This course covers genomic and bioinformatics data analysis rather than relational database systems, SQL, and transactions."
+c241,d-083,CG2027,0,correct,0,This course is CG2027 in computer engineering rather than LL4541V or one of its variants.
+c242,d-048,HY2253,2,overturned,1,"HY2253 is a 2000-level thematic history course whose description never says introductory, so it is the right subject at a different level than the intent's introductory history ask."
+c243,d-083,LL4536V,0,correct,0,This course is LL4536V rather than the requested course LL4541V or one of its variants.
+c244,d-036,ME4291,1,correct,1,"This mechanical engineering course clearly displays its credits (4 units) and level, but is at the 4000-level rather than the requested 2000-level."
+c245,d-061,BN4102,0,correct,0,This course covers biomedical engineering and technologies for ageing rather than evolutionary or developmental biology.
+c246,d-048,AR2227,1,correct,1,"This is an introductory historical survey course in architecture, matching the intent for an introductory humanities course in another subject."
+c247,d-019,CS4330,2,correct,2,"This is a 4000-level computer science course worth 4 NUS units, satisfying all semester 2 and exchange eligibility constraints."
+c248,d-086,IE4210,0,correct,0,This course is IE4210 in industrial engineering rather than the requested course EE4502 or one of its variants.
+c249,d-097,BT4212,0,correct,0,This course covers search engine optimization and web analytics rather than mechanical machine design.
+c250,d-033,BN4501,0,correct,0,This course focuses on synthetic genetic circuits in biomedical engineering rather than a mechanical engineering design project.
+c251,d-036,NGN2001C,0,correct,0,This is an NUS College humanities course rather than a mechanical engineering or engineering course.
+c252,d-076,CS2113,0,correct,0,This course focuses on software engineering and object-oriented programming rather than operating systems or computer architecture.
+c253,d-099,MUT1201,0,correct,0,This course teaches classical music composition rather than introductory accounting or finance.
+c254,d-076,CS4221,0,correct,0,This course covers database application design and tuning rather than computer operating systems or architecture.
+c255,d-045,PF3205,0,correct,0,This course covers construction measurement and quantity surveying rather than history or politics.
+c256,d-012,PH3202,0,correct,0,This course explores jurisprudence and legal philosophy rather than German commercial code accounting or international tax law.
+c257,d-097,CS2113,0,correct,0,"This course covers software engineering and object-oriented programming, which is explicitly noted as not relevant compared to mechanical machine design."
+c258,d-095,CS4220,0,correct,0,"This course focuses on machine learning and data mining algorithms in bioinformatics rather than bacterial microbiology, virology, or immunology."
+c259,d-077,DBA3803,1,correct,1,"This course covers predictive business data analytics and machine learning, directly matching the intent for partially relevant data analytics courses."
+c260,d-013,CG3207,0,correct,0,This course covers microprocessor and computer hardware architecture with no connection to finance.
+c261,d-090,CS2104,0,correct,0,"This course code is CS2104 in computer science, which is unrelated to the MUL21 code prefix."
+c262,d-087,TRA2101,0,correct,0,TRA2101 is not CN2109 or a letter-suffix variant of it.
+c263,d-092,MA1301,0,correct,0,MA1301 does not start with GEC and is not in a similar code family or subject.
+c264,d-085,MA2104,0,correct,0,MA2104 is neither MA2101 nor a letter-suffix variant.
+c265,d-088,CG4002,0,correct,0,CG4002 is neither CS2030 nor a variant.
+c266,d-048,HY2232,2,correct,2,HY2232 is a semester 1 history survey aimed at basic understanding with no prerequisites shown.
+c267,d-047,SC1101E,1,correct,1,"SC1101E is a broad intro social science course but not a GE module, fitting the partially relevant line."
+c268,d-084,CS4330,0,correct,0,CS4330 is neither MLE2105 nor a variant.
+c269,d-047,CH2230,1,correct,1,"CH2230 is a broad cultural survey outside the major but not a GE module, so partially relevant."
+c270,d-060,LSM3257,0,correct,0,LSM3257 is an R and spatial data analysis skills course with no focus on Southeast Asian tropical conservation.
+c271,d-091,DSA4212,0,correct,0,DSA4212 is not in the DAO17 code family or subject.
+c272,d-091,CS4330,0,correct,0,CS4330 is unrelated to the DAO17 prefix.
+c273,d-010,EC3333,1,correct,1,"EC3333 is a theoretical finance course with less hands-on modelling, matching the partially relevant line."
+c274,d-010,FIN2704X,0,overturned,1,"FIN2704X is a finance course covering valuation and capital budgeting but at an intro level, which is the right topic at a clearly lower level and not a named not-relevant type."
+c275,d-081,QF4102,0,correct,0,"QF4102 is a Science/Mathematics quantitative finance course, not a CS course."
+c276,d-087,MUL1105,0,correct,0,MUL1105 is neither CN2109 nor a variant.
+c277,d-048,GEC1043,2,correct,2,GEC1043 is a 1000-level introductory history course open to NG students in semester 1.
+c278,d-096,BSP1703,1,correct,1,"BSP1703 is Managerial Economics, named as partially relevant in the intent."
+c279,d-064,AR5802,0,correct,0,AR5802 is an architecture studio with no biochemistry content.
+c280,d-052,LSM2191A,1,correct,1,"LSM2191A teaches molecular biology techniques at 2000-level, related but not the core lecture course wanted."
+c281,d-023,LSM1301,2,correct,2,"LSM1301 is a 1000-level introductory course with no prerequisites shown, offered and open to NG in semester 2."
+c282,d-076,MUA1165,0,correct,0,"MUA1165 is a music technology course, not operating systems."
+c283,d-088,CS4231,0,correct,0,CS4231 is neither CS2030 nor a variant.
+c284,d-064,HSI2003,0,correct,0,"HSI2003 is a history-of-ideas course on molecular biology, not an intermediate biochemistry course."
+c285,d-085,PF3207,0,correct,0,PF3207 is neither MA2101 nor a variant.
+c286,d-082,CS4248,0,correct,0,CS4248 is neither BN4207 nor a variant.
+c287,d-084,MA2101,0,correct,0,MA2101 is neither MLE2105 nor a variant.
+c288,d-025,CS4240,0,correct,0,"Garbled query where the intent expects no results, so any returned course is not relevant."
+c289,d-084,CG3201,0,correct,0,CG3201 is neither MLE2105 nor a variant.
+c290,d-007,LAR1201,0,correct,0,"LAR1201 is Arabic, not Japanese or an East Asian language."
+c291,d-040,PS1101E,0,correct,0,PS1101E is a general politics intro with no gender content in its description.
+c292,d-025,CS3240,0,correct,0,"Garbled query where the intent expects no results, so any returned course is not relevant."
+c293,d-086,PF3211,0,correct,0,PF3211 is neither EE4502 nor a variant.
+c294,d-085,ME3281,0,correct,0,ME3281 is neither MA2101 nor a variant.
+c295,d-062,GESS1026,2,correct,2,GESS1026 is a GE course offered in semester 2 and open to NG students in semester 2.
+c296,d-085,MUL2109,0,correct,0,MUL2109 is neither MA2101 nor a variant.
+c297,d-084,ST4245,0,correct,0,ST4245 is neither MLE2105 nor a variant.
+c298,d-091,LSM4241,0,correct,0,LSM4241 is unrelated to the DAO17 prefix.
+c299,d-087,CN3106,0,correct,0,CN3106 is neither CN2109 nor a variant.
+c300,d-089,LL4335V,0,correct,0,LL4335V is neither IS4246 nor a variant.
+c301,d-081,CS4249,2,correct,2,"CS4249 is a CS course whose description centres on a semester-long group project, the closest fit shown to the project-assessed CS intent."
+c302,d-079,SC2222,0,correct,0,"SC2222 covers sports and society, not technology and society."
+c303,d-085,MA2116,0,correct,0,MA2116 is neither MA2101 nor a variant.
+c304,d-093,CN2103,0,correct,0,CN2103 is a chemical engineering balances course with no molecular biology content.
+c305,d-080,PH3203,0,correct,0,"PH3203 is a 3000-level meta-ethics course, not a beginner philosophy or intro logic course."
+c306,d-092,CN4233R,0,correct,0,CN4233R does not start with GEC and is unrelated.
+c307,d-025,CS4330,0,correct,0,"Garbled query where the intent expects no results, so any returned course is not relevant."
+c308,d-035,GEC1055,2,correct,2,"GEC1055 is a 1000-level GE course surveying Singapore's history, open to NG students in semester 1."
+c309,d-095,LSM3242,2,correct,2,"LSM3242 is a 3000-level microbiology course covering microbial genetics and human health, offered in semester 2 for NG students."
+c310,d-099,LAF1201,0,correct,0,"LAF1201 is a French language course, not accounting."
+c311,d-044,GESS1009,1,correct,1,"GESS1009 is Singapore history touching its diasporic society, not a sociology course on race and religion."
+c312,d-055,LSM3259,0,correct,0,LSM3259 is on fungi with no marine content.
+c313,d-096,CS4261,0,correct,0,"CS4261 is an advanced algorithmic mechanism design course, not intro microeconomics."
+c314,d-031,MA2104,0,correct,0,MA2104 is calculus with no thermodynamics content.
+c315,d-057,LSM3227,1,correct,1,"LSM3227 is virology, named as partially relevant in the intent."
+c316,d-016,DAO2703,0,correct,0,"DAO2703 is business operations management, sharing only the word operations."
+c317,d-090,MA3210,0,correct,0,MA3210 is unrelated to the MUL21 prefix.
+c318,d-024,CS2030,1,correct,1,CS2030 is a CS course built on assignments but its description does not show assessment without a final exam.
+c319,d-082,LL4237V,0,correct,0,LL4237V is neither BN4207 nor a variant.
+c320,d-051,HSI2017,0,correct,0,"HSI2017 is a history-of-science course, a history course named as not relevant and not health sciences."
+c321,d-047,MS3212,0,correct,0,"MS3212 is a specialised 3000-level classical Malay literature course, not a GE module or broad intro."
+c322,d-012,LL4213V,0,correct,0,"LL4213V is transnational law regulation, not German tax or accounting."
+c323,d-045,BSP3701,0,correct,0,"BSP3701 is a business capstone, outside the history or politics fields the intent asks for."
+c324,d-006,QF4103,1,correct,1,"QF4103 is a semester 1 derivatives finance course but 4000-level from Mathematics, so partially relevant."
+c325,d-033,AR5801,0,correct,0,"AR5801 is an architecture studio, named as not relevant."
+c326,d-089,MA3210,0,correct,0,MA3210 is neither IS4246 nor a variant.
+c327,d-068,PH4210,0,correct,0,PH4210 is a 4000-level miscellaneous topics seminar that only possibly includes philosophy of psychology.
+c328,d-009,MA2001,0,correct,0,"MA2001 is linear algebra, unrelated to international business."
+c329,d-096,CM4228,0,correct,0,"CM4228 is an advanced catalysis chemistry course, not intro microeconomics."
+c330,d-061,LSM4241,0,correct,0,"LSM4241 is functional genomics, not evolutionary developmental biology."
+c331,d-091,DAO2702X,1,correct,1,"DAO2702X shares the DAO code family, fitting the similar code family partial line."
+c332,d-058,LSM3242,0,correct,0,"LSM3242 describes no protein purification, enzyme kinetics or practical work."
+c333,d-086,EC3101,0,correct,0,EC3101 is neither EE4502 nor a variant.
+c334,d-090,CS2100DE,0,correct,0,CS2100DE is unrelated to the MUL21 prefix.
+c335,d-041,PH4213,0,correct,0,"PH4213 is comparative philosophy, not comparative politics."
+c336,d-085,CS2100,0,correct,0,CS2100 is neither MA2101 nor a variant.
+c337,d-092,CS4248,0,correct,0,CS4248 does not start with GEC and is unrelated.
+c338,d-054,LSM3242,0,correct,0,LSM3242 is a lecture-style microbiology course with no practicals shown.
+c339,d-024,LAC1201,0,correct,0,"LAC1201 is a Chinese language course, not CS."
+c340,d-008,BSP1703,0,correct,0,"BSP1703 is a 1000-level managerial economics course, not an upper-level marketing elective."
+c341,d-081,CS2100,0,correct,0,CS2100 description shows no project-based or coursework-only assessment.
+c342,d-031,CM3131,0,correct,0,CM3131 is physical chemistry with no engineering cycles content.
+c343,d-088,CS4223,0,correct,0,CS4223 is neither CS2030 nor a variant.
+c344,d-080,PH2222,2,correct,2,"PH2222 is a 2000-level introduction to Plato and Socrates with no prerequisite shown, open to NG students in semester 1."
+c345,d-063,LSM2106,0,correct,0,"LSM2106 is a 2000-level foundational biochemistry course, far below the advanced molecular biology wanted."
+c346,d-090,CS2100,0,correct,0,CS2100 is unrelated to the MUL21 prefix.
+c347,d-082,MA4273,0,correct,0,MA4273 is neither BN4207 nor a variant.
+c348,d-051,MUA4161,0,correct,0,"MUA4161 is a music performance course, not health sciences, and is not open to NG students in semester 2."
+c349,d-066,CM3267,0,correct,0,Chemistry computational thinking with Python on a Raspberry Pi has no concurrency or threads content.
+c350,d-004,MA2101,0,correct,0,Linear algebra is unrelated to advanced corporate finance.
+c351,d-087,LSM4202,0,correct,0,"Code is LSM4202, not CN2109 or a variant, and the intent says any other course is not relevant."
+c352,d-083,LL4111V,0,correct,0,"Code is LL4111V, not LL4541V or a variant."
+c353,d-095,LSM4202,0,correct,0,Urban food production and food safety is not bacterial microbiology.
+c354,d-013,CS4261,0,correct,0,Algorithmic mechanism design is game theory in computer science with no finance link.
+c355,d-016,MA2101,0,correct,0,Linear algebra has nothing to do with operating systems.
+c356,d-082,MA2202,0,correct,0,"Code is MA2202, not BN4207 or a variant."
+c357,d-051,LAJ1201,0,correct,0,Beginner Japanese is unrelated to dentistry placement.
+c358,d-087,HY3267,0,correct,0,"Code is HY3267, not CN2109 or a variant."
+c359,d-022,MA1301,0,correct,0,"A remedial bridging maths course is technical, which the intent names as not relevant."
+c360,d-079,GE2205,0,correct,0,"Description covers nature-society geography with no technology angle, so it matches neither the relevant nor the partial line."
+c361,d-086,PC3231,0,correct,0,"Code is PC3231, not EE4502 or a variant."
+c362,d-060,PS3276,0,correct,0,"Comparative political behaviour is political science, named as not relevant."
+c363,d-088,IE4246,0,correct,0,"Code is IE4246, not CS2030 or a variant."
+c364,d-095,NST2052,0,correct,0,Environmental policy and society is not microbiology.
+c365,d-081,COS1000,0,correct,0,A Science-faculty intro computing course with no stated project-only assessment does not match the CS no-final-exam intent.
+c366,d-099,GEX1014,0,correct,0,Formal logic is not accounting or finance.
+c367,d-056,LSM3223,0,correct,0,"Immunology host defence is not signal transduction or cancer, and is not general cell biology."
+c368,d-090,LSM2191A,0,correct,0,Code LSM2191A does not start with MUL21.
+c369,d-061,MLE4225,0,correct,0,Electro-active materials for energy has no evolutionary developmental biology content.
+c370,d-086,ESE2000,0,correct,0,"Code is ESE2000, not EE4502 or a variant."
+c371,d-090,MA2104,0,correct,0,Code MA2104 does not start with MUL21.
+c372,d-036,ME3115,1,correct,1,"Mechanical course showing 4 units but at 3000-level instead of the wanted 2000-level, so partial per the intent's any-engineering-course line."
+c373,d-084,IE4213,0,correct,0,"Code is IE4213, not MLE2105 or a variant."
+c374,d-091,CS4226,0,correct,0,Code CS4226 does not start with DAO17.
+c375,d-062,QF3101,0,correct,0,"A 3000-level quantitative finance course in Science is major-specific, not general education."
+c376,d-091,IS3240,0,correct,0,Code IS3240 does not start with DAO17.
+c377,d-082,MA2101,0,correct,0,"Code is MA2101, not BN4207 or a variant."
+c378,d-059,LSM3225,1,correct,1,"Upper-level molecular microbiology is related to molecular cell biology but shows no lab, so partial."
+c379,d-078,LI5204,0,correct,0,A 5000-level graduate supply chain simulation course is technical and not a non-technical general education course.
+c380,d-045,BSP3701A,0,correct,0,A business strategy capstone is not history or politics.
+c381,d-018,BT4240,2,correct,2,A 4000-level machine learning course for predictive analytics in semester 2 is an ML alternative the intent asks for.
+c382,d-078,MA1301,0,correct,0,A technical bridging maths course is not a non-technical general education course.
+c383,d-009,CS3240,0,correct,0,Interaction design is HCI with no international business content.
+c384,d-092,CM2143,0,correct,0,Code CM2143 does not start with GEC.
+c385,d-022,LAC1201,1,correct,1,"A beginner language course in Arts and Social Science is a broad-interest humanities course with no GE evidence, so partial."
+c386,d-019,CS3247,2,correct,2,"3000-level Computer Science course, 4 units, semester 2, matches the intent."
+c387,d-018,MA4275,2,correct,2,"A 4000-level course on reinforcement learning, a machine learning topic, is an ML alternative the intent asks for."
+c388,d-049,HSI2008,1,correct,1,"History of science with no assessment information is related but unconfirmed, so partial."
+c389,d-045,RE4701,0,correct,0,Real estate development is not history or politics.
+c390,d-096,EC2102,1,correct,1,"Macroeconomics is the intent's partial line, not intro microeconomics."
+c391,d-016,DOS3703,0,correct,0,Service operations management is unrelated to operating systems.
+c392,d-020,DOS3701,0,correct,0,Supply chain management is not unit-conversion information.
+c393,d-016,CG2027,0,correct,0,Transistor-level circuits are not operating systems or systems programming.
+c394,d-073,DOS3701,0,correct,0,Supply chain management has no database content.
+c395,d-090,MA2116,0,correct,0,Code MA2116 does not start with MUL21.
+c396,d-012,LL4556V,0,correct,0,Financial markets law is not German commercial accounting or tax law.
+c397,d-084,HS1502,0,correct,0,"Code is HS1502, not MLE2105 or a variant."
+c398,d-043,GEC1055,1,correct,1,"A history-department survey of Singapore visual arts to the 19th century is related to Singapore history but not colonial to independence, so partial."
+c399,d-057,MLE4239,0,correct,0,Materials science biointerfaces is not bacterial microbiology.
+c400,d-087,PC2193,0,correct,0,"Code is PC2193, not CN2109 or a variant."
+c401,d-029,ESP3106,1,correct,1,"Continuum mechanics covers heat transfer as one part of a broader course, so partial."
+c402,d-056,LSM4218,0,correct,0,Biotherapeutic drug development is not cell signalling.
+c403,d-013,FIN3701A,2,correct,2,"A 3000-level corporate finance course covering capital structure, dividends and M&A matches the typo-corrected intent."
+c404,d-062,ESE4401,0,correct,0,"An advanced 4000-level engineering course is major-specific, named as not relevant."
+c405,d-021,ID3110,0,correct,0,A design studio on strategic design innovation is not HCI or UX.
+c406,d-062,NHS2053,2,overturned,1,"The fields show no general education designation (NUS College Dean's Office course, NHS code), so it fits the intent's partial line of GE courses without clear info."
+c407,d-048,HY2260,2,overturned,1,"A 2000-level History and Popular Culture course is not shown as introductory, so it is at best a partial match for an intro history course."
+c408,d-061,EC3375,0,correct,0,Japan and Korea economy has no evolutionary developmental biology content.
+c409,d-024,CS2113,2,overturned,1,"Description shows team software projects but nothing about having no final exam, so project-based CS is only partly confirmed."
+c410,d-024,AR3102,0,correct,0,An architecture design studio is not a CS course.
+c411,d-066,CS4224,1,correct,1,"Distributed databases touch transaction concurrency and parallel systems, so partial."
+c412,d-024,QF1100,0,correct,0,Introductory quantitative finance is not a CS course.
+c413,d-081,CS2100DE,0,correct,0,Computer organisation hardware shows no project-only assessment and mentions nothing indicating no final exam.
+c414,d-052,LSM2106,1,correct,1,A 2000-level biochemistry course on biomolecules in molecular cell biology is related but not a core molecular biology course.
+c415,d-036,MUL2109,0,correct,0,German for musicians is not a mechanical engineering course.
+c416,d-067,CS3247,0,correct,0,"Game development covers engines and game design, not design patterns or OO design."
+c417,d-089,CM4254,0,correct,0,"Code is CM4254, not IS4246 or a variant."
+c418,d-020,FIN3702B,0,correct,0,Investment analysis is not unit-conversion information.
+c419,d-076,MNO1706X,0,correct,0,Organisational behaviour is not operating systems.
+c420,d-090,CM3131,0,correct,0,Code CM3131 does not start with MUL21.
+c421,d-056,CG2023,0,correct,0,Signals and systems engineering is named as not relevant.
+c422,d-092,GE2103,0,correct,0,Code GE2103 does not start with GEC.
+c423,d-029,ME4291,1,correct,1,"Finite element analysis includes heat transfer as one part, so partial."
+c424,d-061,LSM4225,0,correct,0,Clinical genetic medicine is not evolutionary or developmental biology.
+c425,d-049,GEC1055,1,correct,1,"History department course with no assessment information, so partial."
+c426,d-004,EC3101,0,correct,0,Microeconomic theory is not corporate finance.
+c427,d-019,MA4275,0,correct,0,"A Mathematics-department course is non-CS, which the intent names as not relevant."
+c428,d-065,GEC1044,0,correct,0,Chinese medicine humanities is not veterinary clinical placement.
+c429,d-075,IS4236,2,correct,2,Cloud services and infrastructure at 4000-level in semester 2 is a cloud computing substitute the intent asks for.
+c430,d-058,LSM4241,0,correct,0,"A lecture-based functional genomics course shows no practical lab work, which the intent excludes."
+c431,d-066,RB2301,0,correct,0,"Robot programming basics show no concurrency, threads or synchronisation."
+c432,d-083,LL4096V,0,correct,0,"Code is LL4096V, not LL4541V or a variant."
+c433,d-069,PH2113,0,correct,0,Computation and Python in philosophy is not ethics or moral philosophy.
+c434,d-084,BT3017,0,correct,0,"Code is BT3017, not MLE2105 or a variant."
+c435,d-080,PH2227,2,overturned,1,"A 2000-level topical course on games and philosophy is not a general beginner philosophy course, so partial."
