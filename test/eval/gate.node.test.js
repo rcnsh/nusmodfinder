@@ -207,6 +207,25 @@ describe('small samples and degenerate intervals (review finding 6)', () => {
     // One query that did not move is not a confident regression either.
     expect(names(devGate(withTypo([0.5], [0.5]), { targetShapes: ['typo'] }))[tw]).toBe(true);
   });
+
+  it('a tripwire whose every query moved by exactly 0 passes (ADR 0003 amendment 2026-11-07)', () => {
+    const core = many(30, 0.3, 0.3);
+    const tw = 'tripwire: abbreviation not confidently regressed';
+    const withShape = (/** @type {number[]} */ from, /** @type {number[]} */ to) => compare(
+      [...core.base, ...from.map((x, i) => q(`a${i}`, x, { shapes: ['abbreviation'] }))],
+      [...spread(core.cand), ...to.map((x, i) => q(`a${i}`, x, { shapes: ['abbreviation'] }))],
+    );
+    // Five queries, none moved: a degenerate interval, and no regression.
+    const still = devGate(withShape([0.2, 0.4, 0.6, 0.8, 1], [0.2, 0.4, 0.6, 0.8, 1]), { targetShapes: ['abbreviation'] });
+    expect(names(still)[tw]).toBe(true);
+    expect(detail(still, tw)).toMatch(/every query's ΔnDCG@10 is 0/);
+    // Every query down by the same amount is degenerate too, and still fails.
+    const down = devGate(withShape([0.5, 0.5, 0.5], [0.4, 0.4, 0.4]), { targetShapes: ['abbreviation'] });
+    expect(names(down)[tw]).toBe(false);
+    // Every query up by the same amount stays degenerate and fails, as before: only a zero change passes.
+    const up = devGate(withShape([0.5, 0.5, 0.5], [0.6, 0.6, 0.6]), { targetShapes: ['abbreviation'] });
+    expect(names(up)[tw]).toBe(false);
+  });
 });
 
 describe('errored queries (review finding 1)', () => {
