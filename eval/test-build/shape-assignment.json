@@ -1,0 +1,79 @@
+{
+ "seed": "vnm-test-2026-11-08",
+ "counts": {
+  "P1": {
+   "topical": 6,
+   "mapping": 3,
+   "alternatives": 2,
+   "language": 1,
+   "equivalence": 1,
+   "abbreviation": 1,
+   "ge": 1,
+   "level": 4,
+   "constraint": 2,
+   "noanswer": 2
+  },
+  "P2": {
+   "topical": 9,
+   "mapping": 6,
+   "equivalence": 1,
+   "abbreviation": 1,
+   "ge": 2,
+   "level": 2,
+   "noanswer": 1
+  },
+  "P3": {
+   "topical": 8,
+   "mapping": 2,
+   "language": 2,
+   "sea": 1,
+   "equivalence": 1,
+   "abbreviation": 2,
+   "level": 1,
+   "constraint": 2
+  },
+  "P4": {
+   "topical": 7,
+   "mapping": 4,
+   "language": 1,
+   "sea": 7,
+   "equivalence": 1,
+   "abbreviation": 1,
+   "ge": 1,
+   "level": 2,
+   "constraint": 2,
+   "noanswer": 2
+  },
+  "P5": {
+   "topical": 6,
+   "mapping": 3,
+   "alternatives": 4,
+   "language": 3,
+   "equivalence": 2,
+   "abbreviation": 3,
+   "level": 2,
+   "constraint": 3,
+   "noanswer": 2
+  },
+  "P6": {
+   "topical": 9,
+   "mapping": 2,
+   "alternatives": 4,
+   "language": 1,
+   "equivalence": 2,
+   "abbreviation": 4,
+   "ge": 2,
+   "level": 1,
+   "constraint": 1,
+   "noanswer": 1
+  }
+ },
+ "load": {
+  "P1": 23,
+  "P2": 22,
+  "P3": 19,
+  "P4": 28,
+  "P5": 28,
+  "P6": 27
+ }
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "vnm-holdout-manifest/1",
+  "files": {
+    "embeddings.json.enc": "33ecd27b949a3863ebb29e97f7e5ba25718438b117e7fcddd600e1bf1007e068",
+    "qrels.json.enc": "811d9a4fda1355daecb65771b809c7d052c32fcc69206b94bf3aef1ad1a78a25",
+    "queries.json.enc": "b096016d80675ae648dd8453b8cb29a916ac95fa4b64f1dd67b4f7fcc4bbc52c",
+    "run-final.json.enc": "2ac192dff444994ba94994165c44fdc35fb01e1409474f3b6b4bd5e0e0f9dc18",
+    "run-v0.json.enc": "7b29ce469f4493cd5ab95a656063531790902db66afb684cf683d01faffa1a54"
+  }
+}
