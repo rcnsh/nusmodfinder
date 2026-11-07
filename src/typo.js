@@ -55,11 +55,31 @@ const PIECES = new RegExp(`(${FTS_SEPARATORS.source})`, FTS_SEPARATORS.flags);
  */
 
 /**
+ * The last correction, kept because /search parses a query more than once
+ * when D1 has to say whether a code is offered (src/search.js
+ * parseWithCorpus), and the nearest-term scan is the costly part.
+ * @type {{ q: string, vocab: import('./vocabulary.js').Vocabulary, result: CorrectedQuery } | null}
+ */
+let last = null;
+
+/**
  * @param {string} q the canonical q
+ * @param {import('./vocabulary.js').Vocabulary} vocab
+ * @returns {CorrectedQuery} not to be mutated (it may be returned again)
+ */
+export function correctQuery(q, vocab) {
+  if (last && last.q === q && last.vocab === vocab) return last.result;
+  const result = correct(q, vocab);
+  last = { q, vocab, result };
+  return result;
+}
+
+/**
+ * @param {string} q
  * @param {import('./vocabulary.js').Vocabulary} vocab
  * @returns {CorrectedQuery}
  */
-export function correctQuery(q, vocab) {
+function correct(q, vocab) {
   const tokens = queryTokens(q);
   /** @type {string[]} */
   const prefixes = [];

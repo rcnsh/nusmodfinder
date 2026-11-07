@@ -110,6 +110,9 @@ export function prefixMatches(v, token) {
   return i < v.stems.length && v.stems[i].startsWith(p);
 }
 
+/** Three DP rows, reused across calls (grown as needed). */
+let rows = [new Int32Array(32), new Int32Array(32), new Int32Array(32)];
+
 /**
  * The optimal string alignment distance (Levenshtein plus adjacent
  * transposition, each substring edited at most once), C2-5: `desgin` →
@@ -120,23 +123,27 @@ export function osaDistance(a, b, max = Infinity) {
   const n = a.length;
   const m = b.length;
   if (Math.abs(n - m) > max) return max + 1;
-  /** @type {number[]} */
-  let prev2 = [];
-  let prev = Array.from({ length: m + 1 }, (_, j) => j);
+  if (rows[0].length <= m) rows = [new Int32Array(m + 1), new Int32Array(m + 1), new Int32Array(m + 1)];
+  let [prev2, prev, cur] = rows;
+  for (let j = 0; j <= m; j++) prev[j] = j;
   for (let i = 1; i <= n; i++) {
-    const cur = [i];
+    const ai = a.charCodeAt(i - 1);
+    const aPrev = i > 1 ? a.charCodeAt(i - 2) : -1;
+    cur[0] = i;
     let rowMin = i;
     for (let j = 1; j <= m; j++) {
-      let d = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d = Math.min(d, prev2[j - 2] + 1);
-      cur.push(d);
+      const bj = b.charCodeAt(j - 1);
+      let d = prev[j - 1] + (ai === bj ? 0 : 1);
+      if (prev[j] + 1 < d) d = prev[j] + 1;
+      if (cur[j - 1] + 1 < d) d = cur[j - 1] + 1;
+      if (j > 1 && ai === b.charCodeAt(j - 2) && aPrev === bj && prev2[j - 2] + 1 < d) d = prev2[j - 2] + 1;
+      cur[j] = d;
       if (d < rowMin) rowMin = d;
     }
     // No later row can come back under the bound (a transposition reaches back
     // two rows, but only from a cell the row between already improves on).
     if (rowMin > max) return max + 1;
-    prev2 = prev;
-    prev = cur;
+    [prev2, prev, cur] = [prev, cur, prev2];
   }
   return prev[m] > max ? max + 1 : prev[m];
 }
