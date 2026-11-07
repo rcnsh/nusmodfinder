@@ -88,3 +88,23 @@ The smoke calls:
 Corrections are internal; the response's `interpreted` does not report them.
 
 Rollback, if needed: `npx wrangler rollback 8e743876-6361-4db6-91a4-8bf951d76e7f`. D1 is unchanged, so it needs no restore.
+
+## 2026-11-07: 3F ship (deploy only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 15:08 | PR #52 merged as `2ce17c6`. Data version and bundle unchanged (`32b590de51aa`); `data/groups.json` is a committed Worker module built for it; no migration | — | — |
+| 15:09:26 | D1 Time Travel bookmark `00000010-00000000-0000511c-95d7aa8b7e56f2eb6185958a2c7f53cb`; live version `c402a75d-d165-4c69-b7c1-4f5d1df24fb9` (tag `89cb10e`), checked by one `/health` (`requests.tsv` 90) | 0 | recorded (rollback targets) |
+| — | Step 4 ingest: not run. 3F writes nothing to D1 | 0 | 0 |
+| 15:10:00–15:10:02 | `npm run verify -- --pre-deploy` (via `wrangler dev --remote`, one-off secret; `.dev.vars` restored after) | ~6.8k rows read | 6,778 rows read; D1, manifest and bundle agree |
+| 15:10:11–15:10:41 | `npm run deploy` (the guard passed) | ~6.8k rows read | version **`6e832483-b508-4a0b-bd4f-bb79709b44c8`** (tag `2ce17c6`) at 100% |
+| 15:10:46 | Smoke (200, not degraded; 2 SIN, 1 NRT; `requests.tsv` 91) | ≤ 4 calls | 4 calls |
+| — | Step 8 standby: not run. Vectors and module rows are unchanged | 0 | 0 |
+
+The smoke calls:
+- `/health`: production bundle, 6,778 vectors, tag `2ce17c6`;
+- `start-up internship` (S8): TR3202N first, with TR3202I/S/T as variants (12 credits each);
+- `cs 1010s` (pin): CS1010S first, with CS1010, A, E, HS, R and X as variants;
+- `machine learning`: 20 results, EE2211 first.
+
+Rollback, if needed: `npx wrangler rollback c402a75d-d165-4c69-b7c1-4f5d1df24fb9`. D1 is unchanged, so it needs no restore.
