@@ -7,6 +7,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { denseBundle } from '../src/dense.js';
 import { exactSearch } from '../src/vector-bundle.js';
+import { env } from 'cloudflare:workers';
 import { createFakes, hashEmbed } from './fakes.js';
 import { adminCall, callJson, fixture, seed } from './helpers.js';
 
@@ -238,5 +239,38 @@ describe('the bundle filter table is untouched', () => {
   it('still reads the 3-0 layout (no prefix id in the reserved slot)', () => {
     const b = denseBundle();
     expect(b.header.schema).toBe('vnm-vectors/1');
+  });
+});
+
+describe('review fixes (PR #44)', () => {
+  it('lead decision: ge followed by digits inside a longer query is text: no GE mask, Geography stays in both halves', async () => {
+    for (const mode of ['hybrid', 'lexical']) {
+      const { body } = await callJson(`/search?q=${encodeURIComponent('ge 2101 methods practices geography')}&mode=${mode}`, { fakes });
+      expect(body.interpreted.ge, mode).toBeNull();
+      expect(body.interpreted.pin, mode).toBeNull();
+      expect(codes(body), mode).toContain('GE2101');
+    }
+  });
+
+  it('the D1-only window: a module D1 has and the bundle lacks is offered and pinned (runbook steps 4-6)', async () => {
+    const f = fakes;
+    const base = /** @type {any} */ (moduleOf.get('CS1010S'));
+    for (const code of ['CS9998', 'GEQ1000']) {
+      const res = await adminCall('/admin/ingest?d1Only=1', f, { modules: [{ ...base, code, title: `New module ${code}`, textHash: `d1-only-${code}` }] });
+      expect(res.status).toBe(200);
+    }
+    expect(denseBundle().codes).not.toContain('CS9998');
+    for (const mode of ['hybrid', 'lexical']) {
+      for (const code of ['CS9998', 'GEQ1000']) {
+        const { body } = await callJson(`/search?q=${code.toLowerCase()}&mode=${mode}`, { fakes: f });
+        expect(body.noMatch, `${mode} ${code}`).toBeUndefined();
+        expect(body.interpreted.pin, `${mode} ${code}`).toEqual([code]);
+        expect(body.results[0], `${mode} ${code}`).toMatchObject({ code, title: `New module ${code}` });
+      }
+    }
+    // A code neither the bundle nor D1 holds is still unknown, after one D1 read.
+    const { body } = await callJson('/search?q=cs9997', { fakes: f });
+    expect(body.noMatch).toEqual({ reason: 'unknown-code', code: 'CS9997' });
+    await env.DB.prepare("DELETE FROM modules WHERE code IN ('CS9998', 'GEQ1000')").run();
   });
 });

@@ -243,3 +243,33 @@ describe('the SC4 suite, the keys 3B sets', () => {
     });
   }
 });
+
+describe('review fixes (PR #44)', () => {
+  it('a punctuation-only word does not count toward the whole query or the collision guard', () => {
+    expect(parse('GEQ1000 ?')).toMatchObject({ kind: 'no-match', noMatch: { reason: 'not-offered', code: 'GEQ1000' } });
+    expect(parse('cs9999 ?')).toMatchObject({ kind: 'no-match', noMatch: { reason: 'unknown-code', code: 'CS9999' } });
+    expect(parse('gex ?')).toMatchObject({ kind: 'mask', ranges: [['GEX0', 'GEX:']], interpreted: { prefix: 'GEX' } });
+    expect(parse('cs 3000 ?')).toMatchObject({ kind: 'mask', ranges: [['CS0', 'CS:']], level: { min: 3, max: 3 } });
+    expect(parse('is 4246 ?').interpreted.pin).toEqual(['IS4246']);
+    expect(parse('? ee 2211 !').interpreted.pin).toEqual(['EE2211']);
+  });
+
+  it('the suffix join takes trailing punctuation; only / or - after the letters blocks it', () => {
+    expect(parse('cs1010 s?').interpreted.pin).toEqual(['CS1010S']);
+    expect(parse('cs 1010 s.').interpreted.pin).toEqual(['CS1010S']);
+    expect(parse('cs1010 s, please').interpreted.pin).toEqual(['CS1010S']);
+    expect(parse('cs1231 s/u').interpreted.pin).toEqual(['CS1231']);
+    expect(parse('cs1231 s-u').interpreted.pin).toEqual(['CS1231']);
+  });
+
+  it('lead decision: `ge` directly followed by a token starting with a digit is plain text, not the GE intent', () => {
+    for (const q of ['ge 2101 workload', 'geography ge 2101 syllabus', 'ge 2 easy modules']) {
+      const p = parse(q);
+      expect([p.kind, p.interpreted.ge, p.interpreted.pin, p.ranges], q).toEqual(['search', null, null, null]);
+      expect(p.lexical, q).toBe(q);
+    }
+    expect(parse('ge').interpreted.ge).toEqual(ALL_PILLARS);
+    expect(parse('ge modules about technology')).toMatchObject({ kind: 'search', interpreted: { ge: ALL_PILLARS }, lexical: 'modules about technology' });
+    expect(parse('ge 2101').interpreted).toMatchObject({ pin: ['GE2101'], ge: null });
+  });
+});
