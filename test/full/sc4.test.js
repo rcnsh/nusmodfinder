@@ -81,6 +81,9 @@ const codesOf = (/** @type {any} */ body) => body.results.map((/** @type {{ code
 /** @type {Map<string, number>} */
 const groupOf = new Map();
 groupsFile.groups.forEach((g, i) => g.forEach((m) => groupOf.set(m, i)));
+const gkey = (/** @type {string} */ c) => (groupOf.has(c) ? `g${groupOf.get(c)}` : c);
+/** The group-first projection of a list (3F). @param {string[]} list */
+const projectGroups = (list) => { const seen = new Set(); return list.filter((c) => (seen.has(gkey(c)) ? false : (seen.add(gkey(c)), true))); };
 
 /** @param {string} s */
 async function sha256Hex(s) {
@@ -279,10 +282,11 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
       expect(codesOf(cs.body).every((code) => /^CS\d/.test(code)), mode).toBe(true);
       const ges = await search('ges', 50, `&mode=${mode}`);
       expect(codesOf(ges.body).some((code) => code.startsWith('GESS')), mode).toBe(false);
-      expect([...codesOf(ges.body)].sort(), mode).toEqual(members('GES'));
+      // 3F: one result per duplicate group (a GES code can be cross-listed as a GESS variant).
+      expect(new Set(codesOf(ges.body).map(gkey)), mode).toEqual(new Set(members('GES').map(gkey)));
     }
-    // In mode=lexical the members are in code order.
-    expect(codesOf((await search('cs', 50, '&mode=lexical')).body)).toEqual(members('CS').slice(0, 50));
+    // In mode=lexical the members are in code order, one per duplicate group.
+    expect(codesOf((await search('cs', 50, '&mode=lexical')).body)).toEqual(projectGroups(members('CS')).slice(0, 50));
   });
 
   it('lists the items it does not run yet, each with the workstream it waits for', () => {

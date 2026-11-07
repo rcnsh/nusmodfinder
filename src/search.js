@@ -436,6 +436,9 @@ const denseRun = (env, texts, trace, then) => embedAll(env, texts, trace).then(t
   (err) => { denseCircuit.failure(err.source); throw err; },
 );
 
+/** D1 binds at most 100 parameters per statement. */
+const D1_PARAMS = 100;
+
 /**
  * @param {D1DatabaseSession} db
  * @param {string[]} codes
@@ -443,17 +446,20 @@ const denseRun = (env, texts, trace, then) => embedAll(env, texts, trace).then(t
  * @returns {Promise<Map<string, ResultRow>>}
  */
 async function fetchRows(db, codes, trace) {
-  if (codes.length === 0) return new Map();
-  const placeholders = codes.map(() => '?').join(',');
-  const res = /** @type {D1Result<ResultRow>} */ (await d1Timed(trace, 'hydrate', () => db.prepare(
-    `SELECT ${RESULT_COLUMNS} FROM modules WHERE code IN (${placeholders})`,
-  ).bind(...codes).all()));
-  trace.d1Result(res);
-  return new Map(res.results.map((r) => [r.code, r]));
+  /** @type {Map<string, ResultRow>} */
+  const rows = new Map();
+  // D1 binds at most D1_PARAMS per statement; a collapsed mask page can need more members (3F).
+  for (let i = 0; i < codes.length; i += D1_PARAMS) {
+    const chunk = codes.slice(i, i + D1_PARAMS);
+    const res = /** @type {D1Result<ResultRow>} */ (await d1Timed(trace, 'hydrate', () => db.prepare(
+      `SELECT ${RESULT_COLUMNS} FROM modules WHERE code IN (${chunk.map(() => '?').join(',')})`,
+    ).bind(...chunk).all()));
+    trace.d1Result(res);
+    for (const r of res.results) rows.set(r.code, r);
+  }
+  return rows;
 }
 
-/** D1 binds at most 100 parameters per statement. */
-const D1_PARAMS = 100;
 
 /** The columns a variant needs: its code and credits, and the fields localMatchesFilters reads. */
 const VARIANT_COLUMNS = 'code, credits, level, faculty, semesters, ng, ng_semesters';
