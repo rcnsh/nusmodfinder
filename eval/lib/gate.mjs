@@ -9,6 +9,7 @@
 //           shapes, each target's ΔnDCG@10 > 0, and overall ΔnDCG@10 >= 0).
 //           Tripwire on target shapes only: a target whose one-sided 95% upper
 //           bound on ΔnDCG@10 is below 0 (a confident regression) fails.
+//           A target whose every query moved by exactly 0 passes it.
 //   holdout ΔnDCG@10 >= 0 and ΔP@5 >= 0 (point estimates); no exact-code
 //           regression; judged@10 = 100% for both runs.
 //   cutoff  For a change whose purpose is the no-answer cutoff, the trade-off
@@ -246,6 +247,10 @@ export function devGate(cmp, change = {}, noLoss = cmp) {
     } else if (s.n < RULES.minShapeQueriesForCi) {
       // Too few queries for an interval: fall back to the point estimate.
       checks.push({ name, pass: s.ndcg.delta >= -EPS, detail: `n ${s.n} < ${RULES.minShapeQueriesForCi}: point estimate ΔnDCG@10 ${f(s.ndcg.delta)} >= 0` });
+    } else if (s.ndcg.bca.degenerate && Math.abs(s.ndcg.delta) <= EPS) {
+      // Every query moved by exactly 0 (a degenerate interval at 0): no change
+      // is no regression (ADR 0003 amendment 2026-11-07, found at 3B).
+      checks.push({ name, pass: true, detail: `n ${s.n}: every query's ΔnDCG@10 is 0 (degenerate interval at 0: no change, no regression)` });
     } else {
       /** @type {import('./stats.mjs').Interval} */
       const ci = s.ndcg.bca;
