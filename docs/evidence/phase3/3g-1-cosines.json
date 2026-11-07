@@ -1,0 +1,845 @@
+{
+  "schema": "vnm-3g1-cosines/1",
+  "corpus": {
+    "bundle": "pinned",
+    "dataVersion": "b21292ab3713",
+    "count": 6771
+  },
+  "gibberish": {
+    "version": "gibberish-v1",
+    "seed": 20261106
+  },
+  "rule": "top-1 exact cosine of the canonical q as typed, with the query's filters; candidates: derivation half, nearest-rank p90 and p95 and max, + 1e-6, distinct",
+  "candidates": [
+    0.5693180883526313,
+    0.5814376699800824,
+    0.6012585039510654
+  ],
+  "predicted": [
+    {
+      "tau": 0.5693180883526313,
+      "gateFires": 15,
+      "gateShare": 0.75,
+      "derivationFires": 18,
+      "devEmptied": []
+    },
+    {
+      "tau": 0.5814376699800824,
+      "gateFires": 16,
+      "gateShare": 0.8,
+      "derivationFires": 19,
+      "devEmptied": []
+    },
+    {
+      "tau": 0.6012585039510654,
+      "gateFires": 18,
+      "gateShare": 0.9,
+      "derivationFires": 20,
+      "devEmptied": []
+    }
+  ],
+  "derivation": [
+    {
+      "id": "g-02",
+      "text": "zxcvbnm",
+      "noSignal": true,
+      "top": 0.5814366699800824
+    },
+    {
+      "id": "g-05",
+      "text": "aaaaaaaa",
+      "noSignal": true,
+      "top": 0.5288881356948496
+    },
+    {
+      "id": "g-09",
+      "text": "lkjhgf poiuy",
+      "noSignal": true,
+      "top": 0.5527804822874932
+    },
+    {
+      "id": "g-11",
+      "text": "lol",
+      "noSignal": true,
+      "top": 0.4918041608731445
+    },
+    {
+      "id": "g-13",
+      "text": "ummm",
+      "noSignal": true,
+      "top": 0.5058380970323433
+    },
+    {
+      "id": "g-16",
+      "text": "brb afk",
+      "noSignal": true,
+      "top": 0.5470228534263382
+    },
+    {
+      "id": "g-17",
+      "text": "smh fr",
+      "noSignal": true,
+      "top": 0.5607229830061595
+    },
+    {
+      "id": "g-18",
+      "text": "pfft meh",
+      "noSignal": true,
+      "top": 0.5267579102406578
+    },
+    {
+      "id": "g-20",
+      "text": "mmmmm",
+      "noSignal": true,
+      "top": 0.498510317564817
+    },
+    {
+      "id": "g-21",
+      "text": "rizz",
+      "noSignal": true,
+      "top": 0.513973228795658
+    },
+    {
+      "id": "g-23",
+      "text": "gyatt",
+      "noSignal": true,
+      "top": 0.5239490524062592
+    },
+    {
+      "id": "g-25",
+      "text": "ong bestie",
+      "noSignal": true,
+      "top": 0.5411006985892051
+    },
+    {
+      "id": "g-26",
+      "text": "sheesh",
+      "noSignal": true,
+      "top": 0.4889129171535663
+    },
+    {
+      "id": "g-29",
+      "text": "kekw",
+      "noSignal": true,
+      "top": 0.5004781211332208
+    },
+    {
+      "id": "g-30",
+      "text": "zzkx qq",
+      "noSignal": true,
+      "top": 0.5407135048726877
+    },
+    {
+      "id": "g-33",
+      "text": "xj9k 2kq",
+      "noSignal": true,
+      "top": 0.5589269579656335
+    },
+    {
+      "id": "g-34",
+      "text": "h4x0r",
+      "noSignal": true,
+      "top": 0.6012575039510654
+    },
+    {
+      "id": "g-37",
+      "text": "zz9 xx8",
+      "noSignal": true,
+      "top": 0.538814985535058
+    },
+    {
+      "id": "g-38",
+      "text": "pqz 8812 wvx",
+      "noSignal": true,
+      "top": 0.5395804338760475
+    },
+    {
+      "id": "g-40",
+      "text": "wug wugs",
+      "noSignal": true,
+      "top": 0.5693170883526313
+    }
+  ],
+  "gate": [
+    {
+      "id": "g-01",
+      "text": "qwertyuiop",
+      "noSignal": true,
+      "top": 0.5517377160066175
+    },
+    {
+      "id": "g-03",
+      "text": "jkl jkl jkl",
+      "noSignal": true,
+      "top": 0.6014545488054696
+    },
+    {
+      "id": "g-04",
+      "text": "hjkl hjkl",
+      "noSignal": true,
+      "top": 0.5316555714357154
+    },
+    {
+      "id": "g-06",
+      "text": "sdfsdf ghjghj",
+      "noSignal": true,
+      "top": 0.5948882741286122
+    },
+    {
+      "id": "g-07",
+      "text": "qazwsx",
+      "noSignal": true,
+      "top": 0.5367847418926427
+    },
+    {
+      "id": "g-08",
+      "text": "plmokn",
+      "noSignal": true,
+      "top": 0.5300383060841828
+    },
+    {
+      "id": "g-10",
+      "text": "kxcd vvbn",
+      "noSignal": true,
+      "top": 0.5510849907250899
+    },
+    {
+      "id": "g-12",
+      "text": "uhh hmm",
+      "noSignal": true,
+      "top": 0.4984035624419174
+    },
+    {
+      "id": "g-14",
+      "text": "hehe",
+      "noSignal": true,
+      "top": 0.49520994371967053
+    },
+    {
+      "id": "g-15",
+      "text": "idk tbh",
+      "noSignal": true,
+      "top": 0.5165312766517776
+    },
+    {
+      "id": "g-19",
+      "text": "oof ouch",
+      "noSignal": true,
+      "top": 0.47283169541960895
+    },
+    {
+      "id": "g-22",
+      "text": "yeet",
+      "noSignal": true,
+      "top": 0.5313758743927978
+    },
+    {
+      "id": "g-24",
+      "text": "bussin fr fr",
+      "noSignal": true,
+      "top": 0.5468790814494813
+    },
+    {
+      "id": "g-27",
+      "text": "mewing",
+      "noSignal": true,
+      "top": 0.5792999475811098
+    },
+    {
+      "id": "g-28",
+      "text": "delulu",
+      "noSignal": true,
+      "top": 0.5261685279896969
+    },
+    {
+      "id": "g-31",
+      "text": "k9x 77qz",
+      "noSignal": true,
+      "top": 0.5405606783157985
+    },
+    {
+      "id": "g-32",
+      "text": "zq3 vv7",
+      "noSignal": true,
+      "top": 0.5372584622940855
+    },
+    {
+      "id": "g-35",
+      "text": "b0rk b0rk",
+      "noSignal": true,
+      "top": 0.5955698659162928
+    },
+    {
+      "id": "g-36",
+      "text": "qw3rty",
+      "noSignal": true,
+      "top": 0.6090972345280989
+    },
+    {
+      "id": "g-39",
+      "text": "blorp fizzwick",
+      "noSignal": true,
+      "top": 0.4844311443701468
+    }
+  ],
+  "dev": [
+    {
+      "id": "d-001",
+      "text": "corporate finance valuation",
+      "noSignal": false,
+      "top": 0.7061820621408241
+    },
+    {
+      "id": "d-002",
+      "text": "brand management and consumer behaviour",
+      "noSignal": false,
+      "top": 0.6837602830353202
+    },
+    {
+      "id": "d-003",
+      "text": "is there a course on competitive strategy, like porter five forces, business models etc",
+      "noSignal": false,
+      "top": 0.6956847035943677
+    },
+    {
+      "id": "d-004",
+      "text": "Corporate Finance II",
+      "noSignal": false,
+      "top": 0.6912571467459572
+    },
+    {
+      "id": "d-005",
+      "text": "International Marketing: Students learn to analyse international markets and develop marketing strategies for entering and operating in foreign markets. Topics include market entry modes (export, licensing, joint ventures, FDI), cultural differences and their influence on consumer behaviour, standardisation vs adaptation of the marketing mix, global branding, and international pricing and distribution. Case studies of multinational companies.",
+      "noSignal": false,
+      "top": 0.7122417043235774
+    },
+    {
+      "id": "d-006",
+      "text": "backup option if I don't get the investment course, something else in finance at similar level",
+      "noSignal": false,
+      "top": 0.6487145420262164
+    },
+    {
+      "id": "d-007",
+      "text": "japanese 1",
+      "noSignal": false,
+      "top": 0.7514950473957389
+    },
+    {
+      "id": "d-008",
+      "text": "marketing courses third year level bachelor",
+      "noSignal": false,
+      "top": 0.7342709598528341
+    },
+    {
+      "id": "d-009",
+      "text": "IB courses",
+      "noSignal": false,
+      "top": 0.670984331892031
+    },
+    {
+      "id": "d-010",
+      "text": "advanced financial modelling excel",
+      "noSignal": false,
+      "top": 0.7039125420279175
+    },
+    {
+      "id": "d-011",
+      "text": "intro accounting no prerequisites",
+      "noSignal": false,
+      "top": 0.6497696591640638
+    },
+    {
+      "id": "d-014",
+      "text": "human computer interaction user interface design",
+      "noSignal": false,
+      "top": 0.7244687471205038
+    },
+    {
+      "id": "d-015",
+      "text": "computer vision",
+      "noSignal": false,
+      "top": 0.7489658314563628
+    },
+    {
+      "id": "d-016",
+      "text": "CS 4400 Operating Systems",
+      "noSignal": false,
+      "top": 0.6871464071183553
+    },
+    {
+      "id": "d-017",
+      "text": "Need an equivalent for my home course Intro to AI. Description: Covers search (A*, minimax), constraint satisfaction, logic and knowledge representation, probabilistic reasoning and Bayesian networks, intro to machine learning, and a final project implementing an agent. Prereqs: data structures, discrete math, probability. Learning outcomes: students can formulate problems as search, implement basic probabilistic inference, and evaluate AI systems.",
+      "noSignal": false,
+      "top": 0.7879265594279148
+    },
+    {
+      "id": "d-018",
+      "text": "what's similar to the machine learning course if it's full? exchange students never get the popular ones",
+      "noSignal": false,
+      "top": 0.6526104944914688
+    },
+    {
+      "id": "d-019",
+      "text": "upper-division CS course, 3 credit equivalent",
+      "noSignal": false,
+      "top": 0.7091698453255044
+    },
+    {
+      "id": "d-020",
+      "text": "how many NUS units is equal to 3 US credits? I need 16 units total, 4 courses",
+      "noSignal": false,
+      "top": 0.6567126653692827
+    },
+    {
+      "id": "d-021",
+      "text": "HCI / UX",
+      "noSignal": false,
+      "top": 0.6508359882605564
+    },
+    {
+      "id": "d-022",
+      "text": "general education course that's easy and interesting",
+      "noSignal": false,
+      "top": 0.6432515294705357
+    },
+    {
+      "id": "d-023",
+      "text": "intro course, no prerequisites, any subject",
+      "noSignal": false,
+      "top": 0.6452175380133824
+    },
+    {
+      "id": "d-024",
+      "text": "no final exam, project based CS course",
+      "noSignal": false,
+      "top": 0.6765417075366398
+    },
+    {
+      "id": "d-026",
+      "text": "thermodynamics for mechanical engineering",
+      "noSignal": false,
+      "top": 0.7332981542922157
+    },
+    {
+      "id": "d-027",
+      "text": "fluid mechanics",
+      "noSignal": false,
+      "top": 0.7556268375348452
+    },
+    {
+      "id": "d-028",
+      "text": "machine design course gears bearings shafts",
+      "noSignal": false,
+      "top": 0.6540579013755408
+    },
+    {
+      "id": "d-029",
+      "text": "heat transfer conduction convection radiation",
+      "noSignal": false,
+      "top": 0.6764671024574056
+    },
+    {
+      "id": "d-030",
+      "text": "manufacturing process machining casting welding",
+      "noSignal": false,
+      "top": 0.668758832976032
+    },
+    {
+      "id": "d-031",
+      "text": "Thermodynamics 2",
+      "noSignal": false,
+      "top": 0.776344992544791
+    },
+    {
+      "id": "d-032",
+      "text": "This course covers the basic concept of fluid mechanics including fluid properties, hydrostatics, conservation of mass momentum and energy, Bernoulli equation, dimensional analysis and similitude, viscous flow in pipes and introduction to boundary layer. Students will be able to analyze simple fluid systems used in mechanical engineering.",
+      "noSignal": false,
+      "top": 0.8354280129787053
+    },
+    {
+      "id": "d-033",
+      "text": "Mechanical Engineering Design (Capstone Design 1) - team design project, concept generation, CAD modeling, prototype and presentation",
+      "noSignal": false,
+      "top": 0.6934151902772818
+    },
+    {
+      "id": "d-034",
+      "text": "can exchange student take japanese 1",
+      "noSignal": false,
+      "top": 0.726681150125375
+    },
+    {
+      "id": "d-035",
+      "text": "singapore history and society course",
+      "noSignal": false,
+      "top": 0.7954357188576782
+    },
+    {
+      "id": "d-036",
+      "text": "3 credit 2nd year mechanical course how many units in nus",
+      "noSignal": false,
+      "top": 0.695466875241678
+    },
+    {
+      "id": "d-037",
+      "text": "engineering elective without final exam, project based",
+      "noSignal": false,
+      "top": 0.6344896087270672
+    },
+    {
+      "id": "d-038",
+      "text": "colonial history of Southeast Asia",
+      "noSignal": false,
+      "top": 0.7009110248705155
+    },
+    {
+      "id": "d-039",
+      "text": "history of migration and diaspora",
+      "noSignal": false,
+      "top": 0.6343162542234295
+    },
+    {
+      "id": "d-040",
+      "text": "gender and politics",
+      "noSignal": false,
+      "top": 0.7284894846513634
+    },
+    {
+      "id": "d-041",
+      "text": "Introduction to Comparative Politics",
+      "noSignal": false,
+      "top": 0.7785642919049035
+    },
+    {
+      "id": "d-042",
+      "text": "This course examines the political and social history of twentieth century Australia, including federation, the world wars, immigration policy, Indigenous rights and Australia's changing relationship with Asia. Students will analyse primary sources, develop skills in historical argument, and write a major research essay. By the end of the course students should be able to critically evaluate competing interpretations of national identity.",
+      "noSignal": false,
+      "top": 0.716299423622027
+    },
+    {
+      "id": "d-043",
+      "text": "Singapore history",
+      "noSignal": false,
+      "top": 0.7123102438363795
+    },
+    {
+      "id": "d-044",
+      "text": "Singapore society, multiculturalism, race and religion",
+      "noSignal": false,
+      "top": 0.7138963030683536
+    },
+    {
+      "id": "d-045",
+      "text": "which courses count as third year level / upper-division, my uni needs 3000-level equivalent",
+      "noSignal": false,
+      "top": 0.683536815026194
+    },
+    {
+      "id": "d-046",
+      "text": "SEA studies",
+      "noSignal": false,
+      "top": 0.7483137812160818
+    },
+    {
+      "id": "d-047",
+      "text": "general education course on society or culture, interesting and easy",
+      "noSignal": false,
+      "top": 0.7192691842947521
+    },
+    {
+      "id": "d-048",
+      "text": "intro history course no prerequisites",
+      "noSignal": false,
+      "top": 0.6632494153666515
+    },
+    {
+      "id": "d-049",
+      "text": "no final exam, essay only assessment history",
+      "noSignal": false,
+      "top": 0.6220690448854544
+    },
+    {
+      "id": "d-050",
+      "text": "politics courses with no exam",
+      "noSignal": false,
+      "top": 0.6856201188044794
+    },
+    {
+      "id": "d-052",
+      "text": "molecular biology",
+      "noSignal": false,
+      "top": 0.7092090567186462
+    },
+    {
+      "id": "d-053",
+      "text": "biochemistry metabolism enzymes",
+      "noSignal": false,
+      "top": 0.7010047787490652
+    },
+    {
+      "id": "d-054",
+      "text": "lab course molecular techniques PCR cloning gel electrophoresis western blot",
+      "noSignal": false,
+      "top": 0.7012497583248506
+    },
+    {
+      "id": "d-055",
+      "text": "is there something on marine biology or coral reefs",
+      "noSignal": false,
+      "top": 0.7028192029620521
+    },
+    {
+      "id": "d-056",
+      "text": "cell signalling pathways and cancer",
+      "noSignal": false,
+      "top": 0.6799631320958357
+    },
+    {
+      "id": "d-057",
+      "text": "microbiology bacteria",
+      "noSignal": false,
+      "top": 0.7105446415671057
+    },
+    {
+      "id": "d-058",
+      "text": "travaux pratiques biochimie: protein purification, enzyme kinetics, SDS-PAGE, spectrophotometry, chromatography",
+      "noSignal": false,
+      "top": 0.6141177233388504
+    },
+    {
+      "id": "d-059",
+      "text": "backup if i dont get the molecular biology module - something similar like genetics or genomics, preferably with lab",
+      "noSignal": false,
+      "top": 0.6199960798340359
+    },
+    {
+      "id": "d-060",
+      "text": "conservation of tropical rainforests and mangroves in southeast asia",
+      "noSignal": false,
+      "top": 0.6492140764932406
+    },
+    {
+      "id": "d-061",
+      "text": "evo devo",
+      "noSignal": false,
+      "top": 0.4909765821404665
+    },
+    {
+      "id": "d-062",
+      "text": "general education courses open to exchange students sem 2",
+      "noSignal": false,
+      "top": 0.6524966223174158
+    },
+    {
+      "id": "d-063",
+      "text": "advanced molecular biology 4000 level",
+      "noSignal": false,
+      "top": 0.7679364394953383
+    },
+    {
+      "id": "d-064",
+      "text": "biochemistry suitable for 3rd year students, not first year basics",
+      "noSignal": false,
+      "top": 0.7194878821185722
+    },
+    {
+      "id": "d-066",
+      "text": "concurrent and parallel programming threads locks",
+      "noSignal": false,
+      "top": 0.6481254951133197
+    },
+    {
+      "id": "d-067",
+      "text": "software engineering design patterns object oriented design",
+      "noSignal": false,
+      "top": 0.6731652351635099
+    },
+    {
+      "id": "d-068",
+      "text": "philosophy of mind",
+      "noSignal": false,
+      "top": 0.6577016429497757
+    },
+    {
+      "id": "d-069",
+      "text": "ethics - moral philosophy intro",
+      "noSignal": false,
+      "top": 0.66219629511326
+    },
+    {
+      "id": "d-070",
+      "text": "introductory economics microeconomics",
+      "noSignal": false,
+      "top": 0.7416708417568019
+    },
+    {
+      "id": "d-071",
+      "text": "secure software development, web vulnerabilities, how do I learn to find bugs in code",
+      "noSignal": false,
+      "top": 0.64069336971863
+    },
+    {
+      "id": "d-072",
+      "text": "Concurrent Programming",
+      "noSignal": false,
+      "top": 0.7254289304759571
+    },
+    {
+      "id": "d-073",
+      "text": "need equivalent of our 'Databases and Data Management' (relational model, SQL, normalisation, transactions, intro to NoSQL)",
+      "noSignal": false,
+      "top": 0.7286238269346972
+    },
+    {
+      "id": "d-074",
+      "text": "similar to a computer security course but less oversubscribed",
+      "noSignal": false,
+      "top": 0.7128189759752519
+    },
+    {
+      "id": "d-075",
+      "text": "other options besides the main data engineering course, maybe databases or cloud",
+      "noSignal": false,
+      "top": 0.685252232096355
+    },
+    {
+      "id": "d-076",
+      "text": "OS",
+      "noSignal": false,
+      "top": 0.5964751515980165
+    },
+    {
+      "id": "d-077",
+      "text": "DB sys + SQL",
+      "noSignal": false,
+      "top": 0.6692772066284138
+    },
+    {
+      "id": "d-078",
+      "text": "general education course that is easy to fit with CS",
+      "noSignal": false,
+      "top": 0.6824417942174448
+    },
+    {
+      "id": "d-079",
+      "text": "GE module about technology and society",
+      "noSignal": false,
+      "top": 0.7469389856022616
+    },
+    {
+      "id": "d-080",
+      "text": "no prerequisites intro philosophy",
+      "noSignal": false,
+      "top": 0.6730640674924593
+    },
+    {
+      "id": "d-081",
+      "text": "computer science courses with no final exam, 100% coursework or project",
+      "noSignal": false,
+      "top": 0.7178414358916525
+    },
+    {
+      "id": "d-082",
+      "text": "BN4207",
+      "noSignal": false,
+      "top": 0.6308054194927596
+    },
+    {
+      "id": "d-083",
+      "text": "LL4541V",
+      "noSignal": false,
+      "top": 0.6346279697128832
+    },
+    {
+      "id": "d-084",
+      "text": "MLE2105",
+      "noSignal": false,
+      "top": 0.7080795294962106
+    },
+    {
+      "id": "d-085",
+      "text": "MA2101",
+      "noSignal": false,
+      "top": 0.7058493438888036
+    },
+    {
+      "id": "d-086",
+      "text": "EE4502",
+      "noSignal": false,
+      "top": 0.7145580919999319
+    },
+    {
+      "id": "d-087",
+      "text": "cn 2109",
+      "noSignal": false,
+      "top": 0.6260740182031685
+    },
+    {
+      "id": "d-088",
+      "text": "cs 2030",
+      "noSignal": false,
+      "top": 0.702831132890753
+    },
+    {
+      "id": "d-089",
+      "text": "is 4246",
+      "noSignal": false,
+      "top": 0.5616123033968079
+    },
+    {
+      "id": "d-090",
+      "text": "MUL21",
+      "noSignal": false,
+      "top": 0.6529871382847454
+    },
+    {
+      "id": "d-091",
+      "text": "DAO17",
+      "noSignal": false,
+      "top": 0.6166075828265176
+    },
+    {
+      "id": "d-092",
+      "text": "GEC",
+      "noSignal": false,
+      "top": 0.6454089925515547
+    },
+    {
+      "id": "d-093",
+      "text": "advanced molecuular bioogy 4000 level",
+      "noSignal": false,
+      "top": 0.712829743978137
+    },
+    {
+      "id": "d-094",
+      "text": "Singapore society, multiculturalism, race and reliion",
+      "noSignal": false,
+      "top": 0.674802412373098
+    },
+    {
+      "id": "d-095",
+      "text": "microbbiology bacteia",
+      "noSignal": true,
+      "top": 0.6157015236576642
+    },
+    {
+      "id": "d-096",
+      "text": "introducttory economics microoeconomics",
+      "noSignal": false,
+      "top": 0.6739283219800247
+    },
+    {
+      "id": "d-097",
+      "text": "machine desgin course gears bearings shafts",
+      "noSignal": false,
+      "top": 0.6027017630181289
+    },
+    {
+      "id": "d-099",
+      "text": "intro accunting no prerqeuisites",
+      "noSignal": false,
+      "top": 0.6417768256768146
+    }
+  ]
+}

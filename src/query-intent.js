@@ -20,6 +20,7 @@
 // the corrected text; 3C's corrections are not echoed in `interpreted`.
 import { queryTokens } from './fts-query.js';
 import { correctQuery } from './typo.js';
+import { dfOf, prefixMatches } from './vocabulary.js';
 
 /** The `interpreted` keys, in order (prereg §4). */
 export const INTERPRETED_KEYS = Object.freeze(['pin', 'prefix', 'ge', 'level', 'exam', 'su', 'hoursBelow', 'prereq']);
@@ -44,6 +45,7 @@ export const MAX_PINS = 3;
  *   pins: string[], ranges: CodeRange[] | null, codeList: CodeRange[] | null,
  *   level: LevelWindow | null, noMatch: NoMatch | null,
  *   tokens: string[], corrected: string | null, fts: import('./fts-query.js').FtsTerms,
+ *   noSignal: boolean,
  * }} ParsedQuery
  *   - `kind` 'mask': a whole-query partial code, bare prefix, `XX N000` or GE
  *     phrase. The results are the members of `ranges` (∩ `level`, ∩ the
@@ -58,6 +60,9 @@ export const MAX_PINS = 3;
  *     canonical q with 3C's corrections (null when there are none), which
  *     3C-2 also embeds.
  *   - `tokens`: the pre-correction tokens, for 3G's vocabulary test.
+ *   - `noSignal`: 3G's vocabulary half (C-3, C2-10). A 'search' with no
+ *     route, where no pre-correction token has df > 0 or, at 4+ letters, an
+ *     FTS prefix match. /search adds the dense half (top cosine below τ).
  * @typedef {{ prefixes: string[], genericPhrases: string[], pillars: { name: string, prefixes: string[] }[] }} GeTable
  * @typedef {{
  *   prefixes: Set<string>, catalogue: Set<string>, collision: Set<string>, stopwords: Set<string>,
@@ -231,7 +236,7 @@ export function parseQuery(q, ctx, ignore = []) {
   /** @type {ParsedQuery} */
   const parsed = {
     q, lexical: q, dense: q, interpreted, kind: 'search', pins: [], ranges: null, codeList: null, level: null, noMatch: null,
-    tokens: [], corrected: null, fts: { prefixes: [], corrections: [] },
+    tokens: [], corrected: null, fts: { prefixes: [], corrections: [] }, noSignal: false,
   };
 
   // Step 2: 3G's vocabulary test (a seam) reads the pre-correction tokens.
@@ -352,5 +357,8 @@ export function parseQuery(q, ctx, ignore = []) {
     interpreted.level = { min, max, source: [...new Set(levelWindows.map((w) => w.source))].sort() };
     parsed.level = { min, max };
   }
+  const vocab = ctx.vocabulary;
+  parsed.noSignal = vocab !== null && parsed.kind === 'search' && INTERPRETED_KEYS.every((k) => interpreted[/** @type {keyof Interpreted} */ (k)] === null)
+    && c.tokens.every((t) => dfOf(vocab, t) === 0 && !((t.match(/[a-z]/g)?.length ?? 0) >= 4 && prefixMatches(vocab, t)));
   return parsed;
 }
