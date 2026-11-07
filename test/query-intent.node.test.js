@@ -7,9 +7,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { REPO } from '../eval/lib/sets.mjs';
-import { STOPWORDS_CURRENT } from '../src/fts-query.js';
+import { STOPWORDS_CURRENT, queryTokens } from '../src/fts-query.js';
 import {
-  INTERPRETED_KEYS, IGNORABLE_INTENTS, buildIntentContext, canonicalQuery, codeRange, parseIgnore, parseQuery,
+  INTERPRETED_KEYS, IGNORABLE_INTENTS, MAX_LEVEL_TOKENS, buildIntentContext, canonicalQuery, codeRange, parseIgnore, parseQuery,
 } from '../src/query-intent.js';
 import { deriveIntents } from './sc4/intents.node.mjs';
 
@@ -412,6 +412,18 @@ describe('the level intent (3D, step 7)', () => {
     expect(parse('intro to psych').lexical).toBe('to psych');
   });
 
+  it('candidate (after L5): a query of more than 12 tokens reads no level phrase, so a pasted course description keeps its text', () => {
+    const long = 'need equivalent of our databases and data management (relational model, sql, normalisation, transactions, intro to nosql)';
+    const p = parse(long);
+    expect([p.interpreted.level, p.beginner]).toEqual([null, false]);
+    expect(p.lexical).toContain('intro to nosql');
+    // 12 tokens: read; 13: not.
+    expect(lv('intro to history of art and design in modern east asian cities')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(lv('intro to history of art and design in modern east asian port cities')).toBeNull();
+    // An explicit code level still counts at any length.
+    expect(lv('i need something like a third year course in cs 3000 for software engineering students please')).toEqual({ min: 3, max: 3, source: ['level'] });
+  });
+
   it('agrees with the SC4 oracle (test/sc4/intents.node.mjs) on every dev and suite text and the cases above', () => {
     const texts = [
       ...readJson('eval/dev/queries.json').queries.map((/** @type {{ text: string }} */ q) => q.text),
@@ -423,6 +435,8 @@ describe('the level intent (3D, step 7)', () => {
     let withLevel = 0;
     for (const t of texts) {
       const p = parse(t);
+      // The oracle predates the length rule: it reads every text; compare where the rule allows.
+      if (queryTokens(canonicalQuery(t.trim())).length > MAX_LEVEL_TOKENS) { expect(p.interpreted.level?.source ?? [], t).not.toContain('beginner'); continue; }
       const want = deriveIntents(t, p.interpreted.prefix).level;
       expect(p.interpreted.level, t).toEqual(want);
       if (want) withLevel++;

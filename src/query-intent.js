@@ -28,6 +28,14 @@ export const INTERPRETED_KEYS = Object.freeze(['pin', 'prefix', 'ge', 'level', '
 export const IGNORABLE_INTENTS = Object.freeze(['ge', 'level', 'exam', 'su', 'hoursBelow', 'prereq']);
 /** Resolution step 1 pins at most this many offered codes, in query order. */
 export const MAX_PINS = 3;
+/**
+ * 3D reads level phrases only in a query of at most this many tokens (queryTokens, on the
+ * corrected text). A longer query is a pasted course description, where `intro to nosql` names a
+ * topic, not the student's level (docs/evidence/phase3/3d-dev-screen.md, after L5). An `XX N000`
+ * code level counts at any length. On dev, the shapes that carry level intent (level, constraint,
+ * typo) are at most 11 words; mapping queries have a median of 16; every SC4 item is at most 7.
+ */
+export const MAX_LEVEL_TOKENS = 12;
 
 /**
  * @typedef {[string, string]} CodeRange A primary-key range [lo, hi) over codes.
@@ -265,9 +273,10 @@ const intentPassA = (q) => ({ text: q });
  * @param {string} plain the same text unmasked (the same offsets)
  * @param {IntentContext} ctx
  * @param {Set<string>} ignored
+ * @param {boolean} readLevel the query is short enough for level phrases (MAX_LEVEL_TOKENS)
  * @returns {{ pillars: Set<string>, windows: { min: number, max: number | null, source: string }[], strip: [number, number][] }}
  */
-function passB(masked, plain, ctx, ignored) {
+function passB(masked, plain, ctx, ignored, readLevel) {
   /** @type {{ start: number, end: number, prefixes?: string[], window?: { min: number, max: number | null, source: string } }[]} */
   const all = [];
   if (!ignored.has('ge')) {
@@ -279,7 +288,7 @@ function passB(masked, plain, ctx, ignored) {
       }
     }
   }
-  if (ctx.levelPhrases && !ignored.has('level')) {
+  if (ctx.levelPhrases && readLevel && !ignored.has('level')) {
     for (const { re, window } of ctx.levelPhrases) {
       for (const m of masked.matchAll(re)) {
         const start = /** @type {number} */ (m.index);
@@ -397,7 +406,7 @@ export function parseQuery(q, ctx, ignore = []) {
     masked += `${masked ? ' ' : ''}${tok.joined && !inert.has(tok) ? '#'.repeat(raw.length) : raw}`;
     plain += `${plain ? ' ' : ''}${raw}`;
   }
-  const { pillars, windows: levelWindows, strip } = passB(masked, plain, ctx, ignored);
+  const { pillars, windows: levelWindows, strip } = passB(masked, plain, ctx, ignored, queryTokens(c.text).length <= MAX_LEVEL_TOKENS);
   // Strip the matched phrases from the lexical text, right to left so the
   // offsets hold (the matches do not overlap). Lead decision (3D review): when
   // only level phrases were matched and stripping them would leave no word,
