@@ -334,7 +334,7 @@ describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not their pi
     });
 
     it('refuses when the eval-v0 tag no longer resolves to the pinned commit', async () => {
-      expect(spawnSync('git', ['tag', '-f', 'eval-v0', 'HEAD'], { cwd: clone }).status).toBe(0);
+      expect(spawnSync('git', ['-c', 'tag.gpgsign=false', 'tag', '-f', 'eval-v0', 'HEAD'], { cwd: clone }).status).toBe(0);
       const { dir } = await makeSet('sc5-moved-tag', { as: 'test', cand: (d) => copy(d.ranked) });
       const r = sc5(dir);
       expect(`${r.stdout}${r.stderr}`).toBe('eval: test run failed (BaselineError); details withheld\n');
