@@ -108,3 +108,26 @@ No objection was rejected outright. Four were applied in part:
    change can be dropped under Q4, so the gate skips items owned by an unmerged or dropped
    workstream. It never skips the typo, gibberish, non-existent-code and guard items. SC4's exit
    check still needs the whole suite.
+
+## Deviations
+- **3H goes to L7 on (ii)-stripped, which fails the dev screen (Jacob, 2026-11-08).** The
+  pre-registered selection picks (ii)-stripped. It fails dev no-loss by −0.0044, and no query is
+  exempt under (ii) on `qrels-dev-v10`.
+  - **Where the loss comes from:** all of it is d-011 and d-099. The filter removes the
+    relevant modules that have real prerequisites, which caps each query's nDCG@10 near 0.7.
+  - **Why the fallback is not taken:** (i)-stripped passes the screen only because the
+    exemption leaves out its larger losses on the same two queries.
+  - **What stays as written:** L7 runs the unchanged holdout no-loss rule, and (i)-stripped
+    remains the named retry.
+  - Evidence: [`3h-dev-screen.md`](../evidence/phase3/3h-dev-screen.md).
+- **3H ships its explicit params only (Jacob, Q4, 2026-11-08).**
+  - **The looks:** (ii)-stripped failed L7 (look 6), ΔnDCG@10 −0.024 [−0.081, −0.005]. Its
+    named retry, (i)-stripped, failed look 7 with the same figures.
+  - **What ships:** `exam=0`, `su=1`, `hoursBelow=N` and `prereq=none` as hard filters. Phrases
+    in `q` are not read.
+  - **Gate:** identical lists to shipped on dev and holdout, so no look.
+  - **SC4:** its 14 parsed-intent items stay unmet until Phase 4.
+  - **Lesson:** the judges never see the constraint fields, so the holdout rule scores a hard
+    filter's intended removals as loss. A parsed hard filter needs a rule that measures
+    compliance, not relevance alone.
+
