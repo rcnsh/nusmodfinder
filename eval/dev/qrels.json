@@ -1,7 +1,7 @@
 {
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
- "version": "qrels-dev-v6",
+ "version": "qrels-dev-v7",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
   "ngSha256": "092d021db4ccff2ea45e75bfc073623fa502aace082a8d5bd627f41d79c3f169"
@@ -162,6 +162,34 @@
     }
    },
    "createdAt": "2026-11-07T10:37:36.204Z"
+  },
+  {
+   "round": "p3d",
+   "mode": "single",
+   "judges": {
+    "A": "claude-opus-5-5"
+   },
+   "adjudicator": null,
+   "pairs": 21,
+   "pool": "3447206b71453e037e89a3c09790fe59e6d547049d5ed4dd79a6ab831663dc36",
+   "codeRule": {
+    "rule": "code-rule-v1",
+    "pairs": 56,
+    "queries": 0,
+    "added": {
+     "0": 0,
+     "1": 0,
+     "2": 0
+    },
+    "changed": {},
+    "overrides": {
+     "total": 0,
+     "up": 0,
+     "down": 0,
+     "same": 0
+    }
+   },
+   "createdAt": "2026-11-07T13:17:34.592Z"
   }
  ],
  "queries": {
@@ -1892,6 +1920,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Theatre and film studies course; unrelated to marketing."
+      }
+     }
+    },
+    "BSE3702": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level strategy and economics course from Strategy and Policy; not a marketing course."
+      }
+     }
+    },
+    "RE3701": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level real estate investment analysis; not marketing."
       }
      }
     }
@@ -12410,6 +12462,30 @@
        "rationale": "3000-level theatre and film studies; not history or politics."
       }
      }
+    },
+    "EL3201": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level English syntax (linguistics), not a history or politics course."
+      }
+     }
+    },
+    "PC3231": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level electromagnetism physics, outside history and politics."
+      }
+     }
     }
    }
   },
@@ -14496,6 +14572,42 @@
        "slot": "A",
        "grade": 1,
        "rationale": "Mental health and illness from a biopsychosocial lens; health-related content fitting the partially relevant line."
+      }
+     }
+    },
+    "BN4403": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An engineering bioengineering course on manipulating cells. It has some clinical framing but is neither dentistry nor a health-sciences intro."
+      }
+     }
+    },
+    "LSM3218": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Medicine-faculty pharmacology course that opens with basic cardiopulmonary anatomy and physiology and covers clinical drug use. It is health science, as the partial line asks, but at 3000 level rather than an intro."
+      }
+     }
+    },
+    "LSM4214": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Medicine-faculty health-science course on cancer drug therapy. It is related to the health-sciences partial line but is an advanced 4000-level course, not an intro."
       }
      }
     }
@@ -17870,6 +17982,66 @@
        "rationale": "A materials science course on biointerfaces, not molecular biology."
       }
      }
+    },
+    "LSM4218": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "4000-level, NG in semester 2, covers recombinant proteins, DNA and siRNA drugs and genomics; molecular biology appears as applied biotechnology for drug discovery rather than a research-focused molecular biology course."
+      }
+     }
+    },
+    "LSM4227": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "4000-level Biological Sciences course, NG in semester 2, covering reprogramming and cell-fate determination; advanced and related, but centred on stem cells rather than the molecular biology topics (CRISPR, RNA biology, genome editing) the intent names."
+      }
+     }
+    },
+    "LSM4234": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Mechanobiology is about mechanical forces in cells and tissues; it touches on transcription only from a physical angle and does not cover molecular biology topics like genome editing or RNA biology."
+      }
+     }
+    },
+    "LSM4261": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Marine biology and oceanography; it is 4000-level but has nothing to do with molecular biology."
+      }
+     }
+    },
+    "PC4243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Atomic physics (laser cooling, trapping) from the Physics department; shares only the word 'molecular' with the query and is not molecular biology."
+      }
+     }
     }
    }
   },
@@ -18232,6 +18404,66 @@
        "slot": "A",
        "grade": 1,
        "rationale": "3000-level molecular biophysics covering protein and nucleic acid structure and biomolecular interactions from a physics perspective; related to structural biochemistry but not a biochemistry course as such."
+      }
+     }
+    },
+    "BN3402": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 3000-level course on analytical methods for characterising cells and biomolecules (spectroscopy, electrophoresis). It touches biomolecular science as one part but is not a biochemistry course."
+      }
+     }
+    },
+    "EE4312": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3d",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 2"
+      }
+     }
+    },
+    "LSM3234": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Biological imaging and microscopy methods, not structural biochemistry, metabolism or protein science."
+      }
+     }
+    },
+    "PC3235B": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Solid state physics, unrelated to biochemistry."
+      }
+     }
+    },
+    "PH3203": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Meta-ethics philosophy course, unrelated to biochemistry."
       }
      }
     }
@@ -19842,6 +20074,18 @@
        "rationale": "Introductory 1000-level economics course on economic reasoning that assumes no background, offered in semester 1. It applies economics to social issues through popular texts, not a formal principles-of-microeconomics syllabus."
       }
      }
+    },
+    "EC2383": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "2000-level environmental economics applying economic theory to externalities and policy; a field course rather than an intro micro or principles course for students with no prior economics, and not intro macro or managerial economics."
+      }
+     }
     }
    }
   },
@@ -20548,6 +20792,18 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Genomic data analysis that touches on biological databases; not relational database design, SQL or transactions."
+      }
+     }
+    },
+    "QF2103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A Python financial data analytics and ML course; the description shows no relational design, SQL or transactions."
       }
      }
     }
@@ -27414,6 +27670,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Reproductive biology focused on endocrinology and gonad development; molecular biology is not its focus."
+      }
+     }
+    },
+    "LSM4261": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "4000-level biology but on marine ecosystems and oceanography, not molecular biology, CRISPR or RNA biology."
+      }
+     }
+    },
+    "PC4243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Atomic and molecular physics (laser spectroscopy, cooling, trapping), not molecular biology; shares only the word 'molecular'."
       }
      }
     }
