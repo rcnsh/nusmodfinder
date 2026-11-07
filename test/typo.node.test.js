@@ -70,6 +70,12 @@ describe('correctQuery (step 3)', () => {
     expect(correctQuery('asdf lol idk', vocab).corrections).toEqual([]);
   });
 
+  it('applies a correction to a token whose letters lower-case to ASCII only under full Unicode (KELVIN SIGN)', () => {
+    const c = correctQuery('mar\u212Aetng strategy', vocab);
+    expect(c.corrections).toEqual([{ from: 'marketng', to: 'marketing' }]);
+    expect(c.text).toBe('marketing strategy');
+  });
+
   it('replaces whole tokens only, every occurrence, and keeps the separators', () => {
     const c = correctQuery('marketng, (marketng) strategy', vocab);
     expect(c.text).toBe('marketing, (marketing) strategy');
