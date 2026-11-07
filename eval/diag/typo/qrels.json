@@ -2,7 +2,7 @@
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
  "version": "qrels-diag-typo-v1",
- "derivedFrom": "qrels-dev-v6",
+ "derivedFrom": "qrels-dev-v7",
  "rule": "each variant has its source dev query's judgments, verbatim",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
@@ -8708,6 +8708,66 @@
        "rationale": "A materials science course on biointerfaces, not molecular biology."
       }
      }
+    },
+    "LSM4218": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "4000-level, NG in semester 2, covers recombinant proteins, DNA and siRNA drugs and genomics; molecular biology appears as applied biotechnology for drug discovery rather than a research-focused molecular biology course."
+      }
+     }
+    },
+    "LSM4227": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "4000-level Biological Sciences course, NG in semester 2, covering reprogramming and cell-fate determination; advanced and related, but centred on stem cells rather than the molecular biology topics (CRISPR, RNA biology, genome editing) the intent names."
+      }
+     }
+    },
+    "LSM4234": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Mechanobiology is about mechanical forces in cells and tissues; it touches on transcription only from a physical angle and does not cover molecular biology topics like genome editing or RNA biology."
+      }
+     }
+    },
+    "LSM4261": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Marine biology and oceanography; it is 4000-level but has nothing to do with molecular biology."
+      }
+     }
+    },
+    "PC4243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Atomic physics (laser cooling, trapping) from the Physics department; shares only the word 'molecular' with the query and is not molecular biology."
+      }
+     }
     }
    }
   },
@@ -10010,6 +10070,18 @@
        "slot": "A",
        "grade": 1,
        "rationale": "Introductory 1000-level economics course on economic reasoning that assumes no background, offered in semester 1. It applies economics to social issues through popular texts, not a formal principles-of-microeconomics syllabus."
+      }
+     }
+    },
+    "EC2383": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3d",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "2000-level environmental economics applying economic theory to externalities and policy; a field course rather than an intro micro or principles course for students with no prior economics, and not intro macro or managerial economics."
       }
      }
     }

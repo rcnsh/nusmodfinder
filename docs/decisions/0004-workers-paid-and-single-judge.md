@@ -109,6 +109,14 @@ check made on every pooling round that decides a selection:
 It replaces the calibration Δ-sign report that "Same-family risk" above attaches to every gate
 verdict. The calibration subset's agreement figures stand as the Phase 2 record.
 
+Deviations, each with Jacob's sign-off:
+- **3A-2 (2026-11-07):** checked on 435 of 519 pairs; the Gemini route was rate-limited for the
+  rest (`docs/evidence/phase3/3a2-dev-screen.md`).
+- **3D (2026-11-07): not run.** `gemini-3.8-flash-high` hit its rate limit on all three attempts
+  (two chunks of 51 in parallel, then one alone) before grading any of the 102 pairs. Jacob chose
+  to skip the check rather than swap to another Gemini model or wait. 3D goes to L5 on judge A's
+  grades alone, as 3B and 3C did (`docs/evidence/phase3/3d-dev-screen.md`).
+
 ### Dissent
 None recorded. The planning critics' preference for two families (Phase 2 plan, objection 9)
 is the overridden position.

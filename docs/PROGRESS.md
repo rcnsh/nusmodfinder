@@ -818,3 +818,37 @@ fails on the previous code.
 - **Shipped-ranker pin** moves to `89cb10e` (ADR 0003).
 - **Rollback target:** `8e743876` (tag `ad8e10c`).
 - **Next:** 3D (level intent; cross-family check required).
+
+## 2026-11-07 — 3D passes the dev screen
+
+- **3D** (level intent): level phrases become hard windows (beginner 1–4, graduate 5+, level N,
+  year N–4). Phrases are negated by `not`/`non`/`except`/`beyond`, matched leftmost-longest
+  alongside GE, combined as a union, and undone by `ignore=level`. Two priors follow fusion: α for
+  beginner queries and β for level 5+ when no level intent is parsed (`src/level-prior.js`).
+- **Selected: the bundle, rules + α 0.35 + β 0.1.** On dev, ΔnDCG@10 is +0.005 [−0.007, 0.015],
+  and the level target gains +0.036 (targeted pass). SC4 passes 73 of 73; sc4-031 waits for 3H.
+- **The named retry `a0` (the rules alone) fails the dev screen:** its level-target tripwire
+  trips. A failed L5 therefore goes to Jacob (Q4).
+- **No cross-family check.** Gemini was rate-limited on all three attempts; Jacob signed off on
+  skipping it (ADR 0004 deviation).
+- **qrels-dev-v7** (`p3d`). Evidence: `docs/evidence/phase3/3d-dev-screen.md`.
+- **Next:** L5.
+
+## 2026-11-07 — 3D fails L5 (holdout look 4 of 12)
+
+- **L5:** fail. ΔnDCG@10 is −0.005 [−0.020, 0.004] and ΔP@5 −0.020 [−0.045, 0.003]
+  (`qrels-holdout-v6`). **Holdout looks: 4 of 12.**
+- **The named retry `a0` fails the dev screen**, so the next step is Jacob's (Q4).
+- **Diagnosis (dev only):** the bundle misreads `intro` inside pasted course descriptions (d-073,
+  d-017), and α then buries the exact match. Candidate `3d-r2` reads level phrases only in queries
+  of at most 12 tokens. On dev, ΔnDCG@10 is +0.009 [0.003, 0.020], and the level target keeps its
+  +0.036. It waits on Jacob before any reserve look.
+
+## 2026-11-07 — 3D dropped for Phase 3 (holdout looks 5 of 12)
+
+- **Retry look on `3d-r2`** (the bundle plus the 12-token rule, Jacob's go): fail. ΔnDCG@10 is
+  −0.004 [−0.019, 0.004] and ΔP@5 −0.017 [−0.042, 0.003]. **Holdout looks: 5 of 12.**
+- **3D is dropped for this phase** (Jacob's decision before the look). PR #49 closes unmerged;
+  `level-intent-3d` keeps the code for Phase 4.
+- **SC4's level items stay unmet** until Phase 4's study-level input.
+- **Next:** 3E (RRF weighting; cross-family check in scope).
