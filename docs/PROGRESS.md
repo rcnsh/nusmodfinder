@@ -818,3 +818,18 @@ fails on the previous code.
 - **Shipped-ranker pin** moves to `89cb10e` (ADR 0003).
 - **Rollback target:** `8e743876` (tag `ad8e10c`).
 - **Next:** 3D (level intent; cross-family check required).
+
+## 2026-11-07 — 3D passes the dev screen
+
+- **3D** (level intent): level phrases become hard windows (beginner 1–4, graduate 5+, level N,
+  year N–4). Phrases are negated by `not`/`non`/`except`/`beyond`, matched leftmost-longest
+  alongside GE, combined as a union, and undone by `ignore=level`. Two priors follow fusion: α for
+  beginner queries and β for level 5+ when no level intent is parsed (`src/level-prior.js`).
+- **Selected: the bundle, rules + α 0.35 + β 0.1.** On dev, ΔnDCG@10 is +0.005 [−0.007, 0.015],
+  and the level target gains +0.036 (targeted pass). SC4 passes 73 of 73; sc4-031 waits for 3H.
+- **The named retry `a0` (the rules alone) fails the dev screen:** its level-target tripwire
+  trips. A failed L5 therefore goes to Jacob (Q4).
+- **No cross-family check.** Gemini was rate-limited on all three attempts; Jacob signed off on
+  skipping it (ADR 0004 deviation).
+- **qrels-dev-v7** (`p3d`). Evidence: `docs/evidence/phase3/3d-dev-screen.md`.
+- **Next:** L5.
