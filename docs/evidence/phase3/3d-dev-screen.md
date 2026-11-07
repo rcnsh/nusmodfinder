@@ -107,3 +107,39 @@ input, and all are fixed with tests.
 
 Both intervals include 0, and both point estimates are below it. The named retry `a0` fails the
 dev screen, so the decision goes to Jacob (plan §3, Q4). The look made no remote request.
+
+## After L5: diagnosis on dev and a candidate fix (Jacob: diagnose on dev first)
+Dev only; no holdout query, score or document was read beyond the L5 verdict.
+
+- **Where the bundle loses on dev.** The largest single loss is **d-073** (−0.297), a pasted
+  course description: "need equivalent of our 'Databases and Data Management' (relational model,
+  SQL, normalisation, transactions, intro to NoSQL)". `intro to nosql` is read as beginner intent,
+  and α 0.35 pushes the exact match CS4221 (level 4, grade 2) out of the top 10. The rules alone
+  (`a0`) keep level 4 in the window, so only α makes the misread cost. d-017, a 59-word mapping
+  query that describes a home course "Intro to AI", is misread the same way but is unscored on
+  dev. So both dev mapping queries with a beginner phrase are misreads. The holdout has the same
+  shapes, so this is a likely cause of L5's drop. It is not confirmed, since the holdout queries
+  were not read.
+- **What else loses:**
+  - The year windows (d-064 −0.057 and d-036 −0.053) drop partially relevant level-2 modules.
+  - The level-4 window costs d-063 −0.002 and d-093 −0.030.
+  - These are the pre-registered window semantics (C3-2) and are left as they are.
+- **Candidate `3d-r2`:** the bundle, plus level phrases read only in queries of at most 12 tokens
+  (`MAX_LEVEL_TOKENS`, `src/query-intent.js`). A longer query is treated as a pasted description;
+  an `XX N000` code level still counts. The threshold comes from the dev shape lengths, not from
+  scores:
+  - level, constraint and typo queries have at most 11 words;
+  - mapping queries have a median of 16;
+  - every SC4 item has at most 7 words.
+  On dev, the rule switches off the level intent of d-017, d-045 and d-073.
+
+| | nDCG@10 | Δ | BCa 95% CI | P@5 Δ | target `level` | gate |
+|---|---|---|---|---|---|---|
+| 3d-a35b10 (L5) | 0.775 | +0.005 | [−0.007, 0.015] | +0.000 | +0.036 | pass (targeted) |
+| **3d-r2** | **0.779** | **+0.009** | **[0.003, 0.020]** | +0.007 | +0.036 | **pass** (targeted; also clears the general CI rule) |
+
+- **Judging:** `3d-r2` pooled 0 unjudged documents (`qrels-dev-v7`).
+- **Tests:** SC4 passes 73 of 73, and the unit and full suites pass.
+- **Caveat:** the rule was found after a failed look. The search used dev only, and the rule
+  follows from a mechanism (pasted descriptions), not from a sweep over thresholds. A further look
+  would still be a second test of a modified 3D, from the reserve.

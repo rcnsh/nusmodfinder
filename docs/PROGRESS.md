@@ -839,3 +839,7 @@ fails on the previous code.
 - **L5:** fail. ΔnDCG@10 is −0.005 [−0.020, 0.004] and ΔP@5 −0.020 [−0.045, 0.003]
   (`qrels-holdout-v6`). **Holdout looks: 4 of 12.**
 - **The named retry `a0` fails the dev screen**, so the next step is Jacob's (Q4).
+- **Diagnosis (dev only):** the bundle misreads `intro` inside pasted course descriptions (d-073,
+  d-017), and α then buries the exact match. Candidate `3d-r2` reads level phrases only in queries
+  of at most 12 tokens. On dev, ΔnDCG@10 is +0.009 [0.003, 0.020], and the level target keeps its
+  +0.036. It waits on Jacob before any reserve look.
