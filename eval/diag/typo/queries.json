@@ -1,0 +1,523 @@
+{
+ "schema": "vnm-eval-queries/1",
+ "set": "dev",
+ "version": "diag-typo-v1",
+ "diagnostic": true,
+ "seed": "vnm-3c-diag-typo-2026-11-07",
+ "derivedFrom": {
+  "queries": "v2.1",
+  "qrels": "qrels-dev-v6"
+ },
+ "noiseModel": "eval/diag/build-typo.mjs (Phase 2b's, eval/v2/build-queries.mjs): 1–2 letter-only words of 4+ letters, each one interior keyboard-neighbour substitution, transposition, deletion or doubling",
+ "queries": [
+  {
+   "id": "dt-001",
+   "shapes": [
+    "typo"
+   ],
+   "text": "crporate finance valuation",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-001"
+  },
+  {
+   "id": "dt-002",
+   "shapes": [
+    "typo"
+   ],
+   "text": "brannd management and consumer brhaviour",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-002"
+  },
+  {
+   "id": "dt-003",
+   "shapes": [
+    "typo"
+   ],
+   "text": "Corporzte Finance II",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-004"
+  },
+  {
+   "id": "dt-004",
+   "shapes": [
+    "typo"
+   ],
+   "text": "jpanese 1",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-007"
+  },
+  {
+   "id": "dt-005",
+   "shapes": [
+    "typo"
+   ],
+   "text": "advanced financial modellign excl",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-010"
+  },
+  {
+   "id": "dt-006",
+   "shapes": [
+    "typo"
+   ],
+   "text": "inttro accounting no prerequisittes",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-011"
+  },
+  {
+   "id": "dt-007",
+   "shapes": [
+    "typo"
+   ],
+   "text": "human computer interaction usrr interface design",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-014"
+  },
+  {
+   "id": "dt-008",
+   "shapes": [
+    "typo"
+   ],
+   "text": "comuter viwion",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-015"
+  },
+  {
+   "id": "dt-009",
+   "shapes": [
+    "typo"
+   ],
+   "text": "CS 4400 Operating Systemms",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-016"
+  },
+  {
+   "id": "dt-010",
+   "shapes": [
+    "typo"
+   ],
+   "text": "into course, no prerequisites, any sibject",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-023"
+  },
+  {
+   "id": "dt-011",
+   "shapes": [
+    "typo"
+   ],
+   "text": "thermodyynamics for mechaniacl engineering",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-026"
+  },
+  {
+   "id": "dt-012",
+   "shapes": [
+    "typo"
+   ],
+   "text": "fluid mehcanics",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-027"
+  },
+  {
+   "id": "dt-013",
+   "shapes": [
+    "typo"
+   ],
+   "text": "machnie design course gears bearigs shafts",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-028"
+  },
+  {
+   "id": "dt-014",
+   "shapes": [
+    "typo"
+   ],
+   "text": "heat transfeer conduction convection radiation",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-029"
+  },
+  {
+   "id": "dt-015",
+   "shapes": [
+    "typo"
+   ],
+   "text": "manufacturing process machining casting weldding",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-030"
+  },
+  {
+   "id": "dt-016",
+   "shapes": [
+    "typo"
+   ],
+   "text": "Thermodynanics 2",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-031"
+  },
+  {
+   "id": "dt-017",
+   "shapes": [
+    "typo"
+   ],
+   "text": "can exchaange student taek japanese 1",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-034"
+  },
+  {
+   "id": "dt-018",
+   "shapes": [
+    "typo"
+   ],
+   "text": "sinapore history and socety course",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-035"
+  },
+  {
+   "id": "dt-019",
+   "shapes": [
+    "typo"
+   ],
+   "text": "coloniaal history of Southeast Asia",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-038"
+  },
+  {
+   "id": "dt-020",
+   "shapes": [
+    "typo"
+   ],
+   "text": "hitsory of migration and diaspora",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-039"
+  },
+  {
+   "id": "dt-021",
+   "shapes": [
+    "typo"
+   ],
+   "text": "gendre and politics",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-040"
+  },
+  {
+   "id": "dt-022",
+   "shapes": [
+    "typo"
+   ],
+   "text": "Introduction to Comparaive Politics",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-041"
+  },
+  {
+   "id": "dt-023",
+   "shapes": [
+    "typo"
+   ],
+   "text": "Singapoore history",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-043"
+  },
+  {
+   "id": "dt-024",
+   "shapes": [
+    "typo"
+   ],
+   "text": "Singgapore society, multiculturalism, race and relifion",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-044"
+  },
+  {
+   "id": "dt-025",
+   "shapes": [
+    "typo"
+   ],
+   "text": "SEA studids",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-046"
+  },
+  {
+   "id": "dt-026",
+   "shapes": [
+    "typo"
+   ],
+   "text": "itnro history course no prerequisites",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-048"
+  },
+  {
+   "id": "dt-027",
+   "shapes": [
+    "typo"
+   ],
+   "text": "milecular biloogy",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-052"
+  },
+  {
+   "id": "dt-028",
+   "shapes": [
+    "typo"
+   ],
+   "text": "biohcemistry metabolism enzymes",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-053"
+  },
+  {
+   "id": "dt-029",
+   "shapes": [
+    "typo"
+   ],
+   "text": "is there somerhing on marine biology or coral rerfs",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-055"
+  },
+  {
+   "id": "dt-030",
+   "shapes": [
+    "typo"
+   ],
+   "text": "ceol signallign pathways and cancer",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-056"
+  },
+  {
+   "id": "dt-031",
+   "shapes": [
+    "typo"
+   ],
+   "text": "microbology bacteia",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-057"
+  },
+  {
+   "id": "dt-032",
+   "shapes": [
+    "typo"
+   ],
+   "text": "evo deov",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-061"
+  },
+  {
+   "id": "dt-033",
+   "shapes": [
+    "typo"
+   ],
+   "text": "advanced mollecular biology 4000 level",
+   "filters": {
+    "sem": 2,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-063"
+  },
+  {
+   "id": "dt-034",
+   "shapes": [
+    "typo"
+   ],
+   "text": "concurrent and parzllel programming thredas locks",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-066"
+  },
+  {
+   "id": "dt-035",
+   "shapes": [
+    "typo"
+   ],
+   "text": "software engineering design patterns object oriented desin",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-067"
+  },
+  {
+   "id": "dt-036",
+   "shapes": [
+    "typo"
+   ],
+   "text": "philsophy of mknd",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-068"
+  },
+  {
+   "id": "dt-037",
+   "shapes": [
+    "typo"
+   ],
+   "text": "ethis - moral philosophy intro",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-069"
+  },
+  {
+   "id": "dt-038",
+   "shapes": [
+    "typo"
+   ],
+   "text": "introductory economcis micrieconomics",
+   "filters": {
+    "sem": 1,
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-070"
+  },
+  {
+   "id": "dt-039",
+   "shapes": [
+    "typo"
+   ],
+   "text": "Conncurrent Progrmming",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-072"
+  },
+  {
+   "id": "dt-040",
+   "shapes": [
+    "typo"
+   ],
+   "text": "no prerequiisites inro philosophy",
+   "filters": {
+    "ng": true
+   },
+   "origin": "typo-diag",
+   "source": "d-080"
+  }
+ ]
+}

@@ -1,7 +1,7 @@
 {
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
- "version": "qrels-dev-v5",
+ "version": "qrels-dev-v6",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
   "ngSha256": "092d021db4ccff2ea45e75bfc073623fa502aace082a8d5bd627f41d79c3f169"
@@ -134,6 +134,34 @@
     }
    },
    "createdAt": "2026-11-07T08:59:01.204Z"
+  },
+  {
+   "round": "p3c",
+   "mode": "single",
+   "judges": {
+    "A": "claude-opus-5-5"
+   },
+   "adjudicator": null,
+   "pairs": 36,
+   "pool": "1c3464e3e1d0147d4220e85d84b4de09450dd925fe59efc4eb2c18e68e038be3",
+   "codeRule": {
+    "rule": "code-rule-v1",
+    "pairs": 56,
+    "queries": 0,
+    "added": {
+     "0": 0,
+     "1": 0,
+     "2": 0
+    },
+    "changed": {},
+    "overrides": {
+     "total": 0,
+     "up": 0,
+     "down": 0,
+     "same": 0
+    }
+   },
+   "createdAt": "2026-11-07T10:37:36.204Z"
   }
  ],
  "queries": {
@@ -3600,6 +3628,114 @@
        "slot": "A",
        "grade": 1,
        "rationale": "Investment instruments, derivatives and risk management; a finance course, partially relevant, though not corporate finance."
+      }
+     }
+    },
+    "BSP3701": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Strategic management capstone; touches corporate governance but is not a finance course."
+      }
+     }
+    },
+    "BT3102": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Computational methods for business analytics; finance is only mentioned as an application field."
+      }
+     }
+    },
+    "EC3343": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "International finance course; a finance course in the macroeconomic sense, not corporate finance."
+      }
+     }
+    },
+    "FIN2704X": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Broad introductory finance course covering capital budgeting and valuation, a finance course but not an advanced corporate finance course."
+      }
+     }
+    },
+    "ID3130": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Design course on branding and storytelling; matches 'corporate' only in the branding sense, no finance content."
+      }
+     }
+    },
+    "IS4228": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "FinTech course covering how financial markets work and finance fundamentals; a finance-related course under the partial line."
+      }
+     }
+    },
+    "QF2104": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Quantitative finance course on fixed income, portfolio optimisation and CAPM; a finance course, not corporate finance."
+      }
+     }
+    },
+    "RE3701": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Finance-based real estate investment analysis course; counts as a finance course under the partial line."
+      }
+     }
+    },
+    "SC2209": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Sociology/anthropology course on the social meanings of money and finance, not a finance course."
       }
      }
     }
@@ -16922,6 +17058,30 @@
        "rationale": "hard constraint: not open to non-graduating students in semester 2"
       }
      }
+    },
+    "BSP1703": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Managerial economics course; no connection to evo-devo."
+      }
+     }
+    },
+    "EC3333": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Financial economics course; no evolutionary or developmental biology."
+      }
+     }
     }
    }
   },
@@ -27136,6 +27296,126 @@
        "rationale": "Materials science optoelectronics course; unrelated to molecular biology."
       }
      }
+    },
+    "LSM2105": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Core molecular biology topics (transcription, translation, genetic technology), but at 2000 level, clearly below the 4000 level asked for."
+      }
+     }
+    },
+    "LSM2106": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "2000-level foundation biochemistry, not advanced molecular biology."
+      }
+     }
+    },
+    "LSM2233": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "2000-level foundational cell biology, below the advanced molecular biology level wanted."
+      }
+     }
+    },
+    "LSM2234": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introductory quantitative biology methods, not molecular biology."
+      }
+     }
+    },
+    "LSM2254": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "2000-level introductory plant biology."
+      }
+     }
+    },
+    "LSM3225": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "3000-level course applying molecular biology to microbes; the intent counts a third-year molecular course as partially relevant."
+      }
+     }
+    },
+    "LSM3243": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "3000-level course on macromolecular structure and protein folding; a third-year molecular course, but biophysical rather than about genome editing or RNA."
+      }
+     }
+    },
+    "LSM4227": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "4000-level course on current research topics such as reprogramming and pluripotency; it is related, but stem cell biology rather than molecular biology proper."
+      }
+     }
+    },
+    "LSM4234": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "4000-level biology covering molecular force-sensing and mechanical control of transcription; molecular topics are one part, but it is not a molecular biology course on CRISPR or RNA."
+      }
+     }
+    },
+    "LSM4252": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Reproductive biology focused on endocrinology and gonad development; molecular biology is not its focus."
+      }
+     }
     }
    }
   },
@@ -27538,6 +27818,66 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Environmental science and policy course; not microbiology."
+      }
+     }
+    },
+    "CM3225": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A bioorganic chemistry course on biomolecules; it shares no microbiology content."
+      }
+     }
+    },
+    "GEH1043": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Covers infectious diseases and microbe-human interactions, the right topic but at an introductory 1000-level general-education level rather than intermediate microbiology."
+      }
+     }
+    },
+    "LSM2191B": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A molecular biology and protein biochemistry lab techniques course; despite the Microbiology department listing, it does not cover bacterial physiology, genetics or pathogenesis."
+      }
+     }
+    },
+    "LSM3225": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 3000-level molecular microbiology course on microbe life cycles, pathogens and human disease, matching the pathogenesis and genetics intent; NG in semester 2."
+      }
+     }
+    },
+    "LSM3232": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 3000-level Microbiology course emphasising bacteria and other microbes, their functions and diseases; offered and open to NG students in semester 2."
       }
      }
     }
@@ -28244,6 +28584,54 @@
        "rationale": "Robot manipulator kinematics, dynamics and control; not machine element design with stress and failure calculation."
       }
      }
+    },
+    "BN4501": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Design of engineered genetic systems; it shares only the word 'design' with the query."
+      }
+     }
+    },
+    "CE3165": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Structural concrete design for civil engineering, not machine elements such as gears, bearings or shafts."
+      }
+     }
+    },
+    "CE4221": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Design of transport infrastructure such as highways and rail; unrelated to machine design."
+      }
+     }
+    },
+    "ID2114": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A woodworking craft course for making furniture, not mechanical machine-element design or stress analysis."
+      }
+     }
     }
    }
   },
@@ -28546,6 +28934,78 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Discrete mathematics course, not accounting or finance."
+      }
+     }
+    },
+    "ACC1701XA": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "1000-level introduction to accounting from a user perspective with introductory book-keeping, offered and open to NG students in semester 1."
+      }
+     }
+    },
+    "ACC1701XC": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "1000-level introduction to accounting covering financial reporting and introductory book-keeping, offered and open to NG students in semester 1."
+      }
+     }
+    },
+    "ACC2706": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Managerial accounting course covering major concepts, but at 2000-level, so less clearly an introductory no-prerequisite course; prerequisites are not shown."
+      }
+     }
+    },
+    "EC3343": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level international macroeconomics and finance course, not an intro accounting or intro finance course with no prerequisites."
+      }
+     }
+    },
+    "LL4073V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "4000-level international criminal law course; unrelated to accounting."
+      }
+     }
+    },
+    "PS1101E": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introduction to political science; unrelated to accounting."
       }
      }
     }

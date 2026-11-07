@@ -21,9 +21,10 @@ export { ftsMatch, queryTokens } from './fts-query.js';
  * @param {FilterEcho} echo
  * @param {number} limit
  * @param {Trace} trace
+ * @param {import('./fts-query.js').FtsTerms} [terms] the prefix terms and corrections of the typo step (src/typo.js)
  */
-export async function lexicalSearch(db, query, echo, limit, trace) {
-  const match = ftsMatch(query);
+export async function lexicalSearch(db, query, echo, limit, trace, terms) {
+  const match = ftsMatch(query, terms);
   if (!match) return [];
   return runFts(db, match, echo, limit, trace);
 }

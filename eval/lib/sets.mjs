@@ -14,12 +14,14 @@
 // A verdict reads an encrypted set only through `{ verify: true }`: each
 // ciphertext must be listed, with its sha256, in the set directory's
 // MANIFEST.json (the check `eval:verify` makes), so a `--set-dir` of files
-// the manifest never saw cannot be scored.
+// the manifest never saw cannot be scored. A plaintext set directory that has
+// a MANIFEST.json (eval/diag/typo, 3C's diagnostic) has its queries and qrels
+// checked against it on every read; eval/dev has none.
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assertInManifest, decrypt, readKey } from './crypto.mjs';
+import { MANIFEST, assertInManifest, decrypt, readKey } from './crypto.mjs';
 
 export const REPO = fileURLToPath(new URL('../../', import.meta.url)).replace(/\/$/, '');
 
@@ -123,6 +125,17 @@ export async function readSetJson(set, path, options = {}) {
 }
 
 /**
+ * A plaintext set file checked against its directory's MANIFEST.json, when
+ * the directory has one (ManifestError on a difference).
+ * @param {SetLayout} set
+ * @param {string} path
+ */
+export async function assertPlainManifest(set, path) {
+  if (set.encrypted || !existsSync(join(set.dir, MANIFEST))) return;
+  await assertInManifest(set.dir, path);
+}
+
+/**
  * @param {SetLayout} set
  * @param {ReadOptions} [options]
  * @returns {Promise<import('./metrics.mjs').QuerySet>}
@@ -132,6 +145,7 @@ export async function loadQueries(set, options = {}) {
   if (!existsSync(path)) {
     throw new Error(`${path} does not exist: the ${set.name} query set has not been written yet (workstream 2b)`);
   }
+  await assertPlainManifest(set, path);
   const qs = await readSetJson(set, path, options);
   validateQueries(qs, path);
   return qs;
@@ -145,6 +159,7 @@ export async function loadQueries(set, options = {}) {
 export async function loadQrels(set, options = {}) {
   const path = setFile(set, 'qrels.json');
   if (!existsSync(path)) throw new Error(`${path} does not exist: the ${set.name} set has not been judged yet (workstream 2d)`);
+  await assertPlainManifest(set, path);
   return readSetJson(set, path, options);
 }
 
