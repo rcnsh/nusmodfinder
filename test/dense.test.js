@@ -71,8 +71,9 @@ describe('3-0 identity on the fixture (A-N6)', () => {
         /** @param {string} mode */
         const both = async (mode) => {
           const path = `/search?q=${encodeURIComponent(q)}${f}&mode=${mode}&topK=50`;
-          const bundle = await callJson(path, { fakes });
-          const standby = await callJson(path, { fakes, env: STANDBY });
+          // Uncollapsed: 3F reads a single bundle list deeper than Vectorize's (src/search.js depth).
+          const bundle = await callJson(path, { fakes, env: { COLLAPSE_GROUPS: 'off' } });
+          const standby = await callJson(path, { fakes, env: { ...STANDBY, COLLAPSE_GROUPS: 'off' } });
           expect(bundle.status, path).toBe(200);
           expect(standby.status, path).toBe(200);
           expect(bundle.body.degraded, path).toBeUndefined();
@@ -117,7 +118,7 @@ describe('3-0 identity on the fixture (A-N6)', () => {
   it('any DENSE_BACKEND other than "vectorize" is the bundle', async () => {
     const f = createFakes();
     for (const value of ['bundle', 'Vectorize', '', undefined]) {
-      const { body } = await callJson('/search?q=machine%20learning&mode=vector', { fakes: f, env: { DENSE_BACKEND: value } });
+      const { body } = await callJson('/search?q=machine%20learning&mode=vector', { fakes: f, env: { DENSE_BACKEND: value, COLLAPSE_GROUPS: 'off' } });
       expect(body.retrieval.vector).toBe(50);
     }
     expect(f.vectorize.calls).toEqual([]);

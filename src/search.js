@@ -589,7 +589,6 @@ const catalogueText = (row) => [row.title, row.description]
  */
 async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, log) {
   const db = readSession(env);
-  const depth = Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK);
   // Spans in pipeline order, whichever branch finishes first.
   trace.reserve('pin', 'embed', 'vector', 'fts', 'hydrate');
 
@@ -601,6 +600,17 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     return { response: upstream('d1', err), degraded: null };
   }
   log.route = parsed.kind;
+  const collapsing = collapseOn(env);
+  // Retrieval depth per list. 3F collapses the deepest uncollapsed ranking
+  // (topK 50, so each list 50 deep) to fill its page. A single list (lexical,
+  // or the bundle's exact dense order, with no code list) can go deeper,
+  // since a deeper list only continues the same order. A fused one cannot,
+  // since deeper lists change RRF's sums. 100 is Vectorize's topK cap.
+  const singleList = !parsed.codeList && (mode === 'lexical' || (mode === 'vector' && denseBackend(env) === 'bundle'));
+  const depth = !collapsing ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK) : singleList ? MAX_TOPK * 2 : MAX_TOPK;
+  // 3F: variants pass the request's filters and the query's level window, but
+  // not its code ranges (a GES result may list its GESS cross-listing).
+  const variantFilter = parsed.level ? { ...echo, levelWindow: parsed.level } : echo;
 
   // Dense retrieval. In hybrid mode a failure degrades to keyword-only results
   // (B6); in vector mode it fails loudly, because the eval measures that half.
@@ -686,7 +696,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     /** @type {DenseHit[] | null} */
     let hits = null;
     // With 3F's collapse a page of topK groups can need more members than topK.
-    const maskDepth = collapseOn(env) ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK * CANDIDATE_MULTIPLIER) : topK;
+    const maskDepth = collapsing ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK * CANDIDATE_MULTIPLIER) : topK;
     if (tryDense && denseBackend(env) === 'bundle') {
       const r = await settle(denseRun(env, denseTexts(parsed), trace, (vs) => bundleHits(vs, maskConstraints, maskDepth, trace)));
       if (r.ok) hits = r.value;
@@ -715,12 +725,12 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
       return [rowToModule(row, score.get(code))];
     });
     // 3F: after the filters, one result per duplicate group, the rest as its variants.
-    if (collapseOn(env)) {
+    if (collapsing) {
       const { groupOf } = groups();
       const seen = new Set();
       results = results.filter((r) => { const k = groupKeyOf(groupOf, r.code); return seen.has(k) ? false : (seen.add(k), true); }).slice(0, topK);
       try {
-        results = await attachVariants(db, results, echo, trace);
+        results = await attachVariants(db, results, variantFilter, trace);
       } catch (err) {
         return { response: upstream('d1', err), degraded: null };
       }
@@ -766,8 +776,12 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
 
   const [pin, vec, lex, early] = await Promise.all([pinning, dense, lexical, codeEarly]);
 
+  const { groupOf } = groups();
   /** @type {ReturnType<typeof rowToModule>[]} */
   const pinned = [];
+  // 3F: each duplicate group's first member stands for it, pins included.
+  /** @type {Set<string>} */
+  const groupsShown = new Set();
   if (pin) {
     if (!pin.ok) return { response: upstream('d1', pin.error), degraded: null };
     const res = /** @type {D1Result<ResultRow>} */ (pin.value);
@@ -775,7 +789,13 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     const byCodeRow = new Map(res.results.map((r) => [r.code, r]));
     for (const code of parsed.pins) {
       const row = byCodeRow.get(code);
-      if (row && localMatchesFilters(row, echo)) pinned.push(rowToModule(row, 1));
+      if (!row || !localMatchesFilters(row, echo)) continue;
+      if (collapsing) {
+        const k = groupKeyOf(groupOf, code);
+        if (groupsShown.has(k)) continue;
+        groupsShown.add(k);
+      }
+      pinned.push(rowToModule(row, 1));
     }
   }
 
@@ -821,11 +841,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   // table (or the standby's metadata, which has no 3B field) can be older than
   // D1. Lexical and code-order candidates were filtered by D1 itself.
   let results = [...pinned];
-  // 3F: each duplicate group's first member stands for it, pins included; the
-  // later members are skipped after the filters, so one never stands in.
-  const collapsing = collapseOn(env);
-  const { groupOf } = groups();
-  const groupsShown = new Set(collapsing ? pinned.map((p) => groupKeyOf(groupOf, p.code)) : []);
+  // 3F: later members of a shown group are skipped after the filters, so one never stands in.
   const lexicalSet = new Set(lexicalCodes);
   const denseOnly = new Set([...vectorCodes, ...(codeByDense ? codeCodes ?? [] : [])].filter((c) => !lexicalSet.has(c)));
   /** @type {string[]} */
@@ -859,7 +875,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   if (filteredOut.length) console.warn(`dense rows whose D1 row fails the filters: ${filteredOut.join(', ')}`);
   if (collapsing) {
     try {
-      results = await attachVariants(db, results, echo, trace);
+      results = await attachVariants(db, results, variantFilter, trace);
     } catch (err) {
       return { response: upstream('d1', err), degraded: null };
     }

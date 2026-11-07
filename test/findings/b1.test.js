@@ -47,7 +47,8 @@ describe('B1', () => {
 
   // Was `[B1 known-bug] hybrid sem=3 finds the targets only through the vector half`.
   it('[B1 fixed] hybrid sem=3 finds the targets through both halves', async () => {
-    const { body } = await callJson('/search?q=management&sem=3&topK=1', { fakes });
+    // Uncollapsed: 3F's hybrid lists are 50 deep at any topK (src/search.js depth).
+    const { body } = await callJson('/search?q=management&sem=3&topK=1', { fakes, env: { COLLAPSE_GROUPS: 'off' } });
     expect(body.retrieval.lexical).toBe(3);
     expect(body.retrieval.vector).toBe(3);
     expect(targets.map((t) => t.code)).toContain(body.results[0].code);

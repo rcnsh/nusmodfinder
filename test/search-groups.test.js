@@ -77,6 +77,38 @@ describe('the collapse', () => {
     expect(body.results[0].variants.map((/** @type {any} */ v) => v.code)).toEqual(expect.arrayContaining(['CS1010', 'CS1010E']));
   });
 
+  it('two pinned codes from one group: the first stands, the second is its variant, and the page is the projection', async () => {
+    for (const q of ['cs2030 or cs2030s', 'cs1010 cs1010s']) {
+      const on = await callJson(`/search?q=${encodeURIComponent(q)}&topK=20`, { fakes });
+      const off = await callJson(`/search?q=${encodeURIComponent(q)}&topK=50`, { fakes, env: OFF });
+      expect(codes(on.body), q).toEqual(project(codes(off.body)).slice(0, 20));
+      const listed = on.body.results.flatMap((/** @type {any} */ r) => (r.variants ?? []).map((/** @type {any} */ v) => v.code));
+      expect(new Set(listed).size, q).toBe(listed.length);
+      for (const c of listed) expect(codes(on.body), c).not.toContain(c);
+    }
+    const { body } = await callJson('/search?q=cs2030%20or%20cs2030s', { fakes });
+    expect(body.results[0].variants.map((/** @type {any} */ v) => v.code)).toContain('CS2030S');
+  });
+
+  it('a single list fills a page of 50 from deeper in the same order; still the projection', async () => {
+    for (const mode of ['lexical', 'vector']) {
+      const path = `/search?q=programming&mode=${mode}`;
+      const on = await callJson(`${path}&topK=50`, { fakes });
+      const off = await callJson(`${path}&topK=50`, { fakes, env: OFF });
+      expect(on.body.count, mode).toBe(50);
+      const want = project(codes(off.body));
+      expect(codes(on.body).slice(0, want.length), mode).toEqual(want);
+    }
+  });
+
+  it('variants keep to the query\'s level window, as results do', async () => {
+    const { body } = await callJson('/search?q=llj%205000&topK=50', { fakes });
+    expect(body.interpreted.level).toMatchObject({ min: 5, max: 5 });
+    const listed = body.results.flatMap((/** @type {any} */ r) => r.variants ?? []);
+    expect(listed.length).toBeGreaterThan(0);
+    for (const v of listed) expect(moduleOf.get(v.code)?.level, v.code).toBe(5);
+  });
+
   it('a whole-query mask collapses too: every member is a result or a variant, one result per group', async () => {
     const { body } = await callJson('/search?q=cs1&topK=50', { fakes });
     const members = fixture.modules.map((m) => m.code).filter((c) => c >= 'CS1' && c < 'CS1:');
