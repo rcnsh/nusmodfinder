@@ -101,10 +101,12 @@ describe('S8', () => {
     expect(body.count).toBe(20);
   });
 
-  it('[S8 known-bug] near-duplicate variants (TR3202*) crowd the top of the list', async () => {
+  it('[S8 fixed] 3F: near-duplicate variants (TR3202*) collapse to one result, the others listed as its variants', async () => {
     const { body } = await callJson('/search?q=start-up%20internship&mode=lexical&topK=10', { fakes });
-    const top = codes(body.results).slice(0, 4);
-    expect(top.filter((c) => c.startsWith('TR3202')).length).toBe(4);
+    const tr = body.results.filter((/** @type {any} */ r) => r.code.startsWith('TR3202'));
+    expect(tr).toHaveLength(1);
+    expect(tr[0].variants.every((/** @type {any} */ v) => v.code.startsWith('TR3202'))).toBe(true);
+    expect(tr[0].variants.length).toBeGreaterThanOrEqual(3);
   });
 });
 
