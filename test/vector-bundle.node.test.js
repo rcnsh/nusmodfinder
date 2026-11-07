@@ -56,9 +56,11 @@ describe('encodeBundle / parseBundle', () => {
     expect(row(2)[1]).toBe(1);
     const n = Math.hypot(...row(1));
     expect(Math.abs(n - 1)).toBeLessThan(1e-6);
-    expect(decodeFilterRow(b, 0)).toEqual({ semesters: [1], level: null, credits: null, faculty: null, ng: false, ngSemesters: [] });
-    expect(decodeFilterRow(b, 1)).toEqual({ semesters: [1, 2, 4], level: 1, credits: 2.5, faculty: 'Arts', ng: false, ngSemesters: [] });
-    expect(decodeFilterRow(b, 2)).toEqual({ semesters: [2, 3], level: 2, credits: 4, faculty: 'Computing', ng: true, ngSemesters: [2] });
+    // The 3H fields a hand-built row leaves out read as their neutral values (test/intents-data.node.test.js sets them).
+    const none = { examSemesters: [], su: false, suGrading: false, workloadHours: null, prereqNone: false, prereqCohortOnly: false };
+    expect(decodeFilterRow(b, 0)).toEqual({ semesters: [1], level: null, credits: null, faculty: null, ng: false, ngSemesters: [], ...none });
+    expect(decodeFilterRow(b, 1)).toEqual({ semesters: [1, 2, 4], level: 1, credits: 2.5, faculty: 'Arts', ng: false, ngSemesters: [], ...none });
+    expect(decodeFilterRow(b, 2)).toEqual({ semesters: [2, 3], level: 2, credits: 4, faculty: 'Computing', ng: true, ngSemesters: [2], ...none });
   });
 
   it('is deterministic: the same input gives the same bytes, whatever the input order', async () => {

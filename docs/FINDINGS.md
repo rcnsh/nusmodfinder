@@ -445,7 +445,7 @@ the recorded run shows 14/20. Same finding, slightly worse.
 (from the code prefix) are downloaded but unused.
 
 **Evidence:**
-- test `[S7 known-bug] the schema has no exam, S/U, grading-basis or attributes columns`
+- test `[S7 fixed] 3H-0: the schema has exam, S/U, grading-basis, workload-hours and prerequisite columns`: migration 0007, filled by ingest (NORMALISER_VERSION 2); the filters themselves wait for 3H's query side
 - test `[S7 known-bug] /search accepts no workload, exam, S/U or prerequisite filter: they are ignored`
 
 **Notes:** In the pinned `moduleInfo.json`, 1,633 offered modules carry

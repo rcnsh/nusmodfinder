@@ -22,15 +22,18 @@
 //   4  u16  faculty id, an index into header.faculties; 0xFFFF = null
 //   6  2 B  reserved: 3B's prefix id
 //   8  f64  credits, NaN = null
-//   16 16 B reserved, zero: 3F's group id (u32 at 16) and 3H's fields (exam
-//           semesters, S/U source, workload, both prerequisite semantics at
-//           20–31). 3-0 carries only the fields /search filters on today; the
-//           workstream that adds a field fills its slot and bumps
-//           BUNDLE_SCHEMA, so an old reader refuses a new bundle.
+//   16 4 B  reserved, zero: 3F's group id (3F keeps its groups in data/groups.json)
+//   20 u8   3H: exam semesters 1–4 as bits 0–3
+//   21 u8   3H: S/U flags: bit 0 = attributes.su, bit 1 = graded CS/CU (C-12)
+//   22 u8   3H: prerequisite flags: bit 0 = none (C-5), bit 1 = cohort-only (A2-12)
+//   23 1 B  reserved, zero
+//   24 f64  3H: workload hours a week, NaN = null (C-11)
+// A workstream that adds a field fills its slot and bumps BUNDLE_SCHEMA, so
+// an old reader refuses a new bundle.
 import { dataVersion, rowHash, sha256Hex } from './rowhash.js';
 
 export const BUNDLE_MAGIC = 'VNMVEC01';
-export const BUNDLE_SCHEMA = 'vnm-vectors/1';
+export const BUNDLE_SCHEMA = 'vnm-vectors/2';
 export const ROW_STRIDE = 32;
 const NULL_LEVEL = 255;
 const NULL_FACULTY = 0xffff;
@@ -62,6 +65,12 @@ const NULL_FACULTY = 0xffff;
 
 /** Code order: by UTF-16 code unit, which for NUS codes ([A-Z0-9]) is also localeCompare's order. */
 const byCode = (/** @type {string} */ a, /** @type {string} */ b) => (a < b ? -1 : a > b ? 1 : 0);
+
+/**
+ * Whether a grading basis is CS/CU, which 3H's `su=1` also admits (C-12).
+ * @param {string | null | undefined} basis
+ */
+export const suGrading = (basis) => basis === 'Completed Satisfactory/Unsatisfactory';
 
 /** @param {number[]} sems semesters (1–4) as bits 0–3 */
 const semBits = (sems) => sems.reduce((bits, s) => (Number.isInteger(s) && s >= 1 && s <= 4 ? bits | (1 << (s - 1)) : bits), 0);
@@ -128,6 +137,10 @@ export async function encodeBundle({ corpus, embedding, model, modules, vectorOf
     out[at + 3] = semBits(m.ngSemesters ?? []);
     view.setUint16(at + 4, typeof m.faculty === 'string' ? /** @type {number} */ (facultyId.get(m.faculty)) : NULL_FACULTY, true);
     view.setFloat64(at + 8, typeof m.credits === 'number' ? m.credits : NaN, true);
+    out[at + 20] = semBits(m.examSemesters ?? []);
+    out[at + 21] = (m.su === true ? 1 : 0) | (suGrading(m.gradingBasis) ? 2 : 0);
+    out[at + 22] = (m.prereqNone === true ? 1 : 0) | (m.prereqCohortOnly === true ? 2 : 0);
+    view.setFloat64(at + 24, typeof m.workloadHours === 'number' ? m.workloadHours : NaN, true);
 
     const v = vectorOf(m);
     if (!v) throw new Error(`vectors bundle: no vector for ${m.code}`);
@@ -209,6 +222,12 @@ export function decodeFilterRow(b, i) {
     faculty: faculty === NULL_FACULTY ? null : b.header.faculties[faculty],
     ng: (b.table[at + 2] & 1) === 1,
     ngSemesters: bitsSems(b.table[at + 3]),
+    examSemesters: bitsSems(b.table[at + 20]),
+    su: (b.table[at + 21] & 1) === 1,
+    suGrading: (b.table[at + 21] & 2) === 2,
+    workloadHours: Number.isNaN(b.view.getFloat64(at + 24, true)) ? null : b.view.getFloat64(at + 24, true),
+    prereqNone: (b.table[at + 22] & 1) === 1,
+    prereqCohortOnly: (b.table[at + 22] & 2) === 2,
   };
 }
 

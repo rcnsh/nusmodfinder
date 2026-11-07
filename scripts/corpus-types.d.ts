@@ -19,6 +19,13 @@ interface NormalisedModule {
   textHash: string;
   ng: boolean;
   ngSemesters: number[];
+  /** 3H-0: offered semesters with an examDate. */
+  examSemesters: number[];
+  su: boolean;
+  gradingBasis: string | null;
+  workloadHours: number | null;
+  prereqNone: boolean;
+  prereqCohortOnly: boolean;
 }
 
 /** What vitest.config.mjs `provide`s as `corpus` (null when unavailable). */
