@@ -36,7 +36,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | S2 | reproduced | live |
 | S3 | reproduced | tests |
 | S4 | reproduced | tests, live |
-| S5 | reproduced | tests, live |
+| S5 | fixed | tests, live |
 | S6 | reproduced | live, full-corpus test |
 | S7 | reproduced | tests |
 | S8 | reproduced | tests, live |
@@ -393,7 +393,7 @@ description.
 "something"; the code column is UNINDEXED, so `CS32` and `GEA` get 0 keyword hits.
 
 **Evidence:**
-- test `[S4 known-bug] "%s" gets 0 lexical hits because the code column is UNINDEXED` (CS32, GEA)
+- test `[S4 fixed] "%s" routes to the modules with that prefix, though the code column stays UNINDEXED` (CS32, GEA): 3B's partial-code route
 - test `[S4 known-bug] "modules", "intro", "teach" and "something" are not stopwords`
 - test `[S4 known-bug] no fuzzy or prefix matching: "%s" gets 0 lexical hits` (`machne`, `progr`)
 - `docs/evidence/phase0/raw/S4_CS32.body` and `docs/evidence/phase0/raw/S4_GEA.body`: live `retrieval.lexical: 0`; no GEA module in GEA's top 20.
@@ -401,21 +401,26 @@ description.
 **Notes:** Stopwords `src/index.js:150-151`; `migrations/0002_fts.sql:5`. The keyword half has
 no fuzzy matching, but hybrid `machne learning` is **not** broken in production: the vector
 half carries it (`raw/S5_machne.body`, 15 of 20 titles are ML). So SC4's typo case is already
-met by hybrid; the keyword-half claim still stands.
+met by hybrid; the keyword-half claim still stands. 3B (Phase 3) fixes the code half of the
+claim with the partial-code route, not by indexing `code`; the stopword half is candidate
+`stopwords-v2`, screened on its own, and the fuzzy half is 3C's.
 
 ### S5 · Code handling is exact-only
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** `cs 1010s` puts CS1010S at #14; partial codes get no route.
 
 **Evidence:**
-- test `[S5 known-bug] "cs 1010s" is not recognised as the code CS1010S`
-- test `[S5 known-bug] the partial code "CS101" has no route: no pin, 0 lexical hits`
+- test `[S5 fixed] "cs 1010s" is joined into the code CS1010S and pinned at rank 1`
+- test `[S5 fixed] the partial code "CS101" routes to its members, and only them`
 - `docs/evidence/phase0/raw/S4_cs1010s.body`: live CS1010S at #14.
 
 **Notes:** The pin tests the whole query against `MODULE_CODE_RE` (`src/index.js:307-308`);
 `cs 1010s` fails it because of the space, and `1010s` is not a word in any indexed text.
+Phase 3 3B (`src/query-intent.js`) joins spaced codes and routes partial codes; the SC4 suite
+(`test/full/sc4.test.js`) checks its code rows over the pinned corpus. Fixed in code once 3B
+merges; its holdout look (L3) decides whether it ships.
 
 ### S6 · Graduate courses flood undergraduate queries
 

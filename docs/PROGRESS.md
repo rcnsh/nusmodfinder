@@ -768,3 +768,17 @@ fails on the previous code.
   checkout's. Their throwaway commits and tags are not GPG-signed.
 - **Rollback target:** `343ea371` (tag `e8a7124`), plus the D1 bookmark in `remote-ops.md`.
 - **Next:** 3B (codes, GE pillars, keyword brittleness), L3.
+
+## 2026-11-07 — 3B passes L3 (holdout look 2 of 12)
+
+- **3B** (PR #44: code joins and resolution, partial-code and GE masks, the third RRF list,
+  `noMatch`, `catalogue_only`) passes dev under the targeted rule. ΔnDCG@10 is +0.049
+  [0.017, 0.108] under `qrels-dev-v5`: code-space +0.54, code-partial +0.28, GE +0.30,
+  abbreviation 0.
+  - **stopwords-v2** fails dev alone (Δ 0.000), so it is dropped.
+  - **Gate amendment:** the abbreviation tripwire failed as degenerate when every query moved by
+    exactly 0. Jacob amended the rule for every change (ADR 0003, PR #45).
+- **L3:** pass. ΔnDCG@10 is +0.013 [0.003, 0.050] and ΔP@5 +0.003 [0.000, 0.017]
+  (`qrels-holdout-v4`). **Holdout looks: 2 of 12.**
+- **Next:** ship 3B. That means migration 0008 on remote D1, an ingest that loads
+  `catalogue_only`, the deploy, the smoke test, the shipped-pin move and the baseline holdout run.

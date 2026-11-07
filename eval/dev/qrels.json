@@ -1,12 +1,12 @@
 {
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
- "version": "qrels-dev-v4",
+ "version": "qrels-dev-v5",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
   "ngSha256": "092d021db4ccff2ea45e75bfc073623fa502aace082a8d5bd627f41d79c3f169"
  },
- "embedding": "emb-bge-small-v0",
+ "embedding": "emb-bge-small-v1",
  "groups": [],
  "judging": [
   {
@@ -106,6 +106,34 @@
     }
    },
    "createdAt": "2026-11-07T00:15:08.507Z"
+  },
+  {
+   "round": "p3b",
+   "mode": "single",
+   "judges": {
+    "A": "claude-opus-5-5"
+   },
+   "adjudicator": null,
+   "pairs": 28,
+   "pool": "f427fbbc9c41b4136392b2fdfe072dc3b26a56f4d7e28f744d3c70c46c344940",
+   "codeRule": {
+    "rule": "code-rule-v1",
+    "pairs": 56,
+    "queries": 0,
+    "added": {
+     "0": 0,
+     "1": 0,
+     "2": 0
+    },
+    "changed": {},
+    "overrides": {
+     "total": 0,
+     "up": 0,
+     "down": 0,
+     "same": 0
+    }
+   },
+   "createdAt": "2026-11-07T08:59:01.204Z"
   }
  ],
  "queries": {
@@ -6112,6 +6140,54 @@
        "slot": "A",
        "grade": 1,
        "rationale": "A 3000-level psychology major course on cognition; broad-interest social science but not a general education course and likely more demanding."
+      }
+     }
+    },
+    "GEC1028": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level GE course on the role of luck, open to NG students in Sem 2, with a broad-interest, non-technical topic. The description doesn't show its workload."
+      }
+     }
+    },
+    "GEC1041": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level GE course on crime fiction and film, open to NG students in Sem 2, on an engaging, accessible topic. The description doesn't show its workload."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level GE social science course on Islam and Malay society, open to NG students in Sem 2, which fits an accessible GE. The description doesn't show its workload."
+      }
+     }
+    },
+    "GEX1012": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level GE philosophy course on reasoning, open to NG students in Sem 2; it is accessible and non-technical. The description doesn't show its workload."
       }
      }
     }
@@ -12854,6 +12930,42 @@
        "rationale": "Introductory sociology and anthropology course on society, open to NG, but not a general education module; fits 'broad intro course outside my major'."
       }
      }
+    },
+    "GEC1046": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A GE course, open to NG students, on magic and myths in Southeast Asian society and culture, which matches the society-or-culture GE the student wants."
+      }
+     }
+    },
+    "GESS1015": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A GE course, open to NG students, on Western music's role in Singapore's culture and society, taught from socio-historical perspectives."
+      }
+     }
+    },
+    "GESS1035": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A GE course, open to NG students, on Singapore's maritime history and the sea's influence on society and economy, a social science and culture topic."
+      }
+     }
     }
    }
   },
@@ -17198,6 +17310,78 @@
        "rationale": "GESS general education course on everyday ethics, open to NG students in sem 2."
       }
      }
+    },
+    "GEC1007": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEC general education course introducing geopolitics to a broad range of students, open to NG students in semester 2."
+      }
+     }
+    },
+    "GEC1014": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3b",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 2"
+      }
+     }
+    },
+    "GESS1000": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on the world economy and Singapore, open to NG students in semester 2."
+      }
+     }
+    },
+    "GESS1021": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on Singapore film and identity, offered and open to NG students in semester 2."
+      }
+     }
+    },
+    "GEX1000": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEX general education course on Bollywood and love in Indian cinema, offered and open to NG students in semester 2."
+      }
+     }
+    },
+    "GEX1005": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEX general education course on public speaking and critical reasoning, open to NG students in semester 2."
+      }
+     }
     }
    }
   },
@@ -21498,6 +21682,126 @@
        "rationale": "A technical course on programming in R plus calculus, linear algebra and probability, not a non-technical general education course."
       }
      }
+    },
+    "GEC1007": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEC1007 is a common curriculum (GEC) course on geopolitics, open to NG students and designed for a broad range of students; it is non-technical."
+      }
+     }
+    },
+    "GEC1037": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEC1037 is a common curriculum course in the Thinking and Expression pillar on big-picture history, open to NG students; it is non-technical."
+      }
+     }
+    },
+    "GEC1050": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEC1050 is a common curriculum course on cultural interpretations of the sky, open to NG students in semester 2; it is non-technical."
+      }
+     }
+    },
+    "GESS1001": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS1001 is a 1000-level general education course on Singapore's urban landscape, open to NG students in semester 1; it is non-technical."
+      }
+     }
+    },
+    "GESS1002": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS1002 is a 1000-level general education course on Singapore's environment, open to NG students, and says it needs no extensive science or maths background, so it is a manageable non-technical pick."
+      }
+     }
+    },
+    "GESS1004": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS1004 is a 1000-level general education course on Singapore-India relations, open to NG students and aimed at students from any faculty; it is non-technical."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS1012 is a 1000-level general education course on Islam and Malay society, open to NG students in both semesters; it is non-technical."
+      }
+     }
+    },
+    "GESS1029": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS1029 is a 1000-level general education ethics course, open to NG students in both semesters; it is non-technical."
+      }
+     }
+    },
+    "GEX1012": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEX1012 Effective Reasoning is a 1000-level general education philosophy course, open to NG students in both semesters; it is non-technical."
+      }
+     }
+    },
+    "GEX1015": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEX1015 is a 1000-level general education philosophy course, open to NG students in both semesters; it is non-technical and argument-driven."
+      }
+     }
     }
    }
   },
@@ -21860,6 +22164,66 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Photovoltaic materials science and engineering, a technical device course, which the intent names as not relevant."
+      }
+     }
+    },
+    "GEC1037": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A GE course on big-picture world history with no focus on technology and society."
+      }
+     }
+    },
+    "GES1034": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A GE course on Singapore politics and citizenship; it has nothing on technology."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A GE course on Islam and Malay society; it has nothing on technology."
+      }
+     }
+    },
+    "GESS1029": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A GE ethics course, open to NG students in Sem 1, that touches on moral problems created by social and technological change, but technology is only a minor part of a broader everyday-ethics course."
+      }
+     }
+    },
+    "GESS1035": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3b",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A GE course on Singapore's maritime history; technology is not its theme."
       }
      }
     }

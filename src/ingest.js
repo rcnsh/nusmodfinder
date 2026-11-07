@@ -1,7 +1,8 @@
 // @ts-check
 // Admin routes used by scripts/ingest.mjs, scripts/verify.mjs and
 // scripts/vectors.mjs: /admin/hashes, /admin/ingest, /admin/delete,
-// /admin/facets, /admin/vectorize, /admin/verify and /admin/vectors.
+// /admin/facets, /admin/vectorize, /admin/verify, /admin/vectors and
+// /admin/catalogue (3B's D1 catalogue_only).
 //
 // D1-only mode (Phase 3 runbook step 4, B3-5): `?d1Only=1` on /admin/ingest
 // and /admin/delete writes D1 and nothing else, with no getByIds, AI.run or
@@ -15,7 +16,7 @@
 import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
-import { ROW_COLUMNS, boundTuple, fieldsFromRow, ftsHash, rowHash, storedVectorMetadata } from './rowhash.js';
+import { ROW_COLUMNS, boundTuple, catalogueRowHash, fieldsFromRow, ftsHash, rowHash, storedVectorMetadata } from './rowhash.js';
 import { base64ToFloat32, float32ToBase64 } from './vector-bundle.js';
 
 /**
@@ -598,6 +599,71 @@ export async function handleFacetsRebuild(request, env) {
       rebuilt: 'facets', faculties: facets.faculties.length, levels: facets.levels.length, ng: facets.ng.count,
       ngListUpdatedAsAt: facets.ng.updatedAsAt,
     });
+  } catch (err) {
+    return upstream('d1', err);
+  }
+}
+
+/** Most catalogue rows one POST /admin/catalogue upserts, and codes it deletes. */
+export const CATALOGUE_LIMIT = 100;
+
+/**
+ * GET /admin/catalogue: `{ ok, rows: { code: rowHash } }`, what D1
+ * `catalogue_only` holds (migration 0008), so ingest writes only changed rows.
+ * `ok: false` and `rows: null` when the table does not exist: ingest refuses
+ * before any write.
+ * @param {Request} request
+ * @param {Env} env
+ */
+export async function handleCatalogueHashes(request, env) {
+  const denied = ingestGuard(request, env);
+  if (denied) return denied;
+  try {
+    const table = await env.DB.prepare("SELECT 1 AS ok FROM sqlite_master WHERE type = 'table' AND name = 'catalogue_only'").first();
+    if (!table) return json({ ok: false, rows: null });
+    const { results } = /** @type {D1Result<{ code: string, row_hash: string }>} */ (
+      await env.DB.prepare('SELECT code, row_hash FROM catalogue_only').all());
+    return json({ ok: true, rows: Object.fromEntries(results.map((r) => [r.code, r.row_hash])) });
+  } catch (err) {
+    return upstream('d1', err);
+  }
+}
+
+/**
+ * POST /admin/catalogue `{ upsert?: [{ code, title, description, acadYear }], delete?: [codes] }`,
+ * at most 100 of each: one D1 batch, with each row's hash computed here from
+ * exactly the bound values. D1 only, so `?d1Only=1` changes nothing.
+ * Answers `{ upserted, deleted, meta: { rows_read, rows_written } }`.
+ * @param {Request} request
+ * @param {Env} env
+ */
+export async function handleCatalogue(request, env) {
+  const denied = ingestGuard(request, env);
+  if (denied) return denied;
+  /** @type {any} */
+  let body;
+  try { body = await request.json(); } catch { return bad('Body must be JSON.'); }
+  const upsert = body?.upsert ?? [];
+  const del = body?.delete ?? [];
+  const okRow = (/** @type {any} */ r) => typeof r?.code === 'string' && r.code !== '' && typeof r.title === 'string' && r.title !== ''
+    && (r.description === null || typeof r.description === 'string') && typeof r.acadYear === 'string' && r.acadYear !== '';
+  if (!Array.isArray(upsert) || !Array.isArray(del) || upsert.length + del.length === 0
+    || !upsert.every(okRow) || !del.every((c) => typeof c === 'string' && c !== '')) {
+    return bad('Body must be { upsert?: [{ code, title, description, acadYear }], delete?: [codes] } with at least one entry.');
+  }
+  if (upsert.length > CATALOGUE_LIMIT || del.length > CATALOGUE_LIMIT) return bad(`At most ${CATALOGUE_LIMIT} rows to upsert and ${CATALOGUE_LIMIT} codes to delete per call.`);
+  try {
+    const hashes = await Promise.all(upsert.map((/** @type {any} */ r) => catalogueRowHash(r)));
+    const put = env.DB.prepare(
+      `INSERT INTO catalogue_only (code, title, description, acad_year, row_hash) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(code) DO UPDATE SET title = excluded.title, description = excluded.description,
+         acad_year = excluded.acad_year, row_hash = excluded.row_hash`);
+    const drop = env.DB.prepare('DELETE FROM catalogue_only WHERE code = ?');
+    const results = await env.DB.batch([
+      ...upsert.map((/** @type {any} */ r, /** @type {number} */ i) => put.bind(r.code, r.title, r.description, r.acadYear, hashes[i])),
+      ...del.map((/** @type {string} */ c) => drop.bind(c)),
+    ]);
+    return json({ upserted: upsert.length, deleted: del.length, meta: metaOf(results) });
   } catch (err) {
     return upstream('d1', err);
   }

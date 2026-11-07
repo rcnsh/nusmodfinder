@@ -91,6 +91,16 @@ export async function rowHash(m) {
 }
 
 /**
+ * A catalogue_only row (migrations/0008_catalogue.sql) as /admin/catalogue
+ * writes it and ingest compares it: the hash of exactly the bound values.
+ * @param {{ code: string, title: string, description: string | null, acadYear: string }} r
+ * @returns {Promise<string>} 32 hex characters
+ */
+export async function catalogueRowHash(r) {
+  return (await sha256Hex(JSON.stringify(['catalogue/1', r.code, r.title, r.description ?? null, r.acadYear]))).slice(0, 32);
+}
+
+/**
  * The columns the 0006 FTS update trigger watches, in its order: it fires
  * only when `code`, `title` or `description` differs (`IS NOT`, byte
  * equality) between the old and the new row. /admin/hashes reports this hash

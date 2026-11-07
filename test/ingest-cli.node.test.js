@@ -18,7 +18,10 @@ const Y = '2026-2027';
 const records = ['AA1001', 'AA1002', 'AA1003'].map((code, i) => ({
   moduleCode: code, title: `Title ${i}`, description: `Description ${i}.`, moduleCredit: '4',
   department: 'D', faculty: 'F', semesterData: [{ semester: 1 }],
-}));
+})).concat([{
+  // Catalogue-only: in moduleInfo.json, offered in no semester (3B, D1 catalogue_only).
+  moduleCode: 'AA0999', title: 'Retired', description: 'No longer offered.', moduleCredit: '4', department: 'D', faculty: 'F', semesterData: [],
+}]);
 
 /**
  * A stub Worker: an empty 0006 database (or one without 0006), whose
@@ -34,6 +37,9 @@ function stubWorker({ schemaOk = true, writesPerModule = 5 } = {}) {
   /** What the stub's D1 holds, from what /admin/ingest was sent: code -> hashes. */
   /** @type {Map<string, { textHash: string, rowHash: string }>} */
   const stored = new Map();
+  /** What the stub's catalogue_only holds: code -> row hash. */
+  /** @type {Map<string, string>} */
+  const catalogue = new Map();
   /** @type {typeof fetch} */
   const fetchImpl = async (input, init) => {
     const url = new URL(String(input));
@@ -52,12 +58,17 @@ function stubWorker({ schemaOk = true, writesPerModule = 5 } = {}) {
         for (const m of body.modules) stored.set(m.code, { textHash: m.textHash, rowHash: m.rowHash });
         return ok({ upserted: body.modules.length, embedded: body.modules.length, mutationId: `m${mutation}`, sentAt: Date.now(),
           meta: { rows_read: body.modules.length, rows_written: writesPerModule * body.modules.length } });
+      case '/admin/catalogue':
+        if (!body) return ok({ ok: true, rows: Object.fromEntries(catalogue) });
+        for (const r of body.upsert ?? []) catalogue.set(r.code, 'h');
+        for (const c of body.delete ?? []) catalogue.delete(c);
+        return ok({ upserted: (body.upsert ?? []).length, deleted: (body.delete ?? []).length, meta: { rows_read: 0, rows_written: 2 * (body.upsert ?? []).length } });
       case '/admin/facets': return ok({ faculties: 1, levels: 1, ng: 0, ngListUpdatedAsAt: null });
       case '/admin/vectorize': return ok({ vectorCount: 3, processedUpToMutation: vectorize.processed ? `m${mutation}` : null, processedUpToDatetime: null });
       default: return new Response('{}', { status: 404 });
     }
   };
-  return { fetchImpl, paths, vectorize };
+  return { fetchImpl, paths, vectorize, catalogue };
 }
 
 /** @type {string} */
@@ -141,6 +152,9 @@ describe('scripts/ingest.mjs', () => {
     expect(lines.join('\n')).toMatch(/commit src\/data-version\.json, then npm run deploy/);
     // Revalidation was not needed: the cache entry is fresh.
     expect(worker.paths.some((p) => p.includes('nusmods'))).toBe(false);
+    // 3B: the catalogue-only record reaches D1 catalogue_only; the offered ones do not.
+    expect(worker.paths).toContain('POST /admin/catalogue');
+    expect([...worker.catalogue.keys()]).toEqual(['AA0999']);
   });
 
   it('refuses a database without 0006 with exit 1 and a clear message, writing nothing', async () => {
