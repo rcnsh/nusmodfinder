@@ -385,7 +385,7 @@ export function mergeDense(lists, depth) {
  * @param {Constraints} constraints
  * @param {number} depth
  * @param {Trace} trace
- * @param {(score: number) => void} [firstTop] told the first vector's top cosine (3G)
+ * @param {(score: number) => void} [firstTop] told the first vector's top cosine (3G), unless it found none
  * @returns {Promise<DenseHit[]>}
  */
 async function bundleHits(vectors, constraints, depth, trace, firstTop) {
@@ -394,7 +394,7 @@ async function bundleHits(vectors, constraints, depth, trace, firstTop) {
   try {
     return await trace.time('vector', async () => {
       const lists = vectors.map((v) => bundleSearch(v, constraints, depth));
-      firstTop?.(lists[0][0]?.score ?? -Infinity);
+      if (lists[0].length) firstTop?.(lists[0][0].score);
       return mergeDense(lists, depth);
     });
   } catch (err) {
@@ -415,7 +415,7 @@ async function bundleHits(vectors, constraints, depth, trace, firstTop) {
  * @param {VectorFilter} filter the filters as a Vectorize metadata filter
  * @param {number} depth
  * @param {Trace} trace
- * @param {(score: number) => void} [firstTop] told the first vector's top cosine (3G)
+ * @param {(score: number) => void} [firstTop] told the first vector's top cosine (3G), unless it found none
  * @returns {Promise<DenseHit[]>}
  */
 async function vectorSearch(env, vectors, constraints, filter, depth, trace, firstTop) {
@@ -425,7 +425,7 @@ async function vectorSearch(env, vectors, constraints, filter, depth, trace, fir
     const lists = await trace.time('vector', () => Promise.all(vectors.map((vector) => withTimeout('Vectorize', VECTORIZE_TIMEOUT_MS, () =>
       env.VECTORIZE.query(/** @type {number[]} */ (vector), { topK: depth, ...(Object.keys(filter).length ? { filter } : {}) })))));
     const hits = lists.map((result) => (result?.matches ?? []).map((m) => ({ code: m.id, score: m.score })));
-    firstTop?.(hits[0][0]?.score ?? -Infinity);
+    if (hits[0].length) firstTop?.(hits[0][0].score);
     return mergeDense(hits, depth);
   } catch (err) {
     throw new DenseFailure('vectorize', err);
@@ -475,13 +475,14 @@ const VARIANT_COLUMNS = 'code, credits, level, faculty, semesters, ng, ng_semest
 
 /**
  * 3G's τ: NO_SIGNAL_TAU, or the NO_SIGNAL_TAU var (tests only; production
- * sets none): a number, or "off" for none.
+ * sets none): a number (or a numeric string), or "off" for none.
  * @param {Env} env
  * @returns {number | null}
  */
 const noSignalTau = (env) => {
   const v = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (env)).NO_SIGNAL_TAU;
   if (v === 'off') return null;
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
   return typeof v === 'string' && v !== '' && Number.isFinite(Number(v)) ? Number(v) : NO_SIGNAL_TAU;
 };
 
@@ -780,7 +781,8 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   /** @returns {Promise<string[]>} */
   const codeOrder = () => withTimeout('D1', D1_TIMEOUT_MS, () => rangeMembers(db, /** @type {Constraints & { ranges: CodeRange[] }} */ (codeCons), depth, trace));
 
-  // 3G: the top cosine of the query as typed (the first dense text), read only when noSignal holds.
+  // 3G: the top cosine of the query as typed (the first dense text), read only when noSignal
+  // holds. With no dense hit (filters no module passes) there is none, and 3G does not fire.
   let topCosine = Infinity;
   const tau = noSignalTau(env);
   const dense = tryDense

@@ -35,6 +35,20 @@ describe('no-signal', () => {
     }
   });
 
+  it('no cosine, no answer: filters no module passes leave nothing to compare, so it never fires', async () => {
+    const { body } = await callJson(`${GIBBERISH}&faculty=Nowhere`, { fakes, env: NEVER });
+    expect(body.noMatch).toBeUndefined();
+    const always = await callJson(`${GIBBERISH}%20xqjz&faculty=Nowhere`, { fakes, env: ALWAYS });
+    expect(always.body.noMatch).toBeUndefined();
+  });
+
+  it('NO_SIGNAL_TAU may be a number too', async () => {
+    const { body } = await callJson(`${GIBBERISH}%20qzvj`, { fakes, env: { NO_SIGNAL_TAU: -1.01 } });
+    expect(body.noMatch).toBeUndefined();
+    const fired = await callJson(`${GIBBERISH}%20zqvk`, { fakes, env: { NO_SIGNAL_TAU: 1.01 } });
+    expect(fired.body.noMatch).toMatchObject({ reason: 'no-signal' });
+  });
+
   it('a query with a signal never fires, whatever τ', async () => {
     for (const q of ['machine%20learning', 'cs1010s', 'cs1', 'psych']) {
       const { body } = await callJson(`/search?q=${q}`, { fakes, env: ALWAYS });
