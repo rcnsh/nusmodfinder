@@ -27,3 +27,7 @@ date	mode	texts	est_tokens	est_neurons	requests	note
 2026-11-07T17:00:08.510Z	corrected:dev	9	83	0.2	1	WORKTREE 290d783; 3H stripped dense texts
 2026-11-07T17:00:12.240Z	corrected:sc4	2	11	0.0	1	WORKTREE 290d783; 3H stripped dense texts
 2026-11-07T17:34:41.566Z	corrected:holdout	7	58	0.1	1	3h 2476012
+2026-11-07T18:40:42.371Z	set:test	242	4434	8.2	3	
+2026-11-07T18:43:33.201Z	set:test	171	4022	7.4	2	
+2026-11-07T18:45:00.242Z	corrected:test	12	305	0.6	1	phase3-final c787dea
+2026-11-07T18:57:31.967Z	corrected:test	5	222	0.4	1	phase3-final c787dea

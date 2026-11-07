@@ -103,3 +103,8 @@ o7	browser other	/facets	phase0 0b fe.mjs
 97	ref	Workers AI REST embed: 3H stripped dense texts of the holdout (custodian), 7 texts, 1 request, ~0.1 neurons	Phase 3 3H L7, 2026-11-07 17:34 UTC
 98	ref	Production /health before the 3H params ship (live version check) on version 0173bddf	Phase 3 3H ship, 2026-11-07 18:08 UTC
 99	ref	Production smoke after the 3H params deploy: /health + 3 /search (machine learning; sociology&exam=0&su=1; sociology no exam) on version ea066ead (all SIN, 200, not degraded)	Phase 3 3H ship, 2026-11-07 18:24 UTC
+100	ref	Workers AI REST embed: sealed test set query texts (custodian), 242 texts, 3 requests, ~8.2 neurons	Phase 3 SC5 test set, 2026-11-07 18:40 UTC
+101	ref	Workers AI REST embed: sealed test set round-2 query texts (custodian), 171 texts, 2 requests, ~7.4 neurons	Phase 3 SC5 test set, 2026-11-07 18:43 UTC
+102	ref	Workers AI REST embed: sealed test set 3C-2 corrected forms from phase3-final (custodian), 12 texts, 1 request, ~0.6 neurons	Phase 3 SC5 test set, 2026-11-07 18:45 UTC
+103	ref	SC4 live confirmation at phase3-final: 20 /search calls with fresh texts (sc4-live.mjs, 18; re-check, 2) on version ea066ead (all SIN, 200)	Phase 3 freeze, 2026-11-07 18:53-18:54 UTC
+104	ref	Workers AI REST embed: 3C-2 corrected forms of the leak-filtered (secondary) test queries (custodian), 5 texts, 1 request, ~0.4 neurons	Phase 3 SC5 test set, 2026-11-07 18:57 UTC

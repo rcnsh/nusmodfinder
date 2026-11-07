@@ -7,3 +7,6 @@ holdout ledger never reads this file and refuses a row copied from it.
 | date | set | kind | run | count |
 |---|---|---|---|---|
 | 2026-11-07 | holdout | count: emptied-untagged | 3g-max | 0 |
+| 2026-11-07 | test | count: answerable | — | 195 |
+| 2026-11-07 | holdout | count: lists differing (inline custodian script, not eval:count; logged after the fact) | 3h vs 3h-r | 1 |
+| 2026-11-07 | holdout | count: lists differing (inline custodian script, not eval:count; logged after the fact) | 3h-p vs shipped-f004351 | 0 |

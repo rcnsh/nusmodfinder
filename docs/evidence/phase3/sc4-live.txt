@@ -1,0 +1,20 @@
+PASS	L01 space code	"ec 1101e"	rank 1 EC1101E	SIN
+PASS	L02 space code	"ma 2001"	rank 1 MA2001	SIN
+PASS	L03 exact code	"st2334"	rank 1 ST2334, level null	SIN
+PASS	L04 code join	"cs2100 or cs2106"	ranks 1-2 CS2100,CS2106	SIN
+FAIL	L05 partial code	"MA21&topK=50"	7 results, all MA21: false	SIN
+PASS	L06 pillar	"GEN&topK=50"	14 results, all GEN: true	SIN
+PASS	L07 code in a longer query	"ma21 linear algebra"	4 MA21 members in the top 10 (M 3)	SIN
+PASS	L08 unknown code in a longer query	"PHYS 2010 quantum mechanics"	count 20, pin null, prefix null, noMatch undefined	SIN
+FAIL	L09 GE in a longer query	"gec course about society and ethics"	20 results, all GEC: false	SIN
+PASS	L10 typo	"macroeconmics intro"	overlap@10 with the clean form 10 (T 5); interpreted equal	SIN
+PASS	L11 gibberish	"zqxw vbnmpl"	count 0, noMatch {"reason":"no-signal"}	SIN
+PASS	L12 gibberish	"flrrbt kwazz qq"	count 0, noMatch {"reason":"no-signal"}	SIN
+PASS	L13 non-existent code	"CS9871"	count 0, noMatch unknown-code	SIN
+PASS	L14 not-offered code	"ACC4761F"	count 0, noMatch not-offered, title "Seminars in Accounting: Advanced Corporate Governance"	SIN
+PASS	L15 guard (collision token)	"js frameworks for web apps"	count 20, prefix null	SIN
+PASS	L16 guard (letter token)	"law and society in asia"	count 20, prefix null, LAW codes in the top 10 0	SIN
+PASS	L17 guard (collision token)	"ai for healthcare"	count 20, prefix null	SIN
+15/17 pass; 18 calls
+PASS	L05b partial code (results only, as the suite's partial-mask rule)	"MA21&topK=50"	7 results, all MA21: true; variants outside MA21: ST2131	SIN
+PASS	L09b GE in a longer query (generic phrase, as the suite's ge-mask items)	"general education module on climate change"	20 results, all pillar members: true; interpreted.ge all pillars	SIN
