@@ -753,3 +753,18 @@ fails on the previous code.
   [−0.003, 0.085]. **Holdout looks: 1 of 12.**
 - **Next:** ship v1 by the runbook. Make `emb-bge-small-v1` the default embedding, then the
   production bundle, a D1-only ingest, the standby upsert, the shipped-pin move and PR #41 ready.
+
+## 2026-11-07 — 3A-2 v1 shipped
+
+- **Live:** version `8d1b85be-edd1-4e6c-902d-ea1ece96a0d1` (tag `45bd716`, PR #41), data version
+  `32b590de51aa`, production bundle `emb-bge-small-v1-x4a990cd5` (6,778 rows). The runbook ran
+  steps 1–8 (`docs/evidence/phase3/remote-ops.md`).
+  - D1-only ingest: 34,425 rows written, 0 neurons.
+  - Smoke: 3 calls, all 200 through SIN.
+  - Standby: 6,778 upserts. D1 and Vectorize agree, including a 100-row values sample.
+- **Shipped-ranker pin** moves to `45bd716` (ADR 0003). The next look's baseline is its holdout
+  run, which the custodian stores before that look.
+- **Tests:** look-taking test clones now start from an empty committed ledger, not this
+  checkout's. Their throwaway commits and tags are not GPG-signed.
+- **Rollback target:** `343ea371` (tag `e8a7124`), plus the D1 bookmark in `remote-ops.md`.
+- **Next:** 3B (codes, GE pillars, keyword brittleness), L3.
