@@ -7,8 +7,11 @@ import { FTS_SEPARATORS } from './fts-separators.js';
 // question like "how do i start my own company" matches every "Design Your Own
 // Course" record on the word "own" and buries the real answers. This is the same
 // list the offline BM25 baseline uses, so neither retriever gets an easier query.
-export const STOPWORDS_CURRENT = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do', 'for', 'from',
+const STOPWORDS = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do', 'for', 'from',
   'how', 'i', 'in', 'is', 'it', 'me', 'my', 'of', 'on', 'or', 'own', 'the', 'to', 'with', 'you', 'your']);
+
+/** The list before Phase 3 (eval/prereg/stopwords.json `current`). */
+export const STOPWORDS_CURRENT = STOPWORDS;
 
 // Candidate `stopwords-v2` (docs/plans/phase3.md 3B "Keyword brittleness",
 // eval/prereg/stopwords.json): the list above plus words that name the
@@ -28,7 +31,7 @@ export const STOPWORD_VARIANTS = Object.freeze({ current: STOPWORDS_CURRENT, v2:
  */
 export const STOPWORDS_VARIANT = 'current';
 
-export const STOPWORDS = STOPWORD_VARIANTS[STOPWORDS_VARIANT];
+export const STOPWORDS_IN_FORCE = STOPWORD_VARIANTS[STOPWORDS_VARIANT];
 
 /**
  * The query's tokens, split exactly where the modules_fts tokenizer
@@ -48,7 +51,7 @@ export function queryTokens(query) {
  * (canonical decomposition, marks removed), so "ánd" is "and".
  * @param {string} token
  */
-const isStopword = (token) => STOPWORDS.has(token.normalize('NFD').replace(/\p{M}+/gu, ''));
+const isStopword = (token) => STOPWORDS_IN_FORCE.has(token.normalize('NFD').replace(/\p{M}+/gu, ''));
 
 /** @param {string} query */
 function ftsTokens(query) {

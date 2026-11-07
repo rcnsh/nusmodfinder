@@ -5,6 +5,10 @@
 // identical. The only allowed differences are the bug fixes 1B makes, each
 // asserted explicitly: an empty `topK=` means the default (B8), and the body
 // echoes the canonical query (B7). Both paths share src/lexical.js.
+// Since 3B every body also echoes `interpreted` (all null when the parse
+// routes nothing), and a query the parse does route (a pin, a partial code, a
+// GE phrase, noMatch) is 3B's change by design: those are listed and left out,
+// and every other query must still answer exactly as before.
 // The pre-1B route queries Vectorize, so the live Worker runs under the
 // Vectorize standby (DENSE_BACKEND=vectorize, Phase 3 3-0); the bundle's
 // identity with that path is test/dense.test.js.
@@ -93,6 +97,14 @@ function requests() {
   return out;
 }
 
+/** `interpreted` for a query the 3B parse routes nothing in. */
+const UNROUTED = { pin: null, prefix: null, ge: null, level: null, exam: null, su: null, hoursBelow: null, prereq: null };
+/** Whether 3B's parse routed this response. @param {{ status: number, body: any }} r */
+const routed = (r) => r.status === 200 && (r.body.noMatch !== undefined || Object.values(r.body.interpreted).some((v) => v !== null));
+/** Requests 3B routes, so their answers differ from the pre-1B route by design. */
+/** @type {string[]} */
+const routedPaths = [];
+
 /**
  * Compares one request on both paths. Returns a description of any
  * difference that is not one of the declared bug fixes, else null.
@@ -106,9 +118,11 @@ async function compare(path) {
   const before = await legacy(legacyUrl.pathname + legacyUrl.search);
   const after = await callJson(path, { fakes, env: STANDBY });
   if (before.status !== after.status) return `${path}: status ${before.status} -> ${after.status}`;
+  if (routed(after)) { routedPaths.push(path); return null; }
   const expected = before.status === 200
     // B7: the body echoes the canonical query (trimmed, whitespace collapsed, ASCII lower-cased).
-    ? { ...before.body, query: before.body.query.replace(/\s+/g, ' ').replace(/[A-Z]+/g, (/** @type {string} */ m) => m.toLowerCase()) }
+    // 3B: and an all-null `interpreted`.
+    ? { ...before.body, query: before.body.query.replace(/\s+/g, ' ').replace(/[A-Z]+/g, (/** @type {string} */ m) => m.toLowerCase()), interpreted: UNROUTED }
     : before.body;
   try {
     expect(after.body).toEqual(expected);
@@ -135,7 +149,12 @@ describe('1B is ranking-neutral', () => {
     expect(ok).toBeGreaterThan(paths.length * 0.7);
     expect(withResults).toBeGreaterThan(paths.length * 0.5);
     expect(paths.filter((p) => p.includes('mode=vector')).length).toBeGreaterThan(100);
-    console.info(`differential: ${paths.length} requests, ${ok} 200s (${withResults} with results), ${diffs.length} differences`);
+    // 3B routes the code queries (pins, `cs 1010s`, `CS101`) and nothing else here.
+    expect(routedPaths.length).toBeGreaterThan(0);
+    expect(paths.length - routedPaths.length).toBeGreaterThan(400);
+    for (const p of routedPaths) expect(decodeURIComponent(new URL(p, BASE).searchParams.get('q') ?? ''), p).toMatch(/\d/);
+    console.info(`differential: ${paths.length} requests, ${ok} 200s (${withResults} with results), ${diffs.length} differences, `
+      + `${routedPaths.length} routed by 3B and left out`);
   }, 120_000);
 
   it('returns the same results when the index holds stale vectors missing from D1', async () => {
@@ -153,7 +172,7 @@ describe('1B is ranking-neutral', () => {
         const before = await legacy(p.replace(/topK=(&|$)/, ''));
         const after = await callJson(p.replace(/topK=(&|$)/, ''), { fakes, env: STANDBY });
         expect(after.status, p).toBe(before.status);
-        if (before.status !== 200) continue;
+        if (before.status !== 200 || routed(after)) continue;
         // Same page of results. retrieval.fused can only differ here, and only
         // upwards: hydration stops once the page is full, so stale candidates
         // below it are not discovered (and not subtracted).

@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { REPO } from '../eval/lib/sets.mjs';
-import { STOPWORDS, STOPWORDS_CURRENT, STOPWORDS_V2, STOPWORDS_VARIANT, STOPWORD_VARIANTS, ftsMatch } from '../src/fts-query.js';
+import { STOPWORDS_IN_FORCE as STOPWORDS, STOPWORDS_CURRENT, STOPWORDS_V2, STOPWORDS_VARIANT, STOPWORD_VARIANTS, ftsMatch } from '../src/fts-query.js';
 
 const p6 = JSON.parse(readFileSync(join(REPO, 'eval/prereg/stopwords.json'), 'utf8'));
 

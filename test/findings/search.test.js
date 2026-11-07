@@ -32,12 +32,13 @@ describe('S3', () => {
 });
 
 describe('S4', () => {
-  it.each(['CS32', 'GEA'])('[S4 known-bug] "%s" gets 0 lexical hits because the code column is UNINDEXED', async (q) => {
-    const { body } = await callJson(`/search?q=${q}&mode=lexical`, { fakes });
-    expect(body.retrieval.lexical).toBe(0);
-    expect(body.results).toEqual([]);
-    // ...although the fixture holds modules with exactly that prefix.
-    expect(fixture.modules.some((m) => m.code.startsWith(q))).toBe(true);
+  // `code` stays UNINDEXED (0006 rationale); 3B's partial-code route replaces it.
+  it.each(['CS32', 'GEA'])('[S4 fixed] "%s" routes to the modules with that prefix, though the code column stays UNINDEXED', async (q) => {
+    const { body } = await callJson(`/search?q=${q}&mode=lexical&topK=50`, { fakes });
+    const members = fixture.modules.map((m) => m.code).filter((c) => c >= (/\d$/.test(q) ? q : `${q}0`) && c < `${q}:`).sort();
+    expect(members.length).toBeGreaterThan(0);
+    expect(body.interpreted.prefix).toBe(q);
+    expect(codes(body.results)).toEqual(members);
   });
 
   it('[S4 known-bug] "modules", "intro", "teach" and "something" are not stopwords', async () => {
@@ -52,19 +53,20 @@ describe('S4', () => {
 });
 
 describe('S5', () => {
-  it('[S5 known-bug] "cs 1010s" is not recognised as the code CS1010S', async () => {
-    const { body } = await callJson('/search?q=cs%201010s&mode=lexical', { fakes });
-    expect(fixture.modules.some((m) => m.code === 'CS1010S')).toBe(true);
-    expect(body.results.find((/** @type {{ score: number }} */ r) => r.score === 1)).toBeUndefined();
-    // The keyword half does not find it at all: "1010s" is not a word in any title or description.
-    expect(body.results.length).toBeGreaterThan(0);
-    expect(codes(body.results)).not.toContain('CS1010S');
+  it('[S5 fixed] "cs 1010s" is joined into the code CS1010S and pinned at rank 1', async () => {
+    for (const mode of ['hybrid', 'lexical']) {
+      const { body } = await callJson(`/search?q=cs%201010s&mode=${mode}`, { fakes });
+      expect(body.interpreted.pin, mode).toEqual(['CS1010S']);
+      expect(body.results[0], mode).toMatchObject({ code: 'CS1010S', score: 1 });
+    }
   });
 
-  it('[S5 known-bug] the partial code "CS101" has no route: no pin, 0 lexical hits', async () => {
+  it('[S5 fixed] the partial code "CS101" routes to its members, and only them', async () => {
     const { body } = await callJson('/search?q=CS101&mode=lexical', { fakes });
-    expect(body.results).toEqual([]);
-    expect(fixture.modules.filter((m) => m.code.startsWith('CS101')).length).toBeGreaterThan(1);
+    const members = fixture.modules.map((m) => m.code).filter((c) => c.startsWith('CS101')).sort();
+    expect(members.length).toBeGreaterThan(1);
+    expect(body.interpreted.prefix).toBe('CS101');
+    expect(codes(body.results)).toEqual(members);
   });
 });
 

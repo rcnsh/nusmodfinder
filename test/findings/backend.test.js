@@ -97,7 +97,8 @@ describe('B4', () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
     const db = recordingDb(log);
-    const pending = callJson('/search?q=cs1010s%20programming', { fakes: f, env: { DB: db, ...STANDBY } });
+    // No code in the text: since 3B an offered code inside a longer query pins too (prereg §3 step 1).
+    const pending = callJson('/search?q=programming%20methodology', { fakes: f, env: { DB: db, ...STANDBY } });
     // While the embedding is held back, pin and FTS have both been issued and nothing has been hydrated.
     expect(await settlesWithin(pending, 50)).toBe('pending');
     const kinds = () => log.map((c) => (c.sql.includes('MATCH') ? 'fts' : c.sql.includes('IN (') ? 'hydrate' : 'pin'));

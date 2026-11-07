@@ -13,6 +13,7 @@ import { adminCall, callJson, fixture, seed } from './helpers.js';
 const PILLARS = ['GEA', 'GEC', 'GEH', 'GEI', 'GEN', 'GEQ', 'GES', 'GESS', 'GET', 'GEX'];
 const STANDBY = { DENSE_BACKEND: 'vectorize' };
 const letters = (/** @type {string} */ c) => /** @type {RegExpExecArray} */ (/^[A-Z]+/.exec(c))[0];
+/** @returns {string[]} */
 const codes = (/** @type {any} */ body) => body.results.map((/** @type {{ code: string }} */ r) => r.code);
 const byCode = (/** @type {string} */ a, /** @type {string} */ b) => (a < b ? -1 : a > b ? 1 : 0);
 const fixtureCodes = fixture.modules.map((m) => m.code).sort(byCode);
@@ -136,12 +137,17 @@ describe('whole-query masks', () => {
 
 describe('a code token inside a longer query: the third RRF list', () => {
   it('adds the prefix members by exact dense score, weight 1', async () => {
-    const q = 'cs3 programming methodology';
+    // No lexical match, so the fusion is the dense list and the third list: rank 1 of each ties at 1/61.
+    const q = 'cs3 zzqxv';
     const { body } = await callJson(`/search?q=${encodeURIComponent(q)}`, { fakes });
     expect(body.interpreted.prefix).toBe('CS3');
-    expect(body.retrieval.code).toBe(members('CS3').length);
-    // A member no other list holds still reaches the page through the third list.
-    for (const c of members('CS3')) expect(codes(body), c).toContain(c);
+    expect(body.retrieval).toMatchObject({ lexical: 0, code: members('CS3').length });
+    const first = denseOrder(q, { ranges: [['CS3', 'CS3:']] }, 1)[0];
+    expect(codes(body).slice(0, 2)).toContain(first);
+    for (const c of members('CS3')) expect(codes(body).slice(0, 6), c).toContain(c);
+    // In mode=lexical the third list is in code order, fused with the (empty) lexical list.
+    const lexical = await callJson(`/search?q=${encodeURIComponent(q)}&mode=lexical`, { fakes });
+    expect(codes(lexical.body)).toEqual(members('CS3'));
   });
 
   it('carries an XX N000 level as a filter on every list', async () => {

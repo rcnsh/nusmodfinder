@@ -1,14 +1,19 @@
 // @ts-check
 // GET /search: parameter validation, the canonical cache key, the rate
-// limiter, both retrievers (run concurrently), rank fusion, hydration, and the
-// keyword-only fallback when the dense half fails. Every response carries
-// Server-Timing, and each request writes one structured log line.
+// limiter, the query parse (src/query-intent.js: pins, masks, the third list,
+// the GE mask, noMatch), both retrievers (run concurrently), rank fusion,
+// hydration, and the keyword-only fallback when the dense half fails. Every
+// response carries Server-Timing and `interpreted`, and each request writes
+// one structured log line.
 import dataVersion from './data-version.json';
-import { bundleSearch } from './dense.js';
+import { bundleSearch, denseBundle } from './dense.js';
 import { DEFAULT_MODEL } from './embedding.js';
 import { appVersion, bad, json, upstream, withHeaders } from './http.js';
-import { lexicalSearch } from './lexical.js';
-import { MODULE_CODE_RE, RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
+import { intentContext } from './intent-data.js';
+import { lexicalSearch, rangeMembers } from './lexical.js';
+import { RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
+import { canonicalQuery, parseIgnore, parseQuery } from './query-intent.js';
+import { hasCode } from './vector-bundle.js';
 import {
   AI_TIMEOUT_MS, D1_TIMEOUT_MS, TimeoutError, VECTORIZE_TIMEOUT_MS, denseCircuit, withTimeout,
 } from './upstream.js';
@@ -19,7 +24,11 @@ import {
  * @typedef {{ sem?: number, level?: number, credits?: number, faculty?: string, ng?: boolean }} FilterEcho
  * @typedef {Record<string, string | number | boolean>} VectorFilter
  * @typedef {'hybrid' | 'vector' | 'lexical'} Mode
- * @typedef {{ q: string, echo: FilterEcho, filter: VectorFilter, mode: Mode, topK: number }} SearchQuery
+ * @typedef {{ q: string, echo: FilterEcho, filter: VectorFilter, mode: Mode, topK: number, ignore: string[] }} SearchQuery
+ *   `ignore`: the intents to undo, sorted and de-duplicated (3B; plan §2 "Response cache key").
+ * @typedef {import('./vector-bundle.js').Constraints} Constraints
+ * @typedef {import('./vector-bundle.js').CodeRange} CodeRange
+ * @typedef {import('./query-intent.js').ParsedQuery} ParsedQuery
  * @typedef {{ source: string, reason: 'error' | 'timeout' | 'circuit-open' }} Degraded
  * @typedef {{ code: string, score: number }} DenseHit A dense candidate with its cosine score. Kept
  *   inside the search (3B's masks and 3G read them); the response's `score` stays the fused one.
@@ -132,19 +141,6 @@ function parseFilters(params) {
 }
 
 /**
- * The query text every later stage sees, and the cache key holds: trimmed,
- * runs of whitespace collapsed to one space, ASCII letters lower-cased. Only
- * ASCII: full Unicode lower-casing maps the Kelvin sign (U+212A) to `k`, which
- * would make the pin match codes that the raw query never matched. Neither retriever
- * can tell the difference: the FTS tokeniser lower-cases and splits on
- * non-word characters, the pin upper-cases, and bge-small-en-v1.5 is an
- * uncased model (its BertTokenizer has do_lower_case: true and splits on
- * whitespace). The fake embedder lower-cases too; a test pins that.
- * @param {string} trimmed
- */
-const canonicalQuery = (trimmed) => trimmed.replace(/\s+/g, ' ').replace(/[A-Z]+/g, (m) => m.toLowerCase());
-
-/**
  * Validates every parameter /search reads. Unknown parameters are ignored.
  * @param {URLSearchParams} params
  * @returns {{ log: Record<string, unknown>, error: string, query?: undefined } | { log: Record<string, unknown>, query: SearchQuery, error?: undefined }}
@@ -187,7 +183,12 @@ export function parseSearch(params) {
     : DEFAULT_TOPK;
   log.topK = topK;
 
-  return { log, query: { q, echo, filter, mode, topK } };
+  // 3B: intents to undo, in parsed form (sorted, de-duplicated).
+  const ignored = parseIgnore(params.get('ignore'));
+  if (ignored.error !== undefined) return { log, error: ignored.error };
+  if (ignored.ignore.length) log.ignore = ignored.ignore;
+
+  return { log, query: { q, echo, filter, mode, topK, ignore: ignored.ignore } };
 }
 
 /**
@@ -203,7 +204,7 @@ export function parseSearch(params) {
  * @param {SearchQuery} query
  * @param {string} [version] the deployed version id (versionId(env))
  */
-export function canonicalCacheKey(origin, { q, echo, mode, topK }, version = NO_VERSION_ID) {
+export function canonicalCacheKey(origin, { q, echo, mode, topK, ignore }, version = NO_VERSION_ID) {
   /** @type {[string, string][]} */
   const pairs = [['q', q], ['dv', DATA_VERSION], ['v', version]];
   if (echo.sem !== undefined) pairs.push(['sem', String(echo.sem)]);
@@ -213,6 +214,7 @@ export function canonicalCacheKey(origin, { q, echo, mode, topK }, version = NO_
   if (echo.ng === true) pairs.push(['ng', '1']);
   if (mode !== 'hybrid') pairs.push(['mode', mode]);
   if (topK !== DEFAULT_TOPK) pairs.push(['topK', String(topK)]);
+  if (ignore.length) pairs.push(['ignore', ignore.join(',')]);
   pairs.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
   return new Request(`${origin}/search?${new URLSearchParams(pairs)}`, { method: 'GET' });
 }
@@ -230,8 +232,10 @@ export function searchCacheKey(url, version = NO_VERSION_ID) {
 }
 
 /**
+ * Whether a fresh D1 row passes the filters and 3B's constraints (code
+ * ranges, a level window).
  * @param {ResultRow} row
- * @param {FilterEcho} echo
+ * @param {Constraints} echo
  */
 function localMatchesFilters(row, echo) {
   if (echo.ng === true && row.ng !== 1) return false;
@@ -239,7 +243,30 @@ function localMatchesFilters(row, echo) {
   if (echo.level !== undefined && row.level !== echo.level) return false;
   if (echo.credits !== undefined && row.credits !== echo.credits) return false;
   if (echo.faculty !== undefined && row.faculty !== echo.faculty) return false;
+  if (echo.levelWindow) {
+    const { min, max } = echo.levelWindow;
+    if (row.level === null || row.level < min || (max !== null && row.level > max)) return false;
+  }
+  if (echo.ranges && !echo.ranges.some(([lo, hi]) => row.code >= lo && row.code < hi)) return false;
   return true;
+}
+
+/**
+ * The ranges both lists admit.
+ * @param {CodeRange[]} a @param {CodeRange[]} b
+ * @returns {CodeRange[]}
+ */
+function intersectRanges(a, b) {
+  /** @type {CodeRange[]} */
+  const out = [];
+  for (const [alo, ahi] of a) {
+    for (const [blo, bhi] of b) {
+      const lo = alo > blo ? alo : blo;
+      const hi = ahi < bhi ? ahi : bhi;
+      if (lo < hi) out.push([lo, hi]);
+    }
+  }
+  return out;
 }
 
 // Reciprocal-rank fusion: each list contributes 1/(k + rank) to a document's
@@ -288,49 +315,83 @@ class DenseFailure extends Error {
 }
 
 /**
- * Embed the query, then search the corpus vectors: the bundled exact search,
- * or Vectorize under `DENSE_BACKEND=vectorize`. Embedding and vector search
- * are attributed separately: guessing the source from the message text
- * mislabelled Workers AI failures as Vectorize.
+ * Embeds one text: the query, or a catalogue-only module's text for noMatch
+ * `related`.
  * @param {Env} env
- * @param {string} q
- * @param {FilterEcho} echo the filters, for the bundle's mask
- * @param {VectorFilter} filter the same filters as a Vectorize metadata filter
+ * @param {string} text
+ * @param {Trace} trace
+ * @returns {Promise<number[]>}
+ */
+async function embed(env, text, trace) {
+  try {
+    const embedded = /** @type {{ data?: number[][] }} */ (await trace.time('embed', () =>
+      withTimeout('Workers AI', AI_TIMEOUT_MS, (signal) =>
+        env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: [text] }, { signal }))));
+    const values = embedded?.data?.[0];
+    if (!Array.isArray(values)) throw new Error('Workers AI returned no embedding for the query.');
+    return values;
+  } catch (err) {
+    throw new DenseFailure('workers-ai', err);
+  }
+}
+
+/**
+ * The bundle's exact search, its failures attributed to the bundle.
+ * @param {ArrayLike<number>} vector
+ * @param {Constraints} constraints
  * @param {number} depth
  * @param {Trace} trace
  * @returns {Promise<DenseHit[]>}
  */
-async function denseSearch(env, q, echo, filter, depth, trace) {
-  /** @type {number[] | undefined} */
-  let values;
+async function bundleHits(vector, constraints, depth, trace) {
+  // CPU only: the `vector` span reads ~0 because workerd's clock does not
+  // advance without I/O. Kept for comparability with Vectorize, not as a measure.
   try {
-    const embedded = /** @type {{ data?: number[][] }} */ (await trace.time('embed', () =>
-      withTimeout('Workers AI', AI_TIMEOUT_MS, (signal) =>
-        env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: [q] }, { signal }))));
-    values = embedded?.data?.[0];
-    if (!Array.isArray(values)) throw new Error('Workers AI returned no embedding for the query.');
+    return await trace.time('vector', async () => bundleSearch(vector, constraints, depth));
   } catch (err) {
-    throw new DenseFailure('workers-ai', err);
+    throw new DenseFailure('dense-index', err);
   }
-  const vector = values;
-  if (denseBackend(env) === 'bundle') {
-    // CPU only: the `vector` span reads ~0 because workerd's clock does not
-    // advance without I/O. Kept for comparability with Vectorize, not as a measure.
-    try {
-      return await trace.time('vector', async () => bundleSearch(vector, echo, depth));
-    } catch (err) {
-      throw new DenseFailure('dense-index', err);
-    }
-  }
+}
+
+/**
+ * Searches the corpus vectors: the bundled exact search, or Vectorize under
+ * `DENSE_BACKEND=vectorize`. Vectorize gets the filters only (its metadata has
+ * no prefix or level-window field): 3B's code ranges and level window are
+ * applied to its rows after hydrate (B3-6), as dense-only rows always are.
+ * Embedding and vector search are attributed separately: guessing the source
+ * from the message text mislabelled Workers AI failures as Vectorize.
+ * @param {Env} env
+ * @param {ArrayLike<number>} vector
+ * @param {Constraints} constraints the bundle's mask
+ * @param {VectorFilter} filter the filters as a Vectorize metadata filter
+ * @param {number} depth
+ * @param {Trace} trace
+ * @returns {Promise<DenseHit[]>}
+ */
+async function vectorSearch(env, vector, constraints, filter, depth, trace) {
+  if (denseBackend(env) === 'bundle') return bundleHits(vector, constraints, depth, trace);
   try {
     // Only ids and scores are read, so no metadata or values are requested.
     const result = await trace.time('vector', () => withTimeout('Vectorize', VECTORIZE_TIMEOUT_MS, () =>
-      env.VECTORIZE.query(vector, { topK: depth, ...(Object.keys(filter).length ? { filter } : {}) })));
+      env.VECTORIZE.query(/** @type {number[]} */ (vector), { topK: depth, ...(Object.keys(filter).length ? { filter } : {}) })));
     return (result?.matches ?? []).map((m) => ({ code: m.id, score: m.score }));
   } catch (err) {
     throw new DenseFailure('vectorize', err);
   }
 }
+
+/**
+ * Embeds `text` and runs `then` on the vector, under the dense circuit
+ * breaker: a dense half that keeps failing is skipped for a while (B6).
+ * @template T
+ * @param {Env} env @param {string} text @param {Trace} trace
+ * @param {(vector: number[]) => Promise<T>} then
+ * @returns {Promise<T>}
+ */
+const denseRun = (env, text, trace, then) => embed(env, text, trace).then(then).then(
+  (value) => { denseCircuit.success(); return value; },
+  (err) => { denseCircuit.failure(err.source); throw err; },
+);
 
 /**
  * @param {D1DatabaseSession} db
@@ -348,26 +409,94 @@ async function fetchRows(db, codes, trace) {
   return new Map(res.results.map((r) => [r.code, r]));
 }
 
+/** D1 binds at most 100 parameters per statement. */
+const D1_PARAMS = 100;
+
 /**
- * Runs a validated search. Pin lookup, lexical retrieval and embed→Vectorize
- * start together (B4); hydration follows once all three have settled.
+ * The parse, with "offered" answered from this Worker's corpus: the bundle's
+ * code list (atomic with the deploy, and D1's codes by the deploy guard), or,
+ * when the bundle does not parse (keyword-only, B6), D1 itself. The parse
+ * asks only about code-shaped strings, so D1 is asked about those, until the
+ * parse asks nothing new.
+ * @param {D1DatabaseSession} db @param {string} q @param {string[]} ignore @param {Trace} trace
+ * @returns {Promise<ParsedQuery>}
+ */
+async function parseWithCorpus(db, q, ignore, trace) {
+  /** @type {import('./vector-bundle.js').Bundle | null} */
+  let bundle = null;
+  try { bundle = denseBundle(); } catch { /* answered from D1 below */ }
+  if (bundle) {
+    const b = bundle;
+    return parseQuery(q, intentContext((code) => hasCode(b, code)), ignore);
+  }
+  /** @type {Map<string, boolean>} */
+  const known = new Map();
+  for (;;) {
+    /** @type {Set<string>} */
+    const asked = new Set();
+    const parsed = parseQuery(q, intentContext((code) => {
+      if (!known.has(code)) asked.add(code);
+      return known.get(code) === true;
+    }), ignore);
+    if (asked.size === 0) return parsed;
+    const codes = [...asked];
+    for (let i = 0; i < codes.length; i += D1_PARAMS) {
+      const chunk = codes.slice(i, i + D1_PARAMS);
+      const res = /** @type {D1Result<{ code: string }>} */ (await d1Timed(trace, 'pin', () => db.prepare(
+        `SELECT code FROM modules WHERE code IN (${chunk.map(() => '?').join(',')})`).bind(...chunk).all()));
+      trace.d1Result(res);
+      const found = new Set(res.results.map((r) => r.code));
+      for (const c of chunk) known.set(c, found.has(c));
+    }
+  }
+}
+
+/** noMatch `related` holds this many dense neighbours of the catalogue text. */
+const RELATED_K = 5;
+/** The catalogue text embedded for `related` is cut here (bge-small reads ~512 tokens anyway). */
+const RELATED_TEXT_CHARS = 2000;
+
+/**
+ * A catalogue-only module's text for `related`: title and description, each
+ * ending in one sentence mark.
+ * @param {{ title: string, description: string | null }} row
+ */
+const catalogueText = (row) => [row.title, row.description]
+  .filter((s) => typeof s === 'string' && s.trim())
+  .map((s) => { const t = /** @type {string} */ (s).replace(/\s+/g, ' ').trim(); return /[.!?]$/.test(t) ? t : `${t}.`; })
+  .join(' ')
+  .slice(0, RELATED_TEXT_CHARS);
+
+/**
+ * Runs a validated search. The parse (src/query-intent.js) picks the route:
+ * - `no-match`: a whole-query unknown or catalogue-only code, `count: 0`;
+ * - `mask`: a whole-query partial code, bare prefix, `XX N000` or GE phrase,
+ *   whose members are the results, by exact dense score (in code order
+ *   without the dense half: mode=lexical, the keyword-only fallback, the
+ *   Vectorize standby);
+ * - `search`: pin lookup, lexical retrieval and embed→dense start together
+ *   (B4), with the GE pre-retrieval mask on both halves and a code token's
+ *   prefix members as a third RRF list; hydration follows once all have settled.
  * @param {SearchQuery} query
  * @param {Env} env
  * @param {Trace} trace
  * @param {Record<string, unknown>} log Filled with what the request turned out to be.
  * @returns {Promise<{ response: Response, degraded: Degraded | null }>}
  */
-async function runSearch({ q, echo, filter, mode, topK }, env, trace, log) {
+async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, log) {
   const db = readSession(env);
   const depth = Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK);
   // Spans in pipeline order, whichever branch finishes first.
   trace.reserve('pin', 'embed', 'vector', 'fts', 'hydrate');
 
-  // R5: an exact module code jumps to the front, if it exists and the filters allow it.
-  const upper = q.toUpperCase();
-  const pinning = MODULE_CODE_RE.test(upper)
-    ? settle(d1Timed(trace, 'pin', () => db.prepare(`SELECT ${RESULT_COLUMNS} FROM modules WHERE code = ?`).bind(upper).all()))
-    : null;
+  /** @type {ParsedQuery} */
+  let parsed;
+  try {
+    parsed = await parseWithCorpus(db, q, ignore, trace);
+  } catch (err) {
+    return { response: upstream('d1', err), degraded: null };
+  }
+  log.route = parsed.kind;
 
   // Dense retrieval. In hybrid mode a failure degrades to keyword-only results
   // (B6); in vector mode it fails loudly, because the eval measures that half.
@@ -375,69 +504,205 @@ async function runSearch({ q, echo, filter, mode, topK }, env, trace, log) {
   // not add its timeout to every search.
   /** @type {Degraded | null} */
   let degraded = null;
-  let dense = null;
-  if (mode === 'vector' || (mode === 'hybrid' && !denseCircuit.open())) {
-    dense = settle(denseSearch(env, q, echo, filter, depth, trace).then(
-      (codes) => { denseCircuit.success(); return codes; },
-      (err) => { denseCircuit.failure(err.source); throw err; },
-    ));
-  } else if (mode === 'hybrid') {
-    degraded = { source: denseCircuit.lastSource ?? 'workers-ai', reason: 'circuit-open' };
+  const tryDense = mode === 'vector' || (mode === 'hybrid' && !denseCircuit.open());
+  if (mode === 'hybrid' && !tryDense) degraded = { source: denseCircuit.lastSource ?? 'workers-ai', reason: 'circuit-open' };
+  /** @param {DenseFailure} err */
+  const degrade = (err) => {
+    degraded = { source: err.source, reason: err.timedOut ? 'timeout' : 'error' };
+    log.degradedMessage = err.message;
+  };
+
+  /**
+   * @param {ReturnType<typeof rowToModule>[]} results
+   * @param {Record<string, number>} retrieval
+   * @param {Record<string, unknown>} [extra]
+   */
+  const respond = (results, retrieval, extra = {}) => {
+    if (degraded) {
+      log.degraded = degraded;
+      trace.describe('degraded', `${degraded.source}-${degraded.reason}`);
+    }
+    log.dense = mode === 'lexical' ? null : denseBackend(env);
+    return {
+      degraded,
+      response: json({
+        query: q,
+        filters: echo,
+        count: results.length,
+        mode,
+        interpreted: parsed.interpreted,
+        ...extra,
+        ...(degraded ? { degraded } : {}),
+        retrieval,
+        results,
+      }),
+    };
+  };
+
+  /** @type {Constraints} */
+  const constraints = {
+    ...echo,
+    ...(parsed.level ? { levelWindow: parsed.level } : {}),
+    ...(parsed.ranges ? { ranges: parsed.ranges } : {}),
+  };
+
+  // ── no-match: `count: 0`; a not-offered code names its catalogue title and
+  // the dense neighbours of its catalogue text, never in `results`.
+  if (parsed.kind === 'no-match') {
+    const nm = /** @type {import('./query-intent.js').NoMatch} */ (parsed.noMatch);
+    if (nm.reason === 'unknown-code') {
+      log.counts = { returned: 0 };
+      return respond([], { vector: 0, lexical: 0, fused: 0 }, { noMatch: { reason: nm.reason, code: nm.code } });
+    }
+    /** @type {{ title: string, description: string | null } | null} */
+    let row = null;
+    try {
+      row = await d1Timed(trace, 'pin', () => db.prepare('SELECT title, description FROM catalogue_only WHERE code = ?').bind(nm.code).first());
+    } catch (err) {
+      // No catalogue_only table yet (migration 0008 not applied): still a not-offered answer.
+      console.warn(`catalogue_only lookup failed: ${/** @type {any} */ (err)?.message ?? err}`);
+    }
+    /** @type {string[]} */
+    let related = [];
+    if (row && tryDense) {
+      const text = catalogueText(row);
+      const hits = await settle(denseRun(env, text, trace, (v) => vectorSearch(env, v, echo, filter, RELATED_K, trace)));
+      if (hits.ok) related = hits.value.slice(0, RELATED_K).map((h) => h.code);
+      else degrade(/** @type {DenseFailure} */ (hits.error));
+    }
+    log.counts = { returned: 0, related: related.length };
+    return respond([], { vector: related.length, lexical: 0, fused: 0 }, {
+      noMatch: { reason: nm.reason, code: nm.code, title: row?.title ?? null, related },
+    });
   }
 
-  // Lexical retrieval over the same corpus, fused by rank.
-  const lexical = mode !== 'vector'
-    ? settle(withTimeout('D1', D1_TIMEOUT_MS, () => lexicalSearch(db, q, echo, depth, trace)))
+  // ── mask: the members, by exact dense score, else in code order.
+  if (parsed.kind === 'mask') {
+    const maskConstraints = /** @type {Constraints & { ranges: CodeRange[] }} */ (constraints);
+    /** @type {DenseHit[] | null} */
+    let hits = null;
+    if (tryDense && denseBackend(env) === 'bundle') {
+      const r = await settle(denseRun(env, parsed.dense, trace, (v) => bundleHits(v, maskConstraints, topK, trace)));
+      if (r.ok) hits = r.value;
+      else if (mode === 'vector') return { response: upstream(r.error.source, r.error), degraded: null };
+      else degrade(r.error);
+    }
+    /** @type {string[]} */
+    let order;
+    try {
+      order = hits ? hits.map((h) => h.code) : await withTimeout('D1', D1_TIMEOUT_MS, () => rangeMembers(db, maskConstraints, topK, trace));
+    } catch (err) {
+      return { response: upstream('d1-fts', err), degraded: null };
+    }
+    /** @type {Map<string, ResultRow>} */
+    let rows;
+    try {
+      rows = await fetchRows(db, order, trace);
+    } catch (err) {
+      return { response: upstream('d1', err), degraded: null };
+    }
+    const score = new Map((hits ?? []).map((h) => [h.code, h.score]));
+    // Dense members re-checked against their fresh D1 row (B-3); code-order members came from D1.
+    const results = order.flatMap((code) => {
+      const row = rows.get(code);
+      if (!row || (hits && !localMatchesFilters(row, maskConstraints))) return [];
+      return [rowToModule(row, score.get(code))];
+    });
+    log.counts = { members: order.length, returned: results.length, order: hits ? 'dense' : 'code' };
+    return respond(results, { vector: hits ? order.length : 0, lexical: hits ? 0 : order.length, fused: results.length });
+  }
+
+  // ── search: pins, then the fused lists.
+  // R5: offered codes jump to the front, in query order, if the filters allow them.
+  const pinning = parsed.pins.length
+    ? settle(d1Timed(trace, 'pin', () => db.prepare(parsed.pins.length === 1
+      ? `SELECT ${RESULT_COLUMNS} FROM modules WHERE code = ?`
+      : `SELECT ${RESULT_COLUMNS} FROM modules WHERE code IN (${parsed.pins.map(() => '?').join(',')})`).bind(...parsed.pins).all()))
     : null;
 
-  const [pin, vec, lex] = await Promise.all([pinning, dense, lexical]);
+  // The third list: a code token's prefix members, within any GE mask.
+  /** @type {(Constraints & { ranges: CodeRange[] }) | null} */
+  const codeConstraints = parsed.codeList
+    ? { ...constraints, ranges: parsed.ranges ? intersectRanges(parsed.codeList, parsed.ranges) : parsed.codeList }
+    : null;
+  const codeByDense = codeConstraints !== null && denseBackend(env) === 'bundle';
+  const codeCons = codeConstraints;
+  /** @returns {Promise<string[]>} */
+  const codeOrder = () => withTimeout('D1', D1_TIMEOUT_MS, () => rangeMembers(db, /** @type {Constraints & { ranges: CodeRange[] }} */ (codeCons), depth, trace));
 
-  /** @type {ReturnType<typeof rowToModule> | null} */
-  let pinned = null;
+  const dense = tryDense
+    ? settle(denseRun(env, parsed.dense, trace, async (v) => ({
+      main: await vectorSearch(env, v, constraints, filter, depth, trace),
+      code: codeByDense && codeCons ? await bundleHits(v, codeCons, depth, trace) : null,
+    })))
+    : null;
+
+  // Lexical retrieval over the same corpus (GE phrases stripped), fused by rank.
+  const lexical = mode !== 'vector'
+    ? settle(withTimeout('D1', D1_TIMEOUT_MS, () => lexicalSearch(db, parsed.lexical, constraints, depth, trace)))
+    : null;
+  // The third list in code order, when the dense order is not coming.
+  const codeEarly = codeCons && (!tryDense || !codeByDense) ? settle(codeOrder()) : null;
+
+  const [pin, vec, lex, early] = await Promise.all([pinning, dense, lexical, codeEarly]);
+
+  /** @type {ReturnType<typeof rowToModule>[]} */
+  const pinned = [];
   if (pin) {
     if (!pin.ok) return { response: upstream('d1', pin.error), degraded: null };
     const res = /** @type {D1Result<ResultRow>} */ (pin.value);
     trace.d1Result(res);
-    const row = res.results[0] ?? null;
-    if (row && localMatchesFilters(row, echo)) pinned = rowToModule(row, 1);
+    const byCodeRow = new Map(res.results.map((r) => [r.code, r]));
+    for (const code of parsed.pins) {
+      const row = byCodeRow.get(code);
+      if (row && localMatchesFilters(row, echo)) pinned.push(rowToModule(row, 1));
+    }
   }
 
   /** @type {DenseHit[]} */
   let denseHits = [];
-  if (vec && vec.ok) denseHits = vec.value;
-  else if (vec) {
+  /** @type {string[] | null} */
+  let codeCodes = null;
+  if (vec && vec.ok) {
+    denseHits = vec.value.main;
+    if (vec.value.code) codeCodes = vec.value.code.map((h) => h.code);
+  } else if (vec) {
     const err = /** @type {DenseFailure} */ (vec.error);
     if (mode === 'vector') return { response: upstream(err.source, err), degraded: null };
-    degraded = { source: err.source, reason: err.timedOut ? 'timeout' : 'error' };
-    log.degradedMessage = err.message;
+    degrade(err);
   }
 
   /** @type {string[]} */
   let lexicalCodes = [];
   if (lex && !lex.ok) return { response: upstream('d1-fts', lex.error), degraded: null };
   if (lex) lexicalCodes = lex.value;
+
+  if (codeCons && codeCodes === null) {
+    const got = early ?? await settle(codeOrder());
+    if (!got.ok) return { response: upstream('d1-fts', got.error), degraded: null };
+    codeCodes = got.value;
+  }
   const vectorCodes = denseHits.map((h) => h.code);
 
-  if (degraded) {
-    log.degraded = degraded;
-    trace.describe('degraded', `${degraded.source}-${degraded.reason}`);
-  }
-
+  /** @type {string[][]} */
   const lists = mode === 'vector' ? [vectorCodes]
     : mode === 'lexical' || degraded ? [lexicalCodes]
       : [vectorCodes, lexicalCodes];
-  const fused = fuse(lists).filter((f) => f.code !== pinned?.code);
+  if (codeCodes) lists.push(codeCodes);
+  const pinnedCodes = new Set(pinned.map((p) => p.code));
+  const fused = fuse(lists).filter((f) => !pinnedCodes.has(f.code));
 
   // Hydrate only as many fused candidates as the response shows (B8). A
   // candidate missing from D1 means a stale index: drop it and hydrate the
   // next one, so the page is the same as hydrating every candidate would give.
-  // A dense-only candidate whose fresh D1 row fails the filters is dropped
-  // the same way (B-3): between a D1-only ingest and the deploy that bundles
-  // its vectors, the live bundle's filter table (or the standby's metadata)
-  // can be older than D1. Lexical candidates were filtered by D1 itself.
-  const results = pinned ? [pinned] : [];
+  // A dense candidate (either dense list) whose fresh D1 row fails the filters
+  // or 3B's constraints is dropped the same way (B-3): between a D1-only
+  // ingest and the deploy that bundles its vectors, the live bundle's filter
+  // table (or the standby's metadata, which has no 3B field) can be older than
+  // D1. Lexical and code-order candidates were filtered by D1 itself.
+  const results = [...pinned];
   const lexicalSet = new Set(lexicalCodes);
-  const denseOnly = new Set(vectorCodes.filter((c) => !lexicalSet.has(c)));
+  const denseOnly = new Set([...vectorCodes, ...(codeByDense ? codeCodes ?? [] : [])].filter((c) => !lexicalSet.has(c)));
   /** @type {string[]} */
   const stale = [];
   /** @type {string[]} */
@@ -456,32 +721,21 @@ async function runSearch({ q, echo, filter, mode, topK }, env, trace, log) {
     for (const { code, score } of chunk) {
       const row = rows.get(code);
       if (!row) { stale.push(code); continue; }
-      if (denseOnly.has(code) && !localMatchesFilters(row, echo)) { filteredOut.push(code); continue; }
+      if (denseOnly.has(code) && !localMatchesFilters(row, constraints)) { filteredOut.push(code); continue; }
       results.push(rowToModule(row, score));
     }
   }
   if (stale.length) console.warn(`stale vectors not present in D1: ${stale.join(', ')}`);
   if (filteredOut.length) console.warn(`dense rows whose D1 row fails the filters: ${filteredOut.join(', ')}`);
   // Candidates after fusion that exist in D1 (and pass the filters), as far as hydration saw.
-  const fusedCount = (pinned ? 1 : 0) + fused.length - stale.length - filteredOut.length;
+  const fusedCount = pinned.length + fused.length - stale.length - filteredOut.length;
   log.counts = {
-    vector: vectorCodes.length, lexical: lexicalCodes.length, fused: fusedCount,
+    vector: vectorCodes.length, lexical: lexicalCodes.length, ...(codeCodes ? { code: codeCodes.length } : {}), fused: fusedCount,
     returned: results.length, stale: stale.length, filtered: filteredOut.length,
   };
-  log.dense = mode === 'lexical' ? null : denseBackend(env);
-
-  return {
-    degraded,
-    response: json({
-      query: q,
-      filters: echo,
-      count: results.length,
-      mode,
-      ...(degraded ? { degraded } : {}),
-      retrieval: { vector: vectorCodes.length, lexical: lexicalCodes.length, fused: fusedCount },
-      results,
-    }),
-  };
+  return respond(results, {
+    vector: vectorCodes.length, lexical: lexicalCodes.length, ...(codeCodes ? { code: codeCodes.length } : {}), fused: fusedCount,
+  });
 }
 
 /**

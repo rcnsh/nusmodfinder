@@ -354,7 +354,7 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, s
     ? { ...args.options, expectedDataVersion: String(JSON.parse(await readFile(dataVersionPath, 'utf8')).version) }
     : args.options;
   if (options.d1Only) log(`mode               D1 only (runbook step 4): no Workers AI, no Vectorize; expecting data version ${options.expectedDataVersion}`);
-  const result = await runIngest({ modules, catalogue, facetsBody, api, options, pending, log });
+  const result = await runIngest({ modules, facetsBody, api, options, pending, log, catalogue });
 
   log(`rows read          ${result.rowsRead} (ingest and delete calls; /admin/hashes and facets not metered here)`);
   log(`rows written       ${result.rowsWritten} reported by D1; ${result.rowsCharged} charged to the budget (with FTS estimate)`);
