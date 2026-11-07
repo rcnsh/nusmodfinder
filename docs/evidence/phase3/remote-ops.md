@@ -21,3 +21,27 @@ UTC. Headroom rule: ADR 0004 (`estimate × 1.5 <` the month's remaining included
 
 Rollback, if needed: `npx wrangler rollback ee96bbd0-add9-4aa6-8f2f-78e219087817` (no D1 change was
 made, so no Time Travel restore is needed).
+
+## 2026-11-07: 3A-2 v1 ship (runbook, README "Runbook")
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 07:04 | Step 1: embedded the 194 production texts missing from `emb-bge-small-v1` (`npm run eval:embed`, REST, 2 requests; `requests.tsv` 84) | ≤ 300 neurons | 63.4 neurons (`neurons.tsv`); account today before: 1,993.3 neurons |
+| 07:03–07:10 | Uploaded release assets `vec-pinned-b21292ab3713-emb-bge-small-v1` and `vec-production-32b590de51aa-emb-bge-small-v1-x4a990cd5` (GitHub, not Cloudflare) | — | sha256 be683eaa… and 8157593f… |
+| 07:33:01 | Step 2: PR #41 merged as `45bd716`. Nothing deployed: the guard refuses it until D1 holds the new text hashes | — | — |
+| 07:33:25 | Step 3: D1 Time Travel bookmark `00000009-00000000-0000511c-8cd06d7c774355f3610e6bc05a5c8e6f`; live version `343ea371-1da0-46b2-9299-4d74770acf5a` (tag `e8a7124`) | 0 | recorded (rollback targets) |
+| 07:34:03–07:34:12 | Step 4: `npm run ingest -- --d1-only --offline` (via `wrangler dev --remote`): every `text_hash` and `row_hash` rewritten; no Workers AI or Vectorize call | ~35k rows written, ~6.8k read | 34,425 rows written (D1-reported; 37,310 charged with the FTS estimate), 6,778 read, 0 deleted; data version `32b590de51aa` = committed |
+| 07:34:15 | Step 5: `npm run verify -- --pre-deploy` | ~6.8k rows read | 6,778 rows read; rowsKey `7c9b739622d9`, data version, fields and row hashes agree |
+| 07:34:21–07:34:51 | Step 6: `npm run deploy` (guard reads ~6.8k rows on its own dev session; startup 1 ms against the 200 ms gate; `versions upload`; `versions deploy`) | ~6.8k rows read | version **`8d1b85be-edd1-4e6c-902d-ea1ece96a0d1`** (tag `45bd716`) at 100% |
+| 07:35:03 | Step 7 smoke: `/health` (corpus `production`, 6,778 rows, data version `32b590de51aa`) + 2 `/search` (SIN, 200, 20 results, not degraded; server total 152 and 505 ms, the second with a 417 ms embed) | ≤ 4 calls | 3 calls (`requests.tsv` 85) |
+| 07:35:12–07:45:05 | Step 8 standby: three runs of `vectors.mjs standby`, each upserting every code. Run 1 upserted, then failed on `wrangler vectorize list-vectors` (`fetch failed`). Run 2 failed on the same call. Run 3 upserted 6,778 with full metadata in 7 batches, 0 deletes, waited for mutation `635cc30b…`, then its verify failed paging the ids (Vectorize 40052, "cursor appears to be corrupted") | ~13.6k rows read per run, 0 written; 0 queried dims | ~34k rows read over the three runs (est.), 0 written |
+| 07:45:20–07:45:44 | `npm run verify` and `npm run verify -- --values` | ~13.6k rows read | `D1 and Vectorize agree`: 6,778 and 6,778, 0 missing, 0 extra, 0 drift; 100-row metadata and value samples with 0 drift; 13,556 rows read |
+
+Headroom: about 34k rows written and about 67k read today, against Paid's 50M writes and 25B reads included a month. The headroom rule (estimate × 1.5 < remaining) holds by orders of magnitude, so the account figures were not queried.
+
+Rollback, if needed:
+1. `npx wrangler rollback 343ea371-1da0-46b2-9299-4d74770acf5a`.
+2. Restore D1 to the step-3 bookmark: `npx wrangler d1 time-travel restore nusmods-apac --bookmark=00000009-00000000-0000511c-8cd06d7c774355f3610e6bc05a5c8e6f`, a logged remote write.
+3. Revert `45bd716` on `main`.
+
+The standby then holds v1 vectors under v0's ranker. Run step 8 again from the reverted bundle before any `DENSE_BACKEND=vectorize` flip.
