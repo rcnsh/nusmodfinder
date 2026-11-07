@@ -17,8 +17,16 @@ export const INTENT_VARIANTS = Object.freeze({
   'ii-raw': Object.freeze({ prereq: 'ii', dense: 'raw' }),
 });
 
-/** The variant in force. */
-export const INTENT_VARIANT = 'i-stripped';
+/** The variant in force: the dev selection's (ii). Only its prereq semantics acts while PARSE_PHRASES is off. */
+export const INTENT_VARIANT = 'ii-stripped';
+
+/**
+ * Whether the Worker reads 3H phrases from `q`. Off: parsed intents failed L7
+ * and its retry (holdout looks 6 and 7), and Jacob chose to ship the explicit
+ * `exam`/`su`/`hoursBelow`/`prereq` params alone (ADR 0006, 3H). Pass A stays
+ * for Phase 4; with this off, src/intent-data.js gives the parse no phrases.
+ */
+export const PARSE_PHRASES = false;
 
 /** The variant in force's settings. */
 export const INTENT = INTENT_VARIANTS[INTENT_VARIANT];

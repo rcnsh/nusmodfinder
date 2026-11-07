@@ -1,11 +1,12 @@
 // @ts-check
-// 3H in /search (docs/plans/phase3.md 3H): `exam=0`, `su=1`, `hoursBelow=N`
-// and `prereq=none`, as explicit params or parsed from q, are hard filters in
-// SQL, in the bundle's filter table and on every hydrated dense row, in every
-// mode and route, on results, pins and 3F variants. Each param joins the
-// cache key (plan §2 "Response cache key").
+// 3H in /search (docs/plans/phase3.md 3H): the explicit params `exam=0`,
+// `su=1`, `hoursBelow=N` and `prereq=none` are hard filters in SQL, in the
+// bundle's filter table and on every hydrated dense row, in every mode and
+// route, on results, pins, 3F variants and a not-offered code's neighbours.
+// Each param joins the cache key (plan §2 "Response cache key"). Phrases in q
+// are not read (PARSE_PHRASES off after L7; ADR 0006).
 import { beforeAll, describe, expect, it } from 'vitest';
-import { INTENT } from '../src/intents.js';
+import { INTENT, PARSE_PHRASES } from '../src/intents.js';
 import { searchCacheKey } from '../src/search.js';
 import { BASE, adminCall, callJson, fixture, seed } from './helpers.js';
 
@@ -73,51 +74,37 @@ describe('explicit params', () => {
   });
 });
 
-describe('parsed from q', () => {
-  it('filters as the explicit param does, echoed in `interpreted`, not in `filters`', async () => {
-    const cases = [['introduction without final exam', 'exam=0'], ['introduction s/u', 'su=1'], ['introduction light workload', 'hoursBelow=10'],
-      ['introduction no prerequisites', 'prereq=none']];
-    for (const [q, param] of cases) {
+describe('phrases in q (PARSE_PHRASES off: ADR 0006, 3H)', () => {
+  it('are not read: nothing is interpreted or filtered', async () => {
+    expect(PARSE_PHRASES).toBe(false);
+    for (const q of ['introduction without final exam', 'introduction s/u', 'introduction light workload', 'introduction no prerequisites']) {
       const { body } = await callJson(`/search?q=${encodeURIComponent(q)}&topK=50`, { fakes });
       expect(body.filters, q).toEqual({});
-      expect(body.count, q).toBeGreaterThan(0);
-      for (const c of shown(body)) expect(satisfies(/** @type {NormalisedModule} */ (moduleOf.get(c)), param), `${q} ${c}`).toBe(true);
+      expect(body.interpreted, q).toMatchObject({ exam: null, su: null, hoursBelow: null, prereq: null });
     }
-    const { body } = await callJson('/search?q=introduction%20no%20prerequisites', { fakes });
-    expect(body.interpreted.prereq).toEqual({ value: 'none', semantics: INTENT.prereq });
   });
+});
 
-  it('applies to masks and pins: a pinned code that fails the constraint is not pinned', async () => {
-    const mask = await callJson('/search?q=cs2%20no%20exam&topK=50', { fakes });
+describe('explicit params on masks and pins', () => {
+  it('filter mask members, and a pinned code that fails the param is not pinned', async () => {
+    const mask = await callJson('/search?q=cs2&topK=50&exam=0', { fakes });
     expect(mask.body.interpreted.prefix).toBe('CS2');
+    expect(mask.body.count).toBeGreaterThan(0);
     for (const c of shown(mask.body)) {
       expect(c.startsWith('CS2'), c).toBe(true);
       expect(moduleOf.get(c)?.examSemesters, c).toEqual([]);
     }
     expect(moduleOf.get('CS1010S')?.examSemesters.length).toBeGreaterThan(0);
-    const pin = await callJson('/search?q=cs1010s%20no%20exam', { fakes });
+    const pin = await callJson('/search?q=cs1010s&exam=0', { fakes });
     expect(pin.body.interpreted.pin).toEqual(['CS1010S']);
     expect(shown(pin.body)).not.toContain('CS1010S');
-  });
-
-  it('ignore=<intent> undoes it: the phrase is read as text and nothing is filtered', async () => {
-    const { body } = await callJson('/search?q=introduction%20s%2Fu&topK=50&ignore=su', { fakes });
-    expect(body.interpreted.su).toBeNull();
-    expect(shown(body).some((c) => !satisfies(/** @type {NormalisedModule} */ (moduleOf.get(c)), 'su=1'))).toBe(true);
-  });
-
-  it('a query that is only a 3H phrase still answers, from the dense half, filtered', async () => {
-    const { status, body } = await callJson('/search?q=no%20exams', { fakes });
-    expect(status).toBe(200);
-    expect(body.count).toBeGreaterThan(0);
-    for (const c of shown(body)) expect(moduleOf.get(c)?.examSemesters, c).toEqual([]);
   });
 });
 
 describe('a not-offered code\'s related neighbours', () => {
-  it('hold every 3H constraint, explicit or parsed, on the bundle and on the standby', async () => {
-    for (const [q, param] of [['GEQ1000&exam=0', 'exam=0'], ['GEQ1000%20no%20exam', 'exam=0'], ['GEQ1000&su=1', 'su=1'],
-      ['GEQ1000%20light%20workload', 'hoursBelow=10'], ['GEQ1000&prereq=none', 'prereq=none']]) {
+  it('hold every 3H param on the bundle and on the standby', async () => {
+    for (const [q, param] of [['GEQ1000&exam=0', 'exam=0'], ['GEQ1000&su=1', 'su=1'], ['GEQ1000&hoursBelow=10', 'hoursBelow=10'],
+      ['GEQ1000&prereq=none', 'prereq=none']]) {
       for (const env of [{}, { DENSE_BACKEND: 'vectorize' }]) {
         const { body } = await callJson(`/search?q=${q}`, { fakes, env });
         const where = `${q} ${env.DENSE_BACKEND ?? 'bundle'}`;

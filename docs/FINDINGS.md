@@ -446,7 +446,7 @@ the recorded run shows 14/20. Same finding, slightly worse.
 
 **Evidence:**
 - test `[S7 fixed] 3H-0: the schema has exam, S/U, grading-basis, workload-hours and prerequisite columns`: migration 0007, filled by ingest (NORMALISER_VERSION 2); the filters are 3H's query side
-- test `[S7 fixed] 3H: /search filters on no exam, S/U, workload and prerequisite, as params or phrases`: `exam=0`, `su=1`, `hoursBelow=N`, `prereq=none`, and their phrases (pass A)
+- test `[S7 fixed] 3H: /search filters on no exam, S/U, workload and prerequisite params`: `exam=0`, `su=1`, `hoursBelow=N`, `prereq=none`. Phrases in `q` are not read: parsed intents failed L7 and its retry (ADR 0006)
 
 **Notes:** In the pinned `moduleInfo.json`, 1,633 offered modules carry
 `semesterData[].examDate`, 933 carry `attributes.su: true`, and every record has

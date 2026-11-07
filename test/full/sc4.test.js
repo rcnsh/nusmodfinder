@@ -39,8 +39,12 @@ import { adminCall, callJson, seed } from '../helpers.js';
 const corpus = inject('corpus');
 const bundleKind = inject('vectorsBundle');
 
-/** The workstreams merged into this ranker. 3D, 3F, 3G and 3H add themselves here as they merge. */
-const MERGED = new Set(['3B', '3C', '3F', '3G', '3H']);
+/**
+ * The workstreams merged into this ranker. 3D was dropped for Phase 3. 3H ships its explicit
+ * params alone (PARSE_PHRASES off after L7, ADR 0006), so its parsed-intent items wait; the
+ * `[3H params]` test checks the params on the full corpus.
+ */
+const MERGED = new Set(['3B', '3C', '3F', '3G']);
 /** 3H's prereq semantics, substituted for `$selected` (prereg C9): the variant in force's (src/intents.js). */
 const SELECTED_PREREQ = INTENT.prereq;
 /** Rows whose items are never skipped once their machinery exists (plan 737–739). */
@@ -321,6 +325,21 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
     }
     // In mode=lexical the members are in code order, one per duplicate group.
     expect(codesOf((await search('cs', 50, '&mode=lexical')).body)).toEqual(projectGroups(members('CS')).slice(0, 50));
+  });
+
+  // 3H ships its explicit params (ADR 0006): each constraint item's reference, searched with its
+  // param, returns only modules that satisfy it, its 3F variants included.
+  it('[3H params] each constraint item\'s reference with its explicit param: every shown module satisfies it', async () => {
+    const items = suite.items.filter((item) => item.rule === 'constraint');
+    expect(items.length).toBe(12);
+    for (const item of items) {
+      const qs = new URLSearchParams(item.params.param).toString();
+      const { body, missing } = await search(item.params.reference, item.topK, `&${qs}`);
+      expect(missing, item.id).toEqual([]);
+      expect(body.count, item.id).toBeGreaterThan(0);
+      expect(body.filters, item.id).toEqual(Object.fromEntries(Object.entries(item.params.param).map(([k, v]) => [k, k === 'prereq' ? v : Number(v)])));
+      for (const code of shownOf(body)) expect(satisfies(code, item.params.param), `${item.id} ${code}`).toBe(true);
+    }
   });
 
   // 3G's gate (plan 3G): ≥ 90% of the gibberish set's gate half answers count 0, under the τ in force.

@@ -90,13 +90,15 @@ export async function rankerIntentParser(root, vocab) {
   if (!existsSync(join(root, 'src/intents.js'))) return null;
   const url = (/** @type {string} */ f) => pathToFileURL(join(root, 'src', f)).href;
   const { buildIntentContext, parseQuery } = await import(url('query-intent.js'));
-  const { compileConstraintPhrases } = await import(url('intents.js'));
+  const { compileConstraintPhrases, PARSE_PHRASES } = await import(url('intents.js'));
   const { STOPWORDS_IN_FORCE } = await import(url('fts-query.js'));
   const data = (/** @type {string} */ f) => JSON.parse(readFileSync(join(root, 'data', f), 'utf8'));
+  // As src/intent-data.js: a ranker with PARSE_PHRASES off reads no 3H phrase.
+  const phrases = PARSE_PHRASES === false ? [] : compileConstraintPhrases(data('constraint-phrases.json'));
   const ctx = buildIntentContext({
     prefixes: Object.keys(data('prefixes.json').prefixes), catalogueCodes: data('catalogue-codes.json').codes,
     collision: data('collision-list.json').list, ge: data('ge-pillars.json'), stopwords: STOPWORDS_IN_FORCE,
-    isOffered: () => false, vocabulary: vocab, constraintPhrases: compileConstraintPhrases(data('constraint-phrases.json')),
+    isOffered: () => false, vocabulary: vocab, constraintPhrases: phrases,
   });
   return (q) => parseQuery(q, ctx);
 }

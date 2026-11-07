@@ -17,7 +17,7 @@ import ge from '../data/ge-pillars.json';
 import prefixes from '../data/prefixes.json';
 import vocabularyFile from '../data/vocabulary.json';
 import { STOPWORDS_IN_FORCE } from './fts-query.js';
-import { compileConstraintPhrases } from './intents.js';
+import { PARSE_PHRASES, compileConstraintPhrases } from './intents.js';
 import { buildIntentContext } from './query-intent.js';
 import { parseVocabulary } from './vocabulary.js';
 
@@ -37,7 +37,7 @@ export function intentContext(isOffered) {
     stopwords: STOPWORDS_IN_FORCE,
     isOffered: () => false,
     vocabulary: parseVocabulary(/** @type {import('./vocabulary.js').VocabularyFile} */ (vocabularyFile)),
-    constraintPhrases: compileConstraintPhrases(constraintPhrases),
+    constraintPhrases: PARSE_PHRASES ? compileConstraintPhrases(constraintPhrases) : [],
   });
   return { ...base, isOffered };
 }
