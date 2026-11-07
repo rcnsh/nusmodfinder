@@ -152,3 +152,24 @@ The smoke calls:
 - `xqzvbnm flurble`: `count: 0`, `noMatch` `no-signal` (unchanged).
 
 Rollback, if needed: `npx wrangler rollback f638992b-8039-4d06-abf2-b7838bb91fcf`. The old version reads none of the new columns, so D1 needs no restore. To remove them, restore the bookmark above, a logged remote write.
+
+## 2026-11-08: 3H params ship (deploy only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 18:08 | PR #58 merged as `646e8e9`: the explicit `exam`/`su`/`hoursBelow`/`prereq` params; phrases in `q` are not read. Data version and bundle unchanged (`4b6d12fab3d3`); no migration | — | — |
+| 18:08:10 | D1 Time Travel bookmark `00000014-00000000-0000511c-d8ef1f5f03bad95f275780bb2a8acf82`; live version `0173bddf-b636-4eb7-b07b-0cfeabf869d9` (tag `f004351`), checked by one `/health` (`requests.tsv` 98) | 0 | recorded (rollback targets) |
+| — | Step 4 ingest: not run. 3H writes nothing to D1 | 0 | 0 |
+| 18:08:32–18:08:34 | `npm run verify -- --pre-deploy` (via `wrangler dev --remote` on 8789, one-off secret; `.dev.vars` restored after) | ~6.8k rows read | 6,778 rows read; D1, manifest and bundle agree |
+| 18:08:46 | First `npm run deploy`: refused. Another project's dev stub held the guard's fixed port 8799 and answered `/health`; `/admin/hashes` gave 404. Nothing uploaded. Fixed by PR #60 (`238e721`: a free port, a busy one refused) | 0 | 0 |
+| 18:24:04–18:24:38 | `npm run deploy` (the guard read ~6.8k rows) | ~6.8k rows read | version **`ea066ead-8e61-4b1a-b019-2cb85cc6766f`** (tag `238e721`) at 100% |
+| 18:24:44 | Smoke (all SIN, 200, not degraded; `requests.tsv` 99) | ≤ 4 calls | 4 calls |
+| — | Step 8 standby: not run. Vectors and module rows are unchanged | 0 | 0 |
+
+The smoke calls:
+- `/health`: production bundle, 6,778 vectors, data version `4b6d12fab3d3`, tag `238e721`;
+- `machine learning`: 20 results, EE2211 first (unchanged);
+- `sociology&exam=0&su=1`: 20 results, SC2205 first, `filters: { exam: 0, su: 1 }`;
+- `sociology no exam`: 20 results, `filters: {}`, `interpreted.exam: null` (phrases are not read).
+
+Rollback, if needed: `npx wrangler rollback 0173bddf-b636-4eb7-b07b-0cfeabf869d9`. D1 is unchanged, so it needs no restore.
