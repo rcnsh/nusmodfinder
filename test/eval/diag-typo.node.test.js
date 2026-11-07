@@ -53,7 +53,9 @@ describe('eval/diag/typo', () => {
     for (const q of diag.queries) {
       const a = devById.get(q.source).text.split(' ');
       const b = q.text.split(' ');
-      const changed = a.map((/** @type {string} */ w, /** @type {number} */ i) => [w, b[i]]).filter(([w, v]) => w !== v);
+      /** @type {[string, string][]} */
+      const pairs = a.map((/** @type {string} */ w, /** @type {number} */ i) => [w, b[i]]);
+      const changed = pairs.filter(([w, v]) => w !== v);
       expect(changed.length, q.id).toBeGreaterThanOrEqual(1);
       expect(changed.length, q.id).toBeLessThanOrEqual(2);
       for (const [w, v] of changed) {
