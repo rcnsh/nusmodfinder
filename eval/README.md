@@ -41,7 +41,7 @@ npm run eval -- --variant typo-fix --baseline v0 --target-shapes typo
 npm run eval -- --variant cutoff --baseline v0 --change-kind cutoff
 npm run eval -- --variant head-unf --unfiltered           # secondary: filters dropped
 npm run eval:report -- --run head --baseline v0           # recompute from run files + qrels only
-npm run eval -- retire-run --holdout --variant v0 --reason "<why>"   # custodian: retire a stored encrypted run (logged)
+node eval/cli.mjs retire-run --holdout --variant v0 --reason "<why>"   # custodian: retire a stored encrypted run (logged)
 npm run eval -- --variant v0-lexical --ref eval-v0 --mode lexical   # pool variant: one retrieval half only
 npm run eval:pool -- --runs v0,head [--unjudged [--qrels <file>]]   # blind pool for judges
 npm run eval:judge -- <command>                           # judging (see "Judging" below)
@@ -413,7 +413,7 @@ to the manifest and re-hashes nothing else, so a tampered ciphertext stays flagg
 Replacing a stored run is a separate, logged command:
 
 ```bash
-npm run eval -- retire-run --holdout --variant v0 --reason "<why>"
+node eval/cli.mjs retire-run --holdout --variant v0 --reason "<why>"
 ```
 
 It appends a row (date, set, file, the retired ciphertext's sha256, reason) to

@@ -8,7 +8,7 @@
 //       [--change-kind general|cutoff|no-loss|answerable-floor] [--exempt <file>] [--gate sc5]
 //   npm run eval -- --variant <name> --ref eval-v0 --mode lexical|vector   (pool variants)
 //   npm run eval:pool -- --runs <a,b,...> [--set dev] [--unjudged [--qrels <path>]]
-//   npm run eval -- retire-run --holdout --variant <name> --reason "<why>"   (custodian; logged)
+//   node eval/cli.mjs retire-run --holdout --variant <name> --reason "<why>"   (custodian; logged)
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { appendFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -187,7 +187,7 @@ async function assertRunSlotFree(set, variant) {
   // Listed in the manifest is enough: deleting the file first must not free the slot.
   if (!(name in ((await manifestFiles(set.dir)) ?? {}))) return;
   const dirArg = set.dir === layout(set.name).dir ? '' : ` --set-dir ${relative(process.cwd(), set.dir) || '.'}`;
-  fail(`${name} is already in ${join(set.dir, MANIFEST)}; a stored run is never overwritten. To replace it, retire it first (logged in ${set.retiredLog}):\n  npm run eval -- retire-run --set ${set.name}${dirArg} --variant ${variant} --reason "<why>"`);
+  fail(`${name} is already in ${join(set.dir, MANIFEST)}; a stored run is never overwritten. To replace it, retire it first (logged in ${set.retiredLog}):\n  node eval/cli.mjs retire-run --set ${set.name}${dirArg} --variant ${variant} --reason "<why>"`);
 }
 
 /** @param {import('./lib/metrics.mjs').RunFile[]} runs */
@@ -557,7 +557,7 @@ async function cmdRetireRun(a) {
   const log = set.retiredLog;
   if (!existsSync(log)) {
     await mkdir(dirname(log), { recursive: true });
-    await writeFile(log, `# Retired runs\n\nAppend-only. One row per stored encrypted run retired with \`npm run eval -- retire-run\` so that\n\`--store-only\` may write its replacement. Retiring is not a look.\n\n| date | set | file | sha256 | reason |\n|---|---|---|---|---|\n`);
+    await writeFile(log, `# Retired runs\n\nAppend-only. One row per stored encrypted run retired with \`node eval/cli.mjs retire-run\` so that\n\`--store-only\` may write its replacement. Retiring is not a look.\n\n| date | set | file | sha256 | reason |\n|---|---|---|---|---|\n`);
   }
   const clean = (/** @type {string} */ s) => s.replace(/[|\n]/g, ' ');
   await appendFile(log, `| ${[today(), set.name, name, sha, reason].map(clean).join(' | ')} |\n`);
