@@ -1,0 +1,201 @@
+{
+ "schema": "vnm-3b0-counts/1",
+ "source": {
+  "release": "data-2026-2027-20260904",
+  "acadYear": "2026-2027",
+  "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
+  "offered": 6771,
+  "catalogueRecords": 21130
+ },
+ "plan": "docs/plans/phase3.md §1 \"Corpus facts for 3B–3H\" (critic C), re-run by 3B-0",
+ "prefixes": {
+  "count": 304,
+  "byLength": {
+   "2": 85,
+   "3": 213,
+   "4": 6
+  },
+  "notPrefixes": {
+   "ART": 0,
+   "LAW": 0,
+   "COMP": 0,
+   "MATH": 0,
+   "ECON": 0
+  },
+  "collisionSeed": {
+   "AI": 9,
+   "AN": 17,
+   "CE": 144,
+   "DSA": 55,
+   "EE": 123,
+   "GE": 62,
+   "IS": 57,
+   "IT": 18,
+   "JS": 24,
+   "LAB": 5,
+   "LL": 386,
+   "MA": 110,
+   "ME": 106,
+   "PE": 25,
+   "PR": 79,
+   "SE": 28
+  },
+  "prefixPairs": {
+   "count": 90,
+   "examples": [
+    "CS/CSA",
+    "GES/GESS",
+    "LA/LAJ",
+    "PH/PHS",
+    "SE/SEA"
+   ]
+  },
+  "dfPositive": {
+   "count": 93,
+   "of": 304,
+   "examples": [
+    "CS",
+    "GEN",
+    "GET",
+    "GEX"
+   ]
+  }
+ },
+ "ranges": {
+  "naiveCS": [
+   "CSA6101",
+   "CSA6770"
+  ],
+  "digitBoundedCS": [],
+  "digitBoundedGES": []
+ },
+ "partialCodes": {
+  "GEA": {
+   "members": 2,
+   "groups": 1
+  },
+  "CS101": {
+   "members": 7,
+   "groups": 1
+  },
+  "DAO17": {
+   "members": 2,
+   "groups": 1
+  },
+  "MUL21": {
+   "members": 4,
+   "groups": 4
+  },
+  "CS32": {
+   "members": 30,
+   "groups": 27
+  },
+  "GEC": {
+   "members": 36,
+   "groups": 35
+  },
+  "GEX": {
+   "members": 16,
+   "groups": 14
+  },
+  "GESS": {
+   "members": 29,
+   "groups": 27
+  },
+  "PL32": {
+   "members": 18,
+   "groups": 18
+  }
+ },
+ "xxN000": {
+  "offeredStrict": 32,
+  "offeredWithSuffix": 36,
+  "offeredWithSuffixCodes": [
+   "BI3000",
+   "BMP5000",
+   "BPS5000",
+   "CDE2000",
+   "CDE5000",
+   "COS1000",
+   "ES1000",
+   "ES5000",
+   "ESE2000",
+   "GEA1000",
+   "GEA1000N",
+   "GEI1000",
+   "GEN2000",
+   "GEQ1000H",
+   "GESS1000",
+   "GESS1000T",
+   "GEX1000",
+   "GMS1000",
+   "HSA1000",
+   "HSH1000",
+   "HSI1000",
+   "HSS1000",
+   "IS6000",
+   "ME3000",
+   "MIC2000",
+   "MIC2000A",
+   "RE3000",
+   "RE5000",
+   "RVC1000",
+   "RVC2000",
+   "RVN2000",
+   "RVR2000",
+   "RVSS1000",
+   "RVX1000",
+   "STR1000",
+   "STR2000"
+  ],
+  "catalogueStrict": 35,
+  "catalogueWithSuffix": 50
+ },
+ "trailingS": {
+  "count": 22,
+  "cs1231": {
+   "offered": true,
+   "offeredS": true,
+   "su": true
+  }
+ },
+ "cs4400": {
+  "offered": false,
+  "catalogue": false
+ },
+ "catalogueOnly": {
+  "count": 14359,
+  "examples": {
+   "GEQ1000": "Asking Questions",
+   "GEH1001": "Globalisation and New Media",
+   "IS1103": "Ethics in Computing",
+   "ACC1701X": "Accounting for Decision Makers"
+  }
+ },
+ "pillars": {
+  "byPrefix": {
+   "GEA": 2,
+   "GEC": 36,
+   "GEH": 10,
+   "GEI": 3,
+   "GEN": 19,
+   "GEQ": 1,
+   "GES": 14,
+   "GESS": 29,
+   "GET": 11,
+   "GEX": 16
+  },
+  "members": 141,
+  "groups": 102
+ },
+ "meCodes": {
+  "ME3000": true,
+  "IS6000": true,
+  "GEA1000": true,
+  "ES1000": true
+ },
+ "level": {
+  "CS3000offered": false,
+  "cs3Level3": 31
+ }
+}

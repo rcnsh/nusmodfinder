@@ -340,6 +340,25 @@ export function offeredModules(records, acadYear, ngCourses = null) {
   return { modules, skipped };
 }
 
+/**
+ * The catalogue-only codes (3B, C-7): records in moduleInfo.json with no
+ * offering this acad year, with their title and description, for noMatch
+ * `not-offered` (D1 `catalogue_only`, migrations/0008_catalogue.sql). A record
+ * without a code or title is left out; a missing description is null.
+ * @param {NusModsRecord[]} records
+ * @returns {{ code: string, title: string, description: string | null }[]}
+ */
+export function catalogueOnlyRecords(records) {
+  /** @type {{ code: string, title: string, description: string | null }[]} */
+  const out = [];
+  for (const r of records) {
+    if (semestersOf(r).length > 0) continue;
+    if (typeof r.moduleCode !== 'string' || !r.moduleCode || !r.title?.trim()) continue;
+    out.push({ code: r.moduleCode, title: r.title.trim(), description: r.description?.trim() || null });
+  }
+  return out;
+}
+
 // The Vectorize metadata and row hash are shared with the Worker.
 export { vectorMetadata } from '../src/rowhash.js';
 
