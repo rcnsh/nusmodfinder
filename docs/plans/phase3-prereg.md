@@ -107,6 +107,14 @@ Two placements the plan does not state are fixed here (choices C14, C15):
 - `no background` is in both the prerequisite and the beginner lists (plan 655–656). Pass A
   matches and strips it, and it sets the beginner intent as if pass B had read it.
 - The GE phrases are read in pass B, after the joins, so `ge` can never take part in a join.
+  - **Note added 2026-11-07, before any 3B dev score was read** (PR #44 review, lead decision).
+    `ge` is a collision-list prefix, so `ge 2101` inside a longer query does not join. As written,
+    pass B then read that `ge` as the GE phrase: `ge 2101 workload` masked every result to the
+    pillars and removed GE2101 (Geography, offered) from both halves. That contradicts the plan's
+    accepted cost (plan 529–530): a collision-list code in a longer query "is not pinned. It still
+    reaches the lexical and dense halves as text." So in pass B, a `ge` token directly followed
+    by a token that starts with a digit is not a GE phrase. It stays text, routes nothing and
+    leaves `interpreted.ge` null. No SC4 item contains `ge` followed by digits.
 
 ### Code joins (plan 511–528)
 On the canonical q with step 4's phrases removed ("the whole query" is that remainder). A join is
