@@ -1,4 +1,4 @@
-# 3H dev screen: (ii)-stripped goes to L7 by Jacob's override (2026-11-08)
+# 3H: dev screen, L7 and its retry fail; the explicit params ship alone (2026-11-08)
 
 3H's query side reads no-exam, S/U, workload and no-prerequisite phrases and applies them as hard
 filters (plan §2 3H). The phrases are stripped from the keyword query. Four points are pooled:
@@ -115,6 +115,28 @@ It made three low-severity findings:
      text. Its raw text holds no exact phrase to strip, so the raw query is embedded.
    - **Effect:** the eval embeds the same texts, so the Worker and the eval agree.
 
+## L7 and the retry (holdout looks 6 and 7)
+- **Round h3h:** 49 pooled pairs, 3 graded by rule and 46 by judge A, giving `qrels-holdout-v7`.
+- **L7, `3h` = (ii)-stripped at `2476012`:** fail. ΔnDCG@10 is −0.024 [−0.081, −0.005] and ΔP@5
+  −0.014 [−0.084, 0.000], against shipped `f004351` under the general holdout rule.
+- **Retry, `3h-r` = (i)-stripped at `f9a4b6e`:** fail, with the same figures. On holdout the two
+  semantics differ in 1 of 81 lists, and not in any scored top 10.
+- **Why it fails:** judges never see exam, S/U, workload or prerequisite fields (`JUDGING.md`).
+  A hard filter that removes relevant but ineligible modules therefore scores as lost
+  relevance, and the holdout rule has no exemption.
+
+## Decision (Jacob, Q4): the explicit params ship alone
+- **The params stay as hard filters:** `exam=0`, `su=1`, `hoursBelow=N`, `prereq=none`, with
+  `prereq=none` under (ii), the dev selection's semantics. They hold everywhere `results` does,
+  and on a not-offered code's `related`.
+- **Phrases in `q` are not read** (`PARSE_PHRASES = false` in `src/intents.js`). Pass A stays for
+  Phase 4.
+- **Gate (no look):** with no param set, every list equals shipped `f004351`'s:
+  - dev: 0 of 98 lists differ (`3h-p`);
+  - holdout: 0 of 81 differ, by a store-only run, counted, with no verdict.
+- **SC4:**
+  - the 14 parsed-intent items (sc4-010, sc4-031, sc4-040 to sc4-051) wait for Phase 4;
+  - a full-corpus test checks each constraint item's reference searched with its explicit param.
+
 ## Next
-L7 on holdout: store the shipped `f004351` baseline and `ii-stripped`. Before that, the custodian
-embeds the holdout queries' stripped texts (`eval:embed --set holdout --corrected-from-ref`).
+Ship the params (runbook: no data change, deploy and smoke), then move the shipped-ranker pin.

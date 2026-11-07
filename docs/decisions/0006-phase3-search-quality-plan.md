@@ -120,3 +120,14 @@ No objection was rejected outright. Four were applied in part:
   - **What stays as written:** L7 runs the unchanged holdout no-loss rule, and (i)-stripped
     remains the named retry.
   - Evidence: [`3h-dev-screen.md`](../evidence/phase3/3h-dev-screen.md).
+- **3H ships its explicit params only (Jacob, Q4, 2026-11-08).**
+  - **The looks:** (ii)-stripped failed L7 (look 6), ΔnDCG@10 −0.024 [−0.081, −0.005]. Its
+    named retry, (i)-stripped, failed look 7 with the same figures.
+  - **What ships:** `exam=0`, `su=1`, `hoursBelow=N` and `prereq=none` as hard filters. Phrases
+    in `q` are not read.
+  - **Gate:** identical lists to shipped on dev and holdout, so no look.
+  - **SC4:** its 14 parsed-intent items stay unmet until Phase 4.
+  - **Lesson:** the judges never see the constraint fields, so the holdout rule scores a hard
+    filter's intended removals as loss. A parsed hard filter needs a rule that measures
+    compliance, not relevance alone.
+

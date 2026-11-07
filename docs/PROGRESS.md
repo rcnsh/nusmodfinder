@@ -907,3 +907,15 @@ fails on the previous code.
 - **qrels-dev-v10** (`p3h`). Evidence: `docs/evidence/phase3/3h-dev-screen.md`.
 - **Holdout looks: 5 of 12.** Next: L7.
 
+## 2026-11-08 — 3H fails L7 and its retry; the explicit params ship alone (holdout looks 7 of 12)
+
+- **L7 (`3h`, (ii)-stripped):** fail. ΔnDCG@10 −0.024 [−0.081, −0.005], ΔP@5 −0.014
+  (`qrels-holdout-v7`).
+- **Retry (`3h-r`, (i)-stripped):** fail, with the same figures. On holdout the semantics differ
+  in 1 of 81 lists. **Holdout looks: 7 of 12.**
+- **Jacob's decision (Q4):** ship `exam=0`, `su=1`, `hoursBelow=N`, `prereq=none` as hard
+  filters, with phrase parsing off (`PARSE_PHRASES = false`). With no param set, every list
+  equals shipped's on dev (98/98) and holdout (81/81), so no look is needed.
+- **SC4's 14 parsed-intent items stay unmet** until Phase 4. Evidence:
+  `docs/evidence/phase3/3h-dev-screen.md`.
+
