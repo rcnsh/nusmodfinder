@@ -32,8 +32,12 @@ export const LEVEL_VARIANTS = Object.freeze({
 });
 /** @typedef {keyof typeof LEVEL_VARIANTS} LevelVariant */
 
-/** The fallback (the rules with α = 0 and no β) until the dev screen selects. @type {LevelVariant} */
-export const LEVEL_VARIANT = 'a0';
+/**
+ * The selected variant: the bundle, which passes the dev screen (targeted, level). The named
+ * retry is `a0`, the rules with α = 0 and no β (docs/evidence/phase3/3d-dev-screen.md).
+ * @type {LevelVariant}
+ */
+export const LEVEL_VARIANT = 'a35b10';
 
 /** @type {LevelConfig} */
 export const LEVEL = LEVEL_VARIANTS[LEVEL_VARIANT];
