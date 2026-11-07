@@ -352,6 +352,7 @@ ships, in the same PR as the constant.
 - shipped pin: `89cb10e9e56b0b3035a063d544fb0b1e16fd2bf1` 89cb10e9e56b0b3035a063d544fb0b1e16fd2bf1 (3C-2, typo correction and prefix terms, deployed 2026-11-07 as version `c402a75d`; L4 pass, holdout look 3)
 - shipped pin: `2ce17c66c662c3af29842f9aab7d67499ee76b12` 2ce17c66c662c3af29842f9aab7d67499ee76b12 (3F, groups-v1 collapse with variants, deployed 2026-11-07 as version `6e832483`; no look: identity with the group-first projection and dev `no-loss`, A2-4)
 - shipped pin: `47838dbf414d9755e12f470ccb6b614332d765e1` 47838dbf414d9755e12f470ccb6b614332d765e1 (3G, no-signal answer at τ `max`, deployed 2026-11-07 as version `f638992b`; no look: SC4, gibberish gate half, answerable floor and custodian count 0)
+- shipped pin: `f004351947cef4909072b4efc7d8782088819ebe` f004351947cef4909072b4efc7d8782088819ebe (3H-0, the intent fields, deployed 2026-11-07 as version `0173bddf`; ranking-neutral: all 98 dev lists equal `47838db`'s)
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.
