@@ -24,6 +24,14 @@ const OFFERED = new Set([
   ...readJson('test/fixtures/corpus.json').modules.map((/** @type {{ code: string }} */ m) => m.code),
 ]);
 
+const ctxData = () => ({
+  prefixes: Object.keys(readJson('data/prefixes.json').prefixes),
+  catalogueCodes: readJson('data/catalogue-codes.json').codes,
+  collision: readJson('data/collision-list.json').list,
+  ge: readJson('data/ge-pillars.json'),
+  stopwords: STOPWORDS_CURRENT,
+  isOffered: (/** @type {string} */ code) => OFFERED.has(code),
+});
 const ctx = buildIntentContext({
   prefixes: Object.keys(readJson('data/prefixes.json').prefixes),
   catalogueCodes: readJson('data/catalogue-codes.json').codes,
@@ -31,6 +39,7 @@ const ctx = buildIntentContext({
   ge: readJson('data/ge-pillars.json'),
   stopwords: STOPWORDS_CURRENT,
   isOffered: (code) => OFFERED.has(code),
+  level: readJson('data/level-phrases.json'),
 });
 const ALL_PILLARS = ['GEA', 'GEC', 'GEH', 'GEI', 'GEN', 'GEQ', 'GES', 'GESS', 'GET', 'GEX'];
 /** @param {string} q @param {string[]} [ignore] */
@@ -224,16 +233,17 @@ describe('ignore', () => {
   });
 });
 
-describe('the SC4 suite, the keys 3B sets', () => {
-  // pin, prefix and ge are 3B's; level only through XX N000. The other keys
-  // wait for 3D and 3H (test/full/sc4.test.js runs each item's full rule).
+describe('the SC4 suite, the keys 3B and 3D set', () => {
+  // pin, prefix and ge are 3B's; level is 3D's (and 3B's through XX N000).
+  // The other keys wait for 3H (test/full/sc4.test.js runs each item's full
+  // rule). A typo item's level is read from its clean form: this context has
+  // no vocabulary, so it corrects nothing.
   const B3 = /** @type {const} */ (['pin', 'prefix', 'ge']);
   for (const item of suite.items) {
     it(`${item.id} ${JSON.stringify(item.text)}`, () => {
       const p = parse(item.text);
       for (const k of B3) expect(p.interpreted[k], k).toEqual(item.interpreted[k]);
-      const phraseLevel = deriveIntents(item.params?.clean ?? item.text).level;
-      if (!phraseLevel) expect(p.interpreted.level).toEqual(item.interpreted.level);
+      expect(parse(item.params?.clean ?? item.text).interpreted.level, 'level').toEqual(item.interpreted.level);
       for (const k of ['exam', 'su', 'hoursBelow', 'prereq']) expect(p.interpreted[/** @type {'exam'} */ (k)], k).toBeNull();
       if (item.rule === 'no-match' && item.params.reason !== 'no-signal') {
         expect(p.noMatch).toEqual({ reason: item.params.reason, code: item.params.code });
@@ -271,5 +281,123 @@ describe('review fixes (PR #44)', () => {
     expect(parse('ge').interpreted.ge).toEqual(ALL_PILLARS);
     expect(parse('ge modules about technology')).toMatchObject({ kind: 'search', interpreted: { ge: ALL_PILLARS }, lexical: 'modules about technology' });
     expect(parse('ge 2101').interpreted).toMatchObject({ pin: ['GE2101'], ge: null });
+  });
+});
+
+describe('the level intent (3D, step 7)', () => {
+  const lv = (/** @type {string} */ q, /** @type {string[]} */ ignore = []) => parse(q, ignore).interpreted.level;
+
+  it('reads each kind as its window (prereg §5)', () => {
+    expect(lv('intro to psych')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(lv('programming for beginners')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(lv('year 1 chemistry')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(lv('first-year chemistry')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(lv('graduate machine learning theory')).toEqual({ min: 5, max: null, source: ['graduate'] });
+    expect(lv('phd seminar')).toEqual({ min: 5, max: null, source: ['graduate'] });
+    expect(lv('4000 level marketing')).toEqual({ min: 4, max: 4, source: ['level'] });
+    expect(lv('lvl 3000 urban planning')).toEqual({ min: 3, max: 3, source: ['level'] });
+    expect(lv('2000-level history')).toEqual({ min: 2, max: 2, source: ['level'] });
+    expect(lv('3k finance')).toEqual({ min: 3, max: 3, source: ['level'] });
+    expect(lv('software engineering electives for 3rd year')).toEqual({ min: 3, max: 4, source: ['year'] });
+    expect(lv('second year statistics')).toEqual({ min: 2, max: 4, source: ['year'] });
+  });
+
+  it('level 1000, 1000 level and 1k are level 1, not beginner (plan 646-647)', () => {
+    for (const q of ['level 1000 maths', '1000 level maths', '1k maths']) {
+      const p = parse(q);
+      expect(p.interpreted.level, q).toEqual({ min: 1, max: 1, source: ['level'] });
+      expect(p.beginner, q).toBe(false);
+    }
+  });
+
+  it('beginner is set only when a beginner phrase is among the windows', () => {
+    expect(parse('intro to psych').beginner).toBe(true);
+    expect(parse('intro or 3000 level psychology').beginner).toBe(true);
+    expect(parse('graduate psychology').beginner).toBe(false);
+    expect(parse('psychology').beginner).toBe(false);
+    expect(parse('intro to psych', ['level']).beginner).toBe(false);
+  });
+
+  it('several phrases take the union (hull), with the sorted sources', () => {
+    expect(lv('third year level and 3000-level')).toEqual({ min: 3, max: 4, source: ['level', 'year'] });
+    expect(lv('graduate or 3000 level finance')).toEqual({ min: 3, max: null, source: ['graduate', 'level'] });
+    expect(lv('intro or 4000 level')).toEqual({ min: 1, max: 4, source: ['beginner', 'level'] });
+    expect(lv('beginner or graduate')).toEqual({ min: 1, max: null, source: ['beginner', 'graduate'] });
+  });
+
+  it('unions an XX N000 code level with a phrase', () => {
+    expect(lv('cs 3000 for 2nd year')).toEqual({ min: 2, max: 4, source: ['level', 'year'] });
+  });
+
+  it('the longest phrase wins; a phrase inside a longer one is not read alone', () => {
+    const p = parse('modules for beginners');
+    expect(p.interpreted.level).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(p.lexical).toBe('modules');
+  });
+
+  it('matches only at token boundaries', () => {
+    for (const q of ['undergraduate algorithms', 'introduction to algorithms', 'introspection', 'year 10 maths', 'level 30000', '12k salary']) {
+      expect(lv(q), q).toBeNull();
+    }
+  });
+
+  it('advanced alone is no level intent: advanced calculus keeps its text', () => {
+    const p = parse('advanced calculus');
+    expect([p.interpreted.level, p.lexical]).toEqual([null, 'advanced calculus']);
+  });
+
+  it('a negator among the two tokens before a phrase sets nothing, and the phrase stays in the text', () => {
+    for (const q of ['not first year basics', 'non graduate finance', 'beyond 2nd year algorithms', 'anything except phd level', 'not a first year module']) {
+      const p = parse(q);
+      expect(p.interpreted.level, q).toBeNull();
+      expect(p.lexical, q).toBe(q);
+    }
+    // Three tokens back is outside the window.
+    expect(lv('not really for first year')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+  });
+
+  it('strips matched phrases from the lexical text only; the dense text stays raw', () => {
+    const p = parse('intro to psych');
+    expect([p.lexical, p.dense]).toEqual(['to psych', 'intro to psych']);
+    const q = parse('GE modules for first year');
+    expect(q.interpreted).toMatchObject({ ge: ALL_PILLARS, level: { min: 1, max: 4, source: ['beginner'] } });
+    expect(q.lexical).toBe('modules for');
+  });
+
+  it('a GE phrase with only level phrases besides it is still the pillar mask, with the window', () => {
+    const p = parse('ge for first year');
+    expect(p.interpreted.level).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(p.level).toEqual({ min: 1, max: 4 });
+    expect(p.interpreted.ge).toEqual(ALL_PILLARS);
+  });
+
+  it('ignore=level undoes it: no window, nothing stripped, no beginner prior', () => {
+    const p = parse('intro to psych', ['level']);
+    expect([p.interpreted.level, p.level, p.lexical, p.beginner]).toEqual([null, null, 'intro to psych', false]);
+  });
+
+  it('a context without the level table reads no phrase (the rules switched off)', () => {
+    const off = buildIntentContext({ ...ctxData(), level: null });
+    const p = parseQuery('intro to psych', off);
+    expect([p.interpreted.level, p.lexical, p.beginner]).toEqual([null, 'intro to psych', false]);
+    expect(parseQuery('cs 3000', off).interpreted.level).toEqual({ min: 3, max: 3, source: ['level'] });
+  });
+
+  it('agrees with the SC4 oracle (test/sc4/intents.node.mjs) on every dev and suite text and the cases above', () => {
+    const texts = [
+      ...readJson('eval/dev/queries.json').queries.map((/** @type {{ text: string }} */ q) => q.text),
+      ...suite.items.map((/** @type {{ text: string, params: any }} */ i) => i.params?.clean ?? i.text),
+      'intro to psych', 'not first year basics', 'third year level and 3000-level', 'graduate or 3000 level finance',
+      'not really for first year', 'modules for beginners', 'first-year chemistry', '1k maths', 'beyond 2nd year algorithms',
+      'masters level corporate finance', 'advanced calculus', 'phd', 'year 1', 'intro introductory beginners',
+    ];
+    let withLevel = 0;
+    for (const t of texts) {
+      const p = parse(t);
+      const want = deriveIntents(t, p.interpreted.prefix).level;
+      expect(p.interpreted.level, t).toEqual(want);
+      if (want) withLevel++;
+    }
+    expect(withLevel).toBeGreaterThan(20);
   });
 });

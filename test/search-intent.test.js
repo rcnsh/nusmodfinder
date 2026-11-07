@@ -274,3 +274,45 @@ describe('review fixes (PR #44)', () => {
     await env.DB.prepare("DELETE FROM modules WHERE code IN ('CS9998', 'GEQ1000')").run();
   });
 });
+
+describe('the level intent (3D)', () => {
+  const levelOf = (/** @type {string} */ c) => /** @type {number} */ (moduleOf.get(c)?.level);
+
+  it('a beginner phrase is a hard window 1-4 on every list, echoed; ignore=level undoes it', async () => {
+    for (const mode of ['hybrid', 'lexical', 'vector']) {
+      const { status, body } = await callJson(`/search?q=intro%20to%20machine%20learning&topK=50&mode=${mode}`, { fakes });
+      expect(status, mode).toBe(200);
+      expect(body.interpreted.level, mode).toEqual({ min: 1, max: 4, source: ['beginner'] });
+      expect(codes(body).length, mode).toBeGreaterThan(0);
+      for (const c of codes(body)) expect(levelOf(c), `${mode} ${c}`).toBeLessThan(5);
+    }
+    const undone = await callJson('/search?q=intro%20to%20machine%20learning&topK=50&ignore=level', { fakes });
+    expect(undone.body.interpreted.level).toBeNull();
+    expect(codes(undone.body).some((c) => levelOf(c) >= 5)).toBe(true);
+  });
+
+  it('graduate, level N and year N filter to their windows, under the Vectorize flip too', async () => {
+    /** @type {[string, number, number | null][]} */
+    const cases = [['graduate%20machine%20learning', 5, null], ['4000%20level%20algorithms', 4, 4], ['3rd%20year%20algorithms', 3, 4]];
+    for (const [q, min, max] of cases) {
+      for (const extra of [{}, STANDBY]) {
+        const { body } = await callJson(`/search?q=${q}&topK=50`, { fakes, env: extra });
+        expect(codes(body).length, q).toBeGreaterThan(0);
+        for (const c of codes(body)) expect(levelOf(c) >= min && (max === null || levelOf(c) <= max), `${q} ${c}`).toBe(true);
+      }
+    }
+  });
+
+  it('a query that is only a level phrase still answers, from the dense half and the window', async () => {
+    const { status, body } = await callJson('/search?q=graduate&topK=20', { fakes });
+    expect(status).toBe(200);
+    expect(body.interpreted.level).toEqual({ min: 5, max: null, source: ['graduate'] });
+    expect(codes(body).length).toBeGreaterThan(0);
+    for (const c of codes(body)) expect(levelOf(c)).toBeGreaterThanOrEqual(5);
+  });
+
+  it('a negated phrase sets nothing', async () => {
+    const { body } = await callJson('/search?q=not%20first%20year%20algorithms', { fakes });
+    expect(body.interpreted.level).toBeNull();
+  });
+});
