@@ -1,5 +1,5 @@
 {
- "default": "emb-bge-small-v0",
+ "default": "emb-bge-small-v1",
  "versions": {
   "emb-bge-small-v0": {
    "release": "emb-bge-small-v0",

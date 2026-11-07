@@ -17,3 +17,4 @@ date	mode	texts	est_tokens	est_neurons	requests	note
 2026-11-06T13:58:29.259Z	determinism	3	717	1.3	1	cosines 0.9997349,0.9996606,0.9987811
 2026-11-07T00:11:01.474Z	corpus	6197	1081957	1991.9	62	emb-bge-small-v3 from 3a2-v3; 3A-2 v3 corpus pass
 2026-11-07T00:11:01.669Z	determinism	3	752	1.4	1	cosines 0.9999044,0.9998554,0.9994283
+2026-11-07T07:04:02.388Z	vectors:production	194	34431	63.4	2	

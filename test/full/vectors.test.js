@@ -11,6 +11,7 @@
 // a search with unoptimised code) and warm (the median over many queries).
 import { describe, expect, inject, it } from 'vitest';
 import manifest from '../../data/vectors.json';
+import embeddings from '../../eval/embeddings.json';
 import { denseBundle } from '../../src/dense.js';
 import { decodeFilterRow, exactSearch, rowsKey } from '../../src/vector-bundle.js';
 
@@ -58,7 +59,8 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the pinned vectors bundle',
     const byText = new Map();
     for (const m of c.modules) byText.set(m.text, [...(byText.get(m.text) ?? []), m.code]);
     const shared = [...byText.values()].filter((codes) => codes.length > 1);
-    expect(byText.size).toBe(5920);
+    // As many distinct texts as the bundle's embedding version embedded (v0 5,920; v1, whose text leads with the code, 6,771).
+    expect(byText.size).toBe(/** @type {any} */ (embeddings).versions[entry.embedding].count);
     for (const codes of shared) {
       const rows = codes.map((code) => b.vectors.subarray(/** @type {number} */ (index.get(code)) * b.dims, (/** @type {number} */ (index.get(code)) + 1) * b.dims));
       for (const r of rows.slice(1)) expect(r).toEqual(rows[0]);
