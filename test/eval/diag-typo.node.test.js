@@ -8,7 +8,7 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { build, DIAG_DIR, SEED, isSource, noisy } from '../../eval/diag/build-typo.mjs';
@@ -90,6 +90,7 @@ describe('a plaintext set directory with a MANIFEST.json is checked against it',
   });
 
   it('refuses a tampered queries or qrels file', async () => {
+    await mkdir(join(REPO, '.eval-work'), { recursive: true }); // absent on a fresh checkout (CI)
     const dir = await mkdtemp(join(REPO, '.eval-work', 'diag-'));
     try {
       await cp(join(REPO, DIAG_DIR), dir, { recursive: true });
@@ -114,6 +115,7 @@ describe('a plaintext set directory with a MANIFEST.json is checked against it',
 
 describe('the diagnostic report', () => {
   it('prints the tables and no verdict', async () => {
+    await mkdir(join(REPO, '.eval-work'), { recursive: true });
     const dir = await mkdtemp(join(REPO, '.eval-work', 'diag-report-'));
     try {
       await cp(join(REPO, DIAG_DIR), dir, { recursive: true });
