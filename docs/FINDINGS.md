@@ -394,7 +394,7 @@ description.
 
 **Evidence:**
 - test `[S4 fixed] "%s" routes to the modules with that prefix, though the code column stays UNINDEXED` (CS32, GEA): 3B's partial-code route
-- test `[S4 known-bug] "modules", "intro", "teach" and "something" are not stopwords`
+- test `[S4 known-bug] "modules", "teach" and "something" are not stopwords; "intro" is 3D's beginner phrase`: 3D strips `intro` from the lexical text as the beginner intent
 - test `[S4 fixed] 3C: "%s" gets lexical hits, as a correction or a prefix term` (`machne` is corrected to `machine`, `progr` is the prefix term `"progr"*`): 3C's prefix and edit-distance steps
 - `docs/evidence/phase0/raw/S4_CS32.body` and `docs/evidence/phase0/raw/S4_GEA.body`: live `retrieval.lexical: 0`; no GEA module in GEA's top 20.
 

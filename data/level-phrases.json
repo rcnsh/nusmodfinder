@@ -1,0 +1,87 @@
+{
+ "schema": "vnm-3d-level-phrases/1",
+ "from": "eval/prereg/intent-phrases.json (P-6, unchanged): `level`, `negators`, `negationWindow`",
+ "negators": [
+  "not",
+  "non",
+  "except",
+  "beyond"
+ ],
+ "negationWindow": 2,
+ "level": {
+  "beginner": {
+   "phrases": [
+    "intro",
+    "introductory",
+    "beginner",
+    "beginners",
+    "for beginners",
+    "no background",
+    "first year",
+    "1st year",
+    "year 1"
+   ],
+   "window": {
+    "min": 1,
+    "max": 4
+   },
+   "alpha": true
+  },
+  "graduate": {
+   "phrases": [
+    "graduate",
+    "postgraduate",
+    "masters",
+    "phd"
+   ],
+   "window": {
+    "min": 5,
+    "max": null
+   }
+  },
+  "levelN": {
+   "phrases": [
+    "level N000",
+    "lvl N000",
+    "N000 level",
+    "N000-level",
+    "Nk"
+   ],
+   "window": {
+    "min": "N",
+    "max": "N"
+   },
+   "alsoFromCodes": "`XX N000` sets level N through code resolution step 3 (3B), not through this list"
+  },
+  "year": {
+   "phrases": [
+    "2nd year",
+    "3rd year",
+    "4th year",
+    "second year",
+    "third year",
+    "fourth year",
+    "year 2",
+    "year 3",
+    "year 4"
+   ],
+   "N": {
+    "2nd year": 2,
+    "3rd year": 3,
+    "4th year": 4,
+    "second year": 2,
+    "third year": 3,
+    "fourth year": 4,
+    "year 2": 2,
+    "year 3": 3,
+    "year 4": 4
+   },
+   "window": {
+    "min": "N",
+    "max": 4
+   }
+  },
+  "union": "several level phrases (and an `XX N000` level) in one query: interpreted.level.min is the smallest min, max the largest max (null when any is null), source the sorted distinct kinds; α applies iff `beginner` is among them",
+  "interpreted": "{ min, max, source } with source a sorted array of 'beginner' | 'graduate' | 'level' | 'year'; null when no level intent"
+ }
+}

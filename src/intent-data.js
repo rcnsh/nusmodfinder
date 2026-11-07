@@ -1,6 +1,7 @@
 // @ts-check
 // The Worker's IntentContext for src/query-intent.js: the 3B-0 data files
-// (data/, built by scripts/build-3b-data.mjs from the pinned corpus), the
+// (data/, built by scripts/build-3b-data.mjs from the pinned corpus), 3D's
+// level phrases when the selected variant has the rules on, the
 // stopword list in force, 3C's corpus vocabulary, and the offered-code lookup
 // the caller supplies (the bundle's code list, or D1 when the bundle is
 // unusable). The static part is built once per isolate.
@@ -13,9 +14,11 @@
 import catalogueCodes from '../data/catalogue-codes.json';
 import collision from '../data/collision-list.json';
 import ge from '../data/ge-pillars.json';
+import levelPhrases from '../data/level-phrases.json';
 import prefixes from '../data/prefixes.json';
 import vocabularyFile from '../data/vocabulary.json';
 import { STOPWORDS_IN_FORCE } from './fts-query.js';
+import { LEVEL } from './level-prior.js';
 import { buildIntentContext } from './query-intent.js';
 import { parseVocabulary } from './vocabulary.js';
 
@@ -35,6 +38,7 @@ export function intentContext(isOffered) {
     stopwords: STOPWORDS_IN_FORCE,
     isOffered: () => false,
     vocabulary: parseVocabulary(/** @type {import('./vocabulary.js').VocabularyFile} */ (vocabularyFile)),
+    level: LEVEL.rules ? /** @type {import('./query-intent.js').LevelTable} */ (levelPhrases) : null,
   });
   return { ...base, isOffered };
 }

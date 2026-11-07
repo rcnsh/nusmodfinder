@@ -110,9 +110,11 @@ function requests() {
 const UNROUTED = { pin: null, prefix: null, ge: null, level: null, exam: null, su: null, hoursBelow: null, prereq: null };
 /** Whether 3B's parse routed this response. @param {{ status: number, body: any }} r */
 const routed = (r) => r.status === 200 && (r.body.noMatch !== undefined || Object.values(r.body.interpreted).some((v) => v !== null));
-/** Requests 3B routes, so their answers differ from the pre-1B route by design. */
+/** Requests 3B or 3D routes, so their answers differ from the pre-1B route by design. */
 /** @type {string[]} */
 const routedPaths = [];
+/** The routed requests with a level intent (3D's phrases, or 3B's `XX N000`). @type {Set<string>} */
+const levelPaths = new Set();
 
 const vocab = parseVocabulary(/** @type {import('../src/vocabulary.js').VocabularyFile} */ (/** @type {unknown} */ (vocabFile)));
 /**
@@ -144,7 +146,7 @@ async function compare(path) {
   const before = await legacy(legacyUrl.pathname + legacyUrl.search);
   const after = await callJson(path, { fakes, env: STANDBY });
   if (before.status !== after.status) return `${path}: status ${before.status} -> ${after.status}`;
-  if (routed(after)) { routedPaths.push(path); return null; }
+  if (routed(after)) { routedPaths.push(path); if (after.body.interpreted.level !== null) levelPaths.add(path); return null; }
   if (after.status === 200 && changedBy3C(path)) { typoPaths.push(path); return null; }
   const expected = before.status === 200
     // B7: the body echoes the canonical query (trimmed, whitespace collapsed, ASCII lower-cased).
@@ -176,15 +178,18 @@ describe('1B is ranking-neutral', () => {
     expect(ok).toBeGreaterThan(paths.length * 0.7);
     expect(withResults).toBeGreaterThan(paths.length * 0.5);
     expect(paths.filter((p) => p.includes('mode=vector')).length).toBeGreaterThan(100);
-    // 3B routes the code queries (pins, `cs 1010s`, `CS101`) and nothing else here.
+    // 3B routes the code queries (pins, `cs 1010s`, `CS101`) and 3D the level
+    // phrases (`intro`), and nothing else here.
     expect(routedPaths.length).toBeGreaterThan(0);
     expect(paths.length - routedPaths.length).toBeGreaterThan(400);
-    for (const p of routedPaths) expect(decodeURIComponent(new URL(p, BASE).searchParams.get('q') ?? ''), p).toMatch(/\d/);
+    for (const p of routedPaths) {
+      if (!levelPaths.has(p)) expect(decodeURIComponent(new URL(p, BASE).searchParams.get('q') ?? ''), p).toMatch(/\d/);
+    }
     // 3C changes only queries with a df-0 token of 4+ letters, and leaves most of the set alone.
     expect(typoPaths.length).toBeGreaterThan(0);
     expect(paths.length - routedPaths.length - typoPaths.length).toBeGreaterThan(400);
     console.info(`differential: ${paths.length} requests, ${ok} 200s (${withResults} with results), ${diffs.length} differences, `
-      + `${routedPaths.length} routed by 3B and ${typoPaths.length} changed by 3C, left out`);
+      + `${routedPaths.length} routed by 3B or 3D (${levelPaths.size} with a level) and ${typoPaths.length} changed by 3C, left out`);
   }, 120_000);
 
   it('returns the same results when the index holds stale vectors missing from D1', async () => {

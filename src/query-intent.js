@@ -13,11 +13,12 @@
 //   4. intent pass A: the 3H phrases, stripped before joins seam: no phrases
 //   5. code joins                                           joinCodes
 //   6. code resolution                                      resolve
-//   7. intent pass B: the GE phrases (here) and the 3D level phrases (seam)
+//   7. intent pass B: the GE phrases and the 3D level phrases  passB
 //
-// 3B sets `pin`, `prefix`, `ge`, and `level` only through an `XX N000` code
-// token; the other keys stay null until 3D and 3H fill them. Steps 4–7 read
-// the corrected text; 3C's corrections are not echoed in `interpreted`.
+// 3B sets `pin`, `prefix`, `ge`, and `level` through an `XX N000` code token;
+// 3D sets `level` from its phrases. The other keys stay null until 3H fills
+// them. Steps 4–7 read the corrected text; 3C's corrections are not echoed in
+// `interpreted`.
 import { queryTokens } from './fts-query.js';
 import { correctQuery } from './typo.js';
 
@@ -42,7 +43,7 @@ export const MAX_PINS = 3;
  *   q: string, lexical: string, dense: string, interpreted: Interpreted,
  *   kind: 'search' | 'mask' | 'no-match',
  *   pins: string[], ranges: CodeRange[] | null, codeList: CodeRange[] | null,
- *   level: LevelWindow | null, noMatch: NoMatch | null,
+ *   level: LevelWindow | null, beginner: boolean, noMatch: NoMatch | null,
  *   tokens: string[], corrected: string | null, fts: import('./fts-query.js').FtsTerms,
  * }} ParsedQuery
  *   - `kind` 'mask': a whole-query partial code, bare prefix, `XX N000` or GE
@@ -51,9 +52,11 @@ export const MAX_PINS = 3;
  *   - `kind` 'search': the fused retrieval. `ranges`, when set, is the GE
  *     pre-retrieval mask on both halves; `codeList` the third RRF list's
  *     members; `level` a filter on everything.
+ *   - `beginner`: a beginner phrase is among the level windows, so 3D's α
+ *     prior applies (src/level-prior.js).
  *   - `kind` 'no-match': `count: 0` with `noMatch`.
- *   - `lexical`: the text the FTS half searches (corrected, GE phrases
- *     stripped), with `fts` its 3C prefix terms and corrections; `dense` the
+ *   - `lexical`: the text the FTS half searches (corrected, GE and level
+ *     phrases stripped), with `fts` its 3C prefix terms and corrections; `dense` the
  *     text the dense half embeds (the canonical q, raw); `corrected` the
  *     canonical q with 3C's corrections (null when there are none), which
  *     3C-2 also embeds.
@@ -63,8 +66,15 @@ export const MAX_PINS = 3;
  *   prefixes: Set<string>, catalogue: Set<string>, collision: Set<string>, stopwords: Set<string>,
  *   ge: GeTable, gePhrases: { re: RegExp, prefixes: string[] }[], isOffered: (code: string) => boolean,
  *   vocabulary: import('./vocabulary.js').Vocabulary | null,
+ *   levelPhrases: LevelPhrase[] | null, negators: Set<string>, negationWindow: number,
  * }} IntentContext Upper-case prefixes, codes and collision entries; lower-case stopwords;
- *   the corpus vocabulary 3C corrects against (null: no correction).
+ *   the corpus vocabulary 3C corrects against (null: no correction); 3D's level
+ *   phrases (null: the rules are off and no phrase is read).
+ * @typedef {{ re: RegExp, window: (n: number) => { min: number, max: number | null, source: string } }} LevelPhrase
+ * @typedef {{
+ *   negators: string[], negationWindow: number,
+ *   level: Record<string, { phrases: string[], window: { min: number | 'N', max: number | 'N' | null }, N?: Record<string, number> } | string>,
+ * }} LevelTable data/level-phrases.json, from eval/prereg/intent-phrases.json
  */
 
 /**
@@ -105,21 +115,51 @@ export function parseIgnore(raw) {
 /**
  * A phrase as a regex (prereg §5 "Matching"): bounded by no [a-z0-9] on either
  * side, a space matching a run of whitespace or '-', every other character
- * literal.
+ * literal. With `n`, the placeholder `N` captures one digit 1–9 (a level).
  * @param {string} phrase
+ * @param {boolean} [n]
  */
-const phraseRegex = (phrase) => new RegExp(
-  `(?<![a-z0-9])${phrase.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&').replace(/ /g, '[\\s-]+')}(?![a-z0-9])`, 'g');
+const phraseRegex = (phrase, n = false) => new RegExp(`(?<![a-z0-9])${phrase.split(n ? /(N)/ : /(?!)/)
+  .map((p) => (n && p === 'N' ? '([1-9])' : p.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&').replace(/ /g, '[\\s-]+')))
+  .join('')}(?![a-z0-9])`, 'g');
+
+/**
+ * 3D's level phrases as regexes with the window each sets (prereg §5): a
+ * beginner, graduate or year phrase its fixed window (year N from its table),
+ * a level-N phrase N..N.
+ * @param {LevelTable} table
+ * @returns {LevelPhrase[]}
+ */
+function compileLevel(table) {
+  /** @type {LevelPhrase[]} */
+  const out = [];
+  const source = /** @type {Record<string, string>} */ ({ beginner: 'beginner', graduate: 'graduate', levelN: 'level', year: 'year' });
+  for (const [kind, l] of Object.entries(table.level)) {
+    // `union` and `interpreted` are prose entries, not phrase lists.
+    if (!l || typeof l !== 'object' || !Array.isArray(l.phrases)) continue;
+    if (!(kind in source)) throw new Error(`unknown level kind ${kind}`);
+    for (const phrase of l.phrases) {
+      const fixed = l.N?.[phrase];
+      /** @param {number | 'N' | null} v @param {number} n */
+      const at = (v, n) => (v === 'N' ? fixed ?? n : v);
+      out.push({
+        re: phraseRegex(phrase, kind === 'levelN'),
+        window: (n) => ({ min: /** @type {number} */ (at(l.window.min, n)), max: at(l.window.max, n), source: source[kind] }),
+      });
+    }
+  }
+  return out;
+}
 
 /**
  * @param {{
  *   prefixes: Iterable<string>, catalogueCodes: Iterable<string>, collision: Iterable<string>,
  *   ge: GeTable, stopwords: Iterable<string>, isOffered: (code: string) => boolean,
- *   vocabulary?: import('./vocabulary.js').Vocabulary | null,
+ *   vocabulary?: import('./vocabulary.js').Vocabulary | null, level?: LevelTable | null,
  * }} data
  * @returns {IntentContext}
  */
-export function buildIntentContext({ prefixes, catalogueCodes, collision, ge, stopwords, isOffered, vocabulary = null }) {
+export function buildIntentContext({ prefixes, catalogueCodes, collision, ge, stopwords, isOffered, vocabulary = null, level = null }) {
   return {
     prefixes: new Set(prefixes),
     catalogue: new Set(catalogueCodes),
@@ -132,6 +172,9 @@ export function buildIntentContext({ prefixes, catalogueCodes, collision, ge, st
     ],
     isOffered,
     vocabulary,
+    levelPhrases: level ? compileLevel(level) : null,
+    negators: new Set(level?.negators ?? []),
+    negationWindow: level?.negationWindow ?? 0,
   };
 }
 
@@ -208,12 +251,62 @@ function joinCodes(words, ctx) {
 const intentPassA = (q) => ({ text: q });
 
 /**
- * Step 7's 3D half, the level phrases (beginner, graduate, level N, year N).
- * A seam until 3D: it matches nothing. Its windows would take the union with
- * the `XX N000` level.
- * @type {(text: string) => { min: number, max: number | null, source: string }[]}
+ * Step 7, intent pass B (prereg §3 step 7, §5 "Matching"): the GE phrases and
+ * 3D's level phrases on the text the joins left, leftmost-longest and
+ * non-overlapping across both lists. A joined token's words are masked, so
+ * `ge 2101` is Geography's code, never the GE intent. Lead decision (PR #44):
+ * `ge` directly followed by a token that starts with a digit is not a GE
+ * phrase either, joined or not (`ge 2101 workload`): it stays text, as a
+ * collision-list code inside a longer query does (plan 3B). A level phrase
+ * with a negator among the two tokens before it sets nothing and stays in the
+ * text (C17). An ignored intent's phrases are not read at all.
+ * @param {string} masked
+ * @param {IntentContext} ctx
+ * @param {Set<string>} ignored
+ * @returns {{ pillars: Set<string>, windows: { min: number, max: number | null, source: string }[], strip: [number, number][] }}
  */
-const levelPhrases = () => [];
+function passB(masked, ctx, ignored) {
+  /** @type {{ start: number, end: number, prefixes?: string[], window?: { min: number, max: number | null, source: string } }[]} */
+  const all = [];
+  if (!ignored.has('ge')) {
+    for (const { re, prefixes } of ctx.gePhrases) {
+      for (const m of masked.matchAll(re)) {
+        const start = /** @type {number} */ (m.index);
+        if (m[0] === 'ge' && /^[^a-z0-9]+\d/.test(masked.slice(start + 2))) continue;
+        all.push({ start, end: start + m[0].length, prefixes });
+      }
+    }
+  }
+  if (ctx.levelPhrases && !ignored.has('level')) {
+    for (const { re, window } of ctx.levelPhrases) {
+      for (const m of masked.matchAll(re)) {
+        const start = /** @type {number} */ (m.index);
+        all.push({ start, end: start + m[0].length, window: window(Number(m[1])) });
+      }
+    }
+  }
+  all.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+  /** @type {Set<string>} */
+  const pillars = new Set();
+  /** @type {{ min: number, max: number | null, source: string }[]} */
+  const windows = [];
+  /** @type {[number, number][]} */
+  const strip = [];
+  let at = 0;
+  for (const m of all) {
+    if (m.start < at) continue;
+    at = m.end;
+    if (m.window) {
+      const before = queryTokens(masked.slice(0, m.start)).slice(-ctx.negationWindow);
+      if (before.some((t) => ctx.negators.has(t))) continue;
+      windows.push(m.window);
+    } else {
+      for (const p of /** @type {string[]} */ (m.prefixes)) pillars.add(p);
+    }
+    strip.push([m.start, m.end]);
+  }
+  return { pillars, windows, strip };
+}
 
 /** @returns {Interpreted} */
 const emptyInterpreted = () => ({ pin: null, prefix: null, ge: null, level: null, exam: null, su: null, hoursBelow: null, prereq: null });
@@ -230,7 +323,7 @@ export function parseQuery(q, ctx, ignore = []) {
   const interpreted = emptyInterpreted();
   /** @type {ParsedQuery} */
   const parsed = {
-    q, lexical: q, dense: q, interpreted, kind: 'search', pins: [], ranges: null, codeList: null, level: null, noMatch: null,
+    q, lexical: q, dense: q, interpreted, kind: 'search', pins: [], ranges: null, codeList: null, level: null, beginner: false, noMatch: null,
     tokens: [], corrected: null, fts: { prefixes: [], corrections: [] },
   };
 
@@ -288,11 +381,7 @@ export function parseQuery(q, ctx, ignore = []) {
   }
   if (parsed.pins.length) interpreted.pin = [...parsed.pins];
 
-  // Step 7: pass B on what the joins left (a joined token's words are masked,
-  // so `ge 2101` is Geography's code, never the GE intent). Lead decision
-  // (PR #44): `ge` directly followed by a token that starts with a digit is
-  // not a GE phrase either, joined or not (`ge 2101 workload`): it stays text,
-  // as a collision-list code inside a longer query does (plan 3B).
+  // Step 7: pass B on what the joins left (passB).
   let masked = '';
   let lexical = '';
   for (const tok of tokens) {
@@ -300,31 +389,13 @@ export function parseQuery(q, ctx, ignore = []) {
     masked += `${masked ? ' ' : ''}${tok.joined ? '#'.repeat(raw.length) : raw}`;
     lexical += `${lexical ? ' ' : ''}${raw}`;
   }
-  /** @type {Set<string>} */
-  const pillars = new Set();
-  if (!ignored.has('ge')) {
-    /** @type {[number, number][]} */
-    const spans = [];
-    for (const { re, prefixes } of ctx.gePhrases) {
-      for (const m of masked.matchAll(re)) {
-        const start = /** @type {number} */ (m.index);
-        if (m[0] === 'ge' && /^[^a-z0-9]+\d/.test(masked.slice(start + 2))) continue;
-        spans.push([start, start + m[0].length]);
-        for (const p of prefixes) pillars.add(p);
-      }
-    }
-    // Strip the matched phrases from the lexical text, right to left so the
-    // offsets hold. Overlapping matches (none in the table) strip their union.
-    spans.sort((a, b) => b[0] - a[0]);
-    let cut = Infinity;
-    for (const [s, e] of spans) {
-      const end = Math.min(e, cut);
-      if (end > s) lexical = lexical.slice(0, s) + lexical.slice(end);
-      cut = Math.min(cut, s);
-    }
+  const { pillars, windows: levelWindows, strip } = passB(masked, ctx, ignored);
+  // Strip the matched phrases from the lexical text, right to left so the
+  // offsets hold (the matches do not overlap).
+  if (strip.length) {
+    for (const [s, e] of strip.reverse()) lexical = lexical.slice(0, s) + lexical.slice(e);
     lexical = lexical.replace(/\s+/g, ' ').trim();
   }
-  const levelWindows = levelPhrases(masked);
   parsed.lexical = lexical;
 
   if (pillars.size) {
@@ -351,6 +422,7 @@ export function parseQuery(q, ctx, ignore = []) {
     const max = levelWindows.some((w) => w.max === null) ? null : Math.max(...levelWindows.map((w) => /** @type {number} */ (w.max)));
     interpreted.level = { min, max, source: [...new Set(levelWindows.map((w) => w.source))].sort() };
     parsed.level = { min, max };
+    parsed.beginner = interpreted.level.source.includes('beginner');
   }
   return parsed;
 }

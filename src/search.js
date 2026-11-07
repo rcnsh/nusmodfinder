@@ -13,6 +13,7 @@ import { DEFAULT_MODEL } from './embedding.js';
 import { appVersion, bad, json, upstream, withHeaders } from './http.js';
 import { intentContext } from './intent-data.js';
 import { lexicalSearch, rangeMembers } from './lexical.js';
+import { LEVEL, applyLevelPrior } from './level-prior.js';
 import { RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
 import { canonicalQuery, parseIgnore, parseQuery } from './query-intent.js';
 import { EMBED_CORRECTED } from './typo.js';
@@ -734,7 +735,10 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
       : [vectorCodes, lexicalCodes];
   if (codeCodes) lists.push(codeCodes);
   const pinnedCodes = new Set(pinned.map((p) => p.code));
-  const fused = fuse(lists).filter((f) => !pinnedCodes.has(f.code));
+  // 3D's α and β on the fused order (src/level-prior.js), before hydration.
+  const fused = (mode === 'hybrid'
+    ? applyLevelPrior(fuse(lists), { beginner: parsed.beginner, levelIntent: parsed.level !== null }, LEVEL)
+    : fuse(lists)).filter((f) => !pinnedCodes.has(f.code));
 
   // Hydrate only as many fused candidates as the response shows (B8). A
   // candidate missing from D1 means a stale index: drop it and hydrate the

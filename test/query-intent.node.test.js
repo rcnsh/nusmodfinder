@@ -81,7 +81,8 @@ describe('code joins (step 5)', () => {
       const p = parse(q);
       expect(p.interpreted.pin, q).toBeNull();
       expect(p.interpreted.prefix, q).toBeNull();
-      expect(p.interpreted.level, q).toBeNull();
+      // No level route; a level phrase (`3000 level`) is 3D's and the only level.
+      expect(p.interpreted.level, q).toEqual(deriveIntents(q).level);
       expect(p.kind, q).toBe('search');
     }
     // A collision join that names no code is no join: `st 2000` stays topical.

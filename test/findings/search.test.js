@@ -41,10 +41,11 @@ describe('S4', () => {
     expect(codes(body.results)).toEqual(members);
   });
 
-  it('[S4 known-bug] "modules", "intro", "teach" and "something" are not stopwords', async () => {
+  it('[S4 known-bug] "modules", "teach" and "something" are not stopwords; "intro" is 3D\'s beginner phrase', async () => {
     // 3C writes a df-0 token as a prefix term (`"modules"*` in the fixture); the stopword list is unchanged.
+    // 3D reads `intro` as the beginner intent and strips it from the lexical text (prereg §5).
     expect(String(await matchExpression('intro to modules that teach something')).replace(/\*/g, '')).toBe(
-      '"intro" OR "modules" OR "that" OR "teach" OR "something"');
+      '"modules" OR "that" OR "teach" OR "something"');
   });
 
   it.each([

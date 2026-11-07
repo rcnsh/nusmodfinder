@@ -12,6 +12,8 @@
 //   ge-pillars.json      the GE pillar table, from eval/prereg/ge-pillars.json;
 //   collision-list.json  the P-6 collision list and its exempt pillar prefixes, from
 //                        eval/prereg/collision-list.json (the Worker cannot read eval/).
+//   level-phrases.json   3D's level phrases, negators and negation window, from
+//                        eval/prereg/intent-phrases.json.
 // and docs/evidence/phase3/3b-0-counts.json, critic C's corpus counts (plan §1)
 // re-run on the pinned corpus.
 //
@@ -34,6 +36,7 @@ export const OUTPUTS = Object.freeze({
   catalogueOnly: 'data/catalogue-only.json',
   gePillars: 'data/ge-pillars.json',
   collisionList: 'data/collision-list.json',
+  levelPhrases: 'data/level-phrases.json',
   counts: 'docs/evidence/phase3/3b-0-counts.json',
 });
 
@@ -68,6 +71,7 @@ export async function build() {
 
   const ge = await readJson('eval/prereg/ge-pillars.json');
   const collision = await readJson('eval/prereg/collision-list.json');
+  const intents = await readJson('eval/prereg/intent-phrases.json');
 
   // groups-v1, a singleton counting as its own group (A2-5).
   const groups = (await readJson('eval/groups.json')).groups;
@@ -160,6 +164,10 @@ export async function build() {
     collisionList: json({
       schema: 'vnm-3b-collision-list/1', from: 'eval/prereg/collision-list.json (P-6, unchanged)',
       list: collision.list, exempt: collision.exempt,
+    }),
+    levelPhrases: json({
+      schema: 'vnm-3d-level-phrases/1', from: 'eval/prereg/intent-phrases.json (P-6, unchanged): `level`, `negators`, `negationWindow`',
+      negators: intents.negators, negationWindow: intents.negationWindow, level: intents.level,
     }),
     counts: json(counts),
   };
