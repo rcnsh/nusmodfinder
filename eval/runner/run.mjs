@@ -7,11 +7,12 @@ import { fork } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
+import { assertCorrectedEmbedded, rankerCorrector, writeRankerVocabulary } from '../lib/corrected.mjs';
 import { assertCorpusTextsEmbedded, base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
-import { REPO, loadQueries, runFile, searchParams, setFile, setKey } from '../lib/sets.mjs';
+import { REPO, layout, loadQueries, runFile, searchParams, setFile, setKey } from '../lib/sets.mjs';
 import { buildWorkspace } from '../lib/workspace.mjs';
 
 const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
@@ -67,10 +68,16 @@ export async function runVariant(options) {
       + `(the ranker's embedding text differs from the one embedded). Embed a new corpus version: npm run eval:embed -- --corpus --ref <ref> --version <new>`);
   }
   // Both the raw and the canonical form (queryTextForms): which one a ranker embeds depends on its ref.
+  const setDirArg = set.dir === layout(set.name).dir ? '' : ` --set-dir ${relative(REPO, set.dir) || '.'}`;
   const missingQueries = querySet.queries.filter((q) => queryTextForms(q.text).some((t) => !have.has(embeddingKey(MODEL, t))));
   if (missingQueries.length) {
-    throw new Error(`${missingQueries.length} query text(s) of the ${set.name} set have no embedding; run \`npm run eval:embed -- --set ${set.name}\` locally`);
+    throw new Error(`${missingQueries.length} query text(s) of the ${set.name} set have no embedding; run \`npm run eval:embed -- --set ${set.name}${setDirArg}\` locally`);
   }
+  // 3C: the ranker's vocabulary from this run's corpus (never the production
+  // one its ref commits), and, for a 3C-2 ranker, every corrected query text embedded.
+  const corrector = await rankerCorrector(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));
+  assertCorrectedEmbedded({ set: set.name, setDirArg, ref: ws.ranker.ref, queries: querySet.queries, corrector, have });
+  const vocabulary = corrector ? await writeRankerVocabulary(ws.root, corrector) : null;
 
   const dense = await writeBundle(ws.root, corpus.modules, lookup, String(embedding.corpus));
 
@@ -88,7 +95,7 @@ export async function runVariant(options) {
       sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'),
       count: querySet.queries.length,
     },
-    config: { topK: 'worker default', filters: !unfiltered, mode, dense },
+    config: { topK: 'worker default', filters: !unfiltered, mode, dense, ...(vocabulary ? { vocabulary, typo: corrector?.embedsCorrected ? '3c2' : '3c1' } : {}) },
   };
   const reporterOptions = {
     output,

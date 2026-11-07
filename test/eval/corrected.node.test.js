@@ -61,7 +61,7 @@ describe('the corrected texts a ranker embeds', () => {
   /** A corrector double: corrects `machne` to `machine`. */
   const corrector = (/** @type {boolean} */ embedsCorrected) => ({
     embedsCorrected,
-    corrected: (/** @type {string} */ t) => (t.includes('machne') ? t.toLowerCase().replace('machne', 'machine') : null),
+    corrected: (/** @type {string} */ t) => (t.toLowerCase().includes('machne') ? t.toLowerCase().replace('machne', 'machine') : null),
   });
   const queries = [{ id: 'q1', text: 'Machne learning' }, { id: 'q2', text: 'databases' }, { id: 'q3', text: 'machne vision' }];
 

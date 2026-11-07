@@ -17,6 +17,16 @@
 //                                             the texts a production vectors build lacks
 //                                             (scripts/vectors.mjs writes the file) -> a cache
 //                                             it reads with --extra (cap 2,500)
+//   npm run eval:embed -- --set <set> [--set-dir <dir>] --corrected-from-ref <ref>
+//                                             3C-2: the corrected query texts the ranker at <ref>
+//                                             (WORKTREE: the working tree) produces for the set,
+//                                             with its vocabulary built from the set's corpus, into
+//                                             the set's query cache (encrypted for holdout and test;
+//                                             custodian only), as `npm run eval` asks for them
+//   npm run eval:embed -- --sc4 --corrected-from-ref <ref>
+//                                             the same for the SC4 suite's texts over the pinned
+//                                             corpus -> test/fixtures/sc4-corrected-embeddings.json
+//                                             (test/sc4/embeddings.json stays as P-6 pinned it)
 //   add --dry-run to print the estimate and stop.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -25,7 +35,8 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { gzipSync } from 'node:zlib';
-import { loadPinnedWith } from '../eval/lib/corpus.mjs';
+import { loadCorpusFile, loadPinnedWith } from '../eval/lib/corpus.mjs';
+import { correctedTexts, rankerCorrector, sc4Texts } from '../eval/lib/corrected.mjs';
 import { readEncryptedJson, recordInManifest, sha256 } from '../eval/lib/crypto.mjs';
 import {
   DIMS, EMB_DIR, MODEL, embeddingKey, estimateTokens, f32ToBase64, neuronsFor, readCache, writeCache, queryTextForms,
@@ -50,10 +61,15 @@ const { values: a } = parseArgs({
     note: { type: 'string', default: '' },
     texts: { type: 'string' },
     out: { type: 'string' },
+    'corrected-from-ref': { type: 'string' },
+    sc4: { type: 'boolean', default: false },
   },
 });
 
-/** @param {string} msg */
+/** The SC4 runner's corrected-form cache (test/full/sc4.test.js reads it beside the P-6 caches). */
+const SC4_CORRECTED = join(REPO, 'test/fixtures/sc4-corrected-embeddings.json');
+
+/** @param {string} msg @returns {never} */
 function fail(msg) {
   console.error(`embed: ${msg}`);
   process.exit(1);
@@ -165,7 +181,60 @@ async function gate(mode, texts) {
 
 // ---------------------------------------------------------------------------
 
-if (a.texts) {
+if (a.sc4 && !a['corrected-from-ref']) fail('--sc4 needs --corrected-from-ref <ref>');
+
+if (a['corrected-from-ref']) {
+  // 3C-2: the texts the ranker at the ref embeds beside each query, asked of
+  // its own corrector over a vocabulary built from the corpus the run uses.
+  const ref = /** @type {string} */ (a['corrected-from-ref']);
+  const ws = await buildWorkspace({ ref: ref === 'WORKTREE' ? undefined : ref, name: `embed-corrected-${a.sc4 ? 'sc4' : a.set}` });
+  /** @type {string[]} */
+  let texts;
+  /** @type {import('../eval/lib/corpus.mjs').Corpus} */
+  let corpus;
+  /** @type {string} */
+  let cachePath;
+  /** @type {Buffer | null} */
+  let key = null;
+  /** @type {import('../eval/lib/sets.mjs').SetLayout | null} */
+  let set = null;
+  /** Keys the run already finds elsewhere. @type {Set<string>} */
+  const elsewhere = new Set();
+  if (a.sc4) {
+    texts = sc4Texts(JSON.parse(await readFile(join(REPO, 'test/sc4/queries.json'), 'utf8')));
+    corpus = await loadPinnedWith(ws.root);
+    cachePath = SC4_CORRECTED;
+    for (const p of ['test/sc4/embeddings.json', 'eval/dev/embeddings.json']) {
+      for (const k of Object.keys((await readCache(join(REPO, p), null, 'sc4')).entries)) elsewhere.add(k);
+    }
+  } else {
+    set = layout(/** @type {string} */ (a.set), a['set-dir'] ? resolve(a['set-dir']) : undefined);
+    key = set.encrypted ? await setKey() : null;
+    texts = (await loadQueries(set)).queries.map((q) => q.text);
+    const corpusFile = join(set.dir, 'corpus.json');
+    corpus = existsSync(corpusFile) ? await loadCorpusFile(corpusFile) : await loadPinnedWith(ws.root);
+    cachePath = setFile(set, 'embeddings.json');
+  }
+  const label = a.sc4 ? 'sc4' : /** @type {string} */ (a.set);
+  const corrector = await rankerCorrector(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));
+  if (!corrector) fail(`${ref} has no 3C corrector (src/typo.js), so it embeds no corrected text`);
+  if (!corrector.embedsCorrected) console.log(`note: ${ref} is 3C-1 and embeds none of these; they are the texts 3C-2 on the same corrector embeds`);
+  const cache = await readCache(cachePath, key, set?.name ?? 'sc4');
+  // Counts only: holdout query text must not reach the terminal.
+  const wanted = correctedTexts(corrector, texts);
+  const todo = wanted.filter((t) => !(embeddingKey(MODEL, t) in cache.entries) && !elsewhere.has(embeddingKey(MODEL, t)));
+  if (todo.length === 0) {
+    console.log(`${label}: ${wanted.length} corrected text(s) from ${ref} (${ws.ranker.sha.slice(0, 7)}), every one already embedded`);
+    process.exit(0);
+  }
+  const est = await gate(`${label} corrected texts from ${ref} (${ws.ranker.sha.slice(0, 7)}; ${wanted.length} in all)`, todo);
+  const { vectors } = await embedAll(todo);
+  await logSpend(`corrected:${label}`, est, `${ref} ${ws.ranker.sha.slice(0, 7)}${a.note ? `; ${a.note}` : ''}`);
+  todo.forEach((t, i) => { cache.entries[embeddingKey(MODEL, t)] = f32ToBase64(Float32Array.from(vectors[i])); });
+  await writeCache(cachePath, cache, key, set?.name ?? 'sc4');
+  if (key && set) await recordInManifest(set.dir, [cachePath]);
+  console.log(`added ${todo.length} vectors to ${cachePath} (${Object.keys(cache.entries).length} total)`);
+} else if (a.texts) {
   // Phase 3 3-0: the texts the production bundle has no vector for, into a
   // plaintext cache (the QueryCache format) that `scripts/vectors.mjs build
   // --extra` reads. Texts already in --out are not embedded again.
