@@ -143,3 +143,30 @@ Dev only; no holdout query, score or document was read beyond the L5 verdict.
 - **Caveat:** the rule was found after a failed look. The search used dev only, and the rule
   follows from a mechanism (pasted descriptions), not from a sweep over thresholds. A further look
   would still be a second test of a modified 3D, from the reserve.
+
+## Retry look on 3d-r2 (custodian, 2026-11-07, Jacob's go): fail, look 5 of 12
+- **Store:** `npm run eval -- --holdout --variant 3d-r2 --ref 3d-r2 --store-only` (`6cb0a12`),
+  with no look.
+- **Pool:** `eval:pool --holdout --custodian --unjudged --runs shipped-89cb10e,3d-r2` found 0
+  documents (`qrels-holdout-v6`), so there was no judging round.
+- **Verdict:** `eval:report --holdout --run 3d-r2 --baseline shipped-89cb10e --target-shapes
+  level` gives **fail**.
+
+| | Δ | BCa 95% CI |
+|---|---|---|
+| nDCG@10 | −0.004 | [−0.019, 0.004] |
+| P@5 | −0.017 | [−0.042, 0.003] |
+
+The 12-token rule barely moves the holdout result (L5: −0.005 and −0.020). The pasted-description
+misread explains the dev losses, but not the holdout drop.
+
+## Decision: 3D is dropped for Phase 3 (Jacob, 2026-11-07)
+Jacob had decided before the retry look that a failure drops 3D. The outcome:
+- Production keeps the shipped ranker, and PR #49 closes unmerged. Its branch
+  (`level-intent-3d`) keeps the parser, the priors, the review fixes and this diagnosis for
+  Phase 4.
+- SC4's level items (sc4-028 to sc4-039, and the level clauses of sc4-026, sc4-064 and
+  sc4-078 to sc4-081) stay unmet in Phase 3.
+- Phase 4's study-level input and its hard rule for exchange mode are where level intent returns.
+- This branch's eval records reach main: `qrels-dev-v7`, `qrels-holdout-v6`, both stored runs and
+  the ledger rows.

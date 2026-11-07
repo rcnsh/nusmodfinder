@@ -843,3 +843,12 @@ fails on the previous code.
   d-017), and α then buries the exact match. Candidate `3d-r2` reads level phrases only in queries
   of at most 12 tokens. On dev, ΔnDCG@10 is +0.009 [0.003, 0.020], and the level target keeps its
   +0.036. It waits on Jacob before any reserve look.
+
+## 2026-11-07 — 3D dropped for Phase 3 (holdout looks 5 of 12)
+
+- **Retry look on `3d-r2`** (the bundle plus the 12-token rule, Jacob's go): fail. ΔnDCG@10 is
+  −0.004 [−0.019, 0.004] and ΔP@5 −0.017 [−0.042, 0.003]. **Holdout looks: 5 of 12.**
+- **3D is dropped for this phase** (Jacob's decision before the look). PR #49 closes unmerged;
+  `level-intent-3d` keeps the code for Phase 4.
+- **SC4's level items stay unmet** until Phase 4's study-level input.
+- **Next:** 3E (RRF weighting; cross-family check in scope).
