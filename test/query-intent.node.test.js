@@ -384,6 +384,34 @@ describe('the level intent (3D, step 7)', () => {
     expect(parseQuery('cs 3000', off).interpreted.level).toEqual({ min: 3, max: 3, source: ['level'] });
   });
 
+  it('review fix: the negation window counts a joined code\'s tokens, as queryTokens splits the text', () => {
+    expect(lv('not cs 1010 cs 2030 intro')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(lv('not cs 2030 intro')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(lv('non cs 2040 graduate')).toEqual({ min: 5, max: null, source: ['graduate'] });
+    expect(lv('not cs 32 intro')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(lv('not cs1010 cs2030 intro')).toEqual({ min: 1, max: 4, source: ['beginner'] });
+    expect(lv('not cs2030 intro')).toBeNull();
+    expect(lv('not intro cs 2030')).toBeNull();
+  });
+
+  it('review fix: a code that routes nothing (catalogue-only or unknown, inside a longer query) stays text, so a phrase over its digits is read', () => {
+    const p = parse('gec 1000 level modules');
+    expect(p.interpreted).toMatchObject({ pin: null, prefix: null, level: { min: 1, max: 1, source: ['level'] } });
+    expect(lv('cs 9999 level 3000')).toEqual({ min: 3, max: 3, source: ['level'] });
+    // A pinned code's digits stay its own.
+    expect(parse('cs 1010 level').interpreted).toMatchObject({ pin: ['CS1010'], level: null });
+  });
+
+  it('lead decision: a query that is only level phrases keeps them in the lexical text, so the keyword half still searches within the window', () => {
+    for (const q of ['graduate', 'intro', 'first year', '4000 level', 'phd masters']) {
+      const p = parse(q);
+      expect(p.interpreted.level, q).not.toBeNull();
+      expect(p.lexical, q).toBe(q);
+      expect(p.kind, q).toBe('search');
+    }
+    expect(parse('intro to psych').lexical).toBe('to psych');
+  });
+
   it('agrees with the SC4 oracle (test/sc4/intents.node.mjs) on every dev and suite text and the cases above', () => {
     const texts = [
       ...readJson('eval/dev/queries.json').queries.map((/** @type {{ text: string }} */ q) => q.text),

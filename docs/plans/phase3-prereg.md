@@ -224,12 +224,28 @@ query text.
 - `level 1000`, `1000 level` and `1k` are level N = 1, not beginner (plan 646–647).
 - Echoed as `interpreted.level` `{ min, max, source }`; `ignore=level` undoes it. Matched phrases
   are stripped from the lexical query only; the dense query stays raw (plan 652).
+- **Notes added 2026-11-07, before any 3D dev score was read** (PR review, lead decisions):
+  - **A query that is only level phrases keeps them in the lexical text.** Stripping
+    `graduate` or `first year` left an empty keyword query, so `mode=lexical` and the keyword-only
+    fallback returned nothing, though the window admits matches. When pass B matched only level
+    phrases and stripping them would leave no word, they stay in the lexical text. The window
+    still applies. A whole query of GE phrases is unchanged: it is the pillar mask.
+  - **A joined code that routes nothing is not masked in pass B.** §3 says such a code (catalogue-
+    only or unknown, inside a longer query) "routes nothing, and its tokens stay in the query
+    text", so a phrase over its digits is read (`gec 1000 level modules` is level 1). A pinned or
+    routing code stays masked. The negation window counts tokens on the unmasked text, as
+    `queryTokens` splits it (`not cs 2030 intro` keeps its beginner intent).
 
 ### Ranking grids (plan 657–670), `grids.json` `3D`
 - α ∈ {0, 0.1, 0.2, 0.35}, each with the hard rules; score × (1 − α·p), p = 0 (levels 1–2), 0.5
   (3), 1 (4). Targeted route, target `level`.
 - β ∈ {0.1, 0.2, 0.35} against 0, alone under the general CI rule; joins L5 only if it passes dev
   alone.
+  - **Note added 2026-11-07, before any 3D dev score was read** (lead reading). The plan names β
+    "a default penalty on level ≥ 5" without its form. It takes α's form with p = 1: a level-5+
+    score × (1 − β) after fusion, when no level intent was parsed. `ignore=level` leaves no level
+    intent, so β applies there too. "Alone" means the shipped ranker plus β, with the 3D phrase
+    rules off (`src/level-prior.js` variants `b10`, `b20`, `b35`).
 - Round 1 pools 4 α + 3 β (7 runs); the bundle rules + α* + β* is a second, dev-only round of one
   run, pooled only if β* passed alone.
 - Fallback: the rules with α = 0 and no β.

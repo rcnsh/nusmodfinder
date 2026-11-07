@@ -311,6 +311,18 @@ describe('the level intent (3D)', () => {
     for (const c of codes(body)) expect(levelOf(c)).toBeGreaterThanOrEqual(5);
   });
 
+  it('lead decision: a level-only query answers in mode=lexical and the keyword-only fallback, within the window', async () => {
+    const lexical = await callJson('/search?q=graduate&mode=lexical&topK=10', { fakes });
+    expect(codes(lexical.body).length).toBeGreaterThan(0);
+    for (const c of codes(lexical.body)) expect(levelOf(c)).toBeGreaterThanOrEqual(5);
+    const failing = createFakes();
+    failing.ai.throws('workers ai down');
+    const fallback = await callJson('/search?q=first%20year&topK=10', { fakes: failing });
+    expect(fallback.body.degraded).toMatchObject({ source: 'workers-ai' });
+    expect(codes(fallback.body).length).toBeGreaterThan(0);
+    for (const c of codes(fallback.body)) expect(levelOf(c)).toBeLessThan(5);
+  });
+
   it('a negated phrase sets nothing', async () => {
     const { body } = await callJson('/search?q=not%20first%20year%20algorithms', { fakes });
     expect(body.interpreted.level).toBeNull();

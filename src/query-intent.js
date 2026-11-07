@@ -259,13 +259,15 @@ const intentPassA = (q) => ({ text: q });
  * phrase either, joined or not (`ge 2101 workload`): it stays text, as a
  * collision-list code inside a longer query does (plan 3B). A level phrase
  * with a negator among the two tokens before it sets nothing and stays in the
- * text (C17). An ignored intent's phrases are not read at all.
- * @param {string} masked
+ * text (C17); the tokens are counted on the unmasked text, as queryTokens
+ * splits it. An ignored intent's phrases are not read at all.
+ * @param {string} masked the text with each resolved joined code masked
+ * @param {string} plain the same text unmasked (the same offsets)
  * @param {IntentContext} ctx
  * @param {Set<string>} ignored
  * @returns {{ pillars: Set<string>, windows: { min: number, max: number | null, source: string }[], strip: [number, number][] }}
  */
-function passB(masked, ctx, ignored) {
+function passB(masked, plain, ctx, ignored) {
   /** @type {{ start: number, end: number, prefixes?: string[], window?: { min: number, max: number | null, source: string } }[]} */
   const all = [];
   if (!ignored.has('ge')) {
@@ -297,7 +299,7 @@ function passB(masked, ctx, ignored) {
     if (m.start < at) continue;
     at = m.end;
     if (m.window) {
-      const before = queryTokens(masked.slice(0, m.start)).slice(-ctx.negationWindow);
+      const before = queryTokens(plain.slice(0, m.start)).slice(-ctx.negationWindow);
       if (before.some((t) => ctx.negators.has(t))) continue;
       windows.push(m.window);
     } else {
@@ -347,6 +349,8 @@ export function parseQuery(q, ctx, ignore = []) {
   // Step 6: resolution, first match wins, per code-shaped token.
   /** @type {{ prefix: string, level: number | null } | null} */
   let route = null;
+  /** Code tokens that route nothing (catalogue-only or unknown inside a longer query): they stay text. @type {Set<Token>} */
+  const inert = new Set();
   for (const tok of tokens) {
     const full = FULL_CODE.exec(tok.text);
     if (full && ctx.prefixes.has(full[1].toUpperCase())) {
@@ -357,10 +361,13 @@ export function parseQuery(q, ctx, ignore = []) {
         if (parsed.pins.length < MAX_PINS && !parsed.pins.includes(code)) parsed.pins.push(code);
       } else if (ctx.catalogue.has(code)) {
         if (whole) parsed.noMatch = { reason: 'not-offered', code };
+        else inert.add(tok);
       } else if (n000 && !ctx.collision.has(letters.toUpperCase()) && !ctx.stopwords.has(letters)) {
         route ??= { prefix: letters.toUpperCase(), level: Number(n000[1]) };
       } else if (whole) {
         parsed.noMatch = { reason: 'unknown-code', code };
+      } else {
+        inert.add(tok);
       }
       continue;
     }
@@ -381,20 +388,26 @@ export function parseQuery(q, ctx, ignore = []) {
   }
   if (parsed.pins.length) interpreted.pin = [...parsed.pins];
 
-  // Step 7: pass B on what the joins left (passB).
+  // Step 7: pass B on what the joins left (passB). A joined code that routes
+  // nothing stays text (prereg §3 "Code resolution"), so it is not masked.
   let masked = '';
-  let lexical = '';
+  let plain = '';
   for (const tok of tokens) {
     const raw = words.slice(tok.from, tok.to + 1).join(' ');
-    masked += `${masked ? ' ' : ''}${tok.joined ? '#'.repeat(raw.length) : raw}`;
-    lexical += `${lexical ? ' ' : ''}${raw}`;
+    masked += `${masked ? ' ' : ''}${tok.joined && !inert.has(tok) ? '#'.repeat(raw.length) : raw}`;
+    plain += `${plain ? ' ' : ''}${raw}`;
   }
-  const { pillars, windows: levelWindows, strip } = passB(masked, ctx, ignored);
+  const { pillars, windows: levelWindows, strip } = passB(masked, plain, ctx, ignored);
   // Strip the matched phrases from the lexical text, right to left so the
-  // offsets hold (the matches do not overlap).
+  // offsets hold (the matches do not overlap). Lead decision (3D review): when
+  // only level phrases were matched and stripping them would leave no word,
+  // they stay, so the keyword half still searches (`graduate` within level 5+)
+  // in mode=lexical and the keyword-only fallback.
+  let lexical = plain;
   if (strip.length) {
-    for (const [s, e] of strip.reverse()) lexical = lexical.slice(0, s) + lexical.slice(e);
+    for (const [s, e] of [...strip].reverse()) lexical = lexical.slice(0, s) + lexical.slice(e);
     lexical = lexical.replace(/\s+/g, ' ').trim();
+    if (!/[a-z0-9]/.test(lexical) && !pillars.size) lexical = plain;
   }
   parsed.lexical = lexical;
 
