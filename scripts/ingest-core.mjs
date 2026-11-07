@@ -25,6 +25,11 @@
 //     so the run's last Vectorize mutation is well defined.
 //  4. Only if no batch failed and the budget held: delete codes D1 has and the
 //     corpus lacks (hashes cleared, Vectorize, then D1), one request at a time.
+//  4b. 3B: when given the catalogue-only codes, bring D1 catalogue_only in
+//     line with them (GET /admin/catalogue's row hashes, then POST the changed
+//     rows and the dropped codes), inside the same write budget. D1 only, so
+//     the D1-only mode runs it unchanged. A database without the table
+//     (migration 0008) is refused in step 1, before any write.
 //  5. Rebuild the facets row; wait until Vectorize has processed the last
 //     mutation (waitForMutation, bounded poll) — this run's, or one an earlier
 //     run sent and never saw confirmed; report the data version for
@@ -38,7 +43,7 @@
 // src/data-version.json (runbook step 1 computed it offline); a mismatch
 // refuses the run. There is no mutation to wait for, so the pending store is
 // neither read nor written. The deleted codes are returned for step 8.
-import { dataVersion, ftsHash, rowHash } from '../src/rowhash.js';
+import { catalogueRowHash, dataVersion, ftsHash, rowHash } from '../src/rowhash.js';
 
 export const DEFAULTS = Object.freeze({
   batchSize: 50,
@@ -68,6 +73,10 @@ export const DEFAULTS = Object.freeze({
    * (row, primary key and ≤ 6 index entries), FTS 'delete' (2.92 measured).
    */
   writesPerDelete: 12,
+  /** A catalogue_only row written or deleted: the row and its primary-key index entry (3B, 0008). */
+  writesPerCatalogueRow: 2,
+  /** Rows per /admin/catalogue call (its limit). */
+  catalogueBatchSize: 100,
 });
 
 /** The schema 0006 must have left behind, as /admin/hashes reports it. */
@@ -106,7 +115,8 @@ export const REQUIRED_SCHEMA = 6;
  *   allowMassDelete?: boolean, allowYearChange?: boolean, deleteBatchSize?: number, massDeleteRatio?: number,
  *   maxAttempts?: number, waitTimeoutMs?: number, waitIntervalMs?: number, embeddingModel?: string | null,
  *   writesPerInsert?: number, writesPerUpdate?: number, ftsWritesPerInsert?: number,
- *   ftsWritesPerTextChange?: number, writesPerDelete?: number, signal?: AbortSignal,
+ *   ftsWritesPerTextChange?: number, writesPerDelete?: number, writesPerCatalogueRow?: number,
+ *   catalogueBatchSize?: number, signal?: AbortSignal,
  *   d1Only?: boolean, expectedDataVersion?: string | null,
  * }} IngestOptions `d1Only` and `expectedDataVersion`: the D1-only mode (header).
  *   `signal`: once aborted (scripts/ingest.mjs on SIGINT/SIGTERM),
@@ -119,7 +129,8 @@ export const REQUIRED_SCHEMA = 6;
  *   upserted: number, embedded: number, failed: number, deleted: number,
  *   rowsRead: number, rowsWritten: number, rowsCharged: number, resumeFrom: string | null,
  *   lastMutationId: string | null, dataVersion: string | null, deletedCodes: string[],
- * }} IngestResult `deletedCodes`: what /admin/delete removed (for runbook step 8 in D1-only mode). `rowsWritten` sums D1's meta.rows_written; `rowsCharged`
+ *   catalogue: { upserted: number, deleted: number } | null,
+ * }} IngestResult `catalogue`: what step 4b wrote to catalogue_only, null when no catalogue was given. `deletedCodes`: what /admin/delete removed (for runbook step 8 in D1-only mode). `rowsWritten` sums D1's meta.rows_written; `rowsCharged`
  *   is what the write budget counts (per batch, the larger of that and the
  *   estimate).
  * @typedef {'insert' | 'fts' | 'row'} WriteKind what an upsert does to D1:
@@ -180,13 +191,14 @@ export function writeKind(m, stored) {
 /**
  * @param {{
  *   modules: NormalisedModule[], facetsBody: unknown, api: AdminApi, options?: IngestOptions,
- *   pending?: PendingMutationStore,
+ *   pending?: PendingMutationStore, catalogue?: { code: string, title: string, description: string | null }[],
  *   log?: (line: string) => void, sleep?: (ms: number) => Promise<void>, now?: () => number,
  * }} args
  * @returns {Promise<IngestResult>}
  */
 export async function runIngest({
   modules, facetsBody, api, options = {}, pending = memoryPendingStore(), log = () => {}, sleep = defaultSleep, now = Date.now,
+  catalogue,
 }) {
   const o = {
     ...DEFAULTS, force: false, from: null, allowMassDelete: false, allowYearChange: false, embeddingModel: null,
@@ -197,7 +209,7 @@ export async function runIngest({
   const result = {
     status: 'done', message: '', plan: { embed: 0, rowOnly: 0, unchanged: 0, deletes: 0 },
     upserted: 0, embedded: 0, failed: 0, deleted: 0, rowsRead: 0, rowsWritten: 0, rowsCharged: 0,
-    resumeFrom: null, lastMutationId: null, dataVersion: null, deletedCodes: [],
+    resumeFrom: null, lastMutationId: null, dataVersion: null, deletedCodes: [], catalogue: null,
   };
   /** Writes of `pending`, in the order the mutation ids arrived. Never rejects. */
   /** @type {Promise<void>} */
@@ -306,6 +318,19 @@ export async function runIngest({
     return stop('refused', `The corpus is for ${years[0]} but D1 holds `
       + `${d1Years.map(([y, n]) => `${y} (${n} rows)`).join(', ')}. Nothing was written. `
       + 'Ingesting would rewrite the database to the corpus year. If that is the intent, rerun with --allow-year-change.');
+  }
+
+  // catalogue_only (step 4b) needs migration 0008; refuse now, before any write.
+  /** @type {Record<string, string> | null} */
+  let catalogueStored = null;
+  if (catalogue) {
+    const res = await api.get('/admin/catalogue');
+    if (res.status !== 200 || res.body?.ok !== true || !res.body.rows || typeof res.body.rows !== 'object') {
+      return stop('refused', res.status === 200
+        ? 'D1 has no catalogue_only table: apply migration 0008 (migrations/0008_catalogue.sql) first. Nothing was written.'
+        : `GET /admin/catalogue -> HTTP ${res.status}: the Worker is older than this script (3B). Nothing was written.`);
+    }
+    catalogueStored = /** @type {Record<string, string>} */ (res.body.rows);
   }
 
   // 2. Plan.
@@ -504,6 +529,48 @@ export async function runIngest({
     if (body.mutationId) sent(String(body.mutationId), body.sentAt);
   }
   if (plan.deletes.length) log(`deleted            ${result.deleted} (${plan.deletes.slice(0, 10).join(', ')}${plan.deletes.length > 10 ? ', …' : ''})`);
+
+  // 4b. catalogue_only (3B), in code order: changed rows, then dropped codes.
+  if (catalogue && catalogueStored) {
+    const have = catalogueStored;
+    const year = years[0];
+    const want = await Promise.all(catalogue.map(async (r) => {
+      const row = { code: r.code, title: r.title, description: r.description ?? null, acadYear: year };
+      return { row, hash: await catalogueRowHash(row) };
+    }));
+    const keep = new Set(want.map((w) => w.row.code));
+    const upserts = want.filter((w) => have[w.row.code] !== w.hash).map((w) => w.row)
+      .sort((a, b) => (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
+    const drops = Object.keys(have).filter((c) => !keep.has(c)).sort();
+    result.catalogue = { upserted: 0, deleted: 0 };
+    /** @type {{ upsert: typeof upserts, delete: string[] }[]} */
+    const calls = [];
+    for (let i = 0; i < upserts.length; i += o.catalogueBatchSize) calls.push({ upsert: upserts.slice(i, i + o.catalogueBatchSize), delete: [] });
+    for (let i = 0; i < drops.length; i += o.catalogueBatchSize) calls.push({ upsert: [], delete: drops.slice(i, i + o.catalogueBatchSize) });
+    for (const call of calls) {
+      if (aborted()) return interrupted('loading catalogue_only');
+      const n = call.upsert.length + call.delete.length;
+      const estimate = Math.ceil(n * o.writesPerCatalogueRow);
+      // Not the modules' per-row rate: these rows have no FTS or index fan-out.
+      const held = reserve(estimate, 0);
+      if (held === null) {
+        await facets();
+        return stop('budget', `Write budget reached loading catalogue_only (${result.catalogue.upserted} of ${upserts.length} rows written, `
+          + `${result.catalogue.deleted} of ${drops.length} deleted; ${result.rowsCharged} rows charged). Rerun the same command to finish: `
+          + 'only rows still different are sent.');
+      }
+      const body = await send('/admin/catalogue', call, `catalogue ${call.upsert[0]?.code ?? call.delete[0]}…`);
+      reserved -= held;
+      if (!body) {
+        await facets();
+        return stop('failed', 'Loading catalogue_only failed; rerun the same command (only rows still different are sent).');
+      }
+      account(body, estimate);
+      result.catalogue.upserted += Number(body.upserted ?? 0);
+      result.catalogue.deleted += Number(body.deleted ?? 0);
+    }
+    log(`catalogue_only     ${result.catalogue.upserted} written, ${result.catalogue.deleted} deleted, ${want.length - upserts.length} unchanged`);
+  }
 
   // 5. Facets (always: the NG list date can change with no row changing), the
   // Vectorize mutation wait, the data version. Vectorize processes mutations
