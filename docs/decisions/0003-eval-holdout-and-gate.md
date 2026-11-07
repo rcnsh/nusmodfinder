@@ -365,3 +365,18 @@ ships, in the same PR as the constant.
 ## Dissent
 None unresolved. The objections and their resolutions are in `docs/plans/phase2.md` (round 1 and
 round 2 objection logs, Final).
+
+## The sealed test set as written (lead, 2026-11-08)
+The set follows "Test set, pre-registered now" above, with three deviations, each recorded in
+`docs/evidence/phase3/sc5.md`:
+- **Within-test duplicates are dropped too.** The leak filter's rule (cosine ≥ 0.9) also drops a
+  later test query that is that close to an earlier kept one: 34 queries. Every writer round uses
+  the same persona cards, so duplicates would otherwise enter the paired comparison twice.
+- **The extra persona round was written before judging.** After the leak filter, round 1 left 140
+  queries, and its constraint and no-answer queries sit outside the primary, so it could not
+  reach 160 answerable. The count-only tool then read 195 on the whole judged set.
+- **Writers saved their own output** with one Write call, the only tool use beyond the writer
+  prompt's "no tools".
+
+`eval/sealed-unfiltered/` holds the leak filter's drops, with their runs and qrels, for the
+secondary unfiltered report. It is never a verdict.

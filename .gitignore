@@ -16,6 +16,10 @@ eval/sealed/**
 !eval/sealed/**/
 !eval/sealed/**/*.enc
 !eval/sealed/MANIFEST.json
+eval/sealed-unfiltered/**
+!eval/sealed-unfiltered/**/
+!eval/sealed-unfiltered/**/*.enc
+!eval/sealed-unfiltered/MANIFEST.json
 # macOS Finder files, even ones ending in .enc (after the negations above).
 .DS_Store
 ._*

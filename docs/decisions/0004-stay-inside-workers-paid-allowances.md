@@ -116,6 +116,9 @@ Deviations, each with Jacob's sign-off:
   (two chunks of 51 in parallel, then one alone) before grading any of the 102 pairs. Jacob chose
   to skip the check rather than swap to another Gemini model or wait. 3D goes to L5 on judge A's
   grades alone, as 3B and 3C did (`docs/evidence/phase3/3d-dev-screen.md`).
+- **SC5 test pool (2026-11-08): not run.** `gemini-3.8-flash-high` hit its rate limit on all
+  three attempts before grading any of the 1,154 pairs. Jacob chose to skip the check, as for 3D.
+  SC5 rests on judge A's grades alone (`docs/evidence/phase3/sc5.md`).
 
 ### Dissent
 None recorded. The planning critics' preference for two families (Phase 2 plan, objection 9)

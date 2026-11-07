@@ -19,7 +19,7 @@ import { parseArgs } from 'node:util';
 import { decrypt, encrypt, generateKey, keyFilePath, readKey, updateManifest, verifyManifest } from '../eval/lib/crypto.mjs';
 import { ENCRYPTED_SETS, REPO } from '../eval/lib/sets.mjs';
 
-const ENCRYPTED_DIRS = ['eval/holdout', 'eval/sealed'];
+const ENCRYPTED_DIRS = ['eval/holdout', 'eval/sealed', 'eval/sealed-unfiltered'];
 const NAMES = /^(queries|qrels|embeddings)\.json$|^(run|judge)-[A-Za-z0-9._-]+\.json$/;
 
 const { positionals, values } = parseArgs({
