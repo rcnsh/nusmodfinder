@@ -321,7 +321,7 @@ describe('B7', () => {
   // sorted `ignore` list add their own cases here, in the PR that adds them.
   it.each([
     ['sem', 'sem=2'], ['level', 'level=3'], ['credits', 'credits=4'], ['faculty', 'faculty=Computing'], ['ng', 'ng=1'],
-    ['mode', 'mode=vector'], ['topK', 'topK=7'],
+    ['mode', 'mode=vector'], ['topK', 'topK=7'], ['ignore', 'ignore=ge'],
   ])('[B3-1] a request with %s has a different key from one without', (_name, param) => {
     const without = searchCacheKey(new URL('/search?q=data%20visualisation', BASE));
     const withIt = searchCacheKey(new URL(`/search?q=data%20visualisation&${param}`, BASE));
@@ -329,6 +329,18 @@ describe('B7', () => {
     // In parsed form: another spelling of the same value shares the key.
     const spelled = param.replace(/^(\w+)=(.*)$/, (_m, k, v) => `${k}=${k === 'faculty' ? ` ${v} ` : k === 'ng' ? 'true' : k === 'topK' ? `${v}.4` : v}`);
     expect(searchCacheKey(new URL(`/search?_x=1&${spelled}&q=Data%20%20Visualisation`, BASE))?.url).toBe(withIt?.url);
+  });
+
+  it('[B3-1, 3B] ignore joins the key as a sorted, de-duplicated list: ignore=su,level and ignore=level,su share one key', () => {
+    const key = (/** @type {string} */ q) => searchCacheKey(new URL(`/search?q=data%20visualisation&${q}`, BASE))?.url;
+    expect(key('ignore=su,level')).toBe(key('ignore=level,su'));
+    expect(key('ignore=level,su,level')).toBe(key('ignore=level,su'));
+    expect(key('ignore=level')).not.toBe(key('ignore=level,su'));
+    expect(key('ignore=ge')).not.toBe(key('ignore=level'));
+    // An empty list is no list.
+    expect(key('ignore=')).toBe(searchCacheKey(new URL('/search?q=data%20visualisation', BASE))?.url);
+    // An unknown intent is a 400, never cached.
+    expect(searchCacheKey(new URL('/search?q=x&ignore=banana', BASE))).toBeNull();
   });
 
   it('[B-7, B2-6] the key carries the deployed version id, so every deploy (ranker, vectors, DENSE_BACKEND) starts a fresh cache', async () => {
