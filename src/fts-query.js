@@ -72,9 +72,42 @@ function ftsMatchExpression(tokens) {
 }
 
 /**
- * The FTS5 MATCH expression for a user query, or null when it has no tokens.
- * @param {string} query
+ * @typedef {{ prefixes: readonly string[], corrections: readonly { from: string, to: string }[] }} FtsTerms
+ *   3C's terms (src/typo.js): tokens written as prefix terms, and corrections
+ *   whose original joins the OR, as a prefix term, beside its corrected term.
  */
-export function ftsMatch(query) {
-  return ftsMatchExpression(ftsTokens(query));
+
+/**
+ * The FTS5 MATCH expression for a user query, or null when it has no tokens.
+ * With 3C's terms, a token in `prefixes` is written `"tok"*`, and each
+ * correction's original follows its corrected term (or ends the expression
+ * when that term is a stopword), so nothing typed is lost. A query with
+ * neither gets exactly the expression it had before 3C.
+ * @param {string} query
+ * @param {FtsTerms} [terms]
+ */
+export function ftsMatch(query, terms) {
+  const tokens = ftsTokens(query);
+  if (!terms || (terms.prefixes.length === 0 && terms.corrections.length === 0)) return ftsMatchExpression(tokens);
+  const prefix = new Set(terms.prefixes);
+  const present = new Set(queryTokens(query));
+  /** @type {Map<string, string[]>} */
+  const originals = new Map();
+  for (const { from, to } of terms.corrections) {
+    if (present.has(to)) originals.set(to, [...(originals.get(to) ?? []), from]);
+  }
+  /** @type {string[]} */
+  const parts = [];
+  /** @type {Set<string>} */
+  const added = new Set();
+  /** @param {string} t */
+  const addOriginals = (t) => {
+    for (const o of originals.get(t) ?? []) if (!added.has(o)) { added.add(o); parts.push(`"${o}"*`); }
+  };
+  for (const t of tokens) {
+    parts.push(prefix.has(t) ? `"${t}"*` : `"${t}"`);
+    addOriginals(t);
+  }
+  for (const t of originals.keys()) addOriginals(t);
+  return parts.length ? parts.join(' OR ') : null;
 }

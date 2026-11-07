@@ -4,7 +4,9 @@
 // the GE mask, noMatch), both retrievers (run concurrently), rank fusion,
 // hydration, and the keyword-only fallback when the dense half fails. Every
 // response carries Server-Timing and `interpreted`, and each request writes
-// one structured log line.
+// one structured log line. 3C: the lexical half searches the corrected text
+// with its prefix terms; under 3C-2 the dense half also embeds the corrected
+// text, in parallel, and keeps each module's better cosine (mergeDense).
 import dataVersion from './data-version.json';
 import { bundleSearch, denseBundle } from './dense.js';
 import { DEFAULT_MODEL } from './embedding.js';
@@ -13,6 +15,7 @@ import { intentContext } from './intent-data.js';
 import { lexicalSearch, rangeMembers } from './lexical.js';
 import { RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
 import { canonicalQuery, parseIgnore, parseQuery } from './query-intent.js';
+import { EMBED_CORRECTED } from './typo.js';
 import { hasCode } from './vector-bundle.js';
 import {
   AI_TIMEOUT_MS, D1_TIMEOUT_MS, TimeoutError, VECTORIZE_TIMEOUT_MS, denseCircuit, withTimeout,
@@ -315,18 +318,16 @@ class DenseFailure extends Error {
 }
 
 /**
- * Embeds one text: the query, or a catalogue-only module's text for noMatch
- * `related`.
+ * Embeds one text, a single-text call: the query, 3C-2's corrected text, or a
+ * catalogue-only module's text for noMatch `related`.
  * @param {Env} env
  * @param {string} text
- * @param {Trace} trace
  * @returns {Promise<number[]>}
  */
-async function embed(env, text, trace) {
+async function embedOne(env, text) {
   try {
-    const embedded = /** @type {{ data?: number[][] }} */ (await trace.time('embed', () =>
-      withTimeout('Workers AI', AI_TIMEOUT_MS, (signal) =>
-        env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: [text] }, { signal }))));
+    const embedded = /** @type {{ data?: number[][] }} */ (await withTimeout('Workers AI', AI_TIMEOUT_MS, (signal) =>
+      env.AI.run(env.EMBEDDING_MODEL ?? DEFAULT_MODEL, { text: [text] }, { signal })));
     const values = embedded?.data?.[0];
     if (!Array.isArray(values)) throw new Error('Workers AI returned no embedding for the query.');
     return values;
@@ -336,18 +337,58 @@ async function embed(env, text, trace) {
 }
 
 /**
- * The bundle's exact search, its failures attributed to the bundle.
- * @param {ArrayLike<number>} vector
+ * Embeds each text in its own call, all at once (B-11: neither depends on
+ * batching), so the `embed` span is the slowest call, not the sum.
+ * @param {Env} env @param {string[]} texts @param {Trace} trace
+ * @returns {Promise<number[][]>}
+ */
+const embedAll = (env, texts, trace) => trace.time('embed', () => Promise.all(texts.map((t) => embedOne(env, t))));
+
+/**
+ * The texts the dense half embeds: the query as typed (the canonical q), and
+ * under 3C-2 also its corrected text when 3C corrected anything.
+ * @param {Pick<ParsedQuery, 'dense' | 'corrected'>} parsed
+ * @param {boolean} [embedCorrected] the variant's choice (src/typo.js)
+ */
+export const denseTexts = (parsed, embedCorrected = EMBED_CORRECTED) =>
+  (embedCorrected && parsed.corrected !== null ? [parsed.dense, parsed.corrected] : [parsed.dense]);
+
+/**
+ * Dense hit lists for one corpus, from different query vectors, as one list:
+ * each code at its best cosine, best first (ties in the order first seen),
+ * at most `depth`. Exact: a code in the true top `depth` by best score is in
+ * the top `depth` of the vector that gives it that score. One list is
+ * returned as it is.
+ * @param {DenseHit[][]} lists @param {number} depth
+ * @returns {DenseHit[]}
+ */
+export function mergeDense(lists, depth) {
+  if (lists.length === 1) return lists[0].slice(0, depth);
+  /** @type {Map<string, number>} */
+  const best = new Map();
+  for (const list of lists) {
+    for (const { code, score } of list) {
+      const prev = best.get(code);
+      if (prev === undefined || score > prev) best.set(code, score);
+    }
+  }
+  return [...best].map(([code, score]) => ({ code, score })).sort((a, b) => b.score - a.score).slice(0, depth);
+}
+
+/**
+ * The bundle's exact search for each query vector, merged; failures
+ * attributed to the bundle.
+ * @param {ArrayLike<number>[]} vectors
  * @param {Constraints} constraints
  * @param {number} depth
  * @param {Trace} trace
  * @returns {Promise<DenseHit[]>}
  */
-async function bundleHits(vector, constraints, depth, trace) {
+async function bundleHits(vectors, constraints, depth, trace) {
   // CPU only: the `vector` span reads ~0 because workerd's clock does not
   // advance without I/O. Kept for comparability with Vectorize, not as a measure.
   try {
-    return await trace.time('vector', async () => bundleSearch(vector, constraints, depth));
+    return await trace.time('vector', async () => mergeDense(vectors.map((v) => bundleSearch(v, constraints, depth)), depth));
   } catch (err) {
     throw new DenseFailure('dense-index', err);
   }
@@ -361,34 +402,34 @@ async function bundleHits(vector, constraints, depth, trace) {
  * Embedding and vector search are attributed separately: guessing the source
  * from the message text mislabelled Workers AI failures as Vectorize.
  * @param {Env} env
- * @param {ArrayLike<number>} vector
+ * @param {ArrayLike<number>[]} vectors one per embedded text, merged (mergeDense)
  * @param {Constraints} constraints the bundle's mask
  * @param {VectorFilter} filter the filters as a Vectorize metadata filter
  * @param {number} depth
  * @param {Trace} trace
  * @returns {Promise<DenseHit[]>}
  */
-async function vectorSearch(env, vector, constraints, filter, depth, trace) {
-  if (denseBackend(env) === 'bundle') return bundleHits(vector, constraints, depth, trace);
+async function vectorSearch(env, vectors, constraints, filter, depth, trace) {
+  if (denseBackend(env) === 'bundle') return bundleHits(vectors, constraints, depth, trace);
   try {
     // Only ids and scores are read, so no metadata or values are requested.
-    const result = await trace.time('vector', () => withTimeout('Vectorize', VECTORIZE_TIMEOUT_MS, () =>
-      env.VECTORIZE.query(/** @type {number[]} */ (vector), { topK: depth, ...(Object.keys(filter).length ? { filter } : {}) })));
-    return (result?.matches ?? []).map((m) => ({ code: m.id, score: m.score }));
+    const lists = await trace.time('vector', () => Promise.all(vectors.map((vector) => withTimeout('Vectorize', VECTORIZE_TIMEOUT_MS, () =>
+      env.VECTORIZE.query(/** @type {number[]} */ (vector), { topK: depth, ...(Object.keys(filter).length ? { filter } : {}) })))));
+    return mergeDense(lists.map((result) => (result?.matches ?? []).map((m) => ({ code: m.id, score: m.score }))), depth);
   } catch (err) {
     throw new DenseFailure('vectorize', err);
   }
 }
 
 /**
- * Embeds `text` and runs `then` on the vector, under the dense circuit
+ * Embeds `texts` and runs `then` on their vectors, under the dense circuit
  * breaker: a dense half that keeps failing is skipped for a while (B6).
  * @template T
- * @param {Env} env @param {string} text @param {Trace} trace
- * @param {(vector: number[]) => Promise<T>} then
+ * @param {Env} env @param {string[]} texts @param {Trace} trace
+ * @param {(vectors: number[][]) => Promise<T>} then
  * @returns {Promise<T>}
  */
-const denseRun = (env, text, trace, then) => embed(env, text, trace).then(then).then(
+const denseRun = (env, texts, trace, then) => embedAll(env, texts, trace).then(then).then(
   (value) => { denseCircuit.success(); return value; },
   (err) => { denseCircuit.failure(err.source); throw err; },
 );
@@ -568,7 +609,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     let related = [];
     if (row && tryDense) {
       const text = catalogueText(row);
-      const hits = await settle(denseRun(env, text, trace, (v) => vectorSearch(env, v, echo, filter, RELATED_K, trace)));
+      const hits = await settle(denseRun(env, [text], trace, (vs) => vectorSearch(env, vs, echo, filter, RELATED_K, trace)));
       if (hits.ok) related = hits.value.slice(0, RELATED_K).map((h) => h.code);
       else degrade(/** @type {DenseFailure} */ (hits.error));
     }
@@ -584,7 +625,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     /** @type {DenseHit[] | null} */
     let hits = null;
     if (tryDense && denseBackend(env) === 'bundle') {
-      const r = await settle(denseRun(env, parsed.dense, trace, (v) => bundleHits(v, maskConstraints, topK, trace)));
+      const r = await settle(denseRun(env, denseTexts(parsed), trace, (vs) => bundleHits(vs, maskConstraints, topK, trace)));
       if (r.ok) hits = r.value;
       else if (mode === 'vector') return { response: upstream(r.error.source, r.error), degraded: null };
       else degrade(r.error);
@@ -633,15 +674,16 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   const codeOrder = () => withTimeout('D1', D1_TIMEOUT_MS, () => rangeMembers(db, /** @type {Constraints & { ranges: CodeRange[] }} */ (codeCons), depth, trace));
 
   const dense = tryDense
-    ? settle(denseRun(env, parsed.dense, trace, async (v) => ({
-      main: await vectorSearch(env, v, constraints, filter, depth, trace),
-      code: codeByDense && codeCons ? await bundleHits(v, codeCons, depth, trace) : null,
+    ? settle(denseRun(env, denseTexts(parsed), trace, async (vs) => ({
+      main: await vectorSearch(env, vs, constraints, filter, depth, trace),
+      code: codeByDense && codeCons ? await bundleHits(vs, codeCons, depth, trace) : null,
     })))
     : null;
 
-  // Lexical retrieval over the same corpus (GE phrases stripped), fused by rank.
+  // Lexical retrieval over the same corpus (corrected, GE phrases stripped,
+  // 3C's prefix terms), fused by rank.
   const lexical = mode !== 'vector'
-    ? settle(withTimeout('D1', D1_TIMEOUT_MS, () => lexicalSearch(db, parsed.lexical, constraints, depth, trace)))
+    ? settle(withTimeout('D1', D1_TIMEOUT_MS, () => lexicalSearch(db, parsed.lexical, constraints, depth, trace, parsed.fts)))
     : null;
   // The third list in code order, when the dense order is not coming.
   const codeEarly = codeCons && (!tryDense || !codeByDense) ? settle(codeOrder()) : null;

@@ -426,7 +426,8 @@ describe('B8', () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
     await callJson('/search?q=na%C3%AFve%20bayes&mode=lexical', { fakes, env: { DB: recordingDb(log) } });
-    expect(ftsCalls(log)[0].binds[0]).toBe('"naïve" OR "bayes"');
+    // 3C: `bayes` has df 0 in the fixture, so it is a prefix term; `naïve` is not letter-only ASCII and stays as typed.
+    expect(ftsCalls(log)[0].binds[0]).toBe('"naïve" OR "bayes"*');
     // The table's own tokenizer (porter unicode61) strips the diaeresis, so the
     // quoted token matches what "naive" matches in the fixture.
     const count = (/** @type {string} */ m) => env.DB.prepare('SELECT count(*) AS n FROM modules_fts WHERE modules_fts MATCH ?').bind(m).first('n');

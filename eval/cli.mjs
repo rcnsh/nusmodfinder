@@ -24,7 +24,7 @@ import { poolCandidate } from './lib/judging.mjs';
 import { appendLook, assertLookAllowed, assertSc5Order, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
 import { assertSameCorpus, byShape, compare, K, scoreRun, summarise, unscoredIds } from './lib/metrics.mjs';
 import { comparisonTable, fmt, shapeTable, summaryTable, UNSCORED_NOTE, verdictBlock, verdictOnly } from './lib/report.mjs';
-import { MODES, REPO, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
+import { MODES, REPO, assertPlainManifest, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
 import { rng } from './lib/stats.mjs';
 
 const OPTIONS = /** @type {const} */ ({
@@ -229,6 +229,7 @@ async function fullReport(set, candPath, basePath, a, change) {
     console.log(`no qrels at ${qrelsPath} yet; run files are written but cannot be scored`);
     return;
   }
+  if (!a.qrels) await assertPlainManifest(set, qrelsPath);
   /** @type {import('./lib/metrics.mjs').Qrels} */
   const qrels = JSON.parse(await readFile(qrelsPath, 'utf8'));
   const cand = await readRun(set, candPath);
@@ -259,6 +260,18 @@ async function fullReport(set, candPath, basePath, a, change) {
     assertGateable([base, cand]);
     cmp = compare(baseScores, candScores);
     console.log(`\n${comparisonTable(cmp, base.variant, cand.variant, qrels.version)}`);
+    // A diagnostic set (eval/diag/typo, 3C) is reported, never gated.
+    if (/** @type {any} */ (querySet).diagnostic === true) {
+      console.log('\ndiagnostic set: reported, never gated (no verdict)');
+      Object.assign(json, { baseline: base.variant, baseSummary: summarise(baseScores), comparison: { ...cmp, shapes: undefined }, diagnostic: true });
+      console.log(`\nper shape (${set.name} only)`);
+      console.log(shapeTable(byShape(baseScores), byShape(candScores), cmp));
+      if (a.json) {
+        await mkdir(dirname(resolve(a.json)), { recursive: true });
+        await writeFile(resolve(a.json), `${JSON.stringify(json, null, 1)}\n`);
+      }
+      return;
+    }
     // no-loss --exempt: only the no-loss ΔnDCG@10 leaves the exempt ids out; every other check is on the full set.
     const kept = (/** @type {import('./lib/metrics.mjs').QueryScore} */ s) => !exempt.includes(s.id);
     const noLoss = exempt.length ? compare(baseScores.filter(kept), candScores.filter(kept)) : undefined;

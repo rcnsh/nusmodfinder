@@ -4,7 +4,10 @@
 // corpus loaded through /admin/ingest, with D1 catalogue_only loaded from
 // data/catalogue-only.json and the committed query embeddings
 // (test/sc4/embeddings.json, and eval/dev/embeddings.json for the four dev
-// texts §4 names) answering Workers AI. Each item checks its exact
+// texts §4 names) answering Workers AI. 3C-2's corrected forms, which P-6 did
+// not embed, come from test/fixtures/sc4-corrected-embeddings.json
+// (`npm run eval:embed -- --sc4 --corrected-from-ref <ref>`, the lead's);
+// test/sc4/embeddings.json stays as P-6 pinned it. Each item checks its exact
 // `interpreted` and its rule.
 //
 // An item runs once every workstream it needs has merged into this ranker
@@ -15,20 +18,26 @@
 // full-corpus CI job fails on any skipped test, so nothing here is it.skip.
 // The typo, gibberish, non-existent-code and guard items are never skipped
 // (plan 737–739): until their machinery merges they are listed as pending.
+// Under 3C-2 an item whose corrected text has no committed embedding yet is
+// listed as waiting on lead embedding, with the command that makes it.
 import { describe, expect, inject, it, beforeAll } from 'vitest';
 import catalogueFile from '../../data/catalogue-only.json';
 import groupsFile from '../../eval/groups.json';
 import suiteFile from '../sc4/queries.json';
 import sc4Embeddings from '../sc4/embeddings.json';
 import devEmbeddings from '../../eval/dev/embeddings.json';
+import correctedEmbeddings from '../fixtures/sc4-corrected-embeddings.json';
+import { intentContext } from '../../src/intent-data.js';
+import { canonicalQuery } from '../../src/query-intent.js';
+import { EMBED_CORRECTED, correctQuery } from '../../src/typo.js';
 import { createFakes } from '../fakes.js';
 import { adminCall, callJson, seed } from '../helpers.js';
 
 const corpus = inject('corpus');
 const bundleKind = inject('vectorsBundle');
 
-/** The workstreams merged into this ranker. 3C, 3D, 3F, 3G and 3H add themselves here as they merge. */
-const MERGED = new Set(['3B']);
+/** The workstreams merged into this ranker. 3D, 3F, 3G and 3H add themselves here as they merge. */
+const MERGED = new Set(['3B', '3C']);
 /** 3H's selected prereq semantics, substituted for `$selected` (prereg C9); null until 3H selects one. */
 const SELECTED_PREREQ = null;
 /** Rows whose items are never skipped once their machinery exists (plan 737–739). */
@@ -57,8 +66,8 @@ function ownership(item) {
   return { needs: [...needs].sort(), waiting, partial };
 }
 
-const RUN = suite.items.filter((it) => ownership(it).waiting.length === 0);
-const NOT_RUN = suite.items.filter((it) => ownership(it).waiting.length > 0);
+/** The command that embeds 3C-2's corrected forms of the suite's texts. */
+const EMBED_CORRECTED_COMMAND = 'npm run eval:embed -- --sc4 --corrected-from-ref 3c2';
 
 const letters = (/** @type {string} */ c) => /** @type {RegExpExecArray} */ (/^[A-Z]+/.exec(c))[0];
 /** @param {string} p @returns {[string, string]} */
@@ -79,10 +88,36 @@ async function sha256Hex(s) {
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-/** Both caches' entries: sha256(model + "\n" + text) → base64 float32. */
+/** Every cache's entries: sha256(model + "\n" + text) → base64 float32. */
 /** @type {Record<string, string>} */
-const ENTRIES = { ...devEmbeddings.entries, ...sc4Embeddings.entries };
-for (const cache of [sc4Embeddings, devEmbeddings]) if (cache.model !== '@cf/baai/bge-small-en-v1.5' || cache.dims !== 384) throw new Error('unexpected embedding cache');
+const ENTRIES = { ...devEmbeddings.entries, ...sc4Embeddings.entries, .../** @type {Record<string, string>} */ (correctedEmbeddings.entries) };
+for (const cache of [sc4Embeddings, devEmbeddings, correctedEmbeddings]) if (cache.model !== '@cf/baai/bge-small-en-v1.5' || cache.dims !== 384) throw new Error('unexpected embedding cache');
+
+/**
+ * Under 3C-2, the corrected forms of the texts an item sends (its text, a
+ * typo item's clean form, a constraint reference) that have no committed
+ * embedding: the dense half embeds each beside the query. Under 3C-1, none.
+ * @param {Item} item
+ */
+async function missingCorrected(item) {
+  if (!EMBED_CORRECTED) return [];
+  const vocab = /** @type {import('../../src/vocabulary.js').Vocabulary} */ (intentContext(() => false).vocabulary);
+  /** @type {string[]} */
+  const out = [];
+  for (const text of [item.text, item.params.clean, item.params.reference].filter((t) => typeof t === 'string')) {
+    const q = canonicalQuery(text.trim());
+    const c = correctQuery(q, vocab).text;
+    if (c !== q && !ENTRIES[await sha256Hex(`${sc4Embeddings.model}\n${c}`)]) out.push(c);
+  }
+  return out;
+}
+
+const READY = suite.items.filter((it) => ownership(it).waiting.length === 0);
+/** Items whose machinery has merged but whose 3C-2 corrected forms await the lead's embedding. @type {Item[]} */
+const WAITING_EMBEDDING = [];
+for (const item of READY) if ((await missingCorrected(item)).length) WAITING_EMBEDDING.push(item);
+const RUN = READY.filter((it) => !WAITING_EMBEDDING.includes(it));
+const NOT_RUN = suite.items.filter((it) => ownership(it).waiting.length > 0);
 
 /** Workers AI answered from the committed caches; a text without a vector throws, never a made-up one. */
 class SuiteAI {
@@ -223,7 +258,9 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
         case 'typo-overlap': {
           const clean = await search(p.clean, item.topK);
           const cleanTop = new Set(codesOf(clean.body).slice(0, 10));
-          expect(top10.filter((code) => cleanTop.has(code)).length).toBeGreaterThanOrEqual(p.T);
+          const overlap = top10.filter((code) => cleanTop.has(code)).length;
+          console.info(`[SC4] ${item.id} typo overlap@10 with its clean form: ${overlap} (T = ${p.T})`);
+          expect(overlap).toBeGreaterThanOrEqual(p.T);
           break;
         }
         default:
@@ -256,8 +293,12 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
     });
     const partial = RUN.filter((it) => ownership(it).partial.length)
       .map((it) => `partial ${it.id} [${it.row}] ${JSON.stringify(it.text)}: ${ownership(it).partial.join(', ')}`);
-    console.log(`[SC4] ${RUN.length} run (${partial.length} with a clause pending), ${NOT_RUN.length} not run\n${[...lines, ...partial].join('\n')}`);
-    expect(RUN.length + NOT_RUN.length).toBe(90);
+    const embedding = WAITING_EMBEDDING.map((it) => `waiting on lead embedding ${it.id} [${it.row}] ${JSON.stringify(it.text)}: ${EMBED_CORRECTED_COMMAND}`);
+    console.log(`[SC4] ${RUN.length} run (${partial.length} with a clause pending), ${NOT_RUN.length} not run, `
+      + `${WAITING_EMBEDDING.length} waiting on lead embedding\n${[...lines, ...embedding, ...partial].join('\n')}`);
+    expect(RUN.length + NOT_RUN.length + WAITING_EMBEDDING.length).toBe(90);
+    // Only 3C-2 waits on an embedding, and only for a corrected form P-6 did not embed.
+    if (!EMBED_CORRECTED) expect(WAITING_EMBEDDING).toEqual([]);
     // Nothing 3B owns alone is left out, and a never-skipped item is only pending while its machinery is unmerged.
     for (const item of NOT_RUN) expect(ownership(item).waiting.length, item.id).toBeGreaterThan(0);
     for (const item of suite.items.filter((x) => x.row === 'nonexistent-code' || x.row === 'not-offered-code')) expect(RUN, item.id).toContain(item);

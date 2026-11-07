@@ -9,12 +9,19 @@
 // routes nothing), and a query the parse does route (a pin, a partial code, a
 // GE phrase, noMatch) is 3B's change by design: those are listed and left out,
 // and every other query must still answer exactly as before.
+// Since 3C a query with a df-0 token of 4+ letters gets a prefix term or a
+// correction in its lexical half (and, under 3C-2, a corrected text in its
+// dense half): also a change by design, listed and left out the same way.
 // The pre-1B route queries Vectorize, so the live Worker runs under the
 // Vectorize standby (DENSE_BACKEND=vectorize, Phase 3 3-0); the bundle's
 // identity with that path is test/dense.test.js.
 import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { canonicalQuery } from '../src/query-intent.js';
 import { Trace } from '../src/timing.js';
+import { EMBED_CORRECTED, correctQuery } from '../src/typo.js';
+import { parseVocabulary } from '../src/vocabulary.js';
+import vocabFile from './fixtures/vocabulary.json';
 import { BASE, buildEnv, callJson, fixture, seed } from './helpers.js';
 import { searchRoute as legacySearchRoute } from './legacy/search-f61072e.js';
 
@@ -65,6 +72,8 @@ const QUERIES = [
   'accounting', 'japanese language', 'statistics for life sciences', 'management', 'introduction',
   'machine learning for physicists', 'C++ & Java: (advanced)', '"quoted" AND NOT near*', 'cs 1010s', 'CS101',
   'cs1010s', 'CS1010S', 'Cs1010S',
+  // Every token in the fixture vocabulary, so 3C leaves them alone (3C).
+  'linear algebra', 'database systems', 'computer networks', 'public policy', 'financial accounting',
   // Non-ASCII case: U+212A KELVIN SIGN lower-cases to 'k' under full Unicode rules.
   'LA\u212A1201', 'la\u212A1201', 'NAÏVE BAYES', 'Ünïcode ÉCONOMICS', 'stra\u00DFe', '\uFB01nance',
   // Every 25th fixture module: its code, and a few words of its title.
@@ -105,6 +114,23 @@ const routed = (r) => r.status === 200 && (r.body.noMatch !== undefined || Objec
 /** @type {string[]} */
 const routedPaths = [];
 
+const vocab = parseVocabulary(/** @type {import('../src/vocabulary.js').VocabularyFile} */ (/** @type {unknown} */ (vocabFile)));
+/**
+ * Whether 3C changes this request by design: a prefix term or a correction
+ * reaches its lexical half, or (3C-2) a corrected text its dense half.
+ * @param {string} path
+ */
+function changedBy3C(path) {
+  const params = new URL(path, BASE).searchParams;
+  const q = params.get('q')?.trim();
+  if (!q) return false;
+  const mode = params.get('mode') ?? 'hybrid';
+  const c = correctQuery(canonicalQuery(q), vocab);
+  return (mode !== 'vector' && c.prefixes.length > 0) || (EMBED_CORRECTED && mode !== 'lexical' && c.corrections.length > 0);
+}
+/** Requests 3C changes, left out like 3B's. @type {string[]} */
+const typoPaths = [];
+
 /**
  * Compares one request on both paths. Returns a description of any
  * difference that is not one of the declared bug fixes, else null.
@@ -119,6 +145,7 @@ async function compare(path) {
   const after = await callJson(path, { fakes, env: STANDBY });
   if (before.status !== after.status) return `${path}: status ${before.status} -> ${after.status}`;
   if (routed(after)) { routedPaths.push(path); return null; }
+  if (after.status === 200 && changedBy3C(path)) { typoPaths.push(path); return null; }
   const expected = before.status === 200
     // B7: the body echoes the canonical query (trimmed, whitespace collapsed, ASCII lower-cased).
     // 3B: and an all-null `interpreted`.
@@ -153,8 +180,11 @@ describe('1B is ranking-neutral', () => {
     expect(routedPaths.length).toBeGreaterThan(0);
     expect(paths.length - routedPaths.length).toBeGreaterThan(400);
     for (const p of routedPaths) expect(decodeURIComponent(new URL(p, BASE).searchParams.get('q') ?? ''), p).toMatch(/\d/);
+    // 3C changes only queries with a df-0 token of 4+ letters, and leaves most of the set alone.
+    expect(typoPaths.length).toBeGreaterThan(0);
+    expect(paths.length - routedPaths.length - typoPaths.length).toBeGreaterThan(400);
     console.info(`differential: ${paths.length} requests, ${ok} 200s (${withResults} with results), ${diffs.length} differences, `
-      + `${routedPaths.length} routed by 3B and left out`);
+      + `${routedPaths.length} routed by 3B and ${typoPaths.length} changed by 3C, left out`);
   }, 120_000);
 
   it('returns the same results when the index holds stale vectors missing from D1', async () => {
@@ -172,7 +202,7 @@ describe('1B is ranking-neutral', () => {
         const before = await legacy(p.replace(/topK=(&|$)/, ''));
         const after = await callJson(p.replace(/topK=(&|$)/, ''), { fakes, env: STANDBY });
         expect(after.status, p).toBe(before.status);
-        if (before.status !== 200 || routed(after)) continue;
+        if (before.status !== 200 || routed(after) || changedBy3C(p)) continue;
         // Same page of results. retrieval.fused can only differ here, and only
         // upwards: hydration stops once the page is full, so stale candidates
         // below it are not discovered (and not subtracted).

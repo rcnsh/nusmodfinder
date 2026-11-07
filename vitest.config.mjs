@@ -7,6 +7,7 @@ import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-plugin';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
+import { pinnedVocabularyPath } from './scripts/build-vocabulary.mjs';
 import { loadPinnedCorpus, MODULE_INFO_PATH } from './scripts/pinned-corpus.mjs';
 import { loadCheckedBundle, localPath, readVectorsManifest, writeShim } from './scripts/vectors-manifest.mjs';
 
@@ -67,6 +68,16 @@ async function fullBundle() {
   }
 }
 
+/** The committed fixture vocabulary (scripts/build-vocabulary.mjs --corpus fixture). */
+const FIXTURE_VOCABULARY = fileURLToPath(new URL('./test/fixtures/vocabulary.json', import.meta.url));
+
+/**
+ * 3C's vocabulary import in src/intent-data.js, pointed at the vocabulary of
+ * the corpus a project searches, never the production one (data/).
+ * @param {string} path
+ */
+const vocabularyAlias = (path) => ({ find: /^\.\.\/data\/vocabulary\.json$/, replacement: path });
+
 // Files named *.node.test.js run in plain Node instead of workerd: they cover
 // Node-side code (scripts/) and read repository files, neither of which the
 // Worker runtime can do without nodejs_compat, which production does not set.
@@ -80,13 +91,17 @@ export default defineConfig(async () => {
     miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
   });
   const full = await fullBundle();
+  const fullCorpusData = await fullCorpus();
+  // test/full searches the pinned corpus, so it corrects against the pinned
+  // vocabulary; without the corpus its tests skip, and the fixture's stands in.
+  const fullVocabulary = fullCorpusData ? await pinnedVocabularyPath() : FIXTURE_VOCABULARY;
   return {
     test: {
       projects: [
         {
           plugins: [workerd()],
           // test/wrangler.test.jsonc's `alias`, which the plugin does not read.
-          resolve: { alias: { 'vectors-bundle': FIXTURE_BUNDLE } },
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: FIXTURE_BUNDLE }, vocabularyAlias(FIXTURE_VOCABULARY)] },
           test: {
             name: 'workers',
             include: ['test/**/!(*.node).test.js'],
@@ -96,7 +111,7 @@ export default defineConfig(async () => {
         },
         {
           plugins: [workerd()],
-          resolve: { alias: { 'vectors-bundle': full.alias } },
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary)] },
           test: {
             name: 'full',
             include: ['test/full/**/!(*.node).test.js'],
@@ -104,7 +119,7 @@ export default defineConfig(async () => {
             // brute-force grid (~25 s instead of ~4 min locally, ~12 min on CI).
             // CI runs the full grid whenever src/, migrations/, scripts/ or
             // test/full/ change; anything else gets the sample.
-            provide: { corpus: await fullCorpus(), vectorsBundle: full.corpus, lexicalGrid: process.env.LEXICAL_GRID === 'sample' ? 'sample' : 'full' },
+            provide: { corpus: fullCorpusData, vectorsBundle: full.corpus, lexicalGrid: process.env.LEXICAL_GRID === 'sample' ? 'sample' : 'full' },
           },
         },
         {

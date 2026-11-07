@@ -22,7 +22,9 @@
 //       and the build stops: embed them with
 //       `npm run eval:embed -- --texts <that file> --out <cache.json>`, then
 //       rebuild with --extra <cache.json>. Also writes src/data-version.json,
-//       computed offline from the rows ingest will write (B3-4).
+//       computed offline from the rows ingest will write (B3-4), and
+//       data/vocabulary.json, 3C's vocabulary of the same corpus
+//       (scripts/build-vocabulary.mjs).
 //
 // Each build records the bundle in data/vectors.json: data version, embedding
 // version, count, sha256 and rowsKey, the sha256 of the sorted
@@ -49,6 +51,7 @@ import { cachePart, embeddingKey, loadCorpusEmbeddings, readCache, readManifest,
 import { hashEmbed } from '../test/fakes.js';
 import { encodeBundle, parseBundle } from '../src/vector-bundle.js';
 import { dataVersion, rowHash } from '../src/rowhash.js';
+import { writeProductionVocabulary } from './build-vocabulary.mjs';
 import { dataVersionFile, httpAdminApi, parseDuration, DATA_VERSION_PATH } from './ingest.mjs';
 import {
   DEFAULT_ACAD_YEAR, DEFAULT_MAX_AGE_MS, assertExpectedShape, fetchAcadYearFile, loadNgCourses, offeredModules,
@@ -204,9 +207,10 @@ async function build(argv, log) {
   if (corpus === 'production') {
     await writeFile(DATA_VERSION_PATH, dataVersionFile(dv));
     log(`  src/data-version.json -> ${dv} (offline, from the rows ingest will write)`);
+    log(`  ${await writeProductionVocabulary(modules)} -> the 3C vocabulary of the same corpus`);
   }
   log(`upload: gh release create ${asset.replace(/\.bin$/, '')} ${relative(ROOT, bin)} --title "${asset}" --notes "vectors bundle, sha256 ${manifest.bundles[corpus]?.sha256}"`);
-  log('then commit data/vectors.json' + (corpus === 'production' ? ' and src/data-version.json (runbook step 1)' : ''));
+  log('then commit data/vectors.json' + (corpus === 'production' ? ', src/data-version.json and data/vocabulary.json (runbook step 1)' : ''));
   return 0;
 }
 
