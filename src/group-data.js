@@ -1,0 +1,31 @@
+// @ts-check
+// 3F's duplicate groups for the Worker: data/groups.json, groups-v1
+// (src/groups.js) over the production bundle's corpus, built with it
+// (scripts/build-groups.mjs) and versioned the same way. The Vitest configs
+// alias this import to the fixture's or the pinned corpus's groups, and every
+// eval run overwrites the file in its workspace with the run corpus's.
+// Parsed once per isolate.
+import groupsFile from '../data/groups.json';
+import { parseGroupsFile } from './groups.js';
+
+/** @type {{ groupOf: Map<string, string>, members: Map<string, string[]> } | null} */
+let parsed = null;
+
+/**
+ * For the corpus this Worker serves: code -> group key, and group key -> its
+ * members in code order. A code in no group is in neither map.
+ */
+export function groups() {
+  if (!parsed) {
+    const groupOf = parseGroupsFile(/** @type {import('./groups.js').GroupsModuleFile} */ (/** @type {unknown} */ (groupsFile)));
+    /** @type {Map<string, string[]>} */
+    const members = new Map();
+    for (const [code, key] of groupOf) {
+      const m = members.get(key);
+      if (m) m.push(code); else members.set(key, [code]);
+    }
+    for (const m of members.values()) m.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    parsed = { groupOf, members };
+  }
+  return parsed;
+}

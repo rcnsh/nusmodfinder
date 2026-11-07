@@ -71,8 +71,9 @@ describe('3-0 identity on the fixture (A-N6)', () => {
         /** @param {string} mode */
         const both = async (mode) => {
           const path = `/search?q=${encodeURIComponent(q)}${f}&mode=${mode}&topK=50`;
-          const bundle = await callJson(path, { fakes });
-          const standby = await callJson(path, { fakes, env: STANDBY });
+          // Uncollapsed: 3F reads a single bundle list deeper than Vectorize's (src/search.js depth).
+          const bundle = await callJson(path, { fakes, env: { COLLAPSE_GROUPS: 'off' } });
+          const standby = await callJson(path, { fakes, env: { ...STANDBY, COLLAPSE_GROUPS: 'off' } });
           expect(bundle.status, path).toBe(200);
           expect(standby.status, path).toBe(200);
           expect(bundle.body.degraded, path).toBeUndefined();
@@ -117,7 +118,7 @@ describe('3-0 identity on the fixture (A-N6)', () => {
   it('any DENSE_BACKEND other than "vectorize" is the bundle', async () => {
     const f = createFakes();
     for (const value of ['bundle', 'Vectorize', '', undefined]) {
-      const { body } = await callJson('/search?q=machine%20learning&mode=vector', { fakes: f, env: { DENSE_BACKEND: value } });
+      const { body } = await callJson('/search?q=machine%20learning&mode=vector', { fakes: f, env: { DENSE_BACKEND: value, COLLAPSE_GROUPS: 'off' } });
       expect(body.retrieval.vector).toBe(50);
     }
     expect(f.vectorize.calls).toEqual([]);
@@ -168,7 +169,8 @@ describe('3-0 between a D1-only ingest and the deploy (B-3)', () => {
     await seed();
     // Hybrid: a module both retrievers find, which still matches in D1.
     const { body } = await callJson('/search?q=programming%20methodology&sem=1');
-    expect(body.results.map((/** @type {any} */ r) => r.code)).toContain('CS1010S');
+    // CS1010S may stand in its duplicate group's variants (3F).
+    expect(body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)])).toContain('CS1010S');
   });
 
   it('a bundle row D1 no longer holds is dropped at hydrate, as a stale Vectorize id is', async () => {

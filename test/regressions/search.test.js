@@ -5,7 +5,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { callJson, fixture, seed } from '../helpers.js';
-import { codes, ftsCalls, recordingDb } from './support.js';
+import { codes, ftsCalls, recordingDb, shownCodes } from './support.js';
 
 /** @type {import('../fakes.js').Fakes} */
 let fakes;
@@ -38,7 +38,8 @@ describe('S4', () => {
     const members = fixture.modules.map((m) => m.code).filter((c) => c >= (/\d$/.test(q) ? q : `${q}0`) && c < `${q}:`).sort();
     expect(members.length).toBeGreaterThan(0);
     expect(body.interpreted.prefix).toBe(q);
-    expect(codes(body.results)).toEqual(members);
+    // 3F: one result per duplicate group; the other members ride along as its variants.
+    expect(shownCodes(body.results).sort()).toEqual(members);
   });
 
   it('[S4 known-bug] "modules", "intro", "teach" and "something" are not stopwords', async () => {
@@ -71,7 +72,7 @@ describe('S5', () => {
     const members = fixture.modules.map((m) => m.code).filter((c) => c.startsWith('CS101')).sort();
     expect(members.length).toBeGreaterThan(1);
     expect(body.interpreted.prefix).toBe('CS101');
-    expect(codes(body.results)).toEqual(members);
+    expect(shownCodes(body.results).sort()).toEqual(members);
   });
 });
 
@@ -101,10 +102,12 @@ describe('S8', () => {
     expect(body.count).toBe(20);
   });
 
-  it('[S8 known-bug] near-duplicate variants (TR3202*) crowd the top of the list', async () => {
+  it('[S8 fixed] 3F: near-duplicate variants (TR3202*) collapse to one result, the others listed as its variants', async () => {
     const { body } = await callJson('/search?q=start-up%20internship&mode=lexical&topK=10', { fakes });
-    const top = codes(body.results).slice(0, 4);
-    expect(top.filter((c) => c.startsWith('TR3202')).length).toBe(4);
+    const tr = body.results.filter((/** @type {any} */ r) => r.code.startsWith('TR3202'));
+    expect(tr).toHaveLength(1);
+    expect(tr[0].variants.every((/** @type {any} */ v) => v.code.startsWith('TR3202'))).toBe(true);
+    expect(tr[0].variants.length).toBeGreaterThanOrEqual(3);
   });
 });
 

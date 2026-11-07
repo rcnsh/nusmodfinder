@@ -212,7 +212,7 @@ node scripts/vectors.mjs build --corpus production --expect-count <rows> --offli
 npm run eval:embed -- --texts .data/vectors/missing-production.json --out .data/vectors/extra-production.json
 node scripts/vectors.mjs build --corpus production --expect-count <rows> --offline --extra .data/vectors/extra-production.json
 gh release create <release> .data/vectors/<asset> --title <asset> --notes "vectors bundle, sha256 <sha256>"
-git add data/vectors.json src/data-version.json data/vocabulary.json   # the build rewrites 3C's vocabulary too; plus any code the change needs; open a PR
+git add data/vectors.json src/data-version.json data/vocabulary.json data/groups.json   # the build rewrites 3C's vocabulary and 3F's groups too; plus any code the change needs; open a PR
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
 # 3. Record a D1 Time Travel bookmark in remote-ops.md.
 export INGEST_SECRET=$(openssl rand -hex 24)

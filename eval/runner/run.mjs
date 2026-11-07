@@ -10,7 +10,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
-import { assertCorrectedEmbedded, rankerCorrector, writeRankerVocabulary } from '../lib/corrected.mjs';
+import { assertCorrectedEmbedded, rankerCorrector, writeRankerGroups, writeRankerVocabulary } from '../lib/corrected.mjs';
 import { assertCorpusTextsEmbedded, base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
 import { REPO, layout, loadQueries, runFile, searchParams, setFile, setKey } from '../lib/sets.mjs';
 import { buildWorkspace } from '../lib/workspace.mjs';
@@ -78,6 +78,8 @@ export async function runVariant(options) {
   const corrector = await rankerCorrector(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));
   assertCorrectedEmbedded({ set: set.name, setDirArg, ref: ws.ranker.ref, queries: querySet.queries, corrector, have });
   const vocabulary = corrector ? await writeRankerVocabulary(ws.root, corrector) : null;
+  // 3F: the ranker's duplicate groups from this run's corpus.
+  const groups = await writeRankerGroups(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));
 
   const dense = await writeBundle(ws.root, corpus.modules, lookup, String(embedding.corpus));
 
@@ -95,7 +97,7 @@ export async function runVariant(options) {
       sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'),
       count: querySet.queries.length,
     },
-    config: { topK: 'worker default', filters: !unfiltered, mode, dense, ...(vocabulary ? { vocabulary, typo: corrector?.embedsCorrected ? '3c2' : '3c1' } : {}) },
+    config: { topK: 'worker default', filters: !unfiltered, mode, dense, ...(vocabulary ? { vocabulary, typo: corrector?.embedsCorrected ? '3c2' : '3c1' } : {}), ...(groups ? { groups } : {}) },
   };
   const reporterOptions = {
     output,
