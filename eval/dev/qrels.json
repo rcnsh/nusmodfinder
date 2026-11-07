@@ -1,7 +1,7 @@
 {
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
- "version": "qrels-dev-v3",
+ "version": "qrels-dev-v4",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
   "ngSha256": "092d021db4ccff2ea45e75bfc073623fa502aace082a8d5bd627f41d79c3f169"
@@ -78,6 +78,34 @@
     }
    },
    "createdAt": "2026-11-06T13:14:50.998Z"
+  },
+  {
+   "round": "p3a2",
+   "mode": "single",
+   "judges": {
+    "A": "claude-opus-5-5"
+   },
+   "adjudicator": null,
+   "pairs": 532,
+   "pool": "79e4b94b05215bdedfb55ab4336cefcfdcfaaae1f993ab4f28e1bc843fb4d323",
+   "codeRule": {
+    "rule": "code-rule-v1",
+    "pairs": 56,
+    "queries": 0,
+    "added": {
+     "0": 0,
+     "1": 0,
+     "2": 0
+    },
+    "changed": {},
+    "overrides": {
+     "total": 0,
+     "up": 0,
+     "down": 0,
+     "same": 0
+    }
+   },
+   "createdAt": "2026-11-07T00:15:08.507Z"
   }
  ],
  "queries": {
@@ -260,6 +288,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "A sociology course on money and finance in society; mentions finance only in passing."
+      }
+     }
+    },
+    "IS4228": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "FinTech and information in financial markets; the description shows no firm valuation, capital budgeting or cost of capital."
+      }
+     }
+    },
+    "RE3701": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Real estate investment analysis at property level, which the intent names as not relevant."
       }
      }
     }
@@ -726,6 +778,54 @@
        "rationale": "BT4211 is a marketing analytics course (customer lifetime value, segmentation, conjoint analysis); it does not cover industry analysis, competitive advantage or business models, and it is not an entrepreneurship or strategy-heavy course."
       }
      }
+    },
+    "CS4246": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Reinforcement learning and sequential decision making in CS; not business strategy."
+      }
+     }
+    },
+    "FIN3702A": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Investments and portfolio management; not strategic management or competitive strategy."
+      }
+     }
+    },
+    "FIN3702B": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Investments and portfolio management; not strategic management or competitive strategy."
+      }
+     }
+    },
+    "LI5204": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "5000-level supply chain simulation and optimization; not competitive strategy."
+      }
+     }
     }
    }
   },
@@ -982,6 +1082,30 @@
        "rationale": "Sociology of money and business; not a finance course."
       }
      }
+    },
+    "MA2101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Linear algebra course. It only shares the 'II' in its title with the query."
+      }
+     }
+    },
+    "QF4102": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Advanced finance course on pricing and hedging derivatives and managing financial risk, offered to NG students in semester 1. It covers only the derivatives and risk management part, with no capital structure, dividends or M&A, which matches the partial line."
+      }
+     }
     }
    }
   },
@@ -1178,6 +1302,42 @@
        "rationale": "Public health and epidemiology course; unrelated to finance."
       }
      }
+    },
+    "EC3333": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 3000-level Sem 1 NG-open course on portfolio analysis, asset pricing, fixed income and derivatives, a finance elective at the wanted level."
+      }
+     }
+    },
+    "EC3343": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 3000-level Sem 1 NG-open course on international macroeconomics and finance; finance-related but macro-oriented rather than markets, portfolio or risk management."
+      }
+     }
+    },
+    "QF4103": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Sem 1 NG-open finance course on derivatives pricing, but 4000-level and heavily mathematical, so a level above the wanted 3rd-year elective."
+      }
+     }
     }
    }
   },
@@ -1372,6 +1532,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "A Japanese Studies course on cultural borrowing between Japan and China, not a language course; the intent names such courses as not relevant."
+      }
+     }
+    },
+    "GESS1013": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A Japanese studies course on Singapore-Japan relations taught in English, which the intent names as not relevant."
+      }
+     }
+    },
+    "LAC1201": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Chinese 1 for beginners, an East Asian language at beginner level, open to NG students in semester 1."
       }
      }
     }
@@ -1616,6 +1800,42 @@
        "slot": "A",
        "grade": 1,
        "rationale": "A 2000-level course in Sem 1, open to NG, that studies marketing and consumption in Japan through case studies; it goes beyond intro marketing but is a 2nd-year Japanese Studies course, not a 3000-level marketing elective."
+      }
+     }
+    },
+    "BSP3701": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Strategic management capstone; not a marketing elective."
+      }
+     }
+    },
+    "DOS3701": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Supply chain management course; operations, not marketing."
+      }
+     }
+    },
+    "TS3243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Theatre and film studies course; unrelated to marketing."
       }
      }
     }
@@ -1946,6 +2166,138 @@
        "rationale": "A beginner Japanese language course, unrelated to international business, management or trade."
       }
      }
+    },
+    "BN4701": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Serious games for health; unrelated to international business."
+      }
+     }
+    },
+    "CG3201": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 1"
+      }
+     }
+    },
+    "CS2040DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Data structures and algorithms; not an international business course."
+      }
+     }
+    },
+    "CS2107": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Information security; unrelated to international business."
+      }
+     }
+    },
+    "CS3237": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Internet of Things; unrelated to international business."
+      }
+     }
+    },
+    "CS4248": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Large language models / NLP; unrelated to international business."
+      }
+     }
+    },
+    "GEC1043": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Global history of food; not a business, marketing or trade course."
+      }
+     }
+    },
+    "IE4210": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Operations research; not international management or strategy."
+      }
+     }
+    },
+    "MA3264": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Mathematical modelling; unrelated to international business."
+      }
+     }
+    },
+    "MA4230": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Numerical linear algebra; unrelated."
+      }
+     }
+    },
+    "PS2237": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "International relations theory in political science; not international business, marketing or trade."
+      }
+     }
     }
    }
   },
@@ -2116,6 +2468,66 @@
        "slot": "A",
        "grade": 1,
        "rationale": "Mathematical derivatives pricing models; a quantitative finance course, not hands-on spreadsheet modelling."
+      }
+     }
+    },
+    "BSE3703": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A business econometrics course on regression estimation to support business analysis; a quantitative business course, but not financial modelling and Excel is not mentioned."
+      }
+     }
+    },
+    "BT2101": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A business analytics econometrics course using software tools for regression; partially relevant as business analytics, but not finance modelling."
+      }
+     }
+    },
+    "FIN2704X": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A broad intro finance course covering financial planning and valuation; right area but at a lower level than wanted, with no spreadsheet modelling mentioned."
+      }
+     }
+    },
+    "FIN3701A": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Corporate finance with capital budgeting and cases; this is the course the student has already done, not an advanced hands-on spreadsheet modelling course."
+      }
+     }
+    },
+    "LL4556V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A law course on the regulation and documentation of financial instruments; no financial modelling."
       }
      }
     }
@@ -2384,6 +2796,78 @@
        "slot": "A",
        "grade": 0,
        "rationale": "4000-level statistics with prerequisites; unrelated."
+      }
+     }
+    },
+    "EC3343": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level international macroeconomics and finance theory, not an introductory accounting or no-prerequisite intro finance course."
+      }
+     }
+    },
+    "GEX1005": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 1"
+      }
+     }
+    },
+    "MUL1105": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Italian language for musicians; unrelated to accounting."
+      }
+     }
+    },
+    "MUL2109": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "German language for music voice majors; not accounting or finance."
+      }
+     }
+    },
+    "MUT1201": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Music composition course; unrelated to accounting."
+      }
+     }
+    },
+    "ZB2101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introductory bioinformatics; unrelated to accounting or finance."
       }
      }
     }
@@ -2666,6 +3150,42 @@
        "rationale": "A law course on regulating multinational enterprises under international law, touching on taxation; it covers neither German HGB accounting nor comparative financial reporting standards."
       }
      }
+    },
+    "LL4522V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "International construction contracts and ICC arbitration; no accounting or tax content."
+      }
+     }
+    },
+    "LL4556V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Financial markets instruments and regulation; no accounting standards or tax law content."
+      }
+     }
+    },
+    "PP5520": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Political economy of reform in China; unrelated to German accounting or tax law."
+      }
+     }
     }
    }
   },
@@ -2910,6 +3430,150 @@
        "rationale": "Mathematical Methods in Physics III; matches the 'III' only."
       }
      }
+    },
+    "BSE3702": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Economics of strategy and firm boundaries; business economics, not a finance course."
+      }
+     }
+    },
+    "CG3207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Computer architecture; no finance connection."
+      }
+     }
+    },
+    "CN3103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Chemical engineering mass transfer; no finance connection."
+      }
+     }
+    },
+    "CS3223": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Database systems implementation; no finance connection."
+      }
+     }
+    },
+    "DOS3704": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Operations strategy that only mentions juxtaposing operations with finance elements; not a finance course."
+      }
+     }
+    },
+    "EC3322": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Industrial organisation economics (likely matched on 'I'); not a finance course."
+      }
+     }
+    },
+    "FIN3701A": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 3000-level Corporate Finance course covering capital budgeting, capital structure, dividend policy and M&A, open to NG students in semester 1; exactly the intended corporate finance."
+      }
+     }
+    },
+    "FIN3703A": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A finance course on financial markets and institutions; any finance course is partially relevant, but it is not corporate finance."
+      }
+     }
+    },
+    "FIN3703B": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Another section of Financial Markets; a finance course, so partially relevant, but not corporate finance."
+      }
+     }
+    },
+    "MNO3702": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Negotiation and conflict management; not a finance course."
+      }
+     }
+    },
+    "PF3210": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Building performance course; no finance connection."
+      }
+     }
+    },
+    "QF3101": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Investment instruments, derivatives and risk management; a finance course, partially relevant, though not corporate finance."
+      }
+     }
     }
    }
   },
@@ -3080,6 +3744,78 @@
        "slot": "A",
        "grade": 1,
        "rationale": "Psychology course on human-technology interaction from a cognitive perspective; HCI-related but not interface design, prototyping or usability practice."
+      }
+     }
+    },
+    "CDE2300": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A product design course where students build prototypes and test them with users; related to UX methods but about physical products, not computer interfaces."
+      }
+     }
+    },
+    "CS4221": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A database design and SQL tuning course; it has nothing on usability, prototyping or user studies."
+      }
+     }
+    },
+    "DTK1234": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "An intro design thinking course with a people-centred approach and rapid experimentation; some UX overlap but not an HCI course."
+      }
+     }
+    },
+    "EE2026": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 2"
+      }
+     }
+    },
+    "ID2120": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A design course with participatory design, community engagement and prototyping; user-centred but social design, not HCI or interface design."
+      }
+     }
+    },
+    "MLE4239": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A materials science course on biological interfaces; it only shares the word 'interface' with the query."
       }
      }
     }
@@ -3348,6 +4084,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "A literature and culture course that discusses machine vision only as an idea in art and texts; it shares words with the query but teaches no computer vision."
+      }
+     }
+    },
+    "CG4002": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 2"
+      }
+     }
+    },
+    "CS3243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Classical symbolic and probabilistic AI (search, logic, Bayesian networks); no computer vision or image processing content."
       }
      }
     }
@@ -3666,6 +4426,66 @@
        "rationale": "Hardware-software co-design and custom FPGA accelerators sit close to computer architecture, which the intent names as partially relevant. It does not cover operating systems."
       }
      }
+    },
+    "CG4002": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 2"
+      }
+     }
+    },
+    "CS3210": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "3000-level parallel computing covering parallel hardware architectures and multi-core programming, NG in sem 2; related systems/architecture course, not an OS course."
+      }
+     }
+    },
+    "CS3211": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "3000-level concurrent programming (threads, synchronization, memory models), NG in sem 2; systems programming related to OS topics, not an OS course itself."
+      }
+     }
+    },
+    "CS4212": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Compiler design; not operating systems, systems programming or computer architecture."
+      }
+     }
+    },
+    "CS4243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Computer vision; unrelated to operating systems."
+      }
+     }
     }
    }
   },
@@ -3922,6 +4742,18 @@
        "rationale": "Statistical learning with trees, SVMs, neural networks and ensembles, NG in semester 2; close ML substitute."
       }
      }
+    },
+    "BT3017": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "Machine learning course on feature engineering, dimensionality reduction and multi-modal data, offered and open to NG students in semester 2; an alternative ML course as the intent asks."
+      }
+     }
     }
    }
   },
@@ -4164,6 +4996,138 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Political science seminar; non-CS."
+      }
+     }
+    },
+    "CM3221": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Organic chemistry; not CS."
+      }
+     }
+    },
+    "CS2113": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "2000-level CS software engineering and OOP course, 4 units, NG in sem 2; a fairly substantial 2000-level CS course rather than upper-division."
+      }
+     }
+    },
+    "CS3210": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "3000-level CS parallel computing course, 4 units, NG in sem 2."
+      }
+     }
+    },
+    "CS3223": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "3000-level CS database systems implementation course, 4 units, NG in sem 2."
+      }
+     }
+    },
+    "CS3235": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "3000-level CS computer security course, 4 units, NG in sem 2."
+      }
+     }
+    },
+    "CS3243": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "3000-level CS course on artificial intelligence, 4 units, NG in sem 2."
+      }
+     }
+    },
+    "DOS3704": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level operations strategy in the business school; not CS."
+      }
+     }
+    },
+    "EC3101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Microeconomics; not CS."
+      }
+     }
+    },
+    "FIN3702A": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Finance course; not CS."
+      }
+     }
+    },
+    "FIN3702B": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Finance course; not CS."
+      }
+     }
+    },
+    "PL3103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Cognitive psychology; not CS."
       }
      }
     }
@@ -4434,6 +5398,174 @@
        "rationale": "No course description gives NUS-to-US credit conversion information; this is an unrelated course, which the intent lists as not relevant."
       }
      }
+    },
+    "CS4234": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An optimisation algorithms course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "DOS3704": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An operations strategy course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "EC3343": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An international finance course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "FIN3703A": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A financial markets course with no connection to the query; it shows 4 credits but gives no unit conversion information."
+      }
+     }
+    },
+    "FIN3703B": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A financial markets course with no connection to the query; it shows 4 credits but gives no unit or credit conversion information."
+      }
+     }
+    },
+    "IS4403": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An agentic AI course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "MA3233": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A graph theory course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "MA3270": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A mathematics for AI course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "ME3142": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A control systems course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "ME3291": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A numerical methods engineering course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "ME4226": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An energy systems course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "MNO3702": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A negotiation course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
+    },
+    "PC3294": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A radiation lab restricted to Medical Physics minor students and unrelated to the query; it offers no unit conversion information."
+      }
+     }
+    },
+    "ST3131": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A regression analysis course unrelated to the query; it offers no unit or credit conversion information."
+      }
+     }
     }
    }
   },
@@ -4568,6 +5700,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "An architecture course on urban design theory and public space; it covers neither human-computer interaction nor UX design, and it only shares the word 'design' with the query."
+      }
+     }
+    },
+    "AR5321": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Architecture course on integrating structures, envelopes and building systems, unrelated to HCI or UX."
+      }
+     }
+    },
+    "IS4400": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "Human-AI interaction course centred on the user experience of AI systems and the design process. It is an HCI/UX course offered to NG students in semester 2."
       }
      }
     }
@@ -4874,6 +6030,90 @@
        "rationale": "GL1101E Global Issues is a 1000-level, broad-interest social science course open to NG students in semester 2, but the fields do not mark it as general education. Partial, and workload is not shown."
       }
      }
+    },
+    "CS4230": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A 4000-level rigorous mathematical cryptography course; technical and major-specific, named as not relevant."
+      }
+     }
+    },
+    "GEC1007": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A cross-faculty general education course on geopolitics designed to be engaging and interactive with multimedia, open to NG in semester 2 (workload not shown)."
+      }
+     }
+    },
+    "GEC1014": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 2"
+      }
+     }
+    },
+    "GEC1050": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level general education course on cultural interpretations of the sky, open to NG students in semester 2; broad and interesting topic (workload not shown)."
+      }
+     }
+    },
+    "GEX1005": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level general education course on public speaking, open to NG students in semester 2; accessible and practical (workload not shown)."
+      }
+     }
+    },
+    "GEX1010": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level general education course using popular economics texts to explain everyday behaviour, open to NG in semester 2 (workload not shown)."
+      }
+     }
+    },
+    "PL3103": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 3000-level psychology major course on cognition; broad-interest social science but not a general education course and likely more demanding."
+      }
+     }
     }
    }
   },
@@ -5176,6 +6416,114 @@
        "slot": "A",
        "grade": 2,
        "rationale": "A 1000-level general education course on the idea of home, NG-open in semester 2, with no prerequisites indicated; suits a fun elective."
+      }
+     }
+    },
+    "CE3132": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level civil engineering course on hydrology and open channel flow; an advanced technical course, not an intro elective."
+      }
+     }
+    },
+    "GEC1013": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 2"
+      }
+     }
+    },
+    "GEX1014": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "1000-level introduction to classical logic, open to NG students in semester 2; nothing in the description suggests prerequisites."
+      }
+     }
+    },
+    "LAG1201": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "1000-level German 1 for students with no prior knowledge, offered and open to NG students in semester 2: an intro course with no prerequisites."
+      }
+     }
+    },
+    "LAL1201": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "Tamil 1 for non-Tamil-speaking beginners, offered and open to NG students in semester 2."
+      }
+     }
+    },
+    "MA1100": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Entry-level 1000-level maths course, but it builds rigorous proof skills to prepare students for higher mathematics, so it is likely to assume some maths background and is less of a light elective."
+      }
+     }
+    },
+    "MUT1201": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "1000-level intro to composition, but the description highly recommends familiarity with music theory rudiments, which is a light prerequisite."
+      }
+     }
+    },
+    "NM2220": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Calls itself introductory and is open in semester 2, but it is 2000-level and the fields do not show whether it has prerequisites."
+      }
+     }
+    },
+    "TS1101E": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "1000-level foundational introduction to theatre and performance, open to NG students in semester 2; nothing in the description suggests prerequisites."
       }
      }
     }
@@ -5506,6 +6854,66 @@
        "rationale": "PF3207 is a construction project law course in Built Environment, not a CS course; it only shares the word 'project' with the query."
       }
      }
+    },
+    "CS2040C": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Data structures and algorithms course; the description shows no project-based assessment and the fields give no exam information."
+      }
+     }
+    },
+    "CS2040DE": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 2"
+      }
+     }
+    },
+    "CS2107": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introductory information security course; the description shows no project-based assessment and the fields give no exam information."
+      }
+     }
+    },
+    "CS4215": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "CS course with lab sessions building a sequence of language implementations, suggesting practical work; the fields do not show whether there is a final exam."
+      }
+     }
+    },
+    "CS4330": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Algorithmic bioinformatics course with no indication of project-based assessment; the fields give no exam information."
+      }
+     }
     }
    }
   },
@@ -5676,6 +7084,126 @@
        "slot": "A",
        "grade": 0,
        "rationale": "The query is a garbled string and the intent says random courses with no connection are not relevant; this RNA biology course has none."
+      }
+     }
+    },
+    "CG4002": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Garbled query whose intent expects no results. This capstone project course has no connection to it."
+      }
+     }
+    },
+    "CS4212": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Garbled query whose intent expects no results. This compiler course is a random match."
+      }
+     }
+    },
+    "CS4240": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Garbled query whose intent expects no results. This VR/AR interaction design course is a random match."
+      }
+     }
+    },
+    "CS4243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Garbled query whose intent expects no results. The CS4243 code resembling 'cs44xx' is only a surface match."
+      }
+     }
+    },
+    "CS4249": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Garbled query whose intent expects no results. This HCI methods course is a random match."
+      }
+     }
+    },
+    "CS4268": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Garbled query whose intent expects no results. A quantum computing course that merely has a CS4xxx code is a random match."
+      }
+     }
+    },
+    "EE4415": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Garbled query whose intent expects no results. This IC design course is a random match."
+      }
+     }
+    },
+    "MUA1165": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "The query is a garbled string, and the intent says that random courses returned with no connection are not relevant. This music technology course is one of them."
+      }
+     }
+    },
+    "PC4246": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Garbled query whose intent expects no results. This quantum optics course is a random match."
+      }
+     }
+    },
+    "QF4103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Garbled query whose intent expects no results. This financial derivatives course is a random match."
       }
      }
     }
@@ -5886,6 +7414,18 @@
        "rationale": "A CFD numerical methods course on fluid flow and convective heat transfer. It does not teach the laws of thermodynamics, cycles or entropy."
       }
      }
+    },
+    "CN2106": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 2000-level chemical engineering thermal-fluids course (fluid mechanics and heat transfer), offered in Sem 1 and open to NG students; related, but it has no explicit thermodynamics laws, cycles or entropy."
+      }
+     }
     }
    }
   },
@@ -6044,6 +7584,42 @@
        "slot": "A",
        "grade": 1,
        "rationale": "3000-level physics fluid dynamics on Navier-Stokes, waves and geophysical flows; an advanced fluid dynamics elective."
+      }
+     }
+    },
+    "CN2104": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Chemical engineering thermodynamics on property relations and equilibrium. It is not a fluid mechanics course."
+      }
+     }
+    },
+    "ME2121": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Thermodynamics and heat transfer course. Convection is mentioned only as a heat transfer mode, and fluid statics, Bernoulli, pipe flow and boundary layers are not covered."
+      }
+     }
+    },
+    "ME3115": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Covers rigid body dynamics, kinematics and vibration of machines. There is no fluid statics, Bernoulli or pipe flow."
       }
      }
     }
@@ -6302,6 +7878,90 @@
        "rationale": "IS4246 is about designing AI systems and AI governance, which is software and systems design rather than mechanical design. The intent rules that out."
       }
      }
+    },
+    "CE3165": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Structural concrete design for civil engineering; not machine elements like gears, bearings or shafts, nor a CAD or general design project course."
+      }
+     }
+    },
+    "CG4002": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "An engineering capstone design project (hardware and software system), matching the intent's partially relevant general engineering design project course, though not mechanical."
+      }
+     }
+    },
+    "ID1223": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "History and ideas of industrial/product design, the kind of product design course the intent rules out."
+      }
+     }
+    },
+    "LI5204": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Supply chain simulation; unrelated to machine design."
+      }
+     }
+    },
+    "MA3270": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Mathematics for AI; unrelated to machine element design."
+      }
+     }
+    },
+    "MA4254": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Discrete optimisation; unrelated to mechanical design."
+      }
+     }
+    },
+    "PF4309": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Infrastructure operations and maintenance management; not machine design."
+      }
+     }
     }
    }
   },
@@ -6474,6 +8134,66 @@
        "rationale": "A physics climate science course that mentions radiation and convection in the atmosphere; not an engineering heat transfer course."
       }
      }
+    },
+    "CN2103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Material and energy balances in chemical processes; not a heat transfer course."
+      }
+     }
+    },
+    "CN4205R": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Pinch analysis for heat integration and heat exchanger networks in chemical processes; does not teach conduction, convection and radiation."
+      }
+     }
+    },
+    "ME4252": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Nanomaterials for energy devices (solar cells, batteries); not heat transfer."
+      }
+     }
+    },
+    "MLE2102": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Materials thermodynamics and phase equilibria for energy technologies; no heat transfer modes covered."
+      }
+     }
+    },
+    "MLE2103A": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Materials kinetics and phase transformations; not heat transfer."
+      }
+     }
     }
    }
   },
@@ -6644,6 +8364,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Manufacturing of immune cells for therapy; shares only the word manufacturing."
+      }
+     }
+    },
+    "CN3104": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Chemical process simulation in MATLAB and HYSYS. It only shares the word 'process' with the query."
+      }
+     }
+    },
+    "CN4205R": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Chemical engineering heat integration and pinch analysis. It covers no machining, casting, forming or welding."
       }
      }
     }
@@ -6878,6 +8622,54 @@
        "rationale": "Biophysics research topics; unrelated."
       }
      }
+    },
+    "CE2134": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Fluid mechanics course; not thermodynamics."
+      }
+     }
+    },
+    "CN2109": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Fluid mechanics course; not thermodynamics."
+      }
+     }
+    },
+    "MA2104": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Multivariable calculus; unrelated to thermodynamics."
+      }
+     }
+    },
+    "PC2031": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Electricity and magnetism physics course; no thermodynamics."
+      }
+     }
     }
    }
   },
@@ -7086,6 +8878,90 @@
        "rationale": "Kinematics and dynamics theory for robotics with simulation projects; not a design project course."
       }
      }
+    },
+    "AR2101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Architecture design studio, which the intent names as not relevant."
+      }
+     }
+    },
+    "AR5801": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Architecture design research studio at 5000-level; architecture design is named as not relevant."
+      }
+     }
+    },
+    "CE3165": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Structural concrete design for civil engineers; not a mechanical concept-to-prototype design project."
+      }
+     }
+    },
+    "CN3103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Chemical engineering separation processes lecture course; not a design project course."
+      }
+     }
+    },
+    "DTK1234": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "General design thinking course with practical activities and idea generation, matching the intent's partially relevant category."
+      }
+     }
+    },
+    "ID1223": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "History of ideas in industrial and product design since the industrial revolution; not a hands-on design project or design thinking course."
+      }
+     }
+    },
+    "ME2134": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introductory fluid mechanics lecture course; no team design project, CAD or prototyping."
+      }
+     }
     }
    }
   },
@@ -7282,6 +9158,66 @@
        "rationale": "Arabic 1 is a beginner language course (from the alphabet) open to NG students in semester 1; it is another beginner Asian-region language rather than Japanese 1, matching the partially relevant line."
       }
      }
+    },
+    "CH1101E": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Chinese history and literature stories course that assumes basic spoken Mandarin; not beginner language teaching."
+      }
+     }
+    },
+    "GEC1039": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "International relations of Asia from Japanese Studies; no language teaching, named as not relevant."
+      }
+     }
+    },
+    "GESS1013": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Singapore-Japan relations course from Japanese Studies with no language teaching; named as not relevant."
+      }
+     }
+    },
+    "LAC1201": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Chinese 1 for students with no prior Mandarin, open to NG students in semester 1; another beginner Asian language, so partially relevant."
+      }
+     }
+    },
+    "LAT1201": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Thai 1, a beginner Asian language course open to NG students in semester 1; matches the partially relevant line."
+      }
+     }
     }
    }
   },
@@ -7452,6 +9388,42 @@
        "slot": "A",
        "grade": 1,
        "rationale": "Singapore history directly, but 3000-level and aimed at deepening existing understanding, less suited to a non-specialist; prerequisites are not shown."
+      }
+     }
+    },
+    "GESS1005": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 1000-level course for all faculties on Singapore's multicultural society through the South Asian community's history and identity; relevant to Singapore society but narrowly focused on one community."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 1000-level course on Singapore Malays' religious orientations and their socio-historical roots; touches Singapore society but is narrowly about Islam in one community."
+      }
+     }
+    },
+    "GESS1025": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level course reflecting on Singapore's post-independence history and current social issues, delivered online and suited to non-specialists; NG in semester 1."
       }
      }
     }
@@ -7854,6 +9826,186 @@
        "rationale": "NGN2001J Global Narratives is a humanities course, not a mechanical or engineering course."
       }
      }
+    },
+    "CE2134": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 2000-level, 4-unit engineering fluid mechanics course from Civil and Environmental Engineering rather than Mechanical."
+      }
+     }
+    },
+    "CN2103": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 2000-level, 4-unit chemical engineering course; an engineering course with level and units shown, but not mechanical."
+      }
+     }
+    },
+    "CN2109": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 2000-level, 4-unit engineering course on fluid mechanics, but from Chemical and Biomolecular Engineering rather than Mechanical."
+      }
+     }
+    },
+    "DOS3703": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A business service operations course, not engineering."
+      }
+     }
+    },
+    "GE2215": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A geography GIS course, not engineering."
+      }
+     }
+    },
+    "ME2102": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 2000-level, 4-unit Mechanical Engineering core course, offered and open to NG students in semester 1."
+      }
+     }
+    },
+    "ME3115": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Mechanical Engineering course with 4 units, but at 3000-level rather than 2000-level."
+      }
+     }
+    },
+    "ME3142": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Mechanical Engineering course with 4 units, but at 3000-level rather than 2000-level."
+      }
+     }
+    },
+    "ME4226": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Mechanical Engineering course with 4 units, but at 4000-level rather than 2000-level."
+      }
+     }
+    },
+    "ME4245": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Mechanical Engineering course showing 4 units, but at 4000-level rather than the 2000-level wanted."
+      }
+     }
+    },
+    "PC2193": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A 2000-level physics lab course in the Science faculty, not an engineering course."
+      }
+     }
+    },
+    "PC3193": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A 3000-level experimental physics course, not engineering."
+      }
+     }
+    },
+    "PC3232": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A 3000-level physics course, not engineering."
+      }
+     }
+    },
+    "PC3294": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 1"
+      }
+     }
+    },
+    "RB2202": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 2000-level, 4-unit course from Mechanical Engineering on kinematics and dynamics, offered and open to NG students in semester 1."
+      }
+     }
     }
    }
   },
@@ -8098,6 +10250,78 @@
        "rationale": "ID3107 is a project-based design studio in the College of Design and Engineering, which fits the no-exam, project-graded wish, but it sits in the Design department rather than mechanical or general engineering. The description does not state the assessment breakdown."
       }
      }
+    },
+    "CDE2301": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A College of Design and Engineering course built around workshops, case studies and a major group project, fitting the project-based wish; the fields do not confirm there is no final exam and the topic is business viability rather than mechanical engineering."
+      }
+     }
+    },
+    "CS2030": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A Computing programming course, not an engineering elective; integrated assignments are mentioned but nothing shows the absence of a final exam."
+      }
+     }
+    },
+    "EE2012": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A mathematical methods course (probability, complex variables) for ECE; nothing suggests project-based assessment without a final exam."
+      }
+     }
+    },
+    "EE2026": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An engineering digital design course, but the description gives no sign of project-only assessment or no final exam, which is the core of the intent."
+      }
+     }
+    },
+    "EE3431C": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A lecture-style microelectronics devices course; the description shows no project-based or exam-free assessment."
+      }
+     }
+    },
+    "MUA3228": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A piano repertoire analysis elective from the music conservatory; not an engineering course, which the intent names as not relevant."
+      }
+     }
     }
    }
   },
@@ -8280,6 +10504,30 @@
        "slot": "A",
        "grade": 1,
        "rationale": "4000-level course on majority-minority relations in SE Asia that includes colonialism and the rise of the nation-state as topics."
+      }
+     }
+    },
+    "HY1101E": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 1000-level general history of Asia, which the intent lists as partially relevant; it is not focused on colonialism in Southeast Asia."
+      }
+     }
+    },
+    "PP5206": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A 5000-level political science course on contemporary SEA politics, not a history course on colonialism and decolonisation."
       }
      }
     }
@@ -8734,6 +10982,42 @@
        "rationale": "Marriage, love and sex in South Asia intersecting with gender and political structures; Asian angle, gender partly central."
       }
      }
+    },
+    "GES1034": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Same Singapore citizenship and politics course as GESS1024; no gender content."
+      }
+     }
+    },
+    "GESS1024": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Covers Singapore politics and citizenship but the description has no gender content; it only shares the word politics with the query."
+      }
+     }
+    },
+    "PS2266": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "About music and political theory; no gender content, so it only shares the word politics."
+      }
+     }
     }
    }
   },
@@ -8904,6 +11188,42 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Sociology of sexuality; 'comparative' is only a shared word."
+      }
+     }
+    },
+    "GES1034": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "1000-level political science course on Singapore politics; an intro politics course but not comparative politics."
+      }
+     }
+    },
+    "GESS1024": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "1000-level political science course on Singapore politics; an intro politics course but not comparative politics."
+      }
+     }
+    },
+    "PH4213": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "4000-level comparative philosophy; shares the word 'comparative' only."
       }
      }
     }
@@ -9088,6 +11408,30 @@
        "slot": "A",
        "grade": 1,
        "rationale": "A Singapore-focused course on local cultural performance that explores the histories of these practices, but it is a performance and media studies course rather than a history of Singapore from colonial times onward."
+      }
+     }
+    },
+    "GESS1016": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Covers Singapore's natural heritage and biodiversity conservation, not its history."
+      }
+     }
+    },
+    "NHS2048": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Covers Singapore's foreign policy since 1965 under its founding leaders, part of post-independence history but not a general history from colonial times."
       }
      }
     }
@@ -9308,6 +11652,18 @@
        "slot": "A",
        "grade": 1,
        "rationale": "Singapore politics and nation building; related to Singapore society but political rather than ethnicity and religion."
+      }
+     }
+    },
+    "GESS1025": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Sociology course on Singapore's socioeconomic issues and future, mentioning its diverse population but not centred on race and religion."
       }
      }
     }
@@ -9590,6 +11946,258 @@
        "rationale": "A 3000-level computer science database course; upper-level but not in history or politics."
       }
      }
+    },
+    "AR3223": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level architecture course on urbanism and urban design; touches urban history but is not a history or politics course."
+      }
+     }
+    },
+    "CE3116": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level civil engineering; not history or politics."
+      }
+     }
+    },
+    "CG3207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level computer architecture; not history or politics."
+      }
+     }
+    },
+    "CS3213": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level software engineering; not history or politics."
+      }
+     }
+    },
+    "CS3230": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level algorithms course; not history or politics."
+      }
+     }
+    },
+    "CS3235": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level computer security; not history or politics."
+      }
+     }
+    },
+    "DOS3701": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level supply chain management; not history or politics."
+      }
+     }
+    },
+    "EC3322": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level industrial organisation economics; not history or politics."
+      }
+     }
+    },
+    "EC3343": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level economics (international finance); not history or politics."
+      }
+     }
+    },
+    "ENV3206": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level environmental sustainability evaluation; not a history or politics course."
+      }
+     }
+    },
+    "FIN3701A": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level corporate finance; not history or politics."
+      }
+     }
+    },
+    "FIN3701B": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level corporate finance; not history or politics."
+      }
+     }
+    },
+    "HY3250": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "3000-level History course on Singapore historiography and heritage, open to NG students; an upper-level history course."
+      }
+     }
+    },
+    "IT3010": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level data management; not history or politics."
+      }
+     }
+    },
+    "MA3233": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level graph theory; not history or politics."
+      }
+     }
+    },
+    "PF3205": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level building measurement; not history or politics."
+      }
+     }
+    },
+    "PL3103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level cognitive psychology; not history or politics."
+      }
+     }
+    },
+    "PL3239": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level but in psychology, not the student's history or politics fields."
+      }
+     }
+    },
+    "PS3251": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "3000-level Political Science course on international organisations and global governance, open to NG students; an upper-level politics course."
+      }
+     }
+    },
+    "RE3705": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level urban planning for real estate; not history or politics."
+      }
+     }
+    },
+    "TS3243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "3000-level theatre and film studies; not history or politics."
+      }
+     }
     }
    }
   },
@@ -9844,6 +12452,66 @@
        "slot": "A",
        "grade": 0,
        "rationale": "A general introduction to literary studies and storytelling with no Southeast Asian focus; it only loosely shares the word 'studies' with the query."
+      }
+     }
+    },
+    "AR2102": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An architecture design studio on climate and building envelopes, with no Southeast Asian history, society or culture."
+      }
+     }
+    },
+    "GESS1002": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Covers Singapore's biophysical environment (geology, coasts, reclamation), an environmental course rather than SEA society or culture."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Malay Studies course on the religion and society of Singapore's Malays: Southeast Asian society, but focused on one community rather than the region as a whole."
+      }
+     }
+    },
+    "LSM3275": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Coral reef ecology is a marine course about the sea, which the intent names as not relevant."
+      }
+     }
+    },
+    "LSM4266": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Aquatic invertebrate biodiversity is a marine/environmental biology course, named as not relevant."
       }
      }
     }
@@ -10112,6 +12780,78 @@
        "slot": "A",
        "grade": 1,
        "rationale": "A broad 1000-level introduction to Japanese society, culture and history, open to NG students; it is a humanities intro course outside the major but is not shown as a general education module."
+      }
+     }
+    },
+    "GEC1023": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEC general education course on the social history of the piano, humanities, open to NG students."
+      }
+     }
+    },
+    "GEC1040": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEC general education course on culture and sustainability with cross-cultural cases, a society/culture topic open to NG students."
+      }
+     }
+    },
+    "GEC1043": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GEC general education course on global histories of food and identity, humanities, open to NG students."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on religion and Malay society, social science, open to NG students."
+      }
+     }
+    },
+    "GESS1029": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on everyday ethics in Singapore society, open to NG students."
+      }
+     }
+    },
+    "SC1101E": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Introductory sociology and anthropology course on society, open to NG, but not a general education module; fits 'broad intro course outside my major'."
       }
      }
     }
@@ -10466,6 +13206,90 @@
        "rationale": "GESS1007 is a 1000-level History department course that describes itself as an introduction to business history, open to NG students. The fields list no prerequisites, so it fits an intro history course."
       }
      }
+    },
+    "GEC1037": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level History department general-education course on big-picture history that teaches students to think historically; an introductory history course with no prerequisites indicated."
+      }
+     }
+    },
+    "GEC1038": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 1000-level humanities course on early Asian film with a historical perspective; intro humanities rather than a history course proper."
+      }
+     }
+    },
+    "GEC1043": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 1000-level History department course on global histories of food, introductory and open to NG students in semester 1."
+      }
+     }
+    },
+    "GESS1006": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 1000-level humanities course on ethnic policy with socio-historical context from colonialism to the present; intro humanities, not primarily history."
+      }
+     }
+    },
+    "GESS1013": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 1000-level course with a strong historical component on Singapore-Japan relations, but it mixes political, economic and cultural perspectives rather than being an intro history course."
+      }
+     }
+    },
+    "HY2206": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A broad survey of Chinese imperial history mounted for undergraduates throughout the university, so it reads as introductory with no history background required."
+      }
+     }
+    },
+    "HY2260": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A History course on popular culture and historical knowledge, but 2000-level and topical with varying focus, so less clearly introductory."
+      }
+     }
     }
    }
   },
@@ -10734,6 +13558,66 @@
        "rationale": "A history-of-cinema survey taught from English Studies, so it is history-adjacent rather than a History course. The fields don't show the assessment format, so whether it meets the essay-only, no-final-exam requirement can't be confirmed."
       }
      }
+    },
+    "AH3204": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An art historiography course in the History department, but the description gives no information on essay-only or exam-free assessment."
+      }
+     }
+    },
+    "ENV3206": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Environmental sustainability evaluation course; not history and no essay-only assessment shown."
+      }
+     }
+    },
+    "HY2235": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "An environmental history course combining lectures with research assignments; history with coursework, but the fields do not confirm there is no final exam."
+      }
+     }
+    },
+    "MS3212": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Classical Malay literature and ideology course; not a history course and no assessment information shown."
+      }
+     }
+    },
+    "MS5201": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A 5000-level Malay Studies critiques course; not a history course and no assessment information shown."
+      }
+     }
     }
    }
   },
@@ -10940,6 +13824,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Sociology course on demography; not politics."
+      }
+     }
+    },
+    "GEC1007": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Sem 2 NG-open geopolitics course that matches politics; the fields do not show the assessment mode, so 100% continuous assessment cannot be confirmed."
+      }
+     }
+    },
+    "PH4202": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A Sem 2 NG-open political philosophy course matching politics; the fields do not show whether it has a final exam, so it cannot be confirmed as exam-free."
       }
      }
     }
@@ -11186,6 +14094,162 @@
        "rationale": "Asian politics course; politics is named as not relevant."
       }
      }
+    },
+    "BN3301": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Introduction to biomaterials and their interaction with tissues; health-adjacent intro content."
+      }
+     }
+    },
+    "CE3155A": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Structural analysis for civil engineering; unrelated."
+      }
+     }
+    },
+    "CE3155B": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Structural modelling for civil engineering; unrelated."
+      }
+     }
+    },
+    "ESE3401": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Water and wastewater treatment engineering; not health sciences."
+      }
+     }
+    },
+    "MLE3104": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Polymer and composite materials engineering; not health sciences."
+      }
+     }
+    },
+    "MLE3203": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Engineering materials (ceramics, metals, concrete); a brief mention of orthopedic bioceramics does not make it a health sciences intro."
+      }
+     }
+    },
+    "MLE4239": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Advanced 4000-level materials science of biointerfaces; not an intro health sciences course."
+      }
+     }
+    },
+    "PC3295": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Introduction to radiation in medical imaging and therapy; a health sciences intro."
+      }
+     }
+    },
+    "PH3207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Continental philosophy; unrelated to health sciences."
+      }
+     }
+    },
+    "PL3106": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Psychology course on mental health with an introduction to clinical intervention; health-related intro content, the intent's partially relevant line."
+      }
+     }
+    },
+    "SPH3107": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Infectious disease modelling for public health; health sciences content, though modelling-focused."
+      }
+     }
+    },
+    "ST3247": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Statistical simulation; not health sciences."
+      }
+     }
+    },
+    "SW3217": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Mental health and illness from a biopsychosocial lens; health-related content fitting the partially relevant line."
+      }
+     }
     }
    }
   },
@@ -11430,6 +14494,30 @@
        "rationale": "A 4000-level reproductive biology course on gonad development and reproduction; genetic and cellular control is one subtopic, not the molecular-mechanism focus the intent asks of a partially relevant genetics or cell biology course."
       }
      }
+    },
+    "CM4236": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Physical chemistry spectroscopy and imaging course that only uses gene expression as an example; a chemistry course sharing the word 'molecular'."
+      }
+     }
+    },
+    "CS4220": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Data mining techniques for biological data (clustering, SVMs, HMMs); not a molecular biology course on replication, transcription or gene regulation."
+      }
+     }
     }
    }
   },
@@ -11624,6 +14712,18 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Bioinformatics; unrelated to metabolism or enzymes."
+      }
+     }
+    },
+    "LSM4231": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Structural biology course on protein structure determination (EM, NMR, X-ray). The intent lists a protein structure course as partially relevant."
       }
      }
     }
@@ -11870,6 +14970,18 @@
        "rationale": "Bioinformatics with computer practicals; no wet-lab PCR, cloning, gels or blots."
       }
      }
+    },
+    "ZB3101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Computational genomic data analysis (databases, NGS mapping, pathway analysis), not a wet lab course where the student does PCR, cloning, gels or western blots."
+      }
+     }
     }
    }
   },
@@ -12088,6 +15200,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Biology and philosophy of pain; not marine."
+      }
+     }
+    },
+    "LSM2254": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Course on flowering plant biology and plant biotechnology, with no marine systems."
+      }
+     }
+    },
+    "LSM3259": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Fungal biology course on mushrooms, yeasts and symbionts, with no marine or coral reef content."
       }
      }
     }
@@ -12358,6 +15494,66 @@
        "rationale": "BN3402 teaches analytical methods (microscopy, spectroscopy, electrophoresis) for characterising cells and biomolecules; it covers neither signal transduction nor cancer, and it is not a general cell biology course."
       }
      }
+    },
+    "CS4220": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A data mining course for biological data; not about cell signalling or cancer biology."
+      }
+     }
+    },
+    "LSM3214": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An organ-system physiology course on hormonal homeostasis; it does not cover intracellular signal transduction or cancer."
+      }
+     }
+    },
+    "LSM3234": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A biological imaging methods course; no signal transduction or cancer content shown."
+      }
+     }
+    },
+    "NST2053": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A social-epidemiology course on marginalised communities; not cell or cancer biology."
+      }
+     }
+    },
+    "SPH2004": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A public health course on lifestyle behaviours; not cell biology or cancer biology."
+      }
+     }
     }
    }
   },
@@ -12504,6 +15700,42 @@
        "slot": "A",
        "grade": 0,
        "rationale": "LSM4234 is about mechanical regulation of cell functions and only mentions prokaryotes in passing; it does not cover bacterial physiology, genetics or pathogenesis, nor virology or immunology."
+      }
+     }
+    },
+    "BN4207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Microrobotics engineering; only shares the 'micro' prefix."
+      }
+     }
+    },
+    "CS4330": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Genome assembly algorithms; not microbiology."
+      }
+     }
+    },
+    "MLE4239": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Materials science of biointerfaces; not microbiology."
       }
      }
     }
@@ -12712,6 +15944,66 @@
        "slot": "A",
        "grade": 0,
        "rationale": "This is an analytical chemistry course with chromatography practicals but no protein purification, enzyme kinetics or SDS-PAGE; the intent excludes analytical chemistry, and it is not biochemistry or molecular biology."
+      }
+     }
+    },
+    "BN3402": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Teaches engineers to appraise analytical methods such as spectroscopy and electrophoresis; no hands-on lab work is described, and it is analytical methods for engineers rather than a biochemistry practical."
+      }
+     }
+    },
+    "LSM3242": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A lecture course on applied microbiology with no practical work described."
+      }
+     }
+    },
+    "LSM3243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Describes biophysical techniques and protein folding, but the description shows no practical work, so it reads as lecture-only."
+      }
+     }
+    },
+    "PC3267": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A molecular biophysics lecture course on protein structure and thermodynamics with a lab component; related, but not a biochemistry practical on purification, kinetics or SDS-PAGE."
+      }
+     }
+    },
+    "ZB2101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Its practicals are computational bioinformatics tools, not wet lab biochemistry or molecular biology."
       }
      }
     }
@@ -12970,6 +16262,30 @@
        "rationale": "An upper-level molecular life science course on macromolecular structure and biophysical techniques, related to molecular biology but not genetics or genomics, and no lab component is stated."
       }
      }
+    },
+    "CS4330": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "4000-level genome assembly algorithms course, open to NG in sem 2; genomics-related bioinformatics with no lab, which the intent lists as partially relevant."
+      }
+     }
+    },
+    "PL3102": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Biological psychology on brain and behaviour; not genetics, genomics or molecular biology."
+      }
+     }
     }
    }
   },
@@ -13166,6 +16482,42 @@
        "rationale": "Maritime Southeast Asian society and governance; regional studies, not conservation."
       }
      }
+    },
+    "GESS1012": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Religion and society course on Malays in Singapore, with no conservation or ecology content."
+      }
+     }
+    },
+    "LSM4201": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Environmental course on communicating environmental issues and human-wildlife coexistence. It touches conservation themes but is neither region-specific nor focused on forests or mangroves."
+      }
+     }
+    },
+    "LSM4264": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Conservation-focused ecology course, but on freshwater systems in local and international contexts, not tropical rainforests or mangroves. It fits the partial line for broader conservation biology."
+      }
+     }
     }
    }
   },
@@ -13336,6 +16688,126 @@
        "slot": "A",
        "grade": 0,
        "rationale": "A political theory course with no connection to evolution or developmental biology."
+      }
+     }
+    },
+    "BN4102": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Gerontechnology for ageing; mentions the biology of ageing but nothing on developmental biology or evolution."
+      }
+     }
+    },
+    "BN4303": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Tissue engineering for meat alternatives; not developmental or evolutionary biology."
+      }
+     }
+    },
+    "CDE2000": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Design and engineering communication course; unrelated."
+      }
+     }
+    },
+    "DAO1704X": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Spreadsheet decision analytics; unrelated."
+      }
+     }
+    },
+    "DAO2702X": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Python programming for business analytics; a developer-type course the intent rules out."
+      }
+     }
+    },
+    "DAO2703": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Operations and technology management; unrelated to evo-devo."
+      }
+     }
+    },
+    "EE4415": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Integrated circuit design; unrelated to evolutionary developmental biology."
+      }
+     }
+    },
+    "GEC1004": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Japanese cultural stereotypes course; unrelated."
+      }
+     }
+    },
+    "GESS1026": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A Singapore history course; no biology content."
+      }
+     }
+    },
+    "LI5204": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 2"
       }
      }
     }
@@ -13580,6 +17052,150 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Chinese Studies translation course; a departmental course, not general education."
+      }
+     }
+    },
+    "CS2030DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Major-specific programming methodology course, not general education."
+      }
+     }
+    },
+    "ESE4401": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "4000-level major-specific environmental engineering course, which the intent names as not relevant."
+      }
+     }
+    },
+    "GESS1003": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course taught in English, open to NG students in sem 2."
+      }
+     }
+    },
+    "GESS1005": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course aimed at undergraduates from all faculties, open to NG students in sem 2."
+      }
+     }
+    },
+    "GESS1006": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on ethnicity and nation-building, open to NG students in sem 2."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on Islam and Malay society, open to NG students in sem 2."
+      }
+     }
+    },
+    "GESS1015": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on Western music in Singapore, open to NG students in sem 2."
+      }
+     }
+    },
+    "GESS1020": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on Singapore society, open to NG students in sem 2."
+      }
+     }
+    },
+    "GESS1025": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course, offered and open to NG students in sem 2."
+      }
+     }
+    },
+    "GESS1026": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on Singapore history, offered and open to NG students in sem 2."
+      }
+     }
+    },
+    "GESS1028": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course open to all students, offered and open to NG in sem 2."
+      }
+     }
+    },
+    "GESS1029": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "GESS general education course on everyday ethics, open to NG students in sem 2."
       }
      }
     }
@@ -13848,6 +17464,66 @@
        "slot": "A",
        "grade": 1,
        "rationale": "A 3000-level course on genome engineering and genome-editing technology, so it is on topic but a third-year course rather than the higher-level one wanted, which fits the partial line."
+      }
+     }
+    },
+    "CM4236": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Biophysical chemistry spectroscopy and imaging techniques, not a molecular biology course."
+      }
+     }
+    },
+    "LSM4237": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 4000-level course on pharmacogenomics, covering genetic and epigenetic determinants and genomic technologies; it overlaps molecular biology but is applied to medicine."
+      }
+     }
+    },
+    "LSM4241": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "A 4000-level Sem 2 NG-open course on functional genomics, covering gene function, transgenics and genomic technologies: advanced molecular biology research topics."
+      }
+     }
+    },
+    "LSM4252": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A 4000-level reproductive biology course that includes genetic and cellular control mechanisms, with molecular biology as one part."
+      }
+     }
+    },
+    "MLE4239": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A materials science course on biointerfaces, not molecular biology."
       }
      }
     }
@@ -14130,6 +17806,90 @@
        "rationale": "PC3411 is a physics course on Big Bang cosmology, relativity and quantum physics; it has no biochemistry content."
       }
      }
+    },
+    "BN3301": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Biomaterials engineering course on material properties and biocompatibility; not biochemistry."
+      }
+     }
+    },
+    "CM3251": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Nanochemistry synthesis and applications; not biochemistry."
+      }
+     }
+    },
+    "CM3261": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Environmental chemistry and pollution; not biochemistry."
+      }
+     }
+    },
+    "CN4247R": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "4000-level enzyme technology covering enzyme structure, function and protein engineering, but oriented toward bioprocess engineering rather than a core biochemistry course."
+      }
+     }
+    },
+    "LSM3243": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "3000-level course on macromolecular conformation, protein folding and protein-ligand interaction; structural biochemistry and protein science above introductory level, open to NG in semester 2."
+      }
+     }
+    },
+    "PC3233": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Atomic and molecular physics on spectra and energy levels; shares only the word 'molecular'."
+      }
+     }
+    },
+    "PC3267": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "3000-level molecular biophysics covering protein and nucleic acid structure and biomolecular interactions from a physics perspective; related to structural biochemistry but not a biochemistry course as such."
+      }
+     }
     }
    }
   },
@@ -14398,6 +18158,42 @@
        "rationale": "Statistical learning course; unrelated."
       }
      }
+    },
+    "LSM4210": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A biomedical science course on human brain, metabolism and ageing; human-focused, not animal physiology or veterinary."
+      }
+     }
+    },
+    "LSM4234": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A cell-level mechanobiology course framed around human health; not animal physiology, animal behaviour or veterinary work."
+      }
+     }
+    },
+    "MLE4239": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A materials science course on biointerfaces and implants; no veterinary, animal physiology or animal behaviour content."
+      }
+     }
     }
    }
   },
@@ -14642,6 +18438,30 @@
        "rationale": "A microcontroller C programming and interfacing course; the description does not mention threads, synchronisation or parallel programming."
       }
      }
+    },
+    "CM3267": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Python programming on Raspberry Pi for chemistry; no threads, synchronisation or parallel programming."
+      }
+     }
+    },
+    "CS2107": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Information security; does not cover concurrency or operating system threads."
+      }
+     }
     }
    }
   },
@@ -14836,6 +18656,66 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Machine learning for engineering problems; not software design."
+      }
+     }
+    },
+    "BT3017": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Feature engineering for machine learning; not software design."
+      }
+     }
+    },
+    "BT4014": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Design of adaptive systems via A/B experiments; not OO design or design patterns."
+      }
+     }
+    },
+    "CS3230": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Algorithm design and analysis; shares the word design but not software design patterns or OO design."
+      }
+     }
+    },
+    "CS3247": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Game design and programming with engines; not a software engineering or OO design course."
+      }
+     }
+    },
+    "CS4212": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Compiler design; not software engineering design patterns."
       }
      }
     }
@@ -15094,6 +18974,18 @@
        "rationale": "PH3203 is a 3000-level meta-ethics course on moral realism and emotivism, not philosophy of mind or consciousness. Being advanced, it is not a general intro philosophy course either."
       }
      }
+    },
+    "GEX1019": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "An accessible 1000-level course on logic, meaning and reasoning in language, which touches on thought and is close to cognitive science, but it is linguistics, not philosophy of mind or consciousness."
+      }
+     }
     }
    }
   },
@@ -15288,6 +19180,42 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Advanced 4000-level topics course in which ethics is only one possible topic."
+      }
+     }
+    },
+    "EL1101E": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introductory linguistics; not ethics or moral philosophy."
+      }
+     }
+    },
+    "GES1034": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Singapore politics and citizenship course; not moral philosophy."
+      }
+     }
+    },
+    "IS1108": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "1000-level digital and AI ethics course open to NG students; an ethics-of-technology course, which the intent lists as partially relevant."
       }
      }
     }
@@ -15546,6 +19474,30 @@
        "rationale": "Bioinformatics; unrelated."
       }
      }
+    },
+    "GEC1034": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Course on globalisation and flows of goods, money and labour taught from a Southeast Asian studies angle. It is neither intro micro nor macroeconomic principles."
+      }
+     }
+    },
+    "GEX1010": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Introductory 1000-level economics course on economic reasoning that assumes no background, offered in semester 1. It applies economics to social issues through popular texts, not a formal principles-of-microeconomics syllabus."
+      }
+     }
     }
    }
   },
@@ -15728,6 +19680,42 @@
        "slot": "A",
        "grade": 1,
        "rationale": "A hands-on software engineering course on architecture, requirements and design patterns; general software engineering with no security or vulnerability content, matching the partially relevant line."
+      }
+     }
+    },
+    "CS1010": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introductory programming course; debugging is only a basic topic, not software security or a dedicated software testing/engineering course."
+      }
+     }
+    },
+    "CS1010E": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introductory programming course; testing and debugging appear only as basic program development, not software security or a dedicated testing/software engineering course."
+      }
+     }
+    },
+    "CS4230": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Theoretical cryptography with rigorous proofs; not about software vulnerabilities, exploits or secure coding, nor a testing/software engineering course."
       }
      }
     }
@@ -15938,6 +19926,42 @@
        "rationale": "Project management law; shares only the word 'concurrent'."
       }
      }
+    },
+    "CM3267": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introductory Python and computational thinking applied to chemistry, with no threads, shared memory or message passing. The intent marks intro programming as not relevant."
+      }
+     }
+    },
+    "CS2040DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Data structures and algorithms in Java, with no concurrency, parallel computing or OS content."
+      }
+     }
+    },
+    "CS3231": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Theory of computation (automata, languages, P vs NP). It covers neither concurrency nor parallel or operating systems topics."
+      }
+     }
     }
    }
   },
@@ -16144,6 +20168,42 @@
        "slot": "A",
        "grade": 0,
        "rationale": "An econometrics and linear regression course; the description mentions no databases, SQL, normalisation or transactions."
+      }
+     }
+    },
+    "DBA3702": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A data analytics course on organising, visualising and analysing data in R; analytics-adjacent but no relational model, SQL or transactions are mentioned."
+      }
+     }
+    },
+    "IS4402": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Machine learning on text and image data; not a database systems course."
+      }
+     }
+    },
+    "ZB3101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Genomic data analysis that touches on biological databases; not relational database design, SQL or transactions."
       }
      }
     }
@@ -16388,6 +20448,42 @@
        "slot": "A",
        "grade": 0,
        "rationale": "A law course on securities and capital markets regulation. It only shares the word 'securities' and is not a technical security course."
+      }
+     }
+    },
+    "CS2100": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Computer organisation is a systems course, matching the partially relevant line, but not security-adjacent."
+      }
+     }
+    },
+    "CS3241": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Computer graphics; neither security-adjacent nor a systems course."
+      }
+     }
+    },
+    "EE4204": {
+     "grade": 2,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 2,
+       "rationale": "An ECE computer networks course open to NG students; networks are named as a security-adjacent area and it sits outside the CS department."
       }
      }
     }
@@ -16734,6 +20830,66 @@
        "rationale": "Italian for Musicians 1 is a language course with no link to operating systems."
       }
      }
+    },
+    "DAO2703": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Operations management course, which the intent names as not relevant."
+      }
+     }
+    },
+    "FST3203": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Nutrition course on vitamins and minerals; nothing to do with operating systems."
+      }
+     }
+    },
+    "MLE4207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CMOS microfabrication process course; not operating systems or computer architecture."
+      }
+     }
+    },
+    "MUA1165": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Music technology course; no operating systems or computer architecture content."
+      }
+     }
+    },
+    "ST4231": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Computational statistics course; not operating systems or computer architecture."
+      }
+     }
     }
    }
   },
@@ -16868,6 +21024,78 @@
        "slot": "A",
        "grade": 0,
        "rationale": "CS4248 is about natural language processing and large language models; it has nothing on databases or SQL."
+      }
+     }
+    },
+    "BT4222": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A web data analytics course covering extraction, NLP and machine learning; data analytics rather than database systems or SQL."
+      }
+     }
+    },
+    "CS2040DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A data structures and algorithms course in Java; it has no database or SQL content."
+      }
+     }
+    },
+    "CS2100": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A computer organisation (hardware) course; no databases or SQL."
+      }
+     }
+    },
+    "CS2100DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A computer organisation (hardware) course; no databases or SQL."
+      }
+     }
+    },
+    "DBA3803": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A predictive analytics course covering regression, classification and data science; a data analytics course, not database systems."
+      }
+     }
+    },
+    "ZB3101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A genomic bioinformatics course; its databases are biological sequence resources, not relational database systems or SQL."
       }
      }
     }
@@ -17150,6 +21378,126 @@
        "rationale": "PC4248 is a technical 4000-level physics course on general relativity aimed at physics majors with strong maths, not a general education or humanities course."
       }
      }
+    },
+    "CS2030": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Technical CS programming methodology course, which the intent names as not relevant."
+      }
+     }
+    },
+    "CS2030DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Technical programming methodology course on OOP and functional programming, which the intent names as not relevant."
+      }
+     }
+    },
+    "CS2100DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Technical computer organisation course covering circuits, assembly and processor design, not general education."
+      }
+     }
+    },
+    "CS2107": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Technical CS course on information security and secure programming, which the intent names as not relevant."
+      }
+     }
+    },
+    "CS3235": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Technical CS course on computer security, which the intent names as not relevant."
+      }
+     }
+    },
+    "CS4230": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Technical, mathematically rigorous CS cryptography course, which the intent names as not relevant."
+      }
+     }
+    },
+    "CS4243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Technical 4000-level CS course on computer vision, which the intent names as not relevant."
+      }
+     }
+    },
+    "CS4248": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Technical 4000-level CS course on NLP and large language models, which the intent names as not relevant."
+      }
+     }
+    },
+    "DAO2702X": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A Python programming course for business analytics: technical, not a non-technical general education course."
+      }
+     }
+    },
+    "MA2401": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A technical course on programming in R plus calculus, linear algebra and probability, not a non-technical general education course."
+      }
+     }
     }
    }
   },
@@ -17370,6 +21718,150 @@
        "rationale": "Social determinants of health; not technology-focused."
       }
      }
+    },
+    "BN2104": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "On the impact of deploying medical technology in public and global health settings; it is related but aimed at biomedical engineers rather than being a general education course."
+      }
+     }
+    },
+    "CM4254": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "4000-level semiconductor device physics and processing, i.e. a device engineering course, which the intent names as not relevant."
+      }
+     }
+    },
+    "GE2103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Earth system science; no technology and society focus."
+      }
+     }
+    },
+    "GE2205": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "About nature-society relations and the environment, not technology."
+      }
+     }
+    },
+    "GE2207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Urban studies in which technology is only one of several factors listed; not about technology's effect on society."
+      }
+     }
+    },
+    "GEC1023": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A general education course on how societies responded to the invention of the piano: technology's social impact through one instrument, a narrow and indirect fit."
+      }
+     }
+    },
+    "GESS1000": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A general education course on Singapore's economic growth with technological factors as one focus; technology is part of a broader economic story, not the theme."
+      }
+     }
+    },
+    "GESS1020": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Broad Singapore society course covering politics, migration and gender, but the description does not mention technology."
+      }
+     }
+    },
+    "GEX1010": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A general education course on economic reasoning about human behaviour; no focus on technology."
+      }
+     }
+    },
+    "GEX1016": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "About interpersonal communication and relationship building; no technology content."
+      }
+     }
+    },
+    "HSI2010": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Covers space technology and its commercial and societal uses (tourism, mining, colonisation), but it is mainly a science course on Solar System objects."
+      }
+     }
+    },
+    "MLE4208": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Photovoltaic materials science and engineering, a technical device course, which the intent names as not relevant."
+      }
+     }
     }
    }
   },
@@ -17564,6 +22056,66 @@
        "slot": "A",
        "grade": 0,
        "rationale": "4000-level advanced topics course; not for beginners."
+      }
+     }
+    },
+    "MA1100": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "Entry-level maths course that covers logic and constructing rigorous arguments as one part, loosely matching the intro logic partial line."
+      }
+     }
+    },
+    "MUT1201": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Music composition; unrelated to philosophy."
+      }
+     }
+    },
+    "PH2227": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A philosophy course with accessible topics, but 2000-level and not shown as an introductory course; prerequisites are not shown."
+      }
+     }
+    },
+    "PH3250": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Advanced 3000-level seminar on free and modal logics that assumes classical predicate and modal logic; the intent rules out advanced courses needing prior philosophy."
+      }
+     }
+    },
+    "PS1101E": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introduction to political science, not philosophy, logic or critical thinking."
       }
      }
     }
@@ -17918,6 +22470,150 @@
        "rationale": "A CS programming languages concepts course, but the description shows nothing about assessment, so there is no evidence it lacks a final exam."
       }
      }
+    },
+    "COS1000": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A Physics department computational thinking course, not CS; no assessment information indicating no final exam."
+      }
+     }
+    },
+    "CS2100DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Computer organisation taught in ECE; nothing in the description indicates project-only assessment."
+      }
+     }
+    },
+    "CS2113": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A CS software engineering course centred on multi-person software projects and hands-on tools; project-oriented, though the fields do not show whether there is a final exam."
+      }
+     }
+    },
+    "CS3103": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A CS networks practice course built on hands-on experiments and network application development; practical coursework emphasis, but no confirmation of no final exam."
+      }
+     }
+    },
+    "CS3234": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A CS logic course; the description shows no information suggesting coursework-only assessment."
+      }
+     }
+    },
+    "CS3243": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An AI foundations course focused on analysing methods; the description gives no sign of project-only assessment."
+      }
+     }
+    },
+    "CS4230": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A theory-heavy cryptography course emphasising rigorous proofs; nothing indicates project-based assessment."
+      }
+     }
+    },
+    "CS4249": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A CS HCI course with a central semester-long group project with milestones; strongly project-based, though the fields do not confirm there is no final exam."
+      }
+     }
+    },
+    "CS4330": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An algorithmic bioinformatics CS course; the description shows nothing about project-based assessment."
+      }
+     }
+    },
+    "ESP2107": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An engineering science numerical methods course, not CS; no evidence of exam-free assessment."
+      }
+     }
+    },
+    "MA2213": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A mathematics numerical analysis course; not CS and no sign of exam-free assessment."
+      }
+     }
+    },
+    "MA2214": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A mathematics course, not CS, with no assessment information indicating no final exam."
+      }
+     }
     }
    }
   },
@@ -18069,6 +22765,150 @@
        "slot": "A",
        "grade": 0,
        "rationale": "SPH3107 is not BN4207 or a variant of it; the intent says any other course is not relevant."
+      }
+     }
+    },
+    "BN4202A": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "BN4202A is a different Biomedical Engineering course (biofluid dynamics), not BN4207 or a suffixed variant of it."
+      }
+     }
+    },
+    "CN4201R": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CN4201R is a chemical engineering course; not BN4207 or a variant."
+      }
+     }
+    },
+    "GESS1006": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "GESS1006 is a Malay Studies course; not BN4207 or a variant."
+      }
+     }
+    },
+    "LL4237V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4237V is a law course unrelated to the code BN4207."
+      }
+     }
+    },
+    "LL4246": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4246 is a maritime law course; not BN4207 or a variant."
+      }
+     }
+    },
+    "LL4342V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4342V is a tax law course; not BN4207 or a variant."
+      }
+     }
+    },
+    "LL4402": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4402 is an insolvency law course; not BN4207 or a variant."
+      }
+     }
+    },
+    "LSM4202": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LSM4202 is a biology course with a different code; not BN4207 or a variant."
+      }
+     }
+    },
+    "MA4273": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA4273 is a mathematics course; the intent counts only BN4207 and its variants."
+      }
+     }
+    },
+    "ME4212": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "ME4212 is a mechanical engineering course; not BN4207 or a variant."
+      }
+     }
+    },
+    "ME4227": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "ME4227 is a mechanical engineering course; not BN4207 or a variant."
+      }
+     }
+    },
+    "MLE4205": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MLE4205 is a materials course with a different code; not BN4207 or a variant."
       }
      }
     }
@@ -18272,6 +23112,138 @@
        "rationale": "LL4342V is a different law course (cross-border taxation) with a different base code, not LL4541V or a variant of it."
       }
      }
+    },
+    "EE4415": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE4415 is a different course, not LL4541V or a variant."
+      }
+     }
+    },
+    "IS1108": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "IS1108 is a different course, not LL4541V or a variant."
+      }
+     }
+    },
+    "LL4004V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4004V is a different course, not LL4541V or a variant."
+      }
+     }
+    },
+    "LL4034V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4034V is a different course, not LL4541V or a variant."
+      }
+     }
+    },
+    "LL4096V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4096V is a different course, not LL4541V or a variant."
+      }
+     }
+    },
+    "LL4100": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4100 is a different course, not LL4541V or a variant."
+      }
+     }
+    },
+    "LL4111V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4111V is a different law course, not LL4541V or a variant."
+      }
+     }
+    },
+    "LL4309V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4309V is a different course, not LL4541V or a variant."
+      }
+     }
+    },
+    "LL4438V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4438V is a different course, not LL4541V or a variant."
+      }
+     }
+    },
+    "LL4525": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4525 is a different course, not LL4541V or a variant."
+      }
+     }
+    },
+    "LL4536V": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LL4536V is a different course, not LL4541V or a variant."
+      }
+     }
     }
    }
   },
@@ -18423,6 +23395,138 @@
        "slot": "A",
        "grade": 0,
        "rationale": "EE4802 is not MLE2105 or a variant of it; the intent counts any other course as not relevant."
+      }
+     }
+    },
+    "CN2105": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CN2105 shares only the number; not MLE2105."
+      }
+     }
+    },
+    "ESP2107": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "ESP2107 is a different course; not MLE2105."
+      }
+     }
+    },
+    "IE2100": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "IE2100 is a different course; not MLE2105."
+      }
+     }
+    },
+    "LSM2105": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LSM2105 shares only the number; not MLE2105."
+      }
+     }
+    },
+    "MA2101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA2101 is a different course; not MLE2105."
+      }
+     }
+    },
+    "MA2108": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA2108 is a different course; not MLE2105."
+      }
+     }
+    },
+    "MA2116": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA2116 is a different course; not MLE2105."
+      }
+     }
+    },
+    "MLE2108": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MLE2108 is a different course, not MLE2105 or a variant."
+      }
+     }
+    },
+    "MLE4205": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MLE4205 is a different MLE course; not MLE2105 or a variant."
+      }
+     }
+    },
+    "QF2103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "QF2103 is a different course; not MLE2105."
+      }
+     }
+    },
+    "QF2104": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "QF2104 is a different course; not MLE2105."
       }
      }
     }
@@ -18578,6 +23682,150 @@
        "rationale": "PL3104 Developmental Psychology is not MA2101 or a variant of it; the intent marks any other course as not relevant."
       }
      }
+    },
+    "BN4207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "BN4207 is not MA2101 or a variant."
+      }
+     }
+    },
+    "CN2103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CN2103 is not MA2101 or a variant."
+      }
+     }
+    },
+    "CS2100": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS2100 is not MA2101 or a variant."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "GESS1012 is not MA2101 or a variant."
+      }
+     }
+    },
+    "MA1301": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA1301 Introductory Mathematics is a different course, not MA2101 or a suffixed variant."
+      }
+     }
+    },
+    "MA2002": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA2002 Calculus is a different course, not MA2101 or a variant."
+      }
+     }
+    },
+    "MA2104": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA2104 Multivariable Calculus is a different course, not MA2101 or a suffixed variant."
+      }
+     }
+    },
+    "MA2116": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA2116 Probability is a different course, not MA2101 or a variant."
+      }
+     }
+    },
+    "MA2401": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA2401 is a different course, not MA2101 or a variant."
+      }
+     }
+    },
+    "MLE4207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MLE4207 is not MA2101 or a variant."
+      }
+     }
+    },
+    "MLE4221": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MLE4221 is not MA2101 or a variant."
+      }
+     }
+    },
+    "MUA1165": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MUA1165 is not MA2101 or a variant."
+      }
+     }
     }
    }
   },
@@ -18729,6 +23977,138 @@
        "slot": "A",
        "grade": 0,
        "rationale": "QF4103 is not EE4502 or a variant of it; the intent counts any other course as not relevant."
+      }
+     }
+    },
+    "CS2107": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS2107 is a different course, not EE4502 or a variant."
+      }
+     }
+    },
+    "EE2012": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE2012 is a different course, not EE4502 or a variant."
+      }
+     }
+    },
+    "EE2022": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE2022 is a different course, not EE4502 or a variant."
+      }
+     }
+    },
+    "EE2026": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE2026 is a different course, not EE4502 or a variant."
+      }
+     }
+    },
+    "EE2028": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE2028 is a different course, not EE4502 or a variant."
+      }
+     }
+    },
+    "EE4112": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE4112 is a different course, not EE4502 or a variant."
+      }
+     }
+    },
+    "EE4204": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE4204 is a different course, not EE4502 or a variant."
+      }
+     }
+    },
+    "EE4501": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE4501 is a different course code, not EE4502 or a letter-suffix variant."
+      }
+     }
+    },
+    "ESE2000": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "ESE2000 is a different course, not EE4502 or a variant."
+      }
+     }
+    },
+    "IS4302": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 1"
+      }
+     }
+    },
+    "NST2044": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "NST2044 is a different course, not EE4502 or a variant."
       }
      }
     }
@@ -18889,6 +24269,150 @@
        "slot": "A",
        "grade": 0,
        "rationale": "GEX1004 is not CN2109 or a variant of it; the intent says any other course is not relevant, even though this one is about Chinese communication."
+      }
+     }
+    },
+    "CG2028": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CG2028 is a different course, not CN2109 or a variant of it."
+      }
+     }
+    },
+    "CN2103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CN2103 shares the CN21xx prefix but is a different course, not CN2109 or a lettered variant."
+      }
+     }
+    },
+    "CN2105": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CN2105 shares the CN21xx prefix but is a different course, not CN2109 or a lettered variant."
+      }
+     }
+    },
+    "CN3106": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CN3106 Separation Processes is a different course, not CN2109 or a variant of it."
+      }
+     }
+    },
+    "GESS1004": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "GESS1004 is a different course, not CN2109 or a variant of it."
+      }
+     }
+    },
+    "GESS1006": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "GESS1006 is a different course, not CN2109 or a variant of it."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "GESS1012 is a different course, not CN2109 or a variant of it."
+      }
+     }
+    },
+    "GESS1013": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "GESS1013 is a different course, not CN2109 or a variant of it."
+      }
+     }
+    },
+    "LAV1201": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LAV1201 is a different course, not CN2109 or a variant of it."
+      }
+     }
+    },
+    "PC2193": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "PC2193 is a different course, not CN2109 or a variant of it."
+      }
+     }
+    },
+    "TRA2101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "TRA2101 is a different course, not CN2109 or a variant of it."
+      }
+     }
+    },
+    "TRA2111": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "TRA2111 is a different course, not CN2109 or a variant of it."
       }
      }
     }
@@ -19080,6 +24604,114 @@
        "rationale": "CS4248 is a different course, not CS2030 or a variant of it."
       }
      }
+    },
+    "CS2100": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS2100, not CS2030 or a variant."
+      }
+     }
+    },
+    "CS2100DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS2100DE is a variant of CS2100, not CS2030."
+      }
+     }
+    },
+    "CS2104": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS2104, not CS2030 or a variant."
+      }
+     }
+    },
+    "CS2108": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS2108, not CS2030 or a variant."
+      }
+     }
+    },
+    "CS4221": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS4221, not CS2030 or a variant."
+      }
+     }
+    },
+    "CS4223": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS4223, not CS2030 or a variant."
+      }
+     }
+    },
+    "CS4249": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS4249, not CS2030 or a variant."
+      }
+     }
+    },
+    "CS4262": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS4262, not CS2030 or a variant."
+      }
+     }
+    },
+    "PP5510": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "PP5510 public policy course, not CS2030."
+      }
+     }
     }
    }
   },
@@ -19250,6 +24882,174 @@
        "slot": "A",
        "grade": 0,
        "rationale": "LAJ1201 is a Japanese language course, not IS4246 or a variant of it."
+      }
+     }
+    },
+    "BT4222": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "BT4222 is a different course, not IS4246 or a suffixed variant."
+      }
+     }
+    },
+    "CM4254": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CM4254 is not IS4246 or a variant."
+      }
+     }
+    },
+    "CS4248": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS4248 is a different course, not IS4246 or a suffixed variant."
+      }
+     }
+    },
+    "IE4246": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "IE4246 shares the number but has a different prefix and topic (decarbonisation); it is not IS4246 or a variant."
+      }
+     }
+    },
+    "LI5204": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LI5204 is not IS4246 or a variant."
+      }
+     }
+    },
+    "LSM4223": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LSM4223 is not IS4246 or a variant."
+      }
+     }
+    },
+    "LSM4242": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LSM4242 Protein Engineering is not IS4246 or a variant."
+      }
+     }
+    },
+    "MA4207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA4207 Mathematical Logic is not IS4246 or a variant."
+      }
+     }
+    },
+    "MA4254": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA4254 Discrete Optimization is not IS4246 or a variant; the intent counts any other course as not relevant."
+      }
+     }
+    },
+    "MA4262": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA4262 Measure and Integration is not IS4246 or a variant."
+      }
+     }
+    },
+    "MA4266": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA4266 Algebraic Topology is not IS4246 or a variant."
+      }
+     }
+    },
+    "ME4223": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "ME4223 is not IS4246 or a variant."
+      }
+     }
+    },
+    "PP5166": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "PP5166 is not IS4246 or a variant."
+      }
+     }
+    },
+    "QF4103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "QF4103 is not IS4246 or a variant."
       }
      }
     }
@@ -19446,6 +25246,150 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Code PL3104 does not start with MUL21 and is not in a similar code family; it is a psychology course unrelated to the prefix."
+      }
+     }
+    },
+    "CS2100": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS2100 does not start with MUL21 and is not in a similar code family."
+      }
+     }
+    },
+    "CS2100DE": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS2100DE does not start with MUL21 and is not in a similar code family."
+      }
+     }
+    },
+    "CS2104": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS2104 does not start with MUL21 and is not in a similar code family."
+      }
+     }
+    },
+    "CS4221": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS4221 does not start with MUL21 and is not in a similar code family."
+      }
+     }
+    },
+    "CS4223": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS4223 Multi-core Architectures does not start with MUL21; the 'multi' in its title is only a word overlap."
+      }
+     }
+    },
+    "GESS1012": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "GESS1012 does not start with MUL21 and is not in a similar code family."
+      }
+     }
+    },
+    "LSM2106": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LSM2106 does not start with MUL21 and is not in a similar code family."
+      }
+     }
+    },
+    "MA2104": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA2104 does not start with MUL21; it only shares the digits 21 with the query."
+      }
+     }
+    },
+    "MA2116": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MA2116 does not start with MUL21; it only shares the digits 21 with the query."
+      }
+     }
+    },
+    "ME3281": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "ME3281 does not start with MUL21 and is not in a similar code family."
+      }
+     }
+    },
+    "MNO3703": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "MNO3703 does not start with MUL21 and is not in a similar code family."
+      }
+     }
+    },
+    "ZB2101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "ZB2101 does not start with MUL21; it only shares digits with the query."
       }
      }
     }
@@ -19678,6 +25622,114 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Code PP5520 does not start with DAO17 and is not in a similar code family; it is a public policy course on China unrelated to the prefix."
+      }
+     }
+    },
+    "AR5321": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "AR5321 is an architecture course, unrelated to the DAO17 prefix."
+      }
+     }
+    },
+    "DAO2702X": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "DAO2702X is in the same DAO code family (Analytics and Operations) and open to NG students, but its code does not start with DAO17."
+      }
+     }
+    },
+    "DAO2703": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "DAO2703 is in the same DAO code family (Analytics and Operations) and open to NG students, but its code does not start with DAO17."
+      }
+     }
+    },
+    "DSA4212": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "DSA4212 is a data science optimisation course; code prefix DSA, not DAO."
+      }
+     }
+    },
+    "EE4415": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE4415 is an integrated circuit design course, unrelated to the DAO17 prefix."
+      }
+     }
+    },
+    "EE4435": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE4435 is an electrical engineering course, unrelated to the DAO17 code prefix."
+      }
+     }
+    },
+    "EE4802": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE4802 is an engineering machine learning course; code family EE, not DAO."
+      }
+     }
+    },
+    "IS3240": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "IS3240 is an information systems course; code family IS, not DAO."
+      }
+     }
+    },
+    "PC4236": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "PC4236 is a physics course, unrelated to the DAO code family."
       }
      }
     }
@@ -20308,6 +26360,66 @@
        "rationale": "PC4248 General Relativity has a PC code, not GEC. It shares only the word 'general'."
       }
      }
+    },
+    "EE2027": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE2027 is an electronics course unrelated to the GEC prefix."
+      }
+     }
+    },
+    "GE2103": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "GE2103 is a Geography course; it shares only the letters GE, not the GEC general-education family."
+      }
+     }
+    },
+    "GEX1005": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "GEX1005 is not a GEC course but belongs to the sibling GEX general-education code family, and it is open to NG students."
+      }
+     }
+    },
+    "LI5202": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LI5202 is a graduate supply chain course with no relation to the GEC prefix."
+      }
+     }
+    },
+    "LI5204": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "LI5204 is a graduate supply chain course unrelated to the GEC prefix."
+      }
+     }
     }
    }
   },
@@ -20610,6 +26722,54 @@
        "slot": "A",
        "grade": 0,
        "rationale": "A 5000-level physics electrodynamics course; unrelated to molecular biology."
+      }
+     }
+    },
+    "BN4207": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Biomedical engineering microrobotics course; not molecular biology."
+      }
+     }
+    },
+    "LSM4231": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "4000-level, NG in sem 2; structural determination of proteins and protein-DNA complexes is related advanced molecular biology, but it focuses on structural methods rather than CRISPR, RNA biology or genome editing."
+      }
+     }
+    },
+    "ME3281": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Mechanical engineering microsystems/MEMS course; not molecular biology."
+      }
+     }
+    },
+    "MLE4231": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Materials science optoelectronics course; unrelated to molecular biology."
       }
      }
     }
@@ -20968,6 +27128,54 @@
        "rationale": "Urban Ecology covers urban biodiversity and sustainable cities, not microbiology or bacteria."
       }
      }
+    },
+    "CS4220": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Bioinformatics data mining methods; not microbiology."
+      }
+     }
+    },
+    "LSM3259": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "3000-level fungal biology (yeasts, molds), NG in sem 2; a related microbial biology course but on fungi, not bacterial physiology, genetics or pathogenesis."
+      }
+     }
+    },
+    "MLE4239": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Materials science of biointerfaces; not microbiology or bacteria."
+      }
+     }
+    },
+    "NST2052": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Environmental science and policy course; not microbiology."
+      }
+     }
     }
    }
   },
@@ -21284,6 +27492,54 @@
        "rationale": "Econometrics I is a regression and econometrics course, which the intent names as not relevant."
       }
      }
+    },
+    "GEX1010": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "An introductory economics course open to NG students in semester 1 that assumes no prior economics, but it applies economic reasoning to social questions through popular texts rather than teaching principles of microeconomics."
+      }
+     }
+    },
+    "LSM3228": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A microbiology course on microbiomes; it only resembles 'micro' in the query."
+      }
+     }
+    },
+    "MLE2102": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A materials science thermodynamics course; unrelated to economics."
+      }
+     }
+    },
+    "PP5166": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A 5000-level public policy course on global health and development; not an introductory economics course."
+      }
+     }
     }
    }
   },
@@ -21540,6 +27796,90 @@
        "rationale": "Real estate development; unrelated."
       }
      }
+    },
+    "CS2113": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Software engineering and design, which the intent names as not relevant."
+      }
+     }
+    },
+    "EE3731C": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Signal analytics; unrelated to machine design."
+      }
+     }
+    },
+    "EE4312": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Artificial neural networks; unrelated to machine element design."
+      }
+     }
+    },
+    "EE4502": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Electric drives and motor control, an electrical course; no machine element design."
+      }
+     }
+    },
+    "LI5204": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Supply chain simulation; unrelated to mechanical design."
+      }
+     }
+    },
+    "MA4254": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Discrete optimisation mathematics; unrelated to machine design."
+      }
+     }
+    },
+    "ME4245": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Robot manipulator kinematics, dynamics and control; not machine element design with stress and failure calculation."
+      }
+     }
     }
    }
   },
@@ -21770,6 +28110,78 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Bioinformatics; not accounting."
+      }
+     }
+    },
+    "GEX1005": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p3a2",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not open to non-graduating students in semester 1"
+      }
+     }
+    },
+    "GEX1014": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Introductory logic course in philosophy, not accounting or finance."
+      }
+     }
+    },
+    "LAB1201": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Indonesian language course, not accounting or finance."
+      }
+     }
+    },
+    "LAF1201": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "French language course, not accounting or finance."
+      }
+     }
+    },
+    "LAV1201": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Vietnamese language course, not accounting or finance."
+      }
+     }
+    },
+    "MA1100": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3a2",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Discrete mathematics course, not accounting or finance."
       }
      }
     }

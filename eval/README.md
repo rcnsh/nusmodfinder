@@ -346,6 +346,10 @@ stores everything in the encrypted state). Errors print only their class; valida
   `eval-v0`. A new embedding text needs a new version:
   `npm run eval:embed -- --corpus --ref <ref> --version <new>`, then
   `gh release create <new> .data/emb/<new>/corpus.* --notes "<sha256s>"` and an entry here.
+- A run refuses a ranker whose corpus texts are not all keys of the `--embedding` version
+  itself (`assertCorpusTextsEmbedded`; a vector in the set's query cache does not count), so a
+  v0 ranker on v1 vectors, or the reverse, never scores. 3A-2's variants are tags `3a2-v1…v3`,
+  each paired with the version embedded from it, `emb-bge-small-v1…v3`.
 - **Workers AI is not bit-deterministic across batches.** The same text in two REST calls:
   cosine 0.9994–0.9998 (3 texts); fixture texts embedded in a batch of 31 vs the corpus pass's
   batches of 100: min 0.9797, median 0.9957 (23 texts). Production's own vectors were embedded

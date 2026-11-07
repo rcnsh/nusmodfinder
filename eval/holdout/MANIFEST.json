@@ -2,8 +2,9 @@
   "schema": "vnm-holdout-manifest/1",
   "files": {
     "embeddings.json.enc": "958c8d869491c9d9d653b4ada1a82e2d6de909d4f20c0adff9728e7e885ba6c9",
-    "qrels.json.enc": "782f31a5e6ec60fffd84bc9ca9b691f835ea05cb33b6900c547d7e266b7c21ec",
+    "qrels.json.enc": "6c736f9edc116f7834a08b9ec96a9d843fd2d352ba9fe580470f86b45874f422",
     "queries.json.enc": "d7b6af869b8491588622fc27e2a8b13917bf51562a5a6c3d1d1eaf1c4c37e079",
+    "run-3a2-v1.json.enc": "9c5e54de0996fa62fb8202ba8bbdfbb1a47cffdc10e6e4ad53b6d66189a42f5a",
     "run-shipped-e8a7124.json.enc": "171fcd639a5445f24232ce8dd30489f4e195b5873419f45125bf9a153018bd12",
     "run-v0-lexical.json.enc": "bd0311a95054576d676876cf9fd144956a507c77f320a3bbf3626963e437894c",
     "run-v0-vector.json.enc": "03ddade9df4eb737543564ac39a23d2fa16dfa0e6d80db6178314e7cad9a249e",

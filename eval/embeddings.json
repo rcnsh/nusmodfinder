@@ -1,5 +1,5 @@
 {
- "default": "emb-bge-small-v0",
+ "default": "emb-bge-small-v1",
  "versions": {
   "emb-bge-small-v0": {
    "release": "emb-bge-small-v0",
@@ -10,6 +10,39 @@
    "files": {
     "corpus.f32.gz": "584555bb3a5d277c82b93ac4b4a0774ccf49004d7836df66a7aa7716ec70a3f2",
     "corpus.index.json": "2de0622cd47bba4befb4e0532904fcb0c4854e066639c9bb82479f38dc84d495"
+   }
+  },
+  "emb-bge-small-v1": {
+   "release": "emb-bge-small-v1",
+   "model": "@cf/baai/bge-small-en-v1.5",
+   "dims": 384,
+   "textRef": "3a2-v1",
+   "count": 6771,
+   "files": {
+    "corpus.f32.gz": "c7b52f56e8cb6f4750b83e79e38c0dd0d0b7015dcbc9814be154748b5de593a9",
+    "corpus.index.json": "61975c964f6a758317be0e0d107a4a71429736516e2c6357463d2eebaf3e6bb7"
+   }
+  },
+  "emb-bge-small-v2": {
+   "release": "emb-bge-small-v2",
+   "model": "@cf/baai/bge-small-en-v1.5",
+   "dims": 384,
+   "textRef": "3a2-v2",
+   "count": 6771,
+   "files": {
+    "corpus.f32.gz": "19f3b8f1df2f08522dc01177ab11b520fe48867a85d4ef4fbd81d6d559241018",
+    "corpus.index.json": "a51f3b96925f943335c1513cab245309197049caedfb0a2e7e7672b8996c785e"
+   }
+  },
+  "emb-bge-small-v3": {
+   "release": "emb-bge-small-v3",
+   "model": "@cf/baai/bge-small-en-v1.5",
+   "dims": 384,
+   "textRef": "3a2-v3",
+   "count": 6197,
+   "files": {
+    "corpus.f32.gz": "474c3bf3d7e954da9439223ad4739978e39d877c5ad448de4fa1c8cb82776591",
+    "corpus.index.json": "9fad5b5ff7881a1eaf1b3281742c1d363395c608017f2ac1f2967616deb2a0a0"
    }
   }
  }
