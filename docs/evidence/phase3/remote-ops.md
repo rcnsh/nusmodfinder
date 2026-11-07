@@ -66,3 +66,25 @@ The smoke calls:
 - `CS32`, topK 50: 30 results, `interpreted.prefix` `CS32`.
 
 Rollback, if needed: `npx wrangler rollback 8d1b85be-edd1-4e6c-902d-ea1ece96a0d1`. The old version ignores `catalogue_only`, so D1 needs no restore. To remove the table, restore the bookmark above, a logged remote write.
+
+## 2026-11-07: 3C ship (deploy only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 12:28:52 | PR #47 merged as `89cb10e`. Data version and bundle unchanged (`32b590de51aa`); no migration | — | — |
+| 12:29:16 | D1 Time Travel bookmark `0000000f-00000000-0000511c-a70a75105750458747b014a8ce0291eb`; live version `8e743876-6361-4db6-91a4-8bf951d76e7f` (tag `ad8e10c`) | 0 | recorded (rollback targets) |
+| — | Step 4 ingest: not run. The data version is unchanged and 3C writes nothing to D1 (the vocabulary is a committed Worker module) | 0 | 0 |
+| 12:29:34–12:29:35 | `npm run verify -- --pre-deploy` (via `wrangler dev --remote`) | ~6.8k rows read | 6,778 rows read; D1, manifest and bundle agree |
+| 12:29:41–12:30:06 | `npm run deploy` (the guard passed) | ~6.8k rows read | version **`c402a75d-d165-4c69-b7c1-4f5d1df24fb9`** (tag `89cb10e`) at 100% |
+| 12:30:13 | Smoke (all SIN, 200, not degraded; `requests.tsv` 89) | ≤ 4 calls | 4 calls |
+| — | Step 8 standby: not run. Vectors and module rows are unchanged | 0 | 0 |
+
+The smoke calls:
+- `/health`: production bundle, 6,778 vectors;
+- `fiannce` (typo): 20 results, FIN2704 and FIN3719 in the top 3;
+- `intro to psych` (prefix): PL1101E (Introduction to Psychology) first;
+- `machine learning`: 20 results, EE2211 first.
+
+Corrections are internal; the response's `interpreted` does not report them.
+
+Rollback, if needed: `npx wrangler rollback 8e743876-6361-4db6-91a4-8bf951d76e7f`. D1 is unchanged, so it needs no restore.
