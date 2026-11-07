@@ -29,7 +29,7 @@ export const TYPO_VARIANTS = Object.freeze({
 /** @typedef {keyof typeof TYPO_VARIANTS} TypoVariant */
 
 /** @type {TypoVariant} */
-export const TYPO_VARIANT = '3c1';
+export const TYPO_VARIANT = '3c2';
 
 /** Whether the dense half also embeds the corrected text (3C-2). */
 export const EMBED_CORRECTED = TYPO_VARIANTS[TYPO_VARIANT].embedCorrected;
