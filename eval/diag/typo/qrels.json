@@ -2,7 +2,7 @@
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
  "version": "qrels-diag-typo-v1",
- "derivedFrom": "qrels-dev-v8",
+ "derivedFrom": "qrels-dev-v9",
  "rule": "each variant has its source dev query's judgments, verbatim",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
@@ -9060,6 +9060,18 @@
        "rationale": "Information security; does not cover concurrency or operating system threads."
       }
      }
+    },
+    "CS3223": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3f",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A systems course, NG in semester 1, that covers transactions and concurrency control as one part of database implementation. Concurrency is a component of the course, not its focus."
+      }
+     }
     }
    }
   },
@@ -10374,6 +10386,18 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Logic, proof assistants and Prolog; it does not cover threads, shared memory or message passing."
+      }
+     }
+    },
+    "CS2113": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3f",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A software engineering and OOP course on requirements, design, testing and tooling; the description shows no threads, shared memory, message passing, parallel computing or operating systems content."
       }
      }
     }
