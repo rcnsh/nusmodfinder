@@ -2,7 +2,7 @@
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
  "version": "qrels-diag-typo-v1",
- "derivedFrom": "qrels-dev-v5",
+ "derivedFrom": "qrels-dev-v6",
  "rule": "each variant has its source dev query's judgments, verbatim",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
@@ -8354,6 +8354,30 @@
        "slot": "rule",
        "grade": 0,
        "rationale": "hard constraint: not open to non-graduating students in semester 2"
+      }
+     }
+    },
+    "BSP1703": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Managerial economics course; no connection to evo-devo."
+      }
+     }
+    },
+    "EC3333": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3c",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "Financial economics course; no evolutionary or developmental biology."
       }
      }
     }
