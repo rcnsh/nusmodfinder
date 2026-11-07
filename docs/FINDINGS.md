@@ -39,7 +39,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | S5 | fixed | tests, live |
 | S6 | reproduced | live, full-corpus test |
 | S7 | reproduced | tests |
-| S8 | fixed | tests |
+| S8 | fixed | tests, live |
 | P1 | reproduced | tests, live |
 | P2 | partially-reproduced | tests, live |
 | P3 | reproduced | test |
@@ -464,7 +464,8 @@ lists.
 **Evidence:**
 - test `[S8 fixed] 3G: gibberish answers count 0 with noMatch no-signal`: no route, no vocabulary match before correction, and a top cosine below τ (`src/no-signal.js`)
 - test `[S8 fixed] 3F: near-duplicate variants (TR3202*) collapse to one result, the others listed as its variants`: groups-v1 in the Worker
-- `docs/evidence/phase0/raw/S8_nonsense.body`: live 20 results, `retrieval.lexical: 0`. `docs/evidence/phase0/raw/S8_startup_intern.body`: TR3202N, TR3202I, TR3202T, TR3202S at #5–#8.
+- live after the 3G deploy: `xqzvbnm flurble` answers `count: 0` with `noMatch: { reason: "no-signal" }` (`docs/evidence/phase3/remote-ops.md`, 3G ship)
+- `docs/evidence/phase0/raw/S8_nonsense.body`: before the fix, live 20 results, `retrieval.lexical: 0`. `docs/evidence/phase0/raw/S8_startup_intern.body`: TR3202N, TR3202I, TR3202T, TR3202S at #5–#8.
 
 **Notes:** Vector search always returns its topK nearest neighbours and there's no score floor
 (`src/index.js:358-387`). The TR3202 variants share a title and description.

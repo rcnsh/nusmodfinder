@@ -108,3 +108,23 @@ The smoke calls:
 - `machine learning`: 20 results, EE2211 first.
 
 Rollback, if needed: `npx wrangler rollback c402a75d-d165-4c69-b7c1-4f5d1df24fb9`. D1 is unchanged, so it needs no restore.
+
+## 2026-11-07: 3G ship (deploy only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 15:50 | PR #54 merged as `47838db`. Data version and bundle unchanged (`32b590de51aa`); τ is a committed constant; no migration | — | — |
+| 15:51:23 | D1 Time Travel bookmark `00000011-00000000-0000511c-a24bb9cb2d42bc9f7dd1e78d156d9d95`; live version `6e832483-b508-4a0b-bd4f-bb79709b44c8` (tag `2ce17c6`), checked by one `/health` (`requests.tsv` 92) | 0 | recorded (rollback targets) |
+| — | Step 4 ingest: not run. 3G writes nothing to D1 | 0 | 0 |
+| 15:51:38–15:51:40 | `npm run verify -- --pre-deploy` (via `wrangler dev --remote`, one-off secret; `.dev.vars` restored after) | ~6.8k rows read | 6,778 rows read; D1, manifest and bundle agree |
+| 15:51:44–15:52:15 | `npm run deploy` (the guard passed) | ~6.8k rows read | version **`f638992b-8039-4d06-abf2-b7838bb91fcf`** (tag `47838db`) at 100% |
+| 15:52:20 | Smoke (200, not degraded; 2 SIN, 1 NRT; `requests.tsv` 93) | ≤ 4 calls | 4 calls |
+| — | Step 8 standby: not run. Vectors and module rows are unchanged | 0 | 0 |
+
+The smoke calls:
+- `/health`: production bundle, 6,778 vectors, tag `47838db`;
+- `xqzvbnm flurble` (S8): `count: 0`, `noMatch: { reason: "no-signal" }`;
+- `microbbiology bacteia` (d-095, the near-τ typo the plan names): 20 results, LSM3232 first;
+- `machine learning`: 20 results, EE2211 first.
+
+Rollback, if needed: `npx wrangler rollback 6e832483-b508-4a0b-bd4f-bb79709b44c8`. D1 is unchanged, so it needs no restore.
