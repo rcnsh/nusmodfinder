@@ -89,3 +89,4 @@ o7	browser other	/facets	phase0 0b fe.mjs
 83	ref	Workers AI REST embed: 3A-2 v3 pinned-corpus pass, 6,197 texts in 62 requests, 1,991.9 neurons, plus a 3-text determinism check (1.4 neurons)	Phase 3 3A-2, 2026-11-07 00:10 UTC
 84	ref	Workers AI REST embed: 3A-2 v1 production bundle, 194 texts missing from emb-bge-small-v1, 2 requests, 63.4 neurons	Phase 3 3A-2 ship, 2026-11-07 07:04 UTC
 85	ref	Production smoke after the 3A-2 v1 deploy: /health + 2 /search on version 8d1b85be (SIN, 200, 20 results, not degraded)	Phase 3 3A-2 ship, 2026-11-07 07:35 UTC
+86	ref	Production smoke after the 3B deploy: /health + 3 /search (cs 1010s, GEQ1000, CS32 topK 50) on version 8e743876 (SIN, 200, not degraded)	Phase 3 3B ship, 2026-11-07 09:29 UTC

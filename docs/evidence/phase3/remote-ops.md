@@ -45,3 +45,24 @@ Rollback, if needed:
 3. Revert `45bd716` on `main`.
 
 The standby then holds v1 vectors under v0's ranker. Run step 8 again from the reverted bundle before any `DENSE_BACKEND=vectorize` flip.
+
+## 2026-11-07: 3B ship (migration 0008, catalogue_only, deploy)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 09:27:33 | PR #44 merged as `ad8e10c`. Data version and bundle unchanged (`32b590de51aa`) | — | — |
+| 09:27:48 | D1 Time Travel bookmark `0000000c-00000000-0000511c-4c9c1073ff34eeeec0038177c539e584`; live version `8d1b85be-edd1-4e6c-902d-ea1ece96a0d1` (tag `45bd716`) | 0 | recorded (rollback targets) |
+| 09:28:03–09:28:08 | `wrangler d1 migrations list`, then `apply nusmods-apac --remote`: `0008_catalogue.sql` (the `catalogue_only` table, additive) | ~0 rows | applied, 2 commands |
+| 09:28:21–09:28:52 | `npm run ingest -- --d1-only --offline` (via `wrangler dev --remote`): 14,430 catalogue-only rows loaded; modules unchanged; no Workers AI or Vectorize call | ~30k rows written | 28,860 rows written (D1-reported), 0 module rows; data version `32b590de51aa` = committed |
+| 09:28:58 | `npm run verify -- --pre-deploy` | ~6.8k rows read | 6,778 rows read; D1, manifest and bundle agree |
+| 09:28:59–09:29:28 | `npm run deploy` (guard reads 6,778 rows; startup 2 ms against the 200 ms gate) | ~6.8k rows read | version **`8e743876-6361-4db6-91a4-8bf951d76e7f`** (tag `ad8e10c`) at 100% |
+| 09:29:35 | Smoke (all SIN, 200, not degraded; `requests.tsv` 86) | ≤ 4 calls | 4 calls |
+| — | Step 8 standby: not run. The vectors and the module rows are unchanged, so Vectorize still matches the bundle and D1 (verified at 07:45) | 0 | 0 |
+
+The smoke calls:
+- `/health`: production bundle, 6,778 rows;
+- `cs 1010s`: pins CS1010S;
+- `GEQ1000`: `count: 0`, `noMatch` `not-offered`, title "Asking Questions", 5 related;
+- `CS32`, topK 50: 30 results, `interpreted.prefix` `CS32`.
+
+Rollback, if needed: `npx wrangler rollback 8d1b85be-edd1-4e6c-902d-ea1ece96a0d1`. The old version ignores `catalogue_only`, so D1 needs no restore. To remove the table, restore the bookmark above, a logged remote write.

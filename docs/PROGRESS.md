@@ -782,3 +782,14 @@ fails on the previous code.
   (`qrels-holdout-v4`). **Holdout looks: 2 of 12.**
 - **Next:** ship 3B. That means migration 0008 on remote D1, an ingest that loads
   `catalogue_only`, the deploy, the smoke test, the shipped-pin move and the baseline holdout run.
+
+## 2026-11-07 — 3B shipped
+
+- **Live:** version `8e743876-6361-4db6-91a4-8bf951d76e7f` (tag `ad8e10c`, PR #44).
+  - Migration 0008 is applied to remote D1, and `catalogue_only` holds 14,430 rows (28,860 rows
+    written).
+  - The data version and the vectors are unchanged, so the standby was not touched.
+  - Smoke: 4 calls (`remote-ops.md`).
+- **Shipped-ranker pin** moves to `ad8e10c` (ADR 0003).
+- **Rollback target:** `8d1b85be` (tag `45bd716`).
+- **Next:** 3C (typos and prefixes), L4.
