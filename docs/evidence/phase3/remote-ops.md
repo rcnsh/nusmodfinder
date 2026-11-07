@@ -153,7 +153,7 @@ The smoke calls:
 
 Rollback, if needed: `npx wrangler rollback f638992b-8039-4d06-abf2-b7838bb91fcf`. The old version reads none of the new columns, so D1 needs no restore. To remove them, restore the bookmark above, a logged remote write.
 
-## 2026-11-08: 3H params ship (deploy only)
+## 2026-11-07: 3H params ship (deploy only)
 
 | Time | Step | Estimate | Actual |
 |---|---|---|---|
