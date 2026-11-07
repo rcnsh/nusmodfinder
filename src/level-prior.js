@@ -25,6 +25,10 @@ export const LEVEL_VARIANTS = Object.freeze({
   b10: Object.freeze({ rules: false, alpha: 0, beta: 0.1 }),
   b20: Object.freeze({ rules: false, alpha: 0, beta: 0.2 }),
   b35: Object.freeze({ rules: false, alpha: 0, beta: 0.35 }),
+  // The bundle: the rules, α* and β*, selected from the first round (α* 0.35, the largest
+  // level-target gain; β* 0.1, tied with 0.2 to 3 decimals, the smaller change). Its own
+  // dev-only round (plan §3, A3-5).
+  a35b10: Object.freeze({ rules: true, alpha: 0.35, beta: 0.1 }),
 });
 /** @typedef {keyof typeof LEVEL_VARIANTS} LevelVariant */
 

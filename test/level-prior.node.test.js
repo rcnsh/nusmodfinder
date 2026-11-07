@@ -19,7 +19,14 @@ describe('the variants', () => {
     const v = Object.values(LEVEL_VARIANTS);
     expect(v.filter((x) => x.rules && x.beta === 0).map((x) => x.alpha)).toEqual(grids.alpha);
     expect(v.filter((x) => !x.rules).map((x) => x.beta)).toEqual(grids.beta);
+    expect(v.filter((x) => x.rules && x.beta !== 0)).toHaveLength(1);
     for (const x of v.filter((y) => !y.rules)) expect(x.alpha).toBe(0);
+  });
+
+  it('the bundle takes its α from the α grid and its β from the β grid, with the rules on', () => {
+    expect(LEVEL_VARIANTS.a35b10.rules).toBe(true);
+    expect(grids.alpha).toContain(LEVEL_VARIANTS.a35b10.alpha);
+    expect(grids.beta).toContain(LEVEL_VARIANTS.a35b10.beta);
   });
 
   it('the selected variant is one of them; the fallback is the rules with α = 0 and no β', () => {
