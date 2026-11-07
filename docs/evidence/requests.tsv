@@ -97,3 +97,5 @@ o7	browser other	/facets	phase0 0b fe.mjs
 91	ref	Production smoke after the 3F deploy: /health + 3 /search (start-up internship, cs 1010s, machine learning) on version 6e832483 (200, not degraded; 2 SIN, 1 NRT)	Phase 3 3F ship, 2026-11-07 15:10 UTC
 92	ref	Production /health before the 3G deploy (live version check) on version 6e832483	Phase 3 3G ship, 2026-11-07 15:51 UTC
 93	ref	Production smoke after the 3G deploy: /health + 3 /search (xqzvbnm flurble, microbbiology bacteia, machine learning) on version f638992b (200, not degraded; 2 SIN, 1 NRT)	Phase 3 3G ship, 2026-11-07 15:52 UTC
+94	ref	Production /health before the 3H-0 ship (live version check) on version f638992b	Phase 3 3H-0 ship, 2026-11-07 16:37 UTC
+95	ref	Production smoke after the 3H-0 deploy: /health + 3 /search (machine learning, cs 1010s, xqzvbnm flurble) on version 0173bddf (all SIN, 200, not degraded)	Phase 3 3H-0 ship, 2026-11-07 16:41 UTC

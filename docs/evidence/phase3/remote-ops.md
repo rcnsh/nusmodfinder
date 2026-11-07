@@ -128,3 +128,27 @@ The smoke calls:
 - `machine learning`: 20 results, EE2211 first.
 
 Rollback, if needed: `npx wrangler rollback 6e832483-b508-4a0b-bd4f-bb79709b44c8`. D1 is unchanged, so it needs no restore.
+
+## 2026-11-07: 3H-0 ship (migration 0007, row-only re-ingest, deploy, standby)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 16:36 | PR #56 merged as `f004351`. Data version `32b590de51aa` → `4b6d12fab3d3` (NORMALISER_VERSION 2); the rowsKey is unchanged, so nothing was re-embedded. Release assets `vec-pinned-e73693e41f41-emb-bge-small-v1` and `vec-production-4b6d12fab3d3-emb-bge-small-v1-x4a990cd5` uploaded at 16:21 (GitHub, not Cloudflare) | — | sha256 45b787fb… and b58a9281… |
+| 16:37:46 | D1 Time Travel bookmark `00000012-00000000-0000511c-71aba81fe61493b7814816f0dbba73e6`; live version `f638992b-8039-4d06-abf2-b7838bb91fcf` (tag `47838db`), checked by one `/health` (`requests.tsv` 94) | 0 | recorded (rollback targets) |
+| 16:37:57–16:37:59 | `wrangler d1 migrations apply nusmods-apac --remote`: `0007_intents.sql` (additive columns) | ~0 rows | applied, 11 commands |
+| 16:40:11 | First ingest attempt: port 8787 was held by another project's local dev stub, so `wrangler dev --remote` never started and ingest stopped at `GET /admin/hashes` → 404, a local call that never reached Cloudflare | 0 | 0 rows read or written |
+| 16:40:49–16:41:00 | Step 4: `npm run ingest -- --d1-only --offline` (via `wrangler dev --remote` on port 8789): every row rewritten once; no Workers AI or Vectorize call | ~35–50k rows written | 34,425 rows written (D1-reported; 37,310 charged with the FTS estimate), 6,778 read, 0 deleted; data version `4b6d12fab3d3` = committed |
+| 16:41:04–16:41:06 | `npm run verify -- --pre-deploy` (field drift includes the 3H fields) | ~6.8k rows read | 6,778 rows read; D1, manifest and bundle agree |
+| 16:41:13–16:41:43 | `npm run deploy` (the guard read 6,778 rows) | ~6.8k rows read | version **`0173bddf-b636-4eb7-b07b-0cfeabf869d9`** (tag `f004351`) at 100% |
+| 16:41:47–16:41:55 | Smoke (all SIN, 200, not degraded; `requests.tsv` 95) | ≤ 4 calls | 4 calls |
+| 16:42:07–16:44:03 | Step 8 standby: `vectors.mjs standby` upserted every code (bundle values, D1 metadata), 0 deletes, waited for the mutation, then verified: 6,778 vectors, 0 missing or extra, 100-sample metadata and value drift 0 | ~13.6k rows read, 6,778 upserts | 6,778 rows read by verify (plus the upsert pass), 6,778 upserted (stored dims within Paid's 10M) |
+
+Headroom: about 35k rows written and about 35k read today, against Paid's 50M writes and 25B reads included a month. The rule (estimate × 1.5 < remaining) holds by orders of magnitude.
+
+The smoke calls:
+- `/health`: production bundle, 6,778 vectors, data version `4b6d12fab3d3`, tag `f004351`;
+- `machine learning`: 20 results, EE2211 first (unchanged);
+- `cs 1010s`: CS1010S pinned first (unchanged);
+- `xqzvbnm flurble`: `count: 0`, `noMatch` `no-signal` (unchanged).
+
+Rollback, if needed: `npx wrangler rollback f638992b-8039-4d06-abf2-b7838bb91fcf`. The old version reads none of the new columns, so D1 needs no restore. To remove them, restore the bookmark above, a logged remote write.
