@@ -258,7 +258,9 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
         case 'typo-overlap': {
           const clean = await search(p.clean, item.topK);
           const cleanTop = new Set(codesOf(clean.body).slice(0, 10));
-          expect(top10.filter((code) => cleanTop.has(code)).length).toBeGreaterThanOrEqual(p.T);
+          const overlap = top10.filter((code) => cleanTop.has(code)).length;
+          console.info(`[SC4] ${item.id} typo overlap@10 with its clean form: ${overlap} (T = ${p.T})`);
+          expect(overlap).toBeGreaterThanOrEqual(p.T);
           break;
         }
         default:
