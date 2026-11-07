@@ -19,7 +19,7 @@ export const NO_SIGNAL_VARIANTS = Object.freeze({
 });
 
 /** The variant in force. */
-export const NO_SIGNAL_VARIANT = 'off';
+export const NO_SIGNAL_VARIANT = 'max';
 
 /** τ in force (null: 3G never fires). */
 export const NO_SIGNAL_TAU = NO_SIGNAL_VARIANTS[NO_SIGNAL_VARIANT];

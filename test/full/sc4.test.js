@@ -37,7 +37,7 @@ const corpus = inject('corpus');
 const bundleKind = inject('vectorsBundle');
 
 /** The workstreams merged into this ranker. 3D, 3F, 3G and 3H add themselves here as they merge. */
-const MERGED = new Set(['3B', '3C', '3F']);
+const MERGED = new Set(['3B', '3C', '3F', '3G']);
 /** 3H's selected prereq semantics, substituted for `$selected` (prereg C9); null until 3H selects one. */
 const SELECTED_PREREQ = null;
 /** Rows whose items are never skipped once their machinery exists (plan 737–739). */
