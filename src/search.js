@@ -414,10 +414,14 @@ const D1_PARAMS = 100;
 
 /**
  * The parse, with "offered" answered from this Worker's corpus: the bundle's
- * code list (atomic with the deploy, and D1's codes by the deploy guard), or,
- * when the bundle does not parse (keyword-only, B6), D1 itself. The parse
- * asks only about code-shaped strings, so D1 is asked about those, until the
- * parse asks nothing new.
+ * code list first, then D1 for any code-shaped string the bundle lacks (one
+ * indexed `code IN (…)` read, only then). D1 is the corpus: between a D1-only
+ * ingest and the deploy that bundles its vectors (runbook steps 4–6), a new
+ * module, or one that moved from catalogue-only to offered, is in D1 and not
+ * yet in the bundle, and it must still pin. When the bundle does not parse
+ * (keyword-only, B6) every question goes to D1. The parse is re-run until it
+ * asks about no code D1 has not answered (one read in practice; a join that
+ * D1 confirms can ask one more).
  * @param {D1DatabaseSession} db @param {string} q @param {string[]} ignore @param {Trace} trace
  * @returns {Promise<ParsedQuery>}
  */
@@ -425,16 +429,14 @@ async function parseWithCorpus(db, q, ignore, trace) {
   /** @type {import('./vector-bundle.js').Bundle | null} */
   let bundle = null;
   try { bundle = denseBundle(); } catch { /* answered from D1 below */ }
-  if (bundle) {
-    const b = bundle;
-    return parseQuery(q, intentContext((code) => hasCode(b, code)), ignore);
-  }
-  /** @type {Map<string, boolean>} */
+  const b = bundle;
+  /** @type {Map<string, boolean>} D1's answers */
   const known = new Map();
   for (;;) {
     /** @type {Set<string>} */
     const asked = new Set();
     const parsed = parseQuery(q, intentContext((code) => {
+      if (b && hasCode(b, code)) return true;
       if (!known.has(code)) asked.add(code);
       return known.get(code) === true;
     }), ignore);

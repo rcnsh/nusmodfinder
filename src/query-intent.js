@@ -129,6 +129,12 @@ const LETTERS = /^[a-z]{1,4}$/;
 const N000 = /^[A-Z]+([1-9])000$/;
 /** A word without the punctuation around it (`cs32?` → `cs32`); internal characters stay (`s/u`). */
 const core = (/** @type {string} */ w) => w.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+/**
+ * A suffix word's letters (1–2), or null. Trailing punctuation is allowed
+ * (`s?`, `s.`); `/` or `-` right after the letters is not (`s/u`, `s-u`).
+ * @param {string} w the word as typed
+ */
+const suffixOf = (w) => /^([a-z]{1,2})(?:[^a-z0-9/-][^/-]*)?$/.exec(w)?.[1] ?? null;
 
 /**
  * @typedef {{ text: string, from: number, to: number, joined: boolean }} Token
@@ -162,16 +168,16 @@ function joinCodes(words, ctx) {
     if (LETTERS.test(w) && ctx.prefixes.has(w.toUpperCase()) && i + 1 < n) {
       const d = core(words[i + 1]);
       if (ctx.collision.has(w.toUpperCase()) || ctx.stopwords.has(w)) {
-        const s = n === 3 ? words[2] : null;
+        const s = n === 3 ? suffixOf(words[2]) : null;
         if (n === 2 && /^\d{4}[a-z0-9]{0,5}$/.test(d) && known(w + d)) tok = { text: w + d, from: 0, to: 1, joined: true };
-        else if (s !== null && /^\d{4}$/.test(d) && /^[a-z]{1,2}$/.test(s) && known(w + d + s)) tok = { text: w + d + s, from: 0, to: 2, joined: true };
+        else if (s !== null && /^\d{4}$/.test(d) && known(w + d + s)) tok = { text: w + d + s, from: 0, to: 2, joined: true };
       } else if (/^(\d{1,3}|\d{4}[a-z0-9]{0,5})$/.test(d)) {
         tok = { text: w + d, from: i, to: i + 1, joined: true };
       }
     }
     // Suffix join: the next word as typed, so `s/u` and `s-u` never join.
-    const next = tok.to + 1 < n ? words[tok.to + 1] : null;
-    if (next !== null && FULL_CODE.test(tok.text) && /^[a-z]{1,2}$/.test(next) && known(tok.text + next)) {
+    const next = tok.to + 1 < n ? suffixOf(words[tok.to + 1]) : null;
+    if (next !== null && FULL_CODE.test(tok.text) && known(tok.text + next)) {
       tok = { text: tok.text + next, from: tok.from, to: tok.to + 1, joined: true };
     }
     out.push(tok);
@@ -217,7 +223,9 @@ export function parseQuery(q, ctx, ignore = []) {
 
   // Steps 2–4: seams (3G, 3C, 3H).
   const rest = intentPassA(q).text;
-  const words = rest.split(' ').filter(Boolean);
+  // A word that is only punctuation (`?`, `&`) is no token: it neither makes a
+  // query "longer" nor counts toward the collision guard's whole query.
+  const words = rest.split(' ').filter((w) => core(w) !== '');
 
   // Step 5.
   const tokens = joinCodes(words, ctx);
@@ -261,7 +269,10 @@ export function parseQuery(q, ctx, ignore = []) {
   if (parsed.pins.length) interpreted.pin = [...parsed.pins];
 
   // Step 7: pass B on what the joins left (a joined token's words are masked,
-  // so `ge 2101` is Geography's code, never the GE intent).
+  // so `ge 2101` is Geography's code, never the GE intent). Lead decision
+  // (PR #44): `ge` directly followed by a token that starts with a digit is
+  // not a GE phrase either, joined or not (`ge 2101 workload`): it stays text,
+  // as a collision-list code inside a longer query does (plan 3B).
   let masked = '';
   let lexical = '';
   for (const tok of tokens) {
@@ -277,6 +288,7 @@ export function parseQuery(q, ctx, ignore = []) {
     for (const { re, prefixes } of ctx.gePhrases) {
       for (const m of masked.matchAll(re)) {
         const start = /** @type {number} */ (m.index);
+        if (m[0] === 'ge' && /^[^a-z0-9]+\d/.test(masked.slice(start + 2))) continue;
         spans.push([start, start + m[0].length]);
         for (const p of prefixes) pillars.add(p);
       }
