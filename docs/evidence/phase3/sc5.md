@@ -47,6 +47,10 @@
      This within-test step is the lead's addition, not in ADR 0003. Every round uses the same
      cards, so duplicates would otherwise enter the paired comparison twice. It can only shrink
      n.
+     - It also dropped 2 typo variants for being close to their own source, which it should have
+       exempted. So 8 of the 15 typo variants remain: 5 more went with their dropped sources.
+   - **Not compared** were the SC4 suite's 17 typo clean forms and constraint references. The
+     custodian checked afterwards: no kept query has cosine ≥ 0.9 to any of them.
 6. **Size.** Round 1 could not reach 160 primary answerable queries: 140 survived the filter, and
    the constraint block and no-answer queries are outside the primary. So round 2 was written
    before judging, and the whole set was judged once. `eval:count --set test --answerable`

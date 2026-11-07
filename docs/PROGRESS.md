@@ -930,7 +930,7 @@ fails on the previous code.
 - **The test set:**
   - two persona rounds, 18 code queries from a custody seed and 15 typo variants, 327 queries in
     all;
-  - the leak filter kept 227. It dropped 61 near-copies of dev or holdout queries, 1 of an SC4
+  - the leak filter kept 227. It dropped 60 near-copies of dev or holdout queries, 1 of an SC4
     query, 34 within-test duplicates and 5 typo variants of dropped sources.
 - **No cross-family check:** Gemini was rate-limited on all three attempts. Jacob skipped it, as
   for 3D (an ADR 0004 deviation).

@@ -9,7 +9,7 @@ live as version `ea066ead` (tag `238e721`).
 | **SC7**: the counted run at the frozen ranker passes | **pending** | `sc7.md`: the method and queries are committed, and the run waits on the VPN being off |
 | SC7: the B6 fallback tests pass | met | `npm test` (`test/findings/backend.test.js`), green at `phase3-final` in CI |
 | SC7: the startup gate passed on every deploy | met | `npm run deploy` promotes only below 200 ms. The 3H ship's figure was printed but not kept |
-| **SC4**: the suite is green in CI at `phase3-final`, and the live confirmation agrees | **not met in full** | CI is green (59 items run, 31 listed as waiting). The waiting items are 3D's level items and 3H's 14 parsed-intent items, both for Phase 4 (Jacob's decisions). `sc4-live.txt`: 20 live calls agree on every rule they sample |
+| **SC4**: the suite is green in CI at `phase3-final`, and the live confirmation agrees | **not met** | CI is green, but 31 of 90 items don't run. They need 3D's level parsing (dropped) or 3H's phrase parsing (off), both left for Phase 4 by Jacob's decisions. Six of them are rows the plan says are never skipped: typo sc4-026 and guards sc4-064, 078, 079, 080 and 081. Each expects a level window, and they would fail at `phase3-final`. The listing labels them `pending` and the suite stays green. They were pending at 3G's gate too, so `3g-gate.md`'s "typo … and guard items included" overstates it. Live (`sc4-live.txt`): 15 of 17 checks as written pass. L05 and L09 failed on checks stricter than the suite's rules. They were re-checked to the suite's rules with the last 2 calls (`sc4-live-recheck.mjs`; L09b uses a new text) and pass |
 | **FINDINGS S2–S8** `fixed` or `rejected` | **not met** | S5, S7 and S8 are fixed. Four still reproduce, because the changes aimed at them were dropped at their gates (listed below) |
 | README's cost section names the binding limit | met | README "Cost": Workers CPU or Workers AI neurons, since 3-0 |
 | ADR 0006 carries the bundle size, startup time and CPU per query | met (startup local only) | ADR 0006 "Measured at 3-0" and "Measured live" |
@@ -19,6 +19,20 @@ The four open findings:
 - **S3** (query prefix half): 3A-1 dropped at the dev screen. The passage-text half is fixed.
 - **S4** (stopword half): `stopwords-v2` was not selected. The code and fuzzy halves are fixed.
 - **S6** (graduate flood): 3D dropped after two failed looks.
+
+## Custody and test-set caveats (phase-exit red-team)
+- **Look guard.** The ledger guard (`eval/lib/ledger.mjs`) reads the ledgers at HEAD and
+  `origin/main` only. From the pushed commit `d85c3e1`, which holds the sealed runs but not the
+  SC5 row, a second test-set look would have been allowed. The protection is the SC5 row
+  reaching `main`, which this PR does. A guard that reads every pushed branch is left for
+  Phase 4.
+- **Leak filter gaps, as run.** It compared SC4 item texts but not the suite's 17 typo clean
+  forms and constraint references. Re-checked by the custodian: no kept test query has cosine
+  ≥ 0.9 to any of them. Its within-test step also dropped 2 typo variants for being close to
+  their own source, which it should have exempted. The step can only drop queries, and the set
+  is sealed as run.
+- `sc5-secondary.mjs` re-reads the stored runs without the verdict path's pin and judged@10
+  checks. Its filtered line reproduces the recorded verdict.
 
 ## Holdout and test-set use
 - **Holdout:** 7 of 12 looks used (`eval/holdout-ledger.md`).
