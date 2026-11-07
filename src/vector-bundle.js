@@ -52,6 +52,12 @@ const NULL_FACULTY = 0xffff;
  * }} Bundle
  * @typedef {import('./rowhash.js').RowFields} RowFields
  * @typedef {{ sem?: number, level?: number, credits?: number, faculty?: string, ng?: boolean }} FilterEcho
+ * @typedef {[string, string]} CodeRange a primary-key range [lo, hi) over codes (src/query-intent.js codeRange)
+ * @typedef {FilterEcho & { ranges?: CodeRange[], levelWindow?: { min: number, max: number | null } }} Constraints
+ *   The filters plus 3B's routes: `ranges`, the codes a mask admits (a partial
+ *   code, the GE pillars), and `levelWindow`, a parsed level (`XX N000`; 3D's
+ *   windows later). Built from the bundle's code list, which is in code order,
+ *   so a range is a contiguous block of rows: the filter table needs no prefix id.
  */
 
 /** Code order: by UTF-16 code unit, which for NUS codes ([A-Z0-9]) is also localeCompare's order. */
@@ -207,12 +213,56 @@ export function decodeFilterRow(b, i) {
 }
 
 /**
+ * The first row whose code is >= `code` (rows are in code order).
+ * @param {string[]} codes @param {string} code
+ */
+function lowerBound(codes, code) {
+  let lo = 0, hi = codes.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (codes[mid] < code) lo = mid + 1; else hi = mid;
+  }
+  return lo;
+}
+
+/**
+ * The row blocks [from, to) that code ranges cover, in row order, merged. A
+ * range with no rows gives no block.
+ * @param {Bundle} b
+ * @param {CodeRange[]} ranges
+ * @returns {[number, number][]}
+ */
+export function rowBlocks(b, ranges) {
+  /** @type {[number, number][]} */
+  const blocks = ranges.map(([lo, hi]) => /** @type {[number, number]} */ ([lowerBound(b.codes, lo), lowerBound(b.codes, hi)]))
+    .filter(([from, to]) => to > from)
+    .sort((x, y) => x[0] - y[0]);
+  /** @type {[number, number][]} */
+  const merged = [];
+  for (const blk of blocks) {
+    const last = merged.at(-1);
+    if (last && blk[0] <= last[1]) last[1] = Math.max(last[1], blk[1]);
+    else merged.push([blk[0], blk[1]]);
+  }
+  return merged;
+}
+
+/** Whether the bundle holds `code` (an offered module, for 3B's code resolution). @param {Bundle} b @param {string} code */
+export function hasCode(b, code) {
+  const i = lowerBound(b.codes, code);
+  return i < b.count && b.codes[i] === code;
+}
+
+/**
  * The filter mask for a search's structured filters, or null when there are
  * none. The same semantics as the Vectorize metadata filter it replaces
  * (src/search.js parseFilters): every given filter must hold; null fields
  * never match.
+ * A parsed level window (3B's `XX N000`) admits levels min..max; a null level
+ * never matches it. Code ranges are not tested here: exactSearch walks only
+ * the rows they cover (rowBlocks).
  * @param {Bundle} b
- * @param {FilterEcho} echo
+ * @param {Constraints} echo
  * @returns {((i: number) => boolean) | null}
  */
 export function compileMask(b, echo) {
@@ -226,6 +276,11 @@ export function compileMask(b, echo) {
   if (echo.level !== undefined) {
     const level = echo.level;
     tests.push((i) => table[i * ROW_STRIDE + 1] === level);
+  }
+  if (echo.levelWindow) {
+    const { min } = echo.levelWindow;
+    const max = echo.levelWindow.max ?? NULL_LEVEL - 1;
+    tests.push((i) => { const l = table[i * ROW_STRIDE + 1]; return l !== NULL_LEVEL && l >= min && l <= max; });
   }
   if (echo.ng === true) tests.push((i) => (table[i * ROW_STRIDE + 2] & 1) === 1);
   if (echo.faculty !== undefined) {
@@ -242,14 +297,15 @@ export function compileMask(b, echo) {
 }
 
 /**
- * Exact cosine search: the rows the mask admits, scored by dot product with
+ * Exact cosine search: the rows the code ranges cover (all rows without
+ * ranges) that the mask admits, scored by dot product with
  * the L2-normalised query (rows are stored normalised, so this is cosine, the
  * index metric), keeping the top `depth` with a bounded insertion, ordered by
  * score desc, then code asc. Rows are in code order, so a later row never
  * displaces an equal-scoring earlier one.
  * @param {Bundle} b
  * @param {ArrayLike<number>} query
- * @param {FilterEcho} echo
+ * @param {Constraints} echo
  * @param {number} depth
  * @returns {{ code: string, score: number }[]}
  */
@@ -267,7 +323,8 @@ export function exactSearch(b, query, echo, depth) {
   const topScore = new Float64Array(cap);
   const topRow = new Int32Array(cap);
   let n = 0;
-  for (let r = 0; r < count; r++) {
+  const blocks = echo.ranges ? rowBlocks(b, echo.ranges) : [[0, count]];
+  for (const [from, to] of blocks) for (let r = from; r < to; r++) {
     if (mask && !mask(r)) continue;
     const base = r * dims;
     let s0 = 0, s1 = 0, s2 = 0, s3 = 0;

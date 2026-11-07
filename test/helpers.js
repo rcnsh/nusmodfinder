@@ -102,7 +102,7 @@ export function adminCall(path, fakes, body) {
     fakes,
     env: { INGEST_SECRET: TEST_INGEST_SECRET },
     init: {
-      method: body === undefined && path === '/admin/hashes' ? 'GET' : 'POST',
+      method: body === undefined && (path === '/admin/hashes' || path === '/admin/catalogue') ? 'GET' : 'POST',
       headers: { authorization: `Bearer ${TEST_INGEST_SECRET}`, 'content-type': 'application/json' },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     },

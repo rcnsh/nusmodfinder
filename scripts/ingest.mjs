@@ -1,7 +1,8 @@
 // @ts-check
 // Fetch a NUSMods acad year and bring D1 + Vectorize in line with it:
 // re-embed what changed text, rewrite rows whose fields changed, delete
-// modules that left the corpus, then write src/data-version.json.
+// modules that left the corpus, load the catalogue-only codes into D1
+// catalogue_only (3B), then write src/data-version.json.
 //
 //   npm run ingest -- --year 2026-2027 --url http://localhost:8787
 //
@@ -47,7 +48,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { DEFAULTS, runIngest } from './ingest-core.mjs';
 import {
-  DEFAULT_ACAD_YEAR, DEFAULT_MAX_AGE_MS, EMBEDDING_MODEL, assertExpectedShape, facetsPayload, fetchAcadYearFile,
+  DEFAULT_ACAD_YEAR, DEFAULT_MAX_AGE_MS, EMBEDDING_MODEL, assertExpectedShape, catalogueOnlyRecords, facetsPayload, fetchAcadYearFile,
   loadNgCourses, offeredModules,
 } from './lib.mjs';
 
@@ -324,6 +325,8 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, s
   assertExpectedShape(info.data);
   const ngCourses = await loadNgCourses(args.acadYear);
   const { modules, skipped } = offeredModules(info.data, args.acadYear, ngCourses);
+  // 3B: the codes with no offering this year, for D1 catalogue_only (noMatch `not-offered`).
+  const catalogue = catalogueOnlyRecords(info.data);
 
   const age = info.ageMs === null ? 'age unknown' : `${(info.ageMs / 3_600_000).toFixed(1)} h old`;
   const how = !info.cached ? 'freshly fetched' : info.revalidated ? 'cache revalidated (304)' : `from .data cache, ${age}`;
@@ -331,6 +334,7 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, s
   log(`source             ${info.url} (${(info.bytes / 1e6).toFixed(1)} MB, ${how})`);
   log(`catalogue records  ${info.data.length}`);
   log(`offered & usable   ${modules.length}`);
+  log(`catalogue-only     ${catalogue.length}`);
   // R2: a record missing a title or description is skipped by code, not dropped silently.
   log(`skipped            ${skipped.length}${skipped.length ? ` (${skipped.slice(0, 10).map((s) => `${s.code}: ${s.why}`).join('; ')})` : ''}`);
   if (ngCourses.available) {
@@ -350,7 +354,7 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, s
     ? { ...args.options, expectedDataVersion: String(JSON.parse(await readFile(dataVersionPath, 'utf8')).version) }
     : args.options;
   if (options.d1Only) log(`mode               D1 only (runbook step 4): no Workers AI, no Vectorize; expecting data version ${options.expectedDataVersion}`);
-  const result = await runIngest({ modules, facetsBody, api, options, pending, log });
+  const result = await runIngest({ modules, facetsBody, api, options, pending, log, catalogue });
 
   log(`rows read          ${result.rowsRead} (ingest and delete calls; /admin/hashes and facets not metered here)`);
   log(`rows written       ${result.rowsWritten} reported by D1; ${result.rowsCharged} charged to the budget (with FTS estimate)`);

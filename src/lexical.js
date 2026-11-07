@@ -9,7 +9,8 @@ export { ftsMatch, queryTokens } from './fts-query.js';
 
 /**
  * @typedef {import('./timing.js').Trace} Trace
- * @typedef {import('./search.js').FilterEcho} FilterEcho
+ * @typedef {import('./vector-bundle.js').Constraints} FilterEcho The filters, and 3B's code ranges
+ *   and level window (written as SQL predicates; never an index driver).
  */
 
 // Lexical half of the hybrid retriever. Filters are applied in SQL so the two
@@ -90,7 +91,10 @@ export function chooseDriver(echo, counts) {
 
 /**
  * SQL predicates over `modules m` for the active filters. Semester and NG use
- * the generated columns from migrations/0006_fts_external.sql. With `driver`,
+ * the generated columns from migrations/0006_fts_external.sql. 3B's code
+ * ranges become `m.code >= ? AND m.code < ?` (OR-ed), the primary-key range
+ * scan the plan names, and a level window `m.level BETWEEN`; neither drives
+ * the filter-driven plan. With `driver`,
  * every other predicate is written `+m.col`: unary plus makes it unusable as
  * an index constraint, so the planner can only walk the driver's index.
  * (Without sqlite_stat1 it picks among equality indexes by creation order,
@@ -115,6 +119,19 @@ export function filterSql(echo, driver) {
   if (echo.credits !== undefined) { clauses.push(`${col('credits', 'credits')} = ?`); binds.push(echo.credits); }
   if (echo.faculty !== undefined) { clauses.push(`${col('faculty', 'faculty')} = ?`); binds.push(echo.faculty); }
   if (echo.ng === true) clauses.push(`${col('ng', 'ng')} = 1`);
+  const plus = driver !== undefined ? '+' : '';
+  if (echo.levelWindow) {
+    clauses.push(`${plus}m.level >= ?`);
+    binds.push(echo.levelWindow.min);
+    if (echo.levelWindow.max !== null) { clauses.push(`${plus}m.level <= ?`); binds.push(echo.levelWindow.max); }
+  }
+  if (echo.ranges) {
+    if (echo.ranges.length === 0) clauses.push('0');
+    else {
+      clauses.push(`(${echo.ranges.map(() => `(${plus}m.code >= ? AND ${plus}m.code < ?)`).join(' OR ')})`);
+      for (const [lo, hi] of echo.ranges) binds.push(lo, hi);
+    }
+  }
   return { clauses, binds };
 }
 
@@ -257,4 +274,25 @@ async function runFts(db, match, echo, limit, trace) {
   // answer is complete) or nothing matches the filters at all (and then the
   // bounded answer is empty too).
   return (exact.results.length ? exact.results : bounded.results).map((r) => r.code);
+}
+
+/**
+ * The members of 3B's code ranges that pass the filters, in code order, at
+ * most `limit`: a primary-key range scan, reading about the rows it returns.
+ * A whole-query mask's results, and the third RRF list, wherever the exact
+ * dense order is unavailable (mode=lexical, the keyword-only fallback, the
+ * Vectorize standby).
+ * @param {D1Database | D1DatabaseSession} db
+ * @param {FilterEcho & { ranges: import('./vector-bundle.js').CodeRange[] }} constraints
+ * @param {number} limit
+ * @param {Trace} trace
+ * @returns {Promise<string[]>}
+ */
+export async function rangeMembers(db, constraints, limit, trace) {
+  const { clauses, binds } = filterSql(constraints);
+  const res = /** @type {D1Result<{ code: string }>} */ (await trace.time('fts', () => db.prepare(
+    `SELECT m.code AS code FROM modules m WHERE ${clauses.join(' AND ')} ORDER BY m.code LIMIT ?`,
+  ).bind(...binds, limit).all()));
+  trace.d1Result(res);
+  return res.results.map((r) => r.code);
 }

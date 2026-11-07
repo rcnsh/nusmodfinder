@@ -1,0 +1,82 @@
+{
+ "schema": "vnm-3b-ge-pillars/1",
+ "from": "eval/prereg/ge-pillars.json (P-6, unchanged)",
+ "source": {
+  "url": "https://www.nus.edu.sg/registrar/academic-information-policies/undergraduate-students/general-education",
+  "check": "docs/evidence/phase3/3b-0.md \"GE page\""
+ },
+ "prefixes": [
+  "GEA",
+  "GEC",
+  "GEH",
+  "GEI",
+  "GEN",
+  "GEQ",
+  "GES",
+  "GESS",
+  "GET",
+  "GEX"
+ ],
+ "genericPhrases": [
+  "ge",
+  "gen ed",
+  "general education"
+ ],
+ "pillars": [
+  {
+   "name": "data literacy",
+   "prefixes": [
+    "GEA"
+   ]
+  },
+  {
+   "name": "cultures and connections",
+   "prefixes": [
+    "GEC"
+   ]
+  },
+  {
+   "name": "human cultures",
+   "prefixes": [
+    "GEH"
+   ]
+  },
+  {
+   "name": "digital literacy",
+   "prefixes": [
+    "GEI"
+   ]
+  },
+  {
+   "name": "communities and engagement",
+   "prefixes": [
+    "GEN"
+   ]
+  },
+  {
+   "name": "asking questions",
+   "prefixes": [
+    "GEQ"
+   ]
+  },
+  {
+   "name": "singapore studies",
+   "prefixes": [
+    "GES",
+    "GESS"
+   ]
+  },
+  {
+   "name": "thinking and expression",
+   "prefixes": [
+    "GET"
+   ]
+  },
+  {
+   "name": "critique and expression",
+   "prefixes": [
+    "GEX"
+   ]
+  }
+ ]
+}

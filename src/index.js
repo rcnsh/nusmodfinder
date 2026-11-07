@@ -5,7 +5,8 @@
 import { denseBundle } from './dense.js';
 import { appVersion, json, withHeaders } from './http.js';
 import {
-  handleDelete, handleFacetsRebuild, handleHashes, handleIngest, handleVectorizeInfo, handleVectors, handleVerify,
+  handleCatalogue, handleCatalogueHashes, handleDelete, handleFacetsRebuild, handleHashes, handleIngest, handleVectorizeInfo,
+  handleVectors, handleVerify,
 } from './ingest.js';
 import { handleFacets, handleModule } from './modules.js';
 import page from './page.html';
@@ -58,6 +59,8 @@ function route(request, env, ctx, trace) {
   if (path === '/admin/vectorize' && request.method === 'GET') return handleVectorizeInfo(request, env);
   if (path === '/admin/verify' && request.method === 'POST') return handleVerify(request, env);
   if (path === '/admin/vectors' && request.method === 'POST') return handleVectors(request, env);
+  if (path === '/admin/catalogue' && request.method === 'GET') return handleCatalogueHashes(request, env);
+  if (path === '/admin/catalogue' && request.method === 'POST') return handleCatalogue(request, env);
 
   return json({ error: 'not_found', message: `No route for ${path}.` }, 404);
 }
