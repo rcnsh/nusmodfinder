@@ -74,5 +74,57 @@ locally (`npm test`).
 **Call log.** Every call is a row in `sc7-requests.tsv`, numbered `s7-1`, `s7-2`, …, and the lead
 merges them into `docs/evidence/requests.tsv`.
 
-## Results
-Not collected yet.
+## Results (collected 2026-11-07 19:08–21:05 UTC)
+
+**Verdict: PASS.** The pooled SIN cache-miss p50 of `total` is **186.0 ms** (95% bootstrap CI
+164.0–224.0, n = 41), against the < 250 ms rule. The whole CI sits below 250 ms.
+
+| set | n | p50 total | p90 total | 95% bootstrap CI of p50 |
+|---|---|---|---|---|
+| **pooled (the rule)** | 41 | **186.0** | 334.0 | 164.0–224.0 |
+| warm | 30 | 173.5 | 266.2 | 139.0–202.5 |
+| sparse | 11 | 274.0 | 367.0 | 175.0–334.0 |
+
+- **Calls:** 41 of 45: 30 warm and 11 sparse. Every call returned 200 from SIN as a cache miss,
+  on `x-app-version` `238e721`. Every log line carries `scriptVersion` `ea066ead`. Nothing was
+  excluded, no ingest window was declared, and no sample was degraded.
+- **Warm:** 30 calls, 30 SIN samples, so the run stopped at the method's 30.
+- **Sparse: 11 calls, not 12.** The harness stopped the collector at its 2-hour background limit
+  after s11 (21:05:15 UTC) and before s12 was due (about 21:15:45). The rule needs ≥ 10 sparse
+  SIN samples, and 11 is enough, so no re-run is allowed or needed. s12 was not sent afterwards,
+  because adding a sample after the timings were visible would be post hoc.
+- **Sparse is slower.** Its p50 of 274.0 ms is above 250 ms. The rule judges the pooled p50
+  only, and the sparse set is reported as the method says. The extra time is spread across
+  `cache`, `embed`, `fts` and `hydrate`, which each roughly double, as fits a cold isolate and
+  cold connections after 10 idle minutes. Phase 1's sparse p50 was 871.0 ms (n = 3).
+- **Logs:** the read-only tail matched 41 of 41 calls (`sc7-logs.jsonl`). Every search was served
+  by the APAC primary of `nusmods-apac` (`servedByPrimary` true).
+- **Rows read per search:** p50 255, max 1,403. Unfiltered searches have a p50 of 240 and
+  filtered ones 613.5.
+- **Client time to headers** (`headersMs`, reported and not judged): p50 303 ms and p90 675 ms
+  from the Mac in Singapore with the VPN off. This adds the network and TLS round trip to
+  `total`.
+- **Graceful degradation:** the B6 tests in `test/findings/backend.test.js` pass in `npm test`.
+
+Per-span p50s over the pooled samples (ms):
+
+| span | warm p50 | sparse p50 | pooled p50 | pooled p90 | n |
+|---|---|---|---|---|---|
+| cache | 4.0 | 15.0 | 4.0 | 18.0 | 41 |
+| limit | 0.0 | 0.0 | 0.0 | 0.0 | 41 |
+| embed | 54.5 | 107.0 | 61.0 | 131.0 | 41 |
+| vector | 0.0 | 0.0 | 0.0 | 0.0 | 41 |
+| fts | 50.0 | 110.0 | 55.0 | 117.0 | 41 |
+| hydrate | 50.5 | 103.0 | 57.0 | 135.0 | 41 |
+| variants | 47.0 | 44.5 | 45.0 | 49.4 | 27 |
+| total | 173.5 | 274.0 | 186.0 | 334.0 | 41 |
+
+- `vector` is the in-Worker dot product, which rounds to 0 ms. Phase 1's warm embed plus vector
+  was about 320 ms. Here `embed`, `fts` and `hydrate` take roughly equal shares.
+- **Per query:** `node docs/evidence/phase3/sc7-analyse.mjs` prints the per-query table, with
+  colo, spans, D1 queries, rows read and serving region.
+- **Analysis changes:** two printed labels in `sc7-analyse.mjs` were corrected after collection.
+  The `--tsv` note now reads "phase3", and the serving-region line no longer says the primary is
+  WEUR. No computation changed.
+- **Call log:** `sc7-requests.tsv` (s7-1 to s7-41) is merged into `docs/evidence/requests.tsv` as
+  row 105.

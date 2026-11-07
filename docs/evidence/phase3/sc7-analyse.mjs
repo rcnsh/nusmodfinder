@@ -88,7 +88,7 @@ if (args[0] === '--tsv') {
     const detail = s.error
       ? `error=${s.error}`
       : `http=${s.status} colo=${s.colo} cf-ray=${s.cfRay} x-app-version=${s.appVersion} | server-timing=${st}`;
-    console.log([s.n, 'fetch', `[sc7 ${s.id}] ${s.utc} GET ${s.path} | ${detail}`, `phase1 SC7 ${s.phase}`].join('\t'));
+    console.log([s.n, 'fetch', `[sc7 ${s.id}] ${s.utc} GET ${s.path} | ${detail}`, `phase3 SC7 ${s.phase}`].join('\t'));
   }
   process.exit(0);
 }
@@ -202,7 +202,7 @@ for (const s of withLog) {
   const key = `${logById.get(s.id).d1.servedByRegion.join('+') || '(none)'} primary=${logById.get(s.id).d1.servedByPrimary}`;
   regions[key] = (regions[key] ?? 0) + 1;
 }
-p(`Serving region (primary is WEUR): ${Object.entries(regions).map(([k, v]) => `${k}: ${v}`).join('; ') || 'no log lines'}.`);
+p(`Serving region (D1 nusmods-apac, primary in APAC): ${Object.entries(regions).map(([k, v]) => `${k}: ${v}`).join('; ') || 'no log lines'}.`);
 const rows = (set) => set.map((s) => logById.get(s.id)?.d1?.rowsRead).filter((x) => typeof x === 'number');
 const isFiltered = (s) => { const u = new URLSearchParams(s.path.split('?')[1]); u.delete('q'); return [...u].length > 0; };
 p('');
