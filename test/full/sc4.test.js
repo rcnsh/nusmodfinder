@@ -23,6 +23,7 @@
 import { describe, expect, inject, it, beforeAll } from 'vitest';
 import catalogueFile from '../../data/catalogue-only.json';
 import groupsFile from '../../eval/groups.json';
+import gibberishFile from '../../eval/dev/gibberish.json';
 import suiteFile from '../sc4/queries.json';
 import sc4Embeddings from '../sc4/embeddings.json';
 import devEmbeddings from '../../eval/dev/embeddings.json';
@@ -287,6 +288,29 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
     }
     // In mode=lexical the members are in code order, one per duplicate group.
     expect(codesOf((await search('cs', 50, '&mode=lexical')).body)).toEqual(projectGroups(members('CS')).slice(0, 50));
+  });
+
+  // 3G's gate (plan 3G): ≥ 90% of the gibberish set's gate half answers count 0, under the τ in force.
+  it.skipIf(!MERGED.has('3G'))('[3G] the gibberish gate half: at least 90% answer count 0 with noMatch no-signal', async () => {
+    const strings = new Map(gibberishFile.strings.map((g) => [g.id, g.text]));
+    /** @param {string[]} ids */
+    const outcome = async (ids) => {
+      const out = [];
+      for (const id of ids) {
+        const { body, missing } = await search(/** @type {string} */ (strings.get(id)), 20);
+        expect(missing, id).toEqual([]);
+        expect(body.degraded, id).toBeUndefined();
+        if (body.count === 0) expect(body.noMatch, id).toEqual({ reason: 'no-signal' });
+        out.push({ id, count: body.count });
+      }
+      return out;
+    };
+    // The derivation half is measured offline (scripts/no-signal-cosines.mjs): some of its 3C-2
+    // corrected forms (g-23 `gatt`) have no committed embedding.
+    const gate = await outcome(gibberishFile.split.gate);
+    const empty = (/** @type {{ count: number }[]} */ xs) => xs.filter((x) => x.count === 0).length;
+    console.log(`[3G] gate half ${empty(gate)}/${gate.length} count 0 (not: ${gate.filter((x) => x.count).map((x) => x.id).join(' ')})`);
+    expect(empty(gate) / gate.length).toBeGreaterThanOrEqual(0.9);
   });
 
   it('lists the items it does not run yet, each with the workstream it waits for', () => {
