@@ -752,17 +752,19 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
       const text = catalogueText(row);
       // The standby's metadata has no 3H fields: it reads deeper, and its
       // neighbours are checked after hydrate.
-      const standby = denseBackend(env) !== 'bundle';
-      const depth = standby && INTENT_PARAMS.some((k) => intentFilter[k] !== undefined) ? STANDBY_RELATED_DEPTH : RELATED_K;
+      const recheck = denseBackend(env) !== 'bundle' && INTENT_PARAMS.some((k) => intentFilter[k] !== undefined);
+      const depth = recheck ? STANDBY_RELATED_DEPTH : RELATED_K;
       const hits = await settle(denseRun(env, [text], trace, (vs) => vectorSearch(env, vs, intentFilter, filter, depth, trace)));
       if (hits.ok) related = hits.value.map((h) => h.code);
       else degrade(/** @type {DenseFailure} */ (hits.error));
-      if (related.length && standby) {
-        const rows = await fetchRows(db, related, trace);
-        related = related.filter((c) => {
-          const r = rows.get(c);
+      if (related.length && recheck) {
+        // `related` is a courtesy: a failed read gives no neighbours, never unfiltered ones or a 500.
+        const rows = await settle(fetchRows(db, related, trace));
+        related = rows.ok ? related.filter((c) => {
+          const r = rows.value.get(c);
           return r !== undefined && localMatchesFilters(r, intentFilter);
-        });
+        }) : [];
+        if (!rows.ok) console.warn(`related hydrate failed: ${/** @type {any} */ (rows.error)?.message ?? rows.error}`);
       }
       related = related.slice(0, RELATED_K);
     }

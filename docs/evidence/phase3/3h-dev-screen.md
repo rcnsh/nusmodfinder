@@ -134,6 +134,13 @@ It made three low-severity findings:
 - **Gate (no look):** with no param set, every list equals shipped `f004351`'s:
   - dev: 0 of 98 lists differ (`3h-p`);
   - holdout: 0 of 81 differ, by a store-only run, counted, with no verdict.
+- **Second review (the params-only commit):**
+  - **Fixed:** the standby's `related` recheck ran a D1 read even with no param set, which
+    changed the list when a row was gone and turned a failed read into a 500. It now runs only
+    under a 3H param, and a failed read gives no neighbours
+    (`test/search-related-standby.test.js`).
+  - **Equality with `main`:** with phrases in `q`, 408 parse outputs and 364 full responses across
+    modes, backends and options are identical.
 - **SC4:**
   - the 14 parsed-intent items (sc4-010, sc4-031, sc4-040 to sc4-051) wait for Phase 4;
   - a full-corpus test checks each constraint item's reference searched with its explicit param.
