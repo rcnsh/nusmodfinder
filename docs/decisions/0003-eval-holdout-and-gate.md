@@ -350,6 +350,7 @@ ships, in the same PR as the constant.
 - shipped pin: `45bd7169cd8931294057f409e7bbc2fc311599bc` 45bd7169cd8931294057f409e7bbc2fc311599bc (3A-2, embedding text v1, deployed 2026-11-07 as version `8d1b85be`; L2 pass, holdout look 1)
 - shipped pin: `ad8e10caf2d8fa01c34191551a63ac5d64cdaade` ad8e10caf2d8fa01c34191551a63ac5d64cdaade (3B, codes, partial codes and GE pillars, deployed 2026-11-07 as version `8e743876`; L3 pass, holdout look 2)
 - shipped pin: `89cb10e9e56b0b3035a063d544fb0b1e16fd2bf1` 89cb10e9e56b0b3035a063d544fb0b1e16fd2bf1 (3C-2, typo correction and prefix terms, deployed 2026-11-07 as version `c402a75d`; L4 pass, holdout look 3)
+- shipped pin: `2ce17c66c662c3af29842f9aab7d67499ee76b12` 2ce17c66c662c3af29842f9aab7d67499ee76b12 (3F, groups-v1 collapse with variants, deployed 2026-11-07 as version `6e832483`; no look: identity with the group-first projection and dev `no-loss`, A2-4)
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.
