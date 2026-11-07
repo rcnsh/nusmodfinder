@@ -50,7 +50,9 @@ describe('Server-Timing on /search', () => {
     const res = await call('/search?q=machine%20learning%20timing', { fakes });
     expect(res.status).toBe(200);
     const spans = parseTiming(res.headers.get('server-timing'));
-    expect(Object.keys(spans)).toEqual(['cache', 'limit', 'embed', 'vector', 'fts', 'hydrate', 'total']);
+    // 3F's variants read runs when a result has duplicates to list.
+    const variants = (await res.clone().json()).results.some((/** @type {any} */ r) => r.variants) ? ['variants'] : [];
+    expect(Object.keys(spans)).toEqual(['cache', 'limit', 'embed', 'vector', 'fts', 'hydrate', ...variants, 'total']);
     expect(spans.cache.desc).toBe('miss');
     expect(allHaveDurations(spans)).toBe(true);
   });
@@ -58,7 +60,8 @@ describe('Server-Timing on /search', () => {
   it('an exact module code adds the pin span; lexical mode has no embed or vector', async () => {
     const res = await call('/search?q=cs1010s&mode=lexical', { fakes });
     const spans = parseTiming(res.headers.get('server-timing'));
-    expect(Object.keys(spans)).toEqual(['cache', 'limit', 'pin', 'fts', 'hydrate', 'total']);
+    const variants = (await res.clone().json()).results.some((/** @type {any} */ r) => r.variants) ? ['variants'] : [];
+    expect(Object.keys(spans)).toEqual(['cache', 'limit', 'pin', 'fts', 'hydrate', ...variants, 'total']);
   });
 
   it('a cache hit gets fresh cache;desc=hit and total spans, and the stored copy has none', async () => {
@@ -121,7 +124,8 @@ describe('structured /search log', () => {
     const logs = captureSearchLogs();
     const res = await call('/search?q=machine%20learning%20logged&sem=1', {
       fakes,
-      env: { CF_VERSION_METADATA: VERSION },
+      // The uncollapsed pipeline: 3F's collapse adds a variants read (test/search-groups.test.js).
+      env: { CF_VERSION_METADATA: VERSION, COLLAPSE_GROUPS: 'off' },
       init: { headers: { 'cf-connecting-ip': '203.0.113.7', 'user-agent': 'secret-agent/1.0' } },
     });
     const body = await res.json();

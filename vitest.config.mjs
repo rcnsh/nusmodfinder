@@ -7,6 +7,7 @@ import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-plugin';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
+import { pinnedGroupsPath } from './scripts/build-groups.mjs';
 import { pinnedVocabularyPath } from './scripts/build-vocabulary.mjs';
 import { loadPinnedCorpus, MODULE_INFO_PATH } from './scripts/pinned-corpus.mjs';
 import { loadCheckedBundle, localPath, readVectorsManifest, writeShim } from './scripts/vectors-manifest.mjs';
@@ -77,6 +78,10 @@ const FIXTURE_VOCABULARY = fileURLToPath(new URL('./test/fixtures/vocabulary.jso
  * @param {string} path
  */
 const vocabularyAlias = (path) => ({ find: /^\.\.\/data\/vocabulary\.json$/, replacement: path });
+/** The committed fixture groups (scripts/build-groups.mjs --corpus fixture). */
+const FIXTURE_GROUPS = fileURLToPath(new URL('./test/fixtures/groups.json', import.meta.url));
+/** 3F's groups import in src/group-data.js, pointed at the groups of the corpus the tests search. @param {string} path */
+const groupsAlias = (path) => ({ find: /^\.\.\/data\/groups\.json$/, replacement: path });
 
 // Files named *.node.test.js run in plain Node instead of workerd: they cover
 // Node-side code (scripts/) and read repository files, neither of which the
@@ -95,13 +100,14 @@ export default defineConfig(async () => {
   // test/full searches the pinned corpus, so it corrects against the pinned
   // vocabulary; without the corpus its tests skip, and the fixture's stands in.
   const fullVocabulary = fullCorpusData ? await pinnedVocabularyPath() : FIXTURE_VOCABULARY;
+  const fullGroups = fullCorpusData ? await pinnedGroupsPath() : FIXTURE_GROUPS;
   return {
     test: {
       projects: [
         {
           plugins: [workerd()],
           // test/wrangler.test.jsonc's `alias`, which the plugin does not read.
-          resolve: { alias: [{ find: 'vectors-bundle', replacement: FIXTURE_BUNDLE }, vocabularyAlias(FIXTURE_VOCABULARY)] },
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: FIXTURE_BUNDLE }, vocabularyAlias(FIXTURE_VOCABULARY), groupsAlias(FIXTURE_GROUPS)] },
           test: {
             name: 'workers',
             include: ['test/**/!(*.node).test.js'],
@@ -111,7 +117,7 @@ export default defineConfig(async () => {
         },
         {
           plugins: [workerd()],
-          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary)] },
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary), groupsAlias(fullGroups)] },
           test: {
             name: 'full',
             include: ['test/full/**/!(*.node).test.js'],

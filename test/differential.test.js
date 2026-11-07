@@ -106,6 +106,12 @@ function requests() {
   return out;
 }
 
+/**
+ * The new route without 3F's collapse: the collapsed list is checked against
+ * this uncollapsed one, as its group-first projection (test/search-groups.test.js).
+ */
+const UNCOLLAPSED = { COLLAPSE_GROUPS: 'off' };
+
 /** `interpreted` for a query the 3B parse routes nothing in. */
 const UNROUTED = { pin: null, prefix: null, ge: null, level: null, exam: null, su: null, hoursBelow: null, prereq: null };
 /** Whether 3B's parse routed this response. @param {{ status: number, body: any }} r */
@@ -142,7 +148,7 @@ async function compare(path) {
   const legacyUrl = new URL(url);
   if (legacyUrl.searchParams.get('topK')?.trim() === '') legacyUrl.searchParams.delete('topK');
   const before = await legacy(legacyUrl.pathname + legacyUrl.search);
-  const after = await callJson(path, { fakes, env: STANDBY });
+  const after = await callJson(path, { fakes, env: { ...STANDBY, ...UNCOLLAPSED } });
   if (before.status !== after.status) return `${path}: status ${before.status} -> ${after.status}`;
   if (routed(after)) { routedPaths.push(path); return null; }
   if (after.status === 200 && changedBy3C(path)) { typoPaths.push(path); return null; }
@@ -167,7 +173,7 @@ describe('1B is ranking-neutral', () => {
     for (const p of paths) {
       const diff = await compare(p);
       if (diff) diffs.push(diff);
-      const { status, body } = await callJson(p, { fakes, keepCache: true, env: STANDBY });
+      const { status, body } = await callJson(p, { fakes, keepCache: true, env: { ...STANDBY, ...UNCOLLAPSED } });
       if (status === 200) { ok += 1; if (body.results.length) withResults += 1; }
     }
     expect(diffs).toEqual([]);
@@ -200,7 +206,7 @@ describe('1B is ranking-neutral', () => {
       let compared = 0;
       for (const p of paths) {
         const before = await legacy(p.replace(/topK=(&|$)/, ''));
-        const after = await callJson(p.replace(/topK=(&|$)/, ''), { fakes, env: STANDBY });
+        const after = await callJson(p.replace(/topK=(&|$)/, ''), { fakes, env: { ...STANDBY, ...UNCOLLAPSED } });
         expect(after.status, p).toBe(before.status);
         if (before.status !== 200 || routed(after) || changedBy3C(p)) continue;
         // Same page of results. retrieval.fused can only differ here, and only

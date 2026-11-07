@@ -9,6 +9,8 @@ import { denseBundle } from '../src/dense.js';
 import { exactSearch } from '../src/vector-bundle.js';
 import { env } from 'cloudflare:workers';
 import { createFakes, hashEmbed } from './fakes.js';
+import groupsFile from './fixtures/groups.json';
+import { parseGroupsFile } from '../src/groups.js';
 import { adminCall, callJson, fixture, seed } from './helpers.js';
 
 const PILLARS = ['GEA', 'GEC', 'GEH', 'GEI', 'GEN', 'GEQ', 'GES', 'GESS', 'GET', 'GEX'];
@@ -24,6 +26,18 @@ const members = (p) => fixtureCodes.filter((c) => c >= (/\d$/.test(p) ? p : `${p
 const pillarMembers = fixtureCodes.filter((c) => PILLARS.includes(letters(c)));
 /** The exact dense order of `q` over the rows the constraints admit. @param {string} q @param {any} constraints @param {number} depth */
 const denseOrder = (q, constraints, depth) => exactSearch(denseBundle(), hashEmbed(q), constraints, depth).map((h) => h.code);
+
+// 3F: one result per duplicate group (groups-v1), the others as its variants.
+const groupOf = parseGroupsFile(/** @type {any} */ (groupsFile));
+const gkey = (/** @type {string} */ c) => groupOf.get(c) ?? c;
+/** The group-first projection of a ranked list. @param {string[]} list */
+const project = (list) => { const seen = new Set(); return list.filter((c) => (seen.has(gkey(c)) ? false : (seen.add(gkey(c)), true))); };
+/** The groups a list covers. @param {string[]} list */
+const groupSet = (list) => new Set(list.map(gkey));
+/** Result codes and their variants. @returns {string[]} */
+const shown = (/** @type {any} */ body) => [...codes(body), ...body.results.flatMap((/** @type {any} */ r) => (r.variants ?? []).map((/** @type {any} */ v) => v.code))];
+/** The mask path's depth with the collapse on (topK × 3, src/search.js). */
+const MASK_DEPTH = 150;
 
 /** @type {import('./fakes.js').Fakes} */
 let fakes;
@@ -73,19 +87,19 @@ describe('whole-query masks', () => {
   it('a partial code returns its members only, ordered by exact dense score', async () => {
     const { body } = await callJson('/search?q=cs2&topK=50', { fakes });
     expect(body.interpreted.prefix).toBe('CS2');
-    expect(codes(body)).toEqual(denseOrder('cs2', { ranges: [['CS2', 'CS2:']] }, 50));
-    expect([...codes(body)].sort(byCode)).toEqual(members('CS2'));
-    expect(body.count).toBe(members('CS2').length);
+    expect(codes(body)).toEqual(project(denseOrder('cs2', { ranges: [['CS2', 'CS2:']] }, MASK_DEPTH)).slice(0, 50));
+    for (const c of members('CS2')) expect(shown(body), c).toContain(c);
+    expect(body.count).toBe(groupSet(members('CS2')).size);
   });
 
   it('a bare prefix never takes in a longer one: ges returns no GESS code, cs no CSA code', async () => {
     for (const mode of ['hybrid', 'lexical']) {
       const ges = await callJson(`/search?q=ges&topK=50&mode=${mode}`, { fakes });
       expect(ges.body.interpreted.prefix).toBe('GES');
-      expect([...codes(ges.body)].sort(byCode), mode).toEqual(members('GES'));
+      expect(groupSet(codes(ges.body)), mode).toEqual(groupSet(members('GES')));
       expect(codes(ges.body).some((c) => c.startsWith('GESS')), mode).toBe(false);
       const cs = await callJson(`/search?q=cs&topK=50&mode=${mode}`, { fakes });
-      expect(cs.body.count, mode).toBe(Math.min(50, members('CS').length));
+      expect(cs.body.count, mode).toBe(Math.min(50, groupSet(members('CS')).size));
       expect(codes(cs.body).every((c) => /^CS\d/.test(c)), mode).toBe(true);
     }
     expect(members('GESS').length).toBeGreaterThan(0);
@@ -93,16 +107,16 @@ describe('whole-query masks', () => {
 
   it('is in code order in mode=lexical, in the keyword-only fallback and under the Vectorize flip', async () => {
     const lexical = await callJson('/search?q=cs2&topK=50&mode=lexical', { fakes });
-    expect(codes(lexical.body)).toEqual(members('CS2'));
+    expect(codes(lexical.body)).toEqual(project(members('CS2')));
     const failing = createFakes();
     failing.ai.throws('workers ai down');
     const fallback = await callJson('/search?q=cs2&topK=50', { fakes: failing });
     expect(fallback.body.degraded).toMatchObject({ source: 'workers-ai' });
-    expect(codes(fallback.body)).toEqual(members('CS2'));
+    expect(codes(fallback.body)).toEqual(project(members('CS2')));
     const flip = await callJson('/search?q=cs2&topK=50', { fakes, env: STANDBY });
-    expect(codes(flip.body)).toEqual(members('CS2'));
+    expect(codes(flip.body)).toEqual(project(members('CS2')));
     // topK cuts the code order too.
-    expect(codes((await callJson('/search?q=cs&topK=5&mode=lexical', { fakes })).body)).toEqual(members('CS').slice(0, 5));
+    expect(codes((await callJson('/search?q=cs&topK=5&mode=lexical', { fakes })).body)).toEqual(project(members('CS')).slice(0, 5));
   });
 
   it('XX N000 as the whole query is prefix ∩ level, with the level echoed', async () => {
@@ -110,21 +124,21 @@ describe('whole-query masks', () => {
     expect(body.interpreted).toMatchObject({ prefix: 'CS', level: { min: 3, max: 3, source: ['level'] } });
     const want = members('CS').filter((c) => moduleOf.get(c)?.level === 3);
     expect(want.length).toBeGreaterThan(0);
-    expect([...codes(body)].sort(byCode)).toEqual(want);
+    expect(groupSet(codes(body))).toEqual(groupSet(want));
     const lexical = await callJson('/search?q=cs%203000&topK=50&mode=lexical', { fakes });
-    expect(codes(lexical.body)).toEqual(want);
+    expect(codes(lexical.body)).toEqual(project(want));
     // ignore=level drops the level, keeps the route.
     const all = await callJson('/search?q=cs%203000&topK=50&ignore=level', { fakes });
     expect(all.body.interpreted.level).toBeNull();
-    expect([...codes(all.body)].sort(byCode)).toEqual(members('CS'));
+    expect(groupSet(codes(all.body))).toEqual(groupSet(members('CS')));
   });
 
   it('a GE phrase as the whole query is the pillar mask, never Geography', async () => {
     const { body } = await callJson('/search?q=general%20education&topK=50', { fakes });
     expect(body.interpreted.ge).toEqual(PILLARS);
     expect(body.interpreted.prefix).toBeNull();
-    expect([...codes(body)].sort(byCode)).toEqual(pillarMembers);
-    expect(codes(body)).toEqual(denseOrder('general education', { ranges: PILLARS.map((p) => [`${p}0`, `${p}:`]) }, 50));
+    expect(groupSet(codes(body))).toEqual(groupSet(pillarMembers));
+    expect(codes(body)).toEqual(project(denseOrder('general education', { ranges: PILLARS.map((p) => [`${p}0`, `${p}:`]) }, MASK_DEPTH)).slice(0, 50));
     expect(fixtureCodes.some((c) => /^GE\d/.test(c))).toBe(true);
   });
 
@@ -175,7 +189,7 @@ describe('GE inside a longer query: a pre-retrieval mask', () => {
 
   it('the dense half scores only pillar rows, so the page fills from them', async () => {
     const { body } = await callJson(`/search?q=${q}&mode=vector&topK=50`, { fakes });
-    expect([...codes(body)].sort(byCode)).toEqual(pillarMembers);
+    expect(groupSet(codes(body))).toEqual(groupSet(pillarMembers));
   });
 
   it('ignore=ge undoes it', async () => {

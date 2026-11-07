@@ -115,3 +115,22 @@ export function sc4Texts(suite) {
   }
   return [...out];
 }
+
+/**
+ * 3F: writes the run corpus's duplicate groups where a ranker with src/groups.js
+ * reads them (data/groups.json in the workspace), built by the ranker's own
+ * builder, so a run never reads the production groups its ref commits. Null
+ * for a ranker without 3F.
+ * @param {string} root the workspace
+ * @param {{ code: string, title: string, description?: string | null }[]} modules the run corpus
+ * @param {string} label the run corpus's identity, recorded as the groups' data version
+ */
+export async function writeRankerGroups(root, modules, label) {
+  const path = join(root, 'src/groups.js');
+  if (!existsSync(path)) return null;
+  const { buildGroupsFile, serializeGroupsFile } = await import(pathToFileURL(path).href);
+  const file = buildGroupsFile(modules, { corpus: 'eval', dataVersion: label });
+  const serialized = serializeGroupsFile(file);
+  await writeFile(join(root, 'data/groups.json'), serialized);
+  return { version: file.version, groups: file.counts.groups, sha256: createHash('sha256').update(serialized).digest('hex') };
+}

@@ -1,7 +1,7 @@
 {
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
- "version": "qrels-dev-v8",
+ "version": "qrels-dev-v9",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
   "ngSha256": "092d021db4ccff2ea45e75bfc073623fa502aace082a8d5bd627f41d79c3f169"
@@ -218,6 +218,34 @@
     }
    },
    "createdAt": "2026-11-07T14:07:25.323Z"
+  },
+  {
+   "round": "p3f",
+   "mode": "single",
+   "judges": {
+    "A": "claude-opus-5-5"
+   },
+   "adjudicator": null,
+   "pairs": 6,
+   "pool": "8932fd7efa0d8c3c1b8e6b3f3a1b6fb2c0d12f604920538fd33302aa739de222",
+   "codeRule": {
+    "rule": "code-rule-v1",
+    "pairs": 56,
+    "queries": 0,
+    "added": {
+     "0": 0,
+     "1": 0,
+     "2": 0
+    },
+    "changed": {},
+    "overrides": {
+     "total": 0,
+     "up": 0,
+     "down": 0,
+     "same": 0
+    }
+   },
+   "createdAt": "2026-11-07T14:56:57.932Z"
   }
  ],
  "queries": {
@@ -15418,6 +15446,18 @@
        "rationale": "Computational genomic data analysis (databases, NGS mapping, pathway analysis), not a wet lab course where the student does PCR, cloning, gels or western blots."
       }
      }
+    },
+    "LSM3244": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3f",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "The description is a lecture-style course on genome engineering and biotechnology applications and mentions no practicals or hands-on PCR, cloning, gels or western blots, so it falls under lecture-only courses the intent rules out."
+      }
+     }
     }
    }
   },
@@ -19114,6 +19154,18 @@
        "rationale": "Information security; does not cover concurrency or operating system threads."
       }
      }
+    },
+    "CS3223": {
+     "grade": 1,
+     "source": "judged",
+     "round": "p3f",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 1,
+       "rationale": "A systems course, NG in semester 1, that covers transactions and concurrency control as one part of database implementation. Concurrency is a component of the course, not its focus."
+      }
+     }
     }
    }
   },
@@ -20650,6 +20702,18 @@
        "rationale": "Logic, proof assistants and Prolog; it does not cover threads, shared memory or message passing."
       }
      }
+    },
+    "CS2113": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3f",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A software engineering and OOP course on requirements, design, testing and tooling; the description shows no threads, shared memory, message passing, parallel computing or operating systems content."
+      }
+     }
     }
    }
   },
@@ -21186,6 +21250,18 @@
        "rationale": "An ECE computer networks course open to NG students; networks are named as a security-adjacent area and it sits outside the CS department."
       }
      }
+    },
+    "EE4212": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3f",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE4212 is a computer vision course (image formation, segmentation, 3D geometry); it is neither security-adjacent (cryptography, privacy, secure systems, networks) nor a systems course."
+      }
+     }
     }
    }
   },
@@ -21368,6 +21444,18 @@
        "slot": "A",
        "grade": 1,
        "rationale": "Big data and ML applied to materials science; data component but domain-specific."
+      }
+     }
+    },
+    "ZB3101": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3f",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "ZB3101 is a bioinformatics course on genomic and sequencing data analysis; its 'databases' are biological data sources to query, not database systems, cloud or big data engineering, so it shares words more than topic."
       }
      }
     }
@@ -25626,6 +25714,18 @@
        "slot": "A",
        "grade": 0,
        "rationale": "PP5510 public policy course, not CS2030."
+      }
+     }
+    },
+    "CS3230": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p3f",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "CS3230 is an algorithms course, not CS2030 or a variant; the intent names any other course as not relevant."
       }
      }
     }

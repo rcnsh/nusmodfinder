@@ -4,21 +4,9 @@
 // groups are built from public corpus fields only, never from qrels or judge
 // grades, so they apply equally to every set (dev, holdout, test).
 //
-// Rule, over the offered modules of the pinned corpus (code, title,
-// description as scripts/lib.mjs `normalise()` returns them). "Normalised"
-// means lower-cased, whitespace runs collapsed to one space, trimmed.
-// - Variant family: codes with the same prefix letters and four digits that
-//   differ only in the suffix letters (TR3202I/S/T, ACC1701X/XA, CS1010/CS1010S),
-//   and the same normalised title. MA2101 "Linear Algebra II" and MA2101S
-//   "Linear Algebra II (S)" stay apart: the (S) course is a different,
-//   Special Programme course with its own description.
-// - Cross-listing: different codes whose normalised title and normalised
-//   description are both identical, when the description is a real one. The
-//   placeholder "Not Available" (226 offered modules) says nothing about the
-//   content, so it never makes two codes cross-listed (otherwise BN5999 ...
-//   MT5999 "Graduate Seminars" of nine departments would be one group).
-// - Groups are transitive (union-find over both relations); singletons are
-//   dropped. Members are sorted, groups sorted by first member.
+// The rule is groups-v1 in src/groups.js, one rule for eval and product (3F),
+// over the offered modules of the pinned corpus (code, title, description as
+// scripts/lib.mjs `normalise()` returns them).
 //
 // eval/groups.json is the committed output (`npm run eval:groups`, checked by
 // `npm run eval:groups -- --check` and test/full/groups.node.test.js). The
@@ -28,87 +16,17 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { CorpusMismatchError } from './errors.mjs';
 import { REPO } from './sets.mjs';
+import { GROUPS_VERSION, buildGroups, familyOf, normaliseText } from '../../src/groups.js';
+
+export { GROUPS_VERSION, buildGroups, familyOf, normaliseText };
+
+/**
+ * @typedef {import('../../src/groups.js').GroupInput} GroupInput
+ * @typedef {import('../../src/groups.js').GroupCounts} GroupCounts
+ */
 
 export const GROUPS_PATH = join(REPO, 'eval/groups.json');
 export const GROUPS_SCHEMA = 'vnm-eval-groups/1';
-/** Bump when the rule changes. */
-export const GROUPS_VERSION = 'groups-v1';
-
-/** Descriptions that carry no content (normalised). */
-const PLACEHOLDER_DESCRIPTIONS = new Set(['', 'not available']);
-
-/** @param {unknown} s */
-export const normaliseText = (s) => String(s ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
-
-/**
- * The variant-family key of a code: prefix letters + four digits, when the
- * rest is only suffix letters (CS1010S -> CS1010); null otherwise (DMA1401L01).
- * @param {string} code
- */
-export function familyOf(code) {
-  return /^([A-Z]+\d{4})[A-Z]*$/.exec(code)?.[1] ?? null;
-}
-
-/**
- * @typedef {{ code: string, title: string, description: string }} GroupInput
- * @typedef {{ groups: number, members: number, largest: number }} GroupCounts
- */
-
-/**
- * @param {GroupInput[]} modules
- * @returns {{ groups: string[][], counts: GroupCounts }}
- */
-export function buildGroups(modules) {
-  /** @type {Map<string, string>} */
-  const parent = new Map(modules.map((m) => [m.code, m.code]));
-  /** @param {string} x @returns {string} */
-  const find = (x) => {
-    let root = x;
-    while (parent.get(root) !== root) root = /** @type {string} */ (parent.get(root));
-    while (parent.get(x) !== root) { const next = /** @type {string} */ (parent.get(x)); parent.set(x, root); x = next; }
-    return root;
-  };
-  /** @param {string} a @param {string} b */
-  const union = (a, b) => {
-    const ra = find(a), rb = find(b);
-    if (ra !== rb) parent.set(ra < rb ? rb : ra, ra < rb ? ra : rb);
-  };
-  /** @param {(m: GroupInput) => string | null} key */
-  const joinBy = (key) => {
-    /** @type {Map<string, string>} */
-    const first = new Map();
-    for (const m of modules) {
-      const k = key(m);
-      if (k === null) continue;
-      const f = first.get(k);
-      if (f === undefined) first.set(k, m.code);
-      else union(f, m.code);
-    }
-  };
-  joinBy((m) => { const f = familyOf(m.code); return f === null ? null : `${f}\t${normaliseText(m.title)}`; });
-  joinBy((m) => {
-    const d = normaliseText(m.description);
-    return PLACEHOLDER_DESCRIPTIONS.has(d) ? null : `${normaliseText(m.title)}\t${d}`;
-  });
-
-  /** @type {Map<string, string[]>} */
-  const byRoot = new Map();
-  for (const m of modules) {
-    const r = find(m.code);
-    const g = byRoot.get(r);
-    if (g) g.push(m.code); else byRoot.set(r, [m.code]);
-  }
-  const cmp = (/** @type {string} */ a, /** @type {string} */ b) => (a < b ? -1 : a > b ? 1 : 0);
-  const groups = [...byRoot.values()].filter((g) => g.length > 1).map((g) => [...new Set(g)].sort(cmp)).sort((a, b) => cmp(a[0], b[0]));
-  return {
-    groups,
-    counts: {
-      groups: groups.length,
-      members: groups.reduce((n, g) => n + g.length, 0),
-      largest: groups.reduce((n, g) => Math.max(n, g.length), 0),
-    },
-  };
-}
 
 /**
  * @typedef {{
