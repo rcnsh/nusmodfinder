@@ -92,6 +92,9 @@ function correct(q, vocab) {
     const near = nearestTerm(vocab, t, maxDistance(t.length));
     if (near !== null) to.set(t, near);
   }
-  const text = to.size ? q.split(PIECES).map((piece) => to.get(piece) ?? piece).join('') : q;
+  // Pieces are matched lower-cased as queryTokens lower-cases them: the
+  // canonical q lower-cases ASCII only, so `mar\u212Aetng` (KELVIN SIGN) is
+  // the token `marketng`.
+  const text = to.size ? q.split(PIECES).map((piece) => to.get(piece.toLowerCase()) ?? piece).join('') : q;
   return { tokens, text, prefixes, corrections: [...to].map(([from, t]) => ({ from, to: t })) };
 }
