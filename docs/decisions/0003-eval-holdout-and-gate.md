@@ -192,7 +192,7 @@ above do not allow; each is now refused mechanically, before a look is reserved 
   `treeHash`. The ledger records the baseline's ranker sha in a `baseline ranker` column.
   Moving the holdout baseline to a later shipped ranker means changing the pin and this ADR in
   the same PR. A stored encrypted run the manifest lists is never overwritten (by
-  `--store-only` or a look). Replacing one is `npm run eval -- retire-run --reason …`, logged
+  `--store-only` or a look). Replacing one is `node eval/cli.mjs retire-run --reason …`, logged
   with the retired ciphertext's sha256 in `eval/retired-runs.md`. Writing a run adds only that
   file to the manifest instead of re-hashing every ciphertext, so the overwrite no longer makes
   `eval:verify` pass.
