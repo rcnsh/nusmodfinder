@@ -17,6 +17,7 @@
 // identity with that path is test/dense.test.js.
 import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { LEVEL, codeLevel } from '../src/level-prior.js';
 import { canonicalQuery } from '../src/query-intent.js';
 import { Trace } from '../src/timing.js';
 import { EMBED_CORRECTED, correctQuery } from '../src/typo.js';
@@ -134,6 +135,20 @@ function changedBy3C(path) {
 const typoPaths = [];
 
 /**
+ * Whether 3D's β (src/level-prior.js) can reorder this request: a hybrid
+ * search with no level intent and a level-5+ module on either page.
+ * @param {string} path @param {{ status: number, body: any }} before @param {{ status: number, body: any }} after
+ */
+function changedByBeta(path, before, after) {
+  if (LEVEL.beta === 0 || after.status !== 200 || after.body.interpreted?.level !== null) return false;
+  if ((new URL(path, BASE).searchParams.get('mode') ?? 'hybrid') !== 'hybrid') return false;
+  const level5 = (/** @type {any} */ b) => (b?.results ?? []).some((/** @type {{ code: string }} */ r) => (codeLevel(r.code) ?? 0) >= 5);
+  return level5(before.body) || level5(after.body);
+}
+/** Requests 3D's β can reorder, left out like 3C's. @type {string[]} */
+const betaPaths = [];
+
+/**
  * Compares one request on both paths. Returns a description of any
  * difference that is not one of the declared bug fixes, else null.
  * @param {string} path
@@ -148,6 +163,7 @@ async function compare(path) {
   if (before.status !== after.status) return `${path}: status ${before.status} -> ${after.status}`;
   if (routed(after)) { routedPaths.push(path); if (after.body.interpreted.level !== null) levelPaths.add(path); return null; }
   if (after.status === 200 && changedBy3C(path)) { typoPaths.push(path); return null; }
+  if (changedByBeta(path, before, after)) { betaPaths.push(path); return null; }
   const expected = before.status === 200
     // B7: the body echoes the canonical query (trimmed, whitespace collapsed, ASCII lower-cased).
     // 3B: and an all-null `interpreted`.
@@ -188,8 +204,10 @@ describe('1B is ranking-neutral', () => {
     // 3C changes only queries with a df-0 token of 4+ letters, and leaves most of the set alone.
     expect(typoPaths.length).toBeGreaterThan(0);
     expect(paths.length - routedPaths.length - typoPaths.length).toBeGreaterThan(400);
+    // β leaves the lexical and vector modes alone, so those still compare exactly.
+    expect(paths.length - routedPaths.length - typoPaths.length - betaPaths.length).toBeGreaterThan(LEVEL.beta === 0 ? 400 : 150);
     console.info(`differential: ${paths.length} requests, ${ok} 200s (${withResults} with results), ${diffs.length} differences, `
-      + `${routedPaths.length} routed by 3B or 3D (${levelPaths.size} with a level) and ${typoPaths.length} changed by 3C, left out`);
+      + `${routedPaths.length} routed by 3B or 3D (${levelPaths.size} with a level), ${typoPaths.length} changed by 3C and ${betaPaths.length} by 3D's β, left out`);
   }, 120_000);
 
   it('returns the same results when the index holds stale vectors missing from D1', async () => {
@@ -207,7 +225,7 @@ describe('1B is ranking-neutral', () => {
         const before = await legacy(p.replace(/topK=(&|$)/, ''));
         const after = await callJson(p.replace(/topK=(&|$)/, ''), { fakes, env: STANDBY });
         expect(after.status, p).toBe(before.status);
-        if (before.status !== 200 || routed(after) || changedBy3C(p)) continue;
+        if (before.status !== 200 || routed(after) || changedBy3C(p) || changedByBeta(p, before, after)) continue;
         // Same page of results. retrieval.fused can only differ here, and only
         // upwards: hydration stops once the page is full, so stale candidates
         // below it are not discovered (and not subtracted).
@@ -216,7 +234,7 @@ describe('1B is ranking-neutral', () => {
         expect(after.body.retrieval.fused, p).toBeGreaterThanOrEqual(before.body.retrieval.fused);
         compared += 1;
       }
-      expect(compared).toBeGreaterThan(100);
+      expect(compared).toBeGreaterThan(LEVEL.beta === 0 ? 100 : 30);
     } finally {
       fakes.vectorize.vectors = saved;
     }
