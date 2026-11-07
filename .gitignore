@@ -20,3 +20,4 @@ eval/sealed/**
 .DS_Store
 ._*
 eval/runs/
+eval/diag/*/runs/

@@ -5,6 +5,8 @@
 // files never change. Each variant's qrels are its source dev query's
 // judgments. The directory's queries and qrels are checked against its
 // MANIFEST.json on every read, and its report prints no verdict.
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -51,7 +53,7 @@ describe('eval/diag/typo', () => {
     for (const q of diag.queries) {
       const a = devById.get(q.source).text.split(' ');
       const b = q.text.split(' ');
-      const changed = a.map((w, i) => [w, b[i]]).filter(([w, v]) => w !== v);
+      const changed = a.map((/** @type {string} */ w, /** @type {number} */ i) => [w, b[i]]).filter(([w, v]) => w !== v);
       expect(changed.length, q.id).toBeGreaterThanOrEqual(1);
       expect(changed.length, q.id).toBeLessThanOrEqual(2);
       for (const [w, v] of changed) {
@@ -105,5 +107,39 @@ describe('a plaintext set directory with a MANIFEST.json is checked against it',
 
   it('leaves a plaintext set without a manifest (eval/dev) as it was', async () => {
     expect((await loadQueries(layout('dev'))).queries.length).toBe(dev.queries.length);
+  });
+});
+
+describe('the diagnostic report', () => {
+  it('prints the tables and no verdict', async () => {
+    const dir = await mkdtemp(join(REPO, '.eval-work', 'diag-report-'));
+    try {
+      await cp(join(REPO, DIAG_DIR), dir, { recursive: true });
+      const sha = createHash('sha256').update(JSON.stringify(diag.queries)).digest('hex');
+      for (const [variant, best] of /** @type {const} */ ([['base', false], ['cand', true]])) {
+        /** @type {Record<string, { status: number, codes: string[] }>} */
+        const results = {};
+        for (const q of diag.queries) {
+          const graded = Object.entries(diagQrels.queries[q.id].judgments)
+            .map(([code, j]) => ({ code, g: Number(/** @type {any} */ (j).grade ?? j) }))
+            .sort((x, y) => (best ? y.g - x.g : x.g - y.g) || x.code.localeCompare(y.code));
+          results[q.id] = { status: 200, codes: graded.slice(0, 10).map((x) => x.code) };
+        }
+        await writeFile(join(dir, `${variant}.json`), JSON.stringify({
+          schema: 'vnm-eval-run/1', variant, set: 'dev', ranker: { ref: 'synthetic', sha: '0'.repeat(40), dirty: false },
+          corpus: { ...diagQrels.corpus }, queries: { version: diag.version, sha256: sha, count: diag.queries.length },
+          config: { mode: 'hybrid', filters: true }, results, docs: {},
+        }));
+      }
+      const r = spawnSync(process.execPath, [join(REPO, 'eval/cli.mjs'), 'report', '--set', 'dev', '--set-dir', dir,
+        '--run', join(dir, 'cand.json'), '--baseline', join(dir, 'base.json')], { cwd: REPO, encoding: 'utf8' });
+      expect(r.stderr).toBe('');
+      expect(r.status).toBe(0);
+      expect(r.stdout).toMatch(/qrels qrels-diag-typo-v1/);
+      expect(r.stdout).toContain('diagnostic set: reported, never gated (no verdict)');
+      expect(r.stdout).not.toMatch(/^gate \(/m);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });
