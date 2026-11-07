@@ -96,10 +96,10 @@ describe('S7', () => {
 });
 
 describe('S8', () => {
-  it('[S8 known-bug] gibberish returns a full page of results in hybrid mode', async () => {
+  it('[S8 fixed] 3G: gibberish answers count 0 with noMatch no-signal', async () => {
     const { body } = await callJson('/search?q=xqzvbnm%20flurble', { fakes });
     expect(body.retrieval.lexical).toBe(0);
-    expect(body.count).toBe(20);
+    expect(body).toMatchObject({ count: 0, results: [], noMatch: { reason: 'no-signal' } });
   });
 
   it('[S8 fixed] 3F: near-duplicate variants (TR3202*) collapse to one result, the others listed as its variants', async () => {

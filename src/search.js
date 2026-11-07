@@ -16,6 +16,7 @@ import { groupKeyOf } from './groups.js';
 import { intentContext } from './intent-data.js';
 import { lexicalSearch, rangeMembers } from './lexical.js';
 import { RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
+import { NO_SIGNAL_TAU } from './no-signal.js';
 import { canonicalQuery, parseIgnore, parseQuery } from './query-intent.js';
 import { EMBED_CORRECTED } from './typo.js';
 import { hasCode } from './vector-bundle.js';
@@ -384,13 +385,18 @@ export function mergeDense(lists, depth) {
  * @param {Constraints} constraints
  * @param {number} depth
  * @param {Trace} trace
+ * @param {(score: number) => void} [firstTop] told the first vector's top cosine (3G), unless it found none
  * @returns {Promise<DenseHit[]>}
  */
-async function bundleHits(vectors, constraints, depth, trace) {
+async function bundleHits(vectors, constraints, depth, trace, firstTop) {
   // CPU only: the `vector` span reads ~0 because workerd's clock does not
   // advance without I/O. Kept for comparability with Vectorize, not as a measure.
   try {
-    return await trace.time('vector', async () => mergeDense(vectors.map((v) => bundleSearch(v, constraints, depth)), depth));
+    return await trace.time('vector', async () => {
+      const lists = vectors.map((v) => bundleSearch(v, constraints, depth));
+      if (lists[0].length) firstTop?.(lists[0][0].score);
+      return mergeDense(lists, depth);
+    });
   } catch (err) {
     throw new DenseFailure('dense-index', err);
   }
@@ -409,15 +415,18 @@ async function bundleHits(vectors, constraints, depth, trace) {
  * @param {VectorFilter} filter the filters as a Vectorize metadata filter
  * @param {number} depth
  * @param {Trace} trace
+ * @param {(score: number) => void} [firstTop] told the first vector's top cosine (3G), unless it found none
  * @returns {Promise<DenseHit[]>}
  */
-async function vectorSearch(env, vectors, constraints, filter, depth, trace) {
-  if (denseBackend(env) === 'bundle') return bundleHits(vectors, constraints, depth, trace);
+async function vectorSearch(env, vectors, constraints, filter, depth, trace, firstTop) {
+  if (denseBackend(env) === 'bundle') return bundleHits(vectors, constraints, depth, trace, firstTop);
   try {
     // Only ids and scores are read, so no metadata or values are requested.
     const lists = await trace.time('vector', () => Promise.all(vectors.map((vector) => withTimeout('Vectorize', VECTORIZE_TIMEOUT_MS, () =>
       env.VECTORIZE.query(/** @type {number[]} */ (vector), { topK: depth, ...(Object.keys(filter).length ? { filter } : {}) })))));
-    return mergeDense(lists.map((result) => (result?.matches ?? []).map((m) => ({ code: m.id, score: m.score }))), depth);
+    const hits = lists.map((result) => (result?.matches ?? []).map((m) => ({ code: m.id, score: m.score })));
+    if (hits[0].length) firstTop?.(hits[0][0].score);
+    return mergeDense(hits, depth);
   } catch (err) {
     throw new DenseFailure('vectorize', err);
   }
@@ -463,6 +472,19 @@ async function fetchRows(db, codes, trace) {
 
 /** The columns a variant needs: its code and credits, and the fields localMatchesFilters reads. */
 const VARIANT_COLUMNS = 'code, credits, level, faculty, semesters, ng, ng_semesters';
+
+/**
+ * 3G's τ: NO_SIGNAL_TAU, or the NO_SIGNAL_TAU var (tests only; production
+ * sets none): a number (or a numeric string), or "off" for none.
+ * @param {Env} env
+ * @returns {number | null}
+ */
+const noSignalTau = (env) => {
+  const v = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (env)).NO_SIGNAL_TAU;
+  if (v === 'off') return null;
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  return typeof v === 'string' && v !== '' && Number.isFinite(Number(v)) ? Number(v) : NO_SIGNAL_TAU;
+};
 
 /**
  * Whether 3F's collapse runs: always, unless the COLLAPSE_GROUPS var is "off"
@@ -759,9 +781,13 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   /** @returns {Promise<string[]>} */
   const codeOrder = () => withTimeout('D1', D1_TIMEOUT_MS, () => rangeMembers(db, /** @type {Constraints & { ranges: CodeRange[] }} */ (codeCons), depth, trace));
 
+  // 3G: the top cosine of the query as typed (the first dense text), read only when noSignal
+  // holds. With no dense hit (filters no module passes) there is none, and 3G does not fire.
+  let topCosine = Infinity;
+  const tau = noSignalTau(env);
   const dense = tryDense
     ? settle(denseRun(env, denseTexts(parsed), trace, async (vs) => ({
-      main: await vectorSearch(env, vs, constraints, filter, depth, trace),
+      main: await vectorSearch(env, vs, constraints, filter, depth, trace, parsed.noSignal && tau !== null ? (s) => { topCosine = s; } : undefined),
       code: codeByDense && codeCons ? await bundleHits(vs, codeCons, depth, trace) : null,
     })))
     : null;
@@ -816,6 +842,14 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   let lexicalCodes = [];
   if (lex && !lex.ok) return { response: upstream('d1-fts', lex.error), degraded: null };
   if (lex) lexicalCodes = lex.value;
+
+  // 3G: no route, no vocabulary match before correction, and the dense half
+  // finds nothing near: `count: 0`, before hydration. Needs the dense half.
+  if (vec && vec.ok && tau !== null && parsed.noSignal && topCosine < tau) {
+    log.counts = { returned: 0, vector: denseHits.length, lexical: lexicalCodes.length };
+    log.topCosine = Math.round(topCosine * 1e4) / 1e4;
+    return respond([], { vector: denseHits.length, lexical: lexicalCodes.length, fused: 0 }, { noMatch: { reason: 'no-signal' } });
+  }
 
   if (codeCons && codeCodes === null) {
     const got = early ?? await settle(codeOrder());
