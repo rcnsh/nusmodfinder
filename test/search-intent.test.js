@@ -249,10 +249,10 @@ describe('ignore', () => {
   });
 });
 
-describe('the bundle filter table is untouched', () => {
-  it('still reads the 3-0 layout (no prefix id in the reserved slot)', () => {
+describe('the bundle filter table', () => {
+  it('has 3H-0\'s fields (schema 2) and still no prefix id in its reserved slot', () => {
     const b = denseBundle();
-    expect(b.header.schema).toBe('vnm-vectors/1');
+    expect(b.header.schema).toBe('vnm-vectors/2');
   });
 });
 

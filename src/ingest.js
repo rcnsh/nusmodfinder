@@ -17,7 +17,7 @@ import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
 import { ROW_COLUMNS, boundTuple, catalogueRowHash, fieldsFromRow, ftsHash, rowHash, storedVectorMetadata } from './rowhash.js';
-import { base64ToFloat32, float32ToBase64 } from './vector-bundle.js';
+import { base64ToFloat32, float32ToBase64, suGrading } from './vector-bundle.js';
 
 /**
  * @typedef {{
@@ -286,7 +286,10 @@ async function writeRows(env, batch, { embedded, mutationId, sentAt, d1Only }) {
          semesters=excluded.semesters, workload=excluded.workload,
          prerequisite=excluded.prerequisite, preclusion=excluded.preclusion,
          acad_year=excluded.acad_year, text_hash=excluded.text_hash,
-         ng=excluded.ng, ng_semesters=excluded.ng_semesters, row_hash=excluded.row_hash`,
+         ng=excluded.ng, ng_semesters=excluded.ng_semesters,
+         exam_semesters=excluded.exam_semesters, su=excluded.su, grading_basis=excluded.grading_basis,
+         workload_hours=excluded.workload_hours, prereq_none=excluded.prereq_none,
+         prereq_cohort_only=excluded.prereq_cohort_only, row_hash=excluded.row_hash`,
     );
     const results = await env.DB.batch(batch.map((m, i) => stmt.bind(...boundTuple(m), hashes[i])));
     return json({
@@ -436,6 +439,8 @@ export async function handleVerify(request, env) {
         return {
           code: r.code, textHash: r.text_hash, rowHash: r.row_hash ?? null, semesters: f.semesters, level: f.level,
           credits: f.credits, faculty: f.faculty, ng: f.ng, ngSemesters: f.ngSemesters ?? [],
+          examSemesters: f.examSemesters ?? [], su: f.su === true, suGrading: suGrading(f.gradingBasis),
+          workloadHours: f.workloadHours ?? null, prereqNone: f.prereqNone === true, prereqCohortOnly: f.prereqCohortOnly === true,
         };
       }),
       meta: metaOf([rows]),

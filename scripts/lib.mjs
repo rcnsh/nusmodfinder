@@ -2,13 +2,19 @@
 // Shared helpers for probing, ingesting and evaluating the NUSMods corpus.
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { isCohortOnly } from '../src/cohort-only.js';
+
+/** 3H-0's P-6 cohort-only rule, as scripts/build-3b-data.mjs mirrors it into data/. */
+const COHORT_ONLY = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.json', import.meta.url), 'utf8'));
 
 /**
  * The fields of a NUSMods v2 moduleInfo record this code reads.
  * @typedef {{
  *   moduleCode?: string, title?: string, description?: string, moduleCredit?: string | number,
- *   department?: string, faculty?: string, semesterData?: { semester?: unknown }[],
+ *   department?: string, faculty?: string, semesterData?: { semester?: unknown, examDate?: string }[],
  *   workload?: unknown, prerequisite?: string, preclusion?: string,
+ *   attributes?: { su?: boolean }, gradingBasisDescription?: string,
  * }} NusModsRecord
  * @typedef {Awaited<ReturnType<typeof loadNgCourses>>} NgCourses
  */
@@ -272,6 +278,23 @@ export async function loadNgCourses(acadYear) {
   }
 }
 
+/**
+ * A week's workload in hours: the sum of the NUSMods workload array. NULL when
+ * the field is missing, not an array of numbers, or all zero (C-11: 259
+ * modules list zeros, which means "not listed", not "no work").
+ * @param {unknown} workload
+ * @returns {number | null}
+ */
+export function workloadHours(workload) {
+  if (!Array.isArray(workload) || workload.length === 0) return null;
+  let sum = 0;
+  for (const x of workload) {
+    if (typeof x !== 'number' || !Number.isFinite(x) || x < 0) return null;
+    sum += x;
+  }
+  return sum > 0 ? sum : null;
+}
+
 // One normalised module. `skipped` explains why a record was dropped (R2).
 /**
  * @param {NusModsRecord} record
@@ -310,6 +333,13 @@ export function normalise(record, acadYear) {
       // Filled in by offeredModules() when an NG list is present.
       ng: false,
       ngSemesters: [],
+      // 3H-0 (plan 3H "Data"): what the no-exam, S/U, workload and prerequisite intents filter on.
+      examSemesters: semesters.filter((s) => (record.semesterData ?? []).some((d) => d.semester === s && typeof d.examDate === 'string' && d.examDate !== '')),
+      su: record.attributes?.su === true,
+      gradingBasis: record.gradingBasisDescription ?? null,
+      workloadHours: workloadHours(record.workload),
+      prereqNone: record.prerequisite === undefined || record.prerequisite === null,
+      prereqCohortOnly: isCohortOnly(record.prerequisite, COHORT_ONLY),
     },
   };
 }

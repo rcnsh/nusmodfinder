@@ -102,7 +102,8 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
     throw new Error(`POST /admin/verify (preDeploy) -> HTTP ${res.status} ${JSON.stringify(res.body).slice(0, 300)}`);
   }
   /** @type {{ code: string, textHash: string, rowHash: string | null, semesters: number[], level: number | null,
-   *   credits: number | null, faculty: string | null, ng: boolean, ngSemesters: number[] }[]} */
+   *   credits: number | null, faculty: string | null, ng: boolean, ngSemesters: number[], examSemesters: number[],
+   *   su: boolean, suGrading: boolean, workloadHours: number | null, prereqNone: boolean, prereqCohortOnly: boolean }[]} */
   const rows = res.body.rows;
   const d1Key = await rowsKey(rows);
   const d1Version = rows.every((r) => typeof r.rowHash === 'string')
@@ -115,7 +116,12 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
   for (const r of rows) {
     const i = index.get(r.code);
     if (i === undefined) continue;
-    const d1 = { semesters: r.semesters, level: r.level, credits: r.credits, faculty: r.faculty, ng: r.ng, ngSemesters: r.ngSemesters };
+    // Every filter field, 3H's included, in decodeFilterRow's order.
+    const d1 = {
+      semesters: r.semesters, level: r.level, credits: r.credits, faculty: r.faculty, ng: r.ng, ngSemesters: r.ngSemesters,
+      examSemesters: r.examSemesters, su: r.su, suGrading: r.suGrading, workloadHours: r.workloadHours,
+      prereqNone: r.prereqNone, prereqCohortOnly: r.prereqCohortOnly,
+    };
     const b = decodeFilterRow(bundle, i);
     if (JSON.stringify(d1) !== JSON.stringify(b)) fieldDrift.push({ code: r.code, d1, bundle: b });
   }

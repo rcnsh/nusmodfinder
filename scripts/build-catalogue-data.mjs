@@ -11,7 +11,10 @@
 //                        `not-offered`), the rows ingest loads into D1 `catalogue_only`;
 //   ge-pillars.json      the GE pillar table, from eval/prereg/ge-pillars.json;
 //   collision-list.json  the P-6 collision list and its exempt pillar prefixes, from
-//                        eval/prereg/collision-list.json (the Worker cannot read eval/).
+//                        eval/prereg/collision-list.json (the Worker cannot read eval/);
+//   cohort-only-prereq.json  3H-0's P-6 cohort-only prerequisite rule, from
+//                        eval/prereg/cohort-only-prereq.json (normalise() reads it, and
+//                        the eval workspace has data/ but not eval/).
 // and docs/evidence/phase3/3b-0-counts.json, critic C's corpus counts (plan §1)
 // re-run on the pinned corpus.
 //
@@ -34,6 +37,7 @@ export const OUTPUTS = Object.freeze({
   catalogueOnly: 'data/catalogue-only.json',
   gePillars: 'data/ge-pillars.json',
   collisionList: 'data/collision-list.json',
+  cohortOnly: 'data/cohort-only-prereq.json',
   counts: 'docs/evidence/phase3/3b-0-counts.json',
 });
 
@@ -68,6 +72,7 @@ export async function build() {
 
   const ge = await readJson('eval/prereg/ge-pillars.json');
   const collision = await readJson('eval/prereg/collision-list.json');
+  const cohort = await readJson('eval/prereg/cohort-only-prereq.json');
 
   // groups-v1, a singleton counting as its own group (A2-5).
   const groups = (await readJson('eval/groups.json')).groups;
@@ -160,6 +165,10 @@ export async function build() {
     collisionList: json({
       schema: 'vnm-3b-collision-list/1', from: 'eval/prereg/collision-list.json (P-6, unchanged)',
       list: collision.list, exempt: collision.exempt,
+    }),
+    cohortOnly: json({
+      schema: 'vnm-3h-cohort-only/1', from: 'eval/prereg/cohort-only-prereq.json (P-6, unchanged)',
+      normalise: cohort.normalise, remove: cohort.remove, remainder: cohort.remainder, remainderFlags: cohort.remainderFlags,
     }),
     counts: json(counts),
   };
