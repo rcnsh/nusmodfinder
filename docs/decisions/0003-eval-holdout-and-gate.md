@@ -348,6 +348,7 @@ ships, in the same PR as the constant.
 - shipped pin: `eval-v0` 7ac984174ded88cb2b6497d9835b456981acdd99 (the Phase 2 baseline; nothing shipped yet)
 - shipped pin: `e8a712468b2f59c4d9dcaeef2fe9680a8b8b0f7d` e8a712468b2f59c4d9dcaeef2fe9680a8b8b0f7d (3-0, in-Worker exact vectors, deployed 2026-11-06 as version `343ea371`; ranker-identical to `eval-v0` on dev)
 - shipped pin: `45bd7169cd8931294057f409e7bbc2fc311599bc` 45bd7169cd8931294057f409e7bbc2fc311599bc (3A-2, embedding text v1, deployed 2026-11-07 as version `8d1b85be`; L2 pass, holdout look 1)
+- shipped pin: `ad8e10caf2d8fa01c34191551a63ac5d64cdaade` ad8e10caf2d8fa01c34191551a63ac5d64cdaade (3B, codes, partial codes and GE pillars, deployed 2026-11-07 as version `8e743876`; L3 pass, holdout look 2)
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.
