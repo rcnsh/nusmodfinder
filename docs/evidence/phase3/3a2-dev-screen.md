@@ -85,3 +85,24 @@ unchanged.
   `your_grade` and chunk 6 blank. `npm run eval:judge -- calibrate import --csv <it> --baseline
   shipped --run 3a2-v1` reproduces `import-435.txt`. The scripts ran from scratch and read the
   chunk files `pairs-6a.csv` and `pairs-6b.csv` beside them. Those are rows 436–519 of the sheet.
+
+## L2 holdout look (custodian, 2026-11-07): pass, look 1 of 12
+- **Store:** `npm run eval -- --holdout --variant 3a2-v1 --ref 3a2-v1 --embedding emb-bge-small-v1
+  --store-only` stored v1's run on 81 queries, with no look.
+- **Pool:** `eval:pool --holdout --custodian --unjudged --runs shipped-e8a7124,3a2-v1` found 149
+  unjudged documents.
+- **Judge:** round `h2` used judge A (`claude-opus-5-5`), one fresh subagent for each of the 5
+  packets. 154 of 154 items were graded; the planted repeats agreed exactly (7). The round merged
+  as `qrels-holdout-v3` (147 A grades and 2 rule grades), and its plaintext directory is
+  deleted.
+- **Verdict:** `eval:report --holdout --run 3a2-v1 --baseline shipped-e8a7124` gives **pass**, rule
+  general (ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 as point estimates, every pair judged, no exact-code
+  regression; `eval/lib/gate.mjs` `holdoutGate`).
+
+| | Δ | BCa 95% CI |
+|---|---|---|
+| nDCG@10 | +0.038 | [−0.007, 0.092] |
+| P@5 | +0.037 | [−0.003, 0.085] |
+
+Both intervals include 0. The holdout rule is a point-estimate rule, so this passes as
+preregistered. It is weaker evidence than the dev screen's CI. The look used no remote request.
