@@ -852,3 +852,13 @@ fails on the previous code.
   `level-intent-3d` keeps the code for Phase 4.
 - **SC4's level items stay unmet** until Phase 4's study-level input.
 - **Next:** 3E (RRF weighting; cross-family check in scope).
+
+## 2026-11-07 — 3E dropped at the dev screen (slot unspent)
+
+- **3E** (weighted RRF, 8 grid points): only (w_v 2, k 20) passes dev, at +0.017 [0.001, 0.036].
+  It fails SC4 guard sc4-085 (6 CS modules in the top 10 for "psychology electives for cs
+  majors"; the limit is 2). The runner-up (1.5, 20) fails dev, so no point is eligible.
+- **3E is dropped and the shipped fusion stays.** L6 joins the reserve, and `rrf-weighting-3e`
+  keeps the code.
+- **qrels-dev-v8** (`p3e`). Evidence: `docs/evidence/phase3/3e-dev-screen.md`.
+- **Holdout looks: 5 of 12.** Next: 3F (near-duplicate collapse, no look).
