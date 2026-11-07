@@ -5,8 +5,9 @@
 // its startup time, and only then promotes it. git and wrangler are a fake
 // exec, the bundle and D1's hashes are injected, so nothing here deploys,
 // reads D1 or touches the repo.
+import { createServer } from 'node:net';
 import { describe, expect, it } from 'vitest';
-import { MAX_STARTUP_MS, STARTUP_PROFILE, deploy } from '../scripts/deploy.mjs';
+import { MAX_STARTUP_MS, STARTUP_PROFILE, deploy, freePort, remoteHashes } from '../scripts/deploy.mjs';
 import { dataVersion } from '../src/rowhash.js';
 import { rowsKey } from '../src/vector-bundle.js';
 
@@ -200,3 +201,32 @@ describe('npm run deploy', () => {
     }
   });
 });
+
+describe('the guard\'s wrangler dev port', () => {
+  /** @param {number} port @returns {Promise<import('node:net').Server>} */
+  const listen = (port) => new Promise((resolve, reject) => {
+    const server = createServer().once('error', reject).listen(port, '127.0.0.1', () => resolve(server));
+  });
+
+  it('is a free port by default, so another dev server cannot answer the guard', async () => {
+    const port = await freePort();
+    expect(port).toBeGreaterThan(0);
+    const server = await listen(port); // it is free: binding it succeeds
+    server.close();
+  });
+
+  it('refuses a port already in use, before starting wrangler or asking anything', async () => {
+    const server = await listen(0);
+    const port = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
+    /** @type {string[]} */
+    const asked = [];
+    const fetchImpl = /** @type {typeof fetch} */ (/** @type {unknown} */ (async (/** @type {string} */ url) => { asked.push(url); return new Response('{}'); }));
+    try {
+      await expect(remoteHashes({ port, log: () => {}, fetchImpl })).rejects.toThrow(new RegExp(`port ${port} is in use`));
+      expect(asked).toEqual([]);
+    } finally {
+      server.close();
+    }
+  });
+});
+

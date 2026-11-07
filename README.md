@@ -222,7 +222,7 @@ npx wrangler dev --remote --port 8787 &             # binds the real D1/Vectoriz
 npm run ingest -- --year 2026-2027 --url http://localhost:8787 --d1-only --offline
 # 5. D1 against the manifest and the bundle, before the deploy. Reads no Vectorize.
 npm run verify -- --url http://localhost:8787 --pre-deploy
-# 6. Guard, startup gate, promote. The guard starts its own dev session, on port 8799.
+# 6. Guard, startup gate, promote. The guard starts its own dev session, on a free port.
 npm run deploy
 # 7. Smoke (≤ 4 calls): /health says vectors.corpus "production"; read CPUTimeMs in Workers Logs.
 #    On failure: wrangler rollback <previous id>, restore D1 to the step-3 bookmark, revert step 2.
