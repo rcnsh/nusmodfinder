@@ -25,11 +25,13 @@ async function scores(set) {
 const filtered = await scores(layout('test'));
 const dropped = await scores(layout('test', dir));
 const fmt = (/** @type {number} */ x) => (x >= 0 ? '+' : '') + x.toFixed(3);
-for (const [name, base, cand] of /** @type {const} */ ([
+/** @type {[string, import('../lib/metrics.mjs').QueryScore[], import('../lib/metrics.mjs').QueryScore[]][]} */
+const reports = [
   ['filtered (the SC5 set)', filtered.base, filtered.cand],
   ['dropped by the leak filter', dropped.base, dropped.cand],
   ['unfiltered (both)', [...filtered.base, ...dropped.base], [...filtered.cand, ...dropped.cand]],
-])) {
+];
+for (const [name, base, cand] of reports) {
   const c = compare(base, cand);
   const line = (/** @type {"ndcg" | "p5"} */ m) => `${fmt(c.overall[m].delta)} [${c.overall[m].bca.lower.toFixed(3)}, ${c.overall[m].bca.upper.toFixed(3)}]`;
   console.log(`${name}: n ${c.n} primary answerable · ΔnDCG@10 ${line('ndcg')} · ΔP@5 ${line('p5')} (BCa 95%)`);
