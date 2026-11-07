@@ -19,7 +19,7 @@ export function emptyCloneLedger(clone) {
     ['update-ref', 'refs/remotes/origin/main', 'HEAD'],
   ];
   for (const args of steps) {
-    const r = spawnSync('git', ['-c', 'user.name=test', '-c', 'user.email=test@example.invalid', ...args], { cwd: clone, encoding: 'utf8' });
+    const r = spawnSync('git', ['-c', 'user.name=test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', ...args], { cwd: clone, encoding: 'utf8' });
     if (r.status !== 0) throw new Error(`git ${args[0]} in the test clone failed: ${r.stderr}`);
   }
 }
