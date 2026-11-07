@@ -8,15 +8,18 @@
 //
 // The parse order (prereg §3):
 //   1. canonical q                                         canonicalQuery
-//   2. 3G's vocabulary test on the pre-correction tokens    seam: not built
-//   3. 3C's correction of df-0 letter-only tokens           seam: identity
+//   2. 3G's vocabulary test on the pre-correction tokens    seam: `tokens` exposed
+//   3. 3C's correction of df-0 letter-only tokens           src/typo.js correctQuery
 //   4. intent pass A: the 3H phrases, stripped before joins seam: no phrases
 //   5. code joins                                           joinCodes
 //   6. code resolution                                      resolve
 //   7. intent pass B: the GE phrases (here) and the 3D level phrases (seam)
 //
 // 3B sets `pin`, `prefix`, `ge`, and `level` only through an `XX N000` code
-// token; the other keys stay null until 3D and 3H fill them.
+// token; the other keys stay null until 3D and 3H fill them. Steps 4–7 read
+// the corrected text; 3C's corrections are not echoed in `interpreted`.
+import { queryTokens } from './fts-query.js';
+import { correctQuery } from './typo.js';
 
 /** The `interpreted` keys, in order (prereg §4). */
 export const INTERPRETED_KEYS = Object.freeze(['pin', 'prefix', 'ge', 'level', 'exam', 'su', 'hoursBelow', 'prereq']);
@@ -40,6 +43,7 @@ export const MAX_PINS = 3;
  *   kind: 'search' | 'mask' | 'no-match',
  *   pins: string[], ranges: CodeRange[] | null, codeList: CodeRange[] | null,
  *   level: LevelWindow | null, noMatch: NoMatch | null,
+ *   tokens: string[], corrected: string | null, fts: import('./fts-query.js').FtsTerms,
  * }} ParsedQuery
  *   - `kind` 'mask': a whole-query partial code, bare prefix, `XX N000` or GE
  *     phrase. The results are the members of `ranges` (∩ `level`, ∩ the
@@ -48,13 +52,19 @@ export const MAX_PINS = 3;
  *     pre-retrieval mask on both halves; `codeList` the third RRF list's
  *     members; `level` a filter on everything.
  *   - `kind` 'no-match': `count: 0` with `noMatch`.
- *   - `lexical`: the text the FTS half searches (GE phrases stripped); `dense`
- *     the text the dense half embeds (the canonical q, raw).
+ *   - `lexical`: the text the FTS half searches (corrected, GE phrases
+ *     stripped), with `fts` its 3C prefix terms and corrections; `dense` the
+ *     text the dense half embeds (the canonical q, raw); `corrected` the
+ *     canonical q with 3C's corrections (null when there are none), which
+ *     3C-2 also embeds.
+ *   - `tokens`: the pre-correction tokens, for 3G's vocabulary test.
  * @typedef {{ prefixes: string[], genericPhrases: string[], pillars: { name: string, prefixes: string[] }[] }} GeTable
  * @typedef {{
  *   prefixes: Set<string>, catalogue: Set<string>, collision: Set<string>, stopwords: Set<string>,
  *   ge: GeTable, gePhrases: { re: RegExp, prefixes: string[] }[], isOffered: (code: string) => boolean,
- * }} IntentContext Upper-case prefixes, codes and collision entries; lower-case stopwords.
+ *   vocabulary: import('./vocabulary.js').Vocabulary | null,
+ * }} IntentContext Upper-case prefixes, codes and collision entries; lower-case stopwords;
+ *   the corpus vocabulary 3C corrects against (null: no correction).
  */
 
 /**
@@ -105,10 +115,11 @@ const phraseRegex = (phrase) => new RegExp(
  * @param {{
  *   prefixes: Iterable<string>, catalogueCodes: Iterable<string>, collision: Iterable<string>,
  *   ge: GeTable, stopwords: Iterable<string>, isOffered: (code: string) => boolean,
+ *   vocabulary?: import('./vocabulary.js').Vocabulary | null,
  * }} data
  * @returns {IntentContext}
  */
-export function buildIntentContext({ prefixes, catalogueCodes, collision, ge, stopwords, isOffered }) {
+export function buildIntentContext({ prefixes, catalogueCodes, collision, ge, stopwords, isOffered, vocabulary = null }) {
   return {
     prefixes: new Set(prefixes),
     catalogue: new Set(catalogueCodes),
@@ -120,6 +131,7 @@ export function buildIntentContext({ prefixes, catalogueCodes, collision, ge, st
       ...ge.pillars.map((p) => ({ re: phraseRegex(p.name), prefixes: p.prefixes })),
     ],
     isOffered,
+    vocabulary,
   };
 }
 
@@ -219,10 +231,18 @@ export function parseQuery(q, ctx, ignore = []) {
   /** @type {ParsedQuery} */
   const parsed = {
     q, lexical: q, dense: q, interpreted, kind: 'search', pins: [], ranges: null, codeList: null, level: null, noMatch: null,
+    tokens: [], corrected: null, fts: { prefixes: [], corrections: [] },
   };
 
-  // Steps 2–4: seams (3G, 3C, 3H).
-  const rest = intentPassA(q).text;
+  // Step 2: 3G's vocabulary test (a seam) reads the pre-correction tokens.
+  // Step 3: 3C's correction; every later step reads the corrected text.
+  const c = ctx.vocabulary ? correctQuery(q, ctx.vocabulary) : { tokens: queryTokens(q), text: q, prefixes: [], corrections: [] };
+  parsed.tokens = c.tokens;
+  parsed.corrected = c.text === q ? null : c.text;
+  parsed.fts = { prefixes: c.prefixes, corrections: c.corrections };
+  parsed.lexical = c.text;
+  // Step 4: a seam (3H).
+  const rest = intentPassA(c.text).text;
   // A word that is only punctuation (`?`, `&`) is no token: it neither makes a
   // query "longer" nor counts toward the collision guard's whole query.
   const words = rest.split(' ').filter((w) => core(w) !== '');

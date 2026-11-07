@@ -42,13 +42,18 @@ describe('S4', () => {
   });
 
   it('[S4 known-bug] "modules", "intro", "teach" and "something" are not stopwords', async () => {
-    expect(await matchExpression('intro to modules that teach something')).toBe(
+    // 3C writes a df-0 token as a prefix term (`"modules"*` in the fixture); the stopword list is unchanged.
+    expect(String(await matchExpression('intro to modules that teach something')).replace(/\*/g, '')).toBe(
       '"intro" OR "modules" OR "that" OR "teach" OR "something"');
   });
 
-  it.each(['machne', 'progr'])('[S4 known-bug] no fuzzy or prefix matching: "%s" gets 0 lexical hits', async (q) => {
+  it.each([
+    ['machne', '"machine" OR "machne"*'],
+    ['progr', '"progr"*'],
+  ])('[S4 fixed] 3C: "%s" gets lexical hits, as a correction or a prefix term', async (q, expr) => {
+    expect(await matchExpression(q)).toBe(expr);
     const { body } = await callJson(`/search?q=${q}&mode=lexical`, { fakes });
-    expect(body.retrieval.lexical).toBe(0);
+    expect(body.retrieval.lexical).toBeGreaterThan(0);
   });
 });
 

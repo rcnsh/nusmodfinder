@@ -36,6 +36,8 @@ describe('correctQuery (step 3)', () => {
   });
 
   it('makes a df-0 token of 4+ letters a prefix term, and does not correct it when the prefix matches (psych is not psyche)', () => {
+    // FTS5 stems the prefix: `marketting`* is `market`*, which matches marketing.
+    expect(correctQuery('marketting', vocab)).toMatchObject({ prefixes: ['marketting'], corrections: [] });
     const c = correctQuery('psych memory', vocab);
     expect(c.prefixes).toEqual(['psych']);
     expect(c.corrections).toEqual([]);
@@ -69,7 +71,7 @@ describe('correctQuery (step 3)', () => {
   });
 
   it('replaces whole tokens only, every occurrence, and keeps the separators', () => {
-    const c = correctQuery('marketting, (marketting) strategy', vocab);
+    const c = correctQuery('marketng, (marketng) strategy', vocab);
     expect(c.text).toBe('marketing, (marketing) strategy');
   });
 });
@@ -129,7 +131,8 @@ describe('ftsMatch with 3C terms', () => {
 
   it('is valid FTS5 and finds what the corrected query finds', () => {
     const fts = ftsIndex(MODULES);
-    const typo = correctQuery('marketting strategy', vocab);
+    const typo = correctQuery('marketng strategy', vocab);
+    expect(typo.corrections).toEqual([{ from: 'marketng', to: 'marketing' }]);
     const expr = /** @type {string} */ (ftsMatch(typo.text, typo));
     expect(fts.matches(expr)).toBe(fts.matches(/** @type {string} */ (ftsMatch('marketing strategy'))));
     expect(fts.matches(expr)).toBeGreaterThan(0);

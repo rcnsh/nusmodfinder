@@ -395,7 +395,7 @@ description.
 **Evidence:**
 - test `[S4 fixed] "%s" routes to the modules with that prefix, though the code column stays UNINDEXED` (CS32, GEA): 3B's partial-code route
 - test `[S4 known-bug] "modules", "intro", "teach" and "something" are not stopwords`
-- test `[S4 known-bug] no fuzzy or prefix matching: "%s" gets 0 lexical hits` (`machne`, `progr`)
+- test `[S4 fixed] 3C: "%s" gets lexical hits, as a correction or a prefix term` (`machne` is corrected to `machine`, `progr` is the prefix term `"progr"*`): 3C's prefix and edit-distance steps
 - `docs/evidence/phase0/raw/S4_CS32.body` and `docs/evidence/phase0/raw/S4_GEA.body`: live `retrieval.lexical: 0`; no GEA module in GEA's top 20.
 
 **Notes:** Stopwords `src/index.js:150-151`; `migrations/0002_fts.sql:5`. The keyword half has

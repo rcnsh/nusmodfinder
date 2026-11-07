@@ -14,7 +14,7 @@ import { dfOf, parseVocabulary } from '../src/vocabulary.js';
 import { createFakes } from './fakes.js';
 import { callJson, fixture, seed } from './helpers.js';
 
-const vocab = parseVocabulary(vocabFile);
+const vocab = parseVocabulary(/** @type {import('../src/vocabulary.js').VocabularyFile} */ (/** @type {unknown} */ (vocabFile)));
 /** @returns {string[]} */
 const codes = (/** @type {any} */ body) => body.results.map((/** @type {{ code: string }} */ r) => r.code);
 
