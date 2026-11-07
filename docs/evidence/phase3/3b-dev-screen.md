@@ -55,3 +55,22 @@ the fact.
   items owned by 3C, 3D, 3G and 3H are listed as waiting.
 - **No cross-family check:** ADR 0004's amendment scopes it to 3A-2, 3D, 3E and the SC5 pool.
 - **No remote call.**
+
+## L3 holdout look (custodian, 2026-11-07): pass, look 2 of 12
+- **Store:** `npm run eval -- --holdout --variant 3b --ref 3b --store-only` stored a run on 81
+  queries, with no look. The baseline is `run-shipped-45bd716`, already stored and fully judged.
+- **Pool:** `eval:pool --holdout --custodian --unjudged --runs shipped-45bd716,3b` found 8
+  documents.
+- **Judge:** round `h3` used judge A, with one fresh subagent for the single packet. It graded 8
+  of 8 items, and the planted repeat agreed exactly. The round merged as `qrels-holdout-v4` (7 A
+  grades and 1 rule grade), and its plaintext directory is deleted.
+- **Verdict:** `eval:report --holdout --run 3b --baseline shipped-45bd716 --target-shapes
+  code-space,code-partial,ge,abbreviation` gives **pass**. The holdout rule is point estimates
+  ≥ 0, every pair judged and no exact-code regression.
+
+| | Δ | BCa 95% CI |
+|---|---|---|
+| nDCG@10 | +0.013 | [0.003, 0.050] |
+| P@5 | +0.003 | [0.000, 0.017] |
+
+Both lower bounds are at or above 0. The look made no remote request.
