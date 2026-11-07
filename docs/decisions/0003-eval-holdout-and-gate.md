@@ -323,6 +323,24 @@ P-5b, §9). Each rule is in the code and tested.
     the sealed test set's exclusion list and its leak filter ("Test set, pre-registered now",
     above): a test query with cosine ≥ 0.9 to any of them, or a shared source, is dropped.
 
+## Amendment 2026-11-07: a target that did not move passes its tripwire (Jacob, at 3B)
+- **Rule:** a target-shape tripwire passes when every query of that shape has ΔnDCG@10
+  exactly 0. That is a degenerate interval at 0, and no change is no regression.
+  - A shape whose queries all moved by the same non-zero amount stays degenerate and fails, as
+    before.
+  - The fewer-than-3-queries fallback (point estimate ≥ 0) is unchanged.
+  - Code: `devGate` in `eval/lib/gate.mjs`; test in `test/eval/gate.node.test.js`.
+- **Why:** the tripwire exists to catch a confident regression on a declared target. The general
+  guard "a CI-based check never passes on a degenerate interval" stops a degenerate interval from
+  showing an improvement. Applied to the tripwire, it turned "nothing changed" into a failure.
+- **Found at 3B's dev screen, before its holdout look.** 3B declared four targets. Its
+  `abbreviation` queries (5) did not move at all: by design, the collision list keeps `AI`, `js`,
+  `pr` and `dsa` topical. So the tripwire failed as degenerate. The overall CI route passed
+  (ΔnDCG@10 +0.049 [0.017, 0.108] under `qrels-dev-v5`). The named fallback (3B without
+  `stopwords-v2`) is the same ranker, so plan §3 sent the drop question to Jacob (Q4). He chose to
+  amend this rule for every change, rather than screen 3B under the general rule or drop the target
+  after the fact.
+
 ## Shipped-ranker pin
 The baseline of per-change holdout looks (`SHIPPED_BASELINE`, `eval/lib/baseline.mjs`). The
 last line is the current pin; a PR that ships a change appends one line, with the ranker it
