@@ -1,0 +1,291 @@
+{
+ "totals": {
+  "calls": 1975,
+  "agree": 1959,
+  "leak": 0,
+  "overHide": 3,
+  "noteDiff": 13,
+  "liveShownClosed": 0,
+  "liveStatusDiff": 0,
+  "cards": 1600,
+  "searches": 80,
+  "missingSample": 0
+ },
+ "disagreements": [
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "GEC1002",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "South Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "GEC1034",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Southeast Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "GESS1005",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "South Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "GESS1006",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Malay Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "SE1101E",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Southeast Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "SE2214",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Southeast Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "SE2217",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Southeast Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "SE2224",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Southeast Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "SE3220",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Southeast Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "SE4218",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "NG Sem 1 list; SE Studies level 4000 open to 3rd/4th-year NG undergrads, persona is ug3 (no audit)",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Southeast Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p3",
+   "ctx": {
+    "sem": 1,
+    "study": "ug3"
+   },
+   "code": "SN3283",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "South Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p5",
+   "ctx": {
+    "sem": 1,
+    "study": "ug4"
+   },
+   "code": "GEC1034",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list; Southeast Asian Studies: no restriction for this course (no audit only)",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Southeast Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p5",
+   "ctx": {
+    "sem": 1,
+    "study": "ug4"
+   },
+   "code": "GEC1048",
+   "kind": "noteDiff",
+   "shown": true,
+   "persona_call": "open",
+   "persona_why": "On NG Sem 1 list; Southeast Asian Studies: no restriction for this course (no audit only)",
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Southeast Asian Studies: cannot be audited"
+   ]
+  },
+  {
+   "persona": "p8",
+   "ctx": {
+    "sem": 2,
+    "study": "grad"
+   },
+   "code": "PC5202",
+   "kind": "overHide",
+   "shown": false,
+   "persona_call": "open",
+   "persona_why": "NG list Sem 2; ruling 3c: open to graduate students only (but on self-funded list, rule A)",
+   "oracle": "closed",
+   "oracle_closed": [
+    "A: self-funded programme course",
+    "D/R4: level 5000/6000 not specified as open for this student"
+   ],
+   "oracle_notes": []
+  },
+  {
+   "persona": "p8",
+   "ctx": {
+    "sem": 2,
+    "study": "grad"
+   },
+   "code": "PC5206",
+   "kind": "overHide",
+   "shown": false,
+   "persona_call": "open",
+   "persona_why": "NG list Sem 2; ruling 3c: open to graduate students only (but on self-funded list, rule A)",
+   "oracle": "closed",
+   "oracle_closed": [
+    "A: self-funded programme course",
+    "D/R4: level 5000/6000 not specified as open for this student"
+   ],
+   "oracle_notes": []
+  },
+  {
+   "persona": "p8",
+   "ctx": {
+    "sem": 2,
+    "study": "grad"
+   },
+   "code": "PC5211",
+   "kind": "overHide",
+   "shown": false,
+   "persona_call": "open",
+   "persona_why": "NG list Sem 2; ruling 3c: open to graduate students only (but on self-funded list, rule A)",
+   "oracle": "closed",
+   "oracle_closed": [
+    "A: self-funded programme course",
+    "D/R4: level 5000/6000 not specified as open for this student"
+   ],
+   "oracle_notes": []
+  }
+ ]
+}

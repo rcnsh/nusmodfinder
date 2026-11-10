@@ -1,0 +1,10 @@
+{
+ "p1": {"sem": 1, "study": "ug2", "home": "Architecture", "who": "a 2nd-year architecture undergraduate coming for Semester 1"},
+ "p2": {"sem": 2, "study": "ug2", "home": "Music", "who": "a 2nd-year music (performance) undergraduate coming for Semester 2"},
+ "p3": {"sem": 1, "study": "ug3", "home": "Business", "who": "a 3rd-year business undergraduate coming for Semester 1"},
+ "p4": {"sem": 2, "study": "ug3", "home": "Arts and Social Sciences", "who": "a 3rd-year undergraduate in sociology and political science coming for Semester 2"},
+ "p5": {"sem": 1, "study": "ug4", "home": "Arts and Social Sciences", "who": "a 4th-year undergraduate in psychology and economics coming for Semester 1, looking for advanced (level 4000) courses"},
+ "p6": {"sem": 2, "study": "ug4", "home": "Architecture", "who": "a 4th-year architecture and urban planning undergraduate coming for Semester 2"},
+ "p7": {"sem": 1, "study": "grad", "home": "Business", "who": "a master's student in management and finance coming for Semester 1"},
+ "p8": {"sem": 2, "study": "grad", "home": "Music", "who": "a master's student in musicology and composition coming for Semester 2"}
+}

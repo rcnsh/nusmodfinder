@@ -1,0 +1,1472 @@
+[
+ {
+  "code": "ACC1701XB",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed",
+  "shown": false
+ },
+ {
+  "code": "ACC4702",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "AH2101",
+  "call": "open",
+  "why": "NG list Sem 2; no History restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "AN2202",
+  "call": "open",
+  "why": "NG list Sem 2; no Sociology & Anthropology restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "AN2203",
+  "call": "open",
+  "why": "NG list Sem 2; no Sociology & Anthropology restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "AN3203",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "AR2102",
+  "call": "note",
+  "why": "NG list Sem 2; Architecture Design course needs a home-university letter confirming the design year",
+  "shown": true
+ },
+ {
+  "code": "AR2225",
+  "call": "note",
+  "why": "NG list Sem 2; Architecture: only for students majoring in Architecture or related disciplines",
+  "shown": true
+ },
+ {
+  "code": "AR2227",
+  "call": "note",
+  "why": "NG list Sem 2; Architecture: only for students majoring in Architecture or related disciplines",
+  "shown": true
+ },
+ {
+  "code": "AR4220",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "AR4321",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "AR4601",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "AR5221",
+  "call": "note",
+  "why": "NG list Sem 2; dual-coded Architecture graduate course shown as Architecture majors only (ruling 3c)",
+  "shown": false
+ },
+ {
+  "code": "AR5321",
+  "call": "note",
+  "why": "NG list Sem 2; dual-coded Architecture graduate course shown as Architecture majors only (ruling 3c)",
+  "shown": true
+ },
+ {
+  "code": "AR5601",
+  "call": "note",
+  "why": "NG list Sem 2; dual-coded Architecture graduate course shown as Architecture majors only (ruling 3c); NUSMods also lists Sem 1",
+  "shown": false
+ },
+ {
+  "code": "AR5801",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list); also hidden by ruling 3c",
+  "shown": false
+ },
+ {
+  "code": "AR5802",
+  "call": "closed",
+  "why": "NG list Sem 2 but level 5000 not opened by any Architecture rule: hidden by ruling 3c",
+  "shown": false
+ },
+ {
+  "code": "BMA5801",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); self-funded programme (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMC5023",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); self-funded (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BME5050",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); self-funded (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMF5333",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); self-funded (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMG5202",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); self-funded (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMK5101",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); self-funded (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMT5301C",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); self-funded (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BPM1702",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "BSN3701",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed",
+  "shown": false
+ },
+ {
+  "code": "BT3017",
+  "call": "open",
+  "why": "NG list Sem 2; no Information Systems and Analytics restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CDE1301B",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "CDE2300",
+  "call": "open",
+  "why": "NG list Sem 2; no Design & Engineering restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CE5002D",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); CE level 5000 closed",
+  "shown": false
+ },
+ {
+  "code": "CE5002E",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); CE level 5000 closed",
+  "shown": false
+ },
+ {
+  "code": "CE5901AB",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); CE level 5000 closed",
+  "shown": false
+ },
+ {
+  "code": "CFG1004",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "CG2023",
+  "call": "note",
+  "why": "NG list Sem 2; \"all CG coded courses\" rule sits under SoC Dean's Office only, so open with a note (ruling 3b)",
+  "shown": false
+ },
+ {
+  "code": "CG2027",
+  "call": "note",
+  "why": "NG list Sem 2; \"all CG coded courses\" rule sits under SoC Dean's Office only, so open with a note (ruling 3b)",
+  "shown": false
+ },
+ {
+  "code": "CG2028",
+  "call": "note",
+  "why": "NG list Sem 2; \"all CG coded courses\" rule sits under SoC Dean's Office only, so open with a note (ruling 3b)",
+  "shown": true
+ },
+ {
+  "code": "CG3201",
+  "call": "note",
+  "why": "NG list Sem 2; \"all CG coded courses\" rule sits under SoC Dean's Office only, so open with a note (ruling 3b)",
+  "shown": false
+ },
+ {
+  "code": "CG3207",
+  "call": "note",
+  "why": "NG list Sem 2; \"all CG coded courses\" rule sits under SoC Dean's Office only, so open with a note (ruling 3b)",
+  "shown": true
+ },
+ {
+  "code": "CG4002",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "CH2230",
+  "call": "open",
+  "why": "NG list Sem 2; no Chinese Studies (only level 4000+ closed to UG) restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CH3251",
+  "call": "open",
+  "why": "NG list Sem 2; no Chinese Studies (only level 4000+ closed to UG) restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CH6262",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "CM3141",
+  "call": "open",
+  "why": "NG list Sem 1,2, NUSMods Sem 1,2; no Chemistry restriction",
+  "shown": false
+ },
+ {
+  "code": "CM3296",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "CM4269",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "CM5223",
+  "call": "closed",
+  "why": "Level 5000 not opened by any Chemistry rule (rule D): hidden by ruling 3c",
+  "shown": false
+ },
+ {
+  "code": "CM5225",
+  "call": "closed",
+  "why": "Level 5000 not opened by any Chemistry rule (rule D): hidden by ruling 3c",
+  "shown": false
+ },
+ {
+  "code": "CM5244",
+  "call": "closed",
+  "why": "Level 5000 not opened (rule D), ruling 3c; also self-funded (rule A)",
+  "shown": false
+ },
+ {
+  "code": "CM5268",
+  "call": "closed",
+  "why": "Level 5000 not opened by any Chemistry rule (rule D): hidden by ruling 3c",
+  "shown": false
+ },
+ {
+  "code": "CN2111",
+  "call": "open",
+  "why": "NG list Sem 2; no Chemical & Biomolecular Engineering restriction applies to this course for a graduate student",
+  "shown": false
+ },
+ {
+  "code": "CS2030",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science (CS2030S is closed, CS2030 is not) restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS2030DE",
+  "call": "open",
+  "why": "NG list Sem 2; no ECE restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS2100",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS2100DE",
+  "call": "open",
+  "why": "NG list Sem 2; no ECE restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS2108",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS3211",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS3230",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS3236",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS3237",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "CS3240",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "CS3244",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": false
+ },
+ {
+  "code": "CS3247",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS4211",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "CS4212",
+  "call": "open",
+  "why": "NG list Sem 1 and 2, NUSMods Sem 2: no mismatch for Sem 2; not on CS closed list",
+  "shown": true
+ },
+ {
+  "code": "CS4218",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS4221",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS4249",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS4277",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS4330",
+  "call": "open",
+  "why": "NG list Sem 2; no Computer Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "CS5562",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); CS 5000 closed",
+  "shown": false
+ },
+ {
+  "code": "CSA6880",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "DAO2702X",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed; semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "DAO2703",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DEP5110",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "DL5103",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); Institute of Systems Science (rule A)",
+  "shown": false
+ },
+ {
+  "code": "DOS3703",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DOS3704",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DSA4211",
+  "call": "note",
+  "why": "NG list Sem 2; \"DSAXXXX\" rule sits under Mathematics only and DSA4211 is not on the Statistics closed list: open with note (ruling 3b)",
+  "shown": false
+ },
+ {
+  "code": "DSA4212",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "EC4394",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); Economics level 4000 closed",
+  "shown": false
+ },
+ {
+  "code": "EE3131C",
+  "call": "open",
+  "why": "NG list Sem 2; no ECE restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EE3431C",
+  "call": "open",
+  "why": "NG list Sem 2; no ECE restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EE4204",
+  "call": "open",
+  "why": "NG list Sem 2; no ECE restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EE4218",
+  "call": "open",
+  "why": "NG list Sem 2; no ECE restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EE4415",
+  "call": "open",
+  "why": "NG list Sem 2; no ECE restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EE4503",
+  "call": "open",
+  "why": "NG list Sem 2; no ECE restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EL2207",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS (4000+ closed to UG only) restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EL3205",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EL3206",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EN2206",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "EN2215",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "ESE5880AB",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); CE/ESE level 5000 closed",
+  "shown": false
+ },
+ {
+  "code": "ETP5201",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "FIN3701A",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed; semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "FIN3702A",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed; semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "GE1101E",
+  "call": "closed",
+  "why": "Geography: all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GE2101",
+  "call": "closed",
+  "why": "Geography: all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GE2215",
+  "call": "closed",
+  "why": "Geography: all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GE3249",
+  "call": "closed",
+  "why": "Geography: all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GE3256",
+  "call": "closed",
+  "why": "Geography: all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GEC1011",
+  "call": "closed",
+  "why": "Medicine course, school closed to NG (rule A; ruling 3a)",
+  "shown": false
+ },
+ {
+  "code": "GEC1015",
+  "call": "open",
+  "why": "NG list Sem 1,2; Public Health closes graduate courses only",
+  "shown": false
+ },
+ {
+  "code": "GEC1023",
+  "call": "open",
+  "why": "NG list Sem 2; on YST Sem 2 electives for non-music majors, open to non-partner NG students (Music rule)",
+  "shown": true
+ },
+ {
+  "code": "GEC1038",
+  "call": "open",
+  "why": "NG list Sem 2; no Chinese Studies restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "GEC1039",
+  "call": "open",
+  "why": "NG list Sem 2; no Japanese Studies restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "GEC1044",
+  "call": "open",
+  "why": "NG list Sem 2; no Chinese Studies restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "GEC1046",
+  "call": "note",
+  "why": "NG list Sem 2; Southeast Asian Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "GEH1018",
+  "call": "note",
+  "why": "NG list Sem 2; \"GEHXXXX\" rule sits under Mathematics, course is Physics: open with note (ruling 3b)",
+  "shown": false
+ },
+ {
+  "code": "GEH1043",
+  "call": "closed",
+  "why": "Medicine course, school closed to NG (rule A; ruling 3a)",
+  "shown": false
+ },
+ {
+  "code": "GESS1003",
+  "call": "open",
+  "why": "NG list Sem 2; no Chinese Studies restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "GESS1005",
+  "call": "note",
+  "why": "NG list Sem 2; South Asian Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "GESS1006",
+  "call": "note",
+  "why": "NG list Sem 2; Malay Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "GESS1012",
+  "call": "note",
+  "why": "NG list Sem 2; Malay Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "GESS1015",
+  "call": "open",
+  "why": "NG list Sem 2; on YST Sem 2 electives for non-music majors, open to non-partner NG students (Music rule)",
+  "shown": true
+ },
+ {
+  "code": "GESS1021",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "GESS1028",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "GESS1029",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "GEX1005",
+  "call": "open",
+  "why": "NG list Sem 2 (NUSMods Sem 1,2); no CNM restriction applies (level 1000)",
+  "shown": true
+ },
+ {
+  "code": "GEX1014",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "GL2102",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "HS1502",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "HS2936",
+  "call": "open",
+  "why": "NG list Sem 2; no History restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "HSI2003",
+  "call": "closed",
+  "why": "Medicine course, school closed to NG (rule A; ruling 3a)",
+  "shown": false
+ },
+ {
+  "code": "HSI2013",
+  "call": "open",
+  "why": "NG list Sem 2; no Physics restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "HSI2014",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "HSI2017",
+  "call": "open",
+  "why": "NG list Sem 2; no Biological Sciences restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "HSI2018",
+  "call": "open",
+  "why": "NG list Sem 2; no Biological Sciences restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "HY1101E",
+  "call": "open",
+  "why": "NG list Sem 2; no History restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "HY2208",
+  "call": "open",
+  "why": "NG list Sem 2; no History restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "HY2235",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "HY2253",
+  "call": "open",
+  "why": "NG list Sem 2; no History restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "HY2259",
+  "call": "open",
+  "why": "NG list Sem 2; no History restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "HY2260",
+  "call": "open",
+  "why": "NG list Sem 2; no History restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "IS4233",
+  "call": "open",
+  "why": "NG list Sem 1,2, NUSMods Sem 2; not on IS closed list",
+  "shown": false
+ },
+ {
+  "code": "JS4230",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "LAG1201",
+  "call": "note",
+  "why": "NG list Sem 2; Centre for Language Studies: language courses graded basis only, no audit",
+  "shown": false
+ },
+ {
+  "code": "LAL1201",
+  "call": "note",
+  "why": "NG list Sem 2; Centre for Language Studies: language courses graded basis only, no audit",
+  "shown": false
+ },
+ {
+  "code": "LAM1201",
+  "call": "note",
+  "why": "NG list Sem 2; Centre for Language Studies: language courses graded basis only, no audit",
+  "shown": true
+ },
+ {
+  "code": "LI5202",
+  "call": "closed",
+  "why": "Logistics Institute: all courses closed (ruling 3a); NG list Sem 1 only; self-funded",
+  "shown": false
+ },
+ {
+  "code": "LI5204",
+  "call": "closed",
+  "why": "Logistics Institute: all courses closed (ruling 3a); NG list Sem 1 only; self-funded",
+  "shown": false
+ },
+ {
+  "code": "LL4011V",
+  "call": "closed",
+  "why": "Law: explicitly NOT open to NG students (ruling 3a)",
+  "shown": false
+ },
+ {
+  "code": "LL4096V",
+  "call": "note",
+  "why": "NG list Sem 2; Law rule: must major in Law at home university",
+  "shown": false
+ },
+ {
+  "code": "LL4133V",
+  "call": "note",
+  "why": "NG list Sem 2; Law rule: must major in Law at home university",
+  "shown": true
+ },
+ {
+  "code": "LL4203A",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "LL4219",
+  "call": "note",
+  "why": "NG list Sem 2; Law rule: must major in Law at home university",
+  "shown": true
+ },
+ {
+  "code": "LL4309V",
+  "call": "note",
+  "why": "NG list Sem 2; Law rule: must major in Law at home university",
+  "shown": true
+ },
+ {
+  "code": "LL4357V",
+  "call": "note",
+  "why": "NG list Sem 2; Law rule: must major in Law at home university",
+  "shown": true
+ },
+ {
+  "code": "LL4437V",
+  "call": "note",
+  "why": "NG list Sem 2; Law rule: must major in Law at home university",
+  "shown": true
+ },
+ {
+  "code": "LL4503",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "MA2213",
+  "call": "open",
+  "why": "NG list Sem 2; no Mathematics restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "MA3211",
+  "call": "open",
+  "why": "NG list Sem 2; no Mathematics restriction applies to this course for a graduate student",
+  "shown": false
+ },
+ {
+  "code": "MA4211",
+  "call": "open",
+  "why": "NG list Sem 2; no Mathematics restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "MA4229",
+  "call": "open",
+  "why": "NG list Sem 2; no Mathematics restriction applies to this course for a graduate student",
+  "shown": false
+ },
+ {
+  "code": "MA4261",
+  "call": "open",
+  "why": "NG list Sem 2; no Mathematics restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "ME3281",
+  "call": "open",
+  "why": "NG list Sem 2; no Mechanical Engineering restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "ME4212",
+  "call": "open",
+  "why": "NG list Sem 2; no Mechanical Engineering restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "ME4253",
+  "call": "open",
+  "why": "NG list Sem 2; no Mechanical Engineering restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "ME4262",
+  "call": "open",
+  "why": "NG list Sem 2; no Mechanical Engineering restriction applies to this course for a graduate student",
+  "shown": false
+ },
+ {
+  "code": "MKT1705X",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed (X suffix not among rule B closed codes)",
+  "shown": true
+ },
+ {
+  "code": "MKT3701A",
+  "call": "note",
+  "why": "NG list Sem 2; Business rule: must major in business at home university, not guaranteed; semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "MLE2105",
+  "call": "open",
+  "why": "NG list Sem 2; no Materials Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "MLE4206",
+  "call": "open",
+  "why": "NG list Sem 2; no Materials Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "MLE4222",
+  "call": "open",
+  "why": "NG list Sem 2; no Materials Science restriction applies to this course for a graduate student",
+  "shown": false
+ },
+ {
+  "code": "MLE4231",
+  "call": "open",
+  "why": "NG list Sem 2; no Materials Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "MLE5104",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); MSE level 5000 closed",
+  "shown": false
+ },
+ {
+  "code": "MS2217",
+  "call": "note",
+  "why": "NG list Sem 2; Malay Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "MS3209",
+  "call": "note",
+  "why": "NG list Sem 2; Malay Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "MS3211",
+  "call": "note",
+  "why": "NG list Sem 2; Malay Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "MS4208",
+  "call": "note",
+  "why": "NG list Sem 2; Malay Studies rule: all courses cannot be audited; level 4000 open to NG postgraduates",
+  "shown": true
+ },
+ {
+  "code": "MS5201",
+  "call": "note",
+  "why": "NG list Sem 2; Malay Studies: graduate courses approved case by case (grad students only); no audit",
+  "shown": true
+ },
+ {
+  "code": "MTM5101",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); ISEM MT 5000 closed; self-funded",
+  "shown": false
+ },
+ {
+  "code": "MUA1165",
+  "call": "open",
+  "why": "NG list Sem 2; on YST Sem 2 electives for non-music majors, open to non-partner NG students (Music rule)",
+  "shown": true
+ },
+ {
+  "code": "MUA3219",
+  "call": "open",
+  "why": "NG list Sem 2; on YST Sem 2 electives for non-music majors, open to non-partner NG students (Music rule) (listed as MUA3219/MUA3220)",
+  "shown": true
+ },
+ {
+  "code": "MUA3224",
+  "call": "note",
+  "why": "NG list Sem 2; Music rule: needs audition or placement test, not selectable at application",
+  "shown": true
+ },
+ {
+  "code": "MUA4161",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list); also a core principal-instrument course, YST partners only",
+  "shown": false
+ },
+ {
+  "code": "MUH3203",
+  "call": "open",
+  "why": "NG list Sem 2; on YST Sem 2 electives for non-music majors, open to non-partner NG students (Music rule)",
+  "shown": true
+ },
+ {
+  "code": "MUH3205",
+  "call": "open",
+  "why": "NG list Sem 2; on YST Sem 2 electives for non-music majors, open to non-partner NG students (Music rule)",
+  "shown": true
+ },
+ {
+  "code": "MUL2107",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "MUT1201",
+  "call": "open",
+  "why": "NG list Sem 2; on YST Sem 2 electives for non-music majors, open to non-partner NG students (Music rule)",
+  "shown": true
+ },
+ {
+  "code": "NGN2001F",
+  "call": "open",
+  "why": "NG list Sem 1,2, NUSMods Sem 2; NUS College open (ruling 4, Q6)",
+  "shown": false
+ },
+ {
+  "code": "NHS2070",
+  "call": "open",
+  "why": "NG list Sem 2; NUS College courses treated as open (ruling 4, Q6)",
+  "shown": true
+ },
+ {
+  "code": "NHS2091",
+  "call": "open",
+  "why": "NG list Sem 2; NUS College open (ruling 4, Q6)",
+  "shown": true
+ },
+ {
+  "code": "NHS2104",
+  "call": "open",
+  "why": "NG list Sem 2; NUS College open (ruling 4, Q6)",
+  "shown": true
+ },
+ {
+  "code": "NHS4003",
+  "call": "open",
+  "why": "NG list Sem 2; NUS College open (ruling 4, Q6)",
+  "shown": true
+ },
+ {
+  "code": "NM1101E",
+  "call": "open",
+  "why": "NG list Sem 2; no CNM restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "NM2209",
+  "call": "open",
+  "why": "NG list Sem 2; no CNM restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "NM3205",
+  "call": "open",
+  "why": "NG list Sem 2; no CNM restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "NST2008",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "NST2055",
+  "call": "open",
+  "why": "NG list Sem 2; NUS College open (ruling 4, Q6)",
+  "shown": true
+ },
+ {
+  "code": "NST2062",
+  "call": "open",
+  "why": "NG list Sem 2; NUS College open (ruling 4, Q6)",
+  "shown": true
+ },
+ {
+  "code": "NSW2001D",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "PC3232",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "PC3246",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "PC3270",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list) (NUSMods lists Sem 2)",
+  "shown": false
+ },
+ {
+  "code": "PC3288Q",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ },
+ {
+  "code": "PC3294",
+  "call": "note",
+  "why": "NG list Sem 2 only but NUSMods Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "PC4262",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "PC4274A",
+  "call": "note",
+  "why": "semester mismatch: NG list includes Sem 2 but NUSMods lists Sem 1 only (ruling 4, Q5)",
+  "shown": false
+ },
+ {
+  "code": "PC5202",
+  "call": "open",
+  "why": "NG list Sem 2; ruling 3c: open to graduate students only (but on self-funded list, rule A)",
+  "shown": false
+ },
+ {
+  "code": "PC5206",
+  "call": "open",
+  "why": "NG list Sem 2; ruling 3c: open to graduate students only (but on self-funded list, rule A)",
+  "shown": false
+ },
+ {
+  "code": "PC5211",
+  "call": "open",
+  "why": "NG list Sem 2; ruling 3c: open to graduate students only (but on self-funded list, rule A)",
+  "shown": false
+ },
+ {
+  "code": "PE2101P",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PF2504",
+  "call": "closed",
+  "why": "Built Environment: level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF3207",
+  "call": "closed",
+  "why": "Built Environment: level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF3305",
+  "call": "closed",
+  "why": "Built Environment: level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF3306",
+  "call": "closed",
+  "why": "Built Environment: level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF3502",
+  "call": "closed",
+  "why": "Built Environment: level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF4203",
+  "call": "closed",
+  "why": "Built Environment: level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF4208",
+  "call": "closed",
+  "why": "Built Environment: level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF4306",
+  "call": "closed",
+  "why": "Built Environment: level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PH2113",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH2207",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH2211",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH2216",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH2227",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH2242",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH2243",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH3203",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH3222",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH3250",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH4201",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH4210",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PH4211",
+  "call": "closed",
+  "why": "NG list offers it to NG students in Semester 1 only, not Semester 2 (answers.md ruling 1: semester per NG list)",
+  "shown": false
+ },
+ {
+  "code": "PH4213",
+  "call": "open",
+  "why": "NG list Sem 2; no Philosophy restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PL1101E",
+  "call": "open",
+  "why": "NG list Sem 2; no Psychology (closed: PL2131/2132/3231/3551/328x, 4000+) restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PL3102",
+  "call": "open",
+  "why": "NG list Sem 2; no Psychology restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PL3103",
+  "call": "open",
+  "why": "NG list Sem 2; no Psychology restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PL3104",
+  "call": "open",
+  "why": "NG list Sem 2; no Psychology restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PS2249",
+  "call": "open",
+  "why": "NG list Sem 2; no Political Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PS2251",
+  "call": "open",
+  "why": "NG list Sem 2; no Political Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PS3236",
+  "call": "open",
+  "why": "NG list Sem 2; no Political Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "PS3276",
+  "call": "open",
+  "why": "NG list Sem 2; no Political Science restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "SC3205",
+  "call": "open",
+  "why": "NG list Sem 2; no Sociology (4000+ closed to UG only) restriction applies to this course for a graduate student",
+  "shown": false
+ },
+ {
+  "code": "SE3219",
+  "call": "note",
+  "why": "NG list Sem 2; Southeast Asian Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "SE3224",
+  "call": "note",
+  "why": "NG list Sem 2; Southeast Asian Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "SN1101E",
+  "call": "note",
+  "why": "NG list Sem 2; South Asian Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "SN3282",
+  "call": "note",
+  "why": "NG list Sem 2; South Asian Studies rule: all courses cannot be audited",
+  "shown": true
+ },
+ {
+  "code": "SPH2005",
+  "call": "open",
+  "why": "NG list Sem 1,2; Public Health closes graduate courses only (rule A), this is level 2000",
+  "shown": true
+ },
+ {
+  "code": "SPH5413",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden); Public Health graduate course (rule A)",
+  "shown": false
+ },
+ {
+  "code": "TS1101E",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "TS2235",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "TS2239",
+  "call": "open",
+  "why": "NG list Sem 2; no ELTS restriction applies to this course for a graduate student",
+  "shown": true
+ },
+ {
+  "code": "TS4212",
+  "call": "open",
+  "why": "NG list Sem 2; ELTS closes level 4000 to NG undergraduates only, student is graduate",
+  "shown": true
+ },
+ {
+  "code": "TS4222",
+  "call": "open",
+  "why": "NG list Sem 2; ELTS closes level 4000 to NG undergraduates only, student is graduate",
+  "shown": true
+ },
+ {
+  "code": "UTC2421",
+  "call": "closed",
+  "why": "Not on the NG course list in either semester (answers.md ruling 2: hidden)",
+  "shown": false
+ }
+]

@@ -1,0 +1,1652 @@
+[
+ {
+  "code": "ACC1701XB",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "ACC4702",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "AN3203",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "AR4220",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "AR4321",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "AR4601",
+  "call": "note",
+  "why": "NG Sem 1 list; Architecture rule: only for NG students majoring in Architecture or related disciplines",
+  "shown": false
+ },
+ {
+  "code": "AR5221",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "AR5321",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "AR5601",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "AR5801",
+  "call": "closed",
+  "why": "Ruling 3(c): level-5000 course no department opens to NG; hidden",
+  "shown": false
+ },
+ {
+  "code": "AR5802",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "BMA5801",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "BMC5023",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "BME5050",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "BMF5333",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "BMG5202",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "BMK5101",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "BMT5301C",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "BN1112",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "BN2105",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "BN4304",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "BPM1702",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "BSE3702",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "BSE3703",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "BSN3701",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": true
+ },
+ {
+  "code": "BSN3702",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "BSP3701",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "BT1101",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "BT2101",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "BT3102",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "BT4211",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "BT4222",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CDE1301B",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CDE2301",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CDE2311",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CE5002D",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "CE5002E",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "CE5901AB",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "CFG1004",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CG2023",
+  "call": "note",
+  "why": "NG Sem 1 list; Ruling 3(b): blanket CG/DSA/GEH rule applies only to its listing dept; open with note; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "CG2027",
+  "call": "note",
+  "why": "NG Sem 1 list; Ruling 3(b): blanket CG/DSA/GEH rule applies only to its listing dept; open with note",
+  "shown": false
+ },
+ {
+  "code": "CG2028",
+  "call": "note",
+  "why": "NG Sem 1 list; Ruling 3(b): blanket CG/DSA/GEH rule applies only to its listing dept; open with note",
+  "shown": false
+ },
+ {
+  "code": "CG3201",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CG3207",
+  "call": "note",
+  "why": "NG Sem 1 list; Ruling 3(b): blanket CG/DSA/GEH rule applies only to its listing dept; open with note",
+  "shown": false
+ },
+ {
+  "code": "CG4002",
+  "call": "note",
+  "why": "NG Sem 1 list; Ruling 3(b): blanket CG/DSA/GEH rule applies only to its listing dept; open with note",
+  "shown": false
+ },
+ {
+  "code": "CH1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CH2250",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CH3250",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CH6262",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "CM3141",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "CM3296",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "CM4228",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CM4254",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CM4269",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CM5223",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "CM5225",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "CM5244",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "CM5268",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "CN2111",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "COS1000",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CS1010",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CS1010E",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CS3237",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "CS3240",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "CS3244",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CS4211",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "CS4212",
+  "call": "note",
+  "why": "NG Sem 1 list; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "CS4261",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "CS5562",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "CSA6880",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "DAO1704X",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DAO2702X",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DAO2703",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DBA3702",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DBA3803",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DEP5110",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "DL5103",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "DOS3701",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DOS3703",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "DSA4211",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "DSA4212",
+  "call": "note",
+  "why": "NG Sem 1 list; Ruling 3(b): blanket CG/DSA/GEH rule applies only to its listing dept; open with note",
+  "shown": true
+ },
+ {
+  "code": "EC3101",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "EC3102",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "EC3322",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "EC3342",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "EC3343",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "EC4394",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "EE3731C",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "EE4501",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "ENV3101",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "ENV3206",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "ESE2000",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "ESE3401",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "ESE5880AB",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "ETP5201",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "FIN2704X",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "FIN3701A",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "FIN3702A",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "FIN3702B",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "FIN3703A",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "FIN3703B",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "FST3107",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "FST3203",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GE1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "GE2101",
+  "call": "note",
+  "why": "NG Sem 1 list; Geography: limited quota",
+  "shown": false
+ },
+ {
+  "code": "GE2215",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "GE3249",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "GE3256",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "GEC1002",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GEC1005",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GEC1011",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "GEC1015",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "GEC1034",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GEC1039",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GEC1040",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GEC1044",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GEH1018",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "GEH1043",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "GES1019",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment: undergraduate courses graded basis only (same title as Sem 1 limited-quota GESS1014)",
+  "shown": true
+ },
+ {
+  "code": "GESS1001",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GESS1003",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GESS1005",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GESS1006",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GESS1007",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GESS1015",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GEX1010",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GEX1012",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GEX1016",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "GL2102",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "HS1502",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "HSI2003",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "HSI2010",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "HSI2014",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "HY1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "HY2206",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "HY2235",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "HY2270",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "HY3204",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "HY3267",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "IE3101",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "IE4220",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "IE4246",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "IS2218",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "IS2238",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "IS3240",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "IS4228",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "IS4233",
+  "call": "note",
+  "why": "NG Sem 1 list; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "JS2225",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "JS3222",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "JS4230",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "LAB1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only",
+  "shown": true
+ },
+ {
+  "code": "LAC1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only",
+  "shown": true
+ },
+ {
+  "code": "LAF1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only",
+  "shown": true
+ },
+ {
+  "code": "LAG1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only",
+  "shown": false
+ },
+ {
+  "code": "LAJ1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only",
+  "shown": true
+ },
+ {
+  "code": "LAK1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only",
+  "shown": true
+ },
+ {
+  "code": "LAL1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": true
+ },
+ {
+  "code": "LAM1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only",
+  "shown": true
+ },
+ {
+  "code": "LAT1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only",
+  "shown": true
+ },
+ {
+  "code": "LAV1201",
+  "call": "note",
+  "why": "NG Sem 1 list; CLS: language courses graded basis only",
+  "shown": true
+ },
+ {
+  "code": "LI5202",
+  "call": "closed",
+  "why": "Ruling 3(a) + restrictions s12: Logistics Institute courses not open to NG; also self-funded (rule A)",
+  "shown": false
+ },
+ {
+  "code": "LI5204",
+  "call": "closed",
+  "why": "Ruling 3(a) + restrictions s12: Logistics Institute courses not open to NG; also self-funded (rule A)",
+  "shown": false
+ },
+ {
+  "code": "LL4004V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4008AV",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4009V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4011V",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "LL4029V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4050V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4073V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4096V",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "LL4140V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4203A",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "LL4228",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4276V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4287V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4322",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4335V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: Law major required (title matches closed LL4359Z but code differs)",
+  "shown": true
+ },
+ {
+  "code": "LL4405A",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4454V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4475V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4482V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4503",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4505V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4522V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4527V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LL4556V",
+  "call": "note",
+  "why": "NG Sem 1 list; Law: must major in Law at home univ (LL4 elective, not on closed list)",
+  "shown": true
+ },
+ {
+  "code": "LSM3257",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "MA1100",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "MA2311",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "MA3211",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "MA3238",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "MA4229",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "MA4270",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "ME4262",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "MKT1705X",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "MKT3701A",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "MKT3701B",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "MKT3702A",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "MKT3702B",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "MLE4222",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "MLE5104",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "MNO1706X",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "MNO3701",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "MNO3702",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "MNO3703",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "MTM5101",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "MUA1240",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "MUA3219",
+  "call": "open",
+  "why": "NG Sem 1 list; on YST Sem 1 non-music-majors electives list, open regardless of background",
+  "shown": false
+ },
+ {
+  "code": "MUA3224",
+  "call": "note",
+  "why": "NG Sem 1 list + YST non-music-majors list; Music rule: needs audition/placement test, not selectable at application",
+  "shown": true
+ },
+ {
+  "code": "MUA4161",
+  "call": "note",
+  "why": "NG Sem 1 list, but core music (principal instrument) is YST-partner only (Music rule); NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "MUL2107",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "NGN2001F",
+  "call": "note",
+  "why": "NG Sem 1 list; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "NHS2100",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "NM1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "NM2209",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "NM2219",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "NST2008",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "NST2026",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "NST2044",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "NST2046",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "NST2051",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "NSW2001D",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "PC3232",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "PC3246",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "PC3270",
+  "call": "note",
+  "why": "NG Sem 1 list; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": true
+ },
+ {
+  "code": "PC3288Q",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "PC3294",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "PC4262",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "PC4274A",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "PC5202",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "PC5206",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "PC5211",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide); self-funded programme course (rule A); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "PE3101P",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "PF2504",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment: graded basis only; limited quota; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "PF3207",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment: graded basis only; limited quota; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "PF3305",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment: graded basis only; limited quota; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "PF3306",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment: graded basis only; limited quota; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": true
+ },
+ {
+  "code": "PF3502",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment: graded basis only; limited quota; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": true
+ },
+ {
+  "code": "PF4203",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment: graded basis only; limited quota; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "PF4208",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment: graded basis only; limited quota; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "PF4306",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment: graded basis only; limited quota; NG Sem 1 list but NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "PF4309",
+  "call": "note",
+  "why": "NG Sem 1 list; Built Environment Sem 1 limited-quota list; graded basis only",
+  "shown": true
+ },
+ {
+  "code": "PH4211",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": false
+ },
+ {
+  "code": "PL1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "PL3103",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "PL3105",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "PL3239",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "PL3259",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "PS1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "PS2245",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "PS3257",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "PS3311",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "QF1100",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "QF2104",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "QF3101",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "QF4102",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 4000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "RE3701",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "RE3706",
+  "call": "note",
+  "why": "NG Sem 1 list; Business: must major in business at home univ; oversubscribed, not guaranteed",
+  "shown": true
+ },
+ {
+  "code": "SC2209",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SC3205",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "SC3209",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SE1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 1000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SE2214",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SE2217",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SE2224",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SE3220",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SE3224",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list (NG Sem 2 only) (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "SE4218",
+  "call": "open",
+  "why": "NG Sem 1 list; SE Studies level 4000 open to 3rd/4th-year NG undergrads, persona is ug3 (no audit)",
+  "shown": true
+ },
+ {
+  "code": "SN3283",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SPH2001",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SPH5413",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide); level 5000+ not open to UG (rule D)",
+  "shown": false
+ },
+ {
+  "code": "ST3236",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "SW3101",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 3000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "TRA2111",
+  "call": "open",
+  "why": "On NG Sem 1 list, level 2000, no restriction rule applies",
+  "shown": true
+ },
+ {
+  "code": "UTC2421",
+  "call": "closed",
+  "why": "Not on NG Sem 1 list at all (ruling 2: hide)",
+  "shown": false
+ }
+]

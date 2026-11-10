@@ -1,0 +1,1484 @@
+[
+ {
+  "code": "ACC1701XB",
+  "call": "note",
+  "why": "Business: must be majoring in business at home university, oversubscribed, no add later (Business rule); NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "ACC4702",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "AH2101",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "AN2203",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "AN3203",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "AR2225",
+  "call": "note",
+  "why": "Architecture: only open to NG students majoring in Architecture or related disciplines; NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "AR2227",
+  "call": "note",
+  "why": "Architecture: only open to NG students majoring in Architecture or related disciplines; NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "AR3102",
+  "call": "note",
+  "why": "Architecture Design 6: needs letter from home university confirming design year; NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "AR4220",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "AR4321",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "AR4601",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list); also Architecture-majors-only (D&E Architecture list)",
+  "shown": false
+ },
+ {
+  "code": "AR5221",
+  "call": "note",
+  "why": "Ruling Q3(c): dual-coded with AR4xxx, shown as Architecture majors only (D&E Architecture list); NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "AR5321",
+  "call": "note",
+  "why": "Ruling Q3(c): dual-coded with AR4xxx, shown as Architecture majors only (D&E Architecture list); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "AR5601",
+  "call": "note",
+  "why": "Ruling Q3(c): dual-coded with AR4xxx, shown as Architecture majors only (D&E Architecture list); NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "AR5801",
+  "call": "closed",
+  "why": "Level-5000 Architecture studio (rule D), ruling Q3(c) hides it; also NG list Sem 1 only",
+  "shown": false
+ },
+ {
+  "code": "AR5802",
+  "call": "closed",
+  "why": "Level-5000 Architecture studio, not allowed by rule D; ruling Q3(c) hides it",
+  "shown": false
+ },
+ {
+  "code": "BMA5801",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "BMC5023",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "BME5050",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "BMF5333",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "BMG5202",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "BMK5101",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "BMT5301C",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "BPM1702",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "BSN3701",
+  "call": "note",
+  "why": "Business: must be majoring in business at home university, oversubscribed, no add later (Business rule); NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "BT3017",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CDE1301B",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "CDE2000",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CDE2300",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CDE2301",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CE5002D",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "CE5002E",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "CE5901AB",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "CFG1004",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "CG2023",
+  "call": "note",
+  "why": "Ruling Q3(b): SoC 'all CG coded' rule applies only to SoC Dean's Office, so open with note; NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "CG2027",
+  "call": "note",
+  "why": "Computing 'all CG coded courses not open' rule applies only to SoC Dean's Office (ruling Q3(b)): open with note; NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "CG2028",
+  "call": "note",
+  "why": "Computing 'all CG coded courses not open' rule applies only to SoC Dean's Office (ruling Q3(b)): open with note; NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "CG3201",
+  "call": "note",
+  "why": "Computing 'all CG coded courses not open' rule applies only to SoC Dean's Office (ruling Q3(b)): open with note; NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "CG3207",
+  "call": "note",
+  "why": "Computing 'all CG coded courses not open' rule applies only to SoC Dean's Office (ruling Q3(b)): open with note; NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "CG4002",
+  "call": "closed",
+  "why": "NG list offers it in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "CH1101E",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CH2230",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CH3251",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CH6262",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "CM3111",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CM3121",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CM3141",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CM3221",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CM3296",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "CM4269",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "CM5223",
+  "call": "closed",
+  "why": "Level-5000 Chemistry course, no department allows it (rule D); ruling Q3(c) hides it",
+  "shown": false
+ },
+ {
+  "code": "CM5225",
+  "call": "closed",
+  "why": "Level-5000 Chemistry course, no department allows it (rule D); ruling Q3(c) hides it",
+  "shown": false
+ },
+ {
+  "code": "CM5244",
+  "call": "closed",
+  "why": "Level-5000 Chemistry course, no department allows it (rule D); ruling Q3(c) hides it",
+  "shown": false
+ },
+ {
+  "code": "CM5268",
+  "call": "closed",
+  "why": "Level-5000 Chemistry course, no department allows it (rule D); ruling Q3(c) hides it",
+  "shown": false
+ },
+ {
+  "code": "CN2105",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CN2111",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": false
+ },
+ {
+  "code": "CN3103",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CN3106",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS2030",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS2030DE",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS2040C",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS2108",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS3211",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS3230",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS3234",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS3237",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "CS3240",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": true
+ },
+ {
+  "code": "CS3244",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": false
+ },
+ {
+  "code": "CS4211",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "CS4212",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": false
+ },
+ {
+  "code": "CS4215",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS4221",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS4246",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS4248",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS4249",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "CS5562",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "CSA6880",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "DAO2702X",
+  "call": "note",
+  "why": "Business: business major required (Business rule); NG lists Sem 2 but NUSMods only Sem 1 (ruling Q5 mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "DAO2703",
+  "call": "note",
+  "why": "Business: must be majoring in business at home university, oversubscribed, no add later (Business rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "DEP5110",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "DL5103",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "DOS3701",
+  "call": "note",
+  "why": "Business: must be majoring in business at home university, oversubscribed, no add later (Business rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "DSA4211",
+  "call": "note",
+  "why": "Maths-dept 'DSAXXXX not open' rule applies only to Mathematics (ruling Q3(b)): open with note; NG Sem 2",
+  "shown": false
+ },
+ {
+  "code": "DSA4212",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "DTK1234",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EC4394",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "EE2012",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EE2028",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EE3131C",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EE4204",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EE4415",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EL1101E",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EL2101",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EL2111",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EL2207",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EL3206",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EN2206",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "EN2215",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "ESE5880AB",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "ETP5201",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "FIN3701A",
+  "call": "note",
+  "why": "Business: business major required (Business rule); NG lists Sem 2 but NUSMods only Sem 1 (ruling Q5 mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "FIN3702A",
+  "call": "note",
+  "why": "Business: business major required (Business rule); NG lists Sem 2 but NUSMods only Sem 1 (ruling Q5 mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "FST2106",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "FST4102",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "GE1101E",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "GE2101",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note); also Geography limited-quota course",
+  "shown": false
+ },
+ {
+  "code": "GE2215",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "GE2231",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "GE3249",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "GE3256",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "GEC1011",
+  "call": "closed",
+  "why": "Yong Loo Lin School of Medicine course not starting LSM: rule A; ruling Q3(a)",
+  "shown": false
+ },
+ {
+  "code": "GEC1015",
+  "call": "open",
+  "why": "Public Health rule A closes only its graduate courses; this undergrad GE is on NG Sem 2 list",
+  "shown": false
+ },
+ {
+  "code": "GEC1023",
+  "call": "open",
+  "why": "YST elective for non-music majors (Music rule) on NG Sem 2 list; no audition needed",
+  "shown": true
+ },
+ {
+  "code": "GEC1032",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "GEC1038",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "GEC1046",
+  "call": "note",
+  "why": "Southeast Asian Studies: all courses cannot be audited (FASS SE rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "GEH1018",
+  "call": "note",
+  "why": "Maths-dept 'GEHXXXX not open' rule applies only to Mathematics (ruling Q3(b)); this is Physics: open with note; NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "GEH1043",
+  "call": "closed",
+  "why": "Yong Loo Lin School of Medicine course not starting LSM: rule A; ruling Q3(a)",
+  "shown": false
+ },
+ {
+  "code": "GESS1005",
+  "call": "note",
+  "why": "South Asian Studies: all courses cannot be audited (FASS SN rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "GESS1015",
+  "call": "open",
+  "why": "YST elective for non-music majors (Music rule) on NG Sem 2 list; no audition needed",
+  "shown": true
+ },
+ {
+  "code": "GESS1021",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "GESS1028",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "GEX1000",
+  "call": "note",
+  "why": "South Asian Studies: all courses cannot be audited (FASS SN rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "GEX1019",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "GL2102",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "HS1502",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "HS2936",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "HSI2003",
+  "call": "closed",
+  "why": "Yong Loo Lin School of Medicine course not starting LSM: rule A; ruling Q3(a)",
+  "shown": false
+ },
+ {
+  "code": "HSI2004",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "HSI2013",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "HSI2014",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "HY1101E",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "HY2208",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "HY2235",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "HY2253",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "HY2259",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "HY2260",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "ID2115",
+  "call": "note",
+  "why": "Industrial Design: only open to students pursuing Industrial Design at home; graded basis only (D&E Industrial Design)",
+  "shown": true
+ },
+ {
+  "code": "ID3109",
+  "call": "note",
+  "why": "Industrial Design courses must be taken on graded basis (D&E Industrial Design); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "ID3110",
+  "call": "note",
+  "why": "Industrial Design courses must be taken on graded basis (D&E Industrial Design); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "IS4100",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "IS4231",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "IS4233",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": false
+ },
+ {
+  "code": "IS4262",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "JS4230",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "LAB1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAC1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAF1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAG1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAH1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAJ1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAK1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAL1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAM1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAS1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAT1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LAV1201",
+  "call": "note",
+  "why": "Centre for Language Studies: language courses graded basis only, no audit (FASS CLS); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "LI5202",
+  "call": "closed",
+  "why": "Logistics Institute: all courses closed to NG (rule 12); ruling Q3(a); also NG list Sem 1 only",
+  "shown": false
+ },
+ {
+  "code": "LI5204",
+  "call": "closed",
+  "why": "Logistics Institute: all courses closed to NG (rule 12); ruling Q3(a); also NG list Sem 1 only",
+  "shown": false
+ },
+ {
+  "code": "LL4011V",
+  "call": "closed",
+  "why": "Law: LL4011V listed as not open to NG students; ruling Q3(a)",
+  "shown": false
+ },
+ {
+  "code": "LL4096V",
+  "call": "note",
+  "why": "Law: must be majoring in Law at home university (Law rule); LL4 elective on NG Sem 2 list",
+  "shown": false
+ },
+ {
+  "code": "LL4203A",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "LL4209V",
+  "call": "note",
+  "why": "Law: must be majoring in Law at home university (Law rule); LL4 elective on NG Sem 2 list",
+  "shown": true
+ },
+ {
+  "code": "LL4309V",
+  "call": "note",
+  "why": "Law: must be majoring in Law at home university (Law rule); LL4 elective on NG Sem 2 list",
+  "shown": true
+ },
+ {
+  "code": "LL4338V",
+  "call": "note",
+  "why": "Law: must be majoring in Law at home university (Law rule); LL4 elective on NG Sem 2 list",
+  "shown": true
+ },
+ {
+  "code": "LL4503",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "LL4528V",
+  "call": "note",
+  "why": "Law: must be majoring in Law at home university (Law rule); LL4 elective on NG Sem 2 list",
+  "shown": true
+ },
+ {
+  "code": "MA2104",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "MA2311",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "MA3211",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": false
+ },
+ {
+  "code": "MA4229",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": false
+ },
+ {
+  "code": "MA4273",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "ME4227",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "ME4262",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": false
+ },
+ {
+  "code": "MKT1705X",
+  "call": "note",
+  "why": "Business: must be majoring in business at home university, oversubscribed, no add later (Business rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "MKT3701A",
+  "call": "note",
+  "why": "Business: business major required (Business rule); NG lists Sem 2 but NUSMods only Sem 1 (ruling Q5 mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "MLE4222",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": false
+ },
+ {
+  "code": "MLE5104",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "MNO1706X",
+  "call": "note",
+  "why": "Business: must be majoring in business at home university, oversubscribed, no add later (Business rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "MNO3701",
+  "call": "note",
+  "why": "Business: must be majoring in business at home university, oversubscribed, no add later (Business rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "MS3211",
+  "call": "note",
+  "why": "Malay Studies: all courses cannot be audited (FASS MS rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "MTM5101",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "MUA1165",
+  "call": "open",
+  "why": "YST elective for non-music majors (Music rule) on NG Sem 2 list; no audition needed",
+  "shown": true
+ },
+ {
+  "code": "MUA3219",
+  "call": "open",
+  "why": "YST elective for non-music majors (Music rule) on NG Sem 2 list; no audition needed",
+  "shown": true
+ },
+ {
+  "code": "MUA3224",
+  "call": "note",
+  "why": "YST: Intermediate Keyboard Studies needs audition/placement test, not selectable at application (Music rule)",
+  "shown": true
+ },
+ {
+  "code": "MUA4161",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list); also a core music course (principal instrument) open only to YST partner-institution students (Music rule)",
+  "shown": false
+ },
+ {
+  "code": "MUH3203",
+  "call": "open",
+  "why": "YST elective for non-music majors (Music rule) on NG Sem 2 list; no audition needed",
+  "shown": true
+ },
+ {
+  "code": "MUH3205",
+  "call": "open",
+  "why": "YST elective for non-music majors (Music rule) on NG Sem 2 list; no audition needed",
+  "shown": true
+ },
+ {
+  "code": "MUL2107",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "MUT1201",
+  "call": "open",
+  "why": "YST elective for non-music majors (Music rule) on NG Sem 2 list; no audition needed",
+  "shown": true
+ },
+ {
+  "code": "NGN2001A",
+  "call": "open",
+  "why": "NUS College course on NG Sem 2 list; ruling Q6 treats NUS College as open",
+  "shown": true
+ },
+ {
+  "code": "NGN2001C",
+  "call": "open",
+  "why": "NUS College course on NG Sem 2 list; ruling Q6 treats NUS College as open",
+  "shown": true
+ },
+ {
+  "code": "NGN2001F",
+  "call": "open",
+  "why": "NUS College course on NG Sem 2 list; ruling Q6 treats NUS College as open",
+  "shown": true
+ },
+ {
+  "code": "NGN2001H",
+  "call": "open",
+  "why": "NUS College course on NG Sem 2 list; ruling Q6 treats NUS College as open",
+  "shown": true
+ },
+ {
+  "code": "NGN2001I",
+  "call": "open",
+  "why": "NUS College course on NG Sem 2 list; ruling Q6 treats NUS College as open",
+  "shown": true
+ },
+ {
+  "code": "NGN2001J",
+  "call": "open",
+  "why": "NUS College course on NG Sem 2 list; ruling Q6 treats NUS College as open",
+  "shown": true
+ },
+ {
+  "code": "NHS2101",
+  "call": "open",
+  "why": "NUS College course on NG Sem 2 list; ruling Q6 treats NUS College as open",
+  "shown": true
+ },
+ {
+  "code": "NHS2104",
+  "call": "open",
+  "why": "NUS College course on NG Sem 2 list; ruling Q6 treats NUS College as open",
+  "shown": true
+ },
+ {
+  "code": "NM2209",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "NM2219",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "NM2220",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "NM3205",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "NST2008",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "NST2055",
+  "call": "open",
+  "why": "NUS College course on NG Sem 2 list; ruling Q6 treats NUS College as open",
+  "shown": true
+ },
+ {
+  "code": "NSW2001D",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "PC3232",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "PC3246",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "PC3270",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "PC3274A",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "PC3288Q",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "PC3294",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "PC4262",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "PC4274A",
+  "call": "note",
+  "why": "NG list offers it in Sem 2 but NUSMods lists Sem 1 only (ruling Q5: show with mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "PC5202",
+  "call": "closed",
+  "why": "Level-5000 Physics: ruling Q3(c) open to graduate students only; student is ug2",
+  "shown": false
+ },
+ {
+  "code": "PC5206",
+  "call": "closed",
+  "why": "Level-5000 Physics: ruling Q3(c) open to graduate students only; student is ug2",
+  "shown": false
+ },
+ {
+  "code": "PC5211",
+  "call": "closed",
+  "why": "Level-5000 Physics: ruling Q3(c) open to graduate students only; student is ug2",
+  "shown": false
+ },
+ {
+  "code": "PF2504",
+  "call": "note",
+  "why": "Built Environment: Sem 2 limited-quota course; must be taken on graded basis (D&E Built Environment)",
+  "shown": false
+ },
+ {
+  "code": "PF3207",
+  "call": "note",
+  "why": "Built Environment: Sem 2 limited-quota course; must be taken on graded basis (D&E Built Environment)",
+  "shown": true
+ },
+ {
+  "code": "PF3305",
+  "call": "note",
+  "why": "Built Environment: Sem 2 limited-quota course; must be taken on graded basis (D&E Built Environment)",
+  "shown": false
+ },
+ {
+  "code": "PF3306",
+  "call": "note",
+  "why": "Built Environment: Sem 2 limited-quota course; must be taken on graded basis (D&E Built Environment)",
+  "shown": true
+ },
+ {
+  "code": "PF3502",
+  "call": "note",
+  "why": "Built Environment: Sem 2 limited-quota course; must be taken on graded basis (D&E Built Environment)",
+  "shown": false
+ },
+ {
+  "code": "PF4203",
+  "call": "note",
+  "why": "Built Environment: Sem 2 limited-quota course; must be taken on graded basis (D&E Built Environment)",
+  "shown": false
+ },
+ {
+  "code": "PF4208",
+  "call": "note",
+  "why": "Built Environment: Sem 2 limited-quota course; must be taken on graded basis (D&E Built Environment)",
+  "shown": false
+ },
+ {
+  "code": "PF4306",
+  "call": "note",
+  "why": "Built Environment: Sem 2 limited-quota course; must be taken on graded basis (D&E Built Environment)",
+  "shown": true
+ },
+ {
+  "code": "PH2227",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "PH2242",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "PH4211",
+  "call": "closed",
+  "why": "NG list offers it to exchange students in Sem 1 only, not Sem 2 (ruling Q1: semester per the NG list)",
+  "shown": false
+ },
+ {
+  "code": "PL1101E",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "PL3102",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "PL3103",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "PL3104",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "PL3105",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "PL3257",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "PS3236",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "QF3103",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "SC3205",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": false
+ },
+ {
+  "code": "SC3221",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "SE3219",
+  "call": "note",
+  "why": "Southeast Asian Studies: all courses cannot be audited (FASS SE rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "SE3224",
+  "call": "note",
+  "why": "Southeast Asian Studies: all courses cannot be audited (FASS SE rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "SN2285",
+  "call": "note",
+  "why": "South Asian Studies: all courses cannot be audited (FASS SN rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "SN3282",
+  "call": "note",
+  "why": "South Asian Studies: all courses cannot be audited (FASS SN rule); NG Sem 2",
+  "shown": true
+ },
+ {
+  "code": "SPH5413",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ },
+ {
+  "code": "ST4245",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "TS1101E",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "TS2235",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "TS2239",
+  "call": "open",
+  "why": "On NG Sem 2 list; no restriction rule applies to a ug2 student",
+  "shown": true
+ },
+ {
+  "code": "UTC2421",
+  "call": "closed",
+  "why": "Not on the NG course list (either semester); rule E + ruling Q7: hidden at application",
+  "shown": false
+ }
+]

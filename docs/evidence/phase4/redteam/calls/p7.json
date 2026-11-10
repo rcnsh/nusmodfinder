@@ -1,0 +1,1520 @@
+[
+ {
+  "code": "FIN3701A",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LL4527V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "FIN2704X",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SC2209",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "RE3706",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list (Real Estate is NUS Business School)",
+  "shown": true
+ },
+ {
+  "code": "FIN3702B",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "FIN3702A",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "QF2104",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "QF1100",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "IS4228",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "QF3101",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "BSP3701",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LL4322",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "RE3701",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list (Real Estate is NUS Business School)",
+  "shown": true
+ },
+ {
+  "code": "BT3102",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "GESS1007",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LL4475V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "QF4102",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "GEC1034",
+  "call": "note",
+  "why": "Southeast Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "BT4222",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "FIN3703B",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "FIN3703A",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "MNO1706X",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "PL1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "ACC1701XB",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list; also NG list has it in Sem 1 but NUSMods lists only Sem 2 (ruling 4 Q5: show with note)",
+  "shown": true
+ },
+ {
+  "code": "ACC1701XA",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "ACC1701XC",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "MKT3702A",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "MKT3702B",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SPH2004",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student (rule A closes only Public Health graduate courses)",
+  "shown": true
+ },
+ {
+  "code": "PL3239",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "NM2209",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "PL3259",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CE3155A",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "PE3101P",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "ESE2000",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CM4254",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "NST2044",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student (ruling 4 Q6: NUS College courses open)",
+  "shown": true
+ },
+ {
+  "code": "ENV3206",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "ESE3401",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CM4269",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "GEC1040",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "MLE2102",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "IE4246",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CM4228",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LSM3257",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "DAO2703",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "ENV3101",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "GESS1016",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "ESE2001",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CS4236",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "PP5510",
+  "call": "note",
+  "why": "Public Policy rule (s.7): PP courses only for graduate students from LKYSPP exchange partner universities; graded basis only; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "CS4261",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CS3237",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CS1231",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LL4540V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "BSN3701",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list; also NG list has it in Sem 1 but NUSMods lists only Sem 2 (ruling 4 Q5: show with note)",
+  "shown": true
+ },
+ {
+  "code": "ME4252",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CS3103",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "PC3421",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "EE4204",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CS2107",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CS3231",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "MNO3703",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "IS1128",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "MNO3701",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "DOS3703",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "BT1101",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CS2100",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "NM1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "SPH3204",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student (rule A closes only Public Health graduate courses)",
+  "shown": true
+ },
+ {
+  "code": "NST2008",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student (ruling 4 Q6: NUS College courses open)",
+  "shown": true
+ },
+ {
+  "code": "BSE3702",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "IS4246",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "NM2219",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "JS3222",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LL4461V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "GEX1016",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LSM4213",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student (LSM codes exempt from rule A Medicine closure)",
+  "shown": true
+ },
+ {
+  "code": "PP5206",
+  "call": "note",
+  "why": "Public Policy rule (s.7): PP courses only for graduate students from LKYSPP exchange partner universities; graded basis only; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "PP5906",
+  "call": "note",
+  "why": "Public Policy rule (s.7): PP courses only for graduate students from LKYSPP exchange partner universities; graded basis only; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SE1101E",
+  "call": "note",
+  "why": "Southeast Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "PS2245",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "SE3220",
+  "call": "note",
+  "why": "Southeast Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "HY3204",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "SE2217",
+  "call": "note",
+  "why": "Southeast Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "PP5291",
+  "call": "note",
+  "why": "Public Policy rule (s.7): PP courses only for graduate students from LKYSPP exchange partner universities; graded basis only; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SE4218",
+  "call": "note",
+  "why": "Southeast Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list; level 4000 open to NG postgraduates",
+  "shown": true
+ },
+ {
+  "code": "SE2214",
+  "call": "note",
+  "why": "Southeast Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "PS3263",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "PP5525",
+  "call": "note",
+  "why": "Public Policy rule (s.7): PP courses only for graduate students from LKYSPP exchange partner universities; graded basis only; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "PP5166",
+  "call": "note",
+  "why": "Public Policy rule (s.7): PP courses only for graduate students from LKYSPP exchange partner universities; graded basis only; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "GEC1002",
+  "call": "note",
+  "why": "South Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LL4287V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SN3283",
+  "call": "note",
+  "why": "South Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "GESS1005",
+  "call": "note",
+  "why": "South Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "GEC1039",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "HY1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "PP5288",
+  "call": "note",
+  "why": "Public Policy rule (s.7): PP courses only for graduate students from LKYSPP exchange partner universities; graded basis only; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LL4505V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "CM1102",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "GL2102",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student; NG/NUSMods disagree only on Sem 2, both list Sem 1",
+  "shown": true
+ },
+ {
+  "code": "MA2116",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LL4290V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "PP5552",
+  "call": "note",
+  "why": "Public Policy rule (s.7): PP courses only for graduate students from LKYSPP exchange partner universities; graded basis only; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LL4405A",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "RE4701",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list (Real Estate is NUS Business School)",
+  "shown": true
+ },
+ {
+  "code": "RE2705",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list (Real Estate is NUS Business School)",
+  "shown": true
+ },
+ {
+  "code": "PS2249",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "RE3705",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list (Real Estate is NUS Business School)",
+  "shown": true
+ },
+ {
+  "code": "GESS1035",
+  "call": "note",
+  "why": "Southeast Asian Studies (s.1): all courses cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "GESS1020",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LL4070V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "NHS2048",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student (ruling 4 Q6: NUS College courses open)",
+  "shown": true
+ },
+ {
+  "code": "GESS1009",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "MKT3701A",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "MKT3701B",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "GESS1025",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "NHS2053",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student (ruling 4 Q6: NUS College courses open)",
+  "shown": true
+ },
+ {
+  "code": "GESS1013",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LAC1201",
+  "call": "note",
+  "why": "CLS rule (s.1): language courses graded basis only, cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "CH1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LAK1201",
+  "call": "note",
+  "why": "CLS rule (s.1): language courses graded basis only, cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LAM1201",
+  "call": "note",
+  "why": "CLS rule (s.1): language courses graded basis only, cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LL4009V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "CH3250",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "CH2250",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LAJ1201",
+  "call": "note",
+  "why": "CLS rule (s.1): language courses graded basis only, cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "TRA2111",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "GEC1044",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LAL1201",
+  "call": "note",
+  "why": "CLS rule (s.1): language courses graded basis only, cannot be audited; on NG Sem 1 list; also NG list has it in Sem 1 but NUSMods lists only Sem 2 (ruling 4 Q5: show with note)",
+  "shown": true
+ },
+ {
+  "code": "HY2206",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "MA1100",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "GEC1005",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "GESS1003",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LAV1201",
+  "call": "note",
+  "why": "CLS rule (s.1): language courses graded basis only, cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SPH2001",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student (rule A closes only Public Health graduate courses)",
+  "shown": true
+ },
+ {
+  "code": "LAF1201",
+  "call": "note",
+  "why": "CLS rule (s.1): language courses graded basis only, cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LAB1201",
+  "call": "note",
+  "why": "CLS rule (s.1): language courses graded basis only, cannot be audited; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "HY3267",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "QF4103",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "LL4556V",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "BSP1703",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "MA2002",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "PC3238",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "MA2104",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": true
+ },
+ {
+  "code": "ACC4702",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "AN3203",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "AR4220",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "AR4321",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "AR4601",
+  "call": "note",
+  "why": "On NG Sem 1 list; Architecture (s.4): only open to NG students majoring in Architecture or related disciplines",
+  "shown": false
+ },
+ {
+  "code": "AR5221",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "AR5321",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "AR5601",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "AR5801",
+  "call": "closed",
+  "why": "On NG Sem 1 list but level 5000 Architecture not provided for by any rule; ruling 3(c) hides AR5801",
+  "shown": false
+ },
+ {
+  "code": "AR5802",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "BMA5801",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide); also on the self-funded programmes list (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMC5023",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide); also on the self-funded programmes list (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BME5050",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide); also on the self-funded programmes list (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMF5333",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide); also on the self-funded programmes list (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMG5202",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide); also on the self-funded programmes list (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMK5101",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide); also on the self-funded programmes list (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BMT5301C",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide); also on the self-funded programmes list (rule A)",
+  "shown": false
+ },
+ {
+  "code": "BPM1702",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CDE1301B",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CE5002D",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CE5002E",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CE5901AB",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CFG1004",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CG2023",
+  "call": "note",
+  "why": "On NG Sem 1 list; 'all CG coded courses' rule under SoC Dean's Office applies only to that department per ruling 3(b): open with note; also NG list has it in Sem 1 but NUSMods lists only Sem 2 (ruling 4 Q5: show with note)",
+  "shown": false
+ },
+ {
+  "code": "CG2027",
+  "call": "note",
+  "why": "On NG Sem 1 list; 'all CG coded courses' rule under SoC Dean's Office applies only to that department per ruling 3(b): open with note",
+  "shown": false
+ },
+ {
+  "code": "CG2028",
+  "call": "note",
+  "why": "On NG Sem 1 list; 'all CG coded courses' rule under SoC Dean's Office applies only to that department per ruling 3(b): open with note",
+  "shown": false
+ },
+ {
+  "code": "CG3201",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "CG3207",
+  "call": "note",
+  "why": "On NG Sem 1 list; 'all CG coded courses' rule under SoC Dean's Office applies only to that department per ruling 3(b): open with note",
+  "shown": false
+ },
+ {
+  "code": "CG4002",
+  "call": "note",
+  "why": "On NG Sem 1 list; 'all CG coded courses' rule under SoC Dean's Office applies only to that department per ruling 3(b): open with note",
+  "shown": false
+ },
+ {
+  "code": "CH6262",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CM3141",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "CM3296",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "CM5223",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "CM5225",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "CM5244",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "CM5268",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "CN2111",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "CS3240",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "CS3244",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "CS4211",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "CS4212",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists only Sem 2 (ruling 4 Q5: show with note)",
+  "shown": false
+ },
+ {
+  "code": "CS5562",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "CSA6880",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "DAO2702X",
+  "call": "note",
+  "why": "Business rule (restrictions s.2): must be majoring in business at home university; over-subscribed, not guaranteed; on NG Sem 1 list",
+  "shown": false
+ },
+ {
+  "code": "DEP5110",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "DL5103",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide); also on the self-funded programmes list (rule A)",
+  "shown": false
+ },
+ {
+  "code": "DSA4211",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "DSA4212",
+  "call": "note",
+  "why": "On NG Sem 1 list; 'DSAXXXX not open' rule sits under Mathematics, applies only there per ruling 3(b): open with note",
+  "shown": false
+ },
+ {
+  "code": "EC4394",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "ESE5880AB",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "ETP5201",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "GE1101E",
+  "call": "closed",
+  "why": "Geography (s.1): all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GE2101",
+  "call": "closed",
+  "why": "Geography (s.1): all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GE2215",
+  "call": "closed",
+  "why": "Geography (s.1): all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GE3249",
+  "call": "closed",
+  "why": "Geography (s.1): all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GE3256",
+  "call": "closed",
+  "why": "Geography (s.1): all level 1000-4000 courses NOT open to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "GEC1011",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "GEC1015",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student (rule A closes only Public Health graduate courses)",
+  "shown": false
+ },
+ {
+  "code": "GEH1018",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "GEH1043",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "HS1502",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "HSI2003",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "HSI2014",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "HY2235",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "IS4233",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists only Sem 2 (ruling 4 Q5: show with note)",
+  "shown": false
+ },
+ {
+  "code": "JS4230",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "LAG1201",
+  "call": "note",
+  "why": "CLS rule (s.1): language courses graded basis only, cannot be audited; on NG Sem 1 list",
+  "shown": false
+ },
+ {
+  "code": "LI5202",
+  "call": "closed",
+  "why": "Logistics Institute: all courses not open to NG (s.12); ruling 3(a) hides; also self-funded list",
+  "shown": false
+ },
+ {
+  "code": "LI5204",
+  "call": "closed",
+  "why": "Logistics Institute: all courses not open to NG (s.12); ruling 3(a) hides; also self-funded list",
+  "shown": false
+ },
+ {
+  "code": "LL4011V",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1; also explicitly NOT open to NG students (Law s.5, ruling 3a)",
+  "shown": false
+ },
+ {
+  "code": "LL4096V",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "LL4203A",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "LL4503",
+  "call": "note",
+  "why": "Law rule (restrictions s.5): must be majoring in Law at home university; selective LL4 elective; on NG Sem 1 list",
+  "shown": false
+ },
+ {
+  "code": "MA3211",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "MA4229",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "ME4262",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "MLE4222",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "MLE5104",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "MTM5101",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide); also on the self-funded programmes list (rule A)",
+  "shown": false
+ },
+ {
+  "code": "MUA3219",
+  "call": "open",
+  "why": "On NG Sem 1 list and on YST Sem 1 electives for non-music majors (s.6); no audition required",
+  "shown": false
+ },
+ {
+  "code": "MUA4161",
+  "call": "note",
+  "why": "On NG Sem 1 list; principal-instrument study is a core Music course, YST partner institutions only (s.6), not on non-major electives list; NUSMods lists Sem 2 only (ruling 4 Q5)",
+  "shown": false
+ },
+ {
+  "code": "MUL2107",
+  "call": "open",
+  "why": "On NG Sem 1 list and on YST Sem 1 electives for non-music majors (s.6)",
+  "shown": false
+ },
+ {
+  "code": "NGN2001F",
+  "call": "note",
+  "why": "NUS College open (ruling 4 Q6) but NG list has it in Sem 1 but NUSMods lists only Sem 2 (ruling 4 Q5: show with note)",
+  "shown": false
+ },
+ {
+  "code": "NSW2001D",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "PC3232",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "PC3246",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "PC3270",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists only Sem 2 (ruling 4 Q5: show with note)",
+  "shown": false
+ },
+ {
+  "code": "PC3288Q",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "PC3294",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "PC4262",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "PC4274A",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "PC5202",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "PC5206",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "PC5211",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "PF2504",
+  "call": "closed",
+  "why": "Built Environment (s.4): level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF3207",
+  "call": "closed",
+  "why": "Built Environment (s.4): level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF3305",
+  "call": "closed",
+  "why": "Built Environment (s.4): level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF3306",
+  "call": "closed",
+  "why": "Built Environment (s.4): level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF3502",
+  "call": "closed",
+  "why": "Built Environment (s.4): level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF4203",
+  "call": "closed",
+  "why": "Built Environment (s.4): level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF4208",
+  "call": "closed",
+  "why": "Built Environment (s.4): level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PF4306",
+  "call": "closed",
+  "why": "Built Environment (s.4): level 1000-4000 courses not available to NG graduate students",
+  "shown": false
+ },
+ {
+  "code": "PH4211",
+  "call": "open",
+  "why": "On NG Sem 1 list; no restriction rule applies to a graduate NG student",
+  "shown": false
+ },
+ {
+  "code": "SC3205",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "SE3224",
+  "call": "closed",
+  "why": "On the NG list for Semester 2 only, not Semester 1",
+  "shown": false
+ },
+ {
+  "code": "SPH5413",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ },
+ {
+  "code": "UTC2421",
+  "call": "closed",
+  "why": "Not on the NG course list for any semester (ruling 2: hide)",
+  "shown": false
+ }
+]

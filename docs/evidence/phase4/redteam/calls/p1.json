@@ -1,0 +1,1502 @@
+[
+ {
+  "code": "ACC1701XB",
+  "call": "note",
+  "why": "Business: Level 1000-4000 need a business major at home university, not guaranteed (restrictions s.2); NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note); X suffix not in rule B list",
+  "shown": false
+ },
+ {
+  "code": "ACC4702",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "AH3204",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "AN3203",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": false
+ },
+ {
+  "code": "AR2101",
+  "call": "note",
+  "why": "Architecture: Design studio needs home-university letter confirming design year (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "AR2225",
+  "call": "note",
+  "why": "Architecture: only open to NG students majoring in Architecture or related (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "AR3101",
+  "call": "note",
+  "why": "Architecture: Design studio needs home-university letter confirming design year (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "AR3223",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "AR4101",
+  "call": "note",
+  "why": "Architecture: only open to NG students majoring in Architecture or related (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "AR4220",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "AR4321",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "AR4601",
+  "call": "note",
+  "why": "Architecture: only open to NG students majoring in Architecture or related (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "AR5221",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); also level 5000 (ruling Q3c makes it majors-only only where the NG list offers it)",
+  "shown": false
+ },
+ {
+  "code": "AR5321",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); also level 5000 (ruling Q3c makes it majors-only only where the NG list offers it)",
+  "shown": false
+ },
+ {
+  "code": "AR5601",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); also level 5000 (ruling Q3c makes it majors-only only where the NG list offers it)",
+  "shown": false
+ },
+ {
+  "code": "AR5801",
+  "call": "closed",
+  "why": "On NG Sem 1 list but level 5000 not addressed for UG; ruling Q3(c) hidden",
+  "shown": false
+ },
+ {
+  "code": "AR5802",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); ruling Q3(c) hidden",
+  "shown": false
+ },
+ {
+  "code": "BMA5801",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "BMC5023",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "BME5050",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "BMF5333",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "BMG5202",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "BMK5101",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "BMT5301C",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "BN1112",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "BN4304",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "BPM1702",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "BSN3701",
+  "call": "note",
+  "why": "Business: Level 1000-4000 need a business major at home university, not guaranteed (restrictions s.2); NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note)",
+  "shown": true
+ },
+ {
+  "code": "CDE1301B",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "CDE2300",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "CDE2301",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "CE3121",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "CE3155A",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "CE3155B",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "CE3165",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "CE4221",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "CE5002D",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "CE5002E",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "CE5901AB",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "CFG1004",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "CG2023",
+  "call": "note",
+  "why": "CG code: ruling Q3(b) blanket CG rule applies only to SoC Dean's Office, so open with note; NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "CG2027",
+  "call": "note",
+  "why": "CG code: ruling Q3(b) blanket CG rule applies only to SoC Dean's Office, so open with note",
+  "shown": false
+ },
+ {
+  "code": "CG2028",
+  "call": "note",
+  "why": "CG code: ruling Q3(b) blanket CG rule applies only to SoC Dean's Office, so open with note",
+  "shown": true
+ },
+ {
+  "code": "CG3201",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "CG3207",
+  "call": "note",
+  "why": "CG code: ruling Q3(b) blanket CG rule applies only to SoC Dean's Office, so open with note",
+  "shown": true
+ },
+ {
+  "code": "CG4002",
+  "call": "note",
+  "why": "CG code: ruling Q3(b) blanket CG rule applies only to SoC Dean's Office, so open with note; level 4000 not closed by Computing",
+  "shown": false
+ },
+ {
+  "code": "CH2250",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "CH6262",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "CM3141",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": false
+ },
+ {
+  "code": "CM3296",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "CM4254",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "CM4269",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "CM5223",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); ruling Q3(c) hidden",
+  "shown": false
+ },
+ {
+  "code": "CM5225",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); ruling Q3(c) hidden",
+  "shown": false
+ },
+ {
+  "code": "CM5244",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); ruling Q3(c) hidden",
+  "shown": false
+ },
+ {
+  "code": "CM5268",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); ruling Q3(c) hidden",
+  "shown": false
+ },
+ {
+  "code": "CN2103",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "CN2111",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "CN3104",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "CN4203R",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "CS2104",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "CS3219",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "CS3231",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "CS3237",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": false
+ },
+ {
+  "code": "CS3240",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "CS3244",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "CS4211",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": false
+ },
+ {
+  "code": "CS4212",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "CS4223",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "CS4226",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "CS4243",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "CS4248",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "CS5562",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "CSA6880",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "DAO2702X",
+  "call": "note",
+  "why": "Business: Level 1000-4000 need a business major at home university, not guaranteed (restrictions s.2)",
+  "shown": false
+ },
+ {
+  "code": "DEP5110",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "DL5103",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "DSA4211",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "DSA4212",
+  "call": "note",
+  "why": "DSA code: ruling Q3(b) blanket DSA rule applies only to Mathematics, so open with note; on NG Sem 1 list",
+  "shown": false
+ },
+ {
+  "code": "DTK1234",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000 (DTK not an Industrial Design ID course)",
+  "shown": true
+ },
+ {
+  "code": "EC4394",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "EE2022",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "EE2026",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "EE3431C",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "EE4112",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "EE4204",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "EE4435",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "EE4501",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "EE4502",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "EE4704",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "EL1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "ESE3401",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "ESE5880AB",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "ETP5201",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "FIN3701A",
+  "call": "note",
+  "why": "Business: Level 1000-4000 need a business major at home university, not guaranteed (restrictions s.2)",
+  "shown": false
+ },
+ {
+  "code": "FIN3702A",
+  "call": "note",
+  "why": "Business: Level 1000-4000 need a business major at home university, not guaranteed (restrictions s.2)",
+  "shown": false
+ },
+ {
+  "code": "FST3107",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "GE1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": false
+ },
+ {
+  "code": "GE2101",
+  "call": "note",
+  "why": "Geography: limited quota (restrictions s.1); on NG Sem 1 list",
+  "shown": false
+ },
+ {
+  "code": "GE2207",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "GE2215",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": false
+ },
+ {
+  "code": "GE3206",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "GE3249",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": false
+ },
+ {
+  "code": "GE3256",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "GEC1005",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GEC1011",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); Medicine, ruling Q3(a) hidden",
+  "shown": false
+ },
+ {
+  "code": "GEC1015",
+  "call": "open",
+  "why": "On NG Sem 1 list; SSHSPH closed for graduate courses only (rule A)",
+  "shown": false
+ },
+ {
+  "code": "GEC1030",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GEC1032",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GEC1034",
+  "call": "note",
+  "why": "Southeast Asian Studies: all courses cannot be audited (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "GEC1039",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GEC1040",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GEC1053",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GEC1055",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GEH1018",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); GEH rule applies only to Mathematics (ruling Q3b)",
+  "shown": false
+ },
+ {
+  "code": "GEH1043",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); Medicine, ruling Q3(a) hidden",
+  "shown": false
+ },
+ {
+  "code": "GES1019",
+  "call": "note",
+  "why": "Built Environment undergraduate course: graded basis only; same title as GESS1014 on the Sem 1 limited-quota list",
+  "shown": true
+ },
+ {
+  "code": "GES1034",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1001",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1006",
+  "call": "note",
+  "why": "Malay Studies: all courses cannot be audited (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "GESS1007",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1009",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1013",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1016",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1020",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1024",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1025",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1029",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "GESS1035",
+  "call": "note",
+  "why": "Southeast Asian Studies: all courses cannot be audited (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "GL2102",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": false
+ },
+ {
+  "code": "HS1502",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": false
+ },
+ {
+  "code": "HSI2003",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); Medicine, ruling Q3(a) hidden",
+  "shown": false
+ },
+ {
+  "code": "HSI2014",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": false
+ },
+ {
+  "code": "HY1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "HY2206",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "HY2232",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "HY2235",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": false
+ },
+ {
+  "code": "HY3204",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "HY3226",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "HY3250",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "ID1223",
+  "call": "note",
+  "why": "Industrial Design: code listed as only open to NG students pursuing Industrial Design; graded basis (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "ID2114",
+  "call": "note",
+  "why": "Industrial Design: code listed as only open to NG students pursuing Industrial Design; graded basis (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "ID2322",
+  "call": "note",
+  "why": "Industrial Design courses must be taken on graded basis (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "ID3107",
+  "call": "note",
+  "why": "Industrial Design courses must be taken on graded basis (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "ID3108",
+  "call": "note",
+  "why": "Industrial Design courses must be taken on graded basis (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "ID3132",
+  "call": "note",
+  "why": "Industrial Design courses must be taken on graded basis (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "IS3240",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "IS4233",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "JS1101E",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 1000",
+  "shown": true
+ },
+ {
+  "code": "JS2213",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "JS2216",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "JS2225",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "JS3222",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "JS4230",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "LAB1201",
+  "call": "note",
+  "why": "CLS: language courses graded basis only, no audit (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LAC1201",
+  "call": "note",
+  "why": "CLS: language courses graded basis only, no audit (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LAF1201",
+  "call": "note",
+  "why": "CLS: language courses graded basis only, no audit (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LAG1201",
+  "call": "note",
+  "why": "CLS: language courses graded basis only, no audit (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LAJ1201",
+  "call": "note",
+  "why": "CLS: language courses graded basis only, no audit (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LAK1201",
+  "call": "note",
+  "why": "CLS: language courses graded basis only, no audit (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LAL1201",
+  "call": "note",
+  "why": "CLS: language courses graded basis only, no audit (restrictions s.1); on NG Sem 1 list; NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note)",
+  "shown": true
+ },
+ {
+  "code": "LAM1201",
+  "call": "note",
+  "why": "CLS: language courses graded basis only, no audit (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LAT1201",
+  "call": "note",
+  "why": "CLS: language courses graded basis only, no audit (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "LI5202",
+  "call": "closed",
+  "why": "Logistics Institute: all courses not open to NG (restrictions s.12); ruling Q3(a) hidden; also self-funded",
+  "shown": false
+ },
+ {
+  "code": "LI5204",
+  "call": "closed",
+  "why": "Logistics Institute: all courses not open to NG (restrictions s.12); ruling Q3(a) hidden; also self-funded",
+  "shown": false
+ },
+ {
+  "code": "LL4011V",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); listed closed by Law (ruling Q3a)",
+  "shown": false
+ },
+ {
+  "code": "LL4096V",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "LL4203A",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "LL4503",
+  "call": "note",
+  "why": "Law: must be majoring in Law at home university (restrictions s.5); LL4 elective, not compulsory LLB",
+  "shown": false
+ },
+ {
+  "code": "LL4522V",
+  "call": "note",
+  "why": "Law: must be majoring in Law at home university (restrictions s.5); LL4 elective, not compulsory LLB",
+  "shown": true
+ },
+ {
+  "code": "LSM2252",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "LSM3233",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "LSM3258",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "LSM3260",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "LSM4251",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "LSM4256",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "MA3211",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "MA3264",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "MA4229",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "MA4270",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "ME2102",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "ME2116",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "ME3261",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "ME3263",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "ME4223",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "ME4226",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "ME4233",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "ME4252",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "ME4262",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "MKT3701A",
+  "call": "note",
+  "why": "Business: Level 1000-4000 need a business major at home university, not guaranteed (restrictions s.2)",
+  "shown": false
+ },
+ {
+  "code": "MLE2102",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "MLE2301",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "MLE3104",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "MLE3203",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "MLE4207",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "MLE4208",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "MLE4210",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "MLE4222",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "MLE5104",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "MTM5101",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "MUA1240",
+  "call": "open",
+  "why": "YST elective listed for NUS non-music majors Sem 1; no audition required",
+  "shown": true
+ },
+ {
+  "code": "MUA3219",
+  "call": "open",
+  "why": "YST elective listed for NUS non-music majors Sem 1; no audition required",
+  "shown": false
+ },
+ {
+  "code": "MUA4161",
+  "call": "note",
+  "why": "YST core major-study course: only for YST partner institutions (restrictions s.6); NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "MUL1105",
+  "call": "open",
+  "why": "YST elective listed for NUS non-music majors Sem 1; no audition required",
+  "shown": true
+ },
+ {
+  "code": "MUL2107",
+  "call": "open",
+  "why": "YST elective listed for NUS non-music majors Sem 1; no audition required",
+  "shown": false
+ },
+ {
+  "code": "NGN2001F",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "NHS2048",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "NHS2085",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "NST2008",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": false
+ },
+ {
+  "code": "NST2044",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "NSW2001D",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "PC3232",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": false
+ },
+ {
+  "code": "PC3246",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": false
+ },
+ {
+  "code": "PC3270",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note)",
+  "shown": false
+ },
+ {
+  "code": "PC3288Q",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "PC3294",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "PC4236",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": true
+ },
+ {
+  "code": "PC4262",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": false
+ },
+ {
+  "code": "PC4274A",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": false
+ },
+ {
+  "code": "PC5202",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); ruling Q3(c) graduate students only; level 5000",
+  "shown": false
+ },
+ {
+  "code": "PC5206",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); ruling Q3(c) graduate students only; level 5000",
+  "shown": false
+ },
+ {
+  "code": "PC5211",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1); ruling Q3(c) graduate students only; level 5000",
+  "shown": false
+ },
+ {
+  "code": "PF2504",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note); Built Environment: graded basis only; listed under Sem 2 limited quota",
+  "shown": true
+ },
+ {
+  "code": "PF3205",
+  "call": "note",
+  "why": "Built Environment: undergraduate courses graded basis only; Sem 1 limited-quota list (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "PF3207",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note); Built Environment: graded basis only; listed under Sem 2 limited quota",
+  "shown": false
+ },
+ {
+  "code": "PF3209",
+  "call": "note",
+  "why": "Built Environment: undergraduate courses graded basis only; Sem 1 limited-quota list (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "PF3210",
+  "call": "note",
+  "why": "Built Environment: undergraduate courses graded basis only; Sem 1 limited-quota list (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "PF3211",
+  "call": "note",
+  "why": "Built Environment: undergraduate courses graded basis only; Sem 1 limited-quota list (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "PF3305",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note); Built Environment: graded basis only; listed under Sem 2 limited quota",
+  "shown": true
+ },
+ {
+  "code": "PF3306",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note); Built Environment: graded basis only; listed under Sem 2 limited quota",
+  "shown": true
+ },
+ {
+  "code": "PF3502",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note); Built Environment: graded basis only; listed under Sem 2 limited quota",
+  "shown": true
+ },
+ {
+  "code": "PF4203",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note); Built Environment: graded basis only; listed under Sem 2 limited quota",
+  "shown": false
+ },
+ {
+  "code": "PF4208",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note); Built Environment: graded basis only; listed under Sem 2 limited quota",
+  "shown": false
+ },
+ {
+  "code": "PF4213",
+  "call": "note",
+  "why": "Built Environment: undergraduate courses graded basis only; Sem 1 limited-quota list (restrictions s.4)",
+  "shown": true
+ },
+ {
+  "code": "PF4306",
+  "call": "note",
+  "why": "NG list has it in Sem 1 but NUSMods lists Sem 2 only (ruling Q5: semester mismatch note); Built Environment: graded basis only; listed under Sem 2 limited quota",
+  "shown": false
+ },
+ {
+  "code": "PH4211",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 4000",
+  "shown": false
+ },
+ {
+  "code": "PS2249",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 2000",
+  "shown": true
+ },
+ {
+  "code": "RB3302",
+  "call": "open",
+  "why": "On NG Sem 1 list; no department restriction applies at level 3000",
+  "shown": true
+ },
+ {
+  "code": "RE2705",
+  "call": "note",
+  "why": "Business: Level 1000-4000 need a business major at home university, not guaranteed (restrictions s.2)",
+  "shown": true
+ },
+ {
+  "code": "RE3705",
+  "call": "note",
+  "why": "Business: Level 1000-4000 need a business major at home university, not guaranteed (restrictions s.2)",
+  "shown": true
+ },
+ {
+  "code": "SC3205",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "SE1101E",
+  "call": "note",
+  "why": "Southeast Asian Studies: all courses cannot be audited (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SE2214",
+  "call": "note",
+  "why": "Southeast Asian Studies: all courses cannot be audited (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SE2217",
+  "call": "note",
+  "why": "Southeast Asian Studies: all courses cannot be audited (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SE3220",
+  "call": "note",
+  "why": "Southeast Asian Studies: all courses cannot be audited (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SE3224",
+  "call": "closed",
+  "why": "On NG list for Sem 2 only (semester per NG list, ruling Q1)",
+  "shown": false
+ },
+ {
+  "code": "SN2213",
+  "call": "note",
+  "why": "South Asian Studies: all courses cannot be audited (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SN3283",
+  "call": "note",
+  "why": "South Asian Studies: all courses cannot be audited (restrictions s.1); on NG Sem 1 list",
+  "shown": true
+ },
+ {
+  "code": "SPH5413",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ },
+ {
+  "code": "UTC2421",
+  "call": "closed",
+  "why": "Not on NG course list for either semester (ruling Q7: hidden; rule E only at registration)",
+  "shown": false
+ }
+]

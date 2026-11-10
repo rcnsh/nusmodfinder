@@ -112,3 +112,6 @@ o7	browser other	/facets	phase0 0b fe.mjs
 106	ref	Production /health before the Phase 4 ship (live version check) on version ea066ead	Phase 4 4A/4C/4D ship, 2026-11-10 13:11 UTC
 107	ref	Production smoke after the Phase 4 deploy: /health + 3 /search (machine learning; ng=1&sem=1 without study → 400 study-required; ng=1&sem=1&study=ug3) on version efd3dc25 (200 except the expected 400, not degraded)	Phase 4 4A/4C/4D ship, 2026-11-10 13:13 UTC
 108	ref	SC1 live check: 30 exchange /search calls on version efd3dc25 (sc1-live.mjs; docs/evidence/phase4/sc1-live.jsonl), plus 7 re-sends of calls rate-limited (429, SEARCH_LIMIT) on the first run; 30 × 200, 0 closed courses shown	Phase 4 4E, 2026-11-10 13:13-13:14 UTC
+109	ref	Red-team kit probe: 1 /search (urban design, ng=1&sem=1&study=ug2) to read the response shape, on version efd3dc25	Phase 4 red team, 2026-11-10 13:3x UTC
+110	ref	Persona red team, first launch: lost when the machine restarted (kit and logs in /tmp cleared); an unknown number of exchange /search calls, at most 80, on version efd3dc25	Phase 4 red team, 2026-11-10 UTC
+111	ref	Persona red team: 80 exchange /search calls by 8 personas, ≥ 4 s apart (docs/evidence/phase4/redteam/searches-*.jsonl), all 200, on version efd3dc25	Phase 4 red team, 2026-11-10 15:23-15:30 UTC
