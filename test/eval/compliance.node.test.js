@@ -174,15 +174,17 @@ describe('the rule, pure', () => {
     expect(gateFor('holdout', cmp, { kind: 'compliance' }, { compliance: { ...checks, newErrors: 1 } }).verdict).toBe('fail');
   });
 
-  it('while ADR 0003\'s amendment is a draft, the holdout and test sets refuse the rule; the throwaway selftest set does not', async () => {
-    const adr = await readFile(ADR_0003, 'utf8');
-    // This PR leaves the amendment a draft: the lead adopts it.
-    expect(adr).toContain(DRAFT_MARKER);
-    expect(() => assertRuleAdopted({ name: 'holdout', encrypted: true }, adr)).toThrow(GateRuleError);
-    expect(() => assertRuleAdopted({ name: 'test', encrypted: true }, adr)).toThrow(GateRuleError);
-    expect(() => assertRuleAdopted({ name: 'selftest', encrypted: true }, adr)).not.toThrow();
-    expect(() => assertRuleAdopted({ name: 'dev', encrypted: false }, adr)).not.toThrow();
-    expect(() => assertRuleAdopted({ name: 'holdout', encrypted: true }, adr.replace(DRAFT_MARKER, 'Adopted by the lead.'))).not.toThrow();
+  it('a draft amendment refuses the rule on the holdout and test sets (not the throwaway selftest set); the adopted ADR allows it', async () => {
+    const adopted = await readFile(ADR_0003, 'utf8');
+    // The lead adopted the amendment on 2026-11-11: the draft line is gone.
+    expect(adopted).not.toContain(DRAFT_MARKER);
+    expect(adopted).toContain('Adopted by the lead, 2026-11-11');
+    expect(() => assertRuleAdopted({ name: 'holdout', encrypted: true }, adopted)).not.toThrow();
+    const draft = `${adopted}\n${DRAFT_MARKER}\n`;
+    expect(() => assertRuleAdopted({ name: 'holdout', encrypted: true }, draft)).toThrow(GateRuleError);
+    expect(() => assertRuleAdopted({ name: 'test', encrypted: true }, draft)).toThrow(GateRuleError);
+    expect(() => assertRuleAdopted({ name: 'selftest', encrypted: true }, draft)).not.toThrow();
+    expect(() => assertRuleAdopted({ name: 'dev', encrypted: false }, draft)).not.toThrow();
   });
 
   it('the reference is frozen at tag 3h = 2476012, and a moved tag is refused', async () => {
