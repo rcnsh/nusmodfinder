@@ -1123,3 +1123,16 @@ fails on the previous code.
 - **Possible follow-up (Jacob's call):** prefer the group member timetabled in the chosen
   semester as the collapsed result. That is a real fix on its own, and with it the phrase
   candidate could be screened again.
+
+## 2026-11-11 — Phase 5 5E merged: SC8 measured
+
+- **5E** (PR #76, `8cc4a4b`): skip link, landmarks, one polite live region, a submit button that
+  is never disabled (a second submit aborts the first), Escape closes the detail. axe with every
+  rule but AAA's 7:1 contrast (ADR 0008, lead decision) on 23 states × both themes × 1280 and
+  390×664 × Chromium and WebKit: zero violations. Keyboard-only task at both widths with the
+  focus ring checked at every stop; live-region text, accessible names and 13 aria snapshots;
+  the fold check after a typed search and a shared link. F5 fixed.
+- **VoiceOver:** `docs/evidence/phase5/voiceover-checklist.md` (28 steps), for Jacob to run on
+  the local UI server before the deploy and again live.
+- **Next:** 5G pre-ship (SC2 for every fixture code, D's remaining mockup details, the live-check
+  script), the VoiceOver walkthrough, then the page deploy.
