@@ -384,8 +384,9 @@ details[open] > summary::before { transform: rotate(90deg); }
   .bar .btn { min-height: 42px; padding: 0 16px; }
   /* One inline flow, so a second line of chips starts at the left edge, under "Filters". */
   .filterrow, .filterrow:not(:has(li)) { display: block; margin-top: 8px; }
-  .chips { display: inline; }
-  .chips li, .filters-btn { display: inline-flex; vertical-align: top; margin: 0 6px 6px 0; }
+  .filterrow .chips { display: inline; }
+  .filterrow .chips li, .filters-btn { display: inline-flex; vertical-align: top; margin: 0 6px 6px 0; }
+  .intents, .intents ul { gap: 6px; }
   .filters-btn { display: inline-flex; min-height: 30px; padding: 0 10px; font-size: var(--t-small); border-radius: 15px; }
   .chip { font-size: 13px; padding: 0 7px 0 10px; }
   .chip-fixed { padding: 0 10px; }
