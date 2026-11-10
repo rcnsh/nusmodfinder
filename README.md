@@ -231,6 +231,7 @@ path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still r
 | `explain.js` | exchange wording (pure): each stamp's words, each note in full with its lead-in word ("Places.", "Your major."), the `semester` note as an action, each source with its "updated as at" date, why a typed code is hidden (its own stored reasons), the partial-code empty state, and the typed codes past the three that pin |
 | `detail.js` | a card's detail, inline, from `/module/:code` (fetched once per page): description, prerequisites and preclusions as NUS states them with codes linked to a search, exams, workload, exchange availability per semester, the NUSMods link for class times |
 | `keys.js` | Enter submits only outside IME composition |
+| `intents.js`, `intent-chips.js` | the phrases `/search` read from the query (5F's `interpreted`) as chip labels (pure), and the chip row under the count, each chip's button re-running the search with `ignore=` that phrase; empty while `PARSE_PHRASES` is off |
 | `icons.js` | the stamps' and controls' small line icons, built as SVG nodes, all decorative (`aria-hidden`) |
 | `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`); the entries (an APG disclosure each: a heading holding one button that controls the detail; the exchange stamp for the chosen semester, or one per semester when planning both, with the notes both share said once; no score), the hidden-codes box and the status area; the controller (the set-up screen, the rail's semester segment, the chips, the filters dialog) |
 
@@ -267,7 +268,8 @@ interception; the cards, the detail (`?q=CODE&open=CODE`), the hidden-code lines
 partial-code states run on the fixture. 5D's specs: `setup.spec.js` (the first screen),
 `mobile.spec.js` (F10 and the chips), `fold.spec.js` (the 390×664 fold check, also as an
 iPhone 13), `fonts.spec.js` (self-hosting, weights, the plain zero) and `a11y.spec.js` (axe,
-every rule, no violation allowed, both themes at 1280 and 390×664). `shots.spec.js` saves the
+every rule, no violation allowed, both themes at 1280 and 390×664); 5F's `intents.spec.js`
+tests the phrase chips on intercepted answers. `shots.spec.js` saves the
 five mockup states from the real page in both themes to `docs/evidence/phase5/shots/` when
 asked (`VNM_SHOTS=1 npx playwright test shots --project chromium`). CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
 fixtures, `data/` or the lockfile change. The Phase 4 page is kept frozen as
