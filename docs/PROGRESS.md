@@ -1073,3 +1073,17 @@ fails on the previous code.
 - **For 5C:** a 4th or later typed code that passes the filters is neither pinned nor hidden; the
   page says only the first three typed codes are pinned.
 - **Next:** 5C and 5D wait on D1 (Jacob's design pick: A, B, C or D).
+
+## 2026-11-11 — Phase 5 5C merged; D1 decided
+
+- **5C** (PR #72, `4d97e08`): cards as APG disclosures with no score (F1); exchange status per
+  semester with every note in full; the inline detail from `/module/:code` (description, prereqs
+  and preclusions as NUS states them, exams in Singapore time, workload, exchange availability
+  with sources and dates, the NUSMods link); hidden-code, not-offered and partial-code
+  explanations (D4); "unofficial" in the title and header at every width (P3). 154 UI tests in
+  Chromium and WebKit.
+- **D1:** Jacob picks direction D, "Annotated catalogue" (ADR 0008; mockup
+  `docs/design/phase5-direction-d.html`).
+- **Open:** the 390×664 fold check fails until 5D collapses the form; the page keeps a copy of the
+  cohort-only prerequisite rule until `/module` returns the flag.
+- **Next:** 5D builds D (both themes, mobile form, self-hosted Plex); 5F's tooling is in progress.
