@@ -64,7 +64,7 @@ describe('levels (R4, R5, R7, C3-C5)', () => {
     const m = mod('AR5221', { department: 'Architecture', faculty: 'College of Design and Engineering', ngSemesters: [2] });
     expect(e(m, 2, 'ug2')).toEqual({ status: 'note', reasons: ['4-arch-major-architecture'] });
   });
-  it('C5: PC5202 is closed for graduates too: it is in a self-funded programme', () => {
+  it('C5: PC5202 is closed for graduates too: it is in a self-funded programme (Jacob, red team R1)', () => {
     expect(e(mod('PC5202', { department: 'Physics', faculty: 'Science' }), 'any', 'grad').reasons).toContain('A-self-funded');
   });
 });
@@ -106,6 +106,13 @@ describe('conflicts and readings (C1, C2, C6, I1, I5, I9, I11)', () => {
     const fass = { faculty: 'Arts and Social Science', department: 'History' };
     expect(e(mod('HY3288', { ...fass, title: 'UROPS in History' }), 'any', 'ug3').reasons).toContain('C-urop-fass');
     expect(e(mod('PH3207', { ...fass, department: 'Philosophy', title: 'European Philosophy' }), 'any', 'ug3').status).toBe('open');
+  });
+  it('I19: "cannot be audited" is a note on Southeast Asian, South Asian and Malay Studies courses (Jacob, red team R2)', () => {
+    for (const [code, department] of [['SE2217', 'Southeast Asian Studies'], ['SN3283', 'South Asian Studies'], ['GESS1006', 'Malay Studies']]) {
+      const r = e(mod(code, { department, faculty: 'Arts and Social Science' }), 1, 'ug3');
+      expect(r.status, code).toBe('note');
+      expect(r.reasons.some((id) => /no-audit/.test(id)), code).toBe(true);
+    }
   });
   it('the year-of-study rules: Malay Studies level 4000 is for 3rd and 4th-years', () => {
     const m = mod('MS4208', { department: 'Malay Studies', faculty: 'Arts and Social Science' });
