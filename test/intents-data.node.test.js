@@ -81,8 +81,8 @@ describe('row_hash and the bound tuple', () => {
 });
 
 describe('the bundle filter table', () => {
-  it('carries the 3H fields under schema vnm-vectors/2', async () => {
-    expect(BUNDLE_SCHEMA).toBe('vnm-vectors/2');
+  it('carries the 3H fields under schema vnm-vectors/3 (Phase 4 added ng_allow)', async () => {
+    expect(BUNDLE_SCHEMA).toBe('vnm-vectors/3');
     const a = norm();
     const b = norm({ moduleCode: 'CS1010X', semesterData: [{ semester: 1 }, { semester: 3, examDate: 'z' }], attributes: {},
       gradingBasisDescription: 'Completed Satisfactory/Unsatisfactory', workload: undefined, prerequisite: COHORT });

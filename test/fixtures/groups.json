@@ -2,7 +2,7 @@
  "schema": "vnm-groups/1",
  "version": "groups-v1",
  "corpus": "fixture",
- "dataVersion": "3fa465d55fa6",
+ "dataVersion": "2d5c0084dfa0",
  "counts": {
   "groups": 21,
   "members": 58,

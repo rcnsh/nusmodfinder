@@ -40,8 +40,8 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | S6 | reproduced | live, full-corpus test |
 | S7 | fixed | tests |
 | S8 | fixed | tests, live |
-| P1 | reproduced | tests, live |
-| P2 | partially-reproduced | tests, live |
+| P1 | fixed | tests |
+| P2 | fixed | tests |
 | P3 | reproduced | test |
 | F1 | reproduced | test, Playwright |
 | F2 | reproduced | test |
@@ -474,15 +474,16 @@ lists.
 
 ### P1 · Exchange filter is a yearly boolean
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** `ng=1&sem=1` `machine learning` shows CS3244 and CG3201, which are NG-open in Sem 2
 only; 934 of 1,207 NG courses are open in one semester only; per-semester data is already in
 D1 as `ng_semesters`.
 
 **Evidence:**
-- test `[P1 known-bug] ng=1&sem=1 returns modules that are open to exchange students only in Sem 2`
-- test `[P1 known-bug] the Vectorize filter is the yearly ng boolean, not per semester`
+- test `[P1 fixed] ng=1&sem=1 shows only modules open to exchange students in Sem 1 (D1 path)`
+- test `[P1 fixed] the Vectorize standby filters on the yearly ng flag only, reads 100 deep and rechecks the semester in D1`
+- test `[P1 fixed] the bundle's filter mask tests the allow-mask bit for (sem, study)`: Phase 4 stores a 15-bit allow mask per module (`ng_allow`, migration 0009) and every path tests the one bit for (semester, study level) (`docs/plans/phase4.md` §2)
 - test `[P1 evidence] 934 of the 1,207 NG courses are open to exchange students in one semester only`
 - `docs/evidence/phase0/raw/P1_ml_ng_sem1.body`: live CG3201 #2 and CS3244 #4, both `ngSemesters: [2]`.
 
@@ -495,13 +496,13 @@ disagree).
 
 ### P2 · Graduate courses shown to undergraduate exchange students
 
-**Status:** partially-reproduced
+**Status:** fixed
 
 **Claim:** Undergraduate exchange students can't take 5000-level courses (NUS BBA incoming
 exchange FAQ Q11), but the filter shows them.
 
 **Evidence:**
-- test `[P2 known-bug] ng=1 returns a level-5 module (LI5202) to an undergraduate exchange student`
+- test `[P2 fixed] ng=1 shows no level-5 module to an undergraduate exchange student; LI5202 is closed to graduates too`: exchange mode requires `study`, and the Registrar's restrictions (rule D: levels 5000+ closed unless a department opens them) are applied at ingest (`src/eligibility.js`, `data/ng-restrictions-2026-2027.json`)
 - test `[P2 evidence] 28 NG courses are level 5 or above`
 - `docs/evidence/phase0/raw/P2_ml_ng.body`: live `machine learning&ng=1` top 20, max level 4. Not reproduced on that query.
 

@@ -71,6 +71,11 @@ const VERIFY_SAMPLE_LIMIT = 100;
 export const VECTORS_LIMIT = 1000;
 /** D1 binds at most 100 parameters per statement. */
 const D1_PARAMS = 100;
+/**
+ * The upsert's SET list, every ROW_COLUMNS column but the key plus row_hash,
+ * so a new column can't keep its old value under a new hash (plan 4 §5).
+ */
+export const UPSERT_SET = [...ROW_COLUMNS.filter((c) => c !== 'code'), 'row_hash'].map((c) => `${c}=excluded.${c}`).join(', ');
 
 /** @param {Request} request whether the call asks for the D1-only mode */
 const d1OnlyOf = (request) => new URL(request.url).searchParams.get('d1Only') === '1';
@@ -113,7 +118,8 @@ export const REQUIRED_TRIGGERS = ['modules_fts_insert', 'modules_fts_delete', 'm
 /**
  * Whether the database has migration 0006: the schema marker, the
  * external-content FTS table, all four of its triggers (the update trigger
- * addressed by rowid) and the row_hash column. Ingest refuses to write
+ * addressed by rowid) and the row_hash column; and every column the upsert
+ * binds (ROW_COLUMNS, so a later migration such as 0009). Ingest refuses to write
  * without it: through the old triggers a full re-ingest reads ~46M rows
  * (FINDINGS B3). Reads a few sqlite_master rows.
  * @param {D1Database} db
@@ -128,7 +134,8 @@ export async function schemaStatus(db) {
               (SELECT sql FROM sqlite_master WHERE name = 'modules_fts') AS fts,
               (SELECT sql FROM sqlite_master WHERE name = 'modules_fts_update') AS trig,
               (SELECT json_group_array(name) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'modules') AS triggers,
-              (SELECT count(*) FROM pragma_table_info('modules') WHERE name = 'row_hash') AS row_hash`).first();
+              (SELECT count(*) FROM pragma_table_info('modules') WHERE name = 'row_hash') AS row_hash,
+              (SELECT json_group_array(name) FROM pragma_table_info('modules')) AS columns`).first();
   } catch {
     // No meta table (pre-0004): certainly not 0006.
   }
@@ -138,9 +145,13 @@ export async function schemaStatus(db) {
   const present = new Set(/** @type {string[]} */ (JSON.parse(row?.triggers ?? '[]')));
   const missingTriggers = REQUIRED_TRIGGERS.filter((t) => !present.has(t));
   const rowHashColumn = Number(row?.row_hash ?? 0) === 1;
+  // Every column the upsert binds (Phase 4: 0009's ng_allow, ng_rules).
+  const columns = new Set(/** @type {string[]} */ (JSON.parse(row?.columns ?? '[]')));
+  const missingColumns = ROW_COLUMNS.filter((c) => !columns.has(c));
   return {
-    version, ftsExternal, rowidTriggers, missingTriggers, rowHashColumn,
-    ok: version !== null && version >= 6 && ftsExternal && rowidTriggers && missingTriggers.length === 0 && rowHashColumn,
+    version, ftsExternal, rowidTriggers, missingTriggers, rowHashColumn, missingColumns,
+    ok: version !== null && version >= 6 && ftsExternal && rowidTriggers && missingTriggers.length === 0 && rowHashColumn
+      && missingColumns.length === 0,
   };
 }
 
@@ -280,16 +291,7 @@ async function writeRows(env, batch, { embedded, mutationId, sentAt, d1Only }) {
     const stmt = env.DB.prepare(
       `INSERT INTO modules (${ROW_COLUMNS.join(', ')}, row_hash)
        VALUES (${ROW_COLUMNS.map(() => '?').join(',')},?)
-       ON CONFLICT(code) DO UPDATE SET
-         title=excluded.title, description=excluded.description, credits=excluded.credits,
-         department=excluded.department, faculty=excluded.faculty, level=excluded.level,
-         semesters=excluded.semesters, workload=excluded.workload,
-         prerequisite=excluded.prerequisite, preclusion=excluded.preclusion,
-         acad_year=excluded.acad_year, text_hash=excluded.text_hash,
-         ng=excluded.ng, ng_semesters=excluded.ng_semesters,
-         exam_semesters=excluded.exam_semesters, su=excluded.su, grading_basis=excluded.grading_basis,
-         workload_hours=excluded.workload_hours, prereq_none=excluded.prereq_none,
-         prereq_cohort_only=excluded.prereq_cohort_only, row_hash=excluded.row_hash`,
+       ON CONFLICT(code) DO UPDATE SET ${UPSERT_SET}`,
     );
     const results = await env.DB.batch(batch.map((m, i) => stmt.bind(...boundTuple(m), hashes[i])));
     return json({
@@ -441,6 +443,7 @@ export async function handleVerify(request, env) {
           credits: f.credits, faculty: f.faculty, ng: f.ng, ngSemesters: f.ngSemesters ?? [],
           examSemesters: f.examSemesters ?? [], su: f.su === true, suGrading: suGrading(f.gradingBasis),
           workloadHours: f.workloadHours ?? null, prereqNone: f.prereqNone === true, prereqCohortOnly: f.prereqCohortOnly === true,
+          ngAllow: f.ngAllow ?? 0, ngRules: f.ngRules ?? null,
         };
       }),
       meta: metaOf([rows]),

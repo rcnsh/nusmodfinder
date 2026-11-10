@@ -56,7 +56,7 @@ const QUERIES = [
   'asdkjhqwe zxq', 'climate change policy', 'financial markets',
 ];
 const faculties = [...new Set(fixture.modules.map((m) => m.faculty).filter(Boolean))].slice(0, 3);
-const FILTERS = ['', '&sem=1', '&sem=3', '&level=2', '&credits=4', '&ng=1', '&ng=1&sem=2', `&faculty=${encodeURIComponent(String(faculties[0]))}`,
+const FILTERS = ['', '&sem=1', '&sem=3', '&level=2', '&credits=4', '&ng=1&study=ug2', '&ng=1&sem=2&study=grad', `&faculty=${encodeURIComponent(String(faculties[0]))}`,
   `&faculty=${encodeURIComponent(String(faculties[1]))}&level=3`, '&level=5&credits=4'];
 
 describe('3-0 identity on the fixture (A-N6)', () => {
@@ -81,12 +81,18 @@ describe('3-0 identity on the fixture (A-N6)', () => {
         };
         // mode=vector is the whole dense list (depth 50 = topK 50).
         const dense = await both('vector');
-        const diff = differences(q, dense.a, dense.b);
+        // Phase 4 (plan §2 "Paths"): in exchange mode the standby filters on the
+        // yearly ng flag, reads 100 deep and drops what D1's allow mask closes,
+        // so its list is the start of the bundle's, possibly shorter.
+        const exchange = f.includes('ng=1');
+        if (exchange) expect(dense.b.length, dense.path).toBeGreaterThan(0);
+        const diff = differences(q, exchange ? dense.a.slice(0, dense.b.length) : dense.a, dense.b);
         for (const d of diff) swaps.push({ path: dense.path, ...d });
         // Fusion is rank-based, so the hybrid page is identical whenever the
         // dense lists are; a near-tie swap moves fused ranks, and is listed.
         const hybrid = await both('hybrid');
-        if (diff.length === 0) expect(hybrid.a, hybrid.path).toEqual(hybrid.b);
+        if (exchange) { /* the standby's dense list is deeper here, so fusion differs by design */ }
+        else if (diff.length === 0) expect(hybrid.a, hybrid.path).toEqual(hybrid.b);
         else if (JSON.stringify(hybrid.a) !== JSON.stringify(hybrid.b)) hybridFollows.push(hybrid.path);
         compared++;
       }
@@ -135,7 +141,7 @@ describe('3-0 identity on the fixture (A-N6)', () => {
       const f = fieldsFromRow(r);
       expect(decodeFilterRow(b, b.codes.indexOf(r.code)), r.code).toEqual({
         semesters: f.semesters, level: f.level, credits: f.credits, faculty: f.faculty, ng: f.ng, ngSemesters: f.ngSemesters,
-        examSemesters: f.examSemesters, su: f.su, suGrading: suGrading(f.gradingBasis), workloadHours: f.workloadHours,
+        ngAllow: f.ngAllow, examSemesters: f.examSemesters, su: f.su, suGrading: suGrading(f.gradingBasis), workloadHours: f.workloadHours,
         prereqNone: f.prereqNone, prereqCohortOnly: f.prereqCohortOnly,
       });
     }

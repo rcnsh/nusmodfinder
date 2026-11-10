@@ -50,7 +50,7 @@ function stubWorker({ schemaOk = true, writesPerModule = 5 } = {}) {
     const ok = (b) => new Response(JSON.stringify(b), { status: 200 });
     switch (url.pathname) {
       case '/admin/hashes':
-        return ok({ schema: { version: schemaOk ? 6 : null, ftsExternal: schemaOk, rowidTriggers: schemaOk, rowHashColumn: schemaOk, ok: schemaOk },
+        return ok({ schema: { version: schemaOk ? 6 : null, ftsExternal: schemaOk, rowidTriggers: schemaOk, rowHashColumn: schemaOk, missingColumns: [], ok: schemaOk },
           embeddingModel: '@cf/baai/bge-small-en-v1.5', modules: schemaOk ? Object.fromEntries(stored) : null,
           acadYears: stored.size ? { [Y]: stored.size } : {} });
       case '/admin/ingest':

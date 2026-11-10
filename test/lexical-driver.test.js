@@ -107,9 +107,21 @@ describe('chooseDriver', () => {
   });
 
   it('filterSql disables every index but the driver\'s with unary plus', () => {
-    const echo = { sem: 3, level: 4, credits: 4, faculty: 'Computing', ng: true };
-    expect(filterSql(echo, 'faculty').clauses).toEqual(['+m.sem3 = 1', '+m.level = ?', '+m.credits = ?', 'm.faculty = ?', '+m.ng = 1']);
-    expect(filterSql(echo).clauses).toEqual(['m.sem3 = 1', 'm.level = ?', 'm.credits = ?', 'm.faculty = ?', 'm.ng = 1']);
+    const echo = { sem: 3, level: 4, credits: 4, faculty: 'Computing' };
+    expect(filterSql(echo, 'faculty').clauses).toEqual(['+m.sem3 = 1', '+m.level = ?', '+m.credits = ?', 'm.faculty = ?']);
+    expect(filterSql(echo).clauses).toEqual(['m.sem3 = 1', 'm.level = ?', 'm.credits = ?', 'm.faculty = ?']);
+  });
+
+  it('Phase 4: under ng, sem picks the allow-mask bit (never a sem column) and the bit is never an index driver', () => {
+    /** @type {FilterEcho} */
+    const echo = { sem: 1, level: 4, credits: 4, faculty: 'Computing', ng: true, study: 'ug2' };
+    // bitOf(1, 'ug2') = 1 << 1
+    expect(filterSql(echo, 'faculty').clauses).toEqual(['+m.level = ?', '+m.credits = ?', 'm.faculty = ?', '+m.ng = 1', '(+m.ng_allow & 2) != 0']);
+    expect(filterSql(echo).clauses).toEqual(['m.level = ?', 'm.credits = ?', 'm.faculty = ?', 'm.ng = 1', '(+m.ng_allow & 2) != 0']);
+    expect(filterSql({ ng: true, study: 'grad' }).clauses).toEqual(['m.ng = 1', '(+m.ng_allow & 16384) != 0']);
+    // No study (which /search answers 400) is closed, not unfiltered.
+    expect(filterSql({ ng: true }).clauses).toEqual(['m.ng = 1', '(+m.ng_allow & 0) != 0']);
+    expect(chooseDriver({ sem: 3, ng: true, study: 'ug2' }, null)).toBe('ng');
   });
 });
 
@@ -122,7 +134,8 @@ describe('the filter-driven plan', () => {
   const SHAPES = /** @type {FilterEcho[]} */ ([
     { faculty: 'Computing', credits: 4 }, { credits: 4, level: 5 }, { faculty: 'Computing', level: 4 },
     { level: 1, ng: true }, { credits: 4, ng: true }, { faculty: 'Computing', ng: true }, { sem: 3, credits: 4 },
-    { sem: 4, level: 5, faculty: 'Computing' }, { credits: 4, faculty: 'Computing', level: 3, ng: true, sem: 3 },
+    { sem: 4, level: 5, faculty: 'Computing' }, { credits: 4, faculty: 'Computing', level: 3, sem: 3 },
+    { credits: 4, faculty: 'Computing', level: 3, ng: true },
   ]);
   const cases = SHAPES.flatMap((echo) => /** @type {FilterKey[]} */ (Object.keys(echo)).map((driver) => /** @type {[FilterEcho, FilterKey]} */ ([echo, driver])));
 
@@ -136,7 +149,7 @@ describe('the filter-driven plan', () => {
 
 describe('counts are read only on the filter-driven path', () => {
   it('a filtered search answered by the bounded pass is one D1 query and never reads the facets row', async () => {
-    for (const echo of [{ sem: 1 }, { sem: 1, ng: true }, { credits: 4, level: 2 }]) {
+    for (const echo of /** @type {FilterEcho[]} */ ([{ sem: 1 }, { sem: 1, ng: true, study: 'ug2' }, { credits: 4, level: 2 }])) {
       const trace = new Trace();
       const codes = await lexicalSearch(env.DB, 'programming', echo, 5, trace);
       expect(codes).toHaveLength(5);

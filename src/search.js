@@ -18,6 +18,7 @@ import { lexicalSearch, rangeMembers } from './lexical.js';
 import { RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
 import { INTENT } from './intents.js';
 import { NO_SIGNAL_TAU } from './no-signal.js';
+import { STUDIES, ngBit } from './ng-bit.js';
 import { canonicalQuery, parseIgnore, parseQuery } from './query-intent.js';
 import { EMBED_CORRECTED } from './typo.js';
 import { hasCode } from './vector-bundle.js';
@@ -142,6 +143,19 @@ function parseFilters(params) {
   if (ng !== null && ng !== '' && ng !== 'false' && ng !== '0') {
     echo.ng = true;
     filter.ng = true;
+    // Phase 4 (plan §2 "Paths"): under ng, sem only picks the allow-mask bit,
+    // never the NUSMods semesters. The standby keeps the yearly ng filter and
+    // rechecks every dense row against D1's ng_allow.
+    if (echo.sem !== undefined) delete filter[`sem${echo.sem}`];
+  }
+
+  // Phase 4 (4C): the study level, required in exchange mode, ignored outside it.
+  let studyRequired = false;
+  const study = params.get('study');
+  if (echo.ng === true) {
+    if (study === null || study === '') studyRequired = true;
+    else if (!(/** @type {string[]} */ (STUDIES)).includes(study)) errors.push(`study must be one of ${STUDIES.join(', ')}`);
+    else echo.study = /** @type {import('./ng-bit.js').Study} */ (study);
   }
 
   // 3H's explicit params (plan 3H "Query side"). Vectorize metadata has no 3H
@@ -168,13 +182,15 @@ function parseFilters(params) {
     else echo.prereq = 'none';
   }
 
-  return { echo, filter, errors };
+  return { echo, filter, errors, studyRequired };
 }
 
 /**
  * Validates every parameter /search reads. Unknown parameters are ignored.
  * @param {URLSearchParams} params
- * @returns {{ log: Record<string, unknown>, error: string, query?: undefined } | { log: Record<string, unknown>, query: SearchQuery, error?: undefined }}
+ * `code` names an error a client acts on (`study-required`); others are `bad_request`.
+ * @returns {{ log: Record<string, unknown>, error: string, code?: string, query?: undefined }
+ *   | { log: Record<string, unknown>, query: SearchQuery, error?: undefined, code?: undefined }}
  */
 export function parseSearch(params) {
   const raw = params.get('q');
@@ -190,10 +206,16 @@ export function parseSearch(params) {
     return { log, error: `Query parameter "q" was ${trimmed.length} characters; the maximum is ${MAX_QUERY_CHARS}.` };
   }
 
-  const { echo, filter, errors } = parseFilters(params);
+  const { echo, filter, errors, studyRequired } = parseFilters(params);
   // faculty is free text: log only whether it was set, never its value.
   log.filters = { ...echo, ...(echo.faculty !== undefined ? { faculty: true } : {}) };
   if (errors.length) return { log, error: errors.join('; ') };
+  if (studyRequired) {
+    return {
+      log, code: 'study-required',
+      error: `Exchange mode (ng=1) needs your year of study: study=${STUDIES.join('|')} (ug4 = 4th year or later).`,
+    };
+  }
 
   // Retrieval mode. Defaults to the hybrid that ships; `vector` and `lexical`
   // exist so the evaluation harness can measure each half on its own, which is
@@ -243,6 +265,8 @@ export function canonicalCacheKey(origin, { q, echo, mode, topK, ignore }, versi
   if (echo.credits !== undefined) pairs.push(['credits', String(echo.credits)]);
   if (echo.faculty !== undefined) pairs.push(['faculty', echo.faculty]);
   if (echo.ng === true) pairs.push(['ng', '1']);
+  // Phase 4: only under ng, as the echo (parseFilters ignores study without it).
+  if (echo.ng === true && echo.study !== undefined) pairs.push(['study', echo.study]);
   if (echo.exam === 0) pairs.push(['exam', '0']);
   if (echo.su === 1) pairs.push(['su', '1']);
   if (echo.hoursBelow !== undefined) pairs.push(['hoursBelow', String(echo.hoursBelow)]);
@@ -274,7 +298,9 @@ export function searchCacheKey(url, version = NO_VERSION_ID) {
  */
 function localMatchesFilters(row, echo) {
   if (echo.ng === true && row.ng !== 1) return false;
-  if (echo.sem !== undefined && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
+  // Phase 4: the allow-mask bit; a missing or zero ng_allow is closed, and under ng sem only picks the bit.
+  if (echo.ng === true && ((row.ng_allow ?? 0) & (ngBit(echo) ?? 0)) === 0) return false;
+  if (echo.sem !== undefined && echo.ng !== true && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
   if (echo.level !== undefined && row.level !== echo.level) return false;
   if (echo.credits !== undefined && row.credits !== echo.credits) return false;
   if (echo.faculty !== undefined && row.faculty !== echo.faculty) return false;
@@ -457,13 +483,17 @@ async function bundleHits(vectors, constraints, depth, trace, firstTop) {
  */
 async function vectorSearch(env, vectors, constraints, filter, depth, trace, firstTop) {
   if (denseBackend(env) === 'bundle') return bundleHits(vectors, constraints, depth, trace, firstTop);
+  // Phase 4 (plan §2 "Paths"): the metadata has the yearly ng flag, not the
+  // allow mask, so under ng the standby reads as deep as Vectorize allows and
+  // every dense row is rechecked against D1 after hydrate.
+  const topK = constraints.ng === true ? Math.max(depth, STANDBY_NG_DEPTH) : depth;
   try {
     // Only ids and scores are read, so no metadata or values are requested.
     const lists = await trace.time('vector', () => Promise.all(vectors.map((vector) => withTimeout('Vectorize', VECTORIZE_TIMEOUT_MS, () =>
-      env.VECTORIZE.query(/** @type {number[]} */ (vector), { topK: depth, ...(Object.keys(filter).length ? { filter } : {}) })))));
+      env.VECTORIZE.query(/** @type {number[]} */ (vector), { topK, ...(Object.keys(filter).length ? { filter } : {}) })))));
     const hits = lists.map((result) => (result?.matches ?? []).map((m) => ({ code: m.id, score: m.score })));
     if (hits[0].length) firstTop?.(hits[0][0].score);
-    return mergeDense(hits, depth);
+    return mergeDense(hits, topK);
   } catch (err) {
     throw new DenseFailure('vectorize', err);
   }
@@ -484,6 +514,8 @@ const denseRun = (env, texts, trace, then) => embedAll(env, texts, trace).then(t
 
 /** D1 binds at most 100 parameters per statement. */
 const D1_PARAMS = 100;
+/** Vectorize's topK limit without values or metadata: the standby's depth under ng (plan §2). */
+const STANDBY_NG_DEPTH = 100;
 
 /**
  * @param {D1DatabaseSession} db
@@ -509,7 +541,7 @@ async function fetchRows(db, codes, trace) {
 
 /** The columns a variant needs: its code and credits, and the fields localMatchesFilters reads. */
 const VARIANT_COLUMNS = 'code, credits, level, faculty, semesters, ng, ng_semesters, '
-  + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only';
+  + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules';
 
 /**
  * 3G's τ: NO_SIGNAL_TAU, or the NO_SIGNAL_TAU var (tests only; production
@@ -730,6 +762,18 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   // window, but not its code ranges (a GES result may list its GESS cross-listing).
   const variantFilter = parsed.level ? { ...intentFilter, levelWindow: parsed.level } : intentFilter;
 
+  // Phase 4: exchange mode shows the allow-mask bit's notes on each card.
+  const bit = ngBit(echo);
+  /** @param {ResultRow} row @param {number} [score] */
+  const toModule = (row, score) => rowToModule(row, score, bit);
+
+  // Phase 4 (plan §2): the NG list has no special-term data, so exchange mode
+  // in Special Term I or II answers no courses, saying why.
+  if (echo.ng === true && (echo.sem === 3 || echo.sem === 4)) {
+    log.counts = { returned: 0 };
+    return respond([], { vector: 0, lexical: 0, fused: 0 }, { noMatch: { reason: 'ng-special-term' } });
+  }
+
   // ── no-match: `count: 0`; a not-offered code names its catalogue title and
   // the dense neighbours of its catalogue text, never in `results`.
   if (parsed.kind === 'no-match') {
@@ -750,10 +794,12 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     let related = [];
     if (row && tryDense) {
       const text = catalogueText(row);
-      // The standby's metadata has no 3H fields: it reads deeper, and its
-      // neighbours are checked after hydrate.
-      const recheck = denseBackend(env) !== 'bundle' && INTENT_PARAMS.some((k) => intentFilter[k] !== undefined);
-      const depth = recheck ? STANDBY_RELATED_DEPTH : RELATED_K;
+      // The standby's metadata has no 3H fields or allow mask: it reads deeper,
+      // and its neighbours are checked after hydrate. Under ng every backend's
+      // neighbours are rechecked (B-2): the bundle can be older than D1.
+      const standbyRecheck = denseBackend(env) !== 'bundle' && (INTENT_PARAMS.some((k) => intentFilter[k] !== undefined) || echo.ng === true);
+      const recheck = standbyRecheck || echo.ng === true;
+      const depth = standbyRecheck ? STANDBY_RELATED_DEPTH : RELATED_K;
       const hits = await settle(denseRun(env, [text], trace, (vs) => vectorSearch(env, vs, intentFilter, filter, depth, trace)));
       if (hits.ok) related = hits.value.map((h) => h.code);
       else degrade(/** @type {DenseFailure} */ (hits.error));
@@ -806,7 +852,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     let results = order.flatMap((code) => {
       const row = rows.get(code);
       if (!row || (hits && !localMatchesFilters(row, maskConstraints))) return [];
-      return [rowToModule(row, score.get(code))];
+      return [toModule(row, score.get(code))];
     });
     // 3F: after the filters, one result per duplicate group, the rest as its variants.
     if (collapsing) {
@@ -884,7 +930,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
         if (groupsShown.has(k)) continue;
         groupsShown.add(k);
       }
-      pinned.push(rowToModule(row, 1));
+      pinned.push(toModule(row, 1));
     }
   }
 
@@ -965,7 +1011,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
         if (groupsShown.has(k)) continue;
         groupsShown.add(k);
       }
-      results.push(rowToModule(row, score));
+      results.push(toModule(row, score));
     }
   }
   if (stale.length) console.warn(`stale vectors not present in D1: ${stale.join(', ')}`);
@@ -1019,7 +1065,9 @@ export async function searchRoute(request, env, ctx, trace) {
   };
 
   // Invalid requests are answered before the cache or any binding is touched.
-  if (!parsed.query) return finish(bad(parsed.error), 'bypass');
+  if (!parsed.query) {
+    return finish(parsed.code ? json({ error: parsed.code, message: parsed.error }, 400) : bad(parsed.error), 'bypass');
+  }
 
   // Identical searches are common — a shared link, a reload, a load test,
   // the evaluation harness running the same fixture repeatedly. Serving

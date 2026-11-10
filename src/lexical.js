@@ -5,6 +5,7 @@
 // so Node tests can import it).
 import { ftsMatch } from './fts-query.js';
 import { INTENT } from './intents.js';
+import { ngBit } from './ng-bit.js';
 
 export { ftsMatch, queryTokens } from './fts-query.js';
 
@@ -62,11 +63,13 @@ const indexed = (key, echo) => key !== 'sem' || echo.sem === 3 || echo.sem === 4
 export const FIXED_DRIVER_ORDER = ['sem', 'faculty', 'ng', 'level', 'credits'];
 
 /**
- * The active filters that have an index, in FIXED_DRIVER_ORDER.
+ * The active filters that have an index, in FIXED_DRIVER_ORDER. Under ng, sem
+ * is not a filter (it picks the allow-mask bit, filterSql).
  * @param {FilterEcho} echo
  */
 const indexedFilters = (echo) => FIXED_DRIVER_ORDER.filter((k) =>
-  (k === 'ng' ? echo.ng === true : echo[k] !== undefined) && indexed(k, echo));
+  (k === 'ng' ? echo.ng === true : k === 'sem' ? echo.sem !== undefined && echo.ng !== true : echo[k] !== undefined)
+  && indexed(k, echo));
 
 /**
  * The filter whose index drives the filter-driven plan: the indexed active
@@ -112,7 +115,8 @@ export function filterSql(echo, driver) {
   const binds = [];
   const col = (/** @type {FilterKey} */ key, /** @type {string} */ name) =>
     `${driver !== undefined && key !== driver ? '+' : ''}m.${name}`;
-  if (echo.sem !== undefined) {
+  // Phase 4 (plan §2 "Paths"): under ng, sem only picks the allow-mask bit.
+  if (echo.sem !== undefined && echo.ng !== true) {
     // Interpolated into a column name, so it must be one of the four columns.
     if (![1, 2, 3, 4].includes(echo.sem)) throw new RangeError(`sem must be 1-4, got ${echo.sem}`);
     clauses.push(`${col('sem', `sem${echo.sem}`)} = 1`);
@@ -122,6 +126,13 @@ export function filterSql(echo, driver) {
   if (echo.faculty !== undefined) { clauses.push(`${col('faculty', 'faculty')} = ?`); binds.push(echo.faculty); }
   if (echo.ng === true) clauses.push(`${col('ng', 'ng')} = 1`);
   const plus = driver !== undefined ? '+' : '';
+  if (echo.ng === true) {
+    // The bit is a validated integer literal (?1 is the MATCH text, B2-7); never
+    // an index driver (SQLite can't index a bitmask). No study: 0, closed.
+    const bit = ngBit(echo) ?? 0;
+    if (!Number.isInteger(bit) || bit < 0 || bit > 0x7fff) throw new RangeError(`bad allow bit ${bit}`);
+    clauses.push(`(+m.ng_allow & ${bit}) != 0`);
+  }
   // 3H (plan 3H "Query side"): never an index driver.
   if (echo.exam === 0) {
     if (echo.sem !== undefined) clauses.push(`${plus}m.exam_sem${echo.sem} = 0`);

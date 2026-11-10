@@ -20,7 +20,7 @@
 //   2  u8   flags: bit 0 = ng
 //   3  u8   NG semesters 1–4 as bits 0–3
 //   4  u16  faculty id, an index into header.faculties; 0xFFFF = null
-//   6  2 B  reserved: 3B's prefix id
+//   6  u16  Phase 4: ng_allow, the exchange-mode allow mask (src/ng-bit.js); 0 = closed
 //   8  f64  credits, NaN = null
 //   16 4 B  reserved, zero: 3F's group id (3F keeps its groups in data/groups.json)
 //   20 u8   3H: exam semesters 1–4 as bits 0–3
@@ -31,10 +31,11 @@
 // A workstream that adds a field fills its slot and bumps BUNDLE_SCHEMA, so
 // an old reader refuses a new bundle.
 import { INTENT } from './intents.js';
+import { ngBit } from './ng-bit.js';
 import { dataVersion, rowHash, sha256Hex } from './rowhash.js';
 
 export const BUNDLE_MAGIC = 'VNMVEC01';
-export const BUNDLE_SCHEMA = 'vnm-vectors/2';
+export const BUNDLE_SCHEMA = 'vnm-vectors/3';
 export const ROW_STRIDE = 32;
 const NULL_LEVEL = 255;
 const NULL_FACULTY = 0xffff;
@@ -56,8 +57,9 @@ const NULL_FACULTY = 0xffff;
  * }} Bundle
  * @typedef {import('./rowhash.js').RowFields} RowFields
  * @typedef {{ sem?: number, level?: number, credits?: number, faculty?: string, ng?: boolean,
- *   exam?: 0, su?: 1, hoursBelow?: number, prereq?: 'none' }} FilterEcho
- *   `exam`, `su`, `hoursBelow` and `prereq` are 3H's (explicit params or parsed from q).
+ *   study?: import('./ng-bit.js').Study, exam?: 0, su?: 1, hoursBelow?: number, prereq?: 'none' }} FilterEcho
+ *   `exam`, `su`, `hoursBelow` and `prereq` are 3H's (explicit params or parsed from q). `study` is
+ *   Phase 4's: with `ng`, the filter is the allow-mask bit for (sem, study), and `sem` only picks it.
  * @typedef {[string, string]} CodeRange a primary-key range [lo, hi) over codes (src/query-intent.js codeRange)
  * @typedef {FilterEcho & { ranges?: CodeRange[], levelWindow?: { min: number, max: number | null } }} Constraints
  *   The filters plus 3B's routes: `ranges`, the codes a mask admits (a partial
@@ -139,6 +141,7 @@ export async function encodeBundle({ corpus, embedding, model, modules, vectorOf
     out[at + 2] = m.ng === true ? 1 : 0;
     out[at + 3] = semBits(m.ngSemesters ?? []);
     view.setUint16(at + 4, typeof m.faculty === 'string' ? /** @type {number} */ (facultyId.get(m.faculty)) : NULL_FACULTY, true);
+    view.setUint16(at + 6, (m.ngAllow ?? 0) & 0x7fff, true);
     view.setFloat64(at + 8, typeof m.credits === 'number' ? m.credits : NaN, true);
     out[at + 20] = semBits(m.examSemesters ?? []);
     out[at + 21] = (m.su === true ? 1 : 0) | (suGrading(m.gradingBasis) ? 2 : 0);
@@ -225,6 +228,7 @@ export function decodeFilterRow(b, i) {
     faculty: faculty === NULL_FACULTY ? null : b.header.faculties[faculty],
     ng: (b.table[at + 2] & 1) === 1,
     ngSemesters: bitsSems(b.table[at + 3]),
+    ngAllow: b.view.getUint16(at + 6, true),
     examSemesters: bitsSems(b.table[at + 20]),
     su: (b.table[at + 21] & 1) === 1,
     suGrading: (b.table[at + 21] & 2) === 2,
@@ -291,7 +295,9 @@ export function compileMask(b, echo) {
   /** @type {((i: number) => boolean)[]} */
   const tests = [];
   const { table, view } = b;
-  if (echo.sem !== undefined) {
+  // Phase 4 (plan §2 "Paths"): under ng, sem only picks the allow-mask bit.
+  const allowBit = ngBit(echo);
+  if (echo.sem !== undefined && echo.ng !== true) {
     const bit = 1 << (echo.sem - 1);
     tests.push((i) => (table[i * ROW_STRIDE] & bit) !== 0);
   }
@@ -305,6 +311,11 @@ export function compileMask(b, echo) {
     tests.push((i) => { const l = table[i * ROW_STRIDE + 1]; return l !== NULL_LEVEL && l >= min && l <= max; });
   }
   if (echo.ng === true) tests.push((i) => (table[i * ROW_STRIDE + 2] & 1) === 1);
+  if (echo.ng === true) {
+    // No study (a caller /search's 400 never lets through) is closed, not unfiltered.
+    const bit = allowBit ?? 0;
+    tests.push((i) => (view.getUint16(i * ROW_STRIDE + 6, true) & bit) !== 0);
+  }
   if (echo.faculty !== undefined) {
     const id = b.facultyId.get(echo.faculty);
     if (id === undefined) return () => false;

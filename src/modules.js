@@ -2,6 +2,7 @@
 // Module rows: GET /module/:code, GET /facets, and the row shapes the search
 // and admin routes share.
 import { bad, json, upstream } from './http.js';
+import { exchangeAll, exchangeAt, NG_SOURCES } from './ng-reasons.js';
 import { D1_TIMEOUT_MS, withTimeout } from './upstream.js';
 
 /**
@@ -13,10 +14,11 @@ import { D1_TIMEOUT_MS, withTimeout } from './upstream.js';
  *   preclusion: string | null, acad_year: string, text_hash: string,
  *   ng: number, ng_semesters: string | null,
  *   exam_semesters?: string | null, su?: number, grading_basis?: string | null, workload_hours?: number | null,
- *   prereq_none?: number, prereq_cohort_only?: number,
+ *   prereq_none?: number, prereq_cohort_only?: number, ng_allow?: number | null, ng_rules?: string | null,
  * }} ModuleRow
  * @typedef {Pick<ModuleRow, 'code' | 'title' | 'department' | 'faculty' | 'credits' | 'level' | 'semesters' | 'ng' | 'ng_semesters'
- *   | 'exam_semesters' | 'su' | 'grading_basis' | 'workload_hours' | 'prereq_none' | 'prereq_cohort_only'>} ResultRow
+ *   | 'exam_semesters' | 'su' | 'grading_basis' | 'workload_hours' | 'prereq_none' | 'prereq_cohort_only'
+ *   | 'ng_allow' | 'ng_rules'>} ResultRow
  *   The columns a search result renders (rowToModule) and filters on (pin, dense rows, 3H).
  * @typedef {{ updatedAsAt: string | null, source: string | null, count: number }} NgList
  *   Provenance of data/ng-courses-*.json, written to meta('ng_list') by ingest.
@@ -28,12 +30,15 @@ export const MODULE_CODE_RE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 // /module/:code: every column of the row as of migrations 0001–0005, in table
 // order, named so a later column (generated filter columns, row_hash) does not
 // change the response shape.
+// Phase 4 adds ng_allow and ng_rules, answered as `exchange` (one entry per
+// semester and study level, with reasons).
 const MODULE_COLUMNS =
-  'code, title, description, credits, department, faculty, level, semesters, workload, prerequisite, preclusion, acad_year, text_hash, ng, ng_semesters';
+  'code, title, description, credits, department, faculty, level, semesters, workload, prerequisite, preclusion, acad_year, text_hash, ng, ng_semesters, '
+  + 'ng_allow, ng_rules';
 
 // /search: only what rowToModule renders and the pin's filter check reads.
 export const RESULT_COLUMNS = 'code, title, department, faculty, credits, level, semesters, ng, ng_semesters, '
-  + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only';
+  + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules';
 
 /**
  * A read on the nearest replica, or the primary when replication is off.
@@ -54,8 +59,10 @@ export const d1Timed = (trace, name, fn) => trace.time(name, () => withTimeout('
 /**
  * @param {ResultRow} row
  * @param {number} [score]
+ * @param {number | null} [bit] exchange mode's allow-mask bit (src/ng-bit.js): the card gets
+ *   `exchange`, that bit's status and reasons
  */
-export function rowToModule(row, score) {
+export function rowToModule(row, score, bit = null) {
   return {
     code: row.code,
     title: row.title,
@@ -66,6 +73,7 @@ export function rowToModule(row, score) {
     semesters: JSON.parse(row.semesters ?? '[]'),
     ng: row.ng === 1,
     ngSemesters: JSON.parse(row.ng_semesters ?? '[]'),
+    ...(bit === null ? {} : { exchange: exchangeAt(row, bit) }),
     ...(score === undefined ? {} : { score }),
   };
 }
@@ -88,7 +96,8 @@ export async function handleFacets(env, trace) {
     const cached = /** @type {{ value: string } | null} */ (await d1Timed(trace, 'd1', () =>
       db.prepare('SELECT value FROM meta WHERE key = ?').bind('facets').first()));
     if (cached?.value) {
-      return new Response(cached.value, {
+      // Phase 4 (4D, 4F): the exchange-mode sources and their dates ship with the Worker.
+      return new Response(JSON.stringify({ ...JSON.parse(cached.value), ngSources: NG_SOURCES }), {
         headers: {
           'content-type': 'application/json; charset=utf-8',
           'access-control-allow-origin': '*',
@@ -99,7 +108,7 @@ export async function handleFacets(env, trace) {
     // No precomputed row (fresh database, or ingest never finished). Fall back
     // so the page still works, but say so rather than silently being expensive.
     console.warn('facets: no precomputed row; falling back to live aggregates (~21.5k rows read)');
-    return json(await d1Timed(trace, 'd1', () => computeFacets(db)), 200);
+    return json({ ...(await d1Timed(trace, 'd1', () => computeFacets(db))), ngSources: NG_SOURCES }, 200);
   } catch (err) {
     return upstream('d1', err);
   }
@@ -175,11 +184,15 @@ export async function handleModule(env, code, trace) {
     return upstream('d1', err);
   }
   if (!row) return json({ error: 'not_found', message: `No module ${upper} in this acad year.` }, 404);
+  const { ng_rules: _rules, ...rest } = row;
   return json({
-    ...row,
+    ...rest,
     semesters: JSON.parse(row.semesters ?? '[]'),
     workload: row.workload ? JSON.parse(row.workload) : null,
     ng: row.ng === 1,
     ng_semesters: JSON.parse(row.ng_semesters ?? '[]'),
+    ng_allow: row.ng_allow ?? 0,
+    // Phase 4 (4C): why the course is open, noted or closed, per semester and study level.
+    exchange: exchangeAll(row),
   });
 }

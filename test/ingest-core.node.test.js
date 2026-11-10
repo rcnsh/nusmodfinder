@@ -37,7 +37,7 @@ function stubApi(stored, { rowsPerModule = 5.08 } = {}) {
     get: async (path) => {
       if (path === '/admin/hashes') {
         return { status: 200, body: {
-          schema: { version: 6, ftsExternal: true, rowidTriggers: true, missingTriggers: [], rowHashColumn: true, ok: true },
+          schema: { version: 6, ftsExternal: true, rowidTriggers: true, missingTriggers: [], rowHashColumn: true, missingColumns: [], ok: true },
           embeddingModel: '@cf/baai/bge-small-en-v1.5', acadYears: { [Y]: Object.keys(stored).length }, modules: stored,
         } };
       }
