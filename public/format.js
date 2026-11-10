@@ -86,14 +86,15 @@ export function examSummary(exams, sem) {
  * spacing changes; the words stay NUS's. NUS writes the keywords in capitals
  * and glues them to what follows ("must", "if", "("), after a word, a grade
  * ("DANDmust", "CSORmust") or a programme code ("XDPANDmust"); so a keyword
- * running into a lower-case letter or "(" is split off, as is one glued to a
- * lower-case word or ")" before a space. Capitals that merely contain one
- * ("MAJOR", "STANDARD", "THENCEFORTH") are left alone.
+ * running into a lower-case letter is split off, as is one before "(" that
+ * follows a lower-case letter, ")", a space or a grade, and one glued to a lower-case
+ * word or ")" before a space. Capitals that merely contain one ("MAJOR",
+ * "STANDARD", "THENCEFORTH", "BACHELOR(") are left alone.
  * @param {string | null | undefined} text
  */
 export function cleanPrereq(text) {
   return String(text ?? '')
-    .replace(/(THEN|AND|OR)(?=[a-z(])/g, ' $1 ')
+    .replace(/(THEN|AND|OR)(?=[a-z])|(?<=^|[a-z)\s]|\s[A-Z]{1,2}[+-]?)(THEN|AND|OR)(?=\()/g, (_m, a, b) => ` ${a ?? b} `)
     .replace(/(?<=[a-z)])(THEN|AND|OR)(?=\s|$)/g, ' $1')
     .replace(/\s+/g, ' ')
     .trim();

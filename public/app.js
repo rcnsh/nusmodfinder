@@ -185,8 +185,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && current.open) act({ type: 'close' });
 });
 window.addEventListener('popstate', () => {
-  current = parseState(new URLSearchParams(location.search));
-  applyToForm(current);
+  current = settle(parseState(new URLSearchParams(location.search)));
   show(current);
 });
 
@@ -219,11 +218,22 @@ fetchFacets().then((f) => {
   }
 });
 
-// Start: the form shows the URL's state (canonicalised, so the URL and the
-// state agree), and its search starts now. An exchange-mode link without a
-// year of study takes the remembered one, which the URL then states.
-applyToForm(current);
-if (current.ng && !current.study && els.study.value) current = { ...current, study: els.study.value };
-const canonical = urlFor(current, location.pathname);
-if (canonical !== `${location.pathname}${location.search}`) history.replaceState(history.state, '', canonical);
+/**
+ * Shows an entry's state in the form and makes its URL canonical. An
+ * exchange-mode entry without a year of study takes the one the set-up
+ * already shows (remembered on this device, or chosen since), and the URL
+ * then states it.
+ * @param {State} s
+ * @returns {State}
+ */
+function settle(s) {
+  applyToForm(s);
+  const settled = s.ng && !s.study && els.study.value ? { ...s, study: els.study.value } : s;
+  const canonical = urlFor(settled, location.pathname);
+  if (canonical !== `${location.pathname}${location.search}`) history.replaceState(history.state, '', canonical);
+  return settled;
+}
+
+// Start: the URL's state, and its search, now.
+current = settle(current);
 if (current.q.trim()) show(current);

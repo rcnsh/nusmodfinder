@@ -104,3 +104,22 @@ test('open= from a shared link: Escape closes it by replace (this page pushed no
   await page.locator('#sem').selectOption('1');
   await expect.poll(() => query(page)).toBe('q=networks&sem=1&pick=CS5562');
 });
+
+test('Back to an exchange-mode entry with no year of study takes the chosen one, and the URL says so', async ({ page }) => {
+  await page.goto('/');
+  await page.getByText('Open to exchange students only').click();
+  await expect.poll(() => query(page)).toBe('ng=1');
+  await submit(page, 'networks');
+  await expect(page.locator('#status')).toHaveText('Choose your year of study to see the courses open to you as an exchange student.');
+  await page.locator('#study').selectOption('ug1');
+  await expect(page.locator('#status .chip')).toHaveText(['exchange students only', '1st year']);
+  await page.goBack();
+  await expect.poll(() => query(page)).toBe('ng=1&study=ug1');
+  await expect(page.locator('#study')).toHaveValue('ug1');
+});
+
+test('a link with an intent /search cannot undo still searches, and keeps no ignore=', async ({ page }) => {
+  await page.goto('/?q=networks&ignore=bogus');
+  await resultsFor(page, 'networks');
+  expect(query(page)).toBe('q=networks');
+});

@@ -51,13 +51,16 @@ export function freePort() {
 }
 
 /**
- * Runs wrangler, resolving with its exit code and output.
+ * Runs wrangler to completion, resolving with its output.
  * @param {string[]} args
  * @param {Record<string, string>} env
+ * @param {(child: import('node:child_process').ChildProcess) => void} started
  */
-function wrangler(args, env) {
+function wrangler(args, env, started) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [WRANGLER, ...args], { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    // Its own process group, like wrangler dev's, so killing it takes its workerd too.
+    const child = spawn(process.execPath, [WRANGLER, ...args], { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
+    started(child);
     let out = '';
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { out += d; });
@@ -67,41 +70,64 @@ function wrangler(args, env) {
 }
 
 /**
- * Starts the server and seeds it; resolves once it answers with the fixture loaded.
- * @param {{ port?: number, verbose?: boolean }} [options]
+ * Starts the server and seeds it; resolves once it answers with the fixture
+ * loaded. Aborting `signal` at any point stops whatever has started (the
+ * migration, wrangler dev and its workerd) and deletes the temporary state, so
+ * a Ctrl-C during start-up leaves nothing behind.
+ * @param {{ port?: number, verbose?: boolean, signal?: AbortSignal }} [options]
  * @returns {Promise<{ url: string, stop: () => Promise<void> }>}
  */
-export async function startUiServer({ port, verbose = false } = {}) {
-  const listen = port ?? await freePort();
-  if (RESERVED_PORTS.includes(listen)) throw new Error(`port ${listen} belongs to another project; pick another or omit --port`);
-  const inspector = await freePort();
-  const dir = await mkdtemp(join(tmpdir(), 'vnm-ui-'));
-  const persist = join(dir, 'state');
-  const envFile = join(dir, 'ui.env');
-  const secret = randomBytes(24).toString('hex');
-  await writeFile(envFile, `INGEST_SECRET=${secret}\n`, { mode: 0o600 });
-  // No account, no metrics, no update check: nothing leaves the machine.
-  /** @type {Record<string, string>} */
-  const env = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_HIDE_BANNER: 'true', NO_UPDATE_NOTIFIER: '1' };
-  delete env.CLOUDFLARE_API_TOKEN;
-  delete env.CLOUDFLARE_ACCOUNT_ID;
-
+export async function startUiServer({ port, verbose = false, signal } = {}) {
+  /** @type {import('node:child_process').ChildProcess | null} */
+  let migrate = null;
   /** @type {import('node:child_process').ChildProcess | null} */
   let dev = null;
+  /** @type {string | null} */
+  let dir = null;
   let log = '';
-  const stop = async () => {
-    if (dev && dev.exitCode === null && dev.pid) {
-      const exited = new Promise((r) => dev?.once('exit', r));
-      try { process.kill(-dev.pid, 'SIGTERM'); } catch { /* already gone */ }
-      await Promise.race([exited, new Promise((r) => setTimeout(r, 5000))]);
-      try { process.kill(-dev.pid, 'SIGKILL'); } catch { /* already gone */ }
+  // Kills what is running now, each child's whole process group (wrangler
+  // and its workerd), and waits for it: workerd writes into the state
+  // directory until it exits. Safe to call again after a later spawn.
+  const kill = () => Promise.all([migrate, dev].map(async (c) => {
+    if (!c?.pid) return;
+    const pid = c.pid;
+    const exited = c.exitCode === null && c.signalCode === null ? new Promise((r) => c.once('exit', r)) : Promise.resolve();
+    try { process.kill(-pid, 'SIGTERM'); } catch { /* already gone */ }
+    await Promise.race([exited, new Promise((r) => setTimeout(r, 5000))]);
+    try { process.kill(-pid, 'SIGKILL'); } catch { /* already gone */ }
+    // The group outlives its leader by a moment; wait until none of it is left.
+    for (let i = 0; i < 50; i++) {
+      try { process.kill(-pid, 0); } catch { return; }
+      await new Promise((r) => setTimeout(r, 100));
     }
-    await rm(dir, { recursive: true, force: true });
+  }));
+  const stop = async () => {
+    await kill();
+    if (dir) await rm(dir, { recursive: true, force: true, maxRetries: 5 });
   };
+  const onAbort = () => { kill(); };
+  signal?.addEventListener('abort', onAbort, { once: true });
+  const live = () => signal?.throwIfAborted();
 
   try {
-    await wrangler(['d1', 'migrations', 'apply', DATABASE, '--local', '--persist-to', persist, '-c', CONFIG], env);
-    // Its own process group, so stop() takes workerd down with it.
+    const listen = port ?? await freePort();
+    if (RESERVED_PORTS.includes(listen)) throw new Error(`port ${listen} belongs to another project; pick another or omit --port`);
+    const inspector = await freePort();
+    dir = await mkdtemp(join(tmpdir(), 'vnm-ui-'));
+    const persist = join(dir, 'state');
+    const envFile = join(dir, 'ui.env');
+    const secret = randomBytes(24).toString('hex');
+    await writeFile(envFile, `INGEST_SECRET=${secret}\n`, { mode: 0o600 });
+    // No account, no metrics, no update check: nothing leaves the machine.
+    /** @type {Record<string, string>} */
+    const env = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_HIDE_BANNER: 'true', NO_UPDATE_NOTIFIER: '1' };
+    delete env.CLOUDFLARE_API_TOKEN;
+    delete env.CLOUDFLARE_ACCOUNT_ID;
+
+    live();
+    await wrangler(['d1', 'migrations', 'apply', DATABASE, '--local', '--persist-to', persist, '-c', CONFIG], env, (c) => { migrate = c; });
+    live();
+    // Its own process group, so kill() takes workerd down with it.
     dev = spawn(process.execPath, [
       WRANGLER, 'dev', '-c', CONFIG, '--local', '--persist-to', persist, '--env-file', envFile,
       '--ip', '127.0.0.1', '--port', String(listen), '--inspector-port', String(inspector),
@@ -113,19 +139,23 @@ export async function startUiServer({ port, verbose = false } = {}) {
         if (verbose) process.stderr.write(d);
       });
     }
+    live();
     const url = `http://127.0.0.1:${listen}`;
-    await waitForHealth(url, () => dev?.exitCode ?? null);
+    await waitForHealth(url, () => dev?.exitCode ?? dev?.signalCode ?? null);
+    live();
     await seed(url, secret);
+    live();
+    signal?.removeEventListener('abort', onAbort);
     return { url, stop };
   } catch (err) {
     await stop();
-    throw new Error(`${/** @type {Error} */ (err).message}\n--- wrangler dev output ---\n${log}`);
+    throw new Error(`${/** @type {Error} */ (err).message}${log ? `\n--- wrangler dev output ---\n${log}` : ''}`, { cause: err });
   }
 }
 
 /**
  * @param {string} url
- * @param {() => number | null} exitCode
+ * @param {() => number | string | null} exitCode
  */
 async function waitForHealth(url, exitCode) {
   const deadline = Date.now() + READY_TIMEOUT_MS;
@@ -178,17 +208,25 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(2);
   }
   const started = Date.now();
-  const server = await startUiServer({ port, verbose: argv.includes('--verbose') }).catch((err) => {
-    console.error(`ui-server: ${err.message}`);
-    process.exit(1);
-  });
-  console.log(`ui-server: ${server.url} (fixture seeded in ${((Date.now() - started) / 1000).toFixed(1)} s; Ctrl-C stops it and deletes its state)`);
+  // Armed before anything starts: a signal during start-up aborts it, and
+  // startUiServer cleans up; after it, stop() does.
+  const abort = new AbortController();
+  /** @type {{ url: string, stop: () => Promise<void> } | null} */
+  let server = null;
   let stopping = false;
-  for (const signal of /** @type {const} */ (['SIGINT', 'SIGTERM'])) {
-    process.on(signal, () => {
+  for (const sig of /** @type {const} */ (['SIGINT', 'SIGTERM'])) {
+    process.on(sig, () => {
       if (stopping) return;
       stopping = true;
-      server.stop().finally(() => process.exit(0));
+      if (server) server.stop().finally(() => process.exit(0));
+      else abort.abort();
     });
   }
+  try {
+    server = await startUiServer({ port, verbose: argv.includes('--verbose'), signal: abort.signal });
+  } catch (err) {
+    if (!abort.signal.aborted) console.error(`ui-server: ${/** @type {Error} */ (err).message}`);
+    process.exit(abort.signal.aborted ? 130 : 1);
+  }
+  console.log(`ui-server: ${server.url} (fixture seeded in ${((Date.now() - started) / 1000).toFixed(1)} s; Ctrl-C stops it and deletes its state)`);
 }

@@ -60,12 +60,13 @@ describe('cleanPrereq (NUS rule language, spacing only)', () => {
       .toBe('If undertaking an Undergraduate Degree THEN ( must have completed 1 of ACC2707/ACC2712 at a grade of at least D AND must be in one of the cohorts from 2017 inclusive )');
     expect(cleanPrereq('(if x THENmust have completed AIS5102 at a grade of at least B+ANDmust y)OR(if not z)'))
       .toBe('(if x THEN must have completed AIS5102 at a grade of at least B+ AND must y) OR (if not z)');
+    expect(cleanPrereq('at least DAND( must x)')).toBe('at least D AND ( must x)');
     expect(cleanPrereq('at least DORmust have completed CFG1002 at a grade of at least CSORmust x'))
       .toBe('at least D OR must have completed CFG1002 at a grade of at least CS OR must x');
   });
 
   it('leaves words that only contain the keywords alone, and plain English as it was', () => {
-    for (const s of ['Students MAJOR in Organic chemistry', 'Pass CS1010 And MA1521, Or equivalent.', 'STANDARD THENCEFORTH', '1005AISCWK Master of Science']) {
+    for (const s of ['Students MAJOR in Organic chemistry', 'Pass CS1010 And MA1521, Or equivalent.', 'STANDARD THENCEFORTH', '1005AISCWK Master of Science', 'BACHELOR(Hons)']) {
       expect(cleanPrereq(s)).toBe(s);
     }
     expect(cleanPrereq('  a   b  ')).toBe('a b');

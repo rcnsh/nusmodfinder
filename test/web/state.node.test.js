@@ -3,10 +3,12 @@
 // page's state lives in the URL, parsed and written by one pure module, and
 // every history transition is decided by one pure function. The browser half
 // (pushState, popstate) is test/ui/history.spec.js.
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { IGNORABLE_INTENTS } from '../../src/query-intent.js';
 import { transition } from '../../public/nav.js';
 import {
-  CREDITS, LEVELS, SEMESTERS, STUDIES, emptyState, parseState, searchParams, stateToParams, urlFor,
+  CREDITS, IGNORABLE, LEVELS, MAX_QUERY_CHARS, SEMESTERS, STUDIES, emptyState, parseState, searchParams, stateToParams, urlFor,
 } from '../../public/state.js';
 
 const parse = (/** @type {string} */ qs) => parseState(new URLSearchParams(qs));
@@ -46,6 +48,16 @@ describe('URL state (F3, C-7)', () => {
 
   it('keeps Phase 6 names pick and alt (reserved) through a round trip, every value in order', () => {
     expect(round('q=x&pick=CS3244&pick=CS2040&alt=MA1521')).toBe('q=x&pick=CS3244&pick=CS2040&alt=MA1521');
+  });
+
+  it('ignore= keeps only the intents /search can undo, and q only the length it accepts, so a mangled link still searches', () => {
+    expect(IGNORABLE).toEqual(IGNORABLE_INTENTS);
+    const searchSrc = readFileSync(new URL('../../src/search.js', import.meta.url), 'utf8');
+    expect(searchSrc).toContain(`const MAX_QUERY_CHARS = ${MAX_QUERY_CHARS};`);
+    expect(parse('q=x&ignore=bogus,exam,ge').ignore).toEqual(['exam', 'ge']);
+    expect(parse('q=x&ignore=bogus').ignore).toEqual([]);
+    expect(parse(`q=${'a'.repeat(250)}`).q).toHaveLength(MAX_QUERY_CHARS);
+    expect(parse(`q=${'%20'.repeat(5)}${'a'.repeat(200)}`).q).toBe('a'.repeat(200));
   });
 
   it('ignore= is a sorted, de-duplicated list, as /search parses it', () => {

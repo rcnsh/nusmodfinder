@@ -196,9 +196,9 @@ jobs:
         run: |
           run=true
           if [ "$GITHUB_EVENT_NAME" != workflow_dispatch ] && git cat-file -e "$BASE^{commit}" 2>/dev/null \
-            && git diff --quiet "$BASE" HEAD -- public src test/ui test/fakes.js scripts/ui-server.mjs \
+            && git diff --quiet "$BASE" HEAD -- public src test/ui test/fakes.js scripts/ui-server.mjs scripts/lib.mjs \
               wrangler.jsonc test/wrangler.ui.jsonc playwright.config.mjs migrations test/fixtures data \
-              package.json package-lock.json; then
+              package.json package-lock.json .nvmrc .github/workflows/ci.yml; then
             run=false
           fi
           echo "ui suite: $run"

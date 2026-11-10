@@ -40,6 +40,12 @@ export const STUDIES = Object.freeze([
   { value: 'ug4', label: '4th year or later' }, { value: 'grad', label: 'Graduate' },
 ]);
 
+/** The intents /search can undo with `ignore=` (src/query-intent.js IGNORABLE_INTENTS). */
+export const IGNORABLE = Object.freeze(['ge', 'level', 'exam', 'su', 'hoursBelow', 'prereq']);
+
+/** The longest query /search accepts (src/search.js MAX_QUERY_CHARS; the input's maxlength). */
+export const MAX_QUERY_CHARS = 200;
+
 /** A course code as the page accepts it in `open=` (upper-cased first). */
 const CODE = /^[A-Z]{1,6}\d{4}[A-Z]{0,4}$/;
 
@@ -63,14 +69,14 @@ export function parseState(params) {
   const ng = ngRaw !== null && ngRaw !== '' && ngRaw !== '0' && ngRaw !== 'false';
   const open = (params.get('open') ?? '').trim().toUpperCase();
   return {
-    q: params.get('q') ?? '',
+    q: (params.get('q') ?? '').trim().slice(0, MAX_QUERY_CHARS),
     sem: keep(params.get('sem'), (v) => SEMESTERS.some((o) => o.value === v)),
     level: keep(params.get('level'), (v) => /^[1-8]$/.test(v)),
     credits: keep(params.get('credits'), (v) => /^\d{1,2}$/.test(v)),
     faculty: (params.get('faculty') ?? '').trim(),
     ng,
     study: ng ? keep(params.get('study'), (v) => STUDIES.some((o) => o.value === v)) : '',
-    ignore: [...new Set((params.get('ignore') ?? '').split(',').map((s) => s.trim()).filter(Boolean))].sort(),
+    ignore: [...new Set((params.get('ignore') ?? '').split(',').map((s) => s.trim()).filter((s) => IGNORABLE.includes(s)))].sort(),
     open: CODE.test(open) ? open : '',
     pick: params.getAll('pick'),
     alt: params.getAll('alt'),
