@@ -73,7 +73,9 @@ export function matches(m, match, sem, lists) {
   if (match.notInList) {
     const list = lists?.[match.notInList];
     if (!list) throw new Error(`rules: list ${match.notInList} is missing`);
-    const sems = sem === 'any' ? Object.keys(list) : [String(sem)];
+    // Either semester: the semesters the course is NG-listed in, so a listing in
+    // a semester the student can't take it in doesn't lift the condition.
+    const sems = sem === 'any' ? m.ngSemesters.map(String) : [String(sem)];
     if (sems.some((s) => (list[s] ?? []).includes(m.code))) return false;
   }
   return true;

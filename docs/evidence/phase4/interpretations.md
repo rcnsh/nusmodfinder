@@ -15,7 +15,7 @@ team (plan §7) reports where it disagrees with any of them.
 | R1 | Courses not on the NG list (rule E: "case-by-case … may be available during Course registration") | closed | **Jacob** (Q7) |
 | R2 | NG list says semester N, NUSMods doesn't offer the course in N | open, with a note "the NUSMods timetable doesn't list it in this semester" | **Jacob** (Q5) |
 | R3 | `sem` unset ("either semester") | shown if NG-listed in Sem 1 or Sem 2; the R2 note if no NG semester is a NUSMods semester | the student hasn't chosen a semester yet |
-| R4 | Rule D: levels 5000–6000 "NOT available to exchange students unless specified in the list below" | closed for every study level unless a department rule opens that level for that study level | C-1, C-3. "Specified" = a rule that says who **may** take them |
+| R4 | Rule D: levels 5000–6000 "NOT available to exchange students unless specified in the list below" | closed for every study level unless a department rule opens that level for that study level; levels 7000+ are closed the same way | C-1, C-3. "Specified" = a rule that says who **may** take them. No NG-listed course is 7000+; the oracle reads rule D as 5000–6000 only, so one appearing fails the SC1 test and needs a decision |
 | R5 | Department rules that open graduate levels | Southeast Asian Studies level 5000 for 4th-years and graduates and level 6000 for graduates; ELTS, Sociology, Malay Studies, South Asian Studies graduate courses for graduates (with an approval note); PP, BMA, BMS for graduates (partner note) | each names who may take them |
 | R6 | Five departments close 5000/6000 "to undergraduate students" only (Biomedical Engineering, Built Environment, Chinese Studies, Political Science, Social Work) | still closed to graduates by R4 | the sentence closes; it names no one it opens to |
 | R7 | Closed and note rules on the same course | closed wins; notes accumulate on an open course | plan §2 |
@@ -60,4 +60,4 @@ I13); "Dean's Office (Faculty of Science)" → `FoS Dean's Office`; "Pharmacy" �
 `PharmacyandPharmaceuticalScience`; "English, Linguistics & Theatre Studies" →
 `English,Ling.andTheatre Studies`; "Alice Lee Centre for Nursing Studies" → `Alice Lee Center for
 Nursing Studies`. The full map is `DEPT` and `FAC` in `scripts/build-ng-restrictions.mjs`;
-`scripts/check-ng-restrictions.mjs` fails if a mapped name is missing from the pinned corpus.
+`test/full/sc1-oracle.node.test.js` fails if a mapped name is missing from the NUSMods snapshot.

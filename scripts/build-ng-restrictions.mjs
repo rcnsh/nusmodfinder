@@ -266,18 +266,22 @@ const sourcesMd = readFileSync(join(ROOT, 'docs/evidence/phase4/sources.md'), 'u
 /** @type {Record<string, string>} */
 const expected = {};
 for (const m of sourcesMd.matchAll(/^\| `([^`]+)` \|.*\| `([0-9a-f]{64})` \|$/gm)) expected[m[1]] = m[2];
-/** @param {string} name */
+/** @type {Record<string, string>} */
+const computed = {};
+/** Every file the builder reads from the sources directory goes through here. @param {string} name */
 function source(name) {
   const file = join(SOURCES, name);
   const got = sha256(file);
   if (got !== expected[name]) throw new Error(`${name}: sha256 ${got} does not match sources.md (${expected[name] ?? 'missing'})`);
+  computed[name] = got;
   return file;
 }
 
 const CODE_RE = /\b[A-Z]{2,4}\d{4}[A-Z]{0,3}\b/g;
-// The .txt files are pdftotext's output of the hashed PDFs (and the HTML
-// pages' text); source() checks the hashed original, then its text is read.
-const selfFunded = [...new Set(readFileSync(source('self-funded-graduate-courses.pdf').replace(/\.pdf$/, '.txt'), 'utf8').match(CODE_RE) ?? [])].sort();
+// The .txt files are pdftotext's output of the PDFs (and the HTML pages' text);
+// each is hashed in sources.md like its original, so a changed extraction fails.
+source('self-funded-graduate-courses.pdf');
+const selfFunded = [...new Set(readFileSync(source('self-funded-graduate-courses.txt'), 'utf8').match(CODE_RE) ?? [])].sort();
 // A YST page offers the courses its headings name, and the pages mark
 // headings two ways, neither complete: the heading line carries "(N Units"
 // (its codes start that line, or the nearest line above it within three, as
@@ -290,18 +294,17 @@ const ystCodes = (htmlName) => {
   const codes = new Set();
   /** @param {string} text */
   const add = (text) => { const head = LEAD.exec(text.trim()); if (head) for (const c of head[1].split('/')) if (!/^AY\d/.test(c)) codes.add(c); return !!head; };
-  const lines = readFileSync(join(SOURCES, htmlName.replace(/\.html$/, '.txt')), 'utf8').split('\n').map((l) => l.trim());
+  const lines = readFileSync(source(htmlName.replace(/\.html$/, '.txt')), 'utf8').split('\n').map((l) => l.trim());
   lines.forEach((line, i) => {
     if (!/\(\d+ units?\b/i.test(line)) return;
     for (let j = i; j >= Math.max(0, i - 3); j--) if (add(lines[j])) return;
     throw new Error(`${htmlName}: no course code above line ${i + 1}: ${line}`);
   });
-  const html = readFileSync(join(SOURCES, htmlName), 'utf8');
+  const html = readFileSync(source(htmlName), 'utf8');
   for (const m of html.matchAll(/<span[^>]*color:\s*#ff5200[^>]*>([\s\S]*?)<\/span>/gi)) add(m[1].replace(/<[^>]+>/g, ''));
   return [...codes].sort();
 };
-source('yst-sem1-non-music-majors.html'); source('yst-sem2-non-music-majors.html');
-source('non-graduating-course-restrictions.pdf'); source('law-compulsory-llb-courses.png');
+source('non-graduating-course-restrictions.pdf'); source('law-compulsory-llb-courses.png'); source('ng-courses.pdf');
 
 const transcription = JSON.parse(readFileSync(join(ROOT, 'docs/evidence/phase4/transcription-b.json'), 'utf8'));
 const missing = transcription.rules.map((/** @type {any} */ r) => r.id).filter((/** @type {string} */ id) => !(id in OVERLAY));
@@ -342,18 +345,22 @@ for (const r of transcription.rules) {
 }
 for (const d of DECIDED) rules.push({ ...d });
 
+const ystElectives = { 1: ystCodes('yst-sem1-non-music-majors.html'), 2: ystCodes('yst-sem2-non-music-majors.html') };
 const out = {
   acadYear: ACAD_YEAR,
   generator: 'scripts/build-ng-restrictions.mjs',
-  sourceSha256: Object.fromEntries(Object.entries(expected).sort()),
+  sourceSha256: /** @type {Record<string, string>} */ ({}),
   register: 'docs/evidence/phase4/interpretations.md',
   rules,
   lists: {
-    ystElectives: { 1: ystCodes('yst-sem1-non-music-majors.html'), 2: ystCodes('yst-sem2-non-music-majors.html') },
+    ystElectives,
   },
   info,
 };
 rules.find((r) => r.id === 'A-self-funded').match = { codes: selfFunded };
+const unread = Object.keys(expected).filter((name) => !(name in computed));
+if (unread.length) throw new Error(`sources.md lists files the builder never read: ${unread.join(', ')}`);
+out.sourceSha256 = Object.fromEntries(Object.entries(computed).sort());
 
 writeFileSync(OUT, `${JSON.stringify(out, null, 1)}\n`);
 console.log(`wrote ${rules.length} rules (${info.length} info-only) to ${OUT.replace(ROOT, '')}; self-funded ${selfFunded.length} codes; YST electives S1 ${out.lists.ystElectives[1].length}, S2 ${out.lists.ystElectives[2].length}`);

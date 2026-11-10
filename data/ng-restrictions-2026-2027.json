@@ -6,8 +6,11 @@
   "ng-courses.pdf": "4e0281bea179dab976982d4ef14fe24d1436ddd5966786074ff4eb8f792e89a4",
   "non-graduating-course-restrictions.pdf": "362ba277d12825b4fa9cbde86bcaad1dabf75a74c91b4d4dcaeba37f71c43b92",
   "self-funded-graduate-courses.pdf": "1fbbd95fa0e3b102894a81a1c76c644d0788149404b42f9618279f9d03b9a0ad",
+  "self-funded-graduate-courses.txt": "6aebe6ed9bac3e8cd8ed5001e5dd7e7b25d455b15717eff4c256fae0bb8c78d1",
   "yst-sem1-non-music-majors.html": "df8910b35487644e4260b1785c2c9cb0d9e0c15ae3e4e3cc723f273bba573aa8",
-  "yst-sem2-non-music-majors.html": "6361e644c38b7cf2d25b39220f9ee6f851d1419c920890d46886566c4f804e92"
+  "yst-sem1-non-music-majors.txt": "8e03268929993e263b0534d18e0e3bd556863cf0f87d3f63e7bc2142e9112207",
+  "yst-sem2-non-music-majors.html": "6361e644c38b7cf2d25b39220f9ee6f851d1419c920890d46886566c4f804e92",
+  "yst-sem2-non-music-majors.txt": "7b63f960ca5b94245288b70c7e808755b39837b22ff5a93d8fd480478cd02f65"
  },
  "register": "docs/evidence/phase4/interpretations.md",
  "rules": [

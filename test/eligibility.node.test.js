@@ -96,6 +96,12 @@ describe('conflicts and readings (C1, C2, C6, I1, I5, I9, I11)', () => {
     expect(e(m, 1, 'ug2').reasons).toEqual([SEMESTER_MISMATCH, '6-music-electives-whitelist']);
     expect(e(mod('MUA3219', { department: "YSTCM Dean's Office", faculty: 'YST Conservatory of Music' }), 1, 'ug2').status).toBe('open');
   });
+  it('I9, either semester: a YST listing in a semester the course is not NG-listed in does not lift the partner note', () => {
+    // MUA1165 is on YST's Sem 2 page only; NG-listed in Sem 1 only, it is partner-only in Sem 1 and so for "either".
+    const m = mod('MUA1165', { department: "YSTCM Dean's Office", faculty: 'YST Conservatory of Music', semesters: [1], ngSemesters: [1] });
+    expect(e(m, 1, 'ug2').reasons).toEqual(['6-music-electives-whitelist']);
+    expect(e(m, 'any', 'ug2').reasons).toEqual(['6-music-electives-whitelist']);
+  });
   it('I11: UROP is matched by title, case-sensitively ("European" is not UROP)', () => {
     const fass = { faculty: 'Arts and Social Science', department: 'History' };
     expect(e(mod('HY3288', { ...fass, title: 'UROPS in History' }), 'any', 'ug3').reasons).toContain('C-urop-fass');
