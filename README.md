@@ -235,18 +235,18 @@ git add data/vectors.json src/data-version.json data/vocabulary.json data/groups
 # 3. Record a D1 Time Travel bookmark in remote-ops.md.
 export INGEST_SECRET=$(openssl rand -hex 24)
 echo "INGEST_SECRET=$INGEST_SECRET" > .dev.vars     # gitignored
-npx wrangler dev --remote --port 8787 &             # binds the real D1/Vectorize/AI
+npx wrangler dev --remote --port 8791 &             # binds the real D1/Vectorize/AI (8787 is taken on the dev Mac)
 # 4. D1 only: no Workers AI, no Vectorize. Refuses unless the corpus hashes to the committed data version.
-npm run ingest -- --year 2026-2027 --url http://localhost:8787 --d1-only --offline
+npm run ingest -- --year 2026-2027 --url http://localhost:8791 --d1-only --offline
 # 5. D1 against the manifest and the bundle, before the deploy. Reads no Vectorize.
-npm run verify -- --url http://localhost:8787 --pre-deploy
+npm run verify -- --url http://localhost:8791 --pre-deploy
 # 6. Guard, startup gate, promote. The guard starts its own dev session, on a free port.
 npm run deploy
 # 7. Smoke (≤ 4 calls): /health says vectors.corpus "production"; read CPUTimeMs in Workers Logs.
 #    On failure: wrangler rollback <previous id>, restore D1 to the step-3 bookmark, revert step 2.
 # 8. The standby: upsert every code (bundle values, D1 metadata, ≤ 1,000 a batch), delete
 #    every index id D1 no longer holds, wait for the mutation, then verify, values included.
-node scripts/vectors.mjs standby --url http://localhost:8787
+node scripts/vectors.mjs standby --url http://localhost:8791
 ```
 
 Log every remote D1 operation, reads included, in `remote-ops.md`. Between steps 4 and 6 the
