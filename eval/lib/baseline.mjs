@@ -34,7 +34,7 @@ import { HASHED, treeHash } from './workspace.mjs';
 export const PINNED_BASELINE = Object.freeze({ ref: 'eval-v0', sha: '7ac984174ded88cb2b6497d9835b456981acdd99' });
 
 /** The shipped ranker, the baseline of per-change holdout looks. @type {Pin} */
-export const SHIPPED_BASELINE = Object.freeze({ ref: '238e7210d65a9ba607f3ad0e44efb2fa15472ea7', sha: '238e7210d65a9ba607f3ad0e44efb2fa15472ea7' });
+export const SHIPPED_BASELINE = Object.freeze({ ref: '9d9160552d0dc5793072b892f0b7ecdace258b56', sha: '9d9160552d0dc5793072b892f0b7ecdace258b56' });
 
 /**
  * How a pin is printed: "eval-v0 7ac9841" for a tag, the short sha for a plain sha.
