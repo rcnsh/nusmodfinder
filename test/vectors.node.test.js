@@ -5,10 +5,10 @@
 // `vectors-bundle` alias defaults to the fixture everywhere.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { embeddingKey, MODEL } from '../eval/lib/embeddings.mjs';
 import { keyedVectors } from '../scripts/vectors.mjs';
@@ -33,7 +33,7 @@ describe('the fixture bundle (B-9)', () => {
   });
 
   it('is the default `vectors-bundle` alias in wrangler.jsonc, the test config and both Vitest configs', () => {
-    expect(read('wrangler.jsonc').toString()).toContain('"alias": { "vectors-bundle": "./test/fixtures/vectors.js" }');
+    expect(read('wrangler.jsonc').toString()).toContain('"vectors-bundle": "./test/fixtures/vectors.js"');
     expect(read('test/wrangler.test.jsonc').toString()).toContain('"alias": { "vectors-bundle": "./fixtures/vectors.js" }');
     expect(read('vitest.config.mjs').toString()).toContain("{ find: 'vectors-bundle', replacement: FIXTURE_BUNDLE }");
     expect(read('vitest.eval.config.mjs').toString()).toContain("'vectors-bundle': join(ws, 'test/fixtures/vectors.js')");
@@ -80,5 +80,54 @@ describe('keyed vectors (B2-5)', () => {
     expect(out.get('ZZ1000')).toBe(v);
     expect(out.has(c.code)).toBe(false);
     expect(missing).toEqual([c.text]);
+  });
+});
+
+describe('the vocabulary-data and groups-data aliases (Phase 5 5B, A2-1, A3-1)', () => {
+  it('src/intent-data.js and src/group-data.js import the vocabulary and groups by bare name, never by a relative path', () => {
+    const intentData = read('src/intent-data.js').toString();
+    const groupData = read('src/group-data.js').toString();
+    expect(intentData).toContain("import vocabularyFile from 'vocabulary-data';");
+    expect(groupData).toContain("import groupsFile from 'groups-data';");
+    expect(intentData + groupData).not.toMatch(/from '\.\.\/data\/(vocabulary|groups)\.json'/);
+  });
+
+  it('wrangler.jsonc points them at data/ (production); the UI config at the fixture', () => {
+    const prod = read('wrangler.jsonc').toString();
+    expect(prod).toContain('"vocabulary-data": "./data/vocabulary.json"');
+    expect(prod).toContain('"groups-data": "./data/groups.json"');
+    const ui = read('test/wrangler.ui.jsonc').toString();
+    expect(ui).toContain('"vocabulary-data": "./fixtures/vocabulary.json"');
+    expect(ui).toContain('"groups-data": "./fixtures/groups.json"');
+    expect(ui).toContain('"vectors-bundle": "./fixtures/vectors.js"');
+  });
+
+  it('vitest.config.mjs aliases the bare names, not the relative paths', () => {
+    const config = read('vitest.config.mjs').toString();
+    expect(config).toContain("({ find: 'vocabulary-data', replacement: path })");
+    expect(config).toContain("({ find: 'groups-data', replacement: path })");
+    expect(config).not.toContain('find: /^\\.\\.\\/data\\/');
+  });
+
+  it("vitest.eval.config.mjs aliases both to the run workspace's own data/ copies (A3-1, B3-2)", async () => {
+    const ws = await mkdtemp(join(tmpdir(), 'vnm-ws-'));
+    const before = process.env.VNM_EVAL_WORKSPACE;
+    try {
+      await mkdir(join(ws, 'eval/runner'), { recursive: true });
+      await mkdir(join(ws, 'migrations'), { recursive: true });
+      await writeFile(join(ws, 'eval/runner/retrieval.eval.js'), '');
+      process.env.VNM_EVAL_WORKSPACE = ws;
+      const { default: factory } = await import(pathToFileURL(fileURLToPath(new URL('../vitest.eval.config.mjs', import.meta.url))).href);
+      const config = await factory({ command: 'serve', mode: 'test' });
+      expect(config.resolve.alias).toEqual({
+        'vectors-bundle': join(ws, 'test/fixtures/vectors.js'),
+        'vocabulary-data': join(ws, 'data/vocabulary.json'),
+        'groups-data': join(ws, 'data/groups.json'),
+      });
+    } finally {
+      if (before === undefined) delete process.env.VNM_EVAL_WORKSPACE;
+      else process.env.VNM_EVAL_WORKSPACE = before;
+      await rm(ws, { recursive: true, force: true });
+    }
   });
 });

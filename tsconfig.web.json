@@ -1,0 +1,19 @@
+{
+  // The page: public/, native ES modules in the browser (Phase 5 5B), with the
+  // DOM lib and no Node or Workers types. The pure modules (state, nav, api,
+  // messages, format, keys) are also checked by tsconfig.node.json through the
+  // Node tests that import them, so they use no DOM types.
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": [],
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["public/**/*.js"]
+}

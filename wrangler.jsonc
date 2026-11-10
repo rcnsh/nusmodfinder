@@ -4,7 +4,13 @@
   "main": "src/index.js",
   "compatibility_date": "2026-09-01",
   "observability": { "enabled": true },
-  "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": false }],
+
+  // The page (Phase 5 5B): public/ as Workers Static Assets. No binding, so
+  // Env gains nothing, and a request for a file there (`/`, `/app.js`) is
+  // answered without running the Worker or spending its CPU; every other path,
+  // the API included, reaches the Worker. Asset responses carry no
+  // x-app-version: GET /health is the version trace for the page.
+  "assets": { "directory": "./public" },
 
   // The bundled corpus vectors (src/dense.js, Phase 3 3-0). Defaults to the
   // committed fixture, so a fresh checkout, `wrangler dev` and CI build
@@ -13,7 +19,16 @@
   // the pinned bundle; a plain `wrangler deploy` would ship the fixture.
   // An alias to a .bin file directly is not collected as a Data module, so it
   // points at a two-line module that imports one.
-  "alias": { "vectors-bundle": "./test/fixtures/vectors.js" },
+  //
+  // 3C's vocabulary and 3F's groups (src/intent-data.js, src/group-data.js) are
+  // bare names too (Phase 5 5B, A2-1), so the UI test config can point them at
+  // the fixture's: esbuild accepts no relative alias keys. Wrangler merges these
+  // with deploy's --alias, so the deploy adds none for them.
+  "alias": {
+    "vectors-bundle": "./test/fixtures/vectors.js",
+    "vocabulary-data": "./data/vocabulary.json",
+    "groups-data": "./data/groups.json"
+  },
 
   "d1_databases": [
     {

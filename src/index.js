@@ -1,7 +1,9 @@
 // @ts-check
 // The Worker entry point: routing only. Each route lives in its own module so
 // search (search.js), module/facet reads (modules.js) and the admin ingest
-// routes (ingest.js) can change independently.
+// routes (ingest.js) can change independently. The page (`/`) is public/,
+// served as Workers Static Assets in front of the Worker (Phase 5 5B): a
+// request for one of its files never reaches this code.
 import { denseBundle } from './dense.js';
 import { appVersion, json, withHeaders } from './http.js';
 import {
@@ -9,7 +11,6 @@ import {
   handleVectors, handleVerify,
 } from './ingest.js';
 import { handleFacets, handleModule } from './modules.js';
-import page from './page.html';
 import { DATA_VERSION, searchRoute } from './search.js';
 import { Trace } from './timing.js';
 
@@ -45,9 +46,6 @@ function handleHealth(env) {
 function route(request, env, ctx, trace) {
   const path = new URL(request.url).pathname;
 
-  if (path === '/' || path === '/index.html') {
-    return new Response(page, { headers: { 'content-type': 'text/html; charset=utf-8' } });
-  }
   if (path === '/search') return searchRoute(request, env, ctx, trace);
   if (path === '/facets') return timed(handleFacets(env, trace), trace);
   if (path.startsWith('/module/')) return timed(handleModule(env, path.slice('/module/'.length), trace), trace);
