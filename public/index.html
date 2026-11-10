@@ -9,6 +9,12 @@
 <link rel="preload" href="/fonts/IBMPlexMono-Medium-Latin1.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/styles.css">
 <script type="module" src="/app.js"></script>
+<link rel="modulepreload" href="/api.js"><link rel="modulepreload" href="/detail.js"><link rel="modulepreload" href="/dom.js">
+<link rel="modulepreload" href="/explain.js"><link rel="modulepreload" href="/format.js"><link rel="modulepreload" href="/icons.js">
+<link rel="modulepreload" href="/keys.js"><link rel="modulepreload" href="/messages.js"><link rel="modulepreload" href="/nav.js">
+<link rel="modulepreload" href="/render.js"><link rel="modulepreload" href="/state.js">
+<!-- Until app.js runs: a link with any state shows the results layout, not the first screen. -->
+<script>if (location.search) document.documentElement.dataset.view = 'results';</script>
 </head>
 <body>
 <div class="app" id="app" data-view="setup">

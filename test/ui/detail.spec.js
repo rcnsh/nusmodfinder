@@ -99,7 +99,8 @@ test('[SC2] the detail: description, prerequisites as NUS states them with codes
   await expect(d.locator('.exam-list li')).toHaveText(['Sem 1: Thu 26 Nov 2026, 5:00 pm, 2 h', 'Sem 2: Thu 29 Apr 2027, 9:00 am, 2 h']);
   await expect(d.getByRole('heading', { name: 'Workload' })).toBeVisible();
   await expect(d).toContainText('10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation');
-  await expect(d.getByRole('heading', { name: 'Open to exchange students (2nd year)' })).toBeVisible();
+  await expect(d.getByRole('heading', { name: 'Can you take it?' })).toBeVisible();
+  await expect(d.locator('.avail .for')).toHaveText('As a 2nd-year exchange student');
   await expect(d.locator('.exchange-sem-block')).toHaveText([
     /^Sem 1 · Not open to exchange studentsOffered to exchange students only in Sem 2\.NG list, updated 01 Sep 2026$/,
     /^Sem 2 · Open to exchange studentsYour semester$/,

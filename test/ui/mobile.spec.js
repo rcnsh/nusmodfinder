@@ -133,6 +133,60 @@ test('[V1] no results with filters on names the next step: remove a filter', asy
   await expect(page.getByRole('button', { name: 'Remove filter: Level 6000' })).toBeVisible();
 });
 
+test('[V1] in exchange mode the next step is never to drop the set-up: only real filters are offered', async ({ page }) => {
+  const empty = { query: 'basket weaving', count: 0, results: [], interpreted: {}, hiddenPins: [], notOffered: [] };
+  await page.route('**/search?**', (route) => route.fulfill({ json: { ...empty, filters: { sem: 1, ng: true, study: 'ug2' } } }));
+  await page.goto('/?q=basket+weaving&sem=1&ng=1&study=ug2');
+  await expect(page.locator('#status')).toHaveText('No courses match “basket weaving”.Try other words for the topic, or fewer of them.');
+  await page.unroute('**/search?**');
+  await page.route('**/search?**', (route) => route.fulfill({ json: { ...empty, filters: { sem: 1, level: 2, ng: true, study: 'ug2' } } }));
+  await page.goto('/?q=basket+weaving&sem=1&level=2&ng=1&study=ug2');
+  await expect(page.locator('#status')).toContainText('Remove a filter above to see more courses');
+});
+
+test('[V1] an option a link adds is labelled as the chips are: "Level 7000", "3 units"', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/?q=design&level=7&credits=3');
+  await expect(page.locator('#level option:checked')).toHaveText('Level 7000');
+  await expect(page.locator('#credits option:checked')).toHaveText('3 units');
+  await expect(page.locator('#chips .chip')).toHaveText(['Level 7000', '3 units']);
+});
+
+test('no width between a phone and a desktop scrolls sideways: the first screen, results and an open detail', async ({ page }) => {
+  for (const width of [320, 390, 560, 641, 667, 700, 760, 900, 1040, 1100]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const path of ['/', '/?q=introductory+accounting&ng=1&study=ug2', '/?q=ACC1701XB&open=ACC1701XB', '/?q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB']) {
+      await page.goto(path);
+      if (path.includes('open=')) await expect(page.locator('#results .detail-close')).toBeVisible();
+      const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(over, `${width}px ${path}`).toBeLessThanOrEqual(0);
+    }
+  }
+});
+
+test('focus stays on a control when the one it was on goes away: a special term changed to Sem 1, and the dialog closed by widening', async ({ page }) => {
+  await page.goto('/?q=networks&sem=3&ng=1&study=ug2');
+  await page.getByRole('button', { name: /^Filters/ }).click();
+  await expect(page.locator('#sem')).toBeVisible();
+  await page.locator('#sem').selectOption('1');
+  await expect.poll(() => query(page)).toBe('q=networks&sem=1&ng=1&study=ug2');
+  await expect(page.locator('#sem')).toBeHidden();
+  await expect(page.getByRole('radio', { name: 'Sem 1', exact: true })).toBeFocused();
+  await page.locator('#study').focus();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(page.locator('#study')).toBeFocused();
+});
+
+test('a link with any state never shows the first screen, even before the scripts run', async ({ page }) => {
+  await page.route('**/app.js', async (route) => { await new Promise((r) => setTimeout(r, 1500)); await route.continue(); });
+  await page.goto('/?q=introductory+accounting&sem=1&ng=1&study=ug2', { waitUntil: 'commit' });
+  await page.locator('#q').waitFor({ state: 'attached' });
+  await expect(page.locator('#setup')).toBeHidden();
+  await expect(page.locator('#results > li.card').first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('#setup')).toBeHidden();
+});
+
 test('at 1280 the rail is beside the results and there is no Filters button', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1');

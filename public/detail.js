@@ -110,6 +110,9 @@ function semBlock(e, sem, mine, sources) {
       ...reasons.map((r) => noteItem(r, noteText(r, sem), h('span', { class: 'src' }, sourceNote(r.id, sources)))))) : null);
 }
 
+/** @type {Readonly<Record<string, string>>} */
+const STUDY_AS = Object.freeze({ ug1: '1st-year', ug2: '2nd-year', ug3: '3rd-year', ug4: '4th-year (or later)', grad: 'graduate' });
+
 /**
  * Exchange availability: in exchange mode Sem 1 and Sem 2 at the chosen year;
  * outside it, a table for every year.
@@ -134,9 +137,9 @@ function exchangeSection(raw, ctx) {
     '.');
   const check = h('p', { class: 'check-nus boxcheck' }, icon('check'), h('span', null, 'Check with NUS before you register.'));
   if (study) {
-    const label = STUDIES.find((o) => o.value === study)?.label ?? study;
     const chosen = ctx.filters.sem === 1 || ctx.filters.sem === 2 ? ctx.filters.sem : 0;
-    return h('section', { class: 'detail-part avail' }, h('h3', { class: 'big' }, `Open to exchange students (${label})`),
+    return h('section', { class: 'detail-part avail' },
+      h('div', null, h('h3', { class: 'big' }, 'Can you take it?'), h('p', { class: 'for' }, `As a ${STUDY_AS[study] ?? study} exchange student`)),
       ...[1, 2].map((sem) => semBlock(at(sem, study), sem, sem === chosen, sources)),
       check, sourcesLine);
   }

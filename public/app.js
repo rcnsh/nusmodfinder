@@ -141,8 +141,8 @@ let current = parseState(new URLSearchParams(location.search));
 function applyToForm(s) {
   els.q.value = s.q;
   selectValue(els.sem, s.sem);
-  selectValue(els.level, s.level, `${s.level}000`);
-  selectValue(els.credits, s.credits);
+  selectValue(els.level, s.level, levelLabel(s.level));
+  selectValue(els.credits, s.credits, unitsLabel(s.credits));
   selectValue(els.faculty, s.faculty);
   els.ng.checked = s.ng;
   if (s.study) els.study.value = s.study;
@@ -161,6 +161,8 @@ function applyToForm(s) {
  * results layout stays for the page's life, Back to an empty entry included.
  */
 let leftSetup = location.search !== '';
+// index.html's inline line chose the same view before this module loaded.
+delete document.documentElement.dataset.view;
 
 /** @param {State} s */
 function syncView(s) {
@@ -206,8 +208,12 @@ function renderChips(s) {
   els.filtersBtnText.textContent = `Filters (${list.length})`;
 }
 
-/** How many chips the student could remove: the next step a no-results answer names. */
-const removableFilters = () => chipList(current).filter((c) => c.removable && c.key !== 'ng').length;
+/**
+ * How many chips the student could remove to see more: the next step a
+ * no-results answer names. Never the exchange set-up (its semester, or
+ * exchange mode itself): that is eligibility, not a preference.
+ */
+const removableFilters = () => chipList(current).filter((c) => c.removable && c.key !== 'ng' && !(current.ng && c.key === 'sem')).length;
 
 /** @returns {State} what the controls show; ignore, open, pick and alt are the URL's */
 function readForm() {
@@ -452,6 +458,9 @@ for (const el of [els.sem, els.level, els.credits, els.faculty, els.ng, els.stud
     if (el === els.study) saveStudy(els.study.value);
     syncExchange();
     act({ type: 'settings', form: readForm() });
+    // A special term changed to Sem 1 or 2 in exchange mode: the select gives
+    // way to the segment, so focus moves to its choice instead of the page.
+    if (el === els.sem && els.semWrap.hidden) radios('xsem').find((r) => r.checked)?.focus();
   });
 }
 // The rail's semester segment sets #sem, which every mode reads.
@@ -516,9 +525,18 @@ els.filtersBtn.addEventListener('click', () => {
   /** @type {HTMLElement | null} */ (els.panel.querySelector('input, select'))?.focus();
 });
 els.filtersDone.addEventListener('click', () => els.dialog.close());
+/** The control focused in the dialog when a resize closed it (the browser moves focus before `close`). */
+/** @type {Element | null} */
+let refocus = null;
 els.dialog.addEventListener('close', () => {
+  const was = refocus ?? document.activeElement;
+  refocus = null;
   rail.prepend(els.panel);
-  if (els.filtersBtn.isConnected && getComputedStyle(els.filtersBtn).display !== 'none') els.filtersBtn.focus();
+  // Back to the button; or, widened past the phone layout (no button), to the
+  // control that had focus, now in the rail.
+  if (getComputedStyle(els.filtersBtn).display !== 'none') els.filtersBtn.focus();
+  else if (was instanceof HTMLElement && els.panel.contains(was)) was.focus();
+  else els.q.focus();
 });
 /**
  * The dialog's controls in Tab order: one stop per radio group (its checked
@@ -552,7 +570,11 @@ els.dialog.addEventListener('keydown', (e) => {
   stops[next].focus();
 });
 // Widened past the phone layout with the dialog open: the rail is back in view.
-matchMedia('(min-width: 641px)').addEventListener('change', (e) => { if (e.matches && els.dialog.open) els.dialog.close(); });
+matchMedia('(min-width: 641px)').addEventListener('change', (e) => {
+  if (!e.matches || !els.dialog.open) return;
+  refocus = document.activeElement;
+  els.dialog.close();
+});
 
 document.addEventListener('keydown', (e) => {
   if (isCloseEscape(e) && current.open && !els.dialog.open) act({ type: 'close' });
