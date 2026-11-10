@@ -26,9 +26,11 @@ export const NORMALISER_VERSION = 2;
  *   ng: boolean, ngSemesters?: number[],
  *   examSemesters?: number[], su?: boolean, gradingBasis?: string | null, workloadHours?: number | null,
  *   prereqNone?: boolean, prereqCohortOnly?: boolean,
+ *   ngAllow?: number, ngRules?: Record<string, string[]> | null,
  * }} RowFields
  *   The 3H-0 fields (plan 3H "Data") are optional for callers that build
  *   rows by hand (tests); a missing one is written as its neutral value.
+ *   So are Phase 4's: a missing ngAllow is 0, closed everywhere (plan §2).
  */
 
 /**
@@ -36,7 +38,15 @@ export const NORMALISER_VERSION = 2;
  */
 export const ROW_COLUMNS = ['code', 'title', 'description', 'credits', 'department', 'faculty', 'level',
   'semesters', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters',
-  'exam_semesters', 'su', 'grading_basis', 'workload_hours', 'prereq_none', 'prereq_cohort_only'];
+  'exam_semesters', 'su', 'grading_basis', 'workload_hours', 'prereq_none', 'prereq_cohort_only',
+  'ng_allow', 'ng_rules'];
+
+/**
+ * The upsert's SET list (src/ingest.js writeRows): every ROW_COLUMNS column
+ * but the key, plus row_hash, so a new column can't keep its old value under a
+ * new hash (docs/plans/phase4.md §5).
+ */
+export const UPSERT_SET = [...ROW_COLUMNS.filter((c) => c !== 'code'), 'row_hash'].map((c) => `${c}=excluded.${c}`).join(', ');
 
 /**
  * Exactly the values /admin/ingest binds for ROW_COLUMNS, in order.
@@ -50,6 +60,7 @@ export function boundTuple(m) {
     m.ng ? 1 : 0, JSON.stringify(m.ngSemesters ?? []),
     JSON.stringify(m.examSemesters ?? []), m.su ? 1 : 0, m.gradingBasis ?? null, m.workloadHours ?? null,
     m.prereqNone ? 1 : 0, m.prereqCohortOnly ? 1 : 0,
+    m.ngAllow ?? 0, m.ngRules ? JSON.stringify(m.ngRules) : null,
   ];
 }
 
@@ -134,7 +145,8 @@ export async function ftsHash(m) {
  *   semesters: string | null, workload: string | null, prerequisite: string | null,
  *   preclusion: string | null, acad_year: string, text_hash: string, ng: number,
  *   ng_semesters: string | null, exam_semesters: string | null, su: number, grading_basis: string | null,
- *   workload_hours: number | null, prereq_none: number, prereq_cohort_only: number, row_hash?: string | null,
+ *   workload_hours: number | null, prereq_none: number, prereq_cohort_only: number,
+ *   ng_allow?: number | null, ng_rules?: string | null, row_hash?: string | null,
  * }} ModuleRow
  */
 
@@ -153,6 +165,7 @@ export function fieldsFromRow(row) {
     textHash: row.text_hash, ng: row.ng === 1, ngSemesters: JSON.parse(row.ng_semesters ?? '[]'),
     examSemesters: JSON.parse(row.exam_semesters ?? '[]'), su: row.su === 1, gradingBasis: row.grading_basis,
     workloadHours: row.workload_hours, prereqNone: row.prereq_none === 1, prereqCohortOnly: row.prereq_cohort_only === 1,
+    ngAllow: row.ng_allow ?? 0, ngRules: row.ng_rules ? JSON.parse(row.ng_rules) : null,
   };
 }
 

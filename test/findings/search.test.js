@@ -86,6 +86,8 @@ describe('S7', () => {
       'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters', 'row_hash',
       // 0007 (3H-0).
       'exam_semesters', 'su', 'grading_basis', 'workload_hours', 'prereq_none', 'prereq_cohort_only',
+      // ng_allow, ng_rules: 0009 (Phase 4).
+      'ng_allow', 'ng_rules',
     ]);
   });
 
@@ -114,33 +116,38 @@ describe('S8', () => {
 });
 
 describe('P1', () => {
-  it('[P1 known-bug] ng=1&sem=1 returns modules that are open to exchange students only in Sem 2', async () => {
-    const { body } = await callJson('/search?q=machine%20learning&ng=1&sem=1&mode=lexical', { fakes });
-    const wrong = body.results.filter((/** @type {any} */ r) => !r.ngSemesters.includes(1));
-    expect(codes(wrong)).toEqual(expect.arrayContaining(['CS3244', 'CG3201']));
-    for (const r of wrong.filter((/** @type {any} */ r) => ['CS3244', 'CG3201'].includes(r.code))) {
-      expect(r).toMatchObject({ ng: true, ngSemesters: [2], semesters: [1, 2] });
-    }
+  // CS3244 and CG3201 are on the NG list for Sem 2 only (NUSMods offers them in both).
+  it('[P1 fixed] ng=1&sem=1 shows only modules open to exchange students in Sem 1 (D1 path)', async () => {
+    const sem1 = await callJson('/search?q=machine%20learning&ng=1&sem=1&study=ug3&mode=lexical', { fakes });
+    expect(sem1.body.results.length).toBeGreaterThan(0);
+    expect(sem1.body.results.filter((/** @type {any} */ r) => !r.ngSemesters.includes(1))).toEqual([]);
+    expect(codes(sem1.body.results)).not.toContain('CS3244');
+    const sem2 = await callJson('/search?q=machine%20learning&ng=1&sem=2&study=ug3&mode=lexical', { fakes });
+    expect(codes(sem2.body.results)).toContain('CS3244');
   });
 
-  it('[P1 known-bug] the Vectorize filter is the yearly ng boolean, not per semester', async () => {
+  it('[P1 fixed] the Vectorize standby filters on the yearly ng flag only, reads 100 deep and rechecks the semester in D1', async () => {
     const before = fakes.vectorize.calls.length;
-    await callJson('/search?q=machine%20learning%20vecfilter&ng=1&sem=1', { fakes, env: { DENSE_BACKEND: 'vectorize' } });
-    expect(/** @type {any} */ (fakes.vectorize.calls[before].args[1]).filter).toEqual({ sem1: true, ng: true });
+    const { body } = await callJson('/search?q=machine%20learning%20vecfilter&ng=1&sem=1&study=ug3', { fakes, env: { DENSE_BACKEND: 'vectorize' } });
+    expect(fakes.vectorize.calls[before].args[1]).toEqual({ topK: 100, filter: { ng: true } });
+    expect(body.results.filter((/** @type {any} */ r) => !r.ngSemesters.includes(1))).toEqual([]);
   });
 
-  it('[P1 known-bug] the bundle\'s filter mask is the same yearly ng boolean (3-0 keeps the semantics)', async () => {
-    const { body } = await callJson('/search?q=machine%20learning&ng=1&sem=1&mode=vector&topK=50', { fakes });
-    const wrong = body.results.filter((/** @type {any} */ r) => !r.ngSemesters.includes(1));
-    expect(codes(wrong)).toEqual(expect.arrayContaining(['CS3244', 'CG3201']));
+  it('[P1 fixed] the bundle\'s filter mask tests the allow-mask bit for (sem, study)', async () => {
+    const { body } = await callJson('/search?q=machine%20learning&ng=1&sem=1&study=ug3&mode=vector&topK=50', { fakes });
+    expect(body.results.length).toBeGreaterThan(0);
+    expect(body.results.filter((/** @type {any} */ r) => !r.ngSemesters.includes(1))).toEqual([]);
   });
 });
 
 describe('P2', () => {
-  it('[P2 known-bug] ng=1 returns a level-5 module (LI5202) to an undergraduate exchange student', async () => {
-    const { body } = await callJson('/search?q=supply%20chain%20management&ng=1&mode=lexical', { fakes });
-    const grad = body.results.filter((/** @type {any} */ r) => r.level >= 5);
-    expect(codes(grad)).toContain('LI5202');
-    expect(grad.every((/** @type {any} */ r) => r.ng)).toBe(true);
+  it('[P2 fixed] ng=1 shows no level-5 module to an undergraduate exchange student; LI5202 is closed to graduates too', async () => {
+    for (const study of ['ug2', 'ug4']) {
+      const { body } = await callJson(`/search?q=supply%20chain%20management&ng=1&study=${study}&mode=lexical`, { fakes });
+      expect(body.results.filter((/** @type {any} */ r) => r.level >= 5), study).toEqual([]);
+    }
+    // Self-funded programme (rule A), and closed by Jacob's Q1a.
+    const grad = await callJson('/search?q=supply%20chain%20management&ng=1&study=grad&mode=lexical', { fakes });
+    expect(codes(grad.body.results)).not.toContain('LI5202');
   });
 });

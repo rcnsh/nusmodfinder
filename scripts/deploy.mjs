@@ -21,6 +21,8 @@
 //    missing or above 200 ms (the version is then uploaded but serves no
 //    traffic); only then `wrangler versions deploy <id>@100%`.
 // The Worker reports the tag as `x-app-version` and in GET /health.
+// Before any of that, it refuses a wrangler.jsonc whose `vars` hold anything
+// but DENSE_BACKEND (Phase 4: test-only switches such as SC1_TRACE never ship).
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -38,6 +40,19 @@ export const MAX_STARTUP_MS = 200;
 /** Where the local startup pre-check writes its CPU profile. */
 export const STARTUP_PROFILE = join(tmpdir(), 'vector-nusmods-startup.cpuprofile');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
+/** The only var the deployed Worker may have (docs/plans/phase4.md §4, gate 2). */
+export const ALLOWED_VARS = ['DENSE_BACKEND'];
+
+/**
+ * The `vars` object of wrangler.jsonc (flat, so the first `{...}` after the key is all of it).
+ * @param {string} [path]
+ * @returns {Promise<Record<string, unknown>>}
+ */
+export async function wranglerVars(path = join(ROOT, 'wrangler.jsonc')) {
+  const text = await readFile(path, 'utf8');
+  const m = /"vars"\s*:\s*(\{[^{}]*\})/.exec(text);
+  return m ? JSON.parse(m[1]) : {};
+}
 const DATA_VERSION_PATH = join(ROOT, 'src/data-version.json');
 
 /**
@@ -149,13 +164,20 @@ export async function remoteHashes({ port: given, log = console.log, fetchImpl =
  * @param {{
  *   exec?: Exec, log?: (msg: string) => void, error?: (msg: string) => void,
  *   bundle?: () => Promise<DeployBundle>, d1Hashes?: () => Promise<D1Hashes>, committedDataVersion?: () => Promise<string>,
+ *   vars?: () => Promise<Record<string, unknown>>,
  * }} [deps]
  * @returns {Promise<number>} The process exit code.
  */
 export async function deploy({
   exec = run, log = console.log, error = console.error, bundle = productionBundle, d1Hashes = () => remoteHashes({ log }),
   committedDataVersion = async () => String(JSON.parse(await readFile(DATA_VERSION_PATH, 'utf8')).version),
+  vars = wranglerVars,
 } = {}) {
+  const extra = Object.keys(await vars()).filter((k) => !ALLOWED_VARS.includes(k));
+  if (extra.length) {
+    error(`deploy: refusing, wrangler.jsonc vars hold ${extra.join(', ')}; only ${ALLOWED_VARS.join(', ')} may ship (test-only switches never deploy).`);
+    return 1;
+  }
   /** @param {string[]} args */
   const git = async (args) => {
     const res = await exec('git', args);

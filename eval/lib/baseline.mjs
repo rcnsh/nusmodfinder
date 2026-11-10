@@ -13,7 +13,8 @@
 // A verdict on an encrypted set refuses a baseline run unless, for its pin,
 // - the pin's ref (a tag, or the plain sha) still resolves to the pinned commit;
 // - the run file says it ran that ref at that commit, clean, with a clean runner;
-// - it was run with the queries' filters, in hybrid mode;
+// - it was run with the queries' filters, none stripped, in hybrid mode, and
+//   with the committed study map if it records one (Phase 4);
 // - its `ranker.treeHash` is the hash of the pinned commit's ranker files
 //   (`git archive`, the paths workspace.mjs hashes), so the files that ran
 //   were the pinned commit's whatever the sha field says.
@@ -24,7 +25,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { BaselineError } from './errors.mjs';
-import { REPO } from './sets.mjs';
+import { REPO, studyMapSha256 } from './sets.mjs';
 import { HASHED, treeHash } from './workspace.mjs';
 
 /** @typedef {Readonly<{ ref: string, sha: string }>} Pin */
@@ -109,6 +110,12 @@ export async function assertBaselineAt(run, pin, options = {}) {
   const c = /** @type {any} */ (run).config ?? {};
   if (c.filters !== true) throw new BaselineError(`${name} was not run with the queries' filters (config.filters: ${JSON.stringify(c.filters)})`);
   if ((c.mode ?? 'hybrid') !== 'hybrid') throw new BaselineError(`${name} ran mode ${JSON.stringify(c.mode)}, not hybrid`);
+  if (c.strip?.length) throw new BaselineError(`${name} ran with filters stripped (config.strip: ${JSON.stringify(c.strip)})`);
+  // Phase 4: a run that recorded a study map must have used the committed one
+  // (runs before Phase 4 sent no study, which their rankers ignore).
+  if (c.studyMap !== undefined && c.studyMap !== studyMapSha256()) {
+    throw new BaselineError(`${name} used study map ${short(c.studyMap)}, not the committed eval/study-map.json (${studyMapSha256().slice(0, 12)})`);
+  }
   const want = await pinnedTreeHash(repo, sha);
   if (r.treeHash !== want) throw new BaselineError(`${name} has ranker treeHash ${short(r.treeHash)}, but the files of ${ref} hash to ${short(want)}`);
 }

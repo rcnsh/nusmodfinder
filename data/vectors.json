@@ -6,9 +6,9 @@
       "embedding": "fake-hash-embed",
       "model": "fake",
       "count": 434,
-      "dataVersion": "3fa465d55fa6",
+      "dataVersion": "2d5c0084dfa0",
       "rowsKey": "be028252a5a78874f4f9f416af59412e3fefb44109b2d8510955df47a473ea61",
-      "sha256": "79c716430370ba522d88038ae2aba4196f72a400fc3608f32e8bc1af33f74089",
+      "sha256": "f988a88d1fdc54295e939781073291ca2e3fbe4022fb48965ed0bd7252bf7e4c",
       "bytes": 685600,
       "path": "test/fixtures/vectors.bin"
     },
@@ -17,24 +17,24 @@
       "embedding": "emb-bge-small-v1",
       "model": "@cf/baai/bge-small-en-v1.5",
       "count": 6771,
-      "dataVersion": "e73693e41f41",
+      "dataVersion": "97ccb42deebe",
       "rowsKey": "d9e7fb7accc7e853f92d439b3fc6d7d3bf176ce6dd60af40a14774d2c0deca46",
-      "sha256": "45b787fb4d5ed71ed21ad0d8d3c0579326058650c72573a52fb832b1fb165a9b",
+      "sha256": "6c2a6ca66215d671def0329dc188637d17d21242177217853c09c1f13c59840a",
       "bytes": 10683976,
-      "release": "vec-pinned-e73693e41f41-emb-bge-small-v1",
-      "asset": "vec-pinned-e73693e41f41-emb-bge-small-v1.bin"
+      "release": "vec-pinned-97ccb42deebe-emb-bge-small-v1",
+      "asset": "vec-pinned-97ccb42deebe-emb-bge-small-v1.bin"
     },
     "production": {
       "corpus": "production",
-      "embedding": "emb-bge-small-v1-x4a990cd5",
+      "embedding": "emb-bge-small-v1-x286f04a3",
       "model": "@cf/baai/bge-small-en-v1.5",
       "count": 6778,
-      "dataVersion": "4b6d12fab3d3",
+      "dataVersion": "62e5a0011231",
       "rowsKey": "7c9b739622d99460fc68f03712d6e8bdf99f6b97f9f649bfd078f5a7b0dceb3a",
-      "sha256": "b58a928107c4a3538cf15f7ac728bf2cd5b7477df1888fb77d2c1645421549e0",
+      "sha256": "98dbef03549fc74c93c24cbdbd2317395bb72f6cf70d9c22b4541d09acac0252",
       "bytes": 10695040,
-      "release": "vec-production-4b6d12fab3d3-emb-bge-small-v1-x4a990cd5",
-      "asset": "vec-production-4b6d12fab3d3-emb-bge-small-v1-x4a990cd5.bin"
+      "release": "vec-production-62e5a0011231-emb-bge-small-v1-x286f04a3",
+      "asset": "vec-production-62e5a0011231-emb-bge-small-v1-x286f04a3.bin"
     }
   }
 }

@@ -1,0 +1,19 @@
+{
+ "schema": "vnm-eval-study-map/1",
+ "note": "Phase 4 (docs/plans/phase4.md §4): the year of study the runner adds to every ng query, by persona, so the locked query files never change. P1, P2, P5 are 3rd-years; P3, P4, P6 2nd-years; code queries (persona mech) and persona-less typo diagnostics take ug2; the fixture personas are listed. The runner throws on an ng query whose persona is not here; the map's sha256 is in each run's config.",
+ "personas": {
+  "P1": "ug3",
+  "P2": "ug3",
+  "P3": "ug2",
+  "P4": "ug2",
+  "P5": "ug3",
+  "P6": "ug2",
+  "mech": "ug2",
+  "p-arts": "ug2",
+  "p-biz": "ug2",
+  "p-cs": "ug2",
+  "p-eng": "ug2",
+  "p-gen": "ug2"
+ },
+ "noPersona": "ug2"
+}

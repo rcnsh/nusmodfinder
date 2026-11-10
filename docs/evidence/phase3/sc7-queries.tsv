@@ -2,45 +2,45 @@ id	set	q	params
 w01	warm	intro to game design and storytelling	
 w02	warm	marine biology field work	sem=1
 w03	warm	behavioural finance and investor psychology	
-w04	warm	urban planning in asian megacities	ng=1
+w04	warm	urban planning in asian megacities	ng=1&study=ug2
 w05	warm	deep learning for medical images	sem=2
 w06	warm	translation studies chinese english	
-w07	warm	renewable energy policy	ng=1&sem=1
+w07	warm	renewable energy policy	ng=1&sem=1&study=ug2
 w08	warm	philosophy of science and explanation	
 w09	warm	cell signalling pathways	level=3
 w10	warm	supply chain analytics with excel	
 w11	warm	contemporary art in southeast asia	sem=1
 w12	warm	public speaking and persuasion	
-w13	warm	probability for engineers	ng=1
+w13	warm	probability for engineers	ng=1&study=ug2
 w14	warm	film noir and crime cinema	
 w15	warm	compilers and program analysis	sem=2&level=4
 w16	warm	nutrition and human health	
-w17	warm	international trade law	ng=1&sem=2
+w17	warm	international trade law	ng=1&sem=2&study=ug2
 w18	warm	sociolinguistics of singlish	
 w19	warm	robot motion planning	
 w20	warm	social entrepreneurship	sem=1
 w21	warm	quantum computing basics	
-w22	warm	history of medicine and disease	ng=1
+w22	warm	history of medicine and disease	ng=1&study=ug2
 w23	warm	data privacy and the law	
 w24	warm	music production and audio technology	sem=2
 w25	warm	organic synthesis lab techniques	
-w26	warm	gender and politics in asia	ng=1&sem=1
+w26	warm	gender and politics in asia	ng=1&sem=1&study=ug2
 w27	warm	natural language processing projects	
 w28	warm	tropical ecology and conservation	level=2
 w29	warm	corporate sustainability reporting	
 w30	warm	ancient greek and roman myths	sem=1
 w31	warm	structural engineering of tall buildings	
-w32	warm	consumer behaviour research	ng=1
+w32	warm	consumer behaviour research	ng=1&study=ug2
 w33	warm	cloud computing and distributed storage	
 s01	sparse	korean popular culture	
 s02	sparse	climate science and modelling	sem=2
 s03	sparse	negotiation skills for managers	
-s04	sparse	epidemiology and public health data	ng=1
+s04	sparse	epidemiology and public health data	ng=1&study=ug2
 s05	sparse	poetry writing workshop	
 s06	sparse	financial derivatives pricing	sem=1&level=3
 s07	sparse	southeast asian religions	
-s08	sparse	human computer interaction design	ng=1&sem=2
+s08	sparse	human computer interaction design	ng=1&sem=2&study=ug2
 s09	sparse	geology and earth materials	
 s10	sparse	economics of healthcare	sem=1
 s11	sparse	cybersecurity incident response	
-s12	sparse	architecture and the tropical city	ng=1
+s12	sparse	architecture and the tropical city	ng=1&study=ug2

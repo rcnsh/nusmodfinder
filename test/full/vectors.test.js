@@ -48,7 +48,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the pinned vectors bundle',
     for (const m of c.modules) {
       expect(decodeFilterRow(b, /** @type {number} */ (index.get(m.code))), m.code).toEqual({
         semesters: m.semesters, level: m.level, credits: m.credits, faculty: m.faculty, ng: m.ng, ngSemesters: m.ngSemesters,
-        examSemesters: m.examSemesters, su: m.su, suGrading: suGrading(m.gradingBasis), workloadHours: m.workloadHours,
+        ngAllow: m.ngAllow, examSemesters: m.examSemesters, su: m.su, suGrading: suGrading(m.gradingBasis), workloadHours: m.workloadHours,
         prereqNone: m.prereqNone, prereqCohortOnly: m.prereqCohortOnly,
       });
     }

@@ -7,7 +7,7 @@
 // reads D1 or touches the repo.
 import { createServer } from 'node:net';
 import { describe, expect, it } from 'vitest';
-import { MAX_STARTUP_MS, STARTUP_PROFILE, deploy, freePort, remoteHashes } from '../scripts/deploy.mjs';
+import { ALLOWED_VARS, MAX_STARTUP_MS, STARTUP_PROFILE, deploy, freePort, remoteHashes, wranglerVars } from '../scripts/deploy.mjs';
 import { dataVersion } from '../src/rowhash.js';
 import { rowsKey } from '../src/vector-bundle.js';
 
@@ -69,7 +69,7 @@ function fakeExec(over = {}) {
 
 /**
  * @param {import('../scripts/deploy.mjs').Exec} exec
- * @param {{ bundle?: () => Promise<import('../scripts/deploy.mjs').DeployBundle>, d1?: any, committed?: string }} [o]
+ * @param {{ bundle?: () => Promise<import('../scripts/deploy.mjs').DeployBundle>, d1?: any, committed?: string, vars?: Record<string, unknown> }} [o]
  */
 async function runDeploy(exec, o = {}) {
   /** @type {string[]} */
@@ -82,6 +82,7 @@ async function runDeploy(exec, o = {}) {
     bundle: o.bundle ?? bundleOf(),
     d1Hashes: async () => { d1Reads++; if (o.d1 instanceof Error) throw o.d1; return o.d1 ?? D1; },
     committedDataVersion: async () => o.committed ?? DV,
+    vars: async () => o.vars ?? { DENSE_BACKEND: 'bundle' },
   });
   return { code, out: out.join('\n'), err: err.join('\n'), d1Reads };
 }
@@ -89,6 +90,15 @@ async function runDeploy(exec, o = {}) {
 const ranWrangler = (/** @type {string[][]} */ calls) => calls.some((c) => c[0] === 'npx');
 
 describe('npm run deploy', () => {
+  it('Phase 4: the committed wrangler.jsonc vars hold only DENSE_BACKEND, and any other var is refused before git or wrangler', async () => {
+    expect(Object.keys(await wranglerVars())).toEqual(ALLOWED_VARS);
+    const { exec, calls } = fakeExec({});
+    const { code, err } = await runDeploy(exec, { vars: { DENSE_BACKEND: 'bundle', SC1_TRACE: '1' } });
+    expect(code).toBe(1);
+    expect(err).toContain('SC1_TRACE');
+    expect(calls).toEqual([]);
+  });
+
   it('refuses a dirty working tree and never runs wrangler', async () => {
     const { exec, calls } = fakeExec({ 'git status --porcelain --untracked-files=all --ignore-submodules=none': { stdout: ' M src/index.js\n?? scratch.txt\n' } });
     const { code, err } = await runDeploy(exec);

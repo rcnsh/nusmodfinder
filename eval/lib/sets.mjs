@@ -17,7 +17,8 @@
 // the manifest never saw cannot be scored. A plaintext set directory that has
 // a MANIFEST.json (eval/diag/typo, 3C's diagnostic) has its queries and qrels
 // checked against it on every read; eval/dev has none.
-import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -194,21 +195,43 @@ export const FILTER_PARAMS = ['sem', 'ng', 'level', 'credits', 'faculty'];
 export const MODES = ['hybrid', 'lexical', 'vector'];
 
 /**
+ * The committed persona -> study-level map (eval/study-map.json, Phase 4 §4),
+ * and its sha256 for the run config.
+ * @typedef {{ personas: Record<string, string>, noPersona: string }} StudyMap
+ */
+const STUDY_MAP_PATH = join(REPO, 'eval/study-map.json');
+/** @returns {StudyMap} */
+export const loadStudyMap = () => JSON.parse(readFileSync(STUDY_MAP_PATH, 'utf8'));
+export const studyMapSha256 = () => createHash('sha256').update(readFileSync(STUDY_MAP_PATH)).digest('hex');
+
+/**
  * The query string for one query: production defaults (no topK, no mode) plus
  * the query's filters as API params. `mode` (lexical, vector) is for pool
- * variants only; hybrid, the shipped mode, sends no parameter.
+ * variants only; hybrid, the shipped mode, sends no parameter. Phase 4: an ng
+ * query also gets `study` from the study map by its persona (throwing on an
+ * unmapped one); `strip` drops filters by name (`--strip ng`, the unfiltered
+ * guard), and with them `study`.
  * @param {import('./metrics.mjs').EvalQuery} q
- * @param {{ unfiltered?: boolean, mode?: string }} [options]
+ * @param {{ unfiltered?: boolean, mode?: string, strip?: string[], studyMap?: StudyMap }} [options]
  */
 export function searchParams(q, options = {}) {
   const mode = options.mode ?? 'hybrid';
   if (!MODES.includes(mode)) throw new Error(`mode must be hybrid, lexical or vector, got ${JSON.stringify(mode)}`);
+  const strip = options.strip ?? [];
+  for (const k of strip) if (!FILTER_PARAMS.includes(k)) throw new Error(`strip: unknown filter ${JSON.stringify(k)} (allowed: ${FILTER_PARAMS.join(', ')})`);
   /** @type {Record<string, string>} */
   const params = { q: q.text };
   if (!options.unfiltered) {
     for (const [k, v] of Object.entries(q.filters ?? {})) {
-      if (v === undefined || v === null || v === false) continue;
+      if (v === undefined || v === null || v === false || strip.includes(k)) continue;
       params[k] = v === true ? '1' : String(v);
+    }
+    if (params.ng !== undefined) {
+      const map = options.studyMap ?? loadStudyMap();
+      const persona = /** @type {{ persona?: string }} */ (q).persona;
+      const study = persona === undefined || persona === null ? map.noPersona : map.personas[persona];
+      if (!study) throw new Error(`query ${q.id}: persona ${JSON.stringify(persona)} has no study level in eval/study-map.json`);
+      params.study = study;
     }
   }
   if (mode !== 'hybrid') params.mode = mode;

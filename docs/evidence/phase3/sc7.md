@@ -30,6 +30,8 @@ collector also records the client's time to headers (`headersMs`).
 - 45 ordinary student-style searches, written for this run at the freeze: 33 warm (`w01`–`w33`)
   and 12 sparse (`s01`–`s12`).
 - 23 are unfiltered. 22 use `sem`, `ng=1`, `level` or a combination.
+- Phase 4 adds `study=ug2` to the 10 `ng=1` rows, since exchange mode now requires a year of
+  study (`docs/plans/phase4.md` §3, B2-3). The run reported here sent them without it.
 - None appears in dev, the SC4 suite, Phase 1's SC7 queries or `requests.tsv`, checked by exact
   match on the canonical form.
 - Each is sent once, so every call should miss the cache. A sample counts only if its header

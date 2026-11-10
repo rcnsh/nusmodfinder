@@ -975,3 +975,24 @@ fails on the previous code.
   independent oracle agrees with `eligibility()` on all 101,565 pinned cases. A fresh review found 2
   defects with failing inputs, fixed. Evidence: `docs/evidence/phase4/rules-check.md`.
 - **Next:** 4A storage (`ng_allow`, `ng_rules`), the search paths, 4C and 4D, shipped together.
+
+## 2026-11-10 — Phase 4 steps 4A, 4C, 4D: exchange mode, built and gated
+
+- **Storage:** migration 0009 adds `ng_allow` (a 15-bit mask, one bit per semester × year of
+  study) and `ng_rules`. Ingest computes both from the NG list and the restrictions data.
+  - The bundle carries the mask in its reserved bytes (`vnm-vectors/3`).
+  - The row hash, the upsert (its SET list now built from `ROW_COLUMNS`), the schema guard and
+    the pre-deploy verify all cover the new columns.
+- **Search:** `ng=1` needs `study`. Every path tests the one bit for the request: D1 lexical, the
+  bundle, the standby (100 deep, then the D1 recheck), pins, variants and `related`. A zero mask
+  is closed. Cards carry the bit's notes; `/module/:code` gives all 15; `/facets` names the sources.
+- **Page:** asks for the year of study before an exchange search. It shows each note's reason and
+  the NG semesters in the badge, and links the sources with their dates.
+- **Gates** (`docs/evidence/phase4/gates.md`), with no holdout look:
+  - SC1's path tests (new CI job `sc1`) and the ship-time oracle over the production catalogue
+    (0 differences);
+  - per-list identity on all 93 comparable dev queries;
+  - the unfiltered guard, byte-identical to the shipped ranker.
+  - ADR 0003 records how Phase 4 is gated. P1 and P2 are fixed.
+- **Next:** the PR, then the ship per the runbook (needs the VPN off), the SC1 live check, and
+  the persona red team.

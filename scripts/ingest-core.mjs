@@ -88,8 +88,8 @@ export const REQUIRED_SCHEMA = 6;
  *   is absent from a Worker older than this script.
  * @typedef {{
  *   version: number | null, ftsExternal: boolean, rowidTriggers: boolean, missingTriggers?: string[],
- *   rowHashColumn: boolean, ok: boolean,
- * }} SchemaStatus
+ *   rowHashColumn: boolean, missingColumns?: string[], ok: boolean,
+ * }} SchemaStatus `missingColumns`: ROW_COLUMNS the table lacks; absent from a Worker older than Phase 4.
  * @typedef {{
  *   schema: SchemaStatus, embeddingModel?: string, acadYears?: Record<string, number> | null,
  *   modules: Record<string, StoredHashes> | null,
@@ -622,7 +622,16 @@ export async function runIngest({
  * @param {SchemaStatus | undefined} schema
  */
 export function describeSchemaProblem(schema) {
-  if (schema?.ok) return null;
+  if (schema?.ok && schema.missingColumns !== undefined) return null;
+  // 0006 is in place but a later migration isn't (Phase 4: 0009's ng_allow, ng_rules).
+  const only0006 = schema && schema.version !== null && schema.version >= REQUIRED_SCHEMA && schema.ftsExternal
+    && schema.rowidTriggers && !schema.missingTriggers?.length && schema.rowHashColumn;
+  if (only0006) {
+    return schema.missingColumns === undefined
+      ? 'Refusing to ingest: the Worker reports no column check (is it older than this script?). Deploy it first.'
+      : `Refusing to ingest: modules lacks the columns ${schema.missingColumns.join(', ')}. `
+        + 'Apply the migration that adds them first (migrations/0009_exchange.sql for ng_allow, ng_rules), with scripts/remote-migration.mjs.';
+  }
   const missing = !schema ? ['a schema report (is the Worker older than this script?)'] : [
     ...(schema.version === null || schema.version < REQUIRED_SCHEMA ? [`meta('schema') >= ${REQUIRED_SCHEMA} (found ${schema.version ?? 'none'})`] : []),
     ...(schema.ftsExternal ? [] : ["external-content modules_fts (content='modules')"]),

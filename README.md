@@ -19,13 +19,18 @@ filter by semester, level, credits and faculty.
 | Route | Purpose |
 |---|---|
 | `GET /` | Single-page UI, no framework, no build step |
-| `GET /search?q=&sem=&level=&credits=&faculty=&ng=&topK=&mode=` | Ranked results as JSON |
-| `GET /module/:code` | The full D1 row for one module |
-| `GET /facets` | Distinct faculties and levels, with counts, for the filter UI |
+| `GET /search?q=&sem=&level=&credits=&faculty=&ng=&study=&topK=&mode=` | Ranked results as JSON |
+| `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study |
+| `GET /facets` | Distinct faculties and levels, with counts, for the filter UI, and the exchange-mode sources with their dates |
 
-`ng=1` narrows to courses open to **Non-Graduating (exchange) students**. Only `true`
-narrows — `ng=0` is ignored, because "show me courses I am not allowed to take" is not a
-thing anyone wants.
+`ng=1` is **exchange mode**: only courses an exchange (Non-Graduating) student may take, under
+the Registrar's NG course list and course restrictions (below). It needs `study=ug1|ug2|ug3|ug4|grad`,
+the student's year of study at home (`ug4` = 4th year or later); without it `/search` answers
+400 `study-required`. Under `ng=1`, `sem=1|2` picks the semester the student would come in
+(the NG list's semesters, not NUSMods'), no `sem` means either, and `sem=3|4` answers no
+courses with `noMatch: { reason: "ng-special-term" }`: the NG list has no special-term data.
+Each result then carries `exchange: { status: "open" | "note", reasons: [{ id, kind, text }] }`.
+Only `true` narrows — `ng=0` is ignored, and `study` is ignored without `ng=1`.
 
 `mode` is `hybrid` (default), `vector` or `lexical`. It exists so the evaluation harness
 can measure each retriever on its own — which is the only reason we know the vector half
@@ -96,13 +101,19 @@ is missing, ingest says so loudly and every module is marked not-NG.
 Where both sources state a semester they agree on **1,411 of 1,447 (97.5%)**; the ~2.5%
 disagreement is a snapshot-vs-daily-scrape artifact.
 
-**Caveat on combining filters.** `ng` is a single boolean, not per-semester, so
-`?ng=1&sem=1` means "open to NG students *this year*, and offered in semester 1" rather
-than "open to NG students *in semester 1*". Those differ for the ~2.5% of rows above.
-Per-semester NG flags would need two more Vectorize metadata indexes; there are 8 of the
-maximum 10 in use, and spending two more for a 2.5% correction was not worth the
-headroom. Per-semester detail *is* stored in D1 (`modules.ng_semesters`) and is returned
-on every result, so the UI shows it in the NG badge tooltip.
+**Restrictions (Phase 4).** Being on the NG list isn't enough: the Registrar's
+"course restrictions for NG students" PDF closes schools, levels and single courses, and adds
+conditions (a major at home, a partner university, approval, a quota, graded only). These are
+data, not code: `data/ng-restrictions-<year>.json`, built by `scripts/build-ng-restrictions.mjs`
+from the sources in `docs/evidence/phase4/sources.md` (kept outside the repo, hashed in it), with
+every reading the sources leave open decided in `docs/evidence/phase4/interpretations.md`.
+Ingest runs `src/eligibility.js` over every module for every (semester, year of study) and
+stores a 15-bit allow mask (`modules.ng_allow`) and the rule ids behind each answer
+(`modules.ng_rules`); the Worker runs no rule logic. Every search path tests the one bit for the
+request; a zero or missing mask is closed. Reason texts ship with the Worker
+(`data/ng-reasons.json`, built by `scripts/build-ng-reasons.mjs`), so rewording one rewrites no
+rows. An independent oracle (`test/sc1/oracle.node.mjs`) checks the rules on every module, and
+the `sc1` CI job checks every search path against it.
 
 The extract's `updatedAsAt` date reaches `/facets` (and so the UI) through ingest: the
 ingest script posts it to `/admin/facets`, which stores it as `meta.ng_list`. Re-run
@@ -451,13 +462,30 @@ malformed rows if the shape changes.
 Only modules with at least one `semesterData` entry are indexed — 6,771 of the 21,130
 records in `moduleInfo.json`. The rest are catalogue entries not offered this year.
 
+### When a source changes
+
+The NG list, the restrictions PDF, the self-funded programme list, YST's non-music-majors
+pages and the Law compulsory-course list all change without notice. A new copy of any of them
+repeats Phase 4's gate (`docs/plans/phase4.md` 4F):
+1. Save it under `~/.config/vnm/sources/<date>/` and record its sha256 and "updated as at" date in
+   `docs/evidence/phase4/sources.md`.
+2. Re-extract (`scripts/extract-ng.py` for the NG list) and rebuild
+   `data/ng-restrictions-<year>.json`; the builder refuses a hash mismatch or an unread file.
+3. Two fresh transcriptions of the changed sections, diffed by `docs/evidence/phase4/scripts/transcription-diff.mjs`;
+   a fresh oracle author for the changed sections; each new reading goes in the register.
+4. `node scripts/build-ng-reasons.mjs`, the dates in `scripts/build-ng-reasons.mjs`, and
+   `npm run test:full` and `npm run test:sc1`.
+5. A full re-ingest and ship (below): every row's mask can change.
+
 ## Known limitations
 
 - **One acad year.** Two years would fit the Paid stored-dimension allowance (5.2M of 10M)
   but halve the uncached searches the queried-dimension allowance covers.
-- **The exchange-student list is a manual snapshot.** It comes from a PDF that must be
-  downloaded by hand (NUS blocks automated fetching) and re-extracted when NUS updates it.
-  The UI shows the extract's date so staleness is visible.
+- **Exchange mode is a manual snapshot.** The NG list and restrictions come from PDFs and
+  pages that must be downloaded by hand (NUS blocks automated fetching) and re-checked when
+  NUS updates them. The UI names each source with its date so staleness is visible. YST's Sem 2
+  list is last year's until YST publishes this year's.
+- **Exchange mode covers Semesters 1 and 2.** The NG list has no special-term data.
 - **No natural-language constraint parsing.** "No Friday classes" needs the explicit filter
   parameters instead.
 - **No scheduled re-ingest.** Refresh is a manual command, once a semester.

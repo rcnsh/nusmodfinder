@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
 import { assertCorrectedEmbedded, rankerCorrector, writeRankerGroups, writeRankerVocabulary } from '../lib/corrected.mjs';
 import { assertCorpusTextsEmbedded, base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
-import { REPO, layout, loadQueries, runFile, searchParams, setFile, setKey } from '../lib/sets.mjs';
+import { REPO, layout, loadQueries, runFile, searchParams, setFile, setKey, studyMapSha256 } from '../lib/sets.mjs';
 import { buildWorkspace } from '../lib/workspace.mjs';
 
 const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
@@ -24,6 +24,7 @@ const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
  *   ref?: string,
  *   embedding?: string,
  *   unfiltered?: boolean,
+ *   strip?: string[],
  *   mode?: string,
  *   output?: string,
  *   log?: (line: string) => void,
@@ -35,7 +36,7 @@ const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
  * @returns {Promise<{ ok: boolean, output: string, problems: string[] }>}
  */
 export async function runVariant(options) {
-  const { set, variant, ref, unfiltered = false, mode = 'hybrid' } = options;
+  const { set, variant, ref, unfiltered = false, strip = [], mode = 'hybrid' } = options;
   const log = options.log ?? ((/** @type {string} */ l) => console.log(l));
   const key = set.encrypted ? await setKey() : null;
   const querySet = await loadQueries(set);
@@ -97,7 +98,12 @@ export async function runVariant(options) {
       sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'),
       count: querySet.queries.length,
     },
-    config: { topK: 'worker default', filters: !unfiltered, mode, dense, ...(vocabulary ? { vocabulary, typo: corrector?.embedsCorrected ? '3c2' : '3c1' } : {}), ...(groups ? { groups } : {}) },
+    config: {
+      topK: 'worker default', filters: !unfiltered, mode, dense,
+      // Phase 4: the persona -> study map ng queries take, and the filters stripped (the unfiltered guard).
+      studyMap: studyMapSha256(), ...(strip.length ? { strip } : {}),
+      ...(vocabulary ? { vocabulary, typo: corrector?.embedsCorrected ? '3c2' : '3c1' } : {}), ...(groups ? { groups } : {}),
+    },
   };
   const reporterOptions = {
     output,
@@ -110,7 +116,7 @@ export async function runVariant(options) {
 
   /** @type {EvalPayload} */
   const payload = {
-    queries: querySet.queries.map((q) => ({ id: q.id, params: searchParams(q, { unfiltered, mode }) })),
+    queries: querySet.queries.map((q) => ({ id: q.id, params: searchParams(q, { unfiltered, mode, strip }) })),
     corpus: corpus.modules,
     lookup,
     seedTimeoutMs: 900_000,

@@ -17,6 +17,7 @@ import { applyD1Migrations, reset } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, inject, it } from 'vitest';
 import { ftsMatch, lexicalSearch, resetFilterCounts } from '../../src/lexical.js';
+import { bitOf } from '../../src/ng-bit.js';
 import { Trace } from '../../src/timing.js';
 import { createFakes } from '../fakes.js';
 import { call, TEST_INGEST_SECRET } from '../helpers.js';
@@ -31,7 +32,7 @@ const ROWS_READ_GATE = 8000;
 const DEPTH = 50;
 const QUERIES = [...new Set(/** @type {string[]} */ (queryFixture.queries))];
 
-/** @typedef {{ r: number, code: string, semesters: string | null, level: number | null, faculty: string | null, credits: number | null, ng: number }} Row */
+/** @typedef {{ r: number, code: string, semesters: string | null, level: number | null, faculty: string | null, credits: number | null, ng: number, ng_allow: number }} Row */
 /** @typedef {import('../../src/search.js').FilterEcho} FilterEcho */
 /** @typedef {import('../../src/lexical.js').FilterKey} FilterKey */
 
@@ -117,7 +118,9 @@ async function unfilteredTopN() {
  * @param {FilterEcho} echo
  */
 function passes(row, echo) {
-  if (echo.sem !== undefined && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
+  // Phase 4: under ng, sem picks the allow-mask bit instead of testing the semesters.
+  if (echo.sem !== undefined && echo.ng !== true && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
+  if (echo.ng === true && (row.ng_allow & bitOf(echo.sem === 1 || echo.sem === 2 ? echo.sem : 'any', /** @type {any} */ (echo.study))) === 0) return false;
   if (echo.level !== undefined && row.level !== echo.level) return false;
   if (echo.credits !== undefined && row.credits !== echo.credits) return false;
   if (echo.faculty !== undefined && row.faculty !== echo.faculty) return false;
@@ -144,6 +147,9 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
     await legacyLoad(c.modules);
     before = await unfilteredTopN();
     await applyD1Migrations(env.DB, rest);
+    // Phase 4's allow mask (0009), as ingest computes it, for the ng filter.
+    const set = env.DB.prepare('UPDATE modules SET ng_allow = ? WHERE code = ?');
+    for (let i = 0; i < c.modules.length; i += 100) await env.DB.batch(c.modules.slice(i, i + 100).map((m) => set.bind(m.ngAllow, m.code)));
   }, 600_000);
 
   it('0006 leaves unfiltered lexical top-50 unchanged for every query (ties may reorder)', async () => {
@@ -181,7 +187,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
     // A fixed 1-in-10 sample under LEXICAL_GRID=sample: every 10th case, in grid order.
     const cases = SAMPLED ? all.filter((_, i) => i % 10 === 0) : all;
     const { results: rows } = /** @type {D1Result<Row>} */ (await env.DB.prepare(
-      'SELECT rowid AS r, code, semesters, level, faculty, credits, ng FROM modules').all());
+      'SELECT rowid AS r, code, semesters, level, faculty, credits, ng, ng_allow FROM modules').all());
     const byRowid = new Map(rows.map((r) => [r.r, r]));
     /** @type {Map<string, Row[]>} */
     const hitsByQuery = new Map();
@@ -247,7 +253,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
       level: (await distinct('level')).map((level) => ({ level })),
       credits: (await distinct('credits')).map((credits) => ({ credits })),
       faculty: (await distinct('faculty')).map((faculty) => ({ faculty })),
-      ng: [{ ng: true }],
+      ng: [{ ng: true, study: 'ug2' }],
     };
   }
 
@@ -285,7 +291,9 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
       const ks = [...keys].sort(() => rand() - 0.5).slice(0, n);
       many.push(Object.assign({}, ...ks.map((k) => values[k][Math.floor(rand() * values[k].length)])));
     }
-    return { pairs, many };
+    // /search never sends ng with a special term (it answers ng-special-term), so neither does the grid.
+    const sendable = (/** @type {FilterEcho} */ e) => !(e.ng === true && (e.sem === 3 || e.sem === 4));
+    return { pairs: pairs.filter(sendable), many: many.filter(sendable) };
   }
 
   /**

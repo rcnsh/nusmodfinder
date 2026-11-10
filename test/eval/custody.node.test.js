@@ -1,6 +1,6 @@
 // @ts-check
 import { mkdtemp, readFile, rm, utimes, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -9,7 +9,7 @@ import { embeddingKey, estimateTokens } from '../../eval/lib/embeddings.mjs';
 import { spawnSync } from 'node:child_process';
 import { appendLook, assertLookAllowed, finaliseLook, looks, readLedger, reserveLook, withLedgerLock } from '../../eval/lib/ledger.mjs';
 import { DecryptionError } from '../../eval/lib/errors.mjs';
-import { REPO, layout, runFile, searchParams, validateQueries } from '../../eval/lib/sets.mjs';
+import { REPO, layout, loadStudyMap, runFile, searchParams, validateQueries } from '../../eval/lib/sets.mjs';
 
 /** @type {string} */
 let dir;
@@ -189,10 +189,33 @@ describe('sets', () => {
   });
 
   it('maps filters to /search params with production defaults (no topK, no mode)', () => {
+    // Phase 4: an ng query takes `study` from eval/study-map.json; persona-less ones take noPersona (ug2).
     expect(searchParams({ id: 'a', text: 'ml', filters: { ng: true, sem: 1, level: 3, faculty: 'Computing' } }))
-      .toEqual({ q: 'ml', ng: '1', sem: '1', level: '3', faculty: 'Computing' });
+      .toEqual({ q: 'ml', ng: '1', sem: '1', level: '3', faculty: 'Computing', study: 'ug2' });
     expect(searchParams({ id: 'a', text: 'ml', filters: { ng: false } })).toEqual({ q: 'ml' });
     expect(searchParams({ id: 'a', text: 'ml', filters: { sem: 2 } }, { unfiltered: true })).toEqual({ q: 'ml' });
+  });
+
+  it('Phase 4: maps each persona to its study level, throws on an unmapped one, and strips filters by name', () => {
+    const q = (/** @type {string} */ persona) => /** @type {any} */ ({ id: 'a', text: 'ml', filters: { ng: true, sem: 2 }, persona });
+    expect(searchParams(q('P1')).study).toBe('ug3');
+    expect(searchParams(q('P5')).study).toBe('ug3');
+    expect(searchParams(q('P3')).study).toBe('ug2');
+    expect(searchParams(q('mech')).study).toBe('ug2');
+    expect(() => searchParams(q('P9'))).toThrow(/persona "P9" has no study level/);
+    // No ng, no study, whatever the persona.
+    expect(searchParams(/** @type {any} */ ({ id: 'a', text: 'ml', filters: { sem: 2 }, persona: 'P9' }))).toEqual({ q: 'ml', sem: '2' });
+    // --strip ng: sem kept, ng and its study dropped.
+    expect(searchParams(q('P1'), { strip: ['ng'] })).toEqual({ q: 'ml', sem: '2' });
+    expect(() => searchParams(q('P1'), { strip: ['topK'] })).toThrow(/strip: unknown filter/);
+  });
+
+  it('Phase 4: every persona of the dev and fixture sets is mapped', async () => {
+    const map = loadStudyMap();
+    for (const f of ['../../eval/dev/queries.json', '../../eval/fixtures/queries.json']) {
+      const qs = JSON.parse(readFileSync(new URL(f, import.meta.url), 'utf8')).queries;
+      for (const x of qs) if (x.filters?.ng) expect(map.personas[x.persona], `${f} ${x.id} ${x.persona}`).toBeDefined();
+    }
   });
 
   it('sends a retrieval mode only when it is not the shipped hybrid (pool variants)', () => {

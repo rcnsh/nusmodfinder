@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { planIngest } from '../../scripts/ingest-core.mjs';
 import {
-  EMBEDDING_MODEL, EMBEDDING_TEXT_VARIANT, EMBEDDING_TEXT_VERSION, embeddingText, fetchAcadYearFile, hashOf, offeredModules,
+  EMBEDDING_MODEL, EMBEDDING_TEXT_VARIANT, EMBEDDING_TEXT_VERSION, embeddingText, fetchAcadYearFile, hashOf, loadNgRestrictions, offeredModules,
 } from '../../scripts/lib.mjs';
 import {
   NORMALISER_VERSION, ROW_COLUMNS, boundTuple, fieldsFromRow, rowHash, sha256Hex, vectorMetadata,
@@ -25,7 +25,7 @@ const record = {
   workload: [2, 1, 1, 3, 3], prerequisite: 'None', preclusion: 'CS1010',
 };
 const ng = (/** @type {Record<string, number[]>} */ bySem) =>
-  ({ available: true, bySem: new Map(Object.entries(bySem)), updatedAsAt: '01 Sep 2026', source: null, total: Object.keys(bySem).length });
+  ({ available: true, bySem: new Map(Object.entries(bySem)), updatedAsAt: '01 Sep 2026', source: null, total: Object.keys(bySem).length, rules: loadNgRestrictions('2026-2027') });
 
 describe('B2', () => {
   const Y = '2026-2027';
