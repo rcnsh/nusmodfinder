@@ -116,3 +116,5 @@ o7	browser other	/facets	phase0 0b fe.mjs
 110	ref	Persona red team, first launch: lost when the machine restarted (kit and logs in /tmp cleared); an unknown number of exchange /search calls, at most 80, on version efd3dc25	Phase 4 red team, 2026-11-10 UTC
 111	ref	Persona red team: 80 exchange /search calls by 8 personas, ≥ 4 s apart (docs/evidence/phase4/redteam/searches-*.jsonl), all 200, on version efd3dc25	Phase 4 red team, 2026-11-10 15:23-15:30 UTC
 112	ref	Phase 5 mockup data: 3 exchange /search (introductory accounting, ng=1, study=ug2; sem=1, none, sem=2) and 1 /module/ACC1701XB, >= 4.5 s apart, all 200, on version efd3dc25	Phase 5 design gate, 2026-11-10 17:24-17:25 UTC
+113	ref	Live version check before the 5A ship: 1 /health on version efd3dc25 (tag 9d91605, data version 62e5a0011231)	Phase 5 5A, 2026-11-10 18:14:17 UTC
+114	ref	5A smoke on version b9f7e0e4: /health, /module/ACC1701XB, /search machine learning, /search introductory accounting (ng=1&sem=1&study=ug2); >= 4 s apart, all 200, not degraded	Phase 5 5A, 2026-11-10 18:15:53-18:16:11 UTC

@@ -1031,3 +1031,19 @@ fails on the previous code.
   phrase parsing returns only under a compliance-aware rule with one look (L8 of 12).
 - **Next:** Jacob answers D2 (first screen), D3 (working name) and D4 (hidden codes); then three
   design directions for D1.
+
+## 2026-11-11 — Phase 5 5A shipped: exam dates, ranking-neutral
+
+- **Answers:** D2 exchange set-up first, D3 "Exchange Course Finder (unofficial, for NUS)", D4
+  say why a typed code is hidden. Three design directions (A ledger, B planner, C field guide)
+  are with Jacob for D1.
+- **5A** (PR #68, `f798542`): migration `0010_exam_dates.sql`; `/module/:code` returns
+  `examDates`, a workload object, `nusmodsUrl` and `Cache-Control`. Row-only data change
+  (`62e5a0011231` → `d820d578cf81`); nothing re-embedded.
+- **Live** (`docs/evidence/phase5/remote-ops.md`): version `b9f7e0e4` (tag `f798542`); about 34k
+  D1 rows written; verify and standby 0 drift; smoke unchanged (EE2211 first, the accounting
+  order kept).
+- **Pin** (`docs/evidence/phase5/gates.md`): dev (three filter modes) and the fixture are
+  byte-identical to `9d91605`'s, and the custodian's new `eval:count --lists-differing` finds 0
+  of 81 holdout lists differ. `SHIPPED_BASELINE` is `f798542`. Holdout looks stay at 7 of 12.
+- **Next:** D1 from Jacob, then 5B (the static-asset foundation).

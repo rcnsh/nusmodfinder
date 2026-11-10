@@ -167,6 +167,30 @@ describe('eval:count prints one integer and logs the call', () => {
     expect((await rowsOf(cloneCountLog())).map((c) => c[3])).toEqual(['cand', 'base']);
   });
 
+  it('--holdout --lists-differing --run --baseline: queries whose stored lists (status and codes, in order) differ between the two runs', async () => {
+    const { dir, d } = await encSet('holdout-differing', 'holdout');
+    const looksBefore = await looks(cloneLedger(), 'holdout');
+    // cand empties 5 lists and errors on a 6th; a reorder alone also counts.
+    const r = count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'cand', '--baseline', 'base']);
+    expect(r.stderr).toBe('');
+    expect(r.code).toBe(0);
+    expect(r.stdout).toBe('6\n');
+    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'holdout', 'count: lists-differing', 'cand vs base', '6']]);
+    expect(await looks(cloneLedger(), 'holdout')).toBe(looksBefore);
+    // A run against itself, and a byte-identical copy under another name: 0.
+    expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'base', '--baseline', 'base']).stdout).toBe('0\n');
+    const same = runOf(d, 'same', { ref: 'x', sha: 'e'.repeat(40), dirty: false, treeHash: 'f'.repeat(64) }, d.ranked);
+    const swapped = runOf(d, 'swapped', { ref: 'x', sha: 'e'.repeat(40), dirty: false, treeHash: 'f'.repeat(64) }, d.ranked);
+    const first = d.answerable[0];
+    swapped.results[first] = { status: 200, codes: [...d.ranked[first]].reverse() };
+    await writeEncryptedJson(join(dir, 'runs', 'run-same.json.enc'), same, key, 'holdout');
+    await writeEncryptedJson(join(dir, 'runs', 'run-swapped.json.enc'), swapped, key, 'holdout');
+    await updateManifest(dir);
+    expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'same', '--baseline', 'base']).stdout).toBe('0\n');
+    expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'swapped', '--baseline', 'base']).stdout).toBe('1\n');
+    expect((await rowsOf(cloneCountLog())).map((c) => c[4])).toEqual(['6', '0', '0', '1']);
+  });
+
   it('the self-test set logs beside its own ledger', async () => {
     const { dir } = await encSet('selftest-emptied', 'selftest');
     const r = count(['--custodian', '--set', 'selftest', '--set-dir', dir, '--emptied-untagged', '--run', 'cand']);
@@ -208,7 +232,6 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
 
   it.each([
     [['--json', 'out.json']],
-    [['--baseline', 'base']],
     [['--qrels', 'q.json']],
     [['--out', 'x']],
     [['--ids']],
@@ -216,12 +239,18 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
     [['--change-kind', 'general']],
     [['report']],
   ])('with %j, which could print ids or metrics', async (extra) => {
-    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--run', 'cand', ...extra], /^eval:count: .*eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged and --run/);
+    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--run', 'cand', ...extra], /^eval:count: .*eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged, --lists-differing, --run and --baseline/);
   });
 
   it('without exactly one count, or with a count the set does not have', async () => {
-    await refused(['--custodian', '--set', 'test', '--set-dir', testDir], /exactly one of --answerable or --emptied-untagged/);
-    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--answerable', '--emptied-untagged', '--run', 'cand'], /exactly one of --answerable or --emptied-untagged/);
+    await refused(['--custodian', '--set', 'test', '--set-dir', testDir], /exactly one of --answerable, --emptied-untagged or --lists-differing/);
+    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--answerable', '--emptied-untagged', '--run', 'cand'], /exactly one of --answerable, --emptied-untagged or --lists-differing/);
+    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--lists-differing', '--run', 'cand', '--baseline', 'base'], /exactly one of --answerable, --emptied-untagged or --lists-differing/);
+    await refused(['--custodian', '--set', 'test', '--set-dir', testDir, '--lists-differing', '--run', 'cand', '--baseline', 'base'], /--lists-differing counts the holdout only/);
+    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--lists-differing', '--run', 'cand'], /--lists-differing needs --run <variant> and --baseline <variant>/);
+    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--lists-differing', '--baseline', 'base'], /--lists-differing needs --run <variant> and --baseline <variant>/);
+    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--run', 'cand', '--baseline', 'base'], /--baseline is for --lists-differing only/);
+    await refused(['--custodian', '--set', 'test', '--set-dir', testDir, '--answerable', '--baseline', 'base'], /--baseline is for --lists-differing only/);
     await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--answerable'], /--answerable counts the test set only/);
     await refused(['--custodian', '--set', 'test', '--set-dir', testDir, '--emptied-untagged', '--run', 'cand'], /--emptied-untagged counts the holdout only/);
     await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged'], /--emptied-untagged needs --run <variant>/);
@@ -243,6 +272,24 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
     await writeEncryptedJson(join(dir, 'runs', 'run-other.json.enc'), other, key, 'holdout');
     await updateManifest(dir);
     await refused(['--custodian', '--holdout', '--set-dir', dir, '--emptied-untagged', '--run', 'other'], /^eval: holdout count failed \(RunFileError\); details withheld\n$/);
+    // Either side of a --lists-differing pair.
+    await refused(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'other', '--baseline', 'base'], /^eval: holdout count failed \(RunFileError\); details withheld\n$/);
+    await refused(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'cand', '--baseline', 'other'], /^eval: holdout count failed \(RunFileError\); details withheld\n$/);
+  });
+
+  it('a --lists-differing pair run under other settings (filters, mode) or missing a query: withheld, and no row', async () => {
+    const { dir, d } = await encSet('other-config', 'holdout');
+    const unfiltered = runOf(d, 'unfiltered', {}, d.ranked);
+    unfiltered.config = { mode: 'hybrid', filters: false };
+    const lexical = runOf(d, 'lexical', {}, d.ranked);
+    lexical.config = { mode: 'lexical', filters: true };
+    const short = runOf(d, 'short', {}, d.ranked);
+    delete short.results[d.unscored[1]];
+    for (const r of [unfiltered, lexical, short]) await writeEncryptedJson(join(dir, 'runs', `run-${r.variant}.json.enc`), r, key, 'holdout');
+    await updateManifest(dir);
+    for (const v of ['unfiltered', 'lexical', 'short']) {
+      await refused(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', v, '--baseline', 'base'], /^eval: holdout count failed \(RunFileError\); details withheld\n$/);
+    }
   });
 });
 
