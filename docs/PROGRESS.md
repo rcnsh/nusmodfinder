@@ -1021,3 +1021,13 @@ fails on the previous code.
   7 of 12.
 - **Next:** Phase 5 (frontend) planning.
 
+
+## 2026-11-11 — Phase 5 planned (converged r3.1)
+
+- **Plan** (`docs/plans/phase5.md`, ADR 0008): three critic rounds (frontend and accessibility;
+  data, eval and ship; the product for exchange students), 46 objections, every one accepted.
+- **Shape:** exam dates ship first as a data change with their own runbook cycle; the page then
+  moves to static assets with the SC2 detail, hidden-code explanations and SC8 measured in CI;
+  phrase parsing returns only under a compliance-aware rule with one look (L8 of 12).
+- **Next:** Jacob answers D2 (first screen), D3 (working name) and D4 (hidden codes); then three
+  design directions for D1.

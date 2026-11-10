@@ -1,0 +1,46 @@
+# 0008: Phase 5 frontend plan
+
+Status: accepted by the lead (2026-11-11). The plan converged at r3.1 after three critic rounds
+(frontend and accessibility; data, eval and ship; the product for exchange students).
+`docs/plans/phase5.md` §7 logs every objection and where it landed. No objection was declined,
+so there is no dissent. Jacob's answers to D1–D4 are added below as they come.
+
+## Context
+SC2 wants every result card to open onto what a student needs to decide; SC8 wants zero axe
+violations, working keyboard and screen-reader flows, and the first result above the fold at
+390px. The page is one 14.9 kB HTML file with ten open frontend findings (F1–F10), a visual
+critique (V1) and a provenance gap (P3). SC4's parsed-phrase items carry over from Phase 4.
+
+## Decisions
+- **Exam dates are data.** Migration 0010 stores them; since the row hash covers every column,
+  this is a data-version change with its own full runbook cycle and deploy, shipped before and
+  apart from the page.
+- **The page is static assets**, native ES modules with `// @ts-check`, no framework and no build
+  step, rendering DOM nodes only (`innerHTML` and friends banned by lint). State lives in the URL
+  with a fixed transition table; `pick` and `alt` are reserved for Phase 6.
+- **`/search` gains ranking-neutral fields** the page can't compute: `hiddenPins` and
+  `notOffered` (every typed code, not only the three pinned), `exchangeBySem`, `examDates`.
+- **A hidden typed code is explained with its own stored reasons**, never listed as a result,
+  so SC1's "never shows" holds (subject to Jacob's D4).
+- **Every exchange note shows in full on the card.**
+- **The UI test stack** is a Worker entry with the fake AI and rate limiter over a locally seeded
+  D1, under Playwright with axe running every rule; the vocabulary and groups become bare-name
+  aliases, pointed at each eval run's workspace by the eval config.
+- **SC8 is measured** by axe on every state × theme × width, a keyboard-only task at 1280 and
+  390×664, live-region assertions, a VoiceOver checklist locally and live, and the fold at
+  390×664 (`iPhone 13`), in CI and live.
+- **Phrase parsing** returns only under a compliance-aware rule committed before any count or
+  look: constraint-filtered qrels for both candidate and pin, a reference parse frozen at tag
+  `3h`, the constraint block gated, counts inside the verdict path only, a dev screen first, and
+  one look (L8 of 12) with no retry. The rule also says how exchange-mode removals are scored
+  for every later look. The holdout misparse risk is accepted in writing.
+- **The red team** is three exchange-student personas whose expected answers (yes / yes if / no
+  / ask NUS) are fixed per note kind before the run; disagreements are classified, and exit needs
+  zero page defects.
+
+## Consequences
+- Two production deploys before 5F: the data change, then the page (code-only, rolled back
+  alone). Each moves the shipped-ranker pin as ranking-neutral.
+- One new CI job (`ui`) with two browsers.
+- At most one holdout look this phase.
+- Prerequisite text stays in NUS's rule language; class times stay on NUSMods.
