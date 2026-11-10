@@ -341,6 +341,39 @@ P-5b, §9). Each rule is in the code and tested.
   amend this rule for every change, rather than screen 3B under the general rule or drop the target
   after the fact.
 
+## Amendment 2026-11-10: Phase 4 is gated without a look
+Phase 4 (`docs/plans/phase4.md`, ADR 0007) changes most exchange-mode result lists by design: it
+removes courses an exchange student may not take. The judges graded relevance only and never saw
+NG semesters or restrictions, so a relevance-only look would score correct removals as loss (the
+lesson from 3H). So no holdout look gates Phase 4's correctness changes. Three gates do, none
+reading the holdout or the test set:
+1. **SC1's oracle and path tests** (`test/full/sc1-oracle.node.test.js`, `test/sc1/paths.test.js`,
+   the `sc1` CI job): `src/eligibility.js` agrees with an independent oracle on every pinned
+   module × semester × study level, and every search path (D1 lexical, the bundle, the Vectorize
+   standby, pins, variants, `related`) shows exactly the oracle's open ∪ note set.
+2. **Per-list identity on dev** (`test/sc1/identity.test.js`): each internal list of every dev
+   query, run with the allow-mask bit ignored at full depth (the test-only `SC1_TRACE`, honoured
+   only with `TEST_MIGRATIONS` bound; `npm run deploy` refuses any var but `DENSE_BACKEND`),
+   projected by the oracle and cut at the pipeline's depth, equals the filtered list; the page
+   equals the fusion of the filtered lists. A dev query outside the no-answer tag pushed into
+   no-signal fails the gate until Jacob rules on it.
+3. **The unfiltered guard**: dev with `ng` stripped (`--strip ng`, `sem` kept), dev
+   `--unfiltered`, and the fixture queries with `ng` stripped give byte-identical results to the
+   shipped ranker's; the SC4 suite stays green.
+
+`eval:report` on dev is reported, never a gate.
+
+**Study levels.** Exchange mode requires `study`. The runner adds it to every `ng` query from
+`eval/study-map.json` by persona (P1, P2, P5 `ug3`; P3, P4, P6, `mech` and persona-less queries
+`ug2`), so the locked query files never change. It throws on an `ng` query whose persona is
+unmapped, records the map's sha256 in each run's `config.studyMap`, and `assertBaselineAt`
+refuses a baseline that recorded another map or stripped any filter.
+
+**Looks from Phase 4 on.** 7 of 12 holdout looks are used; the test set's one look is spent. This
+ADR's per-change look procedure was written for Phase 3. Each of the 5 remaining holdout looks
+needs a rule written and committed before the look (what is compared, the metric, the pass
+condition, and how exchange-mode removals are scored); without one, no look is taken.
+
 ## Shipped-ranker pin
 The baseline of per-change holdout looks (`SHIPPED_BASELINE`, `eval/lib/baseline.mjs`). The
 last line is the current pin; a PR that ships a change appends one line, with the ranker it
