@@ -1097,3 +1097,17 @@ fails on the previous code.
 - **Adopted:** ADR 0003's 5F amendment, after the lead confirmed the 10-query dev reference
   parse by hand (`docs/evidence/phase5/gates.md`). No count, no look; looks stay at 7 of 12.
 - **Next:** 5D (in progress), 5E, the dev screen with phrases on, then 5G and L8.
+
+## 2026-11-11 — Phase 5 5D merged: design D, light and dark
+
+- **5D** (PR #74, `4a14bfd`): direction D built in light and a matching dark theme
+  (`prefers-color-scheme`), self-hosted IBM Plex (OFL), the "Your exchange" rail, per-semester
+  stamps, the mobile one-line bar with a filters `<dialog>`, and `npm run contrast` (68 pairs,
+  both themes, all AA). V1, F6 and F10 are fixed. `/module/:code` returns `prereqCohortOnly`, so
+  the page's copy of the rule is gone; ranking unchanged on all four identity runs.
+- **Fold check:** passes at 390×664 in Chromium and WebKit. axe allows no violations on every
+  tested state.
+- **Follow-up (not blocking):** mockup details that are new behaviour: per-code stamps and a
+  "Switch to Sem 2" action, "Also as" variants as links, the detail header repeating code and
+  title, and "n courses shown" for code queries.
+- **Next:** 5E (SC8 measurement), then the 5F dev screen, 5G ship and L8.
