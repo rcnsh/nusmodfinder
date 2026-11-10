@@ -1,0 +1,2061 @@
+{
+  "source": "non-graduating-course-restrictions.pdf",
+  "rules": [
+    {
+      "id": "A-dentistry",
+      "section": "A",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": null, "school": "Faculty of Dentistry"},
+      "students": "all-ng",
+      "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Faculty of Dentistry"
+    },
+    {
+      "id": "A-medicine",
+      "section": "A",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["Course codes that do not start with LSM only"], "levels": null, "school": "Yong Loo Lin School of Medicine"},
+      "students": "all-ng",
+      "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Yong Loo Lin School of Medicine (Course codes that do not start with LSM only)"
+    },
+    {
+      "id": "A-public-health",
+      "section": "A",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["Graduate courses only"], "levels": [5000, 6000], "school": "Saw Swee Hock School of Public Health"},
+      "students": "all-ng",
+      "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Saw Swee Hock School of Public Health (Graduate courses only)"
+    },
+    {
+      "id": "A-nursing",
+      "section": "A",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": null, "school": "Alice Lee Centre for Nursing Studies"},
+      "students": "all-ng",
+      "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Alice Lee Centre for Nursing Studies"
+    },
+    {
+      "id": "A-iss",
+      "section": "A",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": null, "school": "Institute of Systems Science"},
+      "students": "all-ng",
+      "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Institute of Systems Science"
+    },
+    {
+      "id": "A-self-funded",
+      "section": "A",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All courses in NUS self-funded programmes"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • All courses in NUS self-funded programmes (click here)"
+    },
+    {
+      "id": "A-fee",
+      "section": "A",
+      "department": null,
+      "page": 1,
+      "kind": "note-fee",
+      "scope": {"codes": [], "patterns": ["any Course in the list above"], "levels": null, "school": null},
+      "students": "other: Non-Graduating Exchange or Non-Exchange applicants/ students who have been approved (on exceptional basis) to read any Course in the list above",
+      "quote": "Non-Graduating Exchange or Non-Exchange applicants/ students who have been approved (on exceptional basis) to read any Course in the list above will be required to pay tuition fee for each Course, as determined by the respective College/Faculty/School/Institute/Department. Please browse their respective website for contact information. A list can be found here."
+    },
+    {
+      "id": "B-suffix-x",
+      "section": "B",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "CM1417X", "title": null},
+          {"code": "CM1502X", "title": null},
+          {"code": "CS1010X", "title": null},
+          {"code": "MA1301X", "title": null},
+          {"code": "NM1101X", "title": null},
+          {"code": "PC1221X", "title": null},
+          {"code": "PC1222X", "title": null}
+        ],
+        "patterns": [],
+        "levels": null,
+        "school": null
+      },
+      "students": "all-ng",
+      "quote": "The Course codes below with suffix ‘X’ are NOT available to Non-Graduating applicants/ students."
+    },
+    {
+      "id": "C-urops-fass",
+      "section": "C",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["Undergraduate Research Opportunities Programme"], "levels": null, "school": "Arts & Social Sciences"},
+      "students": "all-ng",
+      "quote": "Undergraduate Research Opportunities Programme offered by the College/ Faculty/ School below are NOT available to Non-Graduating applicants/ students. a. Arts & Social Sciences"
+    },
+    {
+      "id": "C-urops-cde",
+      "section": "C",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["Undergraduate Research Opportunities Programme"], "levels": null, "school": "Design & Engineering"},
+      "students": "all-ng",
+      "quote": "Undergraduate Research Opportunities Programme offered by the College/ Faculty/ School below are NOT available to Non-Graduating applicants/ students. b. Design & Engineering"
+    },
+    {
+      "id": "D-level-digit",
+      "section": "D",
+      "department": null,
+      "page": 1,
+      "kind": "info",
+      "scope": {"codes": [], "patterns": [], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "The first of four digits in the Course code denotes the level of the Course. For example, 1000 indicates a Level 1000 Course."
+    },
+    {
+      "id": "D-a-undergraduate-levels",
+      "section": "D",
+      "department": null,
+      "page": 1,
+      "kind": "info",
+      "scope": {"codes": [], "patterns": [], "levels": [1000, 2000, 3000, 4000], "school": null},
+      "students": "all-ng",
+      "quote": "Level 1000 to 4000 are considered undergraduate courses"
+    },
+    {
+      "id": "D-b-graduate-levels",
+      "section": "D",
+      "department": null,
+      "page": 1,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["unless specified in the list below"], "levels": [5000, 6000], "school": null},
+      "students": "other: exchange students",
+      "quote": "Level 5000 and 6000 are considered graduate courses and are NOT available to exchange students unless specified in the list below."
+    },
+    {
+      "id": "E-case-by-case",
+      "section": "E",
+      "department": null,
+      "page": 1,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": ["any other courses not listed in this document"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Approval for any other courses not listed in this document will be granted on a case-by-case basis."
+    },
+    {
+      "id": "E-not-in-offerings",
+      "section": "E",
+      "department": null,
+      "page": 1,
+      "kind": "info",
+      "scope": {"codes": [], "patterns": ["courses cannot be found at the Course offerings list"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "If the courses cannot be found at the Course offerings list, they are not available during application stage but may be available during Course registration."
+    },
+    {
+      "id": "F-links",
+      "section": "F",
+      "department": null,
+      "page": 1,
+      "kind": "info",
+      "scope": {"codes": [], "patterns": ["Arts & Social Sciences", "Business", "Computing", "Design & Engineering", "Law", "Music", "Public Policy", "Science", "University Scholars Programme", "NUS Risk Management Institute"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Due to demand and space constraints, some Faculties/ Schools/ Programmes and their respective courses have limited or restricted access for Non-Graduating applicants/ students. Please click on the links below to view the list for the respective Faculty/ School/ Programme. • Arts & Social Sciences • Business • Computing • Design & Engineering • Law • Music • Public Policy • Science • University Scholars Programme • NUS Risk Management Institute"
+    },
+
+    {
+      "id": "1-cls-table",
+      "section": "1",
+      "department": "Centre for Language Studies",
+      "page": 3,
+      "kind": "info",
+      "scope": {
+        "codes": [
+          {"code": "LAG3203", "title": "German for Academic Purposes"},
+          {"code": "LAF3203", "title": "French for Academic Purposes"},
+          {"code": "LAK3203", "title": "Korean for Academic Purposes"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Course Code Course Title"
+    },
+    {
+      "id": "1-cls-graded",
+      "section": "1",
+      "department": "Centre for Language Studies",
+      "page": 3,
+      "kind": "note-graded",
+      "scope": {"codes": [], "patterns": ["Language courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Language courses can be taken only on graded basis; cannot be set to audit grading basis."
+    },
+    {
+      "id": "1-chs-l4-ug",
+      "section": "1",
+      "department": "Chinese Studies",
+      "page": 3,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [4000, 5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "All Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate students."
+    },
+    {
+      "id": "1-cnm-table",
+      "section": "1",
+      "department": "Communications and New Media",
+      "page": 3,
+      "kind": "info",
+      "scope": {
+        "codes": [
+          {"code": "NM2101", "title": "Theories of Communications and New Media"},
+          {"code": "NM2103", "title": "Quantitative Research Methods"},
+          {"code": "NM2104", "title": "Qualitative Communication Research Methods"},
+          {"code": "NM4102", "title": "Advanced Communications and New Media Research"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Course Code Course Title"
+    },
+    {
+      "id": "1-cnm-l4",
+      "section": "1",
+      "department": "Communications and New Media",
+      "page": 3,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [4000], "school": null},
+      "students": "all-ng",
+      "quote": "All Level 4000 courses are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "1-cnm-suffix-y",
+      "section": "1",
+      "department": "Communications and New Media",
+      "page": 3,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["suffix ‘Y’"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "All courses with the suffix ‘Y’ (e.g. NM2219Y) are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "1-econ-l4-ug-grad",
+      "section": "1",
+      "department": "Economics",
+      "page": 3,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [4000, 5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate AND graduate students."
+    },
+    {
+      "id": "1-econ-l1-3-grad",
+      "section": "1",
+      "department": "Economics",
+      "page": 3,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [1000, 2000, 3000], "school": null},
+      "students": "ng-graduate",
+      "quote": "All Level 1000, 2000 and 3000 courses are NOT open to Non-Graduating graduate students."
+    },
+    {
+      "id": "1-elts-table",
+      "section": "1",
+      "department": "English, Linguistics & Theatre Studies",
+      "page": 3,
+      "kind": "info",
+      "scope": {
+        "codes": [
+          {"code": "TS3103", "title": "Play Production"},
+          {"code": "TS3245", "title": "Professional Theatre Internship"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Course Code Course Title"
+    },
+    {
+      "id": "1-elts-l4-ug",
+      "section": "1",
+      "department": "English, Linguistics & Theatre Studies",
+      "page": 3,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [4000, 5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "All Level 4000, 5000, 6000 courses are NOT open to Non-Graduating undergraduate students."
+    },
+    {
+      "id": "1-elts-grad-approval",
+      "section": "1",
+      "department": "English, Linguistics & Theatre Studies",
+      "page": 3,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": ["Level 5000 and 6000 Graduate Courses"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "Level 5000 and 6000 Graduate Courses – Approval will be granted on a case-by-case basis."
+    },
+    {
+      "id": "1-elts-grad-only",
+      "section": "1",
+      "department": "English, Linguistics & Theatre Studies",
+      "page": 3,
+      "kind": "open-only-for",
+      "scope": {"codes": [], "patterns": ["Level 5000 and 6000 Graduate Courses"], "levels": [5000, 6000], "school": null},
+      "students": "ng-graduate",
+      "quote": "Level 5000 and 6000 Graduate Courses – ... Only open to Non-Graduating graduate students."
+    },
+    {
+      "id": "1-geog-quota",
+      "section": "1",
+      "department": "Geography",
+      "page": 3,
+      "kind": "note-quota",
+      "scope": {
+        "codes": [
+          {"code": "GE2101", "title": "Methods and Practices in Geography"},
+          {"code": "GE3216", "title": "Applications of GIS & Remote Sensing"},
+          {"code": "GE3238", "title": "GIS Design and Practices"},
+          {"code": "GE3252", "title": "Cartography and Geovisualization"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses with limited quota"
+    },
+    {
+      "id": "1-geog-l1-4-grad",
+      "section": "1",
+      "department": "Geography",
+      "page": 3,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [1000, 2000, 3000, 4000], "school": null},
+      "students": "ng-graduate",
+      "quote": "All Level 1000, 2000, 3000 and 4000 courses are NOT open to Non-Graduating graduate students."
+    },
+    {
+      "id": "1-geog-l4-ug",
+      "section": "1",
+      "department": "Geography",
+      "page": 3,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [4000, 5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "All Level 4000, 5000 and 6000 courses are NOT open to Non-Graduating undergraduate students."
+    },
+    {
+      "id": "1-hist-quota",
+      "section": "1",
+      "department": "History",
+      "page": 4,
+      "kind": "note-quota",
+      "scope": {
+        "codes": [
+          {"code": "AS2236", "title": "US Media in the 20th Century and Beyond"},
+          {"code": "AS2237", "title": "The U.S.: From Settlement to Superpower"},
+          {"code": "AS3230", "title": "American Business: Industrial Revolution-Web"},
+          {"code": "AS3238", "title": "The Political History of the US"},
+          {"code": "AS3239", "title": "The United States in the Asia-Pacific"},
+          {"code": "AS3240", "title": "Making America Modern"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses cross-listed with HY coded courses and with limited quota"
+    },
+    {
+      "id": "1-hist-l4-fma",
+      "section": "1",
+      "department": "History",
+      "page": 4,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All History (Honours) Level 4000 courses", "FMA120XH"], "levels": [4000], "school": null},
+      "students": "all-ng",
+      "quote": "All History (Honours) Level 4000 courses and Freshmen seminar courses FMA120XH are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "1-js-table",
+      "section": "1",
+      "department": "Japanese Studies",
+      "page": 4,
+      "kind": "info",
+      "scope": {
+        "codes": [
+          {"code": "JS2101", "title": "Approaches to Japanese Studies I"},
+          {"code": "JS3101", "title": "Approaches to Japanese Studies II"},
+          {"code": "JS4401", "title": "Honours Thesis"},
+          {"code": "JS4660", "title": "Independent Study"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Course Code Course Title"
+    },
+    {
+      "id": "1-js-l4-approval",
+      "section": "1",
+      "department": "Japanese Studies",
+      "page": 4,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": [], "levels": [4000], "school": null},
+      "students": "all-ng",
+      "quote": "All Level 4000 courses – Approval will be done on a case-by-case basis."
+    },
+    {
+      "id": "1-malay-no-audit",
+      "section": "1",
+      "department": "Malay Studies",
+      "page": 4,
+      "kind": "note-graded",
+      "scope": {"codes": [], "patterns": ["All courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "All courses cannot be audited."
+    },
+    {
+      "id": "1-malay-l4",
+      "section": "1",
+      "department": "Malay Studies",
+      "page": 4,
+      "kind": "open-only-for",
+      "scope": {"codes": [], "patterns": [], "levels": [4000], "school": null},
+      "students": "other: 3rd & 4th year Non-Graduating undergraduate students and Non-Graduating postgraduate students",
+      "quote": "All Level 4000 courses are only open to 3rd & 4th year Non-Graduating undergraduate students and Non-Graduating postgraduate students."
+    },
+    {
+      "id": "1-malay-grad-approval",
+      "section": "1",
+      "department": "Malay Studies",
+      "page": 4,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": ["Graduate Courses"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "Graduate Courses - Approval will be done on a case-by-case basis."
+    },
+    {
+      "id": "1-malay-grad-ug-closed",
+      "section": "1",
+      "department": "Malay Studies",
+      "page": 4,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["Graduate Courses"], "levels": [5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "Undergraduate students are NOT allowed to apply for graduate courses."
+    },
+    {
+      "id": "1-polsci-l4-ug",
+      "section": "1",
+      "department": "Political Science",
+      "page": 4,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [4000, 5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "All Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate Students."
+    },
+    {
+      "id": "1-psych-l4-appeal",
+      "section": "1",
+      "department": "Psychology",
+      "page": 4,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": ["Level 4000 courses (excluding research courses)"], "levels": [4000], "school": null},
+      "students": "all-ng",
+      "quote": "Level 4000 courses (excluding research courses) – Only appeals for courses with remaining availability will be considered, and will be reviewed on a case-by-case basis when the \"Unable to secure Course\" appeal type opens. Appeals submitted before that will be rejected."
+    },
+    {
+      "id": "1-psych-closed",
+      "section": "1",
+      "department": "Psychology",
+      "page": 4,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "PL2131", "title": null},
+          {"code": "PL2132", "title": null},
+          {"code": "PL3231", "title": null},
+          {"code": "PL3551", "title": null}
+        ],
+        "patterns": ["PL328x (lab courses)", "All Level 4000, 5000 and 6000 courses"],
+        "levels": [4000, 5000, 6000],
+        "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students - PL2131, PL2132, PL3231, PL3551 - PL328x (lab courses) - All Level 4000, 5000 and 6000 courses"
+    },
+    {
+      "id": "1-sw-l4-ug",
+      "section": "1",
+      "department": "Social Work",
+      "page": 4,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [4000, 5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate students"
+    },
+    {
+      "id": "1-soc-l4-ug",
+      "section": "1",
+      "department": "Sociology and Anthropology",
+      "page": 4,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [4000, 5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "All Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate Students."
+    },
+    {
+      "id": "1-soc-grad-only",
+      "section": "1",
+      "department": "Sociology and Anthropology",
+      "page": 4,
+      "kind": "open-only-for",
+      "scope": {"codes": [], "patterns": ["Graduate Courses (Level 5000 or 6000 courses)"], "levels": [5000, 6000], "school": null},
+      "students": "ng-graduate",
+      "quote": "Graduate Courses (Level 5000 or 6000 courses) - Only open to Non-Graduating graduate students and subject to approval."
+    },
+    {
+      "id": "1-soc-grad-approval",
+      "section": "1",
+      "department": "Sociology and Anthropology",
+      "page": 4,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": ["Graduate Courses (Level 5000 or 6000 courses)"], "levels": [5000, 6000], "school": null},
+      "students": "ng-graduate",
+      "quote": "Graduate Courses (Level 5000 or 6000 courses) - Only open to Non-Graduating graduate students and subject to approval."
+    },
+    {
+      "id": "1-sas-no-audit",
+      "section": "1",
+      "department": "South Asian Studies",
+      "page": 4,
+      "kind": "note-graded",
+      "scope": {"codes": [], "patterns": ["All courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "All courses cannot be audited."
+    },
+    {
+      "id": "1-sas-l4",
+      "section": "1",
+      "department": "South Asian Studies",
+      "page": 4,
+      "kind": "open-only-for",
+      "scope": {"codes": [], "patterns": [], "levels": [4000], "school": null},
+      "students": "other: 3rd & 4th year Non-Graduating undergraduate students and Non-Graduating postgraduate students",
+      "quote": "All Level 4000 courses are only open to 3rd & 4th year Non-Graduating undergraduate students and Non-Graduating postgraduate students."
+    },
+    {
+      "id": "1-sas-grad-approval",
+      "section": "1",
+      "department": "South Asian Studies",
+      "page": 5,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": ["Graduate Courses"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "Graduate Courses - Approval will be done on a case-by-case basis."
+    },
+    {
+      "id": "1-sas-grad-ug-closed",
+      "section": "1",
+      "department": "South Asian Studies",
+      "page": 5,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["Graduate Courses"], "levels": [5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "Undergraduate students are NOT allowed to apply for graduate courses."
+    },
+    {
+      "id": "1-sea-closed",
+      "section": "1",
+      "department": "Southeast Asian Studies",
+      "page": 5,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "SE2225", "title": "Forbidden Pleasures: Vice in Southeast Asia"},
+          {"code": "SE4101", "title": "Southeast Asia Studies: Theory and Practice"}
+        ],
+        "patterns": ["SEA5XXX"],
+        "levels": null,
+        "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students (SEA5XXX: All courses with the suffix ‘SEA’)"
+    },
+    {
+      "id": "1-sea-no-audit",
+      "section": "1",
+      "department": "Southeast Asian Studies",
+      "page": 5,
+      "kind": "note-graded",
+      "scope": {"codes": [], "patterns": ["All courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "All courses cannot be Audited."
+    },
+    {
+      "id": "1-sea-se3234-form",
+      "section": "1",
+      "department": "Southeast Asian Studies",
+      "page": 5,
+      "kind": "note-approval",
+      "scope": {"codes": [{"code": "SE3234", "title": null}], "patterns": [], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "SE3234 – Course is NOT open for online selection. Interested Non-Graduating students are required to submit application using the department’s application form that is available during application period in the semester that the Course is offered. Please send an email to fasbox59@nus.edu.sg for more details."
+    },
+    {
+      "id": "1-sea-l4",
+      "section": "1",
+      "department": "Southeast Asian Studies",
+      "page": 5,
+      "kind": "open-only-for",
+      "scope": {"codes": [], "patterns": [], "levels": [4000], "school": null},
+      "students": "other: 3rd & 4th year Non-Graduating undergraduate students and Non-Graduating postgraduate students",
+      "quote": "All Level 4000 courses are only open to 3rd & 4th year Non-Graduating undergraduate students and Non-Graduating postgraduate students."
+    },
+    {
+      "id": "1-sea-l5",
+      "section": "1",
+      "department": "Southeast Asian Studies",
+      "page": 5,
+      "kind": "open-only-for",
+      "scope": {"codes": [], "patterns": ["All other Level 5000 courses"], "levels": [5000], "school": null},
+      "students": "other: 4th year & postgraduate Non-Graduating students",
+      "quote": "All other Level 5000 courses are only open to 4th year & postgraduate Non-Graduating students."
+    },
+    {
+      "id": "1-sea-l6",
+      "section": "1",
+      "department": "Southeast Asian Studies",
+      "page": 5,
+      "kind": "open-only-for",
+      "scope": {"codes": [], "patterns": [], "levels": [6000], "school": null},
+      "students": "ng-graduate",
+      "quote": "All Level 6000 courses are only open to all postgraduate Non-Graduating students."
+    },
+
+    {
+      "id": "2-biz-l1-4-priority",
+      "section": "2",
+      "department": null,
+      "page": 6,
+      "kind": "note-quota",
+      "scope": {"codes": [], "patterns": ["courses from the NUS Business School"], "levels": [1000, 2000, 3000, 4000], "school": "NUS Business School"},
+      "students": "all-ng",
+      "quote": "Level 1000 to 4000 courses: Please note that courses from the NUS Business School are extremely popular, over-subscribed and cannot be guaranteed. As such, priorities in allocating Business courses will be given firstly to our full-time NUS undergraduates who reading these Business courses as their core courses as well as exchange students from the Business School faculty-level exchange partners."
+    },
+    {
+      "id": "2-biz-major",
+      "section": "2",
+      "department": null,
+      "page": 6,
+      "kind": "note-major",
+      "scope": {"codes": [], "patterns": ["Business courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Students must also be majoring in business at their home university in order to be considered eligible for Business courses."
+    },
+    {
+      "id": "2-biz-initial-offer",
+      "section": "2",
+      "department": null,
+      "page": 6,
+      "kind": "info",
+      "scope": {"codes": [], "patterns": ["Business courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "If you have not been offered Business courses at the point of initial acceptance (first week of June or November), you will not be able to add the Course during the Submit Course Requests period."
+    },
+    {
+      "id": "2-biz-bma-ug",
+      "section": "2",
+      "department": null,
+      "page": 6,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["prefix BMA"], "levels": [5000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "Level 5000 courses with prefix BMA: Students who are pursuing an undergraduate degree at their home university are NOT eligible to apply for graduate (MBA) courses."
+    },
+    {
+      "id": "2-biz-bma-partner",
+      "section": "2",
+      "department": null,
+      "page": 6,
+      "kind": "note-partner",
+      "scope": {"codes": [], "patterns": ["prefix BMA"], "levels": [5000], "school": null},
+      "students": "other: students currently pursuing a graduate degree in the NUS Business School’s faculty-level exchange partner universities AND have at least 1.5 years of post-bachelor work experience",
+      "quote": "Only students who are currently pursuing a graduate degree in the NUS Business School’s faculty-level exchange partner universities AND have at least 1.5 years of post-bachelor work experience will be considered for admission to read MBA courses (i.e. Course codes with prefix BMA)."
+    },
+    {
+      "id": "2-biz-bms-cems",
+      "section": "2",
+      "department": null,
+      "page": 6,
+      "kind": "note-partner",
+      "scope": {"codes": [], "patterns": ["prefix BMS"], "levels": [5000], "school": null},
+      "students": "other: students nominated by a CEMS partner school for CEMS Master’s in International Management programme",
+      "quote": "Level 5000 courses with prefix BMS: Only students who are nominated by a CEMS partner school for CEMS Master’s in International Management programme will be considered for admission to read these courses."
+    },
+
+    {
+      "id": "3-dean-closed",
+      "section": "3",
+      "department": "Dean's Office, School of Computing",
+      "page": 6,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "CP1008", "title": "Learning with Generative AI Tools"},
+          {"code": "CP2106", "title": "Independent Software Development Project (Orbital)"},
+          {"code": "CP2202", "title": "Work Experience Internship"},
+          {"code": "CP3107", "title": "Computing for Voluntary Welfare Organisations"},
+          {"code": "CP3108A", "title": "Independent Work"},
+          {"code": "CP3108B", "title": "Independent Work"},
+          {"code": "CP3109", "title": "Overseas Exploratory Project"},
+          {"code": "CP3110", "title": "Computing for Voluntary Welfare Organisations II"},
+          {"code": "CP3200", "title": "Internship"},
+          {"code": "CP3201", "title": "Industry Seminar"},
+          {"code": "CP3202", "title": "Internship II"},
+          {"code": "CP3209", "title": "Undergraduate Research Project in Computing"},
+          {"code": "CP3880", "title": "Advanced Technology Attachment Programme"},
+          {"code": "CP3881", "title": "Incubation Project"},
+          {"code": "CP4101", "title": "BComp Dissertation"},
+          {"code": "IFS3201", "title": "Information Security Capstone Project"},
+          {"code": "IFS3202", "title": "Information Security Practicum Programme"},
+          {"code": "IFS4205", "title": "Information Security Capstone Project"},
+          {"code": "XFC4101", "title": "Integrated Honours Thesis"},
+          {"code": "UIS2951R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS2952R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS3951CS", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS3951R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS3952CS", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS3952R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS3953R", "title": "Independent Project"},
+          {"code": "UIS3954R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS3955R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS3956R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS3957R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS3958R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS4951R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS4952R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS4953R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS5951R", "title": "Independent Study Course (Ride-on)"},
+          {"code": "UIS6951R", "title": "Independent Study Course (Ride-on)"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "3-dean-cg",
+      "section": "3",
+      "department": "Dean's Office, School of Computing",
+      "page": 7,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All CG coded courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "All CG coded courses are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "3-dean-l5-6",
+      "section": "3",
+      "department": "Dean's Office, School of Computing",
+      "page": 7,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses are not open to non-graduating students"
+    },
+    {
+      "id": "3-mdp-closed",
+      "section": "3",
+      "department": "Multidisciplinary Programme",
+      "page": 7,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "CG1111A", "title": "Engineering Principles and Practice I"},
+          {"code": "CG2111A", "title": "Engineering Principles and Practice II"},
+          {"code": "CG2271", "title": "Real-Time Operating Systems"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "3-cs-closed",
+      "section": "3",
+      "department": "Computer Science",
+      "page": 7,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "CP4281", "title": "Emerging Topics in Computing I"},
+          {"code": "CP4282", "title": "Emerging Topics in Computing II"},
+          {"code": "CP4283", "title": "Emerging Topics in Computing III"},
+          {"code": "CP4284", "title": "Emerging Topics in Computing IV"},
+          {"code": "CP4285", "title": "Emerging Topics in Computing V"},
+          {"code": "CS1101S", "title": "Programming Methodology"},
+          {"code": "CS1010S", "title": "Programming Methodology"},
+          {"code": "CS1231S", "title": "Discrete Mathematics"},
+          {"code": "CS2030S", "title": "Programming Methodology II"},
+          {"code": "CS2040", "title": "Data Structures and Algorithms"},
+          {"code": "CS2040S", "title": "Data Structures and Algorithms"},
+          {"code": "CS2102", "title": "Database Systems"},
+          {"code": "CS2103", "title": "Software Engineering"},
+          {"code": "CS2103T", "title": "Software Engineering"},
+          {"code": "CS2106", "title": "Introduction to Operating Systems"},
+          {"code": "CS2109S", "title": "Introduction to AI and Machine Learning"},
+          {"code": "CS2309", "title": "CS Research Methodology"},
+          {"code": "CS3216", "title": "Software Product Engineering for Digital Markets"},
+          {"code": "CS3217", "title": "Software Development on Modern Application Platforms"},
+          {"code": "CS3227", "title": "Agentic Software Engineering"},
+          {"code": "CS3233", "title": "Competitive Programming"},
+          {"code": "CS3263", "title": "Foundations of Artificial Intelligence"},
+          {"code": "CS3264", "title": "Foundations of Machine Learning"},
+          {"code": "CS3281", "title": "Thematic Systems Project I"},
+          {"code": "CS3282", "title": "Thematic Systems Project II"},
+          {"code": "CS4225", "title": "Big Data Systems for Data Science"},
+          {"code": "CS4238", "title": "Computer Security Practice"},
+          {"code": "CS4350", "title": "Game Development Project"},
+          {"code": "IFS2200", "title": "Information Security Immersion Programme"},
+          {"code": "IFS4102", "title": "Digital Forensics"},
+          {"code": "IFS4103", "title": "Penetration Testing Practice"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "3-cs-l5-6",
+      "section": "3",
+      "department": "Computer Science",
+      "page": 8,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses are not open to non-graduating students"
+    },
+    {
+      "id": "3-isa-closed",
+      "section": "3",
+      "department": "Information Systems and Analytics",
+      "page": 8,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "BT2102", "title": "Data Management and Visualisation"},
+          {"code": "BT3103", "title": "Application Systems Development for Business Analytics"},
+          {"code": "BT4012", "title": "Fraud Analytics"},
+          {"code": "BT4013", "title": "Analytics for Capital Market Trading and Investment"},
+          {"code": "BT4101", "title": "B.SC. (BUSINESS ANALYTICS) DISSERTATION"},
+          {"code": "BT4103", "title": "Business Analytics Capstone Project"},
+          {"code": "BT4106", "title": "Risk Analytics for Financial Services"},
+          {"code": "BT4221", "title": "Advanced Analytics with Big Data Technologies"},
+          {"code": "BT4301", "title": "Business Analytics Solutions Development and Deployment"},
+          {"code": "CP4286", "title": "Emerging Topics in Computing VI"},
+          {"code": "CP4287", "title": "Emerging Topics in Computing VII"},
+          {"code": "IFS4101", "title": "Legal Aspects of Information Security"},
+          {"code": "IS2108", "title": "Full-stack Software Engineering for AI Solutions I"},
+          {"code": "IS2109", "title": "AI and Machine Learning Techniques I"},
+          {"code": "IS3103", "title": "Digital Transformation and Leadership Communication"},
+          {"code": "IS3108", "title": "Full-stack Software Engineering for AI Solutions II"},
+          {"code": "IS3109", "title": "AI and Machine Learning Techniques II"},
+          {"code": "IS4010", "title": "Digital Transformation Leadership Programme"},
+          {"code": "IS4108", "title": "AI Solutioning Capstone Project"},
+          {"code": "IS4151", "title": "AIoT Solutions and Development"},
+          {"code": "IS4226", "title": "Systematic Trading Strategies and Systems"},
+          {"code": "IS4243", "title": "Digital Transformation Consulting"},
+          {"code": "IS4250", "title": "IT-enabled Healthcare Solutioning"},
+          {"code": "IS4301", "title": "Agile IT with DevOps"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "3-isa-l5-6",
+      "section": "3",
+      "department": "Information Systems and Analytics",
+      "page": 8,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses are not open to non-graduating students"
+    },
+
+    {
+      "id": "4-arch-closed",
+      "section": "4",
+      "department": "Architecture",
+      "page": 9,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "AR1101A", "title": "Design 1"},
+          {"code": "AR1102", "title": "Design 2"},
+          {"code": "AR1328A", "title": "Architectural Materials and Construction"},
+          {"code": "AR1329", "title": "Climate, Ecology & Architecture"},
+          {"code": "AR2228", "title": "History and Theory of Architecture II"},
+          {"code": "AR5423", "title": "Architectural Practice"},
+          {"code": "AR5807", "title": "Architectural Design Thesis"},
+          {"code": "AR5808", "title": "Final Design Project"},
+          {"code": "AR5806", "title": "Architectural Design Research Report"},
+          {"code": "AR5121", "title": "Special Topics in Technology"},
+          {"code": "LA5742", "title": "Dissertation"},
+          {"code": "LA5742A", "title": "Dissertation Preparation"},
+          {"code": "LAD1001", "title": "Design 1"},
+          {"code": "LAD1003", "title": "Introduction to Landscape Architecture"},
+          {"code": "LAD1005", "title": "Design 2"},
+          {"code": "LAD2003", "title": "Landscape Construction 1"},
+          {"code": "LAD3005", "title": "Landscape Architecture Internship"},
+          {"code": "LAD4005", "title": "Topics in Landscape Architecture"},
+          {"code": "LAD4010", "title": "Design 8"},
+          {"code": "UD5221", "title": "Theory & Elements Of Urban Design"},
+          {"code": "UD5521", "title": "Planning Process Quantitative & Policy Dimensions"},
+          {"code": "UD5622", "title": "Methods Of Urban Design & Urban Analysis"},
+          {"code": "UD5628", "title": "Sustainable Urban Design and Development"},
+          {"code": "DEP5104", "title": "Urban and Regional Economics"},
+          {"code": "DEP5102", "title": "Urban Planning History and Theory (Reading the Course on Audit basis is not permitted)"},
+          {"code": "DEP5105", "title": "Urban Infrastructure & Mobility Systems"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "4-arch-dep5102-no-audit",
+      "section": "4",
+      "department": "Architecture",
+      "page": 9,
+      "kind": "note-graded",
+      "scope": {"codes": [{"code": "DEP5102", "title": "Urban Planning History and Theory"}], "patterns": [], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "(Reading the Course on Audit basis is not permitted)"
+    },
+    {
+      "id": "4-arch-design-letter",
+      "section": "4",
+      "department": "Architecture",
+      "page": 9,
+      "kind": "note-letter",
+      "scope": {
+        "codes": [
+          {"code": "AR2101", "title": "Design 3"},
+          {"code": "AR2102", "title": "Design 4"},
+          {"code": "AR3101", "title": "Design 5"},
+          {"code": "AR3102", "title": "Design 6"},
+          {"code": "LA4701", "title": "MLA Studio: Quarter"},
+          {"code": "LA4702", "title": "MLA Studio: City"},
+          {"code": "LA5701", "title": "MLA Studio: Country"},
+          {"code": "LA5702", "title": "MLA Studio: Region"},
+          {"code": "LAD2006", "title": "Design 3"},
+          {"code": "LAD2007", "title": "Design 4"},
+          {"code": "LAD3001", "title": "Design 5"},
+          {"code": "LAD3002", "title": "Design 6"},
+          {"code": "LAD4008", "title": "Design 7"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Students are required to submit a letter of confirmation from the student’s home university to state the year of design Course that they should be enrolled in during their exchange at if they wish to take the following Design courses"
+    },
+    {
+      "id": "4-arch-major-architecture",
+      "section": "4",
+      "department": "Architecture",
+      "page": 9,
+      "kind": "note-major",
+      "scope": {
+        "codes": [
+          {"code": "AR2225", "title": "Reading Visual Images"},
+          {"code": "AR2227", "title": "History & Theory of Architecture I (offered in Sem 2 ONLY)"},
+          {"code": "AR2328A", "title": "Architectural Tectonics & Structural (to be taken with AR2101)"},
+          {"code": "AR3722", "title": "Sustainable Environmental System (to be taken with AR3102)"},
+          {"code": "AR4101", "title": "Design 7"},
+          {"code": "AR4601", "title": "Urban Design Theory and Praxis"},
+          {"code": "AR4321", "title": "Advanced Architectural Integration (Reading the course on Audit basis is not permitted (offered in Sem 2 ONLY))"},
+          {"code": "AR4220", "title": "Contemporary Theories (offered in Sem 2 ONLY)"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses which are only open to Non-Graduating students (i) majoring in ARCHITECTURE, or (ii) training in related disciplines"
+    },
+    {
+      "id": "4-arch-ar4321-no-audit",
+      "section": "4",
+      "department": "Architecture",
+      "page": 10,
+      "kind": "note-graded",
+      "scope": {"codes": [{"code": "AR4321", "title": "Advanced Architectural Integration"}], "patterns": [], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "(Reading the course on Audit basis is not permitted (offered in Sem 2 ONLY))"
+    },
+    {
+      "id": "4-arch-major-landscape",
+      "section": "4",
+      "department": "Architecture",
+      "page": 10,
+      "kind": "note-major",
+      "scope": {
+        "codes": [
+          {"code": "LAD2004", "title": "Planting Design & Horticulture"},
+          {"code": "LAD2005", "title": "Introduction to GIS for LA"},
+          {"code": "LAD4006", "title": "Digital Techniques in LA"},
+          {"code": "LAD4012", "title": "Urban Greening: Technologies And Techniques"},
+          {"code": "LAD4003", "title": "Landscape Construction II"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses which are only open to Non-Graduating students (i) majoring in LANDSCAPE ARCHITECTURE, or (ii) training in related disciplines"
+    },
+    {
+      "id": "4-bme-closed",
+      "section": "4",
+      "department": "Biomedical Engineering",
+      "page": 10,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "BN1111", "title": "Biomedical Engineering Principles and Practice I"},
+          {"code": "BN2001", "title": "Independent Study"},
+          {"code": "BN2111", "title": "Biomedical Engineering Principles and Practice II"},
+          {"code": "BN3101", "title": "Biomedical Engineering Design"},
+          {"code": "BN4109", "title": "Special Topics in Bioengineering"},
+          {"code": "BN4101", "title": "B.Eng Dissertation Project"},
+          {"code": "BN4101R", "title": "B.Eng Dissertation Project"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "4-bme-l5-6-ug",
+      "section": "4",
+      "department": "Biomedical Engineering",
+      "page": 10,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "All Level 5000 or 6000 courses are NOT open to Non-Graduating undergraduate students"
+    },
+    {
+      "id": "4-be-closed",
+      "section": "4",
+      "department": "Built Environment",
+      "page": 10,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "PF1101", "title": "Fundamentals of Project Management"},
+          {"code": "PF1103", "title": "Digital Construction"},
+          {"code": "IPM1103", "title": "Digital Construction"},
+          {"code": "PF1107", "title": "Infrastructure and Project Management Law"},
+          {"code": "IPM1102", "title": "Infrastructure and Project Management Law"},
+          {"code": "PF1107", "title": "Project and Facilities Management Law"},
+          {"code": "IPM1102", "title": "Project and Facilities Management Law"},
+          {"code": "PF1108", "title": "Introduction to Building Performance"},
+          {"code": "IPM2101", "title": "Introduction to Building Performance"},
+          {"code": "PF2103", "title": "Measurement (Building Works)"},
+          {"code": "IPM2103", "title": "Measurement (Building Works)"},
+          {"code": "PF2107", "title": "Construction Technology"},
+          {"code": "IPM2102", "title": "Construction Technology"},
+          {"code": "PF2108", "title": "Project Cost Management"},
+          {"code": "IPM2104", "title": "Project Cost Management"},
+          {"code": "PF2109", "title": "Project Feasibility"},
+          {"code": "IPM3101", "title": "Project Feasibility"},
+          {"code": "PF2110", "title": "Fundamentals of Facilities Management"},
+          {"code": "IPM3102", "title": "Fundamentals of Facilities Management"},
+          {"code": "PF2205", "title": "Project Finance"},
+          {"code": "PF3104", "title": "Project Execution"},
+          {"code": "PF4101", "title": "Dissertation"},
+          {"code": "IPM4101", "title": "Dissertation"},
+          {"code": "PF4102", "title": "Contract and Procurement"},
+          {"code": "IPM4103", "title": "Contract and Procurement"},
+          {"code": "PF4502", "title": "Green Development"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "4-be-l5-6-ug",
+      "section": "4",
+      "department": "Built Environment",
+      "page": 11,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [5000, 6000], "school": null},
+      "students": "ng-undergraduate",
+      "quote": "All Level 5000 or 6000 courses are NOT open to Non-Graduating undergraduate students"
+    },
+    {
+      "id": "4-be-bps",
+      "section": "4",
+      "department": "Built Environment",
+      "page": 11,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["BPS5XXX"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "All MSc Building Performance and Sustainability Courses (BPS5XXX) are not offered to NG students."
+    },
+    {
+      "id": "4-be-quota",
+      "section": "4",
+      "department": "Built Environment",
+      "page": 11,
+      "kind": "note-quota",
+      "scope": {
+        "codes": [
+          {"code": "PF2102", "title": "Structural Systems"},
+          {"code": "PF2305", "title": "Event Management"},
+          {"code": "PF3105", "title": "Research Methods"},
+          {"code": "PF3205", "title": "Advanced Measurement"},
+          {"code": "PF3208", "title": "Project Leadership"},
+          {"code": "PF3209", "title": "Building Information Modelling"},
+          {"code": "PF3210", "title": "Total Building Performance"},
+          {"code": "PF3211", "title": "AI Applications for the Built Environment"},
+          {"code": "PF3307", "title": "Strategic Facilities Management"},
+          {"code": "PF3504", "title": "Energy Management"},
+          {"code": "PF4209", "title": "Construction Enterprise Management"},
+          {"code": "PF4213", "title": "Building Energy Analysis and Simulation"},
+          {"code": "PF4309", "title": "Infrastructure O&M"},
+          {"code": "IPM4201", "title": "Smart FM Robotics"},
+          {"code": "GESS1014", "title": "Managing Singapore’s Built Environment"},
+          {"code": "PF2203", "title": "Quality and Productivity Management"},
+          {"code": "PF2306", "title": "Event Management Case Studies"},
+          {"code": "PF2504", "title": "Materials Technology"},
+          {"code": "PF2505", "title": "M&E Systems"},
+          {"code": "PF3207", "title": "Project Management Law"},
+          {"code": "PF3301", "title": "Maintainability of Facilities"},
+          {"code": "PF3305", "title": "Facilities Planning and Design"},
+          {"code": "PF3306", "title": "Facilities Management Law & Contracts"},
+          {"code": "PF3502", "title": "Smart Facilities"},
+          {"code": "PF4203", "title": "Project Dispute Management"},
+          {"code": "PF4208", "title": "Safety and Health Management"},
+          {"code": "PF4306", "title": "REITS Facilities Management"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses available to NG students with limited quota"
+    },
+    {
+      "id": "4-be-l1-4-grad",
+      "section": "4",
+      "department": "Built Environment",
+      "page": 11,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [1000, 2000, 3000, 4000], "school": null},
+      "students": "ng-graduate",
+      "quote": "Level 1000 to 4000 Courses: Not available to NG graduate students."
+    },
+    {
+      "id": "4-be-graded",
+      "section": "4",
+      "department": "Built Environment",
+      "page": 11,
+      "kind": "note-graded",
+      "scope": {"codes": [], "patterns": ["Building undergraduate courses"], "levels": [1000, 2000, 3000, 4000], "school": null},
+      "students": "all-ng",
+      "quote": "Building undergraduate courses must be taken on graded basis."
+    },
+    {
+      "id": "4-cbe-closed",
+      "section": "4",
+      "department": "Chemical and Biomolecular Engineering",
+      "page": 11,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "CN3101", "title": "Chemical Engineering Laboratory I"},
+          {"code": "CN3101A", "title": "Chemical Engineering Process Lab"},
+          {"code": "CN3102", "title": "Chemical Engineering Laboratory II"},
+          {"code": "CN4102", "title": "Chemical Engineering Lab"},
+          {"code": "CN4118", "title": "B.Eng. Dissertation"},
+          {"code": "CN4119", "title": "Final Year Design Project"},
+          {"code": "CN4123R", "title": "Final Year Design Project"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "4-cbe-cn5",
+      "section": "4",
+      "department": "Chemical and Biomolecular Engineering",
+      "page": 12,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["CN5XXX"], "levels": [5000], "school": null},
+      "students": "all-ng",
+      "quote": "All Level 5000 courses with prefix CN5XXX are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "4-cee-no-appeal",
+      "section": "4",
+      "department": "Civil and Environmental Engineering",
+      "page": 12,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": ["courses that are not listed in the NG Course offerings list"], "levels": [1000, 2000, 3000, 4000], "school": null},
+      "students": "all-ng",
+      "quote": "No appeal will be accepted for any Level 1000 to Level 4000 courses that are not listed in the NG Course offerings list."
+    },
+    {
+      "id": "4-cee-l5-6",
+      "section": "4",
+      "department": "Civil and Environmental Engineering",
+      "page": 12,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["CE and ESE"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All Level 5000 or 6000 courses (CE and ESE) are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "4-ece-closed",
+      "section": "4",
+      "department": "Electrical and Computer Engineering",
+      "page": 12,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "EE2033", "title": "Integrated System Lab"},
+          {"code": "EE2211", "title": "Introduction to Machine Learning"},
+          {"code": "EE3031", "title": "Innovation & Enterprise I"},
+          {"code": "EE2211", "title": "Introduction to Machine Learning"},
+          {"code": "EE4002D", "title": "Design Capstone"},
+          {"code": "EE4002R", "title": "Research Capstone"}
+        ],
+        "patterns": ["EE5xxx", "EE6xxx", "CEG5xxxx", "EEK5xxxx"],
+        "levels": null,
+        "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students (EE5xxx & EE6xxx: All level 5000 and 6000 courses; CEG5xxxx: All level 5000 courses; EEK5xxxx: All level 5000 courses)"
+    },
+    {
+      "id": "4-isem-closed",
+      "section": "4",
+      "department": "Industrial Systems Engineering and Management",
+      "page": 12,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "IE1111R", "title": "Industrial & Systems Engineering Principles & Practice I"},
+          {"code": "IE2111", "title": "Industrial & Systems Engineering Principles & Practice II"},
+          {"code": "IE2141", "title": "Systems Thinking and Dynamics"},
+          {"code": "IE3100R", "title": "Systems Design Project"},
+          {"code": "IE3102", "title": "Systems Engineering Project"},
+          {"code": "IE3102A", "title": "Systems Engineering Project"},
+          {"code": "IE3105", "title": "Fundamentals of Systems Engineering and Architecture"},
+          {"code": "IE3110R", "title": "Simulation"},
+          {"code": "IE4100R", "title": "BEng Dissertation"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "4-isem-no-appeal",
+      "section": "4",
+      "department": "Industrial Systems Engineering and Management",
+      "page": 12,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": ["courses that are not listed in the NG courses listing"], "levels": [1000, 2000, 3000, 4000], "school": null},
+      "students": "all-ng",
+      "quote": "No appeals will be accepted for any level 1000 to level 4000 courses that are not listed in the NG courses listing."
+    },
+    {
+      "id": "4-isem-l5-6",
+      "section": "4",
+      "department": "Industrial Systems Engineering and Management",
+      "page": 12,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["IEXXXX", "MTXXXX", "SDMXXXX"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All Level 5000 or 6000 courses with prefixes IEXXXX, MTXXXX and SDMXXXX are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "4-mse-closed-1",
+      "section": "4",
+      "department": "Materials Science and Engineering",
+      "page": 12,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "GEH1057", "title": "Materials: The Enabling Substance of Civilization"},
+          {"code": "MLE1001", "title": "Materials Science & Engineering Principles & Practice I"},
+          {"code": "MLE1001A", "title": "Materials Science & Engineering Principles & Practice I"},
+          {"code": "MLE1001B", "title": "Materials Science & Engineering Principles & Practice I"},
+          {"code": "MLE1002", "title": "Materials Science & Engineering Principles & Practice II"},
+          {"code": "MLE1010", "title": "Materials Engineering Principles & Practices"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "4-mse-closed-2",
+      "section": "4",
+      "department": "Materials Science and Engineering",
+      "page": 13,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "GEH1057", "title": "Materials: The Enabling Substance of Civilization"},
+          {"code": "MLE1001", "title": "Materials Science & Engineering Principles & Practice I"},
+          {"code": "MLE1001A", "title": "Materials Science & Engineering Principles & Practice I"},
+          {"code": "MLE1001B", "title": "Materials Science & Engineering Principles & Practice I"},
+          {"code": "MLE1002", "title": "Materials Science & Engineering Principles & Practice II"},
+          {"code": "MLE1010", "title": "Materials Engineering Principles & Practices"},
+          {"code": "MLE1101", "title": "Introductory Materials Science And Engineering"},
+          {"code": "MLE1111", "title": "Foundation Materials Science and Engineering I"},
+          {"code": "MLE1112", "title": "Foundation Materials Science and Engineering 2"},
+          {"code": "MLE2001", "title": "Materials Science & Engineering Principles & Practice II"},
+          {"code": "MLE2001A", "title": "Materials Science & Engineering Principles & Practice II"},
+          {"code": "MLE2106", "title": "Metallic Materials and Processing"},
+          {"code": "MLE2107", "title": "Ceramic Materials and Processing"},
+          {"code": "MLE2111", "title": "Materials Properties Laboratory"},
+          {"code": "MLE3101", "title": "Materials Characterization Laboratory"},
+          {"code": "MLE3103", "title": "Materials Design and Selection"},
+          {"code": "MLE3111", "title": "Materials Properties & Processing Laboratory"},
+          {"code": "MLE3111A", "title": "Materials Properties and Processing Laboratory"},
+          {"code": "MLE3112", "title": "Machine Learning Approaches in Materials Laboratory"},
+          {"code": "MLE4101", "title": "B.Eng. Dissertation"},
+          {"code": "MLE4101A", "title": "BEng Dissertation"},
+          {"code": "MLE4101B", "title": "BEng Dissertation"},
+          {"code": "MLE4102", "title": "Design Project"},
+          {"code": "MLE4102A", "title": "Design Project"},
+          {"code": "MLE4204", "title": "Synthesis And Growth Of Nanostructures"},
+          {"code": "MLE4209", "title": "Magnetism and Magnetic Materials"},
+          {"code": "MLE4213", "title": "Innovation & Product Development for Material Engineers"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "4-mse-l5-6",
+      "section": "4",
+      "department": "Materials Science and Engineering",
+      "page": 13,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All Level 5000 or 6000 courses are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "4-me-closed",
+      "section": "4",
+      "department": "Mechanical Engineering",
+      "page": 13,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "ME3000", "title": "Independent Study 1"},
+          {"code": "ME3001", "title": "Independent Study 2"},
+          {"code": "ME4101A", "title": "B.Eng Dissertation (ME Programme)"},
+          {"code": "ME3163", "title": "Introduction to Cyber Physical Systems"},
+          {"code": "ME3101", "title": "Mechanical Systems Design I"},
+          {"code": "ME3102", "title": "Mechanical Systems Design II"},
+          {"code": "ME3243", "title": "Robotic System Design"},
+          {"code": "ME4242", "title": "Soft Robotics"},
+          {"code": "ME2114", "title": "Mechanics of Materials"},
+          {"code": "ME2143", "title": "Sensors & Actuators"},
+          {"code": "ME3123", "title": "Applied Thermofluids"},
+          {"code": "ME3252", "title": "Materials for Mechanical Engineering"},
+          {"code": "RB4101A", "title": "B.Eng Dissertation (RMI Programme)"},
+          {"code": "RB4107", "title": "Robotic System Design Project"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT available to NG students"
+    },
+    {
+      "id": "4-me-l5-6",
+      "section": "4",
+      "department": "Mechanical Engineering",
+      "page": 14,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All Level 5000 and 6000 courses are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "4-id-major",
+      "section": "4",
+      "department": "Division of Industrial Design",
+      "page": 14,
+      "kind": "note-major",
+      "scope": {
+        "codes": [
+          {"code": "ID1121", "title": "Human-Centered Design"},
+          {"code": "ID1223", "title": "History & Theory of Industrial Design"},
+          {"code": "ID2105", "title": "Design in Context & Sustainability"},
+          {"code": "ID2106", "title": "Design Platforms 1"},
+          {"code": "ID2114", "title": "Form, Materials & Making"},
+          {"code": "ID2115", "title": "Digital Sketching & Painting"},
+          {"code": "ID2116", "title": "Computing for Design"},
+          {"code": "ID2122", "title": "Ecodesign and Sustainability"},
+          {"code": "ID3105", "title": "Design Platforms 2"},
+          {"code": "ID3106", "title": "Design Platforms 3"},
+          {"code": "ID4105", "title": "Design Platforms 4"},
+          {"code": "ID2323", "title": "Technology for Design"},
+          {"code": "ID3122", "title": "Materials & Manufacturing for Industrial Design"},
+          {"code": "ID3124", "title": "Creative Communication & Design Argumentation"},
+          {"code": "ID2112", "title": "Digital Design & Fabrication"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses below are only open to Non-Graduating students pursuing an INDUSTRIAL DESIGN Course in their Home University."
+    },
+    {
+      "id": "4-id-id4106",
+      "section": "4",
+      "department": "Division of Industrial Design",
+      "page": 14,
+      "kind": "closed",
+      "scope": {"codes": [{"code": "ID4106", "title": null}], "patterns": [], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "ID4106 is NOT open to Non-Graduating students."
+    },
+    {
+      "id": "4-id-graded",
+      "section": "4",
+      "department": "Division of Industrial Design",
+      "page": 14,
+      "kind": "note-graded",
+      "scope": {"codes": [], "patterns": ["Industrial Design Courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Industrial Design Courses must be taken on graded basis."
+    },
+
+    {
+      "id": "5-law-closed",
+      "section": "5",
+      "department": null,
+      "page": 14,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "LL4011V", "title": "Civil Justice & Process"},
+          {"code": "LL4033V", "title": "International Legal Process"},
+          {"code": "LL4044V", "title": "Mediation"},
+          {"code": "LL4045V", "title": "Negotiation"},
+          {"code": "LL4094AV", "title": "The Corporate Law Clinic"},
+          {"code": "LL4094BV", "title": "NUS-State Courts Judicial Clerkship Programme"},
+          {"code": "LL4094CV", "title": "The Access to Justice Low Bono Litigation Clinic"},
+          {"code": "LL4094DV", "title": "The Pro Bono Criminal Law Litigation Clinic"},
+          {"code": "LL4094EV", "title": "The Capital Offences Criminal Litigation Clinic"},
+          {"code": "LL4094FV", "title": "The Evolving Legal Landscapes Clinic"},
+          {"code": "LL4094GV", "title": "NUS Entrepreneurship Society Collaboration Clinic"},
+          {"code": "LL4203", "title": "International Moots & Competition"},
+          {"code": "LL4261V", "title": "Employment Law & Migrant Workers Clinic"},
+          {"code": "LL4367V", "title": "Singapore at the UN - A Clinical Externship"},
+          {"code": "LL4434V", "title": "International Commodity Trading Law Clinic"},
+          {"code": "LL4356V", "title": "International Economic Law Clinic"},
+          {"code": "LL4359Z", "title": "Multinational Enterprises and International Law"},
+          {"code": "LL4361Z", "title": "Complex Arbitrations: Multiparty - Multicontract"},
+          {"code": "LL4377V", "title": "Law in Action: Legal Policymaking Externship"},
+          {"code": "LL4463V", "title": "National Arts Council Externship"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT open Non-Graduating students"
+    },
+    {
+      "id": "5-law-major",
+      "section": "5",
+      "department": null,
+      "page": 15,
+      "kind": "note-major",
+      "scope": {"codes": [], "patterns": ["Law courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Students must be majoring in Law in their Home University in order to be considered eligible for Law courses."
+    },
+    {
+      "id": "5-law-double-major",
+      "section": "5",
+      "department": null,
+      "page": 15,
+      "kind": "note-major",
+      "scope": {"codes": [], "patterns": ["law courses"], "levels": null, "school": null},
+      "students": "other: Students with double majors (including Law as one of the majors)",
+      "quote": "Students with double majors (including Law as one of the majors) must be eligible for a minimum of two (2) law courses per semester in order to be considered by the NUS Faculty of Law."
+    },
+    {
+      "id": "5-law-llb-compulsory",
+      "section": "5",
+      "department": null,
+      "page": 15,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All compulsory LLB courses"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "All compulsory LLB courses are NOT open to Non-Graduating students. See HERE."
+    },
+    {
+      "id": "5-law-ll4-only",
+      "section": "5",
+      "department": null,
+      "page": 15,
+      "kind": "whitelist",
+      "scope": {"codes": [], "patterns": ["LL4XXXX"], "levels": null, "school": null},
+      "students": "other: exchange students",
+      "quote": "Only selective Law electives with course code LL4XXXX are available for exchange students."
+    },
+
+    {
+      "id": "6-music-core-partner",
+      "section": "6",
+      "department": null,
+      "page": 15,
+      "kind": "note-partner",
+      "scope": {"codes": [], "patterns": ["Core Music courses such as major study lessons, ensemble, pedagogy, musical concepts & materials"], "levels": null, "school": null},
+      "students": "other: exchange students from YST Conservatory’s partner institutions",
+      "quote": "Core Music courses such as major study lessons, ensemble, pedagogy, musical concepts & materials are only available to exchange students from YST Conservatory’s partner institutions."
+    },
+    {
+      "id": "6-music-electives",
+      "section": "6",
+      "department": null,
+      "page": 15,
+      "kind": "whitelist",
+      "scope": {"codes": [], "patterns": ["Music electives listed HERE"], "levels": null, "school": null},
+      "students": "other: Non-graduating students from non-YST Conservatory’s partner institutions",
+      "quote": "Non-graduating students from non-YST Conservatory’s partner institutions are eligible to read Music electives listed HERE."
+    },
+    {
+      "id": "6-music-audition",
+      "section": "6",
+      "department": null,
+      "page": 15,
+      "kind": "note-audition",
+      "scope": {
+        "codes": [
+          {"code": "MUA1192", "title": "Chamber Singers 1"},
+          {"code": "MUA3224", "title": "Intermediate Keyboard Studies"},
+          {"code": "MUA3205", "title": "Jazz Study and Performance 1"},
+          {"code": "MUT3113", "title": "Orchestration"},
+          {"code": "MUT3213", "title": "Romantic Styles"},
+          {"code": "MUT3214", "title": "Concerto and Cadenza"},
+          {"code": "MUT3215", "title": "Composition for Non-Majors"},
+          {"code": "MUT3216", "title": "Bach Suites"},
+          {"code": "MUT3222", "title": "Choral Composition"},
+          {"code": "MUT3223", "title": "Early Twentieth-Century Music"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "The following electives (when offered in the semester) require an audition or a placement test and will not be available for selection during the application period: ... Students will be allocated the course upon passing the audition or placement test."
+    },
+
+    {
+      "id": "7-pp-ug",
+      "section": "7",
+      "department": null,
+      "page": 15,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["prefix PP"], "levels": null, "school": "LKYSPP"},
+      "students": "ng-undergraduate",
+      "quote": "Students who are pursuing an undergraduate degree at their home university are NOT eligible to apply for LKYSPP courses (i.e. Course codes with prefix PP)."
+    },
+    {
+      "id": "7-pp-partner",
+      "section": "7",
+      "department": null,
+      "page": 15,
+      "kind": "note-partner",
+      "scope": {"codes": [], "patterns": ["prefix PP"], "levels": null, "school": "LKYSPP"},
+      "students": "other: students currently pursuing a graduate degree in LKYSPP’s faculty exchange partner universities",
+      "quote": "Only students who are currently pursuing a graduate degree in LKYSPP’s faculty exchange partner universities will be considered."
+    },
+    {
+      "id": "7-pp-graded",
+      "section": "7",
+      "department": null,
+      "page": 15,
+      "kind": "note-graded",
+      "scope": {"codes": [], "patterns": ["prefix PP"], "levels": null, "school": "LKYSPP"},
+      "students": "all-ng",
+      "quote": "LKYSPP courses must be taken on graded basis."
+    },
+
+    {
+      "id": "8-dean-table",
+      "section": "8",
+      "department": "Dean's Office (Faculty of Science)",
+      "page": 15,
+      "kind": "info",
+      "scope": {
+        "codes": [
+          {"code": "FMS1201D", "title": "FS: Transforming Medicine: From Bench to Beside & Beyond"},
+          {"code": "SP2171", "title": "Discovering Science"},
+          {"code": "SP3173", "title": "Independent Study Course"},
+          {"code": "UIS3921", "title": "Independent Study Course"},
+          {"code": "UIS3922", "title": "Independent Study Course"},
+          {"code": "UIS3923", "title": "Independent Study Course"},
+          {"code": "UIS3924", "title": "Independent Study Course"},
+          {"code": "UIS4921", "title": "Independent Study Course"},
+          {"code": "UIS4922", "title": "Independent Study Course"},
+          {"code": "UIS4923", "title": "Independent Study Course"},
+          {"code": "UIS4924", "title": "Independent Study Course"},
+          {"code": "ZB4199", "title": "Honours Project in Computational Biology"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Course Code Course Title"
+    },
+    {
+      "id": "8-bio-closed",
+      "section": "8",
+      "department": "Biological Sciences",
+      "page": 16,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "LSM2301", "title": "Life Sciences Industry Seminar"},
+          {"code": "LSM3201", "title": "Research and Communication in Life Sciences"},
+          {"code": "LSM4199", "title": "Honours Project in Life Sciences"},
+          {"code": "LSM4299", "title": "Applied Project in Life Sciences"},
+          {"code": "SP3203", "title": "Aquatic Ecology Research"}
+        ],
+        "patterns": ["LSM33xx"],
+        "levels": null,
+        "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT open Non-Graduating students (LSM33xx: Undergraduate Professional Internship Programme)"
+    },
+    {
+      "id": "8-bio-fsc",
+      "section": "8",
+      "department": "Biological Sciences",
+      "page": 16,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["FSCXXXX"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Course codes FSCXXXX are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "8-chem-table",
+      "section": "8",
+      "department": "Chemistry",
+      "page": 16,
+      "kind": "info",
+      "scope": {
+        "codes": [
+          {"code": "CM3181", "title": "Professional Placement Applied Chemistry"},
+          {"code": "CM4199A", "title": "Honours Project in Chemistry"},
+          {"code": "CM4199B", "title": "Honours Project in Applied Chemistry"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Course Code Course Title"
+    },
+    {
+      "id": "8-fst-closed",
+      "section": "8",
+      "department": "Food Science and Technology",
+      "page": 16,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "FST2288", "title": "Basic UROPS in Food Science & Technology I"},
+          {"code": "FST2288R", "title": "Basic UROPS in Food Science & Technology I (REx)"},
+          {"code": "FST2289", "title": "Basic UROPS in Food Science & Technology II"},
+          {"code": "FST2289R", "title": "Basic UROPS in Food Science & Technology II (REx)"},
+          {"code": "FST3181", "title": "Professional Placement"},
+          {"code": "FST3201", "title": "Independent Study (Food Sci & Tech)"},
+          {"code": "FST3287", "title": "FST Professional Placement"},
+          {"code": "FST3288", "title": "Advanced UROPS in Food Science & Technology I"},
+          {"code": "FST3288R", "title": "Advanced UROPS in Food Science & Technology I (REx)"},
+          {"code": "FST3289", "title": "Advanced UROPS in Food Science & Technology II"},
+          {"code": "FST3289R", "title": "Advanced UROPS in Food Science & Technology II (REx)"},
+          {"code": "FST4199", "title": "Honours Project in Food Science & Tech"},
+          {"code": "FST4277", "title": "Professional Internship in Food Science & Technology"},
+          {"code": "FST4278", "title": "Independent Study during Internship"},
+          {"code": "FST4288", "title": "Honours Project in Food Science & Technology"},
+          {"code": "FST4299", "title": "Applied Project in FST"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT open Non-Graduating students"
+    },
+    {
+      "id": "8-fst-l5",
+      "section": "8",
+      "department": "Food Science and Technology",
+      "page": 16,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All FST level 5000 courses"], "levels": [5000], "school": null},
+      "students": "all-ng",
+      "quote": "All FST level 5000 courses are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "8-math-closed",
+      "section": "8",
+      "department": "Mathematics",
+      "page": 17,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "DSE4211", "title": "Digital Currencies"},
+          {"code": "QF4211", "title": "Digital Currencies"},
+          {"code": "DSE4212", "title": "Data Science in FinTech"},
+          {"code": "QF4212", "title": "Data Science in FinTech"},
+          {"code": "HS1501", "title": "Artificial Intelligence and Society"},
+          {"code": "MA4198", "title": "Mathematics Capstone Project"},
+          {"code": "MA4199", "title": "Honours Project in Mathematics"},
+          {"code": "MA4291", "title": "Undergraduate Topics in Mathematics"},
+          {"code": "QF4204", "title": "Project in Quantitative Finance and Fintech"},
+          {"code": "QF4199", "title": "Honours Project in Quantitative Finance"},
+          {"code": "QF4288", "title": "Undergraduate Project in Quantitative Finance"},
+          {"code": "DSE4101", "title": "Capstone Project in Data Science and Economics I"},
+          {"code": "DSE4201", "title": "Capstone Project in Data Science and Economics II"}
+        ],
+        "patterns": ["FMS12XXM", "MA4288P/O"],
+        "levels": null,
+        "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT open Non-Graduating students (FMS12XXM: Freshman Seminar; MA4288P/O: Undergraduate Project in Mathematics)"
+    },
+    {
+      "id": "8-math-ma15",
+      "section": "8",
+      "department": "Mathematics",
+      "page": 17,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["MA15XX"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Course codes MA15XX are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "8-math-qf5",
+      "section": "8",
+      "department": "Mathematics",
+      "page": 17,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All QF level 5000 courses"], "levels": [5000], "school": null},
+      "students": "all-ng",
+      "quote": "All QF level 5000 courses are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "8-math-dsa",
+      "section": "8",
+      "department": "Mathematics",
+      "page": 17,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["DSAXXXX"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Course codes DSAXXXX are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "8-math-geh",
+      "section": "8",
+      "department": "Mathematics",
+      "page": 17,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["GEHXXXX"], "levels": null, "school": null},
+      "students": "all-ng",
+      "quote": "Course codes GEHXXXX are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "8-math-ma5-6",
+      "section": "8",
+      "department": "Mathematics",
+      "page": 17,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All MA level 5000 and 6000 courses"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All MA level 5000 and 6000 courses are NOT open to Non-Graduating students."
+    },
+    {
+      "id": "8-pharm-closed",
+      "section": "8",
+      "department": "Pharmacy",
+      "page": 17,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "PHS1101", "title": "The Billion-Dollar Pill - Bench to Bedside Drug Development"},
+          {"code": "PHS2101", "title": "Physiology for Pharmaceutical Science"},
+          {"code": "PHS2102", "title": "Physicochemical and Biochemical Principles of Drug Action"},
+          {"code": "PHS2103", "title": "Essentials of Pharmaceutical and Synthetic Chemistry"},
+          {"code": "PHS2104", "title": "Macromolecules in Pharmaceutical Science"},
+          {"code": "PHS2105", "title": "Principles of Pharmaceutical Formulations I"},
+          {"code": "PHS2191", "title": "Laboratory Techniques in Pharmaceutical Science"},
+          {"code": "PHS3116", "title": "Pharmacokinetics and Biopharmaceutics"},
+          {"code": "PHS3123", "title": "Biotechnology for Pharmaceutical Science"},
+          {"code": "PHS3122", "title": "Pharmaceutical Quality Management"},
+          {"code": "PHS3191", "title": "Laboratory Techniques in Pharmaceutical Science II"},
+          {"code": "PHS3220", "title": "Microbiology for Pharmaceutical Science"},
+          {"code": "PHS4121", "title": "Regulation of Healthcare Products"},
+          {"code": "PR1150", "title": "Professional Identity Development I"},
+          {"code": "PR1151", "title": "Applied Patient Care Skills I"},
+          {"code": "PR1152", "title": "Pharmacy Foundations: Science & Therapeutics I"},
+          {"code": "PR1153", "title": "Pharmacy Foundations: Science & Therapeutics II"},
+          {"code": "PR2156", "title": "Integumentary & Ocular Systems: Science and Therapeutics"},
+          {"code": "PR2150", "title": "Professional Identity Development II"},
+          {"code": "PR2151", "title": "Applied Patient Care Skills II"},
+          {"code": "PR2152", "title": "Gastrointestinal System: Science & Therapeutics"},
+          {"code": "PR2153", "title": "Cardiovascular System: Science & Therapeutics"},
+          {"code": "PR2154", "title": "Respiratory System: Science & Therapeutics"},
+          {"code": "PR2155", "title": "Hepatic and Renal Systems: Science & Therapeutics"},
+          {"code": "PR3116", "title": "Concepts In Pharmacokinetics And Biopharmaceutics"},
+          {"code": "PR3117", "title": "Formulation & Technology II"},
+          {"code": "PR3122", "title": "Self Care II"},
+          {"code": "PR3123", "title": "Formulation & Technology II"},
+          {"code": "PR3124", "title": "Pharmacotherapeutics III"},
+          {"code": "PR3136", "title": "Pharmacotherapeutics IV"},
+          {"code": "PR3137", "title": "Pharmacy Professional Skills Development III"},
+          {"code": "PR3144", "title": "Principles Of Research Methods"},
+          {"code": "PR3145", "title": "Compliance & Good Practices In Pharmacy"},
+          {"code": "PR3146", "title": "Pharmacy Law In Singapore"},
+          {"code": "PR3150", "title": "Professional Identity and Skills Development"},
+          {"code": "PR3151", "title": "Infection: Optimising Prevention & Treatment"},
+          {"code": "PR3152", "title": "Immune & Endocrine Systems: Science & Therapeutics"},
+          {"code": "PR3153", "title": "Central Nervous System: Science & Therapeutics"},
+          {"code": "PR3154", "title": "Haematological & Musculoskeletal Systems: Science & Therapeutics"},
+          {"code": "PR4138", "title": "Pharmacy Professional Skills Development IV"},
+          {"code": "PR4196", "title": "Pharmacy Research Project And Scientific Communication"},
+          {"code": "PR4197", "title": "Pharmacy Internship I"},
+          {"code": "PR4197A", "title": "Pharmacy Internship I"},
+          {"code": "PR4198", "title": "Pharmacy Internship II"},
+          {"code": "PR4198A", "title": "Pharmacy Internship II"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT open Non-Graduating students"
+    },
+    {
+      "id": "8-phys-closed",
+      "section": "8",
+      "department": "Physics",
+      "page": 18,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "PC2239", "title": "Special Problems in Undergrad Physics I"},
+          {"code": "PC4288", "title": "Honours Year Project in Physics, Honours Project in Astrophysics, Honours Project in Quantum Technologies, Honours Project in Nanophysics"},
+          {"code": "PC5101", "title": "Physics and Technology"},
+          {"code": "PC5102", "title": "Physics in Industry"},
+          {"code": "PC5189", "title": "Graduate Seminar Course in Physics"},
+          {"code": "PC5203", "title": "Advanced Solid State Physics"},
+          {"code": "PC5204", "title": "Magnetism and Spintronics"},
+          {"code": "PC5205", "title": "Topics in Surface Physics"},
+          {"code": "PC5207", "title": "Topics in Optical Physics"},
+          {"code": "PC5212", "title": "Physics of Nanostructures"},
+          {"code": "PC5213", "title": "Advanced Biophysics"},
+          {"code": "PC5214", "title": "Essential techniques in experimental physics"},
+          {"code": "PC5215", "title": "Numerical Recipes With Applications"},
+          {"code": "PC5216", "title": "Advanced Atomic & Molecular Physics"},
+          {"code": "PC5218", "title": "Superconductivity and Superconducting Devices"},
+          {"code": "PC5221", "title": "Quantum Many-Body Physics: an Informational Perspective"},
+          {"code": "PC5228", "title": "Quantum Information and Computation"},
+          {"code": "PC5233", "title": "Functional Electronic Devices of Tomorrow"},
+          {"code": "PC5236", "title": "Atomistic modelling of electronic materials under nonequilibrium conditions"},
+          {"code": "PC5239B", "title": "Variational Principles"},
+          {"code": "PC5252", "title": "Bayesian Statistics and Machine Learning"},
+          {"code": "PC5253", "title": "Complex Systems Analysis and Modelling"},
+          {"code": "PC5267", "title": "Physics of Small Machines and Active Matters"},
+          {"code": "PC5271", "title": "Physics of Sensors"},
+          {"code": "PC5274", "title": "Advanced Mathematical Methods in Physics"},
+          {"code": "PC5286", "title": "MSc Physics Coursework Project"},
+          {"code": "PC5287", "title": "M.SC Coursework Thesis for Physics And Technology"}
+        ],
+        "patterns": ["AIS5xxx", "PC33xx", "PC4288A/Q/N"],
+        "levels": null,
+        "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT open Non-Graduating students (AIS5xxx: All AIS courses; PC33xx: Undergraduate Professional Internship Programme; PC4288, PC4288A/Q/N: Honours Year Project in Physics, Honours Project in Astrophysics, Honours Project in Quantum Technologies, Honours Project in Nanophysics)"
+    },
+    {
+      "id": "8-stats-closed",
+      "section": "8",
+      "department": "Statistics and Data Science",
+      "page": 19,
+      "kind": "closed",
+      "scope": {
+        "codes": [
+          {"code": "DSA1101", "title": "Introduction to Data Science"},
+          {"code": "DSA2101", "title": "Essential Data Analytics Tools: Data Visualisation"},
+          {"code": "DSA3101", "title": "Data Science in Practice"},
+          {"code": "DSA3361", "title": "Inferential Data Analytics"},
+          {"code": "DSA3362", "title": "Predictive Data Analytics"},
+          {"code": "DSA4213", "title": "Natural Language Processing for Data Science"},
+          {"code": "DSA4261", "title": "Sense-making Case Analysis: Logistics and Transport"},
+          {"code": "DSA4261A", "title": "Sense-making Case Analysis: Logistics"},
+          {"code": "DSA4261B", "title": "Sense-making Case Analysis: Transport"},
+          {"code": "DSA4262", "title": "Sense-making Case Analysis: Health and Medicine"},
+          {"code": "DSA4262A", "title": "Sense-making Case Analysis: Health"},
+          {"code": "DSA4262B", "title": "Sense-making Case Analysis: Medicine"},
+          {"code": "DSA4263", "title": "Sense-making Case Analysis: Business and Commerce"},
+          {"code": "DSA4263A", "title": "Sense-making Case Analysis: Business"},
+          {"code": "DSA4263B", "title": "Sense-making Case Analysis: Commerce"},
+          {"code": "DSA4264", "title": "Sense-making Case Analysis: Public Policy and Society"},
+          {"code": "DSA4264A", "title": "Sense-making Case Analysis: Public Policy"},
+          {"code": "DSA4264B", "title": "Sense-making Case Analysis: Society"},
+          {"code": "DSA4265", "title": "Sense-making Case Analysis: Economics and Finance"},
+          {"code": "DSA4265A", "title": "Sense-making Case Analysis: Economics"},
+          {"code": "DSA4265B", "title": "Sense-making Case Analysis: Finance"},
+          {"code": "DSA4266", "title": "Sense-making Case Analysis: Science and Technology"},
+          {"code": "DSA4266A", "title": "Sense-making Case Analysis: Science"},
+          {"code": "DSA4266B", "title": "Sense-making Case Analysis: Technology"},
+          {"code": "DSE1101", "title": "Introductory Data Science for Economics"},
+          {"code": "DSE3101", "title": "Practical Data Science for Economics"},
+          {"code": "DSE4101", "title": "Capstone Project in Data Science and Economics I"}
+        ],
+        "patterns": [], "levels": null, "school": null
+      },
+      "students": "all-ng",
+      "quote": "Courses NOT open Non-Graduating students"
+    },
+    {
+      "id": "8-stats-st-dss",
+      "section": "8",
+      "department": "Statistics and Data Science",
+      "page": 19,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": ["All ST/DSS level 5000/6000 courses"], "levels": [5000, 6000], "school": null},
+      "students": "all-ng",
+      "quote": "All ST/DSS level 5000/6000 courses are NOT open to Non-Graduating students."
+    },
+
+    {
+      "id": "9-usp-partner",
+      "section": "9",
+      "department": null,
+      "page": 19,
+      "kind": "note-partner",
+      "scope": {"codes": [], "patterns": [], "levels": null, "school": "University Scholars Programme"},
+      "students": "other: students from selected partner universities with prior agreement",
+      "quote": "Only students who are from selected partner universities with prior agreement will be considered."
+    },
+    {
+      "id": "10-rmi-approval",
+      "section": "10",
+      "department": null,
+      "page": 19,
+      "kind": "note-approval",
+      "scope": {"codes": [], "patterns": [], "levels": null, "school": "NUS Risk Management Institute"},
+      "students": "all-ng",
+      "quote": "Courses open to Non-Graduating students are limited and approval will be done on a case-by-case basis."
+    },
+    {
+      "id": "10-rmi-fee",
+      "section": "10",
+      "department": null,
+      "page": 19,
+      "kind": "note-fee",
+      "scope": {"codes": [], "patterns": [], "levels": null, "school": "NUS Risk Management Institute"},
+      "students": "all-ng",
+      "quote": "Students will be required to pay for the per Course tuition fees."
+    },
+    {
+      "id": "11-scale-closed",
+      "section": "11",
+      "department": null,
+      "page": 20,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": null, "school": "School of Continuing and Lifelong Education"},
+      "students": "all-ng",
+      "quote": "All courses are not open to Non-Graduating students."
+    },
+    {
+      "id": "12-tli-closed",
+      "section": "12",
+      "department": null,
+      "page": 20,
+      "kind": "closed",
+      "scope": {"codes": [], "patterns": [], "levels": null, "school": "The Logistics Institute - Asia Pacific"},
+      "students": "all-ng",
+      "quote": "All courses are not open to Non-Graduating students."
+    }
+  ],
+  "doubts": [
+    "p1 A: 'Yong Loo Lin School of Medicine (Course codes that do not start with LSM only)' — scope recorded as a pattern string; the doc does not say which codes belong to the school.",
+    "p1 A: 'Saw Swee Hock School of Public Health (Graduate courses only)' — levels [5000, 6000] taken from section D's definition of graduate courses, not stated in the bullet itself.",
+    "p1 A: 'All courses in NUS self-funded programmes (click here)' and the fee paragraph's 'A list can be found here' point to external lists not in the PDF; no codes transcribed.",
+    "p1 B: the seven suffix-X codes are printed without titles; titles recorded as null.",
+    "p1 D.b: 'NOT available to exchange students unless specified in the list below' — says 'exchange students', not 'Non-Graduating students', and most of 'the list below' lists unavailable courses, so which Level 5000/6000 courses count as 'specified' is unclear. Recorded as closed for 'other: exchange students'.",
+    "p1-2 F: the link list names 10 programmes (ends with University Scholars Programme and NUS Risk Management Institute on p2) but omits sections 11 (School of Continuing and Lifelong Education) and 12 (The Logistics Institute - Asia Pacific).",
+    "p1 E vs p12 Civil and Environmental Engineering / Industrial Systems Engineering and Management: E says approval for courses not listed is case-by-case; CEE and ISEM say 'No appeal will be accepted for any Level 1000 to Level 4000 courses that are not listed in the NG Course offerings list' (refers to an external list). Recorded as note-approval; could also be read as a whitelist.",
+    "p3 Centre for Language Studies (LAG3203, LAF3203, LAK3203), Communications and New Media (NM2101, NM2103, NM2104, NM4102), English, Linguistics & Theatre Studies (TS3103, TS3245); p4 Japanese Studies (JS2101, JS3101, JS4401, JS4660); p15-16 Science Dean's Office (FMS1201D ... ZB4199); p16 Chemistry (CM3181, CM4199A, CM4199B): tables have only a 'Course Code / Course Title' header and no heading saying what the list means (closed? quota? open?). Recorded as kind 'info'.",
+    "p3 Communications and New Media: NM4102 is listed in the unlabelled table while the next line says 'All Level 4000 courses are NOT open to Non-Graduating students.'",
+    "p3 Communications and New Media: 'All courses with the suffix ‘Y’ (e.g. NM2219Y)' — NM2219Y is an example only; not recorded as a code.",
+    "p3 Economics: 'NOT open to Non-Graduating undergraduate AND graduate students' recorded as students 'all-ng'.",
+    "p3 English, Linguistics & Theatre Studies: 'Level 5000 and 6000 Graduate Courses – Approval will be granted on a case-by-case basis. Only open to Non-Graduating graduate students.' split into a note-approval rule and an open-only-for rule. Sociology and Anthropology (p4) 'Only open to Non-Graduating graduate students and subject to approval.' split the same way (same quote on both).",
+    "p4 History: the quota table lists AS-coded courses (not HY) under Department: History, headed 'Courses cross-listed with HY coded courses and with limited quota'.",
+    "p4 History: 'Freshmen seminar courses FMA120XH' — pattern recorded as printed; unclear whether X is a wildcard.",
+    "p4 Malay Studies and p5 South Asian Studies: 'Graduate Courses - Approval will be done on a case-by-case basis. Undergraduate students are NOT allowed to apply for graduate courses.' split into note-approval (all-ng) and closed (ng-undergraduate); levels [5000, 6000] taken from section D.",
+    "p4 Malay Studies / South Asian Studies / p5 Southeast Asian Studies: 'All courses cannot be audited' recorded as note-graded.",
+    "p4 Psychology: Level 4000 courses (excluding research courses) may be appealed case-by-case, yet the 'Courses NOT available to NG students' block lists 'All Level 4000, 5000 and 6000 courses' — contradictory for Level 4000.",
+    "p4 Psychology: PL2131, PL2132, PL3231, PL3551 printed without titles; 'PL328x (lab courses)' kept as a pattern.",
+    "p5 Southeast Asian Studies: 'SEA5XXX — All courses with the suffix ‘SEA’' — SEA is a prefix in SEA5XXX, the text says suffix.",
+    "p5 Southeast Asian Studies: 'All other Level 5000 courses are only open to 4th year & postgraduate Non-Graduating students' — 'other' presumably relative to SEA5XXX, which is closed; and D says Level 5000 are graduate courses not available to exchange students.",
+    "p5 Southeast Asian Studies: SE3234 printed without a title; the application-form rule recorded as note-approval.",
+    "p6 Business: the bullet 'Students must also be majoring in business at their home university...' sits in the same table cell as 'Level 1000 to 4000 courses:'; unclear whether it applies only to Levels 1000-4000 or to all Business courses. Levels left null.",
+    "p6 Business: 'Level 1000 to 4000 courses: ... over-subscribed and cannot be guaranteed ... priorities ... given firstly to our full-time NUS undergraduates ... as well as exchange students from the Business School faculty-level exchange partners' recorded as note-quota; it is a priority statement, not a stated quota.",
+    "p6 Business: 'If you have not been offered Business courses at the point of initial acceptance (first week of June or November), you will not be able to add the Course during the Submit Course Requests period.' recorded as 'info' — no kind fits a timing restriction.",
+    "p7-8 Computing: 'All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses are not open to non-graduating students' appears three times (Dean's Office p7, Computer Science p8, Information Systems and Analytics p8); recorded as three rules.",
+    "p7 Computing: Dean's Office says 'All CG coded courses are NOT open to Non-Graduating students' and Multidisciplinary Programme then lists CG1111A, CG2111A, CG2271 separately (redundant). The 'Department : Multidisciplinary Programme' heading is not highlighted like the other department headings.",
+    "p7 Computing: Dean's Office closed list includes UIS5951R and UIS6951R; Computer Science list includes CS1010S while section B lists CS1010X.",
+    "p9 Architecture: DEP5102's title cell carries '(Reading the Course on Audit basis is not permitted)' and p10 AR4321's title carries '(Reading the course on Audit basis is not permitted (offered in Sem 2 ONLY))'; recorded both in the title and as separate note-graded rules. Other parentheticals in titles ('(offered in Sem 2 ONLY)' for AR2227/AR4220, '(to be taken with AR2101)' for AR2328A, '(to be taken with AR3102)' for AR3722) are kept in titles only, not as separate rules.",
+    "p9 Architecture: AR2328A must be 'taken with AR2101', and AR2101 is in the letter-of-confirmation list; AR3722 'to be taken with AR3102', also in that list.",
+    "p9-10 Architecture: the ARCHITECTURE-major heading starts on p9 and its table is on p10; page recorded as 9.",
+    "p9 Architecture: closed list includes DEP-, UD- and LA5- coded courses under Department: Architecture; the letter list includes LA5701/LA5702 (Level 5000) despite section D.",
+    "p10 Built Environment: 'PF1107/ IPM1102' appears twice with different titles ('Infrastructure and Project Management Law' and 'Project and Facilities Management Law'); both rows kept, so PF1107 and IPM1102 each appear twice in the rule.",
+    "p11 Built Environment: limited-quota list is split into 'Semester 1' (15 codes) and 'Semester 2' (12 codes) sub-tables; semester split not captured in the schema. The Semester 2 header row reads 'Course Code | Course Code' (second column should be Course Title).",
+    "p11 Built Environment: limited-quota list includes IPM4201 and GESS1014 (non-PF codes).",
+    "p11 Built Environment: 'Building undergraduate courses must be taken on graded basis' — levels [1000-4000] inferred from 'undergraduate' + section D.",
+    "p12 Civil and Environmental Engineering: a 'Course Code / Course Title' header row is printed with no course rows beneath it.",
+    "p12 Electrical and Computer Engineering: EE2211 'Introduction to Machine Learning' listed twice.",
+    "p12 Electrical and Computer Engineering: patterns 'CEG5xxxx' and 'EEK5xxxx' have four x's (8-character codes) unlike 'EE5xxx & EE6xxx'; 'EE5xxx & EE6xxx' split into two patterns.",
+    "p12 Industrial Systems Engineering and Management: heading printed 'Department: ...' (no space before colon) and the closed table has no 'Course Code / Course Title' header row.",
+    "p12-13 Materials Science and Engineering: the closed list appears twice — a first table (GEH1057, MLE1001, MLE1001A, MLE1001B, MLE1002, MLE1010, then two blank rows) and a second full table with its own 'Courses NOT available to NG students' heading that repeats those six codes; recorded as two rules (4-mse-closed-1, 4-mse-closed-2).",
+    "p12-13 Materials Science and Engineering: GEH1057 in the MSE closed list; Mathematics (p17) also closes all 'GEHXXXX'.",
+    "p13 Materials Science and Engineering: MLE1002 and MLE2001/MLE2001A share the title 'Materials Science & Engineering Principles & Practice II'.",
+    "p14 Mechanical Engineering: ME3123 title is printed with an 'ﬂ' ligature ('Applied Thermoﬂuids'); recorded as 'Applied Thermofluids'.",
+    "p14 Division of Industrial Design: 'pursuing an INDUSTRIAL DESIGN Course in their Home University' recorded as note-major.",
+    "p14 Law (and Science department tables p16-18): heading reads 'Courses NOT open Non-Graduating students' (missing 'to').",
+    "p14-15 Law: all closed codes are LL4xxx while 'Only selective Law electives with course code LL4XXXX are available for exchange students' — recorded as a whitelist for 'other: exchange students'; 'All compulsory LLB courses' and the 'See HERE' list are external.",
+    "p15 Music: 'Music electives listed HERE' points to an external list; recorded as a whitelist with the pattern as printed.",
+    "p15 Public Policy: rule refers to 'LKYSPP courses (i.e. Course codes with prefix PP)'; school recorded as 'LKYSPP' as printed.",
+    "p15 Science Dean's Office: FMS1201D title printed 'From Bench to Beside & Beyond' ('Beside', likely 'Bedside'); kept as printed.",
+    "p16-17 Mathematics: 'Department : Mathematics' heading at the foot of p16, its table on p17; page recorded as 17.",
+    "p17 Mathematics: 'MA4288P/O' and 'FMS12XXM' kept as patterns (not split into MA4288P/MA4288O). 'DSE4211/QF4211' and 'DSE4212/QF4212' split into two codes each.",
+    "p17 Mathematics: closes 'Course codes DSAXXXX' while Statistics and Data Science (p19) separately lists DSA codes; DSE4101 appears in both the Mathematics and the Statistics and Data Science closed lists.",
+    "p16 Biological Sciences: 'Course codes FSCXXXX are NOT open' listed under Biological Sciences; LSM33xx kept as a pattern. Section A excludes LSM codes from the Medicine closure.",
+    "p17-18 Pharmacy: PR3117 and PR3123 share the title 'Formulation & Technology II'.",
+    "p18 Physics: row 'PC4288, PC4288A/Q/N' with a four-part combined title; PC4288 recorded as a code with the full combined title and 'PC4288A/Q/N' as a pattern. 'AIS5xxx — All AIS courses' listed under Physics. Physics has no level-5000 'Other points' rule but lists many PC5xxx codes individually.",
+    "p18 Physics vs p16 Biological Sciences: PC33xx and LSM33xx both titled 'Undergraduate Professional Internship Programme'.",
+    "p19 Statistics and Data Science: closed table has no 'Course Code / Course Title' header row.",
+    "p19 NUS Risk Management Institute: 'Courses open to Non-Graduating students are limited and approval will be done on a case-by-case basis' recorded as note-approval; 'limited' could also be read as a quota.",
+    "p21 and p22 are blank apart from header/footer; p22's footer reads 'Updated as at 19 March 2025' while all other pages read 'Updated as at 31 Aug 2026'."
+  ]
+}
