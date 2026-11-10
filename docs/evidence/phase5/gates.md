@@ -92,3 +92,35 @@ the HEAD runner, sha256 of each run's `results` (first 16):
 The four hashes equal 5A's and 5C-api's above. The same queries answer 400 on both sides
 (d-005, d-017, d-032, d-042; fx-10). No holdout run, no count and no look; holdout looks stay at
 7 of 12.
+
+## 5F: the dev screen (2026-11-11): FAIL, so phrases stay off and no look is spent
+
+Candidate `11b1699` (local branch `phase5/phrases-on`): `6270dd7` with `PARSE_PHRASES = true` in
+`src/intents.js`, and `test/full/sc4.test.js` counting 3H as merged while the flag is on. Run
+with `npm run eval:phrases -- screen --candidate 11b1699… --set dev --prefix 5f-screen1`
+against the pin `f798542`; dev only, local, no count and no look.
+
+| check | result |
+|---|---|
+| reference parse | 10 of 98 (the hand-checked list); candidate's vocabulary = the reference's |
+| primary, filtered qrels (85) | nDCG@10 0.772 → 0.754, **Δ −0.018** [−0.071, 0.005]; P@5 Δ +0.000; MRR@10 Δ −0.016 |
+| constraint block (5) | nDCG@10 0.372 → 0.606, Δ +0.234 |
+| compliance | 100% (every parsed query's shown results meet the constraint) |
+| identity | 0 of 88 unparsed queries' top 10 differ |
+| new errors | 0 |
+| SC4 (`test/full/sc4.test.js`, flag on, full corpus) | 76 of 76 pass, the 14 parsed-intent items included |
+| **screen** | **FAIL** (primary ΔnDCG@10 < 0) |
+
+B2-4 diagnostic (the candidate against the pin with the parsed constraints as explicit params,
+not gated): primary ΔnDCG@10 −0.010, constraint block −0.009.
+
+**Why it fails.** The whole primary loss is two prerequisite queries, d-011 "intro accounting no
+prerequisites" and d-099 (its misspelt twin), each ΔnDCG@10 −1.000. The pin's list starts with
+ACC1701XC (judged 2); the candidate, searching the stripped text "intro accounting", starts
+with ACC1701XB, a variant in the same group that no judge graded, so it scores 0 and the group's
+other judged members never earn gain. XB is the same course text as XC, but it is not on
+NUSMods' Sem 1 timetable, and both queries ask for Sem 1, so the candidate's pick is genuinely a
+little worse for the student, not only an unjudged gap.
+
+Per the plan (§3 5F), L8 is not taken: `PARSE_PHRASES` stays off, SC4's 14 parsed-intent items
+stay unmet in Phase 5, and holdout looks stay at 7 of 12.

@@ -1111,3 +1111,15 @@ fails on the previous code.
   "Switch to Sem 2" action, "Also as" variants as links, the detail header repeating code and
   title, and "n courses shown" for code queries.
 - **Next:** 5E (SC8 measurement), then the 5F dev screen, 5G ship and L8.
+
+## 2026-11-11 — Phase 5 5F dev screen: FAIL; phrases stay off, no look
+
+- **Screen** (`docs/evidence/phase5/gates.md`, "5F: the dev screen"): with `PARSE_PHRASES` on,
+  compliance is 100%, identity holds, SC4's 14 parsed items pass and the constraint block gains
+  +0.234, but the primary ΔnDCG@10 is −0.018. The loss is d-011 and d-099: stripping "no
+  prerequisites" makes the group collapse show ACC1701XB (unjudged, not on Sem 1's timetable)
+  instead of ACC1701XC.
+- **Per the plan:** L8 is not taken; phrases stay off; looks stay at 7 of 12.
+- **Possible follow-up (Jacob's call):** prefer the group member timetabled in the chosen
+  semester as the collapsed result. That is a real fix on its own, and with it the phrase
+  candidate could be screened again.
