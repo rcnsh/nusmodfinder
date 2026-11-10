@@ -59,6 +59,14 @@ critique (V1) and a provenance gap (P3). SC4's parsed-phrase items carry over fr
   the ephemera set `vector-nusmods-phase-5-design-directions-tk3piy`, with D picked and A–C
   rejected. 5D builds D in both themes.
 
+## Lead decision 2026-11-11: SC8's axe gate is WCAG AA
+SC8's "axe-core zero violations" runs every axe rule, the AAA ones included, except
+`color-contrast-enhanced` (WCAG AAA's 7:1). The plan's contrast bar is WCAG AA (§3 5D: 4.5:1 text,
+3:1 large text and UI), which `npm run contrast` checks for every pair in both themes; design D's
+lowest text pair is 6.21:1. Reaching 7:1 would mean darkening D's status colours, which Jacob
+picked, for a level the plan never set. axe ships that rule disabled by default for the same
+reason.
+
 ## Consequences
 - Two production deploys before 5F: the data change, then the page (code-only, rolled back
   alone). Each moves the shipped-ranker pin as ranking-neutral.
