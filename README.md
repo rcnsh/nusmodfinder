@@ -20,7 +20,7 @@ filter by semester, level, credits and faculty.
 |---|---|
 | `GET /` | Single-page UI, no framework, no build step |
 | `GET /search?q=&sem=&level=&credits=&faculty=&ng=&study=&topK=&mode=` | Ranked results as JSON |
-| `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study |
+| `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study, its exams, its workload and its NUSMods link (below) |
 | `GET /facets` | Distinct faculties and levels, with counts, for the filter UI, and the exchange-mode sources with their dates |
 
 `ng=1` is **exchange mode**: only courses an exchange (Non-Graduating) student may take, under
@@ -31,6 +31,13 @@ the student's year of study at home (`ug4` = 4th year or later); without it `/se
 courses with `noMatch: { reason: "ng-special-term" }`: the NG list has no special-term data.
 Each result then carries `exchange: { status: "open" | "note", reasons: [{ id, kind, text }] }`.
 Only `true` narrows — `ng=0` is ignored, and `study` is ignored without `ng=1`.
+
+`/module/:code` (Phase 5 5A) also answers `examDates`, one `{ sem, date, durationMins }` per
+semester with an exam (`date` ISO UTC as NUSMods gives it; `[]` for none); `workload` as
+`{ lecture, tutorial, lab, project, prep, total }` hours a week, `{ raw }` when NUSMods gives
+something other than its 5-number array (two modules give a string), or `null` when not listed
+(absent or all zero); and `nusmodsUrl`, where the class times are. It is cached
+`public, max-age=300` on a 200, `public, max-age=60` on a 404 and `no-store` on a 5xx, with no ETag.
 
 `mode` is `hybrid` (default), `vector` or `lexical`. It exists so the evaluation harness
 can measure each retriever on its own — which is the only reason we know the vector half
