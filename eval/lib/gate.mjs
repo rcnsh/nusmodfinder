@@ -30,6 +30,14 @@
 //                      (errors, exact-code, query count) is on the full set.
 //   answerable-floor   (dev screen only; 3G) ΔnDCG@10 >= -0.01 over the
 //                      primary answerable set.
+//   compliance         (Phase 5 5F; dev screen and holdout, never the test
+//                      set) on constraint-filtered qrels (lib/compliance.mjs):
+//                      ΔnDCG@10 >= 0 and ΔP@5 >= 0 over the primary set's
+//                      scored queries; the constraint block's ΔnDCG@10 >= 0,
+//                      a recorded vacuous pass when it has no scored query;
+//                      compliance 100%; every unparsed query's top 10 equal
+//                      to the baseline's. No new errors, judged@10 and the
+//                      exact-code check read the raw qrels.
 //
 // Every gate fails a candidate with more errored (non-200) queries than its
 // baseline ("no new errors"), and needs at least RULES.minQueries primary
@@ -75,7 +83,7 @@ export const SC5_READING = 'sealed';
 /** Change kinds that screen on dev only: no holdout or test verdict uses them. */
 export const DEV_ONLY_KINDS = Object.freeze(['no-loss', 'answerable-floor']);
 /** Every change kind `--change-kind` takes. */
-export const CHANGE_KINDS = Object.freeze(['general', 'cutoff', ...DEV_ONLY_KINDS]);
+export const CHANGE_KINDS = Object.freeze(['general', 'cutoff', 'compliance', ...DEV_ONLY_KINDS]);
 
 /**
  * Throws GateRuleError unless the SC5 rule may be taken on `set`'s gate: the
@@ -94,7 +102,7 @@ export function assertSc5Allowed(set, reading = SC5_READING) {
 /**
  * `gate: 'sc5'` takes the SC5 rule on the holdout (assertSc5Allowed).
  * `exempt` (no-loss only, dev only): ids left out of the no-loss comparison.
- * @typedef {{ kind?: 'general' | 'cutoff' | 'no-loss' | 'answerable-floor', targetShapes?: string[], gate?: 'sc5', exempt?: string[] }} Change
+ * @typedef {{ kind?: 'general' | 'cutoff' | 'compliance' | 'no-loss' | 'answerable-floor', targetShapes?: string[], gate?: 'sc5', exempt?: string[] }} Change
  * @typedef {{ name: string, pass: boolean, detail: string }} Check
  * @typedef {{ set: string, verdict: 'pass' | 'fail', checks: Check[], rule?: string }} Verdict
  * @typedef {import('./metrics.mjs').Comparison} Comparison
@@ -282,6 +290,50 @@ export function holdoutGate(cmp, change = {}) {
 }
 
 /**
+ * What the compliance rule adds to a filtered comparison (lib/compliance.mjs
+ * `applyComplianceRule`): the raw-qrels comparison and the counts its own
+ * checks read. Counts only, never ids.
+ * @typedef {{
+ *   raw: Comparison,
+ *   block: { n: number, delta: number },
+ *   compliance: { queries: number, violations: number },
+ *   identity: { queries: number, differing: number },
+ *   newErrors: number,
+ * }} ComplianceChecks `newErrors`: queries the candidate errors on where the baseline answered 200
+ */
+
+/** The ledger's rule cell when the constraint block had no scored query (B3-3). */
+export const VACUOUS_BLOCK_RULE = 'compliance (constraint block vacuous)';
+
+/**
+ * The compliance rule (Phase 5 5F), the same on dev and the holdout. `cmp`
+ * is the comparison on constraint-filtered qrels.
+ * @param {string} set
+ * @param {Comparison} cmp
+ * @param {ComplianceChecks} c
+ * @returns {Verdict}
+ */
+export function complianceGate(set, cmp, c) {
+  const vacuous = c.block.n === 0;
+  return verdict(set, [
+    noNewErrorsCheck(c.raw),
+    { name: 'no new errors, per query', pass: c.newErrors === 0, detail: `${c.newErrors} queries answered by the baseline get a non-200 response from the candidate` },
+    sufficientCheck(cmp),
+    judgedCheck(c.raw),
+    { ...exactCodeCheck(c.raw), name: 'no exact-code regression (raw qrels)' },
+    { name: 'ΔnDCG@10 >= 0 (filtered qrels)', pass: cmp.overall.ndcg.delta >= -EPS, detail: `${f(cmp.overall.ndcg.delta)} over ${cmp.n} primary scored queries` },
+    { name: 'ΔP@5 >= 0 (filtered qrels)', pass: cmp.overall.p5.delta >= -EPS, detail: `${f(cmp.overall.p5.delta)} over ${cmp.n} primary scored queries` },
+    {
+      name: 'constraint block ΔnDCG@10 >= 0 (filtered qrels)',
+      pass: vacuous || (Number.isFinite(c.block.delta) && c.block.delta >= -EPS),
+      detail: vacuous ? 'vacuous pass: the constraint block has no scored query' : `${f(c.block.delta)} over ${c.block.n} scored queries`,
+    },
+    { name: 'compliance 100%', pass: c.compliance.violations === 0, detail: `${c.compliance.violations} shown results break the parsed constraints, over ${c.compliance.queries} parsed queries` },
+    { name: 'unparsed queries keep their top 10', pass: c.identity.differing === 0, detail: `${c.identity.differing} of ${c.identity.queries} unparsed queries differ from the baseline in the top 10` },
+  ]);
+}
+
+/**
  * SC5: final shipped ranker vs eval-v0, on the sealed test set (or, under the
  * holdout reading, on the holdout: `set` names it).
  * @param {Comparison} cmp
@@ -308,7 +360,7 @@ export function sc5Gate(cmp, set = 'test') {
  */
 export function ruleOf(set, change = {}) {
   if (set === 'test' || change.gate === 'sc5') return 'sc5';
-  if (change.kind === 'cutoff' || (change.kind && DEV_ONLY_KINDS.includes(change.kind))) return change.kind;
+  if (change.kind === 'cutoff' || change.kind === 'compliance' || (change.kind && DEV_ONLY_KINDS.includes(change.kind))) return change.kind;
   const targets = (change.targetShapes ?? []).map((t) => t.replace(/[^A-Za-z0-9._-]/g, '?').slice(0, 40));
   return targets.length ? `targeted: ${targets.join(',')}` : 'general';
 }
@@ -339,8 +391,9 @@ export function assertTruncation(base, cand) {
  * @param {string} set dev | holdout | test (anything else is screened as dev)
  * @param {Comparison} cmp
  * @param {Change} [change]
- * @param {{ reading?: 'sealed' | 'holdout', noLoss?: Comparison }} [options] the SC5 reading (default: the
- *   recorded SC5_READING); `noLoss`, the comparison without no-loss's exempt ids (dev only)
+ * @param {{ reading?: 'sealed' | 'holdout', noLoss?: Comparison, compliance?: ComplianceChecks }} [options] the SC5 reading (default: the
+ *   recorded SC5_READING); `noLoss`, the comparison without no-loss's exempt ids (dev only);
+ *   `compliance`, the compliance rule's checks (`cmp` is then on filtered qrels)
  * @returns {Verdict}
  */
 export function gateFor(set, cmp, change = {}, options = {}) {
@@ -351,6 +404,12 @@ export function gateFor(set, cmp, change = {}, options = {}) {
   if (change.gate === 'sc5') {
     assertSc5Allowed(set, options.reading);
     return { ...sc5Gate(cmp, set), rule };
+  }
+  if (change.kind === 'compliance') {
+    if (set === 'test') throw new GateRuleError('--change-kind compliance is not taken on the test set: its one rule is SC5');
+    if (!options.compliance) throw new GateRuleError('--change-kind compliance needs the compliance rule\'s checks (lib/compliance.mjs)');
+    const v = complianceGate(set === 'holdout' ? 'holdout' : 'dev', cmp, options.compliance);
+    return { ...v, rule: options.compliance.block.n === 0 ? VACUOUS_BLOCK_RULE : rule };
   }
   if (set === 'holdout') return { ...holdoutGate(cmp, change), rule };
   if (set === 'test') return { ...sc5Gate(cmp), rule };

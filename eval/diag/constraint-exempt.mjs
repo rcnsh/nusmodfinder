@@ -17,6 +17,7 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { failedConstraint } from '../lib/compliance.mjs';
 import { loadPinnedWith } from '../lib/corpus.mjs';
 import { rankerIntentParser } from '../lib/corrected.mjs';
 import { qrelsFor } from '../lib/metrics.mjs';
@@ -28,20 +29,8 @@ import { buildWorkspace } from '../lib/workspace.mjs';
  * @typedef {{ examSemesters: number[], su: boolean, gradingBasis: string | null, workloadHours: number | null, prereqNone: boolean, prereqCohortOnly: boolean }} IntentFields
  */
 
-/**
- * The first 3H constraint a module fails, or null. As src/search.js applies
- * them: exam=0 with a semester filter means no exam in that semester.
- * @param {IntentFields} m
- * @param {IntentConstraints} c
- * @param {{ prereq: 'i' | 'ii', suGrading: (basis: string | null) => boolean, sem?: number }} o
- */
-export function failedConstraint(m, c, o) {
-  if (c.exam === 0 && (o.sem !== undefined ? m.examSemesters.includes(o.sem) : m.examSemesters.length > 0)) return 'exam';
-  if (c.su === 1 && !(m.su || o.suGrading(m.gradingBasis))) return 'su';
-  if (c.hoursBelow !== undefined && (m.workloadHours === null || m.workloadHours >= c.hoursBelow)) return 'hoursBelow';
-  if (c.prereq === 'none' && !(m.prereqNone || (o.prereq === 'ii' && m.prereqCohortOnly))) return 'prereq';
-  return null;
-}
+// The predicate is the 5F compliance rule's, shared (eval/lib/compliance.mjs).
+export { failedConstraint };
 
 /**
  * The exempt ids, by C3-8.

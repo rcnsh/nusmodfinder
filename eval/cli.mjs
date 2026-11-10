@@ -5,7 +5,7 @@
 //   npm run eval -- --variant <name> [--ref <git ref>] [--set dev|holdout|test] [--baseline <variant>]
 //   npm run eval -- --holdout --variant <name> --baseline <variant>      (custodian only)
 //   npm run eval:report -- --run <variant> [--baseline <variant>] [--set dev]
-//       [--change-kind general|cutoff|no-loss|answerable-floor] [--exempt <file>] [--gate sc5]
+//       [--change-kind general|cutoff|compliance|no-loss|answerable-floor] [--exempt <file>] [--gate sc5]
 //   npm run eval -- --variant <name> --ref eval-v0 --mode lexical|vector   (pool variants)
 //   npm run eval:pool -- --runs <a,b,...> [--set dev] [--unjudged [--qrels <path>]]
 //   node eval/cli.mjs retire-run --holdout --variant <name> --reason "<why>"   (custodian; logged)
@@ -16,6 +16,8 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
 import { assertBaselineAt, baselinePinFor, pinLabel } from './lib/baseline.mjs';
+import { applyComplianceRule, assertRuleAdopted, loadRuleSources } from './lib/compliance.mjs';
+import { devComplianceReport } from './lib/compliance-report.mjs';
 import { assertInManifest, manifestFiles, MANIFEST, recordInManifest, removeFromManifest, sha256, writeEncryptedJson } from './lib/crypto.mjs';
 import { EmbeddingError, errorClass, RunFailedError, RunFileError } from './lib/errors.mjs';
 import { assertSc5Allowed, assertTruncation, CHANGE_KINDS, DEV_ONLY_KINDS, gateFor, ruleOf, SC5_READING } from './lib/gate.mjs';
@@ -23,7 +25,7 @@ import { loadGroups, withCorpusGroups } from './lib/groups.mjs';
 import { poolCandidate } from './lib/judging.mjs';
 import { appendLook, assertLookAllowed, assertSc5Order, finaliseLook, reserveLook, withLedgerLock } from './lib/ledger.mjs';
 import { assertSameCorpus, byShape, compare, K, scoreRun, summarise, unscoredIds } from './lib/metrics.mjs';
-import { comparisonTable, fmt, shapeTable, summaryTable, UNSCORED_NOTE, verdictBlock, verdictOnly } from './lib/report.mjs';
+import { comparisonTable, complianceVerdictOnly, fmt, shapeTable, summaryTable, UNSCORED_NOTE, verdictBlock, verdictOnly } from './lib/report.mjs';
 import { MODES, REPO, assertPlainManifest, layout, loadQrels, loadQueries, readSetJson, runFile, setFile, setKey } from './lib/sets.mjs';
 import { rng } from './lib/stats.mjs';
 
@@ -88,6 +90,13 @@ function changeOf(a, set) {
     if (kind !== 'no-loss') fail('--exempt is for --change-kind no-loss only (3H\'s constraint-exempt dev queries, C3-8)');
   }
   if (set.encrypted && DEV_ONLY_KINDS.includes(kind)) fail(`--change-kind ${kind} is a dev screen only: no ${set.name} verdict takes it`);
+  if (kind === 'compliance') {
+    try {
+      assertRuleAdopted(set);
+    } catch (err) {
+      fail(/** @type {Error} */ (err).message);
+    }
+  }
   if (a.gate !== undefined) {
     if (a.gate !== 'sc5') fail(`--gate takes only sc5, got ${a.gate}`);
     if (kind !== 'general' || targetShapes.length) fail('--gate sc5 takes no --change-kind or --target-shapes: SC5 has one rule');
@@ -245,6 +254,23 @@ async function fullReport(set, candPath, basePath, a, change) {
   const nowSha = createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex');
   if (currentSha !== nowSha) console.warn(`warning: ${cand.variant} was run on a different version of the ${set.name} queries; re-run it`);
 
+  if (change.kind === 'compliance') {
+    if (!base) fail('--change-kind compliance compares a candidate with --baseline <variant>');
+    assertGateable([base, cand]);
+    const sources = await loadRuleSources(set, cand);
+    try {
+      const r = devComplianceReport({ set, queries: querySet.queries, qrels: scored, qrelsVersion: qrels.version, base, cand, sources, change });
+      console.log(r.text);
+      if (a.json) {
+        await mkdir(dirname(resolve(a.json)), { recursive: true });
+        await writeFile(resolve(a.json), `${JSON.stringify(r.json, null, 1)}\n`);
+      }
+    } finally {
+      await sources.close();
+    }
+    return;
+  }
+
   const exempt = a.exempt ? await readExempt(resolve(a.exempt), querySet.queries, set.name) : [];
   const candScores = scoreRun(cand, querySet.queries, scored);
   const baseScores = base ? scoreRun(base, querySet.queries, scored) : null;
@@ -337,9 +363,21 @@ async function verdictReport(set, candPath, basePath, a, change, reserved = null
     if (change.kind === 'cutoff') assertTruncation(base, cand);
     assertSameCorpus(qrels, [base, cand]);
     const scored = withCorpusGroups(qrels, await loadGroups());
-    const candScores = scoreRun(cand, querySet.queries, scored);
-    const baseScores = scoreRun(base, querySet.queries, scored);
-    const cmp = compare(baseScores, candScores);
+    // The compliance rule (5F) applies the frozen reference parse, filters the
+    // qrels, and checks the candidate's parse, compliance and identity here,
+    // before any ledger row: a mismatch or a missing field throws and spends
+    // no look. Its counts come only from this run (B2-6).
+    /** @type {import('./lib/compliance.mjs').ComplianceResult | null} */
+    let rule = null;
+    if (change.kind === 'compliance') {
+      const sources = await loadRuleSources(set, cand);
+      try {
+        rule = applyComplianceRule({ queries: querySet.queries, qrels: scored, base, cand, sources });
+      } finally {
+        await sources.close();
+      }
+    }
+    const cmp = rule ? rule.cmp : compare(scoreRun(base, querySet.queries, scored), scoreRun(cand, querySet.queries, scored));
     const ranker = /** @type {any} */ (cand.ranker) ?? {};
     const row = {
       date: today(),
@@ -356,9 +394,12 @@ async function verdictReport(set, candPath, basePath, a, change, reserved = null
       process.exitCode = 2;
       return;
     }
-    const v = gateFor(set.gate, cmp, change);
-    const out = verdictOnly(v, cmp, qrels.version, custodyGate(set) ? pinLabel(baselinePinFor(set.gate, change)) : `${String(/** @type {any} */ (base.ranker)?.ref ?? 'unknown')} ${rankerCell(base)}`);
-    const final = { ...row, verdict: v.verdict, ndcg: out.ndcg, p5: out.p5 };
+    const v = gateFor(set.gate, cmp, change, rule ? {
+      compliance: { raw: rule.raw, block: rule.block, compliance: { queries: rule.compliance.queries, violations: rule.compliance.violations.length }, identity: { queries: rule.identity.queries, differing: rule.identity.differing.length }, newErrors: rule.newErrors.length },
+    } : {});
+    const label = custodyGate(set) ? pinLabel(baselinePinFor(set.gate, change)) : `${String(/** @type {any} */ (base.ranker)?.ref ?? 'unknown')} ${rankerCell(base)}`;
+    const out = rule ? complianceVerdictOnly(v, cmp, rule, qrels.version, label) : verdictOnly(v, cmp, qrels.version, label);
+    const final = { ...row, rule: v.rule ?? row.rule, verdict: v.verdict, ndcg: out.ndcg, p5: out.p5 };
     if (reserved) {
       await finaliseLook(ledger, reserved, final);
     } else {
@@ -394,6 +435,11 @@ async function cmdRun(a) {
     // The candidate does not exist until retrieval, which runs after the look
     // is reserved; a cutoff verdict is taken on a stored run, so the
     // truncation is checked before any look is counted.
+    // The compliance rule throws on a parse mismatch before its ledger row;
+    // `run` reserves its row before retrieval, so the rule is taken on stored runs.
+    if (!a['store-only'] && change.kind === 'compliance') {
+      fail(`a compliance verdict on the ${set.name} set is taken on stored runs, so a parse mismatch stops it before any look is counted: store the candidate with --store-only, then npm run eval:report -- --set ${set.name}${a['set-dir'] ? ` --set-dir ${a['set-dir']}` : ''} --run ${a.variant} --baseline ${a.baseline} --change-kind compliance`);
+    }
     if (!a['store-only'] && change.kind === 'cutoff') {
       fail(`a cutoff verdict on the ${set.name} set is taken on a stored run, so the truncation check comes before a look is counted: store the candidate with --store-only, then npm run eval:report -- --set ${set.name}${a['set-dir'] ? ` --set-dir ${a['set-dir']}` : ''} --run ${a.variant} --baseline ${a.baseline} --change-kind cutoff`);
     }

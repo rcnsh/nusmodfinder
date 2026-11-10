@@ -378,6 +378,102 @@ ADR's per-change look procedure was written for Phase 3. Each of the 5 remaining
 needs a rule written and committed before the look (what is compared, the metric, the pass
 condition, and how exchange-mode removals are scored); without one, no look is taken.
 
+## Amendment (draft) Phase 5 5F: the compliance rule for parsed phrases
+**Draft, not yet in force: the lead adopts it before any count or look.** Until the lead
+replaces that line with an adoption date, no count and no holdout look may be taken under this
+rule. The CLI enforces it: while the line stands, `--change-kind compliance` is refused on the
+holdout and test sets (`assertRuleAdopted`, `eval/lib/compliance.mjs`). The tooling exists and is
+tested (below); no look has been taken with it.
+
+This is the rule the 2026-11-10 amendment requires for a holdout look on a change that removes
+results by design. It covers L8 (`docs/plans/phase5.md` §3 5F: B2-1 to B2-6, B3-1, B3-3).
+- **Rule kind:** `--change-kind compliance` (`eval/lib/compliance.mjs`, `complianceGate` in
+  `eval/lib/gate.mjs`). It is taken on dev and on the holdout, never on the test set. On an
+  encrypted set it runs only through `eval:report` on stored runs. `npm run eval` refuses it,
+  because `run` reserves its ledger row before retrieval. The ledger's rule cell reads
+  `compliance`, or `compliance (constraint block vacuous)`.
+- **The frozen reference parse** decides each query's constraints for scoring, independent of
+  the candidate. It is 3H's pass A at tag `3h` =
+  `24760122a489dac6e4c604c1bacb8cd002624391`. That commit predates the `PARSE_PHRASES` flag, so
+  its phrases always compile.
+  - It runs over the vocabulary its own builder makes from the run corpus (the eval's pinned
+    snapshot), labelled as a run labels it. Its prerequisite semantics are (ii).
+  - The verdict refuses (`ReferenceParseError`) when the tag no longer resolves to that commit,
+    or when the reference parses no query of the set.
+- **The candidate's parse** is what its Worker answered: the runner records each query's
+  `interpreted` 3H keys in the run file's `intents`, outside `results`.
+  - The verdict path throws `ParseMismatchError` if the candidate's parse differs from the
+    reference's on any query: an extra or a missing intent, another value, or other prerequisite
+    semantics. It throws before the ledger row is written, so the mismatch spends no look.
+  - A run with no `intents` is refused (`RunFileError`).
+  - A non-200 answer echoes no parse and is not compared. It shows nothing, and the rule fails a
+    candidate that errors on any query its baseline answered ("no new errors, per query"), so an
+    error cannot hide a parse.
+- **The constraint fields' source** is the pinned snapshot normalised by the candidate's
+  `scripts/lib.mjs` (its commit, or the working tree for a working-tree run). That gives the exam
+  semesters, S/U, workload hours, prerequisite (none or cohort-only) and the allow mask. The
+  exchange bit comes from the candidate's `src/ng-bit.js`, with `study` from
+  `eval/study-map.json`.
+  - The verdict throws `ConstraintFieldsError` if any judged code, or any code either run
+    returned, is missing from the source.
+  - The rule reads only what the candidate was seeded with. The runner records the run corpus's
+    `textSha256` and a digest of every module's constraint fields (`constraintFieldsSha256`).
+    The verdict throws `CorpusMismatchError` before the ledger row if its source gives another
+    text (the reference's vocabulary) or other fields. A run that recorded no digest is refused.
+  - A synthetic set whose own `corpus.json` carries every field is its own source. That is for
+    tests only; the eval fixture's corpus does not.
+- **Constrained queries and filtered qrels.** A query is constrained when the reference parses
+  a phrase in it, or when it is an exchange-mode query (`ng`, with its `sem` and `study`).
+  - A judged document counts as relevant only if it satisfies every constraint of its query:
+    the phrases as `/search` applies them (`exam=0` with a semester means no exam in that
+    semester; (ii) prerequisites), and the allow bit. Otherwise its grade becomes 0, in DCG and
+    IDCG alike.
+  - A query left with no relevant document is unscored, as `scoredSet` treats a query with none.
+  - The candidate and the pin are scored on the same filtered qrels. Exchange-mode removals are
+    scored this way for every later look.
+- **Pass iff,** on the holdout (and on dev for the screen):
+  - ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates) over the primary set's scored queries, on the
+    filtered qrels;
+  - ΔnDCG@10 ≥ 0 over the constraint block's scored queries (`FEATURE_GAP_SHAPES`). A block
+    with no scored query is a vacuous pass, recorded in the ledger's rule cell and printed;
+  - no exact-code regression, on the raw qrels;
+  - compliance 100%: every result the candidate shows for a parsed query satisfies the parsed
+    constraints;
+  - identity: every query the reference leaves unparsed has its top 10 (status and codes)
+    byte-identical to the pin's;
+  - and every gate's checks: no new errors (in total, and per query), ≥ 10 primary scored
+    queries, judged@10 100%.
+- **Output.** On the holdout the verdict prints only:
+  - the verdict line (rule, baseline, qrels);
+  - the primary ΔnDCG@10 and ΔP@5 with their BCa intervals;
+  - the constraint block's ΔnDCG@10 (or its vacuous pass);
+  - the counts: scored (primary and block), unscored and parsed.
+
+  It never prints an id, a query, a check's detail or which check failed. These counts come only
+  from that verdict run, never from a separate tool (B2-6).
+- **The dev screen before L8** (`npm run eval:phrases -- screen`):
+  - the same rule on dev, printed with per-query detail;
+  - the run's recorded vocabulary sha equal to the reference's (A3-1);
+  - SC4's 14 parsed-intent items.
+
+  The B2-4 diagnostic, the candidate against the pin with the parsed constraints as explicit
+  params, is reported and never gated. L8 is taken only if the screen passes; otherwise phrases
+  stay off and no look is spent. One look, L8 of 12, no retry.
+- **The dev hand-check.** `npm run eval:phrases -- list` lists every dev query the reference
+  parses, with its constraints. The lead confirms the list before the screen. It is 10 queries:
+  - prerequisites, (ii): d-011, d-023, d-048, d-080, d-099 (d-099 through 3C's correction);
+  - no exam: d-024, d-037, d-049, d-050, d-081.
+
+  `test/full/compliance.node.test.js` pins the list.
+- **Accepted risk: a holdout misparse goes unseen.** No one checks the reference parse on the
+  holdout. A phrase it misreads there would remove relevant documents from both lists and from
+  the ideal ranking, and nothing would show it. This amendment accepts that risk. It is bounded
+  by the dev hand-check above (the same frozen parser and phrase list) and by SC4's suite.
+- **Known limit: the refusals reveal a little.** A parse-mismatch refusal costs no look, so its
+  class (`ParseMismatchError`) tells the custodian that some holdout query parses differently.
+  The custodian runs verdicts only for the candidate the dev screen passed, so this is not used
+  to probe the holdout.
+
 ## Shipped-ranker pin
 The baseline of per-change holdout looks (`SHIPPED_BASELINE`, `eval/lib/baseline.mjs`). The
 last line is the current pin; a PR that ships a change appends one line, with the ranker it

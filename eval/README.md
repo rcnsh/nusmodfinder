@@ -53,6 +53,9 @@ npm run eval:groups [-- --check]                          # rebuild (or check) e
 npm run eval:count -- --custodian --set test --answerable   # custodian: one integer, logged, not a look
 npm run eval:count -- --custodian --holdout --emptied-untagged --run <variant>
 npm run eval:count -- --custodian --holdout --lists-differing --run <A> --baseline <B>
+npm run eval:phrases -- list                              # 5F: every dev query the frozen reference parse reads
+npm run eval:phrases -- screen --candidate <ref>          # 5F: the dev screen (runs, the compliance rule, the B2-4 diagnostic)
+npm run eval:report -- --run <cand> --baseline <pin> --change-kind compliance   # 5F's rule on stored runs
 ```
 
 `--mode hybrid|lexical|vector` (default `hybrid`, which sends no parameter) runs one retrieval
@@ -139,7 +142,12 @@ Run file (`vnm-eval-run/1`): `variant`, `set`, `ranker` (ref, sha, dirty, `treeH
 (release, moduleInfo sha256, NG sha256, module count, sha256 of all embedding texts),
 `embedding` (corpus version, model, text ref), `queries` (version, sha256, count), `config`,
 `results` (`id → { status, codes, error? }`, top 20 as returned), `docs` (metadata of every
-returned code, for violations). No query text.
+returned code, for violations; `corpus` also carries `constraintFieldsSha256`, a digest of the
+constraint fields the Worker was seeded with, Phase 5 5F), `intents` (Phase 5 5F: each query's `interpreted` 3H keys as the
+Worker echoed them, null for a non-200; outside `results`, so the ranking-identity checks that
+hash `results` don't see it). No query text. A run of the B2-4 diagnostic's baseline also records
+`config.explicit` (`{ label, params }`: the extra `/search` params each query was sent); no gate
+takes such a run.
 
 ## Metrics (`lib/metrics.mjs`, `lib/stats.mjs`)
 
@@ -190,6 +198,38 @@ Per change, vs the shipped ranker:
   errors, the query floor and the exact-code check still run over every query. 3H's
   constraint-exempt queries (C3-8) use it. The report prints each exempt id with its ΔnDCG@10 (`—` when the
   query is not primary answerable).
+- **compliance** (`--change-kind compliance`, Phase 5 5F; dev and the holdout, never the test
+  set; `lib/compliance.mjs`, ADR 0003's 5F amendment, a draft until the lead adopts it, and
+  refused on the holdout and test sets until then):
+  - **Reference parse.** It is frozen: 3H's pass A at tag `3h` (2476012), over the
+    vocabulary its own builder makes from the run corpus. It decides each query's constraints.
+  - **The candidate's parse.** It must equal the reference's on every query, as recorded in its
+    run's `intents`. Otherwise `ParseMismatchError` is thrown before any ledger row, so no look
+    is spent. The rule is also refused when the reference parses no query
+    (`ReferenceParseError`), and when a judged or returned code has no constraint fields
+    (`ConstraintFieldsError`). The source must give the corpus text and the constraint fields
+    the candidate recorded (`corpus.textSha256`, `corpus.constraintFieldsSha256`): otherwise
+    `CorpusMismatchError`.
+  - **Filtered qrels.** A query is constrained by its parsed phrases and, in exchange mode, by
+    its `sem`/`study` allow bit. Fields come from the pinned snapshot normalised by the
+    candidate's `scripts/lib.mjs`. A relevant document failing a constraint gets grade 0 in DCG
+    and IDCG; a query left with none is unscored; both runs use the same filtered qrels.
+  - **Pass iff:**
+    - primary ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0;
+    - the constraint block's ΔnDCG@10 ≥ 0 (a vacuous pass when it is empty, recorded as rule
+      `compliance (constraint block vacuous)`);
+    - no exact-code regression, on the raw qrels;
+    - every shown result of a parsed query satisfies its parsed constraints;
+    - every unparsed query's top 10 equals the baseline's;
+    - no query errors where the baseline answered it.
+  - **Output.** The holdout prints the verdict, the Δ lines and counts (scored, unscored,
+    parsed) only. `npm run eval` refuses the rule on an encrypted set: it is taken on stored
+    runs with `eval:report`.
+  - **Dev tools.** On dev the report adds per-query detail. `npm run eval:phrases -- list`
+    prints the reference parse for the hand-check. `screen` runs the candidate, the pin and the
+    pin with the parsed constraints as explicit params, then the rule and the B2-4 diagnostic
+    (reported, no gate). It passes iff the rule passes and the candidate's recorded vocabulary
+    is the reference's. Both refuse encrypted sets.
 - **answerable-floor** (`--change-kind answerable-floor`, dev only; 3G): the CI rule is
   replaced by answerable ΔnDCG@10 ≥ −0.01, over the primary answerable set.
 - `no-loss` and `answerable-floor` take no `--target-shapes`. No holdout or test verdict takes

@@ -8,6 +8,7 @@ import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
 import { hiddenCodeLine } from './explain.js';
+import { intentChipRow } from './intent-chips.js';
 import { isCloseEscape, isSubmitEnter } from './keys.js';
 import { errorSentence } from './messages.js';
 import { transition } from './nav.js';
@@ -209,9 +210,23 @@ function remember(key, body) {
  */
 function render(s, key, body) {
   shown = { key, data: body, view: showResults(targets, body, { searchHref }) };
+  showIntentChips(body);
   syncDetail(s);
   explainHidden();
   checkOtherSemester(s);
+}
+
+/**
+ * The chips for the phrases /search read from the query (5F); removing one
+ * re-runs the search with `ignore=` that intent.
+ * @param {any} body
+ */
+function showIntentChips(body) {
+  const row = intentChipRow(body?.interpreted, current.ignore, (intent) => {
+    act({ type: 'settings', form: { ...readForm(), q: current.q, ignore: [...new Set([...current.ignore, intent])].sort() } });
+    els.q.focus();
+  });
+  if (row) els.status.append(row);
 }
 
 /**
