@@ -3,7 +3,7 @@
 // search, 429, an HTML error page, the network gone, /facets down or slow, and
 // a keyword-only answer. The page shows a plain sentence, never a raw code.
 import { expect, test } from '@playwright/test';
-import { body, searches } from './support.mjs';
+import { body, matchFor, searches } from './support.mjs';
 
 const RAW = /rate_limited|upstream_failure|not_json|bad_request|internal|SyntaxError|\b5\d\d\b|\b429\b/;
 
@@ -31,10 +31,10 @@ test('[F2] a newer search aborts the one in flight, whose answer is never shown'
   await page.locator('#q').fill('networks');
   await page.locator('#q').press('Enter');
   await failed;
-  await expect(page.locator('#status')).toContainText('results for networks');
+  await expect(page.locator('#status')).toContainText(matchFor('networks'));
   await held[0].fulfill({ json: body({ query: 'first' }) }).catch(() => { /* the page already aborted it */ });
   await page.waitForTimeout(200);
-  await expect(page.locator('#status')).toContainText('results for networks');
+  await expect(page.locator('#status')).toContainText(matchFor('networks'));
 });
 
 test('[F7] 429 says when to try again, from Retry-After', async ({ page }) => {
@@ -87,8 +87,8 @@ test('[F4] the first search starts before /facets answers, and the faculty list 
   const facetsHeld = new Promise((resolve) => { release = () => resolve(undefined); });
   await page.route('**/facets', async (route) => { await facetsHeld; await route.continue(); });
   await page.goto('/?q=databases&faculty=Computing');
-  await expect(page.locator('#status')).toContainText('results for databases');
-  await expect(page.locator('#faculty option')).toHaveText(['Any', 'Computing']);
+  await expect(page.locator('#status')).toContainText(matchFor('databases'));
+  await expect(page.locator('#faculty option')).toHaveText(['Any faculty', 'Computing']);
   /** @type {any} */ (release)();
   await expect(page.locator('#faculty option[value="Computing"]')).toHaveText(/^Computing \(\d+\)$/);
   await expect(page.locator('#faculty')).toHaveValue('Computing');

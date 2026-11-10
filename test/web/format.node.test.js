@@ -5,8 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { COHORT_ONLY, isCohortOnly } from '../../public/cohort-only.js';
-import { cleanPrereq, codeSegments, examLine, examLines, examSummary, prereqView, semLabel, workloadText } from '../../public/format.js';
+import { cleanPrereq, codeSegments, examLine, examLines, examParts, prereqView, semLabel, workloadText } from '../../public/format.js';
 
 const fixture = /** @type {{ modules: NormalisedModule[] }} */ (JSON.parse(readFileSync(fileURLToPath(new URL('../fixtures/corpus.json', import.meta.url)), 'utf8')));
 
@@ -43,13 +42,13 @@ describe('exams (/module and /search examDates: ISO UTC; shown in Singapore time
     expect(examLine({ sem: 2, date: '2027-05-01T16:00:00.000Z', durationMins: 0 })).toBe('Sem 2: Sun 2 May 2027, 12:00 am');
   });
 
-  it('examSummary is the card line: the chosen semester\'s exam, or every semester\'s', () => {
-    expect(examSummary([sem1, sem2], '1')).toBe('Exam 26 Nov');
-    expect(examSummary([sem2], '1')).toBe('No final exam');
-    expect(examSummary([sem2], '')).toBe('Exam 27 Apr');
-    expect(examSummary([sem1, sem2], '')).toBe('Exams 26 Nov (Sem 1), 27 Apr (Sem 2)');
-    expect(examSummary([], '')).toBe('No final exam');
-    expect(examSummary(undefined, '2')).toBe('No final exam');
+  it('examParts is the card: the chosen semester\'s exam as "Exam", else each semester\'s, with day and time in Singapore', () => {
+    expect(examParts([sem1, sem2], '1')).toEqual([{ label: 'Exam', when: 'Thu 26 Nov, 1:00 am' }]);
+    expect(examParts([sem2], '1')).toEqual([]);
+    expect(examParts([sem2], '')).toEqual([{ label: 'Sem 2 exam', when: 'Tue 27 Apr, 5:00 pm' }]);
+    expect(examParts([sem2, sem1], '')).toEqual([{ label: 'Sem 1 exam', when: 'Thu 26 Nov, 1:00 am' }, { label: 'Sem 2 exam', when: 'Tue 27 Apr, 5:00 pm' }]);
+    expect(examParts([], '')).toEqual([]);
+    expect(examParts(undefined, '2')).toEqual([]);
   });
 
   it('examLines is the detail: every semester in order, or "No final exam listed"', () => {
@@ -94,7 +93,7 @@ describe('cleanPrereq (NUS rule language, spacing only)', () => {
 describe('prereqView (5C: the cohort-only line, else NUS\'s text with spacing restored)', () => {
   it('a cohort-only prerequisite reads as no course prerequisite, keeping NUS\'s text', () => {
     const acc = 'If undertaking an Undergraduate DegreeTHENmust be in one of the cohorts from 2017 inclusive';
-    expect(prereqView(acc)).toEqual({
+    expect(prereqView(acc, true)).toEqual({
       kind: 'cohort', line: 'No course prerequisite (the rule names NUS intake years only)',
       text: 'If undertaking an Undergraduate Degree THEN must be in one of the cohorts from 2017 inclusive',
     });
@@ -102,24 +101,21 @@ describe('prereqView (5C: the cohort-only line, else NUS\'s text with spacing re
 
   it('a programme-only rule says programmes, not intake years', () => {
     const bl = 'Must be undertaking 1001DBSASD Doctor of Philosophy (FoS) - Biological Sciences OR must be undertaking 1001BTHCWK MSc (Biotechnology)';
-    expect(prereqView(bl)?.line).toBe('No course prerequisite (the rule names NUS programmes only)');
+    expect(prereqView(bl, true)?.line).toBe('No course prerequisite (the rule names NUS programmes only)');
   });
 
   it('any other rule is NUS\'s text, spaced, and none is null', () => {
-    expect(prereqView('If undertaking an Undergraduate DegreeTHENmust have completed CS2040 at a grade of at least D'))
+    expect(prereqView('If undertaking an Undergraduate DegreeTHENmust have completed CS2040 at a grade of at least D', false))
       .toEqual({ kind: 'rule', line: null, text: 'If undertaking an Undergraduate Degree THEN must have completed CS2040 at a grade of at least D' });
-    expect(prereqView(null)).toBeNull();
-    expect(prereqView('   ')).toBeNull();
+    expect(prereqView(null, false)).toBeNull();
+    expect(prereqView('   ', true)).toBeNull();
   });
 
-  it('public/cohort-only.js mirrors data/cohort-only-prereq.json and agrees with ingest on every fixture course', () => {
-    const spec = JSON.parse(readFileSync(fileURLToPath(new URL('../../data/cohort-only-prereq.json', import.meta.url)), 'utf8'));
-    expect(COHORT_ONLY).toEqual(spec);
-    const flagged = fixture.modules.filter((m) => m.prereqCohortOnly).map((m) => m.code);
-    expect(flagged.length).toBeGreaterThan(5);
-    for (const m of fixture.modules) {
-      expect(isCohortOnly(m.prerequisite, COHORT_ONLY), m.code).toBe(m.prereqCohortOnly === true);
-      expect(prereqView(m.prerequisite)?.kind === 'cohort', m.code).toBe(m.prereqCohortOnly === true);
+  it('follows /module/:code\'s prereqCohortOnly, never its own reading of the text', () => {
+    const acc = 'If undertaking an Undergraduate DegreeTHENmust be in one of the cohorts from 2017 inclusive';
+    expect(prereqView(acc, false)?.kind).toBe('rule');
+    for (const m of fixture.modules.filter((x) => x.prerequisite)) {
+      expect(prereqView(m.prerequisite, m.prereqCohortOnly === true)?.kind, m.code).toBe(m.prereqCohortOnly ? 'cohort' : 'rule');
     }
   });
 });

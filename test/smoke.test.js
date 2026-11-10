@@ -97,13 +97,13 @@ describe('/search', () => {
 });
 
 describe('/module/:code', () => {
-  it('returns the full row for CS1010S: the columns of migrations 0001-0005, Phase 4\'s allow mask and its reasons, then 5A\'s exams and link', async () => {
+  it('returns the full row for CS1010S: the columns of migrations 0001-0005, Phase 4\'s allow mask and its reasons, then 5A\'s exams and link, and 5D\'s cohort-only flag', async () => {
     const { status, body } = await callJson('/module/CS1010S');
     expect(status).toBe(200);
     expect(body).toMatchObject({ code: 'CS1010S', title: 'Programming Methodology', semesters: [1, 2], ng: false, ng_allow: 0 });
     expect(Object.keys(body)).toEqual(['code', 'title', 'description', 'credits', 'department', 'faculty', 'level',
       'semesters', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters', 'ng_allow', 'exchange',
-      'examDates', 'nusmodsUrl']);
+      'examDates', 'nusmodsUrl', 'prereqCohortOnly']);
     // Off the NG list: closed for every semester and study level, saying so.
     expect(body.exchange).toHaveLength(15);
     for (const e of body.exchange) {

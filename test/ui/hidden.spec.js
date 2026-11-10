@@ -11,12 +11,15 @@ const cards = (/** @type {import('@playwright/test').Page} */ page) => page.loca
 
 test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from its own reasons and sources', async ({ page }) => {
   await page.goto('/?q=CS2030+CS3244+CS5562+AR5801&ng=1&study=ug2&sem=1');
-  const lines = page.locator('#status .hidden-codes li');
+  const lines = page.locator('#status .hidden-codes .why');
   await expect(lines).toHaveText([
     'CS3244 is open to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).',
     "CS5562 isn't on the Registrar's list of courses offered to exchange students (NG list, updated 01 Sep 2026).",
     "AR5801 isn't open to exchange students in Sem 1 at 2nd year. Level 5000 and 6000 courses are not open to exchange students unless a department says so (NG restrictions, updated 31 Aug 2026).",
   ]);
+  // Each line is headed by the code and its title (direction D), the title from /module/:code.
+  await expect(page.locator('#status .hidden-codes li[data-code="CS3244"] .hc-head')).toHaveText('CS3244Machine Learning');
+  await expect(page.locator('#status .hiddenbox h2')).toHaveText("3 of the 4 codes you typed aren't shown");
   await expect(cards(page).first()).toHaveAttribute('data-code', 'CS2030');
   for (const code of ['CS3244', 'CS5562', 'AR5801']) await expect(page.locator(`#results button[data-code="${code}"]`)).toHaveCount(0);
   await expect(page.locator('#status .unpinned')).toHaveText('Only the first three course codes you type that are offered this year are pinned to the top of the results.');
@@ -24,27 +27,27 @@ test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from i
 
 test('[D4] both semesters: a code closed in both says why for either semester', async ({ page }) => {
   await page.goto('/?q=CS2030+PP5164&ng=1&study=ug2');
-  await expect(page.locator('#status .hidden-codes li')).toHaveText([
+  await expect(page.locator('#status .hidden-codes .why')).toHaveText([
     "PP5164 isn't open to exchange students in either semester at 2nd year. Level 5000 and 6000 courses are not open to exchange students unless a department says so (NG restrictions, updated 31 Aug 2026). Undergraduates may not take Public Policy (PP) courses (NG restrictions, updated 31 Aug 2026).",
   ]);
 });
 
 test('a typed code hidden by another filter says which filter', async ({ page }) => {
   await page.goto('/?q=CS2030+CS3244&level=3');
-  await expect(page.locator('#status .hidden-codes li')).toHaveText(['CS2030 is hidden by your filters: it is a level 2000 course.']);
+  await expect(page.locator('#status .hidden-codes .why')).toHaveText(['CS2030 is hidden by your filters: it is a level 2000 course.']);
 });
 
 test('a lone hidden code: no results, and why, never "loosen a filter"', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({ json: body({ query: 'CS3244', filters: { sem: 1, ng: true, study: 'ug2' }, count: 0, results: [], hiddenPins: ['CS3244'], notOffered: [] }) }));
   await page.goto('/?q=CS3244&ng=1&study=ug2&sem=1');
   await expect(page.locator('#status')).toContainText('No results for “CS3244”.');
-  await expect(page.locator('#status .hidden-codes li')).toHaveText(['CS3244 is open to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).']);
+  await expect(page.locator('#status .hidden-codes .why')).toHaveText(['CS3244 is open to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).']);
   await expect(page.locator('#status')).not.toContainText(/loosen/i);
 });
 
 test('a code not offered this year, inside a list and as the whole query (with related courses)', async ({ page }) => {
   await page.goto('/?q=CS2030+CS1001');
-  await expect(page.locator('#status .hidden-codes li')).toHaveText(["CS1001 isn't offered this academic year."]);
+  await expect(page.locator('#status .hidden-codes .why')).toHaveText(["CS1001 isn't offered this academic year."]);
   await page.route('**/search?**', (route) => route.fulfill({ json: body({
     query: 'CS1001', count: 0, results: [], hiddenPins: [], notOffered: ['CS1001'],
     noMatch: { reason: 'not-offered', code: 'CS1001', title: 'Programming Methodology', related: ['CS1010', 'CS2030'] },
@@ -103,11 +106,11 @@ test('only the first three typed codes pin, on the fixture: the 4th is either a 
 
 test('three typed codes or fewer: no pin note', async ({ page }) => {
   await page.goto('/?q=CS2030+CS3244&ng=1&study=ug2&sem=1');
-  await expect(page.locator('#status .hidden-codes li')).toHaveCount(1);
+  await expect(page.locator('#status .hidden-codes .why')).toHaveCount(1);
   await expect(page.locator('#status .unpinned')).toHaveCount(0);
 });
 
 test('a hidden code in exchange mode never blames the timetable semester (the NG list decides it)', async ({ page }) => {
   await page.goto('/?q=CS2030+ACC1701XB&level=2&ng=1&study=ug2&sem=1');
-  await expect(page.locator('#status .hidden-codes li')).toHaveText(['ACC1701XB is hidden by your filters: it is a level 1000 course.']);
+  await expect(page.locator('#status .hidden-codes .why')).toHaveText(['ACC1701XB is hidden by your filters: it is a level 1000 course.']);
 });

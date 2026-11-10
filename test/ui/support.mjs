@@ -30,3 +30,23 @@ export function body(over = {}) {
     ...over,
   };
 }
+
+/** The empty state's sentence (5D: it names the next step). */
+export const EMPTY = 'Type what you want to study in the box above, then press Search.';
+
+/**
+ * Opens the page and leaves the first screen (the exchange set-up, D2) by
+ * "Browse all courses instead", for a test of the general search.
+ * @param {import('@playwright/test').Page} page
+ */
+export async function browse(page) {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Browse all courses instead' }).click();
+  await page.locator('#q').waitFor({ state: 'visible' });
+}
+
+/**
+ * The count line for a query: "20 courses match “networks”".
+ * @param {string} q
+ */
+export const matchFor = (q) => `match “${q}”`;

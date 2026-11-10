@@ -89,20 +89,18 @@ test('[5F] the live Worker (PARSE_PHRASES off) reads no phrase, so no chip shows
   const res = await answered;
   const json = await res.json();
   expect([json.interpreted.exam, json.interpreted.su, json.interpreted.hoursBelow, json.interpreted.prereq]).toEqual([null, null, null, null]);
-  await expect(page.locator('#status')).toContainText('for');
+  await expect(page.locator('#status .count')).toContainText('match');
   await expect(page.locator('#status .intents')).toHaveCount(0);
 });
 
 for (const scheme of /** @type {const} */ (['light', 'dark'])) {
-  test(`[5F] axe, every rule, on the chips (${scheme}): no violation beyond F5 and F6`, async ({ page }) => {
+  test(`[5F] axe, every rule, on the chips (${scheme}): no violation`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: scheme });
     await phrasesOn(page);
     await page.goto(`/?q=${encodeURIComponent(Q)}`);
     await expect(chips(page)).toHaveCount(3);
     const { violations } = await new AxeBuilder({ page }).analyze();
-    // As a11y.spec.js: F5's landmark rules and F6's contrast are 5E's; the chips add nothing else.
-    expect(violations.map((v) => v.id).filter((id) => !['color-contrast', 'landmark-one-main', 'region'].includes(id))).toEqual([]);
-    const inChips = violations.filter((v) => v.nodes.some((n) => n.target.join(' ').includes('intents')));
-    expect(inChips.map((v) => v.id)).toEqual([]);
+    // As a11y.spec.js: 5D fixed F5's landmarks and F6's contrast, so no violation is allowed.
+    expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
   });
 }

@@ -4,7 +4,9 @@
 // src/page.html committed frozen when Phase 5 5B moved the page to public/
 // (A-3, A2-5). They assert the old source, so they stay true; each finding
 // gets a correctness test against public/ in the workstream that fixes it
-// (F2, F3, F4, F7, F8 and F9 in 5B: test/web/, test/ui/). Browser behaviour
+// (F2, F3, F4, F7, F8 and F9 in 5B: test/web/, test/ui/). F6's was replaced
+// outright in 5D by the contrast check of both themes
+// (scripts/contrast.mjs, test/web/contrast.node.test.js). Browser behaviour
 // (focus, history, axe, layout) is cited from the recorded Playwright run in
 // docs/evidence/phase0/.
 import { createHash } from 'node:crypto';
@@ -23,19 +25,6 @@ const css = /** @type {string} */ (page.match(/<style>([\s\S]*)<\/style>/)?.[1])
 /** The result-card template inside render(). */
 const card = /** @type {string} */ (script.match(/data\.results\.map\(\(m\) => `([\s\S]*?)`\)\.join/)?.[1]);
 
-/** WCAG 2 contrast ratio of two #rrggbb / #rgb colours. */
-function contrast(/** @type {string} */ a, /** @type {string} */ b) {
-  const lum = (/** @type {string} */ hex) => {
-    const h = hex.length === 4 ? hex.replace(/[0-9a-f]/gi, (c) => c + c).slice(1) : hex.slice(1);
-    const [r, g, bl] = [0, 2, 4].map((i) => {
-      const c = parseInt(h.slice(i, i + 2), 16) / 255;
-      return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-    });
-    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
-  };
-  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-}
 const token = (/** @type {string} */ block, /** @type {string} */ name) =>
   /** @type {string} */ (block.match(new RegExp(`--${name}:\\s*(#[0-9a-f]+)`, 'i'))?.[1]);
 const lightRoot = /** @type {string} */ (css.match(/^\s*:root\s*\{([^}]*)\}/m)?.[1]);
@@ -85,17 +74,6 @@ describe('frontend (the frozen Phase 4 page)', () => {
     expect(page).toContain('<div id="status" class="status">');
     expect(page).not.toMatch(/aria-live|aria-busy|role="status"|<main\b|role="search"/);
     expect(script).toContain('els.go.disabled = true;');
-  });
-
-  it('[F6 known-bug] colour tokens fail WCAG AA: dark button 2.08:1, light <code>/NG badge 4.44:1', () => {
-    expect(css).toMatch(/button \{[^}]*color: #fff; background: var\(--accent\)/);
-    // axe reported 2.08 and 4.44 (docs/evidence/phase0/fe-results.json); the
-    // WCAG formula here differs from axe's only in the last rounding digit.
-    const darkButton = contrast('#fff', token(darkRoot, 'accent'));
-    const lightBadge = contrast(token(lightRoot, 'accent'), token(lightRoot, 'accent-soft'));
-    expect(darkButton).toBeCloseTo(2.08, 1);
-    expect(lightBadge).toBeCloseTo(4.44, 1);
-    expect(lightBadge).toBeLessThan(4.5);
   });
 
   it('[F7 known-bug] errors show raw codes, ignore Retry-After, and parse JSON before checking res.ok', () => {

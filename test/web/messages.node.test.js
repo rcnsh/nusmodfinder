@@ -70,8 +70,8 @@ describe('noMatch (F7)', () => {
   });
 
   it('an unknown reason, or none, is the plain no-match sentence', () => {
-    expect(noMatchSentence({ query: 'x', noMatch: { reason: 'brand-new' } })).toBe('No modules matched “x”.');
-    expect(noMatchSentence({ query: 'x' })).toBe('No modules matched “x”.');
+    expect(noMatchSentence({ query: 'x', noMatch: { reason: 'brand-new' } })).toBe('No courses match “x”.');
+    expect(noMatchSentence({ query: 'x' })).toBe('No courses match “x”.');
   });
 
   it('a keyword-only answer says so, without the source or reason codes', () => {
