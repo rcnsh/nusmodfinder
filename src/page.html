@@ -56,6 +56,14 @@
   .toggle .hint { font-size: 12px; color: var(--muted); }
   @media (prefers-reduced-motion: reduce) { .track, .track::after { transition: none } }
 
+  .study { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .study select { padding: 6px 8px; }
+  .sources { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .sources a { color: var(--accent); }
+  .notes { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .notes li { background: none; border: 0; box-shadow: none; padding: 0; border-radius: 0; font-size: 12.5px; color: var(--ink); }
+  .notes li::before { content: "Note"; display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 20px; font-size: 10.5px; font-weight: 600;
+        color: var(--accent); background: var(--accent-soft); border: 1px solid var(--line); }
   .ng { display: inline-block; margin-left: 7px; padding: 1px 7px; border-radius: 20px; font-size: 10.5px; font-weight: 600;
         letter-spacing: .02em; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--line); vertical-align: 1px; }
 
@@ -112,6 +120,13 @@
         <span class="hint" id="ngHint"></span>
       </span>
     </label>
+    <label class="study" id="studyWrap" hidden>Your year of study at your home university
+      <select id="study">
+        <option value="">Choose…</option><option value="ug1">1st year</option><option value="ug2">2nd year</option>
+        <option value="ug3">3rd year</option><option value="ug4">4th year or later</option><option value="grad">Graduate</option>
+      </select>
+    </label>
+    <div class="sources" id="sources" hidden></div>
   </form>
 
   <div id="status" class="status">Type a query to begin.</div>
@@ -122,6 +137,16 @@
 const $ = (id) => document.getElementById(id);
 const els = { form: $('f'), q: $('q'), go: $('go'), status: $('status'), results: $('results') };
 const filterIds = ['sem', 'level', 'credits', 'faculty'];
+const STUDY_NAMES = { ug1: '1st year', ug2: '2nd year', ug3: '3rd year', ug4: '4th year or later', grad: 'Graduate' };
+// Exchange mode needs the year of study (the restrictions depend on it); it is
+// remembered on this device so a returning student isn't asked again.
+const STUDY_KEY = 'vnm.study';
+const savedStudy = () => { try { return localStorage.getItem(STUDY_KEY) ?? ''; } catch { return ''; } };
+const saveStudy = (v) => { try { localStorage.setItem(STUDY_KEY, v); } catch { /* private mode */ } };
+function syncExchange() {
+  $('studyWrap').hidden = !$('ng').checked;
+  $('sources').hidden = !$('ng').checked || !$('sources').innerHTML;
+}
 const SEM_LABEL = (s) => SEM_NAMES[s] ?? s;
 const SEM_NAMES = { 1: 'Sem 1', 2: 'Sem 2', 3: 'Special term 1', 4: 'Special term 2' };
 
@@ -138,6 +163,12 @@ const facetsReady = fetch('/facets')
       $('ngHint').textContent = f.ng.count
         ? ` — ${f.ng.count} courses, NUS Registrar list${f.ng.updatedAsAt ? `, ${f.ng.updatedAsAt}` : ''}`
         : ' — list not loaded';
+    }
+    if (f.ngSources?.length) {
+      $('sources').innerHTML = 'Sources: ' + f.ngSources
+        .map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)}</a> (updated ${esc(x.updatedAsAt)})`).join('; ')
+        + '. Check with NUS before you register.';
+      syncExchange();
     }
   })
   .catch(() => { /* filters still work without the vocabulary */ });
@@ -157,7 +188,14 @@ function render(data) {
   const chips = Object.entries(data.filters ?? {})
     .map(([k, v]) => k === 'ng'
       ? '<span class="chip">exchange students only</span>'
-      : `<span class="chip">${esc(k)}: ${esc(k === 'sem' ? SEM_LABEL(v) : v)}</span>`).join('');
+      : k === 'study'
+        ? `<span class="chip">${esc(STUDY_NAMES[v] ?? v)}</span>`
+        : `<span class="chip">${esc(k)}: ${esc(k === 'sem' ? SEM_LABEL(v) : v)}</span>`).join('');
+  if (data.noMatch?.reason === 'ng-special-term') {
+    els.results.innerHTML = '';
+    setStatus('The Registrar\'s exchange-student list covers Semesters 1 and 2 only, so there is nothing to show for a special term.');
+    return;
+  }
   if (data.count === 0) {
     els.results.innerHTML = '';
     setStatus(`No modules matched <strong>${esc(data.query)}</strong>.${chips ? `<div class="chips">Filters applied: ${chips}</div><div style="margin-top:6px">Try loosening one.</div>` : ''}`);
@@ -168,7 +206,7 @@ function render(data) {
     <li>
       <div class="head">
         <span class="code">${esc(m.code)}</span>
-        <span class="title">${esc(m.title)}${m.ng ? `<span class="ng" title="Open to Non-Graduating (exchange) students in ${(m.ngSemesters ?? []).map(SEM_LABEL).join(', ') || 'this year'}">NG</span>` : ''}</span>
+        <span class="title">${esc(m.title)}${m.ng ? `<span class="ng" title="On the Registrar's list of courses offered to exchange (Non-Graduating) students">NG ${esc((m.ngSemesters ?? []).map(SEM_LABEL).join(', '))}</span>` : ''}</span>
         <span class="score">${(m.score ?? 0).toFixed(3)}</span>
       </div>
       <div class="meta">
@@ -176,6 +214,7 @@ function render(data) {
         <span>${m.credits ?? '?'} units</span>
         <span>${(m.semesters ?? []).length ? m.semesters.map((s) => SEM_NAMES[s] ?? s).join(', ') : 'Not offered'}</span>
       </div>
+      ${m.exchange?.reasons?.length ? `<ul class="notes">${m.exchange.reasons.map((r) => `<li>${esc(r.text)}</li>`).join('')}</ul>` : ''}
     </li>`).join('');
 }
 
@@ -186,7 +225,17 @@ async function search(pushState = true) {
 
   const params = new URLSearchParams({ q });
   for (const id of filterIds) { const v = $(id).value; if (v) params.set(id, v); }
-  if ($('ng').checked) params.set('ng', '1');
+  if ($('ng').checked) {
+    // Asked before the first exchange search: what a student may take depends on it.
+    if (!$('study').value) {
+      els.results.innerHTML = '';
+      setStatus('Choose your year of study to see the courses open to you as an exchange student.');
+      $('study').focus();
+      return;
+    }
+    params.set('ng', '1');
+    params.set('study', $('study').value);
+  }
   if (pushState) history.replaceState(null, '', `?${params}`);
 
   const ticket = ++inFlight;
@@ -219,7 +268,10 @@ els.form.addEventListener('submit', (e) => { e.preventDefault(); search(); });
 els.q.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); search(); }
 });
-for (const id of [...filterIds, 'ng']) $(id).addEventListener('change', () => { if (els.q.value.trim()) search(); });
+for (const id of [...filterIds, 'ng', 'study']) $(id).addEventListener('change', () => { if (els.q.value.trim()) search(); });
+$('ng').addEventListener('change', syncExchange);
+$('study').addEventListener('change', () => saveStudy($('study').value));
+$('study').value = savedStudy();
 
 const initial = new URLSearchParams(location.search);
 if (initial.get('q')) {
@@ -230,6 +282,8 @@ if (initial.get('q')) {
       if (v) $(id).value = v;
     }
     if (initial.get('ng')) $('ng').checked = true;
+    if (STUDY_NAMES[initial.get('study')]) $('study').value = initial.get('study');
+    syncExchange();
     search(false);
   });
 }

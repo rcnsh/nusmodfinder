@@ -61,11 +61,13 @@ const NULL_FACULTY = 0xffff;
  *   `exam`, `su`, `hoursBelow` and `prereq` are 3H's (explicit params or parsed from q). `study` is
  *   Phase 4's: with `ng`, the filter is the allow-mask bit for (sem, study), and `sem` only picks it.
  * @typedef {[string, string]} CodeRange a primary-key range [lo, hi) over codes (src/query-intent.js codeRange)
- * @typedef {FilterEcho & { ranges?: CodeRange[], levelWindow?: { min: number, max: number | null } }} Constraints
+ * @typedef {FilterEcho & { ranges?: CodeRange[], levelWindow?: { min: number, max: number | null }, ngIgnoreAllow?: true }} Constraints
  *   The filters plus 3B's routes: `ranges`, the codes a mask admits (a partial
  *   code, the GE pillars), and `levelWindow`, a parsed level (`XX N000`; 3D's
  *   windows later). Built from the bundle's code list, which is in code order,
  *   so a range is a contiguous block of rows: the filter table needs no prefix id.
+ *   `ngIgnoreAllow` is the SC1 trace's ignore mode only (src/search.js sc1TraceMode, never
+ *   live): under ng, the yearly flag without the allow-mask bit.
  */
 
 /** Code order: by UTF-16 code unit, which for NUS codes ([A-Z0-9]) is also localeCompare's order. */
@@ -311,7 +313,7 @@ export function compileMask(b, echo) {
     tests.push((i) => { const l = table[i * ROW_STRIDE + 1]; return l !== NULL_LEVEL && l >= min && l <= max; });
   }
   if (echo.ng === true) tests.push((i) => (table[i * ROW_STRIDE + 2] & 1) === 1);
-  if (echo.ng === true) {
+  if (echo.ng === true && !echo.ngIgnoreAllow) {
     // No study (a caller /search's 400 never lets through) is closed, not unfiltered.
     const bit = allowBit ?? 0;
     tests.push((i) => (view.getUint16(i * ROW_STRIDE + 6, true) & bit) !== 0);

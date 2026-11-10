@@ -126,7 +126,7 @@ export function filterSql(echo, driver) {
   if (echo.faculty !== undefined) { clauses.push(`${col('faculty', 'faculty')} = ?`); binds.push(echo.faculty); }
   if (echo.ng === true) clauses.push(`${col('ng', 'ng')} = 1`);
   const plus = driver !== undefined ? '+' : '';
-  if (echo.ng === true) {
+  if (echo.ng === true && !echo.ngIgnoreAllow) {
     // The bit is a validated integer literal (?1 is the MATCH text, B2-7); never
     // an index driver (SQLite can't index a bitmask). No study: 0, closed.
     const bit = ngBit(echo) ?? 0;

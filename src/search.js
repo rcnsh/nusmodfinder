@@ -299,7 +299,7 @@ export function searchCacheKey(url, version = NO_VERSION_ID) {
 export function localMatchesFilters(row, echo) {
   if (echo.ng === true && row.ng !== 1) return false;
   // Phase 4: the allow-mask bit; a missing or zero ng_allow is closed, and under ng sem only picks the bit.
-  if (echo.ng === true && ((row.ng_allow ?? 0) & (ngBit(echo) ?? 0)) === 0) return false;
+  if (echo.ng === true && !echo.ngIgnoreAllow && ((row.ng_allow ?? 0) & (ngBit(echo) ?? 0)) === 0) return false;
   if (echo.sem !== undefined && echo.ng !== true && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
   if (echo.level !== undefined && row.level !== echo.level) return false;
   if (echo.credits !== undefined && row.credits !== echo.credits) return false;
@@ -342,7 +342,7 @@ function intersectRanges(a, b) {
 // score. Rank-based, so the vector engine's cosine scores and FTS5's bm25
 // values never have to be made commensurable.
 /** @param {string[][]} lists */
-function fuse(lists) {
+export function fuse(lists) {
   /** @type {Map<string, number>} */
   const scores = new Map();
   for (const list of lists) {
@@ -564,6 +564,24 @@ const noSignalTau = (env) => {
 const collapseOn = (env) => /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (env)).COLLAPSE_GROUPS !== 'off';
 
 /**
+ * Phase 4's per-list identity gate (docs/plans/phase4.md §4, gate 2): with
+ * SC1_TRACE set, /search also returns its internal lists, and "ignore" runs
+ * them with the yearly ng flag and no allow-mask bit, at full depth. Honoured
+ * only when TEST_MIGRATIONS is bound too, which only the vitest configs bind
+ * (test/guard.test.js; scripts/deploy.mjs refuses any var but DENSE_BACKEND).
+ * Trace requests skip the cache both ways and are sent no-store.
+ * @param {Env} env
+ * @returns {'filtered' | 'ignore' | null}
+ */
+export function sc1TraceMode(env) {
+  const e = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (env));
+  if (!e.SC1_TRACE || !e.TEST_MIGRATIONS) return null;
+  return e.SC1_TRACE === 'ignore' ? 'ignore' : 'filtered';
+}
+/** The ignore mode's depth: every row (the bundle and lexical paths have a total order). */
+const TRACE_FULL_DEPTH = 100_000;
+
+/**
  * 3F (plan 3F, C-8): each result in a duplicate group (groups-v1) carries its
  * group's other members that pass the filters as `variants: [{ code, credits }]`,
  * in code order, read from D1 (credits differ inside some groups). Results with
@@ -683,8 +701,15 @@ const catalogueText = (row) => [row.title, row.description]
  * @param {Record<string, unknown>} log Filled with what the request turned out to be.
  * @returns {Promise<{ response: Response, degraded: Degraded | null }>}
  */
-async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, log) {
+async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, env, trace, log) {
   const db = readSession(env);
+  const traceMode = sc1TraceMode(env);
+  const ignoreAllow = traceMode === 'ignore' && requestEcho.ng === true;
+  /** @type {FilterEcho & { ngIgnoreAllow?: true }} */
+  const echo = ignoreAllow ? { ...requestEcho, ngIgnoreAllow: true } : requestEcho;
+  /** What the trace returns: the pipeline's lists and depths (filled in as they are known). */
+  /** @type {Record<string, unknown>} */
+  const sc1 = {};
   // Spans in pipeline order, whichever branch finishes first.
   trace.reserve('pin', 'embed', 'vector', 'fts', 'hydrate');
 
@@ -703,7 +728,9 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   // since a deeper list only continues the same order. A fused one cannot,
   // since deeper lists change RRF's sums. 100 is Vectorize's topK cap.
   const singleList = !parsed.codeList && (mode === 'lexical' || (mode === 'vector' && denseBackend(env) === 'bundle'));
-  const depth = !collapsing ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK) : singleList ? MAX_TOPK * 2 : MAX_TOPK;
+  const depth = ignoreAllow ? TRACE_FULL_DEPTH
+    : !collapsing ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK) : singleList ? MAX_TOPK * 2 : MAX_TOPK;
+  sc1.depth = depth;
 
   // Dense retrieval. In hybrid mode a failure degrades to keyword-only results
   // (B6); in vector mode it fails loudly, because the eval measures that half.
@@ -734,7 +761,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
       degraded,
       response: json({
         query: q,
-        filters: echo,
+        filters: requestEcho,
         count: results.length,
         mode,
         interpreted: parsed.interpreted,
@@ -742,6 +769,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
         ...(degraded ? { degraded } : {}),
         retrieval,
         results,
+        ...(traceMode ? { sc1 } : {}),
       }),
     };
   };
@@ -825,7 +853,9 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     /** @type {DenseHit[] | null} */
     let hits = null;
     // With 3F's collapse a page of topK groups can need more members than topK.
-    const maskDepth = collapsing ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK * CANDIDATE_MULTIPLIER) : topK;
+    const maskDepth = ignoreAllow ? TRACE_FULL_DEPTH
+      : collapsing ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK * CANDIDATE_MULTIPLIER) : topK;
+    sc1.maskDepth = maskDepth;
     if (tryDense && denseBackend(env) === 'bundle') {
       const r = await settle(denseRun(env, denseTexts(parsed), trace, (vs) => bundleHits(vs, maskConstraints, maskDepth, trace)));
       if (r.ok) hits = r.value;
@@ -846,6 +876,8 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     } catch (err) {
       return { response: upstream('d1', err), degraded: null };
     }
+    sc1.mask = order;
+    sc1.maskOrder = hits ? 'dense' : 'code';
     const score = new Map((hits ?? []).map((h) => [h.code, h.score]));
     // Dense members re-checked against their fresh D1 row (B-3); code-order members came from D1.
     let results = order.flatMap((code) => {
@@ -951,6 +983,11 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   if (lex && !lex.ok) return { response: upstream('d1-fts', lex.error), degraded: null };
   if (lex) lexicalCodes = lex.value;
 
+  sc1.pins = pinned.map((p) => p.code);
+  sc1.dense = denseHits.map((h) => h.code);
+  sc1.lexical = lexicalCodes;
+  sc1.topCosine = Number.isFinite(topCosine) ? topCosine : null;
+  sc1.degraded = degraded !== null;
   // 3G: no route, no vocabulary match before correction, and the dense half
   // finds nothing near: `count: 0`, before hydration. Needs the dense half.
   if (vec && vec.ok && tau !== null && parsed.noSignal && topCosine < tau) {
@@ -965,6 +1002,7 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
     codeCodes = got.value;
   }
   const vectorCodes = denseHits.map((h) => h.code);
+  sc1.code = codeCodes;
 
   /** @type {string[][]} */
   const lists = mode === 'vector' ? [vectorCodes]
@@ -1074,7 +1112,9 @@ export async function searchRoute(request, env, ctx, trace) {
   // Workers AI calls. The key is canonical (B7), and needs no D1 read.
   const cache = caches.default;
   const cacheKey = canonicalCacheKey(url.origin, parsed.query, versionId(env));
-  const hit = await trace.time('cache', () => cache.match(cacheKey));
+  // The SC1 trace (tests only) never reads or writes the cache: its body differs from the page's.
+  const tracing = sc1TraceMode(env) !== null;
+  const hit = tracing ? undefined : await trace.time('cache', () => cache.match(cacheKey));
   trace.describe('cache', hit ? 'hit' : 'miss');
   // The stored copy has no Server-Timing; this request's spans are set fresh.
   if (hit) return finish(withHeaders(hit, {}), 'hit');
@@ -1100,6 +1140,11 @@ export async function searchRoute(request, env, ctx, trace) {
   }
 
   const { response, degraded } = await runSearch(parsed.query, env, trace, log);
+  if (tracing) {
+    const traced = new Response(response.body, response);
+    traced.headers.set('cache-control', 'no-store');
+    return finish(traced, 'bypass');
+  }
   // Only successful responses are cached; a 400 or a 502 must stay live.
   if (response.status === 200) {
     const cacheable = new Response(response.body, response);
