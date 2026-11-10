@@ -110,3 +110,26 @@ describe('IME (F9)', () => {
     expect(isCloseEscape({ key: 'Enter', isComposing: false, keyCode: 13 })).toBe(false);
   });
 });
+
+describe('accessibility in the source (5E, F5)', () => {
+  const page = read('public/index.html');
+  const body = /** @type {string} */ (page.match(/<body>([\s\S]*)<\/body>/)?.[1]);
+  const scripts = files.filter((f) => f.endsWith('.js')).map((f) => read(`public${f}`)).join('\n');
+
+  it('[F5 fixed] one <h1>, a skip link before everything else, <main> and role="search", one polite live region, aria-busy on the list, and no script disables a control', () => {
+    expect(page.match(/<h1\b/g)).toHaveLength(1);
+    // The skip link is the first focusable element in the body.
+    expect(body.match(/<(a|button|input|select|textarea)\b[^>]*>/)?.[0]).toBe('<a class="skip" id="skip" href="#setup">');
+    expect(page).toMatch(/<main class="main" id="main"[^>]*tabindex="-1"/);
+    expect(page).toMatch(/<main class="setup" id="setup"[^>]*tabindex="-1"/);
+    expect(page).toMatch(/<form id="f" class="search" role="search"/);
+    // One live region, polite, and no script makes another.
+    expect(page.match(/aria-live=|role="(status|alert|log)"/g)).toEqual(['role="status"', 'aria-live=']);
+    expect(page).toContain('<p class="vh" id="live" role="status" aria-live="polite" aria-atomic="true"></p>');
+    expect(scripts).not.toMatch(/aria-live|'role',\s*'(status|alert)'|role: '(status|alert)'/);
+    expect(page).toContain('<ol id="results" class="entries" aria-label="Results" aria-busy="false"></ol>');
+    expect(read('public/render.js')).toContain("t.results.setAttribute('aria-busy', String(busy))");
+    // Disabling the focused Search button dropped focus to the page (F5); nothing is disabled now.
+    expect(scripts).not.toMatch(/\.disabled\s*=\s*true|setAttribute\('disabled'|toggleAttribute\('disabled'/);
+  });
+});

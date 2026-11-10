@@ -1,0 +1,17 @@
+- paragraph: CS1001 (External Course) isn't offered this academic year.
+- paragraph:
+  - text: "Related courses offered this year:"
+  - link "DMX1401CT":
+    - /url: /?q=DMX1401CT
+  - text: ","
+  - link "DMA1401L01":
+    - /url: /?q=DMA1401L01
+  - text: ","
+  - link "DBA5102":
+    - /url: /?q=DBA5102
+  - text: ","
+  - link "DMR1201GEQA":
+    - /url: /?q=DMR1201GEQA
+  - text: ","
+  - link "FSC4206":
+    - /url: /?q=FSC4206

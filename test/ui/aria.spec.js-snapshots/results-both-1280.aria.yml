@@ -1,0 +1,171 @@
+- main "Search and results":
+  - search "Search courses":
+    - text: Search courses
+    - searchbox "Search courses": ACC1701XB
+    - button "Search"
+    - list "Filters applied":
+      - listitem: Both semesters
+      - listitem: 2nd year
+      - listitem:
+        - 'button "Remove filter: Exchange students"': Exchange students
+      - listitem:
+        - 'button "Remove filter: Level 1000"': Level 1000
+  - paragraph:
+    - strong: 18 courses
+    - text: match “ACC1701XB”
+  - paragraph: Exam times are Singapore time (UTC+8)
+  - list "Results":
+    - listitem:
+      - heading "ACC1701XB Accounting for Decision Makers" [level=2]:
+        - button "ACC1701XB Accounting for Decision Makers"
+      - paragraph: 4 units
+      - paragraph: Accounting · NUS Business School Taught in Sem 2 Sem 2 exam Tue 27 Apr, 5:00 pm
+      - paragraph: Also as ACC1701XA, ACC1701XC
+      - text: Sem 1 · Open, 3 notes Sem 2 · Open, 2 notes
+      - paragraph: Notes for Sem 1
+      - list:
+        - listitem: "Timetable. Not on NUSMods' timetable for Sem 1: check with the department."
+      - paragraph: Notes for Sem 1 and Sem 2
+      - list:
+        - listitem: Places. Business courses are over-subscribed and not guaranteed.
+        - listitem: Your major. Only for students majoring in business at their home university.
+    - listitem:
+      - 'heading "GE1101E Geographical Journeys: Exploring World Environments" [level=2]':
+        - 'button "GE1101E Geographical Journeys: Exploring World Environments"'
+      - paragraph: 4 units
+      - paragraph: Geography · Arts and Social Science Taught in Sem 1 No final exam
+      - text: Sem 1 · Open Sem 2 · Open, 1 note
+      - paragraph: Notes for Sem 2
+      - list:
+        - listitem: "Timetable. Not on NUSMods' timetable for Sem 2: check with the department."
+    - listitem:
+      - heading "CS1010 Programming Methodology" [level=2]:
+        - button "CS1010 Programming Methodology"
+      - paragraph: 4 units
+      - paragraph: Computer Science · Computing Taught in Sem 1, Sem 2 Sem 1 exam Wed 25 Nov, 9:00 am Sem 2 exam Fri 30 Apr, 2:30 pm
+      - paragraph: Also as CS1010E
+      - text: Sem 1 · Open Sem 2 · Open
+    - listitem:
+      - heading "GES1034 We the Citizens - Understanding Singapore’s Politics" [level=2]:
+        - button "GES1034 We the Citizens - Understanding Singapore’s Politics"
+      - paragraph: 4 units
+      - paragraph: Political Science · Arts and Social Science Taught in Sem 1 Sem 1 exam Tue 1 Dec, 1:00 pm
+      - paragraph: Also as GESS1024
+      - text: Sem 1 · Open Sem 2 · Not open
+      - paragraph: Notes for Sem 2
+      - list:
+        - listitem: Offered to exchange students only in Sem 1.
+    - listitem:
+      - heading "GESS1007 Singapore’s Business History" [level=2]:
+        - button "GESS1007 Singapore’s Business History"
+      - paragraph: 4 units
+      - paragraph: History · Arts and Social Science Taught in Sem 1 No final exam
+      - text: Sem 1 · Open Sem 2 · Not open
+      - paragraph: Notes for Sem 2
+      - list:
+        - listitem: Offered to exchange students only in Sem 1.
+    - listitem:
+      - heading "GESS1009 The Evolution of a Global City-State" [level=2]:
+        - button "GESS1009 The Evolution of a Global City-State"
+      - paragraph: 4 units
+      - paragraph: History · Arts and Social Science Taught in Sem 1, Special term 2 No final exam
+      - text: Sem 1 · Open Sem 2 · Not open
+      - paragraph: Notes for Sem 2
+      - list:
+        - listitem: Offered to exchange students only in Sem 1.
+    - listitem:
+      - heading "HS1502 Conceptual Introduction to Machine Learning" [level=2]:
+        - button "HS1502 Conceptual Introduction to Machine Learning"
+      - paragraph: 4 units
+      - paragraph: Physics · Science Taught in Sem 1, Sem 2 No final exam
+      - text: Sem 1 · Open Sem 2 · Open
+    - listitem:
+      - 'heading "IT1244 Artificial Intelligence: Technology and Impact" [level=2]':
+        - 'button "IT1244 Artificial Intelligence: Technology and Impact"'
+      - paragraph: 4 units
+      - paragraph: Computer Science · Computing Taught in Sem 1, Sem 2 Sem 1 exam Tue 24 Nov, 1:00 pm Sem 2 exam Thu 29 Apr, 1:00 pm
+      - text: Sem 1 · Not open Sem 2 · Open
+      - paragraph: Notes for Sem 1
+      - list:
+        - listitem: Offered to exchange students only in Sem 2.
+    - listitem:
+      - heading "LAF1201 French 1" [level=2]:
+        - button "LAF1201 French 1"
+      - paragraph: 4 units
+      - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2, Special term 1, Special term 2 No final exam
+      - text: Sem 1 · Open, 1 note Sem 2 · Open, 1 note
+      - paragraph: Notes for Sem 1 and Sem 2
+      - list:
+        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+    - listitem:
+      - heading "LAK1201 Korean 1" [level=2]:
+        - button "LAK1201 Korean 1"
+      - paragraph: 4 units
+      - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2 No final exam
+      - text: Sem 1 · Open, 1 note Sem 2 · Open, 1 note
+      - paragraph: Notes for Sem 1 and Sem 2
+      - list:
+        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+    - listitem:
+      - heading "LAM1201 Malay 1" [level=2]:
+        - button "LAM1201 Malay 1"
+      - paragraph: 4 units
+      - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2, Special term 1 No final exam
+      - text: Sem 1 · Open, 1 note Sem 2 · Open, 1 note
+      - paragraph: Notes for Sem 1 and Sem 2
+      - list:
+        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+    - listitem:
+      - heading "LAT1201 Thai 1" [level=2]:
+        - button "LAT1201 Thai 1"
+      - paragraph: 4 units
+      - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2, Special term 1 No final exam
+      - text: Sem 1 · Open, 1 note Sem 2 · Open, 1 note
+      - paragraph: Notes for Sem 1 and Sem 2
+      - list:
+        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+    - listitem:
+      - heading "PC1201 Fundamentals of Physics" [level=2]:
+        - button "PC1201 Fundamentals of Physics"
+      - paragraph: 4 units
+      - paragraph: Physics · Science Taught in Sem 1, Sem 2 Sem 1 exam Wed 25 Nov, 1:00 pm Sem 2 exam Fri 30 Apr, 9:00 am
+      - text: Sem 1 · Open Sem 2 · Open
+    - listitem:
+      - heading "PL1101E Introduction to Psychology" [level=2]:
+        - button "PL1101E Introduction to Psychology"
+      - paragraph: 4 units
+      - paragraph: Psychology · Arts and Social Science Taught in Sem 1, Sem 2, Special term 2 No final exam
+      - text: Sem 1 · Open Sem 2 · Open
+    - listitem:
+      - heading "LAL1201 Tamil 1" [level=2]:
+        - button "LAL1201 Tamil 1"
+      - paragraph: 4 units
+      - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 2 No final exam
+      - text: Sem 1 · Open, 2 notes Sem 2 · Open, 1 note
+      - paragraph: Notes for Sem 1
+      - list:
+        - listitem: "Timetable. Not on NUSMods' timetable for Sem 1: check with the department."
+      - paragraph: Notes for Sem 1 and Sem 2
+      - list:
+        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+    - listitem:
+      - 'heading "HY1101E Engaging Asia: A Global History" [level=2]':
+        - 'button "HY1101E Engaging Asia: A Global History"'
+      - paragraph: 4 units
+      - paragraph: History · Arts and Social Science Taught in Sem 1, Sem 2, Special term 2 No final exam
+      - text: Sem 1 · Open Sem 2 · Open
+    - listitem:
+      - heading "EC1101E Introduction to Economic Analysis" [level=2]:
+        - button "EC1101E Introduction to Economic Analysis"
+      - paragraph: 4 units
+      - paragraph: Economics · Arts and Social Science Taught in Sem 1, Sem 2 Sem 1 exam Wed 25 Nov, 5:00 pm Sem 2 exam Sat 24 Apr, 1:00 pm
+      - text: Sem 1 · Open Sem 2 · Open
+    - listitem:
+      - heading "LAR1201 Arabic 1" [level=2]:
+        - button "LAR1201 Arabic 1"
+      - paragraph: 4 units
+      - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2, Special term 1 No final exam
+      - text: Sem 1 · Open, 1 note Sem 2 · Open, 1 note
+      - paragraph: Notes for Sem 1 and Sem 2
+      - list:
+        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
