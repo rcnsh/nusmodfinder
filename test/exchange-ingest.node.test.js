@@ -52,8 +52,9 @@ describe('offeredModules computes exchange eligibility at ingest', () => {
 describe('the row and its writes (plan §5)', () => {
   it('ng_allow and ng_rules are bound and hashed, so a rules-only change rewrites the row', async () => {
     const m = /** @type {NormalisedModule} */ (fixture.modules.find((x) => x.code === 'CS3244'));
-    expect(ROW_COLUMNS.slice(-2)).toEqual(['ng_allow', 'ng_rules']);
-    expect(boundTuple(m).slice(-2)).toEqual([m.ngAllow, JSON.stringify(m.ngRules)]);
+    // 5A's exam_dates follows them (test/exam-dates.node.test.js).
+    expect(ROW_COLUMNS.slice(-3, -1)).toEqual(['ng_allow', 'ng_rules']);
+    expect(boundTuple(m).slice(-3, -1)).toEqual([m.ngAllow, JSON.stringify(m.ngRules)]);
     const base = await rowHash(m);
     expect(await rowHash({ ...m, ngAllow: m.ngAllow ^ 1 })).not.toBe(base);
     expect(await rowHash({ ...m, ngRules: { ...m.ngRules, 0: ['x'] } })).not.toBe(base);

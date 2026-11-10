@@ -88,6 +88,8 @@ describe('S7', () => {
       'exam_semesters', 'su', 'grading_basis', 'workload_hours', 'prereq_none', 'prereq_cohort_only',
       // ng_allow, ng_rules: 0009 (Phase 4).
       'ng_allow', 'ng_rules',
+      // exam_dates: 0010 (Phase 5 5A).
+      'exam_dates',
     ]);
   });
 

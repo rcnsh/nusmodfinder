@@ -89,7 +89,8 @@ export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, 
 /**
  * Runbook step 5: D1's (code, text_hash) pairs equal the manifest's rowsKey,
  * D1's data version (from its row_hashes) equals the committed one, and the
- * bundle's codes and filter table equal D1's fields. Reads D1 once through
+ * bundle's codes and filter table equal D1's fields, and each row's exam
+ * dates (5A) name exactly the bundle's exam semesters. Reads D1 once through
  * /admin/verify `{ preDeploy: true }`, which makes no Vectorize call.
  * @param {{
  *   api: import('./ingest-core.mjs').AdminApi, bundle: import('../src/vector-bundle.js').Bundle,
@@ -106,7 +107,8 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
   /** @type {{ code: string, textHash: string, rowHash: string | null, semesters: number[], level: number | null,
    *   credits: number | null, faculty: string | null, ng: boolean, ngSemesters: number[], examSemesters: number[],
    *   su: boolean, suGrading: boolean, workloadHours: number | null, prereqNone: boolean, prereqCohortOnly: boolean,
-   *   ngAllow: number, ngRules: Record<string, string[]> | null }[]} */
+   *   ngAllow: number, ngRules: Record<string, string[]> | null,
+   *   examDates?: import('../src/rowhash.js').ExamDate[] }[]} */
   const rows = res.body.rows;
   const d1Key = await rowsKey(rows);
   const d1Version = rows.every((r) => typeof r.rowHash === 'string')
@@ -126,7 +128,13 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
       prereqNone: r.prereqNone, prereqCohortOnly: r.prereqCohortOnly,
     };
     const b = decodeFilterRow(bundle, i);
-    if (JSON.stringify(d1) !== JSON.stringify(b)) fieldDrift.push({ code: r.code, d1, bundle: b });
+    if (JSON.stringify(d1) !== JSON.stringify(b)) { fieldDrift.push({ code: r.code, d1, bundle: b }); continue; }
+    // 5A: exam_dates is not in the bundle, but its semesters must be the
+    // bundle's exam semesters. A Worker too old to answer examDates has none.
+    const examDates = r.examDates ?? [];
+    if (JSON.stringify(examDates.map((d) => d.sem)) !== JSON.stringify(b.examSemesters)) {
+      fieldDrift.push({ code: r.code, d1: { examDates }, bundle: { examSemesters: b.examSemesters } });
+    }
   }
   /** @type {PreDeployReport['unknownReasons']} */
   const unknownReasons = [];
