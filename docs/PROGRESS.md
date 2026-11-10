@@ -937,5 +937,7 @@ fails on the previous code.
 - **SC4 live confirmation:** 20 calls with fresh texts. Every sampled rule agrees once two checks
   are re-specified to the suite's own rules. SC4 itself is not fully met: its level and
   parsed-intent items wait for Phase 4.
-- **SC7:** the method and 45 fresh queries are committed. The counted run waits on the VPN being
-  off. Evidence: `docs/evidence/phase3/sc5.md`, `sc4-live.txt`, `sc7.md`.
+- **SC7: pass** (counted run, 2026-11-07 19:08–21:05 UTC, VPN off). The pooled SIN cache-miss p50
+  of `total` is 186.0 ms (CI 164.0–224.0, n = 41) against 250 ms. Warm is 173.5 ms (n = 30) and
+  sparse 274.0 ms (n = 11). The harness stopped the collector before the 12th sparse call.
+- Evidence: `docs/evidence/phase3/sc5.md`, `sc4-live.txt`, `sc7.md`.
