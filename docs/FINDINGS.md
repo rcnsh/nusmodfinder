@@ -44,14 +44,14 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | P2 | fixed | tests, live |
 | P3 | reproduced | test |
 | F1 | reproduced | test, Playwright |
-| F2 | reproduced | test |
-| F3 | reproduced | test, Playwright |
-| F4 | reproduced | test |
+| F2 | fixed | tests (Node, Playwright) |
+| F3 | fixed | tests (Node, Playwright) |
+| F4 | fixed | tests (Node, Playwright) |
 | F5 | reproduced | test, Playwright, axe |
 | F6 | reproduced | test, axe |
-| F7 | reproduced | test, live |
-| F8 | reproduced | test |
-| F9 | reproduced | test |
+| F7 | fixed | tests (Node, Playwright) |
+| F8 | fixed | tests (lint, Node, Playwright) |
+| F9 | fixed | tests (Node, Playwright) |
 | F10 | reproduced | test, Playwright, screenshot |
 | V1 | partially-reproduced | test, screenshots |
 | O1 | fixed | test, `db:rebuild-check` (PR #1) |
@@ -524,9 +524,9 @@ requires as an input.
 title "NUSMods semantic search" reads as official NUSMods.
 
 **Evidence:**
-- test `[P3 known-bug] the title reads as official NUSMods, and result cards link to no source` (`test/findings/source.node.test.js`).
+- test `[P3 known-bug] the title reads as official NUSMods, and result cards link to no source` (`test/findings/frontend.node.test.js`, on the frozen Phase 4 page).
 
-**Notes:** `src/page.html:6,84-85`. The subtitle says "unofficial NUSMods API", but the title and
+**Notes:** `docs/evidence/phase0/page-phase4.html:6,84-85`. The subtitle says "unofficial NUSMods API", but the title and
 `<h1>` don't. Phase 4 (4D) links the exchange-mode sources, the NG list and the restrictions,
 with their "updated as at" dates, under the exchange toggle; the vacancy report, the title and
 the result cards are Phase 5's.
@@ -544,50 +544,65 @@ snippet; the raw RRF score (`0.030`) sits in the prime spot.
 - test `[F1 known-bug] result cards are dead ends: no link, button or tabindex, no description, raw score`
 - `docs/evidence/phase0/fe-results.json`: `dom.linksInResults: 0`, `focusableInResults: 0`, `resultsWithTabIndex: 0`.
 
-**Notes:** Card template `src/page.html:167-179`; score `:172`.
+**Notes:** Card template `docs/evidence/phase0/page-phase4.html:167-179`; score `:172`.
 
 ### F2 · No abort or timeout on search requests
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** No AbortController or timeout.
 
 **Evidence:**
+- test `[F2 fixed] a new search aborts the one in flight, which settles as superseded, never as an error` (`test/web/api.node.test.js`)
+- test `[F2 fixed] gives up after 10 s with a timeout error, aborting the request` (`test/web/api.node.test.js`)
+- `test/ui/failures.spec.js` (F2, Playwright, Chromium and WebKit): a hung search gives up after 10 s with a sentence (Playwright clock), and a newer search aborts the one in flight.
 - test `[F2 known-bug] search fetches have no AbortController and no timeout`
 
-**Notes:** `src/page.html:197`. Stale responses are dropped by the `ticket` check (`:199`), but
+**Notes:** `docs/evidence/phase0/page-phase4.html:197`. Stale responses are dropped by the `ticket` check (`:199`), but
 they still run to completion, and a hung request leaves the button disabled indefinitely
 (combined with B5's missing server timeouts).
 
+**Fixed (Phase 5 5B):** the page moved to `public/` as ES modules; the known-bug test still holds of the frozen Phase 4 page (`docs/evidence/phase0/page-phase4.html`). `public/api.js` aborts the previous search and times out at 10 s, body included.
+
 ### F3 · History is broken
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** `replaceState`, no `popstate`; Back leaves the site; clearing the query leaves a
 stale URL.
 
 **Evidence:**
+- test `[F3 fixed] submit a query: push, and Back restores the previous query (its URL is the entry left behind)` (`test/web/state.node.test.js`)
+- test `[F3 fixed] clear the query: push the URL without q (filters and the exchange set-up stay)` (`test/web/state.node.test.js`)
+- `test/ui/history.spec.js` (F3, Playwright, Chromium and WebKit): Back and Forward restore each query from memory with no new fetch, filter changes replace, clearing pushes, a shared link survives reload.
 - test `[F3 known-bug] history uses replaceState only, never pushState, and nothing handles popstate`
 - `docs/evidence/phase0/fe-results.json`: `historyAfterSearch3.length: 2` after three searches; `afterBack.url: "about:blank"`.
 
-**Notes:** `src/page.html:190` (`replaceState`); `:185` returns before touching the URL when
+**Notes:** `docs/evidence/phase0/page-phase4.html:190` (`replaceState`); `:185` returns before touching the URL when
 the query is cleared.
+
+**Fixed (Phase 5 5B):** the page moved to `public/` as ES modules; the known-bug test still holds of the frozen Phase 4 page (`docs/evidence/phase0/page-phase4.html`). `public/state.js` holds the state in the URL and `public/nav.js` decides every transition (docs/plans/phase5.md 5B's table); `popstate` re-renders from an in-memory cache.
 
 ### F4 · Shared links lose filters when /facets fails
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** Shared links lose filters when `/facets` fails; the first search waits for
 `/facets`.
 
 **Evidence:**
+- test `[F4 fixed] the semester, level, credits and study-level options are static: no filter waits on /facets` (`test/web/state.node.test.js`)
+- test `[F4 fixed] fetchFacets resolves null, never rejects, when /facets fails, hangs or answers garbage` (`test/web/api.node.test.js`)
+- `test/ui/failures.spec.js` (F4, Playwright, Chromium and WebKit): with `/facets` down a shared link keeps every filter, faculty included; the first search starts before `/facets` answers.
 - test `[F4 known-bug] a failed /facets is swallowed and the shared-link search waits on it`
 - `docs/evidence/phase0/fe-results.json`: `requests` shows `/facets` at +499 ms and the first `/search` only at +934 ms after page load.
 
-**Notes:** `src/page.html:132-143` and `:224-235`. Level and faculty `<option>`s exist only if
+**Notes:** `docs/evidence/phase0/page-phase4.html:132-143` and `:224-235`. Level and faculty `<option>`s exist only if
 `/facets` succeeded, and assigning `.value` to a `<select>` with no matching option is a
 silent no-op, so `level=`/`faculty=` from the URL are dropped. Shown at source level (DOM
 semantics); a failing `/facets` was not browser-exercised.
+
+**Fixed (Phase 5 5B):** the page moved to `public/` as ES modules; the known-bug test still holds of the frozen Phase 4 page (`docs/evidence/phase0/page-phase4.html`). Only faculty comes from `/facets`; a faculty from the URL is added as an option at once.
 
 ### F5 · Accessibility gaps
 
@@ -601,7 +616,7 @@ button drops focus to BODY, no `<main>`, no `role="search"`.
 - `docs/evidence/phase0/fe-results.json`: `statusAriaLive: null`, `mainCount: 0`, `roleSearchCount: 0`, `focusDuringSearch.active: "go"` → `focusAfterSearch.active: "BODY"`.
 - `docs/evidence/phase0/axe-1280-light.json`: `landmark-one-main` ×1, `region` ×6.
 
-**Notes:** `src/page.html:117`, `:193`.
+**Notes:** `docs/evidence/phase0/page-phase4.html:117`, `:193`.
 
 ### F6 · Contrast failures
 
@@ -610,51 +625,66 @@ button drops focus to BODY, no `<main>`, no `role="search"`.
 **Claim:** Dark-mode button 2.08:1; light `<code>` and NG badges 4.44:1.
 
 **Evidence:**
-- test `[F6 known-bug] colour tokens fail WCAG AA: dark button 2.08:1, light <code>/NG badge 4.44:1`: recomputes the ratios from the `src/page.html` tokens.
+- test `[F6 known-bug] colour tokens fail WCAG AA: dark button 2.08:1, light <code>/NG badge 4.44:1`: recomputes the ratios from the frozen page's tokens (`docs/evidence/phase0/page-phase4.html`).
 - `docs/evidence/phase0/axe-1280-dark.json`: `#go` 2.08 (#fff on #ff9a62). `docs/evidence/phase0/axe-1280-light.json`: `code` and `.ng` 4.44 (#b4541f on #fdf0e8).
 
-**Notes:** Tokens `src/page.html:11,16`; button `:40`.
+**Notes:** Tokens `docs/evidence/phase0/page-phase4.html:11,16`; button `:40`.
 
 ### F7 · Raw error states
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** Errors show raw codes (`rate_limited`, `upstream_failure`); `Retry-After` is
 ignored; an HTML error page makes `res.json()` throw.
 
 **Evidence:**
+- test `[F7 fixed] every code, from the Worker or the fetch layer, has its own sentence, with no raw code in it` (`test/web/messages.node.test.js`)
+- test `[F7 fixed] every noMatch reason the Worker sets has its own sentence` (`test/web/messages.node.test.js`)
+- test `[F7 fixed] 429 reads Retry-After in seconds, whatever the body is` (`test/web/api.node.test.js`)
+- test `[F7 fixed] a non-JSON body (an HTML or plain-text error page) is handled before parsing` (`test/web/api.node.test.js`)
+- `test/ui/failures.spec.js` (F7, Playwright, Chromium and WebKit): 429, an HTML error page, a JSON error and a lost network each show their sentence.
 - test `[F7 known-bug] errors show raw codes, ignore Retry-After, and parse JSON before checking res.ok`
 - `docs/evidence/phase0/raw/B5_module.headers`: Cloudflare error pages are `text/plain` (`error code: 1101`), which `res.json()` cannot parse.
 
-**Notes:** `src/page.html:198-209`. A non-JSON error lands in the `catch`, which shows "Could
+**Notes:** `docs/evidence/phase0/page-phase4.html:198-209`. A non-JSON error lands in the `catch`, which shows "Could
 not reach the search service" plus a JSON `SyntaxError` message. That is wrong: the service was
 reached.
 
+**Fixed (Phase 5 5B):** the page moved to `public/` as ES modules; the known-bug test still holds of the frozen Phase 4 page (`docs/evidence/phase0/page-phase4.html`). `public/messages.js` maps every code and reason, read from `src/` by its test, so a new one fails until it has a sentence.
+
 ### F8 · Unescaped innerHTML interpolation
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** `credits` and `semesters` are interpolated into `innerHTML` without escaping. (The
 `ngSemesters` badge went through `esc` from Phase 4.)
 
 **Evidence:**
+- test `[F8 fixed] lint bans innerHTML, outerHTML and insertAdjacentHTML in public/` (`test/web/source.node.test.js`)
+- `test/ui/search.spec.js` (F8, Playwright, Chromium and WebKit): markup in every result field renders as text.
 - test `[F8 known-bug] credits and semesters are interpolated into innerHTML unescaped`
 
-**Notes:** `src/page.html:171`, `:176`, `:177`. Today these values are numbers from the
+**Notes:** `docs/evidence/phase0/page-phase4.html:171`, `:176`, `:177`. Today these values are numbers from the
 Worker's own D1, so this isn't exploitable without a poisoned row. It's an injection seam all
 the same, and `esc` already exists (`:154`).
 
+**Fixed (Phase 5 5B):** the page moved to `public/` as ES modules; the known-bug test still holds of the frozen Phase 4 page (`docs/evidence/phase0/page-phase4.html`). Rendering builds nodes (`public/dom.js`); `eslint.config.mjs` bans the HTML sinks in `public/`.
+
 ### F9 · Enter during IME composition fires a search
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** Enter during IME composition fires a search.
 
 **Evidence:**
+- test `[F9 fixed] Enter submits only when !e.isComposing && e.keyCode !== 229` (`test/web/source.node.test.js`)
+- `test/ui/search.spec.js` (F9, Playwright, Chromium and WebKit): Enter while composing (and Safari's keyCode 229 after it) sends no search; Enter after does.
 - test `[F9 known-bug] Enter fires a search even during IME composition`
 
-**Notes:** `src/page.html:219-221` checks only `e.key === 'Enter'`, not `e.isComposing` or
+**Notes:** `docs/evidence/phase0/page-phase4.html:219-221` checks only `e.key === 'Enter'`, not `e.isComposing` or
 keyCode 229, so confirming a CJK candidate submits a half-typed query.
+
+**Fixed (Phase 5 5B):** the page moved to `public/` as ES modules; the known-bug test still holds of the frozen Phase 4 page (`docs/evidence/phase0/page-phase4.html`). `public/keys.js`.
 
 ### F10 · Mobile layout
 
@@ -668,7 +698,7 @@ triggers iOS zoom.
 - `docs/evidence/phase0/fe-results.json`: `mobile.firstResultTopY: 499` at 390×844, `inputFontSize: "15px"`.
 - `docs/evidence/phase0/shots/390x844-light.png`: the score wraps to its own line, and so does "Sem 1, Sem 2".
 
-**Notes:** `src/page.html:22`, `:33-36`, `:69`, `:72`. At y=499 the first card's top is
+**Notes:** `docs/evidence/phase0/page-phase4.html:22`, `:33-36`, `:69`, `:72`. At y=499 the first card's top is
 technically above the fold (`firstResultVisibleAboveFold: true`), but less than one card fits;
 SC8 needs the first result readable above the fold.
 
@@ -687,7 +717,7 @@ notes fill the hero.
 - `docs/evidence/phase0/shots/1280x800-light.png` and `docs/evidence/phase0/shots/390x844-light.png`
 
 **Notes:** Every factual sub-claim holds: accent `#b4541f` with ≥ 8 `var(--accent)` uses;
-option "2" (`src/page.html:95`), level labels `${level}000 (${count})` (`:135`), chip
+option "2" (`docs/evidence/phase0/page-phase4.html:95`), level labels `${level}000 (${count})` (`:135`), chip
 `sem: Sem 2` (`:160`); chips are plain spans; the empty state is text only (`:163`); data notes
 in `.sub` (`:85`). "4/10", "template look" and "off-brand" are judgements, not reproducible
 claims, hence partial. The Phase 5 design gate decides those.
