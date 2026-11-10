@@ -73,15 +73,43 @@ export async function settled(page) {
 }
 
 /**
- * axe-core with every rule (no tag filter) on the page as it is: the
- * violations as `rule: targets` lines, [] when there are none.
+ * The rule left out of axeViolations: WCAG AAA's 7:1 contrast. The page's bar
+ * is AA (F6, `npm run contrast`), which design D's stamps, note scopes and
+ * source dates meet at 6.2:1 and up; AAA would change D's colours.
+ */
+export const AXE_OFF = Object.freeze(['color-contrast-enhanced']);
+
+/**
+ * axe-core with every rule it has but AXE_OFF (5E): no tag filter, and the
+ * rules axe leaves off by default (the experimental ones, the other AAA ones)
+ * on too. The violations as `rule: targets` lines, [] when there are none.
  * @param {import('@playwright/test').Page} page
  */
 export async function axeViolations(page) {
   const { default: AxeBuilder } = await import('@axe-core/playwright');
-  const { violations } = await new AxeBuilder({ page }).analyze();
+  const { default: axe } = await import('axe-core');
+  const every = axe.getRules().map((r) => r.ruleId).filter((id) => !AXE_OFF.includes(id));
+  const { violations } = await new AxeBuilder({ page }).options({ runOnly: { type: 'rule', values: every } }).analyze();
   return violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
 }
 
 /** The polite live region (5E): one per page. @param {import('@playwright/test').Page} page */
 export const live = (page) => page.locator('#live');
+
+/**
+ * Logs every text the live region holds, from the page's first load: read it
+ * with liveLog(page). Call before page.goto.
+ * @param {import('@playwright/test').Page} page
+ */
+export async function recordLive(page) {
+  await page.addInitScript(() => {
+    /** @type {any} */ (globalThis).liveLog = [];
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = /** @type {HTMLElement} */ (document.getElementById('live'));
+      new MutationObserver(() => /** @type {any} */ (globalThis).liveLog.push(el.textContent)).observe(el, { childList: true, characterData: true, subtree: true });
+    });
+  });
+}
+
+/** @param {import('@playwright/test').Page} page @returns {Promise<string[]>} */
+export const liveLog = (page) => page.evaluate(() => /** @type {any} */ (globalThis).liveLog);

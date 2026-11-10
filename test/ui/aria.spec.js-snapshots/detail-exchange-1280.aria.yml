@@ -23,7 +23,7 @@
     - list:
       - listitem: Places. Business courses are over-subscribed and not guaranteed. NG restrictions, updated 31 Aug 2026
       - listitem: Your major. Only for students majoring in business at their home university. NG restrictions, updated 31 Aug 2026
-    - paragraph: Check with NUS before you register.
+    - strong: Check with NUS before you register.
     - paragraph:
       - text: "Sources:"
       - link "Courses offered to exchange (NG) students":

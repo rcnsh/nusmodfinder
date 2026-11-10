@@ -56,7 +56,7 @@
               - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
           - cell "Open to exchange students":
             - paragraph: Open to exchange students
-    - paragraph: Check with NUS before you register.
+    - strong: Check with NUS before you register.
     - paragraph:
       - text: "Sources:"
       - link "Courses offered to exchange (NG) students":

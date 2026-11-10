@@ -6,7 +6,7 @@
 // the first), and every control has an accessible name. The VoiceOver
 // walkthrough itself is docs/evidence/phase5/voiceover-checklist.md.
 import { expect, test } from '@playwright/test';
-import { body, live, query, settled } from './support.mjs';
+import { body, live, liveLog, query, recordLive, settled } from './support.mjs';
 
 /** Every live region on the page: there must be one. @param {import('@playwright/test').Page} page */
 const liveRegions = (page) => page.locator('[aria-live], [role="status"], [role="alert"], [role="log"], [role="marquee"], [role="timer"], output');
@@ -241,4 +241,76 @@ test('[F5] the controls are named as a screen reader should say them', async ({ 
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Exchange Course Finder (unofficial, for NUS)');
   await expect(page.getByRole('main')).toHaveCount(1);
+});
+
+test('[F5] the live region stays in the accessibility tree while the filters dialog is open, and goes back to the header after', async ({ page, browserName }) => {
+  await page.setViewportSize({ width: 390, height: 664 });
+  await page.goto('/?q=networks&ng=1&study=ug2&sem=1');
+  await settled(page);
+  /** Chromium only: whether the accessibility tree ignores #live (a modal dialog makes the rest of the page inert). */
+  const ignored = async () => {
+    const cdp = await page.context().newCDPSession(page);
+    const { root } = await cdp.send('DOM.getDocument');
+    const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector: '#live' });
+    const { nodes } = await cdp.send('Accessibility.getPartialAXTree', { nodeId, fetchRelatives: false });
+    await cdp.detach();
+    return nodes[0].ignored;
+  };
+  await page.getByRole('button', { name: 'Filters (3)' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  expect(await live(page).evaluate((el) => !!el.closest('dialog[open]'))).toBe(true);
+  if (browserName === 'chromium') expect(await ignored()).toBe(false);
+  await dialog.locator('#level').selectOption('2');
+  await expect.poll(() => query(page)).toBe('q=networks&sem=1&level=2&ng=1&study=ug2');
+  await expect(live(page)).toHaveText(/^\d+ courses match “networks”\.$/);
+  await expect(dialog.getByRole('status')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  expect(await live(page).evaluate((el) => !!el.closest('header'))).toBe(true);
+  if (browserName === 'chromium') expect(await ignored()).toBe(false);
+  await expect(liveRegions(page)).toHaveCount(1);
+});
+
+test('[F5] each answer is said once: a failed other-semester check and a late /facets say nothing again', async ({ page }) => {
+  await recordLive(page);
+  // The partial code's other-semester check fails (429): the line doesn't change, so nothing more is said.
+  await page.route('**/search?**sem=2**', (route) => route.fulfill({ status: 429, headers: { 'retry-after': '30' }, json: { error: 'rate_limited' } }));
+  const checked = page.waitForResponse((r) => r.url().includes('sem=2'));
+  await page.goto('/?q=CG32&ng=1&study=ug2&sem=1');
+  await checked;
+  await page.waitForTimeout(400); // past announce()'s 150 ms repeat
+  expect(await liveLog(page)).toEqual(['No CG32xx course is open to exchange students in Sem 1 at 2nd year.']);
+});
+
+test('[F5] a failed detail is said once, even when /facets answers after it and the detail is filled again', async ({ page }) => {
+  await recordLive(page);
+  await page.route('**/module/CS3244', (route) => route.fulfill({ status: 502, json: { error: 'upstream_failure' } }));
+  /** @type {(() => void) | null} */
+  let release = null;
+  const held = new Promise((resolve) => { release = () => resolve(undefined); });
+  await page.route('**/facets', async (route) => { await held; await route.continue(); });
+  await page.goto('/?q=CS3244&open=CS3244');
+  const said = 'The details of CS3244 could not be loaded. The search service could not reach its course data. Try again in a moment.';
+  await expect(live(page)).toHaveText(said);
+  const facets = page.waitForResponse((r) => new URL(r.url()).pathname === '/facets');
+  /** @type {any} */ (release)();
+  await facets;
+  await expect(page.locator('#setupSources td').nth(1)).not.toHaveText('…');
+  await page.waitForTimeout(400);
+  expect((await liveLog(page)).filter((t) => t === said)).toHaveLength(1);
+  await expect(live(page)).toHaveText(said);
+});
+
+test('[F5] pressing Search again on the answer already shown says it again', async ({ page }) => {
+  await page.goto('/?q=networks');
+  await settled(page);
+  const said = /** @type {string} */ (await live(page).textContent());
+  expect(said).toMatch(/^\d+ courses match “networks”\.$/);
+  await live(page).evaluate((el) => {
+    /** @type {any} */ (globalThis).liveLog = [];
+    new MutationObserver(() => /** @type {any} */ (globalThis).liveLog.push(el.textContent)).observe(el, { childList: true, characterData: true, subtree: true });
+  });
+  await page.locator('#go').click();
+  await expect.poll(() => liveLog(page)).toEqual(['', said]);
 });

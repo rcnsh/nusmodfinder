@@ -287,11 +287,13 @@ let shown = null;
 const searchHref = (code) => urlFor({ ...current, q: code, ignore: [], open: '' }, location.pathname);
 
 /**
- * Fills a card's detail from /module/:code (fetched once per page).
+ * Fills a card's detail from /module/:code (fetched once per page). `quiet`:
+ * a re-fill (the sources' dates arrived), whose failure was already said.
  * @param {string} code
  * @param {HTMLElement} region
+ * @param {{ quiet?: boolean }} [opts]
  */
-async function loadDetail(code, region) {
+async function loadDetail(code, region, { quiet = false } = {}) {
   if (!shown) return;
   const { data } = shown;
   detailLoading(region);
@@ -300,7 +302,7 @@ async function loadDetail(code, region) {
   if (outcome.kind !== 'ok') {
     const sentence = outcome.kind === 'error' ? errorSentence(outcome.error) : '';
     detailError(region, sentence, () => loadDetail(code, region));
-    announce(`The details of ${code} could not be loaded. ${sentence}`.trim());
+    if (!quiet) announce(`The details of ${code} could not be loaded. ${sentence}`.trim());
     return;
   }
   renderDetail(region, outcome.body, { filters: data.filters ?? {}, sources, searchHref, onClose: () => act({ type: 'close' }) });
@@ -326,6 +328,13 @@ function syncDetail(s, focusCode = '') {
     }
   }
   if (focusCode) shown.view.cards.get(focusCode)?.button.focus();
+}
+
+/** Says the answer on screen in the live region, with the phrases read from the query. */
+function announceAnswer() {
+  if (!shown) return;
+  const read = intentChips(shown.data?.interpreted, current.ignore).map((c) => c.label);
+  announce([shown.view.announce, read.length ? `Read from your query: ${read.join(', ')}.` : ''].filter(Boolean).join(' '));
 }
 
 /** Says why each hidden typed code isn't shown, from its own stored reasons (D4). */
@@ -362,13 +371,15 @@ async function checkOtherSemester(s) {
   if (shown?.view.partial !== p) return;
   if (outcome.kind === 'ok') remember(key, outcome.body);
   const has = outcome.kind === 'ok' ? Array.isArray(outcome.body?.results) && outcome.body.results.length > 0 : null;
+  const before = p.line.textContent;
   settlePartial(p, has, () => {
     els.sem.value = other;
     act({ type: 'settings', form: readForm() });
   });
-  // The line may now say "either semester", or a button to see the other may have appeared.
+  // Said again only if it changed: the line now says "either semester", or a
+  // button to see the other semester appeared (a failed check changes neither).
   const see = p.actions.querySelector('button');
-  announce([p.line.textContent, see ? `The “${see.textContent}” button shows them.` : ''].filter(Boolean).join(' '));
+  if (see || p.line.textContent !== before) announce([p.line.textContent, see ? `The “${see.textContent}” button shows them.` : ''].filter(Boolean).join(' '));
 }
 
 /** @param {string} key @param {any} body */
@@ -386,8 +397,7 @@ function remember(key, body) {
 function render(s, key, body) {
   shown = { key, data: body, view: showResults(targets, body, { searchHref, removableFilters: removableFilters(), query: s.q }) };
   showIntentChips(body);
-  const read = intentChips(body?.interpreted, current.ignore).map((c) => c.label);
-  announce([shown.view.announce, read.length ? `Read from your query: ${read.join(', ')}.` : ''].filter(Boolean).join(' '));
+  announceAnswer();
   syncDetail(s);
   explainHidden();
   checkOtherSemester(s);
@@ -409,11 +419,12 @@ function showIntentChips(body) {
 /**
  * Renders a state: from memory when this page has shown it before, else by
  * searching. `fromUser`: the student just acted, so a missing year of study
- * takes focus.
+ * takes focus. `submitted`: they pressed Search, so the answer is said again
+ * even when it is the one on screen.
  * @param {State} s
- * @param {{ fromUser?: boolean }} [opts]
+ * @param {{ fromUser?: boolean, submitted?: boolean }} [opts]
  */
-async function show(s, { fromUser = false } = {}) {
+async function show(s, { fromUser = false, submitted = false } = {}) {
   const params = searchParams(s);
   if (!params) {
     shown = null;
@@ -440,6 +451,7 @@ async function show(s, { fromUser = false } = {}) {
   if (shown && shown.key === key) {
     search.abort();
     syncDetail(s);
+    if (submitted) announceAnswer();
     return;
   }
   if (answers.has(key)) {
@@ -478,7 +490,7 @@ function act(action) {
   const closing = action.type === 'close' ? current.open : '';
   current = state;
   applyToForm(state);
-  show(state, { fromUser: true });
+  show(state, { fromUser: true, submitted: action.type === 'submit' });
   // Closed by replace: focus goes back to the card's button (closed by back(), popstate does it).
   if (closing) shown?.view.cards.get(closing)?.button.focus();
 }
@@ -572,8 +584,13 @@ els.browseAll.addEventListener('click', () => {
 // The browser's modal dialog keeps the rest of the page inert and closes on
 // Escape; focus also wraps inside it, and returns to the button on close.
 const rail = /** @type {HTMLElement} */ (els.panel.parentElement);
+// The live region goes into the dialog too while it is open: a modal dialog
+// makes the rest of the page inert, the header's live region included, so a
+// change made in the dialog would be said to no one (5E).
+const liveHome = /** @type {HTMLElement} */ (els.live.parentElement);
 els.filtersBtn.addEventListener('click', () => {
   els.dialogSlot.append(els.panel);
+  els.dialog.append(els.live);
   els.dialog.showModal();
   /** @type {HTMLElement | null} */ (els.panel.querySelector('input, select'))?.focus();
 });
@@ -585,6 +602,7 @@ els.dialog.addEventListener('close', () => {
   const was = refocus ?? document.activeElement;
   refocus = null;
   rail.prepend(els.panel);
+  liveHome.append(els.live);
   // Back to the button; or, widened past the phone layout (no button), to the
   // control that had focus, now in the rail.
   if (getComputedStyle(els.filtersBtn).display !== 'none') els.filtersBtn.focus();
@@ -669,8 +687,11 @@ window.addEventListener('popstate', async () => {
   // another answer without one starts at the top.
   const card = before && !after.open ? before : after.open && after.open !== before ? after.open : '';
   const button = card ? shown?.view.cards.get(card)?.button : null;
-  if (button) button.focus();
-  else if (shown?.key !== answerBefore) window.scrollTo(0, 0);
+  if (button) { button.focus(); return; }
+  if (shown?.key !== answerBefore) window.scrollTo(0, 0);
+  // The control that had focus went with the answer it was in (a card's
+  // button): focus the shown <main>, so the next Tab is the search box.
+  if (!document.activeElement || document.activeElement === document.body) document.getElementById(els.skip.hash.slice(1))?.focus({ preventScroll: true });
 });
 
 // The header stays at the top of a wide screen, so whatever focus or a link
@@ -697,7 +718,7 @@ fetchFacets().then((f) => {
   if (sources && shown) {
     explainHidden();
     for (const [code, { region }] of shown.view.cards) {
-      if (!region.hidden && !region.contains(document.activeElement)) loadDetail(code, region);
+      if (!region.hidden && !region.contains(document.activeElement)) loadDetail(code, region, { quiet: true });
     }
   }
   for (const x of Array.isArray(f.faculties) ? f.faculties : []) {
@@ -734,7 +755,7 @@ function renderSources() {
         h('tr', null, h('td', null, 'Courses offered to exchange students (the ', h('b', null, 'NG list'), ')'), h('td', null, ngDate || '…')),
         h('tr', null, h('td', null, 'Course restrictions for exchange students'), h('td', null, rDate || '…')))),
     h('p', null, '“NG” means non-graduating: NUS\'s word for exchange students. Course details come from NUSMods.'),
-    h('p', { class: 'checknus' }, icon('check'), h('span', null, 'This site is unofficial. Check with NUS before you register.')));
+    h('div', { class: 'checknus' }, icon('check'), h('strong', null, 'This site is unofficial. Check with NUS before you register.')));
   setChildren(els.key,
     h('li', { class: 'k k-open' }, icon('open'), h('span', null, h('b', null, 'Open.'), ' Exchange students may take it in that semester.')),
     h('li', { class: 'k k-note' }, icon('note'), h('span', null, h('b', null, 'Open, with notes.'), ' Read every note: some limit who may take it.')),

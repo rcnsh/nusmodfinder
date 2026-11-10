@@ -151,7 +151,8 @@ button.chip { cursor: pointer; }
 .srct b { font-weight: 600; }
 .srct th:last-child, .srct td:last-child { text-align: right; white-space: nowrap; padding-left: 16px; }
 .srct td:last-child { font-family: var(--f-mono); font-size: 13px; }
-.sources p.checknus { display: flex; gap: 9px; align-items: flex-start; font-weight: 600; color: var(--ink); }
+/* The warning is a <strong> in a <div> (5E): a bold <p> reads to axe as a heading that isn't one. */
+.sources .checknus { display: flex; gap: 9px; align-items: flex-start; color: var(--ink); }
 .checknus .i { width: 16px; height: 16px; margin-top: 3px; }
 .steps { display: grid; gap: 34px; align-content: start; }
 .step { display: grid; grid-template-columns: 36px minmax(0, 1fr); }
@@ -298,7 +299,7 @@ details[open] > summary::before { transform: rotate(90deg); }
 .avail .for { font-size: var(--t-small); color: var(--ink-2); margin-top: 2px; }
 .semblock .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .yours { font-size: 12.5px; font-weight: 500; color: var(--accent); }
-.boxcheck { display: flex; gap: 9px; align-items: flex-start; font-weight: 600; border: 1px solid var(--edge); border-radius: 4px; padding: 10px 14px; }
+.boxcheck { display: flex; gap: 9px; align-items: flex-start; border: 1px solid var(--edge); border-radius: 4px; padding: 10px 14px; }
 .boxcheck .i { width: 16px; height: 16px; margin-top: 3px; }
 .sources-line { font-size: 12.5px; color: var(--ink-2); }
 .nusmods { font-size: var(--t-body-s); }

@@ -21,7 +21,7 @@
         - cell "Course restrictions for exchange students"
         - cell "31 Aug 2026"
   - paragraph: "“NG” means non-graduating: NUS's word for exchange students. Course details come from NUSMods."
-  - paragraph: This site is unofficial. Check with NUS before you register.
+  - strong: This site is unofficial. Check with NUS before you register.
   - form "Set up your exchange":
     - group "Which semester will you study at NUS?":
       - paragraph: Which semester will you study at NUS?

@@ -213,8 +213,9 @@ checks every text/background and boundary pair in both themes against WCAG AA.
   above them on a narrow screen.
 - **Accessibility** (5E, SC8): a skip link is the first Tab stop and moves focus to the shown
   `<main>`; one `<h1>`; landmarks for the header, the rail, the search and the footer. One polite
-  live region (`#live`, in the header) says each answer in a sentence: the count, why there are
-  none and the next step, the typed codes not shown, errors and 429. The list is `aria-busy`
+  live region (`#live`, in the header, and in the filters dialog while it is open, since a modal
+  dialog makes the rest of the page inert) says each answer once in a sentence: the count, why
+  there are none and the next step, the typed codes not shown, errors and 429. The list is `aria-busy`
   while a search runs; the Search button is never disabled (a second press aborts the first).
   Escape closes the open detail and focus returns to its button, as it does after Back to an
   open detail. Every control shows a 2px plum focus ring, and nothing covers it (the sticky
@@ -279,7 +280,8 @@ partial-code states run on the fixture. 5D's specs: `setup.spec.js` (the first s
 iPhone 13, after a shared link and a typed search) and `fonts.spec.js` (self-hosting, weights,
 the plain zero); 5F's `intents.spec.js` tests the phrase chips on intercepted answers. SC8's
 specs (5E): `a11y.spec.js` (axe with every rule on 23 states, both themes, 1280 and 390×664, no
-violation allowed; the states the fixture lacks are intercepted), `keyboard.spec.js` (the whole
+violation allowed; the experimental and off-by-default rules are on too, all but AAA's 7:1
+contrast, since the bar is AA; the states the fixture lacks are intercepted), `keyboard.spec.js` (the whole
 task keyboard-only at both widths, each stop's order and computed focus ring; in WebKit on a Mac
 it presses Option+Tab, as Safari needs unless "Press Tab to highlight each item" is on),
 `live.spec.js` (the live region's sentences, `aria-busy`, the never-disabled button, every

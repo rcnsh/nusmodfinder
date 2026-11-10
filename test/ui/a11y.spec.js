@@ -1,6 +1,8 @@
 // @ts-check
 // SC8's axe gate (Phase 5 5E; plan §3 5E): axe-core with every rule (no tag
-// filter) on every state the plan lists, plus the loading list, the first
+// filter, and the rules axe leaves off by default turned on: the experimental
+// ones and the AAA ones), except WCAG AAA's 7:1 contrast (support.mjs's
+// AXE_OFF: the bar is AA), on every state the plan lists, plus the loading list, the first
 // screen's validation message, a missing year of study and a detail that
 // failed to load, in both themes, at 1280 and at 390×664, in Chromium and
 // WebKit. No violation is allowed. The fixture gives most states; the ones it

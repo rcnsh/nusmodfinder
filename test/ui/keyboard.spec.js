@@ -257,3 +257,20 @@ test('[F5] Escape in the search box with a detail open closes the detail and kee
   await expect(page.locator('#q')).toHaveValue('CS3244');
   await expect(page.locator('#results button[data-code="CS3244"]')).toBeFocused();
 });
+
+test('[F5] Back to another answer, after focus was on a card of this one: focus is on the results <main>, and Tab reaches the search box', async ({ page }) => {
+  await page.goto('/?q=networks');
+  await settled(page);
+  await page.locator('#q').fill('compilers');
+  await page.locator('#q').press('Enter');
+  await expect.poll(() => query(page)).toBe('q=compilers');
+  await settled(page);
+  await page.locator('#results button.card-toggle').nth(2).focus();
+  await page.goBack();
+  await expect.poll(() => query(page)).toBe('q=networks');
+  await settled(page);
+  await expect(page.locator('#main')).toBeFocused();
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#q')).toBeFocused();
+});

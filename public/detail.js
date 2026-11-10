@@ -135,7 +135,7 @@ function exchangeSection(raw, ctx) {
       ])
       : ['NG list; NG restrictions']),
     '.');
-  const check = h('p', { class: 'check-nus boxcheck' }, icon('check'), h('span', null, 'Check with NUS before you register.'));
+  const check = h('div', { class: 'check-nus boxcheck' }, icon('check'), h('strong', null, 'Check with NUS before you register.'));
   if (study) {
     const chosen = ctx.filters.sem === 1 || ctx.filters.sem === 2 ? ctx.filters.sem : 0;
     return h('section', { class: 'detail-part avail' },

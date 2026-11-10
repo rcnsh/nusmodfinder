@@ -33,7 +33,7 @@ skipped. A status message (marked *status*) is spoken a moment after the focus a
 | 7 | Right Arrow | "2nd year, selected, radio button, 2 of 5" | |
 | 8 | Tab | "What do you want to study?, search text field", "A subject in your own words, a course name, or codes" | |
 | 9 | Type `CS2104`, Return | "Search courses, search text field, CS2104"; *status* "N courses match “CS2104”." | |
-| 10 | VO+U, Left/Right Arrow to Landmarks, then Escape | Landmarks: "banner", "Your exchange and filters, complementary", "Search and results, main", "Search courses, search", "content information" | |
+| 10 | VO+U, Left/Right Arrow to Landmarks, then Escape | Landmarks: "banner", "Your exchange and filters, complementary" with the regions "Your exchange", "Filters" and "Key", "Search and results, main", "Search courses, search", "content information" | |
 | 11 | VO+U, Headings, then Escape | One level 1, "Exchange Course Finder (unofficial, for NUS)"; level 2 "Your exchange", "Filters", "Key" and one per course ("CS2104 Programming Language Concepts" first) | |
 | 12 | Shift+Tab three times | "Faculty, Any faculty, pop-up button", "Units, Any units, pop-up button", "Level, Any level, pop-up button" | |
 | 13 | Type `LL` (or VO+Space, choose "Level 2000", Return) | "Level 2000"; *status* "N courses match “CS2104”." again | |

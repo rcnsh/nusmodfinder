@@ -639,7 +639,7 @@ button drops focus to BODY, no `<main>`, no `role="search"`.
 - test `[F5] one polite live region, in the header, present in every view` (`test/ui/live.spec.js`), and its sentences after a search, no match, hidden codes, a partial code, errors, 429, keyword-only and the phrase chips (the other F5 tests in that file)
 - test `[F5] [SC8] keyboard only at 1280: set-up, search, filter, rail set-up, detail, a link, Back, Escape; focus order and a visible ring at every stop` (`test/ui/keyboard.spec.js`)
 - test `[F5] [SC8] keyboard only at 390×664: set-up, search, filter and set-up in the Filters dialog, detail, a link, Back, Escape; focus order and a visible ring at every stop` (`test/ui/keyboard.spec.js`)
-- `test/ui/a11y.spec.js` (SC8, Playwright, Chromium and WebKit): axe with every rule finds no violation on 23 states in both themes at 1280 and 390×664 (the filters dialog at 390×664 only).
+- `test/ui/a11y.spec.js` (SC8, Playwright, Chromium and WebKit): axe with every rule (the experimental and off-by-default ones on too, except AAA's 7:1 `color-contrast-enhanced`; the bar is AA) finds no violation on 23 states in both themes at 1280 and 390×664 (the filters dialog at 390×664 only).
 - `test/ui/aria.spec.js` and `test/ui/aria.spec.js-snapshots/first-screen-1280.aria.yml` (and 12 more): the accessibility tree of each state, committed and compared exactly.
 - `docs/evidence/phase5/voiceover-checklist.md`: the VoiceOver walkthrough in macOS Safari, run locally and live by a person.
 
@@ -651,19 +651,23 @@ landmarks and `role="search"`, so axe's `landmark-one-main` and `region` pass on
 **Fixed (Phase 5 5E):** the known-bug test still holds of the frozen Phase 4 page. A skip link
 is the first stop and moves focus to the shown `<main>` (no fragment, so no history entry);
 the page has one `<h1>`. One polite live region (`#live`, `role="status"`, in the header so it
-exists in every view) says each answer in a sentence: the count ("20 courses match “CS2104”."),
+exists in every view, and inside the filters dialog while that modal dialog makes the rest of
+the page inert) says each answer once, in a sentence, and again when Search is pressed on it: the count ("20 courses match “CS2104”."),
 why there are none and the next step, the typed codes not shown, a partial code, keyword-only,
 the phrase chips, every error sentence and 429's; the same sentence again is cleared and
 repeated so it is spoken. `#results` is `aria-busy` while a search runs. The Search button is
 never disabled, so it keeps focus; a second press aborts the first search. Escape closes the
 open detail and returns focus to its button (and leaves a focused search box's text alone);
 Back to an open detail focuses its button too, and the page places the scroll itself, since
-the browser's restoration ran after the focus and left the button out of view. The keyboard
+the browser's restoration ran after the focus and left the button out of view; Back to another
+answer, when focus went with the old one, focuses the results `<main>`. The keyboard
 test found two more: the sticky header covered a control focus scrolled to at desktop widths
 (a scroll padding of the header's height fixes it), and WebKit drops `:focus-visible` when arrow
 keys move within a radio group, so the tiles, pills and segments lost their ring in Safari (the
 page now tracks key versus pointer input for them). axe found the failed detail's "Try again"
-button below contrast in dark (it had the browser's button look; it now uses the page's `.btn`).
+button below contrast in dark (it had the browser's button look; it now uses the page's `.btn`),
+and its experimental `p-as-heading` the bold "Check with NUS" paragraphs (now a `<strong>` in a
+plain paragraph, the same look).
 
 ### F6 · Contrast failures
 
