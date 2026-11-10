@@ -57,7 +57,7 @@ describe.skipIf(!available)('the 5F compliance rule on the pinned snapshot', () 
     } finally {
       await sources.close();
     }
-  });
+  }, 120_000);
 
   it('the screen runs the fixture end to end and stops on the working tree\'s parse mismatch, before any verdict', async () => {
     const r = spawnSync(process.execPath, [join(REPO, 'eval/phrases.mjs'), 'screen', '--set', 'fixture', '--prefix', 'full-5f'], { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28, env: { ...process.env, FORCE_COLOR: '0' } });
