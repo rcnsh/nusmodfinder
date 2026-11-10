@@ -176,3 +176,50 @@ jobs:
             console.log(`passed ${r.numPassedTests}, skipped ${r.numPendingTests + r.numTodoTests}, total ${r.numTotalTests}`);
             if (r.numPassedTests === 0 || r.numPassedTests !== r.numTotalTests) process.exit(1);
           ' "$RUNNER_TEMP/sc1.json"
+
+  # Phase 5 5B: the page in Chromium and WebKit (Playwright, with axe) against
+  # the local UI stack: scripts/ui-server.mjs runs `wrangler dev --local` on
+  # test/wrangler.ui.jsonc (FakeAI, no remote binding) over a D1 seeded with
+  # the fixture. Like full-corpus's grid step, a diff decides whether it runs.
+  ui:
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Does the change touch anything the UI suite covers?
+        id: diff
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          run=true
+          if [ "$GITHUB_EVENT_NAME" != workflow_dispatch ] && git cat-file -e "$BASE^{commit}" 2>/dev/null \
+            && git diff --quiet "$BASE" HEAD -- public src test/ui test/fakes.js scripts/ui-server.mjs \
+              wrangler.jsonc test/wrangler.ui.jsonc playwright.config.mjs migrations test/fixtures data \
+              package.json package-lock.json; then
+            run=false
+          fi
+          echo "ui suite: $run"
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v7
+        if: steps.diff.outputs.run == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: steps.diff.outputs.run == 'true'
+        run: npm ci
+      - name: Playwright browsers
+        if: steps.diff.outputs.run == 'true'
+        run: npx playwright install --with-deps chromium webkit
+      - name: UI suite (Chromium and WebKit)
+        if: steps.diff.outputs.run == 'true'
+        run: npm run test:ui
+      - name: Keep the traces of failed tests
+        if: failure() && steps.diff.outputs.run == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-test-results
+          path: test-results/
+          retention-days: 7

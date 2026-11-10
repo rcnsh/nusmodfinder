@@ -25,3 +25,6 @@ eval/sealed-unfiltered/**
 ._*
 eval/runs/
 eval/diag/*/runs/
+# Playwright (npm run test:ui)
+test-results/
+playwright-report/

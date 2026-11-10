@@ -13,8 +13,11 @@
     "strict": true,
     "noEmit": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    // The wrangler/Vitest aliases src/intent-data.js and src/group-data.js
+    // import (Phase 5 5B), typed as the production files they default to.
+    "paths": { "vocabulary-data": ["./data/vocabulary.json"], "groups-data": ["./data/groups.json"] }
   },
-  "include": ["scripts/**/*.mjs", "eval/**/*.mjs", "*.mjs", "scripts/corpus-types.d.ts", "eval/runner/types.d.ts", "test/**/*.node.test.js", "test/**/*.node.mjs"],
+  "include": ["scripts/**/*.mjs", "eval/**/*.mjs", "*.mjs", "scripts/corpus-types.d.ts", "eval/runner/types.d.ts", "test/**/*.node.test.js", "test/**/*.node.mjs", "test/ui/**/*.spec.js", "test/ui/**/*.mjs"],
   "exclude": ["eval/v1/**"]
 }

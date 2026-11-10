@@ -5,17 +5,19 @@
 // the caller supplies (the bundle's code list, or D1 when the bundle is
 // unusable). The static part is built once per isolate.
 //
-// The vocabulary is data/vocabulary.json, built from the production bundle's
-// corpus and versioned with it (scripts/build-vocabulary.mjs). The Vitest
-// configs alias this import to the fixture or the pinned vocabulary, the one
-// for the corpus the tests search, and every eval run overwrites the file in
-// its workspace with one built from the run corpus (eval/lib/corrected.mjs).
+// The vocabulary is the bare name `vocabulary-data` (Phase 5 5B, A2-1):
+// wrangler.jsonc aliases it to data/vocabulary.json, built from the production
+// bundle's corpus and versioned with it (scripts/build-vocabulary.mjs). The
+// Vitest configs alias it to the fixture or the pinned vocabulary, the one for
+// the corpus the tests search; test/wrangler.ui.jsonc to the fixture's; and
+// vitest.eval.config.mjs to each run workspace's data/vocabulary.json, which
+// the run overwrites with one built from the run corpus (eval/lib/corrected.mjs).
 import catalogueCodes from '../data/catalogue-codes.json';
 import collision from '../data/collision-list.json';
 import constraintPhrases from '../data/constraint-phrases.json';
 import ge from '../data/ge-pillars.json';
 import prefixes from '../data/prefixes.json';
-import vocabularyFile from '../data/vocabulary.json';
+import vocabularyFile from 'vocabulary-data';
 import { STOPWORDS_IN_FORCE } from './fts-query.js';
 import { PARSE_PHRASES, compileConstraintPhrases } from './intents.js';
 import { buildIntentContext } from './query-intent.js';
