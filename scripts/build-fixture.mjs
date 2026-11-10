@@ -1,5 +1,5 @@
 // @ts-check
-// Builds test/fixtures/corpus.json: ~400 normalised modules from the pinned
+// Builds test/fixtures/corpus.json: ~430 normalised modules from the pinned
 // snapshot, chosen to cover the Phase 0 findings, plus a deterministic filler
 // sample. Output is stable for a given snapshot, so a rebuild with no input
 // change produces no diff. Usage: npm run fixture
@@ -74,6 +74,14 @@ async function main() {
   for (const m of shuffled) {
     if (reasons.size >= TARGET) break;
     if (!reasons.has(m.code)) pick(m, 'filler');
+  }
+
+  // Phase 4 coverage (docs/plans/phase4.md 4A), added after the filler so the
+  // filler sample is unchanged: every NG module at level 5000+ and every NG
+  // module also offered in a special term.
+  for (const m of modules) {
+    if (m.ng && m.level !== null && m.level >= 5) pick(m, 'ng-level-5');
+    if (m.ng && m.semesters.some((s) => s >= 3)) pick(m, 'ng-special-term');
   }
 
   const selected = modules.filter((m) => reasons.has(m.code));

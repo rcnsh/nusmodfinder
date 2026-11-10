@@ -5,11 +5,11 @@
       "corpus": "fixture",
       "embedding": "fake-hash-embed",
       "model": "fake",
-      "count": 400,
-      "dataVersion": "0e54825ecfb7",
-      "rowsKey": "a82ebbf053ca980b349a3df90d486436a248411abd0c60234fa255f4a9de5b8c",
-      "sha256": "9e430be328799c9c5b6995bb1dbd696ca1d9e8ab52f4b7a70be91e3ab59b6641",
-      "bytes": 631976,
+      "count": 434,
+      "dataVersion": "3fa465d55fa6",
+      "rowsKey": "be028252a5a78874f4f9f416af59412e3fefb44109b2d8510955df47a473ea61",
+      "sha256": "79c716430370ba522d88038ae2aba4196f72a400fc3608f32e8bc1af33f74089",
+      "bytes": 685600,
       "path": "test/fixtures/vectors.bin"
     },
     "pinned": {
