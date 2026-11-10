@@ -152,6 +152,21 @@ describe('runbook step 5: verify --pre-deploy', () => {
     noRemoteCalls();
   });
 
+  it('5A: reports exam dates D1 holds for semesters the bundle has no exam in, even under a consistent row_hash', async () => {
+    const bundle = await fixtureBundle();
+    const m = /** @type {NormalisedModule} */ (fixture.modules.find((x) => x.examDates.length === 1));
+    const wrongSem = m.examDates[0].sem === 1 ? 2 : 1;
+    const examDates = [{ ...m.examDates[0], sem: wrongSem }];
+    // Rewritten as a stale ingest would have: the row's own hash agrees with its columns.
+    await env.DB.prepare('UPDATE modules SET exam_dates = ?, row_hash = ? WHERE code = ?')
+      .bind(JSON.stringify(examDates), await rowHash({ ...m, examDates }), m.code).run();
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason });
+    expect(r.ok).toBe(false);
+    expect(r.rowHashDrift).toEqual([]);
+    expect(r.fieldDrift).toEqual([{ code: m.code, d1: { examDates }, bundle: { examSemesters: m.examSemesters } }]);
+    noRemoteCalls();
+  });
+
   it('Phase 4 (B3-5): refuses a stored rule id the Worker\'s reason texts don\'t know', async () => {
     const bundle = await fixtureBundle();
     const ng = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.ngRules && Object.keys(m.ngRules).length));

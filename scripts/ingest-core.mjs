@@ -617,20 +617,40 @@ export async function runIngest({
     + `data version ${result.dataVersion}`);
 }
 
+/** The migration that adds each column ingest binds after 0006. */
+const COLUMN_MIGRATIONS = Object.freeze({
+  ng_allow: '0009_exchange.sql', ng_rules: '0009_exchange.sql', exam_dates: '0010_exam_dates.sql',
+});
+
+/**
+ * "migrations/0009_exchange.sql for ng_allow, ng_rules; …", in migration order.
+ * @param {string[]} columns
+ */
+function migrationsFor(columns) {
+  /** @type {Map<string, string[]>} */
+  const by = new Map();
+  for (const c of columns) {
+    const file = /** @type {Record<string, string>} */ (COLUMN_MIGRATIONS)[c] ?? 'the migration that adds it';
+    by.set(file, [...(by.get(file) ?? []), c]);
+  }
+  return [...by].sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([file, cols]) => `${file.endsWith('.sql') ? `migrations/${file}` : file} for ${cols.join(', ')}`).join('; ');
+}
+
 /**
  * Why the database must not be written by this ingest, or null.
  * @param {SchemaStatus | undefined} schema
  */
 export function describeSchemaProblem(schema) {
   if (schema?.ok && schema.missingColumns !== undefined) return null;
-  // 0006 is in place but a later migration isn't (Phase 4: 0009's ng_allow, ng_rules).
+  // 0006 is in place but a later migration isn't (0009's ng_allow, ng_rules; 0010's exam_dates).
   const only0006 = schema && schema.version !== null && schema.version >= REQUIRED_SCHEMA && schema.ftsExternal
     && schema.rowidTriggers && !schema.missingTriggers?.length && schema.rowHashColumn;
   if (only0006) {
     return schema.missingColumns === undefined
       ? 'Refusing to ingest: the Worker reports no column check (is it older than this script?). Deploy it first.'
       : `Refusing to ingest: modules lacks the columns ${schema.missingColumns.join(', ')}. `
-        + 'Apply the migration that adds them first (migrations/0009_exchange.sql for ng_allow, ng_rules), with scripts/remote-migration.mjs.';
+        + `Apply the migrations that add them first (${migrationsFor(schema.missingColumns)}), with scripts/remote-migration.mjs.`;
   }
   const missing = !schema ? ['a schema report (is the Worker older than this script?)'] : [
     ...(schema.version === null || schema.version < REQUIRED_SCHEMA ? [`meta('schema') >= ${REQUIRED_SCHEMA} (found ${schema.version ?? 'none'})`] : []),

@@ -13,7 +13,7 @@ const COHORT_ONLY = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.
  * The fields of a NUSMods v2 moduleInfo record this code reads.
  * @typedef {{
  *   moduleCode?: string, title?: string, description?: string, moduleCredit?: string | number,
- *   department?: string, faculty?: string, semesterData?: { semester?: unknown, examDate?: string }[],
+ *   department?: string, faculty?: string, semesterData?: { semester?: unknown, examDate?: string, examDuration?: unknown }[],
  *   workload?: unknown, prerequisite?: string, preclusion?: string,
  *   attributes?: { su?: boolean }, gradingBasisDescription?: string,
  * }} NusModsRecord
@@ -315,6 +315,29 @@ export function workloadHours(workload) {
   return sum > 0 ? sum : null;
 }
 
+/** @param {{ examDate?: unknown }} d a semesterData entry */
+const hasExam = (d) => typeof d.examDate === 'string' && d.examDate !== '';
+
+/**
+ * The exams of a module (Phase 5 5A): one per offered semester with an
+ * examDate, by semester, so their semesters are exactly 3H's examSemesters.
+ * The date stays as moduleInfo gives it (ISO UTC); a duration that is not a
+ * finite number is null, not a guess.
+ * @param {NusModsRecord} record
+ * @param {number[]} semesters the offered semesters, sorted
+ * @returns {{ sem: number, date: string, durationMins: number | null }[]}
+ */
+export function examDatesOf(record, semesters) {
+  const out = [];
+  for (const sem of semesters) {
+    const d = (record.semesterData ?? []).find((x) => x.semester === sem && hasExam(x));
+    if (!d) continue;
+    const mins = d.examDuration;
+    out.push({ sem, date: /** @type {string} */ (d.examDate), durationMins: typeof mins === 'number' && Number.isFinite(mins) ? mins : null });
+  }
+  return out;
+}
+
 // One normalised module. `skipped` explains why a record was dropped (R2).
 /**
  * @param {NusModsRecord} record
@@ -357,7 +380,9 @@ export function normalise(record, acadYear) {
       ngAllow: 0,
       ngRules: null,
       // 3H-0 (plan 3H "Data"): what the no-exam, S/U, workload and prerequisite intents filter on.
-      examSemesters: semesters.filter((s) => (record.semesterData ?? []).some((d) => d.semester === s && typeof d.examDate === 'string' && d.examDate !== '')),
+      examSemesters: semesters.filter((s) => (record.semesterData ?? []).some((d) => d.semester === s && hasExam(d))),
+      // Phase 5 5A: each exam's date and duration, for /module/:code (migrations/0010_exam_dates.sql).
+      examDates: examDatesOf(record, semesters),
       su: record.attributes?.su === true,
       gradingBasis: record.gradingBasisDescription ?? null,
       workloadHours: workloadHours(record.workload),

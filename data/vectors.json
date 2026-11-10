@@ -6,9 +6,9 @@
       "embedding": "fake-hash-embed",
       "model": "fake",
       "count": 434,
-      "dataVersion": "2d5c0084dfa0",
+      "dataVersion": "802d103ddc46",
       "rowsKey": "be028252a5a78874f4f9f416af59412e3fefb44109b2d8510955df47a473ea61",
-      "sha256": "f988a88d1fdc54295e939781073291ca2e3fbe4022fb48965ed0bd7252bf7e4c",
+      "sha256": "1d98a127b665c82695810d21310ceddbc3b290ae7168dde74921c2bf13142518",
       "bytes": 685600,
       "path": "test/fixtures/vectors.bin"
     },

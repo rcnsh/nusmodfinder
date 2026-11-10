@@ -30,6 +30,8 @@ interface NormalisedModule {
   ngAllow: number;
   /** Phase 4: `{ "<bit index>": [rule id, ...] }` for the bits with reasons; null off the NG list. */
   ngRules: Record<string, string[]> | null;
+  /** Phase 5 5A: one per offered semester with an exam, by semester; the date ISO UTC as moduleInfo gives it. */
+  examDates: { sem: number; date: string; durationMins: number | null }[];
 }
 
 /** What vitest.config.mjs `provide`s as `corpus` (null when unavailable). */

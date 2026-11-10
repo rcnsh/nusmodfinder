@@ -115,7 +115,7 @@ export const REQUIRED_TRIGGERS = ['modules_fts_insert', 'modules_fts_delete', 'm
  * Whether the database has migration 0006: the schema marker, the
  * external-content FTS table, all four of its triggers (the update trigger
  * addressed by rowid) and the row_hash column; and every column the upsert
- * binds (ROW_COLUMNS, so a later migration such as 0009). Ingest refuses to write
+ * binds (ROW_COLUMNS, so a later migration such as 0009 or 0010). Ingest refuses to write
  * without it: through the old triggers a full re-ingest reads ~46M rows
  * (FINDINGS B3). Reads a few sqlite_master rows.
  * @param {D1Database} db
@@ -141,7 +141,7 @@ export async function schemaStatus(db) {
   const present = new Set(/** @type {string[]} */ (JSON.parse(row?.triggers ?? '[]')));
   const missingTriggers = REQUIRED_TRIGGERS.filter((t) => !present.has(t));
   const rowHashColumn = Number(row?.row_hash ?? 0) === 1;
-  // Every column the upsert binds (Phase 4: 0009's ng_allow, ng_rules).
+  // Every column the upsert binds (Phase 4: 0009's ng_allow, ng_rules; 5A: 0010's exam_dates).
   const columns = new Set(/** @type {string[]} */ (JSON.parse(row?.columns ?? '[]')));
   const missingColumns = ROW_COLUMNS.filter((c) => !columns.has(c));
   return {
@@ -439,7 +439,7 @@ export async function handleVerify(request, env) {
           credits: f.credits, faculty: f.faculty, ng: f.ng, ngSemesters: f.ngSemesters ?? [],
           examSemesters: f.examSemesters ?? [], su: f.su === true, suGrading: suGrading(f.gradingBasis),
           workloadHours: f.workloadHours ?? null, prereqNone: f.prereqNone === true, prereqCohortOnly: f.prereqCohortOnly === true,
-          ngAllow: f.ngAllow ?? 0, ngRules: f.ngRules ?? null,
+          ngAllow: f.ngAllow ?? 0, ngRules: f.ngRules ?? null, examDates: f.examDates ?? [],
         };
       }),
       meta: metaOf([rows]),
