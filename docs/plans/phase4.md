@@ -1,4 +1,4 @@
-# Phase 4 plan: exchange mode that is correct (draft r2, for critics)
+# Phase 4 plan: exchange mode that is correct (draft r3, for critics)
 
 Goal (exit): **SC1** is met and a persona red team finds no shown course an exchange student
 can't take.
@@ -18,7 +18,19 @@ reviewed, versioned data file, tested over the whole NG list.
 This plan changes no code. Every number marked *est.* is an estimate; every other number comes
 from a script on the pinned corpus (critic scripts are re-run and committed at 4B).
 
-r2 applies every round-1 objection (§9). The main changes from r1:
+r3 applies every round-2 objection (§9). The main changes from r2:
+- under `ng=1`, `sem` only selects the allow bit; no path also tests NUSMods semesters (B2-1);
+- the standby reads 100 under `ng=1` and is held to no leaks plus a recall floor (B2-2);
+- the dev gate compares against the shipped pipeline's own lists through a test-only switch,
+  with pins, code lists, the mask route, 3F and 3G accounted for (A2-2);
+- every eval query gets a `study`, including code and typo queries, by a hashed map (A2-1);
+- `eligibility()` lives in `src/` so the eval and the Worker build use it (A2-4);
+- SC1 gets its own CI job, and its listings are filters over every row (A2-5);
+- rule E (case-by-case approval for courses not on the NG list) becomes Q7 (C2-1);
+- dual-coded Architecture pairs, title checks, Q1 split into three, and a red team chosen by
+  semester × level with pre-drawn code lookups (C2-2 to C2-5).
+
+r2 applied every round-1 objection. The main changes from r1:
 - the filter stores **allow** bits, so zero or a missing column means closed (A-3, B-3);
 - Vectorize gets no new metadata; the standby relies on the D1 recheck (B-1, B-2);
 - the mask uses the bundle's reserved bytes, keeping the 32-byte stride (B-4);
@@ -76,14 +88,16 @@ boolean, and `sem` is checked against `semesters`, never `ng_semesters`:
 |---|---|---|
 | D: levels 5000–6000 closed to exchange students "unless specified in the list below" | closed for all, unless a department rule specifies | 28 |
 | — of which specified: SE Asian "Level 5000 … only open to 4th year & postgraduate" (CAS5101: open to ug4 and grad); Malay graduate courses case-by-case (MS5101, MS5201: note for grad); PP for graduates from LKYSPP partners (11: note-partner for grad) | per department | 14 |
-| — not specified anywhere: AR5221, AR5321, AR5601, AR5801, AR5802, CM5223, CM5225, CM5244, CM5268, PC5202, PC5206, PC5211 | closed by D, yet on the NG list | 12 (conflict) |
+| — dual-coded with an Architecture-majors 4000 twin the restrictions PDF names (AR5221/AR4220, AR5321/AR4321, AR5601/AR4601, linked by preclusion; C2-2) | Q1c | 3 |
+| — not specified anywhere: AR5801, AR5802, CM5223, CM5225, CM5244, CM5268, PC5202, PC5206, PC5211 | closed by D, yet on the NG list | 9 (Q1c) |
+| — Logistics Institute (section 12, "All courses are not open"): LI5202, LI5204 | explicit closure | 2 (Q1a) |
 | 1: dept closes level 4000 to NG undergraduates (Chinese Studies, ELTS, Geography, Political Science, Social Work, Sociology; CNM, Psychology and Economics close it to graduates too) | closed for ug1–ug4 | 7 |
 | 1: level 4000 only for 3rd/4th-year undergraduates (Malay, South Asian, SE Asian) | closed for ug1–ug2 | 3 |
 | 1: Economics 1000–3000 closed to NG graduates | closed for grad | 25 (incl. GEC, GESS, GEX hosted by Economics: scope in the register) |
 | 1, 4: Geography and Built Environment 1000–4000 closed to NG graduates | closed for grad | 39 |
 | 5: Law needs a Law major; LL4011V closed | note; closed | 91; 1 |
 | 2: Business needs a business major | note | 41 |
-| 6: Music core courses for YST partner institutions only | note-partner | MUA4161, MUA3219 |
+| 6: non-partner students may read only the electives "listed HERE"; the rest is for YST partners | note-partner, pending the electives page | up to 16 MU-coded (C2-6) |
 | 4: Architecture, Landscape, Industrial Design majors-only lists; design-year letter | note | ~20 *est.* |
 | limited-quota lists (Geography, History, Built Environment) | note | ~30 *est.* |
 
@@ -116,12 +130,19 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
 ```
 
 **Order of evaluation:**
-1. **Semester.** `closed` unless the module is on the NG list for `sem`. Where the NG list says
+1. **Semester.** A module not on the NG list for `sem` follows §8 Q7 (rule E: "Approval for
+   any other courses not listed … will be granted on a case-by-case basis … may be available
+   during Course registration"). Lead default: `closed`, because exchange mode is about what
+   can be planned at application; the card for such a course (reached outside exchange mode)
+   says rule E applies. Civil and Environmental Engineering and Industrial Systems Engineering
+   levels 1000–4000 not on the NG list are `closed` under any answer ("No appeal will be
+   accepted"). Where the NG list says
    open in N but NUSMods doesn't offer it in N, the outcome follows §8 Q5 (lead default: `note`,
    "the NG list says Sem N; the NUSMods timetable doesn't list it", because the NG list is the
    Registrar's availability statement and NUSMods' semesters are a scrape).
 2. **Rule D as a default.** Level 5000+ is `closed` for every `study` unless a department rule
-   specifies otherwise for that `study` (C-1, C-3). The 12 unspecified codes follow Q1.
+   specifies otherwise for that `study` (C-1, C-3). The dual-coded AR pairs and the 9
+   unspecified codes follow Q1c.
 3. **Department and code rules**, each with the scope the interpretations register gives it
    (§3, 4B). `closed` wins over `note`; notes accumulate.
 4. Otherwise `open`.
@@ -136,28 +157,43 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
 **Storage.** For 3 `sem` × 5 `study` values, ingest writes:
 - `ng_allow` (INTEGER, 15 bits): bit set = shown in exchange mode (`open` or `note`). **Zero,
   NULL or a missing column means closed** (A-3, B-3). Non-NG modules get 0.
-- `ng_rules` (JSON): per bit, the status and rule ids with reason text. `/module/:code` and
-  result cards read it, so the Worker runs no rule logic (B-9).
+- `ng_rules` (JSON): per bit, the status and **rule ids only** (B2-6). Reason texts live in a
+  bundled data module keyed by rule id, so a wording edit doesn't rewrite rows. `/search`
+  returns only the requested bit's reasons; `/module/:code` returns all 15. The Worker runs no
+  rule logic (B-9).
+- `eligibility()` lives in `src/eligibility.js` with the rules as a `src/` data import, and
+  `offeredModules` (`scripts/lib.mjs`) calls it, so the eval workspace, the baseline tree hash
+  and the fixture corpus all carry it (A2-4).
 - Both fields join `ROW_COLUMNS`/`boundTuple` (`src/rowhash.js:37-53`), so a rules-only change
   re-hashes every affected row and reaches D1, the data version and the deploy guard (B-6).
 
 **Paths** (each filters on the one bit for (sem, study)):
-- D1 lexical: `+m.ng_allow & ?1 != 0` as a non-driver predicate beside `m.ng = 1`. No new index:
-  SQLite can't use one for a bitmask, and `idx_ng` already drives the query (B-5).
+- **`sem` under `ng=1` only selects the bit** (B2-1). `parseFilters` emits no `sem` predicate
+  and no Vectorize `sem<n>` field when `ng=1`; `exam=0` keeps using `sem` for the exam semester.
+- D1 lexical: `+m.ng_allow & <bit> != 0`, the bit interpolated as a validated integer literal
+  (`?1` is the MATCH text, B2-7), a non-driver predicate beside `m.ng = 1`. No new index: SQLite
+  can't use one for a bitmask, and `idx_ng` already drives the query (B-5).
 - Bundle: `ng_allow` in reserved bytes 6–7, stride stays 32 bytes (B-4). `BUNDLE_SCHEMA` bumps,
   `decodeFilterRow` reads it, and verify's field compare includes it.
-- Vectorize standby: no new metadata (B-1). It keeps the yearly `ng` filter, reads deeper under
-  `ng=1` (as `STANDBY_RELATED_DEPTH`), and every dense candidate passes the D1 recheck.
+- Vectorize standby: no new metadata (B-1). It keeps the yearly `ng` filter, queries topK 100
+  (the limit without values or metadata) under `ng=1`, and every dense candidate passes the D1
+  recheck. A local simulation over the 98 dev queries gave recall@50 0.998 for a level-cut bit
+  and 0.892 (worst query 0.04) for a ug1-like bit at depth 100 (B2-2). The standby is a
+  fallback; §5 records the loss.
 - D1 recheck `localMatchesFilters`: tests `(row.ng_allow ?? 0) & bit`. `ng_allow` is added to
   `RESULT_COLUMNS` and `VARIANT_COLUMNS`. `related` is rechecked whenever `ng=1` (B-2).
-- The cache key carries `study`.
+- The cache key carries `study` only when `ng=1`, with a key test (B2-3).
 
 `sem=N` without `ng=1` keeps its meaning (NUSMods semesters).
 
 ## 3. Workstreams
 
 ### 4A Per-semester NG and the allow mask on every path (P1, P2)
+- **First, its own commit:** extend the fixture with the remaining 25 level-5000 NG modules and
+  re-store the fixture baseline there, so the guard compares against it (B2-5).
 - Implements §2's storage and paths. Migration adds `ng_allow` and `ng_rules`.
+- 4A–4D ship together: the 400 `study-required` would break the current page, shared links and
+  the eval otherwise. The SC7 query file's 10 `ng=1` rows gain a `study` (B2-3).
 - Unit tests: a row without `ng_allow` is never shown (each path); the three `[P1 known-bug]`
   tests flip to `[P1 fixed]`; `[P2 known-bug]` flips to `[P2 fixed]`.
 - Fixture: the 36 mismatch modules, the 12 special-term modules and the 28 level-5000 modules,
@@ -167,19 +203,28 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
 - `data/ng-restrictions-2026-2027.json`: every rule from the restrictions PDF and the other
   sources, each with its kind (`closed-code`, `closed-prefix`, `closed-school`, `level-for-study`,
   `note-major`, `note-partner`, `note-approval`, `note-quota`, `note-graded`, `note-audition`),
-  its scope (codes, prefixes with level ranges, departments), and its citation (section, page).
+  its scope (codes, prefixes with level ranges, departments), its citation (section, page), and
+  for every code-level rule the **title as the PDF gives it**. The check script compares it with
+  the NG list and NUSMods titles; each mismatch is a register row (C2-3: ID2114 is "Form,
+  Materials & Making" in the restrictions PDF and "The Appreciation of Wood Craft" elsewhere).
 - **Interpretations register** (`docs/evidence/phase4/interpretations.md`): one row per ambiguous
   rule with the decision and reason, and a fixture case for each. It starts with:
   - blanket rules' scope (CG, DSA, GEH under one department's section): global or section-only;
   - rule B: the 7 listed codes only, not every `…X` code (else 8 Business courses close, C-5);
-  - renamed codes: the PDF's AR4220/AR4321 vs NUSMods' AR5221/AR5321 with the same titles;
+  - dual-coded pairs linked by preclusion (AR4220/AR5221, AR4321/AR5321, AR4601/AR5601): a rule
+    on one code applies to its twin (C2-2);
+  - "closes 5000/6000 to undergraduate students" in five departments: whether it opens them to
+    graduates (C2-7);
+  - course tables without a "NOT available" heading (Language Studies, CNM, ELTS, Japanese
+    Studies, Chemistry, Science Dean's Office): what they mean (C2-7);
   - Economics' rules over GE courses it hosts (GEC, GESS, GEX);
   - Psychology's self-contradiction (level 4000 by appeal vs all 4000 closed);
   - Industrial Design's notes scoped by the `ID` prefix, not the "Design" department (C-10);
   - USP's partner rule and NUS College's 63 NG-listed codes (§8 Q6).
 - **Department map:** PDF department names to NUSMods `department` strings, explicit; unmapped
   names fail the build. The NG PDF's own Faculty and Department columns are a second check: for
-  all 1,207 codes they must match the map apart from spelling.
+  all 1,207 codes they must match the map apart from spelling. A code may carry a set of NG
+  department names (18 codes are listed under two names in different semesters, C2-7).
 - **Transcription check:** two independent transcriptions by fresh subagents that read only the
   sources, diffed by script. The lead resolves each disagreement against the PDF and logs it.
   A third subagent audits a random 20% of rules.
@@ -204,13 +249,23 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
   subagent that sees the sources and the interpretations register, never §2, 4B's data file or
   its department map. It builds its own scope mapping; the two maps are diffed and every
   disagreement logged (A-6, C-5).
-  - Run over **every corpus module** (6,778) and all 1,207 NG codes × 3 `sem` × 5 `study`
-    (~120k cases): `eligibility()` must agree with the oracle on status (A-3, C-7).
-- **Path test** (same file), for each of the 15 combinations, on each path (lexical, bundle,
-  standby with recheck, pins, variants, `related`):
-  - **set equality**: an exhaustive filtered listing equals the oracle's `open ∪ note` set, so
-    neither a leak nor an over-hide passes (A-4);
-  - a code search for every NG code returns it exactly when the oracle shows it.
+  - Run over **every pinned-corpus module** (6,771) and all 1,207 NG codes × 3 `sem` × 5
+    `study` (~120k pure calls): `eligibility()` must agree with the oracle on status (A-3, C-7).
+  - **At the ship**, the oracle also runs over the production-normalised modules (the
+    2026-11-04 catalogue, 6,778) against the `ng_allow` ingest computed, locally before any D1
+    write (A2-6).
+- **Path test** (`test/sc1/`, its own CI job with its own timeout, A2-5), for each of the 15
+  combinations:
+  - **set equality** for each path's filter applied to every row (A-4, A2-5): the lexical filter
+    SQL without a search term over the seeded corpus; `decodeFilterRow` + `compileMask` over
+    every bundle row; and `localMatchesFilters` over every row. Each must equal the oracle's
+    `open ∪ note` set;
+  - the standby (fake Vectorize at full depth, then the recheck): no leaks, and recall@50 above a
+    floor set from the simulation in §2 (B2-2);
+  - pins, variants and `related`: a code search for every NG code returns it exactly when the
+    oracle shows it; every group with a closed member shows no closed variant; `related` shows
+    no closed module. Measured cost: ~3.3 ms per search locally, ~18k searches *est.* 3 min
+    per backend on CI.
 - **Unit:** a missing or zero `ng_allow` is closed on every path.
 - **Live check** at the ship: 30 calls with fresh texts across the 15 combinations, every result
   checked against the oracle (`docs/evidence/phase4/sc1-live.mjs`).
@@ -228,29 +283,49 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
   look would score correct removals as loss, the lesson from 3H.
 - **No holdout look gates Phase 4's correctness changes.** They are gated by:
   1. **SC1's oracle and path tests** (4E).
-  2. **Per-retriever identity on dev** (A-2): a new dev run records each half's list at depth
-     50, unfiltered by the new rules and filtered. For every query, each half's filtered list
-     must equal its unfiltered list with the oracle's closed modules removed, exactly; and the
-     shipped page must equal `fuse()` of those projected halves, exactly. Any difference fails.
-  3. **Unfiltered guard** (A-1): dev with `ng` stripped and `sem` kept, dev with `--unfiltered`,
-     the SC4 suite and the fixture all return byte-identical results to the baseline.
+  2. **Per-list identity on dev** (A-2, A2-2). A test-only switch (`env.SC1_TRACE`, never
+     bound in production) makes `/search` return its internal lists: pins, the lexical, dense
+     and code lists, the mask-route list, and `topCosine`. With the switch also set to ignore
+     `ng_allow` (yearly `ng`, no `sem` predicate), each list is fetched at depth 100; projected
+     by the oracle's bit for the query's (sem, study) and cut to 50, it must equal the filtered
+     list exactly. Then the page must equal the first `topK` of `collapse(pins ++ fuse(filtered
+     lists) − pins)`, recomputed offline from the filtered lists, exactly. Mask-route queries
+     are checked on their own list. Queries whose filtered `topCosine` crosses τ into
+     `no-signal` are listed separately, and 3G's rule (no dev query outside the no-answer tags
+     returns `no-signal`) is re-run.
+  3. **Unfiltered guard** (A-1, A2-3): dev with `ng` stripped and `sem` kept (a new runner
+     option, `--strip ng`), dev with `--unfiltered`, and the fixture queries with `ng` stripped
+     all return byte-identical results to the baseline. The SC4 suite must stay green (it sets
+     no `ng`).
   4. `eval:report` on dev, reported and not a gate.
 - **Eval bookkeeping** (A-7):
-  - the runner adds `study` per persona when it builds each query (P1, P2, P5 are 3rd-years:
-    `ug3`; P3, P4, P6 are 2nd-years: `ug2`), so the locked query files don't change;
+  - the runner adds `study` per query from a committed map, so the locked query files don't
+    change (A2-1): P1, P2, P5 are 3rd-years (`ug3`); P3, P4, P6 2nd-years (`ug2`); code queries
+    (`persona: mech`, dev d-082–d-092 and the holdout's 7) take `ug2`; persona-less typo
+    diagnostics take `ug2`; fixture personas get explicit entries. The runner throws on any `ng`
+    query whose persona isn't mapped. The map's hash goes in the run `config`, and
+    `assertBaselineAt` checks it;
   - the ship PR moves `SHIPPED_BASELINE` with a pin line ("no look: SC1, per-retriever identity,
     unfiltered guard"), and the custodian stores the new holdout baseline with `--store-only`.
 - Holdout looks stay at 7 of 12 used. Any search-quality change from §6 that wants a look needs a
   compliance-aware rule written before the look.
+- **ADR 0003 amendment, "Phase 4 is gated without a look"** (A2-7), before 4A ships: the three
+  gates above, the `study` map and its hash check, and the look budget from Phase 4 on (the 5
+  remaining looks need a pre-registered rule each; ADR 0003 line 98 covers Phase 3 only).
 
 ## 5. Cost, ops and risks
 - **Migrations:** `ng_allow` and `ng_rules`; no index.
-- **Ingest:** every NG module's row hash changes. The write cost is measured on a small local
-  batch first, as ADR 0004 requires, and the run passes an explicit `--write-budget`. A full
-  rewrite measured 34,383 rows written (README:392); Workers Paid has no daily write cap, only
-  the monthly allowance with the estimate × 1.5 rule (ADR 0004).
-- **Ship:** a full runbook ship. The bundle keeps its size (reserved bytes). The vector text is
-  unchanged, so there's no corpus embedding pass. Vectorize needs no recreation.
+- **Ingest:** every row's hash changes, NG or not, because the tuple gains two columns (B2-4).
+  That is a full rewrite: 34,383 rows written when last measured (README:392). The run passes
+  `--write-budget` of that × 1.5, after a small local batch confirms the per-row cost (ADR
+  0004). Workers Paid has no daily write cap, only the monthly allowance.
+- **Ship:** a full runbook ship. The bundle keeps its size (reserved bytes), but the
+  `BUNDLE_SCHEMA` bump means three bundles are rebuilt: the fixture (`test/fixtures/vectors.bin`),
+  the pinned release asset with `data/vectors.json` (a new pinned release, which full-corpus CI
+  reads), and production. The vector text is unchanged, so there's no corpus embedding pass.
+  Vectorize needs no recreation.
+- **Standby recall** under `ng=1` is lower than the bundle's (§2, simulation): accepted, because
+  the standby serves only when the bundle path fails.
 - **Remote ops** are logged in `requests.tsv` and `remote-ops.md` as before.
 - **Risks:**
   - mis-transcribed rules: two transcriptions, a diff and an audit (4B), plus the independent
@@ -273,11 +348,15 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
 
 ## 7. Exit criteria
 - SC1's oracle and path tests are green in CI on the shipped commit. The live check agrees.
-- **Persona red team** (A-8): 5 personas fixed in advance (ug1, ug3 and ug4 undergraduates from
-  different faculties, one graduate, one Law major), each with 10 fresh queries across both
-  semesters, reading the sources and the register and using the live site.
-  - A finding is a shown course that is `closed` under the sources plus Jacob's answers to Q1,
-    Q5 and Q6, or a hidden course that is open. A noted course shown with its reason is a pass.
+- **Persona red team** (A-8, C2-5): personas chosen by the inputs the system takes, semester ×
+  study level (ug2, ug3, ug4 and grad, each in both semesters: 8 runs), with home faculties where
+  the rules are densest (Architecture, Business, FASS level 4000, Music).
+  - Each persona runs 10 fresh queries and looks up by code a sample drawn in advance: every
+    Q1, Q5 and Q7 code, the AR pairs, and 20 random NG codes, so hidden courses are checked too.
+  - The red team reads only the sources, never the register or this plan, and reports every
+    place it disagrees with the register.
+  - A finding is a shown course that is `closed` under the sources plus Jacob's answers, or a
+    hidden course that is open. A noted course shown with its reason is a pass.
   - Exit needs zero findings, or each finding fixed and re-checked.
 - P1 and P2 are `fixed`. FINDINGS gains rows for anything the red team finds.
 - README, `/facets` and the vault describe exchange mode as it is.
@@ -285,10 +364,19 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
 ## 8. Gate questions for Jacob (asked after the critic rounds)
 - **Before 4B starts:** Jacob downloads the self-funded programmes PDF, the YST electives page
   and the Law compulsory-course list (C-2).
-- **Q1. NG-listed courses a restrictions rule closes:** the blanket CG/DSA/GEH rules (whose
-  owning departments don't close these codes), Medicine non-LSM (3), Logistics Institute (2),
-  LL4011V, and the 12 level-5000 codes no department specifies. Per group: hide, or show with a
-  "listed as open, but restricted elsewhere; check with NUS" note?
+- **Q1. NG-listed courses a restrictions rule closes** (C2-4). The NG list's cover says "Take
+  note of the various course restrictions here", deferring to the restrictions PDF.
+  - **Q1a, explicit closures:** LL4011V (in Law's own closed list), Medicine non-LSM GEC1011,
+    GEH1043, HSI2003 (rule A), LI5202 and LI5204 (section 12, "All courses are not open"). Hide?
+  - **Q1b, scope:** "All CG coded courses" (under Computing's Dean's Office; the owning
+    Multidisciplinary Programme closes only CG1111A, CG2111A, CG2271), "DSAXXXX" and "GEHXXXX"
+    (under Mathematics; DSA4211/4212 belong to Statistics & Data Science, which doesn't list
+    them; GEH1018 is Physics, GEH1043 Medicine). Global, or only the section's department?
+  - **Q1c, level 5000 the departments don't specify:** the three AR pairs (4000 twin open to
+    Architecture majors), PC5202, PC5206, PC5211 (Physics names 22 of its 28 graduate courses as
+    closed and not these three), CM5223, CM5225, CM5244, CM5268 (Chemistry is silent on level
+    5000), AR5801, AR5802. Per subgroup: closed by rule D, or open (or noted) because the NG list
+    offers them?
 - **Q2. Study level required** in exchange mode (the lead's default), or a default level?
 - **Q3. S/U in exchange mode:** keep `su=1` working with a graded-only note where a department
   requires it, or hide `su=1` in exchange mode until NUS says NG students may S/U?
@@ -296,6 +384,10 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
   pre-registered here and shipped in Phase 5; S2–S4 left open).
 - **Q5. NG list vs NUSMods semesters** (36 modules): note (default) or hide when NUSMods doesn't
   offer the course in the NG-listed semester?
+- **Q7. Courses not on the NG list** (C2-1). Rule E allows case-by-case approval and "may be
+  available during Course registration". Hide them in exchange mode (default), or show them
+  with a "not offered at application; may be available at registration" note? Civil and
+  Industrial Systems Engineering levels 1000–4000 stay hidden either way.
 - **Q6. NUS College and USP:** the restrictions PDF limits USP to partner universities; USP is now
   part of NUS College, which has 63 NG-listed codes. Treat them as open, or `note-partner`?
 
@@ -335,3 +427,32 @@ sources. All objections were accepted and applied in r2.
 | C-8 | CNM, Psychology, Economics close 4000 to graduates too | applied: scopes corrected (§1 table, 4B) |
 | C-9 | No kind for partner-institution rules; USP/NUS College undecided | applied: `note-partner`; Q6 |
 | C-10 | Industrial Design scoped by department would tag two Design courses | applied: `ID` prefix scope; NG PDF columns cross-check the map (4B) |
+
+### Round 2 (r2, PR #64 head `bc792c9`)
+Three fresh critics with the same lenses. Critic A and C's first runs were cancelled by a T3
+server restart and re-run on the same head; critic B's round-2 findings were given to them so
+they didn't repeat. All objections were accepted and applied in r3.
+
+| id | objection | disposition |
+|---|---|---|
+| B2-1 | Under `ng=1`, every path still tests NUSMods semesters, hiding Q5's notes | applied: `sem` only selects the bit under `ng=1` (§2) |
+| B2-2 | Standby "deeper" is 50, as before; set equality impossible at topK ≤ 100 | applied: topK 100; no leaks + recall floor; loss recorded (§2, 4E, §5) |
+| B2-3 | 400 `study-required` breaks the page, eval whitelist, SC7 queries | applied: 4A–4D ship together; SC7 file updated; key carries `study` only under `ng=1` (§2, 4A) |
+| B2-4 | Every row re-hashes; three bundles rebuild | applied (§5) |
+| B2-5 | Extending the fixture breaks the byte-identical guard | applied: fixture extended and re-baselined in its own commit first (4A) |
+| B2-6 | `ng_rules` text bloats every hydrate and rewrites rows on wording edits | applied: ids only; texts in a bundled module (§2) |
+| B2-7 | `?1` is the MATCH text | applied: validated integer literal (§2) |
+| A2-1 | Code and typo queries have no persona, so no `study` | applied: full map, throw on unmapped, hash in config (§4) |
+| A2-2 | Identity gate fails correct changes; page isn't fuse of two halves | applied: test-only trace switch; per-list projection at depth 100; offline page recompute; 3G re-run (§4) |
+| A2-3 | Fixture can't be byte-identical; no strip option; SC4 has no baseline | applied: `--strip ng`; fixture without `ng`; SC4 green (§4) |
+| A2-4 | The eval workspace may never see `eligibility()` | applied: lives in `src/`, called from `offeredModules` (§2) |
+| A2-5 | Path tests via `/search` can't list 730 codes and overrun CI | applied: per-path filters over every row; own CI job (4E) |
+| A2-6 | CI corpus isn't production's | applied: ship-time oracle over production-normalised modules (4E) |
+| A2-7 | No ADR 0003 amendment; no look budget after Phase 3 | applied (§4) |
+| C2-1 | Rule E allows non-NG courses case by case | applied: Q7; CE/ISE exception (§2, §8) |
+| C2-2 | AR pairs are dual-coded; 5000 breakdown summed to 26 | applied: register entry; 3 + 9 + 2 + 14 = 28 (§1, 4B) |
+| C2-3 | Code-only rules can land on a renamed course (ID2114) | applied: titles transcribed and checked (4B) |
+| C2-4 | Q1 mixed three kinds of conflict without evidence | applied: Q1a/b/c with quotes (§8) |
+| C2-5 | Red team varied inputs the system ignores; couldn't find over-hiding | applied: semester × level personas; pre-drawn code lookups; sources only (§7) |
+| C2-6 | Music non-partner rule is a whitelist | applied: up to 16, pending the electives page (§1) |
+| C2-7 | Map must accept name sets; two register entries missing | applied (4B) |
