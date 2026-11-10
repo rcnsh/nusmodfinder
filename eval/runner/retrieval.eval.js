@@ -50,6 +50,10 @@ describe('eval', () => {
           faculty: r.faculty ?? null,
         }])),
         ...(res.status === 200 ? {} : { error: body ? `${body.error}: ${body.message}` : `non-JSON HTTP ${res.status}` }),
+        // Phase 5 5F: the parse the Worker echoed, 3H's keys only (null when it echoes none).
+        interpreted: res.status === 200 && body?.interpreted && typeof body.interpreted === 'object'
+          ? Object.fromEntries(['exam', 'su', 'hoursBelow', 'prereq'].map((k) => [k, body.interpreted[k] ?? null]))
+          : null,
         missing: [...ai.missing],
       };
       task.meta.vnmEval = out;

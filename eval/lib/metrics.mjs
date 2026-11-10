@@ -54,7 +54,8 @@ export const METRICS = /** @type {const} */ (['ndcg', 'p5', 'rr']);
  *   ranker?: Record<string, unknown>, corpus?: Record<string, unknown>, embedding?: Record<string, unknown>,
  *   queries?: Record<string, unknown>, config?: Record<string, unknown>,
  *   results: Record<string, QueryRun>, docs: Record<string, DocMeta>,
- * }} RunFile
+ *   intents?: Record<string, unknown>,
+ * }} RunFile `intents` (Phase 5 5F runner on): each query's 3H `interpreted` echo
  */
 
 /**

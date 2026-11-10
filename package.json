@@ -32,7 +32,8 @@
     "check:findings": "node scripts/check-findings.mjs",
     "types": "wrangler types --env-file .dev.vars.example",
     "types:check": "wrangler types --env-file .dev.vars.example && git diff --exit-code -- worker-configuration.d.ts",
-    "fixture": "node scripts/build-fixture.mjs"
+    "fixture": "node scripts/build-fixture.mjs",
+    "eval:phrases": "node eval/phrases.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",

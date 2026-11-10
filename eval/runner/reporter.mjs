@@ -95,13 +95,18 @@ export class EvalReporter {
     const results = {};
     /** @type {Record<string, EvalDocMeta>} */
     const docs = {};
+    // Phase 5 5F: each query's parse as the Worker echoed it, outside `results`
+    // (which the ranking-identity checks hash), for the compliance rule.
+    /** @type {Record<string, Record<string, unknown> | null>} */
+    const intents = {};
     for (const id of expectedIds) {
       const r = /** @type {EvalQueryResult} */ (this.results.get(id));
       results[id] = { status: r.status, codes: r.codes, ...(r.error ? { error: r.error } : {}) };
+      intents[id] = r.interpreted ?? null;
       Object.assign(docs, r.docs);
     }
     const sortedDocs = Object.fromEntries(Object.entries(docs).sort(([a], [b]) => a.localeCompare(b)));
-    const run = { ...header, results, docs: sortedDocs };
+    const run = { ...header, results, docs: sortedDocs, intents };
     await mkdir(dirname(output), { recursive: true });
     if (key) await writeEncryptedJson(output, run, key, set);
     else await writeFile(output, `${JSON.stringify(run, null, 1)}\n`);

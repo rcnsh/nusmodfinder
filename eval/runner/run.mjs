@@ -13,9 +13,16 @@ import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
 import { assertCorrectedEmbedded, rankerCorrector, writeRankerGroups, writeRankerVocabulary } from '../lib/corrected.mjs';
 import { assertCorpusTextsEmbedded, base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
 import { REPO, layout, loadQueries, runFile, searchParams, setFile, setKey, studyMapSha256 } from '../lib/sets.mjs';
+import { constraintFieldsSha256 } from '../lib/compliance.mjs';
 import { buildWorkspace } from '../lib/workspace.mjs';
 
 const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
+
+/** @param {NormalisedModule[]} modules */
+function fieldsDigest(modules) {
+  const byCode = new Map(modules.map((m) => [m.code, /** @type {any} */ (m)]));
+  return constraintFieldsSha256([...byCode.keys()], (c) => byCode.get(c));
+}
 
 /**
  * @typedef {{
@@ -26,6 +33,7 @@ const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
  *   unfiltered?: boolean,
  *   strip?: string[],
  *   mode?: string,
+ *   explicit?: { label: string, params: Record<string, Record<string, string>> },
  *   output?: string,
  *   log?: (line: string) => void,
  * }} RunOptions
@@ -37,6 +45,7 @@ const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
  */
 export async function runVariant(options) {
   const { set, variant, ref, unfiltered = false, strip = [], mode = 'hybrid' } = options;
+  if (options.explicit && set.encrypted) throw new Error('explicit per-query params are the dev diagnostic\'s (B2-4); never on an encrypted set');
   const log = options.log ?? ((/** @type {string} */ l) => console.log(l));
   const key = set.encrypted ? await setKey() : null;
   const querySet = await loadQueries(set);
@@ -91,7 +100,8 @@ export async function runVariant(options) {
     set: set.name,
     createdAt: new Date().toISOString(),
     ranker: ws.ranker,
-    corpus: corpus.info,
+    // Phase 5 5F: a digest of the constraint fields the Worker is seeded with, which the compliance rule checks its source against.
+    corpus: { ...corpus.info, constraintFieldsSha256: fieldsDigest(corpus.modules) },
     embedding,
     queries: {
       version: querySet.version,
@@ -102,6 +112,8 @@ export async function runVariant(options) {
       topK: 'worker default', filters: !unfiltered, mode, dense,
       // Phase 4: the persona -> study map ng queries take, and the filters stripped (the unfiltered guard).
       studyMap: studyMapSha256(), ...(strip.length ? { strip } : {}),
+      // Phase 5 5F's B2-4 diagnostic: extra /search params per query, recorded as sent (a dev baseline, never a gate's).
+      ...(options.explicit ? { explicit: options.explicit } : {}),
       ...(vocabulary ? { vocabulary, typo: corrector?.embedsCorrected ? '3c2' : '3c1' } : {}), ...(groups ? { groups } : {}),
     },
   };
@@ -116,7 +128,7 @@ export async function runVariant(options) {
 
   /** @type {EvalPayload} */
   const payload = {
-    queries: querySet.queries.map((q) => ({ id: q.id, params: searchParams(q, { unfiltered, mode, strip }) })),
+    queries: querySet.queries.map((q) => ({ id: q.id, params: { ...searchParams(q, { unfiltered, mode, strip }), ...(options.explicit?.params[q.id] ?? {}) } })),
     corpus: corpus.modules,
     lookup,
     seedTimeoutMs: 900_000,

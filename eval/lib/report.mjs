@@ -1,7 +1,8 @@
 // @ts-check
 // Plain-text tables for the CLI. Dev output is full; holdout/test output is
-// produced only by `verdictOnly()`, which prints the verdict and the overall
-// deltas with CIs and nothing per query or per shape.
+// produced only by `verdictOnly()` (and, for the compliance rule,
+// `complianceVerdictOnly()`), which print the verdict, the overall deltas
+// with CIs and counts, and nothing per query or per shape.
 
 /** @param {number} x @param {number} [d] */
 export const fmt = (x, d = 3) => (Number.isFinite(x) ? x.toFixed(d) : '—');
@@ -83,6 +84,36 @@ export function shapeTable(baseShapes, candShapes, cmp) {
  */
 export function verdictBlock(v) {
   return [`gate (${v.set}): ${v.verdict.toUpperCase()}${v.rule ? ` · rule ${v.rule}` : ''}`, ...v.checks.map((c) => `  [${c.pass ? 'pass' : 'FAIL'}] ${c.name} — ${c.detail}`)].join('\n');
+}
+
+/** What an unscored query is under the compliance rule. */
+export const COMPLIANCE_UNSCORED_NOTE = 'no grade-≥1 document, or none left once the constraints filter the qrels; in neither set';
+
+/**
+ * The compliance rule's output on an encrypted set (Phase 5 5F): the verdict,
+ * the Δ lines (primary nDCG@10 and P@5 with their CIs, the constraint block's
+ * nDCG@10) and the counts (scored, unscored, parsed). Never an id, a text, a
+ * check's detail or which check failed.
+ * @param {import('./gate.mjs').Verdict} v
+ * @param {import('./metrics.mjs').Comparison} cmp the comparison on filtered qrels
+ * @param {{ block: { n: number, delta: number }, counts: { parsed: number, primary: number, block: number, unscored: number } }} c
+ * @param {string} qrelsVersion
+ * @param {string} baseline
+ */
+export function complianceVerdictOnly(v, cmp, c, qrelsVersion, baseline) {
+  const ci = (/** @type {'ndcg' | 'p5'} */ m) => `${signed(cmp.overall[m].delta)} [${fmt(cmp.overall[m].bca.lower)}, ${fmt(cmp.overall[m].bca.upper)}]`;
+  const block = c.block.n === 0 ? 'constraint block ΔnDCG@10 — (vacuous pass: no scored query)' : `constraint block ΔnDCG@10 ${signed(c.block.delta)} (n ${c.block.n})`;
+  return {
+    text: [
+      `${v.set} verdict: ${v.verdict.toUpperCase()} · rule ${v.rule ?? 'compliance'} · baseline ${baseline} · qrels ${qrelsLabel(qrelsVersion)}`,
+      `ΔnDCG@10 ${ci('ndcg')} (BCa 95%, constraint-filtered qrels)`,
+      `ΔP@5     ${ci('p5')} (BCa 95%, constraint-filtered qrels)`,
+      block,
+      `scored queries: ${c.counts.primary} primary, ${c.counts.block} constraint block · unscored queries: ${c.counts.unscored} · parsed queries: ${c.counts.parsed}`,
+    ].join('\n'),
+    ndcg: ci('ndcg'),
+    p5: ci('p5'),
+  };
 }
 
 /**
