@@ -14,7 +14,12 @@
 //       production` rewrites it with the bundle.
 //   node scripts/build-vocabulary.mjs --corpus fixture
 //       test/fixtures/vocabulary.json, from the fixture corpus: what the
-//       Worker tests search (vitest.config.mjs aliases it).
+//       Worker tests search (vitest.config.mjs aliases it). Plus every 3H
+//       constraint-phrase word (data/constraint-phrases.json) the fixture's
+//       434 texts lack, at df 1, so 3C does not "correct" a phrase the
+//       production vocabulary would leave alone (`hours` to `tours`;
+//       docs/plans/phase5.md 5A, B-7, B2-9). Only here: buildVocabulary
+//       builds every eval run's vocabulary and stays the corpus's alone.
 //   add --check to rebuild in memory and exit 1 if the committed file differs.
 //
 // The pinned vocabulary is never committed: vitest.config.mjs builds it from
@@ -27,6 +32,8 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { dataVersion, rowHash } from '../src/rowhash.js';
+import { queryTokens } from '../src/fts-query.js';
+import { ftsTerm } from '../src/porter.js';
 import { buildVocabulary, serializeVocabulary } from '../src/vocabulary.js';
 import { DEFAULT_ACAD_YEAR, assertExpectedShape, fetchAcadYearFile, loadNgCourses, offeredModules } from './lib.mjs';
 import { loadPinnedCorpus } from './pinned-corpus.mjs';
@@ -51,6 +58,39 @@ export async function corpusDataVersion(modules) {
  */
 export async function vocabularyBytes(modules, corpus) {
   return serializeVocabulary(buildVocabulary(modules, { corpus, dataVersion: await corpusDataVersion(modules) }));
+}
+
+/**
+ * Every word of the 3H constraint phrases, as queryTokens splits them, the N
+ * placeholder (a number) left out.
+ * @param {import('../src/intents.js').ConstraintPhrasesFile} phrases
+ */
+export function phraseWords(phrases) {
+  const all = [phrases.exam, phrases.su, phrases.hoursBelow, phrases.prereq].flat();
+  return [...new Set(all.flatMap((p) => queryTokens(p.replace(/\bN\b/g, ' '))))];
+}
+
+/**
+ * The vocabulary with each of `words` it lacks added at df 1, its stems
+ * recomputed and its rule saying so; unchanged when it lacks none.
+ * @param {import('../src/vocabulary.js').VocabularyFile} file
+ * @param {string[]} words
+ * @returns {import('../src/vocabulary.js').VocabularyFile}
+ */
+export function withPhraseWords(file, words) {
+  const terms = file.terms === '' ? [] : file.terms.split('\n');
+  const have = new Set(terms);
+  const added = [...new Set(words)].filter((w) => !have.has(w));
+  if (added.length === 0) return file;
+  const df = new Map(terms.map((t, i) => [t, file.df[i]]));
+  for (const w of added) df.set(w, 1);
+  const sorted = [...df.keys()].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  const stems = [...new Set(sorted.map(ftsTerm))].filter((x) => x !== '').sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  return {
+    ...file,
+    rule: `${file.rule}; plus the words of data/constraint-phrases.json no document contains, each at df 1`,
+    count: sorted.length, terms: sorted.join('\n'), df: sorted.map((t) => /** @type {number} */ (df.get(t))), stems: stems.join('\n'),
+  };
 }
 
 /**
@@ -85,7 +125,9 @@ export async function assertProductionCorpus(modules) {
 export async function build(corpus, o = {}) {
   if (corpus === 'fixture') {
     const { modules } = JSON.parse(await readFile(join(ROOT, 'test/fixtures/corpus.json'), 'utf8'));
-    return vocabularyBytes(modules, 'fixture');
+    const phrases = JSON.parse(await readFile(join(ROOT, 'data/constraint-phrases.json'), 'utf8'));
+    const file = buildVocabulary(modules, { corpus: 'fixture', dataVersion: await corpusDataVersion(modules) });
+    return serializeVocabulary(withPhraseWords(file, phraseWords(phrases)));
   }
   if (corpus === 'pinned') return vocabularyBytes((await loadPinnedCorpus()).modules, 'pinned');
   const modules = await productionModules(o);
