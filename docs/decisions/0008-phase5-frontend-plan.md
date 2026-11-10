@@ -38,6 +38,16 @@ critique (V1) and a provenance gap (P3). SC4's parsed-phrase items carry over fr
   / ask NUS) are fixed per note kind before the run; disagreements are classified, and exit needs
   zero page defects.
 
+## Jacob's answers (2026-11-11)
+- **D2, first screen: exchange set-up first.** The page asks the semester (Sem 1, Sem 2 or both)
+  and the year of study before the first search; "browse all courses" leads to the full
+  catalogue, whose cards keep a marker of the semesters a course is on the exchange list for.
+- **D3, working name: "Exchange Course Finder (unofficial, for NUS)"** in the title and the
+  visible header at every width, until Phase 8's name gate.
+- **D4, hidden codes: say why**, from each code's own stored reasons; the course is never listed
+  as a result.
+- **D1, design direction:** pending the three mockups.
+
 ## Consequences
 - Two production deploys before 5F: the data change, then the page (code-only, rolled back
   alone). Each moves the shipped-ranker pin as ranking-neutral.

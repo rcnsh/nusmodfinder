@@ -469,6 +469,8 @@ two steps so the mockups are few and deep, not many and shallow (C2-6):
 
 ## 6. Gate questions for Jacob
 Asked after the critic rounds: D2, D3 and D4 first, D1 once the mockups exist.
+**Answered (Jacob, 2026-11-11): D2 exchange first, D3 "Exchange Course Finder", D4 say why;
+every lead default accepted (ADR 0008). D1 pending.**
 - **D1. Design direction:** A, B or C (mockups linked), or a blend naming which parts of which.
 - **D2. First screen:** open in exchange mode (semester, or both, and year of study first, with
   "browse all courses" as the way out), or open on general search with exchange as a switch, as
