@@ -387,6 +387,7 @@ ships, in the same PR as the constant.
 - shipped pin: `47838dbf414d9755e12f470ccb6b614332d765e1` 47838dbf414d9755e12f470ccb6b614332d765e1 (3G, no-signal answer at τ `max`, deployed 2026-11-07 as version `f638992b`; no look: SC4, gibberish gate half, answerable floor and custodian count 0)
 - shipped pin: `f004351947cef4909072b4efc7d8782088819ebe` f004351947cef4909072b4efc7d8782088819ebe (3H-0, the intent fields, deployed 2026-11-07 as version `0173bddf`; ranking-neutral: all 98 dev lists equal `47838db`'s)
 - shipped pin: `238e7210d65a9ba607f3ad0e44efb2fa15472ea7` 238e7210d65a9ba607f3ad0e44efb2fa15472ea7 (3H, the explicit exam/S-U/workload/prereq params; deployed 2026-11-07 as version `ea066ead`; ranking-neutral with no param set: all 98 dev and 81 holdout lists equal `f004351`'s)
+- shipped pin: `9d9160552d0dc5793072b892f0b7ecdace258b56` 9d9160552d0dc5793072b892f0b7ecdace258b56 (4A/4C/4D, exchange mode by semester and year of study, deployed 2026-11-10 as version `efd3dc25`; no look: SC1, per-list identity and the unfiltered guard, `docs/evidence/phase4/gates.md`)
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.
