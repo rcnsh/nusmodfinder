@@ -114,7 +114,11 @@ async function show(s, { fromUser = false } = {}) {
     els.go.disabled = false;
     if (s.q.trim() && s.ng && !s.study) {
       showMessage(targets, 'Choose your year of study to see the courses open to you as an exchange student.');
-      if (fromUser) els.study.focus();
+      // After the event, not during it: a click on the exchange switch's label
+      // runs this inside the label's activation, and WebKit then focuses the
+      // checkbox itself where checkboxes take focus on click (Linux), which
+      // would undo a focus moved here.
+      if (fromUser) setTimeout(() => els.study.focus(), 0);
     } else {
       showMessage(targets, 'Type a query to begin.');
     }
