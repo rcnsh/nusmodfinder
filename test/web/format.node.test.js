@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { cleanPrereq, codeSegments, examLine, examLines, examSummary, prereqView, semLabel, workloadText } from '../../public/format.js';
+import { cleanPrereq, codeSegments, examLine, examLines, examParts, prereqView, semLabel, workloadText } from '../../public/format.js';
 
 const fixture = /** @type {{ modules: NormalisedModule[] }} */ (JSON.parse(readFileSync(fileURLToPath(new URL('../fixtures/corpus.json', import.meta.url)), 'utf8')));
 
@@ -42,13 +42,13 @@ describe('exams (/module and /search examDates: ISO UTC; shown in Singapore time
     expect(examLine({ sem: 2, date: '2027-05-01T16:00:00.000Z', durationMins: 0 })).toBe('Sem 2: Sun 2 May 2027, 12:00 am');
   });
 
-  it('examSummary is the card line: the chosen semester\'s exam, or every semester\'s', () => {
-    expect(examSummary([sem1, sem2], '1')).toBe('Exam 26 Nov');
-    expect(examSummary([sem2], '1')).toBe('No final exam');
-    expect(examSummary([sem2], '')).toBe('Exam 27 Apr');
-    expect(examSummary([sem1, sem2], '')).toBe('Exams 26 Nov (Sem 1), 27 Apr (Sem 2)');
-    expect(examSummary([], '')).toBe('No final exam');
-    expect(examSummary(undefined, '2')).toBe('No final exam');
+  it('examParts is the card: the chosen semester\'s exam as "Exam", else each semester\'s, with day and time in Singapore', () => {
+    expect(examParts([sem1, sem2], '1')).toEqual([{ label: 'Exam', when: 'Thu 26 Nov, 1:00 am' }]);
+    expect(examParts([sem2], '1')).toEqual([]);
+    expect(examParts([sem2], '')).toEqual([{ label: 'Sem 2 exam', when: 'Tue 27 Apr, 5:00 pm' }]);
+    expect(examParts([sem2, sem1], '')).toEqual([{ label: 'Sem 1 exam', when: 'Thu 26 Nov, 1:00 am' }, { label: 'Sem 2 exam', when: 'Tue 27 Apr, 5:00 pm' }]);
+    expect(examParts([], '')).toEqual([]);
+    expect(examParts(undefined, '2')).toEqual([]);
   });
 
   it('examLines is the detail: every semester in order, or "No final exam listed"', () => {

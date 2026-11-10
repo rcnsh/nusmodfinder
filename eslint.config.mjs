@@ -22,6 +22,11 @@ export default [
     languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: { ...globals.node } },
   },
   {
+    // The callbacks the specs pass to page.evaluate run in the page (5D).
+    files: ['test/ui/**/*.spec.js'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
     // The page (Phase 5 5B): browser ES modules that render DOM nodes only.
     // Every HTML sink is banned (F8), by property and by name, so neither
     // `el.innerHTML = …` nor `el['innerHTML']` nor `{ innerHTML: … }` lints.

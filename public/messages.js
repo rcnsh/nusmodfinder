@@ -71,7 +71,7 @@ export const NO_MATCH = Object.freeze({
 export function noMatchSentence(body) {
   const nm = body.noMatch;
   if (nm && Object.hasOwn(NO_MATCH, nm.reason)) return NO_MATCH[nm.reason](body, nm);
-  return `No modules matched ${quoted(body.query)}.`;
+  return `No courses match ${quoted(body.query)}.`;
 }
 
 /**

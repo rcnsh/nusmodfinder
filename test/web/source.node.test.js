@@ -18,9 +18,9 @@ const files = walk(PUBLIC).map((f) => `/${relative(PUBLIC, f).split('\\').join('
 const read = (/** @type {string} */ rel) => readFileSync(join(ROOT, rel), 'utf8');
 
 describe('static assets', () => {
-  it('public/ holds the page, its stylesheet and its ES modules, with no build output', () => {
-    expect(files).toEqual(expect.arrayContaining(['/index.html', '/styles.css', '/app.js', '/state.js', '/nav.js', '/api.js', '/messages.js', '/format.js', '/keys.js', '/dom.js', '/render.js', '/explain.js', '/detail.js']));
-    for (const f of files) expect(f, f).toMatch(/\.(html|css|js|svg|ico|png|txt)$/);
+  it('public/ holds the page, its stylesheet, its ES modules and its self-hosted fonts, with no build output', () => {
+    expect(files).toEqual(expect.arrayContaining(['/index.html', '/styles.css', '/app.js', '/state.js', '/nav.js', '/api.js', '/messages.js', '/format.js', '/keys.js', '/dom.js', '/render.js', '/explain.js', '/detail.js', '/icons.js', '/fonts/OFL.txt']));
+    for (const f of files) expect(f, f).toMatch(/^\/fonts\/[\w-]+\.(woff2|txt)$|^\/[\w-]+\.(html|css|js|svg|ico|png|txt)$/);
   });
 
   it('no file in public/ matches an API path, so every API request still reaches the Worker', () => {
@@ -75,7 +75,10 @@ describe('provenance (P3)', () => {
   it('[P3 fixed] the title and the visible header say unofficial, NUS is not the brand, and the footer links the sources', () => {
     const html = read('public/index.html');
     expect(html).toContain('<title>Exchange Course Finder (unofficial, for NUS)</title>');
-    expect(html).toContain('<h1>Exchange Course Finder <span class="unofficial">(unofficial, for NUS)</span></h1>');
+    // The h1's text; the brackets are visually hidden (the badge's outline stands in for them) but read aloud.
+    const h1 = /** @type {string} */ (html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1]);
+    expect(h1.replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, '')).toBe('Exchange Course Finder (unofficial, for NUS)');
+    expect(h1).toContain('<span class="unofficial">');
     expect(html).not.toMatch(/NUSMods semantic search/);
     const footer = /** @type {string} */ (html.match(/<footer[\s\S]*?<\/footer>/)?.[0]);
     expect(footer).toContain('An unofficial site, not run by NUS or NUSMods.');

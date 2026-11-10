@@ -67,18 +67,21 @@ export function examLine(e) {
 }
 
 /**
- * The card's exam line: the chosen semester's exam ("Exam 26 Nov"), else every
- * semester's, or "No final exam".
+ * The card's exams (direction D): the chosen semester's as "Exam" and its day
+ * and time ("Fri 27 Nov, 2:30 pm", Singapore time), else each semester's
+ * labelled with its semester; [] when there is none (the card says "No final
+ * exam").
  * @param {ExamDate[] | null | undefined} exams
  * @param {string} sem the chosen semester, '' for both or any
+ * @returns {{ label: string, when: string }[]}
  */
-export function examSummary(exams, sem) {
-  const list = (exams ?? []).filter((e) => !sem || String(e.sem) === sem);
-  if (list.length === 0) return 'No final exam';
-  /** @param {ExamDate} e */
-  const day = (e) => { const t = sgt(e.date); return `${t.date} ${t.month}`; };
-  if (list.length === 1) return `Exam ${day(list[0])}`;
-  return `Exams ${list.map((e) => `${day(e)} (${semLabel(e.sem)})`).join(', ')}`;
+export function examParts(exams, sem) {
+  const list = [...(exams ?? [])].filter((e) => !sem || String(e.sem) === sem)
+    .sort((a, b) => a.sem - b.sem || Date.parse(a.date) - Date.parse(b.date));
+  return list.map((e) => {
+    const t = sgt(e.date);
+    return { label: sem ? 'Exam' : `${semLabel(e.sem)} exam`, when: `${t.day} ${t.date} ${t.month}, ${t.time}` };
+  });
 }
 
 /**

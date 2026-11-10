@@ -26,8 +26,9 @@ test('[F1] a card is a disclosure: a heading holding one button (code and title)
   const detail = await region(page, 'CS3244');
   await expect(detail).toBeHidden();
   await expect(detail).toHaveAttribute('role', 'region');
+  await expect(card(page, 'CS3244').locator('.units')).toHaveText('4 units');
   const meta = card(page, 'CS3244').locator('.meta');
-  await expect(meta).toHaveText(/^4 units.*Computer Science.*Sem 1, Sem 2.*Exams 26 Nov \(Sem 1\), 29 Apr \(Sem 2\)$/);
+  await expect(meta).toHaveText(/^Computer Science · Computing.*Taught in Sem 1, Sem 2.*Sem 1 exam Thu 26 Nov, 5:00 pm.*Sem 2 exam Thu 29 Apr, 9:00 am$/);
   await expect(page.locator('#results .score')).toHaveCount(0);
   await expect(page.locator('#results')).not.toContainText(/\b0\.\d{3}\b/);
   await b.click();
@@ -43,7 +44,7 @@ test('[F1] a card is a disclosure: a heading holding one button (code and title)
 
 test('the card\'s exam is the chosen semester\'s, or "No final exam"', async ({ page }) => {
   await page.goto('/?q=CS3244&sem=1');
-  await expect(card(page, 'CS3244').locator('.meta')).toContainText('Exam 26 Nov');
+  await expect(card(page, 'CS3244').locator('.meta')).toContainText('Exam Thu 26 Nov, 5:00 pm');
   await page.goto('/?q=CS5562');
   await expect(card(page, 'CS5562').locator('.meta')).toContainText('No final exam');
 });
@@ -51,22 +52,32 @@ test('the card\'s exam is the chosen semester\'s, or "No final exam"', async ({ 
 test('exchange status on the card, one semester: every note in full, the semester note worded as an action (ACC1701XB)', async ({ page }) => {
   await page.goto('/?q=ACC1701XB&ng=1&study=ug2&sem=1');
   const c = card(page, 'ACC1701XB');
-  await expect(c.locator('.exchange-status')).toHaveText('Sem 1: Open to exchange students, with conditions');
+  await expect(c.locator('.exchange-status')).toHaveText('Sem 1 · Open, with 3 notes');
+  await expect(c.locator('.exchange-status')).toHaveAttribute('data-status', 'note');
+  // Each note in full, after a lead-in word for what it is about.
   await expect(c.locator('.notes li')).toHaveText([
-    "Not on NUSMods' timetable for Sem 1: check with the department.",
-    'Business courses are over-subscribed and not guaranteed.',
-    'Only for students majoring in business at their home university.',
+    "Timetable. Not on NUSMods' timetable for Sem 1: check with the department.",
+    'Places. Business courses are over-subscribed and not guaranteed.',
+    'Your major. Only for students majoring in business at their home university.',
   ]);
 });
 
 test('exchange status on the card, both semesters: one line per semester, never a merged value', async ({ page }) => {
   await page.goto('/?q=CS3244&ng=1&study=ug2');
-  await expect(card(page, 'CS3244').locator('.exchange-status')).toHaveText(['Sem 1: Not open to exchange students', 'Sem 2: Open to exchange students']);
+  await expect(card(page, 'CS3244').locator('.exchange-status')).toHaveText(['Sem 1 · Not open', 'Sem 2 · Open']);
+  await expect(card(page, 'CS3244').locator('.exchange-status').first()).toHaveAttribute('data-status', 'closed');
+  await expect(card(page, 'CS3244').locator('.notes-box .scope')).toHaveText(['Notes for Sem 1']);
   await expect(card(page, 'CS3244').locator('.notes li')).toHaveText(['Offered to exchange students only in Sem 2.']);
   await page.goto('/?q=ACC1701XB&ng=1&study=ug2');
   const c = card(page, 'ACC1701XB');
-  await expect(c.locator('.exchange-status')).toHaveText(['Sem 1: Open to exchange students, with conditions', 'Sem 2: Open to exchange students, with conditions']);
-  await expect(c.locator('.notes li').first()).toHaveText("Not on NUSMods' timetable for Sem 1: check with the department.");
+  await expect(c.locator('.exchange-status')).toHaveText(['Sem 1 · Open, 3 notes', 'Sem 2 · Open, 2 notes']);
+  // The notes both semesters share are said once, and say so.
+  await expect(c.locator('.notes-box .scope')).toHaveText(['Notes for Sem 1', 'Notes for Sem 1 and Sem 2']);
+  await expect(c.locator('.notes li')).toHaveText([
+    "Timetable. Not on NUSMods' timetable for Sem 1: check with the department.",
+    'Places. Business courses are over-subscribed and not guaranteed.',
+    'Your major. Only for students majoring in business at their home university.',
+  ]);
 });
 
 test('outside exchange mode the card keeps a marker of the exchange-list semesters (D2)', async ({ page }) => {
@@ -90,8 +101,8 @@ test('[SC2] the detail: description, prerequisites as NUS states them with codes
   await expect(d).toContainText('10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation');
   await expect(d.getByRole('heading', { name: 'Open to exchange students (2nd year)' })).toBeVisible();
   await expect(d.locator('.exchange-sem-block')).toHaveText([
-    /^Sem 1Not open to exchange studentsOffered to exchange students only in Sem 2 \(NG list, updated 01 Sep 2026\)\.$/,
-    /^Sem 2Open to exchange students$/,
+    /^Sem 1 · Not open to exchange studentsOffered to exchange students only in Sem 2\.NG list, updated 01 Sep 2026$/,
+    /^Sem 2 · Open to exchange studentsYour semester$/,
   ]);
   await expect(d).toContainText('Check with NUS before you register.');
   await expect(d.locator('.sources-line')).toContainText('(updated 01 Sep 2026)');

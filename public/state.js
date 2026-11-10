@@ -19,16 +19,25 @@
 
 /** @typedef {{ value: string, label: string }} Option */
 
-/** Semesters /search accepts (`sem=1..4`). Static, so no filter waits on /facets (F4). */
-/** @type {readonly Option[]} */
+/**
+ * Semesters /search accepts (`sem=1..4`). Static, so no filter waits on /facets (F4).
+ * Labelled as the chips and the cards say them (V1: "Sem 2", never "2").
+ * @type {readonly Option[]}
+ */
 export const SEMESTERS = Object.freeze([
-  { value: '1', label: '1' }, { value: '2', label: '2' },
+  { value: '1', label: 'Sem 1' }, { value: '2', label: 'Sem 2' },
   { value: '3', label: 'Special term 1' }, { value: '4', label: 'Special term 2' },
 ]);
 
+/** The label of a level filter value, as the option and the chip say it: "Level 2000". @param {string} v */
+export const levelLabel = (v) => `Level ${v}000`;
+
 /** Course levels in the catalogue (1000 to 6000, and 8000). */
 /** @type {readonly Option[]} */
-export const LEVELS = Object.freeze(['1', '2', '3', '4', '5', '6', '8'].map((v) => ({ value: v, label: `${v}000` })));
+export const LEVELS = Object.freeze(['1', '2', '3', '4', '5', '6', '8'].map((v) => ({ value: v, label: levelLabel(v) })));
+
+/** The label of a units filter value: "4 units". @param {string} v */
+export const unitsLabel = (v) => `${v} unit${v === '1' ? '' : 's'}`;
 
 /** The unit counts the credits filter offers. A URL may name any other. */
 export const CREDITS = Object.freeze(['2', '4', '5', '6', '8', '12']);
