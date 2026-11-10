@@ -74,6 +74,12 @@ rated relevant, and unjudged courses moving up into their places.
   that combination by the oracle over the production-normalised modules. 30 of 30, 0 leaks.
 - **Standby:** 6,778 vectors, 0 missing or extra, 0 metadata or value drift on a 100 sample.
 
+## 6. Pin move (PR #67)
+`SHIPPED_BASELINE` moves to `9d91605` with its ADR 0003 pin line. The custodian stored its holdout
+run with `npm run eval -- --holdout --variant shipped-9d91605 --ref 9d91605… --store-only`
+(`eval/holdout/run-shipped-9d91605.json.enc`, 81 queries): no look, no ledger row. Holdout looks
+stay at 7 of 12.
+
 ## Fresh-context review
 A subagent given only the diff and the goal reported three findings, each with a failing input:
 - two page tests (`F8`, `P3`) still asserted the old page;
