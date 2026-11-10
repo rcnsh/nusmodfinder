@@ -10,9 +10,8 @@ import { buildNgReasons } from '../scripts/build-ng-reasons.mjs';
 import { describeSchemaProblem } from '../scripts/ingest-core.mjs';
 import { DEFAULT_ACAD_YEAR, loadNgCourses, loadNgRestrictions, offeredModules } from '../scripts/lib.mjs';
 import { eligibilityMask, storedEligibility } from '../src/eligibility.js';
-import { UPSERT_SET } from '../src/ingest.js';
 import { bitOf } from '../src/ng-bit.js';
-import { ROW_COLUMNS, boundTuple, rowHash } from '../src/rowhash.js';
+import { ROW_COLUMNS, UPSERT_SET, boundTuple, rowHash } from '../src/rowhash.js';
 
 /** @param {string} path */
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');

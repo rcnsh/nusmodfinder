@@ -16,7 +16,7 @@
 import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
-import { ROW_COLUMNS, boundTuple, catalogueRowHash, fieldsFromRow, ftsHash, rowHash, storedVectorMetadata } from './rowhash.js';
+import { ROW_COLUMNS, UPSERT_SET, boundTuple, catalogueRowHash, fieldsFromRow, ftsHash, rowHash, storedVectorMetadata } from './rowhash.js';
 import { base64ToFloat32, float32ToBase64, suGrading } from './vector-bundle.js';
 
 /**
@@ -71,11 +71,7 @@ const VERIFY_SAMPLE_LIMIT = 100;
 export const VECTORS_LIMIT = 1000;
 /** D1 binds at most 100 parameters per statement. */
 const D1_PARAMS = 100;
-/**
- * The upsert's SET list, every ROW_COLUMNS column but the key plus row_hash,
- * so a new column can't keep its old value under a new hash (plan 4 §5).
- */
-export const UPSERT_SET = [...ROW_COLUMNS.filter((c) => c !== 'code'), 'row_hash'].map((c) => `${c}=excluded.${c}`).join(', ');
+
 
 /** @param {Request} request whether the call asks for the D1-only mode */
 const d1OnlyOf = (request) => new URL(request.url).searchParams.get('d1Only') === '1';

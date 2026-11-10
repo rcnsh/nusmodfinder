@@ -30,6 +30,8 @@ import { createFakes } from '../fakes.js';
 import { adminCall, callJson, seed } from '../helpers.js';
 import { oracle } from './oracle.node.mjs';
 
+/** The page size the dev queries get: src/search.js DEFAULT_TOPK (they send no topK). */
+const PAGE_SIZE = 20;
 const corpus = inject('corpus');
 const bundleKind = inject('vectorsBundle');
 
@@ -114,8 +116,16 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity o
         }
         if ((full ?? []).slice(0, depth ?? Infinity).some((x) => !shows(x))) ignoreShowedClosed++;
       };
+      const got = page.body.results.map((/** @type {any} */ r) => r.code);
       if (t.mask !== undefined) {
         same('mask', t.mask, u.mask, t.maskDepth);
+        // The mask page: its members in order, one per duplicate group, to the page size.
+        const seenMask = new Set();
+        const wantMask = t.mask.filter((/** @type {string} */ x) => {
+          const k = groupKeyOf(groupOf, x);
+          return seenMask.has(k) ? false : (seenMask.add(k), true);
+        }).slice(0, PAGE_SIZE);
+        if (JSON.stringify(got) !== JSON.stringify(wantMask)) problems.push(`${q.id} mask page: ${JSON.stringify(got.slice(0, 6))}… vs ${JSON.stringify(wantMask.slice(0, 6))}…`);
         compared++;
         continue;
       }
@@ -128,15 +138,15 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity o
       if (t.code) lists.push(t.code);
       const want = [...t.pins];
       const seen = new Set(want.map((/** @type {string} */ x) => groupKeyOf(groupOf, x)));
+      // Built to the page size from the lists alone, so a page cut short fails.
       for (const { code } of fuse(lists)) {
-        if (want.length >= page.body.results.length) break;
+        if (want.length >= PAGE_SIZE) break;
         if (t.pins.includes(code)) continue;
         const k = groupKeyOf(groupOf, code);
         if (seen.has(k)) continue;
         seen.add(k);
         want.push(code);
       }
-      const got = page.body.results.map((/** @type {any} */ r) => r.code);
       if (JSON.stringify(got) !== JSON.stringify(want)) problems.push(`${q.id} page: ${JSON.stringify(got.slice(0, 6))}… vs fused ${JSON.stringify(want.slice(0, 6))}…`);
       compared++;
     }

@@ -522,10 +522,12 @@ requires as an input.
 title "NUSMods semantic search" reads as official NUSMods.
 
 **Evidence:**
-- test `[P3 known-bug] no source links anywhere, and the title reads as official NUSMods` (`test/findings/source.node.test.js`): `src/page.html` has no `<a>` or `href` at all.
+- test `[P3 known-bug] the title reads as official NUSMods, and result cards link to no source` (`test/findings/source.node.test.js`).
 
-**Notes:** `src/page.html:6,84-85`. The hint says "NUS Registrar list" (`:139`) as plain text
-with no link. The subtitle says "unofficial NUSMods API", but the title and `<h1>` don't.
+**Notes:** `src/page.html:6,84-85`. The subtitle says "unofficial NUSMods API", but the title and
+`<h1>` don't. Phase 4 (4D) links the exchange-mode sources, the NG list and the restrictions,
+with their "updated as at" dates, under the exchange toggle; the vacancy report, the title and
+the result cards are Phase 5's.
 
 ## Frontend
 
@@ -630,11 +632,11 @@ reached.
 
 **Status:** reproduced
 
-**Claim:** `credits`, `semesters` and the `ngSemesters` title attribute are interpolated into
-`innerHTML` without escaping.
+**Claim:** `credits` and `semesters` are interpolated into `innerHTML` without escaping. (The
+`ngSemesters` badge went through `esc` from Phase 4.)
 
 **Evidence:**
-- test `[F8 known-bug] credits, semesters and the NG title attribute are interpolated into innerHTML unescaped`
+- test `[F8 known-bug] credits and semesters are interpolated into innerHTML unescaped`
 
 **Notes:** `src/page.html:171`, `:176`, `:177`. Today these values are numbers from the
 Worker's own D1, so this isn't exploitable without a poisoned row. It's an injection seam all

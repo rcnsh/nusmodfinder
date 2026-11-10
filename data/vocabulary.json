@@ -1,7 +1,7 @@
 {
  "schema": "vnm-vocabulary/1",
  "corpus": "production",
- "dataVersion": "4b6d12fab3d3",
+ "dataVersion": "62e5a0011231",
  "rule": "surface tokens of title + description by queryTokens (src/fts-query.js), each with the number of documents containing it; stems: the distinct FTS5 index terms they make (src/porter.js ftsTerm)",
  "documents": 6778,
  "count": 16698,

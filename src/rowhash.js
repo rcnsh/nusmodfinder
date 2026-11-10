@@ -42,6 +42,13 @@ export const ROW_COLUMNS = ['code', 'title', 'description', 'credits', 'departme
   'ng_allow', 'ng_rules'];
 
 /**
+ * The upsert's SET list (src/ingest.js writeRows): every ROW_COLUMNS column
+ * but the key, plus row_hash, so a new column can't keep its old value under a
+ * new hash (docs/plans/phase4.md §5).
+ */
+export const UPSERT_SET = [...ROW_COLUMNS.filter((c) => c !== 'code'), 'row_hash'].map((c) => `${c}=excluded.${c}`).join(', ');
+
+/**
  * Exactly the values /admin/ingest binds for ROW_COLUMNS, in order.
  * @param {RowFields} m
  * @returns {(string | number | null)[]}

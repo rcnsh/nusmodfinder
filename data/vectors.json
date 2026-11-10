@@ -26,15 +26,15 @@
     },
     "production": {
       "corpus": "production",
-      "embedding": "emb-bge-small-v1-x4a990cd5",
+      "embedding": "emb-bge-small-v1-x286f04a3",
       "model": "@cf/baai/bge-small-en-v1.5",
       "count": 6778,
-      "dataVersion": "4b6d12fab3d3",
+      "dataVersion": "62e5a0011231",
       "rowsKey": "7c9b739622d99460fc68f03712d6e8bdf99f6b97f9f649bfd078f5a7b0dceb3a",
-      "sha256": "b58a928107c4a3538cf15f7ac728bf2cd5b7477df1888fb77d2c1645421549e0",
+      "sha256": "98dbef03549fc74c93c24cbdbd2317395bb72f6cf70d9c22b4541d09acac0252",
       "bytes": 10695040,
-      "release": "vec-production-4b6d12fab3d3-emb-bge-small-v1-x4a990cd5",
-      "asset": "vec-production-4b6d12fab3d3-emb-bge-small-v1-x4a990cd5.bin"
+      "release": "vec-production-62e5a0011231-emb-bge-small-v1-x286f04a3",
+      "asset": "vec-production-62e5a0011231-emb-bge-small-v1-x286f04a3.bin"
     }
   }
 }

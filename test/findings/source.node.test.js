@@ -100,10 +100,11 @@ describe('frontend', () => {
     expect(script).toContain('Could not reach the search service.');
   });
 
-  it('[F8 known-bug] credits, semesters and the NG title attribute are interpolated into innerHTML unescaped', () => {
+  it('[F8 known-bug] credits and semesters are interpolated into innerHTML unescaped', () => {
     expect(card).toContain("<span>${m.credits ?? '?'} units</span>");
     expect(card).toContain("${(m.semesters ?? []).length ? m.semesters.map((s) => SEM_NAMES[s] ?? s).join(', ') : 'Not offered'}");
-    expect(card).toContain("title=\"Open to Non-Graduating (exchange) students in ${(m.ngSemesters ?? []).map(SEM_LABEL).join(', ') || 'this year'}\"");
+    // Phase 4 (4D): the NG badge's semesters and the exchange notes go through esc().
+    expect(card).toContain("NG ${esc((m.ngSemesters ?? []).map(SEM_LABEL).join(', '))}");
   });
 
   it('[F9 known-bug] Enter fires a search even during IME composition', () => {
@@ -118,10 +119,12 @@ describe('frontend', () => {
     expect(css).toContain('.score { margin-left: auto;');
   });
 
-  it('[P3 known-bug] no source links anywhere, and the title reads as official NUSMods', () => {
+  it('[P3 known-bug] the title reads as official NUSMods, and result cards link to no source', () => {
     expect(page).toContain('<title>NUSMods semantic search</title>');
     expect(page).toContain('<h1>NUSMods semantic search</h1>');
-    expect(page).not.toMatch(/<a\b|href=/);
+    expect(card).not.toMatch(/<a\b|href=/);
+    // Phase 4 (4D) links the exchange-mode sources (the NG list, the restrictions) with their dates.
+    expect(script).toContain('<a href="${esc(x.url)}"');
   });
 
   it('[V1 known-bug] orange accent everywhere, inconsistent filter labels, non-removable chips, dead-end empty state', () => {
