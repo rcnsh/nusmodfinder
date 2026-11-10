@@ -1061,3 +1061,15 @@ fails on the previous code.
 - **Design gate:** a fourth direction, D "Annotated catalogue" (between A and C, quieter), is in
   the ephemera set beside A–C; D1 is still Jacob's.
 - **Next:** 5C-api (the `/search` additions), which needs no design.
+
+## 2026-11-11 — Phase 5 5C-api merged: the `/search` additions
+
+- **5C-api** (PR #71, `d7949d2`): `/search` returns `hiddenPins` (typed codes the filters hide),
+  `notOffered` (typed codes not offered this year), `exchangeBySem` under `ng=1` with no `sem`,
+  and `examDates` on each result. Pins stay at 3.
+- **Gate** (`docs/evidence/phase5/gates.md`): dev (three filter modes) and the fixture are
+  byte-identical to the pin `f798542`; a fresh-context review compared 1,824 searches, 5,208
+  hidden-code cases and over 60,000 per-semester statuses against the oracle, 0 differences.
+- **For 5C:** a 4th or later typed code that passes the filters is neither pinned nor hidden; the
+  page says only the first three typed codes are pinned.
+- **Next:** 5C and 5D wait on D1 (Jacob's design pick: A, B, C or D).
