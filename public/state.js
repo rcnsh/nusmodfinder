@@ -46,8 +46,8 @@ export const IGNORABLE = Object.freeze(['ge', 'level', 'exam', 'su', 'hoursBelow
 /** The longest query /search accepts (src/search.js MAX_QUERY_CHARS; the input's maxlength). */
 export const MAX_QUERY_CHARS = 200;
 
-/** A course code as the page accepts it in `open=` (upper-cased first). */
-const CODE = /^[A-Z]{1,6}\d{4}[A-Z]{0,4}$/;
+/** A course code as the page accepts it in `open=` (upper-cased first): /module/:code's shape (src/modules.js MODULE_CODE_RE). */
+const CODE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 
 /** @returns {State} */
 export function emptyState() {
