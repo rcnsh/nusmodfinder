@@ -994,5 +994,16 @@ fails on the previous code.
   - per-list identity on all 93 comparable dev queries;
   - the unfiltered guard, byte-identical to the shipped ranker.
   - ADR 0003 records how Phase 4 is gated. P1 and P2 are fixed.
-- **Next:** the PR, then the ship per the runbook (needs the VPN off), the SC1 live check, and
-  the persona red team.
+- **Next:** the PR, then the ship per the runbook, the SC1 live check, and the persona red team.
+
+## 2026-11-10 — Phase 4 4A/4C/4D shipped; SC1 live check passes
+
+- **Shipped** per the runbook (`docs/evidence/phase4/remote-ops.md`): migration 0009 on the
+  remote D1, a row-only re-ingest (34,425 rows written), pre-deploy verify, then version
+  `efd3dc25` (tag `9d91605`), data version `62e5a0011231`. The standby is level (6,778 vectors,
+  0 drift).
+- **SC1 live:** 30 fresh exchange searches, two per (semester, year of study), on the live
+  Worker. Every shown course, variants included, is one the oracle allows. Seven calls first
+  hit the Worker's own rate limiter and were re-sent 4 s apart.
+- **Next:** move the shipped-ranker pin to `9d91605`, then the persona red team and the Phase 4
+  exit.

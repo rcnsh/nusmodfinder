@@ -66,6 +66,14 @@ The judges graded relevance and never saw NG semesters or restrictions. Gate 2 s
 is the unfiltered list minus closed modules, so the small loss is removed courses the judges
 rated relevant, and unjudged courses moving up into their places.
 
+## 5. Live (after the ship, `remote-ops.md`)
+- **Smoke:** `/health` reports data version `62e5a0011231` and tag `9d91605`; `ng=1` without
+  `study` answers 400 `study-required`; `ng=1&sem=1&study=ug3` answers 20 results.
+- **SC1 live** (`sc1-live.mjs`, `sc1-live.jsonl`): 30 fresh queries, two per (semester, year of
+  study), on version `efd3dc25`. Every course shown, variants included, is open or noted for
+  that combination by the oracle over the production-normalised modules. 30 of 30, 0 leaks.
+- **Standby:** 6,778 vectors, 0 missing or extra, 0 metadata or value drift on a 100 sample.
+
 ## Fresh-context review
 A subagent given only the diff and the goal reported three findings, each with a failing input:
 - two page tests (`F8`, `P3`) still asserted the old page;

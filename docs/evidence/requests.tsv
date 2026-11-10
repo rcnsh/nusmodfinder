@@ -109,3 +109,6 @@ o7	browser other	/facets	phase0 0b fe.mjs
 103	ref	SC4 live confirmation at phase3-final: 20 /search calls with fresh texts (sc4-live.mjs, 18; re-check, 2) on version ea066ead (all SIN, 200)	Phase 3 freeze, 2026-11-07 18:53-18:54 UTC
 104	ref	Workers AI REST embed: 3C-2 corrected forms of the leak-filtered (secondary) test queries (custodian), 5 texts, 1 request, ~0.4 neurons	Phase 3 SC5 test set, 2026-11-07 18:57 UTC
 105	ref	s7-1..s7-41: docs/evidence/phase3/sc7-requests.tsv	Phase 3 SC7 counted run, 41 /search calls on version ea066ead (all SIN, 200, cache miss), 2026-11-07 19:08-21:05 UTC
+106	ref	Production /health before the Phase 4 ship (live version check) on version ea066ead	Phase 4 4A/4C/4D ship, 2026-11-10 13:11 UTC
+107	ref	Production smoke after the Phase 4 deploy: /health + 3 /search (machine learning; ng=1&sem=1 without study → 400 study-required; ng=1&sem=1&study=ug3) on version efd3dc25 (200 except the expected 400, not degraded)	Phase 4 4A/4C/4D ship, 2026-11-10 13:13 UTC
+108	ref	SC1 live check: 30 exchange /search calls on version efd3dc25 (sc1-live.mjs; docs/evidence/phase4/sc1-live.jsonl), plus 7 re-sends of calls rate-limited (429, SEARCH_LIMIT) on the first run; 30 × 200, 0 closed courses shown	Phase 4 4E, 2026-11-10 13:13-13:14 UTC

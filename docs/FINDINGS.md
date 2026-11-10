@@ -40,8 +40,8 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | S6 | reproduced | live, full-corpus test |
 | S7 | fixed | tests |
 | S8 | fixed | tests, live |
-| P1 | fixed | tests |
-| P2 | fixed | tests |
+| P1 | fixed | tests, live |
+| P2 | fixed | tests, live |
 | P3 | reproduced | test |
 | F1 | reproduced | test, Playwright |
 | F2 | reproduced | test |
@@ -485,6 +485,7 @@ D1 as `ng_semesters`.
 - test `[P1 fixed] the Vectorize standby filters on the yearly ng flag only, reads 100 deep and rechecks the semester in D1`
 - test `[P1 fixed] the bundle's filter mask tests the allow-mask bit for (sem, study)`: Phase 4 stores a 15-bit allow mask per module (`ng_allow`, migration 0009) and every path tests the one bit for (semester, study level) (`docs/plans/phase4.md` §2)
 - test `[P1 evidence] 934 of the 1,207 NG courses are open to exchange students in one semester only`
+- live: the SC1 check on version `efd3dc25` (2026-11-10), 30 exchange searches, two per (semester, year of study), showed no course the oracle closes (`docs/evidence/phase4/remote-ops.md`, `docs/evidence/phase4/sc1-live.jsonl`)
 - `docs/evidence/phase0/raw/P1_ml_ng_sem1.body`: live CG3201 #2 and CS3244 #4, both `ngSemesters: [2]`.
 
 **Notes:** `src/index.js:124-128` (yearly `ng`), `:139` (sem checked against `semesters`, not
@@ -504,6 +505,7 @@ exchange FAQ Q11), but the filter shows them.
 **Evidence:**
 - test `[P2 fixed] ng=1 shows no level-5 module to an undergraduate exchange student; LI5202 is closed to graduates too`: exchange mode requires `study`, and the Registrar's restrictions (rule D: levels 5000+ closed unless a department opens them) are applied at ingest (`src/eligibility.js`, `data/ng-restrictions-2026-2027.json`)
 - test `[P2 evidence] 28 NG courses are level 5 or above`
+- live: the SC1 check on version `efd3dc25` (2026-11-10), 30 exchange searches, two per (semester, year of study), showed no course the oracle closes (`docs/evidence/phase4/remote-ops.md`, `docs/evidence/phase4/sc1-live.jsonl`)
 - `docs/evidence/phase0/raw/P2_ml_ng.body`: live `machine learning&ng=1` top 20, max level 4. Not reproduced on that query.
 
 **Notes:** The behaviour is reproduced. Nothing stops `ng=1` returning level ≥ 5 (there's no
