@@ -1,0 +1,59 @@
+- listitem:
+  - heading "ACC1701XB Accounting for Decision Makers" [level=2]:
+    - button "ACC1701XB Accounting for Decision Makers" [expanded]
+  - paragraph: 4 units
+  - paragraph: Accounting · NUS Business School Taught in Sem 2 No final exam
+  - paragraph: Also as ACC1701XA, ACC1701XC
+  - text: Sem 1 · Open, with 3 notes
+  - list:
+    - listitem: "Timetable. Not on NUSMods' timetable for Sem 1: check with the department."
+    - listitem: Places. Business courses are over-subscribed and not guaranteed.
+    - listitem: Your major. Only for students majoring in business at their home university.
+  - region "ACC1701XB Accounting for Decision Makers":
+    - paragraph: Course details
+    - button "Close details"
+    - heading "Can you take it?" [level=3]
+    - paragraph: As a 2nd-year exchange student
+    - text: Sem 1 · Open, with 3 notes Your semester
+    - list:
+      - listitem: "Timetable. Not on NUSMods' timetable for Sem 1: check with the department. NG list, updated 01 Sep 2026"
+      - listitem: Places. Business courses are over-subscribed and not guaranteed. NG restrictions, updated 31 Aug 2026
+      - listitem: Your major. Only for students majoring in business at their home university. NG restrictions, updated 31 Aug 2026
+    - text: Sem 2 · Open, with 2 notes
+    - list:
+      - listitem: Places. Business courses are over-subscribed and not guaranteed. NG restrictions, updated 31 Aug 2026
+      - listitem: Your major. Only for students majoring in business at their home university. NG restrictions, updated 31 Aug 2026
+    - paragraph: Check with NUS before you register.
+    - paragraph:
+      - text: "Sources:"
+      - link "Courses offered to exchange (NG) students":
+        - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
+      - text: (updated 01 Sep 2026);
+      - link "Course restrictions for exchange (NG) students":
+        - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
+      - text: (updated 31 Aug 2026).
+    - heading "Class times" [level=3]
+    - paragraph:
+      - link "Class times and timetable on NUSMods":
+        - /url: https://nusmods.com/courses/ACC1701XB
+    - paragraph: Class times aren't shown here.
+    - heading "Description" [level=3]
+    - paragraph: The course provides an introduction to accounting from a user perspective. Financial reporting is covered from the viewpoint of an external investor. The focus is on how accounting can help investors make better decisions. Book-keeping and preparation of financial statements are also covered at an introductory level, as investors need to be aware of how the financial statements are derived.
+    - heading "Prerequisites" [level=3]
+    - paragraph: No course prerequisite (the rule names NUS intake years only)
+    - group: As NUS states it
+    - heading "Preclusions" [level=3]
+    - paragraph: "As NUS states it:"
+    - paragraph:
+      - text: If undertaking an Undergraduate DegreeTHEN((must not be undertaking 1 of 0200ACCHON Bachelor of Business Administration (Accountancy), 0200BBAHON Bachelor of Business Administration (Hons), 0200BIZMAJ Bachelor of Business Administration Hons - Undeclared Major, 0200BREHON Bachelor of Business Administration (Real Estate) Hons, 0200BIZHON Bachelor of Business Administration Hons - General Management, 0200OSCHON Bachelor of Business Administration Hons - Operations & Supply Chain Management, 0200MKTHON Bachelor of Business Administration Hons - Marketing, 0200LHCHON Bachelor of Business Administration Hons - Leadership & Human Capital Management, 0200ACYHON Bachelor of Business Administration (Accountancy) Hons, 0200INEHON Bachelor of Business Administration Hons - Innovation & Entrepreneurship, 0200BECHON Bachelor of Business Administration Hons - Business Economics, 0200FINHON Bachelor of Business Administration Hons - Finance, 0200ABAHON Bachelor of Business Administration Hons - Applied Business Analytics)OR( must not have completed 1 of
+      - link "EC2204":
+        - /url: /?q=EC2204&sem=1&ng=1&study=ug2
+      - text: at a grade of at least D, any Courses beginning with
+      - link "ACC1701":
+        - /url: /?q=ACC1701&sem=1&ng=1&study=ug2
+      - text: at a grade of at least D))
+    - heading "Final exam (Singapore time)" [level=3]
+    - list:
+      - listitem: "Sem 2: Tue 27 Apr 2027, 5:00 pm, 2 h"
+    - heading "Workload" [level=3]
+    - paragraph: "10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation"

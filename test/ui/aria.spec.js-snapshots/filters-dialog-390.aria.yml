@@ -1,0 +1,74 @@
+- dialog "Your exchange and filters":
+  - heading "Your exchange and filters" [level=2]
+  - button "Done"
+  - region "Your exchange":
+    - heading "Your exchange" [level=2]
+    - checkbox "Only courses open to exchange students" [checked]
+    - text: Only courses open to exchange students
+    - paragraph: 126 courses on the NUS Registrar's list, updated 01 Sep 2026.
+    - group "Semester at NUS":
+      - text: Semester at NUS
+      - radio "Sem 1" [checked]
+      - text: Sem 1
+      - radio "Sem 2"
+      - text: Sem 2
+      - radio "Both"
+      - text: Both
+    - text: Year of study at home
+    - combobox "Year of study at home":
+      - option "Choose…"
+      - option "1st year"
+      - option "2nd year" [selected]
+      - option "3rd year"
+      - option "4th year or later"
+      - option "Graduate"
+  - region "Filters":
+    - heading "Filters" [level=2]
+    - text: Level
+    - combobox "Level":
+      - option "Any level"
+      - option "Level 1000"
+      - option "Level 2000" [selected]
+      - option "Level 3000"
+      - option "Level 4000"
+      - option "Level 5000"
+      - option "Level 6000"
+      - option "Level 8000"
+    - text: Units
+    - combobox "Units":
+      - option "Any units" [selected]
+      - option "2 units"
+      - option "4 units"
+      - option "5 units"
+      - option "6 units"
+      - option "8 units"
+      - option "12 units"
+    - text: Faculty
+    - combobox "Faculty":
+      - option "Any faculty" [selected]
+      - option "Arts and Social Science (69)"
+      - option "Center for Engl Lang Comms (2)"
+      - option "College of Design and Engineering (65)"
+      - option "Computing (47)"
+      - option "Cont and Lifelong Education (15)"
+      - option "Dentistry (2)"
+      - option "Duke-NUS Medical School (3)"
+      - option "LKY School of Public Policy (14)"
+      - option "Law (28)"
+      - option "Logistics Inst-Asia Pac (3)"
+      - option "Mechanobiology Institute (MBI) (2)"
+      - option "Multi Disciplinary Programme (4)"
+      - option "NUS (7)"
+      - option "NUS Business School (45)"
+      - option "NUS College (6)"
+      - option "NUS Graduate School (3)"
+      - option "NUS-ISS (4)"
+      - option "Non-Faculty-based Departments (3)"
+      - option "Residential College (6)"
+      - option "Risk Management Institute (3)"
+      - option "SSH School of Public Health (5)"
+      - option "Science (77)"
+      - option "Temasek Defence Sys. Institute (2)"
+      - option "YST Conservatory of Music (4)"
+      - option "Yale-NUS College (1)"
+      - option "Yong Loo Lin Sch of Medicine (14)"

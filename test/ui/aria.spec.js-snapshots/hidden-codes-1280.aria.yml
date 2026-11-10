@@ -1,0 +1,22 @@
+- region "Codes you typed that aren't shown":
+  - heading "4 of the 5 codes you typed aren't shown" [level=2]
+  - paragraph: You chose Sem 1 as a 2nd-year exchange student, so courses you can't take then are left out.
+  - list:
+    - listitem:
+      - paragraph: CS3244 Machine Learning
+      - paragraph: CS3244 is open to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+    - listitem:
+      - paragraph: CS5562 Trustworthy Machine Learning
+      - paragraph: CS5562 isn't on the Registrar's list of courses offered to exchange students (NG list, updated 01 Sep 2026).
+    - listitem:
+      - paragraph: AR5801 Options Design Research Studio 1
+      - paragraph: AR5801 isn't open to exchange students in Sem 1 at 2nd year. Level 5000 and 6000 courses are not open to exchange students unless a department says so (NG restrictions, updated 31 Aug 2026).
+    - listitem:
+      - paragraph: CS1001
+      - paragraph: CS1001 isn't offered this academic year.
+  - paragraph: Only the first three course codes you type that are offered this year are pinned to the top of the results.
+  - paragraph: "NG list: the NUS Registrar's list of courses offered to exchange (“non-graduating”) students."
+- paragraph:
+  - strong: 20 courses
+  - text: match “CS2030 CS3244 CS5562 AR5801 CS1001”
+- paragraph: Exam times are Singapore time (UTC+8)

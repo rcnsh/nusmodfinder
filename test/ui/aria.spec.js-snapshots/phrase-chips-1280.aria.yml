@@ -1,0 +1,12 @@
+- paragraph:
+  - strong: 1 course
+  - text: matches “history no final exam under 10 hours”
+- paragraph: Exam times are Singapore time (UTC+8)
+- text: "Read from your query:"
+- list "Read from your query:":
+  - listitem:
+    - text: No final exam
+    - button "Remove “No final exam” and search again": ×
+  - listitem:
+    - text: Under 10 h a week
+    - button "Remove “Under 10 h a week” and search again": ×

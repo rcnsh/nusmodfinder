@@ -1,0 +1,187 @@
+- listitem:
+  - heading "CS3244 Machine Learning" [level=2]:
+    - button "CS3244 Machine Learning" [expanded]
+  - paragraph: 4 units
+  - paragraph: Computer Science · Computing Taught in Sem 1, Sem 2 Sem 1 exam Thu 26 Nov, 5:00 pm Sem 2 exam Thu 29 Apr, 9:00 am
+  - paragraph: "On the exchange (NG) list: Sem 2"
+  - region "CS3244 Machine Learning":
+    - paragraph: Course details
+    - button "Close details"
+    - heading "Open to exchange students" [level=3]
+    - table "Open to exchange students, by year of study at the home university":
+      - caption: Open to exchange students, by year of study at the home university
+      - rowgroup:
+        - row "Year of study Sem 1 Sem 2":
+          - columnheader "Year of study"
+          - columnheader "Sem 1"
+          - columnheader "Sem 2"
+      - rowgroup:
+        - row "1st year Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+          - rowheader "1st year"
+          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+            - paragraph: Not open to exchange students
+            - list:
+              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+          - cell "Open to exchange students":
+            - paragraph: Open to exchange students
+        - row "2nd year Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+          - rowheader "2nd year"
+          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+            - paragraph: Not open to exchange students
+            - list:
+              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+          - cell "Open to exchange students":
+            - paragraph: Open to exchange students
+        - row "3rd year Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+          - rowheader "3rd year"
+          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+            - paragraph: Not open to exchange students
+            - list:
+              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+          - cell "Open to exchange students":
+            - paragraph: Open to exchange students
+        - row "4th year or later Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+          - rowheader "4th year or later"
+          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+            - paragraph: Not open to exchange students
+            - list:
+              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+          - cell "Open to exchange students":
+            - paragraph: Open to exchange students
+        - row "Graduate Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+          - rowheader "Graduate"
+          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+            - paragraph: Not open to exchange students
+            - list:
+              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+          - cell "Open to exchange students":
+            - paragraph: Open to exchange students
+    - paragraph: Check with NUS before you register.
+    - paragraph:
+      - text: "Sources:"
+      - link "Courses offered to exchange (NG) students":
+        - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
+      - text: (updated 01 Sep 2026);
+      - link "Course restrictions for exchange (NG) students":
+        - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
+      - text: (updated 31 Aug 2026).
+    - heading "Class times" [level=3]
+    - paragraph:
+      - link "Class times and timetable on NUSMods":
+        - /url: https://nusmods.com/courses/CS3244
+    - paragraph: Class times aren't shown here.
+    - heading "Description" [level=3]
+    - paragraph: This course introduces basic concepts and algorithms in machine learning and neural networks. The main reason for studying computational learning is to make better use of powerful computers to learn knowledge (or regularities) from the raw data. The ultimate objective is to build self-learning systems to relieve human from some of already-too-many programming tasks. At the end of the course, students are expected to be familiar with the theories and paradigms of computational learning, and capable of implementing basic learning systems.
+    - heading "Prerequisites" [level=3]
+    - paragraph: "As NUS states it:"
+    - paragraph:
+      - text: If undertaking an Undergraduate Degree THEN must have completed 1 of
+      - link "CS2040":
+        - /url: /?q=CS2040
+      - text: /
+      - link "CS2040C":
+        - /url: /?q=CS2040C
+      - text: /
+      - link "CS2040DE":
+        - /url: /?q=CS2040DE
+      - text: /
+      - link "CS2040HS":
+        - /url: /?q=CS2040HS
+      - text: /
+      - link "CS2040S":
+        - /url: /?q=CS2040S
+      - text: /
+      - link "YSC2229":
+        - /url: /?q=YSC2229
+      - text: at a grade of at least D AND must have completed 1 of
+      - link "EE2012":
+        - /url: /?q=EE2012
+      - text: /
+      - link "EE2012A":
+        - /url: /?q=EE2012A
+      - text: /
+      - link "MA2116":
+        - /url: /?q=MA2116
+      - text: /
+      - link "MA2116T":
+        - /url: /?q=MA2116T
+      - text: /
+      - link "MA2216":
+        - /url: /?q=MA2216
+      - text: /
+      - link "ST2131":
+        - /url: /?q=ST2131
+      - text: /
+      - link "ST2334":
+        - /url: /?q=ST2334
+      - text: /
+      - link "YSC2243":
+        - /url: /?q=YSC2243
+      - text: at a grade of at least D AND ( must have completed all of
+      - link "MA1511":
+        - /url: /?q=MA1511
+      - text: /
+      - link "MA1512":
+        - /url: /?q=MA1512
+      - text: at a grade of at least D OR must have completed 1 of
+      - link "MA1101R":
+        - /url: /?q=MA1101R
+      - text: /
+      - link "MA1311":
+        - /url: /?q=MA1311
+      - text: /
+      - link "MA1508E":
+        - /url: /?q=MA1508E
+      - text: /
+      - link "MA1513":
+        - /url: /?q=MA1513
+      - text: /
+      - link "MA1522":
+        - /url: /?q=MA1522
+      - text: /
+      - link "MA2001":
+        - /url: /?q=MA2001
+      - text: at a grade of at least D AND must have completed 1 of
+      - link "MA1102R":
+        - /url: /?q=MA1102R
+      - text: /
+      - link "MA1505":
+        - /url: /?q=MA1505
+      - text: /
+      - link "MA1507":
+        - /url: /?q=MA1507
+      - text: /
+      - link "MA1521":
+        - /url: /?q=MA1521
+      - text: /
+      - link "MA2002":
+        - /url: /?q=MA2002
+      - text: at a grade of at least D)
+    - heading "Preclusions" [level=3]
+    - paragraph: "As NUS states it:"
+    - paragraph:
+      - text: If undertaking an Undergraduate DegreeTHEN( must not have completed 1 of
+      - link "BT4240":
+        - /url: /?q=BT4240
+      - text: /
+      - link "CG3201":
+        - /url: /?q=CG3201
+      - text: /
+      - link "CS2109S":
+        - /url: /?q=CS2109S
+      - text: /
+      - link "CS3264":
+        - /url: /?q=CS3264
+      - text: /
+      - link "DMX1401AI":
+        - /url: /?q=DMX1401AI
+      - text: /
+      - link "IT3011":
+        - /url: /?q=IT3011
+      - text: at a grade of at least D)
+    - heading "Final exam (Singapore time)" [level=3]
+    - list:
+      - listitem: "Sem 1: Thu 26 Nov 2026, 5:00 pm, 2 h"
+      - listitem: "Sem 2: Thu 29 Apr 2027, 9:00 am, 2 h"
+    - heading "Workload" [level=3]
+    - paragraph: "10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation"

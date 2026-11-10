@@ -6,7 +6,12 @@
 // and the partial-code check of the other semester. 5D lays it out as direction
 // D: the exchange set-up as the first screen (D2), then a rail with the set-up,
 // filters and key beside the search; removable filter chips; and on a phone
-// one search bar with the rail in a modal "Filters" dialog (F10).
+// one search bar with the rail in a modal "Filters" dialog (F10). 5E (F5,
+// SC8): a skip link to the shown <main>; one polite live region that says each
+// answer in a sentence (the count or why there is none, the typed codes not
+// shown, errors and 429); the Search button is never disabled, so it keeps
+// focus, and a second search aborts the first; Escape closes the open detail
+// and focus returns to its button, as it does after Back to an open detail.
 import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from './api.js';
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
@@ -14,6 +19,7 @@ import { hiddenCodeLine } from './explain.js';
 import { semLabel } from './format.js';
 import { icon } from './icons.js';
 import { intentChipRow } from './intent-chips.js';
+import { intentChips } from './intents.js';
 import { isCloseEscape, isSubmitEnter } from './keys.js';
 import { errorSentence } from './messages.js';
 import { transition } from './nav.js';
@@ -32,7 +38,6 @@ const $ = (id) => /** @type {T} */ (document.getElementById(id));
 const els = {
   form: /** @type {HTMLFormElement} */ ($('f')),
   q: /** @type {HTMLInputElement} */ ($('q')),
-  go: /** @type {HTMLButtonElement} */ ($('go')),
   sem: /** @type {HTMLSelectElement} */ ($('sem')),
   level: /** @type {HTMLSelectElement} */ ($('level')),
   credits: /** @type {HTMLSelectElement} */ ($('credits')),
@@ -64,7 +69,37 @@ const els = {
   dialogSlot: $('dialogSlot'),
   filtersDone: /** @type {HTMLButtonElement} */ ($('filtersDone')),
   panel: $('panel'),
+  live: $('live'),
+  skip: /** @type {HTMLAnchorElement} */ ($('skip')),
 };
+
+/** A pending re-announcement (see announce). @type {ReturnType<typeof setTimeout> | undefined} */
+let liveTimer;
+/**
+ * Says `text` in the page's one polite live region. The same text again (the
+ * same search re-run) is cleared first and set a moment later, since a region
+ * whose text doesn't change says nothing.
+ * @param {string} text
+ */
+function announce(text) {
+  clearTimeout(liveTimer);
+  if (text && els.live.textContent === text) {
+    els.live.textContent = '';
+    liveTimer = setTimeout(() => { els.live.textContent = text; }, 150);
+  } else {
+    els.live.textContent = text;
+  }
+}
+
+/**
+ * A message in the status area with no results, said in the live region too.
+ * @param {string} text
+ * @param {boolean} [error]
+ */
+function message(text, error = false) {
+  showMessage(targets, text, error);
+  announce(text);
+}
 
 // Static option lists (F4): every filter but faculty works before /facets answers.
 for (const o of SEMESTERS) els.sem.add(new Option(o.label, o.value));
@@ -170,7 +205,15 @@ function syncView(s) {
   els.app.dataset.view = setup ? 'setup' : 'results';
   els.setup.hidden = !setup;
   els.layout.hidden = setup;
+  els.skip.href = setup ? '#setup' : '#main';
 }
+
+// The skip link moves focus to the shown <main> (the next Tab is its first
+// control) without a fragment in the URL, which would add a history entry.
+els.skip.addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById(els.skip.hash.slice(1))?.focus();
+});
 
 /**
  * The filter chips (V1): every filter and the exchange set-up, labelled as the
@@ -255,7 +298,9 @@ async function loadDetail(code, region) {
   const outcome = await modules.get(code);
   if (region.hidden || !region.isConnected) return;
   if (outcome.kind !== 'ok') {
-    detailError(region, outcome.kind === 'error' ? errorSentence(outcome.error) : '', () => loadDetail(code, region));
+    const sentence = outcome.kind === 'error' ? errorSentence(outcome.error) : '';
+    detailError(region, sentence, () => loadDetail(code, region));
+    announce(`The details of ${code} could not be loaded. ${sentence}`.trim());
     return;
   }
   renderDetail(region, outcome.body, { filters: data.filters ?? {}, sources, searchHref, onClose: () => act({ type: 'close' }) });
@@ -321,6 +366,9 @@ async function checkOtherSemester(s) {
     els.sem.value = other;
     act({ type: 'settings', form: readForm() });
   });
+  // The line may now say "either semester", or a button to see the other may have appeared.
+  const see = p.actions.querySelector('button');
+  announce([p.line.textContent, see ? `The “${see.textContent}” button shows them.` : ''].filter(Boolean).join(' '));
 }
 
 /** @param {string} key @param {any} body */
@@ -338,6 +386,8 @@ function remember(key, body) {
 function render(s, key, body) {
   shown = { key, data: body, view: showResults(targets, body, { searchHref, removableFilters: removableFilters(), query: s.q }) };
   showIntentChips(body);
+  const read = intentChips(body?.interpreted, current.ignore).map((c) => c.label);
+  announce([shown.view.announce, read.length ? `Read from your query: ${read.join(', ')}.` : ''].filter(Boolean).join(' '));
   syncDetail(s);
   explainHidden();
   checkOtherSemester(s);
@@ -368,16 +418,19 @@ async function show(s, { fromUser = false } = {}) {
   if (!params) {
     shown = null;
     search.abort();
-    els.go.disabled = false;
     if (s.q.trim() && s.ng && !s.study) {
-      showMessage(targets, 'Choose your year of study to see the courses open to you as an exchange student.');
+      message('Choose your year of study to see the courses open to you as an exchange student.');
       // After the event, not during it: a click on the exchange switch's label
       // runs this inside the label's activation, and WebKit then focuses the
       // checkbox itself where checkboxes take focus on click (Linux), which
       // would undo a focus moved here.
       if (fromUser) setTimeout(() => els.study.focus(), 0);
+    } else if (leftSetup) {
+      message(EMPTY);
     } else {
+      // The first screen asks its own questions; "the box above" is the results view's.
       showMessage(targets, EMPTY);
+      announce('');
     }
     return;
   }
@@ -386,24 +439,23 @@ async function show(s, { fromUser = false } = {}) {
   // only the detail changes, so focus and the scroll position stay.
   if (shown && shown.key === key) {
     search.abort();
-    els.go.disabled = false;
     syncDetail(s);
     return;
   }
   if (answers.has(key)) {
     search.abort();
-    els.go.disabled = false;
     render(s, key, answers.get(key));
     return;
   }
+  // The Search button stays enabled (5E, F5): disabling the focused button
+  // would drop focus to the page, and a second search aborts this one anyway.
   shown = null;
-  els.go.disabled = true;
   showLoading(targets);
+  announce('');
   const outcome = await search(params);
   if (outcome.kind === 'superseded') return;
-  els.go.disabled = false;
   if (outcome.kind === 'error') {
-    showMessage(targets, errorSentence(outcome.error), true);
+    message(errorSentence(outcome.error), true);
     return;
   }
   remember(key, outcome.body);
@@ -488,6 +540,7 @@ function setupAsk(text, focus) {
   els.setupError.textContent = text;
   els.setupError.hidden = false;
   focus.focus();
+  announce(text);
 }
 function submitSetup() {
   const sem = checkedValue('setupSem');
@@ -577,7 +630,11 @@ matchMedia('(min-width: 641px)').addEventListener('change', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (isCloseEscape(e) && current.open && !els.dialog.open) act({ type: 'close' });
+  if (!isCloseEscape(e) || !current.open || els.dialog.open) return;
+  // The detail closes and focus returns to its button; the search box, if
+  // focused, keeps its text (a search field's own Escape clears it).
+  e.preventDefault();
+  act({ type: 'close' });
 });
 // A card's button opens its detail, or closes it (the APG disclosure pattern).
 els.results.addEventListener('click', (e) => {
@@ -595,14 +652,40 @@ document.addEventListener('click', (e) => {
   window.scrollTo({ top: 0 });
   els.q.focus({ preventScroll: true });
 });
+// After Back and Forward the page places the view itself: the browser's own
+// restoration runs after popstate, and would scroll a card just focused out of
+// view (5E).
+history.scrollRestoration = 'manual';
 window.addEventListener('popstate', async () => {
   const before = current.open;
+  const answerBefore = shown?.key;
   current = settle(parseState(new URLSearchParams(location.search)));
   const after = current;
   await show(after);
+  if (current !== after) return;
   // Back from an open detail: the list, its detail closed, focus on its button.
-  if (before && !after.open && current === after) shown?.view.cards.get(before)?.button.focus();
+  // Back to an open detail (from a search a course code in it ran): focus on
+  // its button, where the student left the list. Focus brings it into view;
+  // another answer without one starts at the top.
+  const card = before && !after.open ? before : after.open && after.open !== before ? after.open : '';
+  const button = card ? shown?.view.cards.get(card)?.button : null;
+  if (button) button.focus();
+  else if (shown?.key !== answerBefore) window.scrollTo(0, 0);
 });
+
+// The header stays at the top of a wide screen, so whatever focus or a link
+// scrolls into view stops below it, not under it (WCAG 2.4.11).
+const header = /** @type {HTMLElement} */ (document.querySelector('.hdr'));
+new ResizeObserver(() => {
+  document.documentElement.style.scrollPaddingTop = getComputedStyle(header).position === 'sticky' ? `${header.offsetHeight + 8}px` : '';
+}).observe(header);
+
+// The tiles, pills and segments draw their radio's focus ring. WebKit doesn't
+// count moving within a radio group by arrow keys as keyboard focus
+// (:focus-visible), so the page tracks the last input itself: the ring shows
+// for a key, never for a click or a tap.
+document.addEventListener('keydown', () => { document.documentElement.dataset.keys = ''; }, true);
+document.addEventListener('pointerdown', () => { delete document.documentElement.dataset.keys; }, true);
 
 // /facets fills the faculty list and the exchange-mode sources. Nothing waits
 // on it (F4): the first search starts below, at once, and a shared link's

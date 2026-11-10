@@ -180,11 +180,11 @@ export function checkFindings({ criteria, findings, fileExists, testSource }) {
   return errors;
 }
 
-/** @param {string} dir @returns {string[]} */
+/** The test sources under `dir`: Vitest's `*.test.js` and Playwright's `*.spec.js`. @param {string} dir @returns {string[]} */
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory() ? walk(join(dir, e.name))
-      : /\.test\.m?js$/.test(e.name) && e.name !== 'check-findings.node.test.js' ? [join(dir, e.name)] : []);
+      : /\.(?:test|spec)\.m?js$/.test(e.name) && e.name !== 'check-findings.node.test.js' ? [join(dir, e.name)] : []);
 }
 
 /**

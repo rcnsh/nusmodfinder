@@ -34,7 +34,7 @@ export function detailLoading(region) {
  * @param {() => void} retry
  */
 export function detailError(region, sentence, retry) {
-  const again = h('button', { class: 'detail-retry', attrs: { type: 'button' } }, 'Try again');
+  const again = h('button', { class: 'btn detail-retry', attrs: { type: 'button' } }, 'Try again');
   again.addEventListener('click', retry);
   setChildren(region, h('p', { class: 'detail-error' }, `The course details could not be loaded. ${sentence}`), again);
 }
