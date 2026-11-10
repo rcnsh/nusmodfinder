@@ -941,3 +941,11 @@ fails on the previous code.
   of `total` is 186.0 ms (CI 164.0–224.0, n = 41) against 250 ms. Warm is 173.5 ms (n = 30) and
   sparse 274.0 ms (n = 11). The harness stopped the collector before the 12th sparse call.
 - Evidence: `docs/evidence/phase3/sc5.md`, `sc4-live.txt`, `sc7.md`.
+
+## 2026-11-10 — Phase 3 closed; Phase 1 passed
+
+- **Phase 1 passes:** SC7 passed in the counted run at the Phase 3 freeze (#63).
+- **Phase 3 closes (Jacob's decision at the exit gate).** SC5 and SC7 pass. SC4's level and
+  parsed-intent items (31 of 90) and findings S2, S3, S4 and S6 carry into Phase 4, where the
+  study-level input and a compliance rule for parsed filters bring the dropped changes back.
+  Evidence: `docs/evidence/phase3/exit.md`.

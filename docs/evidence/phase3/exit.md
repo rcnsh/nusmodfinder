@@ -1,5 +1,8 @@
 # Phase 3 exit: where each criterion stands (2026-11-08)
 
+**Decision (Jacob, 2026-11-10):** Phase 3 closes. SC4's level and parsed-intent items and the four
+open findings carry into Phase 4, listed under "Left for Phase 4" below.
+
 Exit criteria: `docs/plans/phase3.md` §8. The ranker is frozen at `phase3-final` (`c787dea`) and
 live as version `ea066ead` (tag `238e721`).
 

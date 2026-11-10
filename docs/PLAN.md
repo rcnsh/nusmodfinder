@@ -10,9 +10,9 @@ log in [`PROGRESS.md`](PROGRESS.md), decisions in [`decisions/`](decisions/).
 | Phase | Title | Status | Exit gate |
 |---|---|---|---|
 | 0 | Safety net | **passed** (PRs #1, #2) | CI green on main; every finding triaged; DB rebuilds from scratch |
-| 1 | Backend correctness and pipeline | **open on SC7** ([plan](plans/phase1.md)): SC6 passes; SC7 fails (p50 351 ms vs 250 ms), fix carried into Phase 3 (3-0) | SC6, SC7 measured; README cost section fixed |
+| 1 | Backend correctness and pipeline | **passed** ([plan](plans/phase1.md)): SC6 passes; SC7 passes in the counted run at the Phase 3 freeze ([sc7](evidence/phase3/sc7.md)) | SC6, SC7 measured; README cost section fixed |
 | 2 | A real eval (may run parallel to 1) | **passed** ([plan](plans/phase2.md)); exit red-team findings fixed in #29, #30, #32 | one-command harness; baseline in EVAL.md |
-| 3 | Search that understands students | planned (converged r3.1), awaiting Q1–Q4 ([plan](plans/phase3.md), [ADR 0006](decisions/0006-phase3-search-quality-plan.md)) | SC4, SC5 (+ SC7 carried over) |
+| 3 | Search that understands students | **closed** at `phase3-final` ([plan](plans/phase3.md), [ADR 0006](decisions/0006-phase3-search-quality-plan.md), [exit](evidence/phase3/exit.md)): SC5 and SC7 pass; SC4's level and phrase items and findings S2, S3, S4, S6 carried into Phase 4 (Jacob) | SC4, SC5 (+ SC7 carried over) |
 | 4 | Exchange mode that is correct | not started | SC1; persona red team finds nothing |
 | 5 | Frontend and design overhaul | not started | SC2, SC8; design gate |
 | 6 | Shortlist and export | not started | SC3 |
