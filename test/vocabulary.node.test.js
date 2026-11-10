@@ -7,7 +7,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { build, OUTPUTS } from '../scripts/build-vocabulary.mjs';
+import { build, OUTPUTS, phraseWords, withPhraseWords } from '../scripts/build-vocabulary.mjs';
+import { correctQuery } from '../src/typo.js';
 import {
   VOCABULARY_SCHEMA, buildVocabulary, dfOf, nearestTerm, osaDistance, parseVocabulary, prefixMatches, serializeVocabulary,
 } from '../src/vocabulary.js';
@@ -145,5 +146,38 @@ describe('the vocabulary files', () => {
 
   it('is small: under 400 KB', () => {
     expect(Buffer.byteLength(read(OUTPUTS.production))).toBeLessThan(400_000);
+  });
+});
+
+describe('the fixture vocabulary holds the 3H phrase words (5A, B-7, B2-9)', () => {
+  const phrases = JSON.parse(read('data/constraint-phrases.json'));
+  const fixtureVocab = parseVocabulary(JSON.parse(read(OUTPUTS.fixture)));
+  const fromCorpus = parseVocabulary(buildVocabulary(fixture.modules, { corpus: 'fixture', dataVersion: 'dv' }));
+
+  it('phraseWords: every token of every phrase, the N placeholder left out', () => {
+    expect(phraseWords(phrases)).toEqual(expect.arrayContaining(['exam', 'finals', 'hours', 'less', 'than', 'prereqs', 'background']));
+    expect(phraseWords(phrases)).not.toContain('n');
+  });
+
+  it('every phrase word is in the committed fixture vocabulary, so 3C corrects no phrase (`hours` was `tours`)', () => {
+    for (const w of phraseWords(phrases)) expect(dfOf(fixtureVocab, w), w).toBeGreaterThan(0);
+    for (const kind of ['exam', 'su', 'hoursBelow', 'prereq']) {
+      for (const p of phrases[kind]) expect(correctQuery(p.replace('N', '6'), fixtureVocab).corrections, p).toEqual([]);
+    }
+  });
+
+  it('adds only the absent words, each with df 1, and says so in its rule; the corpus words keep their df', () => {
+    const added = phraseWords(phrases).filter((w) => dfOf(fromCorpus, w) === 0);
+    expect(added).toContain('hours');
+    expect(fixtureVocab.terms.length).toBe(fromCorpus.terms.length + added.length);
+    for (const w of added) expect(dfOf(fixtureVocab, w), w).toBe(1);
+    for (const t of fromCorpus.terms) expect(dfOf(fixtureVocab, t), t).toBe(dfOf(fromCorpus, t));
+    expect(fixtureVocab.terms).toEqual([...fixtureVocab.terms].sort());
+    expect(JSON.parse(read(OUTPUTS.fixture)).rule).toMatch(/constraint-phrases\.json/);
+  });
+
+  it('withPhraseWords leaves a vocabulary that already has every word unchanged', () => {
+    const file = buildVocabulary([{ title: phraseWords(phrases).join(' '), description: null }], { corpus: 'fixture', dataVersion: 'dv' });
+    expect(withPhraseWords(file, phraseWords(phrases))).toEqual(file);
   });
 });

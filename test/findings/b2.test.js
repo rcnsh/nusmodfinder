@@ -53,7 +53,9 @@ describe('B2', () => {
 
     const { body } = await callJson('/module/XX2001');
     expect(body).toMatchObject({
-      semesters: [2], credits: 2, ng: true, ng_semesters: [2], prerequisite: 'XX1001', preclusion: 'XX2901', workload: [3, 0, 0, 3, 4],
+      semesters: [2], credits: 2, ng: true, ng_semesters: [2], prerequisite: 'XX1001', preclusion: 'XX2901',
+      // 5A: /module answers the workload as named hours a week.
+      workload: { lecture: 3, tutorial: 0, lab: 0, project: 3, prep: 4, total: 10 },
     });
     // The vector keeps its values (re-upserted from getByIds) under new metadata.
     const v = fakes.vectorize.vectors.get('XX2001');

@@ -23,6 +23,7 @@ describe('raw test env', () => {
     expect(ours).toEqual(['DB', 'TEST_MIGRATIONS']);
     expect(env.TEST_MIGRATIONS.map((m) => m.name)).toEqual([
       '0001_init.sql', '0002_fts.sql', '0003_ng.sql', '0004_meta.sql', '0005_rank.sql', '0006_fts_external.sql', '0007_intents.sql', '0008_catalogue.sql', '0009_exchange.sql',
+      '0010_exam_dates.sql',
     ]);
   });
 });

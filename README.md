@@ -20,7 +20,7 @@ filter by semester, level, credits and faculty.
 |---|---|
 | `GET /` | Single-page UI, no framework, no build step |
 | `GET /search?q=&sem=&level=&credits=&faculty=&ng=&study=&topK=&mode=` | Ranked results as JSON |
-| `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study |
+| `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study, its exams, its workload and its NUSMods link (below) |
 | `GET /facets` | Distinct faculties and levels, with counts, for the filter UI, and the exchange-mode sources with their dates |
 
 `ng=1` is **exchange mode**: only courses an exchange (Non-Graduating) student may take, under
@@ -31,6 +31,13 @@ the student's year of study at home (`ug4` = 4th year or later); without it `/se
 courses with `noMatch: { reason: "ng-special-term" }`: the NG list has no special-term data.
 Each result then carries `exchange: { status: "open" | "note", reasons: [{ id, kind, text }] }`.
 Only `true` narrows — `ng=0` is ignored, and `study` is ignored without `ng=1`.
+
+`/module/:code` (Phase 5 5A) also answers `examDates`, one `{ sem, date, durationMins }` per
+semester with an exam (`date` ISO UTC as NUSMods gives it; `[]` for none); `workload` as
+`{ lecture, tutorial, lab, project, prep, total }` hours a week, `{ raw }` when NUSMods gives
+something other than its 5-number array (two modules give a string), or `null` when not listed
+(absent or all zero); and `nusmodsUrl`, where the class times are. It is cached
+`public, max-age=300` on a 200, `public, max-age=60` on a 404 and `no-store` on a 5xx, with no ETag.
 
 `mode` is `hybrid` (default), `vector` or `lexical`. It exists so the evaluation harness
 can measure each retriever on its own — which is the only reason we know the vector half
@@ -228,18 +235,18 @@ git add data/vectors.json src/data-version.json data/vocabulary.json data/groups
 # 3. Record a D1 Time Travel bookmark in remote-ops.md.
 export INGEST_SECRET=$(openssl rand -hex 24)
 echo "INGEST_SECRET=$INGEST_SECRET" > .dev.vars     # gitignored
-npx wrangler dev --remote --port 8787 &             # binds the real D1/Vectorize/AI
+npx wrangler dev --remote --port 8791 &             # binds the real D1/Vectorize/AI (8787 is taken on the dev Mac)
 # 4. D1 only: no Workers AI, no Vectorize. Refuses unless the corpus hashes to the committed data version.
-npm run ingest -- --year 2026-2027 --url http://localhost:8787 --d1-only --offline
+npm run ingest -- --year 2026-2027 --url http://localhost:8791 --d1-only --offline
 # 5. D1 against the manifest and the bundle, before the deploy. Reads no Vectorize.
-npm run verify -- --url http://localhost:8787 --pre-deploy
+npm run verify -- --url http://localhost:8791 --pre-deploy
 # 6. Guard, startup gate, promote. The guard starts its own dev session, on a free port.
 npm run deploy
 # 7. Smoke (≤ 4 calls): /health says vectors.corpus "production"; read CPUTimeMs in Workers Logs.
 #    On failure: wrangler rollback <previous id>, restore D1 to the step-3 bookmark, revert step 2.
 # 8. The standby: upsert every code (bundle values, D1 metadata, ≤ 1,000 a batch), delete
 #    every index id D1 no longer holds, wait for the mutation, then verify, values included.
-node scripts/vectors.mjs standby --url http://localhost:8787
+node scripts/vectors.mjs standby --url http://localhost:8791
 ```
 
 Log every remote D1 operation, reads included, in `remote-ops.md`. Between steps 4 and 6 the

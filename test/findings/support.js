@@ -82,7 +82,7 @@ export function syntheticModule(over) {
     level: Number(over.code.match(/\d/)?.[0] ?? 1), semesters: [1], workload: null,
     prerequisite: null, preclusion: null, acadYear: fixture.source.acadYear, ng: false, ngSemesters: [],
     examSemesters: [], su: false, gradingBasis: null, workloadHours: null, prereqNone: true, prereqCohortOnly: false,
-    ngAllow: 0, ngRules: null,
+    ngAllow: 0, ngRules: null, examDates: [],
   };
   const m = { ...base, ...over };
   const text = [m.title, m.department, m.faculty, m.description].filter(Boolean).join('. ');

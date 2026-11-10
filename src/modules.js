@@ -1,9 +1,10 @@
 // @ts-check
 // Module rows: GET /module/:code, GET /facets, and the row shapes the search
 // and admin routes share.
-import { bad, json, upstream } from './http.js';
+import { bad, json, upstream, withHeaders } from './http.js';
 import { exchangeAll, exchangeAt, NG_SOURCES } from './ng-reasons.js';
 import { D1_TIMEOUT_MS, withTimeout } from './upstream.js';
+import { moduleWorkload } from './workload.js';
 
 /**
  * A full `modules` row as /module/:code returns it (see migrations/).
@@ -15,6 +16,7 @@ import { D1_TIMEOUT_MS, withTimeout } from './upstream.js';
  *   ng: number, ng_semesters: string | null,
  *   exam_semesters?: string | null, su?: number, grading_basis?: string | null, workload_hours?: number | null,
  *   prereq_none?: number, prereq_cohort_only?: number, ng_allow?: number | null, ng_rules?: string | null,
+ *   exam_dates?: string | null,
  * }} ModuleRow
  * @typedef {Pick<ModuleRow, 'code' | 'title' | 'department' | 'faculty' | 'credits' | 'level' | 'semesters' | 'ng' | 'ng_semesters'
  *   | 'exam_semesters' | 'su' | 'grading_basis' | 'workload_hours' | 'prereq_none' | 'prereq_cohort_only'
@@ -31,10 +33,21 @@ export const MODULE_CODE_RE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 // order, named so a later column (generated filter columns, row_hash) does not
 // change the response shape.
 // Phase 4 adds ng_allow and ng_rules, answered as `exchange` (one entry per
-// semester and study level, with reasons).
+// semester and study level, with reasons). 5A adds exam_dates, answered as
+// `examDates`.
 const MODULE_COLUMNS =
   'code, title, description, credits, department, faculty, level, semesters, workload, prerequisite, preclusion, acad_year, text_hash, ng, ng_semesters, '
-  + 'ng_allow, ng_rules';
+  + 'ng_allow, ng_rules, exam_dates';
+
+/**
+ * /module/:code's Cache-Control (5A): a row changes only at an ingest, so a
+ * 200 may sit in browsers and shared caches for 5 minutes and a 404 for one;
+ * a failure is never stored. No ETag and no edge cache (docs/plans/phase5.md 5A).
+ */
+const MODULE_CACHE = Object.freeze({ ok: 'public, max-age=300', notFound: 'public, max-age=60', failed: 'no-store' });
+
+/** NUSMods' page for a course, which has its class times (5A). @param {string} code */
+export const nusmodsUrl = (code) => `https://nusmods.com/courses/${code}`;
 
 // /search: only what rowToModule renders and the pin's filter check reads.
 export const RESULT_COLUMNS = 'code, title, department, faculty, credits, level, semesters, ng, ng_semesters, '
@@ -181,20 +194,26 @@ export async function handleModule(env, code, trace) {
     row = await d1Timed(trace, 'd1', () =>
       db.prepare(`SELECT ${MODULE_COLUMNS} FROM modules WHERE code = ?`).bind(upper).first());
   } catch (err) {
-    return upstream('d1', err);
+    return withHeaders(upstream('d1', err), { 'cache-control': MODULE_CACHE.failed });
   }
-  if (!row) return json({ error: 'not_found', message: `No module ${upper} in this acad year.` }, 404);
+  if (!row) {
+    return withHeaders(json({ error: 'not_found', message: `No module ${upper} in this acad year.` }, 404), { 'cache-control': MODULE_CACHE.notFound });
+  }
   /** @type {Partial<ModuleRow>} */
   const rest = { ...row };
   delete rest.ng_rules;
-  return json({
+  delete rest.exam_dates;
+  return withHeaders(json({
     ...rest,
     semesters: JSON.parse(row.semesters ?? '[]'),
-    workload: row.workload ? JSON.parse(row.workload) : null,
+    workload: moduleWorkload(row.workload),
     ng: row.ng === 1,
     ng_semesters: JSON.parse(row.ng_semesters ?? '[]'),
     ng_allow: row.ng_allow ?? 0,
     // Phase 4 (4C): why the course is open, noted or closed, per semester and study level.
     exchange: exchangeAll(row),
-  });
+    // 5A: each exam, its date ISO UTC (the page shows Singapore time), and where the class times are.
+    examDates: JSON.parse(row.exam_dates ?? '[]'),
+    nusmodsUrl: nusmodsUrl(row.code),
+  }), { 'cache-control': MODULE_CACHE.ok });
 }
