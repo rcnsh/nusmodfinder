@@ -19,7 +19,7 @@ const read = (/** @type {string} */ rel) => readFileSync(join(ROOT, rel), 'utf8'
 
 describe('static assets', () => {
   it('public/ holds the page, its stylesheet and its ES modules, with no build output', () => {
-    expect(files).toEqual(expect.arrayContaining(['/index.html', '/styles.css', '/app.js', '/state.js', '/nav.js', '/api.js', '/messages.js', '/format.js', '/keys.js', '/dom.js', '/render.js', '/explain.js', '/detail.js', '/cohort-only.js']));
+    expect(files).toEqual(expect.arrayContaining(['/index.html', '/styles.css', '/app.js', '/state.js', '/nav.js', '/api.js', '/messages.js', '/format.js', '/keys.js', '/dom.js', '/render.js', '/explain.js', '/detail.js']));
     for (const f of files) expect(f, f).toMatch(/\.(html|css|js|svg|ico|png|txt)$/);
   });
 

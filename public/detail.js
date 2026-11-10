@@ -53,10 +53,11 @@ const nusText = (text, ctx) => h('p', { class: 'nus-text' },
 
 /**
  * @param {unknown} raw /module's prerequisite
+ * @param {boolean} cohortOnly /module's prereqCohortOnly
  * @param {DetailContext} ctx
  */
-function prerequisites(raw, ctx) {
-  const view = prereqView(typeof raw === 'string' ? raw : null);
+function prerequisites(raw, cohortOnly, ctx) {
+  const view = prereqView(typeof raw === 'string' ? raw : null, cohortOnly);
   if (!view) return section('Prerequisites', h('p', null, 'No prerequisites listed'));
   if (view.kind === 'cohort') {
     return section('Prerequisites', h('p', { class: 'prereq-line' }, view.line),
@@ -141,7 +142,7 @@ export function renderDetail(region, m, ctx) {
   close.addEventListener('click', ctx.onClose);
   setChildren(region,
     section('Description', h('p', null, description || 'No description listed')),
-    prerequisites(m.prerequisite, ctx),
+    prerequisites(m.prerequisite, m.prereqCohortOnly === true, ctx),
     preclusions(m.preclusion, ctx),
     section('Final exam (Singapore time)', h('ul', { class: 'exam-list' }, ...examLines(Array.isArray(m.examDates) ? m.examDates : []).map((l) => h('li', null, l)))),
     section('Workload', h('p', null, workloadText(m.workload))),

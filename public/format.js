@@ -4,7 +4,6 @@
 // its missing spaces put back, its cohort-only case named, and its course codes
 // found. Every function returns plain text or plain data; the caller puts it in
 // a node with textContent.
-import { isCohortOnly } from './cohort-only.js';
 
 /** @type {Readonly<Record<string, string>>} */
 const SEM_NAMES = Object.freeze({ 1: 'Sem 1', 2: 'Sem 2', 3: 'Special term 1', 4: 'Special term 2' });
@@ -114,16 +113,18 @@ export function cleanPrereq(text) {
 
 /**
  * The detail's prerequisite: null when NUS lists none; `cohort` when the rule
- * names only NUS intake years or programmes (3H-0's P-6 rule), with a plain
- * line; otherwise NUS's `rule`, spaced. `text` is always NUS's own words. No
+ * names only NUS intake years or programmes (3H-0's P-6 rule, which ingest
+ * stores and /module/:code answers as `prereqCohortOnly`), with a plain line;
+ * otherwise NUS's `rule`, spaced. `text` is always NUS's own words. No
  * plain-English rewrite of the rule language (docs/plans/phase5.md 5C).
  * @param {string | null | undefined} raw
+ * @param {boolean} cohortOnly /module/:code's `prereqCohortOnly`
  * @returns {{ kind: 'cohort' | 'rule', line: string | null, text: string } | null}
  */
-export function prereqView(raw) {
+export function prereqView(raw, cohortOnly) {
   const text = cleanPrereq(raw);
   if (!text) return null;
-  if (!isCohortOnly(raw)) return { kind: 'rule', line: null, text };
+  if (!cohortOnly) return { kind: 'rule', line: null, text };
   const cohorts = /\bcohorts?\b/i.test(text);
   const programmes = /\bundertaking (?:1 of )?\d{4}[A-Z0-9]{2,}/i.test(text);
   const names = cohorts && programmes ? 'NUS intake years and programmes' : programmes ? 'NUS programmes' : 'NUS intake years';

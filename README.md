@@ -36,7 +36,8 @@ Only `true` narrows — `ng=0` is ignored, and `study` is ignored without `ng=1`
 semester with an exam (`date` ISO UTC as NUSMods gives it; `[]` for none); `workload` as
 `{ lecture, tutorial, lab, project, prep, total }` hours a week, `{ raw }` when NUSMods gives
 something other than its 5-number array (two modules give a string), or `null` when not listed
-(absent or all zero); and `nusmodsUrl`, where the class times are. It is cached
+(absent or all zero); `nusmodsUrl`, where the class times are; and (5D) `prereqCohortOnly`, the
+stored 3H-0 flag that the prerequisite names only NUS intake years or programmes. It is cached
 `public, max-age=300` on a 200, `public, max-age=60` on a 404 and `no-store` on a 5xx, with no ETag.
 
 `/search` (Phase 5 5C-api) also answers, on every 200, what the page needs to explain a typed
@@ -198,7 +199,6 @@ path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still r
 | `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
 | `messages.js` | a plain sentence for every error code and `noMatch` reason; raw codes are never shown |
 | `format.js` | semester names, workload, exams in Singapore time, NUS prerequisite spacing, the cohort-only prerequisite line, course codes in NUS's text |
-| `cohort-only.js` | 3H-0's cohort-only rule for the page (`/module/:code` doesn't answer `prereq_cohort_only`): a copy of `data/cohort-only-prereq.json` and `src/cohort-only.js`, held equal by its test |
 | `explain.js` | exchange wording (pure): each note in full, the `semester` note as an action, each source with its "updated as at" date, why a typed code is hidden (its own stored reasons), the partial-code empty state, and the typed codes past the three that pin |
 | `detail.js` | a card's detail, inline, from `/module/:code` (fetched once per page): description, prerequisites and preclusions as NUS states them with codes linked to a search, exams, workload, exchange availability per semester, the NUSMods link for class times |
 | `keys.js` | Enter submits only outside IME composition |
