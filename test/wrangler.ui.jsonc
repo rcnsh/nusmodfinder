@@ -1,0 +1,34 @@
+// The UI test stack's Worker config (Phase 5 5B): the page in public/ as
+// Workers Static Assets, over test/ui/worker.js (src/index.js with FakeAI and
+// FakeRateLimit) and a local D1 seeded with the fixture by
+// scripts/ui-server.mjs. `npm run dev` and the Playwright suite use it.
+//
+// Like test/wrangler.test.jsonc it binds nothing metered: no `ai`, no
+// `vectorize`, no `ratelimits`, and a D1 id that is not production's, so a
+// `--remote` command pointed at this file fails instead of touching prod. It
+// lives in test/ so wrangler never reads the root .dev.vars; ui-server.mjs
+// passes its own one-off --env-file.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "vector-nusmods-ui",
+  "main": "./ui/worker.js",
+  "compatibility_date": "2026-09-01",
+  // As wrangler.jsonc: no binding, so assets add nothing to Env, and a request
+  // for a file in public/ never runs the Worker.
+  "assets": { "directory": "../public" },
+  // The fixture's bundle, vocabulary and groups: the corpus this stack seeds.
+  "alias": {
+    "vectors-bundle": "./fixtures/vectors.js",
+    "vocabulary-data": "./fixtures/vocabulary.json",
+    "groups-data": "./fixtures/groups.json"
+  },
+  "vars": { "DENSE_BACKEND": "bundle" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nusmods",
+      "database_id": "00000000-0000-4000-8000-000000000000",
+      "migrations_dir": "../migrations"
+    }
+  ]
+}

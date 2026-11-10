@@ -73,15 +73,16 @@ async function fullBundle() {
 const FIXTURE_VOCABULARY = fileURLToPath(new URL('./test/fixtures/vocabulary.json', import.meta.url));
 
 /**
- * 3C's vocabulary import in src/intent-data.js, pointed at the vocabulary of
- * the corpus a project searches, never the production one (data/).
+ * 3C's vocabulary import in src/intent-data.js (the bare name, Phase 5 5B),
+ * pointed at the vocabulary of the corpus a project searches, never the
+ * production one (data/).
  * @param {string} path
  */
-const vocabularyAlias = (path) => ({ find: /^\.\.\/data\/vocabulary\.json$/, replacement: path });
+const vocabularyAlias = (path) => ({ find: 'vocabulary-data', replacement: path });
 /** The committed fixture groups (scripts/build-groups.mjs --corpus fixture). */
 const FIXTURE_GROUPS = fileURLToPath(new URL('./test/fixtures/groups.json', import.meta.url));
-/** 3F's groups import in src/group-data.js, pointed at the groups of the corpus the tests search. @param {string} path */
-const groupsAlias = (path) => ({ find: /^\.\.\/data\/groups\.json$/, replacement: path });
+/** 3F's groups import in src/group-data.js (the bare name), pointed at the groups of the corpus the tests search. @param {string} path */
+const groupsAlias = (path) => ({ find: 'groups-data', replacement: path });
 
 // Files named *.node.test.js run in plain Node instead of workerd: they cover
 // Node-side code (scripts/) and read repository files, neither of which the

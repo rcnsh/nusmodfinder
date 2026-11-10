@@ -1,11 +1,13 @@
 // @ts-check
 // 3F's duplicate groups for the Worker: data/groups.json, groups-v1
 // (src/groups.js) over the production bundle's corpus, built with it
-// (scripts/build-groups.mjs) and versioned the same way. The Vitest configs
-// alias this import to the fixture's or the pinned corpus's groups, and every
-// eval run overwrites the file in its workspace with the run corpus's.
+// (scripts/build-groups.mjs) and versioned the same way, imported by the bare
+// name `groups-data` that wrangler.jsonc aliases to it. The Vitest configs alias
+// it to the fixture's or the pinned corpus's groups; vitest.eval.config.mjs to
+// each run workspace's data/groups.json, which the run overwrites with the run
+// corpus's.
 // Parsed once per isolate.
-import groupsFile from '../data/groups.json';
+import groupsFile from 'groups-data';
 import { parseGroupsFile } from './groups.js';
 
 /** @type {{ groupOf: Map<string, string>, members: Map<string, string[]> } | null} */

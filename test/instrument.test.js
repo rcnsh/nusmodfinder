@@ -176,8 +176,11 @@ describe('structured /search log', () => {
 });
 
 describe('version traceability', () => {
-  it('x-app-version is the tag, else the version id, else "dev", on every route', async () => {
-    for (const path of ['/', '/search?q=networks%20version', '/module/CS1010S', '/facets', '/health', '/nope']) {
+  // The page (`/`) is static assets since Phase 5 5B: those responses skip the
+  // Worker and carry no x-app-version, so GET /health is the version trace for
+  // `/` (test/ui/routes.spec.js checks / is the page and the API is the Worker).
+  it('x-app-version is the tag, else the version id, else "dev", on every Worker route', async () => {
+    for (const path of ['/search?q=networks%20version', '/module/CS1010S', '/facets', '/health', '/nope']) {
       const tagged = await call(path, { fakes, env: { CF_VERSION_METADATA: VERSION } });
       expect(tagged.headers.get('x-app-version'), path).toBe('abc1234');
     }

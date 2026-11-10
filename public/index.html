@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NUSMods semantic search</title>
+<link rel="stylesheet" href="/styles.css">
+<script type="module" src="/app.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>NUSMods semantic search</h1>
+    <p class="sub">Describe what you want to study, or type a code like <code>CS3244</code>. Data: unofficial NUSMods API, AY2026&#8288;/&#8288;2027.</p>
+  </header>
+
+  <form id="f">
+    <div class="row">
+      <input type="search" id="q" name="q" maxlength="200" placeholder="e.g. machine learning for beginners" autocomplete="off" aria-label="Search query">
+      <button type="submit" id="go">Search</button>
+    </div>
+    <div class="filters">
+      <label>Semester
+        <select id="sem"><option value="">Any</option></select>
+      </label>
+      <label>Level
+        <select id="level"><option value="">Any</option></select>
+      </label>
+      <label>Credits
+        <select id="credits"><option value="">Any</option></select>
+      </label>
+      <label>Faculty
+        <select id="faculty"><option value="">Any</option></select>
+      </label>
+    </div>
+    <label class="toggle" for="ng">
+      <input type="checkbox" id="ng">
+      <span class="track" aria-hidden="true"></span>
+      <span>
+        <span class="label">Open to exchange students only</span>
+        <span class="hint" id="ngHint"></span>
+      </span>
+    </label>
+    <label class="study" id="studyWrap" hidden>Your year of study at your home university
+      <select id="study"><option value="">Choose…</option></select>
+    </label>
+    <div class="sources" id="sources" hidden></div>
+  </form>
+
+  <div id="status" class="status">Type a query to begin.</div>
+  <ol id="results"></ol>
+</div>
+</body>
+</html>

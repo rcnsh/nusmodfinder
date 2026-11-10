@@ -18,7 +18,7 @@ filter by semester, level, credits and faculty.
 
 | Route | Purpose |
 |---|---|
-| `GET /` | Single-page UI, no framework, no build step |
+| `GET /` | The page: `public/`, served as Workers Static Assets (no Worker CPU); native ES modules, no framework, no build step ([below](#the-page)) |
 | `GET /search?q=&sem=&level=&credits=&faculty=&ng=&study=&topK=&mode=` | Ranked results as JSON |
 | `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study, its exams, its workload and its NUSMods link (below) |
 | `GET /facets` | Distinct faculties and levels, with counts, for the filter UI, and the exchange-mode sources with their dates |
@@ -70,7 +70,7 @@ the code that reads them. The bundles:
 
 | bundle | what | where |
 |---|---|---|
-| fixture | the ~400 test modules, fake embedder (632 KB) | `test/fixtures/vectors.bin`, committed; the alias's default, so `npm test`, `wrangler dev` and a fresh checkout build against it |
+| fixture | the ~400 test modules, fake embedder (632 KB) | `test/fixtures/vectors.bin`, committed; the alias's default, so `npm test`, `npm run dev` and a fresh checkout build against it |
 | pinned | the 6,771 pinned modules, the eval's default corpus vectors (`emb-bge-small-v1` since 3A-2; 10.7 MB) | release asset, sha256 in `data/vectors.json`; `test/full` and the `full-corpus` CI job (`node scripts/vectors.mjs fetch --corpus pinned`) |
 | production | what D1 holds (6,778 at the 3-0 cutover) | release asset, sha256 in `data/vectors.json`; only `npm run deploy` uses it, and it refuses the other two |
 
@@ -80,6 +80,13 @@ production gets the replica's bits for every text the two share. Texts the asset
 embedded once (`npm run eval:embed -- --texts`, logged in `neurons.tsv`). The manifest records
 each bundle's data version, row count, sha256 and `rowsKey`, the sha256 of its sorted
 (code, `text_hash`) pairs.
+
+**The vocabulary and groups** (3C, 3F) are bare-name aliases too: `src/intent-data.js` and
+`src/group-data.js` import `vocabulary-data` and `groups-data`, which `wrangler.jsonc` points at
+`data/vocabulary.json` and `data/groups.json` (deploy adds no `--alias` for them), the Vitest
+configs at the fixture's or the pinned corpus's, `test/wrangler.ui.jsonc` at the fixture's, and
+`vitest.eval.config.mjs` at each eval run's own workspace copies, so a run never ranks with
+the wrong vocabulary.
 
 **Vectorize is the standby.** `DENSE_BACKEND=vectorize` (a wrangler var, flipped by a
 deploy) sends the dense half back to Vectorize, with the same filters. That is degraded
@@ -160,6 +167,54 @@ Adding a ninth filterable property later means **recreating the index and re-ing
 Vectorize allows at most 10 metadata indexes, and only the first 64 bytes of a string
 property are filterable.
 
+## The page
+
+`public/` is the whole frontend (Phase 5 5B, `docs/plans/phase5.md`): `index.html`,
+`styles.css` and native ES modules with `// @ts-check` and JSDoc, served by Workers Static
+Assets (the `assets` block in `wrangler.jsonc`, no binding). No file there matches an API
+path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still reach the Worker.
+
+| module | does |
+|---|---|
+| `state.js` | the state ↔ URL mapping (pure). In exchange mode `ng=1` and `study` are always in the URL; `open=` names the one open detail; `pick` and `alt` are reserved for Phase 6 |
+| `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed |
+| `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
+| `messages.js` | a plain sentence for every error code and `noMatch` reason; raw codes are never shown |
+| `format.js` | semester names, workload, exams in Singapore time, NUS prerequisite spacing |
+| `keys.js` | Enter submits only outside IME composition |
+| `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`), the cards and status, the controller |
+
+`npm run typecheck` checks it with `tsconfig.web.json` (the DOM lib); the pure modules are
+unit-tested in Node (`test/web/`).
+
+**Run it locally:**
+
+```bash
+npm run dev        # node scripts/ui-server.mjs: prints http://127.0.0.1:<port>; Ctrl-C stops it
+```
+
+`scripts/ui-server.mjs` runs `wrangler dev --local` on `test/wrangler.ui.jsonc`:
+`test/ui/worker.js` (the Worker with `FakeAI`, the fixture bundle's embedder, and
+`FakeRateLimit`) behind `public/`, over a fresh local D1 in a temporary directory. It applies
+the migrations, seeds the fixture through `/admin/ingest?d1Only=1`, the catalogue-only rows
+through `/admin/catalogue` and the NG list through `/admin/facets`, with a one-off
+`INGEST_SECRET` in its own temporary env file (never `.dev.vars`), and deletes it all on exit.
+No binding in that config reaches Cloudflare. It picks a free port (`--port N` to choose one;
+8787 and 8799 are refused).
+
+**UI tests** (Playwright, Chromium and WebKit, with `@axe-core/playwright`; `test/ui/*.spec.js`):
+
+```bash
+npx playwright install chromium webkit   # once
+npm run test:ui                          # starts its own ui-server on a free port
+VNM_UI_URL=http://127.0.0.1:<port> npm run test:ui   # or reuse a running `npm run dev`
+```
+
+Failure states (timeout, 429, an HTML error page, `/facets` down, keyword-only) use request
+interception. CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
+fixtures, `data/` or the lockfile change. The Phase 4 page is kept frozen as
+`docs/evidence/phase0/page-phase4.html` for the findings tests (`test/findings/frontend.node.test.js`).
+
 ## Deploying
 
 ```bash
@@ -184,10 +239,12 @@ This is the only supported way to deploy. `scripts/deploy.mjs`:
 
 Plain `npx wrangler deploy` would ship the fixture bundle. Don't use it.
 
-To check what's live: every response carries `x-app-version` (the tag, else the version
+To check what's live: every Worker response carries `x-app-version` (the tag, else the version
 id), and `GET /health` returns `{ ok, versionId, versionTag, dataVersion, vectors }` without
 touching D1. `vectors` is the bundle's `{ corpus, count, dataVersion }`, so after a deploy it
-must say `production`.
+must say `production`. The page (`/` and the files in `public/`) is static assets, answered
+without running the Worker, so it carries no `x-app-version`: `GET /health` is the version
+trace for `/`, and a deploy ships the page and the Worker as one version.
 
 **Instrumentation.** `/search`, `/module/:code` and `/facets` responses carry a
 `Server-Timing` header. `/search` has spans `cache` (`desc=hit|miss`), `limit`, `pin`,

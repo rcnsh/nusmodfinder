@@ -30,7 +30,17 @@ export default defineConfig(async () => {
     // The workspace's test/wrangler.test.jsonc `alias` (the plugin does not
     // read it): the bundle eval/runner/run.mjs built for this run. Unused by
     // rankers without in-Worker vectors (eval-v0).
-    resolve: { alias: { 'vectors-bundle': join(ws, 'test/fixtures/vectors.js') } },
+    // The vocabulary and groups (Phase 5 5B, A3-1, B3-2): this run's own copies
+    // in the workspace, which the run overwrites with ones built from its
+    // corpus (eval/lib/corrected.mjs), never the repo's data/. Rankers from
+    // before the bare names import ../data/*.json, the same files.
+    resolve: {
+      alias: {
+        'vectors-bundle': join(ws, 'test/fixtures/vectors.js'),
+        'vocabulary-data': join(ws, 'data/vocabulary.json'),
+        'groups-data': join(ws, 'data/groups.json'),
+      },
+    },
     test: {
       name: 'eval',
       include: [`${relative(ROOT, ws)}/eval/runner/retrieval.eval.js`],
