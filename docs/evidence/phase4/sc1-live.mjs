@@ -4,8 +4,9 @@
 // calls on the live Worker, 2 per (sem, study) combination, with texts not used
 // anywhere before, and every module shown (results and variants) checked
 // against the independent oracle over the production-normalised modules. One
-// call each, browser User-Agent, no retries; each call appended to
-// <out.jsonl>. Refuses to send past 30 calls (the budget). Exit 1 on any leak.
+// call each, browser User-Agent; each call appended to
+// <out.jsonl>, at least 4 s apart (the rate limiter). A 429 is re-sent on the next run.
+// Refuses to send past 30 checked calls. Exit 1 on any leak.
 //
 //   node docs/evidence/phase4/sc1-live.mjs <out.jsonl> [.data/cache/2026-2027-moduleInfo.json]
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
@@ -36,7 +37,12 @@ const raw = JSON.parse(readFileSync(path, 'utf8'));
 const { modules } = offeredModules(Array.isArray(raw) ? raw : raw.data, DEFAULT_ACAD_YEAR, await loadNgCourses(DEFAULT_ACAD_YEAR));
 const moduleOf = new Map(modules.map((m) => [m.code, m]));
 const previous = existsSync(out) ? readFileSync(out, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)) : [];
-const done = new Set(previous.map((p) => p.n));
+// A 429 is the Worker's own per-IP limiter answering before any search runs (no
+// quota spent, nothing to check); it is re-sent on the next run.
+const done = new Set(previous.filter((p) => p.status !== 429).map((p) => p.n));
+/** Calls start at least this far apart, under the limiter's rate. */
+const GAP_MS = 4_000;
+let last = 0;
 
 const combos = NG_SEMS.flatMap((sem) => STUDIES.map((study) => ({ sem, study })));
 let n = 0, leaks = 0;
@@ -47,6 +53,9 @@ for (const [i, { sem, study }] of combos.entries()) {
     if (n > BUDGET) { console.error("budget reached"); process.exit(1); }
     const q = TEXTS[i * 2 + k];
     const params = new URLSearchParams({ q, ng: '1', study, ...(sem === 'any' ? {} : { sem: String(sem) }) });
+    const wait = last + GAP_MS - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    last = Date.now();
     const at = new Date().toISOString();
     const res = await fetch(`${ORIGIN}/search?${params}`, { headers: { 'user-agent': UA } });
     const body = /** @type {any} */ (await res.json().catch(() => null));
