@@ -187,7 +187,36 @@ The page is **Exchange Course Finder (unofficial, for NUS)**, the working name u
 (ADR 0008, D3); "unofficial" is in its title and visible header at every width, and its footer
 links NUSMods, the NG list, the restrictions and the Registrar's vacancy report (P3).
 
-`public/` is the whole frontend (Phase 5 5B and 5C, `docs/plans/phase5.md`): `index.html`,
+**The design is direction D, "Annotated catalogue"** (Phase 5 5D; Jacob's pick, ADR 0008; the
+spec is `docs/design/phase5-direction-d.html`): IBM Plex Sans, with Plex Mono for codes, units
+and exam times; nothing heavier than 600; 1px rules; outlined or lightly tinted chips and
+stamps; a near-white ground and one muted plum accent. Light is D's primary theme; a dark theme
+built to match follows the system setting (`prefers-color-scheme`). Every colour is a token at
+the top of `styles.css`, and `npm run contrast` (`scripts/contrast.mjs`, also run by `npm test`)
+checks every text/background and boundary pair in both themes against WCAG AA.
+
+- **The first screen is the exchange set-up** (D2): the semester at NUS (Sem 1, Sem 2 or both),
+  the year of study (pre-filled from this device), then what to study; "Browse all courses
+  instead" leads to the general search. A link with any state skips it.
+- **Results:** a rail on the left ("Your exchange", the filters and the key) beside the search
+  bar, the filter chips (each removes its filter; the semester and year exchange mode needs are
+  changed in the rail), and the entries in three columns: code and units; title, department,
+  timetable semesters, exam day and time (Singapore) and other codes; the exchange stamp per
+  semester (an icon, a word and a colour) with every note in full after a lead-in word. Below
+  1040px the status drops under the title.
+- **On a phone** (≤ 640px) the form is one bar (query and Search), and the rail opens as a modal
+  `<dialog>` from "Filters (n)": its controls move into the dialog while it is open, so there is
+  one copy of each; focus stays inside, Escape or Done closes it, and focus returns to the
+  button. Inputs are 16px, so iOS doesn't zoom.
+- **The detail** opens as a sheet under its entry: "can you take it" (per semester, every note
+  with its source and date, "check with NUS", the NUSMods link) beside the course facts, and
+  above them on a narrow screen.
+- **Fonts** are self-hosted (`public/fonts/`, IBM's own Latin1 WOFF2 subsets, SIL OFL in
+  `public/fonts/OFL.txt`) with `font-display: swap` and a system fallback stack; the page makes
+  no request to any other origin. Plex Mono draws a dotted zero, so mono text sets its stylistic
+  set 4, the plain one (Plex Sans's zero is plain already).
+
+`public/` is the whole frontend (Phase 5 5B to 5D, `docs/plans/phase5.md`): `index.html`,
 `styles.css` and native ES modules with `// @ts-check` and JSDoc, served by Workers Static
 Assets (the `assets` block in `wrangler.jsonc`, no binding). No file there matches an API
 path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still reach the Worker.
@@ -199,16 +228,15 @@ path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still r
 | `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
 | `messages.js` | a plain sentence for every error code and `noMatch` reason; raw codes are never shown |
 | `format.js` | semester names, workload, exams in Singapore time, NUS prerequisite spacing, the cohort-only prerequisite line, course codes in NUS's text |
-| `explain.js` | exchange wording (pure): each note in full, the `semester` note as an action, each source with its "updated as at" date, why a typed code is hidden (its own stored reasons), the partial-code empty state, and the typed codes past the three that pin |
+| `explain.js` | exchange wording (pure): each stamp's words, each note in full with its lead-in word ("Places.", "Your major."), the `semester` note as an action, each source with its "updated as at" date, why a typed code is hidden (its own stored reasons), the partial-code empty state, and the typed codes past the three that pin |
 | `detail.js` | a card's detail, inline, from `/module/:code` (fetched once per page): description, prerequisites and preclusions as NUS states them with codes linked to a search, exams, workload, exchange availability per semester, the NUSMods link for class times |
 | `keys.js` | Enter submits only outside IME composition |
-| `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`); the cards (an APG disclosure each: a heading holding one button that controls the detail; the exchange status for the chosen semester, or per semester when planning both; no score) and the status area; the controller |
+| `icons.js` | the stamps' and controls' small line icons, built as SVG nodes, all decorative (`aria-hidden`) |
+| `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`); the entries (an APG disclosure each: a heading holding one button that controls the detail; the exchange stamp for the chosen semester, or one per semester when planning both, with the notes both share said once; no score), the hidden-codes box and the status area; the controller (the set-up screen, the rail's semester segment, the chips, the filters dialog) |
 
-`styles.css` holds the Phase 4 look plus 5C's plain structural rules (marked); the design is
-5D's, which restyles classes without touching the modules' logic.
-
-`npm run typecheck` checks it with `tsconfig.web.json` (the DOM lib); the pure modules are
-unit-tested in Node (`test/web/`).
+`npm run typecheck` checks it with `tsconfig.web.json` (the DOM lib) and the Playwright specs
+with `tsconfig.ui.json` (Node plus the DOM lib, for their `page.evaluate` callbacks); the pure
+modules are unit-tested in Node (`test/web/`).
 
 **Run it locally:**
 
@@ -236,7 +264,12 @@ VNM_UI_URL=http://127.0.0.1:<port> npm run test:ui   # or reuse a running `npm r
 Failure states (timeout, 429, an HTML error page, `/facets` down, keyword-only), a raw
 workload, a failed `/module` and a 4th typed code that is neither shown nor hidden use request
 interception; the cards, the detail (`?q=CODE&open=CODE`), the hidden-code lines and the
-partial-code states run on the fixture. CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
+partial-code states run on the fixture. 5D's specs: `setup.spec.js` (the first screen),
+`mobile.spec.js` (F10 and the chips), `fold.spec.js` (the 390×664 fold check, also as an
+iPhone 13), `fonts.spec.js` (self-hosting, weights, the plain zero) and `a11y.spec.js` (axe,
+every rule, no violation allowed, both themes at 1280 and 390×664). `shots.spec.js` saves the
+five mockup states from the real page in both themes to `docs/evidence/phase5/shots/` when
+asked (`VNM_SHOTS=1 npx playwright test shots --project chromium`). CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
 fixtures, `data/` or the lockfile change. The Phase 4 page is kept frozen as
 `docs/evidence/phase0/page-phase4.html` for the findings tests (`test/findings/frontend.node.test.js`).
 
