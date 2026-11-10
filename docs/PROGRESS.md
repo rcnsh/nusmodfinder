@@ -1047,3 +1047,17 @@ fails on the previous code.
   byte-identical to `9d91605`'s, and the custodian's new `eval:count --lists-differing` finds 0
   of 81 holdout lists differ. `SHIPPED_BASELINE` is `f798542`. Holdout looks stay at 7 of 12.
 - **Next:** D1 from Jacob, then 5B (the static-asset foundation).
+
+## 2026-11-11 — Phase 5 5B merged: the frontend foundation
+
+- **5B** (PR #70, `ad723d1`): the page moves to `public/` as Workers Static Assets (no build, no
+  framework, DOM-only rendering with an innerHTML lint ban), with URL state and the transition
+  table, a fetch layer (abort, 10 s timeout, 429, plain-sentence errors), filters that don't wait
+  on `/facets`, and IME-safe Enter. F2, F3, F4, F7, F8 and F9 are fixed.
+- **Test stack:** `scripts/ui-server.mjs` (local only, its own one-off secret), Playwright in
+  Chromium and WebKit with axe, the CI job `ui`. The eval's fixture results are byte-identical
+  before and after (the bare `vocabulary-data`/`groups-data` aliases load each run's workspace).
+- **Not live yet:** production changes at 5G's deploy.
+- **Design gate:** a fourth direction, D "Annotated catalogue" (between A and C, quieter), is in
+  the ephemera set beside A–C; D1 is still Jacob's.
+- **Next:** 5C-api (the `/search` additions), which needs no design.
