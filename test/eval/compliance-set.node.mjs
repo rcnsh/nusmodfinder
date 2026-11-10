@@ -9,6 +9,8 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { constraintFieldsSha256 } from '../../eval/lib/compliance.mjs';
+import { textSha } from '../../eval/lib/corpus.mjs';
 import { REPO, studyMapSha256 } from '../../eval/lib/sets.mjs';
 
 export const CSCU = 'Completed Satisfactory/Unsatisfactory';
@@ -111,10 +113,13 @@ export function syntheticSet(set, o) {
   const querySet = { schema: 'vnm-eval-queries/1', set, version: 'synthetic-5f-v1', queries };
   const qrels = { schema: 'vnm-eval-qrels/1', set, version: 'qrels-synthetic-5f-v1', corpus: { moduleInfoSha256: CORPUS_SHA }, groups: [], queries: judged };
   const corpus = { source: { generator: '5F compliance tests' }, count: modules.length, modules };
+  // What a run of this corpus records (eval/runner/run.mjs): its text and its constraint fields.
+  const byCode = new Map(modules.map((m) => [m.code, m]));
+  const recorded = { moduleInfoSha256: CORPUS_SHA, textSha256: textSha(/** @type {any} */ (modules)), constraintFieldsSha256: constraintFieldsSha256([...byCode.keys()], (c) => byCode.get(c)) };
   /** @param {string} variant @param {any} ranker @param {Record<string, string[]>} lists @param {Record<string, unknown> | null} [ints] */
   const run = (variant, ranker, lists, ints = null) => ({
     schema: 'vnm-eval-run/1', variant, set, ranker,
-    corpus: { moduleInfoSha256: CORPUS_SHA },
+    corpus: { ...recorded },
     queries: { version: querySet.version, sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'), count: queries.length },
     config: { mode: 'hybrid', filters: true, studyMap: studyMapSha256() },
     results: Object.fromEntries(Object.entries(lists).map(([id, c]) => [id, { status: 200, codes: c }])),

@@ -406,8 +406,9 @@ results by design. It covers L8 (`docs/plans/phase5.md` §3 5F: B2-1 to B2-6, B3
     reference's on any query: an extra or a missing intent, another value, or other prerequisite
     semantics. It throws before the ledger row is written, so the mismatch spends no look.
   - A run with no `intents` is refused (`RunFileError`).
-  - A non-200 answer echoes no parse and is not compared. It shows nothing and is scored as an
-    error, so "no new errors" catches it.
+  - A non-200 answer echoes no parse and is not compared. It shows nothing, and the rule fails a
+    candidate that errors on any query its baseline answered ("no new errors, per query"), so an
+    error cannot hide a parse.
 - **The constraint fields' source** is the pinned snapshot normalised by the candidate's
   `scripts/lib.mjs` (its commit, or the working tree for a working-tree run). That gives the exam
   semesters, S/U, workload hours, prerequisite (none or cohort-only) and the allow mask. The
@@ -415,6 +416,10 @@ results by design. It covers L8 (`docs/plans/phase5.md` §3 5F: B2-1 to B2-6, B3
   `eval/study-map.json`.
   - The verdict throws `ConstraintFieldsError` if any judged code, or any code either run
     returned, is missing from the source.
+  - The rule reads only what the candidate was seeded with. The runner records the run corpus's
+    `textSha256` and a digest of every module's constraint fields (`constraintFieldsSha256`).
+    The verdict throws `CorpusMismatchError` before the ledger row if its source gives another
+    text (the reference's vocabulary) or other fields. A run that recorded no digest is refused.
   - A synthetic set whose own `corpus.json` carries every field is its own source. That is for
     tests only; the eval fixture's corpus does not.
 - **Constrained queries and filtered qrels.** A query is constrained when the reference parses
@@ -436,7 +441,8 @@ results by design. It covers L8 (`docs/plans/phase5.md` §3 5F: B2-1 to B2-6, B3
     constraints;
   - identity: every query the reference leaves unparsed has its top 10 (status and codes)
     byte-identical to the pin's;
-  - and every gate's checks: no new errors (raw), ≥ 10 primary scored queries, judged@10 100%.
+  - and every gate's checks: no new errors (in total, and per query), ≥ 10 primary scored
+    queries, judged@10 100%.
 - **Output.** On the holdout the verdict prints only:
   - the verdict line (rule, baseline, qrels);
   - the primary ΔnDCG@10 and ΔP@5 with their BCa intervals;

@@ -13,7 +13,8 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { isParsed, loadRuleSources } from '../../eval/lib/compliance.mjs';
+import { constraintFieldsSha256, isParsed, loadRuleSources } from '../../eval/lib/compliance.mjs';
+import { loadPinnedWith } from '../../eval/lib/corpus.mjs';
 import { qrelsFor } from '../../eval/lib/metrics.mjs';
 import { layout, loadQrels, loadQueries, REPO } from '../../eval/lib/sets.mjs';
 import { MODULE_INFO_PATH } from '../../scripts/pinned-corpus.mjs';
@@ -48,6 +49,11 @@ describe.skipIf(!available)('the 5F compliance rule on the pinned snapshot', () 
       expect(judged.size).toBeGreaterThan(800);
       expect([...judged].filter((c) => !sources.fieldsOf(c))).toEqual([]);
       expect(sources.source.fields).toMatch(/^the pinned snapshot/);
+      // A dev run records the digest of the fields it seeds (eval/runner/run.mjs): the rule's source gives the same.
+      const { modules, info } = await loadPinnedWith(REPO);
+      const byCode = new Map(modules.map((m) => [m.code, /** @type {any} */ (m)]));
+      expect(constraintFieldsSha256([...byCode.keys()], (c) => byCode.get(c))).toBe(sources.source.fieldsSha256);
+      expect(info.textSha256).toBe(sources.source.runTextSha256);
     } finally {
       await sources.close();
     }
@@ -73,6 +79,11 @@ describe.skipIf(!available)('the 5F compliance rule on the pinned snapshot', () 
     try {
       // A3-1: the vocabulary the run recorded is the one the reference parsed over.
       expect(cand.config.vocabulary.sha256).toBe(sources.source.vocabularySha256);
+      expect(cand.corpus.textSha256).toBe(sources.source.runTextSha256);
+      // The fixture's Worker was seeded without 3H's fields, so its recorded digest is not the
+      // pinned snapshot's: past the parse check, the rule would refuse the fixture (CorpusMismatchError).
+      expect(cand.corpus.constraintFieldsSha256).toMatch(/^[0-9a-f]{64}$/);
+      expect(cand.corpus.constraintFieldsSha256).not.toBe(sources.source.fieldsSha256);
       // The eval fixture's corpus.json predates 3H's fields, so its Worker knows no exam and
       // exam=0 removes nothing there, while the pinned snapshot (the rule's source) knows them:
       // on the fixture the rule's compliance check would flag these. The rule is exercised on

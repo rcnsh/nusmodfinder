@@ -61,12 +61,13 @@ export function devComplianceReport(o) {
   for (const [id, { removed: codes }] of removed) out.push(`  ${id}: ${Object.entries(codes).map(([c, why]) => `${c} (${why})`).join(', ')}`);
   out.push(`unscored once filtered (${r.detail.emptied.length}): ${r.detail.emptied.join(', ') || 'none'}`);
   out.push(`unparsed queries whose top 10 differ from the baseline (${r.identity.differing.length} of ${r.identity.queries}): ${r.identity.differing.join(', ') || 'none'}`);
+  out.push(`queries the candidate newly errors on (${r.newErrors.length}): ${r.newErrors.join(', ') || 'none'}`);
 
   /** @type {import('./gate.mjs').Verdict | null} */
   let verdict = null;
   if (gate) {
     verdict = gateFor(o.set.gate, r.cmp, o.change ?? { kind: 'compliance' }, {
-      compliance: { raw: r.raw, block: r.block, compliance: { queries: r.compliance.queries, violations: r.compliance.violations.length }, identity: { queries: r.identity.queries, differing: r.identity.differing.length } },
+      compliance: { raw: r.raw, block: r.block, compliance: { queries: r.compliance.queries, violations: r.compliance.violations.length }, identity: { queries: r.identity.queries, differing: r.identity.differing.length }, newErrors: r.newErrors.length },
     });
     out.push(`\n${verdictBlock(verdict)}`);
     if (!vocabMatch) out.push('  note: the candidate run\'s vocabulary is not the one the reference parsed over (A3-1); the dev screen does not pass with this difference');

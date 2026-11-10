@@ -38,7 +38,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadCorpusFile, loadPinnedWith } from './corpus.mjs';
 import { rankerIntentParser } from './corrected.mjs';
-import { ConstraintFieldsError, GateRuleError, ParseMismatchError, ReferenceParseError, RunFileError } from './errors.mjs';
+import { ConstraintFieldsError, CorpusMismatchError, GateRuleError, ParseMismatchError, ReferenceParseError, RunFileError } from './errors.mjs';
 import { compare, FEATURE_GAP_SHAPES, K, qrelsFor, scoreRun } from './metrics.mjs';
 import { REPO, loadStudyMap, studyMapSha256 } from './sets.mjs';
 
@@ -79,9 +79,28 @@ export const CONSTRAINT_FIELDS = Object.freeze(['examSemesters', 'su', 'gradingB
  *   fieldsOf: (code: string) => ConstraintFields | undefined,
  *   suGrading: (basis: string | null) => boolean,
  *   ngBit: (echo: { ng: true, sem?: number, study: any }) => number | null,
- *   source: { reference: string, vocabularySha256: string, fields: string, lib: string },
- * }} RuleSources
+ *   source: { reference: string, vocabularySha256: string, fields: string, lib: string, runTextSha256: string, fieldsSha256: string },
+ * }} RuleSources `runTextSha256`: the run corpus the reference's vocabulary was
+ *   built from; `fieldsSha256`: constraintFieldsSha256 of the fields the rule
+ *   reads, over the run corpus's codes. Both must equal what the candidate run
+ *   recorded (its `corpus`), so the rule reads what the candidate was seeded with.
  */
+
+/**
+ * A digest of every module's constraint fields, by code: what a run records
+ * as `corpus.constraintFieldsSha256` (the fields it seeded the Worker with),
+ * and what the rule recomputes from its own source.
+ * @param {string[]} codes
+ * @param {(code: string) => Record<string, unknown> | undefined} fieldsOf
+ */
+export function constraintFieldsSha256(codes, fieldsOf) {
+  const h = createHash('sha256');
+  for (const code of [...codes].sort()) {
+    const m = fieldsOf(code);
+    h.update(`${code}\t${JSON.stringify(CONSTRAINT_FIELDS.map((k) => (m && k in m ? m[k] : null)))}\n`);
+  }
+  return h.digest('hex');
+}
 
 /** @param {unknown} v */
 const truthyNg = (v) => v !== undefined && v !== null && v !== false && !['', 'false', '0'].includes(String(v));
@@ -227,6 +246,11 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
   assertRuleRun(cand, { intents: true });
   assertRuleRun(base, { explicit: explicitBaseline });
   const n = queries.length;
+  const recorded = /** @type {{ textSha256?: string, constraintFieldsSha256?: string }} */ (cand.corpus ?? {});
+  // The reference's vocabulary is built from the run corpus: it must be the candidate's.
+  if (recorded.textSha256 !== sources.source.runTextSha256) {
+    throw new CorpusMismatchError(`run ${cand.variant} was made on another corpus text than the one the reference parse's vocabulary is built from`);
+  }
   /** @type {Map<string, ReturnType<RuleSources['reference']>>} */
   const ref = new Map(queries.map((q) => [q.id, sources.reference(q.text)]));
   const parsed = queries.filter((q) => isParsed(/** @type {Parse} */ (ref.get(q.id))));
@@ -262,6 +286,13 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
     return !m || CONSTRAINT_FIELDS.some((k) => !(k in m));
   }).length;
   if (missing) throw new ConstraintFieldsError(`${missing} of ${codes.size} judged or returned codes have no constraint fields in ${sources.source.fields}`);
+  // The fields the rule reads are the ones the candidate's Worker was seeded with.
+  if (!recorded.constraintFieldsSha256) {
+    throw new RunFileError(`run ${cand.variant} records no corpus.constraintFieldsSha256; re-run it with this runner`);
+  }
+  if (recorded.constraintFieldsSha256 !== sources.source.fieldsSha256) {
+    throw new CorpusMismatchError(`the constraint fields in ${sources.source.fields} differ from those run ${cand.variant} was seeded with`);
+  }
   const fields = (/** @type {string} */ code) => /** @type {ConstraintFields} */ (sources.fieldsOf(code));
 
   // Constraint-filtered qrels: a failing document's grade becomes 0.
@@ -324,6 +355,9 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
   const top = (/** @type {import('./metrics.mjs').QueryRun} */ r) => JSON.stringify([r.status, r.codes.slice(0, K)]);
   const unparsed = queries.filter((q) => !isParsed(/** @type {Parse} */ (ref.get(q.id))));
   const differing = unparsed.filter((q) => top(base.results[q.id]) !== top(cand.results[q.id])).map((q) => q.id);
+  // No new errors, per query: a candidate error where the baseline answered 200
+  // (a parsed query's error also hides its parse from the mismatch check).
+  const newErrors = queries.filter((q) => cand.results[q.id].status !== 200 && base.results[q.id].status === 200).map((q) => q.id);
 
   return {
     cmp,
@@ -331,6 +365,7 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
     block,
     compliance: { queries: parsed.length, violations },
     identity: { queries: unparsed.length, differing },
+    newErrors,
     counts: { parsed: parsed.length, primary: cmp.n, block: block.n, unscored: cmp.unscored.n },
     scores: { base: baseScores, cand: candScores },
     // Dev only: ids, texts and per-query detail never leave an encrypted set's verdict path.
@@ -452,9 +487,10 @@ export async function loadRuleSources(set, cand) {
     const { ngBit } = await import(pathToFileURL(join(lib.root, 'src/ng-bit.js')).href);
     const ref = await referenceParser({ modules: runCorpus.modules, label: runCorpus.info.textSha256.slice(0, 12) });
     closers.push(ref.close);
+    const fieldsOf = (/** @type {string} */ code) => byCode.get(code);
     return {
       reference: ref.parse,
-      fieldsOf: (code) => byCode.get(code),
+      fieldsOf,
       suGrading,
       ngBit,
       source: {
@@ -462,6 +498,8 @@ export async function loadRuleSources(set, cand) {
         vocabularySha256: ref.vocabularySha256,
         fields: own ? 'the set\'s corpus.json' : `the pinned snapshot normalised by scripts/lib.mjs at ${lib.label}`,
         lib: lib.label,
+        runTextSha256: runCorpus.info.textSha256,
+        fieldsSha256: constraintFieldsSha256(runCorpus.modules.map((m) => m.code), (c) => /** @type {any} */ (fieldsOf(c))),
       },
       close,
     };

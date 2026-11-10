@@ -142,7 +142,8 @@ Run file (`vnm-eval-run/1`): `variant`, `set`, `ranker` (ref, sha, dirty, `treeH
 (release, moduleInfo sha256, NG sha256, module count, sha256 of all embedding texts),
 `embedding` (corpus version, model, text ref), `queries` (version, sha256, count), `config`,
 `results` (`id → { status, codes, error? }`, top 20 as returned), `docs` (metadata of every
-returned code, for violations), `intents` (Phase 5 5F: each query's `interpreted` 3H keys as the
+returned code, for violations; `corpus` also carries `constraintFieldsSha256`, a digest of the
+constraint fields the Worker was seeded with, Phase 5 5F), `intents` (Phase 5 5F: each query's `interpreted` 3H keys as the
 Worker echoed them, null for a non-200; outside `results`, so the ranking-identity checks that
 hash `results` don't see it). No query text. A run of the B2-4 diagnostic's baseline also records
 `config.explicit` (`{ label, params }`: the extra `/search` params each query was sent); no gate
@@ -206,7 +207,9 @@ Per change, vs the shipped ranker:
     run's `intents`. Otherwise `ParseMismatchError` is thrown before any ledger row, so no look
     is spent. The rule is also refused when the reference parses no query
     (`ReferenceParseError`), and when a judged or returned code has no constraint fields
-    (`ConstraintFieldsError`).
+    (`ConstraintFieldsError`). The source must give the corpus text and the constraint fields
+    the candidate recorded (`corpus.textSha256`, `corpus.constraintFieldsSha256`): otherwise
+    `CorpusMismatchError`.
   - **Filtered qrels.** A query is constrained by its parsed phrases and, in exchange mode, by
     its `sem`/`study` allow bit. Fields come from the pinned snapshot normalised by the
     candidate's `scripts/lib.mjs`. A relevant document failing a constraint gets grade 0 in DCG
@@ -217,7 +220,8 @@ Per change, vs the shipped ranker:
       `compliance (constraint block vacuous)`);
     - no exact-code regression, on the raw qrels;
     - every shown result of a parsed query satisfies its parsed constraints;
-    - every unparsed query's top 10 equals the baseline's.
+    - every unparsed query's top 10 equals the baseline's;
+    - no query errors where the baseline answered it.
   - **Output.** The holdout prints the verdict, the Δ lines and counts (scored, unscored,
     parsed) only. `npm run eval` refuses the rule on an encrypted set: it is taken on stored
     runs with `eval:report`.

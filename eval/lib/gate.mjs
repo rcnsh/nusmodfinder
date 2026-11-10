@@ -298,7 +298,8 @@ export function holdoutGate(cmp, change = {}) {
  *   block: { n: number, delta: number },
  *   compliance: { queries: number, violations: number },
  *   identity: { queries: number, differing: number },
- * }} ComplianceChecks
+ *   newErrors: number,
+ * }} ComplianceChecks `newErrors`: queries the candidate errors on where the baseline answered 200
  */
 
 /** The ledger's rule cell when the constraint block had no scored query (B3-3). */
@@ -316,6 +317,7 @@ export function complianceGate(set, cmp, c) {
   const vacuous = c.block.n === 0;
   return verdict(set, [
     noNewErrorsCheck(c.raw),
+    { name: 'no new errors, per query', pass: c.newErrors === 0, detail: `${c.newErrors} queries answered by the baseline get a non-200 response from the candidate` },
     sufficientCheck(cmp),
     judgedCheck(c.raw),
     { ...exactCodeCheck(c.raw), name: 'no exact-code regression (raw qrels)' },

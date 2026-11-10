@@ -395,7 +395,7 @@ async function verdictReport(set, candPath, basePath, a, change, reserved = null
       return;
     }
     const v = gateFor(set.gate, cmp, change, rule ? {
-      compliance: { raw: rule.raw, block: rule.block, compliance: { queries: rule.compliance.queries, violations: rule.compliance.violations.length }, identity: { queries: rule.identity.queries, differing: rule.identity.differing.length } },
+      compliance: { raw: rule.raw, block: rule.block, compliance: { queries: rule.compliance.queries, violations: rule.compliance.violations.length }, identity: { queries: rule.identity.queries, differing: rule.identity.differing.length }, newErrors: rule.newErrors.length },
     } : {});
     const label = custodyGate(set) ? pinLabel(baselinePinFor(set.gate, change)) : `${String(/** @type {any} */ (base.ranker)?.ref ?? 'unknown')} ${rankerCell(base)}`;
     const out = rule ? complianceVerdictOnly(v, cmp, rule, qrels.version, label) : verdictOnly(v, cmp, qrels.version, label);

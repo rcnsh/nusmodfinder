@@ -13,9 +13,16 @@ import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
 import { assertCorrectedEmbedded, rankerCorrector, writeRankerGroups, writeRankerVocabulary } from '../lib/corrected.mjs';
 import { assertCorpusTextsEmbedded, base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
 import { REPO, layout, loadQueries, runFile, searchParams, setFile, setKey, studyMapSha256 } from '../lib/sets.mjs';
+import { constraintFieldsSha256 } from '../lib/compliance.mjs';
 import { buildWorkspace } from '../lib/workspace.mjs';
 
 const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
+
+/** @param {NormalisedModule[]} modules */
+function fieldsDigest(modules) {
+  const byCode = new Map(modules.map((m) => [m.code, /** @type {any} */ (m)]));
+  return constraintFieldsSha256([...byCode.keys()], (c) => byCode.get(c));
+}
 
 /**
  * @typedef {{
@@ -93,7 +100,8 @@ export async function runVariant(options) {
     set: set.name,
     createdAt: new Date().toISOString(),
     ranker: ws.ranker,
-    corpus: corpus.info,
+    // Phase 5 5F: a digest of the constraint fields the Worker is seeded with, which the compliance rule checks its source against.
+    corpus: { ...corpus.info, constraintFieldsSha256: fieldsDigest(corpus.modules) },
     embedding,
     queries: {
       version: querySet.version,

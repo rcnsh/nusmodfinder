@@ -129,7 +129,7 @@ describe('the rule, pure', () => {
       fieldsOf: (/** @type {string} */ c) => byCode.get(c),
       suGrading: (/** @type {string | null} */ b) => b === CSCU,
       ngBit,
-      source: { reference: 'test', vocabularySha256: 'x', fields: 'test', lib: 'test' },
+      source: { reference: 'test', vocabularySha256: 'x', fields: 'test', lib: 'test', runTextSha256: /** @type {any} */ (s.cand.corpus).textSha256, fieldsSha256: /** @type {any} */ (s.cand.corpus).constraintFieldsSha256 },
     };
     const r = applyComplianceRule({ queries: s.querySet.queries, qrels: s.qrels, base: s.base, cand: s.cand, sources });
     // syn-p1: the two relevant documents with a real prerequisite count for nothing, so the
@@ -145,6 +145,7 @@ describe('the rule, pure', () => {
     expect(r.counts).toEqual({ parsed: 4, primary: 15, block: 1, unscored: 0 });
     expect(r.compliance.violations).toEqual([]);
     expect(r.identity).toEqual({ queries: 12, differing: [] });
+    expect(r.newErrors).toEqual([]);
 
     // A query whose every relevant document fails its constraint is unscored, not a zero.
     const q2 = structuredClone(s.qrels);
@@ -161,7 +162,7 @@ describe('the rule, pure', () => {
     const cmp = /** @type {any} */ ({ n: 10, overall: { ndcg: { delta: 0 }, p5: { delta: 0 } }, judged: { base: 1, cand: 1 }, errors: { base: 0, cand: 0 }, exactCodeRegressions: [] });
     expect(() => gateFor('test', cmp, { kind: 'compliance' })).toThrow(GateRuleError);
     expect(() => gateFor('holdout', cmp, { kind: 'compliance' })).toThrow(GateRuleError);
-    const checks = { raw: cmp, block: { n: 0, delta: NaN }, compliance: { queries: 1, violations: 0 }, identity: { queries: 9, differing: 0 } };
+    const checks = { raw: cmp, block: { n: 0, delta: NaN }, compliance: { queries: 1, violations: 0 }, identity: { queries: 9, differing: 0 }, newErrors: 0 };
     const v = gateFor('holdout', cmp, { kind: 'compliance' }, { compliance: checks });
     expect(v.verdict).toBe('pass');
     expect(v.rule).toBe('compliance (constraint block vacuous)');
@@ -170,6 +171,7 @@ describe('the rule, pure', () => {
     expect(gateFor('holdout', cmp, { kind: 'compliance' }, { compliance: { ...checks, compliance: { queries: 1, violations: 1 } } }).verdict).toBe('fail');
     expect(gateFor('holdout', cmp, { kind: 'compliance' }, { compliance: { ...checks, identity: { queries: 9, differing: 1 } } }).verdict).toBe('fail');
     expect(gateFor('holdout', cmp, { kind: 'compliance' }, { compliance: { ...checks, raw: { ...cmp, exactCodeRegressions: ['x'] } } }).verdict).toBe('fail');
+    expect(gateFor('holdout', cmp, { kind: 'compliance' }, { compliance: { ...checks, newErrors: 1 } }).verdict).toBe('fail');
   });
 
   it('while ADR 0003\'s amendment is a draft, the holdout and test sets refuse the rule; the throwaway selftest set does not', async () => {
@@ -253,13 +255,47 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     assertNoLeak(r1.out, none.s);
     expect(existsSync(join(none.dir, 'ledger.md'))).toBe(false);
 
-    const fields = await makeSet('no-fields', { encrypted: true, tweak: (x) => { x.corpus.modules = x.corpus.modules.filter((m) => m.code !== codeOf('syn-u03', 1)); } });
+    // Both runs return a code the corpus does not have.
+    const fields = await makeSet('no-fields', { encrypted: true, tweak: (x) => { x.base.results['syn-u03'].codes.push('ZZ99X9'); x.cand.results['syn-u03'].codes.push('ZZ99X9'); } });
     expect(report(fields.dir).out).toBe(withheld('ConstraintFieldsError'));
     expect(existsSync(join(fields.dir, 'ledger.md'))).toBe(false);
 
     const unrecorded = await makeSet('no-intents', { encrypted: true, tweak: (x) => { delete x.cand.intents; } });
     expect(report(unrecorded.dir).out).toBe(withheld('RunFileError'));
     expect(existsSync(join(unrecorded.dir, 'ledger.md'))).toBe(false);
+
+    const noDigest = await makeSet('no-digest', { encrypted: true, tweak: (x) => { delete /** @type {any} */ (x.cand.corpus).constraintFieldsSha256; } });
+    expect(report(noDigest.dir).out).toBe(withheld('RunFileError'));
+    expect(existsSync(join(noDigest.dir, 'ledger.md'))).toBe(false);
+  });
+
+  it('reads only the corpus the candidate was seeded with: an edited corpus.json is refused, with no look (review finding 1)', async () => {
+    const { dir } = await makeSet('tampered', { encrypted: true, tweak: (x) => { x.cand.results['syn-p2'].codes.unshift(codeOf('syn-p2', 0)); } });
+    expect(report(dir).stdout).toMatch(/^holdout verdict: FAIL · rule compliance/m);
+    const corpus = JSON.parse(await readFile(join(dir, 'corpus.json'), 'utf8'));
+    for (const m of corpus.modules) m.examSemesters = [];
+    await writeFile(join(dir, 'corpus.json'), JSON.stringify(corpus));
+    const before = await readFile(join(dir, 'ledger.md'), 'utf8');
+    expect(report(dir).out).toBe(withheld('CorpusMismatchError'));
+    // A changed title (the reference's vocabulary) is refused too.
+    corpus.modules[0].text = 'something else';
+    await writeFile(join(dir, 'corpus.json'), JSON.stringify(corpus));
+    expect(report(dir).out).toBe(withheld('CorpusMismatchError'));
+    expect(await readFile(join(dir, 'ledger.md'), 'utf8')).toBe(before);
+  });
+
+  it('a candidate error on a query the baseline answered fails, even when the error totals match (review finding 2)', async () => {
+    const { dir, s } = await makeSet('error-swap', {
+      encrypted: true,
+      tweak: (x) => {
+        x.base.results['syn-p1'] = { status: 500, codes: [] };
+        x.cand.results['syn-p3'] = { status: 500, codes: [] };
+        /** @type {any} */ (x.cand.intents)['syn-p3'] = { exam: 0, su: null, hoursBelow: 99, prereq: null };
+      },
+    });
+    const r = report(dir);
+    expect(r.stdout).toMatch(/^holdout verdict: FAIL · rule compliance/m);
+    assertNoLeak(r.out, s);
   });
 
   it('fails on a compliance breach, a changed unparsed top 10, or an exact-code loss on the raw qrels; still prints nothing set-specific', async () => {
