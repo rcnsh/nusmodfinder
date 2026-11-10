@@ -115,3 +115,10 @@ h1 .unofficial { font-size: 15px; font-weight: 500; color: var(--muted); letter-
 .site-footer p { margin: 0 0 6px; }
 .footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
 .footer-links a { color: var(--accent); }
+
+/* 5F: the chips for phrases read from the query, each with a remove button. */
+.intents ul { display: inline; list-style: none; margin: 0; padding: 0; }
+.intents-label { margin-right: 6px; }
+.chip.intent { display: inline-flex; align-items: center; gap: 4px; }
+.chip-remove { border: 0; background: none; color: inherit; font: inherit; line-height: 1; padding: 0 2px; cursor: pointer; border-radius: 50%; }
+.chip-remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }

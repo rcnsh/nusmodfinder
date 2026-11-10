@@ -39,6 +39,12 @@ export class BaselineError extends EvalError {}
 export class CutoffError extends EvalError {}
 /** A gate rule asked of a set it does not apply to (a dev-only kind on an encrypted set, `--gate sc5` against the recorded SC5 reading). */
 export class GateRuleError extends EvalError {}
+/** The compliance rule's frozen reference parse is unavailable (tag `3h` gone or moved) or parses no query of the set. */
+export class ReferenceParseError extends EvalError {}
+/** The candidate's parse differs from the frozen reference parse on at least one query (no look is spent). */
+export class ParseMismatchError extends EvalError {}
+/** A judged or returned code has no constraint fields in the compliance rule's source (the pinned snapshot). */
+export class ConstraintFieldsError extends EvalError {}
 
 /**
  * The class name to print for an error whose message must stay hidden.

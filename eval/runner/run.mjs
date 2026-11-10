@@ -26,6 +26,7 @@ const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
  *   unfiltered?: boolean,
  *   strip?: string[],
  *   mode?: string,
+ *   explicit?: { label: string, params: Record<string, Record<string, string>> },
  *   output?: string,
  *   log?: (line: string) => void,
  * }} RunOptions
@@ -37,6 +38,7 @@ const CHILD = fileURLToPath(new URL('./vitest-child.mjs', import.meta.url));
  */
 export async function runVariant(options) {
   const { set, variant, ref, unfiltered = false, strip = [], mode = 'hybrid' } = options;
+  if (options.explicit && set.encrypted) throw new Error('explicit per-query params are the dev diagnostic\'s (B2-4); never on an encrypted set');
   const log = options.log ?? ((/** @type {string} */ l) => console.log(l));
   const key = set.encrypted ? await setKey() : null;
   const querySet = await loadQueries(set);
@@ -102,6 +104,8 @@ export async function runVariant(options) {
       topK: 'worker default', filters: !unfiltered, mode, dense,
       // Phase 4: the persona -> study map ng queries take, and the filters stripped (the unfiltered guard).
       studyMap: studyMapSha256(), ...(strip.length ? { strip } : {}),
+      // Phase 5 5F's B2-4 diagnostic: extra /search params per query, recorded as sent (a dev baseline, never a gate's).
+      ...(options.explicit ? { explicit: options.explicit } : {}),
       ...(vocabulary ? { vocabulary, typo: corrector?.embedsCorrected ? '3c2' : '3c1' } : {}), ...(groups ? { groups } : {}),
     },
   };
@@ -116,7 +120,7 @@ export async function runVariant(options) {
 
   /** @type {EvalPayload} */
   const payload = {
-    queries: querySet.queries.map((q) => ({ id: q.id, params: searchParams(q, { unfiltered, mode, strip }) })),
+    queries: querySet.queries.map((q) => ({ id: q.id, params: { ...searchParams(q, { unfiltered, mode, strip }), ...(options.explicit?.params[q.id] ?? {}) } })),
     corpus: corpus.modules,
     lookup,
     seedTimeoutMs: 900_000,
