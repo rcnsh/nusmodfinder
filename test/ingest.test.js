@@ -151,7 +151,8 @@ describe('guards: refuse before any write', () => {
     // ...but a corpus for the minority year is a year change.
     await adminCall('/admin/ingest', fakes, { modules: [{ ...x, acadYear: '2019-2020' }] });
     const otherYear = fixture.modules.map((m) => ({ ...m, acadYear: '2019-2020' }));
-    expect((await ingest(otherYear)).message).toMatch(/2026-2027 \(399 rows\), 2019-2020 \(1 rows\).*--allow-year-change/);
+    const rest = fixture.modules.length - 1;
+    expect((await ingest(otherYear)).message).toMatch(new RegExp(`2026-2027 \\(${rest} rows\\), 2019-2020 \\(1 rows\\).*--allow-year-change`));
   });
 
   it('[PR13 #1b] an empty database has no acad year, so any year loads', async () => {
@@ -436,13 +437,15 @@ describe('[PR13b #1] the FTS charge follows the columns the 0006 FTS triggers wa
   });
 
   it('a forced run against production-format text_hash (main\'s hashOf(text)) is charged the same-text rate, and writes no FTS row', async () => {
-    // The fixture was built with main's text_hash (hashOf(text)), so the seeded
-    // D1 holds what production does after 0006 (plus row_hash NULL); the corpus
-    // carries this PR's text_hash, hash(model + text version + text).
-    expect(fixture.modules[0].textHash).toBe((await sha256Hex(fixture.modules[0].text)).slice(0, 32));
+    // The seeded D1 is rewritten to main's text_hash (hashOf(text)), what
+    // production held after 0006 (plus row_hash NULL); the corpus carries this
+    // PR's text_hash, hash(model + text version + text), as the fixture does.
+    const textHashOf = async (/** @type {string} */ text) => (await sha256Hex(JSON.stringify([MODEL, EMBEDDING_TEXT_VERSION, text]))).slice(0, 32);
+    expect(fixture.modules[0].textHash).toBe(await textHashOf(fixture.modules[0].text));
+    await env.DB.batch(await Promise.all(fixture.modules.map(async (m) =>
+      env.DB.prepare('UPDATE modules SET text_hash = ? WHERE code = ?').bind((await sha256Hex(m.text)).slice(0, 32), m.code))));
     await env.DB.prepare('UPDATE modules SET row_hash = NULL').run();
-    const corpus = await Promise.all(fixture.modules.map(async (m) =>
-      ({ ...m, textHash: (await sha256Hex(JSON.stringify([MODEL, EMBEDDING_TEXT_VERSION, m.text]))).slice(0, 32) })));
+    const corpus = fixture.modules;
     const ftsRows = async () => String(await env.DB.prepare(
       'SELECT (SELECT group_concat(id || hex(block)) FROM modules_fts_data) || (SELECT group_concat(id || hex(sz)) FROM modules_fts_docsize) AS s').first('s'));
     const before = await ftsRows();
