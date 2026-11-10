@@ -425,8 +425,9 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
   written. Q5 note. Q6 NUS College open.
 - Q7: the scope decision is amended. Courses not on the NG list are hidden in exchange mode,
   and the page explains rule E.
-- Still needed before 4B: the self-funded programmes PDF, the YST electives page and the Law
-  compulsory-course list.
+- Sources complete (2026-11-10, `docs/evidence/phase4/sources.md`). The self-funded list
+  (rule A) also holds PC5202, PC5206 and PC5211, so they are closed for every study level under
+  the Q1a principle (explicit closures hide), overriding Q1c's "open for grad" for those three.
 
 The questions as they were asked:
 
