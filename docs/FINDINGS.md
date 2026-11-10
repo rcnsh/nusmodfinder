@@ -42,8 +42,8 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | S8 | fixed | tests, live |
 | P1 | fixed | tests, live |
 | P2 | fixed | tests, live |
-| P3 | reproduced | test |
-| F1 | reproduced | test, Playwright |
+| P3 | fixed | tests (Playwright) |
+| F1 | fixed | tests (Node, Playwright) |
 | F2 | fixed | tests (Node, Playwright) |
 | F3 | fixed | tests (Node, Playwright) |
 | F4 | fixed | tests (Node, Playwright) |
@@ -518,12 +518,15 @@ requires as an input.
 
 ### P3 · No source links; reads as official NUSMods
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** No source links (NG PDF, Registrar vacancy report, course-restrictions list); the
 title "NUSMods semantic search" reads as official NUSMods.
 
 **Evidence:**
+- test `[P3 fixed] the title and the visible header say unofficial, NUS is not the brand, and the footer links the sources` (`test/web/source.node.test.js`)
+- `test/ui/p3.spec.js` (P3, Playwright, Chromium and WebKit): "unofficial" is in the title and wholly in view at 390×664 and 1280, on the first screen and after a search; the footer's links.
+- `test/ui/detail.spec.js` (Playwright): each card's detail names the source and its date beside every reason, and links the course on NUSMods.
 - test `[P3 known-bug] the title reads as official NUSMods, and result cards link to no source` (`test/findings/frontend.node.test.js`, on the frozen Phase 4 page).
 
 **Notes:** `docs/evidence/phase0/page-phase4.html:6,84-85`. The subtitle says "unofficial NUSMods API", but the title and
@@ -531,20 +534,35 @@ title "NUSMods semantic search" reads as official NUSMods.
 with their "updated as at" dates, under the exchange toggle; the vacancy report, the title and
 the result cards are Phase 5's.
 
+**Fixed (Phase 5 5C):** the known-bug test still holds of the frozen Phase 4 page. The page is
+"Exchange Course Finder (unofficial, for NUS)" (ADR 0008, D3) in `<title>` and the `<h1>`; the
+footer says it is unofficial and links NUSMods, the NG list, the restrictions and the
+Registrar's vacancy report (`https://nus.edu.sg/coursereg/resources.html`, which lists each
+round's report); each card's detail cites the NG list or the restrictions, with its date, beside
+every reason, and links the course on NUSMods.
+
 ## Frontend
 
 ### F1 · Result cards are dead ends
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** No links or focusables in cards; `/module/:code` is never called; no description
 snippet; the raw RRF score (`0.030`) sits in the prime spot.
 
 **Evidence:**
+- test `[F1 fixed] /module/:code is fetched once per code: a second ask, even while the first is in flight, shares it` (`test/web/api.node.test.js`)
+- `test/ui/detail.spec.js` (F1, SC2, Playwright, Chromium and WebKit): each card is a disclosure (a heading holding one button, `aria-expanded`, `aria-controls`) with no score; its detail has the description, prerequisites and preclusions as NUS states them, exams, workload, exchange availability per semester and the NUSMods link, fetched once.
+- `test/ui/history.spec.js` (F3, Playwright): opening, switching and closing a detail follow the transition table, focus back on the card's button.
 - test `[F1 known-bug] result cards are dead ends: no link, button or tabindex, no description, raw score`
 - `docs/evidence/phase0/fe-results.json`: `dom.linksInResults: 0`, `focusableInResults: 0`, `resultsWithTabIndex: 0`.
 
 **Notes:** Card template `docs/evidence/phase0/page-phase4.html:167-179`; score `:172`.
+
+**Fixed (Phase 5 5C):** the known-bug test still holds of the frozen Phase 4 page. Each card in
+`public/render.js` is an APG disclosure: a heading holding one button (code and title) with
+`aria-expanded`/`aria-controls`, and the detail region below it, filled by `public/detail.js`
+from `/module/:code` (fetched once per page). No score is shown.
 
 ### F2 · No abort or timeout on search requests
 

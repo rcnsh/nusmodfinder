@@ -5,7 +5,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { cleanPrereq, examLine, examSummary, semLabel, workloadText } from '../../public/format.js';
+import { COHORT_ONLY, isCohortOnly } from '../../public/cohort-only.js';
+import { cleanPrereq, codeSegments, examLine, examLines, examSummary, prereqView, semLabel, workloadText } from '../../public/format.js';
 
 const fixture = /** @type {{ modules: NormalisedModule[] }} */ (JSON.parse(readFileSync(fileURLToPath(new URL('../fixtures/corpus.json', import.meta.url)), 'utf8')));
 
@@ -50,6 +51,12 @@ describe('exams (/module and /search examDates: ISO UTC; shown in Singapore time
     expect(examSummary([], '')).toBe('No final exam');
     expect(examSummary(undefined, '2')).toBe('No final exam');
   });
+
+  it('examLines is the detail: every semester in order, or "No final exam listed"', () => {
+    expect(examLines([sem2, sem1])).toEqual(['Sem 1: Thu 26 Nov 2026, 1:00 am, 1 h 30 min', 'Sem 2: Tue 27 Apr 2027, 5:00 pm, 2 h']);
+    expect(examLines([])).toEqual(['No final exam listed']);
+    expect(examLines(null)).toEqual(['No final exam listed']);
+  });
 });
 
 describe('cleanPrereq (NUS rule language, spacing only)', () => {
@@ -81,5 +88,52 @@ describe('cleanPrereq (NUS rule language, spacing only)', () => {
       expect(out.replace(/\s+/g, ''), t).toBe(t.replace(/\s+/g, ''));
       expect(out, t).not.toMatch(/[a-z)](?:THEN|AND|OR)|(?:THEN|AND|OR)[a-z(]/);
     }
+  });
+});
+
+describe('prereqView (5C: the cohort-only line, else NUS\'s text with spacing restored)', () => {
+  it('a cohort-only prerequisite reads as no course prerequisite, keeping NUS\'s text', () => {
+    const acc = 'If undertaking an Undergraduate DegreeTHENmust be in one of the cohorts from 2017 inclusive';
+    expect(prereqView(acc)).toEqual({
+      kind: 'cohort', line: 'No course prerequisite (the rule names NUS intake years only)',
+      text: 'If undertaking an Undergraduate Degree THEN must be in one of the cohorts from 2017 inclusive',
+    });
+  });
+
+  it('a programme-only rule says programmes, not intake years', () => {
+    const bl = 'Must be undertaking 1001DBSASD Doctor of Philosophy (FoS) - Biological Sciences OR must be undertaking 1001BTHCWK MSc (Biotechnology)';
+    expect(prereqView(bl)?.line).toBe('No course prerequisite (the rule names NUS programmes only)');
+  });
+
+  it('any other rule is NUS\'s text, spaced, and none is null', () => {
+    expect(prereqView('If undertaking an Undergraduate DegreeTHENmust have completed CS2040 at a grade of at least D'))
+      .toEqual({ kind: 'rule', line: null, text: 'If undertaking an Undergraduate Degree THEN must have completed CS2040 at a grade of at least D' });
+    expect(prereqView(null)).toBeNull();
+    expect(prereqView('   ')).toBeNull();
+  });
+
+  it('public/cohort-only.js mirrors data/cohort-only-prereq.json and agrees with ingest on every fixture course', () => {
+    const spec = JSON.parse(readFileSync(fileURLToPath(new URL('../../data/cohort-only-prereq.json', import.meta.url)), 'utf8'));
+    expect(COHORT_ONLY).toEqual(spec);
+    const flagged = fixture.modules.filter((m) => m.prereqCohortOnly).map((m) => m.code);
+    expect(flagged.length).toBeGreaterThan(5);
+    for (const m of fixture.modules) {
+      expect(isCohortOnly(m.prerequisite, COHORT_ONLY), m.code).toBe(m.prereqCohortOnly === true);
+      expect(prereqView(m.prerequisite)?.kind === 'cohort', m.code).toBe(m.prereqCohortOnly === true);
+    }
+  });
+});
+
+describe('codeSegments (course codes in NUS\'s text become search links)', () => {
+  it('splits out each course code and keeps the rest as text', () => {
+    expect(codeSegments('must have completed 1 of ACC2707/ACC2712 at a grade of at least D')).toEqual([
+      { text: 'must have completed 1 of ' }, { code: 'ACC2707' }, { text: '/' }, { code: 'ACC2712' }, { text: ' at a grade of at least D' },
+    ]);
+    expect(codeSegments('CS2040S or CS2040C')).toEqual([{ code: 'CS2040S' }, { text: ' or ' }, { code: 'CS2040C' }]);
+  });
+
+  it('leaves programme codes, grades and plain words alone', () => {
+    expect(codeSegments('must be undertaking 1001DBSASD Doctor of Philosophy AND at least B+')).toEqual([{ text: 'must be undertaking 1001DBSASD Doctor of Philosophy AND at least B+' }]);
+    expect(codeSegments('')).toEqual([]);
   });
 });

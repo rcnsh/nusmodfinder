@@ -99,6 +99,44 @@ export function createSearchClient({ fetch: doFetch = (...a) => fetch(...a) } = 
 }
 
 /**
+ * A one-off /search that aborts nothing and is aborted by nothing but its
+ * timeout: the partial-code state asks whether the other semester has results
+ * without cancelling the search on screen.
+ * @param {URLSearchParams} params
+ * @param {Deps} [deps]
+ * @returns {Promise<Outcome>}
+ */
+export function fetchSearch(params, { fetch: doFetch = (...a) => fetch(...a) } = {}) {
+  return getJson(doFetch, `/search?${params}`, new AbortController());
+}
+
+/**
+ * GET /module/:code for the detail and the hidden-code lines (5C), each code
+ * fetched once per page (the response is also browser-cached for 5 minutes).
+ * Answers and requests in flight are shared; a failure is not kept, so asking
+ * again retries.
+ * @param {Deps} [deps]
+ * @returns {{ get: (code: string) => Promise<Outcome> }}
+ */
+export function createModuleClient({ fetch: doFetch = (...a) => fetch(...a) } = {}) {
+  /** @type {Map<string, Promise<Outcome>>} */
+  const cache = new Map();
+  return {
+    get(code) {
+      const key = code.trim().toUpperCase();
+      const hit = cache.get(key);
+      if (hit) return hit;
+      const pending = getJson(doFetch, `/module/${encodeURIComponent(key)}`, new AbortController()).then((outcome) => {
+        if (outcome.kind !== 'ok') cache.delete(key);
+        return outcome;
+      });
+      cache.set(key, pending);
+      return pending;
+    },
+  };
+}
+
+/**
  * GET /facets: the faculty list and the exchange-mode sources. Resolves null
  * on any failure, so nothing on the page waits on it or breaks without it (F4).
  * @param {Deps} [deps]

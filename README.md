@@ -182,7 +182,11 @@ property are filterable.
 
 ## The page
 
-`public/` is the whole frontend (Phase 5 5B, `docs/plans/phase5.md`): `index.html`,
+The page is **Exchange Course Finder (unofficial, for NUS)**, the working name until Phase 8
+(ADR 0008, D3); "unofficial" is in its title and visible header at every width, and its footer
+links NUSMods, the NG list, the restrictions and the Registrar's vacancy report (P3).
+
+`public/` is the whole frontend (Phase 5 5B and 5C, `docs/plans/phase5.md`): `index.html`,
 `styles.css` and native ES modules with `// @ts-check` and JSDoc, served by Workers Static
 Assets (the `assets` block in `wrangler.jsonc`, no binding). No file there matches an API
 path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still reach the Worker.
@@ -193,9 +197,15 @@ path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still r
 | `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed |
 | `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
 | `messages.js` | a plain sentence for every error code and `noMatch` reason; raw codes are never shown |
-| `format.js` | semester names, workload, exams in Singapore time, NUS prerequisite spacing |
+| `format.js` | semester names, workload, exams in Singapore time, NUS prerequisite spacing, the cohort-only prerequisite line, course codes in NUS's text |
+| `cohort-only.js` | 3H-0's cohort-only rule for the page (`/module/:code` doesn't answer `prereq_cohort_only`): a copy of `data/cohort-only-prereq.json` and `src/cohort-only.js`, held equal by its test |
+| `explain.js` | exchange wording (pure): each note in full, the `semester` note as an action, each source with its "updated as at" date, why a typed code is hidden (its own stored reasons), the partial-code empty state, and the typed codes past the three that pin |
+| `detail.js` | a card's detail, inline, from `/module/:code` (fetched once per page): description, prerequisites and preclusions as NUS states them with codes linked to a search, exams, workload, exchange availability per semester, the NUSMods link for class times |
 | `keys.js` | Enter submits only outside IME composition |
-| `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`), the cards and status, the controller |
+| `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`); the cards (an APG disclosure each: a heading holding one button that controls the detail; the exchange status for the chosen semester, or per semester when planning both; no score) and the status area; the controller |
+
+`styles.css` holds the Phase 4 look plus 5C's plain structural rules (marked); the design is
+5D's, which restyles classes without touching the modules' logic.
 
 `npm run typecheck` checks it with `tsconfig.web.json` (the DOM lib); the pure modules are
 unit-tested in Node (`test/web/`).
@@ -223,8 +233,10 @@ npm run test:ui                          # starts its own ui-server on a free po
 VNM_UI_URL=http://127.0.0.1:<port> npm run test:ui   # or reuse a running `npm run dev`
 ```
 
-Failure states (timeout, 429, an HTML error page, `/facets` down, keyword-only) use request
-interception. CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
+Failure states (timeout, 429, an HTML error page, `/facets` down, keyword-only), a raw
+workload, a failed `/module` and a 4th typed code that is neither shown nor hidden use request
+interception; the cards, the detail (`?q=CODE&open=CODE`), the hidden-code lines and the
+partial-code states run on the fixture. CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
 fixtures, `data/` or the lockfile change. The Phase 4 page is kept frozen as
 `docs/evidence/phase0/page-phase4.html` for the findings tests (`test/findings/frontend.node.test.js`).
 

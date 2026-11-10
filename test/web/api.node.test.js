@@ -4,7 +4,7 @@
 // parsing it. Driven with a fake fetch and fake timers; the browser half is
 // test/ui/failures.spec.js.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { SEARCH_TIMEOUT_MS, createSearchClient, fetchFacets, parseRetryAfter } from '../../public/api.js';
+import { SEARCH_TIMEOUT_MS, createModuleClient, createSearchClient, fetchFacets, fetchSearch, parseRetryAfter } from '../../public/api.js';
 
 /**
  * A fetch that answers each call with the next queued responder, and records
@@ -156,5 +156,44 @@ describe('fetchFacets (F4)', () => {
     await vi.advanceTimersByTimeAsync(SEARCH_TIMEOUT_MS);
     expect(await hung).toBeNull();
     expect(await fetchFacets({ fetch })).toEqual({ faculties: [{ name: 'Computing', count: 3 }] });
+  });
+});
+
+describe('/module/:code for the detail and the hidden-code lines (5C)', () => {
+  it('[F1 fixed] /module/:code is fetched once per code: a second ask, even while the first is in flight, shares it', async () => {
+    const { fetch, calls } = fakeFetch([jsonResponse({ code: 'CS3244', title: 'Machine Learning' })]);
+    const modules = createModuleClient({ fetch });
+    const [a, b] = await Promise.all([modules.get('CS3244'), modules.get('cs3244')]);
+    expect(a).toEqual({ kind: 'ok', body: { code: 'CS3244', title: 'Machine Learning' } });
+    expect(b).toBe(a);
+    expect(await modules.get('CS3244')).toBe(a);
+    expect(calls.map((c) => c.url)).toEqual(['/module/CS3244']);
+  });
+
+  it('a failure is not kept: the next ask fetches again', async () => {
+    const { fetch, calls } = fakeFetch([jsonResponse({ error: 'upstream_failure' }, 502), jsonResponse({ code: 'CS3244' })]);
+    const modules = createModuleClient({ fetch });
+    expect(await modules.get('CS3244')).toEqual({ kind: 'error', error: { code: 'upstream_failure', status: 502 } });
+    expect(await modules.get('CS3244')).toEqual({ kind: 'ok', body: { code: 'CS3244' } });
+    expect(calls).toHaveLength(2);
+  });
+
+  it('the code is encoded into the path, so a crafted one stays one segment', async () => {
+    const { fetch, calls } = fakeFetch([jsonResponse({ error: 'bad_request' }, 400)]);
+    await createModuleClient({ fetch }).get('../admin/x?y');
+    expect(calls[0].url).toBe('/module/..%2FADMIN%2FX%3FY');
+  });
+});
+
+describe('fetchSearch: a one-off search that aborts nothing (the partial code\'s other semester)', () => {
+  it('leaves the main search in flight', async () => {
+    const { fetch, calls } = fakeFetch([hang, jsonResponse({ count: 1, results: [{ code: 'CG3207' }] })]);
+    const search = createSearchClient({ fetch });
+    const main = search(params('a'));
+    const other = await fetchSearch(new URLSearchParams({ q: 'CG32', sem: '2' }), { fetch });
+    expect(other).toEqual({ kind: 'ok', body: { count: 1, results: [{ code: 'CG3207' }] } });
+    expect(calls[0].signal.aborted).toBe(false);
+    search.abort();
+    expect(await main).toEqual({ kind: 'superseded' });
   });
 });

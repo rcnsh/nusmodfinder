@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NUSMods semantic search</title>
+<title>Exchange Course Finder (unofficial, for NUS)</title>
 <link rel="stylesheet" href="/styles.css">
 <script type="module" src="/app.js"></script>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>NUSMods semantic search</h1>
-    <p class="sub">Describe what you want to study, or type a code like <code>CS3244</code>. Data: unofficial NUSMods API, AY2026&#8288;/&#8288;2027.</p>
+    <h1>Exchange Course Finder <span class="unofficial">(unofficial, for NUS)</span></h1>
+    <p class="sub">Describe what you want to study, or type a code like <code>CS3244</code>. Course data from NUSMods, AY2026&#8288;/&#8288;2027.</p>
   </header>
 
   <form id="f">
@@ -49,6 +49,16 @@
 
   <div id="status" class="status">Type a query to begin.</div>
   <ol id="results"></ol>
+
+  <footer class="site-footer">
+    <p>An unofficial site, not run by NUS or NUSMods. Course data comes from NUSMods; who may take each course comes from the NUS Registrar's lists. Check with NUS before you register.</p>
+    <ul class="footer-links">
+      <li><a href="https://nusmods.com/" target="_blank" rel="noopener">NUSMods</a></li>
+      <li><a href="https://www.nus.edu.sg/registrar/prospective-students/non-graduating" target="_blank" rel="noopener">Courses offered to exchange (NG) students</a></li>
+      <li><a href="https://www.nus.edu.sg/registrar/prospective-students/non-graduating" target="_blank" rel="noopener">Course restrictions for exchange (NG) students</a></li>
+      <li><a href="https://nus.edu.sg/coursereg/resources.html" target="_blank" rel="noopener">The Registrar's course vacancy report</a></li>
+    </ul>
+  </footer>
 </div>
 </body>
 </html>
