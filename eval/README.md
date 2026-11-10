@@ -199,8 +199,8 @@ Per change, vs the shipped ranker:
   constraint-exempt queries (C3-8) use it. The report prints each exempt id with its ΔnDCG@10 (`—` when the
   query is not primary answerable).
 - **compliance** (`--change-kind compliance`, Phase 5 5F; dev and the holdout, never the test
-  set; `lib/compliance.mjs`, ADR 0003's 5F amendment, a draft until the lead adopts it, and
-  refused on the holdout and test sets until then):
+  set; `lib/compliance.mjs`, ADR 0003's 5F amendment, adopted 2026-11-11; while that amendment
+  carries its draft line the rule is refused on the holdout and test sets):
   - **Reference parse.** It is frozen: 3H's pass A at tag `3h` (2476012), over the
     vocabulary its own builder makes from the run corpus. It decides each query's constraints.
   - **The candidate's parse.** It must equal the reference's on every query, as recorded in its
