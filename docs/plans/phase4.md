@@ -1,4 +1,4 @@
-# Phase 4 plan: exchange mode that is correct (draft r3, for critics)
+# Phase 4 plan: exchange mode that is correct (converged r3.1, 3 critic rounds)
 
 Goal (exit): **SC1** is met and a persona red team finds no shown course an exchange student
 can't take.
@@ -18,7 +18,20 @@ reviewed, versioned data file, tested over the whole NG list.
 This plan changes no code. Every number marked *est.* is an estimate; every other number comes
 from a script on the pinned corpus (critic scripts are re-run and committed at 4B).
 
-r3 applies every round-2 objection (§9). The main changes from r2:
+r3.1 is the final draft. It applies every round-3 objection (§9); no critic pass follows it.
+The changes from r3:
+- `sem` is skipped under `ng=1` in all four filter sites, not only `parseFilters` (B3-1);
+- the rules reach `eligibility()` as an argument, read with `readFileSync`; no JSON import from
+  `scripts/` (B3-2);
+- the identity gate fetches full depth, cuts at the pipeline's own depths, bypasses the cache,
+  and its trace switch can't be live in production (A3-1 to A3-3);
+- the ship order is written out, with the migration and its guards (B3-4);
+- Q7 is framed as an amendment to Jacob's scope decision, Business joins the "closed under any
+  answer" list, and every §8 question has a lead default (C3-1 to C3-3);
+- the red team gets Jacob's answers and its calls are diffed against the oracle mechanically
+  (C3-4).
+
+r3 applied every round-2 objection. The main changes from r2:
 - under `ng=1`, `sem` only selects the allow bit; no path also tests NUSMods semesters (B2-1);
 - the standby reads 100 under `ng=1` and is held to no leaks plus a recall floor (B2-2);
 - the dev gate compares against the shipped pipeline's own lists through a test-only switch,
@@ -132,11 +145,13 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
 **Order of evaluation:**
 1. **Semester.** A module not on the NG list for `sem` follows §8 Q7 (rule E: "Approval for
    any other courses not listed … will be granted on a case-by-case basis … may be available
-   during Course registration"). Lead default: `closed`, because exchange mode is about what
-   can be planned at application; the card for such a course (reached outside exchange mode)
-   says rule E applies. Civil and Environmental Engineering and Industrial Systems Engineering
-   levels 1000–4000 not on the NG list are `closed` under any answer ("No appeal will be
-   accepted"). Where the NG list says
+   during Course registration"). Jacob's scope decision keeps case-by-case courses visible
+   with a note, so `closed` here would amend it; Q7 asks him. Lead default: `closed`, pending
+   his answer. If he answers `note`, those courses' bits come from NUSMods `semesters`, since
+   they have no NG semester. Closed under any answer: Civil and Environmental Engineering and
+   Industrial Systems Engineering levels 1000–4000 not on the NG list ("No appeal will be
+   accepted"), and Business courses not on the NG list ("you will not be able to add the Course
+   during the Submit Course Requests period", section 2). Where the NG list says
    open in N but NUSMods doesn't offer it in N, the outcome follows §8 Q5 (lead default: `note`,
    "the NG list says Sem N; the NUSMods timetable doesn't list it", because the NG list is the
    Registrar's availability statement and NUSMods' semesters are a scrape).
@@ -161,15 +176,28 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
   bundled data module keyed by rule id, so a wording edit doesn't rewrite rows. `/search`
   returns only the requested bit's reasons; `/module/:code` returns all 15. The Worker runs no
   rule logic (B-9).
-- `eligibility()` lives in `src/eligibility.js` with the rules as a `src/` data import, and
-  `offeredModules` (`scripts/lib.mjs`) calls it, so the eval workspace, the baseline tree hash
-  and the fixture corpus all carry it (A2-4).
+- `eligibility(module, ctx, rules)` lives in `src/eligibility.js` and takes the rules as an
+  argument. `offeredModules` (`scripts/lib.mjs`) reads `data/ng-restrictions-<year>.json` with
+  `readFileSync`, as `loadNgCourses` does, and calls it. So the eval workspace, the baseline
+  tree hash and the fixture corpus carry it, and nothing imports JSON from `scripts/` (a bare
+  JSON import throws in Node; `with { type: 'json' }` fails `tsc` here, B3-2). Nothing
+  `src/index.js` imports reaches `eligibility.js`.
+- The reason-text module is Worker-only, like `group-data.js`. An id it doesn't know renders a
+  generic "restricted; see the source document" text, with a test, and `verify --pre-deploy`
+  checks every stored id is in the module (B3-5).
 - Both fields join `ROW_COLUMNS`/`boundTuple` (`src/rowhash.js:37-53`), so a rules-only change
   re-hashes every affected row and reaches D1, the data version and the deploy guard (B-6).
 
 **Paths** (each filters on the one bit for (sem, study)):
-- **`sem` under `ng=1` only selects the bit** (B2-1). `parseFilters` emits no `sem` predicate
-  and no Vectorize `sem<n>` field when `ng=1`; `exam=0` keeps using `sem` for the exam semester.
+- **`sem` under `ng=1` only selects the bit** (B2-1, B3-1). `echo.sem` stays (the bit choice,
+  `exam=0`, the cache key and the echo read it), and the NUSMods semester test is skipped when
+  `echo.ng` in all four sites: `parseFilters` (`src/search.js:116`), `filterSql`
+  (`src/lexical.js:115-118`, also used by `rangeMembers`), `compileMask`
+  (`src/vector-bundle.js:294-297`) and `localMatchesFilters` (`src/search.js:277`).
+  - `exam=0&sem=N` under `ng=1`, for a module NUSMods doesn't offer in N (the Q5 notes): there is
+    no exam data for N, so `exam=0` excludes it, as for any unknown.
+  - Tests: a cache-key test that `ng=1&sem=1` and `ng=1&sem=2` differ; path tests over the 36
+    mismatch modules.
 - D1 lexical: `+m.ng_allow & <bit> != 0`, the bit interpolated as a validated integer literal
   (`?1` is the MATCH text, B2-7), a non-driver predicate beside `m.ng = 1`. No new index: SQLite
   can't use one for a bitmask, and `idx_ng` already drives the query (B-5).
@@ -180,9 +208,11 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
   recheck. A local simulation over the 98 dev queries gave recall@50 0.998 for a level-cut bit
   and 0.892 (worst query 0.04) for a ug1-like bit at depth 100 (B2-2). The standby is a
   fallback; §5 records the loss.
-- D1 recheck `localMatchesFilters`: tests `(row.ng_allow ?? 0) & bit`. `ng_allow` is added to
-  `RESULT_COLUMNS` and `VARIANT_COLUMNS`. `related` is rechecked whenever `ng=1` (B-2).
-- The cache key carries `study` only when `ng=1`, with a key test (B2-3).
+- D1 recheck `localMatchesFilters`: tests `(row.ng_allow ?? 0) & bit`. `ng_allow` and `ng_rules`
+  are added to `RESULT_COLUMNS` and `VARIANT_COLUMNS`, so result cards carry the bit's note ids
+  (B3-3). `related` is rechecked whenever `ng=1` (B-2).
+- The cache key carries `study` only when `ng=1`, with a key test (B2-3); `study` is echoed in
+  `filters` only when `ng=1` too, so the key and the body agree (B3-6).
 
 `sem=N` without `ng=1` keeps its meaning (NUSMods semesters).
 
@@ -190,7 +220,8 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
 
 ### 4A Per-semester NG and the allow mask on every path (P1, P2)
 - **First, its own commit:** extend the fixture with the remaining 25 level-5000 NG modules and
-  re-store the fixture baseline there, so the guard compares against it (B2-5).
+  the 9 special-term NG modules it lacks, and re-store the fixture baseline there, so the guard
+  compares against it (B2-5, B3-7).
 - Implements §2's storage and paths. Migration adds `ng_allow` and `ng_rules`.
 - 4A–4D ship together: the 400 `study-required` would break the current page, shared links and
   the eval otherwise. The SC7 query file's 10 `ng=1` rows gain a `study` (B2-3).
@@ -215,6 +246,8 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
     on one code applies to its twin (C2-2);
   - "closes 5000/6000 to undergraduate students" in five departments: whether it opens them to
     graduates (C2-7);
+  - Built Environment's quota lists name semesters that conflict with the NG list (PF3504 under
+    "Semester 1" but NG Sem 2 only; PF2505 under "Semester 2" but NG Sem 1 only) (C3-5);
   - course tables without a "NOT available" heading (Language Studies, CNM, ELTS, Japanese
     Studies, Chemistry, Science Dean's Office): what they mean (C2-7);
   - Economics' rules over GE courses it hosts (GEC, GESS, GEX);
@@ -283,16 +316,28 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
   look would score correct removals as loss, the lesson from 3H.
 - **No holdout look gates Phase 4's correctness changes.** They are gated by:
   1. **SC1's oracle and path tests** (4E).
-  2. **Per-list identity on dev** (A-2, A2-2). A test-only switch (`env.SC1_TRACE`, never
-     bound in production) makes `/search` return its internal lists: pins, the lexical, dense
-     and code lists, the mask-route list, and `topCosine`. With the switch also set to ignore
-     `ng_allow` (yearly `ng`, no `sem` predicate), each list is fetched at depth 100; projected
-     by the oracle's bit for the query's (sem, study) and cut to 50, it must equal the filtered
-     list exactly. Then the page must equal the first `topK` of `collapse(pins ++ fuse(filtered
-     lists) − pins)`, recomputed offline from the filtered lists, exactly. Mask-route queries
-     are checked on their own list. Queries whose filtered `topCosine` crosses τ into
-     `no-signal` are listed separately, and 3G's rule (no dev query outside the no-answer tags
-     returns `no-signal`) is re-run.
+  2. **Per-list identity on dev** (A-2, A2-2, A3-1 to A3-4). A test-only switch
+     (`env.SC1_TRACE`) makes `/search` return its internal lists: pins, the lexical, dense and
+     code lists, the mask-route list, and `topCosine`.
+     - **Depth:** with the switch also set to ignore `ng_allow` (yearly `ng`, no `sem`
+       predicate), each list is fetched at full depth (the bundle and lexical paths take any
+       depth with a total order). Projected by the oracle's bit for the query's (sem, study), it
+       is cut at the depth the pipeline used: 50 for the fused and code lists
+       (`src/search.js:674`), `maskDepth` for the mask route (`:783`). It must equal the filtered
+       list exactly; a projection shorter than its filtered list fails.
+     - **Page:** the page must equal the first `topK` of `collapse(pins ++ fuse(filtered lists)
+       − pins)`, recomputed offline with the exported `fuse` and collapse step (Phase 4 doesn't
+       change them; gate 3 covers them).
+     - **Cache:** trace requests skip `cache.match` and `cache.put` and are sent `no-store`. The
+       runner makes the page call, the trace call and the ignore-mode call separately, and a
+       runner test checks the ignore-mode body differs from the filtered one on a query whose
+       unfiltered top 50 holds a closed module.
+     - **Never live:** the switch is honoured only when `TEST_MIGRATIONS` is also bound, which
+       only the vitest configs bind. A unit test asserts `wrangler.jsonc` `vars` holds only
+       `DENSE_BACKEND`, and `npm run deploy` refuses otherwise.
+     - **3G:** queries whose filtered `topCosine` crosses τ into `no-signal` are listed with
+       their `topCosine`. Each needs Jacob's ruling; an unruled one fails the gate. 3G's rule (no
+       dev query outside the no-answer tags returns `no-signal`) is re-run.
   3. **Unfiltered guard** (A-1, A2-3): dev with `ng` stripped and `sem` kept (a new runner
      option, `--strip ng`), dev with `--unfiltered`, and the fixture queries with `ng` stripped
      all return byte-identical results to the baseline. The SC4 suite must stay green (it sets
@@ -324,6 +369,15 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
   the pinned release asset with `data/vectors.json` (a new pinned release, which full-corpus CI
   reads), and production. The vector text is unchanged, so there's no corpus embedding pass.
   Vectorize needs no recreation.
+- **Ship order** (B3-4): (1) build the bundles and create both releases (pinned and production);
+  (2) merge; (3) record the D1 Time Travel bookmark; (4) `remote-migration.mjs` for the new
+  migration, after the bookmark so restoring it undoes the migration; (5) the ship-time oracle
+  over the production-normalised modules (4E), locally; (6) ingest `--d1-only`; (7) `verify
+  --pre-deploy`; (8) `npm run deploy`; (9) smoke and the SC1 live check; (10) refresh the
+  standby. Before the ship: the upsert's `ON CONFLICT … SET` list is built from `ROW_COLUMNS`
+  (it is hand-written today, `src/ingest.js:283-291`, so a missed column would keep old values
+  under a new hash); the ingest schema guard (`scripts/ingest-core.mjs:631-636`) checks the new
+  columns; and verify's `fieldsFromRow` includes them.
 - **Standby recall** under `ng=1` is lower than the bundle's (§2, simulation): accepted, because
   the standby serves only when the bundle path fails.
 - **Remote ops** are logged in `requests.tsv` and `remote-ops.md` as before.
@@ -351,12 +405,14 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
 - **Persona red team** (A-8, C2-5): personas chosen by the inputs the system takes, semester ×
   study level (ug2, ug3, ug4 and grad, each in both semesters: 8 runs), with home faculties where
   the rules are densest (Architecture, Business, FASS level 4000, Music).
-  - Each persona runs 10 fresh queries and looks up by code a sample drawn in advance: every
-    Q1, Q5 and Q7 code, the AR pairs, and 20 random NG codes, so hidden courses are checked too.
-  - The red team reads only the sources, never the register or this plan, and reports every
-    place it disagrees with the register.
-  - A finding is a shown course that is `closed` under the sources plus Jacob's answers, or a
-    hidden course that is open. A noted course shown with its reason is a pass.
+  - Each persona runs 10 fresh queries and looks up by code a sample drawn in advance: every Q1
+    and Q5 code, the AR pairs, 20 random NG codes, and for Q7 20 random non-NG courses plus 5
+    Business and 5 CE/ISE ones, so hidden courses are checked too.
+  - The red team reads the sources and Jacob's answers verbatim, never the register or this
+    plan. For every course it sees or looks up, it records its own `open`/`note`/`closed` call.
+  - Its calls are diffed against the oracle mechanically. A disagreement is a finding unless a
+    Jacob answer covers it; a disagreement on a register call Jacob never ruled on stays a
+    finding until he rules.
   - Exit needs zero findings, or each finding fixed and re-checked.
 - P1 and P2 are `fixed`. FINDINGS gains rows for anything the red team finds.
 - README, `/facets` and the vault describe exchange mode as it is.
@@ -366,30 +422,48 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
   and the Law compulsory-course list (C-2).
 - **Q1. NG-listed courses a restrictions rule closes** (C2-4). The NG list's cover says "Take
   note of the various course restrictions here", deferring to the restrictions PDF.
-  - **Q1a, explicit closures:** LL4011V (in Law's own closed list), Medicine non-LSM GEC1011,
-    GEH1043, HSI2003 (rule A), LI5202 and LI5204 (section 12, "All courses are not open"). Hide?
+  - **Q1a, explicit closures:** LL4011V (in Law's own closed list; the only explicit code
+    closure on the NG list), Medicine non-LSM GEC1011, GEH1043, HSI2003 (rule A), LI5202 and
+    LI5204 (section 12, "All courses are not open"). Lead default: **hide**, since the NG list
+    defers to the restrictions.
   - **Q1b, scope:** "All CG coded courses" (under Computing's Dean's Office; the owning
     Multidisciplinary Programme closes only CG1111A, CG2111A, CG2271), "DSAXXXX" and "GEHXXXX"
     (under Mathematics; DSA4211/4212 belong to Statistics & Data Science, which doesn't list
-    them; GEH1018 is Physics, GEH1043 Medicine). Global, or only the section's department?
+    them; GEH1018 is Physics, GEH1043 Medicine). Global, or only the section's department? Lead
+    default: **section's department only**, since each owning department's own section is
+    silent on these codes; they stay open, with a note quoting the blanket rule.
   - **Q1c, level 5000 the departments don't specify:** the three AR pairs (4000 twin open to
-    Architecture majors), PC5202, PC5206, PC5211 (Physics names 22 of its 28 graduate courses as
-    closed and not these three), CM5223, CM5225, CM5244, CM5268 (Chemistry is silent on level
-    5000), AR5801, AR5802. Per subgroup: closed by rule D, or open (or noted) because the NG list
-    offers them?
-- **Q2. Study level required** in exchange mode (the lead's default), or a default level?
+    Architecture majors), PC5202, PC5206, PC5211 (Physics lists 25 PC5 codes as closed, 22 of
+    them offered this year, and not these three), CM5223, CM5225, CM5244, CM5268 (Chemistry is
+    silent on level 5000), AR5801, AR5802. Per subgroup: closed by rule D, or open (or noted)
+    because the NG list offers them? Lead default: AR pairs **note-major** (Architecture
+    majors, from the twin); PC three **open for grad, closed for undergraduates** (Physics
+    left them off a deliberate closed list, but rule D still bars undergraduates); CM four and
+    AR5801/AR5802 **closed** by rule D.
+- **Q2. Study level required** in exchange mode, or a default level? Lead default: **required**
+  (ug2 and grad differ on 64 NG codes, so no default is fail-safe).
 - **Q3. S/U in exchange mode:** keep `su=1` working with a graded-only note where a department
-  requires it, or hide `su=1` in exchange mode until NUS says NG students may S/U?
+  requires it, or hide `su=1` in exchange mode until NUS says NG students may S/U? Lead default:
+  **keep it, with a "graded basis only" note** where a department requires grading and a general
+  note that S/U eligibility for exchange students is set by NUS and the home university.
 - **Q4. Carried items:** confirm §6 (S6 via study level; 3D stays dropped; phrase parsing
   pre-registered here and shipped in Phase 5; S2–S4 left open).
-- **Q5. NG list vs NUSMods semesters** (36 modules): note (default) or hide when NUSMods doesn't
-  offer the course in the NG-listed semester?
-- **Q7. Courses not on the NG list** (C2-1). Rule E allows case-by-case approval and "may be
-  available during Course registration". Hide them in exchange mode (default), or show them
-  with a "not offered at application; may be available at registration" note? Civil and
-  Industrial Systems Engineering levels 1000–4000 stay hidden either way.
+- **Q5. NG list vs NUSMods semesters** (36 modules; the full list is committed at 4B as
+  `docs/evidence/phase4/semester-mismatch.md`). Five share no semester: PC3270, PC3294, LI5202,
+  MUA4161, SN2278; the other 31 are NG [1, 2] but offered in one. Note or hide when NUSMods
+  doesn't offer the course in the NG-listed semester? Lead default: **note**.
+- **Q7. Amend the scope decision for courses not on the NG list?** (C2-1, C3-1) Your decision:
+  "courses that need … case-by-case approval stay visible with a note". Rule E: "Approval for
+  any other courses not listed in this document will be granted on a case-by-case basis … may be
+  available during Course registration." Taken literally, your decision shows them. That is
+  5,476 Sem 1/2 courses (2,442 at levels 1000–4000) beside 1,207 NG codes. Showing them with a
+  note uses NUSMods semesters. Civil Engineering, Industrial Systems Engineering (levels
+  1000–4000) and Business stay hidden either way. Lead default: **amend; hide them**, so exchange
+  mode lists what can be requested at application, with rule E explained on the page.
 - **Q6. NUS College and USP:** the restrictions PDF limits USP to partner universities; USP is now
-  part of NUS College, which has 63 NG-listed codes. Treat them as open, or `note-partner`?
+  part of NUS College, which has 63 NG-listed codes. The NG PDF lists all 63 under "NUS College",
+  never "University Scholars Programme". Treat them as open, or `note-partner`? Lead default:
+  **open**.
 
 ## 9. Objection log
 
@@ -456,3 +530,28 @@ they didn't repeat. All objections were accepted and applied in r3.
 | C2-5 | Red team varied inputs the system ignores; couldn't find over-hiding | applied: semester × level personas; pre-drawn code lookups; sources only (§7) |
 | C2-6 | Music non-partner rule is a whitelist | applied: up to 16, pending the electives page (§1) |
 | C2-7 | Map must accept name sets; two register entries missing | applied (4B) |
+
+### Round 3 (r3, PR #64 head `62bf601`), the final round
+Three fresh critics with the same lenses. Critic A's first run failed on an API connection error
+and was re-run on the same head, with B's and C's findings listed so it didn't repeat them. All
+objections were accepted and applied in r3.1. No objection was declined, so no dissent is
+recorded.
+
+| id | objection | disposition |
+|---|---|---|
+| A3-1 | Depth 100 cut to 50 fails correct changes on most ug2 queries | applied: full depth, cut at the pipeline's depths, shorter projection fails (§4) |
+| A3-2 | The cache makes the gate vacuous or failing | applied: trace bypasses the cache, `no-store`; separate calls; runner test (§4) |
+| A3-3 | "Never bound in production" isn't enforced | applied: honoured only with `TEST_MIGRATIONS`; vars test; deploy refuses (§4) |
+| A3-4 | 3G re-run has no fail condition; `fuse`'s tiebreak is private | applied: Jacob rules each flip; `fuse` and collapse exported (§4) |
+| B3-1 | `sem` skip only in `parseFilters`; `exam=0` vacuous for Q5 notes | applied: four sites; `exam=0` excludes unknown; cache-key test (§2) |
+| B3-2 | JSON import from `scripts/` breaks Node or `tsc` | applied: rules passed as an argument, read with `readFileSync` (§2) |
+| B3-3 | Result cards can't carry note reasons | applied: `ng_rules` in both column lists (§2) |
+| B3-4 | No migration step; hand-written upsert SET list | applied: ship order written out; SET from `ROW_COLUMNS`; guards (§5) |
+| B3-5 | Rule-id drift between D1 and the Worker's text module | applied: generic fallback text; pre-deploy id check (§2) |
+| B3-6 | `study` echo vs cache key | applied: echoed only under `ng=1` (§2) |
+| B3-7 | Special-term modules missing from the fixture | applied: added in the same first commit (4A) |
+| C3-1 | Q7's default contradicts the scope decision; no counts or semester source | applied: Q7 framed as an amendment with counts and semester source (§2, §8) |
+| C3-2 | Business shuts rule E's registration route | applied: closed under any answer (§2, §8) |
+| C3-3 | Five questions lacked defaults; Q5 and Q6 lacked evidence | applied (§8) |
+| C3-4 | Red-team verdicts ill-defined; Q7 sample unnamed | applied: Jacob's answers given; mechanical diff; sample defined (§7) |
+| C3-5 | Physics count wording; Built Environment semester conflicts | applied (§8, 4B) |
