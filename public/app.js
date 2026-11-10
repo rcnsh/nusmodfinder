@@ -1,14 +1,17 @@
 // @ts-check
-// The page's controller (Phase 5 5B): reads the URL into state, keeps the form
-// and the URL in step through nav.js's transitions, searches through api.js,
-// and renders with render.js. The look and the cards are the Phase 4 page's;
-// 5C and 5D change them.
-import { createSearchClient, fetchFacets } from './api.js';
+// The page's controller (Phase 5 5B, 5C): reads the URL into state, keeps the
+// form and the URL in step through nav.js's transitions, searches through
+// api.js, and renders with render.js. 5C adds the cards' disclosure (one open
+// detail, `open=`), the detail from /module/:code, why typed codes are hidden,
+// and the partial-code check of the other semester. The look is 5D's.
+import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from './api.js';
+import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
-import { isSubmitEnter } from './keys.js';
+import { hiddenCodeLine } from './explain.js';
+import { isCloseEscape, isSubmitEnter } from './keys.js';
 import { errorSentence } from './messages.js';
 import { transition } from './nav.js';
-import { showLoading, showMessage, showResults } from './render.js';
+import { settlePartial, showLoading, showMessage, showResults } from './render.js';
 import { CREDITS, LEVELS, SEMESTERS, STUDIES, parseState, searchParams, urlFor } from './state.js';
 
 /** @typedef {import('./state.js').State} State */
@@ -99,6 +102,117 @@ const search = createSearchClient();
 const answers = new Map();
 const ANSWERS_KEPT = 50;
 const targets = { status: els.status, results: els.results };
+const modules = createModuleClient();
+
+/** The exchange-mode sources and their dates, once /facets answers (null until then, or for good if it fails). */
+/** @type {import('./explain.js').Source[] | null} */
+let sources = null;
+/**
+ * The answer on screen, its /search key, and the cards render.js built for it.
+ * @type {{ key: string, data: any, view: import('./render.js').Rendered } | null}
+ */
+let shown = null;
+
+/** A link to the search for a course code, keeping the filters and exchange set-up. @param {string} code */
+const searchHref = (code) => urlFor({ ...current, q: code, ignore: [], open: '' }, location.pathname);
+
+/**
+ * Fills a card's detail from /module/:code (fetched once per page).
+ * @param {string} code
+ * @param {HTMLElement} region
+ */
+async function loadDetail(code, region) {
+  if (!shown) return;
+  const { data } = shown;
+  detailLoading(region);
+  const outcome = await modules.get(code);
+  if (region.hidden || !region.isConnected) return;
+  if (outcome.kind !== 'ok') {
+    detailError(region, outcome.kind === 'error' ? errorSentence(outcome.error) : '', () => loadDetail(code, region));
+    return;
+  }
+  renderDetail(region, outcome.body, { filters: data.filters ?? {}, sources, searchHref, onClose: () => act({ type: 'close' }) });
+}
+
+/**
+ * Opens the state's detail and closes every other (at most one, A2-4).
+ * `focusCode`: return focus to that card's button (a detail just closed).
+ * @param {State} s
+ * @param {string} [focusCode]
+ */
+function syncDetail(s, focusCode = '') {
+  if (!shown) return;
+  for (const [code, { button, region }] of shown.view.cards) {
+    const open = code === s.open;
+    button.setAttribute('aria-expanded', String(open));
+    if (open && region.hidden) {
+      region.hidden = false;
+      loadDetail(code, region);
+    } else if (!open && !region.hidden) {
+      region.hidden = true;
+      setChildren(region);
+    }
+  }
+  if (focusCode) shown.view.cards.get(focusCode)?.button.focus();
+}
+
+/** Says why each hidden typed code isn't shown, from its own stored reasons (D4). */
+function explainHidden() {
+  if (!shown) return;
+  const { data, view } = shown;
+  const filters = data.filters ?? {};
+  for (const [code, li] of view.hidden) {
+    modules.get(code).then((outcome) => {
+      if (!li.isConnected) return;
+      if (outcome.kind !== 'ok') { setChildren(li, `${code} isn't shown with these settings. Why could not be checked just now.`); return; }
+      setChildren(li, hiddenCodeLine({
+        code, sem: filters.sem === undefined ? '' : String(filters.sem), study: filters.ng === true ? String(filters.study ?? '') : '',
+        exchange: outcome.body.exchange, sources, module: outcome.body, filters,
+      }));
+    });
+  }
+}
+
+/**
+ * A partial code emptied in one semester: does the other semester have
+ * results? The button to see it appears only if it does (C3-2).
+ * @param {State} s
+ */
+async function checkOtherSemester(s) {
+  const p = shown?.view.partial;
+  if (!p || !p.sem) return;
+  const other = p.sem === '1' ? '2' : '1';
+  const params = searchParams({ ...s, sem: other });
+  if (!params) return;
+  const key = params.toString();
+  const outcome = answers.has(key) ? { kind: 'ok', body: answers.get(key) } : await fetchSearch(params);
+  if (shown?.view.partial !== p) return;
+  if (outcome.kind === 'ok') remember(key, outcome.body);
+  const has = outcome.kind === 'ok' ? Array.isArray(outcome.body?.results) && outcome.body.results.length > 0 : null;
+  settlePartial(p, has, () => {
+    els.sem.value = other;
+    act({ type: 'settings', form: readForm() });
+  });
+}
+
+/** @param {string} key @param {any} body */
+function remember(key, body) {
+  answers.set(key, body);
+  if (answers.size > ANSWERS_KEPT) answers.delete(answers.keys().next().value);
+}
+
+/**
+ * Shows an answer, then everything that hangs off it.
+ * @param {State} s
+ * @param {string} key
+ * @param {any} body
+ */
+function render(s, key, body) {
+  shown = { key, data: body, view: showResults(targets, body, { searchHref }) };
+  syncDetail(s);
+  explainHidden();
+  checkOtherSemester(s);
+}
 
 /**
  * Renders a state: from memory when this page has shown it before, else by
@@ -110,6 +224,7 @@ const targets = { status: els.status, results: els.results };
 async function show(s, { fromUser = false } = {}) {
   const params = searchParams(s);
   if (!params) {
+    shown = null;
     search.abort();
     els.go.disabled = false;
     if (s.q.trim() && s.ng && !s.study) {
@@ -125,12 +240,21 @@ async function show(s, { fromUser = false } = {}) {
     return;
   }
   const key = params.toString();
+  // The same answer is on screen (a detail opened or closed, or Back to it):
+  // only the detail changes, so focus and the scroll position stay.
+  if (shown && shown.key === key) {
+    search.abort();
+    els.go.disabled = false;
+    syncDetail(s);
+    return;
+  }
   if (answers.has(key)) {
     search.abort();
     els.go.disabled = false;
-    showResults(targets, answers.get(key));
+    render(s, key, answers.get(key));
     return;
   }
+  shown = null;
   els.go.disabled = true;
   showLoading(targets);
   const outcome = await search(params);
@@ -140,9 +264,8 @@ async function show(s, { fromUser = false } = {}) {
     showMessage(targets, errorSentence(outcome.error), true);
     return;
   }
-  answers.set(key, outcome.body);
-  if (answers.size > ANSWERS_KEPT) answers.delete(answers.keys().next().value);
-  showResults(targets, outcome.body);
+  remember(key, outcome.body);
+  render(s, key, outcome.body);
 }
 
 /**
@@ -158,9 +281,12 @@ function act(action) {
   const url = urlFor(state, location.pathname);
   if (op === 'push') history.pushState(action.type === 'open' ? { vnmDetail: true } : null, '', url);
   else history.replaceState(action.type === 'open' ? history.state : null, '', url);
+  const closing = action.type === 'close' ? current.open : '';
   current = state;
   applyToForm(state);
   show(state, { fromUser: true });
+  // Closed by replace: focus goes back to the card's button (closed by back(), popstate does it).
+  if (closing) shown?.view.cards.get(closing)?.button.focus();
 }
 
 els.form.addEventListener('submit', (e) => {
@@ -186,11 +312,31 @@ for (const el of [els.sem, els.level, els.credits, els.faculty, els.ng, els.stud
   });
 }
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && current.open) act({ type: 'close' });
+  if (isCloseEscape(e) && current.open) act({ type: 'close' });
 });
-window.addEventListener('popstate', () => {
+// A card's button opens its detail, or closes it (the APG disclosure pattern).
+els.results.addEventListener('click', (e) => {
+  const button = e.target instanceof Element ? e.target.closest('button.card-toggle') : null;
+  if (!(button instanceof HTMLButtonElement)) return;
+  act(button.getAttribute('aria-expanded') === 'true' ? { type: 'close' } : { type: 'open', code: button.dataset.code ?? '' });
+});
+// A course code in the detail or a related-courses line searches for it here;
+// its href still opens the same search in a new tab.
+document.addEventListener('click', (e) => {
+  const link = e.target instanceof Element ? e.target.closest('a[data-search]') : null;
+  if (!(link instanceof HTMLAnchorElement) || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  act({ type: 'submit', form: { ...readForm(), q: link.dataset.search ?? '' } });
+  window.scrollTo({ top: 0 });
+  els.q.focus({ preventScroll: true });
+});
+window.addEventListener('popstate', async () => {
+  const before = current.open;
   current = settle(parseState(new URLSearchParams(location.search)));
-  show(current);
+  const after = current;
+  await show(after);
+  // Back from an open detail: the list, its detail closed, focus on its button.
+  if (before && !after.open && current === after) shown?.view.cards.get(before)?.button.focus();
 });
 
 // /facets fills the faculty list and the exchange-mode sources. Nothing waits
@@ -198,6 +344,14 @@ window.addEventListener('popstate', () => {
 // faculty is already an option.
 fetchFacets().then((f) => {
   if (!f) return;
+  sources = Array.isArray(f.ngSources) ? f.ngSources : null;
+  // The hidden-code lines and an open detail name the sources' dates: say them now.
+  if (sources && shown) {
+    explainHidden();
+    for (const [code, { region }] of shown.view.cards) {
+      if (!region.hidden && !region.contains(document.activeElement)) loadDetail(code, region);
+    }
+  }
   for (const x of Array.isArray(f.faculties) ? f.faculties : []) {
     const name = String(x?.name ?? '');
     if (!name) continue;
@@ -211,9 +365,9 @@ fetchFacets().then((f) => {
       ? ` — ${f.ng.count} courses, NUS Registrar list${f.ng.updatedAsAt ? `, ${f.ng.updatedAsAt}` : ''}`
       : ' — list not loaded';
   }
-  const sources = Array.isArray(f.ngSources) ? f.ngSources : [];
-  if (sources.length) {
-    setChildren(els.sources, 'Sources: ', ...sources.flatMap((/** @type {any} */ x, /** @type {number} */ i) => [
+  const list = sources ?? [];
+  if (list.length) {
+    setChildren(els.sources, 'Sources: ', ...list.flatMap((/** @type {any} */ x, /** @type {number} */ i) => [
       i ? '; ' : null,
       /^https?:\/\//i.test(String(x?.url)) ? h('a', { attrs: { href: String(x.url), target: '_blank', rel: 'noopener' } }, String(x.name ?? '')) : String(x?.name ?? ''),
       ` (updated ${String(x?.updatedAsAt ?? '')})`,

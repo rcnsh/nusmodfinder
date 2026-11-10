@@ -52,8 +52,9 @@ test('[F8] result fields render as text, never as markup', async ({ page }) => {
       query: evil, filters: { faculty: evil },
       results: [{
         code: evil, title: evil, department: evil, credits: '<b>4</b>', semesters: ['<i>1</i>'], score: '<u>1</u>',
-        ng: true, ngSemesters: ['<s>2</s>'], exchange: { status: 'note', reasons: [{ id: 'x', kind: 'quota', text: evil }] },
-      }],
+        variants: [{ code: evil }],
+        exchange: { status: 'note', reasons: [{ id: 'x', kind: 'quota', text: evil }] },
+      }, { code: 'CS2105', title: 'Networks', ng: true, ngSemesters: ['<s>2</s>'] }],
     }),
   }));
   await page.goto('/?q=x');
@@ -62,7 +63,8 @@ test('[F8] result fields render as text, never as markup', async ({ page }) => {
   await expect(card.locator('.meta')).toContainText('<b>4</b> units');
   await expect(card.locator('.meta')).toContainText('<i>1</i>');
   await expect(card.locator('.notes li')).toHaveText(evil);
-  await expect(card.locator('.ng')).toHaveText('NG <s>2</s>');
+  await expect(card.locator('.variants')).toHaveText(`Also as ${evil}`);
+  await expect(page.locator('#results > li').nth(1).locator('.ng')).toHaveText('On the exchange (NG) list: <s>2</s>');
   await expect(page.locator('#status strong')).toHaveText(evil);
   await expect(page.locator('#status .chip')).toHaveText(`faculty: ${evil}`);
   expect(await page.locator('#results img, #results b, #results i, #results s, #results u, #status img').count()).toBe(0);
@@ -92,7 +94,8 @@ test('[F9] Enter during IME composition does not search; Enter after it does', a
 
 test('no-match answers are plain sentences: a code not offered, and a query with no signal', async ({ page }) => {
   await page.goto('/?q=CS1001');
-  await expect(page.locator('#status')).toHaveText("CS1001 (External Course) isn't offered this academic year.");
+  await expect(page.locator('#status')).toHaveText(/^CS1001 \(External Course\) isn't offered this academic year\.Related courses offered this year: [A-Z]/);
+  expect(await page.locator('#status .related a').count()).toBeGreaterThan(0);
   await page.goto('/?q=qwzx+vbnm');
   await expect(page.locator('#status')).toHaveText('Nothing in the catalogue matches “qwzx vbnm”. Try other words for the topic.');
   await page.goto('/?q=networks&ng=1&study=ug2&sem=3');

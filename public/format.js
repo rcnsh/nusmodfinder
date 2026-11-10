@@ -1,8 +1,10 @@
 // @ts-check
-// Pure formatting for the cards and the detail (Phase 5 5B): semester names,
-// workload, exams in Singapore time, and NUS's prerequisite text with its
-// missing spaces put back. Every function returns plain text; the caller puts
-// it in a node with textContent.
+// Pure formatting for the cards and the detail (Phase 5 5B, 5C): semester
+// names, workload, exams in Singapore time, and NUS's prerequisite text with
+// its missing spaces put back, its cohort-only case named, and its course codes
+// found. Every function returns plain text or plain data; the caller puts it in
+// a node with textContent.
+import { isCohortOnly } from './cohort-only.js';
 
 /** @type {Readonly<Record<string, string>>} */
 const SEM_NAMES = Object.freeze({ 1: 'Sem 1', 2: 'Sem 2', 3: 'Special term 1', 4: 'Special term 2' });
@@ -81,6 +83,16 @@ export function examSummary(exams, sem) {
 }
 
 /**
+ * Every exam for the detail, in semester order, or that none is listed.
+ * @param {ExamDate[] | null | undefined} exams
+ * @returns {string[]}
+ */
+export function examLines(exams) {
+  const list = [...(exams ?? [])].sort((a, b) => a.sem - b.sem || Date.parse(a.date) - Date.parse(b.date));
+  return list.length ? list.map(examLine) : ['No final exam listed'];
+}
+
+/**
  * NUS's prerequisite rule language with the spaces it drops put back around
  * THEN, AND and OR ("DegreeTHENmust", "at least DANDmust", ")OR("). Only
  * spacing changes; the words stay NUS's. NUS writes the keywords in capitals
@@ -98,4 +110,49 @@ export function cleanPrereq(text) {
     .replace(/(?<=[a-z)])(THEN|AND|OR)(?=\s|$)/g, ' $1')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/**
+ * The detail's prerequisite: null when NUS lists none; `cohort` when the rule
+ * names only NUS intake years or programmes (3H-0's P-6 rule), with a plain
+ * line; otherwise NUS's `rule`, spaced. `text` is always NUS's own words. No
+ * plain-English rewrite of the rule language (docs/plans/phase5.md 5C).
+ * @param {string | null | undefined} raw
+ * @returns {{ kind: 'cohort' | 'rule', line: string | null, text: string } | null}
+ */
+export function prereqView(raw) {
+  const text = cleanPrereq(raw);
+  if (!text) return null;
+  if (!isCohortOnly(raw)) return { kind: 'rule', line: null, text };
+  const cohorts = /\bcohorts?\b/i.test(text);
+  const programmes = /\bundertaking (?:1 of )?\d{4}[A-Z0-9]{2,}/i.test(text);
+  const names = cohorts && programmes ? 'NUS intake years and programmes' : programmes ? 'NUS programmes' : 'NUS intake years';
+  return { kind: 'cohort', line: `No course prerequisite (the rule names ${names} only)`, text };
+}
+
+/**
+ * A course code inside NUS's text, in /module/:code's shape (letters, four
+ * digits, a suffix of letters and digits); never a programme code, which starts
+ * with its digits (0200ACCHON).
+ */
+const CODE_IN_TEXT = /\b[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}\b/g;
+
+/**
+ * NUS's text cut into plain runs and course codes, so the detail can link each
+ * code to a search.
+ * @param {string} text
+ * @returns {({ text: string } | { code: string })[]}
+ */
+export function codeSegments(text) {
+  /** @type {({ text: string } | { code: string })[]} */
+  const out = [];
+  let at = 0;
+  for (const m of text.matchAll(CODE_IN_TEXT)) {
+    const i = /** @type {number} */ (m.index);
+    if (i > at) out.push({ text: text.slice(at, i) });
+    out.push({ code: m[0] });
+    at = i + m[0].length;
+  }
+  if (at < text.length) out.push({ text: text.slice(at) });
+  return out;
 }

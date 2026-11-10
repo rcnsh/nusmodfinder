@@ -34,6 +34,9 @@ describe('URL state (F3, C-7)', () => {
   it('drops values /search would reject instead of failing the page', () => {
     expect(parse('sem=9&level=0&credits=-1&study=phd&open=<b>')).toMatchObject({ sem: '', level: '', credits: '', study: '', open: '' });
     expect(parse('sem=3&level=8&credits=12&study=grad&open=GEC1015A')).toMatchObject({ sem: '3', level: '8', credits: '12', study: '', open: 'GEC1015A' });
+    // Every code shape /module/:code accepts (src/modules.js MODULE_CODE_RE), digits in the suffix included.
+    for (const code of ['LC6009GRSII', 'DMA1401L01', 'DMR1201GEQA']) expect(parse(`open=${code.toLowerCase()}`).open, code).toBe(code);
+    expect(parse('open=ABCDE1234').open).toBe('');
   });
 
   it('in exchange mode ng=1 and study are always written; sem is absent for both semesters', () => {

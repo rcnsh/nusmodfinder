@@ -7,7 +7,7 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ESLint } from 'eslint';
 import { describe, expect, it } from 'vitest';
-import { isSubmitEnter } from '../../public/keys.js';
+import { isCloseEscape, isSubmitEnter } from '../../public/keys.js';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const PUBLIC = join(ROOT, 'public');
@@ -19,7 +19,7 @@ const read = (/** @type {string} */ rel) => readFileSync(join(ROOT, rel), 'utf8'
 
 describe('static assets', () => {
   it('public/ holds the page, its stylesheet and its ES modules, with no build output', () => {
-    expect(files).toEqual(expect.arrayContaining(['/index.html', '/styles.css', '/app.js', '/state.js', '/nav.js', '/api.js', '/messages.js', '/format.js', '/keys.js', '/dom.js', '/render.js']));
+    expect(files).toEqual(expect.arrayContaining(['/index.html', '/styles.css', '/app.js', '/state.js', '/nav.js', '/api.js', '/messages.js', '/format.js', '/keys.js', '/dom.js', '/render.js', '/explain.js', '/detail.js', '/cohort-only.js']));
     for (const f of files) expect(f, f).toMatch(/\.(html|css|js|svg|ico|png|txt)$/);
   });
 
@@ -71,6 +71,26 @@ describe('rendering builds DOM nodes (F8)', () => {
   });
 });
 
+describe('provenance (P3)', () => {
+  it('[P3 fixed] the title and the visible header say unofficial, NUS is not the brand, and the footer links the sources', () => {
+    const html = read('public/index.html');
+    expect(html).toContain('<title>Exchange Course Finder (unofficial, for NUS)</title>');
+    expect(html).toContain('<h1>Exchange Course Finder <span class="unofficial">(unofficial, for NUS)</span></h1>');
+    expect(html).not.toMatch(/NUSMods semantic search/);
+    const footer = /** @type {string} */ (html.match(/<footer[\s\S]*?<\/footer>/)?.[0]);
+    expect(footer).toContain('An unofficial site, not run by NUS or NUSMods.');
+    for (const href of ['https://nusmods.com/', 'https://www.nus.edu.sg/registrar/prospective-students/non-graduating', 'https://nus.edu.sg/coursereg/resources.html']) {
+      expect(footer).toContain(`href="${href}"`);
+    }
+    expect(footer).toContain("The Registrar's course vacancy report");
+  });
+
+  it("the page's NG-list and restrictions links are the sources the Worker cites (data/ng-reasons.json)", () => {
+    const html = read('public/index.html');
+    for (const s of JSON.parse(read('data/ng-reasons.json')).sources) expect(html, s.name).toContain(`href="${s.url}"`);
+  });
+});
+
 describe('IME (F9)', () => {
   it('[F9 fixed] Enter submits only when !e.isComposing && e.keyCode !== 229', () => {
     expect(isSubmitEnter({ key: 'Enter', isComposing: false, keyCode: 13 })).toBe(true);
@@ -78,5 +98,12 @@ describe('IME (F9)', () => {
     expect(isSubmitEnter({ key: 'Enter', isComposing: false, keyCode: 229 })).toBe(false);
     expect(isSubmitEnter({ key: 'Process', isComposing: false, keyCode: 229 })).toBe(false);
     expect(isSubmitEnter({ key: 'a', isComposing: false, keyCode: 65 })).toBe(false);
+  });
+
+  it('Escape closes the open detail only outside IME composition (it cancels a candidate otherwise)', () => {
+    expect(isCloseEscape({ key: 'Escape', isComposing: false, keyCode: 27 })).toBe(true);
+    expect(isCloseEscape({ key: 'Escape', isComposing: true, keyCode: 27 })).toBe(false);
+    expect(isCloseEscape({ key: 'Escape', isComposing: false, keyCode: 229 })).toBe(false);
+    expect(isCloseEscape({ key: 'Enter', isComposing: false, keyCode: 13 })).toBe(false);
   });
 });
