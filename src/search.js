@@ -18,7 +18,7 @@ import { lexicalSearch, rangeMembers } from './lexical.js';
 import { RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
 import { INTENT } from './intents.js';
 import { NO_SIGNAL_TAU } from './no-signal.js';
-import { STUDIES, ngBit } from './ng-bit.js';
+import { STUDIES, bitOf, ngBit } from './ng-bit.js';
 import { canonicalQuery, parseIgnore, parseQuery } from './query-intent.js';
 import { EMBED_CORRECTED } from './typo.js';
 import { hasCode } from './vector-bundle.js';
@@ -746,6 +746,12 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     log.degradedMessage = err.message;
   };
 
+  // 5C-api: the typed codes the page explains. `notOffered` comes from the
+  // parse (no read); `hiddenPins` is filled by the search route's pin lookup.
+  const notOffered = parsed.codes.filter((t) => t.status === 'not-offered').map((t) => t.code);
+  /** @type {string[]} */
+  let hiddenPins = [];
+
   /**
    * @param {ReturnType<typeof rowToModule>[]} results
    * @param {Record<string, number>} retrieval
@@ -765,6 +771,8 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
         count: results.length,
         mode,
         interpreted: parsed.interpreted,
+        hiddenPins,
+        notOffered,
         ...extra,
         ...(degraded ? { degraded } : {}),
         retrieval,
@@ -798,8 +806,11 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   }
   // Phase 4: exchange mode shows the allow-mask bit's notes on each card.
   const bit = ngBit(echo);
+  // 5C-api: with no semester, each card also gets Sem 1's and Sem 2's (never a merged value).
+  const semBits = bit !== null && echo.sem === undefined && echo.study !== undefined
+    ? { 1: bitOf(1, echo.study), 2: bitOf(2, echo.study) } : null;
   /** @param {ResultRow} row @param {number} [score] */
-  const toModule = (row, score) => rowToModule(row, score, bit);
+  const toModule = (row, score) => rowToModule(row, score, bit, semBits);
 
   // ── no-match: `count: 0`; a not-offered code names its catalogue title and
   // the dense neighbours of its catalogue text, never in `results`.
@@ -904,10 +915,13 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
 
   // ── search: pins, then the fused lists.
   // R5: offered codes jump to the front, in query order, if the filters allow them.
-  const pinning = parsed.pins.length
-    ? settle(d1Timed(trace, 'pin', () => db.prepare(parsed.pins.length === 1
+  // 5C-api: the same statement also reads every other typed offered code (at most
+  // MAX_CODES in all), only to report the ones the filters hide; none of them pins.
+  const lookup = [...new Set([...parsed.pins, ...parsed.codes.filter((t) => t.status === 'offered').map((t) => t.code)])];
+  const pinning = lookup.length
+    ? settle(d1Timed(trace, 'pin', () => db.prepare(lookup.length === 1
       ? `SELECT ${RESULT_COLUMNS} FROM modules WHERE code = ?`
-      : `SELECT ${RESULT_COLUMNS} FROM modules WHERE code IN (${parsed.pins.map(() => '?').join(',')})`).bind(...parsed.pins).all()))
+      : `SELECT ${RESULT_COLUMNS} FROM modules WHERE code IN (${lookup.map(() => '?').join(',')})`).bind(...lookup).all()))
     : null;
 
   // The third list: a code token's prefix members, within any GE mask.
@@ -963,6 +977,12 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
       }
       pinned.push(toModule(row, 1));
     }
+    // A typed code with a row that fails the pins' filters. A code with no row, or a pin
+    // skipped above because its group already shows, is not hidden by the filters.
+    hiddenPins = lookup.filter((code) => {
+      const row = byCodeRow.get(code);
+      return row !== undefined && !localMatchesFilters(row, intentFilter);
+    });
   }
 
   /** @type {DenseHit[]} */

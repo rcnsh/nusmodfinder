@@ -20,7 +20,7 @@ import { moduleWorkload } from './workload.js';
  * }} ModuleRow
  * @typedef {Pick<ModuleRow, 'code' | 'title' | 'department' | 'faculty' | 'credits' | 'level' | 'semesters' | 'ng' | 'ng_semesters'
  *   | 'exam_semesters' | 'su' | 'grading_basis' | 'workload_hours' | 'prereq_none' | 'prereq_cohort_only'
- *   | 'ng_allow' | 'ng_rules'>} ResultRow
+ *   | 'ng_allow' | 'ng_rules' | 'exam_dates'>} ResultRow
  *   The columns a search result renders (rowToModule) and filters on (pin, dense rows, 3H).
  * @typedef {{ updatedAsAt: string | null, source: string | null, count: number }} NgList
  *   Provenance of data/ng-courses-*.json, written to meta('ng_list') by ingest.
@@ -50,8 +50,9 @@ const MODULE_CACHE = Object.freeze({ ok: 'public, max-age=300', notFound: 'publi
 export const nusmodsUrl = (code) => `https://nusmods.com/courses/${code}`;
 
 // /search: only what rowToModule renders and the pin's filter check reads.
+// 5C-api adds exam_dates, answered as each result's `examDates`.
 export const RESULT_COLUMNS = 'code, title, department, faculty, credits, level, semesters, ng, ng_semesters, '
-  + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules';
+  + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules, exam_dates';
 
 /**
  * A read on the nearest replica, or the primary when replication is off.
@@ -74,8 +75,11 @@ export const d1Timed = (trace, name, fn) => trace.time(name, () => withTimeout('
  * @param {number} [score]
  * @param {number | null} [bit] exchange mode's allow-mask bit (src/ng-bit.js): the card gets
  *   `exchange`, that bit's status and reasons
+ * @param {{ 1: number, 2: number } | null} [semBits] exchange mode with no semester (5C-api): the
+ *   bits for Sem 1 and Sem 2 at the request's study level; the card gets `exchangeBySem`, each
+ *   semester's status and reasons, so a student planning both sees one value per semester
  */
-export function rowToModule(row, score, bit = null) {
+export function rowToModule(row, score, bit = null, semBits = null) {
   return {
     code: row.code,
     title: row.title,
@@ -87,6 +91,9 @@ export function rowToModule(row, score, bit = null) {
     ng: row.ng === 1,
     ngSemesters: JSON.parse(row.ng_semesters ?? '[]'),
     ...(bit === null ? {} : { exchange: exchangeAt(row, bit) }),
+    ...(semBits === null ? {} : { exchangeBySem: { 1: exchangeAt(row, semBits[1]), 2: exchangeAt(row, semBits[2]) } }),
+    // 5C-api: each exam, its date ISO UTC, as /module/:code's `examDates`.
+    examDates: JSON.parse(row.exam_dates ?? '[]'),
     ...(score === undefined ? {} : { score }),
   };
 }

@@ -10,7 +10,9 @@
 //   recheck): no leaks, and recall@50 against the bundle above a floor;
 // - pins, 3F variants and a not-offered code's `related`: a code search for
 //   every NG code shows it exactly when the oracle does; no closed variant;
-//   no closed neighbour.
+//   no closed neighbour;
+// - Phase 5 5C-api's `exchangeBySem`: with no sem, each semester's status on
+//   a shown NG code's card equals the oracle's for that semester.
 // Its own vitest project and CI job (`npm run test:sc1`), with its own
 // timeout. Skipped without the pinned corpus and bundle; the sc1 CI job sets
 // FULL_CORPUS=1, so a missing one fails there instead.
@@ -134,6 +136,27 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
       }
     }
     expect(wrong).toEqual([]);
+  }, 600_000);
+
+  it('exchangeBySem (Phase 5 5C-api): with no sem, each semester\'s status on a shown NG code\'s card equals the oracle\'s', async () => {
+    const ngModules = c.modules.filter((m) => m.ng);
+    /** @type {string[]} */
+    const wrong = [];
+    let checked = 0;
+    for (const m of ngModules) {
+      for (const study of STUDIES) {
+        const { body } = await callJson(`/search?q=${m.code}&ng=1&study=${study}&mode=lexical&topK=5`, { fakes });
+        const card = body.results.find((/** @type {any} */ r) => r.code === m.code);
+        if (!card) continue;
+        for (const sem of /** @type {const} */ ([1, 2])) {
+          const want = oracle(m, { sem, study });
+          if (card.exchangeBySem?.[sem]?.status !== want) wrong.push(`${m.code} ${study} sem ${sem}: ${card.exchangeBySem?.[sem]?.status}, oracle ${want}`);
+          checked++;
+        }
+      }
+    }
+    expect(wrong).toEqual([]);
+    expect(checked).toBeGreaterThan(5000);
   }, 600_000);
 
   it('variants: no group shows a closed member', async () => {
