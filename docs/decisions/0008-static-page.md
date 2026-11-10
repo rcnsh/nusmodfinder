@@ -46,7 +46,18 @@ critique (V1) and a provenance gap (P3). SC4's parsed-phrase items carry over fr
   visible header at every width, until Phase 8's name gate.
 - **D4, hidden codes: say why**, from each code's own stored reasons; the course is never listed
   as a result.
-- **D1, design direction:** pending the three mockups.
+- **D1, design direction: D, "Annotated catalogue"** (2026-11-11). Jacob saw A ("Registrar's
+  ledger"), B ("Planner") and C ("Field guide") and asked for "a middle ground between A and C,
+  with less bold"; D was built to that and picked. It takes C's structure (a "Your exchange" rail
+  with the semester, year and key on desktop; results as entries with code, details and status
+  columns; notes as plain guidance with a lead-in word; one accent) and A's type and precision
+  (IBM Plex Sans with Plex Mono for codes, units and exam times; an outlined status stamp with a
+  shape, a word and a colour, one per semester). It drops C's display headwords, thick rules and
+  filled black chips, and A's dense zebra table: nothing heavier than 600, 1px rules, outlined or
+  lightly tinted chips and stamps, a near-white ground and a muted plum accent. The mockup is
+  `docs/design/phase5-direction-d.html` (contrast script beside it); the four directions are in
+  the ephemera set `vector-nusmods-phase-5-design-directions-tk3piy`, with D picked and A–C
+  rejected. 5D builds D in both themes.
 
 ## Consequences
 - Two production deploys before 5F: the data change, then the page (code-only, rolled back
