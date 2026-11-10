@@ -121,3 +121,58 @@ jobs:
             console.log(`passed ${r.numPassedTests}, skipped ${r.numPendingTests + r.numTodoTests}, total ${r.numTotalTests}`);
             if (r.numPassedTests === 0 || r.numPassedTests !== r.numTotalTests) process.exit(1);
           ' "$RUNNER_TEMP/full.json"
+
+  # Phase 4 4E: SC1's path tests over the pinned corpus and bundle, in their
+  # own job with their own timeout (docs/plans/phase4.md 4E, A2-5).
+  sc1:
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FULL_CORPUS: '1'
+      PINNED_RELEASE: data-2026-2027-20260904
+      MODULE_INFO: .data/2026-2027-moduleInfo.json
+      MODULE_INFO_SHA256: 2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Restore pinned corpus
+        id: corpus
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.MODULE_INFO }}
+          key: corpus-${{ env.MODULE_INFO_SHA256 }}
+      - name: Download pinned corpus from the release (never api.nusmods.com)
+        if: steps.corpus.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dl="$(mktemp -d)"
+          gh release download "$PINNED_RELEASE" --repo "$GITHUB_REPOSITORY" --pattern '2026-2027-moduleInfo.json.gz' --dir "$dl"
+          mkdir -p .data
+          gunzip -c "$dl/2026-2027-moduleInfo.json.gz" > "$MODULE_INFO"
+      - name: Verify raw sha256
+        run: echo "$MODULE_INFO_SHA256  $MODULE_INFO" | sha256sum -c -
+      - name: Restore the pinned vectors bundle
+        id: vectors
+        uses: actions/cache@v6
+        with:
+          path: .data/vectors
+          key: vectors-${{ hashFiles('data/vectors.json') }}
+      - name: Download the pinned vectors bundle from its release, sha-checked
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/vectors.mjs fetch --corpus pinned
+      - name: Run test/sc1
+        run: npx vitest run --project sc1 --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/sc1.json"
+      - name: Fail if no SC1 test ran
+        run: |
+          node -e '
+            const r = require(process.argv[1]);
+            console.log(`passed ${r.numPassedTests}, skipped ${r.numPendingTests + r.numTodoTests}, total ${r.numTotalTests}`);
+            if (r.numPassedTests === 0 || r.numPassedTests !== r.numTotalTests) process.exit(1);
+          ' "$RUNNER_TEMP/sc1.json"

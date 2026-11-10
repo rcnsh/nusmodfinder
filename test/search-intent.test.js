@@ -6,7 +6,7 @@
 // on both halves, noMatch, `interpreted` on every response, and `ignore`.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { denseBundle } from '../src/dense.js';
-import { exactSearch } from '../src/vector-bundle.js';
+import { decodeFilterRow, exactSearch } from '../src/vector-bundle.js';
 import { env } from 'cloudflare:workers';
 import { createFakes, hashEmbed } from './fakes.js';
 import groupsFile from './fixtures/groups.json';
@@ -250,9 +250,12 @@ describe('ignore', () => {
 });
 
 describe('the bundle filter table', () => {
-  it('has 3H-0\'s fields (schema 2) and still no prefix id in its reserved slot', () => {
+  it('has 3H-0\'s fields and, from schema 3, Phase 4\'s allow mask in the old prefix-id slot', () => {
     const b = denseBundle();
-    expect(b.header.schema).toBe('vnm-vectors/2');
+    expect(b.header.schema).toBe('vnm-vectors/3');
+    const cs3244 = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.code === 'CS3244'));
+    expect(cs3244.ngAllow).toBeGreaterThan(0);
+    expect(decodeFilterRow(b, b.codes.indexOf('CS3244')).ngAllow).toBe(cs3244.ngAllow);
   });
 });
 

@@ -137,6 +137,17 @@ function changedBy3C(path) {
 }
 /** Requests 3C changes, left out like 3B's. @type {string[]} */
 const typoPaths = [];
+/**
+ * Exchange-mode requests (ng=1), left out too: Phase 4 changes their answers by
+ * design (a 400 without `study`, the allow-mask bit with it); SC1's path tests
+ * (test/sc1/) cover them. @type {string[]}
+ */
+const exchangePaths = [];
+/** @param {string} path */
+const isExchange = (path) => {
+  const ng = new URL(path, BASE).searchParams.get('ng');
+  return ng !== null && ng !== '' && ng !== '0' && ng !== 'false';
+};
 
 /**
  * Compares one request on both paths. Returns a description of any
@@ -145,6 +156,7 @@ const typoPaths = [];
  */
 async function compare(path) {
   const url = new URL(path, BASE);
+  if (isExchange(path)) { exchangePaths.push(path); return null; }
   // B8: `topK=` (empty) now means the default; before, it meant 1.
   const legacyUrl = new URL(url);
   if (legacyUrl.searchParams.get('topK')?.trim() === '') legacyUrl.searchParams.delete('topK');
@@ -191,7 +203,7 @@ describe('1B is ranking-neutral', () => {
     expect(typoPaths.length).toBeGreaterThan(0);
     expect(paths.length - routedPaths.length - typoPaths.length).toBeGreaterThan(400);
     console.info(`differential: ${paths.length} requests, ${ok} 200s (${withResults} with results), ${diffs.length} differences, `
-      + `${routedPaths.length} routed by 3B and ${typoPaths.length} changed by 3C, left out`);
+      + `${routedPaths.length} routed by 3B, ${typoPaths.length} changed by 3C and ${exchangePaths.length} in exchange mode, left out`);
   }, 120_000);
 
   it('returns the same results when the index holds stale vectors missing from D1', async () => {
@@ -203,7 +215,7 @@ describe('1B is ranking-neutral', () => {
       if (v) fakes.vectorize.vectors.set(`ZZ900${i}`, { ...v, id: `ZZ900${i}` });
     }
     try {
-      const paths = requests().filter((p) => !p.includes('mode=lexical')).slice(0, 200);
+      const paths = requests().filter((p) => !p.includes('mode=lexical') && !isExchange(p)).slice(0, 200);
       let compared = 0;
       for (const p of paths) {
         const before = await legacy(p.replace(/topK=(&|$)/, ''));

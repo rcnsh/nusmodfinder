@@ -41,6 +41,7 @@ const OPTIONS = /** @type {const} */ ({
   gate: { type: 'string' },
   exempt: { type: 'string' },
   unfiltered: { type: 'boolean', default: false },
+  strip: { type: 'string' },
   mode: { type: 'string', default: 'hybrid' },
   embedding: { type: 'string' },
   'store-only': { type: 'boolean', default: false },
@@ -491,6 +492,7 @@ async function runAndReport(a, set, change, reserved) {
     ref: a.ref,
     embedding: a.embedding,
     unfiltered: a.unfiltered,
+    strip: a.strip ? a.strip.split(',').map((s) => s.trim()).filter(Boolean) : [],
     mode: a.mode,
     output: a.out ? resolve(a.out) : undefined,
   });

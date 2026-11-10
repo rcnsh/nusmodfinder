@@ -1,0 +1,668 @@
+{
+ "acadYear": "2026-2027",
+ "generator": "scripts/build-ng-reasons.mjs",
+ "sources": [
+  {
+   "name": "Courses offered to exchange (NG) students",
+   "updatedAsAt": "01 Sep 2026",
+   "url": "https://www.nus.edu.sg/registrar/prospective-students/non-graduating"
+  },
+  {
+   "name": "Course restrictions for exchange (NG) students",
+   "updatedAsAt": "31 Aug 2026",
+   "url": "https://www.nus.edu.sg/registrar/prospective-students/non-graduating"
+  }
+ ],
+ "reasons": {
+  "ng-list:not-listed": {
+   "kind": "closed",
+   "text": "Not on the Registrar's list of courses offered to exchange students.",
+   "cite": "NG course list"
+  },
+  "ng-list:not-in-semester": {
+   "kind": "closed",
+   "text": "Offered to exchange students only in the other semester.",
+   "cite": "NG course list"
+  },
+  "ng-list:nusmods-semester-differs": {
+   "kind": "semester",
+   "text": "The NG list offers it to exchange students in this semester, but the NUSMods timetable doesn't list it then; check with NUS.",
+   "cite": "NG course list; NUSMods"
+  },
+  "D-grad-levels-closed-exchange": {
+   "kind": "closed",
+   "text": "Level 5000 and 6000 courses are not open to exchange students unless a department says so.",
+   "cite": "restrictions PDF §D"
+  },
+  "A-dentistry": {
+   "kind": "closed",
+   "text": "Faculty of Dentistry courses are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1"
+  },
+  "A-medicine": {
+   "kind": "closed",
+   "text": "Medicine courses other than LSM-coded ones are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1"
+  },
+  "A-public-health": {
+   "kind": "closed",
+   "text": "Public Health graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1"
+  },
+  "A-nursing": {
+   "kind": "closed",
+   "text": "Nursing courses are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1"
+  },
+  "A-iss": {
+   "kind": "closed",
+   "text": "Institute of Systems Science courses are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1"
+  },
+  "A-self-funded": {
+   "kind": "closed",
+   "text": "Courses in NUS self-funded programmes are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1"
+  },
+  "B-suffix-x": {
+   "kind": "closed",
+   "text": "This X-suffix course is not open to exchange students.",
+   "cite": "restrictions PDF §B, p1"
+  },
+  "C-urop-fass": {
+   "kind": "closed",
+   "text": "UROP courses in Arts & Social Sciences are not open to exchange students.",
+   "cite": "restrictions PDF §C, p1"
+  },
+  "C-urop-cde": {
+   "kind": "closed",
+   "text": "UROP courses in Design & Engineering are not open to exchange students.",
+   "cite": "restrictions PDF §C, p1"
+  },
+  "1-cls-table": {
+   "kind": "closed",
+   "text": "Listed by the Centre for Language Studies as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Centre for Language Studies), p3"
+  },
+  "1-cls-graded": {
+   "kind": "graded",
+   "text": "Language courses must be taken on a graded basis (no audit).",
+   "cite": "restrictions PDF §1 (Centre for Language Studies), p3"
+  },
+  "1-chinese-l456-ug": {
+   "kind": "closed",
+   "text": "Chinese Studies level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Chinese Studies), p3"
+  },
+  "1-cnm-table": {
+   "kind": "closed",
+   "text": "Listed by Communications and New Media as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Communications and New Media), p3"
+  },
+  "1-cnm-l4": {
+   "kind": "closed",
+   "text": "Communications and New Media level 4000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §1 (Communications and New Media), p3"
+  },
+  "1-cnm-suffix-y": {
+   "kind": "closed",
+   "text": "Communications and New Media 'Y' courses are not open to exchange students.",
+   "cite": "restrictions PDF §1 (Communications and New Media), p3"
+  },
+  "1-econ-l456": {
+   "kind": "closed",
+   "text": "Economics level 4000+ courses are not open to exchange students.",
+   "cite": "restrictions PDF §1 (Economics), p3"
+  },
+  "1-econ-l123-grad": {
+   "kind": "closed",
+   "text": "Economics level 1000-3000 courses are not open to exchange graduate students.",
+   "cite": "restrictions PDF §1 (Economics), p3"
+  },
+  "1-elts-table": {
+   "kind": "closed",
+   "text": "Listed by English, Linguistics & Theatre Studies as not available to exchange students.",
+   "cite": "restrictions PDF §1 (English, Linguistics & Theatre Studies), p3"
+  },
+  "1-elts-l456-ug": {
+   "kind": "closed",
+   "text": "English, Linguistics & Theatre Studies level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (English, Linguistics & Theatre Studies), p3"
+  },
+  "1-elts-grad-approval": {
+   "kind": "approval",
+   "text": "Graduate courses need case-by-case approval.",
+   "cite": "restrictions PDF §1 (English, Linguistics & Theatre Studies), p3"
+  },
+  "1-geog-quota": {
+   "kind": "quota",
+   "text": "Limited quota.",
+   "cite": "restrictions PDF §1 (Geography), p3"
+  },
+  "1-geog-l1234-grad": {
+   "kind": "closed",
+   "text": "Geography level 1000-4000 courses are not open to exchange graduate students.",
+   "cite": "restrictions PDF §1 (Geography), p3"
+  },
+  "1-geog-l456-ug": {
+   "kind": "closed",
+   "text": "Geography level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Geography), p3"
+  },
+  "1-hist-quota": {
+   "kind": "quota",
+   "text": "Limited quota.",
+   "cite": "restrictions PDF §1 (History), p4"
+  },
+  "1-hist-l4-honours-fma": {
+   "kind": "closed",
+   "text": "History Honours level 4000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §1 (History), p4"
+  },
+  "1-hist-l4-honours-fma:fma": {
+   "kind": "closed",
+   "text": "History freshmen seminars are not open to exchange students.",
+   "cite": "restrictions PDF §1 (History), p4"
+  },
+  "1-js-table": {
+   "kind": "closed",
+   "text": "Listed by Japanese Studies as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Japanese Studies), p4"
+  },
+  "1-js-l4-approval": {
+   "kind": "approval",
+   "text": "Level 4000 courses need case-by-case approval.",
+   "cite": "restrictions PDF §1 (Japanese Studies), p4"
+  },
+  "1-malay-no-audit": {
+   "kind": "graded",
+   "text": "Cannot be audited.",
+   "cite": "restrictions PDF §1 (Malay Studies), p4"
+  },
+  "1-malay-l4-yr34": {
+   "kind": "closed",
+   "text": "Malay Studies level 4000 courses are open only to 3rd and 4th-year undergraduates and graduate students.",
+   "cite": "restrictions PDF §1 (Malay Studies), p4"
+  },
+  "1-malay-grad-approval": {
+   "kind": "approval",
+   "text": "Graduate courses need case-by-case approval.",
+   "cite": "restrictions PDF §1 (Malay Studies), p4"
+  },
+  "1-malay-grad-ug-closed": {
+   "kind": "closed",
+   "text": "Undergraduates may not take Malay Studies graduate courses.",
+   "cite": "restrictions PDF §1 (Malay Studies), p4"
+  },
+  "1-polsci-l456-ug": {
+   "kind": "closed",
+   "text": "Political Science level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Political Science), p4"
+  },
+  "1-psych-l4-appeal": {
+   "kind": "approval",
+   "text": "Level 4000 courses by appeal only.",
+   "cite": "restrictions PDF §1 (Psychology), p4"
+  },
+  "1-psych-closed": {
+   "kind": "closed",
+   "text": "Listed by Psychology as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Psychology), p4"
+  },
+  "1-psych-closed:pl328x": {
+   "kind": "closed",
+   "text": "Psychology lab courses are not available to exchange students.",
+   "cite": "restrictions PDF §1 (Psychology), p4"
+  },
+  "1-psych-closed:levels": {
+   "kind": "closed",
+   "text": "Psychology level 4000+ courses are not available to exchange students.",
+   "cite": "restrictions PDF §1 (Psychology), p4"
+  },
+  "1-socwork-l456-ug": {
+   "kind": "closed",
+   "text": "Social Work level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Social Work), p4"
+  },
+  "1-socanth-l456-ug": {
+   "kind": "closed",
+   "text": "Sociology and Anthropology level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Sociology and Anthropology), p4"
+  },
+  "1-socanth-grad-approval": {
+   "kind": "approval",
+   "text": "Graduate courses are subject to approval.",
+   "cite": "restrictions PDF §1 (Sociology and Anthropology), p4"
+  },
+  "1-sas-no-audit": {
+   "kind": "graded",
+   "text": "Cannot be audited.",
+   "cite": "restrictions PDF §1 (South Asian Studies), p4"
+  },
+  "1-sas-l4-yr34": {
+   "kind": "closed",
+   "text": "South Asian Studies level 4000 courses are open only to 3rd and 4th-year undergraduates and graduate students.",
+   "cite": "restrictions PDF §1 (South Asian Studies), p4"
+  },
+  "1-sas-grad-approval": {
+   "kind": "approval",
+   "text": "Graduate courses need case-by-case approval.",
+   "cite": "restrictions PDF §1 (South Asian Studies), p5"
+  },
+  "1-sas-grad-ug-closed": {
+   "kind": "closed",
+   "text": "Undergraduates may not take South Asian Studies graduate courses.",
+   "cite": "restrictions PDF §1 (South Asian Studies), p5"
+  },
+  "1-sea-closed": {
+   "kind": "closed",
+   "text": "Listed by Southeast Asian Studies as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5"
+  },
+  "1-sea-closed:sea": {
+   "kind": "closed",
+   "text": "SEA-coded courses are not available to exchange students.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5"
+  },
+  "1-sea-no-audit": {
+   "kind": "graded",
+   "text": "Cannot be audited.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5"
+  },
+  "1-sea-se3234-form": {
+   "kind": "approval",
+   "text": "Apply with the department's form; not open for online selection.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5"
+  },
+  "1-sea-l4-yr34": {
+   "kind": "closed",
+   "text": "Southeast Asian Studies level 4000 courses are open only to 3rd and 4th-year undergraduates and graduate students.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5"
+  },
+  "2-biz-l1234-priority": {
+   "kind": "quota",
+   "text": "Business courses are over-subscribed and not guaranteed.",
+   "cite": "restrictions PDF §2, p6"
+  },
+  "2-biz-major": {
+   "kind": "major",
+   "text": "Only for students majoring in business at their home university.",
+   "cite": "restrictions PDF §2, p6"
+  },
+  "2-biz-bma-ug-closed": {
+   "kind": "closed",
+   "text": "Undergraduates may not take MBA courses.",
+   "cite": "restrictions PDF §2, p6"
+  },
+  "2-biz-bma-partner": {
+   "kind": "partner",
+   "text": "Only for graduate students from Business School partner universities with 1.5+ years of work experience.",
+   "cite": "restrictions PDF §2, p6"
+  },
+  "2-biz-bms-cems": {
+   "kind": "partner",
+   "text": "Only for students nominated by a CEMS partner school.",
+   "cite": "restrictions PDF §2, p6"
+  },
+  "3-soc-dean-closed": {
+   "kind": "closed",
+   "text": "Listed by the School of Computing as not available to exchange students.",
+   "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p6"
+  },
+  "3-soc-cg": {
+   "kind": "closed",
+   "text": "CG-coded courses are not open to exchange students.",
+   "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p7"
+  },
+  "3-soc-cg:elsewhere": {
+   "kind": "restricted-elsewhere",
+   "text": "Listed as open, but the School of Computing's restrictions say all CG-coded courses are not open; check with NUS.",
+   "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p7"
+  },
+  "3-soc-dean-l56": {
+   "kind": "closed",
+   "text": "Computing level 5000+ courses are not open to exchange students.",
+   "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p7"
+  },
+  "3-mdp-closed": {
+   "kind": "closed",
+   "text": "Listed as not available to exchange students.",
+   "cite": "restrictions PDF §3 (Multidisciplinary Programme), p7"
+  },
+  "3-cs-closed": {
+   "kind": "closed",
+   "text": "Listed by Computer Science as not available to exchange students.",
+   "cite": "restrictions PDF §3 (Computer Science), p7"
+  },
+  "3-cs-l56": {
+   "kind": "closed",
+   "text": "Computing level 5000+ courses are not open to exchange students.",
+   "cite": "restrictions PDF §3 (Computer Science), p8"
+  },
+  "3-isa-closed": {
+   "kind": "closed",
+   "text": "Listed by Information Systems and Analytics as not available to exchange students.",
+   "cite": "restrictions PDF §3 (Information Systems and Analytics), p8"
+  },
+  "3-isa-l56": {
+   "kind": "closed",
+   "text": "Computing level 5000+ courses are not open to exchange students.",
+   "cite": "restrictions PDF §3 (Information Systems and Analytics), p8"
+  },
+  "4-arch-closed": {
+   "kind": "closed",
+   "text": "Listed by Architecture as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Architecture), p9"
+  },
+  "4-arch-dep5102-no-audit": {
+   "kind": "graded",
+   "text": "Cannot be audited.",
+   "cite": "restrictions PDF §4 (Architecture), p9"
+  },
+  "4-arch-design-letter": {
+   "kind": "letter",
+   "text": "Needs a letter from your home university stating your design year.",
+   "cite": "restrictions PDF §4 (Architecture), p9"
+  },
+  "4-arch-major-architecture": {
+   "kind": "major",
+   "text": "Only for students majoring in Architecture or a related discipline.",
+   "cite": "restrictions PDF §4 (Architecture), p9"
+  },
+  "4-arch-ar4321-no-audit": {
+   "kind": "graded",
+   "text": "Cannot be audited.",
+   "cite": "restrictions PDF §4 (Architecture), p10"
+  },
+  "4-arch-major-landscape": {
+   "kind": "major",
+   "text": "Only for students majoring in Landscape Architecture or a related discipline.",
+   "cite": "restrictions PDF §4 (Architecture), p10"
+  },
+  "4-bme-closed": {
+   "kind": "closed",
+   "text": "Listed by Biomedical Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Biomedical Engineering), p10"
+  },
+  "4-bme-l56-ug": {
+   "kind": "closed",
+   "text": "Biomedical Engineering graduate courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §4 (Biomedical Engineering), p10"
+  },
+  "4-be-closed": {
+   "kind": "closed",
+   "text": "Listed by Built Environment as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Built Environment), p10"
+  },
+  "4-be-l56-ug": {
+   "kind": "closed",
+   "text": "Built Environment graduate courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §4 (Built Environment), p11"
+  },
+  "4-be-bps": {
+   "kind": "closed",
+   "text": "MSc Building Performance and Sustainability courses are not offered to exchange students.",
+   "cite": "restrictions PDF §4 (Built Environment), p11"
+  },
+  "4-be-quota": {
+   "kind": "quota",
+   "text": "Limited quota.",
+   "cite": "restrictions PDF §4 (Built Environment), p11"
+  },
+  "4-be-l1234-grad": {
+   "kind": "closed",
+   "text": "Built Environment level 1000-4000 courses are not open to exchange graduate students.",
+   "cite": "restrictions PDF §4 (Built Environment), p11"
+  },
+  "4-be-graded": {
+   "kind": "graded",
+   "text": "Must be taken on a graded basis.",
+   "cite": "restrictions PDF §4 (Built Environment), p11"
+  },
+  "4-cbe-closed": {
+   "kind": "closed",
+   "text": "Listed by Chemical and Biomolecular Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Chemical and Biomolecular Engineering), p11"
+  },
+  "4-cbe-cn5": {
+   "kind": "closed",
+   "text": "CN level 5000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Chemical and Biomolecular Engineering), p12"
+  },
+  "4-cee-l56": {
+   "kind": "closed",
+   "text": "CE and ESE graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Civil and Environmental Engineering), p12"
+  },
+  "4-ece-closed": {
+   "kind": "closed",
+   "text": "Listed by Electrical and Computer Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Electrical and Computer Engineering), p12"
+  },
+  "4-ece-closed:l56": {
+   "kind": "closed",
+   "text": "EE, CEG and EEK graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Electrical and Computer Engineering), p12"
+  },
+  "4-isem-closed": {
+   "kind": "closed",
+   "text": "Listed by Industrial Systems Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Industrial Systems Engineering and Management), p12"
+  },
+  "4-isem-l56": {
+   "kind": "closed",
+   "text": "IE, MT and SDM graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Industrial Systems Engineering and Management), p12"
+  },
+  "4-mse-closed-1": {
+   "kind": "closed",
+   "text": "Listed by Materials Science and Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Materials Science and Engineering), p12"
+  },
+  "4-mse-closed-2": {
+   "kind": "closed",
+   "text": "Listed by Materials Science and Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Materials Science and Engineering), p13"
+  },
+  "4-mse-l56": {
+   "kind": "closed",
+   "text": "Materials Science graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Materials Science and Engineering), p13"
+  },
+  "4-me-closed": {
+   "kind": "closed",
+   "text": "Listed by Mechanical Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Mechanical Engineering), p13"
+  },
+  "4-me-l56": {
+   "kind": "closed",
+   "text": "Mechanical Engineering graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Mechanical Engineering), p14"
+  },
+  "4-id-major": {
+   "kind": "major",
+   "text": "Only for students taking Industrial Design at their home university.",
+   "cite": "restrictions PDF §4 (Division of Industrial Design), p14"
+  },
+  "4-id-id4106": {
+   "kind": "closed",
+   "text": "Not open to exchange students.",
+   "cite": "restrictions PDF §4 (Division of Industrial Design), p14"
+  },
+  "4-id-graded": {
+   "kind": "graded",
+   "text": "Industrial Design courses must be taken on a graded basis.",
+   "cite": "restrictions PDF §4 (Division of Industrial Design), p14"
+  },
+  "5-law-closed": {
+   "kind": "closed",
+   "text": "Listed by the Faculty of Law as not open to exchange students.",
+   "cite": "restrictions PDF §5, p14"
+  },
+  "5-law-major": {
+   "kind": "major",
+   "text": "Only for students majoring in Law at their home university.",
+   "cite": "restrictions PDF §5, p15"
+  },
+  "5-law-compulsory-llb": {
+   "kind": "closed",
+   "text": "Compulsory LLB courses are not open to exchange students.",
+   "cite": "restrictions PDF §5, p15"
+  },
+  "5-law-ll4-electives-only": {
+   "kind": "closed",
+   "text": "Only LL4 Law electives are open to exchange students.",
+   "cite": "restrictions PDF §5, p15"
+  },
+  "6-music-electives-whitelist": {
+   "kind": "partner",
+   "text": "Only for students from YST Conservatory's partner institutions.",
+   "cite": "restrictions PDF §6, p15"
+  },
+  "6-music-audition": {
+   "kind": "audition",
+   "text": "Needs an audition or placement test; allocated after you pass it.",
+   "cite": "restrictions PDF §6, p15"
+  },
+  "7-pp-ug-closed": {
+   "kind": "closed",
+   "text": "Undergraduates may not take Public Policy (PP) courses.",
+   "cite": "restrictions PDF §7, p15"
+  },
+  "7-pp-partner": {
+   "kind": "partner",
+   "text": "Only for graduate students from LKYSPP's partner universities.",
+   "cite": "restrictions PDF §7, p15"
+  },
+  "7-pp-graded": {
+   "kind": "graded",
+   "text": "Must be taken on a graded basis.",
+   "cite": "restrictions PDF §7, p15"
+  },
+  "8-dean-table": {
+   "kind": "closed",
+   "text": "Listed by the Faculty of Science as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Dean's Office (Faculty of Science)), p15"
+  },
+  "8-bio-closed": {
+   "kind": "closed",
+   "text": "Listed by Biological Sciences as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Biological Sciences), p16"
+  },
+  "8-bio-closed:lsm33": {
+   "kind": "closed",
+   "text": "Internship programme courses are not available to exchange students.",
+   "cite": "restrictions PDF §8 (Biological Sciences), p16"
+  },
+  "8-bio-fsc": {
+   "kind": "closed",
+   "text": "FSC-coded courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Biological Sciences), p16"
+  },
+  "8-chem-table": {
+   "kind": "closed",
+   "text": "Listed by Chemistry as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Chemistry), p16"
+  },
+  "8-fst-closed": {
+   "kind": "closed",
+   "text": "Listed by Food Science and Technology as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Food Science and Technology), p16"
+  },
+  "8-fst-l5": {
+   "kind": "closed",
+   "text": "FST level 5000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Food Science and Technology), p16"
+  },
+  "8-math-closed": {
+   "kind": "closed",
+   "text": "Listed by Mathematics as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17"
+  },
+  "8-math-closed:fms": {
+   "kind": "closed",
+   "text": "Freshman seminars are not available to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17"
+  },
+  "8-math-ma15": {
+   "kind": "closed",
+   "text": "MA15xx courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17"
+  },
+  "8-math-qf5": {
+   "kind": "closed",
+   "text": "QF level 5000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17"
+  },
+  "8-math-dsa": {
+   "kind": "closed",
+   "text": "DSA-coded courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17"
+  },
+  "8-math-dsa:elsewhere": {
+   "kind": "restricted-elsewhere",
+   "text": "Listed as open, but Mathematics' restrictions say DSA-coded courses are not open; check with NUS.",
+   "cite": "restrictions PDF §8 (Mathematics), p17"
+  },
+  "8-math-geh": {
+   "kind": "closed",
+   "text": "GEH-coded courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17"
+  },
+  "8-math-geh:elsewhere": {
+   "kind": "restricted-elsewhere",
+   "text": "Listed as open, but Mathematics' restrictions say GEH-coded courses are not open; check with NUS.",
+   "cite": "restrictions PDF §8 (Mathematics), p17"
+  },
+  "8-math-ma56": {
+   "kind": "closed",
+   "text": "MA graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17"
+  },
+  "8-pharm-closed": {
+   "kind": "closed",
+   "text": "Listed by Pharmacy as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Pharmacy), p17"
+  },
+  "8-phys-closed": {
+   "kind": "closed",
+   "text": "Listed by Physics as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Physics), p18"
+  },
+  "8-phys-closed:patterns": {
+   "kind": "closed",
+   "text": "Listed by Physics as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Physics), p18"
+  },
+  "8-stats-closed": {
+   "kind": "closed",
+   "text": "Listed by Statistics and Data Science as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Statistics and Data Science), p19"
+  },
+  "8-stats-l56": {
+   "kind": "closed",
+   "text": "ST and DSS graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Statistics and Data Science), p19"
+  },
+  "10-rmi-approval": {
+   "kind": "approval",
+   "text": "Limited; approval is case by case.",
+   "cite": "restrictions PDF §10, p19"
+  },
+  "10-rmi-fee": {
+   "kind": "fee",
+   "text": "A per-course tuition fee applies.",
+   "cite": "restrictions PDF §10, p19"
+  },
+  "11-scale-closed": {
+   "kind": "closed",
+   "text": "SCALE courses are not open to exchange students.",
+   "cite": "restrictions PDF §11, p20"
+  },
+  "12-tli-closed": {
+   "kind": "closed",
+   "text": "Logistics Institute courses are not open to exchange students.",
+   "cite": "restrictions PDF §12, p20"
+  }
+ }
+}

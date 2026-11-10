@@ -17,6 +17,7 @@ import { runPreDeployVerify, runVerify } from '../scripts/verify-core.mjs';
 import { dataVersion, fieldsFromRow, rowHash, sha256Hex, storedVectorMetadata } from '../src/rowhash.js';
 import { encodeBundle, float32ToBase64, parseBundle } from '../src/vector-bundle.js';
 import manifest from '../data/vectors.json';
+import { knownReason } from '../src/ng-reasons.js';
 import { hashEmbed } from './fakes.js';
 import { adminCall, fixture, seed } from './helpers.js';
 import { adminApi } from './ingest-support.js';
@@ -128,7 +129,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
   it('D1 as seeded agrees with the fixture bundle and its manifest entry, and Vectorize is not read', async () => {
     const bundle = await fixtureBundle();
     expect(bundle.header.rowsKey).toBe(fixtureEntry.rowsKey);
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason });
     expect(r).toMatchObject({ ok: true, d1Rows: fixture.modules.length, bundleRows: fixture.modules.length, missingInBundle: [], extraInBundle: [], fieldDrift: [] });
     expect(new Set(Object.values(r.rowsKey)).size).toBe(1);
     expect(new Set(Object.values(r.dataVersion)).size).toBe(1);
@@ -142,13 +143,23 @@ describe('runbook step 5: verify --pre-deploy', () => {
     await env.DB.prepare("UPDATE modules SET text_hash = 'changed' WHERE code = ?").bind(a.code).run();
     await env.DB.prepare("UPDATE modules SET semesters = '[4]' WHERE code = ?").bind(b.code).run();
     await env.DB.prepare('DELETE FROM modules WHERE code = ?').bind(c.code).run();
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: '000000000000' });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: '000000000000', knownReason });
     expect(r.ok).toBe(false);
     expect(r.rowsKey.d1).not.toBe(r.rowsKey.bundle);
     expect(r.dataVersion.committed).not.toBe(r.dataVersion.bundle);
     expect(r.fieldDrift.map((d) => d.code)).toEqual([b.code]);
     expect(r.extraInBundle).toEqual([c.code]);
     noRemoteCalls();
+  });
+
+  it('Phase 4 (B3-5): refuses a stored rule id the Worker\'s reason texts don\'t know', async () => {
+    const bundle = await fixtureBundle();
+    const ng = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.ngRules && Object.keys(m.ngRules).length));
+    const stored = JSON.stringify({ ...ng.ngRules, 0: ['no-such-rule'] });
+    await env.DB.prepare('UPDATE modules SET ng_rules = ? WHERE code = ?').bind(stored, ng.code).run();
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason });
+    expect(r.ok).toBe(false);
+    expect(r.unknownReasons).toEqual([{ code: ng.code, id: 'no-such-rule' }]);
   });
 });
 

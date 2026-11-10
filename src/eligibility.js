@@ -8,8 +8,11 @@
 // scripts/lib.mjs reads the file and calls this at ingest (4A), and the Worker
 // only ever reads the stored result. Runs no I/O.
 
-/** @typedef {'ug1' | 'ug2' | 'ug3' | 'ug4' | 'grad'} Study */
-/** @typedef {1 | 2 | 'any'} NgSem */
+import { NG_SEMS, OFF_NG_LIST, STUDIES, bitOf } from './ng-bit.js';
+
+export { NG_SEMS, OFF_NG_LIST, STUDIES, bitOf };
+/** @typedef {import('./ng-bit.js').Study} Study */
+/** @typedef {import('./ng-bit.js').NgSem} NgSem */
 /** @typedef {'open' | 'note' | 'closed'} Status */
 
 /**
@@ -31,24 +34,10 @@
  *   level: number | null, semesters: number[], ng: boolean, ngSemesters: number[] }} EligibilityModule
  */
 
-/** @type {Study[]} */
-export const STUDIES = ['ug1', 'ug2', 'ug3', 'ug4', 'grad'];
-/** @type {NgSem[]} */
-export const NG_SEMS = [1, 2, 'any'];
-
 // Built-in rule ids (not in the rules file): the NG list and rule D.
-export const OFF_NG_LIST = 'ng-list:not-listed';
 export const NOT_NG_IN_SEM = 'ng-list:not-in-semester';
 export const SEMESTER_MISMATCH = 'ng-list:nusmods-semester-differs';
 export const GRAD_LEVELS = 'D-grad-levels-closed-exchange';
-
-/**
- * The allow-mask bit for (sem, study): sem-major, 5 studies per sem, 15 bits.
- * @param {NgSem} sem @param {Study} study
- */
-export function bitOf(sem, study) {
-  return 1 << (NG_SEMS.indexOf(sem) * STUDIES.length + STUDIES.indexOf(study));
-}
 
 /** @type {Map<string, RegExp>} */
 const reCache = new Map();
@@ -135,4 +124,20 @@ export function eligibilityMask(m, rules) {
     }
   }
   return { allow, rules: byBit };
+}
+
+/**
+ * What ingest stores (migrations/0009_exchange.sql): the allow mask and, per
+ * bit, the rule ids behind its status, keeping only bits with reasons. A
+ * module off the NG list stores null: its one reason, everywhere, is that.
+ * @param {EligibilityModule} m @param {Rules} rules
+ * @returns {{ ngAllow: number, ngRules: Record<string, string[]> | null }}
+ */
+export function storedEligibility(m, rules) {
+  const { allow, rules: byBit } = eligibilityMask(m, rules);
+  if (!m.ng || m.ngSemesters.length === 0) return { ngAllow: 0, ngRules: null };
+  /** @type {Record<string, string[]>} */
+  const kept = {};
+  for (const [bit, e] of Object.entries(byBit)) if (e.reasons.length) kept[bit] = e.reasons;
+  return { ngAllow: allow, ngRules: kept };
 }

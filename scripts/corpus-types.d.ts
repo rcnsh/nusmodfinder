@@ -26,6 +26,10 @@ interface NormalisedModule {
   workloadHours: number | null;
   prereqNone: boolean;
   prereqCohortOnly: boolean;
+  /** Phase 4: the exchange-mode allow mask (src/eligibility.js bitOf); 0 = closed everywhere. */
+  ngAllow: number;
+  /** Phase 4: `{ "<bit index>": [rule id, ...] }` for the bits with reasons; null off the NG list. */
+  ngRules: Record<string, string[]> | null;
 }
 
 /** What vitest.config.mjs `provide`s as `corpus` (null when unavailable). */

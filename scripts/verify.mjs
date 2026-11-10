@@ -23,6 +23,7 @@
 //     standby) also compares a getByIds sample of values with the production
 //     bundle's bits.
 // Exit codes: 0 agree; 1 drift; 2 could not verify.
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -104,7 +105,12 @@ export async function main(argv, deps = {}) {
     if (values['pre-deploy']) {
       const { entry, bundle } = await loadBundle();
       const committedDataVersion = String(JSON.parse(await readFile(DATA_VERSION_PATH, 'utf8')).version);
-      const report = await runPreDeployVerify({ api: httpAdminApi(base, secret, fetchImpl), bundle, manifest: entry, committedDataVersion });
+      // Phase 4 (B3-5): every stored rule id has a text in the reasons this deploy ships.
+      const reasons = JSON.parse(readFileSync(new URL('../data/ng-reasons.json', import.meta.url), 'utf8')).reasons;
+      const report = await runPreDeployVerify({
+        api: httpAdminApi(base, secret, fetchImpl), bundle, manifest: entry, committedDataVersion,
+        knownReason: (id) => Object.hasOwn(reasons, id),
+      });
       if (values.json) log(JSON.stringify(report, null, 2));
       else for (const l of formatPreDeployReport(report)) log(l);
       return report.ok ? 0 : 1;

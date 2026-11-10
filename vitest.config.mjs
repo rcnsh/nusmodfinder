@@ -111,8 +111,8 @@ export default defineConfig(async () => {
           test: {
             name: 'workers',
             include: ['test/**/!(*.node).test.js'],
-            // test/full runs in its own project, against the pinned bundle.
-            exclude: [...configDefaults.exclude, 'test/full/**'],
+            // test/full and test/sc1 run in their own projects, against the pinned bundle.
+            exclude: [...configDefaults.exclude, 'test/full/**', 'test/sc1/**'],
           },
         },
         {
@@ -126,6 +126,17 @@ export default defineConfig(async () => {
             // CI runs the full grid whenever src/, migrations/, scripts/ or
             // test/full/ change; anything else gets the sample.
             provide: { corpus: fullCorpusData, vectorsBundle: full.corpus, lexicalGrid: process.env.LEXICAL_GRID === 'sample' ? 'sample' : 'full' },
+          },
+        },
+        {
+          // Phase 4 4E: SC1's path tests, the pinned corpus and bundle as test/full
+          // has them, in their own project and CI job (npm run test:sc1).
+          plugins: [workerd()],
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary), groupsAlias(fullGroups)] },
+          test: {
+            name: 'sc1',
+            include: ['test/sc1/**/!(*.node).test.js'],
+            provide: { corpus: fullCorpusData, vectorsBundle: full.corpus },
           },
         },
         {

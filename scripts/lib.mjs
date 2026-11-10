@@ -4,6 +4,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { isCohortOnly } from '../src/cohort-only.js';
+import { storedEligibility } from '../src/eligibility.js';
 
 /** 3H-0's P-6 cohort-only rule, as scripts/build-3b-data.mjs mirrors it into data/. */
 const COHORT_ONLY = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.json', import.meta.url), 'utf8'));
@@ -272,9 +273,28 @@ export async function loadNgCourses(acadYear) {
       }
     }
     for (const sems of bySem.values()) sems.sort((a, b) => a - b);
-    return { available: true, bySem, updatedAsAt: data.updatedAsAt, source: data.source ?? null, total: bySem.size };
-  } catch {
-    return { available: false, bySem: /** @type {Map<string, number[]>} */ (new Map()), updatedAsAt: null, source: null, total: 0 };
+    return { available: true, bySem, updatedAsAt: data.updatedAsAt, source: data.source ?? null, total: bySem.size, rules: loadNgRestrictions(acadYear) };
+  } catch (err) {
+    if (err instanceof NgRestrictionsMissing) throw err;
+    return { available: false, bySem: /** @type {Map<string, number[]>} */ (new Map()), updatedAsAt: null, source: null, total: 0, rules: null };
+  }
+}
+
+class NgRestrictionsMissing extends Error {}
+
+/**
+ * The restrictions data for a year (scripts/build-ng-restrictions.mjs), read
+ * with readFileSync so nothing imports JSON. A year with an NG list and no
+ * restrictions file is an error: exchange mode would show courses unchecked.
+ * @param {string} acadYear
+ * @returns {import('../src/eligibility.js').Rules & { updatedAsAt?: Record<string, string> }}
+ */
+export function loadNgRestrictions(acadYear) {
+  const path = new URL(`../data/ng-restrictions-${acadYear}.json`, import.meta.url);
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch (err) {
+    throw new NgRestrictionsMissing(`data/ng-restrictions-${acadYear}.json: ${/** @type {Error} */ (err).message}`);
   }
 }
 
@@ -333,6 +353,9 @@ export function normalise(record, acadYear) {
       // Filled in by offeredModules() when an NG list is present.
       ng: false,
       ngSemesters: [],
+      // Phase 4: filled in by offeredModules() from the NG list and restrictions; 0 = closed everywhere.
+      ngAllow: 0,
+      ngRules: null,
       // 3H-0 (plan 3H "Data"): what the no-exam, S/U, workload and prerequisite intents filter on.
       examSemesters: semesters.filter((s) => (record.semesterData ?? []).some((d) => d.semester === s && typeof d.examDate === 'string' && d.examDate !== '')),
       su: record.attributes?.su === true,
@@ -364,6 +387,9 @@ export function offeredModules(records, acadYear, ngCourses = null) {
     if (ngCourses?.available) {
       const sems = ngCourses.bySem.get(module.code);
       if (sems) { module.ng = true; module.ngSemesters = sems; }
+      // Phase 4 (plan §2 "Storage"): every (semester, study level) at ingest.
+      if (!ngCourses.rules) throw new Error('offeredModules: an NG list without restrictions data (loadNgRestrictions)');
+      Object.assign(module, storedEligibility(module, ngCourses.rules));
     }
     modules.push(module);
   }
