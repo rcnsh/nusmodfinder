@@ -56,3 +56,19 @@ The four hashes also equal 5A's above, so the lists have not moved since `9d9160
 
 No holdout run, no count and no look: the code ships with the page (5G), whose deploy moves
 `SHIPPED_BASELINE` as ranking-neutral. Holdout looks stay at 7 of 12.
+
+## 5F: the dev reference-parse list, confirmed by hand (2026-11-11)
+
+`npm run eval:phrases -- list` (PR #73) parses 10 of 98 dev queries. The lead read every dev
+query with a constraint-like word (exam, workload, hours, S/U, prerequisites, coursework,
+assessment, easy) and confirms the list:
+- **no exam** (`exam=0`): d-024 "no final exam, project based CS course", d-037 "… without final
+  exam, project based", d-049 "no final exam, essay only assessment history", d-050 "politics
+  courses with no exam", d-081 "… no final exam, 100% coursework or project";
+- **no prerequisites** (`prereq=none`, (ii)): d-011, d-023, d-048, d-080, and d-099 "intro
+  accunting no prerqeuisites" through 3C's correction.
+
+No false positive and no miss: d-017's "Prereqs: data structures, …" describes a home course
+and is rightly not a constraint; "easy" (d-022, d-047, d-078) is not one of 3H's constraints.
+ADR 0003's 5F amendment is adopted on this basis. No count and no look have been taken under it;
+holdout looks stay at 7 of 12.

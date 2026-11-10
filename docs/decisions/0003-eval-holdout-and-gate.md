@@ -378,12 +378,11 @@ ADR's per-change look procedure was written for Phase 3. Each of the 5 remaining
 needs a rule written and committed before the look (what is compared, the metric, the pass
 condition, and how exchange-mode removals are scored); without one, no look is taken.
 
-## Amendment (draft) Phase 5 5F: the compliance rule for parsed phrases
-**Draft, not yet in force: the lead adopts it before any count or look.** Until the lead
-replaces that line with an adoption date, no count and no holdout look may be taken under this
-rule. The CLI enforces it: while the line stands, `--change-kind compliance` is refused on the
-holdout and test sets (`assertRuleAdopted`, `eval/lib/compliance.mjs`). The tooling exists and is
-tested (below); no look has been taken with it.
+## Amendment 2026-11-11 (Phase 5 5F): the compliance rule for parsed phrases
+**Adopted by the lead, 2026-11-11, before any count or look under it.** The lead confirmed
+the dev reference-parse list below by hand (`docs/evidence/phase5/gates.md`, "5F"). With the
+draft line gone, `assertRuleAdopted` (`eval/lib/compliance.mjs`) lets `--change-kind
+compliance` run on the holdout; nothing has been run there under it.
 
 This is the rule the 2026-11-10 amendment requires for a holdout look on a change that removes
 results by design. It covers L8 (`docs/plans/phase5.md` §3 5F: B2-1 to B2-6, B3-1, B3-3).

@@ -1087,3 +1087,13 @@ fails on the previous code.
 - **Open:** the 390×664 fold check fails until 5D collapses the form; the page keeps a copy of the
   cohort-only prerequisite rule until `/module` returns the flag.
 - **Next:** 5D builds D (both themes, mobile form, self-hosted Plex); 5F's tooling is in progress.
+
+## 2026-11-11 — Phase 5 5F tooling merged; the compliance rule adopted
+
+- **5F part 1** (PR #73, `a65100b`): the `compliance` rule kind (frozen 3H reference parse,
+  constraint-filtered qrels, compliance and identity inside the verdict path, verdict-only
+  output), `npm run eval:phrases -- list|screen`, and the parsed-phrase chips. `PARSE_PHRASES`
+  stays off; ranking unchanged on all four identity runs.
+- **Adopted:** ADR 0003's 5F amendment, after the lead confirmed the 10-query dev reference
+  parse by hand (`docs/evidence/phase5/gates.md`). No count, no look; looks stay at 7 of 12.
+- **Next:** 5D (in progress), 5E, the dev screen with phrases on, then 5G and L8.
