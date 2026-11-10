@@ -4,12 +4,14 @@
 // them (spacing restored, the cohort-only case named, course codes linked to a
 // search), the exam per semester in Singapore time, the workload, exchange
 // availability per semester with every reason and its source, and the link to
-// NUSMods for class times. DOM nodes only (F8); classes name structure, 5D
-// styles them.
+// NUSMods for class times. DOM nodes only (F8). Laid out as direction D's
+// sheet (5D): the course facts on the left, "can you take it" on the right
+// (below them on a phone), and the Close button at the top.
 import { h, setChildren } from './dom.js';
-import { reasonLine, statusText } from './explain.js';
+import { noteText, reasonLine, sourceNote, stampText, statusText } from './explain.js';
 import { codeSegments, examLines, prereqView, semLabel, workloadText } from './format.js';
-import { searchLink } from './render.js';
+import { icon } from './icons.js';
+import { noteItem, searchLink, stamp } from './render.js';
 import { STUDIES } from './state.js';
 
 /**
@@ -41,7 +43,7 @@ export function detailError(region, sentence, retry) {
  * @param {string} title
  * @param {...import('./dom.js').Child} body
  */
-const section = (title, ...body) => h('section', { class: 'detail-part' }, h('h3', null, title), ...body);
+const section = (title, ...body) => h('section', { class: 'detail-part fact' }, h('h3', { class: 'lbl' }, title), ...body);
 
 /**
  * NUS's text with each course code a search link.
@@ -53,10 +55,11 @@ const nusText = (text, ctx) => h('p', { class: 'nus-text' },
 
 /**
  * @param {unknown} raw /module's prerequisite
+ * @param {boolean} cohortOnly /module's prereqCohortOnly
  * @param {DetailContext} ctx
  */
-function prerequisites(raw, ctx) {
-  const view = prereqView(typeof raw === 'string' ? raw : null);
+function prerequisites(raw, cohortOnly, ctx) {
+  const view = prereqView(typeof raw === 'string' ? raw : null, cohortOnly);
   if (!view) return section('Prerequisites', h('p', null, 'No prerequisites listed'));
   if (view.kind === 'cohort') {
     return section('Prerequisites', h('p', { class: 'prereq-line' }, view.line),
@@ -85,10 +88,30 @@ function availability(e, sources) {
   const status = e?.status ?? 'closed';
   const reasons = Array.isArray(e?.reasons) ? e.reasons : [];
   return [
-    h('p', { class: 'exchange-status', attrs: { 'data-status': status } }, statusText(status)),
-    reasons.length ? h('ul', { class: 'notes' }, ...reasons.map((r) => h('li', null, reasonLine(r, e?.sem ?? 'any', sources)))) : null,
+    h('p', { class: `exchange-status cell-status cs-${status}`, attrs: { 'data-status': status } }, icon(status), statusText(status)),
+    reasons.length ? h('ul', { class: 'notes cell-notes' }, ...reasons.map((r) => h('li', null, reasonLine(r, e?.sem ?? 'any', sources)))) : null,
   ];
 }
+
+/**
+ * One semester at the chosen year: its stamp ("Your semester" beside the one
+ * chosen), then every note with its lead-in word and its source and date.
+ * @param {ExchangeEntry | undefined} e
+ * @param {number} sem
+ * @param {boolean} mine the semester the student chose
+ * @param {Source[] | null} sources
+ */
+function semBlock(e, sem, mine, sources) {
+  const status = e?.status ?? 'closed';
+  const reasons = Array.isArray(e?.reasons) ? e.reasons : [];
+  return h('div', { class: 'exchange-sem-block semblock' },
+    h('div', { class: 'row' }, stamp(status, stampText(status, sem, reasons.length)), mine ? h('span', { class: 'yours' }, 'Your semester') : null),
+    reasons.length ? h('div', { class: 'notes-box' }, h('ul', { class: 'notes' },
+      ...reasons.map((r) => noteItem(r, noteText(r, sem), h('span', { class: 'src' }, sourceNote(r.id, sources)))))) : null);
+}
+
+/** @type {Readonly<Record<string, string>>} */
+const STUDY_AS = Object.freeze({ ug1: '1st-year', ug2: '2nd-year', ug3: '3rd-year', ug4: '4th-year (or later)', grad: 'graduate' });
 
 /**
  * Exchange availability: in exchange mode Sem 1 and Sem 2 at the chosen year;
@@ -112,11 +135,12 @@ function exchangeSection(raw, ctx) {
       ])
       : ['NG list; NG restrictions']),
     '.');
-  const check = h('p', { class: 'check-nus' }, 'Check with NUS before you register.');
+  const check = h('p', { class: 'check-nus boxcheck' }, icon('check'), h('span', null, 'Check with NUS before you register.'));
   if (study) {
-    const label = STUDIES.find((o) => o.value === study)?.label ?? study;
-    return section(`Open to exchange students (${label})`,
-      ...[1, 2].map((sem) => h('div', { class: 'exchange-sem-block' }, h('h4', null, semLabel(sem)), ...availability(at(sem, study), sources))),
+    const chosen = ctx.filters.sem === 1 || ctx.filters.sem === 2 ? ctx.filters.sem : 0;
+    return h('section', { class: 'detail-part avail' },
+      h('div', null, h('h3', { class: 'big' }, 'Can you take it?'), h('p', { class: 'for' }, `As a ${STUDY_AS[study] ?? study} exchange student`)),
+      ...[1, 2].map((sem) => semBlock(at(sem, study), sem, sem === chosen, sources)),
       check, sourcesLine);
   }
   const table = h('table', { class: 'exchange-table' },
@@ -125,7 +149,7 @@ function exchangeSection(raw, ctx) {
       h('th', { attrs: { scope: 'col' } }, semLabel(1)), h('th', { attrs: { scope: 'col' } }, semLabel(2)))),
     h('tbody', null, ...STUDIES.map((o) => h('tr', null, h('th', { attrs: { scope: 'row' } }, o.label),
       ...[1, 2].map((sem) => h('td', null, ...availability(at(sem, o.value), sources)))))));
-  return section('Open to exchange students', table, check, sourcesLine);
+  return h('section', { class: 'detail-part avail avail-all' }, h('h3', { class: 'big' }, 'Open to exchange students'), table, check, sourcesLine);
 }
 
 /**
@@ -137,17 +161,21 @@ function exchangeSection(raw, ctx) {
 export function renderDetail(region, m, ctx) {
   const description = typeof m.description === 'string' && m.description.trim() ? m.description.trim() : '';
   const nusmods = typeof m.nusmodsUrl === 'string' && m.nusmodsUrl.startsWith('https://nusmods.com/') ? m.nusmodsUrl : null;
-  const close = h('button', { class: 'detail-close', attrs: { type: 'button' } }, 'Close details');
+  const close = h('button', { class: 'btn detail-close', attrs: { type: 'button' } }, 'Close', h('span', { class: 'vh' }, ' details'), icon('x'));
   close.addEventListener('click', ctx.onClose);
   setChildren(region,
-    section('Description', h('p', null, description || 'No description listed')),
-    prerequisites(m.prerequisite, ctx),
-    preclusions(m.preclusion, ctx),
-    section('Final exam (Singapore time)', h('ul', { class: 'exam-list' }, ...examLines(Array.isArray(m.examDates) ? m.examDates : []).map((l) => h('li', null, l)))),
-    section('Workload', h('p', null, workloadText(m.workload))),
-    exchangeSection(m.exchange, ctx),
-    section('Class times',
-      nusmods ? h('p', null, h('a', { class: 'nusmods-link', attrs: { href: nusmods, target: '_blank', rel: 'noopener' } }, 'Class times and timetable on NUSMods')) : null,
-      h('p', null, "Class times aren't shown here.")),
-    close);
+    h('div', { class: 'sheet-head' }, h('p', { class: 'kicker' }, 'Course details'), close),
+    // "Can you take it" comes first: beside the facts on a wide screen, above them on a narrow one.
+    h('div', { class: 'sheet-grid' },
+      h('div', { class: 'sheet-side' },
+        exchangeSection(m.exchange, ctx),
+        h('section', { class: 'detail-part nusmods' }, h('h3', { class: 'vh' }, 'Class times'),
+          nusmods ? h('p', null, h('a', { class: 'nusmods-link', attrs: { href: nusmods, target: '_blank', rel: 'noopener' } }, 'Class times and timetable on NUSMods', icon('ext'))) : null,
+          h('p', { class: 'nm-note' }, "Class times aren't shown here."))),
+      h('div', { class: 'sheet-main' },
+        section('Description', h('p', { class: 'desc' }, description || 'No description listed')),
+        prerequisites(m.prerequisite, m.prereqCohortOnly === true, ctx),
+        preclusions(m.preclusion, ctx),
+        section('Final exam (Singapore time)', h('ul', { class: 'exam-list' }, ...examLines(Array.isArray(m.examDates) ? m.examDates : []).map((l) => h('li', null, l)))),
+        section('Workload', h('p', { class: 'wl-total' }, workloadText(m.workload))))));
 }

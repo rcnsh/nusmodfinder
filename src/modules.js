@@ -34,10 +34,10 @@ export const MODULE_CODE_RE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 // change the response shape.
 // Phase 4 adds ng_allow and ng_rules, answered as `exchange` (one entry per
 // semester and study level, with reasons). 5A adds exam_dates, answered as
-// `examDates`.
+// `examDates`. 5D adds prereq_cohort_only, answered as `prereqCohortOnly`.
 const MODULE_COLUMNS =
   'code, title, description, credits, department, faculty, level, semesters, workload, prerequisite, preclusion, acad_year, text_hash, ng, ng_semesters, '
-  + 'ng_allow, ng_rules, exam_dates';
+  + 'ng_allow, ng_rules, exam_dates, prereq_cohort_only';
 
 /**
  * /module/:code's Cache-Control (5A): a row changes only at an ingest, so a
@@ -210,6 +210,7 @@ export async function handleModule(env, code, trace) {
   const rest = { ...row };
   delete rest.ng_rules;
   delete rest.exam_dates;
+  delete rest.prereq_cohort_only;
   return withHeaders(json({
     ...rest,
     semesters: JSON.parse(row.semesters ?? '[]'),
@@ -222,5 +223,8 @@ export async function handleModule(env, code, trace) {
     // 5A: each exam, its date ISO UTC (the page shows Singapore time), and where the class times are.
     examDates: JSON.parse(row.exam_dates ?? '[]'),
     nusmodsUrl: nusmodsUrl(row.code),
+    // 5D: 3H-0's flag (src/cohort-only.js, set at ingest): the prerequisite names only NUS intake
+    // years or programmes, so the page says there is no course prerequisite.
+    prereqCohortOnly: row.prereq_cohort_only === 1,
   }), { 'cache-control': MODULE_CACHE.ok });
 }

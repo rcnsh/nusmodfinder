@@ -50,6 +50,16 @@ describe('/module/:code (5A)', () => {
     expect((await callJson(`/module/${zeroWorkload.code}`)).body.workload).toBeNull();
   });
 
+  it('answers prereqCohortOnly from the stored flag, for every fixture course (5D)', async () => {
+    const flagged = fixture.modules.filter((m) => m.prereqCohortOnly);
+    expect(flagged.length).toBeGreaterThan(5);
+    for (const m of [...flagged, ...fixture.modules.filter((x) => !x.prereqCohortOnly && x.prerequisite).slice(0, 10)]) {
+      const { body } = await callJson(`/module/${m.code}`);
+      expect(body.prereqCohortOnly, m.code).toBe(m.prereqCohortOnly === true);
+      expect(body, m.code).not.toHaveProperty('prereq_cohort_only');
+    }
+  });
+
   it('links the course on NUSMods by its code, upper-cased whatever the path\'s case', async () => {
     const { body } = await callJson('/module/cs1010s');
     expect(body.nusmodsUrl).toBe('https://nusmods.com/courses/CS1010S');

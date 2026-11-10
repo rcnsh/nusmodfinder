@@ -48,12 +48,12 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | F3 | fixed | tests (Node, Playwright) |
 | F4 | fixed | tests (Node, Playwright) |
 | F5 | reproduced | test, Playwright, axe |
-| F6 | reproduced | test, axe |
+| F6 | fixed | tests (contrast of both themes), axe (Phase 5 5D) |
 | F7 | fixed | tests (Node, Playwright) |
 | F8 | fixed | tests (lint, Node, Playwright) |
 | F9 | fixed | tests (Node, Playwright) |
-| F10 | reproduced | test, Playwright, screenshot |
-| V1 | partially-reproduced | test, screenshots |
+| F10 | fixed | tests, Playwright (fold, dialog), screenshots (Phase 5 5D) |
+| V1 | fixed | design gate (ADR 0008), tests, screenshots (Phase 5 5D) |
 | O1 | fixed | test, `db:rebuild-check` (PR #1) |
 | O2 | fixed | test, CI (PR #1) |
 | O3 | fixed | test |
@@ -636,17 +636,28 @@ button drops focus to BODY, no `<main>`, no `role="search"`.
 
 **Notes:** `docs/evidence/phase0/page-phase4.html:117`, `:193`.
 
+**Phase 5 5D:** the layout adds `<main>`, the rail as an `<aside>`, the header and footer
+landmarks and `role="search"`, so axe's `landmark-one-main` and `region` pass on every state in
+`test/ui/a11y.spec.js`. The live region, `aria-busy` and the focused button are 5E's; the finding
+stays open until then.
+
 ### F6 · Contrast failures
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** Dark-mode button 2.08:1; light `<code>` and NG badges 4.44:1.
 
 **Evidence:**
-- test `[F6 known-bug] colour tokens fail WCAG AA: dark button 2.08:1, light <code>/NG badge 4.44:1`: recomputes the ratios from the frozen page's tokens (`docs/evidence/phase0/page-phase4.html`).
-- `docs/evidence/phase0/axe-1280-dark.json`: `#go` 2.08 (#fff on #ff9a62). `docs/evidence/phase0/axe-1280-light.json`: `code` and `.ng` 4.44 (#b4541f on #fdf0e8).
+- test `[F6 fixed] every text/background and UI-boundary pair passes WCAG AA (4.5:1 text, 3:1 UI) in light and dark` (`test/web/contrast.node.test.js`, in `npm test`): `scripts/contrast.mjs` reads both themes' tokens from `public/styles.css` and checks 34 pairs in each; the same test fails if the stylesheet puts a colour token on text, a background or a border that no checked pair covers.
+- `test/ui/a11y.spec.js` (Playwright, Chromium and WebKit): axe with every rule, `color-contrast` included, finds no violation on any state in either theme at 1280 or 390×664.
+- `docs/evidence/phase0/axe-1280-dark.json`: `#go` 2.08 (#fff on #ff9a62). `docs/evidence/phase0/axe-1280-light.json`: `code` and `.ng` 4.44 (#b4541f on #fdf0e8). The Phase 4 page's ratios, before the fix.
 
 **Notes:** Tokens `docs/evidence/phase0/page-phase4.html:11,16`; button `:40`.
+
+**Fixed (Phase 5 5D):** direction D's tokens, light and dark, replace the Phase 4 page's. The
+lowest text pair is 6.21:1 (light "Not open" stamp) and the lowest boundary 3.39:1 (light control
+edge on a panel); `npm run contrast` prints every pair. The characterisation test of the frozen
+page was replaced by the check of both themes.
 
 ### F7 · Raw error states
 
@@ -706,7 +717,7 @@ keyCode 229, so confirming a CJK candidate submits a half-typed query.
 
 ### F10 · Mobile layout
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** On mobile the first result sits at y≈500/844, the score wraps, and the 15px input
 triggers iOS zoom.
@@ -715,16 +726,28 @@ triggers iOS zoom.
 - test `[F10 known-bug] 15px inputs (iOS zooms below 16px) and a score pushed to its own line on narrow cards`
 - `docs/evidence/phase0/fe-results.json`: `mobile.firstResultTopY: 499` at 390×844, `inputFontSize: "15px"`.
 - `docs/evidence/phase0/shots/390x844-light.png`: the score wraps to its own line, and so does "Sem 1, Sem 2".
+- `test/ui/mobile.spec.js` (F10, Playwright, Chromium and WebKit, 390×664): 16px inputs, the one-bar form, the filters dialog's focus trap, Escape and focus return.
+- `test/ui/fold.spec.js` (Playwright, Chromium and WebKit): the 390×664 fold check.
+- `docs/evidence/phase5/shots/sem1-phone-light.png` and `docs/evidence/phase5/shots/both-phone-light.png`: the page at 390×664.
 
 **Notes:** `docs/evidence/phase0/page-phase4.html:22`, `:33-36`, `:69`, `:72`. At y=499 the first card's top is
 technically above the fold (`firstResultVisibleAboveFold: true`), but less than one card fits;
 SC8 needs the first result readable above the fold.
 
+**Fixed (Phase 5 5D):** the known-bug test still holds of the frozen Phase 4 page. Every input and
+select is 16px; after the first search the form is one bar (the query and Search side by side),
+and the exchange set-up and filters open in a modal `<dialog>` from "Filters (n)" (focus trapped,
+Escape closes, focus back on the button); the score is gone (F1). The fold check passes:
+`test/ui/fold.spec.js` (Chromium and WebKit at 390×664, and as an iPhone 13) finds the header
+with "unofficial", the bar, and the first entry's code, title and every semester stamp in view
+without scrolling, on the Sem 1 and both-semesters results for ACC1701XB and for "introductory
+accounting", after a shared link and after a search typed on the first screen.
+
 ## Visual design
 
 ### V1 · Visual design 4/10
 
-**Status:** partially-reproduced
+**Status:** fixed
 
 **Claim:** Template look; off-brand orange `#b4541f`; accent everywhere; inconsistent filter
 labels ("2", "2000 (1016)", "sem: Sem 2"); non-removable chips; dead-end no-results; data-source
@@ -733,12 +756,22 @@ notes fill the hero.
 **Evidence:**
 - test `[V1 known-bug] orange accent everywhere, inconsistent filter labels, non-removable chips, dead-end empty state`
 - `docs/evidence/phase0/shots/1280x800-light.png` and `docs/evidence/phase0/shots/390x844-light.png`
+- `docs/decisions/0008-phase5-frontend-plan.md`: Jacob's pick, direction D ("Annotated catalogue"), whose mockup `docs/design/phase5-direction-d.html` is 5D's spec.
+- `test/ui/mobile.spec.js` (V1, Playwright): filters labelled one way in options and chips ("Sem 2", "Level 2000", "4 units"); chips that remove their filter; a no-results answer that names the next step.
+- `docs/evidence/phase5/shots/sem1-desktop-light.png`, `docs/evidence/phase5/shots/sem1-desktop-dark.png`: the built page, compared with the mockup's.
 
 **Notes:** Every factual sub-claim holds: accent `#b4541f` with ≥ 8 `var(--accent)` uses;
 option "2" (`docs/evidence/phase0/page-phase4.html:95`), level labels `${level}000 (${count})` (`:135`), chip
 `sem: Sem 2` (`:160`); chips are plain spans; the empty state is text only (`:163`); data notes
 in `.sub` (`:85`). "4/10", "template look" and "off-brand" are judgements, not reproducible
 claims, hence partial. The Phase 5 design gate decides those.
+
+**Fixed (Phase 5 5D):** the known-bug test still holds of the frozen Phase 4 page. The judgement
+went to Jacob at the design gate, who picked direction D; 5D builds it (`public/styles.css`,
+light and a matching dark theme): one muted plum accent used for links, selection and the
+primary button only; filters labelled one way ("Sem 2", "Level 2000"); chips that remove their
+filter; empty and no-results states that name the next step; the data sources in the first
+screen's own box, not the hero.
 
 ## Ops
 

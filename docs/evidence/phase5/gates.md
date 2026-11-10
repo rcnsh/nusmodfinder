@@ -72,3 +72,23 @@ No false positive and no miss: d-017's "Prereqs: data structures, …" describes
 and is rightly not a constraint; "easy" (d-022, d-047, d-078) is not one of 3H's constraints.
 ADR 0003's 5F amendment is adopted on this basis. No count and no look have been taken under it;
 holdout looks stay at 7 of 12.
+
+## 5D: `prereqCohortOnly` on `/module/:code` is ranking-neutral (no pin move)
+
+5D adds one boolean to `/module/:code` (`src/modules.js`); `/search` is untouched. That is a
+ranker file, so `ranker.treeHash` differs (`5c790ef78d27` at `f798542`, `1cc8e0b466ac` at
+`2fdbb6c`; both clean). The ranking does not change.
+
+Local eval runs, `--ref f798542` against `--ref 2fdbb6c` (5D's last code commit, rebased on 5F),
+the HEAD runner, sha256 of each run's `results` (first 16):
+
+| run | queries | results sha256 (first 16) | identical |
+|---|---|---|---|
+| dev, the queries' filters | 98 | `8229314651577034` both | yes |
+| dev, `--strip ng` | 98 | `ae4f077e0ad06ef2` both | yes |
+| dev, `--unfiltered` | 98 | `8fde32e1783d6d6b` both | yes |
+| fixture, `--strip ng` | 11 | `ce4f61e83ce5a52f` both | yes |
+
+The four hashes equal 5A's and 5C-api's above. The same queries answer 400 on both sides
+(d-005, d-017, d-032, d-042; fx-10). No holdout run, no count and no look; holdout looks stay at
+7 of 12.

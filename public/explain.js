@@ -55,6 +55,36 @@ export function statusText(status) {
 }
 
 /**
+ * A semester's status as direction D's stamp says it: "Sem 1 · Open, with 2
+ * notes", or, where two stamps sit side by side, "Sem 1 · Open, 2 notes".
+ * @param {Status} status
+ * @param {number | string} sem 1, 2, or 'any' (no semester chosen)
+ * @param {number} notes how many notes the semester has
+ * @param {boolean} [short] the both-semesters card's shorter form
+ */
+export function stampText(status, sem, notes, short = false) {
+  const where = sem === 'any' || sem === '' ? 'Either semester' : semLabel(sem);
+  const n = `${notes} note${notes === 1 ? '' : 's'}`;
+  if (status === 'open') return `${where} · Open${short ? '' : ' to exchange students'}`;
+  if (status === 'note') return `${where} · Open, ${short ? n : `with ${n}`}`;
+  return `${where} · Not open${short ? '' : ' to exchange students'}`;
+}
+
+/** @type {Readonly<Record<string, string>>} */
+const NOTE_LEADS = Object.freeze({
+  quota: 'Places.', major: 'Your major.', semester: 'Timetable.', approval: 'Approval.', graded: 'Grading.',
+  partner: 'Partner schools.', 'restricted-elsewhere': 'Conflicting rules.', letter: 'Letter.', audition: 'Audition.',
+  fee: 'Fee.', closed: 'Not open.',
+});
+
+/**
+ * The lead-in word a note starts with on the card and in the detail ("Places."
+ * for a quota), so a student can scan what each condition is about.
+ * @param {string} kind the reason's kind (src/ng-reasons.js)
+ */
+export const noteLead = (kind) => NOTE_LEADS[kind] ?? 'Note.';
+
+/**
  * A note in full (C2-3). The `semester` note is worded as what to do; "the
  * other semester" is named.
  * @param {Reason} r

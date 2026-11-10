@@ -3,7 +3,7 @@
 // 5B in the browser, every row: queries, filters, clearing, and (5C) opening,
 // switching and closing a card's detail, with focus back on its button.
 import { expect, test } from '@playwright/test';
-import { query, searches } from './support.mjs';
+import { EMPTY, browse, matchFor, query, searches } from './support.mjs';
 
 /** @param {import('@playwright/test').Page} page @param {string} q */
 async function submit(page, q) {
@@ -11,11 +11,11 @@ async function submit(page, q) {
   await page.locator('#q').press('Enter');
 }
 /** @param {import('@playwright/test').Page} page @param {string} q */
-const resultsFor = (page, q) => expect(page.locator('#status')).toContainText(`results for ${q}`);
+const resultsFor = (page, q) => expect(page.locator('#status')).toContainText(matchFor(q));
 const historyLength = (/** @type {import('@playwright/test').Page} */ page) => page.evaluate(() => /** @type {any} */ (globalThis).history.length);
 
 test('[F3] each submitted query is an entry: Back and Forward restore its results from memory, with no new fetch', async ({ page }) => {
-  await page.goto('/');
+  await browse(page);
   const sent = searches(page);
   for (const q of ['networks', 'databases', 'machine learning']) {
     await submit(page, q);
@@ -34,12 +34,12 @@ test('[F3] each submitted query is an entry: Back and Forward restore its result
   // Back past the first search is the empty page, not another site.
   await page.goBack();
   await page.goBack();
-  await expect(page.locator('#status')).toHaveText('Type a query to begin.');
+  await expect(page.locator('#status')).toHaveText(EMPTY);
   expect(page.url()).toMatch(/\/$/);
 });
 
 test('[F3] submitting the same query again adds no entry', async ({ page }) => {
-  await page.goto('/');
+  await browse(page);
   await submit(page, 'networks');
   await resultsFor(page, 'networks');
   const before = await historyLength(page);
@@ -49,14 +49,14 @@ test('[F3] submitting the same query again adds no entry', async ({ page }) => {
 });
 
 test('[F3] a filter change replaces the entry: Back goes to the previous query, not the unfiltered one', async ({ page }) => {
-  await page.goto('/');
+  await browse(page);
   await submit(page, 'networks');
   await resultsFor(page, 'networks');
   await submit(page, 'databases');
   await resultsFor(page, 'databases');
   const before = await historyLength(page);
   await page.locator('#level').selectOption('2');
-  await expect(page.locator('#status .chip')).toHaveText(['level: 2']);
+  await expect(page.locator('#chips .chip')).toHaveText(['Level 2000']);
   expect(query(page)).toBe('q=databases&level=2');
   expect(await historyLength(page)).toBe(before);
   await page.goBack();
@@ -71,7 +71,7 @@ test('[F3] clearing the query pushes the URL without it; Back restores the clear
   await submit(page, 'networks');
   await resultsFor(page, 'networks');
   await submit(page, '');
-  await expect(page.locator('#status')).toHaveText('Type a query to begin.');
+  await expect(page.locator('#status')).toHaveText(EMPTY);
   await expect(page.locator('#results > li')).toHaveCount(0);
   expect(query(page)).toBe('level=2');
   await page.goBack();
@@ -105,13 +105,13 @@ test('open= from a shared link: Escape closes it by replace (this page pushed no
 });
 
 test('Back to an exchange-mode entry with no year of study takes the chosen one, and the URL says so', async ({ page }) => {
-  await page.goto('/');
-  await page.getByText('Open to exchange students only').click();
+  await browse(page);
+  await page.getByText('Only courses open to exchange students').click();
   await expect.poll(() => query(page)).toBe('ng=1');
   await submit(page, 'networks');
   await expect(page.locator('#status')).toHaveText('Choose your year of study to see the courses open to you as an exchange student.');
   await page.locator('#study').selectOption('ug1');
-  await expect(page.locator('#status .chip')).toHaveText(['exchange students only', '1st year']);
+  await expect(page.locator('#chips .chip')).toHaveText(['Both semesters', '1st year', 'Exchange students']);
   await page.goBack();
   await expect.poll(() => query(page)).toBe('ng=1&study=ug1');
   await expect(page.locator('#study')).toHaveValue('ug1');
@@ -142,7 +142,7 @@ test('[F3] opening a detail with none open pushes; Back closes it, with focus on
 });
 
 test('[F3] opening another detail while one is open replaces: one open at a time, and Back goes to the list', async ({ page }) => {
-  await page.goto('/');
+  await browse(page);
   await submit(page, 'machine learning');
   await resultsFor(page, 'machine learning');
   const buttons = page.locator('#results button.card-toggle');
