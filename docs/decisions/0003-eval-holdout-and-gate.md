@@ -256,7 +256,11 @@ P-5b, §9). Each rule is in the code and tested.
     stopping rule reads;
   - `--holdout --emptied-untagged --run <variant>`: how many holdout queries outside the
     no-answer set the stored run returns empty, which 3G's gate reads. A tagged query with a
-    grade-≥1 document is outside the set, so emptying it counts.
+    grade-≥1 document is outside the set, so emptying it counts;
+  - `--holdout --lists-differing --run <A> --baseline <B>` (Phase 5 5A): how many holdout
+    queries' stored lists (status, and the codes in order) differ between runs A and B, both
+    made on these queries with the same settings and corpus. It moves the shipped-ranker pin for
+    a ranking-neutral change without a look.
 
   Every call appends a row (date, set, kind, run, count) to `eval/count-log.md`, a separate
   committed file the ledger never reads. The ledger refuses a row copied from it
@@ -388,6 +392,7 @@ ships, in the same PR as the constant.
 - shipped pin: `f004351947cef4909072b4efc7d8782088819ebe` f004351947cef4909072b4efc7d8782088819ebe (3H-0, the intent fields, deployed 2026-11-07 as version `0173bddf`; ranking-neutral: all 98 dev lists equal `47838db`'s)
 - shipped pin: `238e7210d65a9ba607f3ad0e44efb2fa15472ea7` 238e7210d65a9ba607f3ad0e44efb2fa15472ea7 (3H, the explicit exam/S-U/workload/prereq params; deployed 2026-11-07 as version `ea066ead`; ranking-neutral with no param set: all 98 dev and 81 holdout lists equal `f004351`'s)
 - shipped pin: `9d9160552d0dc5793072b892f0b7ecdace258b56` 9d9160552d0dc5793072b892f0b7ecdace258b56 (4A/4C/4D, exchange mode by semester and year of study, deployed 2026-11-10 as version `efd3dc25`; no look: SC1, per-list identity and the unfiltered guard, `docs/evidence/phase4/gates.md`)
+- shipped pin: `f79854270beee692055a10bdb6b0527dbf189f6a` f79854270beee692055a10bdb6b0527dbf189f6a (5A, exam dates per semester and the `/module` detail fields, deployed 2026-11-10 as version `b9f7e0e4`; ranking-neutral: all 98 dev lists (filtered, `ng` stripped, unfiltered) and the fixture's equal `9d91605`'s, and the custodian's `eval:count --lists-differing` of the 81 holdout lists against `shipped-9d91605` is 0, `docs/evidence/phase5/gates.md`)
 
 ## Interpretations confirmed by the lead
 - The tripwire covers target shapes only.
