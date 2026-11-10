@@ -66,3 +66,13 @@ SC1's path tests (a filter that equals the oracle's open ∪ note set) rule out 
 - p6 issued searches 4–10 as one batch. The helper's lock still ran them one at a time, 4 s apart.
 - All personas reported that they couldn't see the planner's notes. That was intended; the live
   card check above covers it mechanically.
+
+## Rulings (Jacob, 2026-11-10)
+- **R1:** PC5202, PC5206 and PC5211 stay hidden: rule A is an explicit closure, and the Q1c
+  answer came before the self-funded list was found. Register C5 now cites this ruling.
+- **R2:** the "cannot be audited" note stays (register I19, test in
+  `test/eligibility.node.test.js`).
+
+Both rulings confirm what is live, so nothing is fixed, re-ingested or redeployed. Each finding
+is resolved by a ruling, not a defect, so `FINDINGS.md` (whose IDs are `CRITERIA.md`'s) gains no
+row. The red team's exit condition is met.

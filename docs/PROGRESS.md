@@ -1007,3 +1007,17 @@ fails on the previous code.
   hit the Worker's own rate limiter and were re-sent 4 s apart.
 - **Next:** move the shipped-ranker pin to `9d91605`, then the persona red team and the Phase 4
   exit.
+
+## 2026-11-10 — Phase 4 closed: persona red team passes
+
+- **Red team** (`docs/evidence/phase4/redteam.md`): 8 personas (ug2, ug3, ug4, grad × both
+  semesters), blind to the system's calls. Over 80 live searches and a 117-code sample drawn in
+  advance they made 1,975 calls. **0 leaks**, and every one of the 1,600 live cards carries the
+  oracle's status.
+- **16 disagreements, both ruled by Jacob for what is live:**
+  - R1: PC5202/5206/5211 stay closed to graduates (rule A, the self-funded list);
+  - R2: the "cannot be audited" note stays (register I19).
+- **Exit** (`docs/evidence/phase4/exit.md`): every §7 criterion is met. Holdout looks stay at
+  7 of 12.
+- **Next:** Phase 5 (frontend) planning.
+

@@ -28,7 +28,7 @@ team (plan §7) reports where it disagrees with any of them.
 | C2 | Blanket "All CG coded courses" (under Computing's Dean's Office), "DSAXXXX" and "GEHXXXX" (under Mathematics) | closed only within the section's department; elsewhere open with a note quoting the blanket rule | **Jacob** (Q1b) |
 | C3 | Level-5000 NG courses no department specifies: AR5801, AR5802, CM5223, CM5225, CM5244, CM5268 | closed by R4 | **Jacob** (Q1c) |
 | C4 | Dual-coded AR5221/AR4220, AR5321/AR4321, AR5601/AR4601 (preclusions link them; the restrictions PDF names the 4000 codes as Architecture-majors-only, the NG list offers the 5000 codes) | open for every study level, with the 4000 twin's notes (Architecture major; AR5321 also no audit) | **Jacob** (Q1c), C2-2 |
-| C5 | PC5202, PC5206, PC5211: Physics leaves them off its closed list, but the self-funded programmes list holds them (rule A) | closed | rule A is an explicit closure; Jacob's Q1a principle (`sources.md`) |
+| C5 | PC5202, PC5206, PC5211: Physics leaves them off its closed list, but the self-funded programmes list holds them (rule A) | closed | **Jacob** (red team R1): rule A is an explicit closure, and his Q1c answer came before the self-funded list was found |
 | C6 | NUS College (NHS, NST, NGN) and the USP partner rule | open | **Jacob** (Q6): the NG list names NUS College, never USP |
 
 ## Reading individual rules
@@ -52,6 +52,7 @@ team (plan §7) reports where it disagrees with any of them.
 | I16 | Duplicates: the Materials Science table printed twice; EE2211 twice; DSE4101 under Mathematics and Statistics; the Computing level-5000 line three times; PF1107/IPM1102 with two titles | kept as printed | duplicates close the same courses |
 | I17 | RMI: "limited and approval … case-by-case", "per Course tuition fees" | approval and fee notes on the Risk Management Institute department | read as written |
 | I18 | Pages 21–22 blank, page 22 footer "19 March 2025" | no rules there | both transcribers found them blank |
+| I19 | Malay, South Asian and Southeast Asian Studies: "All courses cannot be audited." | a note on every course of those departments | **Jacob** (red team R2): a true condition a student planning to audit must know |
 
 ## Department map (PDF heading → NUSMods `department`)
 Spelling only, except: "Dean's Office, School of Computing" → `SoC Dean's Office`; "Multidisciplinary
