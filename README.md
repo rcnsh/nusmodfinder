@@ -211,6 +211,16 @@ checks every text/background and boundary pair in both themes against WCAG AA.
 - **The detail** opens as a sheet under its entry: "can you take it" (per semester, every note
   with its source and date, "check with NUS", the NUSMods link) beside the course facts, and
   above them on a narrow screen.
+- **Accessibility** (5E, SC8): a skip link is the first Tab stop and moves focus to the shown
+  `<main>`; one `<h1>`; landmarks for the header, the rail, the search and the footer. One polite
+  live region (`#live`, in the header, and in the filters dialog while it is open, since a modal
+  dialog makes the rest of the page inert) says each answer once in a sentence: the count, why
+  there are none and the next step, the typed codes not shown, errors and 429. The list is `aria-busy`
+  while a search runs; the Search button is never disabled (a second press aborts the first).
+  Escape closes the open detail and focus returns to its button, as it does after Back to an
+  open detail. Every control shows a 2px plum focus ring, and nothing covers it (the sticky
+  header leaves a scroll padding of its height). A person runs the VoiceOver walkthrough in
+  `docs/evidence/phase5/voiceover-checklist.md` (macOS Safari) locally and live.
 - **Fonts** are self-hosted (`public/fonts/`, IBM's own Latin1 WOFF2 subsets, SIL OFL in
   `public/fonts/OFL.txt`) with `font-display: swap` and a system fallback stack; the page makes
   no request to any other origin. Plex Mono draws a dotted zero, so mono text sets its stylistic
@@ -233,7 +243,7 @@ path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still r
 | `keys.js` | Enter submits only outside IME composition |
 | `intents.js`, `intent-chips.js` | the phrases `/search` read from the query (5F's `interpreted`) as chip labels (pure), and the chip row under the count, each chip's button re-running the search with `ignore=` that phrase; empty while `PARSE_PHRASES` is off |
 | `icons.js` | the stamps' and controls' small line icons, built as SVG nodes, all decorative (`aria-hidden`) |
-| `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`); the entries (an APG disclosure each: a heading holding one button that controls the detail; the exchange stamp for the chosen semester, or one per semester when planning both, with the notes both share said once; no score), the hidden-codes box and the status area; the controller (the set-up screen, the rail's semester segment, the chips, the filters dialog) |
+| `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`); the entries (an APG disclosure each: a heading holding one button that controls the detail; the exchange stamp for the chosen semester, or one per semester when planning both, with the notes both share said once; no score), the hidden-codes box and the status area, with the sentence each answer gives the live region; the controller (the set-up screen, the rail's semester segment, the chips, the filters dialog, the skip link, the live region, focus after Escape and Back) |
 
 `npm run typecheck` checks it with `tsconfig.web.json` (the DOM lib) and the Playwright specs
 with `tsconfig.ui.json` (Node plus the DOM lib, for their `page.evaluate` callbacks); the pure
@@ -267,9 +277,17 @@ workload, a failed `/module` and a 4th typed code that is neither shown nor hidd
 interception; the cards, the detail (`?q=CODE&open=CODE`), the hidden-code lines and the
 partial-code states run on the fixture. 5D's specs: `setup.spec.js` (the first screen),
 `mobile.spec.js` (F10 and the chips), `fold.spec.js` (the 390×664 fold check, also as an
-iPhone 13), `fonts.spec.js` (self-hosting, weights, the plain zero) and `a11y.spec.js` (axe,
-every rule, no violation allowed, both themes at 1280 and 390×664); 5F's `intents.spec.js`
-tests the phrase chips on intercepted answers. `shots.spec.js` saves the
+iPhone 13, after a shared link and a typed search) and `fonts.spec.js` (self-hosting, weights,
+the plain zero); 5F's `intents.spec.js` tests the phrase chips on intercepted answers. SC8's
+specs (5E): `a11y.spec.js` (axe with every rule on 23 states, both themes, 1280 and 390×664, no
+violation allowed; the experimental and off-by-default rules are on too, all but AAA's 7:1
+contrast, since the bar is AA; the states the fixture lacks are intercepted), `keyboard.spec.js` (the whole
+task keyboard-only at both widths, each stop's order and computed focus ring; in WebKit on a Mac
+it presses Option+Tab, as Safari needs unless "Press Tab to highlight each item" is on),
+`live.spec.js` (the live region's sentences, `aria-busy`, the never-disabled button, every
+control's accessible name) and `aria.spec.js` (accessibility snapshots, committed in
+`test/ui/aria.spec.js-snapshots/` and compared exactly; after a deliberate change,
+`VNM_ARIA_UPDATE=1 npx playwright test aria --project chromium` rewrites them). `shots.spec.js` saves the
 five mockup states from the real page in both themes to `docs/evidence/phase5/shots/` when
 asked (`VNM_SHOTS=1 npx playwright test shots --project chromium`). CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
 fixtures, `data/` or the lockfile change. The Phase 4 page is kept frozen as

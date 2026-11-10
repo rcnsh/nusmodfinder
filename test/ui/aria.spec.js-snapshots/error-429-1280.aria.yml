@@ -1,0 +1,7 @@
+- main "Search and results":
+  - search "Search courses":
+    - text: Search courses
+    - searchbox "Search courses": networks
+    - button "Search"
+  - text: Too many searches from your connection. Try again in 30 seconds.
+  - list "Results"

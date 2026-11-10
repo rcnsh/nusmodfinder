@@ -88,6 +88,10 @@ a { color: var(--accent); text-decoration: underline; text-decoration-thickness:
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .vh, .paren { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* 5E: the skip link shows only while focused; the <main> it focuses is a landing point, not a control, so no ring. */
+.skip { position: absolute; z-index: 10; top: 8px; left: 16px; padding: 8px 14px; background: var(--surface); color: var(--accent); border: 1px solid var(--edge); border-radius: 4px; font-weight: 500; }
+.skip:not(:focus) { width: 1px; height: 1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+main[tabindex="-1"]:focus { outline: none; }
 .mono, code { font-family: var(--f-mono); }
 .i { width: 14px; height: 14px; flex: none; }
 .lbl { font: 600 var(--t-label)/1.3 var(--f-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
@@ -107,7 +111,6 @@ button, input, select { font: inherit; color: inherit; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 16px; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); color: var(--ink); font-weight: 500; font-size: var(--t-body-s); cursor: pointer; white-space: nowrap; }
 .btn .i { width: 12px; height: 12px; }
 .btn.pri { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent); font-weight: 600; }
-.btn:disabled { cursor: progress; }
 .linkbtn { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; font: inherit; }
 .field { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: var(--t-input); }
 .field::placeholder { color: var(--ink-2); opacity: 1; }
@@ -148,7 +151,8 @@ button.chip { cursor: pointer; }
 .srct b { font-weight: 600; }
 .srct th:last-child, .srct td:last-child { text-align: right; white-space: nowrap; padding-left: 16px; }
 .srct td:last-child { font-family: var(--f-mono); font-size: 13px; }
-.sources p.checknus { display: flex; gap: 9px; align-items: flex-start; font-weight: 600; color: var(--ink); }
+/* The warning is a <strong> in a <div> (5E): a bold <p> reads to axe as a heading that isn't one. */
+.sources .checknus { display: flex; gap: 9px; align-items: flex-start; color: var(--ink); }
 .checknus .i { width: 16px; height: 16px; margin-top: 3px; }
 .steps { display: grid; gap: 34px; align-content: start; }
 .step { display: grid; grid-template-columns: 36px minmax(0, 1fr); }
@@ -164,7 +168,8 @@ button.chip { cursor: pointer; }
 .tick { display: none; color: var(--accent); }
 .tile:has(input:checked), .pill:has(input:checked) { background: var(--accent-tint); border-color: var(--accent); }
 .tile:has(input:checked) .tick { display: block; position: absolute; top: 12px; right: 12px; width: 16px; height: 16px; }
-.tile:has(input:focus-visible), .pill:has(input:focus-visible), .seg-opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; z-index: 2; }
+.tile:has(input:focus-visible), .pill:has(input:focus-visible), .seg-opt:has(input:focus-visible),
+html[data-keys] :is(.tile, .pill, .seg-opt):has(input:focus) { outline: 2px solid var(--accent); outline-offset: 2px; z-index: 2; }
 .pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill { padding: 0 14px; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
 .pill:has(input:checked) .tick { display: inline-block; width: 14px; height: 14px; }
@@ -294,7 +299,7 @@ details[open] > summary::before { transform: rotate(90deg); }
 .avail .for { font-size: var(--t-small); color: var(--ink-2); margin-top: 2px; }
 .semblock .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .yours { font-size: 12.5px; font-weight: 500; color: var(--accent); }
-.boxcheck { display: flex; gap: 9px; align-items: flex-start; font-weight: 600; border: 1px solid var(--edge); border-radius: 4px; padding: 10px 14px; }
+.boxcheck { display: flex; gap: 9px; align-items: flex-start; border: 1px solid var(--edge); border-radius: 4px; padding: 10px 14px; }
 .boxcheck .i { width: 16px; height: 16px; margin-top: 3px; }
 .sources-line { font-size: 12.5px; color: var(--ink-2); }
 .nusmods { font-size: var(--t-body-s); }

@@ -7,12 +7,12 @@ import { body, matchFor, searches } from './support.mjs';
 
 const RAW = /rate_limited|upstream_failure|not_json|bad_request|internal|SyntaxError|\b5\d\d\b|\b429\b/;
 
-test('[F2] a search that never answers gives up after 10 s with a sentence, and the button works again', async ({ page }) => {
+test('[F2] a search that never answers gives up after 10 s with a sentence; the button stays enabled throughout (5E)', async ({ page }) => {
   await page.clock.install();
   await page.route('**/search?**', () => { /* never answers */ });
   await page.goto('/?q=slow');
   await expect(page.locator('#status')).toHaveText('Searching…');
-  await expect(page.locator('#go')).toBeDisabled();
+  await expect(page.locator('#go')).toBeEnabled();
   await page.clock.fastForward(9_000);
   await expect(page.locator('#status')).toHaveText('Searching…');
   await page.clock.fastForward(1_000);

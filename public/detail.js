@@ -34,7 +34,7 @@ export function detailLoading(region) {
  * @param {() => void} retry
  */
 export function detailError(region, sentence, retry) {
-  const again = h('button', { class: 'detail-retry', attrs: { type: 'button' } }, 'Try again');
+  const again = h('button', { class: 'btn detail-retry', attrs: { type: 'button' } }, 'Try again');
   again.addEventListener('click', retry);
   setChildren(region, h('p', { class: 'detail-error' }, `The course details could not be loaded. ${sentence}`), again);
 }
@@ -135,7 +135,7 @@ function exchangeSection(raw, ctx) {
       ])
       : ['NG list; NG restrictions']),
     '.');
-  const check = h('p', { class: 'check-nus boxcheck' }, icon('check'), h('span', null, 'Check with NUS before you register.'));
+  const check = h('div', { class: 'check-nus boxcheck' }, icon('check'), h('strong', null, 'Check with NUS before you register.'));
   if (study) {
     const chosen = ctx.filters.sem === 1 || ctx.filters.sem === 2 ? ctx.filters.sem : 0;
     return h('section', { class: 'detail-part avail' },
