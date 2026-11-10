@@ -418,6 +418,18 @@ study ∈ { ug1, ug2, ug3, ug4, grad }  // ug4 = "4th year or later"
 - README, `/facets` and the vault describe exchange mode as it is.
 
 ## 8. Gate questions for Jacob (asked after the critic rounds)
+**Answered (Jacob, 2026-11-10): every lead default accepted.**
+- Q1a hide; Q1b section's department only (open, with a note quoting the blanket rule); Q1c AR
+  pairs note-major, PC5202/5206/5211 open for grad only, CM four and AR5801/AR5802 closed.
+- Q2 study level required. Q3 `su=1` kept, with graded-only and general S/U notes. Q4 §6 as
+  written. Q5 note. Q6 NUS College open.
+- Q7: the scope decision is amended. Courses not on the NG list are hidden in exchange mode,
+  and the page explains rule E.
+- Still needed before 4B: the self-funded programmes PDF, the YST electives page and the Law
+  compulsory-course list.
+
+The questions as they were asked:
+
 - **Before 4B starts:** Jacob downloads the self-funded programmes PDF, the YST electives page
   and the Law compulsory-course list (C-2).
 - **Q1. NG-listed courses a restrictions rule closes** (C2-4). The NG list's cover says "Take

@@ -949,3 +949,15 @@ fails on the previous code.
   parsed-intent items (31 of 90) and findings S2, S3, S4 and S6 carry into Phase 4, where the
   study-level input and a compliance rule for parsed filters bring the dropped changes back.
   Evidence: `docs/evidence/phase3/exit.md`.
+
+## 2026-11-10 — Phase 4 plan converged; Jacob's gate answers
+
+- **Sources:** Jacob downloaded the NG course list (01 Sep 2026) and the course-restrictions PDF
+  (31 Aug 2026). The NG list re-extracts byte-identical to the committed data.
+- **Plan:** `docs/plans/phase4.md` r3.1 after three critic rounds, all objections applied; ADR
+  0007. Exchange mode applies both PDFs through a precomputed allow mask per (semester, study
+  level), verified by an independent oracle over every module.
+- **Jacob's answers:** every lead default accepted; courses not on the NG list are hidden in
+  exchange mode (an amendment to the scope decision).
+- **Next:** 4B waits on three more sources (the self-funded programmes PDF, the YST electives
+  page, the Law compulsory-course list).
