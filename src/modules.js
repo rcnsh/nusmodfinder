@@ -184,7 +184,9 @@ export async function handleModule(env, code, trace) {
     return upstream('d1', err);
   }
   if (!row) return json({ error: 'not_found', message: `No module ${upper} in this acad year.` }, 404);
-  const { ng_rules: _rules, ...rest } = row;
+  /** @type {Partial<ModuleRow>} */
+  const rest = { ...row };
+  delete rest.ng_rules;
   return json({
     ...rest,
     semesters: JSON.parse(row.semesters ?? '[]'),

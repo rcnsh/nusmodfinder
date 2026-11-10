@@ -296,7 +296,7 @@ export function searchCacheKey(url, version = NO_VERSION_ID) {
  * @param {ResultRow} row
  * @param {Constraints} echo
  */
-function localMatchesFilters(row, echo) {
+export function localMatchesFilters(row, echo) {
   if (echo.ng === true && row.ng !== 1) return false;
   // Phase 4: the allow-mask bit; a missing or zero ng_allow is closed, and under ng sem only picks the bit.
   if (echo.ng === true && ((row.ng_allow ?? 0) & (ngBit(echo) ?? 0)) === 0) return false;

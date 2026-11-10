@@ -546,6 +546,9 @@ describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is
   it.each([
     ['unfiltered', { mode: 'hybrid', filters: false }],
     ['lexical', { mode: 'lexical', filters: true }],
+    // Phase 4: the unfiltered guard's `--strip ng`, and a study map other than the committed one.
+    ['ng-stripped', { mode: 'hybrid', filters: true, strip: ['ng'] }],
+    ['other-study-map', { mode: 'hybrid', filters: true, studyMap: '0'.repeat(64) }],
   ])('refuses a %s run of the shipped ranker', async (name, config) => {
     const { dir } = await makeSet(`shipped-config-${name}`, { base: { ranker: shippedRanker(), config }, cand: (d) => copy(d.ranked) });
     const r = look(dir);

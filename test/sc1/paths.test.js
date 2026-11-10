@@ -1,0 +1,166 @@
+// @ts-check
+// SC1 path tests (docs/plans/phase4.md 4E): over the pinned corpus (6,771
+// modules, D1 seeded through /admin/ingest) and the pinned bundle, for each
+// of the 15 (sem, study) combinations, every exchange-mode path shows
+// exactly the modules the independent oracle (test/sc1/oracle.node.mjs)
+// calls open or noted:
+// - set equality per path filter: the lexical filter SQL over every D1 row,
+//   compileMask over every bundle row, the D1 recheck over every row;
+// - the standby (the fake Vectorize holding the bundle's vectors, then the
+//   recheck): no leaks, and recall@50 against the bundle above a floor;
+// - pins, 3F variants and a not-offered code's `related`: a code search for
+//   every NG code shows it exactly when the oracle does; no closed variant;
+//   no closed neighbour.
+// Its own vitest project and CI job (`npm run test:sc1`), with its own
+// timeout. Skipped without the pinned corpus and bundle; the sc1 CI job sets
+// FULL_CORPUS=1, so a missing one fails there instead.
+import { env } from 'cloudflare:workers';
+import { afterAll, beforeAll, describe, expect, inject, it, vi } from 'vitest';
+import catalogueFile from '../../data/catalogue-only.json';
+import { denseBundle } from '../../src/dense.js';
+import { groups } from '../../src/group-data.js';
+import { filterSql } from '../../src/lexical.js';
+import { RESULT_COLUMNS } from '../../src/modules.js';
+import { NG_SEMS, STUDIES } from '../../src/ng-bit.js';
+import { storedVectorMetadata } from '../../src/rowhash.js';
+import { localMatchesFilters } from '../../src/search.js';
+import { compileMask } from '../../src/vector-bundle.js';
+import { createFakes } from '../fakes.js';
+import { adminCall, callJson, seed } from '../helpers.js';
+import { oracle } from './oracle.node.mjs';
+
+const corpus = inject('corpus');
+const bundleKind = inject('vectorsBundle');
+
+/** The 15 combinations, with the query string each sets. */
+const COMBOS = NG_SEMS.flatMap((sem) => STUDIES.map((study) => ({
+  sem, study, qs: `ng=1&study=${study}${sem === 'any' ? '' : `&sem=${sem}`}`,
+  /** @type {import('../../src/vector-bundle.js').FilterEcho} */
+  echo: { ng: true, study, ...(sem === 'any' ? {} : { sem }) },
+})));
+/**
+ * Standby recall@50 against the bundle, mean over the queries, per
+ * combination. Plan §2's simulation over the 98 dev queries at depth 100: 0.998
+ * for a level-cut bit, 0.892 for a ug1-like bit (worst query 0.04). The floor
+ * sits below the simulation's worst mean.
+ */
+const STANDBY_RECALL_FLOOR = 0.85;
+const QUERIES = [
+  'machine learning', 'introduction to programming', 'financial accounting', 'japanese language', 'climate change',
+  'public policy', 'statistics', 'music', 'architecture design studio', 'law and technology', 'organic chemistry',
+  'history of southeast asia', 'marketing', 'data structures and algorithms', 'philosophy of mind', 'urban planning',
+  'quantum mechanics', 'psychology', 'supply chain management', 'materials science',
+];
+
+describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode path agrees with the oracle', () => {
+  const c = /** @type {FullCorpus} */ (corpus);
+  const moduleOf = new Map(c.modules.map((m) => [m.code, m]));
+  /** @param {string} code @param {(typeof COMBOS)[number]} k */
+  const shownByOracle = (code, k) => oracle(/** @type {NormalisedModule} */ (moduleOf.get(code)), { sem: k.sem, study: k.study }) !== 'closed';
+  /** @param {(typeof COMBOS)[number]} k */
+  const oracleSet = (k) => c.modules.filter((m) => shownByOracle(m.code, k)).map((m) => m.code).sort();
+  /** Results and their 3F variants. @param {any} body @returns {string[]} */
+  const shown = (body) => body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)]);
+  const fakes = createFakes();
+
+  beforeAll(async () => {
+    // ~18k searches each log a line; keep the output to what the tests report.
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await seed({ modules: c.modules, fakes });
+    // The standby holds the bundle's vectors, so it and the bundle rank in one space.
+    const b = denseBundle();
+    fakes.vectorize.vectors = new Map(b.codes.map((code, i) => [code, {
+      id: code, values: Array.from(b.vectors.subarray(i * b.dims, (i + 1) * b.dims)),
+      metadata: storedVectorMetadata(/** @type {NormalisedModule} */ (moduleOf.get(code))),
+    }]));
+    const rows = /** @type {[string, string, string | null][]} */ (catalogueFile.rows).slice(0, 200);
+    const upsert = rows.map(([code, title, description]) => ({ code, title, description, acadYear: c.acadYear }));
+    for (let i = 0; i < upsert.length; i += 100) {
+      const res = await adminCall('/admin/catalogue', createFakes(), { upsert: upsert.slice(i, i + 100) });
+      if (res.status !== 200) throw new Error(`catalogue_only load: HTTP ${res.status}`);
+    }
+  }, 600_000);
+  afterAll(() => { vi.restoreAllMocks(); });
+
+  it('set equality: the lexical filter SQL, the bundle mask and the D1 recheck each equal the oracle\'s open ∪ note', async () => {
+    const b = denseBundle();
+    const { results: rows } = /** @type {D1Result<import('../../src/modules.js').ResultRow>} */ (
+      await env.DB.prepare(`SELECT ${RESULT_COLUMNS} FROM modules`).all());
+    expect(rows.length).toBe(c.modules.length);
+    for (const k of COMBOS) {
+      const want = oracleSet(k);
+      expect(want.length, k.qs).toBeGreaterThan(500);
+      const { clauses, binds } = filterSql(k.echo);
+      const { results } = /** @type {D1Result<{ code: string }>} */ (
+        await env.DB.prepare(`SELECT m.code FROM modules m WHERE ${clauses.join(' AND ')} ORDER BY m.code`).bind(...binds).all());
+      expect(results.map((r) => r.code), `lexical ${k.qs}`).toEqual(want);
+      const mask = /** @type {(i: number) => boolean} */ (compileMask(b, k.echo));
+      expect(b.codes.filter((_, i) => mask(i)).sort(), `bundle ${k.qs}`).toEqual(want);
+      expect(rows.filter((r) => localMatchesFilters(r, k.echo)).map((r) => r.code).sort(), `recheck ${k.qs}`).toEqual(want);
+    }
+  }, 300_000);
+
+  it(`the standby leaks nothing and keeps recall@50 against the bundle at or above ${STANDBY_RECALL_FLOOR}`, async () => {
+    /** @type {string[]} */
+    const recalls = [];
+    for (const k of COMBOS) {
+      let sum = 0;
+      for (const q of QUERIES) {
+        const path = `/search?q=${encodeURIComponent(q)}&${k.qs}&mode=vector&topK=50`;
+        const bundle = await callJson(path, { fakes, env: { COLLAPSE_GROUPS: 'off' } });
+        const standby = await callJson(path, { fakes, env: { DENSE_BACKEND: 'vectorize', COLLAPSE_GROUPS: 'off' } });
+        for (const code of shown(standby.body)) expect(shownByOracle(code, k), `${path} standby ${code}`).toBe(true);
+        for (const code of shown(bundle.body)) expect(shownByOracle(code, k), `${path} bundle ${code}`).toBe(true);
+        const want = new Set(shown(bundle.body));
+        sum += want.size ? shown(standby.body).filter((x) => want.has(x)).length / want.size : 1;
+      }
+      const mean = sum / QUERIES.length;
+      recalls.push(`${k.qs} ${mean.toFixed(3)}`);
+      expect(mean, k.qs).toBeGreaterThanOrEqual(STANDBY_RECALL_FLOOR);
+    }
+    console.info(`SC1 standby recall@50 by combination:\n  ${recalls.join('\n  ')}`);
+  }, 600_000);
+
+  it('pins: a code search for every NG code shows it exactly when the oracle does', async () => {
+    const ngCodes = c.modules.filter((m) => m.ng).map((m) => m.code);
+    expect(ngCodes.length).toBeGreaterThan(1000);
+    /** @type {string[]} */
+    const wrong = [];
+    for (const code of ngCodes) {
+      for (const k of COMBOS) {
+        const { body } = await callJson(`/search?q=${code}&${k.qs}&mode=lexical&topK=5`, { fakes });
+        if (shown(body).includes(code) !== shownByOracle(code, k)) wrong.push(`${code} ${k.qs}`);
+      }
+    }
+    expect(wrong).toEqual([]);
+  }, 600_000);
+
+  it('variants: no group shows a closed member', async () => {
+    const { members } = groups();
+    const ngGroups = [...members.values()].filter((ms) => ms.some((m) => moduleOf.get(m)?.ng));
+    expect(ngGroups.length).toBeGreaterThan(0);
+    for (const ms of ngGroups) {
+      for (const k of COMBOS) {
+        const { body } = await callJson(`/search?q=${encodeURIComponent(ms.join(' '))}&${k.qs}&topK=20`, { fakes });
+        for (const code of shown(body)) expect(shownByOracle(code, k), `${ms.join(',')} ${k.qs} ${code}`).toBe(true);
+      }
+    }
+  }, 300_000);
+
+  it('related: a not-offered code\'s neighbours are never closed, on the bundle and the standby', async () => {
+    const codes = /** @type {[string, string, string | null][]} */ (catalogueFile.rows).slice(0, 10).map(([code]) => code);
+    let seen = 0;
+    for (const code of codes) {
+      for (const k of COMBOS) {
+        for (const envOver of [{}, { DENSE_BACKEND: 'vectorize' }]) {
+          const { body } = await callJson(`/search?q=${code}&${k.qs}`, { fakes, env: envOver });
+          expect(body.noMatch?.reason, code).toBe('not-offered');
+          for (const r of body.noMatch.related) expect(shownByOracle(r, k), `${code} ${k.qs} ${r}`).toBe(true);
+          seen += body.noMatch.related.length;
+        }
+      }
+    }
+    expect(seen).toBeGreaterThan(0);
+  }, 300_000);
+});
