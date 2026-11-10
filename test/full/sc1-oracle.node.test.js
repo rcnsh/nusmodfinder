@@ -36,7 +36,7 @@ describe.skipIf(!available)('SC1: eligibility agrees with the oracle', () => {
     }
     expect(differ).toEqual([]);
     expect(ngShown).toBeGreaterThan(0);
-  });
+  }, 60_000); // ~100k cases: 3-4 s locally, 8.4 s once on a CI runner (past the 5 s default)
 
   it('names only departments and faculties the snapshot has', () => {
     /** @type {{ department?: string, faculty?: string }[]} */
