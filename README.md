@@ -39,6 +39,19 @@ something other than its 5-number array (two modules give a string), or `null` w
 (absent or all zero); and `nusmodsUrl`, where the class times are. It is cached
 `public, max-age=300` on a 200, `public, max-age=60` on a 404 and `no-store` on a 5xx, with no ETag.
 
+`/search` (Phase 5 5C-api) also answers, on every 200, what the page needs to explain a typed
+code. None of it changes which results show or their order:
+- `hiddenPins: [code]`: the typed codes, in query order, whose row the filters, `ng`/`study` and
+  the parsed intents remove. Every code-shaped token counts (up to 10), not only the 3 that pin.
+  A code with no row, or one that passes but whose duplicate group already shows, is never listed.
+  Empty on routes that pin nothing (a whole-query partial code or prefix, `noMatch`).
+- `notOffered: [code]`: the typed codes that are in the catalogue but not offered this year,
+  also inside a longer query (a whole-query one still answers `noMatch: { reason: "not-offered" }`).
+- each result's `examDates`, as `/module/:code` gives them (`[]` for none);
+- under `ng=1` with no `sem`, each result's `exchangeBySem: { "1": …, "2": … }`: the
+  `{ status: "open" | "note" | "closed", reasons }` for each semester at the `study` level, beside
+  `exchange` (the either-semester value), so a student planning both sees one value per semester.
+
 `mode` is `hybrid` (default), `vector` or `lexical`. It exists so the evaluation harness
 can measure each retriever on its own — which is the only reason we know the vector half
 is not pulling its weight.

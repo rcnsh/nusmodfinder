@@ -29,6 +29,12 @@ export const INTERPRETED_KEYS = Object.freeze(['pin', 'prefix', 'ge', 'level', '
 export const IGNORABLE_INTENTS = Object.freeze(['ge', 'level', 'exam', 'su', 'hoursBelow', 'prereq']);
 /** Resolution step 1 pins at most this many offered codes, in query order. */
 export const MAX_PINS = 3;
+/**
+ * `codes` records at most this many typed codes (Phase 5 5C-api), so /search
+ * can say which ones the filters hide or the year doesn't offer; only the
+ * first MAX_PINS offered ones pin.
+ */
+export const MAX_CODES = 10;
 
 /**
  * @typedef {[string, string]} CodeRange A primary-key range [lo, hi) over codes.
@@ -40,10 +46,13 @@ export const MAX_PINS = 3;
  *   prereq: { value: string, semantics: string } | null,
  * }} Interpreted
  * @typedef {{ reason: 'not-offered' | 'unknown-code', code: string }} NoMatch
+ * @typedef {{ code: string, status: 'offered' | 'not-offered' | 'unknown' }} TypedCode
+ *   A code-shaped token (a full code with a known prefix): offered, catalogue-only
+ *   (`not-offered`), or neither (`unknown`: an unknown code or an `XX N000` route).
  * @typedef {{
  *   q: string, lexical: string, dense: string, interpreted: Interpreted,
  *   kind: 'search' | 'mask' | 'no-match',
- *   pins: string[], ranges: CodeRange[] | null, codeList: CodeRange[] | null,
+ *   pins: string[], codes: TypedCode[], ranges: CodeRange[] | null, codeList: CodeRange[] | null,
  *   level: LevelWindow | null, noMatch: NoMatch | null,
  *   tokens: string[], corrected: string | null, fts: import('./fts-query.js').FtsTerms,
  *   noSignal: boolean, constraints: IntentConstraints,
@@ -57,6 +66,9 @@ export const MAX_PINS = 3;
  *     pre-retrieval mask on both halves; `codeList` the third RRF list's
  *     members; `level` a filter on everything.
  *   - `kind` 'no-match': `count: 0` with `noMatch`.
+ *   - `codes`: every code-shaped token, de-duplicated, in query order, at
+ *     most MAX_CODES (5C-api); `pins` is the first MAX_PINS offered ones.
+ *     Read only for /search's `hiddenPins` and `notOffered`, never to rank.
  *   - `lexical`: the text the FTS half searches (corrected, GE phrases
  *     stripped), with `fts` its 3C prefix terms and corrections; `dense` the
  *     text the dense half embeds (the canonical q, raw); `corrected` the
@@ -242,7 +254,7 @@ export function parseQuery(q, ctx, ignore = []) {
   const interpreted = emptyInterpreted();
   /** @type {ParsedQuery} */
   const parsed = {
-    q, lexical: q, dense: q, interpreted, kind: 'search', pins: [], ranges: null, codeList: null, level: null, noMatch: null,
+    q, lexical: q, dense: q, interpreted, kind: 'search', pins: [], codes: [], ranges: null, codeList: null, level: null, noMatch: null,
     tokens: [], corrected: null, fts: { prefixes: [], corrections: [] }, noSignal: false, constraints: {},
   };
 
@@ -285,7 +297,11 @@ export function parseQuery(q, ctx, ignore = []) {
       const code = tok.text.toUpperCase();
       const letters = full[1];
       const n000 = N000.exec(code);
-      if (ctx.isOffered(code)) {
+      const offered = ctx.isOffered(code);
+      if (parsed.codes.length < MAX_CODES && !parsed.codes.some((t) => t.code === code)) {
+        parsed.codes.push({ code, status: offered ? 'offered' : ctx.catalogue.has(code) ? 'not-offered' : 'unknown' });
+      }
+      if (offered) {
         if (parsed.pins.length < MAX_PINS && !parsed.pins.includes(code)) parsed.pins.push(code);
       } else if (ctx.catalogue.has(code)) {
         if (whole) parsed.noMatch = { reason: 'not-offered', code };

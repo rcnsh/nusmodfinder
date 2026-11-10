@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { REPO } from '../eval/lib/sets.mjs';
 import { STOPWORDS_CURRENT } from '../src/fts-query.js';
 import {
-  INTERPRETED_KEYS, IGNORABLE_INTENTS, buildIntentContext, canonicalQuery, codeRange, parseIgnore, parseQuery,
+  INTERPRETED_KEYS, IGNORABLE_INTENTS, MAX_CODES, buildIntentContext, canonicalQuery, codeRange, parseIgnore, parseQuery,
 } from '../src/query-intent.js';
 import { deriveIntents } from './sc4/intents.node.mjs';
 
@@ -271,5 +271,40 @@ describe('review fixes (PR #44)', () => {
     expect(parse('ge').interpreted.ge).toEqual(ALL_PILLARS);
     expect(parse('ge modules about technology')).toMatchObject({ kind: 'search', interpreted: { ge: ALL_PILLARS }, lexical: 'modules about technology' });
     expect(parse('ge 2101').interpreted).toMatchObject({ pin: ['GE2101'], ge: null });
+  });
+});
+
+describe('typed codes (Phase 5 5C-api)', () => {
+  it('records every code-shaped token, de-duplicated, in query order, with its status; pins stay at the first 3 offered', () => {
+    const p = parse('cs2040 cs1010s cs2030 cs1231 cs2040 cs1001 cs9999');
+    expect(p.pins).toEqual(['CS2040', 'CS1010S', 'CS2030']);
+    expect(p.codes).toEqual([
+      { code: 'CS2040', status: 'offered' }, { code: 'CS1010S', status: 'offered' }, { code: 'CS2030', status: 'offered' },
+      { code: 'CS1231', status: 'offered' }, { code: 'CS1001', status: 'not-offered' }, { code: 'CS9999', status: 'unknown' },
+    ]);
+    expect(p.kind).toBe('search');
+    expect(p.noMatch).toBeNull();
+  });
+
+  it(`keeps at most ${MAX_CODES} codes`, () => {
+    const many = Array.from({ length: 12 }, (_, i) => `cs99${String(i).padStart(2, '0')}`).join(' ');
+    const p = parse(`cs1010 ${many}`);
+    expect(p.codes).toHaveLength(MAX_CODES);
+    expect(p.codes[0]).toEqual({ code: 'CS1010', status: 'offered' });
+    expect(p.pins).toEqual(['CS1010']);
+  });
+
+  it('a whole-query catalogue-only code is still noMatch, and recorded as not offered', () => {
+    const p = parse('cs1001');
+    expect(p).toMatchObject({ kind: 'no-match', noMatch: { reason: 'not-offered', code: 'CS1001' } });
+    expect(p.codes).toEqual([{ code: 'CS1001', status: 'not-offered' }]);
+  });
+
+  it('joined codes count; partial codes, bare prefixes and words do not', () => {
+    expect(parse('cs 1010s and cs32 machine learning').codes).toEqual([{ code: 'CS1010S', status: 'offered' }]);
+    expect(parse('cs').codes).toEqual([]);
+    expect(parse('machine learning').codes).toEqual([]);
+    // An `XX N000` route is code-shaped: neither offered nor catalogue-only.
+    expect(parse('cs3000 machine learning').codes).toEqual([{ code: 'CS3000', status: 'unknown' }]);
   });
 });

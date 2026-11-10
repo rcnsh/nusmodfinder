@@ -12,6 +12,9 @@
 // Since 3C a query with a df-0 token of 4+ letters gets a prefix term or a
 // correction in its lexical half (and, under 3C-2, a corrected text in its
 // dense half): also a change by design, listed and left out the same way.
+// Since 5C-api every body also has `hiddenPins` (empty here: an unrouted query
+// pins nothing) and `notOffered`, and every result its `examDates`: additive
+// fields, asserted by shape here and by value in test/search-fields.test.js.
 // The pre-1B route queries Vectorize, so the live Worker runs under the
 // Vectorize standby (DENSE_BACKEND=vectorize, Phase 3 3-0); the bundle's
 // identity with that path is test/dense.test.js.
@@ -150,6 +153,16 @@ const isExchange = (path) => {
 };
 
 /**
+ * A pre-1B body with 5C-api's additive fields: `hiddenPins` empty (an
+ * unrouted query pins nothing), `notOffered` any list, `examDates` on each result.
+ * @param {any} body
+ */
+const with5CApi = (body) => ({
+  ...body, hiddenPins: [], notOffered: expect.any(Array),
+  results: body.results.map((/** @type {any} */ r) => ({ ...r, examDates: expect.any(Array) })),
+});
+
+/**
  * Compares one request on both paths. Returns a description of any
  * difference that is not one of the declared bug fixes, else null.
  * @param {string} path
@@ -168,7 +181,8 @@ async function compare(path) {
   const expected = before.status === 200
     // B7: the body echoes the canonical query (trimmed, whitespace collapsed, ASCII lower-cased).
     // 3B: and an all-null `interpreted`.
-    ? { ...before.body, query: before.body.query.replace(/\s+/g, ' ').replace(/[A-Z]+/g, (/** @type {string} */ m) => m.toLowerCase()), interpreted: UNROUTED }
+    // 5C-api: and its additive fields.
+    ? { ...with5CApi(before.body), query: before.body.query.replace(/\s+/g, ' ').replace(/[A-Z]+/g, (/** @type {string} */ m) => m.toLowerCase()), interpreted: UNROUTED }
     : before.body;
   try {
     expect(after.body).toEqual(expected);
@@ -225,7 +239,7 @@ describe('1B is ranking-neutral', () => {
         // Same page of results. retrieval.fused can only differ here, and only
         // upwards: hydration stops once the page is full, so stale candidates
         // below it are not discovered (and not subtracted).
-        expect(after.body.results, p).toEqual(before.body.results);
+        expect(after.body.results, p).toEqual(with5CApi(before.body).results);
         expect(after.body.count, p).toBe(before.body.count);
         expect(after.body.retrieval.fused, p).toBeGreaterThanOrEqual(before.body.retrieval.fused);
         compared += 1;
