@@ -961,3 +961,17 @@ fails on the previous code.
   exchange mode (an amendment to the scope decision).
 - **Next:** 4B waits on three more sources (the self-funded programmes PDF, the YST electives
   page, the Law compulsory-course list).
+
+## 2026-11-10 — Phase 4 step 4B: exchange-mode rules
+
+- **Fixture first (4A):** every NG level-5000 and special-term module is in the fixture (434).
+- **Sources complete** (`docs/evidence/phase4/sources.md`). The self-funded programmes list closes
+  PC5202/5206/5211 to every exchange student (Jacob's Q1a principle over his Q1c answer).
+- **Rules:** two independent transcriptions of the restrictions PDF agreed on every course code;
+  the 30 encoding differences are resolved in `transcription.md`. The interpretations register
+  records every reading. `data/ng-restrictions-2026-2027.json` (136 rules) is built from them, and
+  `src/eligibility.js` evaluates it.
+- **Checks:** an audit of 35 rules found 3 scope defects (none affecting an NG course), fixed. An
+  independent oracle agrees with `eligibility()` on all 101,565 pinned cases. A fresh review found 2
+  defects with failing inputs, fixed. Evidence: `docs/evidence/phase4/rules-check.md`.
+- **Next:** 4A storage (`ng_allow`, `ng_rules`), the search paths, 4C and 4D, shipped together.
