@@ -63,7 +63,8 @@ const ring = (page) => page.evaluate(() => {
 
 /**
  * Keyboard helpers bound to one page: each move records where focus lands and
- * checks its ring.
+ * checks its ring. The check polls: WebKit scrolls a newly focused control
+ * into view a moment after the key, so a first look can find it off screen.
  * @param {import('@playwright/test').Page} page
  * @param {string} TAB
  */
@@ -75,7 +76,7 @@ function keys(page, TAB) {
     for (let i = 0; i < n; i++) {
       await page.keyboard.press(key);
       const at = await here(page);
-      expect(await ring(page), `focus ring on ${at}`).toBe('ok');
+      await expect.poll(() => ring(page), { message: `focus ring on ${at}` }).toBe('ok');
       seen.push(at);
     }
     return seen;
@@ -87,7 +88,7 @@ function keys(page, TAB) {
     press: async (key) => {
       await page.keyboard.press(key);
       const at = await here(page);
-      expect(await ring(page), `focus ring on ${at} after ${key}`).toBe('ok');
+      await expect.poll(() => ring(page), { message: `focus ring on ${at} after ${key}` }).toBe('ok');
       return at;
     },
   };
@@ -156,14 +157,14 @@ async function detailLinkBackEscape(page, k) {
   await expect.poll(() => query(page)).toBe(`${URL_FILTERED}&open=CS2104`);
   await expect(button).toBeFocused();
   await expect(button).toHaveAttribute('aria-expanded', 'true');
-  expect(await ring(page)).toBe('ok');
+  await expect.poll(() => ring(page)).toBe('ok');
   await settled(page);
   // Escape closes it; focus stays on (returns to) its button.
   await page.keyboard.press('Escape');
   await expect.poll(() => query(page)).toBe(URL_FILTERED);
   await expect(button).toHaveAttribute('aria-expanded', 'false');
   await expect(button).toBeFocused();
-  expect(await ring(page)).toBe('ok');
+  await expect.poll(() => ring(page)).toBe('ok');
 }
 
 test.describe('at 1280', () => {
