@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction d: Annotated catalogue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* ===== Design tokens (direction D, light, the only theme). Pairs are checked by d-contrast.mjs ===== */
+:root {
+  --ground: #F7F8F6;      /* page: soft near-white */
+  --surface: #FFFFFF;     /* inputs, open entry sheet */
+  --panel: #F0F2EF;       /* set-off notes and sources */
+  --ink: #1E2723;         /* text */
+  --ink-2: #4B5651;       /* secondary text */
+  --rule: #DADFDB;        /* decorative hairlines between entries (non-text) */
+  --edge: #7A8580;        /* control boundaries (3:1) */
+  --accent: #6A2E56;      /* the one accent: links, Search, selection, focus (muted plum) */
+  --accent-tint: #F4EAF0;
+  --on-accent: #FFFFFF;
+  --open: #2F6343; --open-tint: #EDF4EF;
+  --note: #7D4E12; --note-tint: #FAF3E6;
+  --hide: #973B30; --hide-tint: #FBEEEC;
+
+  --f-sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* gallery chrome: neutral, not part of the design */
+  --f-bg: #F2F2F2; --f-ink: #1A1A1A; --f-muted: #565656; --f-page: #FFFFFF; --f-edge: #9A9A9A;
+}
+
+/* ===== Gallery chrome (not the design) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--f-page); color: var(--f-ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; overflow-x: hidden; }
+.framebar { background: var(--f-bg); border-bottom: 1px solid #D0D0D0; padding: 10px 20px; font-size: 14px; }
+.framebar b { font-weight: 600; }
+.framebar span { color: var(--f-muted); }
+.gallery { padding: 8px 20px 48px; }
+.state { margin-top: 28px; }
+.state > h2 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 4px; }
+.state > p { margin: 0 0 12px; color: var(--f-muted); font-size: 14px; max-width: 75ch; }
+.pair { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.frame-wrap { min-width: 0; }
+.frame-wrap.d { flex: 1 1 700px; max-width: 1280px; }
+.frame-wrap.p { flex: 0 1 390px; max-width: 100%; }
+.frame-label { font: 12px/1.4 system-ui, sans-serif; color: var(--f-muted); margin: 0 0 4px; }
+.frame { width: 100%; border: 1px solid var(--f-edge); overflow-x: hidden; overflow-y: auto; container-type: inline-size; background: var(--ground); }
+.frame.desktop { height: 800px; }
+.frame.phone { height: 664px; }
+html.solo, html.solo body { overflow: hidden; background: var(--ground); }
+html.solo .frame { border: 0; position: fixed; top: 0; left: 0; scrollbar-width: none; }
+html.solo .frame::-webkit-scrollbar { display: none; }
+html.solo .frame.desktop { width: 1280px; height: 800px; }
+html.solo .frame.phone { width: 390px; height: 664px; }
+
+/* ===== The design: everything below lives inside .app ===== */
+.app { background: var(--ground); color: var(--ink); font: 400 15px/1.55 var(--f-sans); min-height: 100%; display: flex; flex-direction: column; }
+.app :where(h1, h2, h3, h4, p, ul, ol, dl, dd, figure, fieldset) { margin: 0; padding: 0; }
+.app ul, .app ol { list-style: none; }
+.app fieldset { border: 0; min-width: 0; }
+.app legend { padding: 0; }
+.app a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.app button, .app input, .app select { font: inherit; color: inherit; }
+.app :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.app .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.mono { font-family: var(--f-mono); }
+.app svg.i { width: 14px; height: 14px; flex: none; }
+.lbl { font: 600 12px/1.3 var(--f-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+
+/* header */
+.hdr { position: sticky; top: 0; z-index: 5; background: var(--ground); border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 16px 40px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.app a.brand { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 18px; letter-spacing: -0.005em; white-space: nowrap; }
+.brand svg { width: 20px; height: 20px; color: var(--accent); flex: none; }
+.unoff { font-size: 12.5px; font-weight: 500; color: var(--ink-2); border: 1px solid var(--edge); border-radius: 3px; padding: 1px 7px; white-space: nowrap; line-height: 1.5; }
+.hdr-r { margin-left: auto; font-size: 13px; color: var(--ink-2); }
+
+/* footer */
+.ftr { margin-top: auto; border-top: 1px solid var(--rule); padding: 22px 40px 28px; font-size: 13.5px; color: var(--ink-2); display: grid; gap: 8px; }
+.ftr strong { color: var(--ink); font-weight: 600; }
+.ftr ul { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+
+/* buttons, fields */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 16px; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); color: var(--ink); font-weight: 500; font-size: 14.5px; cursor: pointer; white-space: nowrap; }
+.app .btn.pri { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+.btn svg { width: 14px; height: 14px; }
+.app .linkbtn { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; font: inherit; }
+.field { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); font-size: 16px; }
+.field::placeholder { color: var(--ink-2); opacity: 1; }
+
+/* status stamps: shape + word + colour, outlined on a very light tint */
+.st { display: inline-flex; align-items: center; gap: 7px; padding: 3px 9px 3px 7px; border: 1px solid currentColor; border-radius: 3px; font-size: 13.5px; font-weight: 500; line-height: 1.35; white-space: nowrap; }
+.st b { font-weight: 600; }
+.st-open { color: var(--open); background: var(--open-tint); }
+.st-note { color: var(--note); background: var(--note-tint); }
+.st-hide { color: var(--hide); background: var(--hide-tint); }
+
+/* notes: plain-English guidance in a calm ruled aside */
+.notes { margin-top: 8px; background: var(--panel); border-left: 1px solid var(--note); padding: 10px 14px 11px; display: grid; gap: 7px; font-size: 14px; line-height: 1.5; }
+.notes .scope { font-size: 12.5px; color: var(--ink-2); }
+.notes .k { font-weight: 600; }
+.notes .src { display: block; color: var(--ink-2); font-size: 12.5px; margin-top: 1px; }
+
+/* ---------- setup ---------- */
+.setup { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 64px; padding: 52px 40px 56px; }
+.setup-intro h1 { font-size: 30px; line-height: 1.22; font-weight: 600; letter-spacing: -0.01em; max-width: 18ch; }
+.setup-intro .lede { margin-top: 14px; font-size: 16px; color: var(--ink-2); max-width: 40ch; }
+.sources { margin-top: 32px; background: var(--panel); padding: 18px 20px; display: grid; gap: 12px; font-size: 14px; }
+.srct { width: 100%; border-collapse: collapse; }
+.srct th { text-align: left; font-weight: 500; font-size: 12.5px; color: var(--ink-2); padding: 0 0 6px; }
+.srct td { padding: 8px 0; border-top: 1px solid var(--rule); vertical-align: top; }
+.srct th:last-child, .srct td:last-child { text-align: right; white-space: nowrap; padding-left: 16px; }
+.srct td:last-child { font-family: var(--f-mono); font-size: 13px; }
+.sources p { color: var(--ink-2); }
+.checknus { display: flex; gap: 9px; align-items: flex-start; font-weight: 600; color: var(--ink); }
+.app .sources p.checknus { color: var(--ink); }
+.checknus svg { width: 16px; height: 16px; flex: none; margin-top: 3px; }
+.steps { display: grid; gap: 34px; }
+.step { display: grid; grid-template-columns: 36px minmax(0, 1fr); }
+.step .num { font: 500 13px/1 var(--f-mono); color: var(--ink-2); padding-top: 5px; }
+.step legend, .step .qlabel { display: block; font-size: 18px; font-weight: 600; line-height: 1.35; margin-bottom: 2px; }
+.step .hint { color: var(--ink-2); font-size: 14px; margin-bottom: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tile, .pill { position: relative; display: block; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); cursor: pointer; }
+.tile { padding: 12px 14px; }
+.tile input, .pill input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.tile b { display: block; white-space: nowrap; font-size: 16px; font-weight: 600; line-height: 1.3; }
+.tile small { display: block; font: 400 12.5px/1.5 var(--f-mono); color: var(--ink-2); margin-top: 2px; }
+.tick { display: none; color: var(--accent); }
+.tile:has(input:checked), .pill:has(input:checked) { background: var(--accent-tint); border-color: var(--accent); }
+.tile:has(input:checked) .tick { display: block; position: absolute; top: 12px; right: 12px; width: 16px; height: 16px; }
+.tile:has(input:focus-visible), .pill:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { padding: 0 14px; min-height: 40px; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+.pill:has(input:checked) .tick { display: inline-block; width: 14px; height: 14px; }
+.searchrow { display: flex; gap: 8px; }
+.searchrow .field, .searchrow .btn { height: 48px; }
+.searchrow .btn { padding: 0 22px; }
+.browse { margin-top: 14px; font-weight: 500; }
+
+/* ---------- results layout: rail + entries ---------- */
+.layout { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 48px; padding: 32px 40px 44px; }
+.rail { display: grid; gap: 32px; align-content: start; }
+.rail h2 { padding-bottom: 8px; border-bottom: 1px solid var(--rule); margin-bottom: 14px; }
+.grp { display: grid; gap: 7px; margin-bottom: 18px; }
+.grp > .gl, .rail label.gl { font-weight: 500; font-size: 14px; }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.seg label { position: relative; text-align: center; border: 1px solid var(--edge); margin-left: -1px; padding: 7px 0; font-size: 14px; background: var(--surface); cursor: pointer; }
+.seg label:first-child { margin-left: 0; border-radius: 4px 0 0 4px; }
+.seg label:last-child { border-radius: 0 4px 4px 0; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg label:has(input:checked) { background: var(--accent-tint); border-color: var(--accent); color: var(--accent); font-weight: 600; z-index: 1; }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; z-index: 2; }
+.select { width: 100%; height: 40px; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); padding: 0 10px; font-size: 14.5px; }
+.checkline { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.checkline input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+.key { display: grid; gap: 12px; font-size: 13.5px; line-height: 1.5; }
+.key li.k { display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: start; }
+.key li.k svg { margin-top: 3px; }
+.key b { font-weight: 600; }
+.key .gloss { color: var(--ink-2); }
+.key .gloss b { color: var(--ink); }
+
+.bar { display: flex; gap: 8px; }
+.filterrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.filters-btn { display: none; }
+.app .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 8px 0 11px; background: var(--surface); color: var(--ink); border: 1px solid var(--edge); border-radius: 15px; font-size: 13.5px; cursor: pointer; }
+.chip svg { width: 11px; height: 11px; color: var(--ink-2); }
+.countrow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; margin: 26px 0 10px; font-size: 14px; color: var(--ink-2); }
+.countrow strong { color: var(--ink); font-weight: 600; }
+.more { margin-top: 22px; }
+
+/* ---------- entries: code | title + facts | status + notes ---------- */
+.entries { border-top: 1px solid var(--rule); }
+.entry { display: grid; grid-template-columns: 128px minmax(0, 1fr) minmax(0, 364px); grid-template-areas: "hw title guide" "hw meta guide"; grid-template-rows: auto 1fr; gap: 2px 32px; padding: 24px 0 26px; border-bottom: 1px solid var(--rule); align-content: start; }
+.hw { grid-area: hw; }
+.code { display: block; font: 500 18px/1.35 var(--f-mono); letter-spacing: .01em; color: var(--ink); }
+.units { display: block; margin-top: 2px; font: 400 12.5px/1.5 var(--f-mono); color: var(--ink-2); }
+.title { grid-area: title; font-size: 17px; font-weight: 600; line-height: 1.35; }
+.app .title a { color: var(--ink); text-decoration: none; }
+.app .title a:hover { text-decoration: underline; }
+.meta { grid-area: meta; display: grid; gap: 3px; font-size: 14px; color: var(--ink-2); align-content: start; margin-top: 4px; }
+.meta .exam { color: var(--ink); }
+.meta .exam .mono { font-size: 13.5px; }
+.meta .exl { color: var(--ink-2); }
+.meta .variants .linkbtn { font-family: var(--f-mono); font-size: 13.5px; }
+.meta .variants .linkbtn[aria-expanded="true"] { color: var(--ink); background: var(--accent-tint); text-decoration: none; padding: 0 5px; border: 1px solid var(--accent); border-radius: 3px; }
+.meta .dept-short { display: none; }
+.guide { grid-area: guide; align-self: start; }
+.stamps { display: flex; flex-wrap: wrap; gap: 6px; }
+.stamps.both { display: grid; grid-template-columns: 1fr 1fr; }
+.stamps.both .st { justify-content: flex-start; min-width: 0; }
+
+/* ---------- open entry (detail) ---------- */
+.entry.is-open { border-bottom: 0; padding-bottom: 18px; }
+.sheet { background: var(--surface); border: 1px solid var(--edge); border-radius: 4px; padding: 22px 28px 30px; margin-bottom: 4px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
+.kicker { font-size: 13.5px; color: var(--ink-2); }
+.kicker .mono { color: var(--ink); }
+.sheet-head .btn { min-height: 34px; padding: 0 12px; font-size: 13.5px; flex: none; }
+.sheet .code { font-size: 20px; }
+.dtitle { font-size: 22px; font-weight: 600; line-height: 1.3; margin-top: 2px; }
+.dmeta { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+.sheet-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 350px); gap: 40px; margin-top: 24px; }
+.sheet-main { display: grid; gap: 26px; align-content: start; }
+.sheet-side { display: grid; gap: 16px; align-content: start; grid-row: 1; grid-column: 2; }
+.desc { font-size: 15.5px; line-height: 1.65; max-width: 64ch; }
+.fact h4 { padding-bottom: 6px; border-bottom: 1px solid var(--rule); margin-bottom: 10px; }
+.fact h4 small { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 13px; }
+.fact p + p, .fact p + details, .fact .q + details { margin-top: 8px; }
+.quote { color: var(--ink); background: var(--panel); padding: 10px 14px; margin-top: 8px; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.q { font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; color: var(--ink); }
+.q-src { font-size: 12.5px; color: var(--ink-2); margin-bottom: 4px; }
+details > summary { cursor: pointer; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; width: fit-content; list-style: none; min-height: 28px; display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 500; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: ""; width: 0; height: 0; border-left: 5px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .15s; }
+details[open] > summary::before { transform: rotate(90deg); }
+.precl:has(details[open]) .q.short { display: none; }
+.examtbl { display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; font-size: 14.5px; }
+.examtbl dt { font-weight: 600; }
+.examtbl dd .mono { font-size: 14px; }
+.examtbl .none { color: var(--ink-2); }
+.wl-total { font-size: 14.5px; }
+.wl-total .mono { font-size: 15px; font-weight: 500; }
+.wl { display: grid; grid-template-columns: max-content 26px minmax(0, 220px); gap: 6px 12px; align-items: center; margin-top: 10px; font-size: 14px; }
+.wl dt { color: var(--ink-2); }
+.wl dd.h { font-family: var(--f-mono); text-align: right; }
+.wl .track { height: 8px; display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; }
+.wl .track i { background: var(--panel); border: 1px solid var(--rule); }
+.wl .track i.on { background: var(--edge); border-color: var(--edge); }
+.avail .for { font-size: 13.5px; color: var(--ink-2); margin-top: 2px; }
+.avail h4.big { font-size: 17px; font-weight: 600; line-height: 1.35; text-transform: none; letter-spacing: 0; color: var(--ink); padding: 0; border: 0; margin: 0; }
+.semblock .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.semblock .yours { font-size: 12.5px; font-weight: 500; color: var(--accent); }
+.boxcheck { border: 1px solid var(--edge); border-radius: 4px; padding: 10px 14px; }
+.nusmods { font-size: 14.5px; }
+.nusmods a { font-weight: 500; }
+.nusmods a svg { width: 12px; height: 12px; vertical-align: -1px; margin-left: 2px; }
+.nusmods p { color: var(--ink-2); margin-top: 2px; font-size: 13.5px; }
+.avail .src-all { font-size: 12.5px; color: var(--ink-2); }
+
+/* ---------- hidden codes notice ---------- */
+.hiddenbox { margin: 22px 0 4px; background: var(--surface); border: 1px solid var(--rule); border-left: 1px solid var(--hide); padding: 18px 20px; display: grid; gap: 12px; }
+.hiddenbox h3 { font-size: 16px; font-weight: 600; line-height: 1.35; }
+.hiddenbox > p { font-size: 14px; color: var(--ink-2); margin-top: -6px; }
+.hiddenbox ul { display: grid; gap: 0; }
+.hiddenbox li { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 4px 20px; padding: 12px 0; border-top: 1px solid var(--rule); }
+.hiddenbox .hc { font: 500 15px/1.4 var(--f-mono); display: block; }
+.hiddenbox .ht { font-size: 13.5px; color: var(--ink-2); display: block; }
+.hiddenbox .why { font-size: 14.5px; }
+.hiddenbox .why .st { margin-bottom: 6px; }
+.hiddenbox .src { display: block; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+.hiddenbox .linkbtn { font-size: 14px; margin-top: 4px; }
+.hiddenbox .gloss { font-size: 12.5px; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 10px; }
+
+/* ===== Narrower desktop: status drops under the title ===== */
+@container (max-width: 1040px) {
+  .layout { grid-template-columns: 210px minmax(0, 1fr); gap: 32px; padding: 28px 28px 40px; }
+  .entry { grid-template-columns: 120px minmax(0, 1fr); grid-template-areas: "hw title" "hw meta" "hw guide"; gap: 2px 24px; }
+  .guide { margin-top: 12px; }
+  .sheet-grid { grid-template-columns: minmax(0, 1fr); }
+  .sheet-side { grid-row: auto; grid-column: auto; }
+  .hdr-r { display: none; }
+  .setup { gap: 40px; padding: 40px 28px; }
+}
+
+/* ===== Phone layout: driven by the frame's width ===== */
+@container (max-width: 640px) {
+  .app { font-size: 15px; }
+  .hdr { padding: 11px 16px; gap: 8px; }
+  .app a.brand { font-size: 15.5px; gap: 7px; }
+  .brand svg { width: 17px; height: 17px; }
+  .unoff { font-size: 11.5px; padding: 0 6px; }
+  .ftr { padding: 18px 16px 24px; }
+
+  .setup { grid-template-columns: minmax(0, 1fr); gap: 26px; padding: 22px 16px 28px; }
+  .setup-intro h1 { font-size: 22px; }
+  .setup-intro .lede { font-size: 15px; margin-top: 8px; }
+  .setup-intro .sources { display: none; }
+  .sources.after { display: grid !important; margin-top: 0; padding: 14px 16px; }
+  .steps { gap: 24px; }
+  .step { grid-template-columns: minmax(0, 1fr); }
+  .step .num { padding: 0 0 4px; font-size: 12px; }
+  .step legend, .step .qlabel { font-size: 16.5px; }
+  .step .hint { font-size: 13.5px; margin-bottom: 10px; }
+  .tiles { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .tile { padding: 9px 12px; display: flex; align-items: baseline; gap: 10px; }
+  .tile b { font-size: 15.5px; }
+  .tile small { margin: 0; }
+  .tile:has(input:checked) .tick { top: 50%; translate: 0 -50%; }
+  .pill { min-height: 38px; padding: 0 12px; font-size: 14.5px; }
+  .searchrow .field, .searchrow .btn { height: 46px; }
+  .searchrow .btn { padding: 0 16px; }
+
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 12px 16px 24px; }
+  .rail { display: none; }
+  .field { height: 42px; padding: 0 12px; }
+  .bar .btn { min-height: 42px; padding: 0 16px; }
+  .filterrow { margin-top: 8px; gap: 6px; }
+  .filters-btn { display: inline-flex; min-height: 30px; padding: 0 10px; font-size: 13.5px; border-radius: 15px; }
+  .app .chip { min-height: 30px; font-size: 13px; padding: 0 7px 0 10px; }
+  .countrow { margin: 12px 0 6px; font-size: 13px; gap: 0 10px; }
+  .entry { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "hw hw" "title title" "meta meta" "guide guide"; grid-template-rows: none; gap: 0; padding: 14px 0 18px; }
+  .hw { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .code { font-size: 17px; }
+  .units { margin: 0; }
+  .title { font-size: 16.5px; margin-top: 1px; }
+  .meta { font-size: 13.5px; margin: 3px 0 10px; gap: 1px; }
+  .meta .dept { display: none; }
+  .meta .dept-short { display: inline; }
+  .guide { margin-top: 0; }
+  .st { font-size: 13px; padding: 2px 8px 2px 6px; }
+  .notes { font-size: 13.5px; padding: 8px 12px 9px; gap: 5px; margin-top: 6px; }
+
+  .sheet { padding: 14px 14px 22px; margin: 0 -6px 4px; }
+  .sheet-head { margin-bottom: 10px; padding-bottom: 10px; }
+  .sheet .code { font-size: 18px; }
+  .dtitle { font-size: 18.5px; }
+  .dmeta { font-size: 13.5px; }
+  .sheet-grid { gap: 26px; margin-top: 18px; }
+  .desc { font-size: 15px; line-height: 1.6; }
+  .wl { grid-template-columns: max-content 22px minmax(0, 1fr); }
+
+  .hiddenbox { padding: 14px 14px; margin-top: 14px; }
+  .hiddenbox h3 { font-size: 15.5px; }
+  .hiddenbox li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .hiddenbox .hc { display: inline; }
+  .hiddenbox .ht { display: inline; margin-left: 6px; }
+}
+@container (min-width: 641px) { .sources.after { display: none; } }
+</style>
+</head>
+<body>
+<div class="framebar"><b>Direction d · Annotated catalogue</b> <span>— mockup frame, not the design. A quiet reference catalogue: IBM Plex, codes and times in mono, small outlined status stamps, and each course's conditions written as plain-English notes beside the entry.</span></div>
+<main class="gallery" id="gallery"></main>
+
+<script>
+/* ---- data (inlined from data.json; real, 2026-11-10) ---- */
+const SOURCES = { ng: { name: "NG list", updated: "01 Sep 2026" }, restr: { name: "Restrictions list", updated: "31 Aug 2026" } };
+const BIZ = [
+  { kind: "quota", text: "Business courses are over-subscribed and not guaranteed." },
+  { kind: "major", text: "Only for students majoring in business at their home university." }
+];
+const R = [
+  { code: "ACC1701XA", title: "Accounting for Decision Makers", dept: "Accounting", fac: "NUS Business School", credits: 4, variants: ["ACC1701XB", "ACC1701XC"], exams: { 1: "2026-11-27T06:30:00Z", 2: "2027-04-27T09:00:00Z" }, ex: { 1: BIZ, 2: BIZ } },
+  { code: "ACC2706", title: "Managerial Accounting", dept: "Accounting", fac: "NUS Business School", credits: 4, variants: [], exams: { 1: "2026-11-26T01:00:00Z", 2: "2027-04-30T06:30:00Z" }, ex: { 1: BIZ, 2: BIZ } },
+  { code: "ZB2101", title: "Introductory Bioinformatics", dept: "Biological Sciences", fac: "Science", credits: 4, variants: [], exams: {}, ex: { 1: [], 2: [] } },
+  { code: "MA1301", title: "Introductory Mathematics", dept: "Mathematics", fac: "Science", credits: 4, variants: [], exams: { 1: "2026-11-27T01:00:00Z", 2: "2027-05-05T01:00:00Z" }, ex: { 1: [], 2: [] } },
+  { code: "FIN3702B", title: "Investment Analysis and Portfolio Management", dept: "Finance", fac: "NUS Business School", credits: 4, variants: ["FIN3702A"], exams: {}, ex: { 1: BIZ, 2: BIZ } },
+  { code: "CS1010", title: "Programming Methodology", dept: "Computer Science", fac: "Computing", credits: 4, variants: ["CS1010E"], exams: { 1: "2026-11-25T01:00:00Z", 2: "2027-04-30T06:30:00Z" }, ex: { 1: [], 2: [] } }
+];
+const CS2030 = { code: "CS2030", title: "Programming Methodology II", dept: "Computer Science", fac: "Computing", credits: 4, variants: [], exams: { 1: "2026-11-30T09:00:00Z", 2: "2027-04-27T01:00:00Z" }, ex: { 1: [], 2: [] } };
+const DETAIL = {
+  code: "ACC1701XB", title: "Accounting for Decision Makers", dept: "Accounting", fac: "NUS Business School", credits: 4,
+  description: "The course provides an introduction to accounting from a user perspective. Financial reporting is covered from the viewpoint of an external investor. The focus is on how accounting can help investors make better decisions. Book-keeping and preparation of financial statements are also covered at an introductory level, as investors need to be aware of how the financial statements are derived.",
+  prereq: "No course prerequisite (the rule names NUS intake years only).",
+  prereqNUS: "If undertaking an Undergraduate Degree THEN must be in one of the cohorts from 2017 inclusive",
+  precl: "If undertaking an Undergraduate Degree THEN ((must not be undertaking 1 of 0200ACCHON Bachelor of Business Administration (Accountancy), 0200BBAHON Bachelor of Business Administration (Hons), … 13 Business degree programmes …) OR (must not have completed 1 of EC2204 at a grade of at least D, any Courses beginning with ACC1701 at a grade of at least D))",
+  preclFull: "If undertaking an Undergraduate DegreeTHEN((must not be undertaking 1 of 0200ACCHON Bachelor of Business Administration (Accountancy), 0200BBAHON Bachelor of Business Administration (Hons), 0200BIZMAJ Bachelor of Business Administration Hons - Undeclared Major, 0200BREHON Bachelor of Business Administration (Real Estate) Hons, 0200BIZHON Bachelor of Business Administration Hons - General Management, 0200OSCHON Bachelor of Business Administration Hons - Operations & Supply Chain Management, 0200MKTHON Bachelor of Business Administration Hons - Marketing, 0200LHCHON Bachelor of Business Administration Hons - Leadership & Human Capital Management, 0200ACYHON Bachelor of Business Administration (Accountancy) Hons, 0200INEHON Bachelor of Business Administration Hons - Innovation & Entrepreneurship, 0200BECHON Bachelor of Business Administration Hons - Business Economics, 0200FINHON Bachelor of Business Administration Hons - Finance, 0200ABAHON Bachelor of Business Administration Hons - Applied Business Analytics)OR( must not have completed 1 of EC2204 at a grade of at least D, any Courses beginning with ACC1701 at a grade of at least D))",
+  exam2: { date: "2027-04-27T09:00:00Z", mins: 120 },
+  workload: [["Lecture", 2], ["Tutorial", 1], ["Lab", 0], ["Project", 4], ["Preparation", 3]],
+  ex: {
+    1: [{ kind: "semester", text: "The NG list offers it to exchange students in this semester, but the NUSMods timetable doesn't list it then; check with NUS." }, ...BIZ],
+    2: BIZ
+  },
+  nusmodsUrl: "https://nusmods.com/courses/ACC1701XB"
+};
+const HIDDEN = [
+  { code: "CS3244", title: "Machine Learning", stamp: "Not in Sem 1", line: "CS3244 is open to exchange students only in Sem 2.", action: "Switch to Sem 2 to see CS3244" },
+  { code: "CS2040S", title: "Data Structures and Algorithms", stamp: "Not offered", line: "CS2040S isn't on the Registrar's list of courses offered to exchange students, in Sem 1 or Sem 2." }
+];
+
+/* ---- helpers ---- */
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function sgt(iso, withYear) { // UTC → Singapore time (UTC+8)
+  const d = new Date(new Date(iso).getTime() + 8 * 3600e3);
+  const h = d.getUTCHours(), m = d.getUTCMinutes();
+  const t = `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "am" : "pm"}`;
+  return `${DAY[d.getUTCDay()]} ${d.getUTCDate()} ${MON[d.getUTCMonth()]}${withYear ? " " + d.getUTCFullYear() : ""}, ${t}`;
+}
+const KIND = { quota: "Places.", major: "Your major.", semester: "Timetable." };
+const SRC = { quota: SOURCES.restr, major: SOURCES.restr, semester: SOURCES.ng };
+const I = {
+  mark: '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="3.5" width="17" height="13" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5 8h6M5 11.5h4" stroke="currentColor" stroke-width="1.4"/><path d="M14 7.5v5" stroke="currentColor" stroke-width="1.4"/></svg>',
+  open: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5 8.2l2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+  note: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.3 14.7 8 8 14.7 1.3 8Z" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="1.8" fill="currentColor"/></svg>',
+  hide: '<svg class="i" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="1.8" width="12.4" height="12.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.2 5.2l5.6 5.6M10.8 5.2l-5.6 5.6" stroke="currentColor" stroke-width="1.4"/></svg>',
+  x: '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="1.5"/></svg>',
+  tick: '<svg class="tick" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+  check: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.4v4.6M8 10.6v1.4" stroke="currentColor" stroke-width="1.5"/></svg>',
+  ext: '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5.5 2.5H2.5v9h9v-3M8 2h4v4M12 2 6.5 7.5" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+  filt: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4h13M4 8h8M6.5 12h3" stroke="currentColor" stroke-width="1.5"/></svg>'
+};
+
+function stamp(sem, reasons, short) {
+  const n = reasons.length;
+  if (!n) return `<span class="st st-open">${I.open}<span><b>Sem ${sem}</b> · Open${short ? "" : " to exchange students"}</span></span>`;
+  return `<span class="st st-note">${I.note}<span><b>Sem ${sem}</b> · Open${short ? `, ${n} notes` : `, with ${n} notes`}</span></span>`;
+}
+function notes(reasons, scope, withSrc) {
+  if (!reasons.length) return "";
+  return `<ul class="notes">${scope ? `<li class="scope">${scope}</li>` : ""}${reasons.map((r) =>
+    `<li><span class="k">${KIND[r.kind]}</span> ${esc(r.text)}${withSrc ? `<span class="src">${SRC[r.kind].name}, updated ${SRC[r.kind].updated}</span>` : ""}</li>`).join("")}</ul>`;
+}
+function guideOne(c) {
+  return `<div class="guide"><div class="stamps">${stamp(1, c.ex[1])}</div>${notes(c.ex[1])}</div>`;
+}
+function guideBoth(c) {
+  const a = c.ex[1], b = c.ex[2];
+  const same = a.length === b.length && a.every((x, i) => x.text === b[i].text);
+  const ns = same ? notes(a, "Notes for Sem 1 and Sem 2") : notes(a, "Notes for Sem 1") + notes(b, "Notes for Sem 2");
+  return `<div class="guide"><div class="stamps both">${stamp(1, a, true)}${stamp(2, b, true)}</div>${ns}</div>`;
+}
+function examLines(c, mode) {
+  const e = c.exams;
+  if (!e[1] && !e[2]) return `<span class="exam">No final exam</span>`;
+  if (mode === "both") return [1, 2].map((n) => `<span class="exam"><span class="exl">Sem ${n} exam</span> <span class="mono">${e[n] ? sgt(e[n]) : "none"}</span></span>`).join("");
+  return `<span class="exam">${e[1] ? `<span class="exl">Exam</span> <span class="mono">${sgt(e[1])}</span>` : "No final exam"}</span>`;
+}
+function entry(c, uid, mode, opts = {}) {
+  const tid = `t-${c.code}-${uid}`;
+  const variants = c.variants.length ? `<span class="variants">Also as ${c.variants.map((v) =>
+    `<button type="button" class="linkbtn" aria-expanded="${opts.openVariant === v}"${opts.openVariant === v ? ` aria-controls="d-${uid}"` : ""}>${v}</button>`).join(", ")}</span>` : "";
+  return `<article class="entry${opts.openVariant ? " is-open" : ""}" aria-labelledby="${tid}">
+    <div class="hw"><span class="code">${c.code}</span><span class="units">${c.credits} units</span></div>
+    <h3 class="title" id="${tid}"><a href="#">${esc(c.title)}</a></h3>
+    <p class="meta"><span class="dept">${esc(c.dept)} · ${esc(c.fac)}</span><span class="dept-short">${esc(c.dept)}</span>${examLines(c, mode)}${variants}</p>
+    ${mode === "both" ? guideBoth(c) : guideOne(c)}
+  </article>`;
+}
+
+/* ---- shared pieces ---- */
+const header = () => `<header class="hdr"><a class="brand" href="#">${I.mark}Exchange Course Finder</a><span class="unoff">unofficial, for NUS</span><span class="hdr-r">Academic year 2026/27</span></header>`;
+const footer = () => `<footer class="ftr"><p><strong>Unofficial.</strong> Not made, checked or endorsed by NUS or NUSMods. Course data from NUSMods; exchange rules from the NUS Registrar's published lists.</p>
+  <ul><li><a href="#">NUSMods</a></li><li><a href="#">NG list (courses offered to exchange students)</a></li><li><a href="#">Course restrictions for exchange students</a></li><li><a href="#">Registrar's vacancy report</a></li></ul></footer>`;
+function rail(uid, sem) {
+  const r = (v, l) => `<label><input type="radio" name="sem-${uid}" ${sem === v ? "checked" : ""}>${l}</label>`;
+  return `<aside class="rail" aria-label="Your exchange and key">
+    <form><h2 class="lbl">Your exchange</h2>
+      <fieldset class="grp"><legend class="vh">Semester at NUS</legend><span class="gl" aria-hidden="true">Semester at NUS</span><div class="seg">${r(1, "Sem 1")}${r(2, "Sem 2")}${r("both", "Both")}</div></fieldset>
+      <div class="grp"><label class="gl" for="yr-${uid}">Year of study at home</label><select class="select" id="yr-${uid}"><option>1st year</option><option selected>2nd year</option><option>3rd year</option><option>4th year or later</option><option>Graduate</option></select></div>
+      <label class="checkline"><input type="checkbox" checked> <span>Only courses open to exchange students</span></label>
+    </form>
+    <div><h2 class="lbl">Key</h2><ul class="key">
+      <li class="k"><span style="color:var(--open)">${I.open}</span><span><b>Open.</b> Exchange students may take it in that semester.</span></li>
+      <li class="k"><span style="color:var(--note)">${I.note}</span><span><b>Open, with notes.</b> Read every note: some limit who may take it.</span></li>
+      <li class="k"><span style="color:var(--hide)">${I.hide}</span><span><b>Not shown.</b> Not open to you then; we say why.</span></li>
+      <li class="gloss"><b>NG list</b> is the NUS Registrar's list of courses offered to exchange students (NUS calls them “non-graduating”, NG). Updated 01 Sep 2026; restrictions list updated 31 Aug 2026.</li>
+    </ul></div>
+  </aside>`;
+}
+function bar(uid, q, chips) {
+  return `<form class="search" role="search"><div class="bar"><label class="vh" for="q-${uid}">Search courses</label><input class="field" id="q-${uid}" type="search" value="${esc(q)}"><button class="btn pri" type="submit">Search</button></div>
+    <div class="filterrow"><button type="button" class="btn filters-btn" aria-expanded="false">${I.filt}Filters (${chips.length})</button>${chips.map((c) => `<button type="button" class="chip" aria-label="Remove filter: ${c}">${c}${I.x}</button>`).join("")}</div></form>`;
+}
+const countRow = (n, q) => `<div class="countrow" aria-live="polite"><p><strong>${n} courses</strong> match “${esc(q)}”</p><p>Exam times are Singapore time (UTC+8)</p></div>`;
+
+/* ---- the five states ---- */
+const S = {};
+S.setup = (uid) => {
+  const sems = [["Sem 1", "Aug–Dec 2026", true], ["Sem 2", "Jan–May 2027"], ["Both semesters", "Aug 2026–May 2027"]];
+  const yrs = ["1st year", "2nd year", "3rd year", "4th year or later", "Graduate"];
+  const sources = (cls) => `<div class="sources ${cls}"><h2 class="lbl">Where the rules come from</h2>
+      <table class="srct"><thead><tr><th scope="col">NUS Registrar list</th><th scope="col">Updated as at</th></tr></thead><tbody>
+        <tr><td>Courses offered to exchange students (the <b style="font-weight:600">NG list</b>)</td><td>01 Sep 2026</td></tr>
+        <tr><td>Course restrictions for exchange students</td><td>31 Aug 2026</td></tr></tbody></table>
+      <p>“NG” means non-graduating: NUS's word for exchange students. Course details come from NUSMods.</p>
+      <p class="checknus">${I.check}<span>This site is unofficial. Check with NUS before you register.</span></p></div>`;
+  return `${header()}<div class="setup">
+    <div class="setup-intro"><h1>Find the NUS courses you can take on exchange</h1>
+      <p class="lede">Answer two questions first. Every course then shows whether exchange students in your semester and year may take it, and any conditions.</p>
+      ${sources("")}</div>
+    <form class="steps" aria-label="Set up your exchange">
+      <fieldset class="step"><span class="num" aria-hidden="true">01</span><div><legend>Which semester will you study at NUS?</legend><p class="hint">Some courses are open to exchange students in one semester only.</p>
+        <div class="tiles">${sems.map(([a, b, on]) => `<label class="tile"><input type="radio" name="s-${uid}" ${on ? "checked" : ""}><b>${a}</b><small>${b}</small>${I.tick}</label>`).join("")}</div></div></fieldset>
+      <fieldset class="step"><span class="num" aria-hidden="true">02</span><div><legend>Your year of study at your home university</legend><p class="hint">Some NUS rules depend on it.</p>
+        <div class="pills">${yrs.map((y) => `<label class="pill"><input type="radio" name="y-${uid}" ${y === "2nd year" ? "checked" : ""}>${I.tick}${y}</label>`).join("")}</div></div></fieldset>
+      <div class="step"><span class="num" aria-hidden="true">03</span><div><label class="qlabel" for="sq-${uid}">What do you want to study?</label><p class="hint">A subject in your own words, a course name, or codes.</p>
+        <div class="searchrow"><input class="field" id="sq-${uid}" type="search" placeholder="e.g. introductory accounting, CS2030"><button class="btn pri" type="submit">Search</button></div>
+        <p class="browse"><a href="#">Browse all courses instead</a></p></div></div>
+      ${sources("after")}
+    </form></div>${footer()}`;
+};
+const Q = "introductory accounting";
+S.sem1 = (uid) => `${header()}<div class="layout">${rail(uid, 1)}<div class="main">
+    ${bar(uid, Q, ["Sem 1", "2nd year", "Exchange students"])}
+    ${countRow(20, Q)}
+    <div class="entries">${R.map((c) => entry(c, uid, "sem1")).join("")}</div>
+    <p class="more"><button type="button" class="btn">Show the next 14</button></p>
+  </div></div>${footer()}`;
+S.both = (uid) => `${header()}<div class="layout">${rail(uid, "both")}<div class="main">
+    ${bar(uid, Q, ["Both semesters", "2nd year", "Exchange students"])}
+    ${countRow(20, Q)}
+    <div class="entries">${R.map((c) => entry(c, uid, "both")).join("")}</div>
+    <p class="more"><button type="button" class="btn">Show the next 14</button></p>
+  </div></div>${footer()}`;
+S.detail = (uid) => {
+  const d = DETAIL;
+  const sem = (n, mine) => `<div class="semblock"><div class="row">${stamp(n, d.ex[n])}${mine ? `<span class="yours">Your semester</span>` : ""}</div>${notes(d.ex[n], "", true)}</div>`;
+  const wl = d.workload.map(([l, h]) => `<dt>${l}</dt><dd class="h">${h}</dd><dd><span class="track" aria-hidden="true">${Array.from({ length: 10 }, (_, i) => `<i${i < h ? ' class="on"' : ""}></i>`).join("")}</span></dd>`).join("");
+  return `${header()}<div class="layout">${rail(uid, 1)}<div class="main">
+    ${bar(uid, Q, ["Sem 1", "2nd year", "Exchange students"])}
+    ${countRow(20, Q)}
+    <div class="entries">${entry(R[0], uid, "sem1", { openVariant: "ACC1701XB" })}
+    <section class="sheet" id="d-${uid}" aria-labelledby="dt-${uid}">
+      <div class="sheet-head"><p class="kicker">Opened from <span class="mono">ACC1701XA</span>: another code for the same course</p><button type="button" class="btn">Close ${I.x.replace("<svg", '<svg width="11" height="11"')}</button></div>
+      <span class="code">${d.code}</span>
+      <h3 class="dtitle" id="dt-${uid}">${esc(d.title)}</h3>
+      <p class="dmeta">${d.credits} units · ${esc(d.dept)}, ${esc(d.fac)}</p>
+      <div class="sheet-grid">
+        <div class="sheet-side avail">
+          <div><h4 class="big">Can you take it?</h4><p class="for">As a 2nd-year exchange student</p></div>
+          ${sem(1, true)}${sem(2, false)}
+          <p class="checknus boxcheck">${I.check}<span>Check with NUS before you register.</span></p>
+          <div class="nusmods"><a href="${d.nusmodsUrl}">Class times and timetable on NUSMods${I.ext}</a><p>Class times aren't shown here. NUSMods lists ACC1701XB's classes in Sem 2 only.</p></div>
+        </div>
+        <div class="sheet-main">
+          <p class="desc">${esc(d.description)}</p>
+          <div class="fact"><h4 class="lbl">Prerequisites</h4><p>${esc(d.prereq)}</p>
+            <details><summary>As NUS states it</summary><p class="quote">${esc(d.prereqNUS)}</p></details></div>
+          <div class="fact precl"><h4 class="lbl">Preclusions <small>· you can't take it if this applies to you</small></h4><p class="q-src">As NUS states it, shortened:</p><p class="q short">${esc(d.precl)}</p>
+            <details><summary>Show NUS's full wording (all 13 programmes)</summary><p class="quote">${esc(d.preclFull)}</p></details></div>
+          <div class="fact"><h4 class="lbl">Final exam <small>· Singapore time (UTC+8)</small></h4><dl class="examtbl"><dt>Sem 1</dt><dd class="none">No final exam listed</dd><dt>Sem 2</dt><dd><span class="mono">${sgt(d.exam2.date, true)}</span> · 2 hours</dd></dl></div>
+          <div class="fact"><h4 class="lbl">Workload</h4><p class="wl-total"><span class="mono">10</span> hours a week</p><dl class="wl">${wl}</dl></div>
+        </div>
+      </div>
+    </section>
+    ${entry(R[1], uid, "sem1")}</div>
+  </div></div>${footer()}`;
+};
+S.hidden = (uid) => `${header()}<div class="layout">${rail(uid, 1)}<div class="main">
+    ${bar(uid, "CS2030 CS3244 CS2040S MA1301", ["Sem 1", "2nd year", "Exchange students"])}
+    <section class="hiddenbox" aria-labelledby="hb-${uid}">
+      <h3 id="hb-${uid}">2 of the 4 codes you typed aren't shown</h3>
+      <p>You chose Sem 1 as a 2nd-year exchange student, so courses you can't take then are left out.</p>
+      <ul>${HIDDEN.map((h) => `<li><span><span class="hc">${h.code}</span><span class="ht">${esc(h.title)}</span></span>
+        <span class="why"><span class="st st-hide">${I.hide}<span>${h.stamp}</span></span><br>${esc(h.line)}<span class="src">NG list, updated 01 Sep 2026</span>${h.action ? `<button type="button" class="linkbtn">${h.action}</button>` : ""}</span></li>`).join("")}</ul>
+      <p class="gloss">NG list: the NUS Registrar's list of courses offered to exchange (“non-graduating”) students.</p>
+    </section>
+    <div class="countrow"><p><strong>2 courses</strong> shown: CS2030, MA1301</p><p>Exam times are Singapore time (UTC+8)</p></div>
+    <div class="entries">${entry(CS2030, uid, "sem1")}${entry(R[3], uid, "sem1")}</div>
+  </div></div>${footer()}`;
+
+const STATES = [
+  ["setup", "1 · Set-up (first screen)", "The site opens on the two questions that decide everything, then a search box. Sem 1 and 2nd year are shown chosen, to show the selected style."],
+  ["sem1", "2 · Results, Sem 1, 2nd year", "“introductory accounting”. Each course is an entry: the code in mono, the title and facts beside it, and the Sem 1 stamp with every note in full in a ruled aside."],
+  ["both", "3 · Results, both semesters", "The same query for a full-year exchange. Each entry carries one stamp per semester; notes shared by both semesters are listed once and say so."],
+  ["detail", "4 · ACC1701XB opened from ACC1701XA's “Also as”", "The entry opens in place as a white sheet. Availability for 2nd year sits beside the description, with each note's source and date; NUS's long wording collapses behind “Show NUS's full wording”."],
+  ["hidden", "5 · Typed codes that exchange mode hides", "CS3244 and CS2040S are explained above the results, each with its own reason and source. They never appear as entries."]
+];
+
+/* ---- gallery / solo ---- */
+function frame(state, kind) {
+  const el = document.createElement("div");
+  el.className = `frame ${kind}`;
+  el.innerHTML = `<div class="app">${S[state](`${state}-${kind}`)}</div>`;
+  el.querySelectorAll("form").forEach((f) => f.addEventListener("submit", (e) => e.preventDefault()));
+  el.querySelectorAll('a[href="#"]').forEach((a) => a.addEventListener("click", (e) => e.preventDefault()));
+  return el;
+}
+const solo = location.hash.match(/^#solo-(setup|sem1|both|detail|hidden)-(phone|desktop)$/);
+if (solo) {
+  document.documentElement.classList.add("solo");
+  document.body.replaceChildren(frame(solo[1], solo[2]));
+} else {
+  const g = document.getElementById("gallery");
+  for (const [id, h, p] of STATES) {
+    const sec = document.createElement("section");
+    sec.className = "state"; sec.id = id;
+    sec.innerHTML = `<h2>${h}</h2><p>${p}</p><div class="pair"><div class="frame-wrap d"><p class="frame-label">Desktop, up to 1280 px</p></div><div class="frame-wrap p"><p class="frame-label">Phone, 390 × 664</p></div></div>`;
+    const [d, ph] = sec.querySelectorAll(".frame-wrap");
+    d.append(frame(id, "desktop")); ph.append(frame(id, "phone"));
+    g.append(sec);
+  }
+}
+// The detail state opens scrolled to the opened entry, as the real page would.
+function settle() {
+  document.querySelectorAll(".frame").forEach((f) => {
+    const v = f.querySelector('.variants [aria-expanded="true"]');
+    if (!v) return;
+    const hdr = f.querySelector(".hdr");
+    const art = v.closest(".entry");
+    const target = f.classList.contains("phone") ? v : art;
+    f.scrollTop = target.getBoundingClientRect().top - f.getBoundingClientRect().top + f.scrollTop - hdr.offsetHeight - 14;
+  });
+}
+settle();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(settle);
+addEventListener("hashchange", () => location.reload());
+</script>
+</body>
+</html>
