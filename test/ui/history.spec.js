@@ -203,3 +203,25 @@ test('a filter change while a detail is open drops open= and closes it (A3-3)', 
   await expect.poll(() => query(page)).toBe('q=CS3244&sem=1');
   await expect(toggle(page, 'CS3244')).toHaveAttribute('aria-expanded', 'false');
 });
+
+test('open= survives a reload and Back/Forward for every code shape (LC6009GRSII)', async ({ page }) => {
+  await page.goto('/?q=LC6009GRSII');
+  await toggle(page, 'LC6009GRSII').click();
+  await expect.poll(() => query(page)).toBe('q=LC6009GRSII&open=LC6009GRSII');
+  await page.reload();
+  await expect(toggle(page, 'LC6009GRSII')).toHaveAttribute('aria-expanded', 'true');
+  expect(query(page)).toBe('q=LC6009GRSII&open=LC6009GRSII');
+});
+
+test('Escape that ends an IME composition in the query box leaves the detail open', async ({ page }) => {
+  await page.goto('/?q=CS3244');
+  await toggle(page, 'CS3244').click();
+  await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244');
+  await page.locator('#q').focus();
+  await page.locator('#q').evaluate((el) => {
+    el.dispatchEvent(new (/** @type {any} */ (globalThis).KeyboardEvent)('keydown', { key: 'Escape', isComposing: true, bubbles: true, cancelable: true }));
+  });
+  await page.waitForTimeout(200);
+  expect(query(page)).toBe('q=CS3244&open=CS3244');
+  await expect(page.locator('#q')).toBeFocused();
+});

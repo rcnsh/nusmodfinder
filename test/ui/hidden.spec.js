@@ -19,7 +19,7 @@ test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from i
   ]);
   await expect(cards(page).first()).toHaveAttribute('data-code', 'CS2030');
   for (const code of ['CS3244', 'CS5562', 'AR5801']) await expect(page.locator(`#results button[data-code="${code}"]`)).toHaveCount(0);
-  await expect(page.locator('#status .unpinned')).toHaveText('Only the first three course codes you type are pinned to the top of the results.');
+  await expect(page.locator('#status .unpinned')).toHaveText('Only the first three course codes you type that are offered this year are pinned to the top of the results.');
 });
 
 test('[D4] both semesters: a code closed in both says why for either semester', async ({ page }) => {
@@ -89,13 +89,13 @@ test('only the first three typed codes pin: a 4th that is neither shown nor expl
     results: ['CS2030', 'CS1010', 'CS2113'].map((code) => ({ code, title: code, credits: 4, semesters: [1], score: 1 })),
   }) }));
   await page.goto('/?q=CS2030+CS1010+CS2113+CS2104');
-  await expect(page.locator('#status .unpinned')).toHaveText('Only the first three course codes you type are pinned to the top of the results. CS2104 is not in these results: search for it on its own.');
+  await expect(page.locator('#status .unpinned')).toHaveText('Only the first three course codes you type that are offered this year are pinned to the top of the results. CS2104 is not in these results: search for it on its own.');
 });
 
 test('only the first three typed codes pin, on the fixture: the 4th is either a card or named', async ({ page }) => {
   await page.goto('/?q=CS2030+CS1010+CS2113+CS2104&ng=1&study=ug2&sem=1');
   const note = page.locator('#status .unpinned');
-  await expect(note).toContainText('Only the first three course codes you type are pinned to the top of the results.');
+  await expect(note).toContainText('Only the first three course codes you type that are offered this year are pinned to the top of the results.');
   const shown = await page.locator('#results button[data-code="CS2104"]').count();
   if (shown) await expect(note).not.toContainText('CS2104');
   else await expect(note).toContainText('CS2104 is not in these results');
@@ -105,4 +105,9 @@ test('three typed codes or fewer: no pin note', async ({ page }) => {
   await page.goto('/?q=CS2030+CS3244&ng=1&study=ug2&sem=1');
   await expect(page.locator('#status .hidden-codes li')).toHaveCount(1);
   await expect(page.locator('#status .unpinned')).toHaveCount(0);
+});
+
+test('a hidden code in exchange mode never blames the timetable semester (the NG list decides it)', async ({ page }) => {
+  await page.goto('/?q=CS2030+ACC1701XB&level=2&ng=1&study=ug2&sem=1');
+  await expect(page.locator('#status .hidden-codes li')).toHaveText(['ACC1701XB is hidden by your filters: it is a level 1000 course.']);
 });

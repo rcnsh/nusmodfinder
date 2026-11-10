@@ -124,6 +124,8 @@ describe('hiddenCodeLine (D4: each hidden typed code, with its own stored reason
     const mod = { code: 'X', semesters: [1], level: 2, credits: 4, faculty: 'Computing' };
     expect(filterMisses(mod, { sem: 1, level: 2, credits: 4, faculty: 'Computing' })).toEqual([]);
     expect(filterMisses(mod, { sem: 2, faculty: 'Science' })).toEqual(["it isn't offered in Sem 2", 'it is in Computing']);
+    // In exchange mode the NG list decides the semester, not NUSMods' timetable (src/search.js localMatchesFilters).
+    expect(filterMisses({ ...mod, level: 1 }, { sem: 2, ng: true, study: 'ug2', level: 2 })).toEqual(['it is a level 1000 course']);
   });
 });
 
@@ -157,22 +159,32 @@ describe('notOfferedLine and the partial-code empty state (C3-2)', () => {
 });
 
 describe('typed codes past the three that pin (5C-api leaves a 4th code unexplained)', () => {
-  it('typedCodes finds code-shaped words in order, upper-cased, once each', () => {
+  it('typedCodes finds code-shaped words in order, upper-cased, once each, joined across one space as /search joins them', () => {
     expect(typedCodes('cs2030 CS3244 and cs2030 MA1301 machine learning cs2040s')).toEqual(['CS2030', 'CS3244', 'MA1301', 'CS2040S']);
+    expect(typedCodes('CS1010 cs 3244 LC6009GRSII')).toEqual(['CS1010', 'CS3244', 'LC6009GRSII']);
     expect(typedCodes('machine learning')).toEqual([]);
   });
 
-  it('three codes or fewer: nothing to say', () => {
-    expect(unpinnedLine('CS2030 CS3244 CS1010', { pinned: ['CS2030', 'CS1010'], hidden: ['CS3244'], notOffered: [], shown: new Set(['CS2030', 'CS1010']) })).toBeNull();
+  const RULE = 'Only the first three course codes you type that are offered this year are pinned to the top of the results.';
+
+  it('fewer than three pinned: every offered typed code pinned, so nothing to say', () => {
+    expect(unpinnedLine('CS2030 CS3244 CS1010', { pinned: ['CS2030', 'CS3244', 'CS1010'], hidden: ['CS3244'], notOffered: [], shown: new Set(['CS2030', 'CS1010']) })).toBeNull();
+    expect(unpinnedLine('CS1001 CS2030 CS3244 ZZ9999', { pinned: ['CS2030', 'CS3244'], hidden: [], notOffered: ['CS1001'], shown: new Set(['CS2030', 'CS3244']) })).toBeNull();
   });
 
-  it('a 4th code: says only the first three pin, and names any typed code that is neither shown nor explained', () => {
+  it('a 4th offered code: says only the first three pin, and names any typed code that is neither shown nor explained', () => {
     const shown = new Set(['CS2030', 'CS1010', 'CS2113']);
-    expect(unpinnedLine('CS2030 CS3244 CS1010 CS2113', { pinned: ['CS2030', 'CS3244', 'CS1010'], hidden: ['CS3244'], notOffered: [], shown }))
-      .toBe('Only the first three course codes you type are pinned to the top of the results.');
+    expect(unpinnedLine('CS2030 CS3244 CS1010 CS2113', { pinned: ['CS2030', 'CS3244', 'CS1010'], hidden: ['CS3244'], notOffered: [], shown })).toBe(RULE);
     expect(unpinnedLine('CS2030 CS3244 CS1010 CS2104 CS2113', { pinned: ['CS2030', 'CS3244', 'CS1010'], hidden: ['CS3244'], notOffered: [], shown: new Set(['CS2030', 'CS1010']) }))
-      .toBe('Only the first three course codes you type are pinned to the top of the results. CS2104 and CS2113 are not in these results: search for each on its own.');
-    expect(unpinnedLine('CS2030 CS3244 CS1010 CS1001 CS2104', { pinned: ['CS2030', 'CS3244', 'CS1010'], hidden: [], notOffered: ['CS1001'], shown: new Set(['CS2030', 'CS3244', 'CS1010']) }))
-      .toBe('Only the first three course codes you type are pinned to the top of the results. CS2104 is not in these results: search for it on its own.');
+      .toBe(`${RULE} CS2104 and CS2113 are not in these results: search for each on its own.`);
+    // A code typed with a space, as /search joins it.
+    expect(unpinnedLine('CS1010 CS2030 CS2104 cs 3244', { pinned: ['CS1010', 'CS2030', 'CS2104'], hidden: [], notOffered: [], shown: new Set(['CS1010', 'CS2030', 'CS2104']) }))
+      .toBe(`${RULE} CS3244 is not in these results: search for it on its own.`);
+  });
+
+  it('a code not offered this year neither counts toward the three nor is named (its own line says why)', () => {
+    expect(unpinnedLine('CS1001 CS2030 CS1010 CS2104 CS2113', { pinned: ['CS2030', 'CS1010', 'CS2104'], hidden: [], notOffered: ['CS1001'], shown: new Set(['CS2030', 'CS1010', 'CS2104']) }))
+      .toBe(`${RULE} CS2113 is not in these results: search for it on its own.`);
+    expect(unpinnedLine('CS1001 CS2030 CS1010 CS2104', { pinned: ['CS2030', 'CS1010', 'CS2104'], hidden: [], notOffered: ['CS1001'], shown: new Set(['CS2030', 'CS1010', 'CS2104']) })).toBeNull();
   });
 });

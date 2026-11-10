@@ -130,6 +130,9 @@ describe('codeSegments (course codes in NUS\'s text become search links)', () =>
       { text: 'must have completed 1 of ' }, { code: 'ACC2707' }, { text: '/' }, { code: 'ACC2712' }, { text: ' at a grade of at least D' },
     ]);
     expect(codeSegments('CS2040S or CS2040C')).toEqual([{ code: 'CS2040S' }, { text: ' or ' }, { code: 'CS2040C' }]);
+    expect(codeSegments('must not have completed LC6009GRSII or DMA1401L01')).toEqual([
+      { text: 'must not have completed ' }, { code: 'LC6009GRSII' }, { text: ' or ' }, { code: 'DMA1401L01' },
+    ]);
   });
 
   it('leaves programme codes, grades and plain words alone', () => {

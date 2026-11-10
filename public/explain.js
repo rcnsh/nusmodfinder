@@ -82,15 +82,17 @@ export function reasonLine(r, sem, sources) {
 }
 
 /**
- * The filters a course fails, as clauses ("it isn't offered in Sem 1").
+ * The filters a course fails, as clauses ("it isn't offered in Sem 1"). In
+ * exchange mode the NG list decides the semester, not NUSMods' timetable
+ * (src/search.js localMatchesFilters), so the semester is never blamed there.
  * @param {{ semesters?: unknown, level?: unknown, credits?: unknown, faculty?: unknown }} m /module/:code's row
- * @param {{ sem?: unknown, level?: unknown, credits?: unknown, faculty?: unknown }} filters /search's `filters` echo
+ * @param {Record<string, unknown>} filters /search's `filters` echo
  * @returns {string[]}
  */
 export function filterMisses(m, filters) {
   const out = [];
   const sems = Array.isArray(m.semesters) ? m.semesters.map(String) : [];
-  if (filters.sem !== undefined && !sems.includes(String(filters.sem))) out.push(`it isn't offered in ${semLabel(String(filters.sem))}`);
+  if (filters.sem !== undefined && filters.ng !== true && !sems.includes(String(filters.sem))) out.push(`it isn't offered in ${semLabel(String(filters.sem))}`);
   if (filters.level !== undefined && String(m.level) !== String(filters.level)) out.push(`it is a level ${m.level}000 course`);
   if (filters.credits !== undefined && String(m.credits) !== String(filters.credits)) out.push(`it is ${m.credits} units`);
   if (filters.faculty !== undefined && m.faculty !== filters.faculty) out.push(`it is in ${m.faculty}`);
@@ -168,11 +170,14 @@ export const MAX_PINS = 3;
 const MAX_CODES = 10;
 
 /**
- * The code-shaped words typed, in order, upper-cased, once each.
+ * The code-shaped words typed, in order, upper-cased, once each; letters and
+ * digits split by one space are one code, as /search joins them (`cs 3244`).
+ * The server also checks each prefix against the catalogue, which the page
+ * can't; unpinnedLine only asks this when three codes already pinned.
  * @param {string} query
  */
 export function typedCodes(query) {
-  const seen = [...query.matchAll(/\b[A-Za-z]{2,4}\d{4}[A-Za-z]{0,4}\b/g)].map((m) => m[0].toUpperCase());
+  const seen = [...query.matchAll(/\b([A-Za-z]{1,4}) ?(\d{4}[A-Za-z0-9]{0,5})\b/g)].map((m) => `${m[1]}${m[2]}`.toUpperCase());
   return [...new Set(seen)].slice(0, MAX_CODES);
 }
 
@@ -180,18 +185,21 @@ export function typedCodes(query) {
 const andList = (codes) => (codes.length < 2 ? codes.join('') : `${codes.slice(0, -1).join(', ')} and ${codes[codes.length - 1]}`);
 
 /**
- * Only the first MAX_PINS typed codes pin (5C-api); a later one that passes the
- * filters is neither pinned nor hidden, so it may not appear. Null with three
- * codes or fewer; else the rule, and the typed codes that are neither shown
- * nor explained.
+ * Only the first MAX_PINS typed codes offered this year pin (5C-api); a later
+ * one that passes the filters is neither pinned nor hidden, so it may not
+ * appear. /search's `interpreted.pin` holds every offered code up to three, so
+ * with fewer pinned no offered code was left out: null. Else, when another
+ * typed code (not one reported as not offered) exists, the rule, and the
+ * typed codes neither shown nor explained.
  * @param {string} query
  * @param {{ pinned: string[], hidden: string[], notOffered: string[], shown: Set<string> }} known
  */
 export function unpinnedLine(query, { pinned, hidden, notOffered, shown }) {
-  const codes = typedCodes(query);
-  if (codes.length <= MAX_PINS) return null;
-  const rule = 'Only the first three course codes you type are pinned to the top of the results.';
-  const missing = codes.filter((c) => !pinned.includes(c) && !hidden.includes(c) && !notOffered.includes(c) && !shown.has(c));
+  if (pinned.length < MAX_PINS) return null;
+  const extra = typedCodes(query).filter((c) => !pinned.includes(c) && !notOffered.includes(c));
+  if (!extra.length) return null;
+  const rule = 'Only the first three course codes you type that are offered this year are pinned to the top of the results.';
+  const missing = extra.filter((c) => !hidden.includes(c) && !shown.has(c));
   if (!missing.length) return rule;
   const one = missing.length === 1;
   return `${rule} ${andList(missing)} ${one ? 'is' : 'are'} not in these results: search for ${one ? 'it' : 'each'} on its own.`;

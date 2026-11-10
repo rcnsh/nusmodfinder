@@ -8,7 +8,7 @@ import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
 import { hiddenCodeLine } from './explain.js';
-import { isSubmitEnter } from './keys.js';
+import { isCloseEscape, isSubmitEnter } from './keys.js';
 import { errorSentence } from './messages.js';
 import { transition } from './nav.js';
 import { settlePartial, showLoading, showMessage, showResults } from './render.js';
@@ -312,7 +312,7 @@ for (const el of [els.sem, els.level, els.credits, els.faculty, els.ng, els.stud
   });
 }
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && current.open) act({ type: 'close' });
+  if (isCloseEscape(e) && current.open) act({ type: 'close' });
 });
 // A card's button opens its detail, or closes it (the APG disclosure pattern).
 els.results.addEventListener('click', (e) => {

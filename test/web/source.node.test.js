@@ -7,7 +7,7 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ESLint } from 'eslint';
 import { describe, expect, it } from 'vitest';
-import { isSubmitEnter } from '../../public/keys.js';
+import { isCloseEscape, isSubmitEnter } from '../../public/keys.js';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const PUBLIC = join(ROOT, 'public');
@@ -98,5 +98,12 @@ describe('IME (F9)', () => {
     expect(isSubmitEnter({ key: 'Enter', isComposing: false, keyCode: 229 })).toBe(false);
     expect(isSubmitEnter({ key: 'Process', isComposing: false, keyCode: 229 })).toBe(false);
     expect(isSubmitEnter({ key: 'a', isComposing: false, keyCode: 65 })).toBe(false);
+  });
+
+  it('Escape closes the open detail only outside IME composition (it cancels a candidate otherwise)', () => {
+    expect(isCloseEscape({ key: 'Escape', isComposing: false, keyCode: 27 })).toBe(true);
+    expect(isCloseEscape({ key: 'Escape', isComposing: true, keyCode: 27 })).toBe(false);
+    expect(isCloseEscape({ key: 'Escape', isComposing: false, keyCode: 229 })).toBe(false);
+    expect(isCloseEscape({ key: 'Enter', isComposing: false, keyCode: 13 })).toBe(false);
   });
 });

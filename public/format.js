@@ -130,8 +130,12 @@ export function prereqView(raw) {
   return { kind: 'cohort', line: `No course prerequisite (the rule names ${names} only)`, text };
 }
 
-/** A course code inside NUS's text: letters then four digits and a suffix; not a programme code (digits first). */
-const CODE_IN_TEXT = /\b[A-Z]{2,4}\d{4}[A-Z]{0,4}\b/g;
+/**
+ * A course code inside NUS's text, in /module/:code's shape (letters, four
+ * digits, a suffix of letters and digits); never a programme code, which starts
+ * with its digits (0200ACCHON).
+ */
+const CODE_IN_TEXT = /\b[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}\b/g;
 
 /**
  * NUS's text cut into plain runs and course codes, so the detail can link each

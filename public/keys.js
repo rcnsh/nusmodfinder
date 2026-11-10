@@ -12,3 +12,12 @@
 export function isSubmitEnter(e) {
   return e.key === 'Enter' && !e.isComposing && e.keyCode !== 229;
 }
+
+/**
+ * Whether a keydown is an Escape that should close the open detail: not one
+ * that cancels an IME candidate (the same checks as Enter).
+ * @param {{ key: string, isComposing: boolean, keyCode: number }} e a KeyboardEvent
+ */
+export function isCloseEscape(e) {
+  return e.key === 'Escape' && !e.isComposing && e.keyCode !== 229;
+}
