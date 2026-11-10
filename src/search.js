@@ -762,17 +762,16 @@ async function runSearch({ q, echo, filter, mode, topK, ignore }, env, trace, lo
   // window, but not its code ranges (a GES result may list its GESS cross-listing).
   const variantFilter = parsed.level ? { ...intentFilter, levelWindow: parsed.level } : intentFilter;
 
-  // Phase 4: exchange mode shows the allow-mask bit's notes on each card.
-  const bit = ngBit(echo);
-  /** @param {ResultRow} row @param {number} [score] */
-  const toModule = (row, score) => rowToModule(row, score, bit);
-
   // Phase 4 (plan §2): the NG list has no special-term data, so exchange mode
   // in Special Term I or II answers no courses, saying why.
   if (echo.ng === true && (echo.sem === 3 || echo.sem === 4)) {
     log.counts = { returned: 0 };
     return respond([], { vector: 0, lexical: 0, fused: 0 }, { noMatch: { reason: 'ng-special-term' } });
   }
+  // Phase 4: exchange mode shows the allow-mask bit's notes on each card.
+  const bit = ngBit(echo);
+  /** @param {ResultRow} row @param {number} [score] */
+  const toModule = (row, score) => rowToModule(row, score, bit);
 
   // ── no-match: `count: 0`; a not-offered code names its catalogue title and
   // the dense neighbours of its catalogue text, never in `results`.

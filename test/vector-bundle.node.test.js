@@ -38,7 +38,7 @@ const build = async (modules, vectors, corpus = 'fixture') => {
 describe('encodeBundle / parseBundle', () => {
   it('round-trips codes in code order, the header, normalised float32 rows and the filter table', async () => {
     const modules = [
-      mod('CS2040', { semesters: [2, 3], level: 2, credits: 4, faculty: 'Computing', ng: true, ngSemesters: [2] }),
+      mod('CS2040', { semesters: [2, 3], level: 2, credits: 4, faculty: 'Computing', ng: true, ngSemesters: [2], ngAllow: 0x7c00 | 0x3e0 }),
       mod('AB1000', { semesters: [1], level: null, credits: null, faculty: null }),
       mod('CS1010S', { semesters: [1, 2, 4], level: 1, credits: 2.5, faculty: 'Arts' }),
     ];
@@ -58,9 +58,10 @@ describe('encodeBundle / parseBundle', () => {
     expect(Math.abs(n - 1)).toBeLessThan(1e-6);
     // The 3H fields a hand-built row leaves out read as their neutral values (test/intents-data.node.test.js sets them).
     const none = { examSemesters: [], su: false, suGrading: false, workloadHours: null, prereqNone: false, prereqCohortOnly: false };
-    expect(decodeFilterRow(b, 0)).toEqual({ semesters: [1], level: null, credits: null, faculty: null, ng: false, ngSemesters: [], ...none });
-    expect(decodeFilterRow(b, 1)).toEqual({ semesters: [1, 2, 4], level: 1, credits: 2.5, faculty: 'Arts', ng: false, ngSemesters: [], ...none });
-    expect(decodeFilterRow(b, 2)).toEqual({ semesters: [2, 3], level: 2, credits: 4, faculty: 'Computing', ng: true, ngSemesters: [2], ...none });
+    // A row without ngAllow reads 0: closed in exchange mode everywhere.
+    expect(decodeFilterRow(b, 0)).toEqual({ semesters: [1], level: null, credits: null, faculty: null, ng: false, ngSemesters: [], ngAllow: 0, ...none });
+    expect(decodeFilterRow(b, 1)).toEqual({ semesters: [1, 2, 4], level: 1, credits: 2.5, faculty: 'Arts', ng: false, ngSemesters: [], ngAllow: 0, ...none });
+    expect(decodeFilterRow(b, 2)).toEqual({ semesters: [2, 3], level: 2, credits: 4, faculty: 'Computing', ng: true, ngSemesters: [2], ngAllow: 0x7fe0, ...none });
   });
 
   it('is deterministic: the same input gives the same bytes, whatever the input order', async () => {
@@ -162,9 +163,11 @@ describe('exactSearch', () => {
 
   it('applies the filter mask first, with the same semantics as the Vectorize metadata filter', async () => {
     const modules = [
-      mod('A1000', { semesters: [1], level: 1, credits: 4, faculty: 'Arts', ng: true }),
+      // A1000: exchange-open in Sem 1 at every study level (bits 0-4) and so either semester (10-14).
+      mod('A1000', { semesters: [1], level: 1, credits: 4, faculty: 'Arts', ng: true, ngSemesters: [1], ngAllow: 0x1f | 0x7c00 }),
       mod('B2000', { semesters: [2], level: 2, credits: 2, faculty: 'Computing', ng: false }),
-      mod('C3000', { semesters: [1, 2], level: 3, credits: 4, faculty: 'Computing', ng: true }),
+      // C3000: exchange-open in Sem 2 only (bits 5-9, 10-14), though NUSMods offers it in both.
+      mod('C3000', { semesters: [1, 2], level: 3, credits: 4, faculty: 'Computing', ng: true, ngSemesters: [2], ngAllow: 0x3e0 | 0x7c00 }),
       mod('D4000', { semesters: [3], level: null, credits: null, faculty: null, ng: false }),
     ];
     const b = await build(modules, Object.fromEntries(modules.map((m, i) => [m.code, vec(0, i / 10)])));
@@ -178,8 +181,13 @@ describe('exactSearch', () => {
     expect(codes({ credits: 0 })).toEqual([]);
     expect(codes({ faculty: 'Computing' })).toEqual(['B2000', 'C3000']);
     expect(codes({ faculty: 'Nowhere' })).toEqual([]);
-    expect(codes({ ng: true })).toEqual(['A1000', 'C3000']);
-    expect(codes({ ng: true, sem: 2, faculty: 'Computing', credits: 4, level: 3 })).toEqual(['C3000']);
+    // Phase 4: under ng the allow-mask bit for (sem, study) decides, and sem tests no NUSMods semester.
+    expect(codes({ ng: true, study: 'ug2' })).toEqual(['A1000', 'C3000']);
+    expect(codes({ ng: true, sem: 1, study: 'ug2' })).toEqual(['A1000']);
+    expect(codes({ ng: true, sem: 2, study: 'grad' })).toEqual(['C3000']);
+    expect(codes({ ng: true, sem: 2, faculty: 'Computing', credits: 4, level: 3, study: 'ug3' })).toEqual(['C3000']);
+    // No study (which /search answers 400) shows nothing.
+    expect(codes({ ng: true })).toEqual([]);
     expect(compileMask(b, {})).toBeNull();
   });
 

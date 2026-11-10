@@ -86,6 +86,8 @@ describe('S7', () => {
       'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters', 'row_hash',
       // 0007 (3H-0).
       'exam_semesters', 'su', 'grading_basis', 'workload_hours', 'prereq_none', 'prereq_cohort_only',
+      // ng_allow, ng_rules: 0009 (Phase 4).
+      'ng_allow', 'ng_rules',
     ]);
   });
 

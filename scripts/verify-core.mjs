@@ -81,8 +81,9 @@ export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, 
  *   missingInBundle: string[], extraInBundle: string[],
  *   fieldDrift: { code: string, d1: unknown, bundle: unknown }[],
  *   rowHashDrift: { code: string, stored: string, recomputed: string }[], rowHashMissing: string[],
- *   rowsRead: number,
+ *   unknownReasons: { code: string, id: string }[], rowsRead: number,
  * }} PreDeployReport
+ *   `unknownReasons`: stored ng_rules ids the Worker's reason texts (data/ng-reasons.json) lack (Phase 4, B3-5).
  */
 
 /**
@@ -93,10 +94,11 @@ export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, 
  * @param {{
  *   api: import('./ingest-core.mjs').AdminApi, bundle: import('../src/vector-bundle.js').Bundle,
  *   manifest: { rowsKey: string, dataVersion: string }, committedDataVersion: string,
- * }} args
+ *   knownReason: (id: string) => boolean,
+ * }} args `knownReason`: whether the reason texts this deploy ships know a rule id
  * @returns {Promise<PreDeployReport>}
  */
-export async function runPreDeployVerify({ api, bundle, manifest, committedDataVersion }) {
+export async function runPreDeployVerify({ api, bundle, manifest, committedDataVersion, knownReason }) {
   const res = await api.post('/admin/verify', { preDeploy: true });
   if (res.status !== 200 || !Array.isArray(res.body?.rows)) {
     throw new Error(`POST /admin/verify (preDeploy) -> HTTP ${res.status} ${JSON.stringify(res.body).slice(0, 300)}`);
@@ -126,6 +128,11 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
     const b = decodeFilterRow(bundle, i);
     if (JSON.stringify(d1) !== JSON.stringify(b)) fieldDrift.push({ code: r.code, d1, bundle: b });
   }
+  /** @type {PreDeployReport['unknownReasons']} */
+  const unknownReasons = [];
+  for (const r of rows) {
+    for (const id of new Set(Object.values(r.ngRules ?? {}).flat())) if (!knownReason(id)) unknownReasons.push({ code: r.code, id });
+  }
   /** @type {PreDeployReport} */
   const report = {
     ok: false, d1Rows: rows.length, bundleRows: bundle.count,
@@ -135,12 +142,13 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
     extraInBundle: bundle.codes.filter((c) => !held.has(c)),
     fieldDrift,
     rowHashDrift: res.body.rowHash?.drift ?? [], rowHashMissing: res.body.rowHash?.missing ?? [],
-    rowsRead: Number(res.body.meta?.rows_read ?? 0),
+    unknownReasons, rowsRead: Number(res.body.meta?.rows_read ?? 0),
   };
   const keys = Object.values(report.rowsKey);
   const versions = Object.values(report.dataVersion);
   report.ok = keys.every((k) => k === keys[0]) && versions.every((v) => v === versions[0])
-    && [report.missingInBundle, report.extraInBundle, report.fieldDrift, report.rowHashDrift, report.rowHashMissing].every((l) => l.length === 0);
+    && [report.missingInBundle, report.extraInBundle, report.fieldDrift, report.rowHashDrift, report.rowHashMissing, report.unknownReasons]
+      .every((l) => l.length === 0);
   return report;
 }
 
@@ -163,6 +171,7 @@ export function formatPreDeployReport(r) {
     line('field drift', r.fieldDrift, (d) => d.code),
     line('row_hash drift', r.rowHashDrift, (d) => d.code),
     line('row_hash missing', r.rowHashMissing),
+    line('unknown reason ids', r.unknownReasons, (u) => `${u.code} ${u.id}`),
     `D1 rows read       ${r.rowsRead} (log it in remote-ops.md)`,
     r.ok ? 'OK: D1, the manifest and the bundle agree; the deploy may proceed' : 'DRIFT: do not deploy (runbook step 5)',
   ];

@@ -85,7 +85,7 @@ describe('3-0 identity on the fixture (A-N6)', () => {
         // yearly ng flag, reads 100 deep and drops what D1's allow mask closes,
         // so its list is the start of the bundle's, possibly shorter.
         const exchange = f.includes('ng=1');
-        if (exchange) expect(dense.b.length, dense.path).toBeGreaterThan(0);
+        if (exchange) expect(dense.b.length, dense.path).toBeLessThanOrEqual(dense.a.length);
         const diff = differences(q, exchange ? dense.a.slice(0, dense.b.length) : dense.a, dense.b);
         for (const d of diff) swaps.push({ path: dense.path, ...d });
         // Fusion is rank-based, so the hybrid page is identical whenever the
