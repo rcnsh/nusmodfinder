@@ -1223,7 +1223,7 @@ fails on the previous code.
 ## 2026-11-11 — Worker renamed to nusmodfinder
 
 - Jacob asked for every `vector-nusmods` to become `nusmodfinder`. The Worker moved (version
-  `59986aa3`, tag `965aaf9`; `p5-live.mjs` 32 of 32); the old Worker `vector-nusmods` serves nothing.
+  `59986aa3`, tag `965aaf9`; `p5-live.mjs` 32 of 32); the old Worker `vector-nusmods` is deleted.
 - Kept on purpose: `vnm-` schema ids and seeds and the test Worker configs (inside sealed-set and
   ranker-pin hashes), the local folder `~/dev/vector-nusmods` (Phase 6 worktrees point at it), and
   history in `docs/evidence/` and `docs/plans/`.

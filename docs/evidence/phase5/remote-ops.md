@@ -112,3 +112,5 @@ Rollback: `npx wrangler rollback 0b81c82e-4c45-47fe-9efc-a1b93afd71db` (code-onl
 The old Worker `vector-nusmods` (100% `a6103634`) has no route and no workers.dev URL, so it serves
 nothing. Its versions are not rollback targets for `nusmodfinder`; the first rollback target on the
 new Worker is the next deploy's predecessor, `59986aa3`.
+
+The old Worker `vector-nusmods` was deleted at Jacob's request (`cf workers delete`), after checking it had no route and a 404 workers.dev URL; `nusmodfinder.rcn.sh` answered 200 (tag `965aaf9`) before and after.
