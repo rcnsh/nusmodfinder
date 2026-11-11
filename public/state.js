@@ -10,16 +10,21 @@
 //   detail says "Opened from …". Kept only beside `open`, and dropped by every
 //   transition that changes `open`; app.js also drops it once the answer shows
 //   it isn't one of the open entry's other codes (5G S1).
-// - `pick` and `alt` are reserved for Phase 6: kept through every round trip
-//   and transition, used for nothing yet.
+// - `view=shortlist` opens the shortlist view (Phase 6 6B); a link that names
+//   it drops `open`.
+// - The shortlist (`pick`, `alt`, `ay`, `inv`) is not part of the state: it is
+//   page-wide (list.js), and urlFor writes the two together.
 
 import { hasHidden } from './format.js';
+import { emptyList, isCode, listPairs } from './list.js';
+
+export { isCode };
 
 /**
  * @typedef {{
  *   q: string, sem: string, level: string, credits: string, faculty: string,
  *   ng: boolean, study: string, ignore: string[], open: string, from: string,
- *   pick: string[], alt: string[],
+ *   view: '' | 'shortlist',
  * }} State
  */
 
@@ -61,15 +66,9 @@ export const IGNORABLE = Object.freeze(['ge', 'level', 'exam', 'su', 'hoursBelow
 /** The longest query /search accepts (src/search.js MAX_QUERY_CHARS; the input's maxlength). */
 export const MAX_QUERY_CHARS = 200;
 
-/** A course code as the page accepts it in `open=` (upper-cased first): /module/:code's shape (src/modules.js MODULE_CODE_RE). */
-const CODE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
-
-/** Whether a string is a course code in the shape `open=` accepts (already upper-case). @param {string} s */
-export const isCode = (s) => CODE.test(s);
-
 /** @returns {State} */
 export function emptyState() {
-  return { q: '', sem: '', level: '', credits: '', faculty: '', ng: false, study: '', ignore: [], open: '', from: '', pick: [], alt: [] };
+  return { q: '', sem: '', level: '', credits: '', faculty: '', ng: false, study: '', ignore: [], open: '', from: '', view: '' };
 }
 
 /**
@@ -95,7 +94,9 @@ export function parseState(params) {
   const ng = ngRaw !== null && ngRaw !== '' && ngRaw !== '0' && ngRaw !== 'false';
   const open = (params.get('open') ?? '').trim().toUpperCase();
   const from = (params.get('from') ?? '').trim().toUpperCase();
-  const openOk = CODE.test(open);
+  const view = params.get('view') === 'shortlist' ? 'shortlist' : '';
+  // The view replaces the results: a link that names it opens no detail.
+  const openOk = !view && isCode(open);
   return {
     q: (params.get('q') ?? '').trim().slice(0, MAX_QUERY_CHARS),
     sem: keep(params.get('sem'), (v) => SEMESTERS.some((o) => o.value === v)),
@@ -106,9 +107,8 @@ export function parseState(params) {
     study: ng ? keep(params.get('study'), (v) => STUDIES.some((o) => o.value === v)) : '',
     ignore: [...new Set((params.get('ignore') ?? '').split(',').map((s) => s.trim()).filter((s) => IGNORABLE.includes(s)))].sort(),
     open: openOk ? open : '',
-    from: openOk && CODE.test(from) && from !== open ? from : '',
-    pick: params.getAll('pick'),
-    alt: params.getAll('alt'),
+    from: openOk && isCode(from) && from !== open ? from : '',
+    view,
   };
 }
 
@@ -132,29 +132,33 @@ function filterPairs(s) {
 }
 
 /**
- * The URL's query string for a state: q, the filters, ng and study, ignore,
- * open and from, then the reserved pick and alt. An empty state is no parameters.
+ * The URL's query string for a state and the shortlist: q, the filters, ng and
+ * study, ignore, open and from, then the list's pick, alt, ay and inv, then
+ * view. An empty state and list is no parameters.
  * @param {State} s
+ * @param {import('./list.js').List} [list]
  */
-export function stateToParams(s) {
+export function stateToParams(s, list = emptyList()) {
   const out = new URLSearchParams();
   if (s.q.trim()) out.set('q', s.q);
   for (const [k, v] of filterPairs(s)) out.append(k, v);
   if (s.ignore.length) out.set('ignore', s.ignore.join(','));
   if (s.open) out.set('open', s.open);
   if (s.open && s.from) out.set('from', s.from);
-  for (const v of s.pick) out.append('pick', v);
-  for (const v of s.alt) out.append('alt', v);
+  for (const [k, v] of listPairs(list)) out.append(k, v);
+  if (s.view) out.set('view', s.view);
   return out;
 }
 
 /**
- * The page URL (path plus query) for a state.
+ * The page URL (path plus query) for a state and the shortlist. Links the
+ * page renders pass emptyList(): a new tab starts with no list.
  * @param {State} s
+ * @param {import('./list.js').List} list
  * @param {string} path
  */
-export function urlFor(s, path) {
-  const qs = stateToParams(s).toString();
+export function urlFor(s, list, path) {
+  const qs = stateToParams(s, list).toString();
   return qs ? `${path}?${qs}` : path;
 }
 
@@ -171,4 +175,17 @@ export function searchParams(s) {
   for (const [k, v] of filterPairs(s)) out.append(k, v);
   if (s.ignore.length) out.set('ignore', s.ignore.join(','));
   return out;
+}
+
+/**
+ * Copy link's URL (6B): the shortlist (with `ay` once a row has loaded: the
+ * caller passes list.js withYear's list), the invitations, the exchange
+ * set-up and the semester, and `view=shortlist`; no query, filters or detail,
+ * so the link opens on the list itself.
+ * @param {State} s
+ * @param {import('./list.js').List} list
+ * @param {string} path
+ */
+export function shortlistUrl(s, list, path) {
+  return urlFor({ ...emptyState(), sem: s.sem, ng: s.ng, study: s.study, view: 'shortlist' }, list, path);
 }

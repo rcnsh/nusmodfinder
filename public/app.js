@@ -15,6 +15,11 @@
 // 5G: an "Also as" code is a link to its own search with its detail open
 // ("Opened from …", `from=`); a hidden typed code carries a stamp, and a
 // "Switch to Sem 2" button when the other semester is open to the student.
+// 6B (Phase 6): the shortlist (`pick`, `alt`, `ay`, `inv`) is page-wide, held
+// apart from `current` (list.js); every history write goes through one writer
+// (history.js); Back and Forward keep the list and write it into the entry
+// they reach; edits replace the entry at once and keep a copy on this device
+// (saved.js, G3). The view and its controls are 6C's.
 import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from './api.js';
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
@@ -22,12 +27,15 @@ import { hiddenCodeLine, hiddenCodeStamp } from './explain.js';
 import { quoteUser, semLabel } from './format.js';
 import { icon } from './icons.js';
 import { intentChipRow } from './intent-chips.js';
+import { createWriter } from './history.js';
 import { intentChips } from './intents.js';
 import { isCloseEscape, isSubmitEnter } from './keys.js';
+import { add, emptyList, hasEntry, makeOther, move, parseList, remove, setInvite, setSem, withYear } from './list.js';
 import { errorSentence } from './messages.js';
-import { transition } from './nav.js';
+import { searchAgain, transition } from './nav.js';
 import { hiddenStamp, settlePartial, showLoading, showMessage, showResults } from './render.js';
-import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, parseState, searchParams, unitsLabel, urlFor } from './state.js';
+import { forgetList, restoreOffer, saveList } from './saved.js';
+import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, parseState, searchParams, shortlistUrl, unitsLabel, urlFor } from './state.js';
 
 /** @typedef {import('./state.js').State} State */
 
@@ -179,6 +187,27 @@ const EMPTY = 'Type what you want to study in the box above, then press Search.'
 /** The state of the current history entry; the URL always says the same. */
 let current = parseState(new URLSearchParams(location.search));
 
+/**
+ * The shortlist (6B): page-wide, not per entry. Read from the URL once; Back
+ * and Forward keep it. `droppedOnLoad`: how many of the link's values it left
+ * out (malformed, duplicates, past a cap), for the view to say (6C).
+ */
+const loaded = parseList(new URLSearchParams(location.search));
+let list = loaded.list;
+const droppedOnLoad = loaded.dropped;
+/** The acad year of the first /module row the list holds; '' before one loads. */
+let rowYear = '';
+
+/** The test hooks, when a spec installs `globalThis.vnmTest` before the page loads. */
+const testHooks = /** @type {any} */ (globalThis).vnmTest;
+/** Every pushState and replaceState the page makes (6B). */
+const writer = createWriter({ history, forceCoalesce: testHooks?.forceCoalesce === true });
+/** The page URL for a state, with the list. @param {State} s */
+const pageUrl = (s) => urlFor(s, list, location.pathname);
+
+/** localStorage, or null where reading it throws (blocked storage). */
+const storage = (() => { try { return localStorage; } catch { return null; } })();
+
 /** @param {State} s */
 function applyToForm(s) {
   els.q.value = s.q;
@@ -266,12 +295,12 @@ function renderChips(s) {
  */
 const removableFilters = () => chipList(current).filter((c) => c.removable && c.key !== 'ng' && !(current.ng && c.key === 'sem')).length;
 
-/** @returns {State} what the controls show; ignore, open, pick and alt are the URL's */
+/** @returns {State} what the controls show; ignore, open, from and view are the URL's */
 function readForm() {
   return {
     q: els.q.value, sem: els.sem.value, level: els.level.value, credits: els.credits.value, faculty: els.faculty.value,
     ng: els.ng.checked, study: els.ng.checked ? els.study.value : '',
-    ignore: current.ignore, open: current.open, from: current.from, pick: current.pick, alt: current.alt,
+    ignore: current.ignore, open: current.open, from: current.from, view: current.view,
   };
 }
 
@@ -280,7 +309,25 @@ const search = createSearchClient();
 const answers = new Map();
 const ANSWERS_KEPT = 50;
 const targets = { status: els.status, results: els.results };
-const modules = createModuleClient();
+const moduleClient = createModuleClient();
+/**
+ * /module/:code through the shared client; the first row the list holds sets
+ * the year an edit writes as `ay` (6B).
+ */
+const modules = {
+  /** @param {string} code */
+  get: (code) => moduleClient.get(code).then((outcome) => {
+    if (!rowYear && outcome.kind === 'ok' && typeof outcome.body?.acad_year === 'string' && hasEntry(list, code)) rowYear = outcome.body.acad_year;
+    return outcome;
+  }),
+};
+/**
+ * The last search's error kind, kept beside `shown` (6B): Back and Forward to
+ * the same search run it again only after a network or server error, never
+ * after a 429. Null when the last search answered.
+ * @type {'retry' | 'rate' | 'other' | null}
+ */
+let lastError = null;
 
 /** The exchange-mode sources and their dates, once /facets answers (null until then, or for good if it fails). */
 /** @type {import('./explain.js').Source[] | null} */
@@ -291,10 +338,12 @@ let sources = null;
  */
 let shown = null;
 
+// The links the page renders carry no list and no view: a new tab starts with
+// no list (or offers the remembered one, G3), so two tabs never fork one list.
 /** A link to the search for a course code, keeping the filters and exchange set-up. @param {string} code */
-const searchHref = (code) => urlFor({ ...current, q: code, ignore: [], open: '', from: '' }, location.pathname);
+const searchHref = (code) => urlFor({ ...current, q: code, ignore: [], open: '', from: '', view: '' }, emptyList(), location.pathname);
 /** An "Also as" link: the other code's search, its detail open, from the entry. @param {string} code @param {string} from */
-const variantHref = (code, from) => urlFor({ ...current, q: code, ignore: [], open: code, from }, location.pathname);
+const variantHref = (code, from) => urlFor({ ...current, q: code, ignore: [], open: code, from, view: '' }, emptyList(), location.pathname);
 
 /**
  * Fills a card's detail from /module/:code (fetched once per page). `quiet`:
@@ -337,7 +386,7 @@ function checkFrom(s) {
   const fixed = { ...s, from: '' };
   if (current === s) {
     current = fixed;
-    history.replaceState(history.state, '', urlFor(fixed, location.pathname));
+    writer.replace(pageUrl(fixed));
   }
   return fixed;
 }
@@ -558,9 +607,12 @@ async function show(s, { fromUser = false, submitted = false } = {}) {
   const outcome = await search(params);
   if (outcome.kind === 'superseded') return;
   if (outcome.kind === 'error') {
+    const status = outcome.error.status ?? 0;
+    lastError = status === 429 ? 'rate' : status >= 400 && status < 500 ? 'other' : 'retry';
     message(errorSentence(outcome.error), true);
     return;
   }
+  lastError = null;
   remember(key, outcome.body);
   render(s, key, outcome.body);
 }
@@ -572,14 +624,19 @@ async function show(s, { fromUser = false, submitted = false } = {}) {
  * @returns {Promise<void>}
  */
 async function act(action) {
-  const detailPushed = history.state?.vnmDetail === true;
+  // A pending edit lands in the entry being left first (6B).
+  writer.flush();
+  const detailPushed = writer.state()?.vnmDetail === true;
   const { state, op } = transition(current, action, { detailPushed });
   if (op === 'none') return;
   // popstate restores the list entry, and its state, after back().
   if (op === 'back') { history.back(); return; }
-  const url = urlFor(state, location.pathname);
-  if (op === 'push') history.pushState(action.type === 'open' ? { vnmDetail: true } : null, '', url);
-  else history.replaceState(action.type === 'open' ? history.state : null, '', url);
+  const url = pageUrl(state);
+  // The view's own entries (`openView`, `replace-push`) are 6C's; settings
+  // while the view is shown keep the entry's state.
+  if (op === 'replace-push') writer.replace(pageUrl({ ...current, open: '', from: '' }), null);
+  if (op === 'push' || op === 'replace-push') writer.push(url, action.type === 'open' ? { vnmDetail: true } : null);
+  else writer.replace(url, action.type === 'open' || state.view ? undefined : null);
   const closing = action.type === 'close' ? current.open : '';
   current = state;
   applyToForm(state);
@@ -778,10 +835,16 @@ document.addEventListener('click', (e) => {
 // view (5E).
 history.scrollRestoration = 'manual';
 window.addEventListener('popstate', async () => {
+  // The browser has moved: a pending write is for the entry left (6B). The
+  // page keeps its list and writes it into the entry it arrived at (settle).
+  writer.cancel();
+  const left = current;
   const before = current.open;
   const answerBefore = shown?.key;
   current = settle(parseState(new URLSearchParams(location.search)));
   const after = current;
+  // The same search after a 429 (or another 4xx) is not run again: its message stays.
+  if (!shown && !searchAgain(left, after, lastError)) return;
   await show(after);
   if (current !== after) return;
   // Back from an open detail: the list, its detail closed, focus on its button.
@@ -896,9 +959,61 @@ function settle(s) {
   applyToForm(s);
   const settled = s.ng && !s.study && els.study.value ? { ...s, study: els.study.value } : s;
   if (settled !== s) renderChips(settled);
-  const canonical = urlFor(settled, location.pathname);
-  if (canonical !== `${location.pathname}${location.search}`) history.replaceState(history.state, '', canonical);
+  const canonical = pageUrl(settled);
+  if (canonical !== `${location.pathname}${location.search}`) writer.replace(canonical);
   return settled;
+}
+
+// ---- The shortlist's state (6B). The view (6C) and the exports (6D) call these.
+
+/**
+ * Applies an edit to the list (list.js): the URL is replaced at once through
+ * the writer (coalesced only past its budget), with `ay` from the rows once
+ * one has loaded, and the device's copy is written at once (G3). Never calls
+ * show(): the search and the history position stay.
+ * @param {(l: import('./list.js').List) => import('./list.js').Edit} fn
+ * @returns {{ ok: true } | { ok: false, why: string }} a refusal says why (a full semester)
+ */
+function editList(fn) {
+  const result = fn(list);
+  if (!result.ok) return result;
+  list = withYear(result.list, rowYear);
+  writer.replace(pageUrl(current));
+  saveList(storage, list);
+  return { ok: true };
+}
+
+/** Copy link's URL, `ay` once a row has loaded; never waits (6B). */
+function shortlistLink() {
+  writer.flush();
+  return `${location.origin}${shortlistUrl(current, withYear(list, rowYear), location.pathname)}`;
+}
+
+// A coalesced write still pending lands before the page is hidden or left.
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') writer.flush(); });
+window.addEventListener('pagehide', () => writer.flush());
+
+// The specs drive the list through these until the view exists (6C), and
+// read what the page holds. Installed only when a spec sets `vnmTest` first.
+if (testHooks && typeof testHooks === 'object') {
+  Object.assign(testHooks, {
+    list: () => list,
+    droppedOnLoad,
+    rowYear: () => rowYear,
+    edit: {
+      add: (/** @type {string} */ code, /** @type {import('./list.js').Tag} */ sem = '') => editList((l) => add(l, code, sem)),
+      remove: (/** @type {string} */ code) => editList((l) => remove(l, code)),
+      move: (/** @type {string} */ code, /** @type {-1 | 1} */ dir) => editList((l) => move(l, code, dir)),
+      makeOther: (/** @type {string} */ code) => editList((l) => makeOther(l, code)),
+      setSem: (/** @type {string} */ code, /** @type {import('./list.js').Tag} */ sem) => editList((l) => setSem(l, code, sem)),
+      setInvite: (/** @type {import('./list.js').Invite} */ which, /** @type {boolean} */ on) => editList((l) => setInvite(l, which, on)),
+    },
+    loadRow: (/** @type {string} */ code) => modules.get(code),
+    shortlistLink,
+    restoreOffer: () => restoreOffer(list, storage),
+    forget: () => forgetList(storage),
+    pending: () => writer.pending(),
+  });
 }
 
 // The first screen pre-fills the year of study remembered on this device.

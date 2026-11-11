@@ -6,9 +6,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { IGNORABLE_INTENTS } from '../../src/query-intent.js';
-import { transition } from '../../public/nav.js';
+import { emptyList, parseList } from '../../public/list.js';
+import { searchAgain, searchKey, transition } from '../../public/nav.js';
 import {
-  CREDITS, IGNORABLE, LEVELS, MAX_QUERY_CHARS, SEMESTERS, STUDIES, emptyState, parseState, searchParams, stateToParams, urlFor,
+  CREDITS, IGNORABLE, LEVELS, MAX_QUERY_CHARS, SEMESTERS, STUDIES, emptyState, parseState, searchParams, shortlistUrl, stateToParams, urlFor,
 } from '../../public/state.js';
 
 const parse = (/** @type {string} */ qs) => parseState(new URLSearchParams(qs));
@@ -19,10 +20,11 @@ describe('URL state (F3, C-7)', () => {
     const s = parse('alt=x&open=cs3244&study=ug2&ng=1&faculty=Computing&credits=4&level=3&sem=2&q=machine+learning');
     expect(s).toEqual({
       q: 'machine learning', sem: '2', level: '3', credits: '4', faculty: 'Computing', ng: true, study: 'ug2',
-      ignore: [], open: 'CS3244', from: '', pick: [], alt: ['x'],
+      ignore: [], open: 'CS3244', from: '', view: '',
     });
+    // The list is not the state's (6B): stateToParams alone writes no pick or alt.
     expect(stateToParams(s).toString())
-      .toBe('q=machine+learning&sem=2&level=3&credits=4&faculty=Computing&ng=1&study=ug2&open=CS3244&alt=x');
+      .toBe('q=machine+learning&sem=2&level=3&credits=4&faculty=Computing&ng=1&study=ug2&open=CS3244');
   });
 
   it('[5G] from= is a course code kept only beside open= (and never open= itself)', () => {
@@ -41,8 +43,8 @@ describe('URL state (F3, C-7)', () => {
 
   it('an empty state is an empty query string, so the bare page URL', () => {
     expect(stateToParams(emptyState()).toString()).toBe('');
-    expect(urlFor(emptyState(), '/')).toBe('/');
-    expect(urlFor(parse('q=x'), '/')).toBe('/?q=x');
+    expect(urlFor(emptyState(), emptyList(), '/')).toBe('/');
+    expect(urlFor(parse('q=x'), emptyList(), '/')).toBe('/?q=x');
   });
 
   it('drops values /search would reject instead of failing the page', () => {
@@ -63,8 +65,17 @@ describe('URL state (F3, C-7)', () => {
     expect(round('study=ug1&q=x')).toBe('q=x');
   });
 
-  it('keeps Phase 6 names pick and alt (reserved) through a round trip, every value in order', () => {
-    expect(round('q=x&pick=CS3244&pick=CS2040&alt=MA1521')).toBe('q=x&pick=CS3244&pick=CS2040&alt=MA1521');
+  it('[6B] the list is written after the search state, in rank order (test/web/list.node.test.js has the rest)', () => {
+    const params = new URLSearchParams('q=x&pick=CS3244&pick=CS2040&alt=MA1521');
+    expect(urlFor(parseState(params), parseList(params).list, '/')).toBe('/?q=x&pick=CS3244&pick=CS2040&alt=MA1521');
+  });
+
+  it('[6B] Copy link\'s URL: the list, ay once known, inv, ng, sem, study and view=shortlist; no q, filters or detail', () => {
+    const params = new URLSearchParams('q=networks&sem=1&level=2&ng=1&study=ug2&open=CS2105&pick=CS2105.1&alt=GE2101.1&inv=biz');
+    const { list } = parseList(params);
+    expect(shortlistUrl(parseState(params), list, '/')).toBe('/?sem=1&ng=1&study=ug2&pick=CS2105.1&alt=GE2101.1&inv=biz&view=shortlist');
+    expect(shortlistUrl(parseState(params), { ...list, ay: '2026-2027' }, '/'))
+      .toBe('/?sem=1&ng=1&study=ug2&pick=CS2105.1&alt=GE2101.1&ay=2026-2027&inv=biz&view=shortlist');
   });
 
   it('ignore= keeps only the intents /search can undo, and q only the length it accepts, so a mangled link still searches', () => {
@@ -82,8 +93,8 @@ describe('URL state (F3, C-7)', () => {
     expect(round('q=x&ignore=prereq,exam')).toBe('q=x&ignore=exam%2Cprereq');
   });
 
-  it('searchParams is the /search query: no open, pick or alt; null with no query or exchange mode without a study level', () => {
-    expect(searchParams(parse('q=x&sem=1&ng=1&study=ug2&open=CS1010&pick=A&alt=B&ignore=exam'))?.toString())
+  it('searchParams is the /search query: no open, pick, alt or view; null with no query or exchange mode without a study level', () => {
+    expect(searchParams(parse('q=x&sem=1&ng=1&study=ug2&open=CS1010&pick=A&alt=B&ignore=exam&view=shortlist'))?.toString())
       .toBe('q=x&sem=1&ng=1&study=ug2&ignore=exam');
     expect(searchParams(parse('sem=1'))).toBeNull();
     expect(searchParams(parse('q=%20%20'))).toBeNull();
@@ -178,10 +189,58 @@ describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md
     }
   });
 
-  it('pick and alt (Phase 6) survive every transition', () => {
+  it('[6B] the list is not in a transition: it is page-wide, so every action keeps it by not touching it', () => {
     const s = parse('q=x&pick=CS1010');
+    expect(Object.keys(s)).not.toContain('pick');
     for (const action of /** @type {const} */ ([{ type: 'submit', form: parse('q=y') }, { type: 'settings', form: parse('q=x&sem=1') }, { type: 'open', code: 'CS1010' }])) {
-      expect(transition(s, action, { detailPushed: false }).state.pick).toEqual(['CS1010']);
+      expect(Object.keys(transition(s, action, { detailPushed: false }).state)).not.toContain('pick');
     }
+  });
+
+  it('[6B] settings while the view is shown keep the view and the submitted q (never the box\'s text); a submit closes it', () => {
+    const view = parse('q=networks&sem=1&view=shortlist');
+    const t = transition(view, { type: 'settings', form: { ...parse('q=networks&sem=2'), view: 'shortlist' } }, { detailPushed: false });
+    expect(t).toMatchObject({ op: 'replace', state: { q: 'networks', sem: '2', view: 'shortlist' } });
+    // The box holds unsubmitted text: still a settings change while the view is shown.
+    const typed = transition(view, { type: 'settings', form: { ...parse('q=databases&sem=2'), view: 'shortlist' } }, { detailPushed: false });
+    expect(typed).toMatchObject({ op: 'replace', state: { q: 'networks', sem: '2', view: 'shortlist' } });
+    expect(transition(view, { type: 'submit', form: { ...parse('q=databases&sem=1'), view: 'shortlist' } }, { detailPushed: false }))
+      .toMatchObject({ op: 'push', state: { q: 'databases', view: '' } });
+    expect(transition(view, { type: 'variant', code: 'CS2030', from: '' }, { detailPushed: false }).state.view).toBe('');
+  });
+});
+
+describe('[6B] the view\'s history (the table in docs/plans/phase6.md 6B)', () => {
+  const list = parse('q=networks&sem=1');
+  it('open the view: push; from a detail this page pushed, replace that entry; from a detail by link, replace without it, then push', () => {
+    expect(transition(list, { type: 'openView' }, { detailPushed: false })).toMatchObject({ op: 'push', state: { view: 'shortlist', open: '' } });
+    expect(transition(parse('q=networks&open=CS2105'), { type: 'openView' }, { detailPushed: true })).toMatchObject({ op: 'replace', state: { view: 'shortlist', open: '' } });
+    expect(transition(parse('q=networks&open=CS2105'), { type: 'openView' }, { detailPushed: false })).toMatchObject({ op: 'replace-push', state: { open: '' } });
+    // The shortlist button with the view shown: no history write.
+    expect(transition(parse('q=networks&view=shortlist'), { type: 'openView' }, { detailPushed: false }).op).toBe('none');
+  });
+  it('close the view: back() if this page pushed it and q and filters are as it opened, else replace without view', () => {
+    const view = parse('q=networks&sem=1&view=shortlist');
+    const atOpen = searchKey(list);
+    expect(atOpen).toBe('q=networks&sem=1');
+    expect(transition(view, { type: 'closeView', viewPushed: true, atOpen }, { detailPushed: false })).toMatchObject({ op: 'back', state: { view: '' } });
+    expect(transition(view, { type: 'closeView', viewPushed: false, atOpen }, { detailPushed: false }).op).toBe('replace');
+    expect(transition(parse('q=networks&sem=2&view=shortlist'), { type: 'closeView', viewPushed: true, atOpen }, { detailPushed: false }))
+      .toMatchObject({ op: 'replace', state: { sem: '2', view: '' } });
+  });
+});
+
+describe('[6B] popstate: search again only when the search changed, or after a network or server error (never after a 429)', () => {
+  const a = parse('q=networks&sem=1');
+  const b = parse('q=databases&sem=1');
+  it('a changed search runs', () => {
+    expect(searchAgain(a, b, null)).toBe(true);
+    expect(searchAgain(a, b, 'rate')).toBe(true);
+  });
+  it('the same search runs again only after a network or server error', () => {
+    expect(searchAgain(a, parse('q=networks&sem=1&open=CS2105'), null)).toBe(false);
+    expect(searchAgain(a, parse('q=networks&sem=1&view=shortlist'), 'retry')).toBe(true);
+    expect(searchAgain(a, parse('q=networks&sem=1&view=shortlist'), 'rate')).toBe(false);
+    expect(searchAgain(a, a, 'other')).toBe(false);
   });
 });
