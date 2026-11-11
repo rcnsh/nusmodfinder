@@ -1,8 +1,7 @@
 // @ts-check
-// The parsed-phrase chips (Phase 5 5F, A2-2). PARSE_PHRASES is off, so the
-// Worker echoes no 3H intent: the chips are tested on intercepted /search
-// answers in the Worker's `interpreted` shape, and the live Worker is checked
-// to show none.
+// The parsed-phrase chips (Phase 5 5F, A2-2). Most cases use intercepted
+// /search answers in the Worker's `interpreted` shape; one checks the real
+// Worker, which reads phrases since L8 passed (PARSE_PHRASES on).
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { body, query, searches } from './support.mjs';
@@ -83,14 +82,14 @@ test('[5F] a no-result answer still shows its chips, so the student can undo the
   await expect(chips(page)).toHaveText(['No final exam×', 'Can be taken S/U×']);
 });
 
-test('[5F] the live Worker (PARSE_PHRASES off) reads no phrase, so no chip shows', async ({ page }) => {
+test('[5F] the Worker (PARSE_PHRASES on after L8) reads the phrases, and the chips show them', async ({ page }) => {
   const answered = page.waitForResponse((r) => new URL(r.url()).pathname === '/search');
   await page.goto('/?q=programming%20no%20final%20exam%20no%20prerequisites');
   const res = await answered;
   const json = await res.json();
-  expect([json.interpreted.exam, json.interpreted.su, json.interpreted.hoursBelow, json.interpreted.prereq]).toEqual([null, null, null, null]);
-  await expect(page.locator('#status .count')).toContainText('match');
-  await expect(page.locator('#status .intents')).toHaveCount(0);
+  expect(json.interpreted.exam).not.toBeNull();
+  expect(json.interpreted.prereq).not.toBeNull();
+  await expect(chips(page)).toHaveText(['No final exam×', 'No prerequisites×']);
 });
 
 for (const scheme of /** @type {const} */ (['light', 'dark'])) {

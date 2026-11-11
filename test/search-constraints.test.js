@@ -4,7 +4,7 @@
 // bundle's filter table and on every hydrated dense row, in every mode and
 // route, on results, pins, 3F variants and a not-offered code's neighbours.
 // Each param joins the cache key (plan §2 "Response cache key"). Phrases in q
-// are not read (PARSE_PHRASES off after L7; ADR 0006).
+// are read (PARSE_PHRASES on after L8; off from L7 until then, ADR 0006).
 import { beforeAll, describe, expect, it } from 'vitest';
 import { INTENT, PARSE_PHRASES } from '../src/intents.js';
 import { searchCacheKey } from '../src/search.js';
@@ -74,13 +74,14 @@ describe('explicit params', () => {
   });
 });
 
-describe('phrases in q (PARSE_PHRASES off: ADR 0006, 3H)', () => {
-  it('are not read: nothing is interpreted or filtered', async () => {
-    expect(PARSE_PHRASES).toBe(false);
-    for (const q of ['introduction without final exam', 'introduction s/u', 'introduction light workload', 'introduction no prerequisites']) {
+describe('phrases in q (PARSE_PHRASES on after L8: ADR 0003 5F amendment, docs/evidence/phase5/gates.md)', () => {
+  it('are read as their 3H intent, and ignore= undoes each one', async () => {
+    expect(PARSE_PHRASES).toBe(true);
+    for (const [q, key] of [['introduction without final exam', 'exam'], ['introduction s/u', 'su'], ['introduction light workload', 'hoursBelow'], ['introduction no prerequisites', 'prereq']]) {
       const { body } = await callJson(`/search?q=${encodeURIComponent(q)}&topK=50`, { fakes });
-      expect(body.filters, q).toEqual({});
-      expect(body.interpreted, q).toMatchObject({ exam: null, su: null, hoursBelow: null, prereq: null });
+      expect(body.interpreted[key], q).not.toBeNull();
+      const undone = await callJson(`/search?q=${encodeURIComponent(q)}&topK=50&ignore=${key}`, { fakes });
+      expect(undone.body.interpreted[key], `${q} ignore=${key}`).toBeNull();
     }
   });
 });
