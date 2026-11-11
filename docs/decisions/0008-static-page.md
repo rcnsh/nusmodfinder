@@ -67,6 +67,13 @@ critique (V1) and a provenance gap (P3). SC4's parsed-phrase items carry over fr
   semester's timetable (a fix on its own, with its own gate); then the 5F dev screen runs again
   on a phrases-on candidate. L8 is taken only if that screen passes.
 
+## Jacob's ruling R3 (2026-11-11, red team)
+A NUS prerequisite that requires an undergraduate year of study ("If undertaking an Undergraduate
+Degree THEN must be Year 4"; 942 courses carry a "must be Year N" rule) does not change a
+course's exchange status, but when the student's home year is below N the course carries an
+"ask NUS" note: NUS lists it for Year N students, so the student asks the department whether
+their home year counts. The red team's expected answer for such a course is "ask NUS".
+
 ## Lead decision 2026-11-11: SC8's axe gate is WCAG AA
 SC8's "axe-core zero violations" runs every axe rule, the AAA ones included, except
 `color-contrast-enhanced` (WCAG AAA's 7:1). The plan's contrast bar is WCAG AA (§3 5D: 4.5:1 text,
