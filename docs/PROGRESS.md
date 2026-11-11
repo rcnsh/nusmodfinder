@@ -1136,3 +1136,14 @@ fails on the previous code.
   the local UI server before the deploy and again live.
 - **Next:** 5G pre-ship (SC2 for every fixture code, D's remaining mockup details, the live-check
   script), the VoiceOver walkthrough, then the page deploy.
+
+## 2026-11-11 — Phase 5 5G pre-ship merged
+
+- **PR #77** (`b234266`): SC2 in CI over all 434 fixture codes; design D's remaining mockup
+  details (hidden-code stamps and "Switch to Sem 2", "Also as" links with "Opened from", the
+  detail head, "n courses shown" for code queries); `scripts/p5-live.mjs`, the post-deploy live
+  check (about 100 requests ≥ 4 s apart; 32 of 32 against the local UI server).
+- **Blocked on Jacob:** the VoiceOver walkthrough on the local UI server (the plan's pre-deploy
+  step), and whether to pursue phrase parsing after the failed dev screen.
+- **Then:** the code-only page deploy, the pin move with the custodian's store-only run and
+  differing-lists count, `p5-live.mjs`, the red team.
