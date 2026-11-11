@@ -15,7 +15,8 @@ courses never shown as takeable), SC2 and SC8 must keep holding with the shortli
 The data holds no syllabus, only NUS's course description; `/search` carries no description or
 workload; `pick` and `alt` were reserved in Phase 5. The page's users now are Sem 2 2026/27
 students changing courses in CourseReg and 2027/28 applicants, who apply from March on the
-2026/27 data.
+2026/27 data. The page is public as NUS Mod Finder at `https://nusmodfinder.rcn.sh` (ADR 0009):
+the export's title, footer and links use that name and canonical URL, and live checks target it.
 
 ## Decisions
 - **The list lives in the URL**: `pick` and `alt` repeated in rank order, each `CODE.S` or an
