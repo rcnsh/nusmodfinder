@@ -74,6 +74,20 @@
 //  Y4  "or greater" (and higher, better, above, more) after a GPA or units figure is a comparison, not OR.
 //  Y5  Several binding items: the one with the highest lowest year. The note fires when the home year
 //      (ug1..ug4 = 1..4) is below that lowest year; a home year above every year named is not R3's case.
+//
+// R6-2 (Jacob's ruling, docs/decisions/0010-phase6-shortlist-plan.md): NUS Global (GRO), "Incoming Exchange
+// Students": "Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very
+// limited supply and are usually NOT available to exchange students." It leaves the status above alone, but
+// a course that is not closed gets it as a note (a condition, like a quota). explainShown() and
+// oracleShown() add it. Read here as:
+//  G1  NUS's undergraduate courses run from 1000 to 4000 (the "Exchange at NUS" brochure: "1000–3000:
+//      Undergraduate courses; 4000: Honours courses; 5000–6000: Not open to exchange students"; rule D:
+//      level 5000 and 6000 courses are graduate courses). So the undergraduate courses "from 4000 & above"
+//      are those whose code's first digit is 4. A graduate course is rule D's and the departments' business.
+//  G2  Undergraduate exchange students only (ug1..ug4): GRO's list is of "courses available to undergraduate
+//      exchange students" (phase 6 plan, C5-m1: no note for a graduate).
+//  G3  Not Law (C5-m1): §5 opens only LL4 electives to exchange students, so every Law course on the list
+//      is level 4000 and NUS Law, not the general pool, decides who takes it. By NUSMods `faculty` (D3).
 
 const RANK = { open: 0, note: 1, closed: 2 };
 
@@ -332,15 +346,25 @@ export function yearNoteOf(m, study) {
   return `R3: NUS's prerequisite lists it for Year ${years.join('/')}`;
 }
 
-/** explain() plus R3's note: what a card shows. */
+// ---- R6-2: GRO's level 4000 note -----------------------------------------------------------------------
+
+/** R6-2's note for (m, study) (G1-G3), or null. */
+export function levelNoteOf(m, study) {
+  if (!['ug1', 'ug2', 'ug3', 'ug4'].includes(study)) return null;
+  const firstDigit = (String(m.code).match(/\d/) || [''])[0];
+  if (firstDigit !== '4' || m.faculty === 'Law') return null;
+  return 'R6-2: GRO, level 4000 undergraduate courses have very limited supply';
+}
+
+/** explain() plus R3's and R6-2's notes: what a card shows. */
 export function explainShown(m, ctx) {
   const e = explain(m, ctx);
   if (e.result === 'closed') return e;
-  const year = yearNoteOf(m, ctx.study);
-  return year ? { result: 'note', closed: [], notes: [...e.notes, year] } : e;
+  const added = [yearNoteOf(m, ctx.study), levelNoteOf(m, ctx.study)].filter(Boolean);
+  return added.length ? { result: 'note', closed: [], notes: [...e.notes, ...added] } : e;
 }
 
-/** oracle() plus R3's note. */
+/** oracle() plus R3's and R6-2's notes. */
 export function oracleShown(m, ctx) {
   return explainShown(m, ctx).result;
 }

@@ -54,3 +54,21 @@ the pin `8a86bf6`, sha256 of each run's `results` (first 16):
 Holdout, custodian only: `run-shipped-0b5f360` stored with `--store-only` (81 queries, no
 verdict, no ledger row); `eval:count --lists-differing --run shipped-0b5f360 --baseline
 shipped-8a86bf6` printed `0`. `SHIPPED_BASELINE` is `0b5f360`; holdout looks stay at 8 of 12.
+
+## R6-2: GRO's level 4000 note is ranking-neutral (no pin move)
+
+Jacob's ruling R6-2 (ADR 0010) adds `src/level-note.js` and calls it from `exchangeAt`
+(`src/ng-reasons.js`); `src/modules.js` passes an NG-listed 404's level and faculty to it. The
+note is read per request and never closes, opens or reorders anything; `data/` is untouched.
+`src/` is a ranker file, so `ranker.treeHash` differs (`efcb1ef20e94` at the pin, `bbc2e8ad47c8`
+at `95f71db`; both clean). Local eval runs at `95f71db` against `SHIPPED_BASELINE` (`0b5f360`),
+sha256 of each run's `results` (first 16):
+
+| run | queries | results sha256 (first 16) | identical |
+|---|---|---|---|
+| dev, the queries' filters | 98 | `21245ed8fe04ba32` both | yes |
+| dev, `--strip ng` | 98 | `62e5ab9a8150508f` both | yes |
+| dev, `--unfiltered` | 98 | `a7593696c94b041a` both | yes |
+| fixture, `--strip ng` | 11 | `7a5d58bbe50972c0` both | yes |
+
+The four equal 6E's. No holdout run, no count and no look; holdout looks stay at 8 of 12.

@@ -81,6 +81,25 @@ Jacob, 2026-11-11, each the plan's recommendation:
   admitted-students box quotes rule E (off-list courses "may be available during Course
   registration"), which it already does.
 
+### R6-2: how it ships
+Like R3, code-only and read per request (`src/level-note.js`, called by `exchangeAt`
+in `src/ng-reasons.js`), id `gro:level-4000`, kind `supply` (a condition in `public/shortlist.js`,
+lead-in "Places."). The shortlist's own copy of the line is gone, so the note shows once. Scope,
+from the sources: level 4 only (NUS's undergraduate courses run to 4000, the brochure's "4000:
+Honours courses"; rule D makes 5000 and 6000 graduate courses, which rule D and the departments
+govern); undergraduate students only and not Law, as C5-m1 already decided for the shortlist's
+line. Over the pinned corpus 245 offered courses carry it, all on the NG list; the SC1 oracle reads
+it on its own (G1 to G3) and agrees on every offered code. The ranking is unchanged
+(`docs/evidence/phase6/gates.md`, "R6-2").
+
+### RT6-SA2: one timetable month
+The export said NUS publishes the exam timetable "in July or August" (GRO: "Class & Examination
+Timetables - update in July or August") and the form section and exam flag "in mid-July" (the
+Registrar's NG course list: "Timetable for the new academic year will be published mid-July").
+Both hold, and mid-July sits inside GRO's window, so the page now says one thing true to both
+everywhere: "in July or August (the Registrar says mid-July)"; the export's line cites NUS Global
+and the Registrar the same way.
+
 ## Dissent
 - **B-7 (round 1):** a second, Excel-only CSV for `;` locales. Declined: beyond SC3's CSV; a
   hint beside the button and in the file's foot points to Data › From Text/CSV.

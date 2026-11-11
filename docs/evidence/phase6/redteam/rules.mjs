@@ -11,7 +11,7 @@
 // The table (most restrictive wins: no > ask NUS > yes if > yes):
 //   closed                                  -> no
 //   open, no note                           -> yes
-//   quota, approval                         -> yes if (the condition)
+//   quota, approval, supply                 -> yes if (the condition)
 //   graded, fee, major, letter              -> yes if the brief meets it, no if it doesn't,
 //                                              yes if (unsettled) when the brief doesn't say
 //   partner                                 -> set by the brief if it says, else ask NUS
@@ -25,6 +25,13 @@
 //   a course NUS already gave the student at its offer (brief `given`), not closed -> yes
 //   audition                                -> ask NUS: apply separately
 //   an NG-listed 404 (NG-listed, no classes) -> ask NUS (closed by NUS's restrictions -> no)
+//
+// After the run, Jacob's ruling R6-2 (2026-11-12, ../redteam.md "Rulings and
+// follow-up", ADR 0010): GRO's level-4000 sentence is a condition like a
+// quota. The oracle's explainShown() gives it as an `R6-2:` note (its G1-G3:
+// a level 4000 course outside Law, for an undergraduate), kind `supply`, so
+// such a course expects "yes if there's a place"; expected.json was rebuilt
+// with this script's expected.mjs.
 //
 // "When the brief doesn't say" (null) is new in Phase 6: the advisor persona
 // answers from the link and the PDF alone, so it knows none of the student's
@@ -50,6 +57,7 @@ export const ORDER = /** @type {const} */ (['no', 'ask', 'yes-if', 'yes']);
 export const NOTE_KINDS = [
   [/^R2: /, 'semester'],
   [/^R3: /, 'year'],
+  [/^R6-2: /, 'supply'],
   [/^C2 restricted elsewhere: /, 'restricted-elsewhere'],
   [/^Business: must be majoring in business/, 'major', 'business'],
   [/^Law: must be majoring in Law/, 'major', 'law'],
@@ -83,7 +91,7 @@ const fact = (v) => (v === true ? 'yes' : v === false ? 'no' : 'yes-if');
  */
 export function noteAnswer(k, brief) {
   switch (k.kind) {
-    case 'quota': case 'approval': return 'yes-if';
+    case 'quota': case 'approval': case 'supply': return 'yes-if';
     case 'graded': return fact(brief.acceptsGraded);
     case 'fee': return fact(brief.acceptsFee);
     case 'major': return brief.majors === null ? 'yes-if' : brief.majors.includes(/** @type {string} */ (k.major)) ? 'yes' : 'no';

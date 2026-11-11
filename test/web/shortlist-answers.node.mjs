@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import { URL, fileURLToPath } from 'node:url';
 import { bitOf, NG_SEMS, OFF_NG_LIST, STUDIES } from '../../src/ng-bit.js';
 import { moduleWorkload } from '../../src/workload.js';
+import { levelNote } from '../../src/level-note.js';
 import { yearNote } from '../../src/year-note.js';
 
 /** @param {string} rel */
@@ -33,7 +34,8 @@ export const reason = (id) => {
 
 /**
  * src/ng-reasons.js exchangeAll over a fixture row: closed where the allow
- * bit is clear, else open or noted, with the stored reasons and R3's year note.
+ * bit is clear, else open or noted, with the stored reasons, R3's year note
+ * and R6-2's GRO level 4000 note.
  * @param {any} m a fixture module
  */
 function exchangeOf(m) {
@@ -44,6 +46,8 @@ function exchangeOf(m) {
     if (((m.ngAllow ?? 0) & bit) === 0) return { sem, study, status: 'closed', reasons };
     const year = yearNote(m.prerequisite, study);
     if (year) reasons.push(year);
+    const level = levelNote(m, study);
+    if (level) reasons.push(level);
     return { sem, study, status: reasons.length ? 'note' : 'open', reasons };
   }));
 }

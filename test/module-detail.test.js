@@ -136,14 +136,23 @@ describe('/module/:code for the shortlist (6A)', () => {
 
   it('leaves every other field of every fixture course byte-identical to 5D\'s answer', async () => {
     const lines = [];
+    let gro = 0;
     for (const m of [...fixture.modules].sort((a, b) => (a.code < b.code ? -1 : 1))) {
       const { status, body } = await callJson(`/module/${m.code}`);
       expect(status, m.code).toBe(200);
       expect(body.gradingBasis, m.code).toBe(m.gradingBasis);
       delete body.gradingBasis;
       delete body.otherCodes;
+      // R6-2 (ADR 0010) adds GRO's level 4000 note after 5D; without it, an entry is 5D's to the byte.
+      for (const e of body.exchange) {
+        const kept = e.reasons.filter((/** @type {any} */ r) => r.id !== 'gro:level-4000');
+        gro += e.reasons.length - kept.length;
+        e.reasons = kept;
+        if (e.status === 'note' && !kept.length) e.status = 'open';
+      }
       lines.push(JSON.stringify(body));
     }
+    expect(gro).toBeGreaterThan(0);
     expect(await sha256Hex(lines.join('\n'))).toBe(BODIES_BEFORE_6A);
   });
 

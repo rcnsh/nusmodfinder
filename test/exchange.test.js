@@ -11,7 +11,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
 import { reasonsFor } from '../src/ng-reasons.js';
 import { searchCacheKey } from '../src/search.js';
-import { oracle, oracleShown, yearNoteOf } from './sc1/oracle.node.mjs';
+import { levelNoteOf, oracle, oracleShown, yearNoteOf } from './sc1/oracle.node.mjs';
 import { BASE, adminCall, callJson, fixture, seed } from './helpers.js';
 
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
@@ -264,6 +264,83 @@ describe('R3 (ADR 0008): the year-of-study note, read from the prerequisite on e
       const { body } = await callJson(`/search?q=resource%20management&ng=1&study=${study}&sem=2&topK=50`, { fakes });
       for (const code of shown(body)) expect(shownByOracle(code, 2, study), `${study} ${code}`).toBe(true);
       expect(shown(body), study).toContain('ESE3101');
+    }
+  });
+});
+
+describe('R6-2 (ADR 0010): GRO\'s level 4000 note, a condition on every path', () => {
+  // PC4262: level 4000 (Science), on the NG list for both semesters, no stored note in Sem 1.
+  const pc = /** @type {NormalisedModule} */ (moduleOf.get('PC4262'));
+  // LL4295: level 4000 Law, on the NG list for Sem 2 (C5-m1: Law is outside the note).
+  const ll = /** @type {NormalisedModule} */ (moduleOf.get('LL4295'));
+  const GRO = 'gro:level-4000';
+  /** @param {any} e */
+  const ids = (e) => (e?.reasons ?? []).map((/** @type {any} */ r) => r.id);
+
+  it('the fixture has the cases: the Registrar\'s lists open PC4262 in Sem 1 to everyone, and GRO\'s note covers undergraduates only, never Law', () => {
+    expect(pc).toMatchObject({ level: 4, faculty: 'Science', ngSemesters: [1, 2] });
+    for (const study of STUDIES) expect(oracle(pc, { sem: 1, study }), study).toBe('open');
+    expect(STUDIES.map((study) => levelNoteOf(pc, study) !== null)).toEqual([true, true, true, true, false]);
+    expect(ll).toMatchObject({ level: 4, faculty: 'Law' });
+    expect(STUDIES.map((study) => levelNoteOf(ll, study))).toEqual([null, null, null, null, null]);
+  });
+
+  it('an undergraduate sees PC4262 open with 1 note on the pin, the bundle, a vector search, the standby and the mask route; a graduate sees it open', async () => {
+    for (const study of STUDIES) {
+      for (const [q, extra, envOver] of /** @type {[string, string, Record<string, string>][]} */ ([
+        ['PC4262', '&mode=lexical', {}], ['remote sensing', '', {}],
+        ['remote sensing', '&mode=vector', {}], ['remote sensing', '', { DENSE_BACKEND: 'vectorize' }],
+        ['PC42', '', {}],
+      ])) {
+        const path = `/search?q=${encodeURIComponent(q)}&ng=1&study=${study}&sem=1&topK=50${extra}`;
+        const { body } = await callJson(path, { fakes, env: envOver });
+        const card = body.results.find((/** @type {any} */ r) => r.code === 'PC4262');
+        const where = `${path} ${envOver.DENSE_BACKEND ?? ''}`;
+        expect(card, where).toBeDefined();
+        expect(card.exchange.status, where).toBe(oracleShown(pc, { sem: 1, study }));
+        expect(card.exchange.status, where).toBe(study === 'grad' ? 'open' : 'note');
+        expect(ids(card.exchange), where).toEqual(study === 'grad' ? [] : [GRO]);
+      }
+    }
+  });
+
+  it('the note is GRO\'s sentence with GRO named, kind `supply`, after the stored reasons', async () => {
+    const { body } = await callJson('/search?q=PC4262&ng=1&study=ug3&sem=1&mode=lexical', { fakes });
+    const card = body.results.find((/** @type {any} */ r) => r.code === 'PC4262');
+    expect(card.exchange).toEqual({
+      status: 'note',
+      reasons: [{ id: GRO, kind: 'supply', text: 'GRO: “Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students. In order to increase the chances of securing enough courses, incoming exchange students should consider taking courses with course code starting from 1000 to 3000”' }],
+    });
+    // Sem 2: the NG list's timetable note first, then GRO's.
+    const s2 = await callJson('/search?q=PC4262&ng=1&study=ug3&sem=2&mode=lexical', { fakes });
+    expect(ids(s2.body.results.find((/** @type {any} */ r) => r.code === 'PC4262').exchange)).toEqual(['ng-list:nusmods-semester-differs', GRO]);
+  });
+
+  it('exchangeBySem: with no semester, each semester carries the note once', async () => {
+    const { body } = await callJson('/search?q=PC4262&ng=1&study=ug1&mode=lexical', { fakes });
+    const card = body.results.find((/** @type {any} */ r) => r.code === 'PC4262');
+    expect(ids(card.exchange)).toEqual([GRO]);
+    expect(ids(card.exchangeBySem[1])).toEqual([GRO]);
+    expect(ids(card.exchangeBySem[2])).toEqual(['ng-list:nusmods-semester-differs', GRO]);
+  });
+
+  it('/module/:code: every entry equals the oracle with the note, which is on every shown undergraduate entry and nowhere else', async () => {
+    for (const [code, m] of /** @type {[string, NormalisedModule][]} */ ([['PC4262', pc], ['LL4295', ll], ['CS4212', moduleOf.get('CS4212')]])) {
+      const { body } = await callJson(`/module/${code}`);
+      expect(body.exchange).toHaveLength(15);
+      for (const e of body.exchange) {
+        const where = `${code} ${e.sem} ${e.study}`;
+        expect(e.status, where).toBe(oracleShown(m, { sem: e.sem, study: e.study }));
+        expect(ids(e).filter((/** @type {string} */ id) => id === GRO), where).toEqual(e.status !== 'closed' && e.study !== 'grad' && code !== 'LL4295' ? [GRO] : []);
+      }
+    }
+  });
+
+  it('never hides or shows a course: the set shown for each study level is the stored one', async () => {
+    for (const study of STUDIES) {
+      const { body } = await callJson(`/search?q=PC4&ng=1&study=${study}&sem=1&topK=50`, { fakes });
+      for (const code of shown(body)) expect(shownByOracle(code, 1, study), `${study} ${code}`).toBe(true);
+      expect(shown(body), study).toContain('PC4262');
     }
   });
 });

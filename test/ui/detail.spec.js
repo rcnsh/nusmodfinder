@@ -62,6 +62,19 @@ test('exchange status on the card, one semester: every note in full, the semeste
   ]);
 });
 
+test('[R6-2] a level 4000 course: "Open, with 1 note" on the card, GRO\'s sentence led "Places.", and in the detail with GRO\'s page; a graduate sees "Open"', async ({ page }) => {
+  const gro = 'GRO: “Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students. In order to increase the chances of securing enough courses, incoming exchange students should consider taking courses with course code starting from 1000 to 3000”';
+  await page.goto('/?q=PC4262&ng=1&study=ug2&sem=1&open=PC4262');
+  const c = card(page, 'PC4262');
+  await expect(c.locator('.exchange-status').first()).toHaveText('Sem 1 · Open, with 1 note');
+  await expect(c.locator('.exchange-status').first()).toHaveAttribute('data-status', 'note');
+  await expect(c.locator('.exchange .notes li')).toHaveText([`Places. ${gro}`]);
+  const d = await region(page, 'PC4262');
+  await expect(d.locator('.exchange-sem-block').first()).toHaveText(`Sem 1 · Open, with 1 noteYour semesterPlaces. ${gro}GRO, Incoming Exchange Students`);
+  await page.goto('/?q=PC4262&ng=1&study=grad&sem=1');
+  await expect(card(page, 'PC4262').locator('.exchange-status').first()).toHaveText('Sem 1 · Open to exchange students');
+});
+
 test('exchange status on the card, both semesters: one line per semester, never a merged value', async ({ page }) => {
   await page.goto('/?q=CS3244&ng=1&study=ug2');
   await expect(card(page, 'CS3244').locator('.exchange-status')).toHaveText(['Sem 1 · Not open', 'Sem 2 · Open']);
