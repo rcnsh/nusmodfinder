@@ -252,3 +252,10 @@ Found sound, with evidence in `security.md`:
   or ruled out of scope. Neither changes an exchange answer.
 - **The security and plain-language findings** are reported for the lead to triage. None is a
   high-severity issue.
+
+## Rulings and follow-up (lead, 2026-11-11)
+- **R3, ruled by Jacob:** a "must be Year N" prerequisite adds an "ask NUS" note for a home year
+  below N; the status otherwise stands (ADR 0008). p1's `ask NUS` on AR4601 is therefore the
+  expected answer, and the page gets the note.
+- **PD1, PD2, S1–S3 and the 26 plain-language findings that could mislead or leave a student
+  unsure** are being fixed in one code-only change; exit waits for it to ship and be checked live.
