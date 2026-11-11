@@ -11,3 +11,4 @@ holdout ledger never reads this file and refuses a row copied from it.
 | 2026-11-07 | holdout | count: lists differing (inline custodian script, not eval:count; logged after the fact) | 3h vs 3h-r | 1 |
 | 2026-11-07 | holdout | count: lists differing (inline custodian script, not eval:count; logged after the fact) | 3h-p vs shipped-f004351 | 0 |
 | 2026-11-10 | holdout | count: lists-differing | shipped-f798542 vs shipped-9d91605 | 0 |
+| 2026-11-11 | holdout | count: lists-differing | shipped-fdec96f vs shipped-f798542 | 0 |
