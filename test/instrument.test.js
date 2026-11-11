@@ -111,7 +111,8 @@ describe('Server-Timing on /search', () => {
 });
 
 describe('Server-Timing on /module and /facets', () => {
-  it.each(['/module/CS1010S', '/module/XX9999', '/facets'])('%s reports d1 and total', async (path) => {
+  // 6A: a 404 too, whichever kind: an ng-listed code (no catalogue read), a code in no table (two reads, one span).
+  it.each(['/module/CS1010S', '/module/XX9999', '/module/EE4407', '/facets'])('%s reports d1 and total', async (path) => {
     const res = await call(path);
     const spans = parseTiming(res.headers.get('server-timing'));
     expect(Object.keys(spans)).toEqual(['d1', 'total']);

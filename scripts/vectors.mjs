@@ -24,8 +24,9 @@
 //       rebuild with --extra <cache.json>. Also writes src/data-version.json,
 //       computed offline from the rows ingest will write (B3-4), and
 //       data/vocabulary.json, 3C's vocabulary of the same corpus
-//       (scripts/build-vocabulary.mjs), and data/groups.json, 3F's duplicate
-//       groups (scripts/build-groups.mjs).
+//       (scripts/build-vocabulary.mjs), data/groups.json, 3F's duplicate
+//       groups (scripts/build-groups.mjs), and data/ng-unscheduled.json, 6A's
+//       NG-listed codes with no classes (scripts/build-ng-unscheduled.mjs).
 //
 // Each build records the bundle in data/vectors.json: data version, embedding
 // version, count, sha256 and rowsKey, the sha256 of the sorted
@@ -53,6 +54,7 @@ import { hashEmbed } from '../test/fakes.js';
 import { encodeBundle, parseBundle } from '../src/vector-bundle.js';
 import { dataVersion, rowHash } from '../src/rowhash.js';
 import { writeProductionGroups } from './build-groups.mjs';
+import { writeProductionNgUnscheduled } from './build-ng-unscheduled.mjs';
 import { writeProductionVocabulary } from './build-vocabulary.mjs';
 import { dataVersionFile, httpAdminApi, parseDuration, DATA_VERSION_PATH } from './ingest.mjs';
 import {
@@ -211,9 +213,10 @@ async function build(argv, log) {
     log(`  src/data-version.json -> ${dv} (offline, from the rows ingest will write)`);
     log(`  ${await writeProductionVocabulary(modules)} -> the 3C vocabulary of the same corpus`);
     log(`  ${await writeProductionGroups(modules)} -> the 3F duplicate groups of the same corpus`);
+    log(`  ${await writeProductionNgUnscheduled(modules)} -> 6A's NG-listed codes with no classes, from the same moduleInfo`);
   }
   log(`upload: gh release create ${asset.replace(/\.bin$/, '')} ${relative(ROOT, bin)} --title "${asset}" --notes "vectors bundle, sha256 ${manifest.bundles[corpus]?.sha256}"`);
-  log('then commit data/vectors.json' + (corpus === 'production' ? ', src/data-version.json, data/vocabulary.json and data/groups.json (runbook step 1)' : ''));
+  log('then commit data/vectors.json' + (corpus === 'production' ? ', src/data-version.json, data/vocabulary.json, data/groups.json and data/ng-unscheduled.json (runbook step 1)' : ''));
   return 0;
 }
 

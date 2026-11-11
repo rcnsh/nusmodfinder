@@ -22,8 +22,8 @@ filter by semester, level, credits and faculty.
 |---|---|
 | `GET /` | The page: `public/`, served as Workers Static Assets (no Worker CPU); native ES modules, no framework, no build step ([below](#the-page)) |
 | `GET /search?q=&sem=&level=&credits=&faculty=&ng=&study=&topK=&mode=` | Ranked results as JSON |
-| `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study, its exams, its workload and its NUSMods link (below) |
-| `GET /facets` | Distinct faculties and levels, with counts, for the filter UI, and the exchange-mode sources with their dates |
+| `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study, its exams, its workload, its NUSMods link, its grading basis and its other codes; a 404 says which kind of miss it is (below) |
+| `GET /facets` | Distinct faculties and levels, with counts, for the filter UI, the exchange-mode sources with their dates, and NUS's rules about courses off the exchange list (`offListRules`, below) |
 
 `ng=1` is **exchange mode**: only courses an exchange (Non-Graduating) student may take, under
 the Registrar's NG course list and course restrictions (below). It needs `study=ug1|ug2|ug3|ug4|grad`,
@@ -40,8 +40,35 @@ semester with an exam (`date` ISO UTC as NUSMods gives it; `[]` for none); `work
 `{ lecture, tutorial, lab, project, prep, total }` hours a week, `{ raw }` when NUSMods gives
 something other than its 5-number array (two modules give a string), or `null` when not listed
 (absent or all zero); `nusmodsUrl`, where the class times are; and (5D) `prereqCohortOnly`, the
-stored 3H-0 flag that the prerequisite names only NUS intake years or programmes. It is cached
+stored 3H-0 flag that the prerequisite names only NUS intake years or programmes. Phase 6 6A adds
+`gradingBasis` (NUSMods' text, e.g. `"Graded"` or `"Completed Satisfactory/Unsatisfactory"`) and
+`otherCodes`, the course's duplicate group (3F, `src/group-data.js`) other than itself, `[]` when
+none; both come after `prereqCohortOnly`, and no other field changed. It is cached
 `public, max-age=300` on a 200, `public, max-age=60` on a 404 and `no-store` on a 5xx, with no ETag.
+
+A 404 (6A) is `{ error: "not_found", kind, message, acadYear, … }`, `kind` one of:
+- `ng-listed`: on the NG list but with no classes in NUSMods this year (40 codes in 2026/27, e.g.
+  EE4407), from `data/ng-unscheduled.json` (below), with no D1 read past the row's. It carries the
+  fields a row has (`code`, `title`, `description`, `credits`, `faculty`, `department`, `level`,
+  `ngSemesters`, `workload`, `prerequisite`, `preclusion`, `gradingBasis`, `otherCodes`),
+  `semesters: []`, `ng: true`, `examDates: []`, `nusmodsUrl`, and `exchange` built from the
+  file's allow mask by the same function a row's uses, so it reads like a row with no classes;
+- `catalogue-only`: a `catalogue_only` row (in the catalogue, not offered this year), with its
+  `code`, `title` and `description`;
+- `unknown`: neither, or no `catalogue_only` table yet.
+
+`acadYear` is the file's, the catalogue row's, else `data/ng-reasons.json`'s. A row always wins
+over the file. A 404 not in the file costs a second D1 read, timed under the same `d1` span; any
+failed read but a missing table is a 5xx with `no-store`. An answer from before 6A has no `kind`;
+read it as `unknown`. The page's fetch layer (`public/api.js`) passes a JSON error body's fields,
+its `message` left out, through as `error.detail`, and keeps a 404 as final for the page.
+
+`/facets` (6A) carries `offListRules: [{ id, text, scope }]` beside `ngSources`: NUS's four rules
+about courses off the exchange list (`E-offerings-list`, `2-biz-no-late-add`, `4-cee-no-appeal`,
+`4-isem-no-appeal`), each quoted from the restrictions PDF, with the scope it states
+(`{ departments, levels }` or `{ faculties }`, matched on a row's fields, never by code prefix;
+`{}` for every course). They are the rules file's `info` entries with a `text`, passed through
+`data/ng-reasons.json`.
 
 `/search` (Phase 5 5C-api) also answers, on every 200, what the page needs to explain a typed
 code. None of it changes which results show or their order:
@@ -51,6 +78,11 @@ code. None of it changes which results show or their order:
   Empty on routes that pin nothing (a whole-query partial code or prefix, `noMatch`).
 - `notOffered: [code]`: the typed codes that are in the catalogue but not offered this year,
   also inside a longer query (a whole-query one still answers `noMatch: { reason: "not-offered" }`).
+  6A: an NG-listed code with no classes (`data/ng-unscheduled.json`) counts as not offered here
+  even where `data/catalogue-codes.json` lacks it, and as a whole query answers
+  `noMatch: { reason: "ng-unscheduled", code, title, ngSemesters, related }` instead of
+  `not-offered` or `unknown-code`; the page says "NUS lists EE4438 (Solar Cells and Modules) for
+  Sem 2, but NUSMods shows no classes for it this academic year." The parse is untouched.
 - each result's `examDates`, as `/module/:code` gives them (`[]` for none);
 - under `ng=1` with no `sem`, each result's `exchangeBySem: { "1": …, "2": … }`: the
   `{ status: "open" | "note" | "closed", reasons }` for each semester at the `study` level, beside
@@ -103,7 +135,23 @@ each bundle's data version, row count, sha256 and `rowsKey`, the sha256 of its s
 `data/vocabulary.json` and `data/groups.json` (deploy adds no `--alias` for them), the Vitest
 configs at the fixture's or the pinned corpus's, `test/wrangler.ui.jsonc` at the fixture's, and
 `vitest.eval.config.mjs` at each eval run's own workspace copies, so a run never ranks with
-the wrong vocabulary.
+the wrong vocabulary. 6A's `ng-unscheduled-data` (`src/ng-unscheduled.js`) is aliased the same
+way: `data/ng-unscheduled.json` in production, `test/fixtures/ng-unscheduled.json` for the Worker
+tests and the UI stack, the pinned corpus's (built in memory into `.data/ng-unscheduled/`) for
+`test/full` and `test/sc1`, and the eval workspace's committed copy. Only `/module`'s 404 and
+`/search`'s no-match answer read it, so it never touches a ranking.
+
+**NG-listed codes with no classes** (6A). NUS lists 40 codes for exchange students in 2026/27
+that NUSMods offers no classes for, so D1 has no row for them. `data/ng-unscheduled.json` holds
+each one's fields, its other codes (groups-v1 over the offered rows plus the file's codes, so
+FIN3701B gets FIN3701A, C and D) and the allow mask and rule ids `eligibility()` gives it, as
+ingest stores for a row. `node scripts/build-ng-unscheduled.mjs --corpus production` writes it
+from the moduleInfo cache, refused unless that corpus is the production bundle's;
+`vectors.mjs build --corpus production` rewrites it with the bundle. `--corpus fixture` writes
+`test/fixtures/ng-unscheduled.json` from `test/fixtures/ng-unscheduled-source.json` (six records
+copied from the cache); `--check` rebuilds in memory and exits 1 on a difference.
+`test/ng-unscheduled.node.test.js` recomputes every entry's mask from its own fields, so a
+stale one fails CI.
 
 **Vectorize is the standby.** `DENSE_BACKEND=vectorize` (a wrangler var, flipped by a
 deploy) sends the dense half back to Vectorize, with the same filters. That is degraded
@@ -452,7 +500,12 @@ node scripts/vectors.mjs build --corpus production --expect-count <rows> --offli
 npm run eval:embed -- --texts .data/vectors/missing-production.json --out .data/vectors/extra-production.json
 node scripts/vectors.mjs build --corpus production --expect-count <rows> --offline --extra .data/vectors/extra-production.json
 gh release create <release> .data/vectors/<asset> --title <asset> --notes "vectors bundle, sha256 <sha256>"
-git add data/vectors.json src/data-version.json data/vocabulary.json data/groups.json   # the build rewrites 3C's vocabulary and 3F's groups too; plus any code the change needs; open a PR
+#    For a new acad year, rebuild the reason texts from that year's rules file first:
+node scripts/build-ng-reasons.mjs
+#    The build rewrites 6A's NG-listed codes with no classes too; both checks must pass:
+node scripts/build-groups.mjs --corpus production --check
+node scripts/build-ng-unscheduled.mjs --corpus production --check
+git add data/vectors.json src/data-version.json data/vocabulary.json data/groups.json data/ng-unscheduled.json data/ng-reasons.json   # the build rewrites 3C's vocabulary, 3F's groups and 6A's file too; plus any code the change needs; open a PR
 #    A new acad year also updates public/year.js and the header in public/index.html (the page's
 #    year before a row loads; test/web/shortlist.node.test.js checks both against data/ng-reasons.json).
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
@@ -462,7 +515,9 @@ echo "INGEST_SECRET=$INGEST_SECRET" > .dev.vars     # gitignored
 npx wrangler dev --remote --port 8791 &             # binds the real D1/Vectorize/AI (8787 is taken on the dev Mac)
 # 4. D1 only: no Workers AI, no Vectorize. Refuses unless the corpus hashes to the committed data version.
 npm run ingest -- --year 2026-2027 --url http://localhost:8791 --d1-only --offline
-# 5. D1 against the manifest and the bundle, before the deploy. Reads no Vectorize.
+# 5. D1 against the manifest and the bundle, before the deploy. Reads no Vectorize. 6A: also
+#    data/ng-reasons.json's and data/ng-unscheduled.json's acadYear equal D1's acad_year, and the
+#    latter holds exactly the NG codes with no D1 row.
 npm run verify -- --url http://localhost:8791 --pre-deploy
 # 6. Guard, startup gate, promote. The guard starts its own dev session, on a free port.
 npm run deploy
@@ -475,7 +530,9 @@ node scripts/vectors.mjs standby --url http://localhost:8791
 
 Log every remote D1 operation, reads included, in `remote-ops.md`. Between steps 4 and 6 the
 live Worker searches its old bundle against the new D1, so `/search` re-checks every dense-only
-candidate's filters against its fresh D1 row after hydrate and drops those that fail.
+candidate's filters against its fresh D1 row after hydrate and drops those that fail. Its old
+groups and `ng-unscheduled.json` sit beside the new rows too: a code that gained a row answers
+from the row, and `otherCodes` is only compared within one shortlist.
 
 `npm run ingest` without `--d1-only` still embeds and upserts as described below, for a
 database with no bundle to match (a local one, or a cold load).
@@ -630,7 +687,7 @@ billed, not refused, and this project stays inside them.
 
 | | Workers Paid, included | cost here |
 |---|---|---|
-| D1 rows read | 25,000,000,000 / month | per search: unfiltered 137–239 (median 239), filtered 249–1,784 (median 497), measured on 36 production searches with SC7 ([`sc7.md`](evidence/phase1/sc7.md); local grid: [`lexical-cost.md`](evidence/phase1/lexical-cost.md)); 1 per page load; ~6.8k per deploy (the guard) and per standby refresh |
+| D1 rows read | 25,000,000,000 / month | per search: unfiltered 137–239 (median 239), filtered 249–1,784 (median 497), measured on 36 production searches with SC7 ([`sc7.md`](evidence/phase1/sc7.md); local grid: [`lexical-cost.md`](evidence/phase1/lexical-cost.md)); 1 per page load; 1 per `/module/:code` (2 on a 404 for a code outside `data/ng-unscheduled.json`); ~6.8k per deploy (the guard) and per standby refresh |
 | D1 rows written | 50,000,000 / month | 34,383 per forced full re-ingest, measured against production on 2026-11-04 ([`remote-ops.md`](evidence/phase1/remote-ops.md)); a rerun with nothing changed writes 2; the standby refresh writes 0 |
 | Vectorize stored dims | 10,000,000 | 6,778 × 384 = **2,602,752** (26%), the standby |
 | Vectorize queried dims | 50,000,000 / month | **~0 per search** (only under `DENSE_BACKEND=vectorize`); the stored term, ~2.6M, still counts once a month |
@@ -717,6 +774,10 @@ repeats Phase 4's gate (`docs/plans/phase4.md` 4F):
   NUS updates them. The UI names each source with its date so staleness is visible. YST's Sem 2
   list is last year's until YST publishes this year's.
 - **Exchange mode covers Semesters 1 and 2.** The NG list has no special-term data.
+- **162 catalogue-only codes are unknown to `/search`.** `data/catalogue-codes.json` is built
+  from the pinned release, so codes added to the catalogue since (e.g. AI5206) get search's
+  unknown-code answer; `/module/:code` answers them as `catalogue-only`. Logged for Phase 7's
+  data work. The 9 such codes on the NG list are covered by `data/ng-unscheduled.json`.
 - **No natural-language constraint parsing.** "No Friday classes" needs the explicit filter
   parameters instead.
 - **No scheduled re-ingest.** Refresh is a manual command, once a semester.

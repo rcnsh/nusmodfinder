@@ -664,5 +664,51 @@
    "text": "Logistics Institute courses are not open to exchange students.",
    "cite": "restrictions PDF §12, p20"
   }
- }
+ },
+ "offListRules": [
+  {
+   "id": "E-offerings-list",
+   "text": "If the courses cannot be found at the Course offerings list, they are not available during application stage but may be available during Course registration.",
+   "scope": {}
+  },
+  {
+   "id": "2-biz-no-late-add",
+   "text": "If you have not been offered Business courses at the point of initial acceptance (first week of June or November), you will not be able to add the Course during the Submit Course Requests period.",
+   "scope": {
+    "faculties": [
+     "NUS Business School"
+    ]
+   }
+  },
+  {
+   "id": "4-cee-no-appeal",
+   "text": "No appeal will be accepted for any Level 1000 to Level 4000 courses that are not listed in the NG Course offerings list.",
+   "scope": {
+    "departments": [
+     "Civil and Environmental Engineering"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   }
+  },
+  {
+   "id": "4-isem-no-appeal",
+   "text": "No appeals will be accepted for any level 1000 to level 4000 courses that are not listed in the NG courses listing.",
+   "scope": {
+    "departments": [
+     "Industrial Systems Engineering and Management"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   }
+  }
+ ]
 }

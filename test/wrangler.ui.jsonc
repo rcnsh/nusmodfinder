@@ -16,11 +16,13 @@
   // As wrangler.jsonc: no binding, so assets add nothing to Env, and a request
   // for a file in public/ never runs the Worker.
   "assets": { "directory": "../public" },
-  // The fixture's bundle, vocabulary and groups: the corpus this stack seeds.
+  // The fixture's bundle, vocabulary, groups and NG-listed codes with no
+  // classes (6A): the corpus this stack seeds.
   "alias": {
     "vectors-bundle": "./fixtures/vectors.js",
     "vocabulary-data": "./fixtures/vocabulary.json",
-    "groups-data": "./fixtures/groups.json"
+    "groups-data": "./fixtures/groups.json",
+    "ng-unscheduled-data": "./fixtures/ng-unscheduled.json"
   },
   "vars": { "DENSE_BACKEND": "bundle" },
   "d1_databases": [

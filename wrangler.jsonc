@@ -31,11 +31,14 @@
   // 3C's vocabulary and 3F's groups (src/intent-data.js, src/group-data.js) are
   // bare names too (Phase 5 5B, A2-1), so the UI test config can point them at
   // the fixture's: esbuild accepts no relative alias keys. Wrangler merges these
-  // with deploy's --alias, so the deploy adds none for them.
+  // with deploy's --alias, so the deploy adds none for them. 6A's NG-listed
+  // codes with no classes (src/ng-unscheduled.js) are one more, built with the
+  // groups (scripts/build-ng-unscheduled.mjs).
   "alias": {
     "vectors-bundle": "./test/fixtures/vectors.js",
     "vocabulary-data": "./data/vocabulary.json",
-    "groups-data": "./data/groups.json"
+    "groups-data": "./data/groups.json",
+    "ng-unscheduled-data": "./data/ng-unscheduled.json"
   },
 
   "d1_databases": [

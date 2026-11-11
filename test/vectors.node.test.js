@@ -96,9 +96,11 @@ describe('the vocabulary-data and groups-data aliases (Phase 5 5B, A2-1, A3-1)',
     const prod = read('wrangler.jsonc').toString();
     expect(prod).toContain('"vocabulary-data": "./data/vocabulary.json"');
     expect(prod).toContain('"groups-data": "./data/groups.json"');
+    expect(prod).toContain('"ng-unscheduled-data": "./data/ng-unscheduled.json"');
     const ui = read('test/wrangler.ui.jsonc').toString();
     expect(ui).toContain('"vocabulary-data": "./fixtures/vocabulary.json"');
     expect(ui).toContain('"groups-data": "./fixtures/groups.json"');
+    expect(ui).toContain('"ng-unscheduled-data": "./fixtures/ng-unscheduled.json"');
     expect(ui).toContain('"vectors-bundle": "./fixtures/vectors.js"');
   });
 
@@ -106,10 +108,11 @@ describe('the vocabulary-data and groups-data aliases (Phase 5 5B, A2-1, A3-1)',
     const config = read('vitest.config.mjs').toString();
     expect(config).toContain("({ find: 'vocabulary-data', replacement: path })");
     expect(config).toContain("({ find: 'groups-data', replacement: path })");
+    expect(config).toContain("({ find: 'ng-unscheduled-data', replacement: path })");
     expect(config).not.toContain('find: /^\\.\\.\\/data\\/');
   });
 
-  it("vitest.eval.config.mjs aliases both to the run workspace's own data/ copies (A3-1, B3-2)", async () => {
+  it("vitest.eval.config.mjs aliases them and 6A's ng-unscheduled-data to the run workspace's own data/ copies (A3-1, B3-2)", async () => {
     const ws = await mkdtemp(join(tmpdir(), 'vnm-ws-'));
     const before = process.env.VNM_EVAL_WORKSPACE;
     try {
@@ -123,6 +126,7 @@ describe('the vocabulary-data and groups-data aliases (Phase 5 5B, A2-1, A3-1)',
         'vectors-bundle': join(ws, 'test/fixtures/vectors.js'),
         'vocabulary-data': join(ws, 'data/vocabulary.json'),
         'groups-data': join(ws, 'data/groups.json'),
+        'ng-unscheduled-data': join(ws, 'data/ng-unscheduled.json'),
       });
     } finally {
       if (before === undefined) delete process.env.VNM_EVAL_WORKSPACE;
