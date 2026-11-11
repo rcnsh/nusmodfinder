@@ -124,3 +124,19 @@ little worse for the student, not only an unjudged gap.
 
 Per the plan (§3 5F), L8 is not taken: `PARSE_PHRASES` stays off, SC4's 14 parsed-intent items
 stay unmet in Phase 5, and holdout looks stay at 7 of 12.
+
+## 5G: the page ship is ranking-neutral (pin move, no look)
+
+Deployed commit `fdec96f` (5B–5E, 5C-api, the 5G pre-ship work), version `810c903b`, against the
+pin `f798542`. Local eval runs, sha256 of each run's `results` (first 16):
+
+| run | queries | results sha256 (first 16) | identical |
+|---|---|---|---|
+| dev, the queries' filters | 98 | `8229314651577034` both | yes |
+| dev, `--strip ng` | 98 | `ae4f077e0ad06ef2` both | yes |
+| dev, `--unfiltered` | 98 | `8fde32e1783d6d6b` both | yes |
+| fixture, `--strip ng` | 11 | `ce4f61e83ce5a52f` both | yes |
+
+Holdout, custodian only: `run-shipped-fdec96f` stored with `--store-only` (81 queries, no
+verdict, no ledger row); `eval:count --lists-differing --run shipped-fdec96f --baseline
+shipped-f798542` printed `0`. `SHIPPED_BASELINE` is `fdec96f`; holdout looks stay at 7 of 12.

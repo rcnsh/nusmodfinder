@@ -38,3 +38,17 @@ The smoke calls:
 Rollback, if needed: `npx wrangler rollback efd3dc25-e572-432c-b244-670a0aceff4e`. The old version
 reads none of the new column, so D1 needs no restore. To remove it, restore the bookmark above, a
 logged remote write; roll the Worker back first.
+
+## 2026-11-11: the page ship (5B–5E, 5C-api, 5G pre-ship; code-only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 06:23:10 | Live version check: one `/health` (`requests.tsv` 115): version `b9f7e0e4` (tag `f798542`) | 1 call | 1 call |
+| 06:23:17–06:23:52 | `npm run deploy` of `fdec96f` (the guard read ~6.8k rows through its own dev session; no D1 write, no migration, data version unchanged `d820d578cf81`; static assets uploaded from `public/`) | ~6.8k rows read | version **`810c903b-60fd-4a24-b824-e33906a9007a`** (tag `fdec96f`) at 100% |
+| 06:23:57–06:24:15 | Smoke, ≥ 4 s apart (`requests.tsv` 116): `/health` (tag `fdec96f`), `/` (the page, "unofficial" in the title), `machine learning` (20, EE2211 first, `hiddenPins` and `examDates` present), `/module/ACC1701XB` (`prereqCohortOnly: true`) | 4 calls | 4 × 200 |
+| 06:24:25–06:30:59 | `node scripts/p5-live.mjs` (`requests.tsv` 117, `p5-live.jsonl`): `/health` traces the commit; axe every rule (but AAA contrast) on the first screen, an open detail and a hidden code, light and dark; SC2 on 20 stratified codes (seed 5); 3 hidden codes and 1 partial code; the 390×664 fold in Chromium and WebKit iPhone 13 | ~100 calls | 99 sent ≥ 4 s apart, all 200; **32 of 32 checks pass** |
+
+Headroom: about 7k rows read and about 100 requests; the rule holds by orders of magnitude.
+
+Rollback, if needed: `npx wrangler rollback b9f7e0e4-d4e9-4517-bc40-765c5c4773e8` (the 5A version).
+Code-only, so D1 needs no restore.
