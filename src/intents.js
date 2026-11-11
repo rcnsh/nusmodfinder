@@ -26,7 +26,7 @@ export const INTENT_VARIANT = 'ii-stripped';
  * `exam`/`su`/`hoursBelow`/`prereq` params alone (ADR 0006, 3H). Pass A stays
  * for Phase 4; with this off, src/intent-data.js gives the parse no phrases.
  */
-export const PARSE_PHRASES = false;
+export const PARSE_PHRASES = true;
 
 /** The variant in force's settings. */
 export const INTENT = INTENT_VARIANTS[INTENT_VARIANT];
