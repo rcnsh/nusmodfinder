@@ -232,7 +232,7 @@ describe('R3 (ADR 0008): the year-of-study note, read from the prerequisite on e
     const card = body.results.find((/** @type {any} */ r) => r.code === 'ESE3101');
     expect(card.exchange).toEqual({
       status: 'note',
-      reasons: [{ id: YEAR, kind: 'year', text: 'NUS lists this course for Year 2, 3 or 4 students. Ask the department whether your year at your home university counts.' }],
+      reasons: [{ id: YEAR, kind: 'year', text: 'NUS lists this course for Year 2, 3 or 4 students. Ask the department whether your year of study during your exchange counts.' }],
     });
     // The prerequisite itself is not part of a card.
     expect(card.prerequisite).toBeUndefined();

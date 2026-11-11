@@ -196,9 +196,9 @@ the `sc1` CI job checks every search path against it.
 
 **Year of study (Jacob's ruling R3, ADR 0008).** A NUS prerequisite that requires an
 undergraduate year ("If undertaking an Undergraduate Degree THEN must be Year 4") doesn't change
-a course's exchange status, but an undergraduate whose home year is below that year gets one more
+a course's exchange status, but an undergraduate whose year of study during the exchange is below that year gets one more
 note, `{ id: "prereq:year-of-study", kind: "year" }`: "NUS lists this course for Year 4 students.
-Ask the department whether your year at your home university counts." An open course with it is
+Ask the department whether your year of study during your exchange counts." An open course with it is
 `note`; a closed one stays closed without it. It is read per request from the stored prerequisite
 by `src/year-note.js` (no stored column, so no data change): `/module/:code` reads the row's
 `prerequisite`, and `/search`'s hydrate reads it as `year_prereq`, only where it mentions a year.
