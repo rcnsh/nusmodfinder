@@ -204,17 +204,16 @@ via `exchangeAt`), and `/search` reads it through one more result column (`year_
 prerequisite only when it mentions a year). It adds a note to a shown course and never changes
 its status, its mask bit or its rank. The other fixes touch the page, the reason texts and the
 response headers. No row, mask, stored rule id or ranker input changes, so `SHIPPED_BASELINE`
-stays at `fdec96f`. No holdout look and no count are needed.
+stays at `75ca23c`. No holdout look and no count are needed.
 
-Local eval runs, `--ref fdec96f` against `--ref 662c6ac` (every code change on the branch,
-the review's fixes included; `9801db4`, before the review, gave the same four hashes), the HEAD
-runner, sha256 of each run's `results` (first 16):
+Local eval runs, the HEAD runner, sha256 of each run's `results` (first 16). The branch was
+written on `ab1995c` against the pin `fdec96f`; after it was rebased onto `aa7209f` (phrases
+shipped, pin `75ca23c`), the same runs were taken against that pin. Each code head holds every
+code change on the branch, the review's fixes included.
 
-| run | queries | results sha256 (first 16) | identical |
-|---|---|---|---|
-| dev, the queries' filters | 98 | `8229314651577034` both | yes |
-| dev, `--strip ng` | 98 | `ae4f077e0ad06ef2` both | yes |
-| dev, `--unfiltered` | 98 | `8fde32e1783d6d6b` both | yes |
-| fixture, `--strip ng` | 11 | `ce4f61e83ce5a52f` both | yes |
-
-The hashes equal 5A's, 5C-api's, 5D's and 5G's, so the lists have not moved since `238e721`.
+| run | queries | `fdec96f` vs `662c6ac` (before the rebase) | `75ca23c` vs `a636ac4` (rebased) | identical |
+|---|---|---|---|---|
+| dev, the queries' filters | 98 | `8229314651577034` both | `21245ed8fe04ba32` both | yes |
+| dev, `--strip ng` | 98 | `ae4f077e0ad06ef2` both | `62e5ab9a8150508f` both | yes |
+| dev, `--unfiltered` | 98 | `8fde32e1783d6d6b` both | `a7593696c94b041a` both | yes |
+| fixture, `--strip ng` | 11 | `ce4f61e83ce5a52f` both | `7a5d58bbe50972c0` both | yes |
