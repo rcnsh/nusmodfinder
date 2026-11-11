@@ -284,7 +284,7 @@ ${fullYear && sem === 2 ? `<p class="sl-src">${esc(FULLYEAR)}</p>` : ''}`;
     ['NUS’s form asks, for each course with a prerequisite, the home course that meets it.', 'NUS’s application guide'],
     ['“If you did not secure any of the popular courses during the first round … please do not repeat your request for any of these courses in subsequent rounds.”', 'NUS Global'],
   ];
-  const G2 = 'NUS’s brochure says at most 23 units a semester (NUS Business School’s exchange students: 20); some pages say 20, so ask NUS before going above 20.';
+  const G2 = 'NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20.';
   const LIMIT_LINES = [
     ['To be admitted, NUS must accept you into at least 12 units in a semester.', 'NUS brochure; NUS Global: “three pre-registered courses (or 12 units)”'],
     ['In CourseReg you must keep at least 12 units or three courses.', 'NUS Global'],
@@ -404,7 +404,7 @@ ${view(l, { sub: 'Sem 1 and Sem 2 · 2nd-year exchange student · NUS’s 2026/2
 ${(() => { const q = picks.filter((e) => e.cat === 'invited').flatMap((e) => e.ex.reasons.filter((r) => r.kind === 'quota'))[0]; return q ? `<li>If you were invited: ${esc(q.text)}</li>` : ''; })()}
 <li>${counted} units is about ${counted * 2.5} hours a week at NUS’s rate (2.5 hours a week per unit). NUS states hours a week only; your university’s own conversion decides credit.</li>
 <li>“Each semester normally includes 13 weeks of instruction and 2 weeks of examinations.” (NUS Global)</li>
-<li>To be admitted, NUS must accept you into at least 12 units in a semester (NUS brochure). NUS’s brochure says at most 23 units a semester (NUS Business School’s exchange students: 20); some pages say 20, so ask NUS before going above 20.</li></ul>
+<li>To be admitted, NUS must accept you into at least 12 units in a semester (NUS brochure). NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20.</li></ul>
 <h2>Closed, or not on NUS’s exchange list, in that semester</h2>${closed.map(ppCourse).join('')}
 <div class="pp-break"><span>page break</span></div>
 <h2>NUS’s application form order, for applicants</h2><p class="src" style="margin-top:6px">${esc(FORM_INTRO)}</p>

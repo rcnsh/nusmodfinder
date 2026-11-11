@@ -1179,11 +1179,10 @@ student is a lead rule too: NUS's own condition, asked only when the list holds 
   pages say 20, so ask NUS before going above 20", as a limit on the courses NUS enrols you in,
   not the courses you list.* The brochure is NUS's current word, but 20 is common enough that a
   student planning 23 should check; one who plans 20 loses nothing.
-  *After 6-0, for the lead to put to Jacob:* one of the pages that says 20 is NUS Global's own
-  exchange page (its FAQ: "not more than 20 units"; `docs/evidence/phase6/facts.md` §2). The
-  answer's advice stands; its words could name that page: "NUS's brochure says at most 23 units
-  a semester; NUS Global's exchange page and NUS Business School say 20, so ask NUS before going
-  above 20".
+  *After 6-0, Jacob's answer:* one of the pages that says 20 is NUS Global's own exchange page
+  (its FAQ: "not more than 20 units"; `docs/evidence/phase6/facts.md` §2), and the page names it:
+  "NUS's brochure says at most 23 units a semester, but NUS Global's exchange page says 20 (NUS
+  Business School's exchange students: 20). Ask NUS before planning more than 20" (ADR 0010).
 - **G3. Remember the list.** Keep the last list this student edited on this device, offered as
   "Restore your last shortlist" when a link has none, with "Forget this list on this device"?
   Opening someone else's link never overwrites it. *Recommended: yes.* A list that lives only
