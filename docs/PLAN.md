@@ -1,6 +1,6 @@
 # Plan
 
-Mission: turn vector-nusmods into the NUS course planner for incoming exchange students.
+Mission: turn NUS Mod Finder into the NUS course planner for incoming exchange students.
 Success criteria SC1–SC10 are defined in the mission brief and restated in
 [`docs/CRITERIA.md`](CRITERIA.md). Findings live in [`FINDINGS.md`](FINDINGS.md), the
 log in [`PROGRESS.md`](PROGRESS.md), decisions in [`decisions/`](decisions/).

@@ -1,4 +1,4 @@
-# EVAL.md — retrieval quality for vector-nusmods
+# EVAL.md — retrieval quality for NUS Mod Finder
 
 ## Phase 2 baseline (current)
 
