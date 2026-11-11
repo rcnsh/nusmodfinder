@@ -4,11 +4,12 @@
 // over /module answers built from the fixture and its groups
 // (shortlist-answers.node.mjs), with synthetic answers where the fixture has
 // no such course. The seeded property test checks the totals against a
-// reference written separately, here.
+// reference written separately (shortlist-reference.node.mjs, which 6E's
+// scripts/p6-live.mjs runs over production's rows).
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { yearNote } from '../../src/year-note.js';
+import { reference } from './shortlist-reference.node.mjs';
 import { parseList } from '../../public/list.js';
 import {
   APPLICANT_LINES, BIZ_LAW, COURSEREG_BOX, FORM_LINES, GRO_POPULAR, NOTES, RULE_E, TOTAL_LINES,
@@ -535,68 +536,12 @@ function rng(seed) {
 }
 
 const STUDY_LIST = ['ug1', 'ug2', 'ug3', 'ug4', 'grad'];
-const CONDITIONS = ['quota', 'major', 'approval', 'graded', 'letter', 'fee'];
 
-/**
- * The reference: the 6B counting rules written again from the plan, over the
- * fixture's own columns (its allow mask and stored rule ids), not through
- * shortlist.js or the /module answers it reads.
- * @param {{ which: string, code: string, sem: string }[]} entries in rank order, picks first
- * @param {string} study
- * @param {string[]} inv
- */
-function reference(entries, study, inv) {
-  /** @param {string} text @param {string} code */
-  const namesRef = (text, code) => {
-    if (!text) return false;
-    if (study === 'grad' && /^\s*\(?\s*if undertaking an undergraduate degree/i.test(text) && !/graduate degree coursework/i.test(text.split(/then/i)[0])) return false;
-    if (new RegExp(`(^|[^A-Za-z])${code}(?=[^A-Za-z0-9]|$|OR|AND|THEN)`).test(text)) return true;
-    return [...text.matchAll(/beginning with\s+([A-Z]+\d*)/g)].some((m) => code.startsWith(m[1]));
-  };
-  const classified = entries.map((e) => {
-    const m = FIXTURE.get(e.code);
-    /** @param {string} st */
-    const as = (st) => ({ ...e, m, st });
-    if (!m || !e.sem || m.credits === null) return as('out');
-    if (m.semesters.length && m.semesters.every((/** @type {number} */ s) => s >= 3)) return as('out');
-    const s = Number(e.sem);
-    if (!study) return as(m.semesters.includes(s) ? 'counted' : 'out');
-    const index = (s - 1) * 5 + STUDY_LIST.indexOf(study);
-    if ((m.ngAllow & (1 << index)) === 0) return as('out');
-    const kinds = (m.ng ? (m.ngRules?.[String(index)] ?? []) : []).map((/** @type {string} */ id) => REASONS_FILE.reasons[id]?.kind ?? 'unknown');
-    if (yearNote(m.prerequisite, /** @type {any} */ (study))) kinds.push('year');
-    const fac = m.faculty === 'NUS Business School' ? 'biz' : m.faculty === 'Law' ? 'law' : '';
-    if (fac && !inv.includes(fac)) return as('invite');
-    return as(kinds.every((/** @type {string} */ k) => CONDITIONS.includes(k)) ? 'counted' : 'confirm');
-  });
-  /** @param {any} a @param {any} b */
-  const same = (a, b) => {
-    const g = GROUP_OF.get(a.code) ?? [];
-    if (!g.includes(b.code)) return false;
-    if (a.m.ng && b.m.ng) return true;
-    return namesRef(a.m.preclusion, b.code) || namesRef(b.m.preclusion, a.code);
-  };
-  const takes = (/** @type {any} */ x) => ['counted', 'confirm', 'invite'].includes(x.st);
-  /** @type {any[]} */
-  const kept = [];
-  const picks = classified.filter((x) => x.which === 'pick' && takes(x));
-  for (const x of [...picks.filter((p) => p.st === 'counted'), ...picks.filter((p) => p.st !== 'counted')]) {
-    if (kept.some((k) => same(k, x))) x.st = 'dup';
-    else kept.push(x);
-  }
-  /** @type {Record<string, { counted: number, confirm: number }>} */
-  const out = { 1: { counted: 0, confirm: 0 }, 2: { counted: 0, confirm: 0 } };
-  for (const x of classified) {
-    if (x.which !== 'pick' || !x.sem) continue;
-    if (x.st === 'counted') out[x.sem].counted += x.m.credits * 10;
-    if (x.st === 'confirm') out[x.sem].confirm += x.m.credits * 10;
-  }
-  for (const s of ['1', '2']) { out[s].counted /= 10; out[s].confirm /= 10; }
-  return out;
-}
+/** The reference (shortlist-reference.node.mjs) over the fixture's own columns and groups. */
+const REF_DATA = { rowOf: (/** @type {string} */ c) => FIXTURE.get(c), groupOf: (/** @type {string} */ c) => GROUP_OF.get(c) ?? [], reasons: REASONS_FILE.reasons };
 
 describe('totals over 500 random shortlists (6B, SC3: the reference)', () => {
-  it('counted and to-confirm units per semester equal the reference, at both semesters, every study level and in browse mode', () => {
+  it('counted, to-confirm and only-if-invited units per semester equal the reference, at both semesters, every study level and in browse mode', () => {
     const random = rng(20261111);
     const all = [...FIXTURE.keys()];
     // Weighted towards groups, so the same-course rule is exercised.
@@ -625,10 +570,10 @@ describe('totals over 500 random shortlists (6B, SC3: the reference)', () => {
       for (const sem of ['1', '2']) {
         for (const study of ['', ...STUDY_LIST]) {
           const r = run(`${study ? `ng=1&study=${study}&` : ''}sem=${sem}&${qs}`);
-          const ref = reference(entries, study, list.inv);
+          const ref = reference(entries, study, list.inv, REF_DATA).totals;
           for (const w of r.entries) seen[w.standing] = (seen[w.standing] ?? 0) + 1;
           for (const s of /** @type {('1' | '2')[]} */ (['1', '2'])) {
-            expect({ qs, study, s, counted: r.sems[s].counted, confirm: r.sems[s].confirm }).toEqual({ qs, study, s, ...ref[s] });
+            expect({ qs, study, s, counted: r.sems[s].counted, confirm: r.sems[s].confirm, invite: r.sems[s].invite }).toEqual({ qs, study, s, ...ref[s] });
           }
           compared += 1;
         }

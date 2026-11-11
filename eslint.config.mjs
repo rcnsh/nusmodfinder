@@ -24,7 +24,7 @@ export default [
   {
     // The callbacks the specs and their helpers pass to page.evaluate run in the
     // page (5D, 5E); so do the live checks' (5G).
-    files: ['test/ui/**/*.spec.js', 'test/ui/**/*.mjs', 'scripts/p5-live.mjs'],
+    files: ['test/ui/**/*.spec.js', 'test/ui/**/*.mjs', 'scripts/p5-live.mjs', 'scripts/p6-live.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
