@@ -47,26 +47,29 @@
    (D's neutrals are faintly green), ink a soft off-white rather than pure white,
    the plum lifted to a dusty pink for links and the Search button (whose label
    turns dark), and the three statuses as pale tints of their light colours on
-   very dark tints of the same hue. ===== */
+   very dark tints of the same hue. Screen only: paper is always light (6D), so
+   print keeps the light tokens above whatever the reader's theme. ===== */
 @media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --ground: #141917;
-    --surface: #1B211F;
-    --panel: #222927;
-    --ink: #E3E8E5;
-    --ink-2: #A8B3AE;
-    --rule: #2F3734;
-    --edge: #7D8984;
-    --accent: #DDA9CB;
-    --accent-fill: #D29BC0;
-    --accent-tint: #33222E;
-    --on-accent: #1E1219;
-    --open: #8DCBA3; --open-tint: #16261C;
-    --note: #E2B46B; --note-tint: #2A2113;
-    --hide: #EFA195; --hide-tint: #2D1A17;
-    --skeleton: #262E2B;
-    --backdrop: rgba(0, 0, 0, .6);
+  @media screen {
+    :root {
+      color-scheme: dark;
+      --ground: #141917;
+      --surface: #1B211F;
+      --panel: #222927;
+      --ink: #E3E8E5;
+      --ink-2: #A8B3AE;
+      --rule: #2F3734;
+      --edge: #7D8984;
+      --accent: #DDA9CB;
+      --accent-fill: #D29BC0;
+      --accent-tint: #33222E;
+      --on-accent: #1E1219;
+      --open: #8DCBA3; --open-tint: #16261C;
+      --note: #E2B46B; --note-tint: #2A2113;
+      --hide: #EFA195; --hide-tint: #2D1A17;
+      --skeleton: #262E2B;
+      --backdrop: rgba(0, 0, 0, .6);
+    }
   }
 }
 
@@ -595,4 +598,63 @@ details[open] > summary::before { transform: rotate(90deg); }
   .sl-total { padding: 12px 14px; }
   .sl-box { padding: 12px 14px 14px; }
   .sl-ask { padding: 12px 14px 14px; }
+}
+
+/* ===== The print page (6D): #slPrint, never shown on screen; under print it
+   shows alone once the page's print class is on (the view shown, every row
+   settled, the export question answered or not needed; app.js). Without the
+   class, print prints the screen. Built to the approved mockup's state 4. ===== */
+.sl-print { display: none; }
+@media print {
+  @page { size: A4; margin: 10mm; }
+  /* Paper drops backgrounds: a filled control keeps its label legible as accent text (Ctrl+P on the screen). */
+  .btn.pri { background: none; color: var(--accent); border-color: var(--accent); }
+  html.print-shortlist body { background: var(--surface); }
+  html.print-shortlist .skip, html.print-shortlist .hdr, html.print-shortlist .rail, html.print-shortlist .ftr,
+  html.print-shortlist #setup, html.print-shortlist dialog, html.print-shortlist .main > :not(#slPrint) { display: none !important; }
+  /* The grid ancestors as blocks, or the section prints in the rail's 210 px column (A10-M1). */
+  html.print-shortlist .app, html.print-shortlist #layout, html.print-shortlist .main {
+    display: block !important; min-height: 0; padding: 0; margin: 0; max-width: none; width: auto; gap: 0;
+  }
+  html.print-shortlist .sl-print { display: block; }
+
+  .pp { color: var(--ink); font-size: 9.5pt; line-height: 1.35; }
+  .pp a { color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
+  .pp h1 { font-size: 15pt; font-weight: 600; line-height: 1.25; }
+  .pp h2 { font-size: 13pt; font-weight: 600; margin-top: 16px; padding-bottom: 3px; border-bottom: 1px solid var(--ink); break-after: avoid; }
+  .pp h3 { font-size: 11pt; font-weight: 600; margin-top: 10px; break-after: avoid; }
+  .pp .pp-head { display: grid; gap: 2px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+  .pp .pp-link { font: 400 8.5pt/1.4 var(--f-mono); overflow-wrap: anywhere; font-feature-settings: "ss04"; }
+  .pp .pp-course { padding: 6px 0 7px; border-bottom: 1px solid var(--rule); }
+  .pp .pp-ch { break-inside: avoid; break-after: avoid; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 16px; }
+  .pp .pp-ch h4 { font-size: inherit; grid-column: 1; }
+  .pp .pp-ch .code { font: 500 11pt/1.3 var(--f-mono); font-feature-settings: "ss04"; }
+  .pp .pp-ch .title { font-weight: 600; font-size: 10.5pt; }
+  .pp .pp-ch .form { grid-column: 2; grid-row: 1 / span 2; text-align: right; font-size: 9pt; }
+  .pp .pp-ch .form b { font: 500 11.5pt/1.2 var(--f-mono); display: block; font-feature-settings: "ss04"; }
+  .pp .pp-ch .form .src { display: block; max-width: 30ch; }
+  .pp .pp-ch > .src { grid-column: 1; }
+  .pp dl.pp-facts { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 1px 10px; margin-top: 4px; font-size: 8.5pt; line-height: 1.3; }
+  .pp dl.pp-facts dt { color: var(--ink-2); }
+  .pp dl.pp-facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  .pp .pp-desc { margin-top: 2px; font-size: 8.5pt; line-height: 1.3; }
+  .pp .pp-lbl { margin-top: 4px; font-size: 7.5pt; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+  .pp .st { font-size: 8.5pt; padding: 0 5px 0 4px; gap: 5px; background: none; }
+  .pp .st .i { width: 11px; height: 11px; }
+  .pp ul.pp-list { display: grid; gap: 1px; font-size: 8.5pt; line-height: 1.3; }
+  /* An in-flow dash, not a positioned one: Chromium paints positioned boxes after a page's flow,
+     which would put their text out of order in the PDF's text layer. */
+  .pp ul.pp-list li { padding-left: 11px; text-indent: -11px; }
+  .pp ul.pp-list li::before { content: "–"; display: inline-block; width: 11px; text-indent: 0; color: var(--ink-2); }
+  .pp dd ul.pp-list { margin-top: 2px; }
+  .pp .src { color: var(--ink-2); }
+  .pp .sl-ftab { font-size: 9pt; margin-top: 8px; }
+  .pp .sl-ftab caption { font-size: 9.5pt; }
+  .pp .sl-ftab th, .pp .sl-ftab td { padding: 3px 8px 3px 0; }
+  .pp .pp-form { break-before: page; }
+  .pp .pp-form > .src { margin-top: 6px; }
+  .pp .pp-form > ul.pp-list { margin-top: 8px; }
+  .pp .pp-foot { margin-top: 12px; padding-top: 6px; border-top: 1px solid var(--ink); }
+  .pp .pp-foot h2 { border: 0; margin-top: 0; font-size: 8pt; break-after: avoid; }
+  .pp .pp-closing { margin-top: 8px; }
 }

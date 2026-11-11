@@ -41,6 +41,9 @@ import { searchAgain, searchKey, transition } from './nav.js';
 import { hiddenStamp, settlePartial, shortlistToggle, showLoading, showMessage, showResults } from './render.js';
 import { forgetList, restoreOffer, saveList } from './saved.js';
 import { answerOf, askable, exportQuestion, summary, workOut, yearLine } from './shortlist.js';
+import { toCsv } from './csv.js';
+import { SITE_URL, buildExport, fileName } from './export.js';
+import { createPrintView } from './print.js';
 import { askSentence, createShortlistView } from './shortlist-view.js';
 import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, parseState, searchParams, shortlistUrl, unitsLabel, urlFor } from './state.js';
 
@@ -90,6 +93,7 @@ const els = {
   live: $('live'),
   skip: /** @type {HTMLAnchorElement} */ ($('skip')),
   slView: $('slView'),
+  slPrint: $('slPrint'),
   slOpen: /** @type {HTMLButtonElement[]} */ ([$('slOpenRail'), $('slOpenPhone')]),
   slUndo: [$('slUndoRail'), $('slUndoPhone')],
   slRestore: [$('slRestoreSetup'), $('slRestore')],
@@ -1098,6 +1102,18 @@ let asked = { year: false, entries: /** @type {string[]} */ ([]) };
 let progressSaid = false;
 /** Counts edits, so a slow "added" sentence stands down when another edit came after it. */
 let editCount = 0;
+/**
+ * An export pressed before every row was in (6D): which, until the second
+ * press does it or the view closes; and whether "Ready: press again" was said.
+ * @type {'csv' | 'print' | null}
+ */
+let exportWaiting = null;
+let exportReadySaid = false;
+/** The page's own title, which printing the shortlist swaps for the file name and `afterprint` restores. */
+const pageTitle = document.title;
+/** The export's document as last drawn on the print page. @type {import('./export.js').Doc | null} */
+let printed = null;
+const printView = createPrintView(els.slPrint);
 
 const slView = createShortlistView(els.slView, {
   close: () => closeView(),
@@ -1227,6 +1243,7 @@ function pumpRows() {
       if (current.view) updateAsked();
       renderShortlist();
       progressDone();
+      exportReady();
       pumpRows();
     });
   }
@@ -1277,7 +1294,9 @@ function renderShortlist() {
     result, answers: rowAnswers, study: current.ng ? current.study : '', sem: current.sem,
     lines: viewLines(), removed: undoable?.where === 'view' ? undoable.removed.entry.code : '',
     linkField: copyField, said: copySaid, ask: asked, faculties, inv: list.inv, listDate: updated(/offered/i),
+    exportLine: exportLine(),
   });
+  renderPrint(result);
   const line = buttonLine();
   for (const b of els.slOpen) {
     const small = b.querySelector('small');
@@ -1498,19 +1517,127 @@ function copyLink() {
   }
 }
 
+/** Every entry's row has settled: loaded, failed or a 404. */
+const rowsSettled = () => [...list.pick, ...list.alt].every((e) => rowAnswers.has(e.code));
+/** The export question still has something to answer (6C asks it; the exports wait on it). */
+const questionOpen = () => exportQuestion({ list, study: current.ng ? current.study : '', answers: rowAnswers }).ask;
+
 /**
- * Download CSV or Print (6D builds them): while the export question is asked,
- * pressing either focuses its heading and says so; otherwise they aren't ready.
+ * The export's document now (export.js), from the same rows as the view.
+ * The link is the shortlist link at the canonical URL, with `ay` once a row
+ * has loaded.
+ * @param {import('./shortlist.js').Result} [result]
+ */
+function exportDoc(result = worked()) {
+  const l = withYear(list, rowYear());
+  return buildExport({
+    result, list: l, study: current.ng ? current.study : '', sources, answers: rowAnswers, today: new Date(),
+    link: `${SITE_URL}${shortlistUrl(current, l, '/')}`, yearNote: yearLine(list.ay, rowYear()),
+  });
+}
+
+/**
+ * The print page, built eagerly from the rows while the view is shown, and
+ * the print class (6D): on only while the view is shown, every row has
+ * settled and the export question is answered or not needed. Derived from
+ * state, never set around print(), so Ctrl+P prints the shortlist then, and
+ * the screen otherwise.
+ * @param {import('./shortlist.js').Result} result
+ */
+function renderPrint(result) {
+  const ready = current.view && entryCount(list) > 0 && rowsSettled() && !questionOpen();
+  if (current.view && entryCount(list) > 0) {
+    printed = exportDoc(result);
+    printView.update(printed);
+  }
+  document.documentElement.classList.toggle('print-shortlist', !!ready);
+}
+
+/** The line the export buttons point to (aria-describedby) after an early press. */
+function exportLine() {
+  if (!exportWaiting) return '';
+  const all = [...list.pick, ...list.alt];
+  if (!rowsSettled()) return `Loading ${all.filter((e) => rowAnswers.has(e.code)).length} of ${all.length} courses`;
+  return `Ready: press again to ${exportWaiting === 'csv' ? 'download' : 'print'}`;
+}
+/** Once the rows an early press waited on are in: "Ready: press again …", said once. */
+function exportReady() {
+  if (!exportWaiting || exportReadySaid || !rowsSettled()) return;
+  exportReadySaid = true;
+  say(exportLine());
+}
+
+/**
+ * Download CSV or Print or save as PDF (6D). While the export question has
+ * something to answer, either focuses its heading and says so. Before every
+ * row is in, the press waits: the button keeps its name, and its line says
+ * how far the rows are, then "Ready: press again", so the export starts from
+ * the user's own second press (print() and a download need the click).
+ * Otherwise the CSV downloads, or the print page prints with the file name
+ * as the title. Either writes `ay` into the URL (6B).
  * @param {'csv' | 'print'} kind
  */
 function exportPress(kind) {
-  if (slView.asking()) {
+  if (questionOpen()) {
+    if (!slView.asking()) { updateAsked(); renderShortlist(); }
     focusHeading(slView.askTitle);
     const n = (asked.year ? 2 : 0) + asked.entries.length;
     say(askSentence(n));
     return;
   }
-  say(`${kind === 'csv' ? 'Download CSV' : 'Print or save as PDF'} isn't ready yet`);
+  if (!entryCount(list)) { say('Your shortlist is empty: add a course first'); return; }
+  if (!rowsSettled()) {
+    exportWaiting = kind;
+    exportReadySaid = false;
+    renderShortlist();
+    say(exportLine());
+    return;
+  }
+  exportWaiting = null;
+  list = withYear(list, rowYear());
+  writer.replace(pageUrl(current));
+  writer.flush();
+  renderShortlist();
+  const doc = printed ?? exportDoc();
+  if (kind === 'csv') {
+    const name = downloadCsv(doc);
+    say(`Downloading ${name}`);
+    return;
+  }
+  document.title = doc.stem;
+  window.print();
+}
+
+/**
+ * Downloads the CSV: a Blob and an `<a download>`, its URL revoked a minute
+ * later (revoking at once can cancel the download).
+ * @param {import('./export.js').Doc} doc
+ */
+function downloadCsv(doc) {
+  const name = fileName(doc, 'csv');
+  const url = URL.createObjectURL(new Blob([toCsv(doc)], { type: 'text/csv;charset=utf-8' }));
+  const a = h('a', { attrs: { href: url, download: name } });
+  a.hidden = true;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return name;
+}
+
+// A print the browser starts itself (Ctrl+P) prints the shortlist only when the print class is
+// on; then its title is the file name. `afterprint` only restores the title.
+window.addEventListener('beforeprint', () => {
+  if (printed && document.documentElement.classList.contains('print-shortlist')) document.title = printed.stem;
+});
+window.addEventListener('afterprint', () => { document.title = pageTitle; });
+
+/** The print fonts load when the view opens, so a print right after has them (6C, 6D). */
+function loadPrintFonts() {
+  if (!document.fonts) return;
+  for (const face of ['400 1em "IBM Plex Sans"', '500 1em "IBM Plex Sans"', '600 1em "IBM Plex Sans"', '400 1em "IBM Plex Mono"', '500 1em "IBM Plex Mono"']) {
+    document.fonts.load(face).catch(() => {});
+  }
 }
 
 /** The export question's parts, kept once asked while the view stays open. */
@@ -1527,6 +1654,8 @@ function updateAsked() {
 /** The view is shown (opened, or Back or Forward into it): drawn, its rows loading, focus on its heading. */
 function enterView() {
   asked = { year: false, entries: [] };
+  exportWaiting = null;
+  loadPrintFonts();
   viewSentence = '';
   copySaid = '';
   copyField = '';
@@ -1544,6 +1673,7 @@ function leaveView() {
 /** The view closed by a submit or a code link: its own state goes; focus is the search's. */
 function viewClosed() {
   asked = { year: false, entries: [] };
+  exportWaiting = null;
   viewSentence = '';
   copySaid = '';
   copyField = '';
@@ -1617,5 +1747,5 @@ if (STUDIES.some((o) => o.value === savedStudy())) checkValue('setupStudy', save
 current = settle(current);
 ensureRows();
 renderShortlist();
-if (current.view) { updateAsked(); renderShortlist(); progressStart(); }
+if (current.view) { updateAsked(); renderShortlist(); progressStart(); loadPrintFonts(); }
 show(current);

@@ -331,11 +331,39 @@ checks every text/background and boundary pair in both themes against WCAG AA.
   list holds (Business or Law). In browse mode, or with untagged entries, an export question asks
   the year of study and each entry's semester first. Copy link writes `shortlistUrl` to the
   clipboard within the click; if the browser refuses, a selected field labelled "Shortlist link"
-  holds it. Download CSV and Print are 6D's, so they render `aria-disabled` with a line saying
-  they aren't ready yet. The view moves no focused row: a moved row's neighbours move around it,
+  holds it. The view moves no focused row: a moved row's neighbours move around it,
   and rows that load later never take focus. While the view is shown, a search under it says
   nothing; the view says its own sentences (each edit, "Loading N courses" and "N courses
   loaded", Restore and Forget).
+- **The exports** (Phase 6 6D; ADR 0010's G1). "Download CSV" and "Print or save as PDF" sit in
+  the view's actions, with the hint "On a phone: Share, then Print, then pinch out the preview to
+  save the PDF. Excel shows one column? Use Data › From Text/CSV." Both draw one document
+  (`export.js`), built from the same rows as the view, each entry at its own semester: the head
+  (what it plans on which year's data, the year of study during the exchange, the date, the
+  shortlist link at `https://nusmodfinder.rcn.sh`, the later-year line, NUS Mod Finder's name);
+  each semester present, Sem 1 then Sem 2, its primary picks then its backups in rank order,
+  then its totals; "Closed, or not on NUS's exchange list, in that semester"; "Not placed in a
+  semester" (untagged, special terms only, catalogue-only and unknown 404s); then the foot (the
+  form order per semester, the lines for applicants, the CourseReg box, the Canvas line, transfer
+  of units, the lists' dates, what isn't checked, "Unofficial"). Each course carries its form
+  number, list and rank, units, department, faculty, level (the brochure's bands), grading when
+  not "Graded", whether it counts and why, its stamp and every note with its source and date,
+  NUS's notes, its 2026/27 exam in Singapore time, NUSMods' workload with each part labelled,
+  the estimate at NUS's 2.5 hours a week per unit, "Course description (NUS, via NUSMods)",
+  NUS's prerequisite and preclusion, its flags and its NUSMods link. The CSV (`csv.js`) is RFC
+  4180: the header first, one row per entry, then a padded empty row and the head, totals and
+  foot as label/value rows (the Excel hint last); every field quoted, CRLF, UTF-8 with a BOM, and
+  a field starting with `=`, `+`, `-`, `@`, a tab or a CR given a leading `'`. Its name is
+  `exchange-shortlist-sem1-sem2-2026-27-courses.csv` (the semesters present; the rows' year). The
+  PDF is the browser's own print of `#slPrint` (`print.js`), which the screen never shows: print
+  shows it alone, light on white whatever the theme (the dark tokens apply to screen only), when
+  `html.print-shortlist` is on. That class is derived from state (the view shown, every row
+  settled, the export question answered or not needed), so Ctrl+P prints the shortlist then and
+  the screen otherwise; printing sets the title to the file name and `afterprint` restores it.
+  A press before every row is in keeps the button's name, says "Loading 7 of 12 courses" on the
+  line it points to (`aria-describedby`) and in the live region, then "Ready: press again to
+  download" (or "to print"), so the download or `print()` comes from the user's own click. An
+  export writes `ay` into the URL. The print fonts load when the view opens.
 - **Fonts** are self-hosted (`public/fonts/`, IBM's own Latin1 WOFF2 subsets, SIL OFL in
   `public/fonts/OFL.txt`) with `font-display: swap` and a system fallback stack; the page makes
   no request to any other origin. Plex Mono draws a dotted zero, so mono text sets its stylistic
@@ -359,6 +387,7 @@ as production does), that another origin can't frame the page, and that no flow 
 | `history.js` | the one history writer: a sliding 10 s budget of 80 writes; past it, writes are held and go out 300 ms after the last, each replace folded into the write before it (a flood of edits is one write) and each push kept as its own; each write in `try`, a refusal retried with backoff (1 s … 10 s) with later writes queued behind it; `flush()` before `act()`, Copy link, exports, on hidden and `pagehide`; `cancel()` on popstate |
 | `shortlist.js`, `preclusion.js` | the shortlist worked out (pure): each entry at its own semester; counted, to confirm with NUS, only if invited (Business and Law), or not counted and why; the same course listed twice (one group, both on the NG list or a preclusion naming the other, compared only with entries kept); NUS's form order per semester against 40 units; totals in tenths with the hours at NUS's rate; exam-overlap, preclusion and same-title flags; NUS's notes on particular courses; the cited lines (applicants, the CourseReg box, G2's maximum in Jacob's words, with a semester above 20 flagged). `preclusion.js` reads whether NUS's text names a code, skipping cohort-only branches and, at `grad`, undergraduate-only rules |
 | `shortlist-view.js` | the view's DOM (6C): the heading, actions, export question, invitation, both lists' keyed rows (updated in place, never moving the focused row), the totals, the form order and the boxes, from the model `app.js` builds out of `shortlist.js`'s result; its buttons are handled by delegation (`data-act`) |
+| `export.js`, `csv.js`, `print.js` | the exports (6D): `export.js` works `shortlist.js`'s result into one document (head, sections by semester, closed, not placed, foot; pure); `csv.js` writes it as RFC 4180 with the formula guard (pure); `print.js` draws it into `#slPrint`, the print page |
 | `saved.js`, `year.js` | the list on this device (G3: save on the page's own edits, restore only when a link has none, forget); the acad year before any row loads |
 | `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed, an "Also as" link pushes that code's search with its detail open; every action that changes `open=` drops `from=`. Phase 6: no transition touches the list; settings while the view is shown keep it and the submitted `q`; a submit closes it; opening and closing the view (6C wires them); `searchAgain`, whether Back or Forward searches (a changed search, or the same one after a network or server error, never after a 429) |
 | `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
@@ -424,7 +453,14 @@ links and "Opened from", the detail's head, the code-only count line). Phase 6 6
 (focus asserted in view and uncovered after each), the view's history (a 429 and a 500 behind
 it, Escape, Back and Forward, a submit from it), rows arriving, each 404 kind, Try again, the
 export question, Copy link, the invitation, Restore and Forget and a refused history write; 6C
-adds its states to `a11y`, `aria`, `keyboard`, `live`, `fold`, `mobile` and `headers`. SC1 over
+adds its states to `a11y`, `aria`, `keyboard`, `live`, `fold`, `mobile` and `headers`. 6D's
+`export.spec.js` downloads the CSV and reads it back with a strict RFC 4180 reader
+(`test/web/rfc4180.node.mjs`) over every fixture NG code and the fixture's NG-listed codes at ug2
+and grad, stubs `print()`, presses before the rows are in, checks Ctrl+P before and after the
+export question and the print page under print media (only it shows, full width, AA on paper in
+dark mode, axe), and reads Chromium's tagged PDF back (`test/ui/pdf-text.mjs`, no dependency:
+Chromium's objects, Flate streams and ToUnicode maps); `test/web/csv.node.test.js` tests the
+document and the CSV in Node. `VNM_EVIDENCE=<dir>` keeps the PDF. SC1 over
 the shortlist is `test/shortlist-sc1.js`: every fixture code in `npm test`, every pinned code in
 `test/sc1/paths.test.js`. CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
 fixtures, `data/` or the lockfile change. The Phase 4 page is kept frozen as
@@ -811,5 +847,9 @@ repeats Phase 4's gate (`docs/plans/phase4.md` 4F):
   data work. The 9 such codes on the NG list are covered by `data/ng-unscheduled.json`.
 - **No natural-language constraint parsing.** "No Friday classes" needs the explicit filter
   parameters instead.
+- **The PDF is the browser's print.** Only Chromium's is checked as a PDF (tagged, real text);
+  WebKit's print page by screenshot; iOS's Share, Print path is untested on a phone. A system
+  font draws U+2010 and U+2011, which the Plex subsets lack; on macOS its text layer reads them
+  as "-". A 40-entry list prints in about 15 to 19 A4 pages.
 - **No scheduled re-ingest.** Refresh is a manual command, once a semester.
 - **The vector half is unproven.** See EVAL.md.

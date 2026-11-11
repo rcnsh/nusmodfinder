@@ -67,9 +67,9 @@ describe('6A\'s answers, read by 6B\'s shortlist (6C shape check)', () => {
     }
   });
 
-  it('a catalogue-only 404 keeps its title; an unknown 404 says so; both carry the year', async () => {
+  it('a catalogue-only 404 keeps its title and description (6D exports its text); an unknown 404 says so; both carry the year', async () => {
     const { answers, r } = await run({ pick: [['CS1010J', '1'], ['CS9999', '1']] });
-    expect(answers.get('CS1010J')).toEqual({ kind: 'catalogue-only', title: 'Introduction to Programming', acadYear: '2026-2027' });
+    expect(answers.get('CS1010J')).toEqual({ kind: 'catalogue-only', title: 'Introduction to Programming', description: 'An introductory course in Java.', acadYear: '2026-2027' });
     expect(answers.get('CS9999')).toEqual({ kind: 'unknown', acadYear: '2026-2027' });
     expect(at(r, 'CS1010J')).toMatchObject({ standing: 'out', why: 'Not offered in 2026/27', title: 'Introduction to Programming' });
     expect(at(r, 'CS9999')).toMatchObject({ standing: 'out', why: 'No course with this code in 2026/27' });

@@ -134,3 +134,21 @@ test('[6C] no CSP violation in the shortlist: a toggle, the view, a row, Copy li
   await expect(page.locator('#slView')).toBeVisible();
   expect(await violations()).toEqual([]);
 });
+
+test('[6D] no CSP violation in the exports: Download CSV (a blob URL), the print page under print media, print() called', async ({ page, browserName }) => {
+  const violations = await watchCsp(page, browserName);
+  await page.addInitScript(() => { window.print = () => { /** @type {any} */ (globalThis).printed = true; }; });
+  await page.goto('/?ng=1&study=ug2&sem=1&pick=CS2113.1&alt=EE4407.1&view=shortlist');
+  await expect(page.locator('#slView .sl-entry[data-code="EE4407"] .title')).toHaveText('Analog Electronics');
+  const csv = page.locator('.sl-actions').getByRole('button', { name: 'Download CSV', exact: true });
+  await csv.focus();
+  const [file] = await Promise.all([page.waitForEvent('download'), page.keyboard.press('Enter')]);
+  expect(file.suggestedFilename()).toBe('exchange-shortlist-sem1-2026-27-courses.csv');
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('#slPrint')).toBeVisible();
+  await page.emulateMedia({ media: 'screen' });
+  await page.locator('.sl-actions').getByRole('button', { name: 'Print or save as PDF', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect.poll(() => page.evaluate(() => /** @type {any} */ (globalThis).printed)).toBe(true);
+  expect(await violations()).toEqual([]);
+});
