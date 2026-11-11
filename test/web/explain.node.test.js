@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
-  NOT_OFFERED_STAMP, codesCount, codesOnly, filterMisses, hiddenCodeLine, hiddenCodeStamp, noteLead, noteText, notOfferedLine, partialCodeLine, prefixLabel, reasonLine, sourceNote, statusText, studyPhrase, typedCodes, unpinnedLine,
+  NOT_OFFERED_STAMP, boxNotOffered, codesCount, codesOnly, filterMisses, hiddenCodeLine, hiddenCodeStamp, noteLead, noteText, notOfferedLine, partialCodeLine, prefixLabel, reasonLine, sourceNote, statusText, studyPhrase, typedCodes, unpinnedLine,
 } from '../../public/explain.js';
 
 const reasonsFile = JSON.parse(readFileSync(fileURLToPath(new URL('../../data/ng-reasons.json', import.meta.url)), 'utf8'));
@@ -138,6 +138,22 @@ describe('hiddenCodeLine (D4: each hidden typed code, with its own stored reason
     expect(filterMisses(mod, { sem: 2, faculty: 'Science' })).toEqual(["it isn't offered in Sem 2", 'it is in Computing']);
     // In exchange mode the NG list decides the semester, not NUSMods' timetable (src/search.js localMatchesFilters).
     expect(filterMisses({ ...mod, level: 1 }, { sem: 2, ng: true, study: 'ug2', level: 2 })).toEqual(['it is a level 1000 course']);
+  });
+});
+
+describe('boxNotOffered: the typed codes the hidden-codes box lists as not offered', () => {
+  it('leaves out the code a whole-query noMatch already names, for not-offered and 6A\'s ng-unscheduled alike', () => {
+    expect(boxNotOffered(['EE4407'], { reason: 'not-offered', code: 'EE4407' })).toEqual([]);
+    // 6A review finding: the page said EE4407 twice, once as "isn't offered this academic year".
+    expect(boxNotOffered(['EE4407'], { reason: 'ng-unscheduled', code: 'EE4407' })).toEqual([]);
+    expect(boxNotOffered(['EE4438', 'CS1001'], { reason: 'ng-unscheduled', code: 'EE4438' })).toEqual(['CS1001']);
+  });
+
+  it('keeps every code otherwise: no noMatch, another reason, or another code', () => {
+    expect(boxNotOffered(['EE4407', 'CS1001'], null)).toEqual(['EE4407', 'CS1001']);
+    expect(boxNotOffered(['EE4407'], { reason: 'unknown-code', code: 'EE4407' })).toEqual(['EE4407']);
+    expect(boxNotOffered(['EE4407'], { reason: 'not-offered', code: 'CS1001' })).toEqual(['EE4407']);
+    expect(boxNotOffered(undefined, null)).toEqual([]);
   });
 });
 
