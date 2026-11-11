@@ -12,7 +12,7 @@ const exists = (/** @type {string} */ rel) => existsSync(fileURLToPath(new URL(`
 // The Worker source, all modules (src/index.js is only the router since Phase 1).
 const worker = readdirSync(fileURLToPath(new URL('../../src', import.meta.url)))
   .filter((f) => f.endsWith('.js')).sort().map((f) => read(`src/${f}`)).join('\n');
-const readme = read('README.md');
+const readme = read('docs/REFERENCE.md');
 const ngList = JSON.parse(read('data/ng-courses-2026-2027.json'));
 
 describe('ops', () => {
@@ -70,7 +70,7 @@ describe('ops', () => {
     expect(cost).toContain('**30,000,000 ms / month**');
     expect(cost).toContain('25,000,000,000 / month');
     // Per-search D1 numbers after Phase 1 are measured, not invented.
-    expect(cost).toMatch(/\| D1 rows read \|[^\n]*\| per search: unfiltered 137–239 \(median 239\), filtered 249–1,784 \(median 497\), measured on 36 production searches with SC7 \(\[`sc7\.md`\]\(docs\/evidence\/phase1\/sc7\.md\)/);
+    expect(cost).toMatch(/\| D1 rows read \|[^\n]*\| per search: unfiltered 137–239 \(median 239\), filtered 249–1,784 \(median 497\), measured on 36 production searches with SC7 \(\[`sc7\.md`\]\(evidence\/phase1\/sc7\.md\)/);
   });
 });
 

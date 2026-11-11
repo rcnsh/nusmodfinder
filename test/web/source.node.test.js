@@ -73,12 +73,12 @@ describe('rendering builds DOM nodes (F8)', () => {
 });
 
 describe('provenance (P3)', () => {
-  it('[P3 fixed] the title and the visible header say unofficial, NUS is not the brand, and the footer links the sources', () => {
+  it('[P3 fixed] the title and the visible header say unofficial, and the footer links the sources', () => {
     const html = read('public/index.html');
-    expect(html).toContain('<title>Exchange Course Finder (unofficial, for NUS)</title>');
+    expect(html).toContain('<title>NUS Mod Finder (unofficial)</title>');
     // The h1's text; the brackets are visually hidden (the badge's outline stands in for them) but read aloud.
     const h1 = /** @type {string} */ (html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1]);
-    expect(h1.replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, '')).toBe('Exchange Course Finder (unofficial, for NUS)');
+    expect(h1.replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, '')).toBe('NUS Mod Finder (unofficial)');
     expect(h1).toContain('<span class="unofficial">');
     expect(html).not.toMatch(/NUSMods semantic search/);
     const footer = /** @type {string} */ (html.match(/<footer[\s\S]*?<\/footer>/)?.[0]);
@@ -179,7 +179,7 @@ describe('[5G S3] public/_headers: the page can\'t be framed, and runs only its 
     for (const f of files.filter((x) => /\.(js|html|css)$/.test(x))) {
       const text = read(`public${f}`);
       expect(text, f).not.toMatch(/setAttribute\(\s*['"]style|\sstyle="|<style[\s>]/);
-      expect(text, f).not.toMatch(/(?:src|href)="https?:\/\/(?!nusmods\.com|www\.nus\.edu\.sg|nus\.edu\.sg)/);
+      expect(text, f).not.toMatch(/(?:src|href)="https?:\/\/(?!nusmods\.com|www\.nus\.edu\.sg|nus\.edu\.sg|nusmodfinder\.rcn\.sh\/)/);
       expect(text, f).not.toMatch(/url\(\s*["']?(?:https?:|data:)/);
     }
   });

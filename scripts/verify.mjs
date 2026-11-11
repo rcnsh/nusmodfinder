@@ -6,7 +6,7 @@
 // D1 side through the Worker's /admin/verify (INGEST_SECRET, like ingest);
 // vector ids from `wrangler vectorize list-vectors <index> --json`, paged
 // 1,000 at a time. Run it against the same `wrangler dev --remote` Worker as
-// ingest (README "Re-ingesting"), after ingest reports done. What counts as
+// ingest (docs/REFERENCE.md "Re-ingesting"), after ingest reports done. What counts as
 // drift: scripts/verify-core.mjs.
 //
 // Flags: --url <base> (default $WORKER_URL or http://localhost:8787),

@@ -205,6 +205,6 @@ export function formatReport(r) {
     line('sample w/o vector', r.sampleMissingVectors),
     ...(r.valuesChecked ? [`values sample      ${r.valuesChecked}`, line('value drift', r.valueDrift)] : []),
     `D1 rows read       ${r.rowsRead}`,
-    r.ok ? 'OK: D1 and Vectorize agree' : 'DRIFT: D1 and Vectorize disagree (rerun ingest; see README "Re-ingesting")',
+    r.ok ? 'OK: D1 and Vectorize agree' : 'DRIFT: D1 and Vectorize disagree (rerun ingest; see docs/REFERENCE.md "Re-ingesting")',
   ];
 }

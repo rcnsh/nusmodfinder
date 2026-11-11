@@ -393,7 +393,7 @@ export function normalise(record, acadYear) {
 }
 
 // Only modules actually offered this acad year are indexed. moduleInfo.json
-// carries the whole historical catalogue; see PHASE1.md for the sizing reason.
+// carries the whole historical catalogue; see docs/evidence/phase1/probe.md for the sizing reason.
 /**
  * @param {NusModsRecord[]} records
  * @param {string} acadYear

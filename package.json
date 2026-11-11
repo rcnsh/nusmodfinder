@@ -1,9 +1,10 @@
 {
-  "name": "vector-nusmods",
+  "name": "nusmodfinder",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
-  "description": "Semantic module search over NUSMods, on Cloudflare Workers + Vectorize + D1.",
+  "description": "NUS Mod Finder: plain-English and code search over NUS courses, with exchange-student availability, on Cloudflare Workers, D1 and Workers AI.",
   "engines": {
     "node": ">=22.12.0"
   },

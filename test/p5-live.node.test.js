@@ -3,7 +3,7 @@
 // seeded draw, on the fixture (the production modules live in .data/, which
 // CI doesn't have). The browser half, scripts/p5-live.mjs, is run by hand:
 // against the local UI server before the PR, against production after the
-// deploy (README, "Live checks after a page ship").
+// deploy (docs/REFERENCE.md, "Live checks after a page ship").
 import { describe, expect, it } from 'vitest';
 import { CLOSED_KINDS, GAP_MS, PRODUCTION_URL, STRATA, drawHidden, drawSc2, loadModules, parseArgs, rng } from '../scripts/p5-live-plan.mjs';
 import { bitOf } from '../src/ng-bit.js';

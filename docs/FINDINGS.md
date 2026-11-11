@@ -524,7 +524,7 @@ requires as an input.
 title "NUSMods semantic search" reads as official NUSMods.
 
 **Evidence:**
-- test `[P3 fixed] the title and the visible header say unofficial, NUS is not the brand, and the footer links the sources` (`test/web/source.node.test.js`)
+- test `[P3 fixed] the title and the visible header say unofficial, and the footer links the sources` (`test/web/source.node.test.js`)
 - `test/ui/p3.spec.js` (P3, Playwright, Chromium and WebKit): "unofficial" is in the title and wholly in view at 390×664 and 1280, on the first screen and after a search; the footer's links.
 - `test/ui/detail.spec.js` (Playwright): each card's detail names the source and its date beside every reason, and links the course on NUSMods.
 - test `[P3 known-bug] the title reads as official NUSMods, and result cards link to no source` (`test/findings/frontend.node.test.js`, on the frozen Phase 4 page).

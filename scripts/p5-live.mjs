@@ -29,7 +29,7 @@
 //   node scripts/p5-live.mjs [--url URL] [--log FILE] [--corpus production|fixture]
 //                            [--expect-commit SHA|none] [--seed N] [--dry-run]
 //
-// --url            the site (default: production, README's Live URL)
+// --url            the site (default: production, docs/REFERENCE.md's Live URL)
 // --log            the JSONL log (default docs/evidence/phase5/p5-live.jsonl), appended to
 // --corpus         the modules drawn from: `production` (.data/cache's moduleInfo,
 //                  normalised as ingest does) or `fixture` (test/fixtures/corpus.json,

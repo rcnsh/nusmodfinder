@@ -9,17 +9,17 @@ test('[P3] "unofficial" is in the title, and in view at 390×664, on the first s
   await page.setViewportSize({ width: 390, height: 664 });
   for (const path of ['/', '/?q=ACC1701XB&ng=1&study=ug2&sem=1']) {
     await page.goto(path);
-    await expect(page).toHaveTitle('Exchange Course Finder (unofficial, for NUS)');
+    await expect(page).toHaveTitle('NUS Mod Finder (unofficial)');
     const h1 = page.getByRole('heading', { level: 1 });
-    await expect(h1).toHaveText('Exchange Course Finder (unofficial, for NUS)');
-    await expect(h1.getByText('(unofficial, for NUS)')).toBeInViewport({ ratio: 1 });
+    await expect(h1).toHaveText('NUS Mod Finder (unofficial)');
+    await expect(h1.getByText('(unofficial)')).toBeInViewport({ ratio: 1 });
   }
 });
 
 test('[P3] "unofficial" stays in view at 1280', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 }).getByText('(unofficial, for NUS)')).toBeInViewport({ ratio: 1 });
+  await expect(page.getByRole('heading', { level: 1 }).getByText('(unofficial)')).toBeInViewport({ ratio: 1 });
 });
 
 test('[P3] the footer says the site is unofficial and links NUSMods, the NG list, the restrictions and the vacancy report', async ({ page }) => {
