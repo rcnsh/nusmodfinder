@@ -108,17 +108,17 @@ describe('hiddenCodeLine (D4: each hidden typed code, with its own stored reason
   it('closed by a restriction: each closing reason, with its source', () => {
     const one = exchange('ug2', { 1: ['closed', ['D-grad-levels-closed-exchange']], 2: ['closed', ['ng-list:not-in-semester', 'D-grad-levels-closed-exchange']], any: ['closed', ['D-grad-levels-closed-exchange']] });
     expect(hiddenCodeLine({ code: 'AR5801', sem: '1', study: 'ug2', exchange: one, sources: SOURCES }))
-      .toBe("AR5801 isn't open to 2nd-year exchange students in Sem 1. Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).");
+      .toBe("AR5801 isn't open to 2nd-year exchange students in Sem 1. Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).");
     const two = exchange('ug2', { 1: ['closed', ['D-grad-levels-closed-exchange', '7-pp-ug-closed']], 2: ['closed', []], any: ['closed', ['D-grad-levels-closed-exchange', '7-pp-ug-closed']] });
     const line = hiddenCodeLine({ code: 'PP5164', sem: '', study: 'ug2', exchange: two, sources: SOURCES });
-    expect(line).toMatch(/^PP5164 isn't open to 2nd-year exchange students in either semester\. Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it \(NG restrictions, updated 31 Aug 2026\)\. .+ \(NG restrictions, updated 31 Aug 2026\)\.$/);
+    expect(line).toMatch(/^PP5164 isn't open to 2nd-year exchange students in either semester\. Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it \(NG restrictions, updated 31 Aug 2026\)\. .+ \(NG restrictions, updated 31 Aug 2026\)\.$/);
     expect(line).toContain(reasonsFile.reasons['7-pp-ug-closed'].text.replace(/\.$/, ''));
   });
 
   it('the other semester only, but closed there too: every reason, never "only in Sem 2"', () => {
     const ex = exchange('ug2', { 1: ['closed', ['ng-list:not-in-semester']], 2: ['closed', ['D-grad-levels-closed-exchange']], any: ['closed', ['D-grad-levels-closed-exchange']] });
     expect(hiddenCodeLine({ code: 'CM5223', sem: '1', study: 'ug2', exchange: ex, sources: SOURCES }))
-      .toBe("CM5223 isn't open to 2nd-year exchange students in Sem 1 or in Sem 2. Sem 1: the NG list offers it in Sem 2 only (NG list, updated 01 Sep 2026). Sem 2: Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).");
+      .toBe("CM5223 isn't open to 2nd-year exchange students in Sem 1 or in Sem 2. Sem 1: the NG list offers it in Sem 2 only (NG list, updated 01 Sep 2026). Sem 2: Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).");
   });
 
   it('a code the exchange set-up allows was hidden by another filter: it says which', () => {

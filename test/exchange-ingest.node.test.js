@@ -89,6 +89,21 @@ describe('the Worker\'s reason texts (data/ng-reasons.json)', () => {
     }
   });
 
+  it('rule D says the list opens no course to the student\'s year of study, not to everyone (5G review: CAS5101)', () => {
+    // A level 5000 Southeast Asian Studies course: rule 1-sea-l5-yr4-pg opens it to 4th-years and
+    // graduates, so a 3rd-year is closed by rule D alone while a 4th-year is open.
+    const cas = /** @type {any} */ ({
+      code: 'CAS5101', title: 'Theorizing from Asia', department: 'Southeast Asian Studies',
+      faculty: 'Arts and Social Science', level: 5, semesters: [1], ng: true, ngSemesters: [1],
+    });
+    const { ngAllow, ngRules } = storedEligibility(cas, rules);
+    expect(ngRules[String(Math.log2(bitOf(1, 'ug3')))]).toEqual(['D-grad-levels-closed-exchange']);
+    expect(ngAllow & bitOf(1, 'ug4')).not.toBe(0);
+    const text = file.reasons['D-grad-levels-closed-exchange'].text;
+    expect(text).toMatch(/your year of study|to yours/);
+    expect(text).not.toMatch(/doesn't open this one\./);
+  });
+
   it('name the sources with the dates docs/evidence/phase4/sources.md records', () => {
     const md = read('../docs/evidence/phase4/sources.md');
     const dateOf = (/** @type {string} */ f) => new RegExp(`^\\| \`${f}\` \\|[^|]*\\| ([^|]+) \\|`, 'm').exec(md)?.[1].trim();

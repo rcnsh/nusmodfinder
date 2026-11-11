@@ -15,7 +15,7 @@ test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from i
   await expect(lines).toHaveText([
     'CS3244 is open to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).',
     "CS5562 isn't on the Registrar's list of courses offered to exchange students (NG list, updated 01 Sep 2026).",
-    "AR5801 isn't open to 2nd-year exchange students in Sem 1. Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).",
+    "AR5801 isn't open to 2nd-year exchange students in Sem 1. Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).",
   ]);
   // Each line is headed by the code and its title (direction D), the title from /module/:code.
   await expect(page.locator('#status .hidden-codes li[data-code="CS3244"] .hc-head')).toHaveText('CS3244 Machine Learning');
@@ -28,7 +28,7 @@ test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from i
 test('[D4] both semesters: a code closed in both says why for either semester', async ({ page }) => {
   await page.goto('/?q=CS2030+PP5164&ng=1&study=ug2');
   await expect(page.locator('#status .hidden-codes .why')).toHaveText([
-    "PP5164 isn't open to 2nd-year exchange students in either semester. Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026). Undergraduates may not take Public Policy (PP) courses (NG restrictions, updated 31 Aug 2026).",
+    "PP5164 isn't open to 2nd-year exchange students in either semester. Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026). Undergraduates may not take Public Policy (PP) courses (NG restrictions, updated 31 Aug 2026).",
   ]);
 });
 
