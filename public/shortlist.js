@@ -45,7 +45,7 @@ import { DEFAULT_ACAD_YEAR } from './year.js';
  *   form: { number: number | null, text: string, note: string },
  * }} Worked
  * @typedef {{
- *   counted: number, confirm: number, invite: number, pending: number, economics: number,
+ *   picked: number, counted: number, confirm: number, invite: number, pending: number, economics: number,
  *   hours: number, overlap: boolean, over20: boolean, form: { units: number, line: string } | null,
  * }} Totals
  * @typedef {{
@@ -615,6 +615,8 @@ export function workOut({ list, sem, study, answers, rules }) {
     const confirm = sum('confirm');
     const invite = sum('invite');
     return {
+      // "Units picked" (the shortlist button, the sentences): every loaded pick's units, counted or not.
+      picked: fromTenths(picks.reduce((t, w) => t + tenths(w.units ?? 0), 0)),
       counted, confirm, invite,
       pending: picks.filter((w) => w.standing === 'pending').length,
       economics: fromTenths(picks.filter((w) => (w.standing === 'counted' || w.standing === 'confirm') && lettersOf(w.code) === 'EC')
@@ -659,13 +661,21 @@ export function totalLines(sem, t, { exchange, year }) {
 
 /**
  * The view's one sentence after a settings change: "Sem 2 first: 12 units
- * picked; Sem 1: 8".
+ * picked; Sem 1: 8", in units picked as the shortlist button counts them.
  * @param {Result} r
  */
 export function summary(r) {
   const [first, second] = r.order;
-  return `${semLabel(first)} first: ${r.sems[first].counted} units picked; ${semLabel(second)}: ${r.sems[second].counted}`;
+  return `${semLabel(first)} first: ${r.sems[first].picked} units picked; ${semLabel(second)}: ${r.sems[second].picked}`;
 }
+
+/**
+ * Whether an entry can be asked its semester: not once its answer shows it
+ * can't take one (taught only in special terms, a catalogue-only or unknown
+ * 404). A row still loading can, until it answers.
+ * @param {Answer | undefined} answer
+ */
+export const askable = (answer) => !(answer && (answer.kind === 'catalogue-only' || answer.kind === 'unknown' || specialOnly(answer)));
 
 /**
  * The question before an export (6C asks it, 6D waits on it): the year of
@@ -676,11 +686,7 @@ export function summary(r) {
  * @returns {{ ask: boolean, year: boolean, entries: string[] }}
  */
 export function exportQuestion({ list, study, answers }) {
-  const entries = [...list.pick, ...list.alt].filter((e) => {
-    if (e.sem) return false;
-    const a = answers.get(e.code) ?? { kind: 'loading' };
-    return !(a.kind === 'catalogue-only' || a.kind === 'unknown' || specialOnly(a));
-  }).map((e) => e.code);
+  const entries = [...list.pick, ...list.alt].filter((e) => !e.sem && askable(answers.get(e.code))).map((e) => e.code);
   const year = !study && list.pick.length + list.alt.length > 0;
   return { ask: year || entries.length > 0, year, entries };
 }

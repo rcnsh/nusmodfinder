@@ -137,6 +137,23 @@ test.describe('the toggle and the list', () => {
     await focusOn(page, 'Shortlist, CS2113');
   });
 
+  test('[6C] the card\'s Undo is offered again the second time the same course is taken off (review finding 1)', async ({ page }) => {
+    await page.goto(at('q=CS2113+CS2030&ng=1&study=ug2&sem=1&pick=CS2030.1&pick=CS2113.1'));
+    await settled(page);
+    const undo = page.locator('.sl-undo:visible').getByRole('button', { name: 'Undo, put CS2113 back' });
+    await activate(page, 'Shortlist, CS2113');
+    await activate(page, undo);
+    await expect(button(page, 'Shortlist, CS2113')).toHaveAttribute('aria-pressed', 'true');
+    await activate(page, 'Shortlist, CS2113');
+    await expect(page.locator('.sl-undo:visible')).toHaveText('CS2113 removed. Undo');
+    await expect(undo).toBeVisible();
+  });
+
+  test('[6C] a list of backups only: the button says so, not "no semester yet" (review finding 3)', async ({ page }) => {
+    await page.goto(at('q=CS2030&ng=1&study=ug2&sem=1&alt=CS2030.1'));
+    await expect(openButton(page).locator('small')).toHaveText('1 backup, no primary picks yet');
+  });
+
   test('[6C] adding from a card with /module held: the total once it settles; held past 2 s, the loading sentence', async ({ page }) => {
     /** @type {import('@playwright/test').Route[]} */
     const held = [];
@@ -192,6 +209,8 @@ test.describe('the view at 1280 and 390×664', () => {
           await page.getByRole('button', { name: /^Filters/ }).click();
           await page.getByRole('dialog').locator('#semSegOptions').getByText('Sem 2', { exact: true }).click();
           await page.getByRole('button', { name: 'Done' }).click();
+          // The rest of the page is inert until the modal dialog has closed.
+          await expect(page.getByRole('dialog')).toBeHidden();
         }
         await expect.poll(() => query(page)).toContain('sem=2');
         await expect(view(page)).toBeVisible();
@@ -475,6 +494,28 @@ test.describe('the export question, Copy link, the invitation, G3', () => {
     await page.goto(at('pick=CS9999&view=shortlist'));
     await rowsIn(page);
     await expect(page.getByRole('group', { name: 'Your year of study during the exchange at NUS' })).toBeVisible();
+  });
+
+  test('[6C] the export question is worked out again as rows arrive: an unknown code drops out, a one-semester course offers only its semester (review finding 2)', async ({ page }) => {
+    /** @type {import('@playwright/test').Route[]} */
+    const held = [];
+    await page.route(/\/module\/(CS9999|CS5562)$/, (route) => { held.push(route); });
+    await page.goto(at('ng=1&study=ug2&pick=CS9999&pick=CS5562&view=shortlist'));
+    await expect.poll(() => held.length).toBe(2);
+    for (const r of held) await r.continue();
+    await rowsIn(page);
+    await expect(page.locator('#slAsk legend')).toHaveText(['CS5562: which semester?']);
+    const group = page.getByRole('group', { name: 'CS5562: which semester?' });
+    await expect(group.getByRole('radio')).toHaveCount(1);
+    await expect(group.getByRole('radio', { name: 'Sem 2' })).toBeVisible();
+  });
+
+  test('[6C] the view\'s sentence and the shortlist button count "units picked" the same way (review finding 4)', async ({ page }) => {
+    await page.goto(at('q=CS2030&ng=1&study=ug2&sem=1&pick=CS3244.1&pick=CS2030.1&view=shortlist'));
+    await rowsIn(page);
+    await page.locator('#semSegOptions').getByText('Sem 2', { exact: true }).click();
+    await expect(live(page)).toHaveText('Sem 2 first: 0 units picked; Sem 1: 8');
+    await expect(openButton(page).locator('small')).toHaveText('Sem 1: 8 units picked');
   });
 
   test('[6C] Copy link: writeText called within the click; when it rejects, the link in a field labelled "Shortlist link", selected', async ({ page }) => {

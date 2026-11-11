@@ -463,6 +463,14 @@ describe('totals, lines and helpers (6B)', () => {
       .toBe('Sem 2 first: 8 units picked; Sem 1: 8');
   });
 
+  it('"units picked" is one measure: every loaded pick\'s units, counted or not (review finding 4)', () => {
+    // CS3244 is closed in Sem 1 at ug2: not counted, but picked, as the shortlist button says.
+    const r = run('sem=2&ng=1&study=ug2&pick=CS3244.1&pick=CS2030.1');
+    expect(r.sems[1]).toMatchObject({ counted: 4, picked: 8 });
+    expect(r.sems[2].picked).toBe(0);
+    expect(summary(r)).toBe('Sem 2 first: 0 units picked; Sem 1: 8');
+  });
+
   it('the export question: browse mode asks the year; an untagged entry its semester; special-term and 404 entries are exempt', () => {
     const q = (/** @type {string} */ qs, /** @type {Record<string, any>} */ extra = {}) => {
       const params = new URLSearchParams(qs);

@@ -40,7 +40,7 @@ import { errorSentence } from './messages.js';
 import { searchAgain, searchKey, transition } from './nav.js';
 import { hiddenStamp, settlePartial, shortlistToggle, showLoading, showMessage, showResults } from './render.js';
 import { forgetList, restoreOffer, saveList } from './saved.js';
-import { answerOf, exportQuestion, summary, workOut, yearLine } from './shortlist.js';
+import { answerOf, askable, exportQuestion, summary, workOut, yearLine } from './shortlist.js';
 import { askSentence, createShortlistView } from './shortlist-view.js';
 import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, parseState, searchParams, shortlistUrl, unitsLabel, urlFor } from './state.js';
 
@@ -1171,20 +1171,12 @@ function worked() {
 const entry = (code) => worked().entries.find((w) => w.code === code);
 
 /**
- * Units picked in a semester, as the shortlist button and the sentences say
- * them: every tagged pick there whose units have loaded, counted or not (the
- * mockup's call). Sums in tenths.
- * @param {string} sem
+ * Units picked in a semester, as the shortlist button, the sentences and the
+ * view's settings sentence say them: every tagged pick there whose units have
+ * loaded, counted or not (the mockup's call; `workOut`'s `picked`).
+ * @param {'1' | '2'} sem
  */
-function picked(sem) {
-  let tenths = 0;
-  for (const e of list.pick) {
-    const a = rowAnswers.get(e.code);
-    const c = a && (a.kind === 'row' || a.kind === 'ng-listed') ? a.course.credits : null;
-    if (e.sem === sem && typeof c === 'number' && Number.isFinite(c)) tenths += Math.round(c * 10);
-  }
-  return tenths / 10;
-}
+const picked = (sem) => worked().sems[sem].picked;
 /** Picks in a semester still loading. @param {string} sem */
 const loadingIn = (sem) => list.pick.filter((e) => e.sem === sem && !rowAnswers.has(e.code)).length;
 
@@ -1192,8 +1184,9 @@ const loadingIn = (sem) => list.pick.filter((e) => e.sem === sem && !rowAnswers.
 function buttonLine() {
   const n = entryCount(list);
   if (!n) return 'No courses yet';
-  const sems = ['1', '2'].filter((s) => list.pick.some((e) => e.sem === s));
-  if (!sems.length) return `${n} course${n === 1 ? '' : 's'}, no semester yet`;
+  const sems = /** @type {('1' | '2')[]} */ (['1', '2']).filter((s) => list.pick.some((e) => e.sem === s));
+  if (!list.pick.length) return `${n} backup${n === 1 ? '' : 's'}, no primary picks yet`;
+  if (!sems.length) return `${list.pick.length} pick${list.pick.length === 1 ? '' : 's'}, no semester yet`;
   return `${sems.map((s) => `${semLabel(s)}: ${picked(s)}`).join(' · ')} units picked`;
 }
 
@@ -1230,6 +1223,8 @@ function pumpRows() {
       rowAnswers.set(code, answerOf(outcome));
       rowSettled.get(code)?.forEach((fn) => fn());
       rowSettled.delete(code);
+      // The export question again: a row that answers may exempt its entry.
+      if (current.view) updateAsked();
       renderShortlist();
       progressDone();
       pumpRows();
@@ -1296,7 +1291,7 @@ function renderShortlist() {
   const cardUndo = undoable?.where === 'card' ? undoable.removed.entry.code : '';
   for (const p of els.slUndo) {
     p.hidden = !cardUndo;
-    if (!cardUndo) { setChildren(p); continue; }
+    if (!cardUndo) { setChildren(p); delete p.dataset.code; continue; }
     if (p.dataset.code === cardUndo) continue;
     p.dataset.code = cardUndo;
     const b = h('button', { class: 'linkbtn', attrs: { type: 'button', 'aria-label': `Undo, put ${cardUndo} back` } }, 'Undo');
@@ -1414,13 +1409,14 @@ function sayAdded(code) {
   if (!e) return;
   const head = `${code} added to your picks`;
   if (!e.sem) { say(`${head}, with no semester yet: choose one in your shortlist`); return; }
+  const sem = e.sem;
   const late = new Promise((resolve) => { setTimeout(() => resolve('late'), 2000); });
   Promise.race([whenSettled(code).then(() => 'in'), late]).then((how) => {
     if (editCount !== at) return;
-    const loading = loadingIn(e.sem);
+    const loading = loadingIn(sem);
     say(how === 'in' || !loading
-      ? `${head}: ${semLabel(e.sem)}, ${picked(e.sem)} units picked so far`
-      : `${head}: ${semLabel(e.sem)}, ${picked(e.sem)} units so far, ${loading} course${loading === 1 ? '' : 's'} still loading`);
+      ? `${head}: ${semLabel(sem)}, ${picked(sem)} units picked so far`
+      : `${head}: ${semLabel(sem)}, ${picked(sem)} units so far, ${loading} course${loading === 1 ? '' : 's'} still loading`);
   });
 }
 
@@ -1522,7 +1518,9 @@ function updateAsked() {
   const q = exportQuestion({ list, study: current.ng ? current.study : '', answers: rowAnswers });
   asked = {
     year: asked.year || q.year,
-    entries: [...new Set([...asked.entries, ...q.entries])].filter((c) => hasEntry(list, c)),
+    // Parts asked stay while the view does (an answered one keeps its choice), unless the entry
+    // left the list or its row, now in, shows it can't take a semester.
+    entries: [...new Set([...asked.entries, ...q.entries])].filter((c) => hasEntry(list, c) && askable(rowAnswers.get(c))),
   };
 }
 

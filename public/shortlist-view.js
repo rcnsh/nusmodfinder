@@ -496,9 +496,16 @@ export function createShortlistView(root, on) {
     // focus from the radio just answered).
     want.forEach((key, i) => {
       let set = askSets.get(key);
-      if (!set) {
-        set = askSet(key, m);
-        askSets.set(key, set);
+      // An entry's part is built again when its choices change (its row has answered).
+      const sig = key.startsWith('entry:') ? choicesFor(m.answers.get(key.slice('entry:'.length)), m.study).join() : '';
+      if (!set || set.dataset.choices !== sig) {
+        const fresh = askSet(key, m);
+        fresh.dataset.choices = sig;
+        const had = set?.contains(document.activeElement) ? /** @type {HTMLInputElement} */ (document.activeElement).value : null;
+        set?.replaceWith(fresh);
+        askSets.set(key, fresh);
+        if (had !== null) /** @type {HTMLInputElement | null} */ (fresh.querySelector(`input[value="${had}"]`) ?? fresh.querySelector('input'))?.focus();
+        set = fresh;
       }
       if (askParts.children[i] !== set) askParts.insertBefore(set, askParts.children[i] ?? null);
     });
