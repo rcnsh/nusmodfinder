@@ -1,5 +1,8 @@
 # VoiceOver checklist (Phase 5 5E, SC8)
 
+Not run: Jacob dropped the manual walkthrough at Phase 5's exit (ADR 0008, 2026-11-11). Kept
+for anyone who wants to run it.
+
 The screen-reader walkthrough for SC8 (`docs/plans/phase5.md` §3 5E). A person runs it in
 **macOS Safari with VoiceOver**, once on the local UI server before 5G's deploy and once live.
 It follows the same task as the keyboard test (`test/ui/keyboard.spec.js`): the set-up, a search,

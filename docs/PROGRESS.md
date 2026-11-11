@@ -1197,3 +1197,10 @@ fails on the previous code.
 - **Left for later, by the fix PR:** the year note where the year is one alternative beside an OR
   (678 prerequisites); plain-language rows 28, 30 and 37 (`redteam.md`).
 - **Next:** Jacob's VoiceOver walkthrough on the live site, then the Phase 5 exit write-up.
+
+## 2026-11-11 — Phase 5 closed
+
+- **Exit** (`docs/evidence/phase5/exit.md`): every criterion met, except the VoiceOver checklist,
+  which Jacob dropped (ADR 0008); SC8's screen-reader flow rests on the automated checks.
+- **Live:** version `0b81c82e` (tag `8a86bf6`); pin `8a86bf6`; holdout looks 8 of 12.
+- **Next:** Phase 6 (the shortlist, SC3): plan with critics, then Jacob's gate questions.

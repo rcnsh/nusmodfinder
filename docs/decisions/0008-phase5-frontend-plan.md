@@ -67,6 +67,12 @@ critique (V1) and a provenance gap (P3). SC4's parsed-phrase items carry over fr
   semester's timetable (a fix on its own, with its own gate); then the 5F dev screen runs again
   on a phrases-on candidate. L8 is taken only if that screen passes.
 
+## Jacob's answer 2026-11-11 (exit): no VoiceOver walkthrough
+- The VoiceOver checklist is not run, locally or live; Jacob does not want a manual screen-reader
+  walkthrough. SC8's screen-reader flow rests on the automated checks (`aria.spec.js`'s
+  accessibility-tree snapshots, `live.spec.js`'s live-region text, axe). This replaces the
+  answer above that moved the walkthrough to after the deploy.
+
 ## Jacob's ruling R3 (2026-11-11, red team)
 A NUS prerequisite that requires an undergraduate year of study ("If undertaking an Undergraduate
 Degree THEN must be Year 4"; 942 courses carry a "must be Year N" rule) does not change a
