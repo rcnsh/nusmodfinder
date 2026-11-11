@@ -1,8 +1,6 @@
-NUS MOD FINDER · EXCHANGE SHORTLIST
-
 Courses planned for Sem 1, based on NUS's 2026/27 courses, exams and
 exchange list
-Year of study during the exchange: 2 · Made on 12 Nov 2026
+Year of study during the exchange: 2 · Made on 12 Nov 2026 with NUS Mod Finder
 https://nusmodfinder.rcn.sh/?
 sem=1&ng=1&study=ug2&pick=CS2113.1&pick=GE2101.1&pick=PC3270.1&pick=ACC1701XA.1&alt=CS3244.1&alt=EE4407.1
 &ay=2026-2027&view=shortlist
@@ -11,7 +9,6 @@ dated 1 Sep 2026), and publishes the course descriptions and exam timetable in J
 
 
 Sem 1
-
 Primary picks
 CS2113 Software Engineering & Object-Oriented Programming                                                                Application form, Sem 1
 Primary pick 1 · Sem 1 · 4 units · https://nusmods.com/courses/CS2113                                                                               1
@@ -60,9 +57,9 @@ Exchange status, Sem 1          Sem 1 · Open, with 1 note
                               teaches it whether it will run (NG list, updated 01 Sep 2026).
 2026/27 exam                No final exam listed
 Workload (NUSMods)          Lecture 2, tutorial 2, lab 0, project 3, preparation 3 hours a week (10 in all)
-Estimated study time       About 10 hours a week (NUS's rate: 2.5 hours a week per unit). NUS states hours a week only; your university's
-                           own conversion decides credit.
-Prerequisite               If undertaking an Undergraduate Degree THEN ( must have completed PC2134 at a grade of at least D)
+Estimated study time        About 10 hours a week (NUS's rate: 2.5 hours a week per unit). NUS states hours a week only; your university's
+                            own conversion decides credit.
+Prerequisite               If undertaking an Undergraduate Degree THEN ( must have completed PC2134 at a grade of at least D)
 Preclusion                 If undertaking an Undergraduate Degree THEN ( must not have completed 1 of CS3244/IT3011 at a grade of at
                            least D)
 COURSE DESCRIPTION (NUS, VIA NUSMODS)
@@ -119,16 +116,16 @@ Exchange status, Sem 1         Sem 1 · Open, with 1 note
                            – Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that
                              teaches it whether it will run (NG list, updated 01 Sep 2026).
 NUS's notes                – GRO: “Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited
-                             supply and are usually NOT available to exchange students. In order to increase the chances of securing enough
-                             courses, incoming exchange students should consider taking courses with course code starting from 1000 to
-                             3000”.
+                              supply and are usually NOT available to exchange students. In order to increase the chances of securing enough
+                              courses, incoming exchange students should consider taking courses with course code starting from 1000 to
+                              3000”.
 2026/27 exam               Exam timetable not published in NUSMods
 Workload (NUSMods)         Lecture 2, tutorial 1, lab 0.5, project 1.5, preparation 5 hours a week (10 in all)
 Estimated study time       About 10 hours a week (NUS's rate: 2.5 hours a week per unit). NUS states hours a week only; your university's
                            own conversion decides credit.
-Prerequisite                If undertaking an Undergraduate Degree THEN ( must have completed 1 of CG2027/EE2021/EE2027/ESP1104A
-                            at a grade of at least D)
-Preclusion                  (If undertaking a Graduate Degree Coursework THEN ( must not have completed EE3407 at a grade of at least D))
+Prerequisite               If undertaking an Undergraduate Degree THEN ( must have completed 1 of CG2027/EE2021/EE2027/ESP1104A
+                           at a grade of at least D)
+Preclusion                  (If undertaking a Graduate Degree Coursework THEN ( must not have completed EE3407 at a grade of at least D))
                             OR (if undertaking an Undergraduate Degree THEN must not have completed 1 of
                             E3407/EE3407E/TEE3407/TEE4407 at a grade of at least D)
 COURSE DESCRIPTION (NUS, VIA NUSMODS)
@@ -157,6 +154,7 @@ Sem 1 totals
 
 
 Closed, or not on NUS's exchange list, in that semester
+
 Backups
 CS3244 Machine Learning                                                                                     Not on the form: not open in Sem 1
 Backup 1 · Sem 1 · 4 units · https://nusmods.com/courses/CS3244

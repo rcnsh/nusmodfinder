@@ -624,7 +624,6 @@ details[open] > summary::before { transform: rotate(90deg); }
   .pp h2 { font-size: 13pt; font-weight: 600; margin-top: 16px; padding-bottom: 3px; border-bottom: 1px solid var(--ink); break-after: avoid; }
   .pp h3 { font-size: 11pt; font-weight: 600; margin-top: 10px; break-after: avoid; }
   .pp .pp-head { display: grid; gap: 2px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
-  .pp .pp-site { font-size: 8.5pt; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
   .pp .pp-link { font: 400 8.5pt/1.4 var(--f-mono); overflow-wrap: anywhere; font-feature-settings: "ss04"; }
   .pp .pp-course { padding: 6px 0 7px; border-bottom: 1px solid var(--rule); }
   .pp .pp-ch { break-inside: avoid; break-after: avoid; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 16px; }

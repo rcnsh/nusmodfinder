@@ -21,7 +21,7 @@ PDF, its JSON and the WebKit screenshot) and a one-off Playwright script (the CS
 
 | | pages | structure tree (`StructTreeRoot`) | text selectable | fonts |
 |---|---|---|---|---|
-| state-2 list | 4 | **present** (`pdfinfo`: Tagged yes) | **yes**: 17,349 bytes from `pdftotext`; the head's first line first | IBM Plex Sans (Regular, Medium, SemiBold), Plex Mono (Regular, Medium) |
+| state-2 list | 4 | **present** (`pdfinfo`: Tagged yes) | **yes**: `pdftotext` reads it, starting with the head's first line ("Courses planned for Sem 1, …") | IBM Plex Sans (Regular, Medium, SemiBold), Plex Mono (Regular, Medium) |
 | 40-entry list | 18 | **present** | **yes**: every description, workload, stamp and the shortlist link found in the text (`export.spec.js`) | Plex, plus `.SFNS` and Helvetica Neue (macOS) for characters the Plex subsets lack |
 
 - The page's own reader (`test/ui/pdf-text.mjs`, no dependency) gives the same characters as
@@ -39,5 +39,10 @@ PDF, its JSON and the WebKit screenshot) and a one-off Playwright script (the CS
   8.5 pt. The spec bounds it at 20, which still catches the regression the bound was for (the
   section in the rail's 210 px column: about 2.5 times as many pages), and checks the section
   fills 95% of the page's width directly.
+- The fresh-context review of the diff found three things, each fixed or recorded here: the
+  title and file name named a semester only a not-placed entry carried (fixed: only the
+  semesters with an entry planned in them are named, and a closed-only semester gets no
+  section); a site line came before the head's first line (fixed: the site's name is in the
+  head's second line, "Made on … with NUS Mod Finder"); and the page count above.
 - Not checked here (needs a person, as 6-0 recorded): Safari's "Export as PDF" and Chrome's own
   print-dialog "Save as PDF" (whether either tags), and iOS's Share, Print path.

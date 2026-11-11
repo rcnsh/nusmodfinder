@@ -94,9 +94,8 @@ export function createPrintView(root) {
       /** @type {import('./dom.js').Child[]} */
       const body = [
         h('header', { class: 'pp-head' },
-          h('p', { class: 'pp-site' }, `${SITE_NAME} · exchange shortlist`),
           h('h1', { attrs: { id: 'ppTitle' } }, doc.title),
-          h('p', null, `Year of study during the exchange: ${head.study} · Made on ${head.made}`),
+          h('p', null, `Year of study during the exchange: ${head.study} · Made on ${head.made} with ${SITE_NAME}`),
           h('p', { class: 'pp-link' }, head.link),
           ...extra.map((x) => h('p', null, `${x.label}: ${x.value}`)),
           h('p', { class: 'src' }, head.later)),

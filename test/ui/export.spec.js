@@ -253,7 +253,8 @@ test.describe('[6D] Print or save as PDF', () => {
     await expect(page.locator('#slPrint')).toBeVisible();
     await expect(page.locator('#slView')).toBeHidden();
     await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
-    await expect(page).toHaveTitle('exchange-shortlist-sem2-2026-27-courses');
+    // CS5562 is closed to 2nd-year exchange students in Sem 2: nothing is planned for a semester, so no semester part.
+    await expect(page).toHaveTitle('exchange-shortlist-2026-27-courses');
     await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
     await expect(page).toHaveTitle('NUS Mod Finder (unofficial)');
     // Leaving the view turns the class off: Ctrl+P on the results prints the screen.
@@ -330,7 +331,7 @@ test.describe('[6D] the print page under print media', () => {
 });
 
 test.describe('[6D] the PDF', () => {
-  test('[6D] Chromium\'s tagged PDF of a 40-entry list: a structure tree, selectable text holding every description, workload, status and the link, starting with the head; the form order starts a page; at most 16 pages', async ({ page, request, browserName }) => {
+  test('[6D] Chromium\'s tagged PDF of a 40-entry list: a structure tree, selectable text holding every description, workload, status and the link, starting with the head\'s first line; the form order starts a page; at most 20 pages (the plan said 14: see docs/evidence/phase6/export/README.md)', async ({ page, request, browserName }) => {
     test.skip(browserName !== 'chromium', 'page.pdf() is Chromium\'s');
     test.setTimeout(120_000);
     const { codes, qs } = fortyLink();
@@ -349,12 +350,16 @@ test.describe('[6D] the PDF', () => {
     expect(hasStructTree(pdf)).toBe(true);
     expect(pages.length).toBeLessThanOrEqual(20);
     const shown = await page.evaluate(() => ({
-      head: document.querySelector('#slPrint .pp-site')?.textContent ?? '',
+      first: document.querySelector('#slPrint .pp-head')?.firstElementChild?.tagName ?? '',
       title: document.querySelector('#slPrint h1')?.textContent ?? '',
       link: document.querySelector('#slPrint .pp-link')?.textContent ?? '',
       stamps: [...document.querySelectorAll('#slPrint .pp-course .st')].map((s) => s.textContent ?? ''),
     }));
-    expect(all.toUpperCase().startsWith(fold(shown.head + shown.title).toUpperCase())).toBe(true);
+    // The head's first line is the h1, "Courses planned for …" (6D), and the PDF's text starts with it.
+    expect(shown.first).toBe('H1');
+    expect(shown.title).toMatch(/^Courses planned for Sem 1 and Sem 2, based on NUS's 2026\/27 courses, exams and exchange list$/);
+    expect(all.startsWith(fold(shown.title))).toBe(true);
+    expect(all).toContain(fold('with NUS Mod Finder'));
     expect(shown.link).toMatch(/^https:\/\/nusmodfinder\.rcn\.sh\/\?/);
     expect(all).toContain(fold(shown.link));
     expect(shown.stamps).toHaveLength(40);

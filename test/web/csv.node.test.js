@@ -253,4 +253,18 @@ describe('[6D] the file name', () => {
     expect(fileName(exportOf('ng=1&study=ug2&pick=CS2113&alt=CS2030'), 'csv')).toBe('exchange-shortlist-2026-27-courses.csv');
     expect(exportOf('ng=1&study=ug2&pick=CS2030.2').stem).toBe('exchange-shortlist-sem2-2026-27-courses');
   });
+
+  it('names only the semesters the document plans: an entry not placed (special terms only, an unknown 404) or closed adds none (review finding 2)', () => {
+    const unknown = { CS9999: { kind: 'error', error: { status: 404, code: 'not_found', detail: { kind: 'unknown', acadYear: '2026-2027' } } } };
+    for (const [qs, extra] of /** @type {[string, Record<string, any>][]} */ ([
+      ['ng=1&study=ug2&sem=1&pick=CS2113.1&pick=BL5240.2', {}],
+      ['ng=1&study=ug2&sem=1&pick=CS2113.1&pick=CS9999.2', unknown],
+      ['ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1&pick=CS3244.2', { CS3244: synthOutcome('CS3244', { exchange: exchange({ 1: ['open', []], 2: ['closed', ['ng-list:not-in-semester']] }) }) }],
+    ])) {
+      const doc = exportOf(qs, extra);
+      expect(doc.stem, qs).toBe('exchange-shortlist-sem1-2026-27-courses');
+      expect(doc.title, qs).toBe('Courses planned for Sem 1, based on NUS\'s 2026/27 courses, exams and exchange list');
+      expect(doc.sections.map((x) => x.id), qs).not.toContain('2');
+    }
+  });
 });

@@ -273,12 +273,21 @@ function entryOf(w, place, { result, study, sources, answers }) {
 }
 
 /**
- * The file name's stem: the semesters present (`sem1`, `sem1-sem2`, none) and
+ * The semesters the document plans: those with an entry placed in them (not
+ * one closed then, nor one not placed in a semester). They name the title, the
+ * file and the semester sections, so none is named with nothing planned in it.
+ * @param {Result} result
+ * @returns {('1' | '2')[]}
+ */
+const plannedSems = (result) => /** @type {('1' | '2')[]} */ (['1', '2']).filter((s) => result.entries.some((w) => placeOf(w) === s));
+
+/**
+ * The file name's stem: the semesters planned (`sem1`, `sem1-sem2`, none) and
  * the rows' year (shortlist.js: the rows', else a 404's, else public/year.js).
  * @param {Result} result
  */
 export function stemOf(result) {
-  const sems = ['1', '2'].filter((s) => result.entries.some((w) => w.sem === s)).map((s) => `sem${s}-`).join('');
+  const sems = plannedSems(result).map((s) => `sem${s}-`).join('');
   return `exchange-shortlist-${sems}${result.year.replace('/', '-')}-courses`;
 }
 
@@ -297,8 +306,8 @@ export const fileName = (doc, ext) => `${doc.stem}.${ext}`;
 export function buildExport({ result, list, study, sources, link, today, answers = new Map(), yearNote = '' }) {
   const year = result.year;
   const ctx = { result, study, sources, answers };
-  const tagged = ['1', '2'].filter((s) => result.entries.some((w) => w.sem === s && placeOf(w) !== 'unplaced'));
-  const semsText = ['1', '2'].filter((s) => result.entries.some((w) => w.sem === s)).map(semLabel).join(' and ');
+  const tagged = plannedSems(result);
+  const semsText = tagged.map(semLabel).join(' and ');
   const title = `Courses planned${semsText ? ` for ${semsText}` : ''}, based on NUS's ${year} courses, exams and exchange list`;
   const listDate = dateOf(sources, /offered/i);
   const rulesDate = dateOf(sources, /restriction/i);
@@ -325,8 +334,7 @@ export function buildExport({ result, list, study, sources, link, today, answers
   ].filter((g) => g.entries.length).map((g) => ({ heading: g.heading, entries: g.entries.map((w) => entryOf(w, placeOf(w), ctx)) }));
 
   /** @type {Section[]} */
-  const sections = tagged.map((s) => {
-    const sem = /** @type {'1' | '2'} */ (s);
+  const sections = tagged.map((sem) => {
     const inSem = result.entries.filter((w) => placeOf(w) === sem);
     const quota = result.entries.filter((w) => w.sem === sem && w.standing === 'invite').flatMap((w) => w.lines.filter((l) => l.startsWith('If you were invited:')));
     return {
