@@ -1,0 +1,10 @@
+[
+  {"code": "GE3206", "sem": 1, "answer": "yes", "page_said": "Sem 1 · Open to exchange students (Sem 2: 'Offered to exchange students only in Sem 1.'); no prerequisites or preclusions listed", "where": "Course details panel for GE3206 (search 'GE3206 HY3226 GE3204 GE2231 HY2208')", "confidence": "high"},
+  {"code": "HY3226", "sem": 1, "answer": "yes", "page_said": "Sem 1 · Open to exchange students; no prerequisites or preclusions listed", "where": "Course details panel for HY3226", "confidence": "high"},
+  {"code": "LAJ1201", "sem": 1, "answer": "yes", "page_said": "Sem 1 · Open, with 1 note: 'Grading. Language courses must be taken on a graded basis (no audit).' Description: 'designed for students with no prior knowledge of Japanese'", "where": "Course details panel for LAJ1201 (search 'Japanese 1')", "confidence": "high"},
+  {"code": "GEC1023", "sem": 1, "answer": "yes", "page_said": "Sem 1 · Open to exchange students; Sem 2 · Open to exchange students; preclusion only GEH1060 (I haven't taken it)", "where": "Course details panel for GEC1023 (search 'piano')", "confidence": "high"},
+  {"code": "GE3204", "sem": 2, "answer": "yes", "page_said": "Sem 1 · Not open ('Offered to exchange students only in Sem 2.'); Sem 2 · Open to exchange students", "where": "Course details panel for GE3204", "confidence": "high"},
+  {"code": "GE2231", "sem": 2, "answer": "yes", "page_said": "Sem 2 · Open to exchange students; Sem 2 exam Fri 30 Apr 2027", "where": "Course details panel for GE2231 (search 'GE2231 HY2208')", "confidence": "high"},
+  {"code": "HY2208", "sem": 2, "answer": "yes", "page_said": "Sem 2 · Open to exchange students; preclusion: 'must not have completed HY3207' (I haven't)", "where": "Course details panel for HY2208", "confidence": "high"},
+  {"code": "HY2253", "sem": 2, "answer": "yes", "page_said": "Sem 2 · Open to exchange students; Sem 2 exam Wed 5 May 2027", "where": "Course details panel for HY2253 (search 'HY2253')", "confidence": "high"}
+]

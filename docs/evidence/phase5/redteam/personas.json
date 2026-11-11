@@ -1,0 +1,20 @@
+{
+ "p1": {
+  "who": "a 3rd-year Architecture undergraduate coming for Semester 1, keyboard only",
+  "mode": "keyboard", "browser": "chromium", "device": "Desktop Chrome",
+  "sems": [1], "study": "ug3",
+  "brief": { "majors": ["architecture", "landscape architecture"], "acceptsGraded": true, "acceptsFee": false, "hasLetter": true, "partner": null }
+ },
+ "p2": {
+  "who": "a 2nd-year Computer Science undergraduate coming for Semester 2 with a four-code home list, screen-reader tree only",
+  "mode": "ax", "browser": "chromium", "device": "Desktop Chrome",
+  "sems": [2], "study": "ug2", "list": ["CS3244", "CS2106", "CS3231", "CS3240"],
+  "brief": { "majors": ["computer science"], "acceptsGraded": true, "acceptsFee": false, "hasLetter": false, "partner": null }
+ },
+ "p3": {
+  "who": "a 3rd-year Geography and History undergraduate coming for the full year, on a 390px phone",
+  "mode": "phone", "browser": "webkit", "device": "iPhone 13",
+  "sems": [1, 2], "study": "ug3",
+  "brief": { "majors": ["geography", "history"], "acceptsGraded": true, "acceptsFee": false, "hasLetter": false, "partner": false }
+ }
+}
