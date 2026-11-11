@@ -10,7 +10,7 @@ test('the page opens on the exchange set-up: two questions, then the query', asy
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Find the NUS courses you can take on exchange' })).toBeVisible();
   await expect(page.getByRole('group', { name: 'Which semester will you study at NUS?' }).getByRole('radio')).toHaveCount(3);
-  await expect(page.getByRole('group', { name: 'Your year of study at your home university' }).getByRole('radio')).toHaveCount(5);
+  await expect(page.getByRole('group', { name: 'Your year of study during your exchange' }).getByRole('radio')).toHaveCount(5);
   await expect(page.getByLabel('What do you want to study?')).toBeVisible();
   await expect(page.locator('#q')).toBeHidden();
   await expect(page.locator('#setupSources')).toContainText('01 Sep 2026');
@@ -26,7 +26,7 @@ test('it asks for what is missing, one thing at a time, with focus on it; nothin
   await expect(page.getByRole('radio', { name: /^Sem 1/ })).toBeFocused();
   await page.getByRole('radio', { name: /^Sem 2/ }).check();
   await page.locator('#setupForm').getByRole('button', { name: 'Search' }).click();
-  await expect(ask).toHaveText('Choose your year of study at your home university.');
+  await expect(ask).toHaveText('Choose your year of study during your exchange.');
   await expect(page.getByRole('radio', { name: '1st year' })).toBeFocused();
   expect(sent).toEqual([]);
   expect(query(page)).toBe('');

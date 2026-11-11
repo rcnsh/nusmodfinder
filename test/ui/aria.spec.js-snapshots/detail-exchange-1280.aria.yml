@@ -2,6 +2,7 @@
   - heading "ACC1701XB Accounting for Decision Makers" [level=2]:
     - button "ACC1701XB Accounting for Decision Makers" [expanded]
   - paragraph: 4 units
+  - button "Shortlist, ACC1701XB": Shortlist
   - paragraph: Accounting · NUS Business School Taught in Sem 2 No final exam listed
   - paragraph:
     - text: Also as
@@ -17,6 +18,7 @@
     - listitem: Your major. Only for students majoring in business at their home university.
   - region "ACC1701XB Accounting for Decision Makers":
     - paragraph: Course details
+    - button "Shortlist, ACC1701XB": Shortlist
     - button "Close details"
     - heading "ACC1701XB Accounting for Decision Makers" [level=3]
     - paragraph: 4 units · Accounting, NUS Business School

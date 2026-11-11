@@ -45,7 +45,9 @@ const here = (page) => page.evaluate(() => {
 const ring = (page) => page.evaluate(() => {
   const a = document.activeElement;
   if (!a || a === document.body) return 'focus on the page';
-  if (a.tagName === 'MAIN') return 'ok';
+  // A landing point, not a control: the shown <main> the skip link focuses, or a heading the
+  // page focuses (tabindex -1: the shortlist view's, 6C).
+  if (a.tagName === 'MAIN' || (/^H[1-6]$/.test(a.tagName) && a.getAttribute('tabindex') === '-1')) return 'ok';
   const el = a instanceof HTMLInputElement && a.type === 'radio' ? a.closest('.tile, .pill, .seg-opt') ?? a : a;
   const cs = getComputedStyle(el);
   const transparent = /^transparent$|rgba\([^)]*,\s*0\)$/.test(cs.outlineColor);
@@ -137,12 +139,12 @@ async function detailLinkBackEscape(page, k) {
   await expect(button).toHaveAttribute('aria-expanded', 'true');
   await expect.poll(() => query(page)).toBe(`${URL_FILTERED}&open=CS2104`);
   await settled(page);
-  // Into the detail: Close first, then "can you take it" (its sources, the
-  // NUSMods link), then the course facts, whose prerequisites link CS2030.
+  // The card's shortlist toggle (6C), then into the detail: its own toggle and Close first, then
+  // "can you take it" (its sources, the NUSMods link), then the course facts, whose prerequisites link CS2030.
   /** @type {string[]} */
   const inside = [];
-  for (let i = 0; i < 12 && !inside.includes('a "CS2030"'); i++) inside.push(...await k.tab());
-  expect(inside[0]).toBe('button "Close details"');
+  for (let i = 0; i < 14 && !inside.includes('a "CS2030"'); i++) inside.push(...await k.tab());
+  expect(inside.slice(0, 3)).toEqual(['button "Shortlist, CS2104"', 'button "Shortlist, CS2104"', 'button "Close details"']);
   expect(inside).toContain('a "Class times and timetable on NUSMods"');
   expect(inside.indexOf('a "Class times and timetable on NUSMods"')).toBeLessThan(inside.indexOf('a "CS2030"'));
   expect(inside.at(-1)).toBe('a "CS2030"');
@@ -242,12 +244,47 @@ test.describe('at 390×664', () => {
     await expect(page.locator('#filtersBtn')).toHaveText('Filters (4)');
     await settled(page);
     await expect(live(page)).toHaveText(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
-    expect(await k.tab(4)).toEqual([
-      'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', 'button "Remove filter: Level 2000"', CARD,
+    // The shortlist button sits under the search form on a phone (6C), before the entries.
+    expect(await k.tab(5)).toEqual([
+      'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', 'button "Remove filter: Level 2000"', '#slOpenPhone', CARD,
     ]);
     await detailLinkBackEscape(page, k);
   });
 });
+
+// 6C: the shortlist by keyboard, at both widths: a card's toggle, the shortlist button (the rail's,
+// or the phone's under the form), the view's controls in order with a ring at every stop, and
+// Escape back to the button.
+for (const [label, width, height, opener] of /** @type {const} */ ([['1280', 1280, 800, '#slOpenRail'], ['390×664', 390, 664, '#slOpenPhone']])) {
+  test(`[6C] [SC8] keyboard only at ${label}: a card's toggle, the shortlist button, the view's controls, Escape`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    const k = keys(page, await tabKey(page));
+    await page.goto('/?q=CS2113&sem=1&ng=1&study=ug2');
+    await settled(page);
+    expect(await k.tab()).toEqual(['#skip']);
+    expect(await k.press('Enter')).toBe('#main');
+    /** @type {string[]} */
+    const stops = [];
+    for (let i = 0; i < 12 && stops.at(-1) !== 'button "Shortlist, CS2113"'; i++) stops.push(...await k.tab());
+    expect(stops.at(-1)).toBe('button "Shortlist, CS2113"');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('button', { name: 'Shortlist, CS2113' })).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => query(page)).toBe('q=CS2113&sem=1&ng=1&study=ug2&pick=CS2113.1');
+    /** @type {string[]} */
+    const back = [];
+    for (let i = 0; i < 14 && back.at(-1) !== opener; i++) back.push(...await k.shiftTab());
+    expect(back.at(-1)).toBe(opener);
+    expect(await k.press('Enter')).toBe('#slTitle');
+    await expect(page.locator('#slView .sl-ehead .title')).toHaveText(/Software Engineering/);
+    expect(await k.tab(10)).toEqual([
+      'button "Back to results"', 'button "Copy link"', 'button "Download CSV"', 'button "Print or save as PDF"',
+      'button "Move up, CS2113"', 'button "Move down, CS2113"', 'button "Make backup, CS2113"', 'button "Move to Sem 2, CS2113"', 'button "Remove, CS2113"',
+      'button "Forget this list on this device"',
+    ]);
+    expect(await k.press('Escape')).toBe(opener);
+    await expect(page.locator('#slView')).toBeHidden();
+  });
+}
 
 test('[F5] Escape in the search box with a detail open closes the detail and keeps the typed query', async ({ page }) => {
   await page.goto('/?q=CS3244&open=CS3244');

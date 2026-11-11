@@ -31,8 +31,8 @@ import { DEFAULT_ACAD_YEAR } from './year.js';
  * @typedef {{ kind: 'row', course: Course } | { kind: 'ng-listed', course: Course }
  *   | { kind: 'catalogue-only', title: string, acadYear: string } | { kind: 'unknown', acadYear: string }
  *   | { kind: 'loading' } | { kind: 'failed' }} Answer
- * @typedef {{ id: string, text: string, scope?: { department?: string, faculty?: string, levels?: number[] } | null }} OffListRule
- *   /facets' `offListRules` (6A)
+ * @typedef {{ id: string, text: string, scope?: { departments?: string[], faculties?: string[], levels?: number[] } | null }} OffListRule
+ *   /facets' `offListRules` (6A, data/ng-reasons.json): `levels` as digits (4 is level 4000)
  * @typedef {'counted' | 'confirm' | 'invite' | 'out' | 'pending' | 'duplicate'} Standing
  *   `invite`: a Business or Law course the student hasn't said they were invited for (to confirm, on a line of its own)
  * @typedef {{ kind: 'exam' | 'preclusion' | 'group', with: string, text: string, quote?: string }} Flag
@@ -45,7 +45,7 @@ import { DEFAULT_ACAD_YEAR } from './year.js';
  *   form: { number: number | null, text: string, note: string },
  * }} Worked
  * @typedef {{
- *   counted: number, confirm: number, invite: number, pending: number, economics: number,
+ *   picked: number, counted: number, confirm: number, invite: number, pending: number, economics: number,
  *   hours: number, overlap: boolean, over20: boolean, form: { units: number, line: string } | null,
  * }} Totals
  * @typedef {{
@@ -123,7 +123,7 @@ export const TOTAL_LINES = Object.freeze({
 export const APPLICANT_LINES = Object.freeze([
   'NUS recommends listing as many relevant courses as you can, up to 40 units (GRO)',
   'NUS recommends ranking your compulsory courses among your top three choices, to increase your chances of securing them (GRO)',
-  'NUS\'s form asks, for each course, your class choice and the home course that meets its prerequisite (NUS\'s application guide)',
+  'NUS\'s form asks, for each course with a prerequisite, the home course that meets it (NUS\'s application guide)',
   'GRO: “If you did not secure any of the popular courses during the first round … please do not repeat your request for any of these courses in subsequent rounds”',
 ]);
 
@@ -140,7 +140,7 @@ export const FORM_LINES = Object.freeze({
   setYear: 'Set your year of study during the exchange to see NUS\'s form order',
   fullYear: 'NUS has asked full-year students to choose Sem 2 courses later, by email before Sem 1 ends (NUS info sheet, 2018/19): check with NUS whether to list them now',
   over: 'Won\'t fit in NUS\'s 40 units',
-  ten: 'NUS has said up to 10 courses (pre-departure slides): check',
+  ten: 'NUS has said up to 10 courses (NUS\'s 2018/19 exchange information sheet): check',
 });
 
 /** The CourseReg box, for admitted students: NUS's rules, each cited, then the page's own line, set apart. */
@@ -305,20 +305,21 @@ export function staleRows(answers) {
 }
 
 /**
- * Whether an off-list rule's scope covers a course: its department (and
- * levels, as digits or as 1000s), or its faculty. Never by code prefix.
+ * Whether an off-list rule's scope covers a course: one of its departments
+ * (and, if it names levels, one of them, as digits: 4 is level 4000), or one
+ * of its faculties. Never by code prefix. Rule E's scope is `{}`: it covers
+ * nothing on its own, and is the line used when no other rule does.
  * @param {OffListRule['scope']} scope
  * @param {Course} c
  */
 function covers(scope, c) {
-  if (!scope || (!scope.department && !scope.faculty)) return false;
-  if (scope.department && c.department !== scope.department) return false;
-  if (scope.faculty && c.faculty !== scope.faculty) return false;
-  if (Array.isArray(scope.levels) && scope.levels.length) {
-    const l = Number(c.level);
-    if (!scope.levels.some((x) => x === l || x === l * 1000)) return false;
-  }
-  return true;
+  const departments = strs(scope?.departments);
+  const faculties = strs(scope?.faculties);
+  if (!departments.length && !faculties.length) return false;
+  if (departments.length && !departments.includes(String(c.department ?? ''))) return false;
+  if (faculties.length && !faculties.includes(String(c.faculty ?? ''))) return false;
+  const levels = nums(scope?.levels);
+  return !levels.length || levels.includes(Number(c.level));
 }
 
 /**
@@ -365,12 +366,20 @@ function workEntry(e, answer, ctx) {
   const c = /** @type {Course} */ (course);
   const ngListed = answer.kind === 'ng-listed';
   if (w.faculty) w.lines.push(BIZ_LAW.gro);
-  if (specialOnly(answer)) return as('out', 'Taught only in special terms: this page plans Sem 1 and Sem 2');
+  if (specialOnly(answer)) {
+    // Its closed stamp at the chosen semester (SC1); the reason is the line below.
+    if (e.sem && ctx.study) w.status = exchangeAt(c, Number(e.sem), ctx.study)?.status ?? 'closed';
+    return as('out', 'Taught only in special terms: this page plans Sem 1 and Sem 2');
+  }
   if (!e.sem) return as('out', 'No semester chosen');
   if (credits === null) return as('out', 'NUS lists no units for it');
   const sem = Number(e.sem);
   const ngLine = `NUS lists it for ${semLabel(sem)} in ${ctx.year}, but NUSMods shows no classes: ask NUS`;
-  if (ngListed && !nums(c.ng_semesters).includes(sem)) return as('out', `Not on NUS's exchange list for ${semLabel(sem)} in ${ctx.year}`);
+  if (ngListed && !nums(c.ng_semesters).includes(sem)) {
+    // Its closed stamp, as a row's (SC1); the reason is the line below, not a note.
+    if (ctx.study) w.status = exchangeAt(c, sem, ctx.study)?.status ?? 'closed';
+    return as('out', `Not on NUS's exchange list for ${semLabel(sem)} in ${ctx.year}`);
+  }
   if (!ctx.study) {
     // Browse mode: no study level, so no exchange status. A pick counts by its units if it is taught then.
     if (ngListed) { w.lines.push(ngLine); return as('confirm', ngLine); }
@@ -606,6 +615,8 @@ export function workOut({ list, sem, study, answers, rules }) {
     const confirm = sum('confirm');
     const invite = sum('invite');
     return {
+      // "Units picked" (the shortlist button, the sentences): every loaded pick's units, counted or not.
+      picked: fromTenths(picks.reduce((t, w) => t + tenths(w.units ?? 0), 0)),
       counted, confirm, invite,
       pending: picks.filter((w) => w.standing === 'pending').length,
       economics: fromTenths(picks.filter((w) => (w.standing === 'counted' || w.standing === 'confirm') && lettersOf(w.code) === 'EC')
@@ -650,13 +661,21 @@ export function totalLines(sem, t, { exchange, year }) {
 
 /**
  * The view's one sentence after a settings change: "Sem 2 first: 12 units
- * picked; Sem 1: 8".
+ * picked; Sem 1: 8", in units picked as the shortlist button counts them.
  * @param {Result} r
  */
 export function summary(r) {
   const [first, second] = r.order;
-  return `${semLabel(first)} first: ${r.sems[first].counted} units picked; ${semLabel(second)}: ${r.sems[second].counted}`;
+  return `${semLabel(first)} first: ${r.sems[first].picked} units picked; ${semLabel(second)}: ${r.sems[second].picked}`;
 }
+
+/**
+ * Whether an entry can be asked its semester: not once its answer shows it
+ * can't take one (taught only in special terms, a catalogue-only or unknown
+ * 404). A row still loading can, until it answers.
+ * @param {Answer | undefined} answer
+ */
+export const askable = (answer) => !(answer && (answer.kind === 'catalogue-only' || answer.kind === 'unknown' || specialOnly(answer)));
 
 /**
  * The question before an export (6C asks it, 6D waits on it): the year of
@@ -667,11 +686,7 @@ export function summary(r) {
  * @returns {{ ask: boolean, year: boolean, entries: string[] }}
  */
 export function exportQuestion({ list, study, answers }) {
-  const entries = [...list.pick, ...list.alt].filter((e) => {
-    if (e.sem) return false;
-    const a = answers.get(e.code) ?? { kind: 'loading' };
-    return !(a.kind === 'catalogue-only' || a.kind === 'unknown' || specialOnly(a));
-  }).map((e) => e.code);
+  const entries = [...list.pick, ...list.alt].filter((e) => !e.sem && askable(answers.get(e.code))).map((e) => e.code);
   const year = !study && list.pick.length + list.alt.length > 0;
   return { ask: year || entries.length > 0, year, entries };
 }

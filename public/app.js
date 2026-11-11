@@ -19,7 +19,12 @@
 // apart from `current` (list.js); every history write goes through one writer
 // (history.js); Back and Forward keep the list and write it into the entry
 // they reach; edits replace the entry at once and keep a copy on this device
-// (saved.js, G3). The view and its controls are 6C's.
+// (saved.js, G3). 6C: the shortlist's controls: a toggle on each card and in
+// the detail head, the shortlist button (in the rail, and on a phone under the
+// search form), and the view (shortlist-view.js, `view=shortlist`) with its
+// own history entries; rows load from /module four at a time; every edit says
+// what it did in the live region; while the view is shown the search behind
+// it neither speaks nor moves focus.
 import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from './api.js';
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
@@ -30,11 +35,13 @@ import { intentChipRow } from './intent-chips.js';
 import { createWriter } from './history.js';
 import { intentChips } from './intents.js';
 import { isCloseEscape, isSubmitEnter } from './keys.js';
-import { add, emptyList, makeOther, move, parseList, remove, setInvite, setSem, withYear } from './list.js';
+import { add, emptyList, entryCount, hasEntry, makeOther, move, parseList, remove, restore, setInvite, setSem, tagFor, withYear } from './list.js';
 import { errorSentence } from './messages.js';
-import { searchAgain, transition } from './nav.js';
-import { hiddenStamp, settlePartial, showLoading, showMessage, showResults } from './render.js';
+import { searchAgain, searchKey, transition } from './nav.js';
+import { hiddenStamp, settlePartial, shortlistToggle, showLoading, showMessage, showResults } from './render.js';
 import { forgetList, restoreOffer, saveList } from './saved.js';
+import { answerOf, askable, exportQuestion, summary, workOut, yearLine } from './shortlist.js';
+import { askSentence, createShortlistView } from './shortlist-view.js';
 import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, parseState, searchParams, shortlistUrl, unitsLabel, urlFor } from './state.js';
 
 /** @typedef {import('./state.js').State} State */
@@ -82,6 +89,10 @@ const els = {
   panel: $('panel'),
   live: $('live'),
   skip: /** @type {HTMLAnchorElement} */ ($('skip')),
+  slView: $('slView'),
+  slOpen: /** @type {HTMLButtonElement[]} */ ([$('slOpenRail'), $('slOpenPhone')]),
+  slUndo: [$('slUndoRail'), $('slUndoPhone')],
+  slRestore: [$('slRestoreSetup'), $('slRestore')],
 };
 
 /** A pending re-announcement (see announce). @type {ReturnType<typeof setTimeout> | undefined} */
@@ -102,6 +113,18 @@ function announce(text) {
   }
 }
 
+/** When the page last said what an edit did (6C: the rows' "done" sentence then waits its turn). */
+let editSaidAt = 0;
+/**
+ * What the search says (its count, why there is none, a detail that failed,
+ * the other semester's check). While the shortlist view is shown the search
+ * runs behind it and says nothing (6B, 6C).
+ * @param {string} text
+ */
+function resultsSay(text) {
+  if (!current.view) announce(text);
+}
+
 /**
  * A message in the status area with no results, said in the live region too.
  * @param {string} text
@@ -109,7 +132,7 @@ function announce(text) {
  */
 function message(text, error = false) {
   showMessage(targets, text, error);
-  announce(text);
+  resultsSay(text);
 }
 
 // Static option lists (F4): every filter but faculty works before /facets answers.
@@ -219,9 +242,19 @@ const pageUrl = (s) => urlFor(s, list, location.pathname);
 /** localStorage, or null where reading it throws (blocked storage). */
 const storage = (() => { try { return localStorage; } catch { return null; } })();
 
+/**
+ * The query the view opened with (6B): while the view is shown the box keeps
+ * whatever the student types, and on closing it keeps text that differs from
+ * this. null when the view isn't shown.
+ * @type {string | null}
+ */
+let viewQ = null;
+
 /** @param {State} s */
 function applyToForm(s) {
-  els.q.value = s.q;
+  // While the view is shown the box is the student's, not the state's (6B "settings" while the view is shown).
+  const keepBox = viewQ !== null && (s.view !== '' || els.q.value !== viewQ);
+  if (!keepBox) els.q.value = s.q;
   selectValue(els.sem, s.sem);
   selectValue(els.level, s.level, levelLabel(s.level));
   selectValue(els.credits, s.credits, unitsLabel(s.credits));
@@ -253,6 +286,17 @@ function syncView(s) {
   els.setup.hidden = !setup;
   els.layout.hidden = setup;
   els.skip.href = setup ? '#setup' : '#main';
+  // The view replaces the results region (cards, intent chips, facets); the settings and the search form stay.
+  const viewing = !setup && s.view === 'shortlist';
+  els.slView.hidden = !viewing;
+  els.status.hidden = viewing;
+  els.results.hidden = viewing;
+  for (const b of els.slOpen) {
+    if (viewing) b.setAttribute('aria-current', 'true');
+    else b.removeAttribute('aria-current');
+  }
+  if (viewing && viewQ === null) viewQ = s.q;
+  if (!viewing) viewQ = null;
 }
 
 // The skip link moves focus to the shown <main> (the next Tab is its first
@@ -372,11 +416,12 @@ async function loadDetail(code, region, { quiet = false } = {}) {
   if (outcome.kind !== 'ok') {
     const sentence = outcome.kind === 'error' ? errorSentence(outcome.error) : '';
     detailError(region, sentence, () => loadDetail(code, region));
-    if (!quiet) announce(`The details of ${code} could not be loaded. ${sentence}`.trim());
+    if (!quiet) resultsSay(`The details of ${code} could not be loaded. ${sentence}`.trim());
     return;
   }
   renderDetail(region, outcome.body, {
     filters: data.filters ?? {}, sources, searchHref, onClose: () => act({ type: 'close' }), from: code === current.open ? current.from : '',
+    toggle: (c) => shortlistToggle(c, hasEntry(list, c) !== ''),
   });
 }
 
@@ -429,7 +474,7 @@ function syncDetail(s, focusCode = '') {
 function announceAnswer() {
   if (!shown) return;
   const read = intentChips(shown.data?.interpreted, current.ignore).map((c) => c.label);
-  announce([shown.view.announce, read.length ? `Read from your query: ${read.join(', ')}.` : ''].filter(Boolean).join(' '));
+  resultsSay([shown.view.announce, read.length ? `Read from your query: ${read.join(', ')}.` : ''].filter(Boolean).join(' '));
 }
 
 /**
@@ -530,7 +575,7 @@ async function checkOtherSemester(s) {
   // Said again only if it changed: the line now says "either semester", or a
   // button to see the other semester appeared (a failed check changes neither).
   const see = p.actions.querySelector('button');
-  if (see || p.line.textContent !== before) announce([p.line.textContent, see ? `The “${see.textContent}” button shows them.` : ''].filter(Boolean).join(' '));
+  if (see || p.line.textContent !== before) resultsSay([p.line.textContent, see ? `The “${see.textContent}” button shows them.` : ''].filter(Boolean).join(' '));
 }
 
 /** @param {string} key @param {any} body */
@@ -546,7 +591,7 @@ function remember(key, body) {
  * @param {any} body
  */
 function render(s, key, body) {
-  shown = { key, data: body, view: showResults(targets, body, { searchHref, variantHref, removableFilters: removableFilters(), query: s.q }) };
+  shown = { key, data: body, view: showResults(targets, body, { searchHref, variantHref, removableFilters: removableFilters(), query: s.q, listed: (code) => hasEntry(list, code) !== '' }) };
   showIntentChips(body);
   announceAnswer();
   syncDetail(s);
@@ -586,13 +631,14 @@ async function show(s, { fromUser = false, submitted = false } = {}) {
       // runs this inside the label's activation, and WebKit then focuses the
       // checkbox itself where checkboxes take focus on click (Linux), which
       // would undo a focus moved here.
-      if (fromUser) setTimeout(() => els.study.focus(), 0);
+      // Not while the view is shown: its own controls keep focus (6C's export question).
+      if (fromUser && !s.view) setTimeout(() => els.study.focus(), 0);
     } else if (leftSetup) {
       message(EMPTY);
     } else {
       // The first screen asks its own questions; "the box above" is the results view's.
       showMessage(targets, EMPTY);
-      announce('');
+      resultsSay('');
     }
     return;
   }
@@ -614,7 +660,7 @@ async function show(s, { fromUser = false, submitted = false } = {}) {
   // would drop focus to the page, and a second search aborts this one anyway.
   shown = null;
   showLoading(targets);
-  announce('');
+  resultsSay('');
   const outcome = await search(params);
   if (outcome.kind === 'superseded') return;
   if (outcome.kind === 'error') {
@@ -643,17 +689,42 @@ async function act(action) {
   // popstate restores the list entry, and its state, after back().
   if (op === 'back') { history.back(); return; }
   const url = pageUrl(state);
-  // The view's own entries (`openView`, `replace-push`) are 6C's; settings
-  // while the view is shown keep the entry's state.
-  if (op === 'replace-push') writer.replace(pageUrl({ ...current, open: '', from: '' }), null);
-  if (op === 'push' || op === 'replace-push') writer.push(url, action.type === 'open' ? { vnmDetail: true } : null);
-  else writer.replace(url, action.type === 'open' || state.view ? undefined : null);
+  const before = current;
+  if (action.type === 'openView') {
+    // The view's entry (6B): it records the search it opened from, and this page pushed it (a detail
+    // entry this page pushed is replaced by it), so closing it with nothing changed goes back().
+    const data = { vnmShortlist: true, atOpen: searchKey(current) };
+    if (op === 'replace-push') writer.replace(pageUrl({ ...current, open: '', from: '' }), null);
+    if (op === 'replace') writer.replace(url, data);
+    else writer.push(url, data);
+  } else {
+    if (op === 'replace-push') writer.replace(pageUrl({ ...current, open: '', from: '' }), null);
+    if (op === 'push' || op === 'replace-push') writer.push(url, action.type === 'open' ? { vnmDetail: true } : null);
+    // Settings while the view is shown keep the entry's state (its vnmShortlist and atOpen).
+    else writer.replace(url, action.type === 'open' || state.view ? undefined : null);
+  }
   const closing = action.type === 'close' ? current.open : '';
   current = state;
   applyToForm(state);
+  if (action.type === 'openView') {
+    // No show(): the search stays as it was, hidden behind the view; the rows load.
+    enterView();
+    return;
+  }
+  if (action.type === 'closeView') {
+    // Closed by replace (something changed since it opened, or a link opened it): the search
+    // runs again only by popstate's rule, and the count is said; focus on the shortlist button.
+    leaveView();
+    if (shown && shown.key === (searchParams(state)?.toString() ?? '')) announceAnswer();
+    else if (searchAgain(before, state, lastError) || (!shown && lastError === 'retry')) await show(state);
+    else announce(els.status.textContent ?? '');
+    return;
+  }
   const done = show(state, { fromUser: true, submitted: action.type === 'submit' });
   // Closed by replace: focus goes back to the card's button (closed by back(), popstate does it).
   if (closing) shown?.view.cards.get(closing)?.button.focus();
+  if (before.view && state.view && action.type === 'settings') settingsInView();
+  if (before.view && !state.view) { viewClosed(); }
   await done;
 }
 
@@ -721,7 +792,7 @@ function submitSetup() {
   const study = checkedValue('setupStudy');
   const q = els.setupQ.value.trim();
   if (sem === null) { setupAsk('Choose the semester you will study at NUS.', radios('setupSem')[0]); return; }
-  if (!study) { setupAsk('Choose your year of study at your home university.', radios('setupStudy')[0]); return; }
+  if (!study) { setupAsk('Choose your year of study during your exchange.', radios('setupStudy')[0]); return; }
   if (!q) { setupAsk('Type what you want to study.', els.setupQ); return; }
   els.setupError.hidden = true;
   saveStudy(study);
@@ -810,7 +881,14 @@ matchMedia('(min-width: 641px)').addEventListener('change', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (!isCloseEscape(e) || !current.open || els.dialog.open) return;
+  if (!isCloseEscape(e) || els.dialog.open) return;
+  // The view closes on Escape (6B), as a detail does; the box, if focused, keeps its text.
+  if (current.view) {
+    e.preventDefault();
+    closeView();
+    return;
+  }
+  if (!current.open) return;
   // The detail closes and focus returns to its button; the search box, if
   // focused, keeps its text (a search field's own Escape clears it).
   e.preventDefault();
@@ -854,10 +932,21 @@ window.addEventListener('popstate', async () => {
   const answerBefore = shown?.key;
   current = settle(parseState(new URLSearchParams(location.search)));
   const after = current;
+  // The view (6B, 6C): Forward or Back into it shows it, focus on its heading; Back out of it,
+  // focus on the shortlist button that is displayed. The search runs by the rule below.
+  if (after.view && !left.view) enterView();
+  if (!after.view && left.view) leaveView();
   // The same search after a 429 (or another 4xx) is not run again: its message stays.
-  if (!shown && !searchAgain(left, after, lastError)) return;
+  if (!shown && !searchAgain(left, after, lastError)) {
+    if (!after.view && left.view) announce(els.status.textContent ?? '');
+    return;
+  }
   await show(after);
   if (current !== after) return;
+  if (after.view || left.view) {
+    if (!after.view && left.view) announceAnswer();
+    return;
+  }
   // Back from an open detail: the list, its detail closed, focus on its button.
   // Back to an open detail (from a search a course code in it ran): focus on
   // its button, where the student left the list. Focus brings it into view;
@@ -928,6 +1017,9 @@ fetchFacets().then((f) => {
       : 'The NG list could not be loaded. Reload the page to try again.';
   }
   if (sources) renderSources();
+  // 6A: NUS's rules on courses off the exchange list, and the list's date, for the shortlist's rows and form.
+  offListRules = Array.isArray(f.offListRules) ? f.offListRules : null;
+  renderShortlist();
 });
 
 /** @param {RegExp} name @returns {string} a source's "updated as at" date, or '' */
@@ -975,13 +1067,277 @@ function settle(s) {
   return settled;
 }
 
-// ---- The shortlist's state (6B). The view (6C) and the exports (6D) call these.
+// ---- The shortlist (6B's state, 6C's controls). The exports (6D) call these too.
+
+/** /facets' offListRules (6A): null until it answers, and for good if it fails (the rows then say to ask NUS). */
+/** @type {import('./shortlist.js').OffListRule[] | null} */
+let offListRules = null;
+/** Each entry's /module answer (shortlist.js answerOf); missing while it loads. @type {Map<string, import('./shortlist.js').Answer>} */
+const rowAnswers = new Map();
+/** Codes queued or in flight. @type {Set<string>} */
+const rowWanted = new Set();
+/** @type {string[]} */
+const rowQueue = [];
+let rowsActive = 0;
+/** At most this many /module requests at once (6C "Rows load … four at a time"). */
+const ROWS_AT_ONCE = 4;
+/**
+ * The last removal, for Undo, until the next edit: from a card's toggle (Undo
+ * beside the shortlist button) or the view's Remove (Undo at the top of the view).
+ * @type {{ removed: import('./list.js').Removed, where: 'card' | 'view' } | null}
+ */
+let undoable = null;
+/** The view's one sentence after a settings change in it ("Sem 2 first: …"), until it closes. */
+let viewSentence = '';
+/** "Link copied", beside the actions; and the link to copy by hand when the browser refused. */
+let copySaid = '';
+let copyField = '';
+/** The export question's parts asked since the view opened (kept while it stays open). */
+let asked = { year: false, entries: /** @type {string[]} */ ([]) };
+/** Whether "Loading N courses" was said, so "done" is said once after it. */
+let progressSaid = false;
+/** Counts edits, so a slow "added" sentence stands down when another edit came after it. */
+let editCount = 0;
+
+const slView = createShortlistView(els.slView, {
+  close: () => closeView(),
+  copy: () => copyLink(),
+  exportPress: (kind) => exportPress(kind),
+  invite: (which, on) => {
+    const r = editList((l) => setInvite(l, which, on));
+    if (!r.ok) return;
+    const res = worked();
+    const sem = res.order.find((s) => res.entries.some((w) => w.sem === s && w.faculty === which)) ?? res.order[0];
+    say(`${which === 'biz' ? 'Business' : 'Law'} courses ${on ? 'counted' : 'not counted'}: ${semLabel(sem)}, ${picked(sem)} units picked`);
+  },
+  askStudy: (study) => {
+    els.ng.checked = true;
+    els.study.value = study;
+    saveStudy(study);
+    syncExchange();
+    act({ type: 'settings', form: readForm() });
+  },
+  askSem: (sem) => {
+    els.sem.value = sem;
+    syncExchange();
+    act({ type: 'settings', form: readForm() });
+  },
+  askEntry: (code, sem) => {
+    const r = editList((l) => setSem(l, code, sem));
+    say(r.ok ? `${code} moved to ${semLabel(sem)}` : r.why);
+  },
+  move: (code, dir, button) => {
+    const w = entry(code);
+    if (!w) return;
+    const r = editList((l) => move(l, code, dir));
+    if (!r.ok) { say(`${code} is already ${dir < 0 ? 'first' : 'last'}`); return; }
+    button.scrollIntoView({ block: 'nearest' });
+    const now = entry(code);
+    if (!now) return;
+    const n = now.which === 'pick' ? list.pick.length : list.alt.length;
+    const form = worked().exchange && now.form.number ? `, number ${now.form.number} on the form` : '';
+    say(`${code} moved ${dir < 0 ? 'up' : 'down'}: ${now.which === 'pick' ? 'pick' : 'backup'} ${now.rank} of ${n}${form}`);
+  },
+  make: (code, button) => {
+    const r = editList((l) => makeOther(l, code));
+    if (!r.ok) { say(r.why); return; }
+    // The row moved to the other list: its same control, in its new place, then the sentence.
+    button.focus();
+    button.scrollIntoView({ block: 'nearest' });
+    say(`${code} is now ${hasEntry(list, code) === 'alt' ? 'a backup' : 'a primary pick'}`);
+  },
+  sem: (code, to, button) => {
+    const r = editList((l) => setSem(l, code, to));
+    if (!r.ok) { say(r.why); return; }
+    button.scrollIntoView({ block: 'nearest' });
+    say(`${code} moved to ${semLabel(to)}`);
+  },
+  remove: (code) => removeFromView(code),
+  undo: () => undoRemove(),
+  retry: (code) => retryRow(code),
+  forget: () => {
+    forgetList(storage);
+    renderShortlist();
+    focusHeading(slView.title);
+    say('This device no longer keeps your shortlist. The list in this page\'s link is unchanged.');
+  },
+});
+
+/** The shortlist worked out now (shortlist.js), every entry at its own semester. */
+function worked() {
+  return workOut({ list, sem: current.sem, study: current.ng ? current.study : '', answers: rowAnswers, rules: offListRules });
+}
+/** @param {string} code */
+const entry = (code) => worked().entries.find((w) => w.code === code);
+
+/**
+ * Units picked in a semester, as the shortlist button, the sentences and the
+ * view's settings sentence say them: every tagged pick there whose units have
+ * loaded, counted or not (the mockup's call; `workOut`'s `picked`).
+ * @param {'1' | '2'} sem
+ */
+const picked = (sem) => worked().sems[sem].picked;
+/** Picks in a semester still loading. @param {string} sem */
+const loadingIn = (sem) => list.pick.filter((e) => e.sem === sem && !rowAnswers.has(e.code)).length;
+
+/** "Sem 1: 12 units picked", "Sem 1: 12 · Sem 2: 16 units picked" (6C, the shortlist button). */
+function buttonLine() {
+  const n = entryCount(list);
+  if (!n) return 'No courses yet';
+  const sems = /** @type {('1' | '2')[]} */ (['1', '2']).filter((s) => list.pick.some((e) => e.sem === s));
+  if (!list.pick.length) return `${n} backup${n === 1 ? '' : 's'}, no primary picks yet`;
+  if (!sems.length) return `${list.pick.length} pick${list.pick.length === 1 ? '' : 's'}, no semester yet`;
+  return `${sems.map((s) => `${semLabel(s)}: ${picked(s)}`).join(' · ')} units picked`;
+}
+
+/** Says what an edit did (the live region), and when, so the rows' "done" sentence doesn't overwrite it. @param {string} text */
+function say(text) {
+  editSaidAt = Date.now();
+  announce(text);
+}
+
+/** Focuses a heading (tabindex -1) and brings it into view. @param {HTMLElement} el */
+function focusHeading(el) {
+  el.focus({ preventScroll: true });
+  el.scrollIntoView({ block: 'nearest' });
+}
+/** The shortlist button the layout shows: the rail's on a wide screen, the phone's under the form. */
+const shownOpenButton = () => els.slOpen.find((b) => b.getClientRects().length > 0) ?? els.slOpen[0];
+
+/** Loads every entry's row not yet in, four at a time, through the shared client. */
+function ensureRows() {
+  for (const e of [...list.pick, ...list.alt]) {
+    if (rowAnswers.has(e.code) || rowWanted.has(e.code)) continue;
+    rowWanted.add(e.code);
+    rowQueue.push(e.code);
+  }
+  pumpRows();
+}
+function pumpRows() {
+  while (rowsActive < ROWS_AT_ONCE && rowQueue.length) {
+    const code = /** @type {string} */ (rowQueue.shift());
+    rowsActive += 1;
+    modules.get(code).then((outcome) => {
+      rowsActive -= 1;
+      rowWanted.delete(code);
+      rowAnswers.set(code, answerOf(outcome));
+      rowSettled.get(code)?.forEach((fn) => fn());
+      rowSettled.delete(code);
+      // The export question again: a row that answers may exempt its entry.
+      if (current.view) updateAsked();
+      renderShortlist();
+      progressDone();
+      pumpRows();
+    });
+  }
+}
+/** Waiters on a row settling (the "added" sentence, Try again). @type {Map<string, (() => void)[]>} */
+const rowSettled = new Map();
+/** @param {string} code @returns {Promise<void>} */
+const whenSettled = (code) => (rowAnswers.has(code) ? Promise.resolve() : new Promise((resolve) => {
+  rowSettled.set(code, [...(rowSettled.get(code) ?? []), resolve]);
+}));
+
+/** "Loading 12 courses", once, only while the view is shown (6C). */
+function progressStart() {
+  const waiting = [...list.pick, ...list.alt].filter((e) => !rowAnswers.has(e.code)).length;
+  if (!current.view || !waiting || progressSaid) return;
+  progressSaid = true;
+  announce(`Loading ${waiting} course${waiting === 1 ? '' : 's'}`);
+}
+/** Once more when done or failed, unless an edit was said in the last second. */
+function progressDone() {
+  if (!progressSaid || [...list.pick, ...list.alt].some((e) => !rowAnswers.has(e.code))) return;
+  progressSaid = false;
+  if (!current.view || Date.now() - editSaidAt < 1000) return;
+  const all = [...list.pick, ...list.alt];
+  const failed = all.filter((e) => rowAnswers.get(e.code)?.kind === 'failed').length;
+  const n = all.length - failed;
+  announce(`${n} course${n === 1 ? '' : 's'} loaded${failed ? `; ${failed} could not be loaded` : ''}`);
+}
+
+/** The year line, the values a link dropped and the settings sentence, under the view's heading. */
+function viewLines() {
+  const out = [];
+  if (viewSentence) out.push(viewSentence);
+  const y = yearLine(list.ay, rowYear());
+  if (y) out.push(`${y}.`);
+  if (droppedOnLoad) out.push(`${droppedOnLoad} value${droppedOnLoad === 1 ? '' : 's'} in the link ${droppedOnLoad === 1 ? 'was' : 'were'} left out: not a course code, repeated, or past the most a list keeps.`);
+  return out;
+}
+
+/**
+ * Draws everything the list shows: the view, the shortlist buttons, every
+ * toggle's state, Undo beside the button, and G3's restore offer.
+ */
+function renderShortlist() {
+  const result = worked();
+  const faculties = /** @type {('biz' | 'law')[]} */ (['biz', 'law'].filter((f) => result.entries.some((w) => w.faculty === f)));
+  slView.update({
+    result, answers: rowAnswers, study: current.ng ? current.study : '', sem: current.sem,
+    lines: viewLines(), removed: undoable?.where === 'view' ? undoable.removed.entry.code : '',
+    linkField: copyField, said: copySaid, ask: asked, faculties, inv: list.inv, listDate: updated(/offered/i),
+  });
+  const line = buttonLine();
+  for (const b of els.slOpen) {
+    const small = b.querySelector('small');
+    if (small) { if (small.textContent !== line) small.textContent = line; continue; }
+    b.replaceChildren(icon('mark-on'), h('span', { class: 'sl-open-t' }, h('b', null, 'Your shortlist'), h('small', { class: 'sl-open-n' }, line)));
+  }
+  for (const t of /** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll('button.sl-toggle'))) {
+    const on = String(hasEntry(list, t.dataset.sl ?? '') !== '');
+    if (t.getAttribute('aria-pressed') !== on) t.setAttribute('aria-pressed', on);
+  }
+  const cardUndo = undoable?.where === 'card' ? undoable.removed.entry.code : '';
+  for (const p of els.slUndo) {
+    p.hidden = !cardUndo;
+    if (!cardUndo) { setChildren(p); delete p.dataset.code; continue; }
+    if (p.dataset.code === cardUndo) continue;
+    p.dataset.code = cardUndo;
+    const b = h('button', { class: 'linkbtn', attrs: { type: 'button', 'aria-label': `Undo, put ${cardUndo} back` } }, 'Undo');
+    b.addEventListener('click', () => undoRemove());
+    setChildren(p, `${cardUndo} removed. `, b);
+  }
+  renderRestore();
+}
+
+/** G3: "Restore your last shortlist", when this page's link has no list and the device keeps one. */
+function renderRestore() {
+  const offer = restoreOffer(list, storage);
+  for (const slot of els.slRestore) {
+    slot.hidden = !offer;
+    if (!offer) { setChildren(slot); continue; }
+    const n = entryCount(offer);
+    const text = `Your last shortlist is kept on this device (${n} course${n === 1 ? '' : 's'}).`;
+    if (slot.firstChild?.textContent === text) continue;
+    const b = h('button', { class: 'linkbtn', attrs: { type: 'button' } }, 'Restore your last shortlist');
+    b.addEventListener('click', () => restoreSaved());
+    setChildren(slot, h('span', null, text), b);
+  }
+}
+
+/** Writes the device's list, leaves the first screen and opens the view (G3; focus on its heading). */
+function restoreSaved() {
+  const saved = restoreOffer(list, storage);
+  if (!saved) return;
+  list = saved;
+  undoable = null;
+  leftSetup = true;
+  writer.replace(pageUrl(current));
+  syncView(current);
+  ensureRows();
+  if (current.view) { renderShortlist(); focusHeading(slView.title); }
+  else act({ type: 'openView' });
+  const n = entryCount(list);
+  say(`Your last shortlist is restored: ${n} course${n === 1 ? '' : 's'}`);
+}
 
 /**
  * Applies an edit to the list (list.js): the URL is replaced at once through
  * the writer (coalesced only past its budget), with `ay` from the rows once
  * one has loaded, and the device's copy is written at once (G3). Never calls
- * show(): the search and the history position stay.
+ * show(): the search and the history position stay. Ends any Undo on offer;
+ * draws the list and loads any row it lacks.
  * @param {(l: import('./list.js').List) => import('./list.js').Edit} fn
  * @returns {{ ok: true } | { ok: false, why: string }} a refusal says why (a full semester)
  */
@@ -991,8 +1347,234 @@ function editList(fn) {
   list = withYear(result.list, rowYear(result.list));
   writer.replace(pageUrl(current));
   saveList(storage, list);
+  undoable = null;
+  copySaid = '';
+  editCount += 1;
+  ensureRows();
+  renderShortlist();
   return { ok: true };
 }
+
+/**
+ * A card's or the detail head's toggle: on adds the course as the last pick
+ * (its tag from the state's semester, else the one semester it is open or
+ * taught in); off removes it from either list, with Undo beside the button.
+ * @param {string} code
+ */
+function toggle(code) {
+  const which = hasEntry(list, code);
+  if (which) {
+    const n = list[which].length;
+    const rank = list[which].findIndex((e) => e.code === code) + 1;
+    const r = remove(list, code);
+    if (!r.ok) return;
+    editList(() => ({ ok: true, list: r.list }));
+    undoable = { removed: r.removed, where: 'card' };
+    renderShortlist();
+    say(`${code} removed from your ${which === 'pick' ? 'picks' : 'backups'} (${rank} of ${n}). Undo`);
+    return;
+  }
+  const r = editList((l) => add(l, code, tagFor(current.sem, semsFromResults(code))));
+  if (!r.ok) { say(r.why); return; }
+  sayAdded(code);
+}
+
+/**
+ * The semesters (of 1 and 2) a course on screen is open in (exchange mode)
+ * or taught in, from its /search result; [] when it isn't on screen.
+ * @param {string} code
+ */
+function semsFromResults(code) {
+  const results = Array.isArray(shown?.data?.results) ? shown.data.results : [];
+  const m = results.find((/** @type {any} */ x) => String(x?.code ?? '') === code);
+  if (!m) return [];
+  const filters = shown?.data?.filters ?? {};
+  if (filters.ng === true && m.exchangeBySem && typeof m.exchangeBySem === 'object') {
+    return [1, 2].filter((s) => m.exchangeBySem[s] && m.exchangeBySem[s].status !== 'closed');
+  }
+  if (filters.ng === true && m.exchange && (filters.sem === 1 || filters.sem === 2)) return m.exchange.status !== 'closed' ? [filters.sem] : [];
+  return (Array.isArray(m.semesters) ? m.semesters : []).map(Number).filter((/** @type {number} */ s) => s === 1 || s === 2);
+}
+
+/**
+ * "CS2113 added to your picks: Sem 1, 12 units picked so far", once the row
+ * settles or after 2 s, whichever is first (cards don't fetch /module): past
+ * 2 s, "8 units so far, 1 course still loading". Stands down if another edit
+ * came first.
+ * @param {string} code
+ */
+function sayAdded(code) {
+  const at = editCount;
+  const e = [...list.pick, ...list.alt].find((x) => x.code === code);
+  if (!e) return;
+  const head = `${code} added to your picks`;
+  if (!e.sem) { say(`${head}, with no semester yet: choose one in your shortlist`); return; }
+  const sem = e.sem;
+  const late = new Promise((resolve) => { setTimeout(() => resolve('late'), 2000); });
+  Promise.race([whenSettled(code).then(() => 'in'), late]).then((how) => {
+    if (editCount !== at) return;
+    const loading = loadingIn(sem);
+    say(how === 'in' || !loading
+      ? `${head}: ${semLabel(sem)}, ${picked(sem)} units picked so far`
+      : `${head}: ${semLabel(sem)}, ${picked(sem)} units so far, ${loading} course${loading === 1 ? '' : 's'} still loading`);
+  });
+}
+
+/**
+ * The view's Remove: focus goes to the next row's Remove in the same list,
+ * else the previous row's; if that list is now empty, its heading; if the
+ * whole list is, the view's heading. Undo stands at the top of the view.
+ * @param {string} code
+ */
+function removeFromView(code) {
+  const which = hasEntry(list, code);
+  if (!which) return;
+  const at = list[which].findIndex((e) => e.code === code);
+  const sem = list[which][at].sem;
+  const r = remove(list, code);
+  if (!r.ok) return;
+  editList(() => ({ ok: true, list: r.list }));
+  undoable = { removed: r.removed, where: 'view' };
+  renderShortlist();
+  const left = list[which];
+  const next = left[at] ?? left[at - 1];
+  const target = next ? slView.row(next.code)?.remove : entryCount(list) ? (which === 'pick' ? slView.pickHead : slView.altHead) : slView.title;
+  if (target) { target.focus({ preventScroll: true }); target.scrollIntoView({ block: 'nearest' }); }
+  say(`${code} removed${sem ? `: ${semLabel(sem)}, ${picked(sem)} units picked` : ''}. Undo is at the top of the list`);
+}
+
+/** Undo: the entry back in its list, rank and semester; focus on its row's Remove (or its card's toggle). */
+function undoRemove() {
+  if (!undoable) return;
+  const { removed, where } = undoable;
+  const r = editList((l) => restore(l, removed));
+  if (!r.ok) { say(r.why); return; }
+  const code = removed.entry.code;
+  const target = where === 'view' ? slView.row(code)?.remove
+    : /** @type {HTMLElement | null} */ (document.querySelector(`#results button.sl-toggle[data-sl="${code}"]`)) ?? shownOpenButton();
+  if (target) { target.focus({ preventScroll: true }); target.scrollIntoView({ block: 'nearest' }); }
+  say(`${code} is back on your shortlist`);
+}
+
+/**
+ * Try again on a row that failed: focus goes to its first control, and the
+ * live region says how it ended.
+ * @param {string} code
+ */
+function retryRow(code) {
+  rowAnswers.delete(code);
+  ensureRows();
+  renderShortlist();
+  const row = slView.row(code);
+  row?.up.focus({ preventScroll: true });
+  row?.up.scrollIntoView({ block: 'nearest' });
+  whenSettled(code).then(() => {
+    const a = rowAnswers.get(code);
+    const year = worked().year;
+    say(a?.kind === 'failed' ? `${code} still could not be loaded`
+      : a?.kind === 'unknown' ? `${code}: no course with this code in ${year}`
+        : a?.kind === 'catalogue-only' ? `${code}: not offered in ${year}` : `${code} loaded`);
+  });
+}
+
+/** Copy link: the shortlist link, copied within the click; the link in a field if the browser refuses. */
+function copyLink() {
+  const link = shortlistLink();
+  /** @param {string} said @param {string} fieldText */
+  const done = (said, fieldText) => {
+    copySaid = said;
+    copyField = fieldText;
+    renderShortlist();
+    if (fieldText) {
+      slView.linkInput.focus();
+      slView.linkInput.select();
+    }
+    say(said || 'Copy the shortlist link from the field under the buttons');
+  };
+  try {
+    navigator.clipboard.writeText(link).then(() => done('Link copied', ''), () => done('', link));
+  } catch {
+    done('', link);
+  }
+}
+
+/**
+ * Download CSV or Print (6D builds them): while the export question is asked,
+ * pressing either focuses its heading and says so; otherwise they aren't ready.
+ * @param {'csv' | 'print'} kind
+ */
+function exportPress(kind) {
+  if (slView.asking()) {
+    focusHeading(slView.askTitle);
+    const n = (asked.year ? 2 : 0) + asked.entries.length;
+    say(askSentence(n));
+    return;
+  }
+  say(`${kind === 'csv' ? 'Download CSV' : 'Print or save as PDF'} isn't ready yet`);
+}
+
+/** The export question's parts, kept once asked while the view stays open. */
+function updateAsked() {
+  const q = exportQuestion({ list, study: current.ng ? current.study : '', answers: rowAnswers });
+  asked = {
+    year: asked.year || q.year,
+    // Parts asked stay while the view does (an answered one keeps its choice), unless the entry
+    // left the list or its row, now in, shows it can't take a semester.
+    entries: [...new Set([...asked.entries, ...q.entries])].filter((c) => hasEntry(list, c) && askable(rowAnswers.get(c))),
+  };
+}
+
+/** The view is shown (opened, or Back or Forward into it): drawn, its rows loading, focus on its heading. */
+function enterView() {
+  asked = { year: false, entries: [] };
+  viewSentence = '';
+  copySaid = '';
+  copyField = '';
+  updateAsked();
+  ensureRows();
+  renderShortlist();
+  focusHeading(slView.title);
+  progressStart();
+}
+/** The view closed by its button, Escape or Back: focus on the shortlist button that is displayed. */
+function leaveView() {
+  viewClosed();
+  shownOpenButton().focus();
+}
+/** The view closed by a submit or a code link: its own state goes; focus is the search's. */
+function viewClosed() {
+  asked = { year: false, entries: [] };
+  viewSentence = '';
+  copySaid = '';
+  copyField = '';
+  progressSaid = false;
+  renderShortlist();
+}
+/** A settings change while the view is shown: the view's sentence, said ("Sem 2 first: …"). */
+function settingsInView() {
+  updateAsked();
+  viewSentence = summary(worked());
+  renderShortlist();
+  say(viewSentence);
+}
+/** Closes the view: back() when this page pushed it and nothing changed since, else replace (6B). */
+function closeView() {
+  const data = writer.state();
+  act({ type: 'closeView', viewPushed: data?.vnmShortlist === true, atOpen: typeof data?.atOpen === 'string' ? data.atOpen : '' });
+}
+
+// The shortlist buttons open the view; pressed while it is shown, they focus its heading (no history write).
+for (const b of els.slOpen) {
+  b.addEventListener('click', () => {
+    if (current.view) { focusHeading(slView.title); return; }
+    act({ type: 'openView' });
+  });
+}
+// Every toggle, on a card or in a detail head.
+document.addEventListener('click', (e) => {
+  const t = e.target instanceof Element ? e.target.closest('button.sl-toggle') : null;
+  if (t instanceof HTMLButtonElement && t.dataset.sl) toggle(t.dataset.sl);
+});
 
 /** Copy link's URL, `ay` once a row has loaded; never waits (6B). */
 function shortlistLink() {
@@ -1004,8 +1586,8 @@ function shortlistLink() {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') writer.flush(); });
 window.addEventListener('pagehide', () => writer.flush());
 
-// The specs drive the list through these until the view exists (6C), and
-// read what the page holds. Installed only when a spec sets `vnmTest` first.
+// The specs read what the page holds, and drive the list directly where a
+// test needs many edits fast. Installed only when a spec sets `vnmTest` first.
 if (testHooks && typeof testHooks === 'object') {
   Object.assign(testHooks, {
     list: () => list,
@@ -1030,6 +1612,10 @@ if (testHooks && typeof testHooks === 'object') {
 // The first screen pre-fills the year of study remembered on this device.
 if (STUDIES.some((o) => o.value === savedStudy())) checkValue('setupStudy', savedStudy());
 
-// Start: the URL's state, and its search, now.
+// Start: the URL's state, and its search, now; the list's rows load at once (6C), and a link
+// that opens on the view says their progress.
 current = settle(current);
+ensureRows();
+renderShortlist();
+if (current.view) { updateAsked(); renderShortlist(); progressStart(); }
 show(current);

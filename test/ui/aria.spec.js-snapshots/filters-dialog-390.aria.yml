@@ -14,8 +14,8 @@
       - text: Sem 2
       - radio "Both"
       - text: Both
-    - text: Year of study at home
-    - combobox "Year of study at home":
+    - text: Year of study during your exchange
+    - combobox "Year of study during your exchange":
       - option "Choose…"
       - option "1st year"
       - option "2nd year" [selected]
