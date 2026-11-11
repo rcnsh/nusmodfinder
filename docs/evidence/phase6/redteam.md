@@ -313,12 +313,30 @@ Checked and not page defects (each as the plan or the approved mockup says):
 
 ## Exit status (plan §5, "the red team: zero page defects open")
 - **Page defects among the diff's disagreements: 0.**
-- **One page defect from the personas' reports is open: RT6-PD1**, the view's subheading
-  (minor, copy, local repro above). It blocks exit until it is fixed and re-run, or ruled out of
-  scope.
-- **Jacob to rule:** R6-1, R6-2 and R6-3 (the 21 disagreements), and RT6-SA1 and RT6-SA2.
+- **One page defect from the personas' reports: RT6-PD1**, the view's subheading (minor, copy,
+  local repro above); fixed in PR #98 (see "Rulings and follow-up").
+- **Ruled:** R6-1, R6-2, R6-3, RT6-SA1 and RT6-SA2 (see "Rulings and follow-up").
 - **The live totals equal the independent reference** in every export the personas made.
 
 For `docs/evidence/requests.tsv` (the lead enters it):
 
     ref	Phase 6 6E red team on version f8aefeab (tag 0b5f360): 85 requests (31 page files, 1 /facets, 26 /search, 27 /module; all 200), one at a time, each starting >= 4 s after the previous ended (closest starts 4,023 ms); smoke 34, p1 17, p2 30, p3 4; 171 served from the run's cache, 0 refused (docs/evidence/phase6/redteam/requests-*.jsonl)	Phase 6, 2026-11-11 19:31:19-19:48:15 UTC
+
+## Rulings and follow-up (2026-11-12)
+- **R6-1, the year (lead):** the expected answers stand. The 2027/28 caveat covers the whole list,
+  and the page says it once; it does not become a condition on each course. p2's ten "yes if
+  NUS's 2027/28 list still offers it" answers are persona errors.
+- **R6-2, NUS's level-4000 note (Jacob):** a condition, like `quota`. A course GRO's sentence
+  covers shows "Open, with 1 note" with GRO's line, and the expected answer is "yes if there's a
+  place". The page is changed to say so (the follow-up PR "level-4000 note"); the expected
+  answers for those courses become "yes if", so p2's and p3's eight answers agree once it ships.
+- **R6-3, prerequisites and preclusions (lead):** the answer table decides exchange eligibility
+  only, as Phase 5's did. Answers that add a prerequisite or preclusion condition are persona
+  errors; the advisor brief's examples invited them, and a later run's brief drops them.
+- **RT6-SA1, rule E at CourseReg (Jacob):** the search key's "Not open" stays (it is true at
+  application), and the admitted-students box quotes rule E ("not available during application
+  stage but may be available during Course registration"). The box already carries that line
+  (`public/shortlist.js`, the CourseReg rules), so no page change.
+- **RT6-SA2, the exam timetable's month (lead):** the page says one thing true to both sources,
+  in the same follow-up PR.
+- **RT6-PD1:** fixed in PR #98, with a test that failed first; re-checked live after the deploy.
