@@ -129,8 +129,14 @@ export const APPLICANT_LINES = Object.freeze([
 
 /** NUS's form order: its heading's note, the browse-mode line and the full-year line. */
 export const FORM_LINES = Object.freeze({
-  /** @param {string} year '2026/27' */
-  applicants: (year) => `This order uses NUS's ${year} exchange list and exams. Applying for ${nextYear(year)}? NUS publishes Sem 1's list in March or April, Sem 2's later (the ${year} list is dated 1 Sep 2026), and the timetable in mid-July: check each course there.`,
+  /**
+   * @param {string} year '2026/27', the rows' year
+   * @param {string} listDate the NG list's "updated as at" date from /facets ('01 Sep 2026'), '' if it failed
+   */
+  applicants: (year, listDate) => {
+    const dated = listDate ? ` (the ${year} list is dated ${listDate.replace(/^0/, '')})` : '';
+    return `This order uses NUS's ${year} exchange list and exams. Applying for ${nextYear(year)}? NUS publishes Sem 1's list in March or April, Sem 2's later${dated}, and the timetable in mid-July: check each course there.`;
+  },
   setYear: 'Set your year of study during the exchange to see NUS\'s form order',
   fullYear: 'NUS has asked full-year students to choose Sem 2 courses later, by email before Sem 1 ends (NUS info sheet, 2018/19): check with NUS whether to list them now',
   over: 'Won\'t fit in NUS\'s 40 units',

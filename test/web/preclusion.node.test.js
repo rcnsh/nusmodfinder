@@ -25,6 +25,8 @@ const T = {
   EE4705: 'If undertaking an Undergraduate Degree or Graduate Degree CourseworkTHENmust not have completed EE5112 at a grade of at least D',
   HY2262: 'If undertaking an Undergraduate Degree THEN (if in one of the cohorts from 2018 inclusive THEN must not have completed YHU2314 at a grade of at least D) AND (if in one of the cohorts prior to 2017 inclusive THEN must not have completed 1 of EU2221, HY2245/YHU2314 at a grade of at least D)',
   PC1101: '(If undertaking an Undergraduate Degree AND if in one of the cohorts prior to 2020 inclusive ) THEN ( must not have completed 1 of any Courses beginning with PC20 at a grade of at least D, any Courses beginning with PC21 at a grade of at least D, any Courses beginning with PC22 at a grade of at least D, PC1144/PC1432/PC1432X at a grade of at least D)',
+  GESS1007: 'If undertaking Undergraduate Degree THEN (GES1009, HY2239:D, SSA2203:D)',
+  CS5462: '(If undertaking an Undergraduate DegreeTHEN( must not have completed CS4262 at a grade of at least D))OR(if undertaking a Graduate Degree CourseworkTHEN( must not have completed CS4262 at a grade of at least D))OR(if undertaking a Graduate Degree ResearchTHEN( must not have completed CS4262 at a grade of at least D))',
   DAO2702X: 'If undertaking an Undergraduate Degree THEN ((must not be undertaking 0200ACCHON Bachelor of Business Administration (Accountancy), 0200BBAHON Bachelor of Business Administration (Hons)) OR (if in one of the cohorts from 2023 inclusive THEN must not be undertaking 0200RSTHON Bachelor of Science (Real Estate) (Hons)) OR ( must not have completed 1 of any Courses beginning with DAO2702 at a grade of at least D))',
 };
 
@@ -75,6 +77,13 @@ describe('a preclusion names a code (6B)', () => {
     // Naming graduate coursework students too: kept.
     expect(names(T.MA4207, 'MA5219', 'grad')).toBe(true);
     expect(names(T.EE4705, 'EE5112', 'grad')).toBe(true);
+    // "Undergraduate Degree" with no article is the same clause (review finding 1).
+    expect(names(T.GESS1007, 'HY2239', 'grad')).toBe(false);
+    expect(names(T.GESS1007, 'HY2239', 'ug2')).toBe(true);
+    // Skipped by branch, not by the text's opening: a graduate-coursework branch still names it (review finding 2).
+    expect(names(T.CS5462, 'CS4262', 'grad')).toBe(true);
+    expect(names('(If undertaking an Undergraduate DegreeTHEN( must not have completed CS4262))OR(if undertaking a Graduate Degree ResearchTHEN( must not have completed CS1010))', 'CS1010', 'grad')).toBe(true);
+    expect(names('(If undertaking an Undergraduate DegreeTHEN( must not have completed CS4262))OR(if undertaking a Graduate Degree ResearchTHEN( must not have completed CS1010))', 'CS4262', 'grad')).toBe(false);
     // Browse mode (no study level) reads every rule.
     expect(names(T.CS2030, 'CS2030S', '')).toBe(true);
   });

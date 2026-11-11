@@ -59,6 +59,13 @@ describe('the list in the URL (6B)', () => {
     const all = parse([...codes(20, '.1'), ...Array.from({ length: 20 }, (_, i) => `alt=CD${2000 + i}.2`), 'alt=EF3000'].join('&'));
     expect(all.list.pick.length + all.list.alt.length).toBe(MAX_ENTRIES);
     expect(all.dropped).toBe(1);
+    // A code dropped at the cap stays dropped: its later duplicates are dropped too (review finding 5).
+    const twenty = codes(20, '.1').join('&');
+    for (const tail of ['pick=CS2030.1&alt=CS2030.2', 'pick=CS2030.1&pick=CS2030.2']) {
+      const p = parse(`${twenty}&${tail}`);
+      expect([...p.list.pick, ...p.list.alt].some((e) => e.code === 'CS2030'), tail).toBe(false);
+      expect(p.dropped, tail).toBe(2);
+    }
     // Untagged entries count only towards 40.
     expect(parse(Array.from({ length: 41 }, (_, i) => `pick=AB${1000 + i}`).join('&')).list.pick).toHaveLength(40);
   });

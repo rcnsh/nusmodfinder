@@ -12,34 +12,42 @@
 // A match whose branch is conditioned on an NUS intake cohort ("if in one of
 // the cohorts from 2018 inclusive THEN …") is skipped: exchange students are
 // in no NUS cohort. A "cohort" in another branch (DAO2702X's programme rule)
-// doesn't skip it. At `study=grad`, a rule opening with a clause naming
-// undergraduates alone is skipped; one naming "Graduate Degree Coursework" too
-// is kept.
+// doesn't skip it. At `study=grad`, a match in a branch conditioned on an
+// undergraduate degree alone ("If undertaking (an) Undergraduate Degree THEN")
+// is skipped; a condition naming "Graduate Degree Coursework" too is kept, and
+// so is a later graduate branch of the same rule (CS5462).
 
 const CODE_AT = /(?<![A-Za-z])([A-Z]{1,4}\d{4}[A-Z0-9]{0,5}?)(?=[^A-Za-z0-9]|$|OR|AND|THEN)/g;
 const PREFIX_AT = /beginning with\s+([A-Z]{1,4}\d{0,4}[A-Z0-9]{0,5}?)(?=[^A-Za-z0-9]|$|OR|AND|THEN)/g;
-const UNDERGRAD_OPENING = /^\s*\(?\s*if undertaking an undergraduate degree/i;
+/** A condition on an undergraduate degree, up to its THEN; group 1 is the rest of the condition. */
+const UNDERGRAD_IF = /if undertaking (?:an? )?undergraduate degree([\s\S]*?)then/i;
+/** A branch conditioned on an NUS intake cohort. */
+const COHORT_IF = /cohort[\s\S]*then/i;
 /** An AND or OR joining two branches: not inside a word, followed by a space, "(" or a glued lower-case word. */
 const JOIN = /^(?:AND|OR)(?=[\s(a-z])/;
 
 /**
- * Whether the rule opens with a clause naming undergraduates alone.
- * @param {string} text
+ * Whether a branch's text before a match holds a condition that leaves the
+ * student out: an NUS cohort, or (at grad) an undergraduate degree alone.
+ * @param {string} branch
+ * @param {string} study
  */
-function undergradOnly(text) {
-  if (!UNDERGRAD_OPENING.test(text)) return false;
-  const clause = text.split(/then/i)[0];
-  return !/graduate degree coursework/i.test(clause);
+function excludes(branch, study) {
+  if (COHORT_IF.test(branch)) return true;
+  if (study !== 'grad') return false;
+  const m = UNDERGRAD_IF.exec(branch);
+  return !!m && !/graduate degree coursework/i.test(m[1]);
 }
 
 /**
- * Whether the text at `index` sits in a branch conditioned on an NUS cohort:
- * at some nesting level around it, the branch it is in (from the last AND or
- * OR at that level) says "cohort" and then "THEN" before it.
+ * Whether the text at `index` sits in a branch whose condition leaves the
+ * student out: at some nesting level around it, the branch it is in (from the
+ * last AND or OR at that level) holds such a condition before it.
  * @param {string} text
  * @param {number} index
+ * @param {string} study
  */
-function cohortConditioned(text, index) {
+function conditioned(text, index, study) {
   /** @type {number[]} */
   const opens = [];
   for (let i = 0; i < index; i += 1) {
@@ -58,7 +66,7 @@ function cohortConditioned(text, index) {
       else if (ch === ')') depth -= 1;
       else if (depth === 0 && !/[a-z]/.test(text[i - 1] ?? '') && JOIN.test(text.slice(i, i + 4))) branch = i;
     }
-    if (/cohort[\s\S]*then/i.test(text.slice(branch, to))) return true;
+    if (excludes(text.slice(branch, to), study)) return true;
   }
   return false;
 }
@@ -72,12 +80,11 @@ function cohortConditioned(text, index) {
  */
 export function names(text, code, study) {
   if (!text) return false;
-  if (study === 'grad' && undergradOnly(text)) return false;
   for (const m of text.matchAll(CODE_AT)) {
-    if (m[1] === code && !cohortConditioned(text, m.index ?? 0)) return true;
+    if (m[1] === code && !conditioned(text, m.index ?? 0, study)) return true;
   }
   for (const m of text.matchAll(PREFIX_AT)) {
-    if (code.startsWith(m[1]) && !cohortConditioned(text, m.index ?? 0)) return true;
+    if (code.startsWith(m[1]) && !conditioned(text, m.index ?? 0, study)) return true;
   }
   return false;
 }

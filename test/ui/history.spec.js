@@ -301,10 +301,11 @@ test('[6B] coalescing forced: two edits then a code link; the URL\'s q matches t
   await expect(page.locator('#q')).toHaveValue('CS2040');
   await expect(page.locator('#status')).toContainText('CS2040');
   await page.waitForTimeout(1000);
-  expect(query(page)).toBe('q=CS2040&pick=CS3244.2&pick=CS2030.1');
+  // The open detail loaded CS3244's row before the edits, so they carry its year.
+  expect(query(page)).toBe('q=CS2040&pick=CS3244.2&pick=CS2030.1&ay=2026-2027');
   // The entry left holds both edits: they landed before the push.
   await page.goBack();
-  await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&pick=CS2030.1');
+  await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&pick=CS2030.1&ay=2026-2027');
 });
 
 test('[6B] open a detail, edit, Escape: no open=, the list kept; Forward re-opens the detail with the list', async ({ page }) => {
@@ -312,14 +313,16 @@ test('[6B] open a detail, edit, Escape: no open=, the list kept; Forward re-open
   await page.goto('/?q=CS3244');
   await toggle(page, 'CS3244').click();
   await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244');
+  // The detail's row is loaded, so the edit carries its year.
+  await expect(page.locator('#results .detail a[data-search]').first()).toBeVisible();
   await edit(page, 'add', 'CS3244', '2');
-  expect(query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2');
+  expect(query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&ay=2026-2027');
   await page.keyboard.press('Escape');
-  await expect.poll(() => query(page)).toBe('q=CS3244&pick=CS3244.2');
+  await expect.poll(() => query(page)).toBe('q=CS3244&pick=CS3244.2&ay=2026-2027');
   await expect(toggle(page, 'CS3244')).toHaveAttribute('aria-expanded', 'false');
   await page.goForward();
   await expect(toggle(page, 'CS3244')).toHaveAttribute('aria-expanded', 'true');
-  expect(query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2');
+  expect(query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&ay=2026-2027');
 });
 
 test('[6B] two edits within 300 ms then a reload: both survive (edits are written at once)', async ({ page }) => {
@@ -403,6 +406,14 @@ test('[6B] ay: never written on load; Copy link carries it once a row has loaded
   expect(query(page)).toBe('q=networks&ng=1&study=ug2&pick=CS2030.1');
   await edit(page, 'setSem', 'CS2030', '2');
   expect(query(page)).toBe('q=networks&ng=1&study=ug2&pick=CS2030.2&ay=2026-2027');
+});
+
+test('[6B] ay comes from a row loaded before its code joined the list (review finding 4)', async ({ page }) => {
+  await hooks(page);
+  await page.goto('/?q=CS3244&open=CS3244');
+  await expect(page.locator('#results .detail a[data-search]').first()).toBeVisible();
+  await edit(page, 'add', 'CS3244', '2');
+  expect(query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&ay=2026-2027');
 });
 
 test('[6B, G3] the device keeps the last list this student edited; opening someone else\'s link never overwrites it', async ({ page }) => {

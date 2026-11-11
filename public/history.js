@@ -3,7 +3,10 @@
 // page makes goes through it, for every caller (act(), checkFrom, settle,
 // popstate, shortlist edits):
 // - it counts its writes over a sliding 10 s and, past BUDGET of them,
-//   coalesces the rest into one write COALESCE_MS after the last. WebKit
+//   holds the rest and writes them COALESCE_MS after the last: each replace
+//   folds into the write before it (so a flood of edits is one write), and a
+//   push stays a write of its own, after it, so the entry left keeps its last
+//   replace (an edit, or the detail closed before the view opens). WebKit
 //   refuses the 101st write in 10 s (pushState and replaceState together),
 //   and real Chrome drops excess writes silently;
 // - each write is wrapped in try; a refusal is retried with backoff (1 s, 2 s,
@@ -120,9 +123,9 @@ export function createWriter({
       return;
     }
     if (last || forceCoalesce || used() >= BUDGET) {
-      // Over budget: one write, COALESCE_MS after the last asked for. It is a
-      // push if any held write was.
-      if (last) Object.assign(last, { op: op === 'push' ? 'push' : last.op, url, data: resolved });
+      // Over budget: held, and written COALESCE_MS after the last asked for. A
+      // replace folds into the held write before it; a push is its own.
+      if (op === 'replace' && last) Object.assign(last, { url, data: resolved });
       else queue.push({ op, url, data: resolved });
       clear();
       timer = setTimer(drain, COALESCE_MS);

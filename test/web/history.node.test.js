@@ -90,15 +90,28 @@ describe('the history writer (6B)', () => {
     expect(f.log.length).toBe(before + 1);
   });
 
-  it('coalescing keeps a push: held writes become one push when any was a push', () => {
+  it('coalescing folds replaces into the write before them, never a push into a replace: the entry left keeps its edit', () => {
     const f = fakes();
     const w = writer(f, { forceCoalesce: true });
     w.replace('/?q=a&pick=X1001.1');
-    w.push('/?q=b&pick=X1001.1', null);
-    w.replace('/?q=b&pick=X1001.1&pick=X1002.1');
+    w.replace('/?q=a&pick=X1001.1&pick=X1002.1');
+    w.push('/?q=b&pick=X1001.1&pick=X1002.1', null);
+    w.replace('/?q=b&pick=X1001.1&pick=X1002.1&pick=X1003.1');
     expect(f.log).toEqual([]);
     f.clock.tick(COALESCE_MS);
-    expect(f.log).toEqual([{ op: 'push', url: '/?q=b&pick=X1001.1&pick=X1002.1', data: null }]);
+    expect(f.log).toEqual([
+      { op: 'replace', url: '/?q=a&pick=X1001.1&pick=X1002.1', data: null },
+      { op: 'push', url: '/?q=b&pick=X1001.1&pick=X1002.1&pick=X1003.1', data: null },
+    ]);
+  });
+
+  it('replace then push (opening the view from a detail opened by link) stays two writes when coalesced (review finding 3)', () => {
+    const f = fakes();
+    const w = writer(f, { forceCoalesce: true });
+    w.replace('/?q=a', null);
+    w.push('/?q=a&view=shortlist', { vnmShortlist: true });
+    f.clock.tick(COALESCE_MS);
+    expect(f.log.map((x) => [x.op, x.url])).toEqual([['replace', '/?q=a'], ['push', '/?q=a&view=shortlist']]);
   });
 
   it('flush writes a pending write now (before act(), Copy link, an export, hidden, pagehide); cancel drops it (popstate)', () => {

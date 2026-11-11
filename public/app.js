@@ -30,7 +30,7 @@ import { intentChipRow } from './intent-chips.js';
 import { createWriter } from './history.js';
 import { intentChips } from './intents.js';
 import { isCloseEscape, isSubmitEnter } from './keys.js';
-import { add, emptyList, hasEntry, makeOther, move, parseList, remove, setInvite, setSem, withYear } from './list.js';
+import { add, emptyList, makeOther, move, parseList, remove, setInvite, setSem, withYear } from './list.js';
 import { errorSentence } from './messages.js';
 import { searchAgain, transition } from './nav.js';
 import { hiddenStamp, settlePartial, showLoading, showMessage, showResults } from './render.js';
@@ -195,8 +195,19 @@ let current = parseState(new URLSearchParams(location.search));
 const loaded = parseList(new URLSearchParams(location.search));
 let list = loaded.list;
 const droppedOnLoad = loaded.dropped;
-/** The acad year of the first /module row the list holds; '' before one loads. */
-let rowYear = '';
+/** The acad year of every /module row loaded (200s only), by code: `ay` comes from the first the list holds. @type {Map<string, string>} */
+const rowYears = new Map();
+/**
+ * The acad year of the first loaded row a list holds, in rank order; '' before one loads.
+ * @param {import('./list.js').List} [l]
+ */
+const rowYear = (l = list) => {
+  for (const e of [...l.pick, ...l.alt]) {
+    const y = rowYears.get(e.code);
+    if (y) return y;
+  }
+  return '';
+};
 
 /** The test hooks, when a spec installs `globalThis.vnmTest` before the page loads. */
 const testHooks = /** @type {any} */ (globalThis).vnmTest;
@@ -311,13 +322,13 @@ const ANSWERS_KEPT = 50;
 const targets = { status: els.status, results: els.results };
 const moduleClient = createModuleClient();
 /**
- * /module/:code through the shared client; the first row the list holds sets
- * the year an edit writes as `ay` (6B).
+ * /module/:code through the shared client, noting each row's acad year: a row
+ * loaded before its code joins the list still gives `ay` (6B).
  */
 const modules = {
   /** @param {string} code */
   get: (code) => moduleClient.get(code).then((outcome) => {
-    if (!rowYear && outcome.kind === 'ok' && typeof outcome.body?.acad_year === 'string' && hasEntry(list, code)) rowYear = outcome.body.acad_year;
+    if (outcome.kind === 'ok' && typeof outcome.body?.acad_year === 'string') rowYears.set(code.trim().toUpperCase(), outcome.body.acad_year);
     return outcome;
   }),
 };
@@ -977,7 +988,7 @@ function settle(s) {
 function editList(fn) {
   const result = fn(list);
   if (!result.ok) return result;
-  list = withYear(result.list, rowYear);
+  list = withYear(result.list, rowYear(result.list));
   writer.replace(pageUrl(current));
   saveList(storage, list);
   return { ok: true };
@@ -986,7 +997,7 @@ function editList(fn) {
 /** Copy link's URL, `ay` once a row has loaded; never waits (6B). */
 function shortlistLink() {
   writer.flush();
-  return `${location.origin}${shortlistUrl(current, withYear(list, rowYear), location.pathname)}`;
+  return `${location.origin}${shortlistUrl(current, withYear(list, rowYear()), location.pathname)}`;
 }
 
 // A coalesced write still pending lands before the page is hidden or left.
@@ -999,7 +1010,7 @@ if (testHooks && typeof testHooks === 'object') {
   Object.assign(testHooks, {
     list: () => list,
     droppedOnLoad,
-    rowYear: () => rowYear,
+    rowYear: () => rowYear(),
     edit: {
       add: (/** @type {string} */ code, /** @type {import('./list.js').Tag} */ sem = '') => editList((l) => add(l, code, sem)),
       remove: (/** @type {string} */ code) => editList((l) => remove(l, code)),

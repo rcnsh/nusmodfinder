@@ -475,7 +475,10 @@ describe('totals, lines and helpers (6B)', () => {
 
   it('the fixed lines are NUS\'s, cited: applicants, the form, the CourseReg box', () => {
     expect(APPLICANT_LINES).toHaveLength(4);
-    expect(FORM_LINES.applicants('2026/27')).toBe('This order uses NUS\'s 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later (the 2026/27 list is dated 1 Sep 2026), and the timetable in mid-July: check each course there.');
+    expect(FORM_LINES.applicants('2026/27', '01 Sep 2026')).toBe('This order uses NUS\'s 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later (the 2026/27 list is dated 1 Sep 2026), and the timetable in mid-July: check each course there.');
+    // The list's date comes from /facets' NG list source, never a constant (review finding 6); without it, no date.
+    expect(FORM_LINES.applicants('2027/28', '15 Apr 2027')).toContain('(the 2027/28 list is dated 15 Apr 2027)');
+    expect(FORM_LINES.applicants('2027/28', '')).toBe('This order uses NUS\'s 2027/28 exchange list and exams. Applying for 2028/29? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later, and the timetable in mid-July: check each course there.');
     expect(COURSEREG_BOX.rules.join(' ')).toContain(RULE_E);
     expect(COURSEREG_BOX.page).toBe('This page can\'t see your offer. Your offer and CourseReg show which courses are yours.');
   });

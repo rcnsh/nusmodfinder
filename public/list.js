@@ -92,8 +92,10 @@ export function parseList(params) {
   for (const which of /** @type {Which[]} */ (['pick', 'alt'])) {
     for (const raw of params.getAll(which)) {
       const e = parseEntry(raw);
-      if (!e || seen.has(e.code) || capWhy(list, e.sem, { adding: true })) { dropped += 1; continue; }
+      if (!e || seen.has(e.code)) { dropped += 1; continue; }
+      // The first of duplicates is the one kept or dropped: a code dropped at a cap stays dropped.
       seen.add(e.code);
+      if (capWhy(list, e.sem, { adding: true })) { dropped += 1; continue; }
       list[which].push(e);
     }
   }
