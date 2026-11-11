@@ -206,8 +206,9 @@ its status, its mask bit or its rank. The other fixes touch the page, the reason
 response headers. No row, mask, stored rule id or ranker input changes, so `SHIPPED_BASELINE`
 stays at `fdec96f`. No holdout look and no count are needed.
 
-Local eval runs, `--ref fdec96f` against `--ref 9801db4` (the branch head with every fix in
-it), the HEAD runner, sha256 of each run's `results` (first 16):
+Local eval runs, `--ref fdec96f` against `--ref 662c6ac` (every code change on the branch,
+the review's fixes included; `9801db4`, before the review, gave the same four hashes), the HEAD
+runner, sha256 of each run's `results` (first 16):
 
 | run | queries | results sha256 (first 16) | identical |
 |---|---|---|---|
