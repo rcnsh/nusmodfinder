@@ -143,6 +143,31 @@ export function parseGroupsFile(f) {
 export const groupKeyOf = (groupOf, code) => groupOf.get(code) ?? code;
 
 /**
+ * The member that stands for a group when the request names a semester
+ * (docs/decisions/0006, "The semester representative"): the collapse's choice
+ * if it is offered in that semester, else the highest-ranked other member that
+ * is, else the collapse's choice. Members with identical text rank close to
+ * arbitrarily, so the semester decides among them. The group keeps the place
+ * its first-ranked member gave it; only the member shown changes.
+ * @param {string} kept the collapse's choice: the group's first-ranked member that passes the filters
+ * @param {string[]} others the group's other members that pass the filters
+ * @param {Map<string, number>} rank a ranked code's position in the ranked list; a code with
+ *   none ranks after every ranked code, unranked codes in code order
+ * @param {(code: string) => boolean} offered whether a member is on the timetable in the semester
+ * @returns {string}
+ */
+export function semesterRepresentative(kept, others, rank, offered) {
+  if (offered(kept)) return kept;
+  const pos = (/** @type {string} */ c) => rank.get(c) ?? Infinity;
+  let best = null;
+  for (const c of others) {
+    if (!offered(c)) continue;
+    if (best === null || pos(c) < pos(best) || (pos(c) === pos(best) && c < best)) best = c;
+  }
+  return best ?? kept;
+}
+
+/**
  * The group-first projection of a ranked list: each group's first member, in
  * order; the later members, by the member kept for them. Codes in `already`
  * (pins) count as their group's first member and are not repeated in `kept`.
