@@ -7,6 +7,7 @@
 import { readFileSync } from 'node:fs';
 import { URL, fileURLToPath } from 'node:url';
 import { bitOf, NG_SEMS, OFF_NG_LIST, STUDIES } from '../../src/ng-bit.js';
+import { moduleWorkload } from '../../src/workload.js';
 import { yearNote } from '../../src/year-note.js';
 
 /** @param {string} rel */
@@ -60,6 +61,8 @@ export function fixtureOutcome(code) {
       code: m.code, title: m.title, description: m.description, credits: m.credits, department: m.department, faculty: m.faculty,
       level: m.level, semesters: m.semesters, prerequisite: m.prerequisite, preclusion: m.preclusion, acad_year: m.acadYear,
       ng: m.ng, ng_semesters: m.ngSemesters, exchange: exchangeOf(m), examDates: m.examDates, otherCodes: GROUP_OF.get(code) ?? [],
+      // 6D's exports read these too (src/modules.js answers them).
+      workload: moduleWorkload(m.workload ?? null), gradingBasis: m.gradingBasis ?? null, nusmodsUrl: `https://nusmods.com/courses/${m.code}`,
     },
   };
 }
