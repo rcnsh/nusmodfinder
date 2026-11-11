@@ -72,7 +72,7 @@ describe('the hidden-code draw', () => {
   });
 
   it('each says the stamp its kind must show, and whether "Switch" must show, independent of /module', () => {
-    expect(closed.map((c) => c.stamp)).toEqual(['Not offered', `Not in Sem ${closed[1].sem}`, `Not open in Sem ${closed[2].sem}`]);
+    expect(closed.map((c) => c.stamp)).toEqual(['Not for exchange students', `Not on the NG list for Sem ${closed[1].sem}`, `Not open in Sem ${closed[2].sem}`]);
     for (const c of closed) {
       const other = c.sem === 1 ? 2 : 1;
       expect(c.otherOpen, c.m.code).toBe(oracle(c.m, { sem: other, study: c.study }) !== 'closed');

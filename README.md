@@ -29,7 +29,8 @@ the student's year of study at home (`ug4` = 4th year or later); without it `/se
 400 `study-required`. Under `ng=1`, `sem=1|2` picks the semester the student would come in
 (the NG list's semesters, not NUSMods'), no `sem` means either, and `sem=3|4` answers no
 courses with `noMatch: { reason: "ng-special-term" }`: the NG list has no special-term data.
-Each result then carries `exchange: { status: "open" | "note", reasons: [{ id, kind, text }] }`.
+Each result then carries `exchange: { status: "open" | "note", reasons: [{ id, kind, text }] }`
+(the reasons include R3's year-of-study note, below).
 Only `true` narrows — `ng=0` is ignored, and `study` is ignored without `ng=1`.
 
 `/module/:code` (Phase 5 5A) also answers `examDates`, one `{ sem, date, durationMins }` per
@@ -143,6 +144,19 @@ request; a zero or missing mask is closed. Reason texts ship with the Worker
 rows. An independent oracle (`test/sc1/oracle.node.mjs`) checks the rules on every module, and
 the `sc1` CI job checks every search path against it.
 
+**Year of study (Jacob's ruling R3, ADR 0008).** A NUS prerequisite that requires an
+undergraduate year ("If undertaking an Undergraduate Degree THEN must be Year 4") doesn't change
+a course's exchange status, but an undergraduate whose home year is below that year gets one more
+note, `{ id: "prereq:year-of-study", kind: "year" }`: "NUS lists this course for Year 4 students.
+Ask the department whether your year at your home university counts." An open course with it is
+`note`; a closed one stays closed without it. It is read per request from the stored prerequisite
+by `src/year-note.js` (no stored column, so no data change): `/module/:code` reads the row's
+`prerequisite`, and `/search`'s hydrate reads it as `year_prereq`, only where it mentions a year.
+Only unambiguous texts give it: one undergraduate branch (or none) and a year item that no OR sits
+beside at any level. A year that is one alternative ("GPA of 3.2 or greater OR must be Year 4"),
+several "if undertaking" branches, or a graduate student give none. The SC1 oracle reads the
+prerequisite on its own (`prereqYears`, `oracleShown`), and both suites check every path against it.
+
 The extract's `updatedAsAt` date reaches `/facets` (and so the UI) through ingest: the
 ingest script posts it to `/admin/facets`, which stores it as `meta.ng_list`. Re-run
 ingest after regenerating the extract; there is no copy of the date to bump by hand.
@@ -208,8 +222,8 @@ checks every text/background and boundary pair in both themes against WCAG AA.
   <code>" (`from=`); Back returns to the list. For a query of course codes only, the count line
   names the typed codes shown ("20 courses shown: CS2030, then 19 other matches").
 - **Typed codes not shown** are explained above the entries (D4): each with its title, a stamp
-  ("Not in Sem 1", "Not offered", "Not open in Sem 1", "Outside your filters", or "Not this
-  year" for a code not offered in 2026/27), and why, from its own stored reasons. Where the
+  ("Not on the NG list for Sem 1", "Not for exchange students", "Not open in Sem 1", "Outside
+  your filters", or "Not this year" for a code not offered in 2026/27), and why, from its own stored reasons. Where the
   other semester is open to the student and nothing else hides the course, "Switch to Sem 2 to
   see CS3244" changes the semester and focuses the course's entry.
 - **On a phone** (≤ 640px) the form is one bar (query and Search), and the rail opens as a modal
@@ -239,14 +253,20 @@ checks every text/background and boundary pair in both themes against WCAG AA.
 `styles.css` and native ES modules with `// @ts-check` and JSDoc, served by Workers Static
 Assets (the `assets` block in `wrangler.jsonc`, no binding). No file there matches an API
 path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still reach the Worker.
+`public/_headers` (5G S3) sends every page file with `X-Frame-Options: DENY`,
+`X-Content-Type-Options: nosniff` and a CSP: `default-src 'none'`, the page's own scripts,
+styles, fonts and API (`'self'`), `frame-ancestors 'none'`, and the one inline script in
+`index.html` by its sha256. Change that script and `test/web/source.node.test.js` names the new
+hash; `test/ui/headers.spec.js` checks the headers on the local stack (which applies `_headers`
+as production does), that another origin can't frame the page, and that no flow trips the CSP.
 
 | module | does |
 |---|---|
-| `state.js` | the state ↔ URL mapping (pure). In exchange mode `ng=1` and `study` are always in the URL; `open=` names the one open detail, and `from=` the entry whose "Also as" link opened it (kept only beside `open=`); `pick` and `alt` are reserved for Phase 6 |
+| `state.js` | the state ↔ URL mapping (pure). In exchange mode `ng=1` and `study` are always in the URL; `open=` names the one open detail, and `from=` the entry whose "Also as" link opened it (kept only beside `open=`, and only while it is one of the open entry's own other codes: `app.js` drops any other, so a link can't claim two courses are one); `pick` and `alt` are reserved for Phase 6 |
 | `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed, an "Also as" link pushes that code's search with its detail open; every action that changes `open=` drops `from=` |
 | `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
 | `messages.js` | a plain sentence for every error code and `noMatch` reason; raw codes are never shown |
-| `format.js` | semester names, workload, exams in Singapore time, NUS prerequisite spacing, the cohort-only prerequisite line, course codes in NUS's text |
+| `format.js` | semester names, workload, exams in Singapore time, NUS prerequisite and preclusion spacing, the cohort-only prerequisite line, course codes in NUS's text, and the student's own text as the page's sentences repeat it (`quoteUser`: no bidi, zero-width or control characters, no quote mark or lookalike inside (one apostrophe instead), at most 60 characters, in curly quotes; 5G S2). A link's faculty is quoted the same way, in its chip and option, until `/facets` lists it; one it doesn't list is dropped |
 | `explain.js` | exchange wording (pure): each stamp's words, each note in full with its lead-in word ("Places.", "Your major."), the `semester` note as an action, each source with its "updated as at" date, why a typed code is hidden (its own stored reasons) and its stamp, the partial-code empty state, the typed codes past the three that pin, and the count line for a query of codes only |
 | `detail.js` | a card's detail, inline, from `/module/:code` (fetched once per page): its head (code, title, units, department; "Opened from …" after an "Also as" link), description, prerequisites and preclusions as NUS states them with codes linked to a search, exams, workload, exchange availability per semester, the NUSMods link for class times |
 | `keys.js` | Enter submits only outside IME composition |

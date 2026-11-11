@@ -22,7 +22,7 @@ const hidden = (page, code) => page.locator(`#status .hidden-codes li[data-code=
 test.describe('the hidden-codes box: a stamp per code and "Switch to Sem 2"', () => {
   test('each typed code not shown carries a stamp saying why, in a word', async ({ page }) => {
     await page.goto('/?q=CS2030+CS3244+CS5562+AR5801+CS1001&ng=1&study=ug2&sem=1');
-    await expect(page.locator('#status .hidden-codes .hc-stamp')).toHaveText(['Not in Sem 1', 'Not offered', 'Not open in Sem 1', 'Not this year']);
+    await expect(page.locator('#status .hidden-codes .hc-stamp')).toHaveText(['Not on the NG list for Sem 1', 'Not for exchange students', 'Not open in Sem 1', 'Not this year']);
     // Each stamp is the "not shown" shape and colour, beside the code and its title.
     await expect(hidden(page, 'CS3244').locator('.hc-stamp .st')).toHaveClass(/st-closed/);
     await expect(hidden(page, 'CS3244').locator('.hc-stamp svg')).toHaveAttribute('aria-hidden', 'true');
@@ -109,6 +109,24 @@ test.describe('"Also as" codes are links to their own entry', () => {
     await toggle(page, 'ACC1701XB').click();
     await expect.poll(() => query(page)).toBe('q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB');
     await expect(d.locator('.kicker')).toHaveText('Course details');
+  });
+
+  test('[S1] a from= that is not one of the open course\'s other codes says nothing, and the URL drops it', async ({ page }) => {
+    // The red team's link: PP5288 has no other codes; CS1010 is an unrelated course.
+    await page.goto('/?q=PP5288&open=PP5288&from=CS1010');
+    const d = await region(page, 'PP5288');
+    await expect(d.locator('.kicker')).toHaveText('Course details');
+    await expect(d).not.toContainText('Opened from');
+    await expect.poll(() => query(page)).toBe('q=PP5288&open=PP5288');
+    // A real course shown on the same page, but not in the open course's group, is refused too.
+    await page.goto('/?q=ACC1701XB+CS3244&sem=1&ng=1&study=ug2&open=ACC1701XB&from=CS3244');
+    const x = await region(page, 'ACC1701XB');
+    await expect(x.locator('.kicker')).toHaveText('Course details');
+    await expect.poll(() => query(page)).toBe('q=ACC1701XB+CS3244&sem=1&ng=1&study=ug2&open=ACC1701XB');
+    // Back to the real "Also as" link: it still says where it came from.
+    await page.goto('/?q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA');
+    await expect((await region(page, 'ACC1701XB')).locator('.kicker')).toHaveText('Opened from ACC1701XA: another code for the same course');
+    await expect.poll(() => query(page)).toBe('q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA');
   });
 
   test('a variant link keeps the page in place: the href is a real URL, so a new tab opens the same', async ({ page }) => {

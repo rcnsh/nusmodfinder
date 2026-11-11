@@ -12,7 +12,11 @@
 //   every NG code shows it exactly when the oracle does; no closed variant;
 //   no closed neighbour;
 // - Phase 5 5C-api's `exchangeBySem`: with no sem, each semester's status on
-//   a shown NG code's card equals the oracle's for that semester.
+//   a shown NG code's card equals the oracle's for that semester;
+// - R3 (ADR 0008): the year-of-study note, read from the prerequisite at
+//   request time, is on a card and in /module/:code exactly where the
+//   oracle's own reading of the prerequisite puts it, on the pins, the bundle,
+//   the standby, the mask route and exchangeBySem; it never hides a course.
 // Its own vitest project and CI job (`npm run test:sc1`), with its own
 // timeout. Skipped without the pinned corpus and bundle; the sc1 CI job sets
 // FULL_CORPUS=1, so a missing one fails there instead.
@@ -29,7 +33,7 @@ import { localMatchesFilters } from '../../src/search.js';
 import { compileMask } from '../../src/vector-bundle.js';
 import { createFakes } from '../fakes.js';
 import { adminCall, callJson, seed } from '../helpers.js';
-import { oracle } from './oracle.node.mjs';
+import { oracle, oracleShown, yearNoteOf } from './oracle.node.mjs';
 
 const corpus = inject('corpus');
 const bundleKind = inject('vectorsBundle');
@@ -63,6 +67,17 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
   const oracleSet = (k) => c.modules.filter((m) => shownByOracle(m.code, k)).map((m) => m.code).sort();
   /** Results and their 3F variants. @param {any} body @returns {string[]} */
   const shown = (body) => body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)]);
+  /** Whether an exchange entry carries R3's note. @param {any} e */
+  const hasYear = (e) => (e?.reasons ?? []).some((/** @type {any} */ r) => r.id === 'prereq:year-of-study');
+  /**
+   * What is wrong with a card's exchange entry against the oracle with R3, or ''.
+   * @param {NormalisedModule} m @param {any} e @param {1 | 2 | 'any'} sem @param {import('../../src/ng-bit.js').Study} study
+   */
+  const entryWrong = (m, e, sem, study) => {
+    const want = oracleShown(m, { sem, study });
+    const year = want !== 'closed' && yearNoteOf(m, study) !== null;
+    return e?.status === want && hasYear(e) === year ? '' : `${m.code} ${study} sem ${sem}: ${e?.status}${hasYear(e) ? ' +year' : ''}, oracle ${want}${year ? ' +year' : ''}`;
+  };
   const fakes = createFakes();
 
   beforeAll(async () => {
@@ -124,21 +139,70 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
     console.info(`SC1 standby recall@50 by combination:\n  ${recalls.join('\n  ')}`);
   }, 600_000);
 
-  it('pins: a code search for every NG code shows it exactly when the oracle does', async () => {
+  it('pins: a code search for every NG code shows it exactly when the oracle does, with the oracle\'s status and R3 note', async () => {
     const ngCodes = c.modules.filter((m) => m.ng).map((m) => m.code);
     expect(ngCodes.length).toBeGreaterThan(1000);
     /** @type {string[]} */
     const wrong = [];
+    let years = 0;
     for (const code of ngCodes) {
+      const m = /** @type {NormalisedModule} */ (moduleOf.get(code));
       for (const k of COMBOS) {
         const { body } = await callJson(`/search?q=${code}&${k.qs}&mode=lexical&topK=5`, { fakes });
         if (shown(body).includes(code) !== shownByOracle(code, k)) wrong.push(`${code} ${k.qs}`);
+        const card = body.results.find((/** @type {any} */ r) => r.code === code);
+        if (!card) continue;
+        const bad = entryWrong(m, card.exchange, k.sem, k.study);
+        if (bad) wrong.push(bad);
+        if (hasYear(card.exchange)) years++;
       }
     }
     expect(wrong).toEqual([]);
+    // R3 reaches real cards: AR4601 and others at a home year below theirs.
+    expect(years).toBeGreaterThan(20);
   }, 600_000);
 
-  it('exchangeBySem (Phase 5 5C-api): with no sem, each semester\'s status on a shown NG code\'s card equals the oracle\'s', async () => {
+  it('R3: the year-of-study note on the bundle, the standby, a vector-only search, the mask route and /module/:code', async () => {
+    // NUS glues keywords to "must" ("DANDmust be Year 4"), so no word boundary before it.
+    const yearCodes = c.modules.filter((m) => m.ng && /must\s*be\s*(?:in\s*)?year\s*\d/i.test(m.prerequisite ?? ''));
+    // The 10 NG courses whose prerequisite names a year: 9 handled, EE4204 left alone (its year is an alternative).
+    expect(yearCodes.length).toBeGreaterThanOrEqual(10);
+    expect(yearCodes.filter((m) => yearNoteOf(m, 'ug1') !== null).length).toBeGreaterThanOrEqual(9);
+    /** @type {string[]} */
+    const wrong = [];
+    let cards = 0;
+    for (const m of yearCodes) {
+      const prefix = m.code.slice(0, m.code.search(/\d/) + 2);
+      for (const k of COMBOS) {
+        for (const [q, extra, envOver] of /** @type {[string, string, Record<string, string>][]} */ ([
+          [m.title, '', {}], [m.title, '&mode=vector', {}], [m.title, '', { DENSE_BACKEND: 'vectorize' }], [prefix, '', {}],
+        ])) {
+          const path = `/search?q=${encodeURIComponent(q)}&${k.qs}&topK=50${extra}`;
+          const { body } = await callJson(path, { fakes, env: envOver });
+          const card = body.results.find((/** @type {any} */ r) => r.code === m.code);
+          if (!card) continue;
+          cards++;
+          const bad = entryWrong(m, card.exchange, k.sem, k.study);
+          if (bad) wrong.push(`${path} ${envOver.DENSE_BACKEND ?? ''}: ${bad}`);
+          if (k.sem === 'any') {
+            for (const sem of /** @type {const} */ ([1, 2])) {
+              const bySem = entryWrong(m, card.exchangeBySem?.[sem], sem, k.study);
+              if (bySem) wrong.push(`${path} exchangeBySem: ${bySem}`);
+            }
+          }
+        }
+      }
+      const { body } = await callJson(`/module/${m.code}`);
+      for (const e of body.exchange) {
+        const bad = entryWrong(m, e, e.sem, e.study);
+        if (bad) wrong.push(`/module: ${bad}`);
+      }
+    }
+    expect(wrong).toEqual([]);
+    expect(cards).toBeGreaterThan(100);
+  }, 600_000);
+
+  it('exchangeBySem (Phase 5 5C-api): with no sem, each semester\'s status on a shown NG code\'s card equals the oracle\'s (with R3)', async () => {
     const ngModules = c.modules.filter((m) => m.ng);
     /** @type {string[]} */
     const wrong = [];
@@ -149,7 +213,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
         const card = body.results.find((/** @type {any} */ r) => r.code === m.code);
         if (!card) continue;
         for (const sem of /** @type {const} */ ([1, 2])) {
-          const want = oracle(m, { sem, study });
+          const want = oracleShown(m, { sem, study });
           if (card.exchangeBySem?.[sem]?.status !== want) wrong.push(`${m.code} ${study} sem ${sem}: ${card.exchangeBySem?.[sem]?.status}, oracle ${want}`);
           checked++;
         }

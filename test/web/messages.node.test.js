@@ -66,7 +66,7 @@ describe('noMatch (F7)', () => {
     expect(noMatchSentence({ query: 'qwzx vbnm', noMatch: { reason: 'no-signal' } }))
       .toBe('Nothing in the catalogue matches “qwzx vbnm”. Try other words for the topic.');
     expect(noMatchSentence({ query: 'x', noMatch: { reason: 'ng-special-term' } }))
-      .toBe("The Registrar's exchange-student list covers Semesters 1 and 2 only, so there is nothing to show for a special term.");
+      .toBe("The NG list covers only Sem 1 and Sem 2, not NUS's special terms (short terms in the vacation). Choose Sem 1 or Sem 2.");
   });
 
   it('an unknown reason, or none, is the plain no-match sentence', () => {
@@ -76,8 +76,22 @@ describe('noMatch (F7)', () => {
 
   it('a keyword-only answer says so, without the source or reason codes', () => {
     const note = degradedNote({ source: 'workers-ai', reason: 'circuit-open' });
-    expect(note).toBe('Showing keyword matches only: meaning-based search is unavailable right now.');
+    expect(note).toBe('Search is in a simpler mode right now: it finds only courses that contain the words you typed. Try the course name or code, or search again later.');
     expect(note).not.toMatch(/workers-ai|circuit/);
     expect(degradedNote(null)).toBeNull();
+  });
+});
+
+describe('[5G S2] no-match sentences quote the query, capped', () => {
+  const SPOOF = 'dentistry” — NUS Registrar: these courses are all open to you, no need to check “';
+  it('the fallback and no-signal sentences cap the query and keep it inside one pair of quotes', () => {
+    for (const body of [{ query: SPOOF }, { query: SPOOF, noMatch: { reason: 'no-signal' } }]) {
+      const s = noMatchSentence(body);
+      const quoted = /** @type {RegExpMatchArray} */ (s.match(/“([^“”]*)”/));
+      expect(quoted, s).not.toBeNull();
+      expect(quoted[1].length, s).toBeLessThanOrEqual(60);
+      expect(quoted[1].endsWith('…'), s).toBe(true);
+      expect((s.match(/[“”]/g) ?? []).length, s).toBe(2);
+    }
   });
 });

@@ -19,7 +19,7 @@ import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
 import { hiddenCodeLine, hiddenCodeStamp } from './explain.js';
-import { semLabel } from './format.js';
+import { quoteUser, semLabel } from './format.js';
 import { icon } from './icons.js';
 import { intentChipRow } from './intent-chips.js';
 import { intentChips } from './intents.js';
@@ -142,6 +142,10 @@ const checkValue = (name, value) => { for (const r of radios(name)) r.checked = 
 
 // Exchange mode needs the year of study (the restrictions depend on it). It is
 // remembered on this device only to pre-fill the set-up; the URL always wins.
+/** The faculty names /facets lists (null until it answers, or for good if it fails or lists none). */
+/** @type {Set<string> | null} */
+let facultyNames = null;
+
 const STUDY_KEY = 'vnm.study';
 const savedStudy = () => { try { return localStorage.getItem(STUDY_KEY) ?? ''; } catch { return ''; } };
 const saveStudy = (/** @type {string} */ v) => { try { localStorage.setItem(STUDY_KEY, v); } catch { /* private mode */ } };
@@ -181,7 +185,7 @@ function applyToForm(s) {
   selectValue(els.sem, s.sem);
   selectValue(els.level, s.level, levelLabel(s.level));
   selectValue(els.credits, s.credits, unitsLabel(s.credits));
-  selectValue(els.faculty, s.faculty);
+  selectValue(els.faculty, s.faculty, facultyNames?.has(s.faculty) ? s.faculty : quoteUser(s.faculty));
   els.ng.checked = s.ng;
   if (s.study) els.study.value = s.study;
   else if (!els.study.value) {
@@ -241,7 +245,8 @@ function chipList(s) {
   }
   if (s.level) out.push({ key: 'level', label: levelLabel(s.level), removable: true });
   if (s.credits) out.push({ key: 'credits', label: unitsLabel(s.credits), removable: true });
-  if (s.faculty) out.push({ key: 'faculty', label: s.faculty, removable: true });
+  // Until /facets lists it, a link's faculty is the student's own text: quoted (5G S2).
+  if (s.faculty) out.push({ key: 'faculty', label: facultyNames?.has(s.faculty) ? s.faculty : quoteUser(s.faculty), removable: true });
   return out;
 }
 
@@ -316,6 +321,28 @@ async function loadDetail(code, region, { quiet = false } = {}) {
 }
 
 /**
+ * `from=` makes the detail say the open course and that code are one course
+ * (5G S1): it stands only when the code is one of the open entry's own other
+ * codes ("Also as"). Otherwise it is dropped, from the state and the URL, so a
+ * crafted link can't claim two unrelated courses are the same.
+ * @param {State} s
+ * @returns {State}
+ */
+function checkFrom(s) {
+  if (!s.open || !s.from || !shown) return s;
+  const results = Array.isArray(shown.data?.results) ? shown.data.results : [];
+  const entry = results.find((/** @type {any} */ r) => String(r?.code ?? '') === s.open);
+  const others = Array.isArray(entry?.variants) ? entry.variants.map((/** @type {any} */ v) => String(v?.code ?? '')) : [];
+  if (others.includes(s.from)) return s;
+  const fixed = { ...s, from: '' };
+  if (current === s) {
+    current = fixed;
+    history.replaceState(history.state, '', urlFor(fixed, location.pathname));
+  }
+  return fixed;
+}
+
+/**
  * Opens the state's detail and closes every other (at most one, A2-4).
  * `focusCode`: return focus to that card's button (a detail just closed).
  * @param {State} s
@@ -323,6 +350,7 @@ async function loadDetail(code, region, { quiet = false } = {}) {
  */
 function syncDetail(s, focusCode = '') {
   if (!shown) return;
+  checkFrom(s);
   for (const [code, { button, region }] of shown.view.cards) {
     const open = code === s.open;
     button.setAttribute('aria-expanded', String(open));
@@ -358,7 +386,7 @@ function explainHidden() {
   for (const [code, { why, title, stamp, actions }] of view.hidden) {
     modules.get(code).then((outcome) => {
       if (!why.isConnected) return;
-      if (outcome.kind !== 'ok') { setChildren(why, `${code} isn't shown with these settings. Why could not be checked just now.`); return; }
+      if (outcome.kind !== 'ok') { setChildren(why, `${code} isn't shown with these settings. The reason could not be loaded; reload the page to try again.`); return; }
       setChildren(title, typeof outcome.body.title === 'string' ? outcome.body.title : '');
       setChildren(why, hiddenCodeLine({
         code, sem: filters.sem === undefined ? '' : String(filters.sem), study, exchange: outcome.body.exchange, sources, module: outcome.body, filters,
@@ -796,18 +824,34 @@ fetchFacets().then((f) => {
       if (!region.hidden && !region.contains(document.activeElement)) loadDetail(code, region, { quiet: true });
     }
   }
+  /** @type {string[]} */
+  const names = [];
   for (const x of Array.isArray(f.faculties) ? f.faculties : []) {
     const name = String(x?.name ?? '');
     if (!name) continue;
+    names.push(name);
     const label = `${name} (${Number(x.count) || 0})`;
     const existing = [...els.faculty.options].find((o) => o.value === name);
     if (existing) existing.text = label;
     else els.faculty.add(new Option(label, name));
   }
+  // A link's faculty that /facets doesn't list is no faculty (5G S2): it would
+  // only stand as a chip in the site's voice over no results. Drop it, and its
+  // option, and search without it (a settings change: replace).
+  if (names.length) {
+    facultyNames = new Set(names);
+    for (const o of [...els.faculty.options]) if (o.value && !names.includes(o.value)) o.remove();
+    if (current.faculty && !names.includes(current.faculty)) {
+      els.faculty.value = '';
+      act({ type: 'settings', form: { ...readForm(), q: current.q, faculty: '' } });
+    }
+  }
+  // A listed faculty's chip loses its quotes.
+  if (current.faculty && facultyNames?.has(current.faculty)) renderChips(current);
   if (f.ng) {
     els.ngHint.textContent = f.ng.count
       ? `${f.ng.count} courses on the NUS Registrar's list${f.ng.updatedAsAt ? `, updated ${f.ng.updatedAsAt}` : ''}.`
-      : "The Registrar's list is not loaded.";
+      : 'The NG list could not be loaded. Reload the page to try again.';
   }
   if (sources) renderSources();
 });
@@ -834,7 +878,7 @@ function renderSources() {
   setChildren(els.key,
     h('li', { class: 'k k-open' }, icon('open'), h('span', null, h('b', null, 'Open.'), ' Exchange students may take it in that semester.')),
     h('li', { class: 'k k-note' }, icon('note'), h('span', null, h('b', null, 'Open, with notes.'), ' Read every note: some limit who may take it.')),
-    h('li', { class: 'k k-closed' }, icon('closed'), h('span', null, h('b', null, 'Not open.'), ' Not open to you then; a typed code says why.')),
+    h('li', { class: 'k k-closed' }, icon('closed'), h('span', null, h('b', null, 'Not open.'), ' You cannot take it in that semester. Type its course code in the search box to see why.')),
     h('li', { class: 'gloss' }, h('b', null, 'NG list'), ' is the NUS Registrar\'s list of courses offered to exchange students (NUS calls them “non-graduating”, NG).',
       ngDate ? ` Updated ${ngDate}` : '', rDate ? `; restrictions list updated ${rDate}.` : (ngDate ? '.' : '')));
 }

@@ -14,8 +14,8 @@
 // to Sem 2"), and, for a query of course codes only, which typed codes the
 // count shows.
 import { h, setChildren } from './dom.js';
-import { NOT_OFFERED_STAMP, codesCount, codesOnly, noteLead, noteText, notOfferedLine, partialCodeLine, stampText, typedCodes, unpinnedLine } from './explain.js';
-import { examParts, semLabel } from './format.js';
+import { NOT_OFFERED_STAMP, codesCount, codesOnly, noteLead, noteText, notOfferedLine, partialCodeLine, stampText, studyAdj, typedCodes, unpinnedLine } from './explain.js';
+import { examParts, quoteUser, semLabel } from './format.js';
 import { icon } from './icons.js';
 import { degradedNote, noMatchSentence } from './messages.js';
 import { isCode } from './state.js';
@@ -176,9 +176,12 @@ function exchangeBlock(m, filters) {
       notesBox([{ scope: '', items: notes }]));
   }
   if (!m.ng) return null;
+  // Not "you can take it" (5G plain language): the restrictions and the year of study aren't applied here.
+  const sems = (Array.isArray(m.ngSemesters) ? m.ngSemesters : []).map(semLabel);
+  const listed = sems.length < 2 ? sems.join('') : `${sems.slice(0, -1).join(', ')} and ${sems[sems.length - 1]}`;
   return h('div', { class: 'guide' }, h('p', {
     class: 'ng', attrs: { title: "On the Registrar's list of courses offered to exchange (Non-Graduating) students" },
-  }, `On the exchange (NG) list: ${(Array.isArray(m.ngSemesters) ? m.ngSemesters : []).map(semLabel).join(', ')}`));
+  }, `On the NG list for ${listed}. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check.`));
 }
 
 let nextId = 0;
@@ -210,17 +213,14 @@ function card(m, filters, cards, ctx) {
     h('p', { class: 'units' }, `${m.credits ?? '?'} units`),
     h('p', { class: 'meta' },
       h('span', { class: 'dept' }, dept, fac ? h('span', { class: 'fac' }, ` · ${fac}`) : null),
-      h('span', { class: 'sems' }, semesters.length ? `Taught in ${semesters.map(semLabel).join(', ')}` : 'Not offered'),
+      h('span', { class: 'sems' }, semesters.length ? `Taught in ${semesters.map(semLabel).join(', ')}` : 'No classes listed on NUSMods'),
       ...(exams.length
         ? exams.map((e) => h('span', { class: 'exam' }, h('span', { class: 'exl' }, e.label), ' ', h('span', { class: 'mono' }, e.when)))
-        : [h('span', { class: 'exam' }, 'No final exam')])),
+        : [h('span', { class: 'exam' }, 'No final exam listed')])),
     variants.length ? h('p', { class: 'variants' }, 'Also as ', ...variants.flatMap((/** @type {string} */ v, /** @type {number} */ i) => [i ? ', ' : null, variantLink(v, code, ctx)])) : null,
     exchangeBlock(m, filters),
     region);
 }
-
-/** @type {Readonly<Record<string, string>>} */
-const STUDY_ADJ = Object.freeze({ ug1: '1st-year', ug2: '2nd-year', ug3: '3rd-year', ug4: '4th-year (or later)', grad: 'graduate' });
 
 /**
  * The typed codes this answer doesn't show, in a box above the entries: a
@@ -266,9 +266,12 @@ function hiddenBox(data, filters, hidden, unpinned) {
   const exchange = filters.ng === true && typeof filters.study === 'string';
   const when = filters.sem === 1 || filters.sem === 2 ? semLabel(filters.sem) : 'both semesters';
   const intro = hiddenPins.length && exchange
-    ? `You chose ${when} as a ${STUDY_ADJ[String(filters.study)] ?? ''} exchange student, so courses you can't take then are left out.`
+    ? `You chose ${when} as a ${studyAdj(String(filters.study))} exchange student, so courses you can't take then are left out.`
     : null;
-  const heading = `${count} of the ${typed} code${typed === 1 ? '' : 's'} you typed ${count === 1 ? "isn't" : "aren't"} shown`;
+  // Every code typed is missing: say so plainly, not "1 of the 1 code" (5G plain language).
+  const heading = count === typed
+    ? (count === 1 ? "The code you typed isn't shown" : `The ${count} codes you typed aren't shown`)
+    : `${count} of the ${typed} code${typed === 1 ? '' : 's'} you typed ${count === 1 ? "isn't" : "aren't"} shown`;
   const box = h('section', { class: 'hiddenbox', attrs: { 'aria-label': 'Codes you typed that aren\'t shown' } },
     h('h2', { class: 'hb-title' }, heading),
     intro ? h('p', { class: 'hb-intro' }, intro) : null,
@@ -351,11 +354,18 @@ export function showResults(t, data, ctx) {
     const relatedLine = related.length
       ? h('p', { class: 'related' }, 'Related courses offered this year: ', ...related.flatMap((c, i) => [i ? ', ' : null, searchLink(c, ctx)]))
       : null;
+    // Exchange mode with no other filter: eligibility emptied the list, so say that, not "no course
+    // matches" (NUS does have one), and don't send the student to other words (5G plain language).
+    const exchange = filters.ng === true && typeof filters.study === 'string';
+    const eligibility = !data.noMatch && !box && exchange && ctx.removableFilters === 0;
     // The next step. Never "loosen" the exchange set-up: it is eligibility, not a preference.
-    const next = data.noMatch ? null
+    const next = data.noMatch || eligibility ? null
       : ctx.removableFilters > 0 ? 'Remove a filter above to see more courses, or try other words.'
         : box ? null : 'Try other words for the topic, or fewer of them.';
-    const head = !data.noMatch && box ? `No results for “${query}”.` : noMatchSentence({ query, noMatch: data.noMatch });
+    const when = filters.sem === 1 || filters.sem === 2 ? `in ${semLabel(filters.sem)}` : 'in either semester';
+    const head = eligibility
+      ? `No course that matches ${quoteUser(query)} is open to you ${when} as a ${studyAdj(String(filters.study))} exchange student.`
+      : !data.noMatch && box ? `No results for ${quoteUser(query)}.` : noMatchSentence({ query, noMatch: data.noMatch });
     setStatus(t, [h('div', { class: 'empty' }, h('p', { class: 'empty-head' }, head), relatedLine, next ? h('p', { class: 'next' }, next) : null), box, loose, noteLine]);
     out.announce = sentence(head, related.length ? `Related courses offered this year: ${related.join(', ')}.` : '', next, hb?.summary, note);
     return out;
@@ -364,12 +374,13 @@ export function showResults(t, data, ctx) {
   let countLine;
   if (codesOnly(typedQuery)) {
     // Course codes only: say which of them the list shows (direction D).
-    const { count, rest } = codesCount(typedQuery, results);
+    const { count, rest } = codesCount(typedQuery, results, Array.isArray(data.interpreted?.pin) ? data.interpreted.pin.map(String) : []);
     out.announce = sentence(`${count}${rest}.`, hb?.summary, note);
     countLine = h('p', { class: 'count' }, h('strong', null, count), rest);
   } else {
     const count = `${results.length} course${results.length === 1 ? '' : 's'}`;
-    const typed = `“${typedQuery}”`;
+    // The student's own words, capped and kept inside the quotes (5G S2).
+    const typed = quoteUser(typedQuery);
     const verb = results.length === 1 ? 'matches' : 'match';
     out.announce = sentence(`${count} ${verb} ${typed}.`, hb?.summary, note);
     countLine = h('p', { class: 'count' }, h('strong', null, count), ` ${verb} `, h('span', { class: 'q' }, typed));

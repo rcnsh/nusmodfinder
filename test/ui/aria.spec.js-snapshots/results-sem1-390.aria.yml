@@ -26,7 +26,7 @@
       - heading "ACC1701XB Accounting for Decision Makers" [level=2]:
         - button "ACC1701XB Accounting for Decision Makers"
       - paragraph: 4 units
-      - paragraph: Accounting Taught in Sem 2 No final exam
+      - paragraph: Accounting Taught in Sem 2 No final exam listed
       - paragraph:
         - text: Also as
         - link "ACC1701XA":
@@ -36,14 +36,14 @@
           - /url: /?q=ACC1701XC&sem=1&level=1&ng=1&study=ug2&open=ACC1701XC&from=ACC1701XB
       - text: Sem 1 · Open, with 3 notes
       - list:
-        - listitem: "Timetable. Not on NUSMods' timetable for Sem 1: check with the department."
-        - listitem: Places. Business courses are over-subscribed and not guaranteed.
+        - listitem: Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.
+        - listitem: Places. Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first.
         - listitem: Your major. Only for students majoring in business at their home university.
     - listitem:
       - 'heading "GE1101E Geographical Journeys: Exploring World Environments" [level=2]':
         - 'button "GE1101E Geographical Journeys: Exploring World Environments"'
       - paragraph: 4 units
-      - paragraph: Geography Taught in Sem 1 No final exam
+      - paragraph: Geography Taught in Sem 1 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "CS1010 Programming Methodology" [level=2]:
@@ -69,52 +69,52 @@
       - heading "GESS1007 Singapore’s Business History" [level=2]:
         - button "GESS1007 Singapore’s Business History"
       - paragraph: 4 units
-      - paragraph: History Taught in Sem 1 No final exam
+      - paragraph: History Taught in Sem 1 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "GESS1009 The Evolution of a Global City-State" [level=2]:
         - button "GESS1009 The Evolution of a Global City-State"
       - paragraph: 4 units
-      - paragraph: History Taught in Sem 1, Special term 2 No final exam
+      - paragraph: History Taught in Sem 1, Special term 2 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "HS1502 Conceptual Introduction to Machine Learning" [level=2]:
         - button "HS1502 Conceptual Introduction to Machine Learning"
       - paragraph: 4 units
-      - paragraph: Physics Taught in Sem 1, Sem 2 No final exam
+      - paragraph: Physics Taught in Sem 1, Sem 2 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "LAF1201 French 1" [level=2]:
         - button "LAF1201 French 1"
       - paragraph: 4 units
-      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2, Special term 1, Special term 2 No final exam
+      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2, Special term 1, Special term 2 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:
-        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+        - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
     - listitem:
       - heading "LAK1201 Korean 1" [level=2]:
         - button "LAK1201 Korean 1"
       - paragraph: 4 units
-      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2 No final exam
+      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:
-        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+        - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
     - listitem:
       - heading "LAM1201 Malay 1" [level=2]:
         - button "LAM1201 Malay 1"
       - paragraph: 4 units
-      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2, Special term 1 No final exam
+      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2, Special term 1 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:
-        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+        - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
     - listitem:
       - heading "LAT1201 Thai 1" [level=2]:
         - button "LAT1201 Thai 1"
       - paragraph: 4 units
-      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2, Special term 1 No final exam
+      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2, Special term 1 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:
-        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+        - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
     - listitem:
       - heading "PC1201 Fundamentals of Physics" [level=2]:
         - button "PC1201 Fundamentals of Physics"
@@ -125,22 +125,22 @@
       - heading "PL1101E Introduction to Psychology" [level=2]:
         - button "PL1101E Introduction to Psychology"
       - paragraph: 4 units
-      - paragraph: Psychology Taught in Sem 1, Sem 2, Special term 2 No final exam
+      - paragraph: Psychology Taught in Sem 1, Sem 2, Special term 2 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "LAL1201 Tamil 1" [level=2]:
         - button "LAL1201 Tamil 1"
       - paragraph: 4 units
-      - paragraph: Centre for Language Studies Taught in Sem 2 No final exam
+      - paragraph: Centre for Language Studies Taught in Sem 2 No final exam listed
       - text: Sem 1 · Open, with 2 notes
       - list:
-        - listitem: "Timetable. Not on NUSMods' timetable for Sem 1: check with the department."
-        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+        - listitem: Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.
+        - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
     - listitem:
       - 'heading "HY1101E Engaging Asia: A Global History" [level=2]':
         - 'button "HY1101E Engaging Asia: A Global History"'
       - paragraph: 4 units
-      - paragraph: History Taught in Sem 1, Sem 2, Special term 2 No final exam
+      - paragraph: History Taught in Sem 1, Sem 2, Special term 2 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "EC1101E Introduction to Economic Analysis" [level=2]:
@@ -152,10 +152,10 @@
       - heading "LAR1201 Arabic 1" [level=2]:
         - button "LAR1201 Arabic 1"
       - paragraph: 4 units
-      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2, Special term 1 No final exam
+      - paragraph: Centre for Language Studies Taught in Sem 1, Sem 2, Special term 1 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:
-        - listitem: Grading. Language courses must be taken on a graded basis (no audit).
+        - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
 - contentinfo:
   - paragraph: An unofficial site, not run by NUS or NUSMods. Course data comes from NUSMods; who may take each course comes from the NUS Registrar's lists. Check with NUS before you register.
   - list:

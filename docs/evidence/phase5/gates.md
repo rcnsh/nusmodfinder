@@ -196,3 +196,24 @@ candidate `ff54fdc`'s (the PR's last commit touched only `test/` and `public/`).
 only: `run-shipped-75ca23c` stored with `--store-only` (81 queries, no verdict, no ledger row);
 `eval:count --lists-differing --run shipped-75ca23c --baseline l8-ff54fdc` printed `0`.
 `SHIPPED_BASELINE` is `75ca23c`; holdout looks stay at 8 of 12.
+
+## 5G red-team fixes: R3, PD1, PD2, S1–S3 and the plain-language texts are ranking-neutral (no pin move)
+
+R3's year-of-study note is read per request from the stored prerequisite (`src/year-note.js`,
+via `exchangeAt`), and `/search` reads it through one more result column (`year_prereq`, the
+prerequisite only when it mentions a year). It adds a note to a shown course and never changes
+its status, its mask bit or its rank. The other fixes touch the page, the reason texts and the
+response headers. No row, mask, stored rule id or ranker input changes, so `SHIPPED_BASELINE`
+stays at `75ca23c`. No holdout look and no count are needed.
+
+Local eval runs, the HEAD runner, sha256 of each run's `results` (first 16). The branch was
+written on `ab1995c` against the pin `fdec96f`; after it was rebased onto `aa7209f` (phrases
+shipped, pin `75ca23c`), the same runs were taken against that pin. Each code head holds every
+code change on the branch, the review's fixes included.
+
+| run | queries | `fdec96f` vs `662c6ac` (before the rebase) | `75ca23c` vs `a636ac4` (rebased) | identical |
+|---|---|---|---|---|
+| dev, the queries' filters | 98 | `8229314651577034` both | `21245ed8fe04ba32` both | yes |
+| dev, `--strip ng` | 98 | `ae4f077e0ad06ef2` both | `62e5ab9a8150508f` both | yes |
+| dev, `--unfiltered` | 98 | `8fde32e1783d6d6b` both | `a7593696c94b041a` both | yes |
+| fixture, `--strip ng` | 11 | `ce4f61e83ce5a52f` both | `7a5d58bbe50972c0` both | yes |

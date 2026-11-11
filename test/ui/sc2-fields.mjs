@@ -21,7 +21,7 @@
 import { examLines, prereqView, workloadText } from '../../public/format.js';
 import { STUDIES } from '../../src/ng-bit.js';
 import { moduleWorkload } from '../../src/workload.js';
-import { oracle } from '../sc1/oracle.node.mjs';
+import { oracleShown } from '../sc1/oracle.node.mjs';
 
 /** The detail's years of study, in the all-years table's order. */
 export const YEARS = Object.freeze(['1st year', '2nd year', '3rd year', '4th year or later', 'Graduate']);
@@ -60,7 +60,7 @@ export function sc2Expected(m) {
     preclText: bare(m.preclusion),
     exams: examLines(m.examDates ?? []),
     workload: workloadText(moduleWorkload(m.workload ?? null)),
-    exchange: STUDIES.map((study, i) => ({ year: YEARS[i], statuses: /** @type {const} */ ([1, 2]).map((sem) => oracle(m, { sem, study })) })),
+    exchange: STUDIES.map((study, i) => ({ year: YEARS[i], statuses: /** @type {const} */ ([1, 2]).map((sem) => oracleShown(m, { sem, study })) })),
     nusmods: `https://nusmods.com/courses/${m.code}`,
   };
 }
