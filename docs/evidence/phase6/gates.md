@@ -38,3 +38,19 @@ against the pin `8a86bf6`, sha256 of each run's `results` (first 16):
 | dev, `--strip ng` | 98 | `62e5ab9a8150508f` both | yes |
 | dev, `--unfiltered` | 98 | `a7593696c94b041a` both | yes |
 | fixture, `--strip ng` | 11 | `7a5d58bbe50972c0` both | yes |
+
+## 6E: the Phase 6 ship is ranking-neutral (pin move, no look)
+
+6A–6D merged as `0b5f360` and deployed as version `f8aefeab`. Local eval runs at `0b5f360` against
+the pin `8a86bf6`, sha256 of each run's `results` (first 16):
+
+| run | queries | results sha256 (first 16) | identical |
+|---|---|---|---|
+| dev, the queries' filters | 98 | `21245ed8fe04ba32` both | yes |
+| dev, `--strip ng` | 98 | `62e5ab9a8150508f` both | yes |
+| dev, `--unfiltered` | 98 | `a7593696c94b041a` both | yes |
+| fixture, `--strip ng` | 11 | `7a5d58bbe50972c0` both | yes |
+
+Holdout, custodian only: `run-shipped-0b5f360` stored with `--store-only` (81 queries, no
+verdict, no ledger row); `eval:count --lists-differing --run shipped-0b5f360 --baseline
+shipped-8a86bf6` printed `0`. `SHIPPED_BASELINE` is `0b5f360`; holdout looks stay at 8 of 12.

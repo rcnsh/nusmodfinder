@@ -153,17 +153,21 @@ test('[V1] an option a link adds is labelled as the chips are: "Level 7000", "3 
   await expect(page.locator('#chips .chip')).toHaveText(['Level 7000', '3 units']);
 });
 
-test('no width between a phone and a desktop scrolls sideways: the first screen, results and an open detail', async ({ page }) => {
-  for (const width of [320, 390, 560, 641, 667, 700, 760, 900, 1040, 1100]) {
+// One test per width: forty page loads in one test ran past its 30 s budget on a loaded runner.
+// Each page is measured once it has rendered: the set-up, the first card, or the open detail.
+for (const width of [320, 390, 560, 641, 667, 700, 760, 900, 1040, 1100]) {
+  test(`no sideways scroll at ${width}px: the first screen, results and an open detail`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     for (const path of ['/', '/?q=introductory+accounting&ng=1&study=ug2', '/?q=ACC1701XB&open=ACC1701XB', '/?q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB']) {
       await page.goto(path);
+      if (path === '/') await expect(page.locator('#setup')).toBeVisible();
+      else await expect(page.locator('#results > li.card').first()).toBeVisible();
       if (path.includes('open=')) await expect(page.locator('#results .detail-close')).toBeVisible();
       const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       expect(over, `${width}px ${path}`).toBeLessThanOrEqual(0);
     }
-  }
-});
+  });
+}
 
 test('focus stays on a control when the one it was on goes away: a special term changed to Sem 1, and the dialog closed by widening', async ({ page }) => {
   await page.goto('/?q=networks&sem=3&ng=1&study=ug2');
