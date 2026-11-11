@@ -9,9 +9,9 @@ Status: accepted (Jacob, 2026-11-11)
 - The icon is a plum (`#6A2E56`) rounded tile with a white magnifier (`public/favicon.svg`; option B
   in the ephemera set `vector-nusmods-nusmodfinder-icon-rlvvsy`). It uses none of NUS's crest,
   colours or lion.
-- The Worker keeps its name `vector-nusmods`, so its workers.dev URL, bindings and version history
-  stay as they are; the workers.dev URL keeps serving, and the page's canonical URL is the custom
-  domain.
+- The Worker keeps its name `vector-nusmods`, so its bindings and version history stay as they
+  are. Its workers.dev URL is off (`workers_dev: false`, Jacob, 2026-11-11): the custom domain is
+  the only address.
 
 ## Why
 

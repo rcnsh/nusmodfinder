@@ -8,10 +8,10 @@
   // The public address (ADR 0009). A Custom Domain: Cloudflare makes the DNS
   // record and certificate on rcn.sh. `npm run deploy` applies it with
   // `wrangler triggers deploy` after promoting, since `versions deploy` does
-  // not touch routes. workers.dev keeps serving: wrangler turns it off once
-  // `routes` is set unless `workers_dev` says otherwise.
+  // not touch routes. The workers.dev URL is off (Jacob, ADR 0009): the
+  // Custom Domain is the only address.
   "routes": [{ "pattern": "nusmodfinder.rcn.sh", "custom_domain": true }],
-  "workers_dev": true,
+  "workers_dev": false,
 
   // The page (Phase 5 5B): public/ as Workers Static Assets. No binding, so
   // Env gains nothing, and a request for a file there (`/`, `/app.js`) is
@@ -64,9 +64,9 @@
   // new version id, which is in the /search cache key.
   "vars": { "DENSE_BACKEND": "bundle" },
 
-  // /search costs a Workers AI embedding and a Vectorize query per request. A
-  // Cloudflare rate-limiting RULE is not an option here — workers.dev is not a
-  // zone the account controls — so the guardrail lives in the Worker.
+  // /search costs a Workers AI embedding and a Vectorize query per request.
+  // The guardrail lives in the Worker. It predates the Custom Domain, when
+  // workers.dev was the only address and no zone rate-limiting rule applied.
   //
   // This is a BURST guard, not a budget guard. The binding is per-IP AND
   // per-colo, and Cloudflare documents its counters as permissive and
