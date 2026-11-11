@@ -121,7 +121,7 @@ async function firstScreen(page, k) {
   await expect.poll(() => query(page)).toBe(URL_SEARCH);
   await expect(page.locator('#q')).toBeFocused();
   await settled(page);
-  await expect(live(page)).toHaveText(/^\d+ courses match “CS2104”\.$/);
+  await expect(live(page)).toHaveText(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
   await expect(page.locator('#results .card-toggle').first()).toHaveAttribute('data-code', 'CS2104');
 }
 
@@ -151,7 +151,7 @@ async function detailLinkBackEscape(page, k) {
   await expect.poll(() => query(page)).toBe('q=CS2030&sem=1&level=2&ng=1&study=ug2');
   await expect(page.locator('#q')).toBeFocused();
   await settled(page);
-  await expect(live(page)).toHaveText(/^\d+ courses? match(es)? “CS2030”\.$/);
+  await expect(live(page)).toHaveText(/^\d+ courses? shown: CS2030(, then \d+ other match(es)?)?\.$/);
   // Back: the CS2104 results with its detail open, focus on its button.
   await page.goBack();
   await expect.poll(() => query(page)).toBe(`${URL_FILTERED}&open=CS2104`);
@@ -185,7 +185,7 @@ test.describe('at 1280', () => {
     await expect.poll(() => query(page)).toBe(URL_FILTERED);
     await expect(page.locator('#level')).toBeFocused();
     await settled(page);
-    await expect(live(page)).toHaveText(/^\d+ courses match “CS2104”\.$/);
+    await expect(live(page)).toHaveText(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
     // The exchange set-up in the rail: the semester segment by arrow keys.
     expect(await k.shiftTab(2)).toEqual(['#study', 'radio xsem=1']);
     expect(await k.press('ArrowRight')).toBe('radio xsem=2');
@@ -241,7 +241,7 @@ test.describe('at 390×664', () => {
     await expect(page.getByRole('dialog')).toBeHidden();
     await expect(page.locator('#filtersBtn')).toHaveText('Filters (4)');
     await settled(page);
-    await expect(live(page)).toHaveText(/^\d+ courses match “CS2104”\.$/);
+    await expect(live(page)).toHaveText(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
     expect(await k.tab(4)).toEqual([
       'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', 'button "Remove filter: Level 2000"', CARD,
     ]);

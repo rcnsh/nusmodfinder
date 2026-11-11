@@ -2,7 +2,7 @@
   - /url: "#main"
 - banner:
   - heading "Exchange Course Finder ( unofficial, for NUS )" [level=1]
-  - status: 17 courses match “ACC1701XB”.
+  - status: "17 courses shown: ACC1701XB, then 16 other matches."
 - main "Search and results":
   - search "Search courses":
     - text: Search courses
@@ -19,7 +19,7 @@
         - 'button "Remove filter: Level 1000"': Level 1000
   - paragraph:
     - strong: 17 courses
-    - text: match “ACC1701XB”
+    - text: "shown: ACC1701XB, then 16 other matches"
   - paragraph: Exam times are Singapore time (UTC+8)
   - list "Results":
     - listitem:
@@ -27,7 +27,13 @@
         - button "ACC1701XB Accounting for Decision Makers"
       - paragraph: 4 units
       - paragraph: Accounting Taught in Sem 2 No final exam
-      - paragraph: Also as ACC1701XA, ACC1701XC
+      - paragraph:
+        - text: Also as
+        - link "ACC1701XA":
+          - /url: /?q=ACC1701XA&sem=1&level=1&ng=1&study=ug2&open=ACC1701XA&from=ACC1701XB
+        - text: ","
+        - link "ACC1701XC":
+          - /url: /?q=ACC1701XC&sem=1&level=1&ng=1&study=ug2&open=ACC1701XC&from=ACC1701XB
       - text: Sem 1 · Open, with 3 notes
       - list:
         - listitem: "Timetable. Not on NUSMods' timetable for Sem 1: check with the department."
@@ -44,14 +50,20 @@
         - button "CS1010 Programming Methodology"
       - paragraph: 4 units
       - paragraph: Computer Science Taught in Sem 1, Sem 2 Exam Wed 25 Nov, 9:00 am
-      - paragraph: Also as CS1010E
+      - paragraph:
+        - text: Also as
+        - link "CS1010E":
+          - /url: /?q=CS1010E&sem=1&level=1&ng=1&study=ug2&open=CS1010E&from=CS1010
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "GES1034 We the Citizens - Understanding Singapore’s Politics" [level=2]:
         - button "GES1034 We the Citizens - Understanding Singapore’s Politics"
       - paragraph: 4 units
       - paragraph: Political Science Taught in Sem 1 Exam Tue 1 Dec, 1:00 pm
-      - paragraph: Also as GESS1024
+      - paragraph:
+        - text: Also as
+        - link "GESS1024":
+          - /url: /?q=GESS1024&sem=1&level=1&ng=1&study=ug2&open=GESS1024&from=GES1034
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "GESS1007 Singapore’s Business History" [level=2]:

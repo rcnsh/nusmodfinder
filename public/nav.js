@@ -11,8 +11,12 @@
 // |   ... with a different query typed          | as submit: push                           |
 // | open a detail with none open                | push                                      |
 // | open another detail while one is open       | replace                                   |
+// | follow an "Also as" link (5G)               | push: that code's search, its detail open, from= |
 // | close a detail                              | back() if this page pushed its entry, else replace |
 // | clear the query (submit with none)          | push, the URL without q                   |
+//
+// `from` belongs to the detail an "Also as" link opened: every other action
+// that changes `open` drops it.
 import { stateToParams } from './state.js';
 
 /** @typedef {import('./state.js').State} State */
@@ -20,7 +24,9 @@ import { stateToParams } from './state.js';
  * `form` is the state the controls show (its pick and alt are ignored: those
  * belong to the URL).
  * @typedef {{ type: 'submit', form: State } | { type: 'settings', form: State }
- *   | { type: 'open', code: string } | { type: 'close' }} Action
+ *   | { type: 'open', code: string } | { type: 'close' }
+ *   | { type: 'variant', code: string, from: string }} Action
+ *   `variant`: an "Also as" link, from the entry `from`, to its other code `code`
  */
 /** @typedef {'push' | 'replace' | 'back' | 'none'} Op */
 
@@ -40,24 +46,32 @@ export function transition(current, action, { detailPushed }) {
       const q = action.form.q.trim() ? action.form.q : '';
       // ignore= undoes phrases parsed from one query; a new query starts without it.
       const ignore = q.trim() === current.q.trim() ? action.form.ignore : [];
-      const state = { ...action.form, ...keepReserved, q, ignore, open: '' };
+      const state = { ...action.form, ...keepReserved, q, ignore, open: '', from: '' };
       return { state, op: sameUrl(state, current) ? 'replace' : 'push' };
     }
     case 'settings': {
       // A filter change with a different query typed searches that query, as
       // the Phase 4 page did, so the results match the box: that is a submit.
       if (action.form.q.trim() !== current.q.trim()) return transition(current, { type: 'submit', form: action.form }, { detailPushed });
-      const state = { ...action.form, ...keepReserved, q: current.q, open: '' };
+      const state = { ...action.form, ...keepReserved, q: current.q, open: '', from: '' };
       return { state, op: 'replace' };
     }
     case 'open': {
       const code = action.code.trim().toUpperCase();
       if (code === current.open) return { state: current, op: 'none' };
-      return { state: { ...current, open: code }, op: current.open ? 'replace' : 'push' };
+      return { state: { ...current, open: code, from: '' }, op: current.open ? 'replace' : 'push' };
     }
     case 'close': {
       if (!current.open) return { state: current, op: 'none' };
-      return { state: { ...current, open: '' }, op: detailPushed ? 'back' : 'replace' };
+      return { state: { ...current, open: '', from: '' }, op: detailPushed ? 'back' : 'replace' };
+    }
+    case 'variant': {
+      // A search for the other code, with its detail open, said to come from the entry:
+      // the settings stay, phrases undone for the old query don't.
+      const code = action.code.trim().toUpperCase();
+      const from = action.from.trim().toUpperCase();
+      const state = { ...current, q: code, ignore: [], open: code, from: from !== code ? from : '' };
+      return { state, op: sameUrl(state, current) ? 'none' : 'push' };
     }
   }
 }

@@ -7,7 +7,9 @@
   - region "CS3244 Machine Learning":
     - paragraph: Course details
     - button "Close details"
-    - heading "Open to exchange students" [level=3]
+    - heading "CS3244 Machine Learning" [level=3]
+    - paragraph: 4 units · Computer Science, Computing
+    - heading "Open to exchange students" [level=4]
     - table "Open to exchange students, by year of study at the home university":
       - caption: Open to exchange students, by year of study at the home university
       - rowgroup:
@@ -65,14 +67,14 @@
       - link "Course restrictions for exchange (NG) students":
         - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
       - text: (updated 31 Aug 2026).
-    - heading "Class times" [level=3]
+    - heading "Class times" [level=4]
     - paragraph:
       - link "Class times and timetable on NUSMods":
         - /url: https://nusmods.com/courses/CS3244
     - paragraph: Class times aren't shown here.
-    - heading "Description" [level=3]
+    - heading "Description" [level=4]
     - paragraph: This course introduces basic concepts and algorithms in machine learning and neural networks. The main reason for studying computational learning is to make better use of powerful computers to learn knowledge (or regularities) from the raw data. The ultimate objective is to build self-learning systems to relieve human from some of already-too-many programming tasks. At the end of the course, students are expected to be familiar with the theories and paradigms of computational learning, and capable of implementing basic learning systems.
-    - heading "Prerequisites" [level=3]
+    - heading "Prerequisites" [level=4]
     - paragraph: "As NUS states it:"
     - paragraph:
       - text: If undertaking an Undergraduate Degree THEN must have completed 1 of
@@ -157,7 +159,7 @@
       - link "MA2002":
         - /url: /?q=MA2002
       - text: at a grade of at least D)
-    - heading "Preclusions" [level=3]
+    - heading "Preclusions" [level=4]
     - paragraph: "As NUS states it:"
     - paragraph:
       - text: If undertaking an Undergraduate DegreeTHEN( must not have completed 1 of
@@ -179,9 +181,9 @@
       - link "IT3011":
         - /url: /?q=IT3011
       - text: at a grade of at least D)
-    - heading "Final exam (Singapore time)" [level=3]
+    - heading "Final exam (Singapore time)" [level=4]
     - list:
       - listitem: "Sem 1: Thu 26 Nov 2026, 5:00 pm, 2 h"
       - listitem: "Sem 2: Thu 29 Apr 2027, 9:00 am, 2 h"
-    - heading "Workload" [level=3]
+    - heading "Workload" [level=4]
     - paragraph: "10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation"
