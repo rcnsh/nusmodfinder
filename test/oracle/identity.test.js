@@ -11,8 +11,11 @@
 // Each ignore-mode list, kept to the modules the independent oracle shows for
 // the query's (sem, study) and cut at the depth the pipeline used, must equal
 // the filtered list exactly; and the page must equal the first topK of
-// collapse(pins ++ fuse(filtered lists) − pins), recomputed here. So the bit
-// removes exactly the closed modules and changes nothing else. 3G: a dev query
+// collapse(pins ++ fuse(filtered lists) − pins), recomputed here, with each
+// group shown by its semester representative (src/groups.js
+// semesterRepresentative: with a semester, the group's highest-ranked member
+// on that semester's timetable when its first is not). So the bit removes
+// exactly the closed modules and changes nothing else. 3G: a dev query
 // outside the no-answer tag that the bit pushes into no-signal fails the gate
 // until Jacob rules on it. The trace is test-only (src/search.js sc1TraceMode).
 import { beforeAll, describe, expect, inject, it, vi } from 'vitest';
@@ -82,7 +85,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity o
     const problems = [];
     /** @type {string[]} */
     const noSignal = [];
-    let compared = 0, ignoreShowedClosed = 0, degraded = 0, refused = 0;
+    let compared = 0, ignoreShowedClosed = 0, degraded = 0, refused = 0, swapped = 0;
     for (const q of /** @type {any[]} */ (devQueries.queries)) {
       const f = q.filters ?? {};
       if (!f.ng) continue;
@@ -93,6 +96,18 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity o
       const path = `/search?${params}`;
       /** @param {string} code */
       const shows = (code) => oracle(/** @type {NormalisedModule} */ (moduleOf.get(code)), { sem, study: /** @type {any} */ (study) }) !== 'closed';
+      /** @param {string} code */
+      const offered = (code) => sem !== 'any' && (moduleOf.get(code)?.semesters ?? []).includes(sem);
+      /**
+       * The member shown for `code`'s group: `code`, unless a semester is named, `code` is
+       * off its timetable and is not a pin; then its group's first member in `ranked` on it.
+       * @param {string[]} ranked @param {string[]} pins
+       */
+      const representative = (ranked, pins) => (/** @type {string} */ code) => {
+        if (sem === 'any' || pins.includes(code) || offered(code)) return code;
+        const k = groupKeyOf(groupOf, code);
+        return ranked.find((x) => groupKeyOf(groupOf, x) === k && offered(x)) ?? code;
+      };
 
       const page = await callJson(path, { fakes });
       const traced = await callJson(path, { fakes, env: { SC1_TRACE: '1' } });
@@ -124,7 +139,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity o
         const wantMask = t.mask.filter((/** @type {string} */ x) => {
           const k = groupKeyOf(groupOf, x);
           return seenMask.has(k) ? false : (seenMask.add(k), true);
-        }).slice(0, PAGE_SIZE);
+        }).slice(0, PAGE_SIZE).map(representative(t.mask, []));
         if (JSON.stringify(got) !== JSON.stringify(wantMask)) problems.push(`${q.id} mask page: ${JSON.stringify(got.slice(0, 6))}… vs ${JSON.stringify(wantMask.slice(0, 6))}…`);
         compared++;
         continue;
@@ -138,8 +153,9 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity o
       if (t.code) lists.push(t.code);
       const want = [...t.pins];
       const seen = new Set(want.map((/** @type {string} */ x) => groupKeyOf(groupOf, x)));
+      const fused = fuse(lists).map((f) => f.code);
       // Built to the page size from the lists alone, so a page cut short fails.
-      for (const { code } of fuse(lists)) {
+      for (const code of fused) {
         if (want.length >= PAGE_SIZE) break;
         if (t.pins.includes(code)) continue;
         const k = groupKeyOf(groupOf, code);
@@ -147,11 +163,14 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity o
         seen.add(k);
         want.push(code);
       }
-      if (JSON.stringify(got) !== JSON.stringify(want)) problems.push(`${q.id} page: ${JSON.stringify(got.slice(0, 6))}… vs fused ${JSON.stringify(want.slice(0, 6))}…`);
+      const shown = want.map(representative(fused, t.pins));
+      if (JSON.stringify(got) !== JSON.stringify(shown)) problems.push(`${q.id} page: ${JSON.stringify(got.slice(0, 6))}… vs fused ${JSON.stringify(shown.slice(0, 6))}…`);
+      if (shown.some((x, i) => x !== want[i])) swapped++;
       compared++;
     }
     console.info(`gate 2: ${compared} dev queries compared, ${refused} refused (400) all three ways, ${degraded} on the keyword-only path (no committed embedding), `
-      + `${ignoreShowedClosed} ignore-mode lists held a closed module in their top depth; no-signal: ${noSignal.join('; ') || 'none'}`);
+      + `${ignoreShowedClosed} ignore-mode lists held a closed module in their top depth, ${swapped} pages show a semester representative; `
+      + `no-signal: ${noSignal.join('; ') || 'none'}`);
     expect(problems).toEqual([]);
     expect(compared).toBeGreaterThan(80);
     // The ignore mode really ignores the bit: some unfiltered top lists hold closed modules.
