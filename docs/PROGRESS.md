@@ -1157,3 +1157,19 @@ fails on the previous code.
   identical; 0 of 81 holdout lists differ). Looks stay at 7 of 12.
 - **Running:** the persona red team on the live page; the variant-representative fix (Jacob:
   fix variants, then re-screen phrases). VoiceOver runs once live (Jacob).
+
+## 2026-11-11 — The semester representative (5F's follow-up): PR open, gate run without a look
+
+- **Change:** with `sem` named, the collapse shows each group as its highest-ranked member that
+  passes the filters and is timetabled that semester. The group keeps its place, a code the
+  query types is never swapped, and nothing changes with no semester (ADR 0006, amendment 2026-11-11).
+- **Gate** (`docs/evidence/phase5/semester-representative.md`; ADR 0003 draft amendment
+  2026-11-11, for the lead to adopt):
+  - group identity holds in all four modes: 4 dev lists change (5 codes, all `ng` + Sem 1,
+    FIN3701B→A and ACC1701XB→XC);
+  - dev ΔnDCG@10 is +0.002. The report reads FAIL only on judged@10: the pin's own run is 98.9%
+    judged, and the candidate adds no unjudged document;
+  - SC1 is green.
+- **For the lead:** adopt the amendment, decide on a dev judging round for judged@10, then
+  store the candidate and run `eval:count --holdout --lists-differing --by-group` (expected
+  0), move the pin and deploy. The phrase candidate can then be screened again.

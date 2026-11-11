@@ -53,6 +53,8 @@ npm run eval:groups [-- --check]                          # rebuild (or check) e
 npm run eval:count -- --custodian --set test --answerable   # custodian: one integer, logged, not a look
 npm run eval:count -- --custodian --holdout --emptied-untagged --run <variant>
 npm run eval:count -- --custodian --holdout --lists-differing --run <A> --baseline <B>
+npm run eval:count -- --custodian --holdout --lists-differing --by-group --run <A> --baseline <B>
+npm run eval:representatives -- --set dev --run <cand> --baseline <pin>   # representative-only changes: group identity on an open set
 npm run eval:phrases -- list                              # 5F: every dev query the frozen reference parse reads
 npm run eval:phrases -- screen --candidate <ref>          # 5F: the dev screen (runs, the compliance rule, the B2-4 diagnostic)
 npm run eval:report -- --run <cand> --baseline <pin> --change-kind compliance   # 5F's rule on stored runs
@@ -246,6 +248,16 @@ Per change, vs the shipped ranker:
   the ledger's `rule` column: `general`, `targeted: <shape,…>`, `cutoff`, `no-loss`,
   `answerable-floor` (dev only) or `sc5` (the test set, which takes no `--change-kind` or
   `--target-shapes`, or `--gate sc5`).
+- **Representative-only changes** (ADR 0003, draft amendment 2026-11-11; not in force until the
+  lead adopts it): a change to which member stands for a duplicate group, never to which groups
+  show or their order, is gated without a look. `npm run eval:representatives -- --set <dev |
+  fixture> [--set-dir <dir>] --run <cand> --baseline <pin>` (`lib/representatives.mjs`) checks
+  two open-set runs made with the same settings, queries and corpus: every list has the
+  baseline's status and sequence of group keys (groups-v1 over the runs' corpus), and every
+  changed code is a member offered in the semester the request named where the baseline's was
+  not. It prints the lists compared, the lists and codes changed and each problem, and exits 1
+  on any. It refuses encrypted sets: on the holdout the custodian runs
+  `eval:count --lists-differing --by-group` instead. Dev `no-loss` is the other open check.
 - **SC5** (test set): BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0, judged 100%.
 - **`--gate sc5`** (`eval:report` only, on stored runs) takes the SC5 rule on the holdout, for
   L12 under the holdout reading of SC5. It takes no `--change-kind` or `--target-shapes`, and
@@ -482,7 +494,7 @@ the ledger is append-only, so commit it after every look.
 **Counts are not looks** (`eval/count.mjs`, ADR 0003 amendment 2026-11-06). `npm run eval:count`
 is custodian-only: it refuses without `--custodian`, on dev and the fixture, and with any option
 outside `--custodian`, `--set`, `--holdout`, `--set-dir`, `--answerable`, `--emptied-untagged`,
-`--lists-differing`, `--run` and `--baseline`. It prints one integer and nothing else:
+`--lists-differing`, `--by-group`, `--run` and `--baseline`. It prints one integer and nothing else:
 - `--set test --answerable`: the test set's primary answerable queries (some grade ≥ 1,
   no feature-gap shape), for SC5's stopping rule;
 - `--holdout --emptied-untagged --run <variant>`: holdout queries outside the no-answer set
@@ -493,8 +505,14 @@ outside `--custodian`, `--set`, `--holdout`, `--set-dir`, `--answerable`, `--emp
   set's current queries, with the same `config` (filters, mode) and corpus, and hold a result for
   every query (`RunFileError` otherwise). It is how a ranking-neutral change moves the
   shipped-ranker pin without a look (Phase 5 5A). The log's run cell is `A vs B`.
+- `--holdout --lists-differing --by-group --run <A> --baseline <B>`: the same, but each list
+  compares as its status and its sequence of group keys (groups-v1, `eval/groups.json`; a
+  `CorpusMismatchError` when the groups were built from another corpus than the runs). A change
+  of which member stands for a group is not counted; a group added, dropped or moved is. It is
+  the holdout check of a representative-only change (ADR 0003, draft amendment 2026-11-11), and
+  logs as `count: lists-differing-by-group`.
 
-All three read their ciphertexts through the manifest check. A run must have been made on the set's
+All of them read their ciphertexts through the manifest check. A run must have been made on the set's
 current queries (`RunFileError`). Any failure prints only `eval: <set> count failed
 (<ErrorClass>); details withheld`. Each call appends `| date | set | count: <kind> | run | n |`
 to `eval/count-log.md` (for `selftest`, `<set-dir>/count-log.md`). Commit it with the work the

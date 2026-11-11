@@ -12,7 +12,7 @@ import { bundleSearch, denseBundle } from './dense.js';
 import { DEFAULT_MODEL } from './embedding.js';
 import { appVersion, bad, json, upstream, withHeaders } from './http.js';
 import { groups } from './group-data.js';
-import { groupKeyOf } from './groups.js';
+import { groupKeyOf, semesterRepresentative } from './groups.js';
 import { intentContext } from './intent-data.js';
 import { lexicalSearch, rangeMembers } from './lexical.js';
 import { RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js';
@@ -582,16 +582,40 @@ export function sc1TraceMode(env) {
 const TRACE_FULL_DEPTH = 100_000;
 
 /**
+ * The semester representative (docs/decisions/0006): with a semester named, a
+ * group's result is swapped for its highest-ranked member that passes the
+ * result filters and is on the timetable that semester (src/groups.js
+ * semesterRepresentative).
+ * @typedef {{
+ *   sem: number,
+ *   constraints: Constraints,
+ *   rank: Map<string, number>,
+ *   pinned: Set<string>,
+ *   toModule: (row: ResultRow, score?: number) => ReturnType<typeof rowToModule>,
+ * }} SemesterSwap
+ * - `constraints`: what a result must pass (the request's filters, 3H's intents, 3B's ranges
+ *   and level window), stricter than the variants' filter, which has no ranges;
+ * - `rank`: each code's position in the ranked list the page was cut from;
+ * - `pinned`: codes the query types (its pins, and offered codes past the pin cap), never swapped.
+ */
+
+/** @param {{ semesters: string | null }} row @param {number} sem */
+const offeredIn = (row, sem) => JSON.parse(row.semesters ?? '[]').includes(sem);
+
+/**
  * 3F (plan 3F, C-8): each result in a duplicate group (groups-v1) carries its
  * group's other members that pass the filters as `variants: [{ code, credits }]`,
  * in code order, read from D1 (credits differ inside some groups). Results with
- * none are left as they are.
+ * none are left as they are. With `swap`, a result not offered in the
+ * semester is first replaced by its semester representative, in the same
+ * place and with the same score, and is listed among the variants itself.
  * @param {D1DatabaseSession} db
  * @param {ReturnType<typeof rowToModule>[]} results already collapsed: one per group
  * @param {Constraints} echo the request's filters
  * @param {Trace} trace
+ * @param {SemesterSwap | null} [swap]
  */
-async function attachVariants(db, results, echo, trace) {
+async function attachVariants(db, results, echo, trace, swap = null) {
   const { groupOf, members } = groups();
   const shown = new Set(results.map((r) => r.code));
   /** @type {Map<string, string[]>} result code -> its candidate variants */
@@ -608,15 +632,29 @@ async function attachVariants(db, results, echo, trace) {
   const rows = new Map();
   for (let i = 0; i < codes.length; i += D1_PARAMS) {
     const chunk = codes.slice(i, i + D1_PARAMS);
-    // Only what a variant renders (code, credits) and what the filter check reads.
+    // Only what a variant renders (code, credits) and what the filter check reads; a
+    // whole card's columns when a semester can swap a variant in as the result.
     const res = /** @type {D1Result<ResultRow>} */ (await d1Timed(trace, 'variants', () => db.prepare(
-      `SELECT ${VARIANT_COLUMNS} FROM modules WHERE code IN (${chunk.map(() => '?').join(',')})`,
+      `SELECT ${swap ? RESULT_COLUMNS : VARIANT_COLUMNS} FROM modules WHERE code IN (${chunk.map(() => '?').join(',')})`,
     ).bind(...chunk).all()));
     trace.d1Result(res);
     for (const row of res.results) rows.set(row.code, row);
   }
-  return results.map((r) => {
-    const variants = (want.get(r.code) ?? []).flatMap((code) => {
+  return results.map((result) => {
+    let r = result;
+    let others = want.get(r.code) ?? [];
+    if (swap && !swap.pinned.has(r.code) && !r.semesters.includes(swap.sem)) {
+      const s = swap;
+      const passing = others.filter((c) => { const row = rows.get(c); return row !== undefined && localMatchesFilters(row, s.constraints); });
+      const rep = semesterRepresentative(r.code, passing, s.rank, (c) => c !== result.code && offeredIn(/** @type {ResultRow} */ (rows.get(c)), s.sem));
+      if (rep !== r.code) {
+        others = [...others.filter((c) => c !== rep), r.code].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+        r = s.toModule(/** @type {ResultRow} */ (rows.get(rep)), r.score);
+      }
+    }
+    const variants = others.flatMap((code) => {
+      // The member a swap replaced passed as a result, so it is a variant.
+      if (code === result.code) return [{ code, credits: result.credits }];
       const row = rows.get(code);
       return row && localMatchesFilters(row, echo) ? [{ code, credits: row.credits }] : [];
     });
@@ -811,6 +849,17 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     ? { 1: bitOf(1, echo.study), 2: bitOf(2, echo.study) } : null;
   /** @param {ResultRow} row @param {number} [score] */
   const toModule = (row, score) => rowToModule(row, score, bit, semBits);
+  // Never swapped: every offered code the query types, pins and those past the pin cap alike.
+  const typed = new Set(parsed.codes.filter((t) => t.status === 'offered').map((t) => t.code));
+  /**
+   * The semester representative's inputs, when the request names a semester.
+   * @param {Constraints} resultConstraints what a result passes
+   * @param {string[]} ranked the ranked list the page was cut from
+   * @returns {SemesterSwap | null}
+   */
+  const semesterSwap = (resultConstraints, ranked) => (echo.sem === undefined ? null : {
+    sem: echo.sem, constraints: resultConstraints, rank: new Map(ranked.map((c, i) => [c, i])), pinned: new Set([...typed, ...parsed.pins]), toModule,
+  });
 
   // ── no-match: `count: 0`; a not-offered code names its catalogue title and
   // the dense neighbours of its catalogue text, never in `results`.
@@ -902,7 +951,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
       const seen = new Set();
       results = results.filter((r) => { const k = groupKeyOf(groupOf, r.code); return seen.has(k) ? false : (seen.add(k), true); }).slice(0, topK);
       try {
-        results = await attachVariants(db, results, variantFilter, trace);
+        results = await attachVariants(db, results, variantFilter, trace, semesterSwap(maskConstraints, order));
       } catch (err) {
         return { response: upstream('d1', err), degraded: null };
       }
@@ -1075,7 +1124,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   if (filteredOut.length) console.warn(`dense rows whose D1 row fails the filters: ${filteredOut.join(', ')}`);
   if (collapsing) {
     try {
-      results = await attachVariants(db, results, variantFilter, trace);
+      results = await attachVariants(db, results, variantFilter, trace, semesterSwap(constraints, fused.map((f) => f.code)));
     } catch (err) {
       return { response: upstream('d1', err), degraded: null };
     }

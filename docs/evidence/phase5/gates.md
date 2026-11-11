@@ -140,3 +140,26 @@ pin `f798542`. Local eval runs, sha256 of each run's `results` (first 16):
 Holdout, custodian only: `run-shipped-fdec96f` stored with `--store-only` (81 queries, no
 verdict, no ledger row); `eval:count --lists-differing --run shipped-fdec96f --baseline
 shipped-f798542` printed `0`. `SHIPPED_BASELINE` is `fdec96f`; holdout looks stay at 7 of 12.
+
+## 5F: the second dev screen (2026-11-11): PASS
+
+Jacob chose to fix the variant first and screen again (ADR 0008). Candidate `ebacaa3`: PR #80's
+head `3f96d79` (the semester representative) with `PARSE_PHRASES = true` and SC4 counting 3H as
+merged while the flag is on. Pin for the screen: `3f96d79`, so the screen isolates the phrases.
+Qrels `qrels-dev-v11` (round `p5a`, which graded every unjudged top-10 document of both runs).
+
+| check | result |
+|---|---|
+| reference parse | 10 of 98; candidate's vocabulary = the reference's |
+| primary, filtered qrels (85) | nDCG@10 0.774 → 0.779, **Δ +0.005** [0.001, 0.016]; P@5 Δ +0.005 |
+| constraint block (5) | nDCG@10 0.372 → 0.606, Δ +0.234 |
+| compliance | 100% (0 shown results break a parsed constraint) |
+| identity | 0 of 88 unparsed queries' top 10 differ |
+| new errors | 0, in total and per query |
+| judged@10 | 100% both |
+| SC4 (flag on, full corpus) | 76 of 76, the 14 parsed-intent items included |
+| **screen** | **PASS** |
+
+d-011 and d-099 now gain nothing and lose nothing: with the semester representative both runs
+show ACC1701XC for Sem 1. L8 may be taken after the semester representative ships and its pin
+moves; L8's baseline is that pin, with its stored `--store-only` run (plan §3 5F, B3-6).

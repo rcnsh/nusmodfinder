@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 import * as evalGroups from '../eval/lib/groups.mjs';
 import { REPO } from '../eval/lib/sets.mjs';
 import { build } from '../scripts/build-groups.mjs';
-import { GROUPS_FILE_SCHEMA, GROUPS_VERSION, buildGroups, buildGroupsFile, collapse, groupKeyOf, parseGroupsFile } from '../src/groups.js';
+import { GROUPS_FILE_SCHEMA, GROUPS_VERSION, buildGroups, buildGroupsFile, collapse, groupKeyOf, parseGroupsFile, semesterRepresentative } from '../src/groups.js';
 
 /** @param {string} rel */
 const readJson = (rel) => JSON.parse(readFileSync(join(REPO, rel), 'utf8'));
@@ -63,5 +63,41 @@ describe('collapse', () => {
   it('is the identity on a list with no two members of one group', () => {
     expect(collapse(['A1', 'B1', 'C1'], groupOf).kept).toEqual(['A1', 'B1', 'C1']);
     expect(collapse(['A1', 'B1'], new Map()).kept).toEqual(['A1', 'B1']);
+  });
+});
+
+describe('semesterRepresentative', () => {
+  // ACC1701X-shaped: one course text, members on different timetables. XB (Sem 2 only) ranks
+  // first for a Sem 1 exchange search; XC (Sem 1) and XA (both) are its group mates.
+  const semesters = new Map([['ACC1701XA', [1, 2]], ['ACC1701XB', [2]], ['ACC1701XC', [1]], ['ACC1701XD', [2]]]);
+  /** @param {number} sem */
+  const offeredIn = (sem) => (/** @type {string} */ c) => (semesters.get(c) ?? []).includes(sem);
+
+  it('keeps the collapse\'s choice when it is offered in the semester', () => {
+    const rank = new Map([['ACC1701XA', 0], ['ACC1701XC', 1]]);
+    expect(semesterRepresentative('ACC1701XA', ['ACC1701XC'], rank, offeredIn(1))).toBe('ACC1701XA');
+  });
+
+  it('picks the highest-ranked offered member when the first is not offered', () => {
+    const rank = new Map([['ACC1701XB', 0], ['ACC1701XC', 1], ['ACC1701XA', 2]]);
+    expect(semesterRepresentative('ACC1701XB', ['ACC1701XA', 'ACC1701XC'], rank, offeredIn(1))).toBe('ACC1701XC');
+    // Sem 2: XB is offered and stays.
+    expect(semesterRepresentative('ACC1701XB', ['ACC1701XA', 'ACC1701XC'], rank, offeredIn(2))).toBe('ACC1701XB');
+  });
+
+  it('skips a member that is not offered either, whatever its rank', () => {
+    const rank = new Map([['ACC1701XB', 0], ['ACC1701XD', 1], ['ACC1701XA', 2]]);
+    expect(semesterRepresentative('ACC1701XB', ['ACC1701XD', 'ACC1701XA'], rank, offeredIn(1))).toBe('ACC1701XA');
+  });
+
+  it('ranks an unranked member after every ranked one, unranked ones in code order', () => {
+    expect(semesterRepresentative('ACC1701XB', ['ACC1701XC', 'ACC1701XA'], new Map([['ACC1701XB', 0]]), offeredIn(1))).toBe('ACC1701XA');
+    expect(semesterRepresentative('ACC1701XB', ['ACC1701XA', 'ACC1701XC'], new Map([['ACC1701XB', 0], ['ACC1701XC', 5]]), offeredIn(1))).toBe('ACC1701XC');
+  });
+
+  it('falls back to the collapse\'s choice when no member is offered', () => {
+    const rank = new Map([['ACC1701XB', 0], ['ACC1701XD', 1]]);
+    expect(semesterRepresentative('ACC1701XB', ['ACC1701XD'], rank, offeredIn(1))).toBe('ACC1701XB');
+    expect(semesterRepresentative('ACC1701XB', [], rank, offeredIn(1))).toBe('ACC1701XB');
   });
 });

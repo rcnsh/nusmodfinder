@@ -191,6 +191,35 @@ describe('eval:count prints one integer and logs the call', () => {
     expect((await rowsOf(cloneCountLog())).map((c) => c[4])).toEqual(['6', '0', '0', '1']);
   });
 
+  it('--holdout --lists-differing --by-group: lists whose status or sequence of groups (eval/groups.json) differ; a swapped representative is not counted', async () => {
+    const { dir, d } = await encSet('holdout-by-group', 'holdout');
+    const looksBefore = await looks(cloneLedger(), 'holdout');
+    const [first, second, third] = d.answerable;
+    const ranker = { ref: 'x', sha: 'e'.repeat(40), dirty: false, treeHash: 'f'.repeat(64) };
+    // ACC1701XB, XC and XD are one group-v1 group (ACC1701A…XD); NGN2001F and G another.
+    const repBase = runOf(d, 'repbase', ranker, { ...d.ranked, [first]: ['ACC1701XB', 'CS3244', 'NGN2001F'], [second]: ['ACC1701XD', 'CS3244'] });
+    const repSwap = runOf(d, 'repswap', ranker, { ...d.ranked, [first]: ['ACC1701XC', 'CS3244', 'NGN2001G'], [second]: ['ACC1701XA', 'CS3244'] });
+    // Group order changed in one list, a group dropped in another, an error in a third.
+    const regroup = runOf(d, 'regroup', ranker, { ...d.ranked, [first]: ['CS3244', 'ACC1701XC', 'NGN2001G'], [second]: ['ACC1701XA'] });
+    regroup.results[third] = { status: 500, codes: [] };
+    for (const r of [repBase, repSwap, regroup]) await writeEncryptedJson(join(dir, 'runs', `run-${r.variant}.json.enc`), r, key, 'holdout');
+    await updateManifest(dir);
+    const byGroup = (/** @type {string} */ run) => count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--by-group', '--run', run, '--baseline', 'repbase']);
+    const r = byGroup('repswap');
+    expect(r.stderr).toBe('');
+    expect(r.code).toBe(0);
+    expect(r.stdout).toBe('0\n');
+    // Without --by-group the same pair differs in both swapped lists.
+    expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'repswap', '--baseline', 'repbase']).stdout).toBe('2\n');
+    expect(byGroup('regroup').stdout).toBe('3\n');
+    expect(await rowsOf(cloneCountLog())).toEqual([
+      [today(), 'holdout', 'count: lists-differing-by-group', 'repswap vs repbase', '0'],
+      [today(), 'holdout', 'count: lists-differing', 'repswap vs repbase', '2'],
+      [today(), 'holdout', 'count: lists-differing-by-group', 'regroup vs repbase', '3'],
+    ]);
+    expect(await looks(cloneLedger(), 'holdout')).toBe(looksBefore);
+  });
+
   it('the self-test set logs beside its own ledger', async () => {
     const { dir } = await encSet('selftest-emptied', 'selftest');
     const r = count(['--custodian', '--set', 'selftest', '--set-dir', dir, '--emptied-untagged', '--run', 'cand']);
@@ -239,7 +268,7 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
     [['--change-kind', 'general']],
     [['report']],
   ])('with %j, which could print ids or metrics', async (extra) => {
-    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--run', 'cand', ...extra], /^eval:count: .*eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged, --lists-differing, --run and --baseline/);
+    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--run', 'cand', ...extra], /^eval:count: .*eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged, --lists-differing, --by-group, --run and --baseline/);
   });
 
   it('without exactly one count, or with a count the set does not have', async () => {
@@ -250,6 +279,8 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
     await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--lists-differing', '--run', 'cand'], /--lists-differing needs --run <variant> and --baseline <variant>/);
     await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--lists-differing', '--baseline', 'base'], /--lists-differing needs --run <variant> and --baseline <variant>/);
     await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--run', 'cand', '--baseline', 'base'], /--baseline is for --lists-differing only/);
+    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--by-group', '--run', 'cand'], /--by-group is for --lists-differing only/);
+    await refused(['--custodian', '--set', 'test', '--set-dir', testDir, '--answerable', '--by-group'], /--by-group is for --lists-differing only/);
     await refused(['--custodian', '--set', 'test', '--set-dir', testDir, '--answerable', '--baseline', 'base'], /--baseline is for --lists-differing only/);
     await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--answerable'], /--answerable counts the test set only/);
     await refused(['--custodian', '--set', 'test', '--set-dir', testDir, '--emptied-untagged', '--run', 'cand'], /--emptied-untagged counts the holdout only/);
@@ -289,7 +320,22 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
     await updateManifest(dir);
     for (const v of ['unfiltered', 'lexical', 'short']) {
       await refused(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', v, '--baseline', 'base'], /^eval: holdout count failed \(RunFileError\); details withheld\n$/);
+      await refused(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--by-group', '--run', v, '--baseline', 'base'], /^eval: holdout count failed \(RunFileError\); details withheld\n$/);
     }
+  });
+
+  it('--by-group on runs made on another corpus than eval/groups.json\'s: withheld, and no row', async () => {
+    const { dir, d } = await encSet('other-corpus', 'holdout');
+    const ranker = { ref: 'x', sha: 'e'.repeat(40), dirty: false, treeHash: 'f'.repeat(64) };
+    const a = runOf(d, 'othera', ranker, d.ranked);
+    const b = runOf(d, 'otherb', ranker, d.ranked);
+    a.corpus = { moduleInfoSha256: '0'.repeat(64) };
+    b.corpus = { moduleInfoSha256: '0'.repeat(64) };
+    for (const r of [a, b]) await writeEncryptedJson(join(dir, 'runs', `run-${r.variant}.json.enc`), r, key, 'holdout');
+    await updateManifest(dir);
+    await refused(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--by-group', '--run', 'othera', '--baseline', 'otherb'], /^eval: holdout count failed \(CorpusMismatchError\); details withheld\n$/);
+    // Without --by-group the pair counts: the groups are not read.
+    expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'othera', '--baseline', 'otherb']).stdout).toBe('0\n');
   });
 });
 

@@ -14,6 +14,11 @@
 //       or the codes in order); both made on these queries with the same
 //       settings: the identity check that moves the shipped-ranker pin without
 //       a look (docs/plans/phase5.md §3 5A)
+//   npm run eval:count -- --custodian --holdout --lists-differing --by-group --run <A> --baseline <B>
+//       the same, comparing each list's status and its sequence of group keys
+//       (groups-v1, eval/groups.json): a change of which member stands for a
+//       group is not counted, a change of which groups show or their order is
+//       (the semester representative's gate, ADR 0003 draft amendment)
 //
 // Every call appends a row (date, set, kind, run, count) to the set's count
 // log (eval/count-log.md; the self-test set's beside its own ledger). The
@@ -26,7 +31,8 @@ import { existsSync } from 'node:fs';
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-import { errorClass, RunFileError } from './lib/errors.mjs';
+import { CorpusMismatchError, errorClass, RunFileError } from './lib/errors.mjs';
+import { groupIndex, groupKeys, loadGroups } from './lib/groups.mjs';
 import { answerableCount, qrelsFor, scoredSet } from './lib/metrics.mjs';
 import { layout, loadQrels, loadQueries, readSetJson, runFile, setKey } from './lib/sets.mjs';
 
@@ -38,10 +44,11 @@ const OPTIONS = /** @type {const} */ ({
   answerable: { type: 'boolean', default: false },
   'emptied-untagged': { type: 'boolean', default: false },
   'lists-differing': { type: 'boolean', default: false },
+  'by-group': { type: 'boolean', default: false },
   run: { type: 'string' },
   baseline: { type: 'string' },
 });
-const TAKES = 'eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged, --lists-differing, --run and --baseline (it prints one integer, never ids or metrics)';
+const TAKES = 'eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged, --lists-differing, --by-group, --run and --baseline (it prints one integer, never ids or metrics)';
 
 const LOG_HEADER = `# Count log
 
@@ -81,6 +88,7 @@ if ([a.answerable, a['emptied-untagged'], a['lists-differing']].filter(Boolean).
   refuse('give exactly one of --answerable, --emptied-untagged or --lists-differing');
 }
 if (a.baseline && !a['lists-differing']) refuse('--baseline is for --lists-differing only');
+if (a['by-group'] && !a['lists-differing']) refuse('--by-group is for --lists-differing only');
 if (a.answerable) {
   if (set.gate !== 'test') refuse('--answerable counts the test set only (--set test)');
   if (a.run) refuse('--answerable takes no --run: it counts the queries and qrels');
@@ -92,7 +100,7 @@ if (a.answerable) {
   if (!a.run || !a.baseline) refuse('--lists-differing needs --run <variant> and --baseline <variant>, both stored with --store-only');
 }
 
-const kind = a.answerable ? 'answerable' : a['emptied-untagged'] ? 'emptied-untagged' : 'lists-differing';
+const kind = a.answerable ? 'answerable' : a['emptied-untagged'] ? 'emptied-untagged' : a['by-group'] ? 'lists-differing-by-group' : 'lists-differing';
 
 /** @returns {Promise<number>} */
 async function counted() {
@@ -117,7 +125,16 @@ async function counted() {
     if (JSON.stringify(/** @type {any} */ (run.corpus)?.moduleInfoSha256) !== JSON.stringify(/** @type {any} */ (base.corpus)?.moduleInfoSha256)) {
       throw new RunFileError('the two runs were made on different corpora');
     }
-    const list = (/** @type {any} */ x) => JSON.stringify([x.status, x.codes]);
+    /** @type {(codes: string[]) => unknown} */
+    let seq = (codes) => codes;
+    if (a['by-group']) {
+      // The eval's groups-v1, built from the corpus both runs were made on.
+      const groups = await loadGroups();
+      if (groups.corpus.moduleInfoSha256 !== /** @type {any} */ (run.corpus)?.moduleInfoSha256) throw new CorpusMismatchError('eval/groups.json was built from another corpus than the runs');
+      const index = groupIndex(groups.groups);
+      seq = (codes) => groupKeys(codes, index);
+    }
+    const list = (/** @type {any} */ x) => JSON.stringify([x.status, seq(x.codes)]);
     let n = 0;
     querySet.queries.forEach((q, i) => {
       const x = run.results?.[q.id];

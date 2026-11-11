@@ -19,6 +19,7 @@
     "eval:verify": "node scripts/holdout.mjs verify",
     "eval:count": "node eval/count.mjs",
     "eval:groups": "node eval/groups.mjs",
+    "eval:representatives": "node eval/representatives.mjs",
     "test:eval": "node eval/selftest.mjs",
     "dev": "node scripts/ui-server.mjs",
     "deploy": "node scripts/deploy.mjs",
