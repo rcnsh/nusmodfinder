@@ -118,6 +118,6 @@ export function yearNote(prerequisite, study) {
   return {
     id: YEAR_NOTE,
     kind: 'year',
-    text: `NUS lists this course for ${yearsPhrase(years)} students. Ask the department whether your year at your home university counts.`,
+    text: `NUS lists this course for ${yearsPhrase(years)} students. Ask the department whether your year of study during your exchange counts.`,
   };
 }

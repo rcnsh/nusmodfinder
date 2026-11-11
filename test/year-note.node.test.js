@@ -80,13 +80,13 @@ describe('yearNote (R3: an undergraduate below that year asks NUS)', () => {
     expect(yearNote(/** @type {string} */ (AR4601), 'ug3')).toEqual({
       id: YEAR_NOTE,
       kind: 'year',
-      text: 'NUS lists this course for Year 4 students. Ask the department whether your year at your home university counts.',
+      text: 'NUS lists this course for Year 4 students. Ask the department whether your year of study during your exchange counts.',
     });
   });
   it('every undergraduate year below the lowest year named, and none at or above it', () => {
     const me = /** @type {string} */ (HANDLED.ME4252[0]);
     expect(['ug1', 'ug2', 'ug3', 'ug4'].map((s) => yearNote(me, /** @type {any} */ (s)) !== null)).toEqual([true, true, false, false]);
-    expect(yearNote(me, 'ug1')?.text).toBe('NUS lists this course for Year 3 or 4 students. Ask the department whether your year at your home university counts.');
+    expect(yearNote(me, 'ug1')?.text).toBe('NUS lists this course for Year 3 or 4 students. Ask the department whether your year of study during your exchange counts.');
     const ese = /** @type {string} */ (HANDLED.ESE3201[0]);
     expect(yearNote(ese, 'ug1')?.text).toMatch(/^NUS lists this course for Year 2, 3 or 4 students\./);
     expect(yearNote(ese, 'ug2')).toBeNull();

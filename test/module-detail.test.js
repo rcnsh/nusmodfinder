@@ -106,8 +106,13 @@ describe('/module/:code caching (5A)', () => {
 // Phase 6 6A (docs/plans/phase6.md §3 "6A"): a course's other codes, its
 // grading basis, and a 404 that says which kind of miss it is.
 describe('/module/:code for the shortlist (6A)', () => {
-  /** The sha256 of every fixture code's 200 body, in code order, one JSON line each, as 5D answered them (before 6A). */
-  const BODIES_BEFORE_6A = '129a288c5fb31831ee6fbebdd94fba33fb573c60f596c1601c48338a5d1113ee';
+  /**
+   * The sha256 of every fixture code's 200 body, in code order, one JSON line each, as 5D answered
+   * them (before 6A), with one change since: the year note's wording, "whether your year of study
+   * during your exchange counts" (was "your year at your home university"; with the old text this
+   * digest was 129a288c…). The test strips 6A's fields, so any other change still shows here.
+   */
+  const BODIES_BEFORE_6A = '8e9e4e8b9c5bb426b65cbb9faac40591ee9ae00ced94d9e3e97c261f06ca678b';
   /** A catalogue-only code, seeded through /admin/catalogue as ingest loads them. */
   const CATALOGUE_ONLY = { code: 'CS1010J', title: 'Introduction to Programming', description: 'An introductory course in Java.', acadYear: '2026-2027' };
 
