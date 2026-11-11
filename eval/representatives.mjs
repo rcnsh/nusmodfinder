@@ -12,6 +12,7 @@
 // eval/groups.json), the set's own corpus.json for the fixture. Encrypted sets
 // are refused: the holdout's counterpart is the custodian's
 // `eval:count --holdout --lists-differing --by-group`, which prints one integer.
+import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -40,6 +41,14 @@ const run = await readSetJson(set, runFile(set, a.run));
 const baseline = await readSetJson(set, runFile(set, a.baseline));
 const own = join(set.dir, 'corpus.json');
 const corpus = existsSync(own) ? await loadCorpusFile(own) : await loadPinnedWith(REPO);
+// The semester each request named comes from these queries, so both runs must have been made on them.
+const sha = createHash('sha256').update(JSON.stringify(queries)).digest('hex');
+for (const [name, r] of [[a.run, run], [a.baseline, baseline]]) {
+  if (r.queries?.sha256 !== sha) {
+    console.error(`eval:representatives: run ${name} was not made on the ${set.name} set's current queries`);
+    process.exit(1);
+  }
+}
 if (run.corpus?.moduleInfoSha256 !== corpus.info.moduleInfoSha256) {
   console.error(`eval:representatives: run ${a.run} was made on corpus ${run.corpus?.moduleInfoSha256}, not ${corpus.info.moduleInfoSha256} (${corpus.info.source})`);
   process.exit(1);

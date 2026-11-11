@@ -70,3 +70,40 @@ describe('compareRepresentatives', () => {
     expect(check(other, runOf({ s1: [], s2: [], any: [] })).problems).toEqual(['the two runs were made on different queries', 'the two runs were made on different corpora']);
   });
 });
+
+describe('eval:representatives', () => {
+  it('refuses runs not made on the set\'s current queries, which would read the wrong semester', async () => {
+    const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const { spawnSync } = await import('node:child_process');
+    const { REPO } = await import('../../eval/lib/sets.mjs');
+    const dir = await mkdtemp(join(tmpdir(), 'vnm-reps-'));
+    try {
+      const mod = (/** @type {string} */ code, /** @type {number[]} */ semesters) => ({ code, title: 'NUS College seminar', description: 'Same.', semesters });
+      await writeFile(join(dir, 'corpus.json'), JSON.stringify({ source: { moduleInfoSha256: 'c0' }, modules: [mod('NGN2001F', [2]), mod('NGN2001G', [1])] }));
+      const querySet = { schema: 'vnm-eval-queries/1', set: 'fixture', version: 'v2', queries: [{ id: 'q1', text: 'nus college', shapes: ['topical'], filters: { ng: true, sem: 1 } }] };
+      await writeFile(join(dir, 'queries.json'), JSON.stringify(querySet));
+      await mkdir(join(dir, 'runs'));
+      const run = (/** @type {string} */ code, /** @type {string} */ sha) => JSON.stringify({ config, queries: { sha256: sha }, corpus: { moduleInfoSha256: 'c0' }, results: { q1: { status: 200, codes: [code] } } });
+      const cli = () => spawnSync(process.execPath, [join(REPO, 'eval/representatives.mjs'), '--set', 'fixture', '--set-dir', dir, '--run', 'cand', '--baseline', 'base'], { encoding: 'utf8' });
+      // Made when q1 asked for Sem 2: F (Sem 2) -> G (Sem 1) is a bad swap there.
+      await writeFile(join(dir, 'runs', 'base.json'), run('NGN2001F', 'old'));
+      await writeFile(join(dir, 'runs', 'cand.json'), run('NGN2001G', 'old'));
+      const stale = cli();
+      expect(stale.status).toBe(1);
+      expect(stale.stderr).toMatch(/not made on the fixture set's current queries/);
+      // On the current queries the same swap is right for Sem 1.
+      const { createHash } = await import('node:crypto');
+      const sha = createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex');
+      await writeFile(join(dir, 'runs', 'base.json'), run('NGN2001F', sha));
+      await writeFile(join(dir, 'runs', 'cand.json'), run('NGN2001G', sha));
+      const ok = cli();
+      expect(ok.stderr).toBe('');
+      expect(ok.stdout).toContain('lists 1, lists with a changed representative 1, codes changed 1, problems 0');
+      expect(ok.status).toBe(0);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
