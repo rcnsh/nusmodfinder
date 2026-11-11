@@ -267,7 +267,8 @@ test('[F5] the live region stays in the accessibility tree while the filters dia
   await expect(dialog.getByRole('status')).toHaveCount(1);
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-  expect(await live(page).evaluate((el) => !!el.closest('header'))).toBe(true);
+  // The region goes home in the dialog's close event, a task after the dialog hides: wait for it.
+  await expect.poll(() => live(page).evaluate((el) => !!el.closest('header'))).toBe(true);
   if (browserName === 'chromium') expect(await ignored()).toBe(false);
   await expect(liveRegions(page)).toHaveCount(1);
 });
