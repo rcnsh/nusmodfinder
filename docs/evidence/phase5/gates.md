@@ -188,3 +188,11 @@ scored queries: 69 primary, 3 constraint block · unscored queries: 6 · parsed 
 Holdout looks: **8 of 12** (`eval/holdout-ledger.md`). One look, no retry, as the plan set.
 The ship PR turns `PARSE_PHRASES` on with exactly this ranker; SC4's 14 parsed-intent items run
 again (76 of 76 on the full corpus with the flag on).
+
+## 5F: phrases shipped, and the pin moves (no look)
+
+PR #82 merged as `75ca23c` and deployed as version `78a2672a`. Its ranker files equal the L8
+candidate `ff54fdc`'s (the PR's last commit touched only `test/` and `public/`). Holdout, custodian
+only: `run-shipped-75ca23c` stored with `--store-only` (81 queries, no verdict, no ledger row);
+`eval:count --lists-differing --run shipped-75ca23c --baseline l8-ff54fdc` printed `0`.
+`SHIPPED_BASELINE` is `75ca23c`; holdout looks stay at 8 of 12.

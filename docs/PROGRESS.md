@@ -1173,3 +1173,16 @@ fails on the previous code.
 - **For the lead:** adopt the amendment, decide on a dev judging round for judged@10, then
   store the candidate and run `eval:count --holdout --lists-differing --by-group` (expected
   0), move the pin and deploy. The phrase candidate can then be screened again.
+
+## 2026-11-11 — Semester representative and parsed phrases shipped (L8 PASS)
+
+- **Semester representative** (PR #80, `c645e85`): live as version `91c09381`; pin moved without a
+  look under the adopted representative-only amendment (PR #81).
+- **Second dev screen:** PASS (primary ΔnDCG@10 +0.005, constraint block +0.234, compliance 100%).
+- **L8:** PASS under the adopted 5F compliance rule (ΔnDCG@10 +0.012 [0.000, 0.061], constraint
+  block +0.826, n 3). Looks: 8 of 12.
+- **Phrases live** (PR #82, `75ca23c`): version `78a2672a`. "no final exam", S/U, workload and
+  "no prerequisites" in the query act as filters, with a chip to undo each. SC4's 14 parsed-intent
+  items pass (76 of 76). Pin `75ca23c` (0 of 81 holdout lists differ from L8's run).
+- **Next:** the red-team fixes (PD1, PD2, S1–S3, R3's note, plain-language rewrites), Jacob's
+  VoiceOver walkthrough on the live site, then the Phase 5 exit.

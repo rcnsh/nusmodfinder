@@ -62,3 +62,13 @@ Code-only, so D1 needs no restore.
 | 07:54:40–07:54:57 | Smoke (`requests.tsv` 120): `/health` (tag `c645e85`); `intro accounting` Sem 1, 2nd year: ACC1701XA first with XB and XC as variants; `machine learning`: EE2211 first | 3 calls | 3 × 200 |
 
 Rollback: `npx wrangler rollback 810c903b-60fd-4a24-b824-e33906a9007a` (code-only).
+
+## 2026-11-11: parsed phrases ship (code-only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 08:30:18 | `/health` (`requests.tsv` 121): version `91c09381` (tag `c645e85`) | 1 call | 1 call |
+| 08:30:23–08:31:01 | `npm run deploy` of `75ca23c` (guard read ~6.8k rows; no D1 write) | ~6.8k rows read | version **`78a2672a-fc36-403a-b090-9ca266f905d4`** (tag `75ca23c`) at 100% |
+| 08:31:07–08:31:26 | Smoke, ≥ 5 s apart (`requests.tsv` 121): `/health` (tag `75ca23c`); `history no final exam` reads `exam: 0` (HY3226 first); the same with `ignore=exam` reads none; `machine learning`: EE2211 first | 4 calls | 4 × 200 |
+
+Rollback: `npx wrangler rollback 91c09381-36d8-4bde-a34d-d18e08995a55` (code-only).
