@@ -18,7 +18,7 @@ test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from i
     "AR5801 isn't open to exchange students in Sem 1 at 2nd year. Level 5000 and 6000 courses are not open to exchange students unless a department says so (NG restrictions, updated 31 Aug 2026).",
   ]);
   // Each line is headed by the code and its title (direction D), the title from /module/:code.
-  await expect(page.locator('#status .hidden-codes li[data-code="CS3244"] .hc-head')).toHaveText('CS3244Machine Learning');
+  await expect(page.locator('#status .hidden-codes li[data-code="CS3244"] .hc-head')).toHaveText('CS3244 Machine Learning');
   await expect(page.locator('#status .hiddenbox h2')).toHaveText("3 of the 4 codes you typed aren't shown");
   await expect(cards(page).first()).toHaveAttribute('data-code', 'CS2030');
   for (const code of ['CS3244', 'CS5562', 'AR5801']) await expect(page.locator(`#results button[data-code="${code}"]`)).toHaveCount(0);

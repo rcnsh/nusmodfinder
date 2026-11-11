@@ -12,7 +12,7 @@
         - 'button "Remove filter: Level 1000"': Level 1000
   - paragraph:
     - strong: 18 courses
-    - text: match “ACC1701XB”
+    - text: "shown: ACC1701XB, then 17 other matches"
   - paragraph: Exam times are Singapore time (UTC+8)
   - list "Results":
     - listitem:
@@ -20,7 +20,13 @@
         - button "ACC1701XB Accounting for Decision Makers"
       - paragraph: 4 units
       - paragraph: Accounting · NUS Business School Taught in Sem 2 Sem 2 exam Tue 27 Apr, 5:00 pm
-      - paragraph: Also as ACC1701XA, ACC1701XC
+      - paragraph:
+        - text: Also as
+        - link "ACC1701XA":
+          - /url: /?q=ACC1701XA&level=1&ng=1&study=ug2&open=ACC1701XA&from=ACC1701XB
+        - text: ","
+        - link "ACC1701XC":
+          - /url: /?q=ACC1701XC&level=1&ng=1&study=ug2&open=ACC1701XC&from=ACC1701XB
       - text: Sem 1 · Open, 3 notes Sem 2 · Open, 2 notes
       - paragraph: Notes for Sem 1
       - list:
@@ -43,14 +49,20 @@
         - button "CS1010 Programming Methodology"
       - paragraph: 4 units
       - paragraph: Computer Science · Computing Taught in Sem 1, Sem 2 Sem 1 exam Wed 25 Nov, 9:00 am Sem 2 exam Fri 30 Apr, 2:30 pm
-      - paragraph: Also as CS1010E
+      - paragraph:
+        - text: Also as
+        - link "CS1010E":
+          - /url: /?q=CS1010E&level=1&ng=1&study=ug2&open=CS1010E&from=CS1010
       - text: Sem 1 · Open Sem 2 · Open
     - listitem:
       - heading "GES1034 We the Citizens - Understanding Singapore’s Politics" [level=2]:
         - button "GES1034 We the Citizens - Understanding Singapore’s Politics"
       - paragraph: 4 units
       - paragraph: Political Science · Arts and Social Science Taught in Sem 1 Sem 1 exam Tue 1 Dec, 1:00 pm
-      - paragraph: Also as GESS1024
+      - paragraph:
+        - text: Also as
+        - link "GESS1024":
+          - /url: /?q=GESS1024&level=1&ng=1&study=ug2&open=GESS1024&from=GES1034
       - text: Sem 1 · Open Sem 2 · Not open
       - paragraph: Notes for Sem 2
       - list:

@@ -6,13 +6,16 @@
 // - In exchange mode `ng=1` and `study` are always in the URL, and `sem` is
 //   absent for both semesters; localStorage only pre-fills the set-up.
 // - `open` names the one open detail (at most one, A2-4).
+// - `from` names the course whose "Also as" link opened `open` (5G): the
+//   detail says "Opened from …". Kept only beside `open`, and dropped by every
+//   transition that changes `open`.
 // - `pick` and `alt` are reserved for Phase 6: kept through every round trip
 //   and transition, used for nothing yet.
 
 /**
  * @typedef {{
  *   q: string, sem: string, level: string, credits: string, faculty: string,
- *   ng: boolean, study: string, ignore: string[], open: string,
+ *   ng: boolean, study: string, ignore: string[], open: string, from: string,
  *   pick: string[], alt: string[],
  * }} State
  */
@@ -58,9 +61,12 @@ export const MAX_QUERY_CHARS = 200;
 /** A course code as the page accepts it in `open=` (upper-cased first): /module/:code's shape (src/modules.js MODULE_CODE_RE). */
 const CODE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 
+/** Whether a string is a course code in the shape `open=` accepts (already upper-case). @param {string} s */
+export const isCode = (s) => CODE.test(s);
+
 /** @returns {State} */
 export function emptyState() {
-  return { q: '', sem: '', level: '', credits: '', faculty: '', ng: false, study: '', ignore: [], open: '', pick: [], alt: [] };
+  return { q: '', sem: '', level: '', credits: '', faculty: '', ng: false, study: '', ignore: [], open: '', from: '', pick: [], alt: [] };
 }
 
 /** @param {string | null} v @param {(v: string) => boolean} ok */
@@ -77,6 +83,8 @@ export function parseState(params) {
   // As /search: only a value other than empty, 0 or false narrows.
   const ng = ngRaw !== null && ngRaw !== '' && ngRaw !== '0' && ngRaw !== 'false';
   const open = (params.get('open') ?? '').trim().toUpperCase();
+  const from = (params.get('from') ?? '').trim().toUpperCase();
+  const openOk = CODE.test(open);
   return {
     q: (params.get('q') ?? '').trim().slice(0, MAX_QUERY_CHARS),
     sem: keep(params.get('sem'), (v) => SEMESTERS.some((o) => o.value === v)),
@@ -86,7 +94,8 @@ export function parseState(params) {
     ng,
     study: ng ? keep(params.get('study'), (v) => STUDIES.some((o) => o.value === v)) : '',
     ignore: [...new Set((params.get('ignore') ?? '').split(',').map((s) => s.trim()).filter((s) => IGNORABLE.includes(s)))].sort(),
-    open: CODE.test(open) ? open : '',
+    open: openOk ? open : '',
+    from: openOk && CODE.test(from) && from !== open ? from : '',
     pick: params.getAll('pick'),
     alt: params.getAll('alt'),
   };
@@ -113,7 +122,7 @@ function filterPairs(s) {
 
 /**
  * The URL's query string for a state: q, the filters, ng and study, ignore,
- * open, then the reserved pick and alt. An empty state is no parameters.
+ * open and from, then the reserved pick and alt. An empty state is no parameters.
  * @param {State} s
  */
 export function stateToParams(s) {
@@ -122,6 +131,7 @@ export function stateToParams(s) {
   for (const [k, v] of filterPairs(s)) out.append(k, v);
   if (s.ignore.length) out.set('ignore', s.ignore.join(','));
   if (s.open) out.set('open', s.open);
+  if (s.open && s.from) out.set('from', s.from);
   for (const v of s.pick) out.append('pick', v);
   for (const v of s.alt) out.append('alt', v);
   return out;

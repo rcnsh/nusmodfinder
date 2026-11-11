@@ -4,7 +4,7 @@
 // study), with "Browse all courses instead" as the way out. A link with any
 // state skips it.
 import { expect, test } from '@playwright/test';
-import { EMPTY, matchFor, query, searches } from './support.mjs';
+import { EMPTY, query, searches } from './support.mjs';
 
 test('the page opens on the exchange set-up: two questions, then the query', async ({ page }) => {
   await page.goto('/');
@@ -39,7 +39,7 @@ test('answered, it searches in exchange mode: the URL holds the set-up, and the 
   await page.getByRole('radio', { name: '2nd year' }).check();
   await page.getByLabel('What do you want to study?').fill('ACC1701XB');
   await page.getByLabel('What do you want to study?').press('Enter');
-  await expect(page.locator('#status')).toContainText(matchFor('ACC1701XB'));
+  await expect(page.locator('#status')).toContainText('shown: ACC1701XB');
   expect(query(page)).toBe('q=ACC1701XB&sem=1&ng=1&study=ug2');
   expect(sent).toEqual(['q=ACC1701XB&sem=1&ng=1&study=ug2']);
   await expect(page.locator('#setup')).toBeHidden();

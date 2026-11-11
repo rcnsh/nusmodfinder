@@ -19,5 +19,5 @@
     "paths": { "vocabulary-data": ["./data/vocabulary.json"], "groups-data": ["./data/groups.json"] }
   },
   "include": ["scripts/**/*.mjs", "eval/**/*.mjs", "*.mjs", "scripts/corpus-types.d.ts", "eval/runner/types.d.ts", "test/**/*.node.test.js", "test/**/*.node.mjs"],
-  "exclude": ["eval/v1/**"]
+  "exclude": ["eval/v1/**", "scripts/p5-live.mjs"]
 }

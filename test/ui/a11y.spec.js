@@ -52,6 +52,7 @@ const STATES = [
   { name: 'exchange mode without a year of study', open: '/?q=networks&ng=1&sem=1' },
   { name: 'detail open, exchange mode', open: '/?q=ACC1701XB&ng=1&study=ug2&sem=1&open=ACC1701XB' },
   { name: 'detail open, all years table', open: '/?q=CS3244&open=CS3244' },
+  { name: 'detail opened from an "Also as" link', open: '/?q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA' },
   {
     name: 'detail that failed to load', open: '/?q=CS3244&open=CS3244',
     route: (page) => page.route('**/module/CS3244', (route) => route.fulfill({ status: 500, json: { error: 'internal' } })),

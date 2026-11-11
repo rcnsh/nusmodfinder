@@ -8,25 +8,34 @@
 // full (C2-3) with a lead-in word. No raw score (F1). app.js wires the buttons
 // and fills the detail and the hidden-code lines. 5E: the list is `aria-busy`
 // while a search runs, and each answer comes with the one sentence app.js puts
-// in the page's polite live region (`announce`).
+// in the page's polite live region (`announce`). 5G adds what direction D's
+// mockup has that 5D left out: "Also as" codes as links to that code's own
+// entry, a stamp on each typed code not shown (and room for app.js's "Switch
+// to Sem 2"), and, for a query of course codes only, which typed codes the
+// count shows.
 import { h, setChildren } from './dom.js';
-import { noteLead, noteText, notOfferedLine, partialCodeLine, stampText, typedCodes, unpinnedLine } from './explain.js';
+import { NOT_OFFERED_STAMP, codesCount, codesOnly, noteLead, noteText, notOfferedLine, partialCodeLine, stampText, typedCodes, unpinnedLine } from './explain.js';
 import { examParts, semLabel } from './format.js';
 import { icon } from './icons.js';
 import { degradedNote, noMatchSentence } from './messages.js';
+import { isCode } from './state.js';
 
 /** @typedef {{ status: HTMLElement, results: HTMLElement }} Targets */
 /**
  * What app.js needs from a rendered answer.
  * @typedef {{
  *   cards: Map<string, { button: HTMLButtonElement, region: HTMLElement }>,
- *   hidden: Map<string, { why: HTMLElement, title: HTMLElement }>,
+ *   hidden: Map<string, { why: HTMLElement, title: HTMLElement, stamp: HTMLElement, actions: HTMLElement }>,
  *   partial: { line: HTMLElement, actions: HTMLElement, prefix: string, sem: string, study: string } | null,
  *   announce: string,
  * }} Rendered
  *   `announce`: what the live region says for this answer (the count or why there is none,
  *   the typed codes not shown, a keyword-only note)
- * @typedef {{ searchHref: (code: string) => string, removableFilters: number, query: string }} RenderContext
+ * @typedef {{
+ *   searchHref: (code: string) => string, variantHref: (code: string, from: string) => string,
+ *   removableFilters: number, query: string,
+ * }} RenderContext
+ *   `variantHref`: the page URL an "Also as" link opens: that code's search with its detail open, from `from`
  *   `removableFilters`: how many filter chips the student could remove (not the exchange set-up);
  *   `query`: the query as the student typed it (/search echoes it normalised), for the count line
  */
@@ -76,6 +85,20 @@ export function showLoading(t) {
  */
 export function searchLink(code, ctx) {
   return h('a', { class: 'code-link', attrs: { href: ctx.searchHref(code), 'data-search': code } }, code);
+}
+
+/**
+ * An "Also as" code: a link to that code's own search, its detail open and
+ * saying which entry it was opened from (5G). app.js handles the click, so the
+ * page doesn't reload; the href works in a new tab. A code in no code's shape
+ * stays text.
+ * @param {string} code
+ * @param {string} from the entry's own code
+ * @param {Pick<RenderContext, 'variantHref'>} ctx
+ */
+function variantLink(code, from, ctx) {
+  if (!isCode(code)) return code;
+  return h('a', { class: 'variant-link', attrs: { href: ctx.variantHref(code, from), 'data-variant': code, 'data-from': from } }, code);
 }
 
 /**
@@ -165,8 +188,9 @@ let nextId = 0;
  * @param {any} m a /search result
  * @param {Record<string, unknown>} filters
  * @param {Rendered['cards']} cards filled with this entry's button and region
+ * @param {Pick<RenderContext, 'variantHref'>} ctx
  */
-function card(m, filters, cards) {
+function card(m, filters, cards, ctx) {
   const code = String(m.code ?? '');
   const n = nextId++;
   const button = h('button', {
@@ -190,7 +214,7 @@ function card(m, filters, cards) {
       ...(exams.length
         ? exams.map((e) => h('span', { class: 'exam' }, h('span', { class: 'exl' }, e.label), ' ', h('span', { class: 'mono' }, e.when)))
         : [h('span', { class: 'exam' }, 'No final exam')])),
-    variants.length ? h('p', { class: 'variants' }, `Also as ${variants.join(', ')}`) : null,
+    variants.length ? h('p', { class: 'variants' }, 'Also as ', ...variants.flatMap((/** @type {string} */ v, /** @type {number} */ i) => [i ? ', ' : null, variantLink(v, code, ctx)])) : null,
     exchangeBlock(m, filters),
     region);
 }
@@ -216,17 +240,26 @@ function hiddenBox(data, filters, hidden, unpinned) {
   const notOffered = (Array.isArray(data.notOffered) ? data.notOffered.map(String) : [])
     .filter((/** @type {string} */ c) => !(nm?.reason === 'not-offered' && nm.code === c));
   if (!hiddenPins.length && !notOffered.length) return null;
-  /** Each code: its code and title (app.js fills the title from /module/:code), then why. @param {string} code @param {HTMLElement} why */
-  const item = (code, why, title = h('span', { class: 'hc-title' })) => h('li', { class: 'hc', attrs: { 'data-code': code } },
-    icon('closed', 'hc-mark'), h('div', { class: 'hc-body' }, h('p', { class: 'hc-head' }, h('span', { class: 'hc-code' }, code), title), why));
+  /**
+   * Each code as direction D draws it: the code and its title in one column
+   * (app.js fills the title from /module/:code); in the other, a stamp, why,
+   * and any action (app.js fills the three for a hidden code).
+   * @param {string} code
+   * @param {{ why: HTMLElement, title?: HTMLElement, stamp?: HTMLElement, actions?: HTMLElement }} parts
+   */
+  const item = (code, { why, title = h('span', { class: 'hc-title' }), stamp = h('p', { class: 'hc-stamp' }), actions = h('div', { class: 'hc-actions' }) }) => h('li', { class: 'hc', attrs: { 'data-code': code } },
+    h('p', { class: 'hc-head' }, h('span', { class: 'hc-code' }, code), ' ', title),
+    h('div', { class: 'hc-body' }, stamp, why, actions));
   const items = [
     ...hiddenPins.map((code) => {
-      const why = h('p', { class: 'why' }, `${code} isn't shown with these settings.`);
-      const title = h('span', { class: 'hc-title' });
-      hidden.set(code, { why, title });
-      return item(code, why, title);
+      const parts = {
+        why: h('p', { class: 'why' }, `${code} isn't shown with these settings.`),
+        title: h('span', { class: 'hc-title' }), stamp: h('p', { class: 'hc-stamp' }), actions: h('div', { class: 'hc-actions' }),
+      };
+      hidden.set(code, parts);
+      return item(code, parts);
     }),
-    ...notOffered.map((code) => item(code, h('p', { class: 'why' }, notOfferedLine(code)))),
+    ...notOffered.map((code) => item(code, { why: h('p', { class: 'why' }, notOfferedLine(code)), stamp: h('p', { class: 'hc-stamp' }, hiddenStamp(NOT_OFFERED_STAMP)) })),
   ];
   const count = items.length;
   const typed = Math.max(count, typedCodes(String(data.query ?? '')).length);
@@ -243,6 +276,16 @@ function hiddenBox(data, filters, hidden, unpinned) {
     unpinned,
     hiddenPins.length ? h('p', { class: 'gloss' }, "NG list: the NUS Registrar's list of courses offered to exchange (“non-graduating”) students.") : null);
   return { box, summary: `${heading}: ${[...hiddenPins, ...notOffered].join(', ')}.` };
+}
+
+/**
+ * The stamp on a typed code that isn't shown: the "not shown" shape, a word
+ * and the colour (direction D). Not an `exchange-status`: it says why the code
+ * is missing, not a course's status.
+ * @param {string} text
+ */
+export function hiddenStamp(text) {
+  return h('span', { class: 'st st-closed' }, icon('closed'), h('span', null, text));
 }
 
 /** @param {...(string | null | undefined | false)} parts @returns {string} the parts that say something, as one line */
@@ -317,19 +360,29 @@ export function showResults(t, data, ctx) {
     out.announce = sentence(head, related.length ? `Related courses offered this year: ${related.join(', ')}.` : '', next, hb?.summary, note);
     return out;
   }
-  const count = `${results.length} course${results.length === 1 ? '' : 's'}`;
-  const typed = `“${ctx.query.trim() || query}”`;
-  const verb = results.length === 1 ? 'matches' : 'match';
-  out.announce = sentence(`${count} ${verb} ${typed}.`, hb?.summary, note);
+  const typedQuery = ctx.query.trim() || query;
+  let countLine;
+  if (codesOnly(typedQuery)) {
+    // Course codes only: say which of them the list shows (direction D).
+    const { count, rest } = codesCount(typedQuery, results);
+    out.announce = sentence(`${count}${rest}.`, hb?.summary, note);
+    countLine = h('p', { class: 'count' }, h('strong', null, count), rest);
+  } else {
+    const count = `${results.length} course${results.length === 1 ? '' : 's'}`;
+    const typed = `“${typedQuery}”`;
+    const verb = results.length === 1 ? 'matches' : 'match';
+    out.announce = sentence(`${count} ${verb} ${typed}.`, hb?.summary, note);
+    countLine = h('p', { class: 'count' }, h('strong', null, count), ` ${verb} `, h('span', { class: 'q' }, typed));
+  }
   setStatus(t, [
     box,
     h('div', { class: 'countrow' },
-      h('p', { class: 'count' }, h('strong', null, count), ` ${verb} `, h('span', { class: 'q' }, typed)),
+      countLine,
       h('p', { class: 'tz' }, 'Exam times are Singapore time (UTC+8)')),
     loose,
     noteLine,
   ]);
-  setChildren(t.results, ...results.map((/** @type {any} */ m) => card(m, filters, out.cards)));
+  setChildren(t.results, ...results.map((/** @type {any} */ m) => card(m, filters, out.cards, ctx)));
   return out;
 }
 

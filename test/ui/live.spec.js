@@ -28,7 +28,7 @@ test('[F5] after a search the live region says the count and the query', async (
   await expect(live(page)).toHaveText('20 courses match “machine learning”.');
   await page.locator('#q').fill('CS3244');
   await page.locator('#q').press('Enter');
-  await expect(live(page)).toHaveText(/^\d+ courses match “CS3244”\.$/);
+  await expect(live(page)).toHaveText(/^\d+ courses shown: CS3244, then \d+ other matches\.$/);
 });
 
 test('[F5] one result: "1 course matches", on screen and in the live region', async ({ page }) => {
@@ -50,9 +50,9 @@ test('[F5] no match: the live region says why, and the next step', async ({ page
 
 test('[F5] hidden codes: the live region says how many typed codes aren\'t shown, and which', async ({ page }) => {
   await page.goto('/?q=CS2030+CS3244+CS5562+AR5801&ng=1&study=ug2&sem=1');
-  await expect(live(page)).toHaveText(/^\d+ courses match “CS2030 CS3244 CS5562 AR5801”\. 3 of the 4 codes you typed aren't shown: CS3244, CS5562, AR5801\.$/);
+  await expect(live(page)).toHaveText(/^\d+ courses shown: CS2030, then \d+ other matches\. 3 of the 4 codes you typed aren't shown: CS3244, CS5562, AR5801\.$/);
   await page.goto('/?q=CS2030+CS1001');
-  await expect(live(page)).toHaveText(/^\d+ courses match “CS2030 CS1001”\. 1 of the 2 codes you typed isn't shown: CS1001\.$/);
+  await expect(live(page)).toHaveText(/^\d+ courses shown: CS2030, then \d+ other matches\. 1 of the 2 codes you typed isn't shown: CS1001\.$/);
   await page.route('**/search?**', (route) => route.fulfill({ json: body({ query: 'CS3244', filters: { sem: 1, ng: true, study: 'ug2' }, count: 0, results: [], hiddenPins: ['CS3244'], notOffered: [] }) }));
   await page.goto('/?q=CS3244&ng=1&study=ug2&sem=1');
   await expect(live(page)).toHaveText("No results for “CS3244”. 1 of the 1 code you typed isn't shown: CS3244.");
@@ -111,7 +111,7 @@ test('[F5] the same sentence again is said again: the region clears, then repeat
   await page.goto('/?q=CS2104&sem=1&ng=1&study=ug2');
   await settled(page);
   const said = await live(page).textContent();
-  expect(said).toMatch(/^\d+ courses match “CS2104”\.$/);
+  expect(said).toMatch(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
   // Record every text the region holds from here on.
   await live(page).evaluate((el) => {
     /** @type {any} */ (globalThis).liveLog = [];

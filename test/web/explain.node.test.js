@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
-  filterMisses, hiddenCodeLine, noteText, notOfferedLine, partialCodeLine, prefixLabel, reasonLine, sourceNote, statusText, studyPhrase, typedCodes, unpinnedLine,
+  NOT_OFFERED_STAMP, codesCount, codesOnly, filterMisses, hiddenCodeLine, hiddenCodeStamp, noteText, notOfferedLine, partialCodeLine, prefixLabel, reasonLine, sourceNote, statusText, studyPhrase, typedCodes, unpinnedLine,
 } from '../../public/explain.js';
 
 const reasonsFile = JSON.parse(readFileSync(fileURLToPath(new URL('../../data/ng-reasons.json', import.meta.url)), 'utf8'));
@@ -186,5 +186,74 @@ describe('typed codes past the three that pin (5C-api leaves a 4th code unexplai
     expect(unpinnedLine('CS1001 CS2030 CS1010 CS2104 CS2113', { pinned: ['CS2030', 'CS1010', 'CS2104'], hidden: [], notOffered: ['CS1001'], shown: new Set(['CS2030', 'CS1010', 'CS2104']) }))
       .toBe(`${RULE} CS2113 is not in these results: search for it on its own.`);
     expect(unpinnedLine('CS1001 CS2030 CS1010 CS2104', { pinned: ['CS2030', 'CS1010', 'CS2104'], hidden: [], notOffered: ['CS1001'], shown: new Set(['CS2030', 'CS1010', 'CS2104']) })).toBeNull();
+  });
+});
+
+describe('[5G] the stamp on a hidden typed code, and its switch (direction D)', () => {
+  it('on the NG list for the other semester only: "Not in Sem 1", switch to Sem 2', () => {
+    const ex = exchange('ug2', { 1: ['closed', ['ng-list:not-in-semester']], 2: ['open', []], any: ['open', []] });
+    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: ex })).toEqual({ text: 'Not in Sem 1', switchTo: '2' });
+  });
+
+  it('not on the NG list: "Not offered", nothing to switch to', () => {
+    const ex = exchange('ug2', { 1: ['closed', ['ng-list:not-listed']], 2: ['closed', ['ng-list:not-listed']], any: ['closed', ['ng-list:not-listed']] });
+    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: ex })).toEqual({ text: 'Not offered', switchTo: '' });
+    expect(hiddenCodeStamp({ sem: '', study: 'ug2', exchange: ex })).toEqual({ text: 'Not offered', switchTo: '' });
+  });
+
+  it('closed by a restriction: "Not open in Sem 1"; the switch only where the other semester is open', () => {
+    const closedBoth = exchange('ug2', { 1: ['closed', ['D-grad-levels-closed-exchange']], 2: ['closed', ['D-grad-levels-closed-exchange']] });
+    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: closedBoth })).toEqual({ text: 'Not open in Sem 1', switchTo: '' });
+    const openIn2 = exchange('ug2', { 1: ['closed', ['D-grad-levels-closed-exchange']], 2: ['note', ['2-biz-major']] });
+    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: openIn2 })).toEqual({ text: 'Not open in Sem 1', switchTo: '2' });
+    // Only in the other semester, but closed there too: no switch.
+    const onlyOther = exchange('ug2', { 2: ['closed', ['ng-list:not-in-semester']], 1: ['closed', ['D-grad-levels-closed-exchange']] });
+    expect(hiddenCodeStamp({ sem: '2', study: 'ug2', exchange: onlyOther })).toEqual({ text: 'Not in Sem 2', switchTo: '' });
+  });
+
+  it('both semesters chosen: "Not open in either semester", never a switch', () => {
+    const ex = exchange('ug2', { any: ['closed', ['D-grad-levels-closed-exchange']] });
+    expect(hiddenCodeStamp({ sem: '', study: 'ug2', exchange: ex })).toEqual({ text: 'Not open in either semester', switchTo: '' });
+  });
+
+  it('allowed by the exchange set-up, or outside exchange mode: "Outside your filters"', () => {
+    const ex = exchange('ug2', { 1: ['open', []] });
+    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: ex })).toEqual({ text: 'Outside your filters', switchTo: '' });
+    expect(hiddenCodeStamp({ sem: '1', study: '', exchange: ex })).toEqual({ text: 'Outside your filters', switchTo: '' });
+    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: null })).toEqual({ text: 'Outside your filters', switchTo: '' });
+  });
+
+  it('a code not offered this year has its own stamp, unlike "Not offered" (not on the NG list)', () => {
+    expect(NOT_OFFERED_STAMP).toBe('Not this year');
+  });
+});
+
+describe('[5G] the count line for a query of course codes only', () => {
+  it('codesOnly: codes and separators, nothing else; a partial code or a word is not', () => {
+    expect(codesOnly('CS2030 CS3244')).toBe(true);
+    expect(codesOnly(' cs 3244, ma1521 ')).toBe(true);
+    expect(codesOnly('CS2030+CS3244')).toBe(true);
+    expect(codesOnly('CS32')).toBe(false);
+    expect(codesOnly('CS3244 machine learning')).toBe(false);
+    expect(codesOnly('networks')).toBe(false);
+    expect(codesOnly('')).toBe(false);
+  });
+
+  /** @param {string} code @param {string[]} [variants] */
+  const r = (code, variants = []) => ({ code, variants: variants.map((v) => ({ code: v })) });
+
+  it('names the typed codes shown, in the order typed, then the other matches', () => {
+    expect(codesCount('CS3244 CS2030', [r('CS2030'), r('CS3244'), r('MA1521')])).toEqual({ count: '3 courses', rest: ' shown: CS3244, CS2030, then 1 other match' });
+    expect(codesCount('CS2030 MA1301', [r('CS2030'), r('MA1301')])).toEqual({ count: '2 courses', rest: ' shown: CS2030, MA1301' });
+    expect(codesCount('CS2030', [r('CS2030'), r('A'), r('B')])).toEqual({ count: '3 courses', rest: ' shown: CS2030, then 2 other matches' });
+  });
+
+  it('a typed code shown as another entry\'s "Also as" counts as shown, and its entry is not an other match', () => {
+    expect(codesCount('ACC1701XB', [r('ACC1701XA', ['ACC1701XB']), r('X')])).toEqual({ count: '2 courses', rest: ' shown: ACC1701XB, then 1 other match' });
+  });
+
+  it('no typed code shown: the entries are other matches', () => {
+    expect(codesCount('CS3244', [r('A')])).toEqual({ count: '1 course', rest: ' shown: other matches for the code you typed' });
+    expect(codesCount('CS3244 CS5562', [r('A'), r('B')])).toEqual({ count: '2 courses', rest: ' shown: other matches for the codes you typed' });
   });
 });

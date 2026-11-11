@@ -167,6 +167,36 @@ export function hiddenCodeLine({ code, sem, study, exchange, sources, module, fi
 }
 
 /**
+ * The stamp a hidden typed code carries in the hidden-codes box (direction D,
+ * 5G), from the same stored reasons hiddenCodeLine says in full: "Not in Sem
+ * 1" (on the NG list for the other semester only), "Not offered" (not on the
+ * NG list), "Not open in Sem 1" (closed for another reason), or "Outside your
+ * filters" (exchange mode allows it; another filter hides it). `switchTo`: the
+ * other semester, when the student chose one and the course is open to them
+ * there, so the page can offer to switch; else ''.
+ * @param {{ sem: string, study: string, exchange: ExchangeEntry[] | null | undefined }} a
+ *   `sem` '' for both semesters; `study` '' outside exchange mode
+ * @returns {{ text: string, switchTo: string }}
+ */
+export function hiddenCodeStamp({ sem, study, exchange }) {
+  const entries = Array.isArray(exchange) ? exchange : [];
+  /** @param {number | 'any'} s */
+  const at = (s) => entries.find((e) => String(e.sem) === String(s) && e.study === study);
+  const here = study ? at(sem === '' ? 'any' : Number(sem)) : undefined;
+  if (!here || here.status !== 'closed') return { text: 'Outside your filters', switchTo: '' };
+  const ids = here.reasons.map((r) => r.id);
+  const other = sem === '' ? undefined : at(otherSem(sem));
+  const switchTo = other && other.status !== 'closed' ? String(otherSem(sem)) : '';
+  if (ids.includes(OFF_NG_LIST)) return { text: 'Not offered', switchTo };
+  if (sem === '') return { text: 'Not open in either semester', switchTo: '' };
+  if (ids.length === 1 && ids[0] === NOT_IN_SEM) return { text: `Not in ${semLabel(sem)}`, switchTo };
+  return { text: `Not open in ${semLabel(sem)}`, switchTo };
+}
+
+/** The stamp a typed code not offered this academic year carries (a catalogue-only code). */
+export const NOT_OFFERED_STAMP = 'Not this year';
+
+/**
  * A catalogue-only code (`notOffered`, or a whole-query `not-offered` noMatch).
  * @param {string} code
  * @param {string | null} [title]
@@ -209,6 +239,40 @@ const MAX_CODES = 10;
 export function typedCodes(query) {
   const seen = [...query.matchAll(/\b([A-Za-z]{1,4}) ?(\d{4}[A-Za-z0-9]{0,5})\b/g)].map((m) => `${m[1]}${m[2]}`.toUpperCase());
   return [...new Set(seen)].slice(0, MAX_CODES);
+}
+
+/** The code-shaped words in a query, as typedCodes finds them. */
+const CODE_WORD = /\b[A-Za-z]{1,4} ?\d{4}[A-Za-z0-9]{0,5}\b/g;
+
+/**
+ * Whether a query is course codes and nothing else (separators aside): "CS2030
+ * CS3244", "cs 3244, ma1521". A partial code ("CS32") is not.
+ * @param {string} query
+ */
+export function codesOnly(query) {
+  return typedCodes(query).length > 0 && query.replace(CODE_WORD, '').replace(/[\s,;+&/]+/g, '') === '';
+}
+
+/**
+ * The count line for a query of course codes only (direction D): "20 courses
+ * shown: CS2030, then 19 other matches". The typed codes named are those
+ * shown, as an entry or as one's other code, in the order typed; the rest of
+ * the entries are the search's other matches.
+ * @param {string} query
+ * @param {any[]} results
+ * @returns {{ count: string, rest: string }} `count` in bold, then `rest`
+ */
+export function codesCount(query, results) {
+  const typed = typedCodes(query);
+  /** @param {any} r */
+  const codesOf = (r) => [String(r?.code ?? ''), ...(Array.isArray(r?.variants) ? r.variants.map((/** @type {any} */ v) => String(v?.code ?? '')) : [])];
+  const shown = new Set(results.flatMap(codesOf));
+  const named = typed.filter((c) => shown.has(c));
+  const others = results.filter((r) => !codesOf(r).some((c) => typed.includes(c))).length;
+  const count = `${results.length} course${results.length === 1 ? '' : 's'}`;
+  const more = `${others} other match${others === 1 ? '' : 'es'}`;
+  if (!named.length) return { count, rest: ` shown: other matches for the code${typed.length === 1 ? '' : 's'} you typed` };
+  return { count, rest: ` shown: ${named.join(', ')}${others ? `, then ${more}` : ''}` };
 }
 
 /** @param {string[]} codes */

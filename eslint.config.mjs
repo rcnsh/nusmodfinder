@@ -22,8 +22,9 @@ export default [
     languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: { ...globals.node } },
   },
   {
-    // The callbacks the specs and their helpers pass to page.evaluate run in the page (5D, 5E).
-    files: ['test/ui/**/*.spec.js', 'test/ui/**/*.mjs'],
+    // The callbacks the specs and their helpers pass to page.evaluate run in the
+    // page (5D, 5E); so do the live checks' (5G).
+    files: ['test/ui/**/*.spec.js', 'test/ui/**/*.mjs', 'scripts/p5-live.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
