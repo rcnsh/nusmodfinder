@@ -163,7 +163,8 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
   }, 600_000);
 
   it('R3: the year-of-study note on the bundle, the standby, a vector-only search, the mask route and /module/:code', async () => {
-    const yearCodes = c.modules.filter((m) => m.ng && /\bmust\s*be\s*(?:in\s*)?year\s*\d/i.test(m.prerequisite ?? ''));
+    // NUS glues keywords to "must" ("DANDmust be Year 4"), so no word boundary before it.
+    const yearCodes = c.modules.filter((m) => m.ng && /must\s*be\s*(?:in\s*)?year\s*\d/i.test(m.prerequisite ?? ''));
     // The 10 NG courses whose prerequisite names a year: 9 handled, EE4204 left alone (its year is an alternative).
     expect(yearCodes.length).toBeGreaterThanOrEqual(10);
     expect(yearCodes.filter((m) => yearNoteOf(m, 'ug1') !== null).length).toBeGreaterThanOrEqual(9);
