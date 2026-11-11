@@ -131,3 +131,29 @@ No objection was rejected outright. Four were applied in part:
     filter's intended removals as loss. A parsed hard filter needs a rule that measures
     compliance, not relevance alone.
 
+
+## Amendment 2026-11-11: the semester representative (after Phase 5's dev screen)
+- **Rule.** When the request names a semester (`sem=1|2`, with or without `ng=1`), 3F's
+  collapse shows each duplicate group as its highest-ranked member that passes the result
+  filters and is on NUSMods' timetable that semester. If no member is, it shows the
+  first-ranked passing member, as before. A member outside the ranked list ranks after every
+  ranked one, and such members go in code order (`semesterRepresentative`, `src/groups.js`).
+  - The group keeps the place its first-ranked member gave it, and that member's score. Only
+    the member shown changes. The swapped-out member is listed in `variants` with the other
+    passing members.
+  - A pin is never swapped.
+  - Unchanged: requests with no semester (both semesters, or no `sem`), `related`, the order of
+    mask pages, and `COLLAPSE_GROUPS=off`.
+  - Outside exchange mode `sem` already filters on the timetable, so every passing member is
+    offered and nothing swaps. In practice the rule acts under `ng=1`, where `sem` picks only
+    the allow-mask bit.
+- **Why.** Members of one group share their text, so which one ranks first is close to
+  arbitrary. Phase 5's 5F dev screen (`docs/evidence/phase5/gates.md`) found a Sem 1 page
+  showing ACC1701XB, which is off NUSMods' Sem 1 timetable and carries the "semester" note,
+  while ACC1701XC, taught in Sem 1, sat in its variants.
+- **Where.** `attachVariants` in `src/search.js` already reads every member of each shown group
+  from D1. With a semester named, that one read takes a whole card's columns, so a swap costs
+  no extra read. Every path goes through it: the bundle's in-Worker dense, D1 lexical, the
+  Vectorize standby, the keyword-only fallback and both mask orders.
+- **Gate.** Representative-only, with no look (ADR 0003, draft amendment 2026-11-11). Evidence:
+  [`semester-representative.md`](../evidence/phase5/semester-representative.md).

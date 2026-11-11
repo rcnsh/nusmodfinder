@@ -261,6 +261,10 @@ P-5b, §9). Each rule is in the code and tested.
     queries' stored lists (status, and the codes in order) differ between runs A and B, both
     made on these queries with the same settings and corpus. It moves the shipped-ranker pin for
     a ranking-neutral change without a look.
+    - With `--by-group` (2026-11-11), lists compare by status and their sequence of group keys
+      (groups-v1, `eval/groups.json`, refused with `CorpusMismatchError` when the groups were
+      built from another corpus than the runs). A change in which member stands for a group is
+      not counted. It is check 4 of the draft amendment 2026-11-11 below.
 
   Every call appends a row (date, set, kind, run, count) to `eval/count-log.md`, a separate
   committed file the ledger never reads. The ledger refuses a row copied from it
@@ -472,6 +476,42 @@ results by design. It covers L8 (`docs/plans/phase5.md` §3 5F: B2-1 to B2-6, B3
   class (`ParseMismatchError`) tells the custodian that some holdout query parses differently.
   The custodian runs verdicts only for the candidate the dev screen passed, so this is not used
   to probe the holdout.
+
+## Amendment 2026-11-11 (draft): representative-only changes are gated without a look
+**Draft, not yet in force: the lead adopts it.** Until the lead adopts it, nothing here gates
+or moves a pin.
+
+- **Rule: representative-only changes are gated without a look.** A ranker change that alters
+  only which member of a duplicate group (groups-v1, `eval/groups.json`) stands for the group,
+  never which groups a list shows or their order, passes iff all of these hold:
+  1. **Group identity on dev and the fixture.** Four filter modes are run at the shipped-ranker
+     pin (`SHIPPED_BASELINE`) and at the candidate: dev with the queries' filters, dev
+     `--strip ng`, dev `--unfiltered`, and the fixture `--strip ng`. In each, every list has the
+     pin's status and the pin's sequence of group keys. Every code that differs shows a member
+     offered in the semester the request named, where the pin's member was not
+     (`npm run eval:representatives -- --set <set> --run <candidate> --baseline <pin>`,
+     `eval/lib/representatives.mjs`). The PR reports how many lists and codes changed.
+  2. **`no-loss` on dev** (`npm run eval:report -- --set dev --run <candidate> --baseline <pin>
+     --change-kind no-loss`).
+  3. **SC1's suite and the full-corpus suite stay green** (`npm run test:sc1`,
+     `npm run test:full`).
+  4. **The custodian's holdout count is 0:** `npm run eval:count -- --custodian --holdout
+     --lists-differing --by-group --run <candidate> --baseline <shipped>`, both runs stored with
+     `--store-only`. It counts holdout lists whose status or sequence of group keys differs.
+     Like every count, it prints one integer, is logged in `eval/count-log.md`, and is not a
+     look (amendment 2026-11-06).
+
+  None of these is a look, so a representative-only change spends none.
+- **Why no look.** Members of a groups-v1 group share their normalised title, and
+  cross-listings share their description too. The judges grade a course's text and never see
+  its timetable. A judged look would grade the swapped-in member as it graded the one it
+  replaced, up to judge noise, so it would measure judging noise and pool coverage, not the
+  change. What the change is for (a member offered that semester) is checked directly by
+  check 1, and check 4 shows that no holdout list gains, loses or reorders a group. This is
+  3F's precedent (amendment 2026-11-06, "3F is gated without a look") applied to the member
+  shown, not the groups shown.
+- **First use:** the semester representative (ADR 0006, amendment 2026-11-11). Evidence:
+  `docs/evidence/phase5/semester-representative.md`.
 
 ## Shipped-ranker pin
 The baseline of per-change holdout looks (`SHIPPED_BASELINE`, `eval/lib/baseline.mjs`). The
