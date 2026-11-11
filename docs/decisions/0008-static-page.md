@@ -59,6 +59,14 @@ critique (V1) and a provenance gap (P3). SC4's parsed-phrase items carry over fr
   the ephemera set `vector-nusmods-phase-5-design-directions-tk3piy`, with D picked and A–C
   rejected. 5D builds D in both themes.
 
+## Jacob's answers 2026-11-11 (5G)
+- **VoiceOver:** the page ships without the pre-deploy walkthrough on the local server; the
+  checklist (`docs/evidence/phase5/voiceover-checklist.md`) is run once on the live page after
+  the deploy instead. This departs from §3 5E's "before the deploy and again live".
+- **Phrases:** pursue them. First the collapsed result prefers the group member on the chosen
+  semester's timetable (a fix on its own, with its own gate); then the 5F dev screen runs again
+  on a phrases-on candidate. L8 is taken only if that screen passes.
+
 ## Lead decision 2026-11-11: SC8's axe gate is WCAG AA
 SC8's "axe-core zero violations" runs every axe rule, the AAA ones included, except
 `color-contrast-enhanced` (WCAG AAA's 7:1). The plan's contrast bar is WCAG AA (§3 5D: 4.5:1 text,
