@@ -29,6 +29,11 @@ async function snapshot(locator, name) {
   await expect(locator).toMatchAriaSnapshot(committed);
 }
 
+/** The mockup's state 2 (6C): Sem 1, 2nd year, four picks and two backups. */
+const VIEW_STATE = 'sem=1&ng=1&study=ug2&pick=CS2113.1&pick=GE2101.1&pick=PC3270.1&pick=ACC1701XA.1&alt=CS3244.1&alt=EE4407.1&view=shortlist';
+/** The mockup's state 3 (6C): a full-year list, Sem 2 chosen. */
+const FULL_YEAR = 'sem=2&ng=1&study=ug2&pick=CS2030.1&pick=CS3244.2&pick=GE2101.1&pick=HY1101E&pick=ACC1701XA.1&pick=EN3264.1&pick=PS3251.2&pick=MA3220.1&pick=ST2137.2&pick=GES1034.1&pick=LSM2212.1&alt=CS2113.1&alt=CM3267.1&alt=PC3232.1&alt=GESS1007.1&alt=PC4262.1&alt=TS2239.2&view=shortlist';
+
 /** @param {import('@playwright/test').Page} page the open entry: its heading, facts, status and detail */
 const openEntry = (page) => page.locator('#results > li').filter({ has: page.locator('button[aria-expanded="true"]') });
 
@@ -81,6 +86,21 @@ test.describe('at 1280', () => {
     await page.goto('/?q=CG32&ng=1&study=ug2&sem=1');
     await settled(page);
     await snapshot(page.locator('#status'), 'partial-code-1280.aria.yml');
+  });
+
+  test('[6C] accessibility snapshot: the shortlist view, Sem 1, 2nd year (the mockup\'s state 2)', async ({ page }) => {
+    await page.goto(`/?q=networks&${VIEW_STATE}`);
+    await settled(page);
+    await expect(page.locator('#slView .sl-ehead .title', { hasText: 'Loading…' })).toHaveCount(0);
+    await snapshot(page.locator('#slView'), 'shortlist-view-1280.aria.yml');
+  });
+
+  test('[6C] accessibility snapshot: a full-year list after a Sem change (the mockup\'s state 3: the rail\'s button, the totals)', async ({ page }) => {
+    await page.goto(`/?q=networks&${FULL_YEAR}`);
+    await settled(page);
+    await expect(page.locator('#slView .sl-ehead .title', { hasText: 'Loading…' })).toHaveCount(0);
+    await snapshot(page.locator('.sl-rail'), 'shortlist-button-1280.aria.yml');
+    await snapshot(page.locator('#slTotals'), 'shortlist-totals-1280.aria.yml');
   });
 
   test('[SC8] accessibility snapshot: an error, and the phrase chips', async ({ page }) => {

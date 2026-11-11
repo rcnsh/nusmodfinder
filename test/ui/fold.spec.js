@@ -79,3 +79,35 @@ test.describe('emulating an iPhone 13', () => {
     });
   }
 });
+
+// Phase 6 6C (plan 6C "Tests first"; A-11, A2-10, A9-m2): the fold holds with the
+// shortlist on the page: the cards' toggles, the phone's shortlist button under
+// the form carrying the longest label it can show (two semesters with half
+// units: the fixture has no half-unit course, so the label is set to it), and
+// G3's restore offer above the list (the device keeps a list, the link has none).
+/** The longest label the shortlist button shows. */
+const LONGEST = 'Sem 1: 22.5 · Sem 2: 21.5 units picked';
+
+/** @param {import('@playwright/test').Page} page @param {string} url */
+async function withShortlist(page, url) {
+  // The device keeps a list once one is edited.
+  await page.goto('/?q=CS2113&ng=1&study=ug2&sem=1');
+  await page.getByRole('button', { name: 'Shortlist, CS2113', exact: true }).click();
+  await expect.poll(() => new URL(page.url()).search).toContain('pick=CS2113.1');
+  await page.goto(url);
+  await expect(page.locator('#slRestore')).toBeVisible();
+  await expect(page.locator('#results > li.card').first()).toBeVisible();
+  await page.locator('#slOpenPhone small').evaluate((el, t) => { el.textContent = t; }, LONGEST);
+  await expect(page.locator('#slOpenPhone')).toBeVisible();
+  await expect(page.locator('#results > li.card').first().locator('.sl-toggle')).toBeVisible();
+}
+
+test.describe('at 390×664, with the shortlist', () => {
+  test.use({ viewport: { width: 390, height: 664 } });
+  for (const [label, q, sem, stamps] of CASES) {
+    test(`[6C] fold: ${label}, with toggles, the longest shortlist label and the restore offer`, async ({ page }) => {
+      await withShortlist(page, link(q, sem));
+      await foldHolds(page, stamps);
+    });
+  }
+});

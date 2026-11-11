@@ -395,13 +395,19 @@ test('[6B] 150 edits in 5 s make no more history writes than the writer\'s budge
 
 test('[6B] ay: never written on load; Copy link carries it once a row has loaded, and the first edit writes it', async ({ page }) => {
   await hooks(page);
+  // 6C loads the list's rows on page load: held here, so "before a row loads" can be seen.
+  /** @type {import('@playwright/test').Route[]} */
+  const held = [];
+  await page.route('**/module/CS2030', (route) => { held.push(route); });
   await page.goto('/?q=networks&ng=1&study=ug2&pick=CS2030.1');
   await resultsFor(page, 'networks');
   expect(query(page)).toBe('q=networks&ng=1&study=ug2&pick=CS2030.1');
   const link = () => page.evaluate(() => /** @type {any} */ (globalThis).vnmTest.shortlistLink());
   // Copy link never waits: before a row loads, no ay.
+  await expect.poll(() => held.length).toBe(1);
   expect(new URL(await link()).search).toBe('?ng=1&study=ug2&pick=CS2030.1&view=shortlist');
-  await page.evaluate(() => /** @type {any} */ (globalThis).vnmTest.loadRow('CS2030'));
+  await held[0].continue();
+  await expect.poll(() => page.evaluate(() => /** @type {any} */ (globalThis).vnmTest.rowYear())).toBe('2026-2027');
   expect(new URL(await link()).search).toBe('?ng=1&study=ug2&pick=CS2030.1&ay=2026-2027&view=shortlist');
   expect(query(page)).toBe('q=networks&ng=1&study=ug2&pick=CS2030.1');
   await edit(page, 'setSem', 'CS2030', '2');

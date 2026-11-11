@@ -53,7 +53,7 @@ export const unitsLabel = (v) => `${v} unit${v === '1' ? '' : 's'}`;
 /** The unit counts the credits filter offers. A URL may name any other. */
 export const CREDITS = Object.freeze(['2', '4', '5', '6', '8', '12']);
 
-/** Years of study at the home university (/search `study`). */
+/** Years of study during the exchange, as NUS's portal asks (/search `study`; Phase 6 6C relabelled them). */
 /** @type {readonly Option[]} */
 export const STUDIES = Object.freeze([
   { value: 'ug1', label: '1st year' }, { value: 'ug2', label: '2nd year' }, { value: 'ug3', label: '3rd year' },

@@ -31,8 +31,8 @@
       - text: Sem 2 Jan–May 2027
       - radio "Both semesters Aug 2026–May 2027"
       - text: Both semesters Aug 2026–May 2027
-    - group "Your year of study at your home university":
-      - paragraph: Your year of study at your home university
+    - group "Your year of study during your exchange":
+      - paragraph: Your year of study during your exchange
       - paragraph: Some NUS rules depend on it.
       - radio "1st year"
       - text: 1st year

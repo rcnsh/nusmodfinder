@@ -112,3 +112,25 @@ test('the inline view script runs under the CSP: a link with state never flashes
   await expect(page.locator('#status .count')).toBeVisible();
   expect(await violations()).toEqual([]);
 });
+
+test('[6C] no CSP violation in the shortlist: a toggle, the view, a row, Copy link\'s field, the export question, Restore, dark mode', async ({ page, browserName }) => {
+  const violations = await watchCsp(page, browserName);
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('no')) } });
+  });
+  await page.goto('/?q=CS2113&ng=1&study=ug2&sem=1');
+  await expect(page.locator('#status .count')).toBeVisible();
+  await page.getByRole('button', { name: 'Shortlist, CS2113', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Shortlist, CS2113', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('.sl-open:visible').click();
+  await expect(page.locator('#slView li.sl-entry[data-code="CS2113"] .title')).toHaveText(/Software Engineering/);
+  await page.getByRole('button', { name: 'Copy link', exact: true }).click();
+  await expect(page.getByLabel('Shortlist link')).toBeVisible();
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.goto('/?pick=CS5562&view=shortlist');
+  await expect(page.locator('#slAsk')).toBeVisible();
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Restore your last shortlist', exact: true }).click();
+  await expect(page.locator('#slView')).toBeVisible();
+  expect(await violations()).toEqual([]);
+});

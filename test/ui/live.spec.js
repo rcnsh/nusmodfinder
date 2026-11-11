@@ -231,7 +231,7 @@ test('[F5] the controls are named as a screen reader should say them', async ({ 
   for (const [role, name] of /** @type {const} */ ([
     ['link', 'Skip to main content'], ['searchbox', 'Search courses'], ['button', 'Search'],
     ['checkbox', 'Only courses open to exchange students'], ['radio', 'Sem 1'], ['radio', 'Sem 2'], ['radio', 'Both'],
-    ['combobox', 'Year of study at home'], ['combobox', 'Level'], ['combobox', 'Units'], ['combobox', 'Faculty'],
+    ['combobox', 'Year of study during your exchange'], ['combobox', 'Level'], ['combobox', 'Units'], ['combobox', 'Faculty'],
     ['button', 'Remove filter: Sem 1'], ['button', 'Remove filter: Exchange students'], ['button', 'Remove filter: Level 2000'],
     ['list', 'Filters applied'], ['list', 'Results'], ['search', 'Search courses'], ['main', 'Search and results'],
     ['complementary', 'Your exchange and filters'], ['banner', ''], ['contentinfo', ''],
@@ -314,4 +314,56 @@ test('[F5] pressing Search again on the answer already shown says it again', asy
   });
   await page.locator('#go').click();
   await expect.poll(() => liveLog(page)).toEqual(['', said]);
+});
+
+// Phase 6 6C (plan 6C "Tests first"): the shortlist's sentences and what it keeps
+// quiet. Each edit's own sentence is asserted in shortlist.spec.js where the edit
+// is made; these are the cases about which sentence wins.
+test('[6C] a link with q and picks says the count, never the rows\' progress', async ({ page }) => {
+  await recordLive(page);
+  await page.goto('/?q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1');
+  await expect(live(page)).toHaveText(/^\d+ courses match “networks”\.$/);
+  // The rows are in once the button counts them.
+  await expect(page.locator('.sl-open:visible small')).toHaveText('Sem 1: 8 units picked');
+  const log = (await liveLog(page)).filter(Boolean);
+  expect(log.filter((t) => /Loading|loaded/.test(t))).toEqual([]);
+});
+
+test('[6C] a link to the view says the rows\' progress, never the search under it', async ({ page }) => {
+  await recordLive(page);
+  // The rows held until the search has answered, so both sentences have their turn.
+  /** @type {import('@playwright/test').Route[]} */
+  const held = [];
+  await page.route('**/module/**', (route) => { held.push(route); });
+  await page.goto('/?q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1&view=shortlist');
+  await expect(live(page)).toHaveText('Loading 2 courses');
+  await expect.poll(() => held.length).toBe(2);
+  await expect(page.locator('#results > li.card')).not.toHaveCount(0);
+  await expect(page.locator('#status')).not.toHaveText('Searching…');
+  for (const r of held) await r.continue();
+  await expect(live(page)).toHaveText('2 courses loaded');
+  const log = (await liveLog(page)).filter(Boolean);
+  expect(log.filter((t) => /match/.test(t))).toEqual([]);
+});
+
+test('[6C] a Sem change in the view says the view\'s sentence, not the search it starts', async ({ page }) => {
+  await recordLive(page);
+  await page.goto('/?q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1&view=shortlist');
+  await expect(live(page)).toHaveText('1 course loaded');
+  const before = (await liveLog(page)).length;
+  const answered = page.waitForResponse((r) => new URL(r.url()).pathname === '/search' && new URL(r.url()).searchParams.get('sem') === '2');
+  await page.locator('#semSegOptions').getByText('Sem 2', { exact: true }).click();
+  await expect(live(page)).toHaveText('Sem 2 first: 0 units picked; Sem 1: 4');
+  await answered;
+  await expect(page.locator('#status')).not.toHaveText('Searching…');
+  const after = (await liveLog(page)).slice(before).filter(Boolean);
+  expect(after).toEqual(['Sem 2 first: 0 units picked; Sem 1: 4']);
+});
+
+test('[6C] Make primary says where the entry went', async ({ page }) => {
+  await page.goto('/?ng=1&study=ug2&sem=1&pick=CS2113.1&alt=GE2101.1&view=shortlist');
+  await expect(live(page)).toHaveText('2 courses loaded');
+  await page.getByRole('button', { name: 'Make primary, GE2101', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(live(page)).toHaveText('GE2101 is now a primary pick');
 });

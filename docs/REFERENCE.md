@@ -310,9 +310,32 @@ checks every text/background and boundary pair in both themes against WCAG AA.
   (`localStorage` `vnm.shortlist`, G3) for "Restore your last shortlist"; opening a link never
   overwrites it. `shortlist.js` works the list out (what counts, to confirm with NUS, or not and
   why; the same course twice; NUS's form order per semester against 40 units; totals; exam and
-  preclusion flags; NUS's notes), for the view (6C) and the exports (6D). Until the view exists,
-  the specs drive the list through test hooks the page installs only when `globalThis.vnmTest`
-  is set before it loads.
+  preclusion flags; NUS's notes), for the view (6C) and the exports (6D). Some specs still
+  drive the list through test hooks the page installs only when `globalThis.vnmTest` is set
+  before it loads.
+- **The shortlist** (Phase 6 6C; the mockup is `docs/design/phase6-shortlist/a/`, approved in
+  ADR 0010). Each card and the detail's head carry a "Shortlist" toggle (`aria-pressed`, named
+  "Shortlist, CODE"); adding a card's course tags it with the semester the results show, and the
+  live region says the semester's units picked so far once its row has loaded ("…, 1 course
+  still loading" past 2 s). Taking a card off says so with Undo. The shortlist button sits at the
+  foot of the rail and, on a phone, in a row under the search bar; it names the units picked per
+  semester (on two lines when it must) and opens the view (`view=shortlist`, a pushed entry;
+  "Back to results", Escape or browser Back close it, and focus returns to the button). The view
+  hides the results and status, keeps the search bar and rail, and lists primary picks then
+  backups, each row with its title, units, exam, workload, its stamp at its own semester, every
+  note, NUS's notes on the course and its flags, and Move up, Move down, Make backup or primary,
+  a semester button and Remove (with Undo at the top of the list). Under them: per-semester
+  totals (counted, to confirm, only if invited, hours, NUS's limits said once), NUS's form order,
+  the CourseReg box and the applicant lines. Rows load four at a time; a failed one offers Try
+  again, a 404 reads as its `kind` says. The invitation checkbox shows only for the faculty the
+  list holds (Business or Law). In browse mode, or with untagged entries, an export question asks
+  the year of study and each entry's semester first. Copy link writes `shortlistUrl` to the
+  clipboard within the click; if the browser refuses, a selected field labelled "Shortlist link"
+  holds it. Download CSV and Print are 6D's, so they render `aria-disabled` with a line saying
+  they aren't ready yet. The view moves no focused row: a moved row's neighbours move around it,
+  and rows that load later never take focus. While the view is shown, a search under it says
+  nothing; the view says its own sentences (each edit, "Loading N courses" and "N courses
+  loaded", Restore and Forget).
 - **Fonts** are self-hosted (`public/fonts/`, IBM's own Latin1 WOFF2 subsets, SIL OFL in
   `public/fonts/OFL.txt`) with `font-display: swap` and a system fallback stack; the page makes
   no request to any other origin. Plex Mono draws a dotted zero, so mono text sets its stylistic
@@ -335,6 +358,7 @@ as production does), that another origin can't frame the page, and that no flow 
 | `list.js` | the shortlist's half of the URL (pure): parsing with its caps, and every edit (add, remove and Undo, Move up and down, Make backup or primary, a semester, an invitation, `ay` once), each refusing past a cap with the reason |
 | `history.js` | the one history writer: a sliding 10 s budget of 80 writes; past it, writes are held and go out 300 ms after the last, each replace folded into the write before it (a flood of edits is one write) and each push kept as its own; each write in `try`, a refusal retried with backoff (1 s … 10 s) with later writes queued behind it; `flush()` before `act()`, Copy link, exports, on hidden and `pagehide`; `cancel()` on popstate |
 | `shortlist.js`, `preclusion.js` | the shortlist worked out (pure): each entry at its own semester; counted, to confirm with NUS, only if invited (Business and Law), or not counted and why; the same course listed twice (one group, both on the NG list or a preclusion naming the other, compared only with entries kept); NUS's form order per semester against 40 units; totals in tenths with the hours at NUS's rate; exam-overlap, preclusion and same-title flags; NUS's notes on particular courses; the cited lines (applicants, the CourseReg box, G2's maximum in Jacob's words, with a semester above 20 flagged). `preclusion.js` reads whether NUS's text names a code, skipping cohort-only branches and, at `grad`, undergraduate-only rules |
+| `shortlist-view.js` | the view's DOM (6C): the heading, actions, export question, invitation, both lists' keyed rows (updated in place, never moving the focused row), the totals, the form order and the boxes, from the model `app.js` builds out of `shortlist.js`'s result; its buttons are handled by delegation (`data-act`) |
 | `saved.js`, `year.js` | the list on this device (G3: save on the page's own edits, restore only when a link has none, forget); the acad year before any row loads |
 | `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed, an "Also as" link pushes that code's search with its detail open; every action that changes `open=` drops `from=`. Phase 6: no transition touches the list; settings while the view is shown keep it and the submitted `q`; a submit closes it; opening and closing the view (6C wires them); `searchAgain`, whether Back or Forward searches (a changed search, or the same one after a network or server error, never after a 429) |
 | `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
@@ -381,7 +405,7 @@ partial-code states run on the fixture. 5D's specs: `setup.spec.js` (the first s
 `mobile.spec.js` (F10 and the chips), `fold.spec.js` (the 390×664 fold check, also as an
 iPhone 13, after a shared link and a typed search) and `fonts.spec.js` (self-hosting, weights,
 the plain zero); 5F's `intents.spec.js` tests the phrase chips on intercepted answers. SC8's
-specs (5E): `a11y.spec.js` (axe with every rule on 24 states, both themes, 1280 and 390×664, no
+specs (5E): `a11y.spec.js` (axe with every rule on 24 states, 34 with 6C's, both themes, 1280 and 390×664, no
 violation allowed; the experimental and off-by-default rules are on too, all but AAA's 7:1
 contrast, since the bar is AA; the states the fixture lacks are intercepted), `keyboard.spec.js` (the whole
 task keyboard-only at both widths, each stop's order and computed focus ring; in WebKit on a Mac
@@ -395,7 +419,14 @@ asked (`VNM_SHOTS=1 npx playwright test shots --project chromium`). 5G's: `sc2.s
 every fixture code, 434, through `?q=CODE&open=CODE`, each field with the fixture's value or its
 "not listed" text, read by `test/ui/sc2-fields.mjs`, which the live checks share; about 25 s in
 both browsers) and `mockup.spec.js` (the hidden-code stamps and "Switch to Sem 2", "Also as"
-links and "Opened from", the detail's head, the code-only count line). CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
+links and "Opened from", the detail's head, the code-only count line). Phase 6 6C's
+`shortlist.spec.js` drives the toggles, the button, every row control by keyboard at both widths
+(focus asserted in view and uncovered after each), the view's history (a 429 and a 500 behind
+it, Escape, Back and Forward, a submit from it), rows arriving, each 404 kind, Try again, the
+export question, Copy link, the invitation, Restore and Forget and a refused history write; 6C
+adds its states to `a11y`, `aria`, `keyboard`, `live`, `fold`, `mobile` and `headers`. SC1 over
+the shortlist is `test/shortlist-sc1.js`: every fixture code in `npm test`, every pinned code in
+`test/sc1/paths.test.js`. CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
 fixtures, `data/` or the lockfile change. The Phase 4 page is kept frozen as
 `docs/evidence/phase0/page-phase4.html` for the findings tests (`test/findings/frontend.node.test.js`).
 

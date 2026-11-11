@@ -16,7 +16,7 @@ const readJson = (rel) => JSON.parse(readFileSync(fileURLToPath(new URL(rel, imp
 const corpus = readJson('../fixtures/corpus.json');
 /** @type {{ groups: string[][] }} */
 const groupsFile = readJson('../fixtures/groups.json');
-/** @type {{ acadYear: string, reasons: Record<string, { kind: string, text: string }>, sources: any[] }} */
+/** @type {{ acadYear: string, reasons: Record<string, { kind: string, text: string }>, sources: any[], offListRules: import('../../public/shortlist.js').OffListRule[] }} */
 export const REASONS_FILE = readJson('../../data/ng-reasons.json');
 
 /** Every fixture module, by code. @type {Map<string, any>} */

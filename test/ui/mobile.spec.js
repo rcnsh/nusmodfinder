@@ -205,3 +205,51 @@ test('the dialog closes if the window widens past the phone layout, and the rail
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.locator('.rail #study')).toBeVisible();
 });
+
+// Phase 6 6C (plan 6C "Tests first"; A6-m6, A9-M1): the shortlist in the same
+// reflow loop. The view with LC6009GRSII's row (the longest code) and the
+// Copy-link fallback field, and results with the toggles and the shortlist
+// button's longest label (two semesters with half units; the fixture has no
+// half-unit course, so the label is set to it), at every width; and the rail's
+// button never wider than the rail.
+const LONGEST = 'Sem 1: 22.5 · Sem 2: 21.5 units picked';
+const WIDTHS = [320, 390, 560, 641, 667, 700, 760, 900, 1040, 1100];
+
+/** @param {import('@playwright/test').Page} page @param {string} where */
+async function noSideways(page, where) {
+  const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(over, where).toBeLessThanOrEqual(0);
+}
+/** @param {import('@playwright/test').Page} page */
+const longestLabel = (page) => page.locator('.sl-open small').evaluateAll((els, t) => { for (const el of els) el.textContent = t; }, LONGEST);
+
+test('[6C] no width scrolls sideways: the view with LC6009GRSII\'s row and the link field, and results with toggles and the longest label', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('no')) } });
+  });
+  for (const width of WIDTHS) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto('/?ng=1&study=ug2&sem=1&pick=LC6009GRSII.1&pick=CS2113.2&alt=ACC1701XB.1&view=shortlist');
+    await expect(page.locator('#slView li.sl-entry[data-code="LC6009GRSII"] .title')).not.toHaveText('Loading…');
+    await page.getByRole('button', { name: 'Copy link', exact: true }).click();
+    await expect(page.getByLabel('Shortlist link')).toBeVisible();
+    await noSideways(page, `${width}px the view`);
+    await page.goto('/?q=introductory+accounting&ng=1&study=ug2&pick=ACC1701XB.1&pick=CS2113.2');
+    await expect(page.locator('#results > li.card .sl-toggle').first()).toBeVisible();
+    await longestLabel(page);
+    await noSideways(page, `${width}px results`);
+  }
+});
+
+test('[6C] the rail\'s shortlist button stays inside the rail with the longest label, at 641, 900 and 1280', async ({ page }) => {
+  for (const width of [641, 900, 1280]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto('/?q=networks&ng=1&study=ug2&pick=ACC1701XB.1&pick=CS2113.2');
+    await expect(page.locator('#slOpenRail')).toBeVisible();
+    await longestLabel(page);
+    const [b, rail] = await Promise.all([page.locator('#slOpenRail').boundingBox(), page.locator('.rail').boundingBox()]);
+    if (!b || !rail) throw new Error('no box');
+    expect(b.x + b.width, `${width}px`).toBeLessThanOrEqual(rail.x + rail.width + 0.5);
+    expect(await page.locator('#slOpenRail small').evaluate((el) => el.scrollWidth <= el.clientWidth + 1), `${width}px label clipped`).toBe(true);
+  }
+});

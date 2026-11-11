@@ -34,6 +34,10 @@ const ICONS = Object.freeze({
   ] },
   ext: { box: '0 0 14 14', parts: [['path', { d: 'M5.5 2.5H2.5v9h9v-3M8 2h4v4M12 2 6.5 7.5', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.4' }]] },
   filter: { box: '0 0 16 16', parts: [['path', { d: 'M1.5 4h13M4 8h8M6.5 12h3', stroke: 'currentColor', 'stroke-width': '1.5' }]] },
+  // The shortlist (Phase 6 6C): a bookmark, outlined when a course is off the list and filled
+  // when it is on it, so a pressed toggle shows by shape, not colour alone.
+  'mark-off': { box: '0 0 16 16', parts: [['path', { d: 'M4 1.8h8v12.4L8 11.2l-4 3Z', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.4', 'stroke-linejoin': 'round' }]] },
+  'mark-on': { box: '0 0 16 16', parts: [['path', { d: 'M4 1.8h8v12.4L8 11.2l-4 3Z', fill: 'currentColor', stroke: 'currentColor', 'stroke-width': '1.4', 'stroke-linejoin': 'round' }]] },
 });
 
 /** @typedef {keyof typeof ICONS} IconName */

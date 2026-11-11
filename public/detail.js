@@ -22,8 +22,10 @@ import { STUDIES } from './state.js';
  * @typedef {{
  *   filters: Record<string, unknown>, sources: Source[] | null,
  *   searchHref: (code: string) => string, onClose: () => void, from?: string,
+ *   toggle?: (code: string) => HTMLElement,
  * }} DetailContext `filters` is the /search echo the card came from; `from` the
- *   entry whose "Also as" link opened this detail, if one did
+ *   entry whose "Also as" link opened this detail, if one did; `toggle` the
+ *   shortlist toggle for the head (6C)
  */
 
 /** @param {HTMLElement} region */
@@ -148,7 +150,7 @@ function exchangeSection(raw, ctx) {
       check, sourcesLine);
   }
   const table = h('table', { class: 'exchange-table' },
-    h('caption', null, 'Open to exchange students, by year of study at the home university'),
+    h('caption', null, 'Open to exchange students, by year of study during the exchange'),
     h('thead', null, h('tr', null, h('th', { attrs: { scope: 'col' } }, 'Year of study'),
       h('th', { attrs: { scope: 'col' } }, semLabel(1)), h('th', { attrs: { scope: 'col' } }, semLabel(2)))),
     h('tbody', null, ...STUDIES.map((o) => h('tr', null, h('th', { attrs: { scope: 'row' } }, o.label),
@@ -174,7 +176,7 @@ export function renderDetail(region, m, ctx) {
   const dept = [m.department, m.faculty].filter((x, i, a) => typeof x === 'string' && x && a.indexOf(x) === i).join(', ');
   const units = typeof m.credits === 'number' ? `${m.credits} unit${m.credits === 1 ? '' : 's'}` : '';
   setChildren(region,
-    h('div', { class: 'sheet-head' }, kicker, close),
+    h('div', { class: 'sheet-head' }, kicker, h('div', { class: 'sheet-acts' }, code && ctx.toggle ? ctx.toggle(code) : null, close)),
     // The head repeats the entry's code and title (direction D), so the sheet reads on its own.
     // The code is in the heading (on its own line), so the heading's name is the code and title.
     h('div', { class: 'dhead' },

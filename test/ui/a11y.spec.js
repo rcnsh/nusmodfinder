@@ -7,7 +7,10 @@
 // failed to load, in both themes, at 1280 and at 390×664, in Chromium and
 // WebKit. No violation is allowed. The fixture gives most states; the ones it
 // can't (phrase chips, an error, 429, keyword-only, a held search, a failed
-// detail) answer by request interception. The filters dialog exists only at
+// detail) answer by request interception. Phase 6 6C adds the shortlist's
+// states: the toggles, the restore offer, the view (picks and backups, a full
+// year, empty, the export question, Business counted, rows loading, a failed
+// row, the Copy-link field and an Undo line). The filters dialog exists only at
 // phone width (at 1280 its controls are the rail, checked in every results
 // state), so it runs at 390×664 alone.
 import { expect, test } from '@playwright/test';
@@ -25,6 +28,15 @@ import { axeViolations, body, browse, settled } from './support.mjs';
 
 /** @param {import('@playwright/test').Page} page @param {(route: import('@playwright/test').Route) => unknown} answer */
 const onSearch = (page, answer) => page.route('**/search?**', answer);
+
+/** The shortlist states aria.spec.js snapshots: four picks and two backups, and a full year. */
+const SL_VIEW = 'sem=1&ng=1&study=ug2&pick=CS2113.1&pick=GE2101.1&pick=PC3270.1&pick=ACC1701XA.1&alt=CS3244.1&alt=EE4407.1&view=shortlist';
+const SL_FULL_YEAR = 'sem=2&ng=1&study=ug2&pick=CS2030.1&pick=CS3244.2&pick=GE2101.1&pick=HY1101E&pick=ACC1701XA.1&pick=EN3264.1&pick=PS3251.2&pick=MA3220.1&pick=ST2137.2&pick=GES1034.1&pick=LSM2212.1&alt=CS2113.1&alt=CM3267.1&alt=PC3232.1&alt=GESS1007.1&alt=PC4262.1&alt=TS2239.2&view=shortlist';
+/** The view is shown and every row has loaded or failed. @param {import('@playwright/test').Page} page */
+async function slRows(page) {
+  await expect(page.locator('#slView')).toBeVisible();
+  await expect(page.locator('#slView .sl-ehead .title', { hasText: 'Loading…' })).toHaveCount(0);
+}
 
 /** @type {State[]} */
 const STATES = [
@@ -93,6 +105,49 @@ const STATES = [
       await page.getByRole('button', { name: 'Filters (4)' }).click();
       await expect(page.getByRole('dialog')).toBeVisible();
     },
+  },
+  // Phase 6 6C: the shortlist's states (docs/plans/phase6.md 6C, SC8).
+  { name: 'results with shortlist toggles, one pressed', open: '/?q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1' },
+  {
+    name: 'first screen with the restore offer',
+    open: async (page) => {
+      // The device keeps a list once one is edited (a link alone saves nothing).
+      await page.goto('/?q=CS2113&ng=1&study=ug2&sem=1');
+      await settled(page);
+      await page.getByRole('button', { name: 'Shortlist, CS2113', exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Shortlist, CS2113', exact: true })).toHaveAttribute('aria-pressed', 'true');
+      await page.goto('/');
+      await expect(page.locator('#slRestoreSetup')).toBeVisible();
+    },
+  },
+  { name: 'shortlist view, picks and backups', open: `/?q=networks&${SL_VIEW}`, ready: slRows },
+  { name: 'shortlist view, a full year', open: `/?${SL_FULL_YEAR}`, ready: slRows },
+  { name: 'shortlist view, empty', open: '/?ng=1&study=ug2&sem=1&view=shortlist', ready: (page) => expect(page.locator('#slView')).toBeVisible() },
+  { name: 'shortlist view, the export question', open: '/?pick=CS5562&pick=CS9999&view=shortlist', ready: async (page) => { await slRows(page); await expect(page.locator('#slAsk')).toBeVisible(); } },
+  { name: 'shortlist view, Business counted (invited)', open: '/?ng=1&study=ug2&sem=1&pick=ACC1701XA.1&pick=CS2113.1&inv=biz&view=shortlist', ready: slRows },
+  {
+    name: 'shortlist view, rows loading', open: '/?ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1&view=shortlist',
+    route: (page) => page.route('**/module/**', () => { /* held */ }),
+    ready: (page) => expect(page.locator('#slView .sl-ehead .title', { hasText: 'Loading…' })).toHaveCount(2),
+  },
+  {
+    name: 'shortlist view, a row that failed to load', open: '/?ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1&view=shortlist',
+    route: (page) => page.route('**/module/GE2101', (route) => route.fulfill({ status: 500, json: { error: 'internal' } })),
+    ready: async (page) => { await slRows(page); await expect(page.getByRole('button', { name: 'Try again, GE2101' })).toBeVisible(); },
+  },
+  {
+    name: 'shortlist view, the link field after Copy link fails, and an Undo line',
+    open: async (page) => {
+      await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('no')) } });
+      });
+      await page.goto('/?ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1&view=shortlist');
+      await slRows(page);
+      await page.getByRole('button', { name: 'Remove, GE2101', exact: true }).click();
+      await page.getByRole('button', { name: 'Copy link', exact: true }).click();
+      await expect(page.getByLabel('Shortlist link')).toBeVisible();
+    },
+    ready: async () => {},
   },
 ];
 const WIDTHS = /** @type {const} */ ([['1280', 1280, 800], ['390×664', 390, 664]]);
