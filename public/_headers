@@ -1,0 +1,11 @@
+# Workers Static Assets response headers for the page and its files (5G S3).
+# They apply to public/ only; the Worker's JSON answers set their own.
+# - No other site may frame the page (frame-ancestors, and X-Frame-Options for
+#   browsers without it): a framed page could take a click on the year of study.
+# - The page runs only its own files. The one inline script (index.html, the
+#   view before app.js loads) is allowed by its sha256; change that script and
+#   test/web/source.node.test.js names the new hash.
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-/v4Rz6x05oDSZmmOGtRO1IG3UBcWMdE63isXFGHVCQU='; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff

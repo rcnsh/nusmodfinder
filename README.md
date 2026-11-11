@@ -253,6 +253,12 @@ checks every text/background and boundary pair in both themes against WCAG AA.
 `styles.css` and native ES modules with `// @ts-check` and JSDoc, served by Workers Static
 Assets (the `assets` block in `wrangler.jsonc`, no binding). No file there matches an API
 path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still reach the Worker.
+`public/_headers` (5G S3) sends every page file with `X-Frame-Options: DENY`,
+`X-Content-Type-Options: nosniff` and a CSP: `default-src 'none'`, the page's own scripts,
+styles, fonts and API (`'self'`), `frame-ancestors 'none'`, and the one inline script in
+`index.html` by its sha256. Change that script and `test/web/source.node.test.js` names the new
+hash; `test/ui/headers.spec.js` checks the headers on the local stack (which applies `_headers`
+as production does), that another origin can't frame the page, and that no flow trips the CSP.
 
 | module | does |
 |---|---|
