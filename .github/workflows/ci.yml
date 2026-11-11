@@ -191,6 +191,12 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --ipc=host --init
+    # One job per browser: the two together took 16 minutes on a runner by Phase 6 (limit 20).
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, webkit]
+    name: ui (${{ matrix.project }})
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
@@ -217,13 +223,13 @@ jobs:
           cache: npm
       - if: steps.diff.outputs.run == 'true'
         run: npm ci
-      - name: UI suite (Chromium and WebKit)
+      - name: UI suite (${{ matrix.project }})
         if: steps.diff.outputs.run == 'true'
-        run: npm run test:ui
+        run: npm run test:ui -- --project=${{ matrix.project }}
       - name: Keep the traces of failed tests
         if: failure() && steps.diff.outputs.run == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: ui-test-results
+          name: ui-test-results-${{ matrix.project }}
           path: test-results/
           retention-days: 7
