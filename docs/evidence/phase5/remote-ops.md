@@ -99,3 +99,16 @@ Rollback: `npx wrangler rollback 78a2672a-fc36-403a-b090-9ca266f905d4` (code-onl
 Both `https://nusmodfinder.rcn.sh` and the workers.dev URL answer `/health` with tag `a7b90f4`.
 
 Rollback: `npx wrangler rollback 0b81c82e-4c45-47fe-9efc-a1b93afd71db` (code-only; the Custom Domain stays).
+
+## 2026-11-11: the Worker renamed to `nusmodfinder` (ADR 0009)
+
+| Time (UTC) | Step | Estimate | Actual |
+|---|---|---|---|
+| 13:49 | `wrangler triggers deploy` on `vector-nusmods` with `workers_dev: false` | 0 rows | workers.dev URL 404; custom domain 200 |
+| 14:39–14:41 | `npm run deploy` of `965aaf9` under `name: "nusmodfinder"` (guard read 6,778 D1 rows; no D1 write) | ~6.8k rows read | new Worker `nusmodfinder`, version **`59986aa3-48d9-4344-8f5d-29e095709ca6`**, startup 3 ms; `triggers deploy` moved `nusmodfinder.rcn.sh` to it without a prompt |
+| 14:41–14:42 | Smoke | 3 calls | `/search` answered 500 once in the first minute after the move, then 200 on every call; `/health` tag `965aaf9` |
+| 14:43–14:50 | `node scripts/p5-live.mjs` | ~100 calls | 99 sent ≥ 4 s apart; **32 of 32 checks pass** |
+
+The old Worker `vector-nusmods` (100% `a6103634`) has no route and no workers.dev URL, so it serves
+nothing. Its versions are not rollback targets for `nusmodfinder`; the first rollback target on the
+new Worker is the next deploy's predecessor, `59986aa3`.

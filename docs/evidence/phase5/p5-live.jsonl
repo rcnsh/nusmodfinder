@@ -2032,3 +2032,681 @@
 {"n":676,"at":"2026-11-11T13:31:27.140Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/search?q=ACC1701XB&ng=1&study=ug2","source":"memory","status":200}
 {"n":677,"at":"2026-11-11T13:31:27.183Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
 {"n":678,"at":"2026-11-11T13:31:28.934Z","check":"summary","url":"https://nusmodfinder.rcn.sh","corpus":"production","seed":5,"sent":99,"pass":32,"fail":0,"failures":[]}
+{"n":1,"at":"2026-11-11T14:42:45.610Z","check":"health","engine":"node","path":"/health","source":"network","status":200,"ms":425,"cache":null,"version":"965aaf9","attempt":1}
+{"n":2,"at":"2026-11-11T14:42:49.612Z","check":"first screen","engine":"chromium","path":"/","source":"network","status":200,"ms":420,"cache":"MISS","version":null,"attempt":1}
+{"n":3,"at":"2026-11-11T14:42:53.614Z","check":"first screen","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"network","status":200,"ms":476,"cache":"MISS","version":null,"attempt":1}
+{"n":4,"at":"2026-11-11T14:42:57.616Z","check":"first screen","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"network","status":200,"ms":446,"cache":"MISS","version":null,"attempt":1}
+{"n":5,"at":"2026-11-11T14:43:01.616Z","check":"first screen","engine":"chromium","path":"/styles.css","source":"network","status":200,"ms":504,"cache":"MISS","version":null,"attempt":1}
+{"n":6,"at":"2026-11-11T14:43:05.618Z","check":"first screen","engine":"chromium","path":"/app.js","source":"network","status":200,"ms":430,"cache":"MISS","version":null,"attempt":1}
+{"n":7,"at":"2026-11-11T14:43:09.619Z","check":"first screen","engine":"chromium","path":"/api.js","source":"network","status":200,"ms":460,"cache":"MISS","version":null,"attempt":1}
+{"n":8,"at":"2026-11-11T14:43:13.620Z","check":"first screen","engine":"chromium","path":"/detail.js","source":"network","status":200,"ms":407,"cache":"MISS","version":null,"attempt":1}
+{"n":9,"at":"2026-11-11T14:43:17.621Z","check":"first screen","engine":"chromium","path":"/dom.js","source":"network","status":200,"ms":377,"cache":"MISS","version":null,"attempt":1}
+{"n":10,"at":"2026-11-11T14:43:21.625Z","check":"first screen","engine":"chromium","path":"/explain.js","source":"network","status":200,"ms":495,"cache":"MISS","version":null,"attempt":1}
+{"n":11,"at":"2026-11-11T14:43:25.626Z","check":"first screen","engine":"chromium","path":"/format.js","source":"network","status":200,"ms":457,"cache":"MISS","version":null,"attempt":1}
+{"n":12,"at":"2026-11-11T14:43:29.627Z","check":"first screen","engine":"chromium","path":"/icons.js","source":"network","status":200,"ms":479,"cache":"MISS","version":null,"attempt":1}
+{"n":13,"at":"2026-11-11T14:43:33.628Z","check":"first screen","engine":"chromium","path":"/keys.js","source":"network","status":200,"ms":500,"cache":"MISS","version":null,"attempt":1}
+{"n":14,"at":"2026-11-11T14:43:37.629Z","check":"first screen","engine":"chromium","path":"/messages.js","source":"network","status":200,"ms":494,"cache":"MISS","version":null,"attempt":1}
+{"n":15,"at":"2026-11-11T14:43:41.629Z","check":"first screen","engine":"chromium","path":"/nav.js","source":"network","status":200,"ms":527,"cache":"MISS","version":null,"attempt":1}
+{"n":16,"at":"2026-11-11T14:43:45.630Z","check":"first screen","engine":"chromium","path":"/render.js","source":"network","status":200,"ms":417,"cache":"MISS","version":null,"attempt":1}
+{"n":17,"at":"2026-11-11T14:43:49.632Z","check":"first screen","engine":"chromium","path":"/state.js","source":"network","status":200,"ms":500,"cache":"MISS","version":null,"attempt":1}
+{"n":18,"at":"2026-11-11T14:43:53.632Z","check":"first screen","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"network","status":200,"ms":501,"cache":"MISS","version":null,"attempt":1}
+{"n":19,"at":"2026-11-11T14:43:57.634Z","check":"first screen","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"network","status":200,"ms":460,"cache":"MISS","version":null,"attempt":1}
+{"n":20,"at":"2026-11-11T14:44:01.636Z","check":"first screen","engine":"chromium","path":"/intent-chips.js","source":"network","status":200,"ms":553,"cache":"MISS","version":null,"attempt":1}
+{"n":21,"at":"2026-11-11T14:44:05.638Z","check":"first screen","engine":"chromium","path":"/intents.js","source":"network","status":200,"ms":422,"cache":"MISS","version":null,"attempt":1}
+{"n":22,"at":"2026-11-11T14:44:09.742Z","check":"first screen","engine":"chromium","path":"/facets","source":"network","status":200,"ms":285,"cache":null,"version":"965aaf9","attempt":1}
+{"n":23,"at":"2026-11-11T14:44:13.745Z","check":"first screen","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"network","status":200,"ms":450,"cache":"MISS","version":null,"attempt":1}
+{"n":24,"at":"2026-11-11T14:44:17.745Z","check":"SC2 PC2032","engine":"chromium","path":"/?q=PC2032&open=PC2032","source":"network","status":200,"ms":40,"cache":"HIT","version":null,"attempt":1}
+{"n":25,"at":"2026-11-11T14:44:17.815Z","check":"SC2 PC2032","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":26,"at":"2026-11-11T14:44:17.817Z","check":"SC2 PC2032","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":27,"at":"2026-11-11T14:44:17.818Z","check":"SC2 PC2032","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":28,"at":"2026-11-11T14:44:17.818Z","check":"SC2 PC2032","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":29,"at":"2026-11-11T14:44:17.819Z","check":"SC2 PC2032","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":30,"at":"2026-11-11T14:44:17.821Z","check":"SC2 PC2032","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":31,"at":"2026-11-11T14:44:17.822Z","check":"SC2 PC2032","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":32,"at":"2026-11-11T14:44:17.823Z","check":"SC2 PC2032","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":33,"at":"2026-11-11T14:44:17.824Z","check":"SC2 PC2032","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":34,"at":"2026-11-11T14:44:17.827Z","check":"SC2 PC2032","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":35,"at":"2026-11-11T14:44:17.828Z","check":"SC2 PC2032","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":36,"at":"2026-11-11T14:44:17.829Z","check":"SC2 PC2032","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":37,"at":"2026-11-11T14:44:17.830Z","check":"SC2 PC2032","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":38,"at":"2026-11-11T14:44:17.831Z","check":"SC2 PC2032","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":39,"at":"2026-11-11T14:44:17.831Z","check":"SC2 PC2032","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":40,"at":"2026-11-11T14:44:17.842Z","check":"SC2 PC2032","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":41,"at":"2026-11-11T14:44:17.844Z","check":"SC2 PC2032","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":42,"at":"2026-11-11T14:44:17.855Z","check":"SC2 PC2032","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":43,"at":"2026-11-11T14:44:17.920Z","check":"SC2 PC2032","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":44,"at":"2026-11-11T14:44:17.921Z","check":"SC2 PC2032","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":45,"at":"2026-11-11T14:44:21.748Z","check":"SC2 PC2032","engine":"chromium","path":"/search?q=PC2032","source":"network","status":200,"ms":439,"cache":null,"version":"965aaf9","attempt":1}
+{"n":46,"at":"2026-11-11T14:44:22.307Z","check":"SC2 PC2032","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":47,"at":"2026-11-11T14:44:25.750Z","check":"SC2 PC2032","engine":"chromium","path":"/module/PC2032","source":"network","status":200,"ms":119,"cache":null,"version":"965aaf9","attempt":1}
+{"n":48,"at":"2026-11-11T14:44:29.752Z","check":"SC2 PM5101","engine":"chromium","path":"/?q=PM5101&open=PM5101","source":"network","status":200,"ms":58,"cache":"HIT","version":null,"attempt":1}
+{"n":49,"at":"2026-11-11T14:44:29.828Z","check":"SC2 PM5101","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":50,"at":"2026-11-11T14:44:29.829Z","check":"SC2 PM5101","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":51,"at":"2026-11-11T14:44:29.829Z","check":"SC2 PM5101","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":52,"at":"2026-11-11T14:44:29.830Z","check":"SC2 PM5101","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":53,"at":"2026-11-11T14:44:29.830Z","check":"SC2 PM5101","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":54,"at":"2026-11-11T14:44:29.831Z","check":"SC2 PM5101","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":55,"at":"2026-11-11T14:44:29.831Z","check":"SC2 PM5101","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":56,"at":"2026-11-11T14:44:29.831Z","check":"SC2 PM5101","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":57,"at":"2026-11-11T14:44:29.831Z","check":"SC2 PM5101","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":58,"at":"2026-11-11T14:44:29.831Z","check":"SC2 PM5101","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":59,"at":"2026-11-11T14:44:29.832Z","check":"SC2 PM5101","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":60,"at":"2026-11-11T14:44:29.832Z","check":"SC2 PM5101","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":61,"at":"2026-11-11T14:44:29.832Z","check":"SC2 PM5101","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":62,"at":"2026-11-11T14:44:29.832Z","check":"SC2 PM5101","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":63,"at":"2026-11-11T14:44:29.833Z","check":"SC2 PM5101","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":64,"at":"2026-11-11T14:44:29.851Z","check":"SC2 PM5101","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":65,"at":"2026-11-11T14:44:29.852Z","check":"SC2 PM5101","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":66,"at":"2026-11-11T14:44:29.856Z","check":"SC2 PM5101","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":67,"at":"2026-11-11T14:44:29.857Z","check":"SC2 PM5101","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":68,"at":"2026-11-11T14:44:29.863Z","check":"SC2 PM5101","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":69,"at":"2026-11-11T14:44:33.753Z","check":"SC2 PM5101","engine":"chromium","path":"/search?q=PM5101","source":"network","status":200,"ms":415,"cache":null,"version":"965aaf9","attempt":1}
+{"n":70,"at":"2026-11-11T14:44:34.227Z","check":"SC2 PM5101","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":71,"at":"2026-11-11T14:44:37.755Z","check":"SC2 PM5101","engine":"chromium","path":"/module/PM5101","source":"network","status":200,"ms":113,"cache":null,"version":"965aaf9","attempt":1}
+{"n":72,"at":"2026-11-11T14:44:41.756Z","check":"SC2 PC2130","engine":"chromium","path":"/?q=PC2130&open=PC2130","source":"network","status":200,"ms":69,"cache":"HIT","version":null,"attempt":1}
+{"n":73,"at":"2026-11-11T14:44:41.899Z","check":"SC2 PC2130","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":74,"at":"2026-11-11T14:44:41.906Z","check":"SC2 PC2130","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":75,"at":"2026-11-11T14:44:41.909Z","check":"SC2 PC2130","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":76,"at":"2026-11-11T14:44:41.912Z","check":"SC2 PC2130","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":77,"at":"2026-11-11T14:44:41.928Z","check":"SC2 PC2130","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":78,"at":"2026-11-11T14:44:41.961Z","check":"SC2 PC2130","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":79,"at":"2026-11-11T14:44:42.004Z","check":"SC2 PC2130","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":80,"at":"2026-11-11T14:44:42.018Z","check":"SC2 PC2130","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":81,"at":"2026-11-11T14:44:42.019Z","check":"SC2 PC2130","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":82,"at":"2026-11-11T14:44:42.194Z","check":"SC2 PC2130","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":83,"at":"2026-11-11T14:44:42.202Z","check":"SC2 PC2130","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":84,"at":"2026-11-11T14:44:42.209Z","check":"SC2 PC2130","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":85,"at":"2026-11-11T14:44:42.210Z","check":"SC2 PC2130","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":86,"at":"2026-11-11T14:44:42.211Z","check":"SC2 PC2130","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":87,"at":"2026-11-11T14:44:42.213Z","check":"SC2 PC2130","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":88,"at":"2026-11-11T14:44:42.470Z","check":"SC2 PC2130","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":89,"at":"2026-11-11T14:44:42.470Z","check":"SC2 PC2130","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":90,"at":"2026-11-11T14:44:42.471Z","check":"SC2 PC2130","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":91,"at":"2026-11-11T14:44:42.474Z","check":"SC2 PC2130","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":92,"at":"2026-11-11T14:44:42.494Z","check":"SC2 PC2130","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":93,"at":"2026-11-11T14:44:45.758Z","check":"SC2 PC2130","engine":"chromium","path":"/search?q=PC2130","source":"network","status":200,"ms":351,"cache":null,"version":"965aaf9","attempt":1}
+{"n":94,"at":"2026-11-11T14:44:46.143Z","check":"SC2 PC2130","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":95,"at":"2026-11-11T14:44:49.760Z","check":"SC2 PC2130","engine":"chromium","path":"/module/PC2130","source":"network","status":200,"ms":155,"cache":null,"version":"965aaf9","attempt":1}
+{"n":96,"at":"2026-11-11T14:44:53.761Z","check":"SC2 EC3303","engine":"chromium","path":"/?q=EC3303&open=EC3303","source":"network","status":200,"ms":39,"cache":"HIT","version":null,"attempt":1}
+{"n":97,"at":"2026-11-11T14:44:53.836Z","check":"SC2 EC3303","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":98,"at":"2026-11-11T14:44:53.842Z","check":"SC2 EC3303","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":99,"at":"2026-11-11T14:44:53.842Z","check":"SC2 EC3303","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":100,"at":"2026-11-11T14:44:53.845Z","check":"SC2 EC3303","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":101,"at":"2026-11-11T14:44:53.852Z","check":"SC2 EC3303","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":102,"at":"2026-11-11T14:44:53.853Z","check":"SC2 EC3303","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":103,"at":"2026-11-11T14:44:53.854Z","check":"SC2 EC3303","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":104,"at":"2026-11-11T14:44:53.854Z","check":"SC2 EC3303","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":105,"at":"2026-11-11T14:44:53.857Z","check":"SC2 EC3303","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":106,"at":"2026-11-11T14:44:53.857Z","check":"SC2 EC3303","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":107,"at":"2026-11-11T14:44:53.860Z","check":"SC2 EC3303","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":108,"at":"2026-11-11T14:44:53.860Z","check":"SC2 EC3303","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":109,"at":"2026-11-11T14:44:53.861Z","check":"SC2 EC3303","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":110,"at":"2026-11-11T14:44:53.861Z","check":"SC2 EC3303","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":111,"at":"2026-11-11T14:44:53.862Z","check":"SC2 EC3303","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":112,"at":"2026-11-11T14:44:53.884Z","check":"SC2 EC3303","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":113,"at":"2026-11-11T14:44:53.884Z","check":"SC2 EC3303","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":114,"at":"2026-11-11T14:44:53.888Z","check":"SC2 EC3303","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":115,"at":"2026-11-11T14:44:53.889Z","check":"SC2 EC3303","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":116,"at":"2026-11-11T14:44:53.895Z","check":"SC2 EC3303","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":117,"at":"2026-11-11T14:44:57.762Z","check":"SC2 EC3303","engine":"chromium","path":"/search?q=EC3303","source":"network","status":200,"ms":442,"cache":null,"version":"965aaf9","attempt":1}
+{"n":118,"at":"2026-11-11T14:44:58.216Z","check":"SC2 EC3303","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":119,"at":"2026-11-11T14:45:01.763Z","check":"SC2 EC3303","engine":"chromium","path":"/module/EC3303","source":"network","status":200,"ms":101,"cache":null,"version":"965aaf9","attempt":1}
+{"n":120,"at":"2026-11-11T14:45:05.763Z","check":"SC2 MKT1705B","engine":"chromium","path":"/?q=MKT1705B&open=MKT1705B","source":"network","status":200,"ms":39,"cache":"HIT","version":null,"attempt":1}
+{"n":121,"at":"2026-11-11T14:45:05.815Z","check":"SC2 MKT1705B","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":122,"at":"2026-11-11T14:45:05.815Z","check":"SC2 MKT1705B","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":123,"at":"2026-11-11T14:45:05.815Z","check":"SC2 MKT1705B","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":124,"at":"2026-11-11T14:45:05.816Z","check":"SC2 MKT1705B","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":125,"at":"2026-11-11T14:45:05.816Z","check":"SC2 MKT1705B","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":126,"at":"2026-11-11T14:45:05.816Z","check":"SC2 MKT1705B","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":127,"at":"2026-11-11T14:45:05.816Z","check":"SC2 MKT1705B","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":128,"at":"2026-11-11T14:45:05.817Z","check":"SC2 MKT1705B","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":129,"at":"2026-11-11T14:45:05.819Z","check":"SC2 MKT1705B","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":130,"at":"2026-11-11T14:45:05.820Z","check":"SC2 MKT1705B","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":131,"at":"2026-11-11T14:45:05.820Z","check":"SC2 MKT1705B","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":132,"at":"2026-11-11T14:45:05.820Z","check":"SC2 MKT1705B","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":133,"at":"2026-11-11T14:45:05.820Z","check":"SC2 MKT1705B","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":134,"at":"2026-11-11T14:45:05.820Z","check":"SC2 MKT1705B","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":135,"at":"2026-11-11T14:45:05.820Z","check":"SC2 MKT1705B","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":136,"at":"2026-11-11T14:45:05.834Z","check":"SC2 MKT1705B","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":137,"at":"2026-11-11T14:45:05.834Z","check":"SC2 MKT1705B","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":138,"at":"2026-11-11T14:45:05.837Z","check":"SC2 MKT1705B","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":139,"at":"2026-11-11T14:45:05.837Z","check":"SC2 MKT1705B","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":140,"at":"2026-11-11T14:45:05.841Z","check":"SC2 MKT1705B","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":141,"at":"2026-11-11T14:45:09.764Z","check":"SC2 MKT1705B","engine":"chromium","path":"/search?q=MKT1705B","source":"network","status":200,"ms":338,"cache":null,"version":"965aaf9","attempt":1}
+{"n":142,"at":"2026-11-11T14:45:10.117Z","check":"SC2 MKT1705B","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":143,"at":"2026-11-11T14:45:13.766Z","check":"SC2 MKT1705B","engine":"chromium","path":"/module/MKT1705B","source":"network","status":200,"ms":124,"cache":null,"version":"965aaf9","attempt":1}
+{"n":144,"at":"2026-11-11T14:45:17.767Z","check":"SC2 MKT1705D","engine":"chromium","path":"/?q=MKT1705D&open=MKT1705D","source":"network","status":200,"ms":37,"cache":"HIT","version":null,"attempt":1}
+{"n":145,"at":"2026-11-11T14:45:17.826Z","check":"SC2 MKT1705D","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":146,"at":"2026-11-11T14:45:17.828Z","check":"SC2 MKT1705D","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":147,"at":"2026-11-11T14:45:17.828Z","check":"SC2 MKT1705D","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":148,"at":"2026-11-11T14:45:17.829Z","check":"SC2 MKT1705D","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":149,"at":"2026-11-11T14:45:17.829Z","check":"SC2 MKT1705D","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":150,"at":"2026-11-11T14:45:17.830Z","check":"SC2 MKT1705D","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":151,"at":"2026-11-11T14:45:17.830Z","check":"SC2 MKT1705D","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":152,"at":"2026-11-11T14:45:17.831Z","check":"SC2 MKT1705D","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":153,"at":"2026-11-11T14:45:17.831Z","check":"SC2 MKT1705D","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":154,"at":"2026-11-11T14:45:17.831Z","check":"SC2 MKT1705D","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":155,"at":"2026-11-11T14:45:17.831Z","check":"SC2 MKT1705D","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":156,"at":"2026-11-11T14:45:17.831Z","check":"SC2 MKT1705D","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":157,"at":"2026-11-11T14:45:17.832Z","check":"SC2 MKT1705D","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":158,"at":"2026-11-11T14:45:17.832Z","check":"SC2 MKT1705D","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":159,"at":"2026-11-11T14:45:17.832Z","check":"SC2 MKT1705D","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":160,"at":"2026-11-11T14:45:17.842Z","check":"SC2 MKT1705D","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":161,"at":"2026-11-11T14:45:17.843Z","check":"SC2 MKT1705D","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":162,"at":"2026-11-11T14:45:17.848Z","check":"SC2 MKT1705D","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":163,"at":"2026-11-11T14:45:17.849Z","check":"SC2 MKT1705D","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":164,"at":"2026-11-11T14:45:17.853Z","check":"SC2 MKT1705D","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":165,"at":"2026-11-11T14:45:21.769Z","check":"SC2 MKT1705D","engine":"chromium","path":"/search?q=MKT1705D","source":"network","status":200,"ms":359,"cache":null,"version":"965aaf9","attempt":1}
+{"n":166,"at":"2026-11-11T14:45:22.154Z","check":"SC2 MKT1705D","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":167,"at":"2026-11-11T14:45:25.770Z","check":"SC2 MKT1705D","engine":"chromium","path":"/module/MKT1705D","source":"network","status":200,"ms":103,"cache":null,"version":"965aaf9","attempt":1}
+{"n":168,"at":"2026-11-11T14:45:29.771Z","check":"SC2 BSN3701","engine":"chromium","path":"/?q=BSN3701&open=BSN3701","source":"network","status":200,"ms":71,"cache":"HIT","version":null,"attempt":1}
+{"n":169,"at":"2026-11-11T14:45:29.852Z","check":"SC2 BSN3701","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":170,"at":"2026-11-11T14:45:29.853Z","check":"SC2 BSN3701","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":171,"at":"2026-11-11T14:45:29.854Z","check":"SC2 BSN3701","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":172,"at":"2026-11-11T14:45:29.854Z","check":"SC2 BSN3701","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":173,"at":"2026-11-11T14:45:29.854Z","check":"SC2 BSN3701","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":174,"at":"2026-11-11T14:45:29.855Z","check":"SC2 BSN3701","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":175,"at":"2026-11-11T14:45:29.855Z","check":"SC2 BSN3701","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":176,"at":"2026-11-11T14:45:29.855Z","check":"SC2 BSN3701","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":177,"at":"2026-11-11T14:45:29.855Z","check":"SC2 BSN3701","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":178,"at":"2026-11-11T14:45:29.856Z","check":"SC2 BSN3701","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":179,"at":"2026-11-11T14:45:29.857Z","check":"SC2 BSN3701","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":180,"at":"2026-11-11T14:45:29.857Z","check":"SC2 BSN3701","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":181,"at":"2026-11-11T14:45:29.857Z","check":"SC2 BSN3701","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":182,"at":"2026-11-11T14:45:29.857Z","check":"SC2 BSN3701","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":183,"at":"2026-11-11T14:45:29.858Z","check":"SC2 BSN3701","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":184,"at":"2026-11-11T14:45:29.865Z","check":"SC2 BSN3701","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":185,"at":"2026-11-11T14:45:29.866Z","check":"SC2 BSN3701","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":186,"at":"2026-11-11T14:45:29.869Z","check":"SC2 BSN3701","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":187,"at":"2026-11-11T14:45:29.870Z","check":"SC2 BSN3701","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":188,"at":"2026-11-11T14:45:29.873Z","check":"SC2 BSN3701","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":189,"at":"2026-11-11T14:45:33.773Z","check":"SC2 BSN3701","engine":"chromium","path":"/search?q=BSN3701","source":"network","status":200,"ms":346,"cache":null,"version":"965aaf9","attempt":1}
+{"n":190,"at":"2026-11-11T14:45:34.138Z","check":"SC2 BSN3701","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":191,"at":"2026-11-11T14:45:37.775Z","check":"SC2 BSN3701","engine":"chromium","path":"/module/BSN3701","source":"network","status":200,"ms":79,"cache":null,"version":"965aaf9","attempt":1}
+{"n":192,"at":"2026-11-11T14:45:41.776Z","check":"SC2 ACC1701B","engine":"chromium","path":"/?q=ACC1701B&open=ACC1701B","source":"network","status":200,"ms":40,"cache":"HIT","version":null,"attempt":1}
+{"n":193,"at":"2026-11-11T14:45:41.832Z","check":"SC2 ACC1701B","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":194,"at":"2026-11-11T14:45:41.833Z","check":"SC2 ACC1701B","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":195,"at":"2026-11-11T14:45:41.834Z","check":"SC2 ACC1701B","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":196,"at":"2026-11-11T14:45:41.834Z","check":"SC2 ACC1701B","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":197,"at":"2026-11-11T14:45:41.834Z","check":"SC2 ACC1701B","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":198,"at":"2026-11-11T14:45:41.834Z","check":"SC2 ACC1701B","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":199,"at":"2026-11-11T14:45:41.835Z","check":"SC2 ACC1701B","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":200,"at":"2026-11-11T14:45:41.835Z","check":"SC2 ACC1701B","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":201,"at":"2026-11-11T14:45:41.836Z","check":"SC2 ACC1701B","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":202,"at":"2026-11-11T14:45:41.836Z","check":"SC2 ACC1701B","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":203,"at":"2026-11-11T14:45:41.837Z","check":"SC2 ACC1701B","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":204,"at":"2026-11-11T14:45:41.837Z","check":"SC2 ACC1701B","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":205,"at":"2026-11-11T14:45:41.838Z","check":"SC2 ACC1701B","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":206,"at":"2026-11-11T14:45:41.838Z","check":"SC2 ACC1701B","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":207,"at":"2026-11-11T14:45:41.838Z","check":"SC2 ACC1701B","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":208,"at":"2026-11-11T14:45:41.846Z","check":"SC2 ACC1701B","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":209,"at":"2026-11-11T14:45:41.848Z","check":"SC2 ACC1701B","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":210,"at":"2026-11-11T14:45:41.849Z","check":"SC2 ACC1701B","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":211,"at":"2026-11-11T14:45:41.850Z","check":"SC2 ACC1701B","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":212,"at":"2026-11-11T14:45:41.857Z","check":"SC2 ACC1701B","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":213,"at":"2026-11-11T14:45:45.777Z","check":"SC2 ACC1701B","engine":"chromium","path":"/search?q=ACC1701B","source":"network","status":200,"ms":324,"cache":null,"version":"965aaf9","attempt":1}
+{"n":214,"at":"2026-11-11T14:45:46.186Z","check":"SC2 ACC1701B","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":215,"at":"2026-11-11T14:45:49.779Z","check":"SC2 ACC1701B","engine":"chromium","path":"/module/ACC1701B","source":"network","status":200,"ms":772,"cache":null,"version":"965aaf9","attempt":1}
+{"n":216,"at":"2026-11-11T14:45:53.780Z","check":"SC2 MT6999","engine":"chromium","path":"/?q=MT6999&open=MT6999","source":"network","status":200,"ms":66,"cache":"HIT","version":null,"attempt":1}
+{"n":217,"at":"2026-11-11T14:45:53.953Z","check":"SC2 MT6999","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":218,"at":"2026-11-11T14:45:53.955Z","check":"SC2 MT6999","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":219,"at":"2026-11-11T14:45:53.955Z","check":"SC2 MT6999","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":220,"at":"2026-11-11T14:45:53.961Z","check":"SC2 MT6999","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":221,"at":"2026-11-11T14:45:53.962Z","check":"SC2 MT6999","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":222,"at":"2026-11-11T14:45:53.962Z","check":"SC2 MT6999","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":223,"at":"2026-11-11T14:45:53.963Z","check":"SC2 MT6999","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":224,"at":"2026-11-11T14:45:53.964Z","check":"SC2 MT6999","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":225,"at":"2026-11-11T14:45:53.968Z","check":"SC2 MT6999","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":226,"at":"2026-11-11T14:45:53.968Z","check":"SC2 MT6999","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":227,"at":"2026-11-11T14:45:53.969Z","check":"SC2 MT6999","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":228,"at":"2026-11-11T14:45:53.969Z","check":"SC2 MT6999","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":229,"at":"2026-11-11T14:45:53.970Z","check":"SC2 MT6999","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":230,"at":"2026-11-11T14:45:53.970Z","check":"SC2 MT6999","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":231,"at":"2026-11-11T14:45:53.970Z","check":"SC2 MT6999","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":232,"at":"2026-11-11T14:45:53.978Z","check":"SC2 MT6999","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":233,"at":"2026-11-11T14:45:53.979Z","check":"SC2 MT6999","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":234,"at":"2026-11-11T14:45:53.982Z","check":"SC2 MT6999","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":235,"at":"2026-11-11T14:45:53.982Z","check":"SC2 MT6999","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":236,"at":"2026-11-11T14:45:53.991Z","check":"SC2 MT6999","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":237,"at":"2026-11-11T14:45:57.781Z","check":"SC2 MT6999","engine":"chromium","path":"/search?q=MT6999","source":"network","status":200,"ms":251,"cache":null,"version":"965aaf9","attempt":1}
+{"n":238,"at":"2026-11-11T14:45:58.069Z","check":"SC2 MT6999","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":239,"at":"2026-11-11T14:46:01.781Z","check":"SC2 MT6999","engine":"chromium","path":"/module/MT6999","source":"network","status":200,"ms":582,"cache":null,"version":"965aaf9","attempt":1}
+{"n":240,"at":"2026-11-11T14:46:05.783Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/?q=DMB1202MKT&open=DMB1202MKT","source":"network","status":200,"ms":322,"cache":"HIT","version":null,"attempt":1}
+{"n":241,"at":"2026-11-11T14:46:06.138Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":242,"at":"2026-11-11T14:46:06.139Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":243,"at":"2026-11-11T14:46:06.143Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":244,"at":"2026-11-11T14:46:06.146Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":245,"at":"2026-11-11T14:46:06.148Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":246,"at":"2026-11-11T14:46:06.149Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":247,"at":"2026-11-11T14:46:06.150Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":248,"at":"2026-11-11T14:46:06.150Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":249,"at":"2026-11-11T14:46:06.151Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":250,"at":"2026-11-11T14:46:06.153Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":251,"at":"2026-11-11T14:46:06.154Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":252,"at":"2026-11-11T14:46:06.155Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":253,"at":"2026-11-11T14:46:06.155Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":254,"at":"2026-11-11T14:46:06.156Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":255,"at":"2026-11-11T14:46:06.156Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":256,"at":"2026-11-11T14:46:06.213Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":257,"at":"2026-11-11T14:46:06.218Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":258,"at":"2026-11-11T14:46:06.223Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":259,"at":"2026-11-11T14:46:06.225Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":260,"at":"2026-11-11T14:46:06.267Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":261,"at":"2026-11-11T14:46:09.785Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/search?q=DMB1202MKT","source":"network","status":200,"ms":560,"cache":null,"version":"965aaf9","attempt":1}
+{"n":262,"at":"2026-11-11T14:46:10.358Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":263,"at":"2026-11-11T14:46:13.787Z","check":"SC2 DMB1202MKT","engine":"chromium","path":"/module/DMB1202MKT","source":"network","status":200,"ms":82,"cache":null,"version":"965aaf9","attempt":1}
+{"n":264,"at":"2026-11-11T14:46:17.789Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/?q=LLJ5251V&open=LLJ5251V","source":"network","status":200,"ms":232,"cache":"HIT","version":null,"attempt":1}
+{"n":265,"at":"2026-11-11T14:46:18.030Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":266,"at":"2026-11-11T14:46:18.032Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":267,"at":"2026-11-11T14:46:18.033Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":268,"at":"2026-11-11T14:46:18.033Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":269,"at":"2026-11-11T14:46:18.033Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":270,"at":"2026-11-11T14:46:18.033Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":271,"at":"2026-11-11T14:46:18.033Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":272,"at":"2026-11-11T14:46:18.034Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":273,"at":"2026-11-11T14:46:18.038Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":274,"at":"2026-11-11T14:46:18.042Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":275,"at":"2026-11-11T14:46:18.043Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":276,"at":"2026-11-11T14:46:18.043Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":277,"at":"2026-11-11T14:46:18.043Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":278,"at":"2026-11-11T14:46:18.044Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":279,"at":"2026-11-11T14:46:18.044Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":280,"at":"2026-11-11T14:46:18.051Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":281,"at":"2026-11-11T14:46:18.052Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":282,"at":"2026-11-11T14:46:18.055Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":283,"at":"2026-11-11T14:46:18.056Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":284,"at":"2026-11-11T14:46:18.061Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":285,"at":"2026-11-11T14:46:21.791Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/search?q=LLJ5251V","source":"network","status":200,"ms":389,"cache":null,"version":"965aaf9","attempt":1}
+{"n":286,"at":"2026-11-11T14:46:22.210Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":287,"at":"2026-11-11T14:46:25.793Z","check":"SC2 LLJ5251V","engine":"chromium","path":"/module/LLJ5251V","source":"network","status":200,"ms":108,"cache":null,"version":"965aaf9","attempt":1}
+{"n":288,"at":"2026-11-11T14:46:29.796Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/?q=DMB1204MKT&open=DMB1204MKT","source":"network","status":200,"ms":152,"cache":"HIT","version":null,"attempt":1}
+{"n":289,"at":"2026-11-11T14:46:30.070Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":290,"at":"2026-11-11T14:46:30.080Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":291,"at":"2026-11-11T14:46:30.082Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":292,"at":"2026-11-11T14:46:30.088Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":293,"at":"2026-11-11T14:46:30.091Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":294,"at":"2026-11-11T14:46:30.096Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":295,"at":"2026-11-11T14:46:30.097Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":296,"at":"2026-11-11T14:46:30.099Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":297,"at":"2026-11-11T14:46:30.099Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":298,"at":"2026-11-11T14:46:30.102Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":299,"at":"2026-11-11T14:46:30.118Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":300,"at":"2026-11-11T14:46:30.122Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":301,"at":"2026-11-11T14:46:30.124Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":302,"at":"2026-11-11T14:46:30.124Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":303,"at":"2026-11-11T14:46:30.128Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":304,"at":"2026-11-11T14:46:30.190Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":305,"at":"2026-11-11T14:46:30.191Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":306,"at":"2026-11-11T14:46:30.198Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":307,"at":"2026-11-11T14:46:30.198Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":308,"at":"2026-11-11T14:46:30.216Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":309,"at":"2026-11-11T14:46:33.798Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/search?q=DMB1204MKT","source":"network","status":200,"ms":478,"cache":null,"version":"965aaf9","attempt":1}
+{"n":310,"at":"2026-11-11T14:46:34.311Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":311,"at":"2026-11-11T14:46:37.818Z","check":"SC2 DMB1204MKT","engine":"chromium","path":"/module/DMB1204MKT","source":"network","status":200,"ms":248,"cache":null,"version":"965aaf9","attempt":1}
+{"n":312,"at":"2026-11-11T14:46:41.823Z","check":"SC2 PP5206","engine":"chromium","path":"/?q=PP5206&open=PP5206","source":"network","status":200,"ms":98,"cache":"HIT","version":null,"attempt":1}
+{"n":313,"at":"2026-11-11T14:46:41.968Z","check":"SC2 PP5206","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":314,"at":"2026-11-11T14:46:41.972Z","check":"SC2 PP5206","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":315,"at":"2026-11-11T14:46:41.977Z","check":"SC2 PP5206","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":316,"at":"2026-11-11T14:46:41.985Z","check":"SC2 PP5206","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":317,"at":"2026-11-11T14:46:41.987Z","check":"SC2 PP5206","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":318,"at":"2026-11-11T14:46:41.990Z","check":"SC2 PP5206","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":319,"at":"2026-11-11T14:46:41.992Z","check":"SC2 PP5206","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":320,"at":"2026-11-11T14:46:41.997Z","check":"SC2 PP5206","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":321,"at":"2026-11-11T14:46:41.999Z","check":"SC2 PP5206","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":322,"at":"2026-11-11T14:46:42.006Z","check":"SC2 PP5206","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":323,"at":"2026-11-11T14:46:42.010Z","check":"SC2 PP5206","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":324,"at":"2026-11-11T14:46:42.014Z","check":"SC2 PP5206","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":325,"at":"2026-11-11T14:46:42.064Z","check":"SC2 PP5206","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":326,"at":"2026-11-11T14:46:42.069Z","check":"SC2 PP5206","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":327,"at":"2026-11-11T14:46:42.072Z","check":"SC2 PP5206","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":328,"at":"2026-11-11T14:46:42.119Z","check":"SC2 PP5206","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":329,"at":"2026-11-11T14:46:42.121Z","check":"SC2 PP5206","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":330,"at":"2026-11-11T14:46:42.169Z","check":"SC2 PP5206","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":331,"at":"2026-11-11T14:46:42.171Z","check":"SC2 PP5206","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":332,"at":"2026-11-11T14:46:42.178Z","check":"SC2 PP5206","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":333,"at":"2026-11-11T14:46:45.827Z","check":"SC2 PP5206","engine":"chromium","path":"/search?q=PP5206","source":"network","status":200,"ms":328,"cache":null,"version":"965aaf9","attempt":1}
+{"n":334,"at":"2026-11-11T14:46:46.194Z","check":"SC2 PP5206","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":335,"at":"2026-11-11T14:46:49.830Z","check":"SC2 PP5206","engine":"chromium","path":"/module/PP5206","source":"network","status":200,"ms":131,"cache":null,"version":"965aaf9","attempt":1}
+{"n":336,"at":"2026-11-11T14:46:53.831Z","check":"SC2 ACC2706","engine":"chromium","path":"/?q=ACC2706&open=ACC2706","source":"network","status":200,"ms":284,"cache":"HIT","version":null,"attempt":1}
+{"n":337,"at":"2026-11-11T14:46:54.219Z","check":"SC2 ACC2706","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":338,"at":"2026-11-11T14:46:54.223Z","check":"SC2 ACC2706","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":339,"at":"2026-11-11T14:46:54.226Z","check":"SC2 ACC2706","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":340,"at":"2026-11-11T14:46:54.228Z","check":"SC2 ACC2706","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":341,"at":"2026-11-11T14:46:54.238Z","check":"SC2 ACC2706","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":342,"at":"2026-11-11T14:46:54.239Z","check":"SC2 ACC2706","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":343,"at":"2026-11-11T14:46:54.240Z","check":"SC2 ACC2706","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":344,"at":"2026-11-11T14:46:54.240Z","check":"SC2 ACC2706","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":345,"at":"2026-11-11T14:46:54.242Z","check":"SC2 ACC2706","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":346,"at":"2026-11-11T14:46:54.244Z","check":"SC2 ACC2706","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":347,"at":"2026-11-11T14:46:54.247Z","check":"SC2 ACC2706","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":348,"at":"2026-11-11T14:46:54.251Z","check":"SC2 ACC2706","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":349,"at":"2026-11-11T14:46:54.251Z","check":"SC2 ACC2706","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":350,"at":"2026-11-11T14:46:54.251Z","check":"SC2 ACC2706","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":351,"at":"2026-11-11T14:46:54.252Z","check":"SC2 ACC2706","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":352,"at":"2026-11-11T14:46:54.293Z","check":"SC2 ACC2706","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":353,"at":"2026-11-11T14:46:54.294Z","check":"SC2 ACC2706","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":354,"at":"2026-11-11T14:46:54.296Z","check":"SC2 ACC2706","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":355,"at":"2026-11-11T14:46:54.296Z","check":"SC2 ACC2706","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":356,"at":"2026-11-11T14:46:54.306Z","check":"SC2 ACC2706","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":357,"at":"2026-11-11T14:46:57.839Z","check":"SC2 ACC2706","engine":"chromium","path":"/search?q=ACC2706","source":"network","status":200,"ms":333,"cache":null,"version":"965aaf9","attempt":1}
+{"n":358,"at":"2026-11-11T14:46:58.219Z","check":"SC2 ACC2706","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":359,"at":"2026-11-11T14:47:01.843Z","check":"SC2 ACC2706","engine":"chromium","path":"/module/ACC2706","source":"network","status":200,"ms":141,"cache":null,"version":"965aaf9","attempt":1}
+{"n":360,"at":"2026-11-11T14:47:05.847Z","check":"SC2 MNO1706X","engine":"chromium","path":"/?q=MNO1706X&open=MNO1706X","source":"network","status":200,"ms":133,"cache":"HIT","version":null,"attempt":1}
+{"n":361,"at":"2026-11-11T14:47:06.019Z","check":"SC2 MNO1706X","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":362,"at":"2026-11-11T14:47:06.022Z","check":"SC2 MNO1706X","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":363,"at":"2026-11-11T14:47:06.023Z","check":"SC2 MNO1706X","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":364,"at":"2026-11-11T14:47:06.024Z","check":"SC2 MNO1706X","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":365,"at":"2026-11-11T14:47:06.024Z","check":"SC2 MNO1706X","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":366,"at":"2026-11-11T14:47:06.025Z","check":"SC2 MNO1706X","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":367,"at":"2026-11-11T14:47:06.025Z","check":"SC2 MNO1706X","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":368,"at":"2026-11-11T14:47:06.025Z","check":"SC2 MNO1706X","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":369,"at":"2026-11-11T14:47:06.026Z","check":"SC2 MNO1706X","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":370,"at":"2026-11-11T14:47:06.029Z","check":"SC2 MNO1706X","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":371,"at":"2026-11-11T14:47:06.030Z","check":"SC2 MNO1706X","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":372,"at":"2026-11-11T14:47:06.031Z","check":"SC2 MNO1706X","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":373,"at":"2026-11-11T14:47:06.031Z","check":"SC2 MNO1706X","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":374,"at":"2026-11-11T14:47:06.032Z","check":"SC2 MNO1706X","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":375,"at":"2026-11-11T14:47:06.032Z","check":"SC2 MNO1706X","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":376,"at":"2026-11-11T14:47:06.083Z","check":"SC2 MNO1706X","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":377,"at":"2026-11-11T14:47:06.084Z","check":"SC2 MNO1706X","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":378,"at":"2026-11-11T14:47:06.085Z","check":"SC2 MNO1706X","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":379,"at":"2026-11-11T14:47:06.085Z","check":"SC2 MNO1706X","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":380,"at":"2026-11-11T14:47:06.095Z","check":"SC2 MNO1706X","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":381,"at":"2026-11-11T14:47:09.848Z","check":"SC2 MNO1706X","engine":"chromium","path":"/search?q=MNO1706X","source":"network","status":200,"ms":530,"cache":null,"version":"965aaf9","attempt":1}
+{"n":382,"at":"2026-11-11T14:47:10.512Z","check":"SC2 MNO1706X","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":383,"at":"2026-11-11T14:47:13.852Z","check":"SC2 MNO1706X","engine":"chromium","path":"/module/MNO1706X","source":"network","status":200,"ms":120,"cache":null,"version":"965aaf9","attempt":1}
+{"n":384,"at":"2026-11-11T14:47:17.865Z","check":"SC2 RE3701","engine":"chromium","path":"/?q=RE3701&open=RE3701","source":"network","status":200,"ms":78,"cache":"HIT","version":null,"attempt":1}
+{"n":385,"at":"2026-11-11T14:47:17.978Z","check":"SC2 RE3701","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":386,"at":"2026-11-11T14:47:17.980Z","check":"SC2 RE3701","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":387,"at":"2026-11-11T14:47:17.982Z","check":"SC2 RE3701","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":388,"at":"2026-11-11T14:47:17.982Z","check":"SC2 RE3701","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":389,"at":"2026-11-11T14:47:17.983Z","check":"SC2 RE3701","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":390,"at":"2026-11-11T14:47:17.984Z","check":"SC2 RE3701","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":391,"at":"2026-11-11T14:47:17.985Z","check":"SC2 RE3701","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":392,"at":"2026-11-11T14:47:17.985Z","check":"SC2 RE3701","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":393,"at":"2026-11-11T14:47:17.986Z","check":"SC2 RE3701","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":394,"at":"2026-11-11T14:47:17.986Z","check":"SC2 RE3701","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":395,"at":"2026-11-11T14:47:17.986Z","check":"SC2 RE3701","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":396,"at":"2026-11-11T14:47:17.986Z","check":"SC2 RE3701","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":397,"at":"2026-11-11T14:47:17.993Z","check":"SC2 RE3701","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":398,"at":"2026-11-11T14:47:17.994Z","check":"SC2 RE3701","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":399,"at":"2026-11-11T14:47:17.995Z","check":"SC2 RE3701","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":400,"at":"2026-11-11T14:47:18.025Z","check":"SC2 RE3701","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":401,"at":"2026-11-11T14:47:18.029Z","check":"SC2 RE3701","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":402,"at":"2026-11-11T14:47:18.033Z","check":"SC2 RE3701","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":403,"at":"2026-11-11T14:47:18.036Z","check":"SC2 RE3701","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":404,"at":"2026-11-11T14:47:18.053Z","check":"SC2 RE3701","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":405,"at":"2026-11-11T14:47:21.877Z","check":"SC2 RE3701","engine":"chromium","path":"/search?q=RE3701","source":"network","status":200,"ms":370,"cache":null,"version":"965aaf9","attempt":1}
+{"n":406,"at":"2026-11-11T14:47:22.294Z","check":"SC2 RE3701","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":407,"at":"2026-11-11T14:47:25.878Z","check":"SC2 RE3701","engine":"chromium","path":"/module/RE3701","source":"network","status":200,"ms":160,"cache":null,"version":"965aaf9","attempt":1}
+{"n":408,"at":"2026-11-11T14:47:29.882Z","check":"SC2 MA5402","engine":"chromium","path":"/?q=MA5402&open=MA5402","source":"network","status":200,"ms":74,"cache":"HIT","version":null,"attempt":1}
+{"n":409,"at":"2026-11-11T14:47:30.016Z","check":"SC2 MA5402","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":410,"at":"2026-11-11T14:47:30.017Z","check":"SC2 MA5402","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":411,"at":"2026-11-11T14:47:30.019Z","check":"SC2 MA5402","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":412,"at":"2026-11-11T14:47:30.022Z","check":"SC2 MA5402","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":413,"at":"2026-11-11T14:47:30.035Z","check":"SC2 MA5402","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":414,"at":"2026-11-11T14:47:30.051Z","check":"SC2 MA5402","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":415,"at":"2026-11-11T14:47:30.057Z","check":"SC2 MA5402","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":416,"at":"2026-11-11T14:47:30.059Z","check":"SC2 MA5402","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":417,"at":"2026-11-11T14:47:30.060Z","check":"SC2 MA5402","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":418,"at":"2026-11-11T14:47:30.060Z","check":"SC2 MA5402","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":419,"at":"2026-11-11T14:47:30.061Z","check":"SC2 MA5402","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":420,"at":"2026-11-11T14:47:30.061Z","check":"SC2 MA5402","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":421,"at":"2026-11-11T14:47:30.065Z","check":"SC2 MA5402","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":422,"at":"2026-11-11T14:47:30.065Z","check":"SC2 MA5402","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":423,"at":"2026-11-11T14:47:30.066Z","check":"SC2 MA5402","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":424,"at":"2026-11-11T14:47:30.090Z","check":"SC2 MA5402","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":425,"at":"2026-11-11T14:47:30.091Z","check":"SC2 MA5402","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":426,"at":"2026-11-11T14:47:30.108Z","check":"SC2 MA5402","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":427,"at":"2026-11-11T14:47:30.112Z","check":"SC2 MA5402","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":428,"at":"2026-11-11T14:47:30.124Z","check":"SC2 MA5402","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":429,"at":"2026-11-11T14:47:33.884Z","check":"SC2 MA5402","engine":"chromium","path":"/search?q=MA5402","source":"network","status":200,"ms":256,"cache":null,"version":"965aaf9","attempt":1}
+{"n":430,"at":"2026-11-11T14:47:34.185Z","check":"SC2 MA5402","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":431,"at":"2026-11-11T14:47:37.884Z","check":"SC2 MA5402","engine":"chromium","path":"/module/MA5402","source":"network","status":200,"ms":149,"cache":null,"version":"965aaf9","attempt":1}
+{"n":432,"at":"2026-11-11T14:47:41.890Z","check":"SC2 SPH2001","engine":"chromium","path":"/?q=SPH2001&open=SPH2001","source":"network","status":200,"ms":87,"cache":"HIT","version":null,"attempt":1}
+{"n":433,"at":"2026-11-11T14:47:42.003Z","check":"SC2 SPH2001","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":434,"at":"2026-11-11T14:47:42.004Z","check":"SC2 SPH2001","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":435,"at":"2026-11-11T14:47:42.005Z","check":"SC2 SPH2001","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":436,"at":"2026-11-11T14:47:42.006Z","check":"SC2 SPH2001","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":437,"at":"2026-11-11T14:47:42.007Z","check":"SC2 SPH2001","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":438,"at":"2026-11-11T14:47:42.012Z","check":"SC2 SPH2001","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":439,"at":"2026-11-11T14:47:42.014Z","check":"SC2 SPH2001","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":440,"at":"2026-11-11T14:47:42.017Z","check":"SC2 SPH2001","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":441,"at":"2026-11-11T14:47:42.020Z","check":"SC2 SPH2001","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":442,"at":"2026-11-11T14:47:42.024Z","check":"SC2 SPH2001","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":443,"at":"2026-11-11T14:47:42.025Z","check":"SC2 SPH2001","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":444,"at":"2026-11-11T14:47:42.028Z","check":"SC2 SPH2001","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":445,"at":"2026-11-11T14:47:42.029Z","check":"SC2 SPH2001","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":446,"at":"2026-11-11T14:47:42.034Z","check":"SC2 SPH2001","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":447,"at":"2026-11-11T14:47:42.035Z","check":"SC2 SPH2001","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":448,"at":"2026-11-11T14:47:42.090Z","check":"SC2 SPH2001","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":449,"at":"2026-11-11T14:47:42.103Z","check":"SC2 SPH2001","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":450,"at":"2026-11-11T14:47:42.155Z","check":"SC2 SPH2001","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":451,"at":"2026-11-11T14:47:42.161Z","check":"SC2 SPH2001","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":452,"at":"2026-11-11T14:47:42.212Z","check":"SC2 SPH2001","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":453,"at":"2026-11-11T14:47:45.894Z","check":"SC2 SPH2001","engine":"chromium","path":"/search?q=SPH2001","source":"network","status":200,"ms":256,"cache":null,"version":"965aaf9","attempt":1}
+{"n":454,"at":"2026-11-11T14:47:46.200Z","check":"SC2 SPH2001","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":455,"at":"2026-11-11T14:47:49.896Z","check":"SC2 SPH2001","engine":"chromium","path":"/module/SPH2001","source":"network","status":200,"ms":281,"cache":null,"version":"965aaf9","attempt":1}
+{"n":456,"at":"2026-11-11T14:47:53.920Z","check":"SC2 LC2004","engine":"chromium","path":"/?q=LC2004&open=LC2004","source":"network","status":200,"ms":215,"cache":"HIT","version":null,"attempt":1}
+{"n":457,"at":"2026-11-11T14:47:54.176Z","check":"SC2 LC2004","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":458,"at":"2026-11-11T14:47:54.177Z","check":"SC2 LC2004","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":459,"at":"2026-11-11T14:47:54.179Z","check":"SC2 LC2004","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":460,"at":"2026-11-11T14:47:54.185Z","check":"SC2 LC2004","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":461,"at":"2026-11-11T14:47:54.186Z","check":"SC2 LC2004","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":462,"at":"2026-11-11T14:47:54.188Z","check":"SC2 LC2004","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":463,"at":"2026-11-11T14:47:54.189Z","check":"SC2 LC2004","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":464,"at":"2026-11-11T14:47:54.189Z","check":"SC2 LC2004","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":465,"at":"2026-11-11T14:47:54.191Z","check":"SC2 LC2004","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":466,"at":"2026-11-11T14:47:54.192Z","check":"SC2 LC2004","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":467,"at":"2026-11-11T14:47:54.192Z","check":"SC2 LC2004","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":468,"at":"2026-11-11T14:47:54.193Z","check":"SC2 LC2004","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":469,"at":"2026-11-11T14:47:54.193Z","check":"SC2 LC2004","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":470,"at":"2026-11-11T14:47:54.193Z","check":"SC2 LC2004","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":471,"at":"2026-11-11T14:47:54.194Z","check":"SC2 LC2004","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":472,"at":"2026-11-11T14:47:54.219Z","check":"SC2 LC2004","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":473,"at":"2026-11-11T14:47:54.220Z","check":"SC2 LC2004","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":474,"at":"2026-11-11T14:47:54.227Z","check":"SC2 LC2004","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":475,"at":"2026-11-11T14:47:54.228Z","check":"SC2 LC2004","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":476,"at":"2026-11-11T14:47:54.234Z","check":"SC2 LC2004","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":477,"at":"2026-11-11T14:47:57.922Z","check":"SC2 LC2004","engine":"chromium","path":"/search?q=LC2004","source":"network","status":200,"ms":257,"cache":null,"version":"965aaf9","attempt":1}
+{"n":478,"at":"2026-11-11T14:47:58.222Z","check":"SC2 LC2004","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":479,"at":"2026-11-11T14:48:01.935Z","check":"SC2 LC2004","engine":"chromium","path":"/module/LC2004","source":"network","status":200,"ms":196,"cache":null,"version":"965aaf9","attempt":1}
+{"n":480,"at":"2026-11-11T14:48:05.964Z","check":"SC2 CE2112T","engine":"chromium","path":"/?q=CE2112T&open=CE2112T","source":"network","status":200,"ms":189,"cache":"HIT","version":null,"attempt":1}
+{"n":481,"at":"2026-11-11T14:48:06.253Z","check":"SC2 CE2112T","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":482,"at":"2026-11-11T14:48:06.257Z","check":"SC2 CE2112T","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":483,"at":"2026-11-11T14:48:06.268Z","check":"SC2 CE2112T","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":484,"at":"2026-11-11T14:48:06.275Z","check":"SC2 CE2112T","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":485,"at":"2026-11-11T14:48:06.279Z","check":"SC2 CE2112T","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":486,"at":"2026-11-11T14:48:06.280Z","check":"SC2 CE2112T","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":487,"at":"2026-11-11T14:48:06.281Z","check":"SC2 CE2112T","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":488,"at":"2026-11-11T14:48:06.282Z","check":"SC2 CE2112T","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":489,"at":"2026-11-11T14:48:06.284Z","check":"SC2 CE2112T","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":490,"at":"2026-11-11T14:48:06.285Z","check":"SC2 CE2112T","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":491,"at":"2026-11-11T14:48:06.286Z","check":"SC2 CE2112T","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":492,"at":"2026-11-11T14:48:06.297Z","check":"SC2 CE2112T","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":493,"at":"2026-11-11T14:48:06.301Z","check":"SC2 CE2112T","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":494,"at":"2026-11-11T14:48:06.306Z","check":"SC2 CE2112T","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":495,"at":"2026-11-11T14:48:06.314Z","check":"SC2 CE2112T","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":496,"at":"2026-11-11T14:48:06.457Z","check":"SC2 CE2112T","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":497,"at":"2026-11-11T14:48:06.462Z","check":"SC2 CE2112T","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":498,"at":"2026-11-11T14:48:06.470Z","check":"SC2 CE2112T","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":499,"at":"2026-11-11T14:48:06.475Z","check":"SC2 CE2112T","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":500,"at":"2026-11-11T14:48:06.542Z","check":"SC2 CE2112T","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":501,"at":"2026-11-11T14:48:09.976Z","check":"SC2 CE2112T","engine":"chromium","path":"/search?q=CE2112T","source":"network","status":200,"ms":419,"cache":null,"version":"965aaf9","attempt":1}
+{"n":502,"at":"2026-11-11T14:48:10.425Z","check":"SC2 CE2112T","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":503,"at":"2026-11-11T14:48:13.978Z","check":"SC2 CE2112T","engine":"chromium","path":"/module/CE2112T","source":"network","status":200,"ms":238,"cache":null,"version":"965aaf9","attempt":1}
+{"n":504,"at":"2026-11-11T14:48:23.275Z","check":"hidden BME5304","engine":"chromium","path":"/?q=BME5304&sem=2&ng=1&study=ug3","source":"network","status":200,"ms":48,"cache":"HIT","version":null,"attempt":1}
+{"n":505,"at":"2026-11-11T14:48:23.364Z","check":"hidden BME5304","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":506,"at":"2026-11-11T14:48:23.366Z","check":"hidden BME5304","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":507,"at":"2026-11-11T14:48:23.367Z","check":"hidden BME5304","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":508,"at":"2026-11-11T14:48:23.368Z","check":"hidden BME5304","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":509,"at":"2026-11-11T14:48:23.368Z","check":"hidden BME5304","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":510,"at":"2026-11-11T14:48:23.370Z","check":"hidden BME5304","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":511,"at":"2026-11-11T14:48:23.370Z","check":"hidden BME5304","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":512,"at":"2026-11-11T14:48:23.371Z","check":"hidden BME5304","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":513,"at":"2026-11-11T14:48:23.372Z","check":"hidden BME5304","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":514,"at":"2026-11-11T14:48:23.373Z","check":"hidden BME5304","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":515,"at":"2026-11-11T14:48:23.373Z","check":"hidden BME5304","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":516,"at":"2026-11-11T14:48:23.374Z","check":"hidden BME5304","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":517,"at":"2026-11-11T14:48:23.374Z","check":"hidden BME5304","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":518,"at":"2026-11-11T14:48:23.375Z","check":"hidden BME5304","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":519,"at":"2026-11-11T14:48:23.375Z","check":"hidden BME5304","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":520,"at":"2026-11-11T14:48:23.422Z","check":"hidden BME5304","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":521,"at":"2026-11-11T14:48:23.428Z","check":"hidden BME5304","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":522,"at":"2026-11-11T14:48:23.430Z","check":"hidden BME5304","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":523,"at":"2026-11-11T14:48:23.433Z","check":"hidden BME5304","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":524,"at":"2026-11-11T14:48:23.446Z","check":"hidden BME5304","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":525,"at":"2026-11-11T14:48:27.277Z","check":"hidden BME5304","engine":"chromium","path":"/search?q=BME5304&sem=2&ng=1&study=ug3","source":"network","status":200,"ms":402,"cache":null,"version":"965aaf9","attempt":1}
+{"n":526,"at":"2026-11-11T14:48:27.775Z","check":"hidden BME5304","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":527,"at":"2026-11-11T14:48:31.283Z","check":"hidden BME5304","engine":"chromium","path":"/module/BME5304","source":"network","status":200,"ms":164,"cache":null,"version":"965aaf9","attempt":1}
+{"n":528,"at":"2026-11-11T14:48:35.285Z","check":"hidden MLE2301","engine":"chromium","path":"/?q=MLE2301&sem=2&ng=1&study=ug3","source":"network","status":200,"ms":69,"cache":"HIT","version":null,"attempt":1}
+{"n":529,"at":"2026-11-11T14:48:35.410Z","check":"hidden MLE2301","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":530,"at":"2026-11-11T14:48:35.411Z","check":"hidden MLE2301","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":531,"at":"2026-11-11T14:48:35.412Z","check":"hidden MLE2301","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":532,"at":"2026-11-11T14:48:35.413Z","check":"hidden MLE2301","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":533,"at":"2026-11-11T14:48:35.414Z","check":"hidden MLE2301","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":534,"at":"2026-11-11T14:48:35.414Z","check":"hidden MLE2301","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":535,"at":"2026-11-11T14:48:35.415Z","check":"hidden MLE2301","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":536,"at":"2026-11-11T14:48:35.415Z","check":"hidden MLE2301","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":537,"at":"2026-11-11T14:48:35.415Z","check":"hidden MLE2301","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":538,"at":"2026-11-11T14:48:35.416Z","check":"hidden MLE2301","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":539,"at":"2026-11-11T14:48:35.417Z","check":"hidden MLE2301","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":540,"at":"2026-11-11T14:48:35.418Z","check":"hidden MLE2301","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":541,"at":"2026-11-11T14:48:35.419Z","check":"hidden MLE2301","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":542,"at":"2026-11-11T14:48:35.419Z","check":"hidden MLE2301","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":543,"at":"2026-11-11T14:48:35.420Z","check":"hidden MLE2301","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":544,"at":"2026-11-11T14:48:35.483Z","check":"hidden MLE2301","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":545,"at":"2026-11-11T14:48:35.484Z","check":"hidden MLE2301","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":546,"at":"2026-11-11T14:48:35.489Z","check":"hidden MLE2301","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":547,"at":"2026-11-11T14:48:35.492Z","check":"hidden MLE2301","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":548,"at":"2026-11-11T14:48:35.516Z","check":"hidden MLE2301","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":549,"at":"2026-11-11T14:48:39.286Z","check":"hidden MLE2301","engine":"chromium","path":"/search?q=MLE2301&sem=2&ng=1&study=ug3","source":"network","status":200,"ms":332,"cache":null,"version":"965aaf9","attempt":1}
+{"n":550,"at":"2026-11-11T14:48:39.644Z","check":"hidden MLE2301","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":551,"at":"2026-11-11T14:48:43.288Z","check":"hidden MLE2301","engine":"chromium","path":"/module/MLE2301","source":"network","status":200,"ms":134,"cache":null,"version":"965aaf9","attempt":1}
+{"n":552,"at":"2026-11-11T14:48:47.290Z","check":"hidden PP5166","engine":"chromium","path":"/?q=PP5166&sem=2&ng=1&study=ug3","source":"network","status":200,"ms":55,"cache":"HIT","version":null,"attempt":1}
+{"n":553,"at":"2026-11-11T14:48:47.445Z","check":"hidden PP5166","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":554,"at":"2026-11-11T14:48:47.452Z","check":"hidden PP5166","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":555,"at":"2026-11-11T14:48:47.454Z","check":"hidden PP5166","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":556,"at":"2026-11-11T14:48:47.461Z","check":"hidden PP5166","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":557,"at":"2026-11-11T14:48:47.469Z","check":"hidden PP5166","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":558,"at":"2026-11-11T14:48:47.477Z","check":"hidden PP5166","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":559,"at":"2026-11-11T14:48:47.482Z","check":"hidden PP5166","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":560,"at":"2026-11-11T14:48:47.483Z","check":"hidden PP5166","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":561,"at":"2026-11-11T14:48:47.486Z","check":"hidden PP5166","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":562,"at":"2026-11-11T14:48:47.486Z","check":"hidden PP5166","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":563,"at":"2026-11-11T14:48:47.487Z","check":"hidden PP5166","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":564,"at":"2026-11-11T14:48:47.494Z","check":"hidden PP5166","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":565,"at":"2026-11-11T14:48:47.498Z","check":"hidden PP5166","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":566,"at":"2026-11-11T14:48:47.504Z","check":"hidden PP5166","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":567,"at":"2026-11-11T14:48:47.509Z","check":"hidden PP5166","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":568,"at":"2026-11-11T14:48:47.591Z","check":"hidden PP5166","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":569,"at":"2026-11-11T14:48:47.592Z","check":"hidden PP5166","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":570,"at":"2026-11-11T14:48:47.612Z","check":"hidden PP5166","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":571,"at":"2026-11-11T14:48:47.617Z","check":"hidden PP5166","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":572,"at":"2026-11-11T14:48:47.743Z","check":"hidden PP5166","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":573,"at":"2026-11-11T14:48:51.293Z","check":"hidden PP5166","engine":"chromium","path":"/search?q=PP5166&sem=2&ng=1&study=ug3","source":"network","status":200,"ms":456,"cache":null,"version":"965aaf9","attempt":1}
+{"n":574,"at":"2026-11-11T14:48:51.777Z","check":"hidden PP5166","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":575,"at":"2026-11-11T14:48:55.293Z","check":"hidden PP5166","engine":"chromium","path":"/module/PP5166","source":"network","status":200,"ms":83,"cache":null,"version":"965aaf9","attempt":1}
+{"n":576,"at":"2026-11-11T14:49:01.319Z","check":"partial SM51","engine":"chromium","path":"/?q=SM51&sem=2&ng=1&study=ug3","source":"network","status":200,"ms":72,"cache":"HIT","version":null,"attempt":1}
+{"n":577,"at":"2026-11-11T14:49:01.427Z","check":"partial SM51","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":578,"at":"2026-11-11T14:49:01.428Z","check":"partial SM51","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":579,"at":"2026-11-11T14:49:01.436Z","check":"partial SM51","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":580,"at":"2026-11-11T14:49:01.437Z","check":"partial SM51","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":581,"at":"2026-11-11T14:49:01.438Z","check":"partial SM51","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":582,"at":"2026-11-11T14:49:01.439Z","check":"partial SM51","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":583,"at":"2026-11-11T14:49:01.440Z","check":"partial SM51","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":584,"at":"2026-11-11T14:49:01.445Z","check":"partial SM51","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":585,"at":"2026-11-11T14:49:01.447Z","check":"partial SM51","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":586,"at":"2026-11-11T14:49:01.450Z","check":"partial SM51","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":587,"at":"2026-11-11T14:49:01.451Z","check":"partial SM51","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":588,"at":"2026-11-11T14:49:01.458Z","check":"partial SM51","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":589,"at":"2026-11-11T14:49:01.459Z","check":"partial SM51","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":590,"at":"2026-11-11T14:49:01.461Z","check":"partial SM51","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":591,"at":"2026-11-11T14:49:01.461Z","check":"partial SM51","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":592,"at":"2026-11-11T14:49:01.497Z","check":"partial SM51","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":593,"at":"2026-11-11T14:49:01.518Z","check":"partial SM51","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":594,"at":"2026-11-11T14:49:01.559Z","check":"partial SM51","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":595,"at":"2026-11-11T14:49:01.566Z","check":"partial SM51","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":596,"at":"2026-11-11T14:49:01.594Z","check":"partial SM51","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":597,"at":"2026-11-11T14:49:05.321Z","check":"partial SM51","engine":"chromium","path":"/search?q=SM51&sem=2&ng=1&study=ug3","source":"network","status":200,"ms":132,"cache":null,"version":"965aaf9","attempt":1}
+{"n":598,"at":"2026-11-11T14:49:09.327Z","check":"partial SM51","engine":"chromium","path":"/search?q=SM51&sem=1&ng=1&study=ug3","source":"network","status":200,"ms":207,"cache":null,"version":"965aaf9","attempt":1}
+{"n":599,"at":"2026-11-11T14:49:13.332Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/?q=ACC1701XB&sem=1&ng=1&study=ug2","source":"network","status":200,"ms":674,"cache":"HIT","version":null,"attempt":1}
+{"n":600,"at":"2026-11-11T14:49:14.110Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":601,"at":"2026-11-11T14:49:14.113Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":602,"at":"2026-11-11T14:49:14.115Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":603,"at":"2026-11-11T14:49:14.117Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":604,"at":"2026-11-11T14:49:14.118Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":605,"at":"2026-11-11T14:49:14.119Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":606,"at":"2026-11-11T14:49:14.125Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":607,"at":"2026-11-11T14:49:14.125Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":608,"at":"2026-11-11T14:49:14.132Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":609,"at":"2026-11-11T14:49:14.136Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":610,"at":"2026-11-11T14:49:14.137Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":611,"at":"2026-11-11T14:49:14.137Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":612,"at":"2026-11-11T14:49:14.138Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":613,"at":"2026-11-11T14:49:14.139Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":614,"at":"2026-11-11T14:49:14.145Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":615,"at":"2026-11-11T14:49:14.254Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":616,"at":"2026-11-11T14:49:14.280Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":617,"at":"2026-11-11T14:49:14.283Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":618,"at":"2026-11-11T14:49:14.285Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":619,"at":"2026-11-11T14:49:14.317Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":620,"at":"2026-11-11T14:49:17.349Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/search?q=ACC1701XB&sem=1&ng=1&study=ug2","source":"network","status":200,"ms":1312,"cache":null,"version":"965aaf9","attempt":1}
+{"n":621,"at":"2026-11-11T14:49:18.719Z","check":"fold chromium 390×664 Sem 1","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":622,"at":"2026-11-11T14:49:21.368Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/?q=ACC1701XB&ng=1&study=ug2","source":"network","status":200,"ms":125,"cache":"HIT","version":null,"attempt":1}
+{"n":623,"at":"2026-11-11T14:49:21.554Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":624,"at":"2026-11-11T14:49:21.558Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":625,"at":"2026-11-11T14:49:21.559Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":626,"at":"2026-11-11T14:49:21.559Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":627,"at":"2026-11-11T14:49:21.560Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":628,"at":"2026-11-11T14:49:21.566Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":629,"at":"2026-11-11T14:49:21.567Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":630,"at":"2026-11-11T14:49:21.567Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":631,"at":"2026-11-11T14:49:21.573Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":632,"at":"2026-11-11T14:49:21.574Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":633,"at":"2026-11-11T14:49:21.574Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":634,"at":"2026-11-11T14:49:21.576Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":635,"at":"2026-11-11T14:49:21.578Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":636,"at":"2026-11-11T14:49:21.581Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":637,"at":"2026-11-11T14:49:21.581Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":638,"at":"2026-11-11T14:49:21.875Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":639,"at":"2026-11-11T14:49:21.878Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":640,"at":"2026-11-11T14:49:21.880Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":641,"at":"2026-11-11T14:49:21.882Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":642,"at":"2026-11-11T14:49:21.893Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":643,"at":"2026-11-11T14:49:25.369Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/search?q=ACC1701XB&ng=1&study=ug2","source":"network","status":200,"ms":771,"cache":null,"version":"965aaf9","attempt":1}
+{"n":644,"at":"2026-11-11T14:49:26.204Z","check":"fold chromium 390×664 both semesters","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":645,"at":"2026-11-11T14:49:28.208Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/?q=ACC1701XB&sem=1&ng=1&study=ug2","source":"memory","status":200}
+{"n":646,"at":"2026-11-11T14:49:28.217Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":647,"at":"2026-11-11T14:49:28.217Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":648,"at":"2026-11-11T14:49:28.218Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/styles.css","source":"memory","status":200}
+{"n":649,"at":"2026-11-11T14:49:28.219Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/app.js","source":"memory","status":200}
+{"n":650,"at":"2026-11-11T14:49:28.219Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/api.js","source":"memory","status":200}
+{"n":651,"at":"2026-11-11T14:49:28.220Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/detail.js","source":"memory","status":200}
+{"n":652,"at":"2026-11-11T14:49:28.220Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/dom.js","source":"memory","status":200}
+{"n":653,"at":"2026-11-11T14:49:28.220Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/explain.js","source":"memory","status":200}
+{"n":654,"at":"2026-11-11T14:49:28.221Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/format.js","source":"memory","status":200}
+{"n":655,"at":"2026-11-11T14:49:28.221Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/icons.js","source":"memory","status":200}
+{"n":656,"at":"2026-11-11T14:49:28.221Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/keys.js","source":"memory","status":200}
+{"n":657,"at":"2026-11-11T14:49:28.222Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/messages.js","source":"memory","status":200}
+{"n":658,"at":"2026-11-11T14:49:28.226Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/nav.js","source":"memory","status":200}
+{"n":659,"at":"2026-11-11T14:49:28.228Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/render.js","source":"memory","status":200}
+{"n":660,"at":"2026-11-11T14:49:28.229Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/state.js","source":"memory","status":200}
+{"n":661,"at":"2026-11-11T14:49:28.245Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/intent-chips.js","source":"memory","status":200}
+{"n":662,"at":"2026-11-11T14:49:28.248Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/intents.js","source":"memory","status":200}
+{"n":663,"at":"2026-11-11T14:49:28.270Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":664,"at":"2026-11-11T14:49:28.271Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":665,"at":"2026-11-11T14:49:28.274Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/facets","source":"memory","status":200}
+{"n":666,"at":"2026-11-11T14:49:28.286Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/search?q=ACC1701XB&sem=1&ng=1&study=ug2","source":"memory","status":200}
+{"n":667,"at":"2026-11-11T14:49:28.321Z","check":"fold webkit iPhone 13 Sem 1","engine":"webkit","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":668,"at":"2026-11-11T14:49:28.349Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/?q=ACC1701XB&ng=1&study=ug2","source":"memory","status":200}
+{"n":669,"at":"2026-11-11T14:49:28.359Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/styles.css","source":"memory","status":200}
+{"n":670,"at":"2026-11-11T14:49:28.360Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/app.js","source":"memory","status":200}
+{"n":671,"at":"2026-11-11T14:49:28.372Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/intent-chips.js","source":"memory","status":200}
+{"n":672,"at":"2026-11-11T14:49:28.373Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/intents.js","source":"memory","status":200}
+{"n":673,"at":"2026-11-11T14:49:28.379Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":674,"at":"2026-11-11T14:49:28.382Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":675,"at":"2026-11-11T14:49:28.385Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/facets","source":"memory","status":200}
+{"n":676,"at":"2026-11-11T14:49:28.386Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/search?q=ACC1701XB&ng=1&study=ug2","source":"memory","status":200}
+{"n":677,"at":"2026-11-11T14:49:28.440Z","check":"fold webkit iPhone 13 both semesters","engine":"webkit","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":678,"at":"2026-11-11T14:49:28.609Z","check":"summary","url":"https://nusmodfinder.rcn.sh","corpus":"production","seed":5,"sent":99,"pass":32,"fail":0,"failures":[]}
