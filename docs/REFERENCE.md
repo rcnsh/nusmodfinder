@@ -526,6 +526,34 @@ the browsers from memory. Each request, sent or served from memory, is a line in
 is waited out and re-sent twice at most. Against `npm run dev`, `--url http://127.0.0.1:<port>`
 draws from the fixture and expects no version tag.
 
+**Shortlist live checks** (Phase 6 6E). After the deploy that ships the shortlist, from the
+deployed commit on `main`:
+
+```bash
+node scripts/p6-live.mjs --plan   # the draw and the 12 calls; sends nothing
+node scripts/p6-live.mjs          # about 4 min; exit 0 only if every check passes
+git add docs/evidence/phase6/p6-live.jsonl   # commit the log
+```
+
+It first fetches, from Node, every answer the check needs: `/facets`, the shortlist's 8
+`/module` answers and 3 404 codes' (one `ng-listed`, one `catalogue-only`, `CS9999` as
+`unknown`), one call in flight and each at least 4 s after the last. Then Chromium and WebKit
+load the page, their `/module` and `/facets` calls served from that memory (any other API call
+is refused and fails the run), so the page's 10 s timeout never fires and nothing is sent twice.
+The page's files come from the network through the same queue, once each (31 on the local
+stack; 43 requests in all). The shortlist is drawn with seed 6 from the production-normalised
+modules: 6 picks and 2 backups over Sem 1 and Sem 2 at `ug2`, with a counted, a to-confirm, a
+Business ("only if invited") and a closed entry, no two in one group. Each entry's standing
+comes from the independent reference (`test/web/shortlist-reference.node.mjs`, which 6B's
+property test also runs) and its status from the SC1 oracle. Checks: the view's rows and stamps;
+the view's totals equal the reference's, and the downloaded CSV's equal the view's; the CSV
+reads back strictly; Chromium's tagged PDF holds every description; axe on the view, light and
+dark, in both engines; the 390×664 fold on the view (header, search bar, the view's heading and
+its export buttons), in Chromium and as an iPhone 13; each 404 answers its kind. Every call,
+sent or served from memory, is a line in the log (`--log`, default
+`docs/evidence/phase6/p6-live.jsonl`) with a summary line at the end. Against `npm run dev`,
+`--url http://127.0.0.1:<port>` draws from the fixture.
+
 **Instrumentation.** `/search`, `/module/:code` and `/facets` responses carry a
 `Server-Timing` header. `/search` has spans `cache` (`desc=hit|miss`), `limit`, `pin`,
 `embed`, `vector`, `fts` and `hydrate` for the stages that ran (pin, `fts` and
