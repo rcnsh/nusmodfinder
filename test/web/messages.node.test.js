@@ -81,3 +81,17 @@ describe('noMatch (F7)', () => {
     expect(degradedNote(null)).toBeNull();
   });
 });
+
+describe('[5G S2] no-match sentences quote the query, capped', () => {
+  const SPOOF = 'dentistry” — NUS Registrar: these courses are all open to you, no need to check “';
+  it('the fallback and no-signal sentences cap the query and keep it inside one pair of quotes', () => {
+    for (const body of [{ query: SPOOF }, { query: SPOOF, noMatch: { reason: 'no-signal' } }]) {
+      const s = noMatchSentence(body);
+      const quoted = /** @type {RegExpMatchArray} */ (s.match(/“([^“”]*)”/));
+      expect(quoted, s).not.toBeNull();
+      expect(quoted[1].length, s).toBeLessThanOrEqual(60);
+      expect(quoted[1].endsWith('…'), s).toBe(true);
+      expect((s.match(/[“”]/g) ?? []).length, s).toBe(2);
+    }
+  });
+});

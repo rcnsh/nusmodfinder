@@ -15,7 +15,7 @@
 // count shows.
 import { h, setChildren } from './dom.js';
 import { NOT_OFFERED_STAMP, codesCount, codesOnly, noteLead, noteText, notOfferedLine, partialCodeLine, stampText, typedCodes, unpinnedLine } from './explain.js';
-import { examParts, semLabel } from './format.js';
+import { examParts, quoteUser, semLabel } from './format.js';
 import { icon } from './icons.js';
 import { degradedNote, noMatchSentence } from './messages.js';
 import { isCode } from './state.js';
@@ -355,7 +355,7 @@ export function showResults(t, data, ctx) {
     const next = data.noMatch ? null
       : ctx.removableFilters > 0 ? 'Remove a filter above to see more courses, or try other words.'
         : box ? null : 'Try other words for the topic, or fewer of them.';
-    const head = !data.noMatch && box ? `No results for “${query}”.` : noMatchSentence({ query, noMatch: data.noMatch });
+    const head = !data.noMatch && box ? `No results for ${quoteUser(query)}.` : noMatchSentence({ query, noMatch: data.noMatch });
     setStatus(t, [h('div', { class: 'empty' }, h('p', { class: 'empty-head' }, head), relatedLine, next ? h('p', { class: 'next' }, next) : null), box, loose, noteLine]);
     out.announce = sentence(head, related.length ? `Related courses offered this year: ${related.join(', ')}.` : '', next, hb?.summary, note);
     return out;
@@ -369,7 +369,8 @@ export function showResults(t, data, ctx) {
     countLine = h('p', { class: 'count' }, h('strong', null, count), rest);
   } else {
     const count = `${results.length} course${results.length === 1 ? '' : 's'}`;
-    const typed = `“${typedQuery}”`;
+    // The student's own words, capped and kept inside the quotes (5G S2).
+    const typed = quoteUser(typedQuery);
     const verb = results.length === 1 ? 'matches' : 'match';
     out.announce = sentence(`${count} ${verb} ${typed}.`, hb?.summary, note);
     countLine = h('p', { class: 'count' }, h('strong', null, count), ` ${verb} `, h('span', { class: 'q' }, typed));

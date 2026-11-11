@@ -94,6 +94,33 @@ export function examLines(exams) {
   return list.length ? list.map(examLine) : ['No final exam listed'];
 }
 
+/** The most of a student's own text the page repeats in its sentences (5G S2). */
+export const ECHO_MAX = 60;
+/** Characters that reorder or hide text: bidi controls and marks, zero-width marks, C0 and C1 controls. */
+// eslint-disable-next-line no-control-regex -- matching control characters is the point: they are removed.
+const HIDDEN = /[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]/g;
+
+/** Whether text holds a character that reorders or hides text (HIDDEN). @param {string} text */
+export const hasHidden = (text) => text.replace(HIDDEN, '') !== text;
+/** Double quote marks, which could close the page's quotes early. */
+const QUOTE_MARKS = /[“”„‟"«»〝〞＂]/g;
+
+/**
+ * A student's own text (the query, from the search box or a link) as the
+ * page's sentences repeat it (5G S2): nothing hidden or reordered, no double
+ * quote mark (an apostrophe instead), and at most ECHO_MAX characters, cut
+ * with an ellipsis, so a crafted link can't add a sentence in the site's voice.
+ * @param {unknown} text
+ */
+export function echoText(text) {
+  const clean = String(text ?? '').replace(HIDDEN, '').replace(QUOTE_MARKS, "'").replace(/\s+/g, ' ').trim();
+  const chars = [...clean];
+  return chars.length > ECHO_MAX ? `${chars.slice(0, ECHO_MAX - 1).join('').trimEnd()}…` : clean;
+}
+
+/** echoText inside curly quotes: “machine learning”. @param {unknown} text */
+export const quoteUser = (text) => `“${echoText(text)}”`;
+
 /**
  * NUS's prerequisite rule language with the spaces it drops put back around
  * THEN, AND and OR ("DegreeTHENmust", "at least DANDmust", ")OR("). Only

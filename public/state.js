@@ -13,6 +13,8 @@
 // - `pick` and `alt` are reserved for Phase 6: kept through every round trip
 //   and transition, used for nothing yet.
 
+import { hasHidden } from './format.js';
+
 /**
  * @typedef {{
  *   q: string, sem: string, level: string, credits: string, faculty: string,
@@ -70,6 +72,14 @@ export function emptyState() {
   return { q: '', sem: '', level: '', credits: '', faculty: '', ng: false, study: '', ignore: [], open: '', from: '', pick: [], alt: [] };
 }
 
+/**
+ * A faculty name as a link may give it (5G S2): every real one is under 40
+ * characters of plain text, so anything longer, or with a control, bidi or
+ * zero-width character, is not one, and is dropped before it becomes a chip.
+ * @param {string} v
+ */
+const facultyOk = (v) => v.length <= 60 && !hasHidden(v);
+
 /** @param {string | null} v @param {(v: string) => boolean} ok */
 const keep = (v, ok) => (v !== null && ok(v) ? v : '');
 
@@ -91,7 +101,7 @@ export function parseState(params) {
     sem: keep(params.get('sem'), (v) => SEMESTERS.some((o) => o.value === v)),
     level: keep(params.get('level'), (v) => /^[1-8]$/.test(v)),
     credits: keep(params.get('credits'), (v) => /^\d{1,2}$/.test(v)),
-    faculty: (params.get('faculty') ?? '').trim(),
+    faculty: keep((params.get('faculty') ?? '').trim(), facultyOk),
     ng,
     study: ng ? keep(params.get('study'), (v) => STUDIES.some((o) => o.value === v)) : '',
     ignore: [...new Set((params.get('ignore') ?? '').split(',').map((s) => s.trim()).filter((s) => IGNORABLE.includes(s)))].sort(),

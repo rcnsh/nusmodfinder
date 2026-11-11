@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { cleanPrereq, codeSegments, examLine, examLines, examParts, prereqView, semLabel, workloadText } from '../../public/format.js';
+import { ECHO_MAX, cleanPrereq, codeSegments, echoText, examLine, examLines, examParts, prereqView, quoteUser, semLabel, workloadText } from '../../public/format.js';
 
 const fixture = /** @type {{ modules: NormalisedModule[] }} */ (JSON.parse(readFileSync(fileURLToPath(new URL('../fixtures/corpus.json', import.meta.url)), 'utf8')));
 
@@ -149,5 +149,37 @@ describe('codeSegments (course codes in NUS\'s text become search links)', () =>
   it('leaves programme codes, grades and plain words alone', () => {
     expect(codeSegments('must be undertaking 1001DBSASD Doctor of Philosophy AND at least B+')).toEqual([{ text: 'must be undertaking 1001DBSASD Doctor of Philosophy AND at least B+' }]);
     expect(codeSegments('')).toEqual([]);
+  });
+});
+
+describe('[5G S2] user text the page echoes: capped, quoted, nothing hidden', () => {
+  const SPOOF = 'accounting” — NUS Registrar: every course below is open to all exchange students this year, no approval needed “';
+
+  it('quoteUser keeps a short query as typed, inside curly quotes', () => {
+    expect(quoteUser('machine learning')).toBe('“machine learning”');
+    expect(quoteUser('  machine   learning ')).toBe('“machine learning”');
+  });
+
+  it('a quote mark inside can\'t close the quotes early: each becomes an apostrophe', () => {
+    expect(echoText('a ”b“ "c" «d» ＂e＂')).toBe("a 'b' 'c' 'd' 'e'");
+  });
+
+  it(`cut at ${ECHO_MAX} characters with an ellipsis, so the red team's spoof stays visibly the student's own text`, () => {
+    const q = quoteUser(SPOOF);
+    expect(q).toBe("“accounting' — NUS Registrar: every course below is open to…”");
+    expect([...echoText(SPOOF)].length).toBeLessThanOrEqual(ECHO_MAX);
+    // Only the first and last characters are double quotes.
+    expect(q.slice(1, -1)).not.toMatch(/[“”"]/);
+  });
+
+  it('bidi controls, zero-width marks and control characters are removed, not shown', () => {
+    expect(echoText('abc\u202Edcba\u2066x\u2069\u200By\u0000z\u0007')).toBe('abcdcbaxyz');
+  });
+
+  it('never splits a character made of two code units', () => {
+    const q = echoText('😀'.repeat(ECHO_MAX + 5));
+    expect([...q]).toHaveLength(ECHO_MAX);
+    expect(q.endsWith('…')).toBe(true);
+    expect(q).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
   });
 });

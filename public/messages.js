@@ -4,6 +4,8 @@
 // test/web/messages.node.test.js reads src/ for every code and reason the
 // Worker can answer, so a new one fails the tests until it has a sentence here.
 
+import { quoteUser } from './format.js';
+
 const TRY_AGAIN = 'Try again in a moment.';
 
 /**
@@ -50,8 +52,8 @@ export function errorSentence(error) {
  * @typedef {{ query: string, noMatch?: NoMatch | null }} NoMatchBody
  */
 
-/** @param {string} q */
-const quoted = (q) => `“${q}”`;
+/** The student's query, capped and quoted (5G S2). */
+const quoted = quoteUser;
 
 /**
  * By noMatch reason (src/search.js, src/query-intent.js).

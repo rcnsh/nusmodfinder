@@ -819,13 +819,26 @@ fetchFacets().then((f) => {
       if (!region.hidden && !region.contains(document.activeElement)) loadDetail(code, region, { quiet: true });
     }
   }
+  /** @type {string[]} */
+  const names = [];
   for (const x of Array.isArray(f.faculties) ? f.faculties : []) {
     const name = String(x?.name ?? '');
     if (!name) continue;
+    names.push(name);
     const label = `${name} (${Number(x.count) || 0})`;
     const existing = [...els.faculty.options].find((o) => o.value === name);
     if (existing) existing.text = label;
     else els.faculty.add(new Option(label, name));
+  }
+  // A link's faculty that /facets doesn't list is no faculty (5G S2): it would
+  // only stand as a chip in the site's voice over no results. Drop it, and its
+  // option, and search without it (a settings change: replace).
+  if (names.length) {
+    for (const o of [...els.faculty.options]) if (o.value && !names.includes(o.value)) o.remove();
+    if (current.faculty && !names.includes(current.faculty)) {
+      els.faculty.value = '';
+      act({ type: 'settings', form: { ...readForm(), q: current.q, faculty: '' } });
+    }
   }
   if (f.ng) {
     els.ngHint.textContent = f.ng.count
