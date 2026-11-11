@@ -29,7 +29,8 @@ the student's year of study at home (`ug4` = 4th year or later); without it `/se
 400 `study-required`. Under `ng=1`, `sem=1|2` picks the semester the student would come in
 (the NG list's semesters, not NUSMods'), no `sem` means either, and `sem=3|4` answers no
 courses with `noMatch: { reason: "ng-special-term" }`: the NG list has no special-term data.
-Each result then carries `exchange: { status: "open" | "note", reasons: [{ id, kind, text }] }`.
+Each result then carries `exchange: { status: "open" | "note", reasons: [{ id, kind, text }] }`
+(the reasons include R3's year-of-study note, below).
 Only `true` narrows — `ng=0` is ignored, and `study` is ignored without `ng=1`.
 
 `/module/:code` (Phase 5 5A) also answers `examDates`, one `{ sem, date, durationMins }` per
@@ -142,6 +143,19 @@ request; a zero or missing mask is closed. Reason texts ship with the Worker
 (`data/ng-reasons.json`, built by `scripts/build-ng-reasons.mjs`), so rewording one rewrites no
 rows. An independent oracle (`test/sc1/oracle.node.mjs`) checks the rules on every module, and
 the `sc1` CI job checks every search path against it.
+
+**Year of study (Jacob's ruling R3, ADR 0008).** A NUS prerequisite that requires an
+undergraduate year ("If undertaking an Undergraduate Degree THEN must be Year 4") doesn't change
+a course's exchange status, but an undergraduate whose home year is below that year gets one more
+note, `{ id: "prereq:year-of-study", kind: "year" }`: "NUS lists this course for Year 4 students.
+Ask the department whether your year at your home university counts." An open course with it is
+`note`; a closed one stays closed without it. It is read per request from the stored prerequisite
+by `src/year-note.js` (no stored column, so no data change): `/module/:code` reads the row's
+`prerequisite`, and `/search`'s hydrate reads it as `year_prereq`, only where it mentions a year.
+Only unambiguous texts give it: one undergraduate branch (or none) and a year item that no OR sits
+beside at any level. A year that is one alternative ("GPA of 3.2 or greater OR must be Year 4"),
+several "if undertaking" branches, or a graduate student give none. The SC1 oracle reads the
+prerequisite on its own (`prereqYears`, `oracleShown`), and both suites check every path against it.
 
 The extract's `updatedAsAt` date reaches `/facets` (and so the UI) through ingest: the
 ingest script posts it to `/admin/facets`, which stores it as `meta.ng_list`. Re-run

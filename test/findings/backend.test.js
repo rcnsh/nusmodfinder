@@ -399,6 +399,8 @@ describe('B8', () => {
     for (const col of ['description', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash']) {
       expect(cols).not.toContain(col);
     }
+    // R3 (ADR 0008): the prerequisite only where it mentions a year, for the year-of-study note.
+    expect(cols).toContain("CASE WHEN prerequisite LIKE '%year%' THEN prerequisite END AS year_prereq");
   });
 
   it('[B8 fixed] a candidate missing from D1 (stale vector) is skipped and the next one hydrated', async () => {

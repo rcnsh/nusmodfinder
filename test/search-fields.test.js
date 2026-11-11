@@ -14,7 +14,7 @@ import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
 import { exchangeAt } from '../src/ng-reasons.js';
-import { oracle } from './sc1/oracle.node.mjs';
+import { oracleShown } from './sc1/oracle.node.mjs';
 import { callJson, fixture, seed } from './helpers.js';
 
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
@@ -112,8 +112,8 @@ describe('exchangeBySem', () => {
         for (const r of body.results) {
           expect(Object.keys(r.exchangeBySem), `${path} ${r.code}`).toEqual(['1', '2']);
           for (const sem of /** @type {const} */ ([1, 2])) {
-            expect(r.exchangeBySem[sem].status, `${path} ${r.code} sem ${sem}`).toBe(oracle(mod(r.code), { sem, study }));
-            const row = { ng: mod(r.code).ng ? 1 : 0, ng_allow: mod(r.code).ngAllow, ng_rules: mod(r.code).ngRules === null ? null : JSON.stringify(mod(r.code).ngRules) };
+            expect(r.exchangeBySem[sem].status, `${path} ${r.code} sem ${sem}`).toBe(oracleShown(mod(r.code), { sem, study }));
+            const row = { ng: mod(r.code).ng ? 1 : 0, ng_allow: mod(r.code).ngAllow, ng_rules: mod(r.code).ngRules === null ? null : JSON.stringify(mod(r.code).ngRules), prerequisite: mod(r.code).prerequisite };
             expect(r.exchangeBySem[sem], `${path} ${r.code} sem ${sem}`).toEqual(exchangeAt(row, bitOf(sem, study)));
             checked++;
           }

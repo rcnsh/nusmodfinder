@@ -6,8 +6,15 @@
 // group-data.js: nothing here runs rule logic.
 import file from '../data/ng-reasons.json';
 import { NG_SEMS, OFF_NG_LIST, STUDIES } from './ng-bit.js';
+import { yearNote } from './year-note.js';
 
 /** @typedef {{ id: string, kind: string, text: string }} NgReason */
+/**
+ * The columns exchange status reads: /module/:code's row has `prerequisite`,
+ * a /search row `year_prereq` (src/modules.js RESULT_COLUMNS).
+ * @typedef {{ ng?: number, ng_allow?: number | null, ng_rules?: string | null,
+ *   prerequisite?: string | null, year_prereq?: string | null }} ExchangeRow
+ */
 
 const GENERIC = 'Restricted for exchange students; see the source documents.';
 /** @type {Record<string, { kind: string, text: string, cite: string }>} */
@@ -33,24 +40,33 @@ export const knownReason = (id) => Object.hasOwn(REASONS, id);
 export const NG_SOURCES = file.sources;
 
 /**
- * The stored eligibility of a row at one bit: `open` or `note` where the bit
- * is set, `closed` where it isn't (a missing or zero ng_allow is closed).
- * @param {{ ng?: number, ng_allow?: number | null, ng_rules?: string | null }} row
+ * The eligibility of a row at one bit: `open` or `note` where the bit is set,
+ * `closed` where it isn't (a missing or zero ng_allow is closed), with the
+ * stored reasons. A shown course also gets R3's year-of-study note (ADR 0008,
+ * src/year-note.js) from its prerequisite, read now, never stored: it adds a
+ * note and never closes or opens anything, so the allow mask, the filters and
+ * the order stay the stored ones.
+ * @param {ExchangeRow} row
  * @param {number} bit
  * @returns {{ status: 'open' | 'note' | 'closed', reasons: NgReason[] }}
  */
 export function exchangeAt(row, bit) {
   /** @type {Record<string, string[]> | null} */
   let stored = null;
+  const index = Math.log2(bit);
   try { stored = row.ng_rules ? JSON.parse(row.ng_rules) : null; } catch { /* unreadable: no reasons */ }
-  const ids = stored?.[String(Math.log2(bit))] ?? (row.ng !== 1 ? [OFF_NG_LIST] : []);
+  const ids = stored?.[String(index)] ?? (row.ng !== 1 ? [OFF_NG_LIST] : []);
   const shown = ((row.ng_allow ?? 0) & bit) !== 0;
-  return { status: shown ? (ids.length ? 'note' : 'open') : 'closed', reasons: reasonsFor(ids) };
+  const reasons = reasonsFor(ids);
+  if (!shown) return { status: 'closed', reasons };
+  const year = yearNote(row.prerequisite ?? row.year_prereq, STUDIES[index % STUDIES.length]);
+  if (year) reasons.push(year);
+  return { status: reasons.length ? 'note' : 'open', reasons };
 }
 
 /**
  * Every (semester, study level), as /module/:code answers it.
- * @param {{ ng?: number, ng_allow?: number | null, ng_rules?: string | null }} row
+ * @param {ExchangeRow} row
  */
 export function exchangeAll(row) {
   return NG_SEMS.flatMap((sem, s) => STUDIES.map((study, t) => ({

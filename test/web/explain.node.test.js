@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
-  NOT_OFFERED_STAMP, codesCount, codesOnly, filterMisses, hiddenCodeLine, hiddenCodeStamp, noteText, notOfferedLine, partialCodeLine, prefixLabel, reasonLine, sourceNote, statusText, studyPhrase, typedCodes, unpinnedLine,
+  NOT_OFFERED_STAMP, codesCount, codesOnly, filterMisses, hiddenCodeLine, hiddenCodeStamp, noteLead, noteText, notOfferedLine, partialCodeLine, prefixLabel, reasonLine, sourceNote, statusText, studyPhrase, typedCodes, unpinnedLine,
 } from '../../public/explain.js';
 
 const reasonsFile = JSON.parse(readFileSync(fileURLToPath(new URL('../../data/ng-reasons.json', import.meta.url)), 'utf8'));
@@ -39,6 +39,11 @@ describe('sources and statuses', () => {
     expect(sourceNote('ng-list:not-listed', [])).toBe('NG list');
   });
 
+  it('[R3] the year-of-study note cites the course\'s NUS prerequisite, not either NG list', () => {
+    expect(sourceNote('prereq:year-of-study', SOURCES)).toBe('NUS prerequisite');
+    expect(sourceNote('prereq:year-of-study', null)).toBe('NUS prerequisite');
+  });
+
   it('statusText never leaves the status to colour alone', () => {
     expect(statusText('open')).toBe('Open to exchange students');
     expect(statusText('note')).toBe('Open to exchange students, with conditions');
@@ -67,6 +72,13 @@ describe('noteText (every note in full; C2-3)', () => {
     for (const id of ['2-biz-l1234-priority', '2-biz-major', '3-soc-cg:elsewhere', '1-geog-quota']) {
       expect(noteText(reason(id), 1)).toBe(reasonsFile.reasons[id].text);
     }
+  });
+
+  it('[R3] the year-of-study note leads with "Year of study." and is said in full, with its source', () => {
+    const year = { id: 'prereq:year-of-study', kind: 'year', text: 'NUS lists this course for Year 4 students. Ask the department whether your year at your home university counts.' };
+    expect(noteLead('year')).toBe('Year of study.');
+    expect(noteText(year, 1)).toBe(year.text);
+    expect(reasonLine(year, 1, SOURCES)).toBe('NUS lists this course for Year 4 students. Ask the department whether your year at your home university counts (NUS prerequisite).');
   });
 
   it('reasonLine adds the source and its date', () => {

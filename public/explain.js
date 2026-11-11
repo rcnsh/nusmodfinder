@@ -14,8 +14,10 @@ import { semLabel } from './format.js';
  * @typedef {{ name?: unknown, updatedAsAt?: unknown, url?: unknown }} Source /facets' `ngSources` entry
  */
 
-/** The reason ids the NG list itself gives (src/ng-bit.js, src/eligibility.js); every other comes from the restrictions. */
+/** The reason ids the NG list itself gives (src/ng-bit.js, src/eligibility.js); every other comes from the restrictions, but R3's. */
 const NG_LIST_PREFIX = 'ng-list:';
+/** R3's year-of-study note (src/year-note.js): read from the course's NUS prerequisite, not from either NG list. */
+const PREREQ_PREFIX = 'prereq:';
 const OFF_NG_LIST = 'ng-list:not-listed';
 const NOT_IN_SEM = 'ng-list:not-in-semester';
 
@@ -35,11 +37,13 @@ const semPhrase = (sem) => (sem === '' || sem === 'any' ? 'in either semester' :
 
 /**
  * The source a reason comes from, with its "updated as at" date when /facets
- * gave one: "NG list, updated 01 Sep 2026" or "NG restrictions, …".
+ * gave one: "NG list, updated 01 Sep 2026" or "NG restrictions, …"; R3's
+ * year-of-study note cites the course's NUS prerequisite.
  * @param {string} id the reason id
  * @param {Source[] | null | undefined} sources /facets' `ngSources`, or null when it failed
  */
 export function sourceNote(id, sources) {
+  if (id.startsWith(PREREQ_PREFIX)) return 'NUS prerequisite';
   const restrictions = !id.startsWith(NG_LIST_PREFIX);
   const label = restrictions ? 'NG restrictions' : 'NG list';
   const src = (sources ?? []).find((s) => /restriction/i.test(String(s?.name ?? '')) === restrictions);
@@ -74,7 +78,7 @@ export function stampText(status, sem, notes, short = false) {
 const NOTE_LEADS = Object.freeze({
   quota: 'Places.', major: 'Your major.', semester: 'Timetable.', approval: 'Approval.', graded: 'Grading.',
   partner: 'Partner schools.', 'restricted-elsewhere': 'Conflicting rules.', letter: 'Letter.', audition: 'Audition.',
-  fee: 'Fee.', closed: 'Not open.',
+  fee: 'Fee.', closed: 'Not open.', year: 'Year of study.',
 });
 
 /**
