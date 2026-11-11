@@ -97,7 +97,7 @@ describe('the Worker\'s reason texts (data/ng-reasons.json)', () => {
       faculty: 'Arts and Social Science', level: 5, semesters: [1], ng: true, ngSemesters: [1],
     });
     const { ngAllow, ngRules } = storedEligibility(cas, rules);
-    expect(ngRules[String(Math.log2(bitOf(1, 'ug3')))]).toEqual(['D-grad-levels-closed-exchange']);
+    expect(ngRules?.[String(Math.log2(bitOf(1, 'ug3')))]).toEqual(['D-grad-levels-closed-exchange']);
     expect(ngAllow & bitOf(1, 'ug4')).not.toBe(0);
     const text = file.reasons['D-grad-levels-closed-exchange'].text;
     expect(text).toMatch(/your year of study|to yours/);
