@@ -102,18 +102,26 @@ const HIDDEN = /[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u202a-\u202e\u206
 
 /** Whether text holds a character that reorders or hides text (HIDDEN). @param {string} text */
 export const hasHidden = (text) => text.replace(HIDDEN, '') !== text;
-/** Double quote marks, which could close the page's quotes early. */
-const QUOTE_MARKS = /[“”„‟"«»〝〞＂]/g;
+/**
+ * Marks that could pass for the page's own closing quote: every initial and
+ * final quotation mark (\p{Pi}, \p{Pf}: “ ” ‘ ’ « » ‹ ›), the low ones („ ‚),
+ * and the lookalikes (" ＂ ″ ‶ ‴ 〃 〝 〞 〟 ˮ ״ ❛ ❜ ❝ ❞ 🙶 🙷 …). Each becomes an
+ * apostrophe, as do the apostrophe lookalikes (ʼ ʹ ′ ＇ `), and then a run of
+ * apostrophes is one, since '' reads as a double quote.
+ */
+const QUOTE_MARKS = /[\p{Pi}\p{Pf}„‚"＂″‶‴⁗〃〝〞〟ˮ˝״׳❛❜❝❞❮❯🙶🙷🙸ʹʻʼʽˈ′‵＇`´]/gu;
+const APOSTROPHES = /'{2,}/g;
 
 /**
  * A student's own text (the query, from the search box or a link) as the
- * page's sentences repeat it (5G S2): nothing hidden or reordered, no double
- * quote mark (an apostrophe instead), and at most ECHO_MAX characters, cut
+ * page's sentences repeat it (5G S2): nothing hidden or reordered, no quote
+ * mark or lookalike (one apostrophe instead), and at most ECHO_MAX characters, cut
  * with an ellipsis, so a crafted link can't add a sentence in the site's voice.
  * @param {unknown} text
  */
 export function echoText(text) {
-  const clean = String(text ?? '').replace(HIDDEN, '').replace(QUOTE_MARKS, "'").replace(/\s+/g, ' ').trim();
+  const clean = String(text ?? '').replace(HIDDEN, '').replace(QUOTE_MARKS, "'").replace(APOSTROPHES, "'")
+    .replace(/\s+/g, ' ').trim();
   const chars = [...clean];
   return chars.length > ECHO_MAX ? `${chars.slice(0, ECHO_MAX - 1).join('').trimEnd()}…` : clean;
 }

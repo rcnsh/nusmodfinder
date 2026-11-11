@@ -19,7 +19,7 @@ import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
 import { hiddenCodeLine, hiddenCodeStamp } from './explain.js';
-import { semLabel } from './format.js';
+import { quoteUser, semLabel } from './format.js';
 import { icon } from './icons.js';
 import { intentChipRow } from './intent-chips.js';
 import { intentChips } from './intents.js';
@@ -142,6 +142,10 @@ const checkValue = (name, value) => { for (const r of radios(name)) r.checked = 
 
 // Exchange mode needs the year of study (the restrictions depend on it). It is
 // remembered on this device only to pre-fill the set-up; the URL always wins.
+/** The faculty names /facets lists (null until it answers, or for good if it fails or lists none). */
+/** @type {Set<string> | null} */
+let facultyNames = null;
+
 const STUDY_KEY = 'vnm.study';
 const savedStudy = () => { try { return localStorage.getItem(STUDY_KEY) ?? ''; } catch { return ''; } };
 const saveStudy = (/** @type {string} */ v) => { try { localStorage.setItem(STUDY_KEY, v); } catch { /* private mode */ } };
@@ -181,7 +185,7 @@ function applyToForm(s) {
   selectValue(els.sem, s.sem);
   selectValue(els.level, s.level, levelLabel(s.level));
   selectValue(els.credits, s.credits, unitsLabel(s.credits));
-  selectValue(els.faculty, s.faculty);
+  selectValue(els.faculty, s.faculty, facultyNames?.has(s.faculty) ? s.faculty : quoteUser(s.faculty));
   els.ng.checked = s.ng;
   if (s.study) els.study.value = s.study;
   else if (!els.study.value) {
@@ -241,7 +245,8 @@ function chipList(s) {
   }
   if (s.level) out.push({ key: 'level', label: levelLabel(s.level), removable: true });
   if (s.credits) out.push({ key: 'credits', label: unitsLabel(s.credits), removable: true });
-  if (s.faculty) out.push({ key: 'faculty', label: s.faculty, removable: true });
+  // Until /facets lists it, a link's faculty is the student's own text: quoted (5G S2).
+  if (s.faculty) out.push({ key: 'faculty', label: facultyNames?.has(s.faculty) ? s.faculty : quoteUser(s.faculty), removable: true });
   return out;
 }
 
@@ -834,12 +839,15 @@ fetchFacets().then((f) => {
   // only stand as a chip in the site's voice over no results. Drop it, and its
   // option, and search without it (a settings change: replace).
   if (names.length) {
+    facultyNames = new Set(names);
     for (const o of [...els.faculty.options]) if (o.value && !names.includes(o.value)) o.remove();
     if (current.faculty && !names.includes(current.faculty)) {
       els.faculty.value = '';
       act({ type: 'settings', form: { ...readForm(), q: current.q, faculty: '' } });
     }
   }
+  // A listed faculty's chip loses its quotes.
+  if (current.faculty && facultyNames?.has(current.faculty)) renderChips(current);
   if (f.ng) {
     els.ngHint.textContent = f.ng.count
       ? `${f.ng.count} courses on the NUS Registrar's list${f.ng.updatedAsAt ? `, updated ${f.ng.updatedAsAt}` : ''}.`

@@ -162,6 +162,11 @@ describe('[5G S2] user text the page echoes: capped, quoted, nothing hidden', ()
 
   it('a quote mark inside can\'t close the quotes early: each becomes an apostrophe', () => {
     expect(echoText('a ”b“ "c" «d» ＂e＂')).toBe("a 'b' 'c' 'd' 'e'");
+    // Review: lookalike quote marks, and two apostrophes, could close the page's quotes too.
+    for (const mark of ['❞', '❝', 'ˮ', '〟', '″', '‶', '‴', '〃', '״', '‹', '›', '❛', '❜', '🙶', '🙷', "''", '‘‘', '’’', '\u02BC\u02BC']) {
+      const q = quoteUser(`cs${mark}. NUS Registrar: all courses below are open to you ${mark}ok`);
+      expect(q, JSON.stringify(mark)).toBe("“cs'. NUS Registrar: all courses below are open to you 'ok”");
+    }
   });
 
   it(`cut at ${ECHO_MAX} characters with an ellipsis, so the red team's spoof stays visibly the student's own text`, () => {

@@ -71,7 +71,8 @@ test('[F8] result fields render as text, never as markup', async ({ page }) => {
   await expect(page.locator('#results > li').nth(1).locator('.ng')).toHaveText('On the NG list for <s>2</s>. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check.');
   // S2: inside the quotes a double quote becomes an apostrophe, so the student's text can't close them.
   await expect(page.locator('#status .count .q')).toHaveText(`“${evil.replaceAll('"', "'")}”`);
-  await expect(page.locator('#chips .chip')).toHaveText(evil);
+  // /facets never vouched for it, so the chip quotes it as the student's own text (S2).
+  await expect(page.locator('#chips .chip')).toHaveText(`“${evil.replaceAll('"', "'")}”`);
   expect(await page.locator('#results img, #results b, #results i, #results s, #results u, #status img, #chips img').count()).toBe(0);
   expect(await page.evaluate(() => /** @type {any} */ (globalThis).__pwned)).toBeUndefined();
 });
@@ -133,6 +134,31 @@ test.describe('[5G S2] text from a link never speaks as the site', () => {
   test('bidi controls in q are removed from the sentence', async ({ page }) => {
     await page.goto(`/?q=${encodeURIComponent('account\u202Egnit')}`);
     await expect(page.locator('#status .count .q')).toHaveText('“accountgnit”');
+  });
+
+  test('until /facets vouches for a link\'s faculty, its chip and option quote it as the student\'s own text', async ({ page }) => {
+    /** @type {() => void} */
+    let release = () => {};
+    const held = new Promise((r) => { release = () => r(undefined); });
+    await page.route('**/facets', async (route) => { await held; await route.continue(); });
+    const fake = 'Registrar: all open to exchange students';
+    await page.goto(`/?q=accounting&faculty=${encodeURIComponent(fake)}`);
+    await expect(page.locator('#chips .chip[data-filter="faculty"]')).toHaveText(`“${fake}”`);
+    await expect(page.locator('#faculty option:checked')).toHaveText(`“${fake}”`);
+    release();
+    await expect.poll(() => query(page)).toBe('q=accounting');
+    await expect(page.locator('#chips')).not.toContainText('Registrar');
+
+    // A real faculty loses the quotes once /facets lists it.
+    let release2 = () => {};
+    const held2 = new Promise((r) => { release2 = () => r(undefined); });
+    await page.unroute('**/facets');
+    await page.route('**/facets', async (route) => { await held2; await route.continue(); });
+    await page.goto('/?q=databases&faculty=Computing');
+    await expect(page.locator('#chips .chip[data-filter="faculty"]')).toHaveText('“Computing”');
+    release2();
+    await expect(page.locator('#chips .chip[data-filter="faculty"]')).toHaveText('Computing');
+    await expect(page.locator('#faculty option:checked')).toHaveText(/^Computing \(\d+\)$/);
   });
 
   test('a crafted faculty never stands as a chip: a sentence-length one is dropped at once, one /facets doesn\'t list once it answers', async ({ page }) => {
