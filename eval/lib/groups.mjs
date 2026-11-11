@@ -91,3 +91,23 @@ export function withCorpusGroups(qrels, groups) {
   }
   return { ...qrels, groups: [...(qrels.groups ?? []), ...groups.groups] };
 }
+
+/**
+ * Code -> group key (the group's first member) for a groups file's groups. A
+ * code in no group has no entry: it is its own group.
+ * @param {string[][]} groups
+ * @returns {Map<string, string>}
+ */
+export function groupIndex(groups) {
+  /** @type {Map<string, string>} */
+  const index = new Map();
+  for (const g of groups) for (const c of g) index.set(c, g[0]);
+  return index;
+}
+
+/**
+ * A ranked list as its sequence of group keys: two lists with the same
+ * sequence differ at most in which member stands for each group.
+ * @param {string[]} codes @param {Map<string, string>} index
+ */
+export const groupKeys = (codes, index) => codes.map((c) => index.get(c) ?? c);
