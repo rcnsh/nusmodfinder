@@ -1,8 +1,10 @@
 // @ts-check
 // Module rows: GET /module/:code, GET /facets, and the row shapes the search
 // and admin routes share.
+import { groups } from './group-data.js';
 import { bad, json, upstream, withHeaders } from './http.js';
-import { exchangeAll, exchangeAt, NG_SOURCES } from './ng-reasons.js';
+import { exchangeAll, exchangeAt, NG_ACAD_YEAR, NG_SOURCES, OFF_LIST_RULES } from './ng-reasons.js';
+import { unscheduled, unscheduledAcadYear } from './ng-unscheduled.js';
 import { D1_TIMEOUT_MS, withTimeout } from './upstream.js';
 import { moduleWorkload } from './workload.js';
 
@@ -35,9 +37,10 @@ export const MODULE_CODE_RE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 // Phase 4 adds ng_allow and ng_rules, answered as `exchange` (one entry per
 // semester and study level, with reasons). 5A adds exam_dates, answered as
 // `examDates`. 5D adds prereq_cohort_only, answered as `prereqCohortOnly`.
+// 6A adds grading_basis, answered as `gradingBasis` (stored and hashed since 3H).
 const MODULE_COLUMNS =
   'code, title, description, credits, department, faculty, level, semesters, workload, prerequisite, preclusion, acad_year, text_hash, ng, ng_semesters, '
-  + 'ng_allow, ng_rules, exam_dates, prereq_cohort_only';
+  + 'ng_allow, ng_rules, exam_dates, prereq_cohort_only, grading_basis';
 
 /**
  * /module/:code's Cache-Control (5A): a row changes only at an ingest, so a
@@ -120,8 +123,9 @@ export async function handleFacets(env, trace) {
     const cached = /** @type {{ value: string } | null} */ (await d1Timed(trace, 'd1', () =>
       db.prepare('SELECT value FROM meta WHERE key = ?').bind('facets').first()));
     if (cached?.value) {
-      // Phase 4 (4D, 4F): the exchange-mode sources and their dates ship with the Worker.
-      return new Response(JSON.stringify({ ...JSON.parse(cached.value), ngSources: NG_SOURCES }), {
+      // Phase 4 (4D, 4F): the exchange-mode sources and their dates ship with the Worker,
+      // and 6A's rules about courses off the exchange list beside them.
+      return new Response(JSON.stringify({ ...JSON.parse(cached.value), ngSources: NG_SOURCES, offListRules: OFF_LIST_RULES }), {
         headers: {
           'content-type': 'application/json; charset=utf-8',
           'access-control-allow-origin': '*',
@@ -132,7 +136,7 @@ export async function handleFacets(env, trace) {
     // No precomputed row (fresh database, or ingest never finished). Fall back
     // so the page still works, but say so rather than silently being expensive.
     console.warn('facets: no precomputed row; falling back to live aggregates (~21.5k rows read)');
-    return json({ ...(await d1Timed(trace, 'd1', () => computeFacets(db))), ngSources: NG_SOURCES }, 200);
+    return json({ ...(await d1Timed(trace, 'd1', () => computeFacets(db))), ngSources: NG_SOURCES, offListRules: OFF_LIST_RULES }, 200);
   } catch (err) {
     return upstream('d1', err);
   }
@@ -185,6 +189,77 @@ export async function computeFacets(db) {
 }
 
 /**
+ * A course's other codes (6A): its duplicate group's members but itself
+ * (src/group-data.js), [] when it has none. No D1 read.
+ * @param {string} code
+ */
+export function otherCodes(code) {
+  const { groupOf, members } = groups();
+  const key = groupOf.get(code);
+  return key === undefined ? [] : (members.get(key) ?? []).filter((c) => c !== code);
+}
+
+/** NUS's year label for an acad year: 2026-2027 -> 2026/27. @param {string} acadYear */
+const yearLabel = (acadYear) => acadYear.replace(/^(\d{4})-\d{2}(\d{2})$/, '$1/$2');
+
+/** "Sem 1", "Sem 1 and Sem 2". @param {number[]} sems */
+const semWords = (sems) => sems.map((s) => `Sem ${s}`).join(' and ');
+
+/** A missing table reads as `no such table` in D1's message (a database before migration 0008). @param {unknown} err */
+const noSuchTable = (err) => /no such table/i.test(String(/** @type {any} */ (err)?.message ?? err));
+
+/**
+ * /module/:code's 404 (6A), saying which kind of miss it is:
+ * - `ng-listed`: on the NG list with no classes this year (data/ng-unscheduled.json):
+ *   the fields a row has, `semesters` and `examDates` empty, and `exchange` from
+ *   the file's allow mask by exchangeAll, so the page reads it like a row with no
+ *   classes. No D1 read;
+ * - `catalogue-only`: a `catalogue_only` row: its title and description;
+ * - `unknown`: neither, or no `catalogue_only` table yet.
+ * Each carries `acadYear`: the file's, the catalogue row's, else ng-reasons.json's.
+ * Any other failed read is a 5xx, never a cached wrong answer.
+ * @param {D1DatabaseSession} db
+ * @param {string} code
+ * @param {Trace} trace
+ */
+async function notFound(db, code, trace) {
+  /** @param {Record<string, unknown>} body */
+  const answer = (body) => withHeaders(json({ error: 'not_found', ...body }, 404), { 'cache-control': MODULE_CACHE.notFound });
+  const entry = unscheduled().get(code);
+  if (entry) {
+    const { ngAllow, ngRules, ...fields } = entry;
+    const acadYear = unscheduledAcadYear();
+    return answer({
+      kind: 'ng-listed',
+      message: `NUS lists ${code} for ${semWords(entry.ngSemesters)}, but NUSMods shows no classes for it in ${yearLabel(acadYear)}.`,
+      acadYear,
+      ...fields,
+      semesters: [],
+      ng: true,
+      exchange: exchangeAll({ ng: 1, ng_allow: ngAllow, ng_rules: ngRules ? JSON.stringify(ngRules) : null, prerequisite: entry.prerequisite }),
+      examDates: [],
+      nusmodsUrl: nusmodsUrl(code),
+    });
+  }
+  /** @type {{ title: string, description: string | null, acad_year: string } | null} */
+  let row = null;
+  try {
+    row = await d1Timed(trace, 'd1', () =>
+      db.prepare('SELECT title, description, acad_year FROM catalogue_only WHERE code = ?').bind(code).first());
+  } catch (err) {
+    if (!noSuchTable(err)) return withHeaders(upstream('d1', err), { 'cache-control': MODULE_CACHE.failed });
+  }
+  if (row) {
+    return answer({
+      kind: 'catalogue-only',
+      message: `${code} is in the NUS catalogue but not offered in ${yearLabel(row.acad_year)}.`,
+      code, title: row.title, description: row.description, acadYear: row.acad_year,
+    });
+  }
+  return answer({ kind: 'unknown', message: `No module ${code} in this acad year.`, acadYear: NG_ACAD_YEAR });
+}
+
+/**
  * @param {Env} env
  * @param {string} code The raw path segment after /module/.
  * @param {Trace} trace
@@ -207,14 +282,14 @@ export async function handleModule(env, code, trace) {
   } catch (err) {
     return withHeaders(upstream('d1', err), { 'cache-control': MODULE_CACHE.failed });
   }
-  if (!row) {
-    return withHeaders(json({ error: 'not_found', message: `No module ${upper} in this acad year.` }, 404), { 'cache-control': MODULE_CACHE.notFound });
-  }
+  // 6A: a row wins over the file, so a code that gained classes at a re-ingest answers as a row.
+  if (!row) return notFound(db, upper, trace);
   /** @type {Partial<ModuleRow>} */
   const rest = { ...row };
   delete rest.ng_rules;
   delete rest.exam_dates;
   delete rest.prereq_cohort_only;
+  delete rest.grading_basis;
   return withHeaders(json({
     ...rest,
     semesters: JSON.parse(row.semesters ?? '[]'),
@@ -230,5 +305,9 @@ export async function handleModule(env, code, trace) {
     // 5D: 3H-0's flag (src/cohort-only.js, set at ingest): the prerequisite names only NUS intake
     // years or programmes, so the page says there is no course prerequisite.
     prereqCohortOnly: row.prereq_cohort_only === 1,
+    // 6A: NUSMods' grading basis ("Graded", "Completed Satisfactory/Unsatisfactory", ...), and the
+    // course's other codes, which the shortlist counts as the same course.
+    gradingBasis: row.grading_basis ?? null,
+    otherCodes: otherCodes(row.code),
   }), { 'cache-control': MODULE_CACHE.ok });
 }

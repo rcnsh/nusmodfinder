@@ -68,6 +68,22 @@ export async function listVectorIds(index, exec = run) {
 }
 
 /**
+ * 6A: the year files this deploy ships, and the NG list of the year the reason texts name.
+ * @param {string} acadYear
+ * @returns {import('./verify-core.mjs').PreDeployDataFiles}
+ */
+export function preDeployDataFiles(acadYear) {
+  const read = (/** @type {string} */ rel) => JSON.parse(readFileSync(new URL(`../${rel}`, import.meta.url), 'utf8'));
+  const unscheduled = read('data/ng-unscheduled.json');
+  const ng = read(`data/ng-courses-${acadYear}.json`);
+  return {
+    ngReasonsAcadYear: acadYear,
+    unscheduled: { acadYear: unscheduled.acadYear, codes: unscheduled.modules.map((/** @type {{ code: string }} */ e) => e.code) },
+    ngCodes: [...new Set(Object.values(/** @type {Record<string, string[]>} */ (ng.semesters)).flat())],
+  };
+}
+
+/**
  * @param {string[]} argv
  * @param {{ fetchImpl?: typeof fetch, exec?: import('./deploy.mjs').Exec, log?: (line: string) => void,
  *   envVars?: Record<string, string | undefined> }} [deps]
@@ -106,10 +122,11 @@ export async function main(argv, deps = {}) {
       const { entry, bundle } = await loadBundle();
       const committedDataVersion = String(JSON.parse(await readFile(DATA_VERSION_PATH, 'utf8')).version);
       // Phase 4 (B3-5): every stored rule id has a text in the reasons this deploy ships.
-      const reasons = JSON.parse(readFileSync(new URL('../data/ng-reasons.json', import.meta.url), 'utf8')).reasons;
+      const ngReasons = JSON.parse(readFileSync(new URL('../data/ng-reasons.json', import.meta.url), 'utf8'));
+      const reasons = ngReasons.reasons;
       const report = await runPreDeployVerify({
         api: httpAdminApi(base, secret, fetchImpl), bundle, manifest: entry, committedDataVersion,
-        knownReason: (id) => Object.hasOwn(reasons, id),
+        knownReason: (id) => Object.hasOwn(reasons, id), dataFiles: preDeployDataFiles(ngReasons.acadYear),
       });
       if (values.json) log(JSON.stringify(report, null, 2));
       else for (const l of formatPreDeployReport(report)) log(l);

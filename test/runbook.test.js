@@ -18,6 +18,8 @@ import { dataVersion, fieldsFromRow, rowHash, sha256Hex, storedVectorMetadata } 
 import { encodeBundle, float32ToBase64, parseBundle } from '../src/vector-bundle.js';
 import manifest from '../data/vectors.json';
 import { knownReason } from '../src/ng-reasons.js';
+import ngReasons from '../data/ng-reasons.json';
+import fixtureUnscheduled from './fixtures/ng-unscheduled.json';
 import { hashEmbed } from './fakes.js';
 import { adminCall, fixture, seed } from './helpers.js';
 import { adminApi } from './ingest-support.js';
@@ -125,11 +127,21 @@ describe('runbook step 4: D1-only mode (B3-5)', () => {
 describe('runbook step 5: verify --pre-deploy', () => {
   const fixtureEntry = /** @type {any} */ (manifest).bundles.fixture;
   const fixtureBundle = async () => bundleFor(fixture.modules);
+  /**
+   * 6A: the year files this deploy ships and the NG list, for the fixture: its NG codes plus the
+   * fixture file's, so exactly the file's codes are NG codes with no D1 row.
+   */
+  const unscheduledCodes = fixtureUnscheduled.modules.map((e) => e.code);
+  const dataFiles = {
+    ngReasonsAcadYear: ngReasons.acadYear,
+    unscheduled: { acadYear: fixtureUnscheduled.acadYear, codes: unscheduledCodes },
+    ngCodes: [...fixture.modules.filter((m) => m.ng).map((m) => m.code), ...unscheduledCodes],
+  };
 
   it('D1 as seeded agrees with the fixture bundle and its manifest entry, and Vectorize is not read', async () => {
     const bundle = await fixtureBundle();
     expect(bundle.header.rowsKey).toBe(fixtureEntry.rowsKey);
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
     expect(r).toMatchObject({ ok: true, d1Rows: fixture.modules.length, bundleRows: fixture.modules.length, missingInBundle: [], extraInBundle: [], fieldDrift: [] });
     expect(new Set(Object.values(r.rowsKey)).size).toBe(1);
     expect(new Set(Object.values(r.dataVersion)).size).toBe(1);
@@ -143,7 +155,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     await env.DB.prepare("UPDATE modules SET text_hash = 'changed' WHERE code = ?").bind(a.code).run();
     await env.DB.prepare("UPDATE modules SET semesters = '[4]' WHERE code = ?").bind(b.code).run();
     await env.DB.prepare('DELETE FROM modules WHERE code = ?').bind(c.code).run();
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: '000000000000', knownReason });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: '000000000000', knownReason, dataFiles });
     expect(r.ok).toBe(false);
     expect(r.rowsKey.d1).not.toBe(r.rowsKey.bundle);
     expect(r.dataVersion.committed).not.toBe(r.dataVersion.bundle);
@@ -160,11 +172,41 @@ describe('runbook step 5: verify --pre-deploy', () => {
     // Rewritten as a stale ingest would have: the row's own hash agrees with its columns.
     await env.DB.prepare('UPDATE modules SET exam_dates = ?, row_hash = ? WHERE code = ?')
       .bind(JSON.stringify(examDates), await rowHash({ ...m, examDates }), m.code).run();
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
     expect(r.ok).toBe(false);
     expect(r.rowHashDrift).toEqual([]);
     expect(r.fieldDrift).toEqual([{ code: m.code, d1: { examDates }, bundle: { examSemesters: m.examSemesters } }]);
     noRemoteCalls();
+  });
+
+  it('6A: both year files\' acadYear equal D1\'s acad_year, and the file\'s codes are exactly the NG codes with no row', async () => {
+    const bundle = await fixtureBundle();
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
+    expect(r.ok).toBe(true);
+    expect(r.acadYear).toEqual({ d1: '2026-2027', ngReasons: '2026-2027', ngUnscheduled: '2026-2027' });
+    expect(r.unscheduled).toEqual({ missing: [], withRow: [], notNg: [] });
+
+    const offered = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.ng));
+    const stale = await runPreDeployVerify({
+      api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason,
+      dataFiles: {
+        ngReasonsAcadYear: ngReasons.acadYear,
+        // A file from last year, holding an offered code and a code off the NG list, and missing EE4407.
+        unscheduled: { acadYear: '2025-2026', codes: [...unscheduledCodes.filter((c) => c !== 'EE4407'), offered.code, 'ZZ1000'] },
+        ngCodes: dataFiles.ngCodes,
+      },
+    });
+    expect(stale.ok).toBe(false);
+    expect(stale.acadYear.ngUnscheduled).toBe('2025-2026');
+    expect(stale.unscheduled).toEqual({ missing: ['EE4407'], withRow: [offered.code], notNg: ['ZZ1000'] });
+  });
+
+  it('6A: a D1 holding rows of two years agrees with no file', async () => {
+    const bundle = await fixtureBundle();
+    await env.DB.prepare("UPDATE modules SET acad_year = '2027-2028' WHERE code = ?").bind(fixture.modules[0].code).run();
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
+    expect(r.ok).toBe(false);
+    expect(r.acadYear.d1).toBeNull();
   });
 
   it('Phase 4 (B3-5): refuses a stored rule id the Worker\'s reason texts don\'t know', async () => {
@@ -172,7 +214,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     const ng = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.ngRules && Object.keys(m.ngRules).length));
     const stored = JSON.stringify({ ...ng.ngRules, 0: ['no-such-rule'] });
     await env.DB.prepare('UPDATE modules SET ng_rules = ? WHERE code = ?').bind(stored, ng.code).run();
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
     expect(r.ok).toBe(false);
     expect(r.unknownReasons).toEqual([{ code: ng.code, id: 'no-such-rule' }]);
   });

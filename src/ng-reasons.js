@@ -40,6 +40,16 @@ export const knownReason = (id) => Object.hasOwn(REASONS, id);
 export const NG_SOURCES = file.sources;
 
 /**
+ * 6A: NUS's rules about courses off the exchange list, each with the scope it
+ * states (/facets' `offListRules`).
+ * @type {{ id: string, text: string, scope: { departments?: string[], faculties?: string[], levels?: number[] } }[]}
+ */
+export const OFF_LIST_RULES = file.offListRules;
+
+/** The acad year the reason texts were built for: /module/:code's `acadYear` when nothing else names one (6A). */
+export const NG_ACAD_YEAR = file.acadYear;
+
+/**
  * The eligibility of a row at one bit: `open` or `note` where the bit is set,
  * `closed` where it isn't (a missing or zero ng_allow is closed), with the
  * stored reasons. A shown course also gets R3's year-of-study note (ADR 0008,

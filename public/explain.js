@@ -219,6 +219,19 @@ export function notOfferedLine(code, title = null) {
   return `${code}${title ? ` (${title})` : ''} isn't offered this academic year.`;
 }
 
+/**
+ * The typed codes the hidden-codes box lists as not offered: /search's
+ * `notOffered`, less the code a whole-query noMatch already names, whose
+ * sentence says it once (`not-offered`, and 6A's `ng-unscheduled`).
+ * @param {unknown} notOffered
+ * @param {{ reason?: unknown, code?: unknown } | null | undefined} noMatch
+ * @returns {string[]}
+ */
+export function boxNotOffered(notOffered, noMatch) {
+  const named = noMatch?.reason === 'not-offered' || noMatch?.reason === 'ng-unscheduled' ? noMatch.code : null;
+  return (Array.isArray(notOffered) ? notOffered.map(String) : []).filter((c) => c !== named);
+}
+
 /** "CS32" → "CS32xx": a partial code, padded to four digits. @param {string} prefix */
 export function prefixLabel(prefix) {
   const digits = prefix.match(/\d+$/)?.[0] ?? '';

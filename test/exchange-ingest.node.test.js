@@ -111,3 +111,45 @@ describe('the Worker\'s reason texts (data/ng-reasons.json)', () => {
       .toEqual([dateOf('ng-courses.pdf'), dateOf('non-graduating-course-restrictions.pdf')]);
   });
 });
+
+// Phase 6 6A: NUS's rules about courses off the exchange list, transcribed into
+// the rules file's info entries with the scope each states, reach the page
+// through ng-reasons.json and /facets' `offListRules`.
+describe('the rules about courses off the exchange list (6A)', () => {
+  const OFF_LIST = ['E-offerings-list', '2-biz-no-late-add', '4-cee-no-appeal', '4-isem-no-appeal'];
+  /** @type {{ rules: { id: string, quote: string, department: string | null, scope: { levels: number[] | null, school: string | null } }[] }} */
+  const transcription = JSON.parse(read('../docs/evidence/phase4/transcription-b.json'));
+  /** @type {{ id: string, why: string, text?: string, scope?: { departments?: string[], faculties?: string[], levels?: number[] } }[]} */
+  const info = /** @type {any} */ (rules).info;
+
+  it('are the four info entries with a text, in the rules file\'s order', () => {
+    expect(info.filter((i) => i.text !== undefined).map((i) => i.id)).toEqual(OFF_LIST);
+  });
+
+  it('each text is the restriction\'s quote, and each scope is what the quote and its heading state', () => {
+    for (const id of OFF_LIST) {
+      const entry = /** @type {NonNullable<(typeof info)[number]>} */ (info.find((i) => i.id === id));
+      const t = /** @type {(typeof transcription.rules)[number]} */ (transcription.rules.find((r) => r.id === id));
+      expect(entry.text, id).toBe(t.quote);
+      const range = /level (\d)000 to level (\d)000/i.exec(t.quote);
+      /** @type {{ departments?: string[], faculties?: string[], levels?: number[] }} */
+      const want = {
+        ...(t.department ? { departments: [t.department] } : {}),
+        ...(t.scope.school ? { faculties: [t.scope.school] } : {}),
+        ...(range ? { levels: Array.from({ length: Number(range[2]) - Number(range[1]) + 1 }, (_, k) => Number(range[1]) + k) } : {}),
+      };
+      expect(entry.scope, id).toEqual(want);
+    }
+    // 4-cee is scoped by department, never by code prefix: one of the 33 offered GEC codes is CEE's.
+    expect(info.find((i) => i.id === '4-cee-no-appeal')?.scope).toEqual({ departments: ['Civil and Environmental Engineering'], levels: [1, 2, 3, 4] });
+    expect(info.find((i) => i.id === 'E-offerings-list')?.scope).toEqual({});
+  });
+
+  it('reach data/ng-reasons.json as offListRules: id, text and scope', () => {
+    const file = JSON.parse(read('../data/ng-reasons.json'));
+    expect(file.offListRules).toEqual(OFF_LIST.map((id) => {
+      const entry = /** @type {NonNullable<(typeof info)[number]>} */ (info.find((i) => i.id === id));
+      return { id, text: entry.text, scope: entry.scope };
+    }));
+  });
+});

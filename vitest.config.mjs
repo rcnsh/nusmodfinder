@@ -8,6 +8,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
 import { pinnedGroupsPath } from './scripts/build-groups.mjs';
+import { pinnedNgUnscheduledPath } from './scripts/build-ng-unscheduled.mjs';
 import { pinnedVocabularyPath } from './scripts/build-vocabulary.mjs';
 import { loadPinnedCorpus, MODULE_INFO_PATH } from './scripts/pinned-corpus.mjs';
 import { loadCheckedBundle, localPath, readVectorsManifest, writeShim } from './scripts/vectors-manifest.mjs';
@@ -83,6 +84,10 @@ const vocabularyAlias = (path) => ({ find: 'vocabulary-data', replacement: path 
 const FIXTURE_GROUPS = fileURLToPath(new URL('./test/fixtures/groups.json', import.meta.url));
 /** 3F's groups import in src/group-data.js (the bare name), pointed at the groups of the corpus the tests search. @param {string} path */
 const groupsAlias = (path) => ({ find: 'groups-data', replacement: path });
+/** The committed fixture's NG-listed codes with no classes (scripts/build-ng-unscheduled.mjs --corpus fixture). */
+const FIXTURE_NG_UNSCHEDULED = fileURLToPath(new URL('./test/fixtures/ng-unscheduled.json', import.meta.url));
+/** 6A's import in src/ng-unscheduled.js (the bare name), pointed at the file of the corpus the tests search. @param {string} path */
+const ngUnscheduledAlias = (path) => ({ find: 'ng-unscheduled-data', replacement: path });
 
 // Files named *.node.test.js run in plain Node instead of workerd: they cover
 // Node-side code (scripts/) and read repository files, neither of which the
@@ -102,13 +107,15 @@ export default defineConfig(async () => {
   // vocabulary; without the corpus its tests skip, and the fixture's stands in.
   const fullVocabulary = fullCorpusData ? await pinnedVocabularyPath() : FIXTURE_VOCABULARY;
   const fullGroups = fullCorpusData ? await pinnedGroupsPath() : FIXTURE_GROUPS;
+  // 6A: the pinned NG-listed codes with no classes, built in memory as the pinned groups are.
+  const fullNgUnscheduled = fullCorpusData ? await pinnedNgUnscheduledPath() : FIXTURE_NG_UNSCHEDULED;
   return {
     test: {
       projects: [
         {
           plugins: [workerd()],
           // test/wrangler.test.jsonc's `alias`, which the plugin does not read.
-          resolve: { alias: [{ find: 'vectors-bundle', replacement: FIXTURE_BUNDLE }, vocabularyAlias(FIXTURE_VOCABULARY), groupsAlias(FIXTURE_GROUPS)] },
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: FIXTURE_BUNDLE }, vocabularyAlias(FIXTURE_VOCABULARY), groupsAlias(FIXTURE_GROUPS), ngUnscheduledAlias(FIXTURE_NG_UNSCHEDULED)] },
           test: {
             name: 'workers',
             include: ['test/**/!(*.node).test.js'],
@@ -118,7 +125,7 @@ export default defineConfig(async () => {
         },
         {
           plugins: [workerd()],
-          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary), groupsAlias(fullGroups)] },
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary), groupsAlias(fullGroups), ngUnscheduledAlias(fullNgUnscheduled)] },
           test: {
             name: 'full',
             include: ['test/full/**/!(*.node).test.js'],
@@ -133,7 +140,7 @@ export default defineConfig(async () => {
           // Phase 4 4E: SC1's path tests, the pinned corpus and bundle as test/full
           // has them, in their own project and CI job (npm run test:sc1).
           plugins: [workerd()],
-          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary), groupsAlias(fullGroups)] },
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary), groupsAlias(fullGroups), ngUnscheduledAlias(fullNgUnscheduled)] },
           test: {
             name: 'sc1',
             include: ['test/sc1/**/!(*.node).test.js'],

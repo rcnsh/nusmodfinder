@@ -118,16 +118,18 @@ describe('responses (F7)', () => {
     expect(await search(params('c'))).toEqual({ kind: 'error', error: { code: 'not_json', status: 200 } });
   });
 
-  it('a JSON error keeps its code and status, never its message', async () => {
+  it('a JSON error keeps its code and status, and its other fields as `detail`, never its message', async () => {
     const { fetch } = fakeFetch([
       jsonResponse({ error: 'upstream_failure', source: 'd1', message: 'D1_ERROR: boom' }, 502),
       jsonResponse({ error: 'study-required', message: 'Exchange mode (ng=1) needs …' }, 400),
       jsonResponse({ nope: true }, 503),
+      jsonResponse(['not', 'an', 'object'], 500),
     ]);
     const search = createSearchClient({ fetch });
-    expect(await search(params('a'))).toEqual({ kind: 'error', error: { code: 'upstream_failure', status: 502 } });
+    expect(await search(params('a'))).toEqual({ kind: 'error', error: { code: 'upstream_failure', status: 502, detail: { source: 'd1' } } });
     expect(await search(params('b'))).toEqual({ kind: 'error', error: { code: 'study-required', status: 400 } });
-    expect(await search(params('c'))).toEqual({ kind: 'error', error: { code: 'http', status: 503 } });
+    expect(await search(params('c'))).toEqual({ kind: 'error', error: { code: 'http', status: 503, detail: { nope: true } } });
+    expect(await search(params('d'))).toEqual({ kind: 'error', error: { code: 'http', status: 500 } });
   });
 });
 
@@ -176,6 +178,18 @@ describe('/module/:code for the detail and the hidden-code lines (5C)', () => {
     expect(await modules.get('CS3244')).toEqual({ kind: 'error', error: { code: 'upstream_failure', status: 502 } });
     expect(await modules.get('CS3244')).toEqual({ kind: 'ok', body: { code: 'CS3244' } });
     expect(calls).toHaveLength(2);
+  });
+
+  it('6A: a 404\'s fields pass through as `detail`, and a 404 is kept as final; a 5xx is not', async () => {
+    const notFound = { error: 'not_found', message: 'NUS lists EE4407 for Sem 1, but NUSMods shows no classes.', kind: 'ng-listed', code: 'EE4407', ngSemesters: [1] };
+    const { fetch, calls } = fakeFetch([jsonResponse(notFound, 404), jsonResponse({ error: 'upstream_failure', source: 'd1' }, 502), jsonResponse({ code: 'CS3244' })]);
+    const modules = createModuleClient({ fetch });
+    const first = await modules.get('EE4407');
+    expect(first).toEqual({ kind: 'error', error: { code: 'not_found', status: 404, detail: { kind: 'ng-listed', code: 'EE4407', ngSemesters: [1] } } });
+    expect(await modules.get('ee4407')).toBe(first);
+    expect(await modules.get('CS3244')).toEqual({ kind: 'error', error: { code: 'upstream_failure', status: 502, detail: { source: 'd1' } } });
+    expect(await modules.get('CS3244')).toEqual({ kind: 'ok', body: { code: 'CS3244' } });
+    expect(calls.map((c) => c.url)).toEqual(['/module/EE4407', '/module/CS3244', '/module/CS3244']);
   });
 
   it('the code is encoded into the path, so a crafted one stays one segment', async () => {

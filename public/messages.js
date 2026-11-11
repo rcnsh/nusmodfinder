@@ -48,12 +48,21 @@ export function errorSentence(error) {
 }
 
 /**
- * @typedef {{ reason: string, code?: string, title?: string | null }} NoMatch
+ * @typedef {{ reason: string, code?: string, title?: string | null, ngSemesters?: unknown }} NoMatch
  * @typedef {{ query: string, noMatch?: NoMatch | null }} NoMatchBody
  */
 
 /** The student's query, capped and quoted (5G S2). */
 const quoted = quoteUser;
+
+/**
+ * The semesters NUS lists a course for, as words: "Sem 1", "Sem 1 and Sem 2".
+ * @param {unknown} sems
+ */
+const listedFor = (sems) => {
+  const list = Array.isArray(sems) ? sems.filter((s) => s === 1 || s === 2) : [];
+  return list.length ? list.map((s) => `Sem ${s}`).join(' and ') : 'exchange students';
+};
 
 /**
  * By noMatch reason (src/search.js, src/query-intent.js).
@@ -63,6 +72,8 @@ export const NO_MATCH = Object.freeze({
   'ng-special-term': () => "The NG list covers only Sem 1 and Sem 2, not NUS's special terms (short terms in the vacation). Choose Sem 1 or Sem 2.",
   'not-offered': (_b, nm) => `${nm.code}${nm.title ? ` (${nm.title})` : ''} isn't offered this academic year.`,
   'unknown-code': (_b, nm) => `There is no course ${nm.code} in the NUS catalogue. Check the code.`,
+  // 6A: on the NG list, with no classes in NUSMods this year (data/ng-unscheduled.json).
+  'ng-unscheduled': (_b, nm) => `NUS lists ${nm.code}${nm.title ? ` (${nm.title})` : ''} for ${listedFor(nm.ngSemesters)}, but NUSMods shows no classes for it this academic year.`,
   'no-signal': (b) => `Nothing in the catalogue matches ${quoted(b.query)}. Try other words for the topic.`,
 });
 

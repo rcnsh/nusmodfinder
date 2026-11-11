@@ -16,7 +16,12 @@
 // - R3 (ADR 0008): the year-of-study note, read from the prerequisite at
 //   request time, is on a card and in /module/:code exactly where the
 //   oracle's own reading of the prerequisite puts it, on the pins, the bundle,
-//   the standby, the mask route and exchangeBySem; it never hides a course.
+//   the standby, the mask route and exchangeBySem; it never hides a course;
+// - Phase 6 6A: /module/:code's `exchange`, what the shortlist reads, equals
+//   the oracle's (with R3) for every offered code, NG-listed or not, and for
+//   every NG-listed code with no classes (the pinned data file, built in
+//   memory as the pinned groups are), whose 404 answers it; a typed one is
+//   never ranked.
 // Its own vitest project and CI job (`npm run test:sc1`), with its own
 // timeout. Skipped without the pinned corpus and bundle; the sc1 CI job sets
 // FULL_CORPUS=1, so a missing one fails there instead.
@@ -27,6 +32,7 @@ import { denseBundle } from '../../src/dense.js';
 import { groups } from '../../src/group-data.js';
 import { filterSql } from '../../src/lexical.js';
 import { RESULT_COLUMNS } from '../../src/modules.js';
+import { unscheduled } from '../../src/ng-unscheduled.js';
 import { NG_SEMS, STUDIES } from '../../src/ng-bit.js';
 import { storedVectorMetadata } from '../../src/rowhash.js';
 import { localMatchesFilters } from '../../src/search.js';
@@ -221,6 +227,43 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
     }
     expect(wrong).toEqual([]);
     expect(checked).toBeGreaterThan(5000);
+  }, 600_000);
+
+  it('6A: /module/:code\'s exchange equals the oracle\'s (with R3) for every offered code and every NG-listed code with no classes', async () => {
+    /** @type {string[]} */
+    const wrong = [];
+    let entries = 0;
+    for (const m of c.modules) {
+      const { status, body } = await callJson(`/module/${m.code}`);
+      if (status !== 200) { wrong.push(`${m.code}: HTTP ${status}`); continue; }
+      for (const e of body.exchange) {
+        const bad = entryWrong(m, e, e.sem, e.study);
+        if (bad) wrong.push(`/module: ${bad}`);
+        entries++;
+      }
+    }
+    const classless = [...unscheduled().values()];
+    expect(classless).toHaveLength(32);
+    for (const u of classless) {
+      const m = /** @type {NormalisedModule} */ (/** @type {unknown} */ ({
+        code: u.code, title: u.title, department: u.department, faculty: u.faculty, level: u.level,
+        semesters: [], ng: true, ngSemesters: u.ngSemesters, prerequisite: u.prerequisite,
+      }));
+      const { status, body } = await callJson(`/module/${u.code}`);
+      if (status !== 404 || body.kind !== 'ng-listed') { wrong.push(`${u.code}: HTTP ${status} ${body.kind}`); continue; }
+      for (const e of body.exchange) {
+        const bad = entryWrong(m, e, e.sem, e.study);
+        if (bad) wrong.push(`/module 404: ${bad}`);
+        entries++;
+      }
+      for (const k of COMBOS) {
+        const typed = await callJson(`/search?q=${u.code}&${k.qs}&mode=lexical&topK=5`, { fakes });
+        if (shown(typed.body).includes(u.code)) wrong.push(`${u.code} ${k.qs}: ranked`);
+        if (typed.body.noMatch?.reason !== 'ng-unscheduled') wrong.push(`${u.code} ${k.qs}: noMatch ${typed.body.noMatch?.reason}`);
+      }
+    }
+    expect(wrong).toEqual([]);
+    expect(entries).toBe((c.modules.length + classless.length) * 15);
   }, 600_000);
 
   it('variants: no group shows a closed member', async () => {

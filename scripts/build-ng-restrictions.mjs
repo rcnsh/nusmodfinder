@@ -64,11 +64,16 @@ const LAW_COMPULSORY = ('LC1001A LC1001B LC1001C LC1001D LC1001E LC1001F LC1001H
 
 /**
  * One output rule per entry: `codes: true` takes the transcribed codes. An
- * entry `null` records the rule as `info` (no eligibility effect), with the
- * register row that says why.
+ * entry `{ info }` records the rule as `info` (no eligibility effect), with the
+ * register row that says why. Phase 6 6A: an info rule about courses off the
+ * exchange list also gets `offList`, the scope its quote states (departments
+ * and levels, or a faculty, matched on a row's fields, never by code prefix;
+ * `{}` for every course); its entry then carries the quote as `text` and that
+ * scope, which build-ng-reasons.mjs passes to /facets as `offListRules`.
  * @typedef {{ suffix?: string, effect: 'closed' | 'note' | 'open', note?: string, studies?: Study[], codes?: boolean,
  *   match?: RuleMatch, reason: string }} Part
- * @type {Record<string, Part[] | { info: string }>}
+ * @typedef {{ departments?: string[], faculties?: string[], levels?: number[] }} OffListScope
+ * @type {Record<string, Part[] | { info: string, offList?: OffListScope }>}
  */
 const OVERLAY = {
   'A-dentistry': [{ effect: 'closed', match: { faculties: [FAC.dentistry] }, reason: 'Faculty of Dentistry courses are not open to exchange students.' }],
@@ -85,7 +90,7 @@ const OVERLAY = {
   'D-ug-levels': { info: 'definition' },
   'D-grad-levels-closed-exchange': { info: 'built into src/eligibility.js as the level default (plan §2 step 2)' },
   'E-case-by-case': { info: "Jacob's Q7: courses off the NG list are hidden" },
-  'E-offerings-list': { info: "Jacob's Q7" },
+  'E-offerings-list': { info: "Jacob's Q7", offList: {} },
   'F-links': { info: 'links only' },
   '1-cls-table': [{ effect: 'closed', codes: true, reason: 'Listed by the Centre for Language Studies as not available to exchange students.' }],
   '1-cls-graded': [{ effect: 'note', note: 'graded', match: { departments: [DEPT.cls] }, reason: 'You must take it for a grade. You cannot audit it (attend without a grade).' }],
@@ -145,7 +150,7 @@ const OVERLAY = {
   '1-sea-l6-pg': [{ effect: 'open', studies: GRAD, match: { departments: [DEPT.sea], levels: [6] }, reason: 'Southeast Asian Studies level 6000 courses are open to graduate students.' }],
   '2-biz-l1234-priority': [{ effect: 'note', note: 'quota', match: { faculties: [FAC.biz], levels: [1, 2, 3, 4] }, reason: 'Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School\'s own exchange partners, get places first.' }],
   '2-biz-major': [{ effect: 'note', note: 'major', match: { faculties: [FAC.biz] }, reason: 'Only for students majoring in business at their home university.' }],
-  '2-biz-no-late-add': { info: "why rule E can't apply to Business (plan §2 step 1); off-list courses are hidden anyway" },
+  '2-biz-no-late-add': { info: "why rule E can't apply to Business (plan §2 step 1); off-list courses are hidden anyway", offList: { faculties: [FAC.biz] } },
   '2-biz-bma-ug-closed': [{ effect: 'closed', studies: UG, match: { codeRe: '^BMA\\d' }, reason: 'Undergraduates may not take MBA courses.' }],
   '2-biz-bma-partner': [
     { effect: 'note', note: 'partner', studies: GRAD, match: { codeRe: '^BMA\\d' }, reason: 'Only for graduate students from a university that is an exchange partner of NUS Business School, with at least 1.5 years of work experience after their bachelor\'s degree.' },
@@ -182,14 +187,14 @@ const OVERLAY = {
   '4-be-graded': [{ effect: 'note', note: 'graded', match: { departments: [DEPT.be], levels: [1, 2, 3, 4] }, reason: 'You must take it for a grade.' }],
   '4-cbe-closed': [{ effect: 'closed', codes: true, reason: 'Listed by Chemical and Biomolecular Engineering as not available to exchange students.' }],
   '4-cbe-cn5': [{ effect: 'closed', match: { codeRe: '^CN5' }, reason: 'CN level 5000 courses are not open to exchange students.' }],
-  '4-cee-no-appeal': { info: "about courses off the NG list, which Jacob's Q7 hides" },
+  '4-cee-no-appeal': { info: "about courses off the NG list, which Jacob's Q7 hides", offList: { departments: [DEPT.cee], levels: [1, 2, 3, 4] } },
   '4-cee-l56': [{ effect: 'closed', match: { codeRe: '^(CE|ESE)\\d', levels: [5, 6] }, reason: 'CE and ESE graduate courses are not open to exchange students.' }],
   '4-ece-closed': [
     { effect: 'closed', codes: true, reason: 'Listed by Electrical and Computer Engineering as not available to exchange students.' },
     { suffix: 'l56', effect: 'closed', match: { codeRe: '^(EE[56]|CEG5|EEK5)\\d' }, reason: 'EE, CEG and EEK graduate courses are not open to exchange students.' },
   ],
   '4-isem-closed': [{ effect: 'closed', codes: true, reason: 'Listed by Industrial Systems Engineering as not available to exchange students.' }],
-  '4-isem-no-appeal': { info: "about courses off the NG list, which Jacob's Q7 hides" },
+  '4-isem-no-appeal': { info: "about courses off the NG list, which Jacob's Q7 hides", offList: { departments: [DEPT.isem], levels: [1, 2, 3, 4] } },
   '4-isem-l56': [{ effect: 'closed', match: { codeRe: '^(IE|MT|SDM)\\d', levels: [5, 6] }, reason: 'IE, MT and SDM graduate courses are not open to exchange students.' }],
   '4-mse-closed-1': [{ effect: 'closed', codes: true, reason: 'Listed by Materials Science and Engineering as not available to exchange students.' }],
   '4-mse-closed-2': [{ effect: 'closed', codes: true, reason: 'Listed by Materials Science and Engineering as not available to exchange students.' }],
@@ -313,12 +318,12 @@ if (missing.length || extra.length) throw new Error(`overlay out of step with th
 
 /** @type {any[]} */
 const rules = [];
-/** @type {{ id: string, why: string }[]} */
+/** @type {{ id: string, why: string, text?: string, scope?: OffListScope }[]} */
 const info = [];
 for (const r of transcription.rules) {
   const o = OVERLAY[r.id];
   const cite = `restrictions PDF §${r.section}${r.department ? ` (${r.department})` : ''}, p${r.page}`;
-  if (!Array.isArray(o)) { info.push({ id: r.id, why: o.info }); continue; }
+  if (!Array.isArray(o)) { info.push({ id: r.id, why: o.info, ...(o.offList ? { text: r.quote, scope: o.offList } : {}) }); continue; }
   for (const part of o) {
     /** @type {RuleMatch} */
     const match = { ...(part.match ?? {}) };

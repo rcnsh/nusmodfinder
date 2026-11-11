@@ -14,7 +14,7 @@
 // to Sem 2"), and, for a query of course codes only, which typed codes the
 // count shows.
 import { h, setChildren } from './dom.js';
-import { NOT_OFFERED_STAMP, codesCount, codesOnly, noteLead, noteText, notOfferedLine, partialCodeLine, stampText, studyAdj, typedCodes, unpinnedLine } from './explain.js';
+import { NOT_OFFERED_STAMP, boxNotOffered, codesCount, codesOnly, noteLead, noteText, notOfferedLine, partialCodeLine, stampText, studyAdj, typedCodes, unpinnedLine } from './explain.js';
 import { examParts, quoteUser, semLabel } from './format.js';
 import { icon } from './icons.js';
 import { degradedNote, noMatchSentence } from './messages.js';
@@ -236,9 +236,7 @@ function hiddenBox(data, filters, hidden, unpinned) {
   const nm = data.noMatch;
   /** @type {string[]} */
   const hiddenPins = Array.isArray(data.hiddenPins) ? data.hiddenPins.map(String) : [];
-  /** @type {string[]} */
-  const notOffered = (Array.isArray(data.notOffered) ? data.notOffered.map(String) : [])
-    .filter((/** @type {string} */ c) => !(nm?.reason === 'not-offered' && nm.code === c));
+  const notOffered = boxNotOffered(data.notOffered, nm);
   if (!hiddenPins.length && !notOffered.length) return null;
   /**
    * Each code as direction D draws it: the code and its title in one column

@@ -97,13 +97,13 @@ describe('/search', () => {
 });
 
 describe('/module/:code', () => {
-  it('returns the full row for CS1010S: the columns of migrations 0001-0005, Phase 4\'s allow mask and its reasons, then 5A\'s exams and link, and 5D\'s cohort-only flag', async () => {
+  it('returns the full row for CS1010S: the columns of migrations 0001-0005, Phase 4\'s allow mask and its reasons, then 5A\'s exams and link, 5D\'s cohort-only flag, and 6A\'s grading basis and other codes', async () => {
     const { status, body } = await callJson('/module/CS1010S');
     expect(status).toBe(200);
     expect(body).toMatchObject({ code: 'CS1010S', title: 'Programming Methodology', semesters: [1, 2], ng: false, ng_allow: 0 });
     expect(Object.keys(body)).toEqual(['code', 'title', 'description', 'credits', 'department', 'faculty', 'level',
       'semesters', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters', 'ng_allow', 'exchange',
-      'examDates', 'nusmodsUrl', 'prereqCohortOnly']);
+      'examDates', 'nusmodsUrl', 'prereqCohortOnly', 'gradingBasis', 'otherCodes']);
     // Off the NG list: closed for every semester and study level, saying so.
     expect(body.exchange).toHaveLength(15);
     for (const e of body.exchange) {
@@ -113,6 +113,17 @@ describe('/module/:code', () => {
 });
 
 describe('/facets', () => {
+  it('6A: carries offListRules beside ngSources: NUS\'s four rules about courses off the exchange list, each with its scope', async () => {
+    const { body } = await callJson('/facets');
+    expect(Object.keys(body).slice(-2)).toEqual(['ngSources', 'offListRules']);
+    expect(body.offListRules.map((/** @type {{ id: string }} */ r) => r.id)).toEqual(['E-offerings-list', '2-biz-no-late-add', '4-cee-no-appeal', '4-isem-no-appeal']);
+    for (const r of body.offListRules) {
+      expect(Object.keys(r), r.id).toEqual(['id', 'text', 'scope']);
+      expect(r.text, r.id).toMatch(/\S{3}/);
+    }
+    expect(body.offListRules[2].scope).toEqual({ departments: ['Civil and Environmental Engineering'], levels: [1, 2, 3, 4] });
+  });
+
   it('falls back to live aggregates when no precomputed row exists (no NG date before an ingest records one)', async () => {
     const { status, headers, body } = await callJson('/facets');
     expect(status).toBe(200);
