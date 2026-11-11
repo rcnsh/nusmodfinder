@@ -2,7 +2,7 @@
   "schema": "vnm-holdout-manifest/1",
   "files": {
     "embeddings.json.enc": "f62ceb0e2e4bc931103e5a51963f3b21df9b11859b23004a9acada023b148e6f",
-    "qrels.json.enc": "afa075a0cb8afc8cc71b928472cd29ec672c43bbbd03160191803af7f7ef1230",
+    "qrels.json.enc": "927ccd9cb6ce9c40a7021b302aa5a0e347b7902f669652faef72938a9b715124",
     "queries.json.enc": "d7b6af869b8491588622fc27e2a8b13917bf51562a5a6c3d1d1eaf1c4c37e079",
     "run-3a2-v1.json.enc": "9c5e54de0996fa62fb8202ba8bbdfbb1a47cffdc10e6e4ad53b6d66189a42f5a",
     "run-3b.json.enc": "7f8f1d27cf23ec1d342642e9c763209c08193fe2005d91cecbbdf6cd81a1e901",
@@ -14,6 +14,7 @@
     "run-3h-r.json.enc": "b64485271bfd1061e855f3d391978abd813d95773747f9144089b97e4b18f02b",
     "run-3h.json.enc": "7e43683256beb655962f498d71a34a856342d24955c40eb121a57c13b1384077",
     "run-cand-3f96d79.json.enc": "7c70691d2c2eb005d2e3805a3bd248eb573ad077bca8f186b2c6a52a038e7843",
+    "run-l8-ff54fdc.json.enc": "13b49f40d919f0920fe5feb3a15cbf288e737a35d4217278f9f06d3050a34ab6",
     "run-shipped-45bd716.json.enc": "54ee38ae6955d1d82f34efab6d13024bb29ee18e962a44a59f57552eb6227cd3",
     "run-shipped-89cb10e.json.enc": "fc895f61fda56489cfb2b1cfcd83197f62cbf77a3d0f0bd7c855e8dac83c97e0",
     "run-shipped-9d91605.json.enc": "47761f5cc7294a9bd34e088c76b5c01a8460ac864368c86aaaa75d9916b7d02b",
