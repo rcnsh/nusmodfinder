@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Phase 6 shortlist mockup (6-0)</title>
+<link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="shortlist.css">
+<style>
+/* Gallery chrome only (not the design): neutral greys, AA on white. */
+html:not(.solo) body { background: #FFFFFF; color: #1A1A1A; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+html:not(.solo) .framebar { background: #F2F2F2; border-bottom: 1px solid #D0D0D0; padding: 10px 20px; font-size: 14px; }
+html:not(.solo) .framebar span { color: #565656; }
+html:not(.solo) .gallery { padding: 8px 20px 48px; }
+html:not(.solo) .state { margin-top: 32px; }
+html:not(.solo) .state > h2 { font: 600 16px/1.4 system-ui, sans-serif; margin: 0 0 4px; }
+html:not(.solo) .state > p { margin: 0 0 12px; color: #565656; font-size: 14px; max-width: 90ch; }
+.pair { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-bottom: 18px; }
+.fl { font: 12px/1.4 system-ui, sans-serif; color: #565656; margin: 0 0 4px; }
+.fw.d .scaler { width: 832px; height: 520px; overflow: hidden; border: 1px solid #9A9A9A; }
+.fw.d iframe { transform: scale(.65); transform-origin: 0 0; border: 0; }
+.fw.p iframe { border: 1px solid #9A9A9A; }
+</style>
+</head>
+<body>
+<div class="framebar"><b>Phase 6 · 6-0 · the shortlist in direction D</b> <span>— mockup frames, not the design. Fixture data (pinned 2026-09-04 release) through the page’s own code; open a frame alone with <code>#solo-&lt;state&gt;-&lt;desktop|phone&gt;-&lt;light|dark&gt;</code>.</span></div>
+<div class="gallery" id="gallery"></div>
+<script src="data.js"></script>
+<script src="mockup.js"></script>
+</body>
+</html>

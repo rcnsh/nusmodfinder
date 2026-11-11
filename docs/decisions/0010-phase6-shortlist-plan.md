@@ -55,9 +55,11 @@ Jacob, 2026-11-11, each the plan's recommendation:
   "Course description (NUS, via NUSMods)" with NUS's line that the full syllabus is on Canvas;
   hours are NUSMods' weekly hours with the 2.5-hours-per-unit estimate; the PDF is the browser's
   print to PDF from a print-ready page.
-- **G2 (the most you may take):** "NUS's brochure says at most 23 units a semester (NUS Business
-  School's exchange students: 20); some pages say 20, so ask NUS before going above 20", as a
-  limit on the courses NUS enrols you in.
+- **G2 (the most you may take):** as a limit on the courses NUS enrols you in. After 6-0 found
+  NUS Global's own exchange page saying "not more than 20 units" (`docs/evidence/phase6/facts.md`),
+  Jacob chose to name it: "NUS's brochure says at most 23 units a semester, but NUS Global's
+  exchange page says 20 (NUS Business School's exchange students: 20). Ask NUS before planning
+  more than 20."
 - **G3 (remember the list):** yes: "Restore your last shortlist" and "Forget this list on this
   device"; opening someone else's link never overwrites it.
 - **G4 (students already admitted):** one box of NUS's rules for that stage; no add-and-drop
@@ -66,7 +68,10 @@ Jacob, 2026-11-11, each the plan's recommendation:
   takes the recommendation (each semester numbered separately against 40 units, with the note
   that NUS may ask for Sem 2 choices later), as a build call that follows from G2 and the form.
 
-The 6-0 mockup goes to Jacob as its own gate.
+- **The 6-0 mockup** (`docs/design/phase6-shortlist/a/`; ephemera set
+  `nusmodfinder-phase-6-shortlist-adcovl`, option `a` picked): approved as shown, including the
+  calls `docs/design/phase6-shortlist/README.md` lists (one invitation checkbox for the faculty
+  the list holds, NUS's limits said once under the totals, "Back to results"). 6C builds it.
 
 ## Dissent
 - **B-7 (round 1):** a second, Excel-only CSV for `;` locales. Declined: beyond SC3's CSV; a
