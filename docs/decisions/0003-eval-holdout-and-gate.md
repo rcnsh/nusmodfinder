@@ -477,9 +477,10 @@ results by design. It covers L8 (`docs/plans/phase5.md` §3 5F: B2-1 to B2-6, B3
   The custodian runs verdicts only for the candidate the dev screen passed, so this is not used
   to probe the holdout.
 
-## Amendment 2026-11-11 (draft): representative-only changes are gated without a look
-**Draft, not yet in force: the lead adopts it.** Until the lead adopts it, nothing here gates
-or moves a pin.
+## Amendment 2026-11-11: representative-only changes are gated without a look
+**Adopted by the lead, 2026-11-11.** The custodian's `--by-group` count for its first use (the
+semester representative) was taken before the adoption line was written, against these
+criteria as drafted; a count is not a look, and the criteria did not change.
 
 - **Rule: representative-only changes are gated without a look.** A ranker change that alters
   only which member of a duplicate group (groups-v1, `eval/groups.json`) stands for the group,

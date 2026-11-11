@@ -1,7 +1,7 @@
 {
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
- "version": "qrels-dev-v10",
+ "version": "qrels-dev-v11",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
   "ngSha256": "092d021db4ccff2ea45e75bfc073623fa502aace082a8d5bd627f41d79c3f169"
@@ -274,6 +274,34 @@
     }
    },
    "createdAt": "2026-11-07T17:06:41.801Z"
+  },
+  {
+   "round": "p5a",
+   "mode": "single",
+   "judges": {
+    "A": "claude-opus-5-5"
+   },
+   "adjudicator": null,
+   "pairs": 15,
+   "pool": "23b646dc113ea67969d0da5bde5312a0bbe25d1c945f3ceaeeb90c2e1626eb68",
+   "codeRule": {
+    "rule": "code-rule-v1",
+    "pairs": 56,
+    "queries": 0,
+    "added": {
+     "0": 0,
+     "1": 0,
+     "2": 0
+    },
+    "changed": {},
+    "overrides": {
+     "total": 0,
+     "up": 0,
+     "down": 0,
+     "same": 0
+    }
+   },
+   "createdAt": "2026-11-11T07:35:49.276Z"
   }
  ],
  "queries": {
@@ -1006,6 +1034,18 @@
        "rationale": "5000-level supply chain simulation and optimization; not competitive strategy."
       }
      }
+    },
+    "IE4220": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p5a",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "An engineering supply chain modelling and optimisation course; distribution strategy here is logistics, not competitive business strategy."
+      }
+     }
     }
    }
   },
@@ -1528,6 +1568,18 @@
        "slot": "A",
        "grade": 1,
        "rationale": "A Sem 1 NG-open finance course on derivatives pricing, but 4000-level and heavily mathematical, so a level above the wanted 3rd-year elective."
+      }
+     }
+    },
+    "FIN3701B": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
       }
      }
     }
@@ -2746,6 +2798,18 @@
        "rationale": "A law course on the regulation and documentation of financial instruments; no financial modelling."
       }
      }
+    },
+    "FIN3701B": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
+      }
+     }
     }
    }
   },
@@ -3180,6 +3244,42 @@
        "slot": "A",
        "grade": 0,
        "rationale": "SC3211 is a science and technology studies sociology course, unrelated to accounting."
+      }
+     }
+    },
+    "ACC1701XB": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
+      }
+     }
+    },
+    "FIN3701B": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
+      }
+     }
+    },
+    "SN2278": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
       }
      }
     }
@@ -4906,6 +5006,18 @@
        "rationale": "Computer vision; unrelated to operating systems."
       }
      }
+    },
+    "MA4211": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p5a",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A functional analysis course on Banach and Hilbert spaces, unrelated to operating systems."
+      }
+     }
     }
    }
   },
@@ -6144,6 +6256,18 @@
        "slot": "A",
        "grade": 2,
        "rationale": "Human-AI interaction course centred on the user experience of AI systems and the design process. It is an HCI/UX course offered to NG students in semester 2."
+      }
+     }
+    },
+    "HSI2014": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 2"
       }
      }
     }
@@ -11042,6 +11166,18 @@
        "rationale": "A Biological Sciences course in the Faculty of Science, so not an engineering elective, and it shows no project-based assessment."
       }
      }
+    },
+    "PF4203": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
+      }
+     }
     }
    }
   },
@@ -14714,6 +14850,18 @@
        "rationale": "A semester 2 Political Science course on global health governance and international relations; the fields do not show the exam format, so it is graded on topic."
       }
      }
+    },
+    "GL2102": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 2"
+      }
+     }
     }
    }
   },
@@ -15892,6 +16040,18 @@
        "slot": "A",
        "grade": 0,
        "rationale": "The description is a lecture-style course on genome engineering and biotechnology applications and mentions no practicals or hands-on PCR, cloning, gels or western blots, so it falls under lecture-only courses the intent rules out."
+      }
+     }
+    },
+    "CM3296": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 2"
       }
      }
     }
@@ -19600,6 +19760,18 @@
        "slot": "A",
        "grade": 1,
        "rationale": "A systems course, NG in semester 1, that covers transactions and concurrency control as one part of database implementation. Concurrency is a component of the course, not its focus."
+      }
+     }
+    },
+    "CS4212": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
       }
      }
     }
@@ -25635,6 +25807,18 @@
        "rationale": "NST2044 is a different course, not EE4502 or a variant."
       }
      }
+    },
+    "EE4435": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p5a",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "EE4435 is not EE4502 or a variant of it; the intent counts any other course as not relevant."
+      }
+     }
     }
    }
   },
@@ -30210,6 +30394,30 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Science and Technology Studies sociology course; not accounting or finance."
+      }
+     }
+    },
+    "ACC1701XB": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
+      }
+     }
+    },
+    "SN2278": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
       }
      }
     }

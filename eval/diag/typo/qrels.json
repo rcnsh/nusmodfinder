@@ -2,7 +2,7 @@
  "schema": "vnm-eval-qrels/1",
  "set": "dev",
  "version": "qrels-diag-typo-v1",
- "derivedFrom": "qrels-dev-v10",
+ "derivedFrom": "qrels-dev-v11",
  "rule": "each variant has its source dev query's judgments, verbatim",
  "corpus": {
   "moduleInfoSha256": "2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1",
@@ -1168,6 +1168,18 @@
        "rationale": "A law course on the regulation and documentation of financial instruments; no financial modelling."
       }
      }
+    },
+    "FIN3701B": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
+      }
+     }
     }
    }
   },
@@ -1602,6 +1614,42 @@
        "slot": "A",
        "grade": 0,
        "rationale": "SC3211 is a science and technology studies sociology course, unrelated to accounting."
+      }
+     }
+    },
+    "ACC1701XB": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
+      }
+     }
+    },
+    "FIN3701B": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
+      }
+     }
+    },
+    "SN2278": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
       }
      }
     }
@@ -2514,6 +2562,18 @@
        "slot": "A",
        "grade": 0,
        "rationale": "Computer vision; unrelated to operating systems."
+      }
+     }
+    },
+    "MA4211": {
+     "grade": 0,
+     "source": "judged",
+     "round": "p5a",
+     "judges": {
+      "claude-opus-5-5": {
+       "slot": "A",
+       "grade": 0,
+       "rationale": "A functional analysis course on Banach and Hilbert spaces, unrelated to operating systems."
       }
      }
     }
@@ -9250,6 +9310,18 @@
        "slot": "A",
        "grade": 1,
        "rationale": "A systems course, NG in semester 1, that covers transactions and concurrency control as one part of database implementation. Concurrency is a component of the course, not its focus."
+      }
+     }
+    },
+    "CS4212": {
+     "grade": 0,
+     "source": "rule",
+     "round": "p5a",
+     "judges": {
+      "rule": {
+       "slot": "rule",
+       "grade": 0,
+       "rationale": "hard constraint: not offered in semester 1"
       }
      }
     }

@@ -84,4 +84,28 @@ are the same), then run:
 npm run eval:count -- --custodian --holdout --lists-differing --by-group --run <candidate> --baseline shipped-fdec96f
 ```
 
-Expected: `0`. Not run here.
+Run by the lead, 2026-11-11: `run-cand-3f96d79` stored with `--store-only` at `3f96d79` (the
+PR head; its ranker files are `3ab3335`'s), 81 queries, no verdict and no ledger row.
+- `eval:count --lists-differing --by-group --run cand-3f96d79 --baseline shipped-fdec96f`:
+  **0** (the gate).
+- `eval:count --lists-differing --run cand-3f96d79 --baseline shipped-fdec96f`: 3, the lists
+  whose representative changed (reported, not gated).
+
+Holdout looks stay at 7 of 12.
+
+## 5. The judging round and the gate, rerun (lead, 2026-11-11)
+
+Round `p5a` (dev, single judge A, `claude-opus-5-5`): the 15 documents no qrels graded in the
+top 10 of four dev runs (`p5v-pin` at `fdec96f`, `p5v-cand` at `3f96d79`, `p5v-phr` at
+`ebacaa3`, and the first 5F candidate `5f-screen1-cand` at `11b1699`). 12 were graded 0 by
+rule (hard constraints; ACC1701XB on d-011 and d-099, and FIN3701B on d-010, among them, since
+neither is on Sem 1's timetable), and judge A graded 3 (all 0). Planted repeat: exact agreement
+1.000; drift sample of 118 stored pairs: agreement 0.949, mean Δ +0.034. Merged as
+`qrels-dev-v11`.
+
+`no-loss` on dev with `qrels-dev-v11`, `p5v-cand` against `p5v-pin`: **PASS**. nDCG@10 0.768 →
+0.770 (Δ +0.002 [0.000, 0.007]); P@5 and MRR@10 unchanged; judged@10 100.0% both; no new
+errors; no exact-code regression.
+
+Every check of the amendment holds (§1 group identity, §2 `no-loss`, §3 suites, §4 count 0),
+and ADR 0003's amendment is adopted.
