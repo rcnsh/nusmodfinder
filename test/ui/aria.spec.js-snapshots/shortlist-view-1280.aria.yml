@@ -117,11 +117,10 @@
         - paragraph: Exam timetable not published in NUSMods
         - paragraph: "Workload (NUSMods): 10 hours a week: 2 lecture, 1 tutorial, 0.5 lab, 1.5 project, 5 preparation"
         - paragraph: "To confirm with NUS: NUS lists it for Sem 1 in 2026/27, but NUSMods shows no classes: ask NUS."
-        - text: Sem 1 · Open, with 1 note
+        - text: Sem 1 · Open, with 2 notes
         - list:
           - listitem: Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.
-        - list:
-          - listitem: "GRO: “Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students. In order to increase the chances of securing enough courses, incoming exchange students should consider taking courses with course code starting from 1000 to 3000”"
+          - listitem: "Places. GRO: “Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students. In order to increase the chances of securing enough courses, incoming exchange students should consider taking courses with course code starting from 1000 to 3000”"
         - button "Move up, EE4407": Move up
         - button "Move down, EE4407" [disabled]: Move down
         - button "Make primary, EE4407": Make primary
@@ -142,7 +141,7 @@
       - listitem: "GRO: “Each semester normally includes 13 weeks of instruction and 2 weeks of examinations”"
   - region "NUS's application form order, for applicants":
     - heading "NUS's application form order, for applicants" [level=3]
-    - paragraph: "This order uses NUS's 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1's list in March or April, Sem 2's later (the 2026/27 list is dated 1 Sep 2026), and the timetable in mid-July: check each course there."
+    - paragraph: "This order uses NUS's 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1's list in March or April, Sem 2's later (the 2026/27 list is dated 1 Sep 2026), and the timetable in July or August (the Registrar says mid-July): check each course there."
     - 'table "Sem 1 on NUS''s form: 16 of 40 units"':
       - caption: "Sem 1 on NUS's form: 16 of 40 units"
       - rowgroup:
