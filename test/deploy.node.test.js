@@ -57,6 +57,7 @@ function fakeExec(over = {}) {
       const w = sub === 'check startup' ? over.check ?? { stdout: 'Bundle: 10500.00 KiB\nLocal startup profile:\n  Active: 4.2 ms\n' }
         : sub === 'versions upload' ? over.upload ?? { stdout: `Total Upload: 10500 KiB\nWorker Startup Time: 21 ms\nWorker Version ID: ${VERSION}\n` }
           : sub === 'versions deploy' ? over.promote ?? { stdout: 'Deployed\n' }
+            : sub === 'triggers deploy' ? over.triggers ?? { stdout: 'Deployed triggers\n' }
             : { code: 99, stdout: `unexpected wrangler ${args.join(' ')}` };
       return { code: w.code ?? 0, stdout: w.stdout ?? '' };
     }
@@ -145,6 +146,8 @@ describe('npm run deploy', () => {
       ['npx', 'wrangler', 'check', 'startup', '--outfile', STARTUP_PROFILE, `--args=--alias vectors-bundle:${SHIM}`],
       ['npx', 'wrangler', 'versions', 'upload', '--tag', '0123456', '--message', '0123456 feat(search): add Server-Timing', '--alias', `vectors-bundle:${SHIM}`],
       ['npx', 'wrangler', 'versions', 'deploy', `${VERSION}@100%`, '--yes', '--message', '0123456 feat(search): add Server-Timing'],
+      // The Custom Domain (ADR 0009): `versions deploy` leaves routes alone.
+      ['npx', 'wrangler', 'triggers', 'deploy'],
     ]);
     expect(out).toContain('startup 21 ms');
     expect(out).toContain(`version ${VERSION} (tag 0123456) is live`);
@@ -159,10 +162,10 @@ describe('npm run deploy', () => {
   });
 
   it('passes a wrangler failure through as the exit code, and never promotes after a failed check or upload', async () => {
-    for (const [over, exit] of /** @type {const} */ ([[{ check: { code: 2 } }, 2], [{ upload: { code: 3 } }, 3], [{ promote: { code: 4 } }, 4]])) {
+    for (const [over, exit] of /** @type {const} */ ([[{ check: { code: 2 } }, 2], [{ upload: { code: 3 } }, 3], [{ promote: { code: 4 } }, 4], [{ triggers: { code: 5 } }, 5]])) {
       const { exec, calls } = fakeExec(over);
       expect((await runDeploy(exec)).code).toBe(exit);
-      if (exit !== 4) expect(calls.some((c) => c[2] === 'versions' && c[3] === 'deploy')).toBe(false);
+      if (exit < 4) expect(calls.some((c) => c[2] === 'versions' && c[3] === 'deploy')).toBe(false);
     }
   });
 
