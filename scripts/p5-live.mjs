@@ -66,7 +66,7 @@ const PAGE_TIMEOUT_MS = 180_000;
  * go before its files, so none waits past the page's 10 s fetch timeout.
  */
 function createPacer() {
-  /** @type {{ api: (() => void)[], asset: (() => void)[] }} */
+  /** @type {{ api: ((at: number) => void)[], asset: ((at: number) => void)[] }} */
   const waiting = { api: [], asset: [] };
   let last = 0;
   /** @type {ReturnType<typeof setTimeout> | null} */
@@ -75,12 +75,15 @@ function createPacer() {
     if (timer || (!waiting.api.length && !waiting.asset.length)) return;
     timer = setTimeout(() => {
       timer = null;
-      const next = waiting.api.shift() ?? waiting.asset.shift();
-      if (next) { last = Date.now(); next(); }
+      // A timer may fire a millisecond early: never grant a slot before its time.
+      if (Date.now() - last >= GAP_MS) {
+        const next = waiting.api.shift() ?? waiting.asset.shift();
+        if (next) { last = Date.now(); next(last); }
+      }
       pump();
     }, Math.max(0, last + GAP_MS - Date.now()));
   };
-  /** @param {'api' | 'asset'} kind @returns {Promise<void>} */
+  /** Resolves with the time the slot was granted. @param {'api' | 'asset'} kind @returns {Promise<number>} */
   return (kind) => new Promise((resolve) => { waiting[kind].push(resolve); pump(); });
 }
 
@@ -114,9 +117,8 @@ function createSite(opts) {
       return remembered;
     }
     for (let attempt = 1; ; attempt++) {
-      await slot(isApi(path) ? 'api' : 'asset');
+      const started = await slot(isApi(path) ? 'api' : 'asset');
       sent++;
-      const started = Date.now();
       let res;
       try {
         res = await send();
