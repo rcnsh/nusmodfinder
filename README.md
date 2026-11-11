@@ -256,7 +256,7 @@ path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still r
 
 | module | does |
 |---|---|
-| `state.js` | the state ↔ URL mapping (pure). In exchange mode `ng=1` and `study` are always in the URL; `open=` names the one open detail, and `from=` the entry whose "Also as" link opened it (kept only beside `open=`); `pick` and `alt` are reserved for Phase 6 |
+| `state.js` | the state ↔ URL mapping (pure). In exchange mode `ng=1` and `study` are always in the URL; `open=` names the one open detail, and `from=` the entry whose "Also as" link opened it (kept only beside `open=`, and only while it is one of the open entry's own other codes: `app.js` drops any other, so a link can't claim two courses are one); `pick` and `alt` are reserved for Phase 6 |
 | `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed, an "Also as" link pushes that code's search with its detail open; every action that changes `open=` drops `from=` |
 | `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
 | `messages.js` | a plain sentence for every error code and `noMatch` reason; raw codes are never shown |

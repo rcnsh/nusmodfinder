@@ -8,7 +8,8 @@
 // - `open` names the one open detail (at most one, A2-4).
 // - `from` names the course whose "Also as" link opened `open` (5G): the
 //   detail says "Opened from …". Kept only beside `open`, and dropped by every
-//   transition that changes `open`.
+//   transition that changes `open`; app.js also drops it once the answer shows
+//   it isn't one of the open entry's other codes (5G S1).
 // - `pick` and `alt` are reserved for Phase 6: kept through every round trip
 //   and transition, used for nothing yet.
 

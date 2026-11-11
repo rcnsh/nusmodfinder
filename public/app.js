@@ -316,6 +316,28 @@ async function loadDetail(code, region, { quiet = false } = {}) {
 }
 
 /**
+ * `from=` makes the detail say the open course and that code are one course
+ * (5G S1): it stands only when the code is one of the open entry's own other
+ * codes ("Also as"). Otherwise it is dropped, from the state and the URL, so a
+ * crafted link can't claim two unrelated courses are the same.
+ * @param {State} s
+ * @returns {State}
+ */
+function checkFrom(s) {
+  if (!s.open || !s.from || !shown) return s;
+  const results = Array.isArray(shown.data?.results) ? shown.data.results : [];
+  const entry = results.find((/** @type {any} */ r) => String(r?.code ?? '') === s.open);
+  const others = Array.isArray(entry?.variants) ? entry.variants.map((/** @type {any} */ v) => String(v?.code ?? '')) : [];
+  if (others.includes(s.from)) return s;
+  const fixed = { ...s, from: '' };
+  if (current === s) {
+    current = fixed;
+    history.replaceState(history.state, '', urlFor(fixed, location.pathname));
+  }
+  return fixed;
+}
+
+/**
  * Opens the state's detail and closes every other (at most one, A2-4).
  * `focusCode`: return focus to that card's button (a detail just closed).
  * @param {State} s
@@ -323,6 +345,7 @@ async function loadDetail(code, region, { quiet = false } = {}) {
  */
 function syncDetail(s, focusCode = '') {
   if (!shown) return;
+  checkFrom(s);
   for (const [code, { button, region }] of shown.view.cards) {
     const open = code === s.open;
     button.setAttribute('aria-expanded', String(open));
