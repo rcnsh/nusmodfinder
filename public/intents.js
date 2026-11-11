@@ -2,8 +2,8 @@
 // The parsed-phrase chips' words (Phase 5 5F, SC4): what /search read from
 // the query's words ("no final exam", "under 10 hours", "no prerequisites",
 // S/U), from its `interpreted` echo. Pure, so test/web runs it in Node; the
-// chip row is intent-chips.js. Only 3H's four intents get a chip; with
-// PARSE_PHRASES off the Worker echoes none of them, so nothing shows.
+// chip row is intent-chips.js. Only 3H's four intents get a chip (the
+// Worker reads them since L8 passed: PARSE_PHRASES on).
 
 /** The intents a chip can undo, in the order chips show (src/query-intent.js INTERPRETED_KEYS). */
 export const PHRASE_INTENTS = Object.freeze(/** @type {const} */ (['exam', 'su', 'hoursBelow', 'prereq']));
