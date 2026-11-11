@@ -19,10 +19,17 @@ describe('URL state (F3, C-7)', () => {
     const s = parse('alt=x&open=cs3244&study=ug2&ng=1&faculty=Computing&credits=4&level=3&sem=2&q=machine+learning');
     expect(s).toEqual({
       q: 'machine learning', sem: '2', level: '3', credits: '4', faculty: 'Computing', ng: true, study: 'ug2',
-      ignore: [], open: 'CS3244', pick: [], alt: ['x'],
+      ignore: [], open: 'CS3244', from: '', pick: [], alt: ['x'],
     });
     expect(stateToParams(s).toString())
       .toBe('q=machine+learning&sem=2&level=3&credits=4&faculty=Computing&ng=1&study=ug2&open=CS3244&alt=x');
+  });
+
+  it('[5G] from= is a course code kept only beside open= (and never open= itself)', () => {
+    expect(round('q=ACC1701XB&open=acc1701xb&from=acc1701xa')).toBe('q=ACC1701XB&open=ACC1701XB&from=ACC1701XA');
+    expect(round('q=ACC1701XB&from=ACC1701XA')).toBe('q=ACC1701XB');
+    expect(round('q=ACC1701XB&open=ACC1701XB&from=ACC1701XB')).toBe('q=ACC1701XB&open=ACC1701XB');
+    expect(round('q=ACC1701XB&open=ACC1701XB&from=%3Cb%3E')).toBe('q=ACC1701XB&open=ACC1701XB');
   });
 
   it('an empty state is an empty query string, so the bare page URL', () => {
@@ -142,6 +149,26 @@ describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md
     expect(t.op).toBe('push');
     expect(stateToParams(t.state).toString()).toBe('ng=1&study=ug2');
     expect(transition(list, { type: 'submit', form: parse('q=%20') }, { detailPushed: false })).toMatchObject({ op: 'push', state: { q: '' } });
+  });
+
+  it('[5G] an "Also as" link: push that code\'s search with its detail open and from=, keeping the settings', () => {
+    const s = parse('q=introductory+accounting&sem=1&ng=1&study=ug2&ignore=exam&open=ACC1701XA');
+    const t = transition(s, { type: 'variant', code: 'acc1701xb', from: 'ACC1701XA' }, { detailPushed: true });
+    expect(t.op).toBe('push');
+    expect(stateToParams(t.state).toString()).toBe('q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA');
+    // Already there: nothing to do.
+    expect(transition(t.state, { type: 'variant', code: 'ACC1701XB', from: 'ACC1701XA' }, { detailPushed: false }).op).toBe('none');
+  });
+
+  it('[5G] from= belongs to the detail it opened: every other action that changes open= drops it', () => {
+    const v = parse('q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA');
+    expect(v.from).toBe('ACC1701XA');
+    for (const action of /** @type {const} */ ([
+      { type: 'submit', form: parse('q=ACC1701XB&sem=1&ng=1&study=ug2') }, { type: 'settings', form: parse('q=ACC1701XB&sem=2&ng=1&study=ug2') },
+      { type: 'open', code: 'PLS8002A' }, { type: 'close' },
+    ])) {
+      expect(transition(v, action, { detailPushed: false }).state.from).toBe('');
+    }
   });
 
   it('pick and alt (Phase 6) survive every transition', () => {

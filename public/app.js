@@ -12,10 +12,13 @@
 // shown, errors and 429); the Search button is never disabled, so it keeps
 // focus, and a second search aborts the first; Escape closes the open detail
 // and focus returns to its button, as it does after Back to an open detail.
+// 5G: an "Also as" code is a link to its own search with its detail open
+// ("Opened from …", `from=`); a hidden typed code carries a stamp, and a
+// "Switch to Sem 2" button when the other semester is open to the student.
 import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from './api.js';
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
-import { hiddenCodeLine } from './explain.js';
+import { hiddenCodeLine, hiddenCodeStamp } from './explain.js';
 import { semLabel } from './format.js';
 import { icon } from './icons.js';
 import { intentChipRow } from './intent-chips.js';
@@ -23,7 +26,7 @@ import { intentChips } from './intents.js';
 import { isCloseEscape, isSubmitEnter } from './keys.js';
 import { errorSentence } from './messages.js';
 import { transition } from './nav.js';
-import { settlePartial, showLoading, showMessage, showResults } from './render.js';
+import { hiddenStamp, settlePartial, showLoading, showMessage, showResults } from './render.js';
 import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, parseState, searchParams, unitsLabel, urlFor } from './state.js';
 
 /** @typedef {import('./state.js').State} State */
@@ -263,7 +266,7 @@ function readForm() {
   return {
     q: els.q.value, sem: els.sem.value, level: els.level.value, credits: els.credits.value, faculty: els.faculty.value,
     ng: els.ng.checked, study: els.ng.checked ? els.study.value : '',
-    ignore: current.ignore, open: current.open, pick: current.pick, alt: current.alt,
+    ignore: current.ignore, open: current.open, from: current.from, pick: current.pick, alt: current.alt,
   };
 }
 
@@ -284,7 +287,9 @@ let sources = null;
 let shown = null;
 
 /** A link to the search for a course code, keeping the filters and exchange set-up. @param {string} code */
-const searchHref = (code) => urlFor({ ...current, q: code, ignore: [], open: '' }, location.pathname);
+const searchHref = (code) => urlFor({ ...current, q: code, ignore: [], open: '', from: '' }, location.pathname);
+/** An "Also as" link: the other code's search, its detail open, from the entry. @param {string} code @param {string} from */
+const variantHref = (code, from) => urlFor({ ...current, q: code, ignore: [], open: code, from }, location.pathname);
 
 /**
  * Fills a card's detail from /module/:code (fetched once per page). `quiet`:
@@ -305,7 +310,9 @@ async function loadDetail(code, region, { quiet = false } = {}) {
     if (!quiet) announce(`The details of ${code} could not be loaded. ${sentence}`.trim());
     return;
   }
-  renderDetail(region, outcome.body, { filters: data.filters ?? {}, sources, searchHref, onClose: () => act({ type: 'close' }) });
+  renderDetail(region, outcome.body, {
+    filters: data.filters ?? {}, sources, searchHref, onClose: () => act({ type: 'close' }), from: code === current.open ? current.from : '',
+  });
 }
 
 /**
@@ -337,22 +344,78 @@ function announceAnswer() {
   announce([shown.view.announce, read.length ? `Read from your query: ${read.join(', ')}.` : ''].filter(Boolean).join(' '));
 }
 
-/** Says why each hidden typed code isn't shown, from its own stored reasons (D4). */
+/**
+ * Says why each hidden typed code isn't shown, from its own stored reasons
+ * (D4), under a stamp; where the other semester is open to the student, a
+ * button switches to it (5G, direction D).
+ */
 function explainHidden() {
   if (!shown) return;
   const { data, view } = shown;
   const filters = data.filters ?? {};
-  for (const [code, { why, title }] of view.hidden) {
+  const sem = filters.sem === 1 || filters.sem === 2 ? String(filters.sem) : '';
+  const study = filters.ng === true ? String(filters.study ?? '') : '';
+  for (const [code, { why, title, stamp, actions }] of view.hidden) {
     modules.get(code).then((outcome) => {
       if (!why.isConnected) return;
       if (outcome.kind !== 'ok') { setChildren(why, `${code} isn't shown with these settings. Why could not be checked just now.`); return; }
       setChildren(title, typeof outcome.body.title === 'string' ? outcome.body.title : '');
       setChildren(why, hiddenCodeLine({
-        code, sem: filters.sem === undefined ? '' : String(filters.sem), study: filters.ng === true ? String(filters.study ?? '') : '',
-        exchange: outcome.body.exchange, sources, module: outcome.body, filters,
+        code, sem: filters.sem === undefined ? '' : String(filters.sem), study, exchange: outcome.body.exchange, sources, module: outcome.body, filters,
       }));
+      const verdict = hiddenCodeStamp({ sem: filters.sem === undefined ? '' : String(filters.sem), study, exchange: outcome.body.exchange });
+      setChildren(stamp, hiddenStamp(verdict.text));
+      // Only from a chosen Sem 1 or 2 (never a special term), and only if the
+      // rest of the settings would show the code there: a code exchange mode
+      // allows but another filter hides gets no switch.
+      if (!verdict.switchTo || !sem || otherFilterHides(outcome.body, filters)) { setChildren(actions); return; }
+      const button = h('button', { class: 'linkbtn switch-sem', attrs: { type: 'button' } }, `Switch to ${semLabel(verdict.switchTo)} to see ${code}`);
+      button.addEventListener('click', () => switchSemester(verdict.switchTo, code));
+      setChildren(actions, button);
     });
   }
+}
+
+/**
+ * Whether a filter other than the exchange set-up would hide this course too
+ * (its level, units or faculty), so switching the semester would not show it.
+ * @param {any} m /module/:code's row
+ * @param {Record<string, unknown>} filters
+ */
+function otherFilterHides(m, filters) {
+  return (filters.level !== undefined && String(m.level) !== String(filters.level))
+    || (filters.credits !== undefined && String(m.credits) !== String(filters.credits))
+    || (filters.faculty !== undefined && m.faculty !== filters.faculty);
+}
+
+/**
+ * Switches the exchange semester (a settings change: replace), then focuses
+ * the course's entry if the new answer shows it, else the search box.
+ * @param {string} sem '1' or '2'
+ * @param {string} code
+ */
+async function switchSemester(sem, code) {
+  els.sem.value = sem;
+  syncExchange();
+  await actThenFocus({ type: 'settings', form: readForm() }, code);
+}
+
+/**
+ * Applies an action that replaces the answer under the student's focus (the
+ * switch, an "Also as" link), then focuses `code`'s entry once the new answer
+ * shows it, else the search box. Not if the student has moved on while it
+ * loaded (another action, Back): focus stays where they put it.
+ * @param {import('./nav.js').Action} action
+ * @param {string} code
+ */
+async function actThenFocus(action, code) {
+  const done = act(action);
+  const mine = current;
+  await done;
+  if (current !== mine) return;
+  const button = shown?.view.cards.get(code)?.button;
+  if (button) button.focus();
+  else els.q.focus();
 }
 
 /**
@@ -395,7 +458,7 @@ function remember(key, body) {
  * @param {any} body
  */
 function render(s, key, body) {
-  shown = { key, data: body, view: showResults(targets, body, { searchHref, removableFilters: removableFilters(), query: s.q }) };
+  shown = { key, data: body, view: showResults(targets, body, { searchHref, variantHref, removableFilters: removableFilters(), query: s.q }) };
   showIntentChips(body);
   announceAnswer();
   syncDetail(s);
@@ -476,9 +539,11 @@ async function show(s, { fromUser = false, submitted = false } = {}) {
 
 /**
  * Applies a user action: the transition's history op, then the render.
+ * Resolves once the answer is on screen (at once for back() and no-ops).
  * @param {import('./nav.js').Action} action
+ * @returns {Promise<void>}
  */
-function act(action) {
+async function act(action) {
   const detailPushed = history.state?.vnmDetail === true;
   const { state, op } = transition(current, action, { detailPushed });
   if (op === 'none') return;
@@ -490,9 +555,10 @@ function act(action) {
   const closing = action.type === 'close' ? current.open : '';
   current = state;
   applyToForm(state);
-  show(state, { fromUser: true, submitted: action.type === 'submit' });
+  const done = show(state, { fromUser: true, submitted: action.type === 'submit' });
   // Closed by replace: focus goes back to the card's button (closed by back(), popstate does it).
   if (closing) shown?.view.cards.get(closing)?.button.focus();
+  await done;
 }
 
 els.form.addEventListener('submit', (e) => {
@@ -659,6 +725,15 @@ els.results.addEventListener('click', (e) => {
   const button = e.target instanceof Element ? e.target.closest('button.card-toggle') : null;
   if (!(button instanceof HTMLButtonElement)) return;
   act(button.getAttribute('aria-expanded') === 'true' ? { type: 'close' } : { type: 'open', code: button.dataset.code ?? '' });
+});
+// An "Also as" code opens its own entry: its search, with its detail open and
+// saying where it came from (5G). Focus goes to that entry's button, which
+// brings the open detail into view; the href opens the same in a new tab.
+els.results.addEventListener('click', (e) => {
+  const link = e.target instanceof Element ? e.target.closest('a[data-variant]') : null;
+  if (!(link instanceof HTMLAnchorElement) || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  actThenFocus({ type: 'variant', code: link.dataset.variant ?? '', from: link.dataset.from ?? '' }, link.dataset.variant ?? '');
 });
 // A course code in the detail or a related-courses line searches for it here;
 // its href still opens the same search in a new tab.

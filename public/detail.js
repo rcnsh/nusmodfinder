@@ -6,7 +6,9 @@
 // availability per semester with every reason and its source, and the link to
 // NUSMods for class times. DOM nodes only (F8). Laid out as direction D's
 // sheet (5D): the course facts on the left, "can you take it" on the right
-// (below them on a phone), and the Close button at the top.
+// (below them on a phone), and the Close button at the top. 5G adds the
+// mockup's head: the code, title, units and department again, and, for a
+// detail an "Also as" link opened, which entry it was opened from.
 import { h, setChildren } from './dom.js';
 import { noteText, reasonLine, sourceNote, stampText, statusText } from './explain.js';
 import { codeSegments, examLines, prereqView, semLabel, workloadText } from './format.js';
@@ -19,8 +21,9 @@ import { STUDIES } from './state.js';
  * @typedef {import('./explain.js').ExchangeEntry} ExchangeEntry
  * @typedef {{
  *   filters: Record<string, unknown>, sources: Source[] | null,
- *   searchHref: (code: string) => string, onClose: () => void,
- * }} DetailContext `filters` is the /search echo the card came from
+ *   searchHref: (code: string) => string, onClose: () => void, from?: string,
+ * }} DetailContext `filters` is the /search echo the card came from; `from` the
+ *   entry whose "Also as" link opened this detail, if one did
  */
 
 /** @param {HTMLElement} region */
@@ -43,7 +46,7 @@ export function detailError(region, sentence, retry) {
  * @param {string} title
  * @param {...import('./dom.js').Child} body
  */
-const section = (title, ...body) => h('section', { class: 'detail-part fact' }, h('h3', { class: 'lbl' }, title), ...body);
+const section = (title, ...body) => h('section', { class: 'detail-part fact' }, h('h4', { class: 'lbl' }, title), ...body);
 
 /**
  * NUS's text with each course code a search link.
@@ -139,7 +142,7 @@ function exchangeSection(raw, ctx) {
   if (study) {
     const chosen = ctx.filters.sem === 1 || ctx.filters.sem === 2 ? ctx.filters.sem : 0;
     return h('section', { class: 'detail-part avail' },
-      h('div', null, h('h3', { class: 'big' }, 'Can you take it?'), h('p', { class: 'for' }, `As a ${STUDY_AS[study] ?? study} exchange student`)),
+      h('div', null, h('h4', { class: 'big' }, 'Can you take it?'), h('p', { class: 'for' }, `As a ${STUDY_AS[study] ?? study} exchange student`)),
       ...[1, 2].map((sem) => semBlock(at(sem, study), sem, sem === chosen, sources)),
       check, sourcesLine);
   }
@@ -149,7 +152,7 @@ function exchangeSection(raw, ctx) {
       h('th', { attrs: { scope: 'col' } }, semLabel(1)), h('th', { attrs: { scope: 'col' } }, semLabel(2)))),
     h('tbody', null, ...STUDIES.map((o) => h('tr', null, h('th', { attrs: { scope: 'row' } }, o.label),
       ...[1, 2].map((sem) => h('td', null, ...availability(at(sem, o.value), sources)))))));
-  return h('section', { class: 'detail-part avail avail-all' }, h('h3', { class: 'big' }, 'Open to exchange students'), table, check, sourcesLine);
+  return h('section', { class: 'detail-part avail avail-all' }, h('h4', { class: 'big' }, 'Open to exchange students'), table, check, sourcesLine);
 }
 
 /**
@@ -163,13 +166,24 @@ export function renderDetail(region, m, ctx) {
   const nusmods = typeof m.nusmodsUrl === 'string' && m.nusmodsUrl.startsWith('https://nusmods.com/') ? m.nusmodsUrl : null;
   const close = h('button', { class: 'btn detail-close', attrs: { type: 'button' } }, 'Close', h('span', { class: 'vh' }, ' details'), icon('x'));
   close.addEventListener('click', ctx.onClose);
+  const code = typeof m.code === 'string' ? m.code : '';
+  const kicker = ctx.from
+    ? h('p', { class: 'kicker opened-from' }, 'Opened from ', h('span', { class: 'mono' }, ctx.from), ': another code for the same course')
+    : h('p', { class: 'kicker' }, 'Course details');
+  const dept = [m.department, m.faculty].filter((x, i, a) => typeof x === 'string' && x && a.indexOf(x) === i).join(', ');
+  const units = typeof m.credits === 'number' ? `${m.credits} unit${m.credits === 1 ? '' : 's'}` : '';
   setChildren(region,
-    h('div', { class: 'sheet-head' }, h('p', { class: 'kicker' }, 'Course details'), close),
+    h('div', { class: 'sheet-head' }, kicker, close),
+    // The head repeats the entry's code and title (direction D), so the sheet reads on its own.
+    // The code is in the heading (on its own line), so the heading's name is the code and title.
+    h('div', { class: 'dhead' },
+      h('h3', { class: 'dtitle' }, code ? h('span', { class: 'dcode' }, code) : null, code ? ' ' : null, typeof m.title === 'string' ? m.title : ''),
+      units || dept ? h('p', { class: 'dmeta' }, [units, dept].filter(Boolean).join(' · ')) : null),
     // "Can you take it" comes first: beside the facts on a wide screen, above them on a narrow one.
     h('div', { class: 'sheet-grid' },
       h('div', { class: 'sheet-side' },
         exchangeSection(m.exchange, ctx),
-        h('section', { class: 'detail-part nusmods' }, h('h3', { class: 'vh' }, 'Class times'),
+        h('section', { class: 'detail-part nusmods' }, h('h4', { class: 'vh' }, 'Class times'),
           nusmods ? h('p', null, h('a', { class: 'nusmods-link', attrs: { href: nusmods, target: '_blank', rel: 'noopener' } }, 'Class times and timetable on NUSMods', icon('ext'))) : null,
           h('p', { class: 'nm-note' }, "Class times aren't shown here."))),
       h('div', { class: 'sheet-main' },
