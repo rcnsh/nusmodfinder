@@ -117,6 +117,17 @@ describe('the fixture: NGN2001F (Sem 2 only) ranks above NGN2001G (Sem 1) in exc
     expect(variantsOf(body, 'NGN2001F')).toEqual(['NGN2001G']);
   });
 
+  it('nor is any other code the query types: a 4th typed code is past the pin cap but stays', async () => {
+    // The first three typed codes pin (and fail ng, so they are hidden); NGN2001F ranks like any result.
+    for (const mode of ['lexical', 'hybrid']) {
+      const { body } = await callJson(`/search?q=${encodeURIComponent('GEA1000 LL5004V PLS8002A NGN2001F global narratives')}&ng=1&study=ug2&sem=1&mode=${mode}&topK=50`, { fakes });
+      expect(body.interpreted.pin, mode).toEqual(['GEA1000', 'LL5004V', 'PLS8002A']);
+      expect(codes(body), mode).toContain('NGN2001F');
+      expect(codes(body), mode).not.toContain('NGN2001G');
+      expect(variantsOf(body, 'NGN2001F'), mode).toEqual(['NGN2001G']);
+    }
+  });
+
   it('COLLAPSE_GROUPS=off: the uncollapsed list, both members, no variants', async () => {
     const { body } = await callJson('/search?q=nus%20college&ng=1&study=ug2&sem=1', { fakes, env: OFF });
     expect(codes(body)).toEqual(expect.arrayContaining(['NGN2001F', 'NGN2001G']));

@@ -596,7 +596,7 @@ const TRACE_FULL_DEPTH = 100_000;
  * - `constraints`: what a result must pass (the request's filters, 3H's intents, 3B's ranges
  *   and level window), stricter than the variants' filter, which has no ranges;
  * - `rank`: each code's position in the ranked list the page was cut from;
- * - `pinned`: codes the query pinned, never swapped.
+ * - `pinned`: codes the query types (its pins, and offered codes past the pin cap), never swapped.
  */
 
 /** @param {{ semesters: string | null }} row @param {number} sem */
@@ -849,15 +849,16 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     ? { 1: bitOf(1, echo.study), 2: bitOf(2, echo.study) } : null;
   /** @param {ResultRow} row @param {number} [score] */
   const toModule = (row, score) => rowToModule(row, score, bit, semBits);
+  // Never swapped: every offered code the query types, pins and those past the pin cap alike.
+  const typed = new Set(parsed.codes.filter((t) => t.status === 'offered').map((t) => t.code));
   /**
    * The semester representative's inputs, when the request names a semester.
    * @param {Constraints} resultConstraints what a result passes
    * @param {string[]} ranked the ranked list the page was cut from
-   * @param {Set<string>} pinned
    * @returns {SemesterSwap | null}
    */
-  const semesterSwap = (resultConstraints, ranked, pinned) => (echo.sem === undefined ? null : {
-    sem: echo.sem, constraints: resultConstraints, rank: new Map(ranked.map((c, i) => [c, i])), pinned, toModule,
+  const semesterSwap = (resultConstraints, ranked) => (echo.sem === undefined ? null : {
+    sem: echo.sem, constraints: resultConstraints, rank: new Map(ranked.map((c, i) => [c, i])), pinned: new Set([...typed, ...parsed.pins]), toModule,
   });
 
   // ── no-match: `count: 0`; a not-offered code names its catalogue title and
@@ -950,7 +951,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
       const seen = new Set();
       results = results.filter((r) => { const k = groupKeyOf(groupOf, r.code); return seen.has(k) ? false : (seen.add(k), true); }).slice(0, topK);
       try {
-        results = await attachVariants(db, results, variantFilter, trace, semesterSwap(maskConstraints, order, new Set()));
+        results = await attachVariants(db, results, variantFilter, trace, semesterSwap(maskConstraints, order));
       } catch (err) {
         return { response: upstream('d1', err), degraded: null };
       }
@@ -1123,7 +1124,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   if (filteredOut.length) console.warn(`dense rows whose D1 row fails the filters: ${filteredOut.join(', ')}`);
   if (collapsing) {
     try {
-      results = await attachVariants(db, results, variantFilter, trace, semesterSwap(constraints, fused.map((f) => f.code), pinnedCodes));
+      results = await attachVariants(db, results, variantFilter, trace, semesterSwap(constraints, fused.map((f) => f.code)));
     } catch (err) {
       return { response: upstream('d1', err), degraded: null };
     }
