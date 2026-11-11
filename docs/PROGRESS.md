@@ -1214,3 +1214,8 @@ fails on the previous code.
 - **Live:** version `a6103634` (tag `a7b90f4`); `p5-live.mjs` 32 of 32 on the new domain. Ranking
   untouched; pin stays `8a86bf6`; looks stay at 8 of 12.
 - **Next:** Phase 6 (the shortlist, SC3).
+
+## 2026-11-11 — workers.dev URL off
+
+- `workers_dev: false` (Jacob): `https://nusmodfinder.rcn.sh` is the only address; applied with
+  `wrangler triggers deploy`, no new version.
