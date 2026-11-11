@@ -246,6 +246,25 @@ checks every text/background and boundary pair in both themes against WCAG AA.
   open detail. Every control shows a 2px plum focus ring, and nothing covers it (the sticky
   header leaves a scroll padding of its height). A person runs the VoiceOver walkthrough in
   `docs/evidence/phase5/voiceover-checklist.md` (macOS Safari) locally and live.
+- **The shortlist's state** (Phase 6 6B; `docs/plans/phase6.md` 6B, ADR 0010). The list lives
+  in the URL with no account: `pick` (primary) and `alt` (backup), each repeated in rank order,
+  each `CODE.S` (S is 1 or 2) or an untagged `CODE`, then `ay`, `inv` and `view`, e.g.
+  `/?q=networks&sem=1&ng=1&study=ug2&pick=CS2113.1&pick=CS2030.2&alt=GE2101.1&ay=2026-2027&inv=biz&view=shortlist`.
+  Tags are kept as written; parsing upper-cases, drops malformed values and other tags, keeps the
+  first of duplicates (a code in both lists stays a pick), and keeps at most 20 entries a tagged
+  semester and 40 in all. `ay` (as `acad_year` writes it) is written with the first edit or Copy
+  link once a `/module` row has loaded, never on load alone; `inv` (`biz`, `law`) only when ticked;
+  `view=shortlist` opens the view and drops `open`. The list is page-wide, not per history entry:
+  Back and Forward keep it and write it into the entry they reach. An edit replaces the entry at
+  once and never searches. Every `pushState` and `replaceState` goes through one writer
+  (`history.js`), which keeps under WebKit's 100 writes in 10 s. Links the page renders carry no
+  list, so a new tab starts without one. The last list the student edited is kept on this device
+  (`localStorage` `vnm.shortlist`, G3) for "Restore your last shortlist"; opening a link never
+  overwrites it. `shortlist.js` works the list out (what counts, to confirm with NUS, or not and
+  why; the same course twice; NUS's form order per semester against 40 units; totals; exam and
+  preclusion flags; NUS's notes), for the view (6C) and the exports (6D). Until the view exists,
+  the specs drive the list through test hooks the page installs only when `globalThis.vnmTest`
+  is set before it loads.
 - **Fonts** are self-hosted (`public/fonts/`, IBM's own Latin1 WOFF2 subsets, SIL OFL in
   `public/fonts/OFL.txt`) with `font-display: swap` and a system fallback stack; the page makes
   no request to any other origin. Plex Mono draws a dotted zero, so mono text sets its stylistic
@@ -264,8 +283,12 @@ as production does), that another origin can't frame the page, and that no flow 
 
 | module | does |
 |---|---|
-| `state.js` | the state ↔ URL mapping (pure). In exchange mode `ng=1` and `study` are always in the URL; `open=` names the one open detail, and `from=` the entry whose "Also as" link opened it (kept only beside `open=`, and only while it is one of the open entry's own other codes: `app.js` drops any other, so a link can't claim two courses are one); `pick` and `alt` are reserved for Phase 6 |
-| `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed, an "Also as" link pushes that code's search with its detail open; every action that changes `open=` drops `from=` |
+| `state.js` | the state ↔ URL mapping (pure). In exchange mode `ng=1` and `study` are always in the URL; `open=` names the one open detail, and `from=` the entry whose "Also as" link opened it (kept only beside `open=`, and only while it is one of the open entry's own other codes: `app.js` drops any other, so a link can't claim two courses are one); `view=shortlist`; `urlFor(state, list, path)` writes the state and the shortlist together, and `shortlistUrl` Copy link's URL (no `q`, filters or detail) |
+| `list.js` | the shortlist's half of the URL (pure): parsing with its caps, and every edit (add, remove and Undo, Move up and down, Make backup or primary, a semester, an invitation, `ay` once), each refusing past a cap with the reason |
+| `history.js` | the one history writer: a sliding 10 s budget of 80 writes; past it, writes are held and go out 300 ms after the last, each replace folded into the write before it (a flood of edits is one write) and each push kept as its own; each write in `try`, a refusal retried with backoff (1 s … 10 s) with later writes queued behind it; `flush()` before `act()`, Copy link, exports, on hidden and `pagehide`; `cancel()` on popstate |
+| `shortlist.js`, `preclusion.js` | the shortlist worked out (pure): each entry at its own semester; counted, to confirm with NUS, only if invited (Business and Law), or not counted and why; the same course listed twice (one group, both on the NG list or a preclusion naming the other, compared only with entries kept); NUS's form order per semester against 40 units; totals in tenths with the hours at NUS's rate; exam-overlap, preclusion and same-title flags; NUS's notes on particular courses; the cited lines (applicants, the CourseReg box, G2's maximum in Jacob's words, with a semester above 20 flagged). `preclusion.js` reads whether NUS's text names a code, skipping cohort-only branches and, at `grad`, undergraduate-only rules |
+| `saved.js`, `year.js` | the list on this device (G3: save on the page's own edits, restore only when a link has none, forget); the acad year before any row loads |
+| `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed, an "Also as" link pushes that code's search with its detail open; every action that changes `open=` drops `from=`. Phase 6: no transition touches the list; settings while the view is shown keep it and the submitted `q`; a submit closes it; opening and closing the view (6C wires them); `searchAgain`, whether Back or Forward searches (a changed search, or the same one after a network or server error, never after a 429) |
 | `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
 | `messages.js` | a plain sentence for every error code and `noMatch` reason; raw codes are never shown |
 | `format.js` | semester names, workload, exams in Singapore time, NUS prerequisite and preclusion spacing, the cohort-only prerequisite line, course codes in NUS's text, and the student's own text as the page's sentences repeat it (`quoteUser`: no bidi, zero-width or control characters, no quote mark or lookalike inside (one apostrophe instead), at most 60 characters, in curly quotes; 5G S2). A link's faculty is quoted the same way, in its chip and option, until `/facets` lists it; one it doesn't list is dropped |
@@ -430,6 +453,8 @@ npm run eval:embed -- --texts .data/vectors/missing-production.json --out .data/
 node scripts/vectors.mjs build --corpus production --expect-count <rows> --offline --extra .data/vectors/extra-production.json
 gh release create <release> .data/vectors/<asset> --title <asset> --notes "vectors bundle, sha256 <sha256>"
 git add data/vectors.json src/data-version.json data/vocabulary.json data/groups.json   # the build rewrites 3C's vocabulary and 3F's groups too; plus any code the change needs; open a PR
+#    A new acad year also updates public/year.js and the header in public/index.html (the page's
+#    year before a row loads; test/web/shortlist.node.test.js checks both against data/ng-reasons.json).
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
 # 3. Record a D1 Time Travel bookmark in remote-ops.md.
 export INGEST_SECRET=$(openssl rand -hex 24)
