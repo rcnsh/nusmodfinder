@@ -1,4 +1,4 @@
-# 0009: Phase 6 shortlist and export plan
+# 0010: Phase 6 shortlist and export plan
 
 Status: draft, accepted by the lead (2026-11-11) pending Jacob's answers to G1–G5 and the 6-0
 design gate. The plan (`docs/plans/phase6.md`) went through twelve critic rounds (frontend and
@@ -49,9 +49,23 @@ students changing courses in CourseReg and 2027/28 applicants, who apply from Ma
 - **One code-only deploy**; the shipped-ranker pin moves as ranking-neutral; no holdout look.
 
 ## Jacob's answers
-_To be added as they come: G1 (what SC3's words mean), G2 (the most you may take), G3 (remember
-the list), G4 (students already admitted), G5 (a full-year student's form order, only if 6-0
-finds no current source), and the 6-0 mockup._
+Jacob, 2026-11-11, each the plan's recommendation:
+- **G1 (what SC3's words mean):** yes to all three. The export carries NUS's description labelled
+  "Course description (NUS, via NUSMods)" with NUS's line that the full syllabus is on Canvas;
+  hours are NUSMods' weekly hours with the 2.5-hours-per-unit estimate; the PDF is the browser's
+  print to PDF from a print-ready page.
+- **G2 (the most you may take):** "NUS's brochure says at most 23 units a semester (NUS Business
+  School's exchange students: 20); some pages say 20, so ask NUS before going above 20", as a
+  limit on the courses NUS enrols you in.
+- **G3 (remember the list):** yes: "Restore your last shortlist" and "Forget this list on this
+  device"; opening someone else's link never overwrites it.
+- **G4 (students already admitted):** one box of NUS's rules for that stage; no add-and-drop
+  planner in Phase 6.
+- **G5 (a full-year student's form order):** not asked. If 6-0 finds no current source, the lead
+  takes the recommendation (each semester numbered separately against 40 units, with the note
+  that NUS may ask for Sem 2 choices later), as a build call that follows from G2 and the form.
+
+The 6-0 mockup goes to Jacob as its own gate.
 
 ## Dissent
 - **B-7 (round 1):** a second, Excel-only CSV for `;` locales. Declined: beyond SC3's CSV; a

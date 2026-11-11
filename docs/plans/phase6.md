@@ -362,7 +362,7 @@ Print, then pinch out. G1 asks whether that counts as "exports to PDF".
 - The fixture (`test/fixtures/corpus.json`) has 434 modules, 126 on the NG list. `npm test`
   excludes `test/sc1/**`; CI's `sc1` job runs it over the pinned corpus. The `ui` job takes
   10.7–11.6 minutes (the last 12 green runs on `main`) against `timeout-minutes: 20`.
-- The README's Cost table says D1 costs "1 per page load".
+- `docs/REFERENCE.md`'s Cost table says D1 costs "1 per page load".
 
 ## 2. The design gate (6-0)
 The shortlist is new UI inside design D, so Jacob sees it before it is built. One direction:
@@ -384,7 +384,7 @@ with fixture data, in these states:
 
 Each passes `npm run contrast` and the 390×664 fold check (state 1 on ACC1701XB with both
 stamps, the toggle, and the longest shortlist button label). Jacob approves, or names what to
-change; the result goes in ADR 0009.
+change; the result goes in ADR 0010.
 
 **Fact checks in 6-0** (a browser, by the lead; nothing on the live Worker):
 - the brochure's numbers by eye (4, 10, 40, 12, 23), and the GRO FAQ's maximum;
@@ -1133,7 +1133,7 @@ settled, the export question answered or not needed), not set and cleared around
   violations on the new states, the keyboard, live-region, reflow and fold specs.
 - 6A shipped; pin moved ranking-neutral; 0 holdout lists differing.
 - The red team: zero page defects open.
-- README ("The page", "Cost", "Re-ingesting", "Known limitations"; its VoiceOver line corrected
+- `docs/REFERENCE.md` (the technical README since ADR 0009: "The page", "Cost", "Re-ingesting", "Known limitations"; its VoiceOver line corrected
   to Jacob's 2026-11-11 answer), `docs/PLAN.md` and the vault page describe the shortlist as it
   is.
 
