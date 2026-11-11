@@ -555,7 +555,10 @@ export function createShortlistView(root, on) {
     /** @param {Model} m */
     update(m) {
       const r = m.result;
-      const sems = m.sem === '1' || m.sem === '2' ? semLabel(m.sem) : 'Sem 1 and Sem 2';
+      // The semesters the list holds (RT6-PD1); the search filter only names one when the list has none.
+      const held = [...new Set(r.entries.map((w) => w.sem).filter((x) => x === '1' || x === '2'))].sort();
+      const one = held.length === 1 ? held[0] : held.length === 0 && (m.sem === '1' || m.sem === '2') ? m.sem : '';
+      const sems = one ? semLabel(one) : 'Sem 1 and Sem 2';
       const who = m.study ? `${studyAdj(m.study)} exchange student` : 'Exchange status not checked: no year of study set';
       setChildren(sub, `${sems} · ${who} · NUS's ${r.year} courses`);
       setChildren(sentence, ...m.lines.map((l) => h('p', null, l)));

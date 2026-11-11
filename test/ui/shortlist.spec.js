@@ -292,6 +292,15 @@ test.describe('the view at 1280 and 390×664', () => {
 });
 
 test.describe('the view\'s history (6B, built in 6C)', () => {
+  test('[RT6-PD1] the subheading names the semesters the list holds, not the search filter\'s', async ({ page }) => {
+    await page.goto(at('q=ACC1701XB&ng=1&study=ug3&sem=2&pick=CS2030.2&pick=CS2113.1&view=shortlist'));
+    await settled(page);
+    await expect(view(page).locator('.sl-sub')).toHaveText(/^Sem 1 and Sem 2 · 3rd-year exchange student · /);
+    await page.goto(at('q=ACC1701XB&ng=1&study=ug3&pick=CS2113.1&view=shortlist'));
+    await settled(page);
+    await expect(view(page).locator('.sl-sub')).toHaveText(/^Sem 1 · 3rd-year exchange student · /);
+  });
+
   test('[6C] open the view, change Sem to 2, close: sem=2 stays, no view, the first card\'s stamp is Sem 2\'s, the count said', async ({ page }) => {
     await page.goto(at('q=ACC1701XB&ng=1&study=ug2&sem=1&pick=CS2113.1'));
     await settled(page);
