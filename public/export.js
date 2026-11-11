@@ -323,7 +323,7 @@ export function buildExport({ result, list, study, sources, link, today, answers
   const invited = list.inv.map((x) => (x === 'biz' ? 'NUS Business School' : 'NUS Law'));
   if (invited.length) head.push({ key: 'invited', label: 'Invited to apply by', value: invited.join(' and ') });
   head.push(
-    { key: 'later', label: 'For a later year', value: `For a later year, check that year's: NUS publishes the exchange course list in March or April and updates it later (${listDate ? `this one is dated ${listDate.replace(/^0/, '')}` : 'this one\'s date is unavailable'}), and publishes the course descriptions and exam timetable in July or August (NUS Global).` },
+    { key: 'later', label: 'For a later year', value: `For a later year, check that year's: NUS publishes the exchange course list in March or April and updates it later (${listDate ? `this one is dated ${listDate.replace(/^0/, '')}` : 'this one\'s date is unavailable'}), and publishes the course descriptions and exam timetable in July or August (NUS Global; the Registrar says the timetable comes mid-July).` },
     { key: 'site', label: 'Made with', value: `${SITE_NAME}, ${SITE_URL}` },
   );
 

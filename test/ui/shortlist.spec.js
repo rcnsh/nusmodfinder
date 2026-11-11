@@ -446,6 +446,17 @@ test.describe('rows', () => {
     await expect(page.locator('#slTotals .sl-total .big')).toHaveText('0 units counted, if NUS accepts you into each');
   });
 
+  test('[R6-2] a row with no semester says every note its stamps count, once: one both semesters share, then one only Sem 2 has', async ({ page }) => {
+    // PC4262 at ug2: Sem 1 has GRO's level 4000 note; Sem 2 has it and the NG list's timetable note.
+    await page.goto(at('ng=1&study=ug2&sem=1&pick=PC4262&view=shortlist'));
+    await rowsIn(page);
+    await expect(row(page, 'PC4262').locator('.exchange-status')).toHaveText(['Sem 1 · Open, 1 note', 'Sem 2 · Open, 2 notes']);
+    await expect(row(page, 'PC4262').locator('.notes li')).toHaveText([
+      /^Places\. GRO: “Higher level undergraduate courses \(e\.g\. course code starting from 4000 & above\).*from 1000 to 3000”$/,
+      'Timetable. The NG list offers it in Sem 2, but NUSMods shows no classes for it in Sem 2. Ask the department that teaches it whether it will run.',
+    ]);
+  });
+
   test('[6C] Try again: focus on the row\'s first control, then how it ended (loaded; a 404; still failing)', async ({ page }) => {
     const tries = { CS3244: 0, CS2113: 0, GE2101: 0 };
     await page.route(/\/module\/(CS3244|CS2113|GE2101)$/, (route) => {

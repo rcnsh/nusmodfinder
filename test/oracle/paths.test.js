@@ -17,8 +17,13 @@
 //   request time, is on a card and in /module/:code exactly where the
 //   oracle's own reading of the prerequisite puts it, on the pins, the bundle,
 //   the standby, the mask route and exchangeBySem; it never hides a course;
+// - R6-2 (ADR 0010): GRO's level 4000 note, read from the row's level and
+//   faculty at request time, is on every card and /module/:code entry where
+//   the oracle's own reading (code and faculty) puts it, and nowhere else: the
+//   pins over every NG code, exchangeBySem and every offered code's 15
+//   entries; it never hides a course;
 // - Phase 6 6A: /module/:code's `exchange`, what the shortlist reads, equals
-//   the oracle's (with R3) for every offered code, NG-listed or not, and for
+//   the oracle's (with R3 and R6-2) for every offered code, NG-listed or not, and for
 //   every NG-listed code with no classes (the pinned data file, built in
 //   memory as the pinned groups are), whose 404 answers it; a typed one is
 //   never ranked.
@@ -43,7 +48,7 @@ import { compileMask } from '../../src/vector-bundle.js';
 import { createFakes } from '../fakes.js';
 import { adminCall, call, callJson, seed } from '../helpers.js';
 import { shortlistAgainstOracle } from '../shortlist-sc1.js';
-import { oracle, oracleShown, yearNoteOf } from './oracle.node.mjs';
+import { levelNoteOf, oracle, oracleShown, yearNoteOf } from './oracle.node.mjs';
 
 const corpus = inject('corpus');
 const bundleKind = inject('vectorsBundle');
@@ -79,14 +84,18 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
   const shown = (body) => body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)]);
   /** Whether an exchange entry carries R3's note. @param {any} e */
   const hasYear = (e) => (e?.reasons ?? []).some((/** @type {any} */ r) => r.id === 'prereq:year-of-study');
+  /** How many times an exchange entry carries R6-2's note (once at most). @param {any} e */
+  const groCount = (e) => (e?.reasons ?? []).filter((/** @type {any} */ r) => r.id === 'gro:level-4000').length;
   /**
-   * What is wrong with a card's exchange entry against the oracle with R3, or ''.
+   * What is wrong with a card's exchange entry against the oracle with R3 and R6-2, or ''.
    * @param {NormalisedModule} m @param {any} e @param {1 | 2 | 'any'} sem @param {import('../../src/ng-bit.js').Study} study
    */
   const entryWrong = (m, e, sem, study) => {
     const want = oracleShown(m, { sem, study });
     const year = want !== 'closed' && yearNoteOf(m, study) !== null;
-    return e?.status === want && hasYear(e) === year ? '' : `${m.code} ${study} sem ${sem}: ${e?.status}${hasYear(e) ? ' +year' : ''}, oracle ${want}${year ? ' +year' : ''}`;
+    const gro = want !== 'closed' && levelNoteOf(m, study) !== null ? 1 : 0;
+    return e?.status === want && hasYear(e) === year && groCount(e) === gro ? ''
+      : `${m.code} ${study} sem ${sem}: ${e?.status}${hasYear(e) ? ' +year' : ''}${groCount(e) ? ` +gro×${groCount(e)}` : ''}, oracle ${want}${year ? ' +year' : ''}${gro ? ' +gro' : ''}`;
   };
   const fakes = createFakes();
 
@@ -149,12 +158,13 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
     console.info(`SC1 standby recall@50 by combination:\n  ${recalls.join('\n  ')}`);
   }, 600_000);
 
-  it('pins: a code search for every NG code shows it exactly when the oracle does, with the oracle\'s status and R3 note', async () => {
+  it('pins: a code search for every NG code shows it exactly when the oracle does, with the oracle\'s status, R3 note and R6-2 note', async () => {
     const ngCodes = c.modules.filter((m) => m.ng).map((m) => m.code);
     expect(ngCodes.length).toBeGreaterThan(1000);
     /** @type {string[]} */
     const wrong = [];
     let years = 0;
+    let gros = 0;
     for (const code of ngCodes) {
       const m = /** @type {NormalisedModule} */ (moduleOf.get(code));
       for (const k of COMBOS) {
@@ -165,11 +175,14 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
         const bad = entryWrong(m, card.exchange, k.sem, k.study);
         if (bad) wrong.push(bad);
         if (hasYear(card.exchange)) years++;
+        gros += groCount(card.exchange);
       }
     }
     expect(wrong).toEqual([]);
     // R3 reaches real cards: AR4601 and others at a home year below theirs.
     expect(years).toBeGreaterThan(20);
+    // R6-2 reaches real cards: 245 level 4000 NG courses outside Law, each at some undergraduate (sem, study).
+    expect(gros).toBeGreaterThan(1000);
   }, 600_000);
 
   it('R3: the year-of-study note on the bundle, the standby, a vector-only search, the mask route and /module/:code', async () => {
@@ -212,7 +225,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
     expect(cards).toBeGreaterThan(100);
   }, 600_000);
 
-  it('exchangeBySem (Phase 5 5C-api): with no sem, each semester\'s status on a shown NG code\'s card equals the oracle\'s (with R3)', async () => {
+  it('exchangeBySem (Phase 5 5C-api): with no sem, each semester\'s entry on a shown NG code\'s card equals the oracle\'s (with R3 and R6-2)', async () => {
     const ngModules = c.modules.filter((m) => m.ng);
     /** @type {string[]} */
     const wrong = [];
@@ -223,8 +236,8 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
         const card = body.results.find((/** @type {any} */ r) => r.code === m.code);
         if (!card) continue;
         for (const sem of /** @type {const} */ ([1, 2])) {
-          const want = oracleShown(m, { sem, study });
-          if (card.exchangeBySem?.[sem]?.status !== want) wrong.push(`${m.code} ${study} sem ${sem}: ${card.exchangeBySem?.[sem]?.status}, oracle ${want}`);
+          const bad = entryWrong(m, card.exchangeBySem?.[sem], sem, study);
+          if (bad) wrong.push(`exchangeBySem: ${bad}`);
           checked++;
         }
       }
@@ -233,19 +246,25 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
     expect(checked).toBeGreaterThan(5000);
   }, 600_000);
 
-  it('6A: /module/:code\'s exchange equals the oracle\'s (with R3) for every offered code and every NG-listed code with no classes', async () => {
+  it('6A: /module/:code\'s exchange equals the oracle\'s (with R3 and R6-2) for every offered code and every NG-listed code with no classes', async () => {
     /** @type {string[]} */
     const wrong = [];
     let entries = 0;
+    /** Offered codes whose /module answer carries R6-2's note somewhere. @type {Set<string>} */
+    const groCodes = new Set();
     for (const m of c.modules) {
       const { status, body } = await callJson(`/module/${m.code}`);
       if (status !== 200) { wrong.push(`${m.code}: HTTP ${status}`); continue; }
       for (const e of body.exchange) {
         const bad = entryWrong(m, e, e.sem, e.study);
         if (bad) wrong.push(`/module: ${bad}`);
+        if (groCount(e)) groCodes.add(m.code);
         entries++;
       }
     }
+    // R6-2's reach over the offered codes (docs/evidence/phase6/gates.md "R6-2"): every one on the NG list.
+    expect(groCodes.size).toBe(245);
+    expect([...groCodes].every((code) => moduleOf.get(code)?.ng)).toBe(true);
     const classless = [...unscheduled().values()];
     expect(classless).toHaveLength(32);
     for (const u of classless) {

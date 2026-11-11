@@ -97,6 +97,35 @@ const stop = (s) => (/[.!?”)]$/.test(s) ? s : `${s}.`);
 const exchangeAt = (c, sem, study) => (Array.isArray(c?.exchange) ? c.exchange : []).find((/** @type {any} */ x) => String(x.sem) === String(sem) && x.study === study);
 
 /**
+ * A row with no semester: the notes its two stamps count, each said once. A
+ * note both semesters carry is said as it is; one only a single semester
+ * carries is marked "(Sem 2 only)", unless its text already names that
+ * semester. A closed semester's reasons are its stamp's, not notes.
+ * @param {any} c @param {string} study
+ */
+function bothSemNotes(c, study) {
+  const per = [1, 2].map((s) => {
+    const x = exchangeAt(c, s, study);
+    const reasons = x && x.status !== 'closed' && Array.isArray(x.reasons) ? x.reasons : [];
+    return { s, notes: reasons.map((/** @type {any} */ r) => ({ r, text: noteText(r, s) })) };
+  });
+  /** @type {Set<string>} */
+  const said = new Set();
+  /** @type {import('./dom.js').Child[]} */
+  const out = [];
+  for (const { s, notes } of per) {
+    const other = per.find((p) => p.s !== s);
+    for (const { r, text } of notes) {
+      if (said.has(text)) continue;
+      said.add(text);
+      const shared = other?.notes.some((/** @type {{ text: string }} */ n) => n.text === text);
+      out.push(noteItem(r, shared || text.includes(semLabel(s)) ? text : `${text.replace(/\.$/, '')} (${semLabel(s)} only).`));
+    }
+  }
+  return out;
+}
+
+/**
  * The view: built once into `root` (#slView), then updated with update().
  * @param {HTMLElement} root
  * @param {Handlers} on
@@ -402,7 +431,7 @@ export function createShortlistView(root, on) {
       const per = [1, 2].map((s) => ({ s, x: exchangeAt(c, s, m.study) })).filter((p) => p.x);
       if (per.length) out.push(h('div', { class: `stamps${per.length === 2 ? ' both' : ''}` }, ...per.map((p) => stamp(p.x.status, stampText(p.x.status, p.s, (p.x.reasons ?? []).length, true)))));
     }
-    const items = w.sem ? w.reasons.map((r) => noteItem(r, noteText(r, Number(w.sem)))) : [];
+    const items = w.sem ? w.reasons.map((r) => noteItem(r, noteText(r, Number(w.sem)))) : c && m.study ? bothSemNotes(c, m.study) : [];
     // A Business or Law quota note "If you were invited: …" is said under the totals, not again here.
     for (const line of w.lines) if (line !== w.why && !line.startsWith('If you were invited:')) items.push(h('li', null, stop(line)));
     if (items.length) out.push(h('div', { class: 'notes-box' }, h('ul', { class: 'notes' }, ...items)));

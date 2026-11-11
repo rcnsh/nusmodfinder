@@ -8,8 +8,9 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
-  NOT_OFFERED_STAMP, boxNotOffered, codesCount, codesOnly, filterMisses, hiddenCodeLine, hiddenCodeStamp, noteLead, noteText, notOfferedLine, partialCodeLine, prefixLabel, reasonLine, sourceNote, statusText, studyPhrase, typedCodes, unpinnedLine,
+  NOT_OFFERED_STAMP, boxNotOffered, codesCount, codesOnly, filterMisses, hiddenCodeLine, hiddenCodeStamp, noteLead, noteText, notOfferedLine, partialCodeLine, prefixLabel, reasonLine, sourceNote, stampText, statusText, studyPhrase, typedCodes, unpinnedLine,
 } from '../../public/explain.js';
+import { GRO_LEVEL4, levelNote } from '../../src/level-note.js';
 
 const reasonsFile = JSON.parse(readFileSync(fileURLToPath(new URL('../../data/ng-reasons.json', import.meta.url)), 'utf8'));
 /** /facets' `ngSources`, as the Worker serves them (src/ng-reasons.js NG_SOURCES). */
@@ -42,6 +43,11 @@ describe('sources and statuses', () => {
   it('[R3] the year-of-study note cites the course\'s NUS prerequisite, not either NG list', () => {
     expect(sourceNote('prereq:year-of-study', SOURCES)).toBe('NUS prerequisite');
     expect(sourceNote('prereq:year-of-study', null)).toBe('NUS prerequisite');
+  });
+
+  it('[R6-2] GRO\'s level 4000 note cites GRO\'s page, not either NG list', () => {
+    expect(sourceNote('gro:level-4000', SOURCES)).toBe('GRO, Incoming Exchange Students');
+    expect(sourceNote('gro:level-4000', null)).toBe('GRO, Incoming Exchange Students');
   });
 
   it('statusText never leaves the status to colour alone', () => {
@@ -79,6 +85,16 @@ describe('noteText (every note in full; C2-3)', () => {
     expect(noteLead('year')).toBe('Year of study.');
     expect(noteText(year, 1)).toBe(year.text);
     expect(reasonLine(year, 1, SOURCES)).toBe('NUS lists this course for Year 4 students. Ask the department whether your year of study during your exchange counts (NUS prerequisite).');
+  });
+
+  it('[R6-2] GRO\'s level 4000 note leads with "Places." like a quota, is GRO\'s sentence in full, with its source, and makes the stamp "with 1 note"', () => {
+    const gro = levelNote({ level: 4, faculty: 'Science' }, 'ug2');
+    if (!gro) throw new Error('no note');
+    expect(noteLead(gro.kind)).toBe('Places.');
+    expect(noteLead(gro.kind)).toBe(noteLead('quota'));
+    expect(noteText(gro, 1)).toBe(`GRO: “${GRO_LEVEL4}”`);
+    expect(reasonLine(gro, 1, SOURCES)).toBe(`GRO: “${GRO_LEVEL4}” (GRO, Incoming Exchange Students).`);
+    expect(stampText('note', 1, 1)).toBe('Sem 1 · Open, with 1 note');
   });
 
   it('reasonLine adds the source and its date', () => {

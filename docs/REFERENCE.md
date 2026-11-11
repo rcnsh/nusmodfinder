@@ -32,7 +32,7 @@ the student's year of study at home (`ug4` = 4th year or later); without it `/se
 (the NG list's semesters, not NUSMods'), no `sem` means either, and `sem=3|4` answers no
 courses with `noMatch: { reason: "ng-special-term" }`: the NG list has no special-term data.
 Each result then carries `exchange: { status: "open" | "note", reasons: [{ id, kind, text }] }`
-(the reasons include R3's year-of-study note, below).
+(the reasons include R3's year-of-study note and R6-2's level 4000 note, below).
 Only `true` narrows — `ng=0` is ignored, and `study` is ignored without `ng=1`.
 
 `/module/:code` (Phase 5 5A) also answers `examDates`, one `{ sem, date, durationMins }` per
@@ -206,6 +206,22 @@ Only unambiguous texts give it: one undergraduate branch (or none) and a year it
 beside at any level. A year that is one alternative ("GPA of 3.2 or greater OR must be Year 4"),
 several "if undertaking" branches, or a graduate student give none. The SC1 oracle reads the
 prerequisite on its own (`prereqYears`, `oracleShown`), and both suites check every path against it.
+
+**Level 4000 (Jacob's ruling R6-2, ADR 0010).** NUS Global's (GRO's) sentence on higher-level
+undergraduate courses is a condition, like a quota: a level 4000 course outside Law that an
+undergraduate (`ug1` to `ug4`) is shown gets the note `{ id: "gro:level-4000", kind: "supply" }`,
+whose text is GRO's sentence word for word after "GRO: " ("Higher level undergraduate courses (e.g.
+course code starting from 4000 & above) have very limited supply and are usually NOT available to
+exchange students. …"); the page leads it with "Places." and cites "GRO, Incoming Exchange
+Students". An open course with it is `note` ("Open, with 1 note"); the shortlist counts `supply`
+as it counts `quota` ("Counted, if NUS accepts you"). Level 4 only: NUS's undergraduate courses
+run from 1000 to 4000 (the brochure's "4000: Honours courses"; rule D makes 5000 and 6000 graduate
+courses), so graduate courses are left to rule D and the departments. No note for a graduate
+student or a Law course (Phase 6 plan, C5-m1: NUS Law opens only its LL4 electives and registers
+its own invitees). Read per request from the row's `level` and `faculty` by `src/level-note.js`
+(no data change, never closes or opens anything); the SC1 oracle reads it from the code and
+faculty on its own (`levelNoteOf`). Over the pinned corpus: 245 offered courses carry it, all on
+the NG list (952 level 4000 courses outside Law; the rest are closed to every undergraduate).
 
 The extract's `updatedAsAt` date reaches `/facets` (and so the UI) through ingest: the
 ingest script posts it to `/admin/facets`, which stores it as `meta.ng_list`. Re-run

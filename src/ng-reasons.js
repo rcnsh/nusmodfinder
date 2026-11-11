@@ -6,14 +6,17 @@
 // group-data.js: nothing here runs rule logic.
 import file from '../data/ng-reasons.json';
 import { NG_SEMS, OFF_NG_LIST, STUDIES } from './ng-bit.js';
+import { levelNote } from './level-note.js';
 import { yearNote } from './year-note.js';
 
 /** @typedef {{ id: string, kind: string, text: string }} NgReason */
 /**
  * The columns exchange status reads: /module/:code's row has `prerequisite`,
- * a /search row `year_prereq` (src/modules.js RESULT_COLUMNS).
+ * a /search row `year_prereq` (src/modules.js RESULT_COLUMNS); both have
+ * `level` and `faculty`, for R6-2's note.
  * @typedef {{ ng?: number, ng_allow?: number | null, ng_rules?: string | null,
- *   prerequisite?: string | null, year_prereq?: string | null }} ExchangeRow
+ *   prerequisite?: string | null, year_prereq?: string | null,
+ *   level?: number | null, faculty?: string | null }} ExchangeRow
  */
 
 const GENERIC = "NUS limits who can take this course, and this site can't show the rule. Read NUS's course restrictions for exchange students (linked at the bottom of the page), or ask NUS.";
@@ -53,9 +56,10 @@ export const NG_ACAD_YEAR = file.acadYear;
  * The eligibility of a row at one bit: `open` or `note` where the bit is set,
  * `closed` where it isn't (a missing or zero ng_allow is closed), with the
  * stored reasons. A shown course also gets R3's year-of-study note (ADR 0008,
- * src/year-note.js) from its prerequisite, read now, never stored: it adds a
- * note and never closes or opens anything, so the allow mask, the filters and
- * the order stay the stored ones.
+ * src/year-note.js) from its prerequisite, and R6-2's GRO level 4000 note
+ * (ADR 0010, src/level-note.js) from its level and faculty, each read now,
+ * never stored: they add notes and never close or open anything, so the allow
+ * mask, the filters and the order stay the stored ones.
  * @param {ExchangeRow} row
  * @param {number} bit
  * @returns {{ status: 'open' | 'note' | 'closed', reasons: NgReason[] }}
@@ -69,8 +73,11 @@ export function exchangeAt(row, bit) {
   const shown = ((row.ng_allow ?? 0) & bit) !== 0;
   const reasons = reasonsFor(ids);
   if (!shown) return { status: 'closed', reasons };
-  const year = yearNote(row.prerequisite ?? row.year_prereq, STUDIES[index % STUDIES.length]);
+  const study = STUDIES[index % STUDIES.length];
+  const year = yearNote(row.prerequisite ?? row.year_prereq, study);
   if (year) reasons.push(year);
+  const level = levelNote(row, study);
+  if (level) reasons.push(level);
   return { status: reasons.length ? 'note' : 'open', reasons };
 }
 
