@@ -29,7 +29,7 @@ import sc4Embeddings from '../sc4/embeddings.json';
 import devEmbeddings from '../../eval/dev/embeddings.json';
 import correctedEmbeddings from '../fixtures/sc4-corrected-embeddings.json';
 import { intentContext } from '../../src/intent-data.js';
-import { INTENT } from '../../src/intents.js';
+import { INTENT, PARSE_PHRASES } from '../../src/intents.js';
 import { canonicalQuery, parseQuery } from '../../src/query-intent.js';
 import { denseTexts } from '../../src/search.js';
 import { EMBED_CORRECTED } from '../../src/typo.js';
@@ -40,11 +40,11 @@ const corpus = inject('corpus');
 const bundleKind = inject('vectorsBundle');
 
 /**
- * The workstreams merged into this ranker. 3D was dropped for Phase 3. 3H ships its explicit
- * params alone (PARSE_PHRASES off after L7, ADR 0006), so its parsed-intent items wait; the
- * `[3H params]` test checks the params on the full corpus.
+ * The workstreams merged into this ranker. 3D was dropped for Phase 3. 3H's parsed-intent items
+ * run only while `PARSE_PHRASES` is on (Phase 5 5F; off after L7, ADR 0006); with it off, the
+ * `[3H params]` test checks the explicit params on the full corpus.
  */
-const MERGED = new Set(['3B', '3C', '3F', '3G']);
+const MERGED = new Set(['3B', '3C', '3F', '3G', ...(PARSE_PHRASES ? ['3H'] : [])]);
 /** 3H's prereq semantics, substituted for `$selected` (prereg C9): the variant in force's (src/intents.js). */
 const SELECTED_PREREQ = INTENT.prereq;
 /** Rows whose items are never skipped once their machinery exists (plan 737–739). */

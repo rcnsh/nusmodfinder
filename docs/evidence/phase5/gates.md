@@ -163,3 +163,28 @@ Qrels `qrels-dev-v11` (round `p5a`, which graded every unjudged top-10 document 
 d-011 and d-099 now gain nothing and lose nothing: with the semester representative both runs
 show ACC1701XC for Sem 1. L8 may be taken after the semester representative ships and its pin
 moves; L8's baseline is that pin, with its stored `--store-only` run (plan §3 5F, B3-6).
+
+## 5F: L8 (2026-11-11): PASS, phrases ship
+
+Candidate `ff54fdc` (`75e751d`, the pin `c645e85` plus `PARSE_PHRASES = true`; its ranker files
+are identical to the second dev screen's `ebacaa3`). Baseline `shipped-c645e85` (the pin, stored
+`--store-only`). Look procedure (ADR 0003, A3-4):
+1. `run-l8-ff54fdc` stored with `--holdout --store-only` (81 queries; no ledger row);
+2. pooled with `--custodian --unjudged`: 25 unjudged documents;
+3. round `l8` (single judge A, `claude-opus-5-5`): 12 graded 0 by rule, 13 by judge A; planted
+   repeats 2, exact agreement 1.000; merged as `qrels-holdout-v8`; the plaintext packets deleted
+   with `eval:judge -- clean`. The lead saw no holdout content;
+4. the verdict, `npm run eval:report -- --holdout --run l8-ff54fdc --baseline shipped-c645e85
+   --change-kind compliance`:
+
+```
+holdout verdict: PASS · rule compliance · baseline c645e85 · qrels qrels-holdout-v8
+ΔnDCG@10 +0.012 [0.000, 0.061] (BCa 95%, constraint-filtered qrels)
+ΔP@5     +0.009 [0.000, 0.043] (BCa 95%, constraint-filtered qrels)
+constraint block ΔnDCG@10 +0.826 (n 3)
+scored queries: 69 primary, 3 constraint block · unscored queries: 6 · parsed queries: 7
+```
+
+Holdout looks: **8 of 12** (`eval/holdout-ledger.md`). One look, no retry, as the plan set.
+The ship PR turns `PARSE_PHRASES` on with exactly this ranker; SC4's 14 parsed-intent items run
+again (76 of 76 on the full corpus with the flag on).
