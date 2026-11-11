@@ -84,6 +84,22 @@ test.describe('"Also as" codes are links to their own entry', () => {
     await expect(toggle(page, 'ACC1701XC')).toBeFocused();
   });
 
+  test('a slow answer doesn\'t take focus from where the student moved on to', async ({ page }) => {
+    await page.goto(`/?${LIST}`);
+    // The variant's search answers late; meanwhile the student changes a filter.
+    await page.route('**/search?q=ACC1701XB**', async (route) => {
+      await new Promise((r) => setTimeout(r, 1500));
+      await route.continue().catch(() => {});
+    });
+    await card(page, 'ACC1701XA').locator('.variants a').first().click();
+    await page.locator('#level').focus();
+    await page.locator('#level').selectOption('1');
+    await expect.poll(() => query(page)).toBe('q=ACC1701XB&sem=1&level=1&ng=1&study=ug2');
+    await expect(page.locator('#status .count')).toBeVisible();
+    await page.waitForTimeout(2000);
+    await expect(page.locator('#level')).toBeFocused();
+  });
+
   test('"Opened from" belongs to that detail: closing it, or opening another, drops it', async ({ page }) => {
     await page.goto('/?q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA');
     const d = await region(page, 'ACC1701XB');

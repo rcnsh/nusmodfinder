@@ -117,7 +117,14 @@ function createSite(opts) {
       await slot(isApi(path) ? 'api' : 'asset');
       sent++;
       const started = Date.now();
-      const res = await send();
+      let res;
+      try {
+        res = await send();
+      } catch (err) {
+        // Sent, but no answer (a reset, a timeout, the page gone): logged all the same.
+        log({ at: new Date(started).toISOString(), check, engine, path: pathAndQuery, source: 'network', status: null, ms: Date.now() - started, error: String(/** @type {Error} */ (err).message).split('\n')[0], attempt });
+        throw err;
+      }
       // `at` is when the request was sent, so the log shows the 4 s spacing itself.
       log({
         at: new Date(started).toISOString(), check, engine, path: pathAndQuery, source: 'network', status: res.status, ms: Date.now() - started,
@@ -153,14 +160,22 @@ function createSite(opts) {
           await route.abort('blockedbyclient');
           return;
         }
-        const res = await get(u.pathname + u.search, {
-          check: check(), engine,
-          send: async () => {
-            const r = await route.fetch({ maxRedirects: 0 });
-            return { status: r.status(), headers: r.headers(), body: await r.body() };
-          },
-        });
-        await route.fulfill({ status: res.status, headers: res.headers, body: res.body });
+        let res;
+        try {
+          res = await get(u.pathname + u.search, {
+            check: check(), engine,
+            send: async () => {
+              const r = await route.fetch({ maxRedirects: 0 });
+              return { status: r.status(), headers: r.headers(), body: await r.body() };
+            },
+          });
+        } catch {
+          // No answer (logged by get): the page sees a failed request, as a browser would.
+          await route.abort('failed').catch(() => {});
+          return;
+        }
+        // The page may have moved on (a superseded search) while this waited its turn.
+        await route.fulfill({ status: res.status, headers: res.headers, body: res.body }).catch(() => {});
       });
     },
   };
@@ -225,161 +240,174 @@ async function run(opts) {
   };
   let now = 'start';
 
-  // /health traces the commit.
-  now = 'health';
-  {
-    const res = await site.get('/health', {
-      check: now, engine: 'node', keep: false,
-      send: async () => {
-        const x = await fetch(`${opts.url}/health`, { headers: { 'user-agent': UA } });
-        return { status: x.status, headers: Object.fromEntries(x.headers), body: Buffer.from(await x.arrayBuffer()) };
-      },
-    });
-    const problems = [];
-    /** @type {any} */
-    let h = null;
-    try { h = JSON.parse(res.body.toString('utf8')); } catch { problems.push(`not JSON (HTTP ${res.status})`); }
-    if (h) {
-      const dataVersion = JSON.parse(readFileSync(`${ROOT}src/data-version.json`, 'utf8')).version;
-      const head = opts.expectCommit || execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT }).toString().trim();
-      if (h.ok !== true) problems.push('ok is not true');
-      if (opts.expectCommit === 'none') { if (h.versionTag !== null) problems.push(`versionTag ${h.versionTag}, expected none`); }
-      else if (typeof h.versionTag !== 'string' || h.versionTag.length < 7 || !head.startsWith(h.versionTag)) problems.push(`versionTag ${h.versionTag}, expected a prefix of ${head}`);
-      if (h.dataVersion !== dataVersion) problems.push(`dataVersion ${h.dataVersion}, expected ${dataVersion}`);
-      if (h.vectors?.corpus !== opts.corpus) problems.push(`vectors.corpus ${h.vectors?.corpus}, expected ${opts.corpus}`);
-    }
-    record('/health traces the commit', problems, h ? `versionTag ${h.versionTag}, versionId ${h.versionId}, dataVersion ${h.dataVersion}, ${h.vectors?.corpus} bundle` : '');
-  }
-
-  const browser = await chromium.launch();
-  const desk = await browser.newContext({ viewport: { width: 1280, height: 800 }, userAgent: UA });
-  await site.route(desk, 'chromium', () => now);
-  const page = await desk.newPage();
-  page.setDefaultTimeout(PAGE_TIMEOUT_MS);
-  page.setDefaultNavigationTimeout(PAGE_TIMEOUT_MS);
-  /** axe in light and dark at the widths given, without reloading. @param {string} name @param {[number, number][]} sizes */
-  const axeHere = async (name, sizes) => {
-    const problems = [];
-    for (const scheme of /** @type {const} */ (['light', 'dark'])) {
-      for (const [width, height] of sizes) {
-        await page.emulateMedia({ colorScheme: scheme });
-        await page.setViewportSize({ width, height });
-        for (const v of await axeViolations(page)) problems.push(`${scheme} ${width}: ${v}`);
-      }
-    }
-    await page.emulateMedia({ colorScheme: 'light' });
-    await page.setViewportSize({ width: 1280, height: 800 });
-    record(`axe, every rule: ${name}, light and dark`, problems, 'zero violations');
-  };
-
+  // Every check, then the summary, even if one throws (the site unreachable,
+  // a browser crash): the log always ends with what passed and what didn't.
   try {
-    // The first screen: its files are fetched once here; then axe on it.
-    now = 'first screen';
-    await page.goto(`${opts.url}/`);
-    await page.locator('#setupSources td').nth(1).filter({ hasNotText: '…' }).waitFor();
-    await axeHere('the first screen', [[1280, 800], [390, 664]]);
-
-    // SC2 on the 20 drawn codes.
-    for (const { stratum, m } of sc2) {
-      now = `SC2 ${m.code}`;
-      let problems;
-      try {
-        await page.goto(`${opts.url}/?q=${encodeURIComponent(m.code)}&open=${encodeURIComponent(m.code)}`);
-        problems = sc2Problems(await readSc2(page, m.code, PAGE_TIMEOUT_MS), sc2Expected(m));
-      } catch (err) {
-        problems = [String(/** @type {Error} */ (err).message).split('\n')[0]];
-      }
-      record(`SC2 ${m.code} (${stratum})`, problems, 'every field');
-    }
-    now = 'axe detail';
-    await axeHere(`an open detail (${sc2.at(-1)?.m.code})`, [[1280, 800], [390, 664]]);
-
-    // The hidden-code explanations: each line, stamp and switch as the page's
-    // rules give them from the code's own /module answer and /facets' sources.
-    const facets = JSON.parse(site.memory.get('/facets')?.body.toString('utf8') ?? 'null');
-    for (const c of hidden.closed) {
-      now = `hidden ${c.m.code}`;
+    // /health traces the commit.
+    now = 'health';
+    {
       const problems = [];
+      /** @type {any} */
+      let h = null;
       try {
-        await page.goto(`${opts.url}/?q=${c.m.code}&sem=${c.sem}&ng=1&study=${c.study}`);
-        const li = page.locator(`#status .hidden-codes li[data-code="${c.m.code}"]`);
-        await li.locator('.hc-stamp .st').waitFor();
-        const body = JSON.parse(site.memory.get(`/module/${c.m.code}`)?.body.toString('utf8') ?? 'null');
-        const filters = { sem: c.sem, ng: true, study: c.study };
-        const line = hiddenCodeLine({ code: c.m.code, sem: String(c.sem), study: c.study, exchange: body?.exchange, sources: facets?.ngSources ?? null, module: body, filters });
-        const stamp = hiddenCodeStamp({ sem: String(c.sem), study: c.study, exchange: body?.exchange });
-        const got = await li.evaluate((el) => ({
-          why: el.querySelector('.why')?.textContent ?? '', stamp: el.querySelector('.hc-stamp')?.textContent ?? '',
-          button: el.querySelector('.switch-sem')?.textContent ?? null,
-        }));
-        if (got.why !== line) problems.push(`line "${got.why}", expected "${line}"`);
-        if (got.stamp !== stamp.text) problems.push(`stamp "${got.stamp}", expected "${stamp.text}"`);
-        const wantButton = stamp.switchTo ? `Switch to ${semLabel(stamp.switchTo)} to see ${c.m.code}` : null;
-        if (got.button !== wantButton) problems.push(`switch ${JSON.stringify(got.button)}, expected ${JSON.stringify(wantButton)}`);
-        // Never a result (SC1): not an entry, not another entry's "Also as".
-        if (await page.locator(`#results [data-code="${c.m.code}"], #results [data-variant="${c.m.code}"]`).count()) problems.push('shown as a result');
+        const res = await site.get('/health', {
+          check: now, engine: 'node', keep: false,
+          send: async () => {
+            const x = await fetch(`${opts.url}/health`, { headers: { 'user-agent': UA } });
+            return { status: x.status, headers: Object.fromEntries(x.headers), body: Buffer.from(await x.arrayBuffer()) };
+          },
+        });
+        try { h = JSON.parse(res.body.toString('utf8')); } catch { problems.push(`not JSON (HTTP ${res.status})`); }
       } catch (err) {
-        problems.push(String(/** @type {Error} */ (err).message).split('\n')[0]);
+        problems.push(`no answer: ${String(/** @type {Error} */ (err).message).split('\n')[0]}`);
       }
-      record(`hidden code ${c.m.code} (${c.kind}; Sem ${c.sem}, ${c.study})`, problems, 'its own reasons, stamp and switch');
+      if (h) {
+        const dataVersion = JSON.parse(readFileSync(`${ROOT}src/data-version.json`, 'utf8')).version;
+        const head = opts.expectCommit || execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT }).toString().trim();
+        if (h.ok !== true) problems.push('ok is not true');
+        if (opts.expectCommit === 'none') { if (h.versionTag !== null) problems.push(`versionTag ${h.versionTag}, expected none`); }
+        else if (typeof h.versionTag !== 'string' || h.versionTag.length < 7 || !head.startsWith(h.versionTag)) problems.push(`versionTag ${h.versionTag}, expected a prefix of ${head}`);
+        if (h.dataVersion !== dataVersion) problems.push(`dataVersion ${h.dataVersion}, expected ${dataVersion}`);
+        if (h.vectors?.corpus !== opts.corpus) problems.push(`vectors.corpus ${h.vectors?.corpus}, expected ${opts.corpus}`);
+      }
+      record('/health traces the commit', problems, h ? `versionTag ${h.versionTag}, versionId ${h.versionId}, dataVersion ${h.dataVersion}, ${h.vectors?.corpus} bundle` : '');
     }
-    now = 'axe hidden';
-    if (hidden.closed.length) await axeHere(`a hidden code (${hidden.closed.at(-1)?.m.code})`, [[1280, 800], [390, 664]]);
-    if (hidden.closed.length < CLOSED_KINDS.length) record('hidden codes drawn', [`${hidden.closed.length} of ${CLOSED_KINDS.length} kinds found`]);
 
-    if (hidden.partial) {
-      const p = hidden.partial;
-      now = `partial ${p.prefix}`;
+    const browser = await chromium.launch();
+    const desk = await browser.newContext({ viewport: { width: 1280, height: 800 }, userAgent: UA });
+    await site.route(desk, 'chromium', () => now);
+    const page = await desk.newPage();
+    page.setDefaultTimeout(PAGE_TIMEOUT_MS);
+    page.setDefaultNavigationTimeout(PAGE_TIMEOUT_MS);
+    /** axe in light and dark at the widths given, without reloading. @param {string} name @param {[number, number][]} sizes */
+    const axeHere = async (name, sizes) => {
       const problems = [];
-      try {
-        await page.goto(`${opts.url}/?q=${p.prefix}&sem=${p.sem}&ng=1&study=${p.study}`);
-        const want = partialCodeLine({ prefix: p.prefix, sem: String(p.sem), study: p.study, otherHasResults: p.otherHasResults });
-        const wantButton = p.otherHasResults ? `See ${semLabel(p.sem === 1 ? 2 : 1)} courses` : null;
-        // Settled: the other semester checked (a button, or the either-semester line).
-        await page.waitForFunction(() => !!document.querySelector('#status .see-other') || /either semester/.test(document.querySelector('#status .partial')?.textContent ?? ''));
-        const got = await page.evaluate(() => ({ line: document.querySelector('#status .partial')?.textContent ?? null, button: document.querySelector('#status .see-other')?.textContent ?? null, cards: document.querySelectorAll('#results > li.card').length }));
-        if (got.line !== want) problems.push(`line ${JSON.stringify(got.line)}, expected "${want}"`);
-        if (got.button !== wantButton) problems.push(`button ${JSON.stringify(got.button)}, expected ${JSON.stringify(wantButton)}`);
-        if (got.cards) problems.push(`${got.cards} results shown`);
-      } catch (err) {
-        problems.push(String(/** @type {Error} */ (err).message).split('\n')[0]);
-      }
-      record(`partial code ${p.prefix} (Sem ${p.sem}, ${p.study})`, problems, 'the line and the button');
-    } else {
-      record('partial code drawn', ['no prefix is emptied at any drawn semester and year']);
-    }
-
-    // The fold at 390×664: Chromium, then WebKit as an iPhone 13 (SC8).
-    const FOLD = /** @type {const} */ ([['Sem 1', `/?q=ACC1701XB&sem=1&ng=1&study=ug2`, 1], ['both semesters', `/?q=ACC1701XB&ng=1&study=ug2`, 2]]);
-    for (const [engine, launch, ctxOpts] of /** @type {const} */ ([
-      ['chromium 390×664', null, { viewport: { width: 390, height: 664 }, userAgent: UA }],
-      ['webkit iPhone 13', webkit, (() => { const { viewport, deviceScaleFactor, isMobile, hasTouch, userAgent } = devices['iPhone 13']; return { viewport, deviceScaleFactor, isMobile, hasTouch, userAgent }; })()],
-    ])) {
-      const b = launch ? await launch.launch() : browser;
-      try {
-        const ctx = await b.newContext(ctxOpts);
-        await site.route(ctx, engine.split(' ')[0], () => now);
-        const p = await ctx.newPage();
-        p.setDefaultTimeout(PAGE_TIMEOUT_MS);
-        p.setDefaultNavigationTimeout(PAGE_TIMEOUT_MS);
-        for (const [label, path, stamps] of FOLD) {
-          now = `fold ${engine} ${label}`;
-          let problems;
-          try {
-            await p.goto(`${opts.url}${path}`);
-            problems = await foldProblems(p, stamps);
-          } catch (err) {
-            problems = [String(/** @type {Error} */ (err).message).split('\n')[0]];
-          }
-          record(`fold, ${engine}: ACC1701XB, ${label}`, problems, 'the header, the bar and the first entry in view');
+      for (const scheme of /** @type {const} */ (['light', 'dark'])) {
+        for (const [width, height] of sizes) {
+          await page.emulateMedia({ colorScheme: scheme });
+          await page.setViewportSize({ width, height });
+          for (const v of await axeViolations(page)) problems.push(`${scheme} ${width}: ${v}`);
         }
-        await ctx.close();
-      } finally {
-        if (launch) await b.close();
       }
+      await page.emulateMedia({ colorScheme: 'light' });
+      await page.setViewportSize({ width: 1280, height: 800 });
+      record(`axe, every rule: ${name}, light and dark`, problems, 'zero violations');
+    };
+
+    try {
+      // The first screen: its files are fetched once here; then axe on it.
+      now = 'first screen';
+      await page.goto(`${opts.url}/`);
+      await page.locator('#setupSources td').nth(1).filter({ hasNotText: '…' }).waitFor();
+      await axeHere('the first screen', [[1280, 800], [390, 664]]);
+
+      // SC2 on the 20 drawn codes.
+      for (const { stratum, m } of sc2) {
+        now = `SC2 ${m.code}`;
+        let problems;
+        try {
+          await page.goto(`${opts.url}/?q=${encodeURIComponent(m.code)}&open=${encodeURIComponent(m.code)}`);
+          problems = sc2Problems(await readSc2(page, m.code, PAGE_TIMEOUT_MS), sc2Expected(m));
+        } catch (err) {
+          problems = [String(/** @type {Error} */ (err).message).split('\n')[0]];
+        }
+        record(`SC2 ${m.code} (${stratum})`, problems, 'every field');
+      }
+      now = 'axe detail';
+      await axeHere(`an open detail (${sc2.at(-1)?.m.code})`, [[1280, 800], [390, 664]]);
+
+      // The hidden-code explanations: each line, stamp and switch as the page's
+      // rules give them from the code's own /module answer and /facets' sources.
+      const facets = JSON.parse(site.memory.get('/facets')?.body.toString('utf8') ?? 'null');
+      for (const c of hidden.closed) {
+        now = `hidden ${c.m.code}`;
+        const problems = [];
+        try {
+          await page.goto(`${opts.url}/?q=${c.m.code}&sem=${c.sem}&ng=1&study=${c.study}`);
+          const li = page.locator(`#status .hidden-codes li[data-code="${c.m.code}"]`);
+          await li.locator('.hc-stamp .st').waitFor();
+          const body = JSON.parse(site.memory.get(`/module/${c.m.code}`)?.body.toString('utf8') ?? 'null');
+          const filters = { sem: c.sem, ng: true, study: c.study };
+          const line = hiddenCodeLine({ code: c.m.code, sem: String(c.sem), study: c.study, exchange: body?.exchange, sources: facets?.ngSources ?? null, module: body, filters });
+          const stamp = hiddenCodeStamp({ sem: String(c.sem), study: c.study, exchange: body?.exchange });
+          const got = await li.evaluate((el) => ({
+            why: el.querySelector('.why')?.textContent ?? '', stamp: el.querySelector('.hc-stamp')?.textContent ?? '',
+            button: el.querySelector('.switch-sem')?.textContent ?? null,
+          }));
+          // The page's rules, from the code's own /module answer and /facets' sources...
+          if (got.why !== line) problems.push(`line "${got.why}", expected "${line}"`);
+          if (got.stamp !== stamp.text) problems.push(`stamp "${got.stamp}", expected "${stamp.text}"`);
+          // ...and what the drawn kind and the oracle say, independent of that answer.
+          if (got.stamp !== c.stamp) problems.push(`stamp "${got.stamp}", expected "${c.stamp}" for a code ${c.kind}`);
+          const wantButton = c.otherOpen ? `Switch to ${semLabel(c.sem === 1 ? 2 : 1)} to see ${c.m.code}` : null;
+          if (got.button !== wantButton) problems.push(`switch ${JSON.stringify(got.button)}, expected ${JSON.stringify(wantButton)}`);
+          // Never a result (SC1): not an entry, not another entry's "Also as".
+          if (await page.locator(`#results [data-code="${c.m.code}"], #results [data-variant="${c.m.code}"]`).count()) problems.push('shown as a result');
+        } catch (err) {
+          problems.push(String(/** @type {Error} */ (err).message).split('\n')[0]);
+        }
+        record(`hidden code ${c.m.code} (${c.kind}; Sem ${c.sem}, ${c.study})`, problems, 'its own reasons, stamp and switch');
+      }
+      now = 'axe hidden';
+      if (hidden.closed.length) await axeHere(`a hidden code (${hidden.closed.at(-1)?.m.code})`, [[1280, 800], [390, 664]]);
+      if (hidden.closed.length < CLOSED_KINDS.length) record('hidden codes drawn', [`${hidden.closed.length} of ${CLOSED_KINDS.length} kinds found`]);
+
+      if (hidden.partial) {
+        const p = hidden.partial;
+        now = `partial ${p.prefix}`;
+        const problems = [];
+        try {
+          await page.goto(`${opts.url}/?q=${p.prefix}&sem=${p.sem}&ng=1&study=${p.study}`);
+          const want = partialCodeLine({ prefix: p.prefix, sem: String(p.sem), study: p.study, otherHasResults: p.otherHasResults });
+          const wantButton = p.otherHasResults ? `See ${semLabel(p.sem === 1 ? 2 : 1)} courses` : null;
+          // Settled: the other semester checked (a button, or the either-semester line).
+          await page.waitForFunction(() => !!document.querySelector('#status .see-other') || /either semester/.test(document.querySelector('#status .partial')?.textContent ?? ''));
+          const got = await page.evaluate(() => ({ line: document.querySelector('#status .partial')?.textContent ?? null, button: document.querySelector('#status .see-other')?.textContent ?? null, cards: document.querySelectorAll('#results > li.card').length }));
+          if (got.line !== want) problems.push(`line ${JSON.stringify(got.line)}, expected "${want}"`);
+          if (got.button !== wantButton) problems.push(`button ${JSON.stringify(got.button)}, expected ${JSON.stringify(wantButton)}`);
+          if (got.cards) problems.push(`${got.cards} results shown`);
+        } catch (err) {
+          problems.push(String(/** @type {Error} */ (err).message).split('\n')[0]);
+        }
+        record(`partial code ${p.prefix} (Sem ${p.sem}, ${p.study})`, problems, 'the line and the button');
+      } else {
+        record('partial code drawn', ['no prefix is emptied at any drawn semester and year']);
+      }
+
+      // The fold at 390×664: Chromium, then WebKit as an iPhone 13 (SC8).
+      const FOLD = /** @type {const} */ ([['Sem 1', `/?q=ACC1701XB&sem=1&ng=1&study=ug2`, 1], ['both semesters', `/?q=ACC1701XB&ng=1&study=ug2`, 2]]);
+      for (const [engine, launch, ctxOpts] of /** @type {const} */ ([
+        ['chromium 390×664', null, { viewport: { width: 390, height: 664 }, userAgent: UA }],
+        ['webkit iPhone 13', webkit, (() => { const { viewport, deviceScaleFactor, isMobile, hasTouch, userAgent } = devices['iPhone 13']; return { viewport, deviceScaleFactor, isMobile, hasTouch, userAgent }; })()],
+      ])) {
+        const b = launch ? await launch.launch() : browser;
+        try {
+          const ctx = await b.newContext(ctxOpts);
+          await site.route(ctx, engine.split(' ')[0], () => now);
+          const p = await ctx.newPage();
+          p.setDefaultTimeout(PAGE_TIMEOUT_MS);
+          p.setDefaultNavigationTimeout(PAGE_TIMEOUT_MS);
+          for (const [label, path, stamps] of FOLD) {
+            now = `fold ${engine} ${label}`;
+            let problems;
+            try {
+              await p.goto(`${opts.url}${path}`);
+              problems = await foldProblems(p, stamps);
+            } catch (err) {
+              problems = [String(/** @type {Error} */ (err).message).split('\n')[0]];
+            }
+            record(`fold, ${engine}: ACC1701XB, ${label}`, problems, 'the header, the bar and the first entry in view');
+          }
+          await ctx.close();
+        } finally {
+          if (launch) await b.close();
+        }
+      }
+    } finally {
+      await browser.close();
     }
-  } finally {
-    await browser.close();
+  } catch (err) {
+    record(`the run (stopped at ${now})`, [String(/** @type {Error} */ (err).message).split('\n')[0]]);
   }
   const failed = out.filter((o) => !o.pass).length;
   site.log({ check: 'summary', url: opts.url, corpus: opts.corpus, seed: opts.seed, sent: site.sent(), pass: out.length - failed, fail: failed, failures: out.filter((o) => !o.pass) });

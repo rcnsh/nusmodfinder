@@ -71,6 +71,16 @@ describe('the hidden-code draw', () => {
     }
   });
 
+  it('each says the stamp its kind must show, and whether "Switch" must show, independent of /module', () => {
+    expect(closed.map((c) => c.stamp)).toEqual(['Not offered', `Not in Sem ${closed[1].sem}`, `Not open in Sem ${closed[2].sem}`]);
+    for (const c of closed) {
+      const other = c.sem === 1 ? 2 : 1;
+      expect(c.otherOpen, c.m.code).toBe(oracle(c.m, { sem: other, study: c.study }) !== 'closed');
+    }
+    // Off the NG list, a course is closed in both semesters: never a switch.
+    expect(closed[0].otherOpen).toBe(false);
+  });
+
   it('a partial code every course under which is closed at its semester and year', () => {
     expect(partial).not.toBeNull();
     const p = /** @type {NonNullable<typeof partial>} */ (partial);

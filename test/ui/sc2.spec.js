@@ -55,12 +55,20 @@ test('[SC2] [A2-8] NUS\'s raw workload text, when it isn\'t the 5-number form (i
   expect(sc2Problems(await readSc2(page, 'CS3244'), want)).toEqual([]);
 });
 
-test('[SC2] a missing field is caught: the check is not vacuous', async ({ page }) => {
+test('[SC2] a missing field, or one from another course, is caught: the check is not vacuous', async ({ page }) => {
   await page.route('**/module/CS3244', async (route) => {
     const res = await route.fetch();
-    route.fulfill({ response: res, json: { ...(await res.json()), examDates: [], nusmodsUrl: null } });
+    const body = await res.json();
+    route.fulfill({ response: res, json: {
+      ...body, examDates: [], nusmodsUrl: null, prerequisite: 'MA9999 only', preclusion: 'ZZ9999',
+      // Every year closed in Sem 2, where CS3244 is open to exchange students.
+      exchange: body.exchange.map((/** @type {any} */ e) => (e.sem === 2 ? { ...e, status: 'closed' } : e)),
+    } });
   });
   await page.goto('/?q=CS3244&open=CS3244');
   const problems = sc2Problems(await readSc2(page, 'CS3244'), sc2Expected(MODULES.find((m) => m.code === 'CS3244')));
-  expect(problems.map((p) => p.split(':')[0])).toEqual(['exams', 'NUSMods link']);
+  expect(problems.map((p) => p.split(':')[0])).toEqual([
+    "prerequisites, NUS's text", "preclusions, NUS's text", 'exams', 'exchange, 1st year', 'exchange, 2nd year', 'exchange, 3rd year',
+    'exchange, 4th year or later', 'exchange, Graduate', 'NUSMods link',
+  ]);
 });

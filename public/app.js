@@ -397,7 +397,22 @@ function otherFilterHides(m, filters) {
 async function switchSemester(sem, code) {
   els.sem.value = sem;
   syncExchange();
-  await act({ type: 'settings', form: readForm() });
+  await actThenFocus({ type: 'settings', form: readForm() }, code);
+}
+
+/**
+ * Applies an action that replaces the answer under the student's focus (the
+ * switch, an "Also as" link), then focuses `code`'s entry once the new answer
+ * shows it, else the search box. Not if the student has moved on while it
+ * loaded (another action, Back): focus stays where they put it.
+ * @param {import('./nav.js').Action} action
+ * @param {string} code
+ */
+async function actThenFocus(action, code) {
+  const done = act(action);
+  const mine = current;
+  await done;
+  if (current !== mine) return;
   const button = shown?.view.cards.get(code)?.button;
   if (button) button.focus();
   else els.q.focus();
@@ -714,15 +729,11 @@ els.results.addEventListener('click', (e) => {
 // An "Also as" code opens its own entry: its search, with its detail open and
 // saying where it came from (5G). Focus goes to that entry's button, which
 // brings the open detail into view; the href opens the same in a new tab.
-els.results.addEventListener('click', async (e) => {
+els.results.addEventListener('click', (e) => {
   const link = e.target instanceof Element ? e.target.closest('a[data-variant]') : null;
   if (!(link instanceof HTMLAnchorElement) || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
   e.preventDefault();
-  const code = link.dataset.variant ?? '';
-  await act({ type: 'variant', code, from: link.dataset.from ?? '' });
-  const button = current.open === code ? shown?.view.cards.get(code)?.button : null;
-  if (button) button.focus();
-  else els.q.focus();
+  actThenFocus({ type: 'variant', code: link.dataset.variant ?? '', from: link.dataset.from ?? '' }, link.dataset.variant ?? '');
 });
 // A course code in the detail or a related-courses line searches for it here;
 // its href still opens the same search in a new tab.

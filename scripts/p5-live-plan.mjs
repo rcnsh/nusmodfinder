@@ -120,31 +120,43 @@ export function drawSc2(modules, r) {
   return out;
 }
 
-/** The three kinds of closed code, so each kind of explanation is seen live. */
+/**
+ * The three kinds of closed code, so each kind of explanation is seen live,
+ * each with the stamp the page must give it at semester `sem` (fixed here, so
+ * a live /module answer that lost its reasons can't pass by being explained
+ * the same wrong way on both sides).
+ */
 export const CLOSED_KINDS = Object.freeze(/** @type {const} */ ([
-  ['not on the NG list', (/** @type {string[]} */ ids) => ids.includes(NOT_LISTED)],
-  ['on the NG list for the other semester only', (/** @type {string[]} */ ids) => ids.length === 1 && ids[0] === NOT_IN_SEM],
-  ['closed by a restriction', (/** @type {string[]} */ ids) => ids.length > 0 && !ids.includes(NOT_LISTED) && !(ids.length === 1 && ids[0] === NOT_IN_SEM)],
+  ['not on the NG list', (/** @type {string[]} */ ids) => ids.includes(NOT_LISTED), () => 'Not offered'],
+  ['on the NG list for the other semester only', (/** @type {string[]} */ ids) => ids.length === 1 && ids[0] === NOT_IN_SEM, (/** @type {1 | 2} */ sem) => `Not in Sem ${sem}`],
+  ['closed by a restriction', (/** @type {string[]} */ ids) => ids.length > 0 && !ids.includes(NOT_LISTED) && !(ids.length === 1 && ids[0] === NOT_IN_SEM), (/** @type {1 | 2} */ sem) => `Not open in Sem ${sem}`],
 ]));
 
 /**
  * 3 closed codes (one of each kind) at a drawn semester and year of study, and
  * 1 partial code exchange mode empties there. Closed means closed by the
- * independent oracle (test/sc1/oracle.node.mjs) and by the stored bit.
+ * independent oracle (test/sc1/oracle.node.mjs) and by the stored bit. Each
+ * closed code says the stamp it must show and whether the other semester is
+ * open to the student (so "Switch to Sem N" must show), by the same two.
  * @param {any[]} modules
  * @param {() => number} r
  */
 export function drawHidden(modules, r) {
   const ctxs = draw(/** @type {(1 | 2)[]} */ ([1, 2]).flatMap((sem) => STUDIES.map((study) => ({ code: `${sem}-${study}`, sem, study }))), 10, r);
-  /** @type {{ kind: string, sem: 1 | 2, study: import('../src/ng-bit.js').Study, m: any }[]} */
+  /** @type {{ kind: string, sem: 1 | 2, study: import('../src/ng-bit.js').Study, m: any, stamp: string, otherOpen: boolean }[]} */
   const closed = [];
-  for (const [kind, fits] of CLOSED_KINDS) {
+  for (const [kind, fits, stamp] of CLOSED_KINDS) {
     for (const ctx of ctxs) {
       const bit = bitOf(ctx.sem, ctx.study);
       const pool = modules.filter((m) => !allowedAt(m, bit) && oracle(m, { sem: ctx.sem, study: ctx.study }) === 'closed' && fits(rulesAt(m, bit))
         && !closed.some((c) => c.m.code === m.code));
       const [m] = draw(pool, 1, r);
-      if (m) { closed.push({ kind, sem: ctx.sem, study: ctx.study, m }); break; }
+      if (m) {
+        const other = ctx.sem === 1 ? 2 : 1;
+        const otherOpen = allowedAt(m, bitOf(other, ctx.study)) && oracle(m, { sem: other, study: ctx.study }) !== 'closed';
+        closed.push({ kind, sem: ctx.sem, study: ctx.study, m, stamp: stamp(ctx.sem), otherOpen });
+        break;
+      }
     }
   }
   /** @type {Map<string, any[]>} */

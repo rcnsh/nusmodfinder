@@ -13,10 +13,15 @@
 // - the NUSMods link.
 // Expected values come from a normalised module (scripts/lib.mjs's shape: the
 // fixture corpus, or the production modules) through the page's own pure
-// formatters and /module's workload rule, so a field the page leaves out, or
-// one it fills from the wrong course, is a problem.
+// formatters and /module's workload rule; NUS's prerequisite and preclusion
+// texts are compared with the module's (spacing aside, which the page
+// restores); and each year and semester's status is the independent SC1
+// oracle's (test/sc1/oracle.node.mjs). So a field the page leaves out, or one
+// it fills from the wrong course, is a problem.
 import { examLines, prereqView, workloadText } from '../../public/format.js';
+import { STUDIES } from '../../src/ng-bit.js';
 import { moduleWorkload } from '../../src/workload.js';
+import { oracle } from '../sc1/oracle.node.mjs';
 
 /** The detail's years of study, in the all-years table's order. */
 export const YEARS = Object.freeze(['1st year', '2nd year', '3rd year', '4th year or later', 'Graduate']);
@@ -24,12 +29,15 @@ const STATUSES = Object.freeze(['open', 'note', 'closed']);
 
 /** @param {unknown} s */
 const squash = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
+/** NUS's text without any spacing, which the page restores (format.js cleanPrereq). @param {unknown} s */
+const bare = (s) => String(s ?? '').replace(/\s+/g, '');
 
 /**
  * @typedef {{
- *   head: string, description: string, prereq: string, precl: string,
- *   exams: string[], workload: string, nusmods: string,
+ *   head: string, description: string, prereq: string, prereqText: string, precl: string, preclText: string,
+ *   exams: string[], workload: string, exchange: { year: string, statuses: string[] }[], nusmods: string,
  * }} Sc2Expected
+ *   `prereqText`, `preclText`: NUS's text with no whitespace, '' when there is none
  * @typedef {{
  *   head: string, description: string, prereq: string, prereqText: string, precl: string, preclText: string,
  *   exams: string[], workload: string, exchange: { year: string, statuses: (string | null)[] }[], nusmods: string | null,
@@ -47,9 +55,12 @@ export function sc2Expected(m) {
     head: `${m.code} ${m.title}`,
     description: squash(m.description) || 'No description listed',
     prereq: !view ? 'No prerequisites listed' : view.line ?? 'As NUS states it:',
+    prereqText: view ? bare(m.prerequisite) : '',
     precl: squash(m.preclusion) ? 'As NUS states it:' : 'No preclusions listed',
+    preclText: bare(m.preclusion),
     exams: examLines(m.examDates ?? []),
     workload: workloadText(moduleWorkload(m.workload ?? null)),
+    exchange: STUDIES.map((study, i) => ({ year: YEARS[i], statuses: /** @type {const} */ ([1, 2]).map((sem) => oracle(m, { sem, study })) })),
     nusmods: `https://nusmods.com/courses/${m.code}`,
   };
 }
@@ -107,14 +118,15 @@ export function sc2Problems(got, want) {
   same('head', got.head, want.head);
   same('description', got.description, want.description);
   same('prerequisites', got.prereq, want.prereq);
-  if (want.prereq !== 'No prerequisites listed' && !got.prereqText) out.push("prerequisites: NUS's text is missing");
+  same("prerequisites, NUS's text", bare(got.prereqText), want.prereqText);
   same('preclusions', got.precl, want.precl);
-  if (want.precl !== 'No preclusions listed' && !got.preclText) out.push("preclusions: NUS's text is missing");
+  same("preclusions, NUS's text", bare(got.preclText), want.preclText);
   same('exams', got.exams, want.exams);
   same('workload', got.workload, want.workload);
   same('exchange years', got.exchange.map((r) => r.year), YEARS);
-  for (const r of got.exchange) {
+  for (const [i, r] of got.exchange.entries()) {
     if (r.statuses.length !== 2 || r.statuses.some((s) => !STATUSES.includes(String(s)))) out.push(`exchange, ${r.year}: ${JSON.stringify(r.statuses)}, expected a status for Sem 1 and Sem 2`);
+    else same(`exchange, ${r.year}`, r.statuses, want.exchange[i]?.statuses);
   }
   same('NUSMods link', got.nusmods, want.nusmods);
   return out;
