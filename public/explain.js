@@ -260,19 +260,23 @@ export function codesOnly(query) {
 /**
  * The count line for a query of course codes only (direction D): "20 courses
  * shown: CS2030, then 19 other matches". The typed codes named are those
- * shown, as an entry or as one's other code, in the order typed; the rest of
- * the entries are the search's other matches.
+ * pinned at the top (5G PD2): the leading entries that hold a code /search
+ * pinned (`interpreted.pin`), as the entry or as its other code, in the order
+ * typed. A typed code shown lower, unpinned, is one of the other matches.
  * @param {string} query
  * @param {any[]} results
+ * @param {string[]} pinned /search's `interpreted.pin`
  * @returns {{ count: string, rest: string }} `count` in bold, then `rest`
  */
-export function codesCount(query, results) {
+export function codesCount(query, results, pinned) {
   const typed = typedCodes(query);
   /** @param {any} r */
   const codesOf = (r) => [String(r?.code ?? ''), ...(Array.isArray(r?.variants) ? r.variants.map((/** @type {any} */ v) => String(v?.code ?? '')) : [])];
-  const shown = new Set(results.flatMap(codesOf));
-  const named = typed.filter((c) => shown.has(c));
-  const others = results.filter((r) => !codesOf(r).some((c) => typed.includes(c))).length;
+  const top = results.findIndex((r) => !codesOf(r).some((c) => pinned.includes(c)));
+  const lead = top < 0 ? results : results.slice(0, top);
+  const atTop = new Set(lead.flatMap(codesOf));
+  const named = typed.filter((c) => atTop.has(c));
+  const others = results.length - lead.length;
   const count = `${results.length} course${results.length === 1 ? '' : 's'}`;
   const more = `${others} other match${others === 1 ? '' : 'es'}`;
   if (!named.length) return { count, rest: ` shown: other matches for the code${typed.length === 1 ? '' : 's'} you typed` };

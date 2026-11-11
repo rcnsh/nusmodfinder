@@ -364,7 +364,7 @@ export function showResults(t, data, ctx) {
   let countLine;
   if (codesOnly(typedQuery)) {
     // Course codes only: say which of them the list shows (direction D).
-    const { count, rest } = codesCount(typedQuery, results);
+    const { count, rest } = codesCount(typedQuery, results, Array.isArray(data.interpreted?.pin) ? data.interpreted.pin.map(String) : []);
     out.announce = sentence(`${count}${rest}.`, hb?.summary, note);
     countLine = h('p', { class: 'count' }, h('strong', null, count), rest);
   } else {

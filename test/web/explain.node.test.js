@@ -254,18 +254,33 @@ describe('[5G] the count line for a query of course codes only', () => {
   /** @param {string} code @param {string[]} [variants] */
   const r = (code, variants = []) => ({ code, variants: variants.map((v) => ({ code: v })) });
 
-  it('names the typed codes shown, in the order typed, then the other matches', () => {
-    expect(codesCount('CS3244 CS2030', [r('CS2030'), r('CS3244'), r('MA1521')])).toEqual({ count: '3 courses', rest: ' shown: CS3244, CS2030, then 1 other match' });
-    expect(codesCount('CS2030 MA1301', [r('CS2030'), r('MA1301')])).toEqual({ count: '2 courses', rest: ' shown: CS2030, MA1301' });
-    expect(codesCount('CS2030', [r('CS2030'), r('A'), r('B')])).toEqual({ count: '3 courses', rest: ' shown: CS2030, then 2 other matches' });
+  it('names the typed codes pinned at the top, in the order typed, then the other matches', () => {
+    expect(codesCount('CS3244 CS2030', [r('CS2030'), r('CS3244'), r('MA1521')], ['CS3244', 'CS2030'])).toEqual({ count: '3 courses', rest: ' shown: CS3244, CS2030, then 1 other match' });
+    expect(codesCount('CS2030 MA1301', [r('CS2030'), r('MA1301')], ['CS2030', 'MA1301'])).toEqual({ count: '2 courses', rest: ' shown: CS2030, MA1301' });
+    expect(codesCount('CS2030', [r('CS2030'), r('A'), r('B')], ['CS2030'])).toEqual({ count: '3 courses', rest: ' shown: CS2030, then 2 other matches' });
   });
 
-  it('a typed code shown as another entry\'s "Also as" counts as shown, and its entry is not an other match', () => {
-    expect(codesCount('ACC1701XB', [r('ACC1701XA', ['ACC1701XB']), r('X')])).toEqual({ count: '2 courses', rest: ' shown: ACC1701XB, then 1 other match' });
+  it('a typed code shown as a pinned entry\'s "Also as" counts as pinned, and its entry is not an other match', () => {
+    expect(codesCount('ACC1701XB', [r('ACC1701XA', ['ACC1701XB']), r('X')], ['ACC1701XB'])).toEqual({ count: '2 courses', rest: ' shown: ACC1701XB, then 1 other match' });
   });
 
-  it('no typed code shown: the entries are other matches', () => {
-    expect(codesCount('CS3244', [r('A')])).toEqual({ count: '1 course', rest: ' shown: other matches for the code you typed' });
-    expect(codesCount('CS3244 CS5562', [r('A'), r('B')])).toEqual({ count: '2 courses', rest: ' shown: other matches for the codes you typed' });
+  it('no typed code pinned: the entries are other matches', () => {
+    expect(codesCount('CS3244', [r('A')], [])).toEqual({ count: '1 course', rest: ' shown: other matches for the code you typed' });
+    expect(codesCount('CS3244 CS5562', [r('A'), r('B')], ['CS3244'])).toEqual({ count: '2 courses', rest: ' shown: other matches for the codes you typed' });
+  });
+
+  it('[PD2] a typed code that is not pinned, shown lower as an ordinary match, is not named as if it led the list (p1, live)', () => {
+    // p1 typed six codes; the first three pinned; PF3210 (the 4th) ranked 20th as an ordinary match.
+    const results = [r('AR3101'), r('AR4601'), r('AR3223'), ...Array.from({ length: 16 }, (_, i) => r(`XX${1000 + i}`)), r('PF3210')];
+    expect(codesCount('AR3101 AR4601 AR3223 PF3210 PF3208 RE4701', results, ['AR3101', 'AR4601', 'AR3223']))
+      .toEqual({ count: '20 courses', rest: ' shown: AR3101, AR4601, AR3223, then 17 other matches' });
+  });
+
+  it('[PD2] a pinned code is named only if its entry is at the top: a pin the filters hid is not named', () => {
+    // CS3244 pins but the filters hide it (it is in `interpreted.pin`, not in the results); MA1521 ranks 2nd unpinned.
+    expect(codesCount('CS2030 CS3244 MA1521', [r('CS2030'), r('MA1521'), r('A')], ['CS2030', 'CS3244', 'MA1521']))
+      .toEqual({ count: '3 courses', rest: ' shown: CS2030, MA1521, then 1 other match' });
+    expect(codesCount('CS2030 CS3244', [r('A'), r('CS2030')], ['CS3244']))
+      .toEqual({ count: '2 courses', rest: ' shown: other matches for the codes you typed' });
   });
 });
