@@ -196,3 +196,24 @@ candidate `ff54fdc`'s (the PR's last commit touched only `test/` and `public/`).
 only: `run-shipped-75ca23c` stored with `--store-only` (81 queries, no verdict, no ledger row);
 `eval:count --lists-differing --run shipped-75ca23c --baseline l8-ff54fdc` printed `0`.
 `SHIPPED_BASELINE` is `75ca23c`; holdout looks stay at 8 of 12.
+
+## 5G red-team fixes: R3, PD1, PD2, S1–S3 and the plain-language texts are ranking-neutral (no pin move)
+
+R3's year-of-study note is read per request from the stored prerequisite (`src/year-note.js`,
+via `exchangeAt`), and `/search` reads it through one more result column (`year_prereq`, the
+prerequisite only when it mentions a year). It adds a note to a shown course and never changes
+its status, its mask bit or its rank. The other fixes touch the page, the reason texts and the
+response headers. No row, mask, stored rule id or ranker input changes, so `SHIPPED_BASELINE`
+stays at `fdec96f`. No holdout look and no count are needed.
+
+Local eval runs, `--ref fdec96f` against `--ref 9801db4` (the branch head with every fix in
+it), the HEAD runner, sha256 of each run's `results` (first 16):
+
+| run | queries | results sha256 (first 16) | identical |
+|---|---|---|---|
+| dev, the queries' filters | 98 | `8229314651577034` both | yes |
+| dev, `--strip ng` | 98 | `ae4f077e0ad06ef2` both | yes |
+| dev, `--unfiltered` | 98 | `8fde32e1783d6d6b` both | yes |
+| fixture, `--strip ng` | 11 | `ce4f61e83ce5a52f` both | yes |
+
+The hashes equal 5A's, 5C-api's, 5D's and 5G's, so the lists have not moved since `238e721`.
