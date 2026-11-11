@@ -1186,3 +1186,14 @@ fails on the previous code.
   items pass (76 of 76). Pin `75ca23c` (0 of 81 holdout lists differ from L8's run).
 - **Next:** the red-team fixes (PD1, PD2, S1–S3, R3's note, plain-language rewrites), Jacob's
   VoiceOver walkthrough on the live site, then the Phase 5 exit.
+
+## 2026-11-11 — Red-team fixes shipped
+
+- **PR #84** (`8a86bf6`), live as version `0b81c82e`: the Year N note (Jacob's R3 ruling), PD1, PD2,
+  S1–S3 (a CSP and no framing) and 26 plain-language rewrites, each checked against its source rule.
+  Re-checked live: every fix holds; `p5-live.mjs` 32 of 32.
+- **Pin** `8a86bf6`, ranking-neutral (dev and fixture identical; 0 of 81 holdout lists differ).
+  Looks stay at 8 of 12.
+- **Left for later, by the fix PR:** the year note where the year is one alternative beside an OR
+  (678 prerequisites); plain-language rows 28, 30 and 37 (`redteam.md`).
+- **Next:** Jacob's VoiceOver walkthrough on the live site, then the Phase 5 exit write-up.

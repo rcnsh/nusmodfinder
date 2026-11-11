@@ -217,3 +217,19 @@ code change on the branch, the review's fixes included.
 | dev, `--strip ng` | 98 | `ae4f077e0ad06ef2` both | `62e5ab9a8150508f` both | yes |
 | dev, `--unfiltered` | 98 | `8fde32e1783d6d6b` both | `a7593696c94b041a` both | yes |
 | fixture, `--strip ng` | 11 | `ce4f61e83ce5a52f` both | `7a5d58bbe50972c0` both | yes |
+
+## The red-team fixes ship: ranking-neutral (pin move, no look)
+
+PR #84 merged as `8a86bf6` and deployed as version `0b81c82e`. Local eval runs at the merge commit
+against the pin `75ca23c`, sha256 of each run's `results` (first 16):
+
+| run | queries | results sha256 (first 16) | identical |
+|---|---|---|---|
+| dev, the queries' filters | 98 | `21245ed8fe04ba32` both | yes |
+| dev, `--strip ng` | 98 | `62e5ab9a8150508f` both | yes |
+| dev, `--unfiltered` | 98 | `a7593696c94b041a` both | yes |
+| fixture, `--strip ng` | 11 | `7a5d58bbe50972c0` both | yes |
+
+Holdout, custodian only: `run-shipped-8a86bf6` stored with `--store-only` (81 queries, no
+verdict, no ledger row); `eval:count --lists-differing --run shipped-8a86bf6 --baseline
+shipped-75ca23c` printed `0`. `SHIPPED_BASELINE` is `8a86bf6`; holdout looks stay at 8 of 12.
