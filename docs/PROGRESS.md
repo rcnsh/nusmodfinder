@@ -1147,3 +1147,13 @@ fails on the previous code.
   step), and whether to pursue phrase parsing after the failed dev screen.
 - **Then:** the code-only page deploy, the pin move with the custodian's store-only run and
   differing-lists count, `p5-live.mjs`, the red team.
+
+## 2026-11-11 — Phase 5 page shipped
+
+- **Live:** version `810c903b` (tag `fdec96f`), code-only (`docs/evidence/phase5/remote-ops.md`).
+  `p5-live.mjs` on production: 32 of 32 checks (SC2 on 20 codes, axe on three states in both
+  themes, hidden and partial codes, the 390×664 fold in Chromium and WebKit, `/health`).
+- **Pin** (PR #78, `3a36585`): `SHIPPED_BASELINE` is `fdec96f`, ranking-neutral (dev and fixture
+  identical; 0 of 81 holdout lists differ). Looks stay at 7 of 12.
+- **Running:** the persona red team on the live page; the variant-representative fix (Jacob:
+  fix variants, then re-screen phrases). VoiceOver runs once live (Jacob).
