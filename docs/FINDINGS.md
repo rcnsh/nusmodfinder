@@ -47,7 +47,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | F2 | fixed | tests (Node, Playwright) |
 | F3 | fixed | tests (Node, Playwright) |
 | F4 | fixed | tests (Node, Playwright) |
-| F5 | fixed | tests (Node, Playwright, axe), VoiceOver checklist (Phase 5 5E) |
+| F5 | fixed | tests (Node, Playwright, axe) (Phase 5 5E) |
 | F6 | fixed | tests (contrast of both themes), axe (Phase 5 5D) |
 | F7 | fixed | tests (Node, Playwright) |
 | F8 | fixed | tests (lint, Node, Playwright) |
