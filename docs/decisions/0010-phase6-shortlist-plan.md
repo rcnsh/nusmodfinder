@@ -73,6 +73,14 @@ Jacob, 2026-11-11, each the plan's recommendation:
   calls `docs/design/phase6-shortlist/README.md` lists (one invitation checkbox for the faculty
   the list holds, NUS's limits said once under the totals, "Back to results"). 6C builds it.
 
+## Jacob's rulings 2026-11-12 (red team, `docs/evidence/phase6/redteam.md`)
+- **R6-2, NUS's level-4000 note:** GRO's "usually NOT available to exchange students" is a
+  condition, like `quota`: such a course shows "Open, with 1 note" and the answer is "yes if
+  there's a place", wherever exchange status shows.
+- **RT6-SA1, rule E at CourseReg:** "Not open" stays in the search key (true at application); the
+  admitted-students box quotes rule E (off-list courses "may be available during Course
+  registration"), which it already does.
+
 ## Dissent
 - **B-7 (round 1):** a second, Excel-only CSV for `;` locales. Declined: beyond SC3's CSV; a
   hint beside the button and in the file's foot points to Data › From Text/CSV.

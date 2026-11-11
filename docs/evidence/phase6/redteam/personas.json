@@ -1,0 +1,20 @@
+{
+ "p1": {
+  "who": "an admitted 3rd-year Geography and Environmental Studies undergraduate in Sem 2 2026/27, planning CourseReg changes on a laptop, who exports the CSV and the PDF",
+  "mode": "desktop", "browser": "chromium", "device": "Desktop Chrome", "viewport": { "width": 1280, "height": 800 },
+  "sems": [2], "study": "ug3", "stage": "admitted",
+  "brief": { "majors": ["geography", "environmental studies"], "acceptsGraded": true, "acceptsFee": false, "hasLetter": false, "partner": null, "invited": { "biz": false, "law": false }, "given": ["GE2231", "GE3204", "ENV3104"] }
+ },
+ "p2": {
+  "who": "a full-year 2027/28 applicant, 3rd-year Mathematics and Statistics undergraduate, on a 390px phone, keyboard only",
+  "mode": "keyboard", "browser": "chromium", "device": "iPhone 13",
+  "sems": [1, 2], "study": "ug3", "stage": "applicant",
+  "brief": { "majors": ["mathematics", "statistics"], "acceptsGraded": true, "acceptsFee": false, "hasLetter": false, "partner": false, "invited": { "biz": false, "law": false }, "given": [] }
+ },
+ "p3": {
+  "who": "a home-university advisor with only p2's copied link and p2's PDF",
+  "mode": "advisor", "browser": "chromium", "device": "Desktop Chrome", "viewport": { "width": 1280, "height": 800 },
+  "sems": [1, 2], "study": "ug3", "fromLink": "p2",
+  "brief": { "majors": null, "acceptsGraded": null, "acceptsFee": null, "hasLetter": null, "partner": null, "invited": { "biz": null, "law": null }, "given": [] }
+ }
+}
