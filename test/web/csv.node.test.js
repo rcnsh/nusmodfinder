@@ -210,7 +210,7 @@ describe('[6D] the CSV: head, totals and foot as label/value rows', () => {
     expect(value('Year of study during the exchange')).toBe('3');
     expect(value('Made on')).toBe('12 Nov 2026');
     expect(value('Shortlist link')).toBe(`${SITE_URL}/?${qs}`);
-    expect(value('For a later year')).toBe('For a later year, check that year\'s: NUS publishes the exchange course list in March or April and updates it later (this one is dated 1 Sep 2026), and publishes the course descriptions and exam timetable in July or August (NUS Global).');
+    expect(value('For a later year')).toBe('For a later year, check that year\'s: NUS publishes the exchange course list in March or April and updates it later (this one is dated 1 Sep 2026), and publishes the course descriptions and exam timetable in July or August (NUS Global; the Registrar says the timetable comes mid-July).');
     expect(value('Made with')).toBe(`${SITE_NAME}, ${SITE_URL}`);
     for (const t of tail) expect(t.rest.every((f) => f === '')).toBe(true);
   });

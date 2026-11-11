@@ -236,7 +236,7 @@ async function notFound(db, code, trace) {
       ...fields,
       semesters: [],
       ng: true,
-      exchange: exchangeAll({ ng: 1, ng_allow: ngAllow, ng_rules: ngRules ? JSON.stringify(ngRules) : null, prerequisite: entry.prerequisite }),
+      exchange: exchangeAll({ ng: 1, ng_allow: ngAllow, ng_rules: ngRules ? JSON.stringify(ngRules) : null, prerequisite: entry.prerequisite, level: entry.level, faculty: entry.faculty }),
       examDates: [],
       nusmodsUrl: nusmodsUrl(code),
     });

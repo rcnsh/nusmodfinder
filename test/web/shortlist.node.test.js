@@ -58,6 +58,17 @@ const at = (r, code) => {
 const number = (r, code) => at(r, code).form.number;
 
 describe('counting (6B)', () => {
+  it('[R6-2] GRO\'s level 4000 note counts as a quota note does: "Open, with 1 note", counted if NUS accepts you', () => {
+    // PC4262 in Sem 1: open to everyone with no stored note; an undergraduate gets GRO's note, a graduate none.
+    const r = run('ng=1&study=ug2&pick=PC4262.1&pick=GE2101.1');
+    expect(at(r, 'PC4262')).toMatchObject({ status: 'note', standing: 'counted', why: 'Counted, if NUS accepts you: read its notes' });
+    expect(at(r, 'PC4262').reasons).toEqual([{ id: 'gro:level-4000', kind: 'supply', text: expect.stringMatching(/^GRO: “Higher level undergraduate courses/) }]);
+    expect(r.sems[1]).toMatchObject({ counted: 8, confirm: 0 });
+    expect(at(run('ng=1&study=grad&pick=PC4262.1'), 'PC4262')).toMatchObject({ status: 'open', standing: 'counted', why: 'Counted', reasons: [] });
+    // Law (C5-m1): LL4407, open in Sem 2 with its Law notes only.
+    expect(at(run('ng=1&study=ug2&inv=law&pick=LL4407.2'), 'LL4407').reasons.map((x) => x.id)).not.toContain('gro:level-4000');
+  });
+
   it('open picks count; condition notes count "if NUS accepts you into each"; other notes are to confirm', () => {
     // GE2101 in Sem 1 at ug2: a quota note (a condition); in Sem 2 NUSMods shows no classes (a `semester` note).
     const r = run('ng=1&study=ug2&pick=CS2113.1&pick=GE2101.1&pick=GE2101.2');
@@ -362,7 +373,7 @@ describe('flags (6B)', () => {
     expect([number(r, 'CS2030'), number(r, 'CS2113')]).toEqual([1, 2]);
     expect(at(r, 'CS2030').flags).toEqual([{
       kind: 'exam', with: 'CS2113',
-      text: 'CS2030 and CS2113: their 2026/27 exams overlap. If they still do in the year you go, NUS won\'t approve both and its form won\'t take both (GRO). NUS publishes each year\'s timetable in mid-July.',
+      text: 'CS2030 and CS2113: their 2026/27 exams overlap. If they still do in the year you go, NUS won\'t approve both and its form won\'t take both (GRO). NUS publishes each year\'s timetable in July or August (the Registrar says mid-July).',
     }]);
     expect(at(r, 'CS2113').flags.map((f) => f.with)).toEqual(['CS2030']);
     expect(totalLines('1', r.sems[1], r)).toContain('Picks with overlapping 2026/27 exams: NUS approves at most one of each pair');
@@ -422,10 +433,13 @@ describe('NUS\'s notes on particular courses (6B, a lead rule)', () => {
     expect(at(run('ng=1&study=ug2&pick=LAK1201.1'), 'LAK1201').notes).toContain(NOTES.language1);
     expect(notes('LAJ2201', { department: 'Centre for Language Studies', level: 2 })).toEqual([NOTES.language2]);
   });
-  it('level 4 and above: GRO\'s line, but not for a Law course or a graduate student', () => {
-    expect(notes('GE4101', {})).toEqual([NOTES.level4]);
-    expect(notes('GE4101', {}, 'grad')).toEqual([]);
-    expect(at(run('ng=1&study=ug2&pick=LL4407.2'), 'LL4407').notes).toEqual([]);
+  it('[R6-2] level 4000: GRO\'s line is the exchange note the /module answer carries, said once, never one of these notes', () => {
+    // The shortlist adds no line of its own: a synthetic level 4000 row whose answer has no note gets none.
+    expect(notes('GE4101', {})).toEqual([]);
+    const w = at(run('ng=1&study=ug2&pick=PC4262.1'), 'PC4262');
+    expect(w.notes).toEqual([]);
+    expect(w.reasons.map((r) => r.id)).toEqual(['gro:level-4000']);
+    expect([...w.notes, ...w.lines].join(' ')).not.toMatch(/4000 & above/);
   });
   it('master-level line when the course isn\'t open at the student\'s year: CAS5101 at ug3, not at ug4', () => {
     expect(at(run('ng=1&study=ug4&pick=CAS5101.1'), 'CAS5101').notes).not.toContain(NOTES.master);
@@ -512,10 +526,10 @@ describe('totals, lines and helpers (6B)', () => {
     // rests on NUS's 2018/19 information sheet, not slides 6-0 couldn't find (P2).
     expect(APPLICANT_LINES[2]).toBe('NUS\'s form asks, for each course with a prerequisite, the home course that meets it (NUS\'s application guide)');
     expect(FORM_LINES.ten).toBe('NUS has said up to 10 courses (NUS\'s 2018/19 exchange information sheet): check');
-    expect(FORM_LINES.applicants('2026/27', '01 Sep 2026')).toBe('This order uses NUS\'s 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later (the 2026/27 list is dated 1 Sep 2026), and the timetable in mid-July: check each course there.');
+    expect(FORM_LINES.applicants('2026/27', '01 Sep 2026')).toBe('This order uses NUS\'s 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later (the 2026/27 list is dated 1 Sep 2026), and the timetable in July or August (the Registrar says mid-July): check each course there.');
     // The list's date comes from /facets' NG list source, never a constant (review finding 6); without it, no date.
     expect(FORM_LINES.applicants('2027/28', '15 Apr 2027')).toContain('(the 2027/28 list is dated 15 Apr 2027)');
-    expect(FORM_LINES.applicants('2027/28', '')).toBe('This order uses NUS\'s 2027/28 exchange list and exams. Applying for 2028/29? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later, and the timetable in mid-July: check each course there.');
+    expect(FORM_LINES.applicants('2027/28', '')).toBe('This order uses NUS\'s 2027/28 exchange list and exams. Applying for 2028/29? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later, and the timetable in July or August (the Registrar says mid-July): check each course there.');
     expect(COURSEREG_BOX.rules.join(' ')).toContain(RULE_E);
     expect(COURSEREG_BOX.page).toBe('This page can\'t see your offer. Your offer and CourseReg show which courses are yours.');
   });

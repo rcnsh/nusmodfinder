@@ -113,7 +113,7 @@ describe('exchangeBySem', () => {
           expect(Object.keys(r.exchangeBySem), `${path} ${r.code}`).toEqual(['1', '2']);
           for (const sem of /** @type {const} */ ([1, 2])) {
             expect(r.exchangeBySem[sem].status, `${path} ${r.code} sem ${sem}`).toBe(oracleShown(mod(r.code), { sem, study }));
-            const row = { ng: mod(r.code).ng ? 1 : 0, ng_allow: mod(r.code).ngAllow, ng_rules: mod(r.code).ngRules === null ? null : JSON.stringify(mod(r.code).ngRules), prerequisite: mod(r.code).prerequisite };
+            const row = { ng: mod(r.code).ng ? 1 : 0, ng_allow: mod(r.code).ngAllow, ng_rules: mod(r.code).ngRules === null ? null : JSON.stringify(mod(r.code).ngRules), prerequisite: mod(r.code).prerequisite, level: mod(r.code).level, faculty: mod(r.code).faculty };
             expect(r.exchangeBySem[sem], `${path} ${r.code} sem ${sem}`).toEqual(exchangeAt(row, bitOf(sem, study)));
             checked++;
           }

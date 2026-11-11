@@ -8,7 +8,9 @@
 import { yearNote } from '../../src/year-note.js';
 
 const STUDY_LIST = ['ug1', 'ug2', 'ug3', 'ug4', 'grad'];
-const CONDITIONS = ['quota', 'major', 'approval', 'graded', 'letter', 'fee'];
+const CONDITIONS = ['quota', 'supply', 'major', 'approval', 'graded', 'letter', 'fee'];
+/** R6-2 (ADR 0010), read again: GRO's level 4000 note, a condition, for an undergraduate outside Law. */
+const GRO_UG = ['ug1', 'ug2', 'ug3', 'ug4'];
 
 /**
  * @typedef {{ which: string, code: string, sem: string }} RefEntry an entry, `which` pick or alt, `sem` '1', '2' or ''
@@ -53,6 +55,7 @@ export function reference(entries, study, inv, { rowOf, groupOf, reasons }) {
     if ((m.ngAllow & (1 << index)) === 0) return as('out');
     const kinds = (m.ng ? (m.ngRules?.[String(index)] ?? []) : []).map((/** @type {string} */ id) => reasons[id]?.kind ?? 'unknown');
     if (yearNote(m.prerequisite, /** @type {any} */ (study))) kinds.push('year');
+    if (GRO_UG.includes(study) && /^[A-Z]+4/.test(m.code) && m.faculty !== 'Law') kinds.push('supply');
     const fac = m.faculty === 'NUS Business School' ? 'biz' : m.faculty === 'Law' ? 'law' : '';
     if (fac && !inv.includes(fac)) return as('invite');
     return as(kinds.every((/** @type {string} */ k) => CONDITIONS.includes(k)) ? 'counted' : 'confirm');

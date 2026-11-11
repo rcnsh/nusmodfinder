@@ -63,21 +63,23 @@ import { DEFAULT_ACAD_YEAR } from './year.js';
 export const GRO_POPULAR = 'If you are not successful in gaining placements into these popular courses at the point of offer, you are not able to add these courses during CourseReg';
 /** GRO, on Business and Law courses. */
 export const GRO_BIZ_LAW = 'Business and Law courses are only available to students who are invited by NUS Business School and NUS Law respectively to apply for the exchange during the nomination period';
-/** GRO, on level 4000 courses. */
-export const GRO_LEVEL4 = 'Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students. In order to increase the chances of securing enough courses, incoming exchange students should consider taking courses with course code starting from 1000 to 3000';
 /** The Registrar's restrictions, rule E, on courses off the exchange list. */
 export const RULE_E = 'not available during application stage but may be available during Course registration';
 /** GRO, on the semester's length. */
 export const GRO_WEEKS = 'Each semester normally includes 13 weeks of instruction and 2 weeks of examinations';
 
-/** NUS's notes on particular courses (a lead rule: NUS's own cautions, cited). */
+/**
+ * NUS's notes on particular courses (a lead rule: NUS's own cautions, cited).
+ * GRO's level 4000 sentence is not one of them: under Jacob's ruling R6-2 it
+ * is an exchange note on the /module answer (src/level-note.js), counted like
+ * a quota note (CONDITION_KINDS), so the row says it once, among its notes.
+ */
 export const NOTES = Object.freeze({
   oversubscribed: 'NUS says these courses are extremely oversubscribed, gives priority to students majoring in them, and advises students with other majors against choosing them (GRO)',
   psychology: 'NUS says Psychology courses are extremely oversubscribed (GRO)',
   popular: `GRO: “${GRO_POPULAR}”`,
   language1: 'NUS needs a separate form in your application for a Level 1000 language course (GRO)',
   language2: '“Enrolment in higher level language courses (2XXX and above) will be conditional on the placement test result” (the Registrar\'s NG course list)',
-  level4: `GRO: “${GRO_LEVEL4}”`,
   master: 'NUS: master-level courses are open only to students on a master-level exchange agreement (GRO)',
 });
 
@@ -137,7 +139,7 @@ export const FORM_LINES = Object.freeze({
    */
   applicants: (year, listDate) => {
     const dated = listDate ? ` (the ${year} list is dated ${listDate.replace(/^0/, '')})` : '';
-    return `This order uses NUS's ${year} exchange list and exams. Applying for ${nextYear(year)}? NUS publishes Sem 1's list in March or April, Sem 2's later${dated}, and the timetable in mid-July: check each course there.`;
+    return `This order uses NUS's ${year} exchange list and exams. Applying for ${nextYear(year)}? NUS publishes Sem 1's list in March or April, Sem 2's later${dated}, and the timetable in July or August (the Registrar says mid-July): check each course there.`;
   },
   setYear: 'Set your year of study during the exchange to see NUS\'s form order',
   fullYear: 'NUS has asked full-year students to choose Sem 2 courses later, by email before Sem 1 ends (NUS info sheet, 2018/19): check with NUS whether to list them now',
@@ -167,8 +169,11 @@ export const COURSEREG_BOX = Object.freeze({
 
 // ---------------------------------------------------------------- helpers
 
-/** Note kinds the student can meet: counted, "if NUS accepts you into each". */
-export const CONDITION_KINDS = Object.freeze(['quota', 'major', 'approval', 'graded', 'letter', 'fee']);
+/**
+ * Note kinds the student can meet: counted, "if NUS accepts you into each".
+ * `supply` is GRO's level 4000 note (R6-2), a condition like `quota`.
+ */
+export const CONDITION_KINDS = Object.freeze(['quota', 'supply', 'major', 'approval', 'graded', 'letter', 'fee']);
 const OFF_LIST = ['ng-list:not-listed', 'ng-list:not-in-semester'];
 const RULE_E_ID = 'E-offerings-list';
 /** NUS's 40 units, in tenths. */
@@ -419,8 +424,8 @@ function workEntry(e, answer, ctx) {
 
 /**
  * NUS's notes on particular courses (a lead rule): oversubscribed subjects,
- * Economics after the offer, language courses, level 4000 and master-level
- * supply.
+ * Economics after the offer, language courses and master-level supply (level
+ * 4000 supply is an exchange note, R6-2).
  * @param {Worked} w
  * @param {string} study
  */
@@ -437,7 +442,6 @@ function nusNotes(w, study) {
     if (level === 1) out.push(NOTES.language1);
     else if (level >= 2) out.push(NOTES.language2);
   }
-  if (level >= 4 && w.faculty !== 'law' && study !== 'grad') out.push(NOTES.level4);
   if (level >= 5 && study && w.status === 'closed') out.push(NOTES.master);
   return out;
 }
@@ -526,7 +530,7 @@ function flag(entries, study, year) {
       if (a.sem && a.sem === b.sem) {
         const [ea, eb] = [examIn(a, a.sem), examIn(b, b.sem)];
         if (ea && eb && overlaps(ea, eb)) {
-          const text = `${a.code} and ${b.code}: their ${year} exams overlap. If they still do in the year you go, NUS won't approve both and its form won't take both (GRO). NUS publishes each year's timetable in mid-July.`;
+          const text = `${a.code} and ${b.code}: their ${year} exams overlap. If they still do in the year you go, NUS won't approve both and its form won't take both (GRO). NUS publishes each year's timetable in July or August (the Registrar says mid-July).`;
           a.flags.push({ kind: 'exam', with: b.code, text });
           b.flags.push({ kind: 'exam', with: a.code, text });
         }
