@@ -52,7 +52,10 @@ const id = process.argv[2];
 const K = arg('--kit');
 const S = arg('--state');
 const personas = JSON.parse(readFileSync(new URL('personas.json', HERE), 'utf8'));
-const p = personas[id];
+// `--like <persona>`: the lead's own smoke run of the session, in that persona's browser,
+// logged under its own id and allowed every command.
+const like = arg('--like');
+const p = like ? { ...personas[like], mode: 'lead', maxRequests: 40 } : personas[id];
 if (!p || !K || !S) { console.error('usage: session.mjs <persona-id> --kit <K> --state <S>'); process.exit(2); }
 const MAX = p.maxRequests ?? PERSONA_MAX;
 const DOWNLOADS = `${K}/${id}/downloads`;
@@ -242,7 +245,7 @@ async function outside() {
     const file = `${DOWNLOADS}/${stem}.pdf`;
     const pdf = await page.pdf({ format: 'A4', margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }, tagged: true, printBackground: false });
     writeFileSync(file, pdf);
-    const view = await page.locator('main').innerText().catch(() => '');
+    const view = await page.locator('#slView').innerText().catch(() => '');
     writeFileSync(`${DOWNLOADS}/${stem}.view.txt`, view);
     said.push(`(the print dialog saved a PDF: ${file})`);
   }
@@ -263,6 +266,7 @@ const ALLOWED = {
   keyboard: ['goto', 'key', 'type', 'focus', 'read', 'shot', 'url', 'wait'],
   desktop: DESKTOP,
   advisor: DESKTOP,
+  lead: DESKTOP,
 }[p.mode];
 
 /** @param {string} cmd @param {string[]} a */

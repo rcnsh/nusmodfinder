@@ -81,6 +81,16 @@ for (const id of process.argv.slice(2)) {
     const missing = totalLines.filter((l) => !text.includes(squash(l)));
     r.pdfHoldsCsvTotals = totalLines.length - missing.length;
     for (const l of missing) problems.push(`the PDF: no CSV totals line "${l}"`);
+    // The PDF's own totals, read from its squashed text ("Sem1:16unitspicked,…plus4unitstoconfirmwithNUS…").
+    /** @type {Record<string, any>} */
+    const got = {};
+    for (const m of text.matchAll(/Sem([12]):(atleast)?(\d+(?:\.\d+)?)unitspicked(.{0,400})/g)) {
+      const rest = m[4].split(/Sem[12]:/)[0];
+      const plus = (/** @type {RegExp} */ re) => Number(re.exec(rest)?.[1] ?? 0);
+      got[m[1]] = { counted: Number(m[3]), atLeast: Boolean(m[2]), confirm: plus(/plus(\d+(?:\.\d+)?)unitstoconfirmwithNUS/), invite: plus(/plus(\d+(?:\.\d+)?)unitsonlyifinvited/) };
+    }
+    r.pdfTotals = got;
+    cmp('the PDF', got);
     for (const row of want.rows) if (row.description && !text.includes(squash(row.description).slice(0, 120))) problems.push(`the PDF: ${row.code}'s description not found`);
   }
   r.problems = problems;

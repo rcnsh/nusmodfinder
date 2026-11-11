@@ -24,9 +24,10 @@ Committed and pushed before any persona ran:
 
 After the run: `requests-<id>.jsonl` (every request to the live site: sent, from cache or
 refused), `answers/<id>.json`, `actions/<id>.jsonl`, `reports/<id>.md` (each persona's
-answers, every command it ran, its final report verbatim), `artifacts/` (the CSVs, PDFs, the
-view's text at printing, the copied link and the two things the advisor got), `diff.json`,
-`totals.json`. The write-up is `../redteam.md`.
+answers, every command it ran, its final report verbatim), `artifacts/` (the CSVs and PDFs, the
+view's text at printing, p2's copied link; the advisor got `artifacts/link.txt` and p2's PDF,
+byte for byte), `briefs/p3.filled.md` (the advisor's brief with the two filled in),
+`repro/` (the local repro of the page defect), `diff.json`, `totals.json`. The write-up is `../redteam.md`.
 
 ## Running it
 The kit the personas see is a copy of `act.mjs` only, in `~/.local/share/vnm-redteam6/kit`
@@ -35,4 +36,7 @@ The kit the personas see is a copy of `act.mjs` only, in `~/.local/share/vnm-red
 
     node docs/evidence/phase6/redteam/session.mjs <id> --kit K --state S   # the lead, in the background
     # a fresh subagent given only briefs/common.md + briefs/<id>.md (p3: briefs/p3.md alone, filled in)
-    node K/act.mjs __stop                                                 # (sent as {"cmd":"__stop"})
+    curl -X POST "http://127.0.0.1:$(cat K/.port)/" -d '{"cmd":"__stop"}'   # stop it
+
+`session.mjs smoke --like p1 …` is the lead's own smoke run of the session (every command,
+40 requests at most, logged as `requests-smoke.jsonl`).

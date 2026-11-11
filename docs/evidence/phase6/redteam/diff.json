@@ -1,5 +1,1094 @@
 {
- "totals": {},
- "rows": [],
- "advisor": null
+ "totals": {
+  "p1": {
+   "answers": 6,
+   "agree": 6,
+   "disagree": 0
+  },
+  "p2": {
+   "answers": 11,
+   "agree": 0,
+   "disagree": 11
+  },
+  "p3": {
+   "answers": 10,
+   "agree": 0,
+   "disagree": 10
+  }
+ },
+ "rows": [
+  {
+   "persona": "p1",
+   "code": "GE2231",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [
+    "given"
+   ],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Can you take it? As a 3rd-year exchange student ... Sem 2 · Open to exchange students (Your semester). No prerequisites listed, no preclusions listed. It is also one of my offered courses.",
+   "where": "Search results row and course details panel (search 'GE2231 GE3204 ENV3104', Sem 2, 3rd year)",
+   "confidence": "high"
+  },
+  {
+   "persona": "p1",
+   "code": "GE3204",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [
+    "given"
+   ],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students. No prerequisites listed, no preclusions listed. Offered course.",
+   "where": "Course details panel for GE3204",
+   "confidence": "high"
+  },
+  {
+   "persona": "p1",
+   "code": "ENV3104",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [
+    "given"
+   ],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students. No prerequisites listed, no preclusions listed. Offered course.",
+   "where": "Course details panel for ENV3104",
+   "confidence": "high"
+  },
+  {
+   "persona": "p1",
+   "code": "GEC1030",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Open to exchange students; Sem 2 · Open to exchange students. Prerequisites: none listed. Preclusion: 'must not have completed GEH1077' (I have not). No notes.",
+   "where": "Course details panel for GEC1030 (search 'urban sustainability')",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p1",
+   "code": "PF3504",
+   "sem": 2,
+   "persona_answer": "yes if I get one of the limited places",
+   "persona_norm": "yes-if",
+   "expected": "yes-if",
+   "agree": true,
+   "kinds": [
+    "graded",
+    "quota"
+   ],
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Built Environment undergraduate courses: graded basis only",
+    "Limited quota"
+   ],
+   "page_said": "Sem 2 · Open, with 2 notes. 'Places. The number of places is limited, so you may not get one.' 'Grading. You must take it for a grade.' (I take everything for a grade.) No prerequisites; preclusion PF3302 (not taken).",
+   "where": "Course details panel for PF3504 and the shortlist page",
+   "confidence": "high"
+  },
+  {
+   "persona": "p1",
+   "code": "DOS3714",
+   "sem": 2,
+   "persona_answer": "no",
+   "persona_norm": "no",
+   "expected": "no",
+   "agree": true,
+   "kinds": [
+    "closed"
+   ],
+   "oracle": "closed",
+   "oracle_closed": [
+    "R1: not on the NG list"
+   ],
+   "oracle_notes": [],
+   "page_said": "'Not open to exchange students. Not on the Registrar's list of courses offered to exchange students (NG list, updated 01 Sep 2026)' for every year and semester. Shortlist CourseReg rules: 'On Business, Law and Economics courses: If you are not successful in gaining placements into these popular courses at the point of offer, you are not able to add these courses during CourseReg' (GRO). I got no Business course at offer. Also prerequisite DAO2703.",
+   "where": "Course details panel for DOS3714 (search 'sustainability', faculty NUS Business School, exchange-only filter off) and 'Already admitted? NUS's rules for CourseReg' on the shortlist page",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "ST4234",
+   "sem": 2,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 2 and NUS gives me one of the very limited places in 4000-level courses",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students; Sem 1 not open ('Offered to exchange students only in Sem 2'). Shortlist: GRO: \"Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students\". \"This order uses NUS's 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1's list in March or April, Sem 2's later ... check each course there.\" Prerequisite ST2132 (mathematical statistics, which I have as a 3rd-year Maths & Stats student).",
+   "where": "Course details (Can you take it?) and shortlist page / PDF (NUS's notes, application form order)",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p2",
+   "code": "MA4251",
+   "sem": 2,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 2, NUS gives me a 4000-level place, and I pass ST3236 in Sem 1 (or NUS accepts my home stochastic processes course)",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students. Prerequisite: \"must have completed 1 of MA3238/MA3238S/ST3236\". GRO: 4000-level courses \"usually NOT available to exchange students\". List is NUS's 2026/27 list.",
+   "where": "Course details; shortlist page",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p2",
+   "code": "ST3247",
+   "sem": 2,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 2 and NUS accepts my home programming course for the CS1010 prerequisite",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students; Sem 1 not open. Prerequisite: probability (ST2131 etc.) AND \"CS1101S ... any Courses beginning with CS1010\". \"NUS's form asks, for each course with a prerequisite, the home course that meets it.\"",
+   "where": "Course details; shortlist page",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p2",
+   "code": "ST2137",
+   "sem": 2,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 2",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students; \"Offered to exchange students only in Sem 2.\" Prerequisite a probability/stats course (met). Data is NUS's 2026/27 list: \"Applying for 2027/28? ... check each course there.\"",
+   "where": "Course details; shortlist page",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "MA3210",
+   "sem": 1,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 1",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Open to exchange students (Your semester); Sem 2 not open. No notes. Prerequisites linear algebra + analysis I (met). 2026/27 list.",
+   "where": "Course details; shortlist page",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "ST3131",
+   "sem": 1,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 1",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Open to exchange students; Sem 2 · Open to exchange students. No notes. Prerequisite probability (met).",
+   "where": "Course details; shortlist page",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "ST3236",
+   "sem": 1,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 1",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Open to exchange students; Sem 2 not open. \"Opened from MA3238: another code for the same course.\" Prerequisites linear algebra + probability (met).",
+   "where": "Course details (opened via 'Also as' link from MA3238); shortlist page",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "ST3248",
+   "sem": 1,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 1",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Open to exchange students; \"Offered to exchange students only in Sem 1.\" Prerequisite ST2132/ST2334 (met).",
+   "where": "Course details; shortlist page",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "ST4253",
+   "sem": 1,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 1 and NUS gives me one of the very limited 4000-level places",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Open to exchange students. GRO: \"Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students\".",
+   "where": "Course details; shortlist page / PDF NUS's notes",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p2",
+   "code": "ST4248",
+   "sem": 2,
+   "persona_answer": "yes if NUS's 2027/28 exchange list still offers it in Sem 2, NUS gives me a 4000-level place, and I pass ST3131 and ST3248 in Sem 1",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students. Prerequisite: \"must have completed all of ST3131/ST3248\". GRO: 4000-level \"usually NOT available to exchange students\".",
+   "where": "Course details; shortlist page",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p2",
+   "code": "MA2401",
+   "sem": 2,
+   "persona_answer": "no",
+   "persona_norm": "no",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students, but Preclusion: \"must not have completed 1 of ST2131/ST2334/ST3236/ST4238 ... any Courses beginning with MA2 ... MA3 ... MA4\". I'd have done ST3236 and MA3210 in Sem 1 (and university maths already).",
+   "where": "Course details (Preclusions)",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p3",
+   "code": "ST4234",
+   "sem": 2,
+   "list": "primary",
+   "persona_answer": "yes if NUS has a place for an exchange student in this level-4000 course (limited supply) and the student has completed the equivalent of ST2132",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 2 · Open to exchange students\"; GRO: \"Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students\"; Prerequisite: \"must have completed ST2132 at a grade of at least D\"",
+   "where": "both",
+   "covers": "Bayesian statistics: Bayes' theorem, priors, likelihood and predictive distributions, Bayesian computation (MCMC, posterior simulation) and hierarchical, generalized linear, multivariate, mixture and missing-data models.",
+   "description": "Bayesian principles: Bayes' theorem, estimation, hypothesis testing, prior distributions, likelihood, predictive distributions. Bayesian computation: numerical approximation, posterior simulation and integration, Markov chain simulation, models and applications: hierarchical linear models, generalized linear models, multivariate models, mixture models, models for missing data, case studies. This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites."
+  },
+  {
+   "persona": "p3",
+   "code": "MA4251",
+   "sem": 2,
+   "list": "primary",
+   "persona_answer": "yes if NUS has a place for an exchange student in this level-4000 course (limited supply) and the student has completed the equivalent of MA3238/ST3236 (e.g. ST3236 in Sem 1 at NUS) and has not done ST4238",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 2 · Open to exchange students\"; GRO 4000-level note \"usually NOT available to exchange students\"; Prerequisite: \"must have completed 1 of MA3238/MA3238S/ST3236\"; Preclusion: ST4238",
+   "where": "both",
+   "covers": "Builds on ST3236 with stochastic models such as Poisson and point processes, epidemic models, continuous-time Markov chains, birth-and-death processes and martingales.",
+   "description": "This course builds on ST3236 and introduces an array of stochastic models with biomedical and other real world applications. Topics include Poisson process, compound Poisson process, marked Poisson process, point process, epidemic models, continuous time Markov chain, birth and death processes, martingale. This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites."
+  },
+  {
+   "persona": "p3",
+   "code": "ST3247",
+   "sem": 2,
+   "list": "primary",
+   "persona_answer": "yes if the student has completed the equivalents of a probability course (MA2116/ST2131/ST2334) and an introductory programming course (CS1010/CS1101S)",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 2 · Open to exchange students\"; Prerequisite: \"1 of MA2116/MA2116T/ST2131/ST2334 ... AND ... CS1101S ... any Courses beginning with CS1010\"",
+   "where": "both",
+   "covers": "Analysing stochastic models by simulation: pseudorandom numbers, generating random variables, discrete-event simulation, variance reduction, MCMC and simulated annealing.",
+   "description": "The advent of fast and inexpensive computational power has facilitated the description of real phenomenon using realistic stochastic models which can be analysed using simulation studies. This course teaches students how to analyse a model by use of a simulation study and the topics include: pseudorandom number generation, generating discrete and continuous random variables, simulating discrete events, statistical analysis of simulated data, variance reduction, Markov Chain Monte Carlo methods. It also covers topics in stochastic optimisation such as simulated annealing. This course is targeted at students who are interested in Statistics and are able to meet the prerequisites."
+  },
+  {
+   "persona": "p3",
+   "code": "ST2137",
+   "sem": 2,
+   "list": "primary",
+   "persona_answer": "yes if the student has completed the equivalent of an introductory probability/statistics course (MA2116/ST1131/ST2131/ST2334)",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 2 · Open to exchange students\"; Prerequisite: \"must have completed 1 of MA2116/MA2116T/ST1131/ST2131/ST2334\"",
+   "where": "both",
+   "covers": "Statistical computing and programming in R, Python and SAS: programming basics, data handling, summaries, estimation, testing, ANOVA, regression, resampling and simulation.",
+   "description": "This course introduces students to the statistical computing and programming, with the main focus on R, Python, and SAS. Students will learn basic computing and programming concepts including scripting, variables, expressions, assignments, control structures, and data structures. On the statistical side, they will learn to load raw data, make numerical and graphical summaries of data, and conduct various estimation and testing procedures. Topics include descriptive statistics, statistical estimation, robust estimation, categorical data analysis, testing hypotheses, ANOVA, regression analysis, performing resampling methods and simulations. Some basic knowledge of R is assumed."
+  },
+  {
+   "persona": "p3",
+   "code": "MA3210",
+   "sem": 1,
+   "list": "primary",
+   "persona_answer": "yes if the student has completed the equivalents of MA2101 (linear algebra II) and MA2108 (Mathematical Analysis I)",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 1 · Open to exchange students\"; Prerequisite: \"1 of MA2101/MA2101S ... AND ... 1 of MA2108/MA2108S\"",
+   "where": "both",
+   "covers": "Rigorous one- and multi-variable calculus: derivatives, Jacobians, chain rule, Taylor's theorem, Riemann/Darboux integrals, Fubini's theorem and change of variables.",
+   "description": "This is a continuation of MA2108 Mathematical Analysis I. The objective of this course is to develop rigorously all the basic results in one- and multi-variable calculus. The emphasis is on logical rigour. Major topics: total and partial derivatives, Jacobian matrix, differentiable functions, chain rule, mean value theorem, l’Hopital’s rule, Taylor’s theorem, convergence of derivatives; Riemann and Darboux integrals, Fubini’s theorem, convergence of integrals, improper integral of functions, fundamental theorem of calculus, integration by parts, differentiation under integral sign, change of variable formula."
+  },
+  {
+   "persona": "p3",
+   "code": "ST3131",
+   "sem": 1,
+   "list": "primary",
+   "persona_answer": "yes if the student has completed the equivalent of ST2334/ST2131/MA2116 and has not done EC3303",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 1 · Open to exchange students\"; Prerequisite: ST2334 or ST2131 or MA2116 or MA2116T; Preclusion: EC3303",
+   "where": "both",
+   "covers": "Regression analysis: simple and multiple linear regression, model building and diagnostics, ANOVA, ANCOVA and the linear model as a GLM.",
+   "description": "This course focuses on data analysis using multiple regression models. Topics include simple linear regression, multiple regression, model building and regression diagnostics. One and two factor analysis of variance, analysis of covariance, linear model as special case of generalized linear model. This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites."
+  },
+  {
+   "persona": "p3",
+   "code": "ST3236",
+   "sem": 1,
+   "list": "primary",
+   "persona_answer": "yes if the student has completed the equivalents of linear algebra (MA1508E/MA1522/MA2001) and probability (MA2116/ST2131/ST2334) and has not done MA3238",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 1 · Open to exchange students\"; Prerequisite: \"1 of MA1508E/MA1522/MA2001 ... AND ... 1 of MA2116/MA2116T/ST2131/ST2334\"; Preclusion: MA3238/MA3238S",
+   "where": "both",
+   "covers": "Discrete-time Markov chains: classification of states, recurrence and transience, first passage times, convergence and stationary distributions.",
+   "description": "This course introduces the concept of modelling dependence and focuses on discrete-time Markov chains. Topics include discrete-time Markov chains, examples of discrete-time Markov chains, classification of states, irreducibility, periodicity, first passage times, recurrence and transience, convergence theorems and stationary distributions. This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites."
+  },
+  {
+   "persona": "p3",
+   "code": "ST3248",
+   "sem": 1,
+   "list": "primary",
+   "persona_answer": "yes if the student has completed the equivalent of ST2132 or ST2334 and has not done YSC4216",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 1 · Open to exchange students\"; Prerequisite: \"1 of ST2132/ST2334\"; Preclusion: YSC4216",
+   "where": "both",
+   "covers": "Statistical learning part I: regression and its extensions, classification, resampling, regularisation and model selection, PCA and clustering, applied computationally to real data.",
+   "description": "Statistical learning is a large collection of computer-based modelling and prediction tools with applications in diverse fields including business, medicine, astrophysics, and public policy. This series of two courses covers many of the popular approaches for a variety of statistical problems. There is heavy emphasis on the implementation of these methods on real-world data sets computationally. Part I gives a broad overview of the common problems as well as their most popular approaches. Topics include linear regression model and its extensions, classification methods, resampling methods, regularisation and model selection, principal components and clustering methods."
+  },
+  {
+   "persona": "p3",
+   "code": "ST4253",
+   "sem": 1,
+   "list": "backup",
+   "persona_answer": "yes if NUS has a place for an exchange student in this level-4000 course (limited supply) and the student has completed the equivalent of ST2132/ST2334 and has not done ST3233",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 1 · Open to exchange students\"; GRO 4000-level note \"usually NOT available to exchange students\"; Prerequisite: \"1 of ST2132/ST2334\"; Preclusion: ST3233",
+   "where": "both",
+   "covers": "Applied time series analysis: stationary series and ARIMA models, with estimation and forecasting on real data using a computer package.",
+   "description": "This course introduces the modelling and analysis of time series data. A computer package will be used to analyse real data sets. Topics include stationary time series, ARIMA models, estimation and forecasting with ARIMA models This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites."
+  },
+  {
+   "persona": "p3",
+   "code": "ST4248",
+   "sem": 2,
+   "list": "backup",
+   "persona_answer": "yes if NUS has a place for an exchange student in this level-4000 course (limited supply) and the student has completed the equivalents of both ST3131 and ST3248 (e.g. both in Sem 1 at NUS) and has not done YSC4216",
+   "persona_norm": "yes-if",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [],
+   "page_said": "\"Sem 2 · Open to exchange students\"; GRO 4000-level note \"usually NOT available to exchange students\"; Prerequisite: \"must have completed all of ST3131/ST3248\"; Preclusion: YSC4216",
+   "where": "both",
+   "covers": "Statistical learning part II in R: non-parametric smoothing, tree-based methods, support vector machines, neural networks and ensemble learning.",
+   "description": "Statistical Learning is a large collection of computer-based modelling and prediction tools with applications in diverse fields including business, medicine, astrophysics, and public policy. These two courses cover many popular approaches to a variety of statistical problems. There is heavy emphasis on the implementation of these methods on real-world datasets in the popular statistical software package R. Part II builds on the knowledge in Part I, introducing more tools as well as generalising and extending some tools covered in Part I using entirely different approaches. Topics include non-parametric smoothing methods, tree-based methods, support vector machines, neural networks and ensemble learning."
+  }
+ ],
+ "advisor": {
+  "link": "https://nusmodfinder.rcn.sh/?sem=2&ng=1&study=ug3&pick=ST4234.2&pick=MA4251.2&pick=ST3247.2&pick=ST2137.2&pick=MA3210.1&pick=ST3131.1&pick=ST3236.1&pick=ST3248.1&alt=ST4253.1&alt=ST4248.2&ay=2026-2027&view=shortlist",
+  "want": {
+   "link": "https://nusmodfinder.rcn.sh/?sem=2&ng=1&study=ug3&pick=ST4234.2&pick=MA4251.2&pick=ST3247.2&pick=ST2137.2&pick=MA3210.1&pick=ST3131.1&pick=ST3236.1&pick=ST3248.1&alt=ST4253.1&alt=ST4248.2&ay=2026-2027&view=shortlist",
+   "study": "ug3",
+   "inv": [],
+   "year": {
+    "courses": "2026/27",
+    "exams": "2026/27"
+   },
+   "rows": [
+    {
+     "list": "primary",
+     "rank": 1,
+     "code": "ST4234",
+     "sem": "2",
+     "title": "Bayesian Statistics",
+     "department": "Statistics and Data Science",
+     "faculty": "Science",
+     "level": 4000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "Bayesian principles: Bayes' theorem, estimation, hypothesis testing, prior distributions, likelihood, predictive distributions. Bayesian computation: numerical approximation, posterior simulation and integration, Markov chain simulation, models and applications: hierarchical linear models, generalized linear models, multivariate models, mixture models, models for missing data, case studies. This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 2: 1"
+    },
+    {
+     "list": "primary",
+     "rank": 2,
+     "code": "MA4251",
+     "sem": "2",
+     "title": "Stochastic Processes II",
+     "department": "Mathematics",
+     "faculty": "Science",
+     "level": 4000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "This course builds on ST3236 and introduces an array of stochastic models with biomedical and other real world applications. Topics include Poisson process, compound Poisson process, marked Poisson process, point process, epidemic models, continuous time Markov chain, birth and death processes, martingale. This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 2: 2"
+    },
+    {
+     "list": "primary",
+     "rank": 3,
+     "code": "ST3247",
+     "sem": "2",
+     "title": "Simulation",
+     "department": "Statistics and Data Science",
+     "faculty": "Science",
+     "level": 3000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "The advent of fast and inexpensive computational power has facilitated the description of real phenomenon using realistic stochastic models which can be analysed using simulation studies. This course teaches students how to analyse a model by use of a simulation study and the topics include: pseudorandom number generation, generating discrete and continuous random variables, simulating discrete events, statistical analysis of simulated data, variance reduction, Markov Chain Monte Carlo methods. It also covers topics in stochastic optimisation such as simulated annealing. This course is targeted at students who are interested in Statistics and are able to meet the prerequisites.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 2: 3"
+    },
+    {
+     "list": "primary",
+     "rank": 4,
+     "code": "ST2137",
+     "sem": "2",
+     "title": "Statistical Computing and Programming",
+     "department": "Statistics and Data Science",
+     "faculty": "Science",
+     "level": 2000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "This course introduces students to the statistical computing and programming, with the main focus on R, Python, and SAS. Students will learn basic computing and programming concepts including scripting, variables, expressions, assignments, control structures, and data structures. On the statistical side, they will learn to load raw data, make numerical and graphical summaries of data, and conduct various estimation and testing procedures. Topics include descriptive statistics, statistical estimation, robust estimation, categorical data analysis, testing hypotheses, ANOVA, regression analysis, performing resampling methods and simulations. Some basic knowledge of R is assumed.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 2: 4"
+    },
+    {
+     "list": "primary",
+     "rank": 5,
+     "code": "MA3210",
+     "sem": "1",
+     "title": "Mathematical Analysis II",
+     "department": "Mathematics",
+     "faculty": "Science",
+     "level": 3000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "This is a continuation of MA2108 Mathematical Analysis I. The objective of this course is to develop rigorously all the basic results in one- and multi-variable calculus. The emphasis is on logical rigour. Major topics: total and partial derivatives, Jacobian matrix, differentiable functions, chain rule, mean value theorem, l’Hopital’s rule, Taylor’s theorem, convergence of derivatives; Riemann and Darboux integrals, Fubini’s theorem, convergence of integrals, improper integral of functions, fundamental theorem of calculus, integration by parts, differentiation under integral sign, change of variable formula.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 1: 1"
+    },
+    {
+     "list": "primary",
+     "rank": 6,
+     "code": "ST3131",
+     "sem": "1",
+     "title": "Regression Analysis",
+     "department": "Statistics and Data Science",
+     "faculty": "Science",
+     "level": 3000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "This course focuses on data analysis using multiple regression models. Topics include simple linear regression, multiple regression, model building and regression diagnostics. One and two factor analysis of variance, analysis of covariance, linear model as special case of generalized linear model. This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 1: 2"
+    },
+    {
+     "list": "primary",
+     "rank": 7,
+     "code": "ST3236",
+     "sem": "1",
+     "title": "Stochastic Processes I",
+     "department": "Statistics and Data Science",
+     "faculty": "Science",
+     "level": 3000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "This course introduces the concept of modelling dependence and focuses on discrete-time Markov chains. Topics include discrete-time Markov chains, examples of discrete-time Markov chains, classification of states, irreducibility, periodicity, first passage times, recurrence and transience, convergence theorems and stationary distributions. This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 1: 3"
+    },
+    {
+     "list": "primary",
+     "rank": 8,
+     "code": "ST3248",
+     "sem": "1",
+     "title": "Statistical Learning I",
+     "department": "Statistics and Data Science",
+     "faculty": "Science",
+     "level": 3000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "Statistical learning is a large collection of computer-based modelling and prediction tools with applications in diverse fields including business, medicine, astrophysics, and public policy. This series of two courses covers many of the popular approaches for a variety of statistical problems. There is heavy emphasis on the implementation of these methods on real-world data sets computationally. Part I gives a broad overview of the common problems as well as their most popular approaches. Topics include linear regression model and its extensions, classification methods, resampling methods, regularisation and model selection, principal components and clustering methods.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 1: 4"
+    },
+    {
+     "list": "backup",
+     "rank": 1,
+     "code": "ST4253",
+     "sem": "1",
+     "title": "Applied Time Series Analysis",
+     "department": "Statistics and Data Science",
+     "faculty": "Science",
+     "level": 4000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "This course introduces the modelling and analysis of time series data. A computer package will be used to analyse real data sets. Topics include stationary time series, ARIMA models, estimation and forecasting with ARIMA models This course is targeted at students who are interested in Statistics and are able to meet the pre-requisites.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 1: 5"
+    },
+    {
+     "list": "backup",
+     "rank": 2,
+     "code": "ST4248",
+     "sem": "2",
+     "title": "Statistical Learning II",
+     "department": "Statistics and Data Science",
+     "faculty": "Science",
+     "level": 4000,
+     "units": 4,
+     "nusmodsHoursPerWeek": 10,
+     "hoursAtNusRate": 10,
+     "description": "Statistical Learning is a large collection of computer-based modelling and prediction tools with applications in diverse fields including business, medicine, astrophysics, and public policy. These two courses cover many popular approaches to a variety of statistical problems. There is heavy emphasis on the implementation of these methods on real-world datasets in the popular statistical software package R. Part II builds on the knowledge in Part I, introducing more tools as well as generalising and extending some tools covered in Part I using entirely different approaches. Topics include non-parametric smoothing methods, tree-based methods, support vector machines, neural networks and ensemble learning.",
+     "open": "yes",
+     "kinds": [],
+     "standing": "counted",
+     "form": "Sem 2: 5"
+    }
+   ],
+   "semesters": {
+    "1": {
+     "counted": 16,
+     "confirm": 0,
+     "invite": 0,
+     "hoursPerWeekAtNusRate": 40,
+     "weeks": "13 weeks of instruction and 2 weeks of examinations (GRO)"
+    },
+    "2": {
+     "counted": 16,
+     "confirm": 0,
+     "invite": 0,
+     "hoursPerWeekAtNusRate": 40,
+     "weeks": "13 weeks of instruction and 2 weeks of examinations (GRO)"
+    }
+   },
+   "flags": []
+  },
+  "facts": [
+   {
+    "what": "primary 1 ST4234 Sem 2: rank",
+    "got": 1,
+    "want": 1,
+    "agree": true
+   },
+   {
+    "what": "primary 1 ST4234 Sem 2: form number",
+    "got": "Sem 2: 1",
+    "want": "Sem 2: 1",
+    "agree": true
+   },
+   {
+    "what": "primary 1 ST4234 Sem 2: department",
+    "got": "Statistics and Data Science (Faculty of Science)",
+    "want": "Statistics and Data Science",
+    "agree": true
+   },
+   {
+    "what": "primary 1 ST4234 Sem 2: level",
+    "got": "level 4000",
+    "want": 4000,
+    "agree": true
+   },
+   {
+    "what": "primary 1 ST4234 Sem 2: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "primary 1 ST4234 Sem 2: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 3 project, 3 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "primary 2 MA4251 Sem 2: rank",
+    "got": 2,
+    "want": 2,
+    "agree": true
+   },
+   {
+    "what": "primary 2 MA4251 Sem 2: form number",
+    "got": "Sem 2: 2",
+    "want": "Sem 2: 2",
+    "agree": true
+   },
+   {
+    "what": "primary 2 MA4251 Sem 2: department",
+    "got": "Mathematics (Faculty of Science)",
+    "want": "Mathematics",
+    "agree": true
+   },
+   {
+    "what": "primary 2 MA4251 Sem 2: level",
+    "got": "level 4000",
+    "want": 4000,
+    "agree": true
+   },
+   {
+    "what": "primary 2 MA4251 Sem 2: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "primary 2 MA4251 Sem 2: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 6 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "primary 3 ST3247 Sem 2: rank",
+    "got": 3,
+    "want": 3,
+    "agree": true
+   },
+   {
+    "what": "primary 3 ST3247 Sem 2: form number",
+    "got": "Sem 2: 3",
+    "want": "Sem 2: 3",
+    "agree": true
+   },
+   {
+    "what": "primary 3 ST3247 Sem 2: department",
+    "got": "Statistics and Data Science (Faculty of Science)",
+    "want": "Statistics and Data Science",
+    "agree": true
+   },
+   {
+    "what": "primary 3 ST3247 Sem 2: level",
+    "got": "level 3000",
+    "want": 3000,
+    "agree": true
+   },
+   {
+    "what": "primary 3 ST3247 Sem 2: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "primary 3 ST3247 Sem 2: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 3 project, 3 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "primary 4 ST2137 Sem 2: rank",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "primary 4 ST2137 Sem 2: form number",
+    "got": "Sem 2: 4",
+    "want": "Sem 2: 4",
+    "agree": true
+   },
+   {
+    "what": "primary 4 ST2137 Sem 2: department",
+    "got": "Statistics and Data Science (Faculty of Science)",
+    "want": "Statistics and Data Science",
+    "agree": true
+   },
+   {
+    "what": "primary 4 ST2137 Sem 2: level",
+    "got": "level 2000",
+    "want": 2000,
+    "agree": true
+   },
+   {
+    "what": "primary 4 ST2137 Sem 2: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "primary 4 ST2137 Sem 2: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 3 project, 3 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "primary 5 MA3210 Sem 1: rank",
+    "got": 5,
+    "want": 5,
+    "agree": true
+   },
+   {
+    "what": "primary 5 MA3210 Sem 1: form number",
+    "got": "Sem 1: 1",
+    "want": "Sem 1: 1",
+    "agree": true
+   },
+   {
+    "what": "primary 5 MA3210 Sem 1: department",
+    "got": "Mathematics (Faculty of Science)",
+    "want": "Mathematics",
+    "agree": true
+   },
+   {
+    "what": "primary 5 MA3210 Sem 1: level",
+    "got": "level 3000",
+    "want": 3000,
+    "agree": true
+   },
+   {
+    "what": "primary 5 MA3210 Sem 1: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "primary 5 MA3210 Sem 1: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 6 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "primary 6 ST3131 Sem 1: rank",
+    "got": 6,
+    "want": 6,
+    "agree": true
+   },
+   {
+    "what": "primary 6 ST3131 Sem 1: form number",
+    "got": "Sem 1: 2",
+    "want": "Sem 1: 2",
+    "agree": true
+   },
+   {
+    "what": "primary 6 ST3131 Sem 1: department",
+    "got": "Statistics and Data Science (Faculty of Science)",
+    "want": "Statistics and Data Science",
+    "agree": true
+   },
+   {
+    "what": "primary 6 ST3131 Sem 1: level",
+    "got": "level 3000",
+    "want": 3000,
+    "agree": true
+   },
+   {
+    "what": "primary 6 ST3131 Sem 1: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "primary 6 ST3131 Sem 1: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 3 project, 3 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "primary 7 ST3236 Sem 1: rank",
+    "got": 7,
+    "want": 7,
+    "agree": true
+   },
+   {
+    "what": "primary 7 ST3236 Sem 1: form number",
+    "got": "Sem 1: 3",
+    "want": "Sem 1: 3",
+    "agree": true
+   },
+   {
+    "what": "primary 7 ST3236 Sem 1: department",
+    "got": "Statistics and Data Science (Faculty of Science)",
+    "want": "Statistics and Data Science",
+    "agree": true
+   },
+   {
+    "what": "primary 7 ST3236 Sem 1: level",
+    "got": "level 3000",
+    "want": 3000,
+    "agree": true
+   },
+   {
+    "what": "primary 7 ST3236 Sem 1: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "primary 7 ST3236 Sem 1: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 3 project, 3 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "primary 8 ST3248 Sem 1: rank",
+    "got": 8,
+    "want": 8,
+    "agree": true
+   },
+   {
+    "what": "primary 8 ST3248 Sem 1: form number",
+    "got": "Sem 1: 4",
+    "want": "Sem 1: 4",
+    "agree": true
+   },
+   {
+    "what": "primary 8 ST3248 Sem 1: department",
+    "got": "Statistics and Data Science (Faculty of Science)",
+    "want": "Statistics and Data Science",
+    "agree": true
+   },
+   {
+    "what": "primary 8 ST3248 Sem 1: level",
+    "got": "level 3000",
+    "want": 3000,
+    "agree": true
+   },
+   {
+    "what": "primary 8 ST3248 Sem 1: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "primary 8 ST3248 Sem 1: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 3 project, 3 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "backup 1 ST4253 Sem 1: rank",
+    "got": 1,
+    "want": 1,
+    "agree": true
+   },
+   {
+    "what": "backup 1 ST4253 Sem 1: form number",
+    "got": "Sem 1: 5",
+    "want": "Sem 1: 5",
+    "agree": true
+   },
+   {
+    "what": "backup 1 ST4253 Sem 1: department",
+    "got": "Statistics and Data Science (Faculty of Science)",
+    "want": "Statistics and Data Science",
+    "agree": true
+   },
+   {
+    "what": "backup 1 ST4253 Sem 1: level",
+    "got": "level 4000",
+    "want": 4000,
+    "agree": true
+   },
+   {
+    "what": "backup 1 ST4253 Sem 1: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "backup 1 ST4253 Sem 1: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 3 project, 3 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "backup 2 ST4248 Sem 2: rank",
+    "got": 2,
+    "want": 2,
+    "agree": true
+   },
+   {
+    "what": "backup 2 ST4248 Sem 2: form number",
+    "got": "Sem 2: 5",
+    "want": "Sem 2: 5",
+    "agree": true
+   },
+   {
+    "what": "backup 2 ST4248 Sem 2: department",
+    "got": "Statistics and Data Science (Faculty of Science)",
+    "want": "Statistics and Data Science",
+    "agree": true
+   },
+   {
+    "what": "backup 2 ST4248 Sem 2: level",
+    "got": "level 4000",
+    "want": 4000,
+    "agree": true
+   },
+   {
+    "what": "backup 2 ST4248 Sem 2: units",
+    "got": 4,
+    "want": 4,
+    "agree": true
+   },
+   {
+    "what": "backup 2 ST4248 Sem 2: study time",
+    "got": "about 10 hours a week (3 lecture, 1 tutorial, 3 project, 3 preparation)",
+    "want": "10 at NUS's rate; NUSMods 10",
+    "agree": true
+   },
+   {
+    "what": "Sem 1: units counted",
+    "got": 16,
+    "want": 16,
+    "agree": true
+   },
+   {
+    "what": "Sem 1: units to confirm",
+    "got": 0,
+    "want": 0,
+    "agree": true
+   },
+   {
+    "what": "Sem 1: units only if invited",
+    "got": 0,
+    "want": 0,
+    "agree": true
+   },
+   {
+    "what": "Sem 1: hours a week",
+    "got": 40,
+    "want": 40,
+    "agree": true
+   },
+   {
+    "what": "Sem 2: units counted",
+    "got": 16,
+    "want": 16,
+    "agree": true
+   },
+   {
+    "what": "Sem 2: units to confirm",
+    "got": 0,
+    "want": 0,
+    "agree": true
+   },
+   {
+    "what": "Sem 2: units only if invited",
+    "got": 0,
+    "want": 0,
+    "agree": true
+   },
+   {
+    "what": "Sem 2: hours a week",
+    "got": 40,
+    "want": 40,
+    "agree": true
+   },
+   {
+    "what": "year of the courses",
+    "got": "NUS's 2026/27 courses and exchange (NG) course list, updated 01 Sep 2026 (restrictions 31 Aug 2026). The PDF was made 12 Nov 2026, during 2026/27 Sem 1, so if the exchange is in 2027/28 every course must be rechecked against the 2027/28 list (NUS publishes Sem 1's in March/April).",
+    "want": "2026/27",
+    "agree": true
+   },
+   {
+    "what": "year of the exams",
+    "got": "NUS's 2026/27 exam timetable: Sem 1 exams 21-28 Nov 2026, Sem 2 exams 26 Apr - 4 May 2027 (Singapore time). A 2027/28 exchange would have different dates (timetable published mid-July).",
+    "want": "2026/27",
+    "agree": true
+   }
+  ],
+  "factsAgree": 70,
+  "factsDisagree": 0
+ }
 }

@@ -1,0 +1,103 @@
+{
+ "p1": {
+  "csv": "exchange-shortlist-sem2-2026-27-courses.csv",
+  "pdf": "exchange-shortlist-sem2-2026-27-courses.pdf",
+  "view": "exchange-shortlist-sem2-2026-27-courses.view.txt",
+  "csvEntries": 5,
+  "csvTotals": {
+   "2": {
+    "counted": 16,
+    "atLeast": false,
+    "confirm": 0,
+    "invite": 0
+   }
+  },
+  "link": "https://nusmodfinder.rcn.sh/?sem=2&ng=1&study=ug3&pick=GE2231.2&pick=GE3204.2&pick=ENV3104.2&pick=GEC1030.2&alt=PF3504.2&ay=2026-2027&view=shortlist",
+  "reference": {
+   "1": {
+    "counted": 0,
+    "confirm": 0,
+    "invite": 0,
+    "hoursPerWeekAtNusRate": 0,
+    "weeks": "13 weeks of instruction and 2 weeks of examinations (GRO)"
+   },
+   "2": {
+    "counted": 16,
+    "confirm": 0,
+    "invite": 0,
+    "hoursPerWeekAtNusRate": 40,
+    "weeks": "13 weeks of instruction and 2 weeks of examinations (GRO)"
+   }
+  },
+  "viewTotals": {
+   "2": {
+    "counted": 16,
+    "atLeast": false,
+    "confirm": 0,
+    "invite": 0
+   }
+  },
+  "pdfHoldsCsvTotals": 8,
+  "pdfTotals": {
+   "2": {
+    "counted": 16,
+    "atLeast": false,
+    "confirm": 0,
+    "invite": 0
+   }
+  },
+  "problems": []
+ },
+ "p2": {
+  "csv": null,
+  "pdf": "exchange-shortlist-sem1-sem2-2026-27-courses.pdf",
+  "view": "exchange-shortlist-sem1-sem2-2026-27-courses.view.txt",
+  "link": "https://nusmodfinder.rcn.sh/?sem=2&ng=1&study=ug3&pick=ST4234.2&pick=MA4251.2&pick=ST3247.2&pick=ST2137.2&pick=MA3210.1&pick=ST3131.1&pick=ST3236.1&pick=ST3248.1&alt=ST4253.1&alt=ST4248.2&ay=2026-2027&view=shortlist",
+  "reference": {
+   "1": {
+    "counted": 16,
+    "confirm": 0,
+    "invite": 0,
+    "hoursPerWeekAtNusRate": 40,
+    "weeks": "13 weeks of instruction and 2 weeks of examinations (GRO)"
+   },
+   "2": {
+    "counted": 16,
+    "confirm": 0,
+    "invite": 0,
+    "hoursPerWeekAtNusRate": 40,
+    "weeks": "13 weeks of instruction and 2 weeks of examinations (GRO)"
+   }
+  },
+  "viewTotals": {
+   "1": {
+    "counted": 16,
+    "atLeast": false,
+    "confirm": 0,
+    "invite": 0
+   },
+   "2": {
+    "counted": 16,
+    "atLeast": false,
+    "confirm": 0,
+    "invite": 0
+   }
+  },
+  "pdfHoldsCsvTotals": 0,
+  "pdfTotals": {
+   "1": {
+    "counted": 16,
+    "atLeast": false,
+    "confirm": 0,
+    "invite": 0
+   },
+   "2": {
+    "counted": 16,
+    "atLeast": false,
+    "confirm": 0,
+    "invite": 0
+   }
+  },
+  "problems": []
+ }
+}

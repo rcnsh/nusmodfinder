@@ -1,0 +1,243 @@
+{"at":"2026-11-11T19:39:19.595Z","cmd":"goto","args":["/"],"out":"loaded https://nusmodfinder.rcn.sh/"}
+{"at":"2026-11-11T19:39:21.944Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nFind the NUS courses you can take on exchange\n\nAnswer two questions first. Every course then shows whether exchange students in your semester and year may take it, and any conditions.\n\nWHERE THE RULES COME FROM\nNUS Registrar list\tUpdated as at\nCourses offered to exchange students (the NG list)\t01 Sep 2026\nCourse restrictions for exchange students"}
+{"at":"2026-11-11T19:39:24.843Z","cmd":"shot","args":[],"out":"screenshot saved: /Users/jacobwiltshire/.local/share/vnm-redteam6/kit/p2/shots/001.png"}
+{"at":"2026-11-11T19:39:29.648Z","cmd":"key","args":["Tab"],"out":"focus:\n- link \"Skip to main content\":\n  - /url: \"#setup\""}
+{"at":"2026-11-11T19:39:31.935Z","cmd":"key","args":["Tab"],"out":"focus:\n- radio \"Sem 1 Aug–Dec 2026\""}
+{"at":"2026-11-11T19:39:35.158Z","cmd":"key","args":["ArrowDown","2"],"out":"focus:\n- radio \"Both semesters Aug 2026–May 2027\" [checked]"}
+{"at":"2026-11-11T19:39:37.101Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nFind the NUS courses you can take on exchange\n\nAnswer two questions first. Every course then shows whether exchange students in your semester and year may take it, and any conditions.\n\nWHERE THE RULES COME FROM\nNUS Registrar list\tUpdated as at\nCourses offered to exchange students (the NG list)\t01 Sep 2026\nCourse restrictions for exchange students"}
+{"at":"2026-11-11T19:39:39.683Z","cmd":"key","args":["Tab"],"out":"focus:\n- radio \"1st year\""}
+{"at":"2026-11-11T19:39:42.085Z","cmd":"key","args":["ArrowRight","2"],"out":"focus:\n- radio \"3rd year\" [checked]"}
+{"at":"2026-11-11T19:39:44.439Z","cmd":"key","args":["Tab"],"out":"focus:\n- searchbox \"What do you want to study?\""}
+{"at":"2026-11-11T19:39:47.188Z","cmd":"type","args":["probability and statistics"],"out":"focus:\n- searchbox \"What do you want to study?\": probability and statistics"}
+{"at":"2026-11-11T19:39:49.127Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": probability and statistics"}
+{"at":"2026-11-11T19:39:51.116Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses match “probability and statistics”.\n\nSearch courses\nSearch\nFilters (3)\n \nBoth semesters\n3rd year\nExchange students\nYour shortlist\nNo courses yet\n\n20 courses match “probability and statistics”\n\nExam times are Singapore time (UTC+8)\n\nST2334\nProbability and Statistics\n\n4 units\n\nShortlist\n\nStatistics and Data Science\nTaught in Sem 1, Sem 2"}
+{"at":"2026-11-11T19:39:54.561Z","cmd":"shot","args":[],"out":"screenshot saved: /Users/jacobwiltshire/.local/share/vnm-redteam6/kit/p2/shots/002.png"}
+{"at":"2026-11-11T19:39:58.488Z","cmd":"focus","args":[],"out":"focus:\n- searchbox \"Search courses\": probability and statistics"}
+{"at":"2026-11-11T19:39:58.807Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Search\""}
+{"at":"2026-11-11T19:40:01.355Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:40:01.684Z","cmd":"key","args":["Tab"],"out":"focus:\n- 'button \"Remove filter: Exchange students\"': Exchange students"}
+{"at":"2026-11-11T19:40:04.831Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:40:05.169Z","cmd":"key","args":["Enter"],"out":"focus:\n- checkbox \"Only courses open to exchange students\" [checked]"}
+{"at":"2026-11-11T19:40:05.277Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\nSearch courses\nSearch\nFilters (3)\n \nBoth semesters\n3rd year\nExchange students\nYour shortlist\nNo courses yet\n\n20 courses match “probability and statistics”\n\nExam times are Singapore time (UTC+8)\n\nST2334\nProbability and Statistics\n\n4 units\n\nShortlist\n\nStatistics and Data Science\nTaught in Sem 1, Sem 2\nSem 1 exam Mon 23 Nov, 5:00 pm\nSem 2 exam Thu 29"}
+{"at":"2026-11-11T19:40:08.502Z","cmd":"key","args":["Tab"],"out":"focus:\n- radio \"Both\" [checked]"}
+{"at":"2026-11-11T19:40:08.829Z","cmd":"key","args":["Tab"],"out":"focus:\n- combobox \"Year of study during your exchange\":\n  - option \"Choose…\"\n  - option \"1st year\"\n  - option \"2nd year\"\n  - option \"3rd year\" [selected]\n  - option \"4th year or later\"\n  - option \"Graduate\""}
+{"at":"2026-11-11T19:40:09.147Z","cmd":"key","args":["Tab"],"out":"focus:\n- combobox \"Level\":\n  - option \"Any level\" [selected]\n  - option \"Level 1000\"\n  - option \"Level 2000\"\n  - option \"Level 3000\"\n  - option \"Level 4000\"\n  - option \"Level 5000\"\n  - option \"Level 6000\"\n  - option \"Level 8000\""}
+{"at":"2026-11-11T19:40:09.477Z","cmd":"key","args":["Tab"],"out":"focus:\n- combobox \"Units\":\n  - option \"Any units\" [selected]\n  - option \"2 units\"\n  - option \"4 units\"\n  - option \"5 units\"\n  - option \"6 units\"\n  - option \"8 units\"\n  - option \"12 units\""}
+{"at":"2026-11-11T19:40:12.514Z","cmd":"key","args":["Shift+Tab","3"],"out":"focus:\n- radio \"Both\" [checked]"}
+{"at":"2026-11-11T19:40:18.513Z","cmd":"key","args":["ArrowLeft","2"],"out":"focus:\n- radio \"Sem 1\" [checked]"}
+{"at":"2026-11-11T19:40:20.600Z","cmd":"shot","args":[],"out":"screenshot saved: /Users/jacobwiltshire/.local/share/vnm-redteam6/kit/p2/shots/003.png"}
+{"at":"2026-11-11T19:40:25.020Z","cmd":"key","args":["Escape"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:40:25.130Z","cmd":"focus","args":[],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:40:27.989Z","cmd":"key","args":["Shift+Tab","2"],"out":"focus:\n- searchbox \"Search courses\": probability and statistics"}
+{"at":"2026-11-11T19:40:28.321Z","cmd":"key","args":["Control+a"],"out":"focus:\n- searchbox \"Search courses\": probability and statistics"}
+{"at":"2026-11-11T19:40:28.883Z","cmd":"type","args":["real analysis"],"out":"focus:\n- searchbox \"Search courses\": real analysisprobability and statistics"}
+{"at":"2026-11-11T19:40:30.445Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": real analysisprobability and statistics"}
+{"at":"2026-11-11T19:40:33.833Z","cmd":"key","args":["Meta+a"],"out":"focus:\n- searchbox \"Search courses\": real analysisprobability and statistics"}
+{"at":"2026-11-11T19:40:34.151Z","cmd":"key","args":["Backspace"],"out":"focus:\n- searchbox \"Search courses\""}
+{"at":"2026-11-11T19:40:34.263Z","cmd":"focus","args":[],"out":"focus:\n- searchbox \"Search courses\""}
+{"at":"2026-11-11T19:40:37.030Z","cmd":"type","args":["real analysis"],"out":"focus:\n- searchbox \"Search courses\": real analysis"}
+{"at":"2026-11-11T19:40:38.680Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": real analysis"}
+{"at":"2026-11-11T19:40:38.790Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses match “real analysis”.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nNo courses yet\n\n20 courses match “real analysis”\n\nExam times are Singapore time (UTC+8)\n\nMA2108\nMathematical Analysis I\n\n4 units\n\nShortlist\n\nMathematics\nTaught in Sem 1, Sem 2\nExam Tue 1 Dec, 5:00 pm\n\nSem 1 · Open to exchange stu"}
+{"at":"2026-11-11T19:40:43.146Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:40:43.479Z","cmd":"key","args":["Enter"],"out":"focus:\n- checkbox \"Only courses open to exchange students\" [checked]"}
+{"at":"2026-11-11T19:40:43.870Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- combobox \"Year of study during your exchange\":\n  - option \"Choose…\"\n  - option \"1st year\"\n  - option \"2nd year\"\n  - option \"3rd year\" [selected]\n  - option \"4th year or later\"\n  - option \"Graduate\""}
+{"at":"2026-11-11T19:40:45.420Z","cmd":"key","args":["ArrowRight"],"out":"focus:\n- combobox \"Year of study during your exchange\":\n  - option \"Choose…\"\n  - option \"1st year\"\n  - option \"2nd year\"\n  - option \"3rd year\"\n  - option \"4th year or later\" [selected]\n  - option \"Graduate\""}
+{"at":"2026-11-11T19:40:45.752Z","cmd":"key","args":["Escape"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:40:49.545Z","cmd":"key","args":["Enter"],"out":"focus:\n- checkbox \"Only courses open to exchange students\" [checked]"}
+{"at":"2026-11-11T19:40:49.935Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- combobox \"Year of study during your exchange\":\n  - option \"Choose…\"\n  - option \"1st year\"\n  - option \"2nd year\"\n  - option \"3rd year\"\n  - option \"4th year or later\" [selected]\n  - option \"Graduate\""}
+{"at":"2026-11-11T19:40:50.250Z","cmd":"key","args":["ArrowUp"],"out":"focus:\n- combobox \"Year of study during your exchange\":\n  - option \"Choose…\"\n  - option \"1st year\"\n  - option \"2nd year\"\n  - option \"3rd year\" [selected]\n  - option \"4th year or later\"\n  - option \"Graduate\""}
+{"at":"2026-11-11T19:40:50.581Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- radio \"Sem 1\" [checked]"}
+{"at":"2026-11-11T19:40:52.129Z","cmd":"key","args":["ArrowRight"],"out":"focus:\n- radio \"Sem 2\" [checked]"}
+{"at":"2026-11-11T19:40:55.637Z","cmd":"key","args":["Escape"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:40:56.028Z","cmd":"key","args":["Shift+Tab","2"],"out":"focus:\n- searchbox \"Search courses\": real analysis"}
+{"at":"2026-11-11T19:40:56.342Z","cmd":"key","args":["Meta+a"],"out":"focus:\n- searchbox \"Search courses\": real analysis"}
+{"at":"2026-11-11T19:40:56.670Z","cmd":"key","args":["Backspace"],"out":"focus:\n- searchbox \"Search courses\""}
+{"at":"2026-11-11T19:40:57.393Z","cmd":"type","args":["stochastic processes"],"out":"focus:\n- searchbox \"Search courses\": stochastic processes"}
+{"at":"2026-11-11T19:40:59.038Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": stochastic processes"}
+{"at":"2026-11-11T19:40:59.150Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses match “stochastic processes”.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nNo courses yet\n\n20 courses match “stochastic processes”\n\nExam times are Singapore time (UTC+8)\n\nMA4251\nStochastic Processes II\n\n4 units\n\nShortlist\n\nMathematics\nTaught in Sem 2\nExam Mon 26 Apr, 5:00 pm\n\nAlso as ST4238\n\nSem "}
+{"at":"2026-11-11T19:41:04.349Z","cmd":"key","args":["Meta+a"],"out":"focus:\n- searchbox \"Search courses\": stochastic processes"}
+{"at":"2026-11-11T19:41:04.678Z","cmd":"key","args":["Backspace"],"out":"focus:\n- searchbox \"Search courses\""}
+{"at":"2026-11-11T19:41:05.479Z","cmd":"type","args":["data science programming"],"out":"focus:\n- searchbox \"Search courses\": data science programming"}
+{"at":"2026-11-11T19:41:07.032Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": data science programming"}
+{"at":"2026-11-11T19:41:07.141Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses match “data science programming”.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nNo courses yet\n\n20 courses match “data science programming”\n\nExam times are Singapore time (UTC+8)\n\nST2137\nStatistical Computing and Programming\n\n4 units\n\nShortlist\n\nStatistics and Data Science\nTaught in Sem 2\nExam Wed"}
+{"at":"2026-11-11T19:41:10.988Z","cmd":"key","args":["Meta+a"],"out":"focus:\n- searchbox \"Search courses\": data science programming"}
+{"at":"2026-11-11T19:41:11.316Z","cmd":"key","args":["Backspace"],"out":"focus:\n- searchbox \"Search courses\""}
+{"at":"2026-11-11T19:41:12.361Z","cmd":"type","args":["ST4234 MA4251 ST3247 ST2137 ST4248"],"out":"focus:\n- searchbox \"Search courses\": ST4234 MA4251 ST3247 ST2137 ST4248"}
+{"at":"2026-11-11T19:41:13.906Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": ST4234 MA4251 ST3247 ST2137 ST4248"}
+{"at":"2026-11-11T19:41:14.011Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses shown: ST4234, MA4251, ST3247, then 17 other matches.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nNo courses yet\n\n20 courses shown: ST4234, MA4251, ST3247, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nThe results put at most three of the codes you type at the top: the first thre"}
+{"at":"2026-11-11T19:41:17.516Z","cmd":"key","args":["Tab","4"],"out":"focus:\n- 'button \"Remove filter: Exchange students\"': Exchange students"}
+{"at":"2026-11-11T19:41:17.824Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Your shortlist No courses yet\""}
+{"at":"2026-11-11T19:41:18.156Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"ST4234 Bayesian Statistics\""}
+{"at":"2026-11-11T19:41:21.701Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST4234 Bayesian Statistics\" [expanded]"}
+{"at":"2026-11-11T19:41:21.811Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses shown: ST4234, MA4251, ST3247, then 17 other matches.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nNo courses yet\n\n20 courses shown: ST4234, MA4251, ST3247, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nThe results put at most three of the codes you type at the top: the first thre"}
+{"at":"2026-11-11T19:41:27.522Z","cmd":"shot","args":[],"out":"screenshot saved: /Users/jacobwiltshire/.local/share/vnm-redteam6/kit/p2/shots/004.png"}
+{"at":"2026-11-11T19:41:32.900Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, ST4234\": Shortlist"}
+{"at":"2026-11-11T19:41:36.101Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, ST4234\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:41:36.212Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST4234 added to your picks: Sem 2, 4 units picked so far\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 2: 4 units picked\n\n20 courses shown: ST4234, MA4251, ST3247, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nThe results put at most three of the codes you type at the top: the first three"}
+{"at":"2026-11-11T19:41:40.697Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, ST4234\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:41:41.026Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:41:41.359Z","cmd":"key","args":["Tab"],"out":"focus:\n- link \"Courses offered to exchange (NG) students\":\n  - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating"}
+{"at":"2026-11-11T19:41:44.772Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:41:45.098Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST4234 Bayesian Statistics\""}
+{"at":"2026-11-11T19:41:45.412Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, ST4234\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:41:49.178Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"MA4251 Stochastic Processes II\""}
+{"at":"2026-11-11T19:41:50.726Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"MA4251 Stochastic Processes II\" [expanded]"}
+{"at":"2026-11-11T19:41:50.837Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST4234 added to your picks: Sem 2, 4 units picked so far\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 2: 4 units picked\n\n20 courses shown: ST4234, MA4251, ST3247, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nThe results put at most three of the codes you type at the top: the first three"}
+{"at":"2026-11-11T19:41:54.832Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, MA4251\": Shortlist"}
+{"at":"2026-11-11T19:41:55.161Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, MA4251\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:41:55.552Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"Shortlist, MA4251\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:41:55.884Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, MA4251\": Shortlist"}
+{"at":"2026-11-11T19:42:01.959Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, MA4251\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:42:02.289Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- link \"ST4238\":\n  - /url: /?q=ST4238&sem=2&ng=1&study=ug3&open=ST4238&from=MA4251"}
+{"at":"2026-11-11T19:42:02.626Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- button \"Shortlist, MA4251\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:42:06.586Z","cmd":"key","args":["Tab","3"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:42:09.899Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"MA4251 Stochastic Processes II\""}
+{"at":"2026-11-11T19:42:10.354Z","cmd":"key","args":["Tab","3"],"out":"focus:\n- button \"ST3247 Simulation\""}
+{"at":"2026-11-11T19:42:11.803Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST3247 Simulation\" [expanded]"}
+{"at":"2026-11-11T19:42:11.913Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nMA4251 added to your picks: Sem 2, 8 units picked so far\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 2: 8 units picked\n\n20 courses shown: ST4234, MA4251, ST3247, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nThe results put at most three of the codes you type at the top: the first three"}
+{"at":"2026-11-11T19:42:15.290Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, ST3247\": Shortlist"}
+{"at":"2026-11-11T19:42:15.602Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, ST3247\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:42:15.995Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:42:16.327Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST3247 Simulation\""}
+{"at":"2026-11-11T19:42:21.301Z","cmd":"goto","args":["/?q=ST2137&sem=2&ng=1&study=ug3"],"out":"loaded https://nusmodfinder.rcn.sh/?q=ST2137&sem=2&ng=1&study=ug3"}
+{"at":"2026-11-11T19:42:21.418Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses shown: ST2137, then 19 other matches.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nNo courses yet\nYour last shortlist is kept on this device (3 courses).\nRestore your last shortlist\n\n20 courses shown: ST2137, then 19 other matches\n\nExam times are Singapore time (UTC+8)\n\nST2137\nStatistical Computi"}
+{"at":"2026-11-11T19:42:25.915Z","cmd":"key","args":["Tab","7"],"out":"focus:\n- button \"Your shortlist No courses yet\""}
+{"at":"2026-11-11T19:42:26.030Z","cmd":"focus","args":[],"out":"focus:\n- button \"Your shortlist No courses yet\""}
+{"at":"2026-11-11T19:42:29.242Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Restore your last shortlist\""}
+{"at":"2026-11-11T19:42:30.592Z","cmd":"key","args":["Enter"],"out":"focus:\n- heading \"Your shortlist\" [level=2]"}
+{"at":"2026-11-11T19:42:30.701Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nYour last shortlist is restored: 3 courses\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 2: 12 units picked\nYour shortlist\n\nSem 2 · 3rd-year exchange student · NUS's 2026/27 courses\n\nBack to results\nCopy link\nDownload CSV\nPrint or save as PDF\n\nOn a phone: Share, then Print, then pinch out the preview to "}
+{"at":"2026-11-11T19:42:34.034Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nYour last shortlist is restored: 3 courses\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 2: 12 units picked\nYour shortlist\n\nSem 2 · 3rd-year exchange student · NUS's 2026/27 courses\n\nBack to results\nCopy link\nDownload CSV\nPrint or save as PDF\n\nOn a phone: Share, then Print, then pinch out the preview to "}
+{"at":"2026-11-11T19:42:34.117Z","cmd":"url","args":[],"out":"https://nusmodfinder.rcn.sh/?q=ST2137&sem=2&ng=1&study=ug3&pick=ST4234.2&pick=MA4251.2&pick=ST3247.2&ay=2026-2027&view=shortlist"}
+{"at":"2026-11-11T19:42:44.562Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Back to results\""}
+{"at":"2026-11-11T19:42:44.893Z","cmd":"key","args":["Enter"],"out":"focus:\n- 'button \"Your shortlist Sem 2: 12 units picked\"'"}
+{"at":"2026-11-11T19:42:45.003Z","cmd":"focus","args":[],"out":"focus:\n- 'button \"Your shortlist Sem 2: 12 units picked\"'"}
+{"at":"2026-11-11T19:42:48.611Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"ST2137 Statistical Computing and Programming\""}
+{"at":"2026-11-11T19:42:50.055Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST2137 Statistical Computing and Programming\" [expanded]"}
+{"at":"2026-11-11T19:42:50.164Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses shown: ST2137, then 19 other matches.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 2: 12 units picked\n\n20 courses shown: ST2137, then 19 other matches\n\nExam times are Singapore time (UTC+8)\n\nST2137\nStatistical Computing and Programming\n\n4 units\n\nShortlist\n\nStatistics and Data Science\nTaught i"}
+{"at":"2026-11-11T19:42:53.538Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, ST2137\": Shortlist"}
+{"at":"2026-11-11T19:42:53.869Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, ST2137\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:42:54.260Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:42:54.589Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST2137 Statistical Computing and Programming\""}
+{"at":"2026-11-11T19:42:59.195Z","cmd":"key","args":["Shift+Tab","2"],"out":"focus:\n- 'button \"Remove filter: Exchange students\"': Exchange students"}
+{"at":"2026-11-11T19:42:59.523Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- 'button \"Remove filter: Sem 2\"': Sem 2"}
+{"at":"2026-11-11T19:42:59.852Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:43:03.856Z","cmd":"key","args":["Enter"],"out":"focus:\n- checkbox \"Only courses open to exchange students\" [checked]"}
+{"at":"2026-11-11T19:43:04.175Z","cmd":"key","args":["Tab"],"out":"focus:\n- radio \"Sem 2\" [checked]"}
+{"at":"2026-11-11T19:43:05.812Z","cmd":"key","args":["ArrowLeft"],"out":"focus:\n- radio \"Sem 1\" [checked]"}
+{"at":"2026-11-11T19:43:06.143Z","cmd":"key","args":["Escape"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:43:06.537Z","cmd":"key","args":["Shift+Tab","2"],"out":"focus:\n- searchbox \"Search courses\": ST2137"}
+{"at":"2026-11-11T19:43:06.869Z","cmd":"key","args":["Meta+a"],"out":"focus:\n- searchbox \"Search courses\": ST2137"}
+{"at":"2026-11-11T19:43:07.201Z","cmd":"key","args":["Backspace"],"out":"focus:\n- searchbox \"Search courses\""}
+{"at":"2026-11-11T19:43:07.927Z","cmd":"type","args":["MA3210 ST3131 ST4253"],"out":"focus:\n- searchbox \"Search courses\": MA3210 ST3131 ST4253"}
+{"at":"2026-11-11T19:43:10.086Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": MA3210 ST3131 ST4253"}
+{"at":"2026-11-11T19:43:10.194Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses shown: MA3210, ST3131, ST4253, then 17 other matches.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nSem 2: 16 units picked\n\n20 courses shown: MA3210, ST3131, ST4253, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nMA3210\nMathematical Analysis II\n\n4 units\n\nShortlist\n\nMathematics\nTaugh"}
+{"at":"2026-11-11T19:43:15.116Z","cmd":"key","args":["Tab","6"],"out":"focus:\n- button \"MA3210 Mathematical Analysis II\""}
+{"at":"2026-11-11T19:43:16.565Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"MA3210 Mathematical Analysis II\" [expanded]"}
+{"at":"2026-11-11T19:43:16.678Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses shown: MA3210, ST3131, ST4253, then 17 other matches.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nSem 2: 16 units picked\n\n20 courses shown: MA3210, ST3131, ST4253, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nMA3210\nMathematical Analysis II\n\n4 units\n\nShortlist\n\nMathematics\nTaugh"}
+{"at":"2026-11-11T19:43:20.613Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, MA3210\": Shortlist"}
+{"at":"2026-11-11T19:43:20.938Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, MA3210\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:43:21.334Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:43:21.661Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"MA3210 Mathematical Analysis II\""}
+{"at":"2026-11-11T19:43:25.014Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"ST3131 Regression Analysis\""}
+{"at":"2026-11-11T19:43:26.464Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST3131 Regression Analysis\" [expanded]"}
+{"at":"2026-11-11T19:43:26.574Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nMA3210 added to your picks: Sem 1, 4 units picked so far\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nSem 1: 4 · Sem 2: 16 units picked\n\n20 courses shown: MA3210, ST3131, ST4253, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nMA3210\nMathematical Analysis II\n\n4 units\n\nShortlist\n\nMathematics\nTa"}
+{"at":"2026-11-11T19:43:30.049Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, ST3131\": Shortlist"}
+{"at":"2026-11-11T19:43:30.380Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, ST3131\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:43:30.771Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:43:31.101Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST3131 Regression Analysis\""}
+{"at":"2026-11-11T19:43:34.930Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"ST4253 Applied Time Series Analysis\""}
+{"at":"2026-11-11T19:43:36.363Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST4253 Applied Time Series Analysis\" [expanded]"}
+{"at":"2026-11-11T19:43:36.472Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST3131 added to your picks: Sem 1, 8 units picked so far\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nSem 1: 8 · Sem 2: 16 units picked\n\n20 courses shown: MA3210, ST3131, ST4253, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nMA3210\nMathematical Analysis II\n\n4 units\n\nShortlist\n\nMathematics\nTa"}
+{"at":"2026-11-11T19:43:39.789Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, ST4253\": Shortlist"}
+{"at":"2026-11-11T19:43:40.117Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, ST4253\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:43:40.508Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:43:40.841Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST4253 Applied Time Series Analysis\""}
+{"at":"2026-11-11T19:43:44.623Z","cmd":"key","args":["Tab","6"],"out":"focus:\n- button \"MA3238 Stochastic Processes I\""}
+{"at":"2026-11-11T19:43:44.729Z","cmd":"focus","args":[],"out":"focus:\n- button \"MA3238 Stochastic Processes I\""}
+{"at":"2026-11-11T19:43:49.045Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"MA3238 Stochastic Processes I\" [expanded]"}
+{"at":"2026-11-11T19:43:49.155Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST4253 added to your picks: Sem 1, 12 units picked so far\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nSem 1: 12 · Sem 2: 16 units picked\n\n20 courses shown: MA3210, ST3131, ST4253, then 17 other matches\n\nExam times are Singapore time (UTC+8)\n\nMA3210\nMathematical Analysis II\n\n4 units\n\nShortlist\n\nMathematics\n"}
+{"at":"2026-11-11T19:43:52.814Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, MA3238\": Shortlist"}
+{"at":"2026-11-11T19:43:53.142Z","cmd":"key","args":["Tab"],"out":"focus:\n- link \"ST3236\":\n  - /url: /?q=ST3236&sem=1&ng=1&study=ug3&open=ST3236&from=MA3238"}
+{"at":"2026-11-11T19:43:58.738Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST3236 Stochastic Processes I\" [expanded]"}
+{"at":"2026-11-11T19:43:59.183Z","cmd":"key","args":["Tab","3"],"out":"focus:\n- button \"Shortlist, ST3236\": Shortlist"}
+{"at":"2026-11-11T19:43:59.516Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, ST3236\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:44:04.668Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST3236 added to your picks: Sem 1, 16 units picked so far\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nSem 1: 16 · Sem 2: 16 units picked\n\n20 courses shown: ST3236, then 19 other matches\n\nExam times are Singapore time (UTC+8)\n\nST3236\nStochastic Processes I\n\n4 units\n\nShortlist\n\nStatistics and Data Science\nTa"}
+{"at":"2026-11-11T19:44:04.752Z","cmd":"url","args":[],"out":"https://nusmodfinder.rcn.sh/?q=ST3236&sem=1&ng=1&study=ug3&open=ST3236&from=MA3238&pick=ST4234.2&pick=MA4251.2&pick=ST3247.2&pick=ST2137.2&pick=MA3210.1&pick=ST3131.1&pick=ST4253.1&pick=ST3236.1&ay=2026-2027"}
+{"at":"2026-11-11T19:44:08.458Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST3236 added to your picks: Sem 1, 16 units picked so far\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nSem 1: 16 · Sem 2: 16 units picked\n\n20 courses shown: ST3236, then 19 other matches\n\nExam times are Singapore time (UTC+8)\n\nST3236\nStochastic Processes I\n\n4 units\n\nShortlist\n\nStatistics and Data Science\nTa"}
+{"at":"2026-11-11T19:44:14.139Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:44:14.473Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST3236 Stochastic Processes I\""}
+{"at":"2026-11-11T19:44:15.197Z","cmd":"key","args":["Shift+Tab","7"],"out":"focus:\n- link \"Skip to main content\":\n  - /url: \"#main\""}
+{"at":"2026-11-11T19:44:15.298Z","cmd":"focus","args":[],"out":"focus:\n- link \"Skip to main content\":\n  - /url: \"#main\""}
+{"at":"2026-11-11T19:44:19.123Z","cmd":"key","args":["Tab"],"out":"focus:\n- searchbox \"Search courses\": ST3236"}
+{"at":"2026-11-11T19:44:19.451Z","cmd":"key","args":["Meta+a"],"out":"focus:\n- searchbox \"Search courses\": ST3236"}
+{"at":"2026-11-11T19:44:19.783Z","cmd":"key","args":["Backspace"],"out":"focus:\n- searchbox \"Search courses\""}
+{"at":"2026-11-11T19:44:20.182Z","cmd":"type","args":["ST3248"],"out":"focus:\n- searchbox \"Search courses\": ST3248"}
+{"at":"2026-11-11T19:44:21.835Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": ST3248"}
+{"at":"2026-11-11T19:44:22.547Z","cmd":"key","args":["Tab","7"],"out":"focus:\n- button \"Shortlist, ST3248\": Shortlist"}
+{"at":"2026-11-11T19:44:25.938Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, ST3248\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:44:26.037Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST3248 added to your picks: Sem 1, 16 units so far, 1 course still loading\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nSem 1: 20 · Sem 2: 16 units picked\n\n20 courses shown: ST3248, then 19 other matches\n\nExam times are Singapore time (UTC+8)\n\nST3248\nStatistical Learning I\n\n4 units\n\nShortlist\n\nStatistics an"}
+{"at":"2026-11-11T19:44:30.288Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- button \"ST3248 Statistical Learning I\""}
+{"at":"2026-11-11T19:44:30.625Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST3248 Statistical Learning I\" [expanded]"}
+{"at":"2026-11-11T19:44:30.734Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST3248 added to your picks: Sem 1, 16 units so far, 1 course still loading\n\nSearch courses\nSearch\nFilters (3)\n \nSem 1\n3rd year\nExchange students\nYour shortlist\nSem 1: 20 · Sem 2: 16 units picked\n\n20 courses shown: ST3248, then 19 other matches\n\nExam times are Singapore time (UTC+8)\n\nST3248\nStatistical Learning I\n\n4 units\n\nShortlist\n\nStatistics an"}
+{"at":"2026-11-11T19:44:36.481Z","cmd":"key","args":["Tab","3"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:44:36.804Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST3248 Statistical Learning I\""}
+{"at":"2026-11-11T19:44:37.325Z","cmd":"key","args":["Shift+Tab","4"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:44:37.438Z","cmd":"focus","args":[],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:44:41.853Z","cmd":"key","args":["Enter"],"out":"focus:\n- checkbox \"Only courses open to exchange students\" [checked]"}
+{"at":"2026-11-11T19:44:42.179Z","cmd":"key","args":["Tab"],"out":"focus:\n- radio \"Sem 1\" [checked]"}
+{"at":"2026-11-11T19:44:43.833Z","cmd":"key","args":["ArrowRight"],"out":"focus:\n- radio \"Sem 2\" [checked]"}
+{"at":"2026-11-11T19:44:44.163Z","cmd":"key","args":["Escape"],"out":"focus:\n- button \"Filters (3)\""}
+{"at":"2026-11-11T19:44:44.554Z","cmd":"key","args":["Shift+Tab","2"],"out":"focus:\n- searchbox \"Search courses\": ST3248"}
+{"at":"2026-11-11T19:44:44.885Z","cmd":"key","args":["Meta+a"],"out":"focus:\n- searchbox \"Search courses\": ST3248"}
+{"at":"2026-11-11T19:44:45.215Z","cmd":"key","args":["Backspace"],"out":"focus:\n- searchbox \"Search courses\""}
+{"at":"2026-11-11T19:44:45.615Z","cmd":"type","args":["MA2401"],"out":"focus:\n- searchbox \"Search courses\": MA2401"}
+{"at":"2026-11-11T19:44:48.084Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": MA2401"}
+{"at":"2026-11-11T19:44:48.733Z","cmd":"key","args":["Tab","6"],"out":"focus:\n- button \"MA2401 Mathematical Foundations of Data Analysis\""}
+{"at":"2026-11-11T19:44:48.826Z","cmd":"focus","args":[],"out":"focus:\n- button \"MA2401 Mathematical Foundations of Data Analysis\""}
+{"at":"2026-11-11T19:44:53.166Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"MA2401 Mathematical Foundations of Data Analysis\" [expanded]"}
+{"at":"2026-11-11T19:44:53.267Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses shown: MA2401, then 19 other matches.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 1: 20 · Sem 2: 16 units picked\n\n20 courses shown: MA2401, then 19 other matches\n\nExam times are Singapore time (UTC+8)\n\nMA2401\nMathematical Foundations of Data Analysis\n\n4 units\n\nShortlist\n\nMathematics\nTaught i"}
+{"at":"2026-11-11T19:44:57.825Z","cmd":"key","args":["Tab","3"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:44:57.937Z","cmd":"focus","args":[],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:45:02.231Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"MA2401 Mathematical Foundations of Data Analysis\""}
+{"at":"2026-11-11T19:45:02.817Z","cmd":"key","args":["Shift+Tab","5"],"out":"focus:\n- button \"Search\""}
+{"at":"2026-11-11T19:45:02.931Z","cmd":"focus","args":[],"out":"focus:\n- button \"Search\""}
+{"at":"2026-11-11T19:45:07.011Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- searchbox \"Search courses\": MA2401"}
+{"at":"2026-11-11T19:45:07.327Z","cmd":"key","args":["Meta+a"],"out":"focus:\n- searchbox \"Search courses\": MA2401"}
+{"at":"2026-11-11T19:45:07.664Z","cmd":"key","args":["Backspace"],"out":"focus:\n- searchbox \"Search courses\""}
+{"at":"2026-11-11T19:45:08.070Z","cmd":"type","args":["ST4248"],"out":"focus:\n- searchbox \"Search courses\": ST4248"}
+{"at":"2026-11-11T19:45:09.720Z","cmd":"key","args":["Enter"],"out":"focus:\n- searchbox \"Search courses\": ST4248"}
+{"at":"2026-11-11T19:45:10.365Z","cmd":"key","args":["Tab","6"],"out":"focus:\n- button \"ST4248 Statistical Learning II\""}
+{"at":"2026-11-11T19:45:13.748Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST4248 Statistical Learning II\" [expanded]"}
+{"at":"2026-11-11T19:45:13.857Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\n20 courses shown: ST4248, then 19 other matches.\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 1: 20 · Sem 2: 16 units picked\n\n20 courses shown: ST4248, then 19 other matches\n\nExam times are Singapore time (UTC+8)\n\nST4248\nStatistical Learning II\n\n4 units\n\nShortlist\n\nStatistics and Data Science\nTaught in "}
+{"at":"2026-11-11T19:45:17.897Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Shortlist, ST4248\": Shortlist"}
+{"at":"2026-11-11T19:45:18.227Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Shortlist, ST4248\" [pressed]: Shortlist"}
+{"at":"2026-11-11T19:45:18.622Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"Close details\""}
+{"at":"2026-11-11T19:45:18.952Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"ST4248 Statistical Learning II\""}
+{"at":"2026-11-11T19:45:22.406Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- 'button \"Your shortlist Sem 1: 20 · Sem 2: 20 units picked\"'"}
+{"at":"2026-11-11T19:45:22.722Z","cmd":"key","args":["Enter"],"out":"focus:\n- heading \"Your shortlist\" [level=2]"}
+{"at":"2026-11-11T19:45:22.830Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST4248 added to your picks: Sem 2, 20 units picked so far\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 1: 20 · Sem 2: 20 units picked\nYour shortlist\n\nSem 2 · 3rd-year exchange student · NUS's 2026/27 courses\n\nBack to results\nCopy link\nDownload CSV\nPrint or save as PDF\n\nOn a phone: Share, then Print, the"}
+{"at":"2026-11-11T19:45:35.140Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Back to results\""}
+{"at":"2026-11-11T19:45:35.473Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Copy link\""}
+{"at":"2026-11-11T19:45:35.798Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Download CSV\""}
+{"at":"2026-11-11T19:45:36.116Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Print or save as PDF\""}
+{"at":"2026-11-11T19:45:36.445Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Move up, ST4234\" [disabled]: Move up"}
+{"at":"2026-11-11T19:45:36.755Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Move down, ST4234\": Move down"}
+{"at":"2026-11-11T19:45:37.083Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Make backup, ST4234\": Make backup"}
+{"at":"2026-11-11T19:45:37.413Z","cmd":"key","args":["Tab"],"out":"focus:\n- button \"Remove, ST4234\": Remove"}
+{"at":"2026-11-11T19:45:43.710Z","cmd":"key","args":["Tab","24"],"out":"focus:\n- button \"Make backup, ST4253\": Make backup"}
+{"at":"2026-11-11T19:45:46.640Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Make primary, ST4253\": Make primary"}
+{"at":"2026-11-11T19:45:46.751Z","cmd":"focus","args":[],"out":"focus:\n- button \"Make primary, ST4253\": Make primary"}
+{"at":"2026-11-11T19:45:51.216Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- button \"Move down, ST4253\" [disabled]: Move down"}
+{"at":"2026-11-11T19:45:51.544Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- button \"Move up, ST4253\" [disabled]: Move up"}
+{"at":"2026-11-11T19:45:51.876Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- button \"Remove, ST4248\": Remove"}
+{"at":"2026-11-11T19:45:52.204Z","cmd":"key","args":["Shift+Tab"],"out":"focus:\n- button \"Make backup, ST4248\": Make backup"}
+{"at":"2026-11-11T19:45:55.453Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Make primary, ST4248\": Make primary"}
+{"at":"2026-11-11T19:45:55.563Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nST4248 is now a backup\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 1: 16 · Sem 2: 16 units picked\nYour shortlist\n\nSem 2 · 3rd-year exchange student · NUS's 2026/27 courses\n\nBack to results\nCopy link\nDownload CSV\nPrint or save as PDF\n\nOn a phone: Share, then Print, then pinch out the preview to save the"}
+{"at":"2026-11-11T19:46:01.530Z","cmd":"key","args":["Shift+Tab","40"],"out":"focus:\n- button \"Print or save as PDF\""}
+{"at":"2026-11-11T19:46:04.598Z","cmd":"key","args":["Shift+Tab","2"],"out":"focus:\n- button \"Copy link\""}
+{"at":"2026-11-11T19:46:04.934Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Copy link\"\n(your clipboard now holds what the page copied; it is also in /Users/jacobwiltshire/.local/share/vnm-redteam6/kit/p2/clipboard.txt)"}
+{"at":"2026-11-11T19:46:05.044Z","cmd":"read","args":[],"out":"Skip to main content\nNUS Mod Finder\n(\nunofficial\n)\n\nLink copied\n\nSearch courses\nSearch\nFilters (3)\n \nSem 2\n3rd year\nExchange students\nYour shortlist\nSem 1: 16 · Sem 2: 16 units picked\nYour shortlist\n\nSem 2 · 3rd-year exchange student · NUS's 2026/27 courses\n\nBack to results\nCopy link\nDownload CSV\nPrint or save as PDF\n\nOn a phone: Share, then Print, then pinch out the preview to save the PDF. Excel"}
+{"at":"2026-11-11T19:46:08.438Z","cmd":"key","args":["Tab","2"],"out":"focus:\n- button \"Print or save as PDF\""}
+{"at":"2026-11-11T19:46:08.816Z","cmd":"key","args":["Enter"],"out":"focus:\n- button \"Print or save as PDF\"\n(the print dialog saved a PDF: /Users/jacobwiltshire/.local/share/vnm-redteam6/kit/p2/downloads/exchange-shortlist-sem1-sem2-2026-27-courses.pdf)"}
+{"at":"2026-11-11T19:46:17.620Z","cmd":"shot","args":[],"out":"screenshot saved: /Users/jacobwiltshire/.local/share/vnm-redteam6/kit/p2/shots/005.png"}
+{"at":"2026-11-11T19:47:19.574Z","cmd":"__stop","out":"stopping"}
