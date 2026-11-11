@@ -1,0 +1,20 @@
+- region "Totals":
+  - heading "Totals" [level=3]
+  - region "Sem 2 picks":
+    - heading "Sem 2 picks" [level=4]
+    - paragraph: 12 units counted, if NUS accepts you into each 12 units is about 30 hours a week at NUS's rate (2.5 hours a week per unit).
+    - paragraph: "Picks with overlapping 2026/27 exams: NUS approves at most one of each pair."
+  - region "Sem 1 picks":
+    - heading "Sem 1 picks" [level=4]
+    - paragraph: 24 units counted, if NUS accepts you into each plus 4 units only if invited 24 units is about 60 hours a week at NUS's rate (2.5 hours a week per unit).
+    - paragraph: "If you were invited: Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first."
+    - paragraph: "Picks with overlapping 2026/27 exams: NUS approves at most one of each pair."
+    - paragraph: "Over 20 units. NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20. This limits the courses NUS enrols you in, not the courses you list."
+  - paragraph: No semester yet
+  - paragraph: "HY1101E (pick 4): choose Sem 1 or Sem 2 on its row."
+  - list:
+    - listitem: "To be admitted, NUS must accept you into at least 12 units in a semester (NUS's brochure; GRO: “three pre-registered courses (or 12 units)”)"
+    - listitem: In CourseReg you must keep at least 12 units or three courses (GRO)
+    - listitem: "NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20. This limits the courses NUS enrols you in, not the courses you list."
+    - listitem: NUS states hours a week only; your university's own conversion decides credit.
+    - listitem: "GRO: “Each semester normally includes 13 weeks of instruction and 2 weeks of examinations”"

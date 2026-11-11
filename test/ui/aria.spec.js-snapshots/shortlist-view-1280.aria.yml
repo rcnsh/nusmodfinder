@@ -1,0 +1,201 @@
+- region "Your shortlist":
+  - heading "Your shortlist" [level=2]
+  - paragraph: Sem 1 · 2nd-year exchange student · NUS's 2026/27 courses
+  - button "Back to results"
+  - button "Copy link"
+  - button "Download CSV" [disabled]
+  - button "Print or save as PDF" [disabled]
+  - paragraph: Download CSV and Print or save as PDF aren't ready yet.
+  - group "Did NUS Business School invite you to apply for its exchange programme (an invitation during the nomination period)?":
+    - text: Did NUS Business School invite you to apply for its exchange programme (an invitation during the nomination period)?
+    - checkbox "Yes, NUS Business School invited me"
+    - text: Yes, NUS Business School invited me
+    - paragraph: Business courses count only if it did. If you're not sure, ask your exchange office.
+  - region "Primary picks 4":
+    - heading "Primary picks 4" [level=3]
+    - list:
+      - listitem:
+        - paragraph: Pick 1
+        - paragraph: Sem 1
+        - paragraph: "Application form, Sem 1: 1"
+        - heading "CS2113 Software Engineering & Object-Oriented Programming" [level=4]
+        - paragraph: 4 units · Computer Science · Level 2000
+        - paragraph: 2026/27 exam Mon 30 Nov 2026, 5:00 pm, 1 h 30 min
+        - paragraph: "Workload (NUSMods): 10 hours a week: 2 lecture, 1 tutorial, 3 project, 4 preparation"
+        - paragraph: Counted, if NUS accepts you into it
+        - text: Sem 1 · Open to exchange students
+        - list:
+          - listitem: NUS says these courses are extremely oversubscribed, gives priority to students majoring in them, and advises students with other majors against choosing them (GRO)
+        - button "Move up, CS2113" [disabled]: Move up
+        - button "Move down, CS2113": Move down
+        - button "Make backup, CS2113": Make backup
+        - button "Move to Sem 2, CS2113": Move to Sem 2
+        - button "Remove, CS2113": Remove
+      - listitem:
+        - paragraph: Pick 2
+        - paragraph: Sem 1
+        - paragraph: "Application form, Sem 1: 2"
+        - heading "GE2101 Methods and Practices in Geography" [level=4]
+        - paragraph: 4 units · Geography · Level 2000
+        - paragraph: No final exam listed in 2026/27
+        - paragraph: "Workload (NUSMods): 10 hours a week: 2 lecture, 1 tutorial, 1 lab, 4 project, 2 preparation"
+        - paragraph: Counted, if NUS accepts you into it
+        - text: Sem 1 · Open, with 1 note
+        - list:
+          - listitem: Places. The number of places is limited, so you may not get one.
+        - button "Move up, GE2101": Move up
+        - button "Move down, GE2101": Move down
+        - button "Make backup, GE2101": Make backup
+        - button "Move to Sem 2, GE2101": Move to Sem 2
+        - button "Remove, GE2101": Remove
+      - listitem:
+        - paragraph: Pick 3
+        - paragraph: Sem 1
+        - paragraph: "Application form, Sem 1: 3"
+        - heading "PC3270 Machine Learning for Physicists" [level=4]
+        - paragraph: 4 units · Physics · Level 3000
+        - paragraph: No final exam listed in 2026/27
+        - paragraph: "Workload (NUSMods): 10 hours a week: 2 lecture, 2 tutorial, 3 project, 3 preparation"
+        - paragraph: "To confirm with NUS: read its notes."
+        - text: Sem 1 · Open, with 1 note
+        - list:
+          - listitem: Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.
+        - button "Move up, PC3270": Move up
+        - button "Move down, PC3270": Move down
+        - button "Make backup, PC3270": Make backup
+        - button "Move to Sem 2, PC3270": Move to Sem 2
+        - button "Remove, PC3270": Remove
+      - listitem:
+        - paragraph: Pick 4
+        - paragraph: Sem 1
+        - paragraph: On the form only if invited
+        - heading "ACC1701XA Accounting for Decision Makers" [level=4]
+        - paragraph: 4 units · Accounting · Level 1000
+        - paragraph: 2026/27 exam Fri 27 Nov 2026, 2:30 pm, 2 h
+        - paragraph: "Workload (NUSMods): 10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation"
+        - paragraph: Only for students invited by NUS Business School.
+        - text: Sem 1 · Open, with 2 notes
+        - list:
+          - listitem: Places. Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first.
+          - listitem: Your major. Only for students majoring in business at their home university.
+          - listitem: "GRO: “Business and Law courses are only available to students who are invited by NUS Business School and NUS Law respectively to apply for the exchange during the nomination period”"
+          - listitem: If you're not sure whether you were, ask your exchange office.
+          - listitem: "NUS's CourseReg FAQ: “Only students who have been offered Business courses during the application stage will be able to see the courses”"
+        - button "Move up, ACC1701XA": Move up
+        - button "Move down, ACC1701XA" [disabled]: Move down
+        - button "Make backup, ACC1701XA": Make backup
+        - button "Move to Sem 2, ACC1701XA": Move to Sem 2
+        - button "Remove, ACC1701XA": Remove
+  - region "Backups 2":
+    - heading "Backups 2" [level=3]
+    - list:
+      - listitem:
+        - paragraph: Backup 1
+        - paragraph: Sem 1
+        - paragraph: "Not on the form: not open in Sem 1"
+        - heading "CS3244 Machine Learning" [level=4]
+        - paragraph: 4 units · Computer Science · Level 3000
+        - paragraph: 2026/27 exam Thu 26 Nov 2026, 5:00 pm, 2 h
+        - paragraph: "Workload (NUSMods): 10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation"
+        - paragraph: "Not counted: not on NUS's 2026/27 exchange course list for Sem 1. Courses not on the list “are not available during application stage but may be available during Course registration” (the Registrar's course restrictions, rule E)"
+        - text: Sem 1 · Not open to exchange students
+        - list:
+          - listitem: Offered to exchange students only in Sem 2.
+        - list:
+          - listitem: NUS says these courses are extremely oversubscribed, gives priority to students majoring in them, and advises students with other majors against choosing them (GRO)
+        - button "Move up, CS3244" [disabled]: Move up
+        - button "Move down, CS3244": Move down
+        - button "Make primary, CS3244": Make primary
+        - button "Move to Sem 2, CS3244": Move to Sem 2
+        - button "Remove, CS3244": Remove
+      - listitem:
+        - paragraph: Backup 2
+        - paragraph: Sem 1
+        - paragraph: "Application form, Sem 1: 4"
+        - heading "EE4407 Analog Electronics" [level=4]
+        - paragraph: 4 units · Electrical and Computer Engineering · Level 4000
+        - paragraph: Exam timetable not published in NUSMods
+        - paragraph: "Workload (NUSMods): 10 hours a week: 2 lecture, 1 tutorial, 0.5 lab, 1.5 project, 5 preparation"
+        - paragraph: "To confirm with NUS: NUS lists it for Sem 1 in 2026/27, but NUSMods shows no classes: ask NUS."
+        - text: Sem 1 · Open, with 1 note
+        - list:
+          - listitem: Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.
+        - list:
+          - listitem: "GRO: “Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students. In order to increase the chances of securing enough courses, incoming exchange students should consider taking courses with course code starting from 1000 to 3000”"
+        - button "Move up, EE4407": Move up
+        - button "Move down, EE4407" [disabled]: Move down
+        - button "Make primary, EE4407": Make primary
+        - button "Remove, EE4407": Remove
+  - region "Totals":
+    - heading "Totals" [level=3]
+    - region "Sem 1 picks":
+      - heading "Sem 1 picks" [level=4]
+      - paragraph: 8 units counted, if NUS accepts you into each plus 4 units to confirm with NUS plus 4 units only if invited 8 units is about 20 hours a week at NUS's rate (2.5 hours a week per unit).
+      - paragraph: "If you were invited: Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first."
+      - paragraph: Not counted
+      - paragraph: "CS3244 (backup 1): not on NUS's 2026/27 exchange course list for Sem 1. Courses not on the list “are not available during application stage but may be available during Course registration” (the Registrar's course restrictions, rule E)"
+    - list:
+      - listitem: "To be admitted, NUS must accept you into at least 12 units in a semester (NUS's brochure; GRO: “three pre-registered courses (or 12 units)”)"
+      - listitem: In CourseReg you must keep at least 12 units or three courses (GRO)
+      - listitem: "NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20. This limits the courses NUS enrols you in, not the courses you list."
+      - listitem: NUS states hours a week only; your university's own conversion decides credit.
+      - listitem: "GRO: “Each semester normally includes 13 weeks of instruction and 2 weeks of examinations”"
+  - region "NUS's application form order, for applicants":
+    - heading "NUS's application form order, for applicants" [level=3]
+    - paragraph: "This order uses NUS's 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1's list in March or April, Sem 2's later (the 2026/27 list is dated 1 Sep 2026), and the timetable in mid-July: check each course there."
+    - 'table "Sem 1 on NUS''s form: 16 of 40 units"':
+      - caption: "Sem 1 on NUS's form: 16 of 40 units"
+      - rowgroup:
+        - row "No. Course Units On your list":
+          - columnheader "No."
+          - columnheader "Course"
+          - columnheader "Units"
+          - columnheader "On your list"
+      - rowgroup:
+        - row "1 CS2113 4 Pick 1":
+          - cell "1"
+          - rowheader "CS2113"
+          - cell "4"
+          - cell "Pick 1"
+        - row "2 GE2101 4 Pick 2":
+          - cell "2"
+          - rowheader "GE2101"
+          - cell "4"
+          - cell "Pick 2"
+        - row "3 PC3270 4 Pick 3":
+          - cell "3"
+          - rowheader "PC3270"
+          - cell "4"
+          - cell "Pick 3"
+        - row "4 EE4407 4 Backup 2":
+          - cell "4"
+          - rowheader "EE4407"
+          - cell "4"
+          - cell "Backup 2"
+    - list:
+      - listitem: NUS recommends listing as many relevant courses as you can, up to 40 units (GRO)
+      - listitem: NUS recommends ranking your compulsory courses among your top three choices, to increase your chances of securing them (GRO)
+      - listitem: NUS's form asks, for each course with a prerequisite, the home course that meets it (NUS's application guide)
+      - listitem: "GRO: “If you did not secure any of the popular courses during the first round … please do not repeat your request for any of these courses in subsequent rounds”"
+  - region "Already admitted? NUS's rules for CourseReg":
+    - heading "Already admitted? NUS's rules for CourseReg" [level=3]
+    - list:
+      - listitem: Keep at least 12 units or three courses a semester (GRO)
+      - listitem: Drop any course that clashes (GRO)
+      - listitem: "On Business, Law and Economics courses: “If you are not successful in gaining placements into these popular courses at the point of offer, you are not able to add these courses during CourseReg” (GRO)"
+      - listitem: Missing the drop deadlines “could lead to a Grade 'W' … or 'F' printed on your transcript” (GRO)
+      - listitem: The Registrar's Non-Graduating Office signs your Learning Agreement or Study Plan (GRO)
+      - listitem: “no particular course can be guaranteed by NUS” (GRO)
+      - listitem: A course not approved at application can be requested in “Submit Course Requests” or appealed as “Unable to secure course” (NUS's CourseReg FAQ)
+      - listitem: “Students are not allowed to read courses with any kind of timetable clashes” (NUS's CourseReg FAQ)
+      - listitem: You can't drop below the minimum workload (NUS's CourseReg FAQ)
+      - listitem: You may request “up to 23 Units in one course request”; above that, a Max Workload Waiver (NUS's CourseReg FAQ)
+      - listitem: Courses not on the exchange course list “are not available during application stage but may be available during Course registration” (the Registrar's course restrictions, rule E)
+      - listitem: “To check if the course is offered to Non-Graduating students, refer to the Vacancy Report” (NUS's CourseReg FAQ)
+      - listitem: Get your home university's approval before changing your study plan (NUS's brochure)
+    - paragraph: This page can't see your offer. Your offer and CourseReg show which courses are yours.
+  - paragraph: "Class times and corequisites aren't checked here: see each course on NUSMods."
+  - paragraph: NUS posts each course's full syllabus on Canvas when the semester starts; the text here is NUS's course description (the Registrar's NG course list).
+  - paragraph: For courses that have prerequisites, NUS asks for the syllabi of the courses you have completed or are taking (NUS's brochure).
+  - paragraph:
+    - button "Forget this list on this device"

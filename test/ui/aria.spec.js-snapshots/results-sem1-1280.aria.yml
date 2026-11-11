@@ -5,6 +5,7 @@
   - paragraph: Academic year 2026/27
   - status: "17 courses shown: ACC1701XB, then 16 other matches."
 - complementary "Your exchange and filters":
+  - button "Your shortlist No courses yet"
   - region "Your exchange":
     - heading "Your exchange" [level=2]
     - checkbox "Only courses open to exchange students" [checked]
@@ -18,8 +19,8 @@
       - text: Sem 2
       - radio "Both"
       - text: Both
-    - text: Year of study at home
-    - combobox "Year of study at home":
+    - text: Year of study during your exchange
+    - combobox "Year of study during your exchange":
       - option "Choose…"
       - option "1st year"
       - option "2nd year" [selected]
@@ -105,6 +106,7 @@
       - heading "ACC1701XB Accounting for Decision Makers" [level=2]:
         - button "ACC1701XB Accounting for Decision Makers"
       - paragraph: 4 units
+      - button "Shortlist, ACC1701XB": Shortlist
       - paragraph: Accounting · NUS Business School Taught in Sem 2 No final exam listed
       - paragraph:
         - text: Also as
@@ -122,12 +124,14 @@
       - 'heading "GE1101E Geographical Journeys: Exploring World Environments" [level=2]':
         - 'button "GE1101E Geographical Journeys: Exploring World Environments"'
       - paragraph: 4 units
+      - button "Shortlist, GE1101E": Shortlist
       - paragraph: Geography · Arts and Social Science Taught in Sem 1 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "CS1010 Programming Methodology" [level=2]:
         - button "CS1010 Programming Methodology"
       - paragraph: 4 units
+      - button "Shortlist, CS1010": Shortlist
       - paragraph: Computer Science · Computing Taught in Sem 1, Sem 2 Exam Wed 25 Nov, 9:00 am
       - paragraph:
         - text: Also as
@@ -138,6 +142,7 @@
       - heading "GES1034 We the Citizens - Understanding Singapore’s Politics" [level=2]:
         - button "GES1034 We the Citizens - Understanding Singapore’s Politics"
       - paragraph: 4 units
+      - button "Shortlist, GES1034": Shortlist
       - paragraph: Political Science · Arts and Social Science Taught in Sem 1 Exam Tue 1 Dec, 1:00 pm
       - paragraph:
         - text: Also as
@@ -148,24 +153,28 @@
       - heading "GESS1007 Singapore’s Business History" [level=2]:
         - button "GESS1007 Singapore’s Business History"
       - paragraph: 4 units
+      - button "Shortlist, GESS1007": Shortlist
       - paragraph: History · Arts and Social Science Taught in Sem 1 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "GESS1009 The Evolution of a Global City-State" [level=2]:
         - button "GESS1009 The Evolution of a Global City-State"
       - paragraph: 4 units
+      - button "Shortlist, GESS1009": Shortlist
       - paragraph: History · Arts and Social Science Taught in Sem 1, Special term 2 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "HS1502 Conceptual Introduction to Machine Learning" [level=2]:
         - button "HS1502 Conceptual Introduction to Machine Learning"
       - paragraph: 4 units
+      - button "Shortlist, HS1502": Shortlist
       - paragraph: Physics · Science Taught in Sem 1, Sem 2 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "LAF1201 French 1" [level=2]:
         - button "LAF1201 French 1"
       - paragraph: 4 units
+      - button "Shortlist, LAF1201": Shortlist
       - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2, Special term 1, Special term 2 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:
@@ -174,6 +183,7 @@
       - heading "LAK1201 Korean 1" [level=2]:
         - button "LAK1201 Korean 1"
       - paragraph: 4 units
+      - button "Shortlist, LAK1201": Shortlist
       - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:
@@ -182,6 +192,7 @@
       - heading "LAM1201 Malay 1" [level=2]:
         - button "LAM1201 Malay 1"
       - paragraph: 4 units
+      - button "Shortlist, LAM1201": Shortlist
       - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2, Special term 1 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:
@@ -190,6 +201,7 @@
       - heading "LAT1201 Thai 1" [level=2]:
         - button "LAT1201 Thai 1"
       - paragraph: 4 units
+      - button "Shortlist, LAT1201": Shortlist
       - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2, Special term 1 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:
@@ -198,18 +210,21 @@
       - heading "PC1201 Fundamentals of Physics" [level=2]:
         - button "PC1201 Fundamentals of Physics"
       - paragraph: 4 units
+      - button "Shortlist, PC1201": Shortlist
       - paragraph: Physics · Science Taught in Sem 1, Sem 2 Exam Wed 25 Nov, 1:00 pm
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "PL1101E Introduction to Psychology" [level=2]:
         - button "PL1101E Introduction to Psychology"
       - paragraph: 4 units
+      - button "Shortlist, PL1101E": Shortlist
       - paragraph: Psychology · Arts and Social Science Taught in Sem 1, Sem 2, Special term 2 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "LAL1201 Tamil 1" [level=2]:
         - button "LAL1201 Tamil 1"
       - paragraph: 4 units
+      - button "Shortlist, LAL1201": Shortlist
       - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 2 No final exam listed
       - text: Sem 1 · Open, with 2 notes
       - list:
@@ -219,18 +234,21 @@
       - 'heading "HY1101E Engaging Asia: A Global History" [level=2]':
         - 'button "HY1101E Engaging Asia: A Global History"'
       - paragraph: 4 units
+      - button "Shortlist, HY1101E": Shortlist
       - paragraph: History · Arts and Social Science Taught in Sem 1, Sem 2, Special term 2 No final exam listed
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "EC1101E Introduction to Economic Analysis" [level=2]:
         - button "EC1101E Introduction to Economic Analysis"
       - paragraph: 4 units
+      - button "Shortlist, EC1101E": Shortlist
       - paragraph: Economics · Arts and Social Science Taught in Sem 1, Sem 2 Exam Wed 25 Nov, 5:00 pm
       - text: Sem 1 · Open to exchange students
     - listitem:
       - heading "LAR1201 Arabic 1" [level=2]:
         - button "LAR1201 Arabic 1"
       - paragraph: 4 units
+      - button "Shortlist, LAR1201": Shortlist
       - paragraph: Centre for Language Studies · Arts and Social Science Taught in Sem 1, Sem 2, Special term 1 No final exam listed
       - text: Sem 1 · Open, with 1 note
       - list:

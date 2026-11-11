@@ -22,6 +22,9 @@
 //   every NG-listed code with no classes (the pinned data file, built in
 //   memory as the pinned groups are), whose 404 answers it; a typed one is
 //   never ranked.
+// - Phase 6 6C: the shortlist (public/shortlist.js) over the same answers, at
+//   Sem 1 and Sem 2, each study level and browse mode: a closed case is never
+//   counted, has no form number and carries its stamp (test/shortlist-sc1.js).
 // Its own vitest project and CI job (`npm run test:sc1`), with its own
 // timeout. Skipped without the pinned corpus and bundle; the sc1 CI job sets
 // FULL_CORPUS=1, so a missing one fails there instead.
@@ -38,7 +41,8 @@ import { storedVectorMetadata } from '../../src/rowhash.js';
 import { localMatchesFilters } from '../../src/search.js';
 import { compileMask } from '../../src/vector-bundle.js';
 import { createFakes } from '../fakes.js';
-import { adminCall, callJson, seed } from '../helpers.js';
+import { adminCall, call, callJson, seed } from '../helpers.js';
+import { shortlistAgainstOracle } from '../shortlist-sc1.js';
 import { oracle, oracleShown, yearNoteOf } from './oracle.node.mjs';
 
 const corpus = inject('corpus');
@@ -264,6 +268,20 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
     }
     expect(wrong).toEqual([]);
     expect(entries).toBe((c.modules.length + classless.length) * 15);
+  }, 600_000);
+
+  it('6C: the shortlist over every offered code and every NG-listed code with no classes agrees with the oracle', async () => {
+    const classless = [...unscheduled().values()].map((u) => ({
+      code: u.code, title: u.title, department: u.department, faculty: u.faculty, level: u.level,
+      semesters: [], ng: true, ngSemesters: u.ngSemesters, prerequisite: u.prerequisite,
+    }));
+    const all = [...c.modules, ...classless];
+    /** @type {typeof fetch} */
+    const pageFetch = /** @type {any} */ ((/** @type {string} */ url) => call(String(url), { fakes }));
+    const { wrong, closed, shown, browse } = await shortlistAgainstOracle(/** @type {any[]} */ (all), pageFetch);
+    expect(wrong).toEqual([]);
+    expect(closed + shown).toBe(all.length * 10);
+    expect(browse).toBe(all.length * 2);
   }, 600_000);
 
   it('variants: no group shows a closed member', async () => {

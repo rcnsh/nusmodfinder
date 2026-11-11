@@ -18,13 +18,20 @@ import { parseState } from '../../public/state.js';
 import { DEFAULT_ACAD_YEAR } from '../../public/year.js';
 import { FIXTURE, GROUP_OF, REASONS_FILE, exchange, fixtureOutcome, ngListedOutcome, synthOutcome } from './shortlist-answers.node.mjs';
 
-/** /facets' offListRules (6A), with each rule's scope as NUS states it. */
-const RULES = [
-  { id: 'E-offerings-list', text: `If the courses cannot be found at the Course offerings list, they are ${RULE_E}.`, scope: null },
-  { id: '4-cee-no-appeal', text: 'No appeal will be accepted for any Level 1000 to Level 4000 courses that are not listed in the NG Course offerings list.', scope: { department: 'Civil and Environmental Engineering', levels: [1000, 2000, 3000, 4000] } },
-  { id: '4-isem-no-appeal', text: 'No appeals will be accepted for any level 1000 to level 4000 courses that are not listed in the NG courses listing.', scope: { department: 'Industrial Systems Engineering and Management', levels: [1000, 2000, 3000, 4000] } },
-  { id: '2-biz-no-late-add', text: 'If you have not been offered Business courses at the point of initial acceptance, you will not be able to add the Course.', scope: { faculty: 'NUS Business School' } },
-];
+/**
+ * /facets' offListRules (6A), exactly as the Worker answers them: data/ng-reasons.json's,
+ * whose scopes are `{ departments, levels }` (levels as digits) or `{ faculties }`, and `{}`
+ * for rule E. 6B's tests first used a synthetic shape (`{ department }`, levels in 1000s),
+ * which the real rules never matched (6C's shape check).
+ * @type {import('../../public/shortlist.js').OffListRule[]}
+ */
+const RULES = REASONS_FILE.offListRules;
+/** @param {string} id */
+const ruleText = (id) => {
+  const r = RULES.find((x) => x.id === id);
+  if (!r) throw new Error(`no off-list rule ${id}`);
+  return r.text;
+};
 
 /**
  * Works out a link's shortlist, every code answered from the fixture unless
@@ -85,9 +92,25 @@ describe('counting (6B)', () => {
       EC3304: synthOutcome('EC3304', { department: 'Economics', exchange: offS2 }),
       GEC1028: synthOutcome('GEC1028', { department: 'Economics', exchange: offS2 }),
     });
-    for (const code of ['CE2183', 'ESE2001']) expect(at(r, code).why).toContain(RULES[1].text);
+    for (const code of ['CE2183', 'ESE2001']) expect(at(r, code).why).toContain(ruleText('4-cee-no-appeal'));
     expect(at(r, 'EC3304').why).toContain(`GRO: “${GRO_POPULAR}”`);
     expect(at(r, 'GEC1028').why).toContain(RULE_E);
+  });
+
+  it('6A\'s real scopes: a department at levels 1 to 4 (not 5), a faculty, and rule E\'s empty scope covering nothing on its own', () => {
+    const offS2 = exchange({ 1: ['open', []], 2: ['closed', ['ng-list:not-listed']] });
+    const r = run('ng=1&study=ug2&pick=CE2183.2&pick=CE5101.2&pick=IE2141.2&pick=ACC2706.2&pick=GE2101.2', {
+      CE2183: synthOutcome('CE2183', { department: 'Civil and Environmental Engineering', level: 2, exchange: offS2 }),
+      CE5101: synthOutcome('CE5101', { department: 'Civil and Environmental Engineering', level: 5, exchange: offS2 }),
+      IE2141: synthOutcome('IE2141', { department: 'Industrial Systems Engineering and Management', level: 2, exchange: offS2 }),
+      ACC2706: synthOutcome('ACC2706', { department: 'Accounting', faculty: 'NUS Business School', level: 2, exchange: offS2 }),
+      GE2101: synthOutcome('GE2101', { department: 'Geography', exchange: offS2 }),
+    });
+    expect(at(r, 'CE2183').why).toContain(ruleText('4-cee-no-appeal'));
+    expect(at(r, 'CE5101').why).toContain(RULE_E);
+    expect(at(r, 'IE2141').why).toContain(ruleText('4-isem-no-appeal'));
+    expect(at(r, 'ACC2706').why).toContain(ruleText('2-biz-no-late-add'));
+    expect(at(r, 'GE2101').why).toContain(RULE_E);
   });
 
   it('a catalogue-only or unknown 404, not loaded, null units, no semester, special terms only: not counted, each saying why', () => {
@@ -440,6 +463,14 @@ describe('totals, lines and helpers (6B)', () => {
       .toBe('Sem 2 first: 8 units picked; Sem 1: 8');
   });
 
+  it('"units picked" is one measure: every loaded pick\'s units, counted or not (review finding 4)', () => {
+    // CS3244 is closed in Sem 1 at ug2: not counted, but picked, as the shortlist button says.
+    const r = run('sem=2&ng=1&study=ug2&pick=CS3244.1&pick=CS2030.1');
+    expect(r.sems[1]).toMatchObject({ counted: 4, picked: 8 });
+    expect(r.sems[2].picked).toBe(0);
+    expect(summary(r)).toBe('Sem 2 first: 0 units picked; Sem 1: 8');
+  });
+
   it('the export question: browse mode asks the year; an untagged entry its semester; special-term and 404 entries are exempt', () => {
     const q = (/** @type {string} */ qs, /** @type {Record<string, any>} */ extra = {}) => {
       const params = new URLSearchParams(qs);
@@ -475,6 +506,11 @@ describe('totals, lines and helpers (6B)', () => {
 
   it('the fixed lines are NUS\'s, cited: applicants, the form, the CourseReg box', () => {
     expect(APPLICANT_LINES).toHaveLength(4);
+    // The plan's r13 edits from 6-0's fact check (docs/evidence/phase6/facts.md §3, §5): the 2025
+    // application guide has a prerequisite field but no class choice (P4), and the 10-course caution
+    // rests on NUS's 2018/19 information sheet, not slides 6-0 couldn't find (P2).
+    expect(APPLICANT_LINES[2]).toBe('NUS\'s form asks, for each course with a prerequisite, the home course that meets it (NUS\'s application guide)');
+    expect(FORM_LINES.ten).toBe('NUS has said up to 10 courses (NUS\'s 2018/19 exchange information sheet): check');
     expect(FORM_LINES.applicants('2026/27', '01 Sep 2026')).toBe('This order uses NUS\'s 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later (the 2026/27 list is dated 1 Sep 2026), and the timetable in mid-July: check each course there.');
     // The list's date comes from /facets' NG list source, never a constant (review finding 6); without it, no date.
     expect(FORM_LINES.applicants('2027/28', '15 Apr 2027')).toContain('(the 2027/28 list is dated 15 Apr 2027)');

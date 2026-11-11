@@ -33,11 +33,12 @@ import { isCode } from './state.js';
  *   the typed codes not shown, a keyword-only note)
  * @typedef {{
  *   searchHref: (code: string) => string, variantHref: (code: string, from: string) => string,
- *   removableFilters: number, query: string,
+ *   removableFilters: number, query: string, listed: (code: string) => boolean,
  * }} RenderContext
  *   `variantHref`: the page URL an "Also as" link opens: that code's search with its detail open, from `from`
  *   `removableFilters`: how many filter chips the student could remove (not the exchange set-up);
- *   `query`: the query as the student typed it (/search echoes it normalised), for the count line
+ *   `query`: the query as the student typed it (/search echoes it normalised), for the count line;
+ *   `listed`: whether a code is on the shortlist (6C), so each card's toggle starts pressed or not
  */
 
 /** The stamp class and icon for a status. @type {Readonly<Record<string, string>>} */
@@ -99,6 +100,20 @@ export function searchLink(code, ctx) {
 function variantLink(code, from, ctx) {
   if (!isCode(code)) return code;
   return h('a', { class: 'variant-link', attrs: { href: ctx.variantHref(code, from), 'data-variant': code, 'data-from': from } }, code);
+}
+
+/**
+ * The shortlist toggle (Phase 6 6C), on a card and in a detail's head: a
+ * button "Shortlist" with `aria-pressed`, named "Shortlist, CS3244" (the
+ * visible text first). Pressed also shows by a filled bookmark, not colour
+ * alone. app.js handles the click and keeps every toggle for a code in step.
+ * @param {string} code
+ * @param {boolean} pressed
+ */
+export function shortlistToggle(code, pressed) {
+  return h('button', {
+    class: 'btn sl-toggle', attrs: { type: 'button', 'aria-pressed': String(pressed), 'aria-label': `Shortlist, ${code}`, 'data-sl': code },
+  }, icon('mark-off'), icon('mark-on'), h('span', null, 'Shortlist'));
 }
 
 /**
@@ -191,7 +206,7 @@ let nextId = 0;
  * @param {any} m a /search result
  * @param {Record<string, unknown>} filters
  * @param {Rendered['cards']} cards filled with this entry's button and region
- * @param {Pick<RenderContext, 'variantHref'>} ctx
+ * @param {Pick<RenderContext, 'variantHref' | 'listed'>} ctx
  */
 function card(m, filters, cards, ctx) {
   const code = String(m.code ?? '');
@@ -210,7 +225,8 @@ function card(m, filters, cards, ctx) {
   const fac = m.department && m.faculty && m.faculty !== m.department ? String(m.faculty) : '';
   return h('li', { class: 'card entry' },
     h('h2', { class: 'card-head' }, button),
-    h('p', { class: 'units' }, `${m.credits ?? '?'} units`),
+    // The toggle sits outside the h2, under the units (beside them on a phone), so the stamps don't move (6C).
+    h('div', { class: 'unitcol' }, h('p', { class: 'units' }, `${m.credits ?? '?'} units`), shortlistToggle(code, ctx.listed(code))),
     h('p', { class: 'meta' },
       h('span', { class: 'dept' }, dept, fac ? h('span', { class: 'fac' }, ` · ${fac}`) : null),
       h('span', { class: 'sems' }, semesters.length ? `Taught in ${semesters.map(semLabel).join(', ')}` : 'No classes listed on NUSMods'),
