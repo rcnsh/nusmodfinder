@@ -15,7 +15,7 @@ log in [`PROGRESS.md`](PROGRESS.md), decisions in [`decisions/`](decisions/).
 | 3 | Search that understands students | **closed** at `phase3-final` ([plan](plans/phase3.md), [ADR 0006](decisions/0006-phase3-search-quality-plan.md), [exit](evidence/phase3/exit.md)): SC5 and SC7 pass; SC4's level and phrase items and findings S2, S3, S4, S6 carried into Phase 4 (Jacob) | SC4, SC5 (+ SC7 carried over) |
 | 4 | Exchange mode that is correct | **closed** at `phase4-final` ([plan](plans/phase4.md), [ADR 0007](decisions/0007-phase4-exchange-mode-plan.md), [exit](evidence/phase4/exit.md)) | SC1; persona red team finds nothing |
 | 5 | Frontend and design overhaul | **closed** at `phase5-final` ([plan](plans/phase5.md), [ADR 0008](decisions/0008-phase5-frontend-plan.md), [exit](evidence/phase5/exit.md)): SC2 and SC8 pass (VoiceOver walkthrough dropped by Jacob); SC4's parsed phrases shipped after L8 | SC2, SC8; design gate |
-| 6 | Shortlist and export | not started | SC3 |
+| 6 | Shortlist and export | **planned** ([plan](plans/phase6.md), [ADR 0009](decisions/0009-phase6-shortlist-plan.md) draft): waiting on Jacob's answers G1–G5 and the 6-0 design gate | SC3 |
 | 7 | Ops and architecture | not started | SC9 |
 | 8 | Launch readiness | not started | SC10; name/domain gate |
 
