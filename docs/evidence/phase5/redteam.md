@@ -258,4 +258,15 @@ Found sound, with evidence in `security.md`:
   below N; the status otherwise stands (ADR 0008). p1's `ask NUS` on AR4601 is therefore the
   expected answer, and the page gets the note.
 - **PD1, PD2, S1–S3 and the 26 plain-language findings that could mislead or leave a student
-  unsure** are being fixed in one code-only change; exit waits for it to ship and be checked live.
+  unsure** are fixed in PR #84 (`8a86bf6`), live as version `0b81c82e`. Re-checked live
+  (`remote-ops.md`, 2026-11-11 09:45):
+  - R3: AR4601 for a 3rd-year in Sem 1 shows "Year of study." with "Ask the department whether
+    your year …";
+  - PD1: CS2106's preclusion has no glued keyword (`DegreeTHEN`, `)OR(`, `DOR(`);
+  - PD2: p1's six typed codes give "20 courses shown: AR3101, AR4601, AR3223, then 17 other
+    matches", naming only the pinned codes;
+  - S1: `/?q=PP5288&open=PP5288&from=CS1010` shows no "Opened from CS1010";
+  - S2: a crafted `q` with a closing quote mark stays inside the page's quotes, and a made-up
+    `faculty` shows no chip;
+  - S3: `/` answers with `frame-ancestors 'none'`, `X-Frame-Options: DENY` and `nosniff`.
+  `scripts/p5-live.mjs` on the new version: 32 of 32 checks pass.

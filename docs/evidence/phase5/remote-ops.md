@@ -72,3 +72,15 @@ Rollback: `npx wrangler rollback 810c903b-60fd-4a24-b824-e33906a9007a` (code-onl
 | 08:31:07–08:31:26 | Smoke, ≥ 5 s apart (`requests.tsv` 121): `/health` (tag `75ca23c`); `history no final exam` reads `exam: 0` (HY3226 first); the same with `ignore=exam` reads none; `machine learning`: EE2211 first | 4 calls | 4 × 200 |
 
 Rollback: `npx wrangler rollback 91c09381-36d8-4bde-a34d-d18e08995a55` (code-only).
+
+## 2026-11-11: the red-team fixes (code-only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 09:43:41 | `/health` (`requests.tsv` 122): version `78a2672a` (tag `75ca23c`) | 1 call | 1 call |
+| 09:43:47–09:44:27 | `npm run deploy` of `8a86bf6` (guard read 6,778 D1 rows; no D1 write) | ~6.8k rows read | version **`0b81c82e-4c45-47fe-9efc-a1b93afd71db`** (tag `8a86bf6`), startup 2 ms |
+| 09:44:34–09:44:46 | Smoke, ≥ 5 s apart (`requests.tsv` 122): `/health` (tag `8a86bf6`); `HEAD /` (the CSP, `X-Frame-Options: DENY`, `nosniff`); `machine learning`: EE2211 first | 3 calls | 3 × 200 |
+| 09:45:19–09:45:55 | Live re-check of R3, PD1, PD2, S1, S2 (`requests.tsv` 122): 5 page loads in Chromium, ≥ 6 s apart | ~120 calls (page files included) | 119 calls; every check as fixed (`redteam.md`) |
+| 09:46:09–09:52:50 | `node scripts/p5-live.mjs` (`requests.tsv` 123, `p5-live.jsonl`) | ~100 calls | 100 sent ≥ 4 s apart; **32 of 32 checks pass** |
+
+Rollback: `npx wrangler rollback 78a2672a-fc36-403a-b090-9ca266f905d4` (code-only).
