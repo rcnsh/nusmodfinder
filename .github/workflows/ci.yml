@@ -184,6 +184,13 @@ jobs:
   ui:
     if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
+    # Playwright's own image carries Chromium, WebKit and their system libraries, so the job
+    # installs nothing with apt: installing the browsers' system libraries hung the job to its timeout
+    # whenever the runner could not resolve Ubuntu's mirrors. The tag follows the locked
+    # @playwright/test version (test/ci-workflow.node.test.js).
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --ipc=host --init
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
@@ -210,9 +217,6 @@ jobs:
           cache: npm
       - if: steps.diff.outputs.run == 'true'
         run: npm ci
-      - name: Playwright browsers
-        if: steps.diff.outputs.run == 'true'
-        run: npx playwright install --with-deps chromium webkit
       - name: UI suite (Chromium and WebKit)
         if: steps.diff.outputs.run == 'true'
         run: npm run test:ui
