@@ -16,3 +16,9 @@ Headroom: about 14k rows read and under 10 requests; the rule holds by orders of
 
 Rollback: `npx wrangler rollback 59986aa3-48d9-4344-8f5d-29e095709ca6` (code-only). A rolled-back
 page keeps `pick` and `alt` but drops `ay`, `inv` and `view` from a link it settles (plan §3 6E).
+
+## 2026-11-12: the live check
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 19:16:16–19:19:09 | `node scripts/p6-live.mjs` on version `f8aefeab` (`requests.tsv` 125, `p6-live.jsonl`): `/facets`, 8 `/module` for a 6-pick, 2-backup list across Sem 1 and 2, 3 `/module` 404s (one of each kind), then the page's files once; Chromium and WebKit fulfilled from memory | ~43 calls | 43 sent (12 API, 31 page files), one at a time, ≥ 4 s apart; **18 of 18 checks pass** |

@@ -1,0 +1,173 @@
+{"n":1,"at":"2026-11-11T19:16:17.738Z","check":"fetch","engine":"node","path":"/facets","source":"network","status":200,"ms":583,"cache":null,"version":"0b5f360","attempt":1}
+{"n":2,"at":"2026-11-11T19:16:21.741Z","check":"fetch","engine":"node","path":"/module/PC4441","source":"network","status":200,"ms":155,"cache":null,"version":"0b5f360","attempt":1}
+{"n":3,"at":"2026-11-11T19:16:25.742Z","check":"fetch","engine":"node","path":"/module/CS4268","source":"network","status":200,"ms":149,"cache":null,"version":"0b5f360","attempt":1}
+{"n":4,"at":"2026-11-11T19:16:29.744Z","check":"fetch","engine":"node","path":"/module/CG3207","source":"network","status":200,"ms":140,"cache":null,"version":"0b5f360","attempt":1}
+{"n":5,"at":"2026-11-11T19:16:33.746Z","check":"fetch","engine":"node","path":"/module/ACC2706","source":"network","status":200,"ms":131,"cache":null,"version":"0b5f360","attempt":1}
+{"n":6,"at":"2026-11-11T19:16:37.748Z","check":"fetch","engine":"node","path":"/module/MT5966","source":"network","status":200,"ms":121,"cache":null,"version":"0b5f360","attempt":1}
+{"n":7,"at":"2026-11-11T19:16:41.749Z","check":"fetch","engine":"node","path":"/module/NHS4003","source":"network","status":200,"ms":116,"cache":null,"version":"0b5f360","attempt":1}
+{"n":8,"at":"2026-11-11T19:16:45.752Z","check":"fetch","engine":"node","path":"/module/EL2102","source":"network","status":200,"ms":208,"cache":null,"version":"0b5f360","attempt":1}
+{"n":9,"at":"2026-11-11T19:16:49.755Z","check":"fetch","engine":"node","path":"/module/LSM3220","source":"network","status":200,"ms":103,"cache":null,"version":"0b5f360","attempt":1}
+{"n":10,"at":"2026-11-11T19:16:53.757Z","check":"fetch","engine":"node","path":"/module/SN3262","source":"network","status":404,"ms":72,"cache":null,"version":"0b5f360","attempt":1}
+{"n":11,"at":"2026-11-11T19:16:57.758Z","check":"fetch","engine":"node","path":"/module/BME5015","source":"network","status":404,"ms":126,"cache":null,"version":"0b5f360","attempt":1}
+{"n":12,"at":"2026-11-11T19:17:01.760Z","check":"fetch","engine":"node","path":"/module/CS9999","source":"network","status":404,"ms":170,"cache":null,"version":"0b5f360","attempt":1}
+{"n":13,"at":"2026-11-11T19:17:05.762Z","check":"view chromium","engine":"chromium","path":"/?ng=1&study=ug2&sem=1&pick=PC4441.1&pick=CS4268.2&pick=CG3207.1&pick=ACC2706.1&pick=MT5966.2&pick=NHS4003.2&alt=EL2102.1&alt=LSM3220.2&view=shortlist","source":"network","status":200,"ms":111,"cache":"HIT","version":null,"attempt":1}
+{"n":14,"at":"2026-11-11T19:17:09.763Z","check":"view chromium","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"network","status":200,"ms":61,"cache":"HIT","version":null,"attempt":1}
+{"n":15,"at":"2026-11-11T19:17:13.763Z","check":"view chromium","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"network","status":200,"ms":53,"cache":"HIT","version":null,"attempt":1}
+{"n":16,"at":"2026-11-11T19:17:17.765Z","check":"view chromium","engine":"chromium","path":"/styles.css","source":"network","status":200,"ms":369,"cache":"MISS","version":null,"attempt":1}
+{"n":17,"at":"2026-11-11T19:17:21.766Z","check":"view chromium","engine":"chromium","path":"/app.js","source":"network","status":200,"ms":450,"cache":"MISS","version":null,"attempt":1}
+{"n":18,"at":"2026-11-11T19:17:25.767Z","check":"view chromium","engine":"chromium","path":"/api.js","source":"network","status":200,"ms":335,"cache":"MISS","version":null,"attempt":1}
+{"n":19,"at":"2026-11-11T19:17:29.768Z","check":"view chromium","engine":"chromium","path":"/detail.js","source":"network","status":200,"ms":433,"cache":"MISS","version":null,"attempt":1}
+{"n":20,"at":"2026-11-11T19:17:33.770Z","check":"view chromium","engine":"chromium","path":"/dom.js","source":"network","status":200,"ms":62,"cache":"HIT","version":null,"attempt":1}
+{"n":21,"at":"2026-11-11T19:17:37.771Z","check":"view chromium","engine":"chromium","path":"/explain.js","source":"network","status":200,"ms":417,"cache":"MISS","version":null,"attempt":1}
+{"n":22,"at":"2026-11-11T19:17:41.772Z","check":"view chromium","engine":"chromium","path":"/format.js","source":"network","status":200,"ms":31,"cache":"HIT","version":null,"attempt":1}
+{"n":23,"at":"2026-11-11T19:17:45.774Z","check":"view chromium","engine":"chromium","path":"/icons.js","source":"network","status":200,"ms":502,"cache":"MISS","version":null,"attempt":1}
+{"n":24,"at":"2026-11-11T19:17:49.775Z","check":"view chromium","engine":"chromium","path":"/keys.js","source":"network","status":200,"ms":39,"cache":"HIT","version":null,"attempt":1}
+{"n":25,"at":"2026-11-11T19:17:53.776Z","check":"view chromium","engine":"chromium","path":"/messages.js","source":"network","status":200,"ms":389,"cache":"MISS","version":null,"attempt":1}
+{"n":26,"at":"2026-11-11T19:17:57.778Z","check":"view chromium","engine":"chromium","path":"/nav.js","source":"network","status":200,"ms":401,"cache":"MISS","version":null,"attempt":1}
+{"n":27,"at":"2026-11-11T19:18:01.780Z","check":"view chromium","engine":"chromium","path":"/render.js","source":"network","status":200,"ms":346,"cache":"MISS","version":null,"attempt":1}
+{"n":28,"at":"2026-11-11T19:18:05.782Z","check":"view chromium","engine":"chromium","path":"/state.js","source":"network","status":200,"ms":415,"cache":"MISS","version":null,"attempt":1}
+{"n":29,"at":"2026-11-11T19:18:09.783Z","check":"view chromium","engine":"chromium","path":"/list.js","source":"network","status":200,"ms":417,"cache":"MISS","version":null,"attempt":1}
+{"n":30,"at":"2026-11-11T19:18:13.783Z","check":"view chromium","engine":"chromium","path":"/history.js","source":"network","status":200,"ms":400,"cache":"MISS","version":null,"attempt":1}
+{"n":31,"at":"2026-11-11T19:18:17.786Z","check":"view chromium","engine":"chromium","path":"/saved.js","source":"network","status":200,"ms":307,"cache":"MISS","version":null,"attempt":1}
+{"n":32,"at":"2026-11-11T19:18:21.786Z","check":"view chromium","engine":"chromium","path":"/shortlist.js","source":"network","status":200,"ms":337,"cache":"MISS","version":null,"attempt":1}
+{"n":33,"at":"2026-11-11T19:18:25.788Z","check":"view chromium","engine":"chromium","path":"/shortlist-view.js","source":"network","status":200,"ms":325,"cache":"MISS","version":null,"attempt":1}
+{"n":34,"at":"2026-11-11T19:18:29.790Z","check":"view chromium","engine":"chromium","path":"/preclusion.js","source":"network","status":200,"ms":417,"cache":"MISS","version":null,"attempt":1}
+{"n":35,"at":"2026-11-11T19:18:33.791Z","check":"view chromium","engine":"chromium","path":"/export.js","source":"network","status":200,"ms":412,"cache":"MISS","version":null,"attempt":1}
+{"n":36,"at":"2026-11-11T19:18:37.793Z","check":"view chromium","engine":"chromium","path":"/csv.js","source":"network","status":200,"ms":365,"cache":"MISS","version":null,"attempt":1}
+{"n":37,"at":"2026-11-11T19:18:41.794Z","check":"view chromium","engine":"chromium","path":"/print.js","source":"network","status":200,"ms":394,"cache":"MISS","version":null,"attempt":1}
+{"n":38,"at":"2026-11-11T19:18:45.796Z","check":"view chromium","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"network","status":200,"ms":28,"cache":"HIT","version":null,"attempt":1}
+{"n":39,"at":"2026-11-11T19:18:49.798Z","check":"view chromium","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"network","status":200,"ms":28,"cache":"HIT","version":null,"attempt":1}
+{"n":40,"at":"2026-11-11T19:18:53.799Z","check":"view chromium","engine":"chromium","path":"/intent-chips.js","source":"network","status":200,"ms":36,"cache":"HIT","version":null,"attempt":1}
+{"n":41,"at":"2026-11-11T19:18:57.800Z","check":"view chromium","engine":"chromium","path":"/intents.js","source":"network","status":200,"ms":46,"cache":"HIT","version":null,"attempt":1}
+{"n":42,"at":"2026-11-11T19:19:01.802Z","check":"view chromium","engine":"chromium","path":"/year.js","source":"network","status":200,"ms":344,"cache":"MISS","version":null,"attempt":1}
+{"n":43,"at":"2026-11-11T19:19:02.159Z","check":"view chromium","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":44,"at":"2026-11-11T19:19:02.159Z","check":"view chromium","engine":"chromium","path":"/module/PC4441","source":"memory","status":200}
+{"n":45,"at":"2026-11-11T19:19:02.159Z","check":"view chromium","engine":"chromium","path":"/module/CS4268","source":"memory","status":200}
+{"n":46,"at":"2026-11-11T19:19:02.159Z","check":"view chromium","engine":"chromium","path":"/module/CG3207","source":"memory","status":200}
+{"n":47,"at":"2026-11-11T19:19:02.159Z","check":"view chromium","engine":"chromium","path":"/module/ACC2706","source":"memory","status":200}
+{"n":48,"at":"2026-11-11T19:19:02.168Z","check":"view chromium","engine":"chromium","path":"/module/MT5966","source":"memory","status":200}
+{"n":49,"at":"2026-11-11T19:19:02.169Z","check":"view chromium","engine":"chromium","path":"/module/NHS4003","source":"memory","status":200}
+{"n":50,"at":"2026-11-11T19:19:02.169Z","check":"view chromium","engine":"chromium","path":"/module/EL2102","source":"memory","status":200}
+{"n":51,"at":"2026-11-11T19:19:02.170Z","check":"view chromium","engine":"chromium","path":"/module/LSM3220","source":"memory","status":200}
+{"n":52,"at":"2026-11-11T19:19:05.803Z","check":"view chromium","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"network","status":200,"ms":34,"cache":"HIT","version":null,"attempt":1}
+{"n":53,"at":"2026-11-11T19:19:07.313Z","check":"fold chromium 390×664","engine":"chromium","path":"/?ng=1&study=ug2&sem=1&pick=PC4441.1&pick=CS4268.2&pick=CG3207.1&pick=ACC2706.1&pick=MT5966.2&pick=NHS4003.2&alt=EL2102.1&alt=LSM3220.2&view=shortlist","source":"memory","status":200}
+{"n":54,"at":"2026-11-11T19:19:07.320Z","check":"fold chromium 390×664","engine":"chromium","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":55,"at":"2026-11-11T19:19:07.320Z","check":"fold chromium 390×664","engine":"chromium","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":56,"at":"2026-11-11T19:19:07.320Z","check":"fold chromium 390×664","engine":"chromium","path":"/styles.css","source":"memory","status":200}
+{"n":57,"at":"2026-11-11T19:19:07.320Z","check":"fold chromium 390×664","engine":"chromium","path":"/app.js","source":"memory","status":200}
+{"n":58,"at":"2026-11-11T19:19:07.320Z","check":"fold chromium 390×664","engine":"chromium","path":"/api.js","source":"memory","status":200}
+{"n":59,"at":"2026-11-11T19:19:07.321Z","check":"fold chromium 390×664","engine":"chromium","path":"/detail.js","source":"memory","status":200}
+{"n":60,"at":"2026-11-11T19:19:07.321Z","check":"fold chromium 390×664","engine":"chromium","path":"/dom.js","source":"memory","status":200}
+{"n":61,"at":"2026-11-11T19:19:07.321Z","check":"fold chromium 390×664","engine":"chromium","path":"/explain.js","source":"memory","status":200}
+{"n":62,"at":"2026-11-11T19:19:07.321Z","check":"fold chromium 390×664","engine":"chromium","path":"/format.js","source":"memory","status":200}
+{"n":63,"at":"2026-11-11T19:19:07.321Z","check":"fold chromium 390×664","engine":"chromium","path":"/icons.js","source":"memory","status":200}
+{"n":64,"at":"2026-11-11T19:19:07.321Z","check":"fold chromium 390×664","engine":"chromium","path":"/keys.js","source":"memory","status":200}
+{"n":65,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/messages.js","source":"memory","status":200}
+{"n":66,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/nav.js","source":"memory","status":200}
+{"n":67,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/render.js","source":"memory","status":200}
+{"n":68,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/state.js","source":"memory","status":200}
+{"n":69,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/list.js","source":"memory","status":200}
+{"n":70,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/history.js","source":"memory","status":200}
+{"n":71,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/saved.js","source":"memory","status":200}
+{"n":72,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/shortlist.js","source":"memory","status":200}
+{"n":73,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/shortlist-view.js","source":"memory","status":200}
+{"n":74,"at":"2026-11-11T19:19:07.322Z","check":"fold chromium 390×664","engine":"chromium","path":"/preclusion.js","source":"memory","status":200}
+{"n":75,"at":"2026-11-11T19:19:07.323Z","check":"fold chromium 390×664","engine":"chromium","path":"/export.js","source":"memory","status":200}
+{"n":76,"at":"2026-11-11T19:19:07.323Z","check":"fold chromium 390×664","engine":"chromium","path":"/csv.js","source":"memory","status":200}
+{"n":77,"at":"2026-11-11T19:19:07.323Z","check":"fold chromium 390×664","engine":"chromium","path":"/print.js","source":"memory","status":200}
+{"n":78,"at":"2026-11-11T19:19:07.330Z","check":"fold chromium 390×664","engine":"chromium","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":79,"at":"2026-11-11T19:19:07.331Z","check":"fold chromium 390×664","engine":"chromium","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":80,"at":"2026-11-11T19:19:07.332Z","check":"fold chromium 390×664","engine":"chromium","path":"/intent-chips.js","source":"memory","status":200}
+{"n":81,"at":"2026-11-11T19:19:07.332Z","check":"fold chromium 390×664","engine":"chromium","path":"/intents.js","source":"memory","status":200}
+{"n":82,"at":"2026-11-11T19:19:07.332Z","check":"fold chromium 390×664","engine":"chromium","path":"/year.js","source":"memory","status":200}
+{"n":83,"at":"2026-11-11T19:19:07.340Z","check":"fold chromium 390×664","engine":"chromium","path":"/facets","source":"memory","status":200}
+{"n":84,"at":"2026-11-11T19:19:07.340Z","check":"fold chromium 390×664","engine":"chromium","path":"/module/PC4441","source":"memory","status":200}
+{"n":85,"at":"2026-11-11T19:19:07.340Z","check":"fold chromium 390×664","engine":"chromium","path":"/module/CS4268","source":"memory","status":200}
+{"n":86,"at":"2026-11-11T19:19:07.340Z","check":"fold chromium 390×664","engine":"chromium","path":"/module/CG3207","source":"memory","status":200}
+{"n":87,"at":"2026-11-11T19:19:07.340Z","check":"fold chromium 390×664","engine":"chromium","path":"/module/ACC2706","source":"memory","status":200}
+{"n":88,"at":"2026-11-11T19:19:07.341Z","check":"fold chromium 390×664","engine":"chromium","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":89,"at":"2026-11-11T19:19:07.349Z","check":"fold chromium 390×664","engine":"chromium","path":"/module/MT5966","source":"memory","status":200}
+{"n":90,"at":"2026-11-11T19:19:07.349Z","check":"fold chromium 390×664","engine":"chromium","path":"/module/NHS4003","source":"memory","status":200}
+{"n":91,"at":"2026-11-11T19:19:07.350Z","check":"fold chromium 390×664","engine":"chromium","path":"/module/EL2102","source":"memory","status":200}
+{"n":92,"at":"2026-11-11T19:19:07.351Z","check":"fold chromium 390×664","engine":"chromium","path":"/module/LSM3220","source":"memory","status":200}
+{"n":93,"at":"2026-11-11T19:19:07.748Z","check":"view webkit","engine":"webkit","path":"/?ng=1&study=ug2&sem=1&pick=PC4441.1&pick=CS4268.2&pick=CG3207.1&pick=ACC2706.1&pick=MT5966.2&pick=NHS4003.2&alt=EL2102.1&alt=LSM3220.2&view=shortlist","source":"memory","status":200}
+{"n":94,"at":"2026-11-11T19:19:07.752Z","check":"view webkit","engine":"webkit","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":95,"at":"2026-11-11T19:19:07.753Z","check":"view webkit","engine":"webkit","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":96,"at":"2026-11-11T19:19:07.753Z","check":"view webkit","engine":"webkit","path":"/styles.css","source":"memory","status":200}
+{"n":97,"at":"2026-11-11T19:19:07.753Z","check":"view webkit","engine":"webkit","path":"/app.js","source":"memory","status":200}
+{"n":98,"at":"2026-11-11T19:19:07.753Z","check":"view webkit","engine":"webkit","path":"/api.js","source":"memory","status":200}
+{"n":99,"at":"2026-11-11T19:19:07.753Z","check":"view webkit","engine":"webkit","path":"/detail.js","source":"memory","status":200}
+{"n":100,"at":"2026-11-11T19:19:07.753Z","check":"view webkit","engine":"webkit","path":"/dom.js","source":"memory","status":200}
+{"n":101,"at":"2026-11-11T19:19:07.753Z","check":"view webkit","engine":"webkit","path":"/explain.js","source":"memory","status":200}
+{"n":102,"at":"2026-11-11T19:19:07.753Z","check":"view webkit","engine":"webkit","path":"/format.js","source":"memory","status":200}
+{"n":103,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/icons.js","source":"memory","status":200}
+{"n":104,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/keys.js","source":"memory","status":200}
+{"n":105,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/messages.js","source":"memory","status":200}
+{"n":106,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/nav.js","source":"memory","status":200}
+{"n":107,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/render.js","source":"memory","status":200}
+{"n":108,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/state.js","source":"memory","status":200}
+{"n":109,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/list.js","source":"memory","status":200}
+{"n":110,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/history.js","source":"memory","status":200}
+{"n":111,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/saved.js","source":"memory","status":200}
+{"n":112,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/shortlist.js","source":"memory","status":200}
+{"n":113,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/shortlist-view.js","source":"memory","status":200}
+{"n":114,"at":"2026-11-11T19:19:07.754Z","check":"view webkit","engine":"webkit","path":"/preclusion.js","source":"memory","status":200}
+{"n":115,"at":"2026-11-11T19:19:07.755Z","check":"view webkit","engine":"webkit","path":"/export.js","source":"memory","status":200}
+{"n":116,"at":"2026-11-11T19:19:07.755Z","check":"view webkit","engine":"webkit","path":"/csv.js","source":"memory","status":200}
+{"n":117,"at":"2026-11-11T19:19:07.756Z","check":"view webkit","engine":"webkit","path":"/print.js","source":"memory","status":200}
+{"n":118,"at":"2026-11-11T19:19:07.763Z","check":"view webkit","engine":"webkit","path":"/intent-chips.js","source":"memory","status":200}
+{"n":119,"at":"2026-11-11T19:19:07.764Z","check":"view webkit","engine":"webkit","path":"/intents.js","source":"memory","status":200}
+{"n":120,"at":"2026-11-11T19:19:07.774Z","check":"view webkit","engine":"webkit","path":"/year.js","source":"memory","status":200}
+{"n":121,"at":"2026-11-11T19:19:07.775Z","check":"view webkit","engine":"webkit","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":122,"at":"2026-11-11T19:19:07.775Z","check":"view webkit","engine":"webkit","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":123,"at":"2026-11-11T19:19:07.784Z","check":"view webkit","engine":"webkit","path":"/facets","source":"memory","status":200}
+{"n":124,"at":"2026-11-11T19:19:07.787Z","check":"view webkit","engine":"webkit","path":"/module/PC4441","source":"memory","status":200}
+{"n":125,"at":"2026-11-11T19:19:07.787Z","check":"view webkit","engine":"webkit","path":"/module/CS4268","source":"memory","status":200}
+{"n":126,"at":"2026-11-11T19:19:07.787Z","check":"view webkit","engine":"webkit","path":"/module/CG3207","source":"memory","status":200}
+{"n":127,"at":"2026-11-11T19:19:07.788Z","check":"view webkit","engine":"webkit","path":"/module/ACC2706","source":"memory","status":200}
+{"n":128,"at":"2026-11-11T19:19:07.794Z","check":"view webkit","engine":"webkit","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":129,"at":"2026-11-11T19:19:07.812Z","check":"view webkit","engine":"webkit","path":"/module/MT5966","source":"memory","status":200}
+{"n":130,"at":"2026-11-11T19:19:07.813Z","check":"view webkit","engine":"webkit","path":"/module/NHS4003","source":"memory","status":200}
+{"n":131,"at":"2026-11-11T19:19:07.815Z","check":"view webkit","engine":"webkit","path":"/module/EL2102","source":"memory","status":200}
+{"n":132,"at":"2026-11-11T19:19:07.816Z","check":"view webkit","engine":"webkit","path":"/module/LSM3220","source":"memory","status":200}
+{"n":133,"at":"2026-11-11T19:19:09.361Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/?ng=1&study=ug2&sem=1&pick=PC4441.1&pick=CS4268.2&pick=CG3207.1&pick=ACC2706.1&pick=MT5966.2&pick=NHS4003.2&alt=EL2102.1&alt=LSM3220.2&view=shortlist","source":"memory","status":200}
+{"n":134,"at":"2026-11-11T19:19:09.364Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/fonts/IBMPlexSans-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":135,"at":"2026-11-11T19:19:09.364Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/fonts/IBMPlexMono-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":136,"at":"2026-11-11T19:19:09.365Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/styles.css","source":"memory","status":200}
+{"n":137,"at":"2026-11-11T19:19:09.365Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/app.js","source":"memory","status":200}
+{"n":138,"at":"2026-11-11T19:19:09.365Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/api.js","source":"memory","status":200}
+{"n":139,"at":"2026-11-11T19:19:09.365Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/detail.js","source":"memory","status":200}
+{"n":140,"at":"2026-11-11T19:19:09.365Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/dom.js","source":"memory","status":200}
+{"n":141,"at":"2026-11-11T19:19:09.366Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/explain.js","source":"memory","status":200}
+{"n":142,"at":"2026-11-11T19:19:09.366Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/format.js","source":"memory","status":200}
+{"n":143,"at":"2026-11-11T19:19:09.366Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/icons.js","source":"memory","status":200}
+{"n":144,"at":"2026-11-11T19:19:09.366Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/keys.js","source":"memory","status":200}
+{"n":145,"at":"2026-11-11T19:19:09.366Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/messages.js","source":"memory","status":200}
+{"n":146,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/nav.js","source":"memory","status":200}
+{"n":147,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/render.js","source":"memory","status":200}
+{"n":148,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/state.js","source":"memory","status":200}
+{"n":149,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/list.js","source":"memory","status":200}
+{"n":150,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/history.js","source":"memory","status":200}
+{"n":151,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/saved.js","source":"memory","status":200}
+{"n":152,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/shortlist.js","source":"memory","status":200}
+{"n":153,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/shortlist-view.js","source":"memory","status":200}
+{"n":154,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/preclusion.js","source":"memory","status":200}
+{"n":155,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/export.js","source":"memory","status":200}
+{"n":156,"at":"2026-11-11T19:19:09.367Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/csv.js","source":"memory","status":200}
+{"n":157,"at":"2026-11-11T19:19:09.368Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/print.js","source":"memory","status":200}
+{"n":158,"at":"2026-11-11T19:19:09.383Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/intent-chips.js","source":"memory","status":200}
+{"n":159,"at":"2026-11-11T19:19:09.383Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/intents.js","source":"memory","status":200}
+{"n":160,"at":"2026-11-11T19:19:09.384Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/fonts/IBMPlexSans-Medium-Latin1.woff2","source":"memory","status":200}
+{"n":161,"at":"2026-11-11T19:19:09.384Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/fonts/IBMPlexSans-SemiBold-Latin1.woff2","source":"memory","status":200}
+{"n":162,"at":"2026-11-11T19:19:09.385Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/year.js","source":"memory","status":200}
+{"n":163,"at":"2026-11-11T19:19:09.393Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/facets","source":"memory","status":200}
+{"n":164,"at":"2026-11-11T19:19:09.395Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/module/PC4441","source":"memory","status":200}
+{"n":165,"at":"2026-11-11T19:19:09.395Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/module/CS4268","source":"memory","status":200}
+{"n":166,"at":"2026-11-11T19:19:09.395Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/module/CG3207","source":"memory","status":200}
+{"n":167,"at":"2026-11-11T19:19:09.395Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/module/ACC2706","source":"memory","status":200}
+{"n":168,"at":"2026-11-11T19:19:09.401Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/fonts/IBMPlexMono-Regular-Latin1.woff2","source":"memory","status":200}
+{"n":169,"at":"2026-11-11T19:19:09.418Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/module/MT5966","source":"memory","status":200}
+{"n":170,"at":"2026-11-11T19:19:09.419Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/module/NHS4003","source":"memory","status":200}
+{"n":171,"at":"2026-11-11T19:19:09.420Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/module/EL2102","source":"memory","status":200}
+{"n":172,"at":"2026-11-11T19:19:09.422Z","check":"fold webkit iPhone 13","engine":"webkit","path":"/module/LSM3220","source":"memory","status":200}
+{"n":173,"at":"2026-11-11T19:19:09.473Z","check":"summary","url":"https://nusmodfinder.rcn.sh","corpus":"production","seed":6,"sent":43,"api":12,"files":31,"pass":18,"fail":0,"failures":[]}
