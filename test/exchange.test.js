@@ -187,7 +187,7 @@ describe('result cards and /module/:code (4C)', () => {
   });
 
   it('an id the reason texts don\'t know gets a generic text, never an error', () => {
-    expect(reasonsFor(['no-such-rule'])).toEqual([{ id: 'no-such-rule', kind: 'unknown', text: expect.stringMatching(/source documents/) }]);
+    expect(reasonsFor(['no-such-rule'])).toEqual([{ id: 'no-such-rule', kind: 'unknown', text: expect.stringMatching(/can't show the rule/) }]);
   });
 
   it('/facets names the exchange-mode sources with their dates', async () => {

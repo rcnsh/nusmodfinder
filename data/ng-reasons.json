@@ -26,12 +26,12 @@
   },
   "ng-list:nusmods-semester-differs": {
    "kind": "semester",
-   "text": "The NG list offers it to exchange students in this semester, but the NUSMods timetable doesn't list it then; check with NUS.",
+   "text": "The NG list offers it to exchange students in this semester, but NUSMods shows no classes for it then. Ask the department that teaches it whether it will run.",
    "cite": "NG course list; NUSMods"
   },
   "D-grad-levels-closed-exchange": {
    "kind": "closed",
-   "text": "Level 5000 and 6000 courses are not open to exchange students unless a department says so.",
+   "text": "Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it.",
    "cite": "restrictions PDF §D"
   },
   "A-dentistry": {
@@ -41,7 +41,7 @@
   },
   "A-medicine": {
    "kind": "closed",
-   "text": "Medicine courses other than LSM-coded ones are not open to exchange students.",
+   "text": "Medicine courses are not open to exchange students. This rule does not cover courses whose code starts with LSM.",
    "cite": "restrictions PDF §A, p1"
   },
   "A-public-health": {
@@ -71,12 +71,12 @@
   },
   "C-urop-fass": {
    "kind": "closed",
-   "text": "UROP courses in Arts & Social Sciences are not open to exchange students.",
+   "text": "Undergraduate research courses (UROP) in Arts & Social Sciences are not open to exchange students.",
    "cite": "restrictions PDF §C, p1"
   },
   "C-urop-cde": {
    "kind": "closed",
-   "text": "UROP courses in Design & Engineering are not open to exchange students.",
+   "text": "Undergraduate research courses (UROP) in Design & Engineering are not open to exchange students.",
    "cite": "restrictions PDF §C, p1"
   },
   "1-cls-table": {
@@ -86,7 +86,7 @@
   },
   "1-cls-graded": {
    "kind": "graded",
-   "text": "Language courses must be taken on a graded basis (no audit).",
+   "text": "You must take it for a grade. You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §1 (Centre for Language Studies), p3"
   },
   "1-chinese-l456-ug": {
@@ -131,12 +131,12 @@
   },
   "1-elts-grad-approval": {
    "kind": "approval",
-   "text": "Graduate courses need case-by-case approval.",
+   "text": "You need approval to take a graduate course. NUS decides each request separately; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (English, Linguistics & Theatre Studies), p3"
   },
   "1-geog-quota": {
    "kind": "quota",
-   "text": "Limited quota.",
+   "text": "The number of places is limited, so you may not get one.",
    "cite": "restrictions PDF §1 (Geography), p3"
   },
   "1-geog-l1234-grad": {
@@ -151,7 +151,7 @@
   },
   "1-hist-quota": {
    "kind": "quota",
-   "text": "Limited quota.",
+   "text": "The number of places is limited, so you may not get one.",
    "cite": "restrictions PDF §1 (History), p4"
   },
   "1-hist-l4-honours-fma": {
@@ -161,7 +161,7 @@
   },
   "1-hist-l4-honours-fma:fma": {
    "kind": "closed",
-   "text": "History freshmen seminars are not open to exchange students.",
+   "text": "History first-year seminars are not open to exchange students.",
    "cite": "restrictions PDF §1 (History), p4"
   },
   "1-js-table": {
@@ -171,12 +171,12 @@
   },
   "1-js-l4-approval": {
    "kind": "approval",
-   "text": "Level 4000 courses need case-by-case approval.",
+   "text": "You need approval to take a level 4000 course. NUS decides each request separately; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (Japanese Studies), p4"
   },
   "1-malay-no-audit": {
    "kind": "graded",
-   "text": "Cannot be audited.",
+   "text": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §1 (Malay Studies), p4"
   },
   "1-malay-l4-yr34": {
@@ -186,7 +186,7 @@
   },
   "1-malay-grad-approval": {
    "kind": "approval",
-   "text": "Graduate courses need case-by-case approval.",
+   "text": "You need approval to take a graduate course. NUS decides each request separately; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (Malay Studies), p4"
   },
   "1-malay-grad-ug-closed": {
@@ -201,7 +201,7 @@
   },
   "1-psych-l4-appeal": {
    "kind": "approval",
-   "text": "Level 4000 courses by appeal only.",
+   "text": "You can get a place in a level 4000 course only by appeal, and only if places are left. Appeal when NUS opens the “Unable to secure Course” appeal; an appeal sent earlier is rejected.",
    "cite": "restrictions PDF §1 (Psychology), p4"
   },
   "1-psych-closed": {
@@ -231,12 +231,12 @@
   },
   "1-socanth-grad-approval": {
    "kind": "approval",
-   "text": "Graduate courses are subject to approval.",
+   "text": "You need approval to take a graduate course; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (Sociology and Anthropology), p4"
   },
   "1-sas-no-audit": {
    "kind": "graded",
-   "text": "Cannot be audited.",
+   "text": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §1 (South Asian Studies), p4"
   },
   "1-sas-l4-yr34": {
@@ -246,7 +246,7 @@
   },
   "1-sas-grad-approval": {
    "kind": "approval",
-   "text": "Graduate courses need case-by-case approval.",
+   "text": "You need approval to take a graduate course. NUS decides each request separately; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (South Asian Studies), p5"
   },
   "1-sas-grad-ug-closed": {
@@ -266,12 +266,12 @@
   },
   "1-sea-no-audit": {
    "kind": "graded",
-   "text": "Cannot be audited.",
+   "text": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §1 (Southeast Asian Studies), p5"
   },
   "1-sea-se3234-form": {
    "kind": "approval",
-   "text": "Apply with the department's form; not open for online selection.",
+   "text": "You cannot choose this course in NUS's online course registration. Apply with the Southeast Asian Studies department's application form, in the application period of the semester it runs (email fasbox59@nus.edu.sg for details).",
    "cite": "restrictions PDF §1 (Southeast Asian Studies), p5"
   },
   "1-sea-l4-yr34": {
@@ -281,7 +281,7 @@
   },
   "2-biz-l1234-priority": {
    "kind": "quota",
-   "text": "Business courses are over-subscribed and not guaranteed.",
+   "text": "Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first.",
    "cite": "restrictions PDF §2, p6"
   },
   "2-biz-major": {
@@ -296,12 +296,12 @@
   },
   "2-biz-bma-partner": {
    "kind": "partner",
-   "text": "Only for graduate students from Business School partner universities with 1.5+ years of work experience.",
+   "text": "Only for graduate students from a university that is an exchange partner of NUS Business School, with at least 1.5 years of work experience after their bachelor's degree.",
    "cite": "restrictions PDF §2, p6"
   },
   "2-biz-bms-cems": {
    "kind": "partner",
-   "text": "Only for students nominated by a CEMS partner school.",
+   "text": "Only for students whom a CEMS member school has nominated for the CEMS Master's in International Management. Ask your exchange office if this applies to you.",
    "cite": "restrictions PDF §2, p6"
   },
   "3-soc-dean-closed": {
@@ -316,7 +316,7 @@
   },
   "3-soc-cg:elsewhere": {
    "kind": "restricted-elsewhere",
-   "text": "Listed as open, but the School of Computing's restrictions say all CG-coded courses are not open; check with NUS.",
+   "text": "The NG list offers this course to exchange students, but the School of Computing says no course whose code starts with CG is open to them. Ask NUS before you choose it.",
    "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p7"
   },
   "3-soc-dean-l56": {
@@ -326,7 +326,7 @@
   },
   "3-mdp-closed": {
    "kind": "closed",
-   "text": "Listed as not available to exchange students.",
+   "text": "Listed by the Multidisciplinary Programme as not available to exchange students.",
    "cite": "restrictions PDF §3 (Multidisciplinary Programme), p7"
   },
   "3-cs-closed": {
@@ -356,12 +356,12 @@
   },
   "4-arch-dep5102-no-audit": {
    "kind": "graded",
-   "text": "Cannot be audited.",
+   "text": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §4 (Architecture), p9"
   },
   "4-arch-design-letter": {
    "kind": "letter",
-   "text": "Needs a letter from your home university stating your design year.",
+   "text": "You need a letter from your home university saying which year's design course you should take at NUS.",
    "cite": "restrictions PDF §4 (Architecture), p9"
   },
   "4-arch-major-architecture": {
@@ -371,7 +371,7 @@
   },
   "4-arch-ar4321-no-audit": {
    "kind": "graded",
-   "text": "Cannot be audited.",
+   "text": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §4 (Architecture), p10"
   },
   "4-arch-major-landscape": {
@@ -406,7 +406,7 @@
   },
   "4-be-quota": {
    "kind": "quota",
-   "text": "Limited quota.",
+   "text": "The number of places is limited, so you may not get one.",
    "cite": "restrictions PDF §4 (Built Environment), p11"
   },
   "4-be-l1234-grad": {
@@ -416,7 +416,7 @@
   },
   "4-be-graded": {
    "kind": "graded",
-   "text": "Must be taken on a graded basis.",
+   "text": "You must take it for a grade.",
    "cite": "restrictions PDF §4 (Built Environment), p11"
   },
   "4-cbe-closed": {
@@ -491,7 +491,7 @@
   },
   "4-id-graded": {
    "kind": "graded",
-   "text": "Industrial Design courses must be taken on a graded basis.",
+   "text": "You must take it for a grade.",
    "cite": "restrictions PDF §4 (Division of Industrial Design), p14"
   },
   "5-law-closed": {
@@ -516,12 +516,12 @@
   },
   "6-music-electives-whitelist": {
    "kind": "partner",
-   "text": "Only for students from YST Conservatory's partner institutions.",
+   "text": "Only for students from universities that partner with NUS's Yong Siew Toh Conservatory of Music. Ask your exchange office if yours is one.",
    "cite": "restrictions PDF §6, p15"
   },
   "6-music-audition": {
    "kind": "audition",
-   "text": "Needs an audition or placement test; allocated after you pass it.",
+   "text": "You must pass an audition or placement test, and you can't choose it in the normal application. You get a place only after you pass.",
    "cite": "restrictions PDF §6, p15"
   },
   "7-pp-ug-closed": {
@@ -531,12 +531,12 @@
   },
   "7-pp-partner": {
    "kind": "partner",
-   "text": "Only for graduate students from LKYSPP's partner universities.",
+   "text": "Only for graduate students from universities that partner with NUS's Lee Kuan Yew School of Public Policy. Ask your exchange office if yours is one.",
    "cite": "restrictions PDF §7, p15"
   },
   "7-pp-graded": {
    "kind": "graded",
-   "text": "Must be taken on a graded basis.",
+   "text": "You must take it for a grade.",
    "cite": "restrictions PDF §7, p15"
   },
   "8-dean-table": {
@@ -581,7 +581,7 @@
   },
   "8-math-closed:fms": {
    "kind": "closed",
-   "text": "Freshman seminars are not available to exchange students.",
+   "text": "First-year seminars are not available to exchange students.",
    "cite": "restrictions PDF §8 (Mathematics), p17"
   },
   "8-math-ma15": {
@@ -601,7 +601,7 @@
   },
   "8-math-dsa:elsewhere": {
    "kind": "restricted-elsewhere",
-   "text": "Listed as open, but Mathematics' restrictions say DSA-coded courses are not open; check with NUS.",
+   "text": "The NG list offers this course to exchange students, but the Department of Mathematics says no course whose code starts with DSA is open to them. Ask NUS before you choose it.",
    "cite": "restrictions PDF §8 (Mathematics), p17"
   },
   "8-math-geh": {
@@ -611,7 +611,7 @@
   },
   "8-math-geh:elsewhere": {
    "kind": "restricted-elsewhere",
-   "text": "Listed as open, but Mathematics' restrictions say GEH-coded courses are not open; check with NUS.",
+   "text": "The NG list offers this course to exchange students, but the Department of Mathematics says no course whose code starts with GEH is open to them. Ask NUS before you choose it.",
    "cite": "restrictions PDF §8 (Mathematics), p17"
   },
   "8-math-ma56": {
@@ -646,12 +646,12 @@
   },
   "10-rmi-approval": {
    "kind": "approval",
-   "text": "Limited; approval is case by case.",
+   "text": "Only some of these courses are open to exchange students, and you need approval: NUS decides each request separately. Ask NUS how to apply.",
    "cite": "restrictions PDF §10, p19"
   },
   "10-rmi-fee": {
    "kind": "fee",
-   "text": "A per-course tuition fee applies.",
+   "text": "You must pay a tuition fee for each of these courses you take.",
    "cite": "restrictions PDF §10, p19"
   },
   "11-scale-closed": {

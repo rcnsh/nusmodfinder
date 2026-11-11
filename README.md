@@ -222,8 +222,8 @@ checks every text/background and boundary pair in both themes against WCAG AA.
   <code>" (`from=`); Back returns to the list. For a query of course codes only, the count line
   names the typed codes shown ("20 courses shown: CS2030, then 19 other matches").
 - **Typed codes not shown** are explained above the entries (D4): each with its title, a stamp
-  ("Not in Sem 1", "Not offered", "Not open in Sem 1", "Outside your filters", or "Not this
-  year" for a code not offered in 2026/27), and why, from its own stored reasons. Where the
+  ("Not on the NG list for Sem 1", "Not for exchange students", "Not open in Sem 1", "Outside
+  your filters", or "Not this year" for a code not offered in 2026/27), and why, from its own stored reasons. Where the
   other semester is open to the student and nothing else hides the course, "Switch to Sem 2 to
   see CS3244" changes the semester and focuses the course's entry.
 - **On a phone** (≤ 640px) the form is one bar (query and Search), and the rail opens as a modal

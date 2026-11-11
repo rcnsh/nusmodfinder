@@ -16,7 +16,7 @@ import { yearNote } from './year-note.js';
  *   prerequisite?: string | null, year_prereq?: string | null }} ExchangeRow
  */
 
-const GENERIC = 'Restricted for exchange students; see the source documents.';
+const GENERIC = "NUS limits who can take this course, and this site can't show the rule. Read NUS's course restrictions for exchange students (linked at the bottom of the page), or ask NUS.";
 /** @type {Record<string, { kind: string, text: string, cite: string }>} */
 const REASONS = file.reasons;
 

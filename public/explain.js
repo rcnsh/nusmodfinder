@@ -22,12 +22,18 @@ const OFF_NG_LIST = 'ng-list:not-listed';
 const NOT_IN_SEM = 'ng-list:not-in-semester';
 
 /** @type {Readonly<Record<string, string>>} */
-const STUDY_PHRASES = Object.freeze({
-  ug1: 'at 1st year', ug2: 'at 2nd year', ug3: 'at 3rd year', ug4: 'at 4th year or later', grad: 'for graduate students',
-});
+const STUDY_ADJ = Object.freeze({ ug1: '1st-year', ug2: '2nd-year', ug3: '3rd-year', ug4: '4th-year (or later)', grad: 'graduate' });
 
-/** "at 2nd year": the study level, after "open to exchange students in Sem 1". @param {string} study */
-export const studyPhrase = (study) => STUDY_PHRASES[study] ?? '';
+/**
+ * "2nd-year exchange students": who a line is about, by study level (5G
+ * plain language: "open to 2nd-year exchange students in Sem 1", not "… in
+ * Sem 1 at 2nd year").
+ * @param {string} study
+ */
+export const studyPhrase = (study) => (STUDY_ADJ[study] ? `${STUDY_ADJ[study]} exchange students` : 'exchange students');
+
+/** "2nd-year": the study level as an adjective, '' for none. @param {string} study */
+export const studyAdj = (study) => STUDY_ADJ[study] ?? '';
 
 /** @param {string | number} sem 1 or 2 */
 const otherSem = (sem) => (String(sem) === '1' ? 2 : 1);
@@ -54,7 +60,7 @@ export function sourceNote(id, sources) {
 /** @param {Status} status */
 export function statusText(status) {
   if (status === 'open') return 'Open to exchange students';
-  if (status === 'note') return 'Open to exchange students, with conditions';
+  if (status === 'note') return 'Open to exchange students, with notes';
   return 'Not open to exchange students';
 }
 
@@ -77,7 +83,7 @@ export function stampText(status, sem, notes, short = false) {
 /** @type {Readonly<Record<string, string>>} */
 const NOTE_LEADS = Object.freeze({
   quota: 'Places.', major: 'Your major.', semester: 'Timetable.', approval: 'Approval.', graded: 'Grading.',
-  partner: 'Partner schools.', 'restricted-elsewhere': 'Conflicting rules.', letter: 'Letter.', audition: 'Audition.',
+  partner: 'Partner schools.', 'restricted-elsewhere': 'Rules disagree.', letter: 'Letter.', audition: 'Audition.',
   fee: 'Fee.', closed: 'Not open.', year: 'Year of study.',
 });
 
@@ -98,8 +104,8 @@ export function noteText(r, sem) {
   const s = String(sem);
   if (r.kind === 'semester') {
     return s === '1' || s === '2'
-      ? `Not on NUSMods' timetable for ${semLabel(s)}: check with the department.`
-      : "Not on NUSMods' timetable in the semester the NG list gives: check with the department.";
+      ? `The NG list offers it in ${semLabel(s)}, but NUSMods shows no classes for it in ${semLabel(s)}. Ask the department that teaches it whether it will run.`
+      : 'The NG list offers it to exchange students, but NUSMods shows no classes for it in the semester the NG list gives. Ask the department that teaches it whether it will run.';
   }
   if (r.id === NOT_IN_SEM && (s === '1' || s === '2')) return `Offered to exchange students only in ${semLabel(otherSem(s))}.`;
   return String(r.text ?? '');
@@ -150,7 +156,7 @@ export function hiddenCodeLine({ code, sem, study, exchange, sources, module, fi
   const here = study ? at(sem === '' ? 'any' : Number(sem)) : undefined;
   if (!here || here.status !== 'closed') {
     const misses = module && filters ? filterMisses(module, filters) : [];
-    if (!misses.length) return `${code} doesn't match this search's filters.`;
+    if (!misses.length) return `A setting in this search hides ${code}, but the page can't tell which one. Try removing filters one at a time.`;
     return `${code} is hidden by your filters: ${misses.join(', and ')}.`;
   }
   const ids = here.reasons.map((r) => r.id);
@@ -161,20 +167,24 @@ export function hiddenCodeLine({ code, sem, study, exchange, sources, module, fi
   if (ids.length === 1 && ids[0] === NOT_IN_SEM && other && other.status !== 'closed') {
     return `${code} is open to exchange students only in ${semLabel(otherSem(sem))} (${sourceNote(NOT_IN_SEM, sources)}).`;
   }
-  const lines = here.reasons.map((r) => reasonLine(r, sem === '' ? 'any' : sem, sources));
-  // On the list only for the other semester, and closed there too: say why there as well.
+  // On the list only for the other semester, and closed there too (5G plain language): say first that
+  // both are closed, then each semester's reasons, so the first never reads as "switch semesters".
   if (ids.includes(NOT_IN_SEM) && other?.status === 'closed' && other.reasons.length) {
-    const why = other.reasons.map((r) => reasonLine(r, other.sem, sources)).join(' ');
-    lines.push(`In ${semLabel(otherSem(sem))}: ${why}`);
+    const here1 = here.reasons.map((r) => (r.id === NOT_IN_SEM
+      ? `the NG list offers it in ${semLabel(otherSem(sem))} only (${sourceNote(NOT_IN_SEM, sources)}).`
+      : reasonLine(r, sem, sources))).join(' ');
+    const there = other.reasons.map((r) => reasonLine(r, other.sem, sources)).join(' ');
+    return `${code} isn't open to ${studyPhrase(study)} in ${semLabel(sem)} or in ${semLabel(otherSem(sem))}. ${semLabel(sem)}: ${here1} ${semLabel(otherSem(sem))}: ${there}`;
   }
-  return `${code} isn't open to exchange students ${semPhrase(sem)} ${studyPhrase(study)}. ${lines.join(' ')}`;
+  const lines = here.reasons.map((r) => reasonLine(r, sem === '' ? 'any' : sem, sources));
+  return `${code} isn't open to ${studyPhrase(study)} ${semPhrase(sem)}. ${lines.join(' ')}`;
 }
 
 /**
  * The stamp a hidden typed code carries in the hidden-codes box (direction D,
- * 5G), from the same stored reasons hiddenCodeLine says in full: "Not in Sem
- * 1" (on the NG list for the other semester only), "Not offered" (not on the
- * NG list), "Not open in Sem 1" (closed for another reason), or "Outside your
+ * 5G), from the same stored reasons hiddenCodeLine says in full: "Not on the
+ * NG list for Sem 1" (on it for the other semester only), "Not for exchange
+ * students" (not on the NG list), "Not open in Sem 1" (closed for another reason), or "Outside your
  * filters" (exchange mode allows it; another filter hides it). `switchTo`: the
  * other semester, when the student chose one and the course is open to them
  * there, so the page can offer to switch; else ''.
@@ -191,9 +201,9 @@ export function hiddenCodeStamp({ sem, study, exchange }) {
   const ids = here.reasons.map((r) => r.id);
   const other = sem === '' ? undefined : at(otherSem(sem));
   const switchTo = other && other.status !== 'closed' ? String(otherSem(sem)) : '';
-  if (ids.includes(OFF_NG_LIST)) return { text: 'Not offered', switchTo };
+  if (ids.includes(OFF_NG_LIST)) return { text: 'Not for exchange students', switchTo };
   if (sem === '') return { text: 'Not open in either semester', switchTo: '' };
-  if (ids.length === 1 && ids[0] === NOT_IN_SEM) return { text: `Not in ${semLabel(sem)}`, switchTo };
+  if (ids.length === 1 && ids[0] === NOT_IN_SEM) return { text: `Not on the NG list for ${semLabel(sem)}`, switchTo };
   return { text: `Not open in ${semLabel(sem)}`, switchTo };
 }
 
@@ -225,7 +235,7 @@ export function prefixLabel(prefix) {
  */
 export function partialCodeLine({ prefix, sem, study, otherHasResults }) {
   const where = sem && otherHasResults !== false ? semPhrase(sem) : semPhrase('');
-  return `No ${prefixLabel(prefix)} course is open to exchange students ${where} ${studyPhrase(study)}.`;
+  return `No ${prefixLabel(prefix)} course is open to ${studyPhrase(study)} ${where}.`;
 }
 
 /** /search pins at most this many typed codes (src/query-intent.js MAX_PINS). */
@@ -300,7 +310,7 @@ export function unpinnedLine(query, { pinned, hidden, notOffered, shown }) {
   if (pinned.length < MAX_PINS) return null;
   const extra = typedCodes(query).filter((c) => !pinned.includes(c) && !notOffered.includes(c));
   if (!extra.length) return null;
-  const rule = 'Only the first three course codes you type that are offered this year are pinned to the top of the results.';
+  const rule = 'The results put at most three of the codes you type at the top: the first three that NUS offers this year.';
   const missing = extra.filter((c) => !hidden.includes(c) && !shown.has(c));
   if (!missing.length) return rule;
   const one = missing.length === 1;

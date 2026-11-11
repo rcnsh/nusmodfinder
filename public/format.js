@@ -157,8 +157,10 @@ export function prereqView(raw, cohortOnly) {
   if (!cohortOnly) return { kind: 'rule', line: null, text };
   const cohorts = /\bcohorts?\b/i.test(text);
   const programmes = /\bundertaking (?:1 of )?\d{4}[A-Z0-9]{2,}/i.test(text);
-  const names = cohorts && programmes ? 'NUS intake years and programmes' : programmes ? 'NUS programmes' : 'NUS intake years';
-  return { kind: 'cohort', line: `No course prerequisite (the rule names ${names} only)`, text };
+  // Plain language (5G): what the rule names, and what to do about it.
+  const names = cohorts && programmes ? 'groups of NUS students by the year they started and by degree programme'
+    : programmes ? 'NUS degree programmes' : 'groups of NUS students by the year they started';
+  return { kind: 'cohort', line: `No course you must pass first. NUS's rule only names ${names}; ask NUS whether it applies to you.`, text };
 }
 
 /**

@@ -137,7 +137,8 @@ test('[V1] in exchange mode the next step is never to drop the set-up: only real
   const empty = { query: 'basket weaving', count: 0, results: [], interpreted: {}, hiddenPins: [], notOffered: [] };
   await page.route('**/search?**', (route) => route.fulfill({ json: { ...empty, filters: { sem: 1, ng: true, study: 'ug2' } } }));
   await page.goto('/?q=basket+weaving&sem=1&ng=1&study=ug2');
-  await expect(page.locator('#status')).toHaveText('No courses match “basket weaving”.Try other words for the topic, or fewer of them.');
+  // 5G plain language: the exchange set-up emptied the list, so say that; other words won't help.
+  await expect(page.locator('#status')).toHaveText('No course that matches “basket weaving” is open to you in Sem 1 as a 2nd-year exchange student.');
   await page.unroute('**/search?**');
   await page.route('**/search?**', (route) => route.fulfill({ json: { ...empty, filters: { sem: 1, level: 2, ng: true, study: 'ug2' } } }));
   await page.goto('/?q=basket+weaving&sem=1&level=2&ng=1&study=ug2');

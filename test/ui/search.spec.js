@@ -19,7 +19,7 @@ test('exchange mode asks for the year of study first, then keeps ng=1 and study 
   await page.goto('/?q=networks');
   await expect(page.locator('#status')).toContainText(matchFor('networks'));
   // The student clicks the checkbox's label.
-  await page.getByText('Only courses open to exchange students').click();
+  await page.getByText('Only courses open to exchange students', { exact: true }).click();
   await expect(page.locator('#ng')).toBeChecked();
   await expect(page.locator('#status')).toHaveText('Choose your year of study to see the courses open to you as an exchange student.');
   await expect(page.locator('#study')).toBeFocused();
@@ -68,7 +68,7 @@ test('[F8] result fields render as text, never as markup', async ({ page }) => {
   await expect(card.locator('.meta')).toContainText('<i>1</i>');
   await expect(card.locator('.notes li')).toHaveText(`Places. ${evil}`);
   await expect(card.locator('.variants')).toHaveText(`Also as ${evil}`);
-  await expect(page.locator('#results > li').nth(1).locator('.ng')).toHaveText('On the exchange (NG) list: <s>2</s>');
+  await expect(page.locator('#results > li').nth(1).locator('.ng')).toHaveText('On the NG list for <s>2</s>. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check.');
   // S2: inside the quotes a double quote becomes an apostrophe, so the student's text can't close them.
   await expect(page.locator('#status .count .q')).toHaveText(`“${evil.replaceAll('"', "'")}”`);
   await expect(page.locator('#chips .chip')).toHaveText(evil);
@@ -104,7 +104,7 @@ test('no-match answers are plain sentences: a code not offered, and a query with
   await page.goto('/?q=qwzx+vbnm');
   await expect(page.locator('#status')).toHaveText('Nothing in the catalogue matches “qwzx vbnm”. Try other words for the topic.');
   await page.goto('/?q=networks&ng=1&study=ug2&sem=3');
-  await expect(page.locator('#status')).toHaveText("The Registrar's exchange-student list covers Semesters 1 and 2 only, so there is nothing to show for a special term.");
+  await expect(page.locator('#status')).toHaveText("The NG list covers only Sem 1 and Sem 2, not NUS's special terms (short terms in the vacation). Choose Sem 1 or Sem 2.");
 });
 
 /** @param {string} s */

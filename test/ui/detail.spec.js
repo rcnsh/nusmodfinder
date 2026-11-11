@@ -56,8 +56,8 @@ test('exchange status on the card, one semester: every note in full, the semeste
   await expect(c.locator('.exchange-status')).toHaveAttribute('data-status', 'note');
   // Each note in full, after a lead-in word for what it is about.
   await expect(c.locator('.notes li')).toHaveText([
-    "Timetable. Not on NUSMods' timetable for Sem 1: check with the department.",
-    'Places. Business courses are over-subscribed and not guaranteed.',
+    "Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.",
+    "Places. Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first.",
     'Your major. Only for students majoring in business at their home university.',
   ]);
 });
@@ -74,15 +74,15 @@ test('exchange status on the card, both semesters: one line per semester, never 
   // The notes both semesters share are said once, and say so.
   await expect(c.locator('.notes-box .scope')).toHaveText(['Notes for Sem 1', 'Notes for Sem 1 and Sem 2']);
   await expect(c.locator('.notes li')).toHaveText([
-    "Timetable. Not on NUSMods' timetable for Sem 1: check with the department.",
-    'Places. Business courses are over-subscribed and not guaranteed.',
+    "Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.",
+    "Places. Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first.",
     'Your major. Only for students majoring in business at their home university.',
   ]);
 });
 
 test('outside exchange mode the card keeps a marker of the exchange-list semesters (D2)', async ({ page }) => {
   await page.goto('/?q=CS3244');
-  await expect(card(page, 'CS3244').locator('.ng')).toHaveText('On the exchange (NG) list: Sem 2');
+  await expect(card(page, 'CS3244').locator('.ng')).toHaveText('On the NG list for Sem 2. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check.');
 });
 
 test('[SC2] the detail: description, prerequisites as NUS states them with codes linked, exam, workload, exchange per semester, NUSMods', async ({ page }) => {
@@ -114,10 +114,10 @@ test('[SC2] the detail: description, prerequisites as NUS states them with codes
   expect(fetched).toEqual(['/module/CS3244']);
 });
 
-test('a cohort-only prerequisite reads "No course prerequisite", NUS\'s text one click away; preclusions as NUS states them', async ({ page }) => {
+test('a cohort-only prerequisite reads "No course you must pass first", NUS\'s text one click away; preclusions as NUS states them', async ({ page }) => {
   await page.goto('/?q=ACC1701XB&open=ACC1701XB');
   const d = await region(page, 'ACC1701XB');
-  await expect(d.locator('.prereq-line')).toHaveText('No course prerequisite (the rule names NUS intake years only)');
+  await expect(d.locator('.prereq-line')).toHaveText("No course you must pass first. NUS's rule only names groups of NUS students by the year they started; ask NUS whether it applies to you.");
   await expect(d.locator('details.as-stated .nus-text')).toBeHidden();
   await d.locator('details.as-stated summary').click();
   await expect(d.locator('details.as-stated .nus-text')).toHaveText('If undertaking an Undergraduate Degree THEN must be in one of the cohorts from 2017 inclusive');

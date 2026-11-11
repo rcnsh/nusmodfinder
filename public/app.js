@@ -381,7 +381,7 @@ function explainHidden() {
   for (const [code, { why, title, stamp, actions }] of view.hidden) {
     modules.get(code).then((outcome) => {
       if (!why.isConnected) return;
-      if (outcome.kind !== 'ok') { setChildren(why, `${code} isn't shown with these settings. Why could not be checked just now.`); return; }
+      if (outcome.kind !== 'ok') { setChildren(why, `${code} isn't shown with these settings. The reason could not be loaded; reload the page to try again.`); return; }
       setChildren(title, typeof outcome.body.title === 'string' ? outcome.body.title : '');
       setChildren(why, hiddenCodeLine({
         code, sem: filters.sem === undefined ? '' : String(filters.sem), study, exchange: outcome.body.exchange, sources, module: outcome.body, filters,
@@ -843,7 +843,7 @@ fetchFacets().then((f) => {
   if (f.ng) {
     els.ngHint.textContent = f.ng.count
       ? `${f.ng.count} courses on the NUS Registrar's list${f.ng.updatedAsAt ? `, updated ${f.ng.updatedAsAt}` : ''}.`
-      : "The Registrar's list is not loaded.";
+      : 'The NG list could not be loaded. Reload the page to try again.';
   }
   if (sources) renderSources();
 });
@@ -870,7 +870,7 @@ function renderSources() {
   setChildren(els.key,
     h('li', { class: 'k k-open' }, icon('open'), h('span', null, h('b', null, 'Open.'), ' Exchange students may take it in that semester.')),
     h('li', { class: 'k k-note' }, icon('note'), h('span', null, h('b', null, 'Open, with notes.'), ' Read every note: some limit who may take it.')),
-    h('li', { class: 'k k-closed' }, icon('closed'), h('span', null, h('b', null, 'Not open.'), ' Not open to you then; a typed code says why.')),
+    h('li', { class: 'k k-closed' }, icon('closed'), h('span', null, h('b', null, 'Not open.'), ' You cannot take it in that semester. Type its course code in the search box to see why.')),
     h('li', { class: 'gloss' }, h('b', null, 'NG list'), ' is the NUS Registrar\'s list of courses offered to exchange students (NUS calls them “non-graduating”, NG).',
       ngDate ? ` Updated ${ngDate}` : '', rDate ? `; restrictions list updated ${rDate}.` : (ngDate ? '.' : '')));
 }

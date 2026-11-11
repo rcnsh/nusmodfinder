@@ -55,14 +55,14 @@ test('[F5] hidden codes: the live region says how many typed codes aren\'t shown
   await expect(live(page)).toHaveText(/^\d+ courses shown: CS2030, then \d+ other matches\. 1 of the 2 codes you typed isn't shown: CS1001\.$/);
   await page.route('**/search?**', (route) => route.fulfill({ json: body({ query: 'CS3244', filters: { sem: 1, ng: true, study: 'ug2' }, count: 0, results: [], hiddenPins: ['CS3244'], notOffered: [] }) }));
   await page.goto('/?q=CS3244&ng=1&study=ug2&sem=1');
-  await expect(live(page)).toHaveText("No results for “CS3244”. 1 of the 1 code you typed isn't shown: CS3244.");
+  await expect(live(page)).toHaveText("No results for “CS3244”. The code you typed isn't shown: CS3244.");
 });
 
 test('[F5] a partial code: the live region says the semester, then that a button shows the other', async ({ page }) => {
   await page.goto('/?q=CG32&ng=1&study=ug2&sem=1');
-  await expect(live(page)).toHaveText('No CG32xx course is open to exchange students in Sem 1 at 2nd year. The “See Sem 2 courses” button shows them.');
+  await expect(live(page)).toHaveText('No CG32xx course is open to 2nd-year exchange students in Sem 1. The “See Sem 2 courses” button shows them.');
   await page.goto('/?q=AI52&ng=1&study=ug2&sem=1');
-  await expect(live(page)).toHaveText('No AI52xx course is open to exchange students in either semester at 2nd year.');
+  await expect(live(page)).toHaveText('No AI52xx course is open to 2nd-year exchange students in either semester.');
 });
 
 test('[F5] errors and 429: the live region says the same sentence the page shows', async ({ page }) => {
@@ -83,7 +83,7 @@ test('[F5] errors and 429: the live region says the same sentence the page shows
 test('[F5] keyword-only, the phrase chips, and a missing year of study are said too', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({ json: body({ degraded: { source: 'workers-ai', reason: 'timeout' } }) }));
   await page.goto('/?q=networks');
-  await expect(live(page)).toHaveText('1 course matches “networks”. Showing keyword matches only: meaning-based search is unavailable right now.');
+  await expect(live(page)).toHaveText('1 course matches “networks”. Search is in a simpler mode right now: it finds only courses that contain the words you typed. Try the course name or code, or search again later.');
   await page.unroute('**/search?**');
   await page.route('**/search?**', (route) => route.fulfill({ json: body({ query: 'history no final exam', interpreted: { exam: 0, hoursBelow: 10 } }) }));
   await page.goto('/?q=history+no+final+exam+under+10+hours');
@@ -280,7 +280,7 @@ test('[F5] each answer is said once: a failed other-semester check and a late /f
   await page.goto('/?q=CG32&ng=1&study=ug2&sem=1');
   await checked;
   await page.waitForTimeout(400); // past announce()'s 150 ms repeat
-  expect(await liveLog(page)).toEqual(['No CG32xx course is open to exchange students in Sem 1 at 2nd year.']);
+  expect(await liveLog(page)).toEqual(['No CG32xx course is open to 2nd-year exchange students in Sem 1.']);
 });
 
 test('[F5] a failed detail is said once, even when /facets answers after it and the detail is filled again', async ({ page }) => {

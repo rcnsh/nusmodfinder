@@ -127,8 +127,8 @@ export function drawSc2(modules, r) {
  * the same wrong way on both sides).
  */
 export const CLOSED_KINDS = Object.freeze(/** @type {const} */ ([
-  ['not on the NG list', (/** @type {string[]} */ ids) => ids.includes(NOT_LISTED), () => 'Not offered'],
-  ['on the NG list for the other semester only', (/** @type {string[]} */ ids) => ids.length === 1 && ids[0] === NOT_IN_SEM, (/** @type {1 | 2} */ sem) => `Not in Sem ${sem}`],
+  ['not on the NG list', (/** @type {string[]} */ ids) => ids.includes(NOT_LISTED), () => 'Not for exchange students'],
+  ['on the NG list for the other semester only', (/** @type {string[]} */ ids) => ids.length === 1 && ids[0] === NOT_IN_SEM, (/** @type {1 | 2} */ sem) => `Not on the NG list for Sem ${sem}`],
   ['closed by a restriction', (/** @type {string[]} */ ids) => ids.length > 0 && !ids.includes(NOT_LISTED) && !(ids.length === 1 && ids[0] === NOT_IN_SEM), (/** @type {1 | 2} */ sem) => `Not open in Sem ${sem}`],
 ]));
 

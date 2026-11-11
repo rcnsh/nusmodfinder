@@ -19,10 +19,16 @@ const BUILT_IN = {
   [NOT_NG_IN_SEM]: { kind: 'closed', text: 'Offered to exchange students only in the other semester.', cite: 'NG course list' },
   [SEMESTER_MISMATCH]: {
     kind: 'semester',
-    text: 'The NG list offers it to exchange students in this semester, but the NUSMods timetable doesn\'t list it then; check with NUS.',
+    text: 'The NG list offers it to exchange students in this semester, but NUSMods shows no classes for it then. Ask the department that teaches it whether it will run.',
     cite: 'NG course list; NUSMods',
   },
-  [GRAD_LEVELS]: { kind: 'closed', text: 'Level 5000 and 6000 courses are not open to exchange students unless a department says so.', cite: 'restrictions PDF §D' },
+  // The PDF: "NOT available to exchange students unless specified in the list below" (the
+  // restrictions list itself), so the text names no department approval it doesn't give.
+  [GRAD_LEVELS]: {
+    kind: 'closed',
+    text: 'Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS\'s restrictions list opens them, and it doesn\'t open this one. If you need it, ask the department that teaches it.',
+    cite: 'restrictions PDF §D',
+  },
 };
 
 /** @param {string} acadYear */

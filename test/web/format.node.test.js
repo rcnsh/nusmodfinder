@@ -109,14 +109,14 @@ describe('prereqView (5C: the cohort-only line, else NUS\'s text with spacing re
   it('a cohort-only prerequisite reads as no course prerequisite, keeping NUS\'s text', () => {
     const acc = 'If undertaking an Undergraduate DegreeTHENmust be in one of the cohorts from 2017 inclusive';
     expect(prereqView(acc, true)).toEqual({
-      kind: 'cohort', line: 'No course prerequisite (the rule names NUS intake years only)',
+      kind: 'cohort', line: "No course you must pass first. NUS's rule only names groups of NUS students by the year they started; ask NUS whether it applies to you.",
       text: 'If undertaking an Undergraduate Degree THEN must be in one of the cohorts from 2017 inclusive',
     });
   });
 
   it('a programme-only rule says programmes, not intake years', () => {
     const bl = 'Must be undertaking 1001DBSASD Doctor of Philosophy (FoS) - Biological Sciences OR must be undertaking 1001BTHCWK MSc (Biotechnology)';
-    expect(prereqView(bl, true)?.line).toBe('No course prerequisite (the rule names NUS programmes only)');
+    expect(prereqView(bl, true)?.line).toBe("No course you must pass first. NUS's rule only names NUS degree programmes; ask NUS whether it applies to you.");
   });
 
   it('any other rule is NUS\'s text, spaced, and none is null', () => {

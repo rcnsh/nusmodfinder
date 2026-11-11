@@ -20,8 +20,8 @@ export const ERROR_SENTENCES = Object.freeze({
   rate_limited: 'Too many searches from your connection. Try again in a minute.',
   upstream_failure: `The search service could not reach its course data. ${TRY_AGAIN}`,
   internal: `Something went wrong in the search service. ${TRY_AGAIN}`,
-  not_found: 'The search service did not recognise this request. Reload the page and try again.',
-  unauthorized: 'The search service did not recognise this request. Reload the page and try again.',
+  not_found: 'This page may be out of date. Reload it and try again.',
+  unauthorized: 'This page may be out of date. Reload it and try again.',
   // The fetch layer's.
   timeout: 'The search took too long to answer. Try again, or try a shorter query.',
   network: 'Could not reach the search service. Check your connection and try again.',
@@ -60,7 +60,7 @@ const quoted = quoteUser;
  * @type {Readonly<Record<string, (body: NoMatchBody, nm: NoMatch) => string>>}
  */
 export const NO_MATCH = Object.freeze({
-  'ng-special-term': () => "The Registrar's exchange-student list covers Semesters 1 and 2 only, so there is nothing to show for a special term.",
+  'ng-special-term': () => "The NG list covers only Sem 1 and Sem 2, not NUS's special terms (short terms in the vacation). Choose Sem 1 or Sem 2.",
   'not-offered': (_b, nm) => `${nm.code}${nm.title ? ` (${nm.title})` : ''} isn't offered this academic year.`,
   'unknown-code': (_b, nm) => `There is no course ${nm.code} in the NUS catalogue. Check the code.`,
   'no-signal': (b) => `Nothing in the catalogue matches ${quoted(b.query)}. Try other words for the topic.`,
@@ -81,5 +81,5 @@ export function noMatchSentence(body) {
  * @param {{ source: string, reason: string } | null | undefined} degraded
  */
 export function degradedNote(degraded) {
-  return degraded ? 'Showing keyword matches only: meaning-based search is unavailable right now.' : null;
+  return degraded ? 'Search is in a simpler mode right now: it finds only courses that contain the words you typed. Try the course name or code, or search again later.' : null;
 }

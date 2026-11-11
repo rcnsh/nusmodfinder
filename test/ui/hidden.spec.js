@@ -15,20 +15,20 @@ test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from i
   await expect(lines).toHaveText([
     'CS3244 is open to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).',
     "CS5562 isn't on the Registrar's list of courses offered to exchange students (NG list, updated 01 Sep 2026).",
-    "AR5801 isn't open to exchange students in Sem 1 at 2nd year. Level 5000 and 6000 courses are not open to exchange students unless a department says so (NG restrictions, updated 31 Aug 2026).",
+    "AR5801 isn't open to 2nd-year exchange students in Sem 1. Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).",
   ]);
   // Each line is headed by the code and its title (direction D), the title from /module/:code.
   await expect(page.locator('#status .hidden-codes li[data-code="CS3244"] .hc-head')).toHaveText('CS3244 Machine Learning');
   await expect(page.locator('#status .hiddenbox h2')).toHaveText("3 of the 4 codes you typed aren't shown");
   await expect(cards(page).first()).toHaveAttribute('data-code', 'CS2030');
   for (const code of ['CS3244', 'CS5562', 'AR5801']) await expect(page.locator(`#results button[data-code="${code}"]`)).toHaveCount(0);
-  await expect(page.locator('#status .unpinned')).toHaveText('Only the first three course codes you type that are offered this year are pinned to the top of the results.');
+  await expect(page.locator('#status .unpinned')).toHaveText('The results put at most three of the codes you type at the top: the first three that NUS offers this year.');
 });
 
 test('[D4] both semesters: a code closed in both says why for either semester', async ({ page }) => {
   await page.goto('/?q=CS2030+PP5164&ng=1&study=ug2');
   await expect(page.locator('#status .hidden-codes .why')).toHaveText([
-    "PP5164 isn't open to exchange students in either semester at 2nd year. Level 5000 and 6000 courses are not open to exchange students unless a department says so (NG restrictions, updated 31 Aug 2026). Undergraduates may not take Public Policy (PP) courses (NG restrictions, updated 31 Aug 2026).",
+    "PP5164 isn't open to 2nd-year exchange students in either semester. Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026). Undergraduates may not take Public Policy (PP) courses (NG restrictions, updated 31 Aug 2026).",
   ]);
 });
 
@@ -65,7 +65,7 @@ test('a code not offered this year, inside a list and as the whole query (with r
 
 test('[C3-2] a partial code emptied in Sem 1, open in Sem 2: says so, and the button shows Sem 2', async ({ page }) => {
   await page.goto('/?q=CG32&ng=1&study=ug2&sem=1');
-  await expect(page.locator('#status .partial')).toHaveText('No CG32xx course is open to exchange students in Sem 1 at 2nd year.');
+  await expect(page.locator('#status .partial')).toHaveText('No CG32xx course is open to 2nd-year exchange students in Sem 1.');
   const see = page.getByRole('button', { name: 'See Sem 2 courses' });
   await expect(see).toBeVisible();
   await expect(page.locator('#status')).not.toContainText(/loosen/i);
@@ -78,10 +78,10 @@ test('[C3-2] a partial code emptied in Sem 1, open in Sem 2: says so, and the bu
 
 test('[C3-2] a partial code empty in both semesters: either semester, no button', async ({ page }) => {
   await page.goto('/?q=AI52&ng=1&study=ug2&sem=1');
-  await expect(page.locator('#status .partial')).toHaveText('No AI52xx course is open to exchange students in either semester at 2nd year.');
+  await expect(page.locator('#status .partial')).toHaveText('No AI52xx course is open to 2nd-year exchange students in either semester.');
   await expect(page.locator('#status button')).toHaveCount(0);
   await page.goto('/?q=AI52&ng=1&study=ug2');
-  await expect(page.locator('#status .partial')).toHaveText('No AI52xx course is open to exchange students in either semester at 2nd year.');
+  await expect(page.locator('#status .partial')).toHaveText('No AI52xx course is open to 2nd-year exchange students in either semester.');
   await expect(page.locator('#status button')).toHaveCount(0);
   await expect(page.locator('#status')).not.toContainText(/loosen/i);
 });
@@ -92,13 +92,13 @@ test('only the first three typed codes pin: a 4th that is neither shown nor expl
     results: ['CS2030', 'CS1010', 'CS2113'].map((code) => ({ code, title: code, credits: 4, semesters: [1], score: 1 })),
   }) }));
   await page.goto('/?q=CS2030+CS1010+CS2113+CS2104');
-  await expect(page.locator('#status .unpinned')).toHaveText('Only the first three course codes you type that are offered this year are pinned to the top of the results. CS2104 is not in these results: search for it on its own.');
+  await expect(page.locator('#status .unpinned')).toHaveText('The results put at most three of the codes you type at the top: the first three that NUS offers this year. CS2104 is not in these results: search for it on its own.');
 });
 
 test('only the first three typed codes pin, on the fixture: the 4th is either a card or named', async ({ page }) => {
   await page.goto('/?q=CS2030+CS1010+CS2113+CS2104&ng=1&study=ug2&sem=1');
   const note = page.locator('#status .unpinned');
-  await expect(note).toContainText('Only the first three course codes you type that are offered this year are pinned to the top of the results.');
+  await expect(note).toContainText('The results put at most three of the codes you type at the top: the first three that NUS offers this year.');
   const shown = await page.locator('#results button[data-code="CS2104"]').count();
   if (shown) await expect(note).not.toContainText('CS2104');
   else await expect(note).toContainText('CS2104 is not in these results');

@@ -22,7 +22,7 @@ const hidden = (page, code) => page.locator(`#status .hidden-codes li[data-code=
 test.describe('the hidden-codes box: a stamp per code and "Switch to Sem 2"', () => {
   test('each typed code not shown carries a stamp saying why, in a word', async ({ page }) => {
     await page.goto('/?q=CS2030+CS3244+CS5562+AR5801+CS1001&ng=1&study=ug2&sem=1');
-    await expect(page.locator('#status .hidden-codes .hc-stamp')).toHaveText(['Not in Sem 1', 'Not offered', 'Not open in Sem 1', 'Not this year']);
+    await expect(page.locator('#status .hidden-codes .hc-stamp')).toHaveText(['Not on the NG list for Sem 1', 'Not for exchange students', 'Not open in Sem 1', 'Not this year']);
     // Each stamp is the "not shown" shape and colour, beside the code and its title.
     await expect(hidden(page, 'CS3244').locator('.hc-stamp .st')).toHaveClass(/st-closed/);
     await expect(hidden(page, 'CS3244').locator('.hc-stamp svg')).toHaveAttribute('aria-hidden', 'true');

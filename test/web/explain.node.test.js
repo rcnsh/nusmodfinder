@@ -46,21 +46,21 @@ describe('sources and statuses', () => {
 
   it('statusText never leaves the status to colour alone', () => {
     expect(statusText('open')).toBe('Open to exchange students');
-    expect(statusText('note')).toBe('Open to exchange students, with conditions');
+    expect(statusText('note')).toBe('Open to exchange students, with notes');
     expect(statusText('closed')).toBe('Not open to exchange students');
   });
 
   it('studyPhrase reads after "open to exchange students in Sem 1"', () => {
     expect(['ug1', 'ug2', 'ug3', 'ug4', 'grad'].map(studyPhrase))
-      .toEqual(['at 1st year', 'at 2nd year', 'at 3rd year', 'at 4th year or later', 'for graduate students']);
+      .toEqual(['1st-year exchange students', '2nd-year exchange students', '3rd-year exchange students', '4th-year (or later) exchange students', 'graduate exchange students']);
   });
 });
 
 describe('noteText (every note in full; C2-3)', () => {
   it('words the `semester` note as an action, for the semester it is about', () => {
-    expect(noteText(reason('ng-list:nusmods-semester-differs'), 1)).toBe("Not on NUSMods' timetable for Sem 1: check with the department.");
-    expect(noteText(reason('ng-list:nusmods-semester-differs'), '2')).toBe("Not on NUSMods' timetable for Sem 2: check with the department.");
-    expect(noteText(reason('ng-list:nusmods-semester-differs'), 'any')).toBe("Not on NUSMods' timetable in the semester the NG list gives: check with the department.");
+    expect(noteText(reason('ng-list:nusmods-semester-differs'), 1)).toBe("The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.");
+    expect(noteText(reason('ng-list:nusmods-semester-differs'), '2')).toBe("The NG list offers it in Sem 2, but NUSMods shows no classes for it in Sem 2. Ask the department that teaches it whether it will run.");
+    expect(noteText(reason('ng-list:nusmods-semester-differs'), 'any')).toBe("The NG list offers it to exchange students, but NUSMods shows no classes for it in the semester the NG list gives. Ask the department that teaches it whether it will run.");
   });
 
   it('names the other semester instead of "the other semester"', () => {
@@ -108,17 +108,17 @@ describe('hiddenCodeLine (D4: each hidden typed code, with its own stored reason
   it('closed by a restriction: each closing reason, with its source', () => {
     const one = exchange('ug2', { 1: ['closed', ['D-grad-levels-closed-exchange']], 2: ['closed', ['ng-list:not-in-semester', 'D-grad-levels-closed-exchange']], any: ['closed', ['D-grad-levels-closed-exchange']] });
     expect(hiddenCodeLine({ code: 'AR5801', sem: '1', study: 'ug2', exchange: one, sources: SOURCES }))
-      .toBe("AR5801 isn't open to exchange students in Sem 1 at 2nd year. Level 5000 and 6000 courses are not open to exchange students unless a department says so (NG restrictions, updated 31 Aug 2026).");
+      .toBe("AR5801 isn't open to 2nd-year exchange students in Sem 1. Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).");
     const two = exchange('ug2', { 1: ['closed', ['D-grad-levels-closed-exchange', '7-pp-ug-closed']], 2: ['closed', []], any: ['closed', ['D-grad-levels-closed-exchange', '7-pp-ug-closed']] });
     const line = hiddenCodeLine({ code: 'PP5164', sem: '', study: 'ug2', exchange: two, sources: SOURCES });
-    expect(line).toMatch(/^PP5164 isn't open to exchange students in either semester at 2nd year\. Level 5000 and 6000 courses are not open to exchange students unless a department says so \(NG restrictions, updated 31 Aug 2026\)\. .+ \(NG restrictions, updated 31 Aug 2026\)\.$/);
+    expect(line).toMatch(/^PP5164 isn't open to 2nd-year exchange students in either semester\. Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it \(NG restrictions, updated 31 Aug 2026\)\. .+ \(NG restrictions, updated 31 Aug 2026\)\.$/);
     expect(line).toContain(reasonsFile.reasons['7-pp-ug-closed'].text.replace(/\.$/, ''));
   });
 
   it('the other semester only, but closed there too: every reason, never "only in Sem 2"', () => {
     const ex = exchange('ug2', { 1: ['closed', ['ng-list:not-in-semester']], 2: ['closed', ['D-grad-levels-closed-exchange']], any: ['closed', ['D-grad-levels-closed-exchange']] });
     expect(hiddenCodeLine({ code: 'CM5223', sem: '1', study: 'ug2', exchange: ex, sources: SOURCES }))
-      .toBe("CM5223 isn't open to exchange students in Sem 1 at 2nd year. Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). In Sem 2: Level 5000 and 6000 courses are not open to exchange students unless a department says so (NG restrictions, updated 31 Aug 2026).");
+      .toBe("CM5223 isn't open to 2nd-year exchange students in Sem 1 or in Sem 2. Sem 1: the NG list offers it in Sem 2 only (NG list, updated 01 Sep 2026). Sem 2: Level 5000 and 6000 courses are graduate courses. They are closed to exchange students unless NUS's restrictions list opens them, and it doesn't open this one. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).");
   });
 
   it('a code the exchange set-up allows was hidden by another filter: it says which', () => {
@@ -129,7 +129,7 @@ describe('hiddenCodeLine (D4: each hidden typed code, with its own stored reason
     expect(hiddenCodeLine({ code: 'CS2030', sem: '', study: '', exchange: ex, sources: SOURCES, module: { ...mod, semesters: [2] }, filters: { sem: 1, credits: 2 } }))
       .toBe("CS2030 is hidden by your filters: it isn't offered in Sem 1, and it is 4 units.");
     expect(hiddenCodeLine({ code: 'CS2030', sem: '', study: '', exchange: ex, sources: SOURCES, module: mod, filters: {} }))
-      .toBe("CS2030 doesn't match this search's filters.");
+      .toBe("A setting in this search hides CS2030, but the page can't tell which one. Try removing filters one at a time.");
   });
 
   it('filterMisses lists only the filters the course fails', () => {
@@ -155,17 +155,17 @@ describe('notOfferedLine and the partial-code empty state (C3-2)', () => {
 
   it('one semester, the other has results: names the chosen semester (the page adds the button)', () => {
     expect(partialCodeLine({ prefix: 'CS32', sem: '1', study: 'ug2', otherHasResults: true }))
-      .toBe('No CS32xx course is open to exchange students in Sem 1 at 2nd year.');
+      .toBe('No CS32xx course is open to 2nd-year exchange students in Sem 1.');
     // Not known yet (the other semester is still being checked): the chosen semester.
     expect(partialCodeLine({ prefix: 'CG32', sem: '2', study: 'ug1', otherHasResults: null }))
-      .toBe('No CG32xx course is open to exchange students in Sem 2 at 1st year.');
+      .toBe('No CG32xx course is open to 1st-year exchange students in Sem 2.');
   });
 
   it('both semesters chosen, or the other is empty too: either semester, never "loosen a filter"', () => {
     expect(partialCodeLine({ prefix: 'CS52', sem: '1', study: 'ug2', otherHasResults: false }))
-      .toBe('No CS52xx course is open to exchange students in either semester at 2nd year.');
+      .toBe('No CS52xx course is open to 2nd-year exchange students in either semester.');
     expect(partialCodeLine({ prefix: 'CS52', sem: '', study: 'grad', otherHasResults: null }))
-      .toBe('No CS52xx course is open to exchange students in either semester for graduate students.');
+      .toBe('No CS52xx course is open to graduate exchange students in either semester.');
     expect(partialCodeLine({ prefix: 'CS', sem: '', study: 'ug2', otherHasResults: null })).not.toMatch(/loosen/i);
   });
 });
@@ -177,7 +177,7 @@ describe('typed codes past the three that pin (5C-api leaves a 4th code unexplai
     expect(typedCodes('machine learning')).toEqual([]);
   });
 
-  const RULE = 'Only the first three course codes you type that are offered this year are pinned to the top of the results.';
+  const RULE = 'The results put at most three of the codes you type at the top: the first three that NUS offers this year.';
 
   it('fewer than three pinned: every offered typed code pinned, so nothing to say', () => {
     expect(unpinnedLine('CS2030 CS3244 CS1010', { pinned: ['CS2030', 'CS3244', 'CS1010'], hidden: ['CS3244'], notOffered: [], shown: new Set(['CS2030', 'CS1010']) })).toBeNull();
@@ -202,15 +202,15 @@ describe('typed codes past the three that pin (5C-api leaves a 4th code unexplai
 });
 
 describe('[5G] the stamp on a hidden typed code, and its switch (direction D)', () => {
-  it('on the NG list for the other semester only: "Not in Sem 1", switch to Sem 2', () => {
+  it('on the NG list for the other semester only: "Not on the NG list for Sem 1", switch to Sem 2', () => {
     const ex = exchange('ug2', { 1: ['closed', ['ng-list:not-in-semester']], 2: ['open', []], any: ['open', []] });
-    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: ex })).toEqual({ text: 'Not in Sem 1', switchTo: '2' });
+    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: ex })).toEqual({ text: 'Not on the NG list for Sem 1', switchTo: '2' });
   });
 
-  it('not on the NG list: "Not offered", nothing to switch to', () => {
+  it('not on the NG list: "Not for exchange students", nothing to switch to', () => {
     const ex = exchange('ug2', { 1: ['closed', ['ng-list:not-listed']], 2: ['closed', ['ng-list:not-listed']], any: ['closed', ['ng-list:not-listed']] });
-    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: ex })).toEqual({ text: 'Not offered', switchTo: '' });
-    expect(hiddenCodeStamp({ sem: '', study: 'ug2', exchange: ex })).toEqual({ text: 'Not offered', switchTo: '' });
+    expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: ex })).toEqual({ text: 'Not for exchange students', switchTo: '' });
+    expect(hiddenCodeStamp({ sem: '', study: 'ug2', exchange: ex })).toEqual({ text: 'Not for exchange students', switchTo: '' });
   });
 
   it('closed by a restriction: "Not open in Sem 1"; the switch only where the other semester is open', () => {
@@ -220,7 +220,7 @@ describe('[5G] the stamp on a hidden typed code, and its switch (direction D)', 
     expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: openIn2 })).toEqual({ text: 'Not open in Sem 1', switchTo: '2' });
     // Only in the other semester, but closed there too: no switch.
     const onlyOther = exchange('ug2', { 2: ['closed', ['ng-list:not-in-semester']], 1: ['closed', ['D-grad-levels-closed-exchange']] });
-    expect(hiddenCodeStamp({ sem: '2', study: 'ug2', exchange: onlyOther })).toEqual({ text: 'Not in Sem 2', switchTo: '' });
+    expect(hiddenCodeStamp({ sem: '2', study: 'ug2', exchange: onlyOther })).toEqual({ text: 'Not on the NG list for Sem 2', switchTo: '' });
   });
 
   it('both semesters chosen: "Not open in either semester", never a switch', () => {
@@ -235,7 +235,7 @@ describe('[5G] the stamp on a hidden typed code, and its switch (direction D)', 
     expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: null })).toEqual({ text: 'Outside your filters', switchTo: '' });
   });
 
-  it('a code not offered this year has its own stamp, unlike "Not offered" (not on the NG list)', () => {
+  it('a code not offered this year has its own stamp, unlike "Not for exchange students" (not on the NG list)', () => {
     expect(NOT_OFFERED_STAMP).toBe('Not this year');
   });
 });
