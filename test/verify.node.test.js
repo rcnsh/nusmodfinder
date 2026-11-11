@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_INDEX, listVectorIds, main } from '../scripts/verify.mjs';
+import { DEFAULT_INDEX, listVectorIds, main, preDeployDataFiles } from '../scripts/verify.mjs';
 
 /**
  * A stub `npx wrangler vectorize list-vectors` serving `ids` in pages.
@@ -75,5 +75,16 @@ describe('scripts/verify.mjs', () => {
       fetchImpl: async () => new Response('{}', { status: 401 }), envVars: { INGEST_SECRET: 's' } });
     expect(failing).toBe(2);
     expect(await main([], { log: () => {}, envVars: {} })).toBe(2);
+  });
+});
+
+describe('verify --pre-deploy\'s data files (6A)', () => {
+  it('reads the committed year files and the year\'s NG list: 1,207 NG codes, the file\'s 40 among them', () => {
+    const files = preDeployDataFiles('2026-2027');
+    expect(files.ngReasonsAcadYear).toBe('2026-2027');
+    expect(files.unscheduled.acadYear).toBe('2026-2027');
+    expect(files.ngCodes).toHaveLength(1207);
+    expect(files.unscheduled.codes).toHaveLength(40);
+    expect(files.unscheduled.codes.filter((c) => !files.ngCodes.includes(c))).toEqual([]);
   });
 });

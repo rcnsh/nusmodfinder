@@ -33,12 +33,16 @@ export default defineConfig(async () => {
     // The vocabulary and groups (Phase 5 5B, A3-1, B3-2): this run's own copies
     // in the workspace, which the run overwrites with ones built from its
     // corpus (eval/lib/corrected.mjs), never the repo's data/. Rankers from
-    // before the bare names import ../data/*.json, the same files.
+    // before the bare names import ../data/*.json, the same files. 6A's
+    // NG-listed codes with no classes: the workspace's committed copy, which
+    // only the no-match branch reads, so it never touches a ranking; rankers
+    // from before 6A import none and have none.
     resolve: {
       alias: {
         'vectors-bundle': join(ws, 'test/fixtures/vectors.js'),
         'vocabulary-data': join(ws, 'data/vocabulary.json'),
         'groups-data': join(ws, 'data/groups.json'),
+        'ng-unscheduled-data': join(ws, 'data/ng-unscheduled.json'),
       },
     },
     test: {

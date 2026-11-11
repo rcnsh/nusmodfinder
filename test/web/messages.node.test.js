@@ -20,7 +20,7 @@ const clientCodes = ['timeout', 'network', 'not_json', 'http'];
 describe('errors (F7)', () => {
   it('found the Worker codes (harness sanity)', () => {
     expect(errorCodes).toEqual(expect.arrayContaining(['bad_request', 'internal', 'not_found', 'rate_limited', 'study-required', 'upstream_failure']));
-    expect(noMatchReasons).toEqual(['ng-special-term', 'no-signal', 'not-offered', 'unknown-code']);
+    expect(noMatchReasons).toEqual(['ng-special-term', 'ng-unscheduled', 'no-signal', 'not-offered', 'unknown-code']);
   });
 
   it('[F7 fixed] every code, from the Worker or the fetch layer, has its own sentence, with no raw code in it', () => {
@@ -67,6 +67,16 @@ describe('noMatch (F7)', () => {
       .toBe('Nothing in the catalogue matches “qwzx vbnm”. Try other words for the topic.');
     expect(noMatchSentence({ query: 'x', noMatch: { reason: 'ng-special-term' } }))
       .toBe("The NG list covers only Sem 1 and Sem 2, not NUS's special terms (short terms in the vacation). Choose Sem 1 or Sem 2.");
+  });
+
+  it('6A: an NG-listed code with no classes says when NUS lists it and that NUSMods shows no classes', () => {
+    expect(noMatchSentence({ query: 'EE4438', noMatch: { reason: 'ng-unscheduled', code: 'EE4438', title: 'Solar Cells and Modules', ngSemesters: [2] } }))
+      .toBe('NUS lists EE4438 (Solar Cells and Modules) for Sem 2, but NUSMods shows no classes for it this academic year.');
+    expect(noMatchSentence({ query: 'PL3266', noMatch: { reason: 'ng-unscheduled', code: 'PL3266', title: null, ngSemesters: [1, 2] } }))
+      .toBe('NUS lists PL3266 for Sem 1 and Sem 2, but NUSMods shows no classes for it this academic year.');
+    // An answer missing its semesters still names the code.
+    expect(noMatchSentence({ query: 'EE4438', noMatch: { reason: 'ng-unscheduled', code: 'EE4438' } }))
+      .toBe('NUS lists EE4438 for exchange students, but NUSMods shows no classes for it this academic year.');
   });
 
   it('an unknown reason, or none, is the plain no-match sentence', () => {

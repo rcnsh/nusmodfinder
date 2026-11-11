@@ -15,7 +15,7 @@
     "skipLibCheck": true,
     // The wrangler/Vitest aliases src/intent-data.js and src/group-data.js
     // import (Phase 5 5B), typed as the production files they default to.
-    "paths": { "vocabulary-data": ["./data/vocabulary.json"], "groups-data": ["./data/groups.json"] }
+    "paths": { "vocabulary-data": ["./data/vocabulary.json"], "groups-data": ["./data/groups.json"], "ng-unscheduled-data": ["./data/ng-unscheduled.json"] }
   },
   "include": ["worker-configuration.d.ts", "scripts/corpus-types.d.ts", "src/**/*", "test/**/*", "eval/runner/**/*.js", "eval/runner/types.d.ts", "eval/runner/vitest.d.ts"],
   "exclude": ["test/fixtures/**", "test/**/*.node.test.js", "test/**/*.node.mjs", "test/ui/**/*.spec.js", "test/ui/**/*.mjs"]

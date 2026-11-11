@@ -19,6 +19,7 @@ import { RESULT_COLUMNS, d1Timed, readSession, rowToModule } from './modules.js'
 import { INTENT } from './intents.js';
 import { NO_SIGNAL_TAU } from './no-signal.js';
 import { STUDIES, bitOf, ngBit } from './ng-bit.js';
+import { unscheduled } from './ng-unscheduled.js';
 import { canonicalQuery, parseIgnore, parseQuery } from './query-intent.js';
 import { EMBED_CORRECTED } from './typo.js';
 import { hasCode } from './vector-bundle.js';
@@ -786,7 +787,13 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
 
   // 5C-api: the typed codes the page explains. `notOffered` comes from the
   // parse (no read); `hiddenPins` is filled by the search route's pin lookup.
-  const notOffered = parsed.codes.filter((t) => t.status === 'not-offered').map((t) => t.code);
+  // 6A: an NG-listed code with no classes (src/ng-unscheduled.js) is not
+  // offered, even where data/catalogue-codes.json (built from the pinned
+  // release) lacks it and the parse calls it unknown. The parse is untouched,
+  // so no ranking changes.
+  const noClasses = unscheduled();
+  const notOffered = parsed.codes
+    .filter((t) => t.status === 'not-offered' || (t.status === 'unknown' && noClasses.has(t.code))).map((t) => t.code);
   /** @type {string[]} */
   let hiddenPins = [];
 
@@ -862,20 +869,26 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   });
 
   // ── no-match: `count: 0`; a not-offered code names its catalogue title and
-  // the dense neighbours of its catalogue text, never in `results`.
+  // the dense neighbours of its catalogue text, never in `results`. 6A: an
+  // NG-listed code with no classes is checked first, ahead of the unknown-code
+  // answer and the catalogue read: it answers `ng-unscheduled`, with the
+  // semesters NUS lists it for and the neighbours of its own text.
   if (parsed.kind === 'no-match') {
     const nm = /** @type {import('./query-intent.js').NoMatch} */ (parsed.noMatch);
-    if (nm.reason === 'unknown-code') {
+    const listed = noClasses.get(nm.code);
+    if (nm.reason === 'unknown-code' && !listed) {
       log.counts = { returned: 0 };
       return respond([], { vector: 0, lexical: 0, fused: 0 }, { noMatch: { reason: nm.reason, code: nm.code } });
     }
     /** @type {{ title: string, description: string | null } | null} */
-    let row = null;
-    try {
-      row = await d1Timed(trace, 'pin', () => db.prepare('SELECT title, description FROM catalogue_only WHERE code = ?').bind(nm.code).first());
-    } catch (err) {
-      // No catalogue_only table yet (migration 0008 not applied): still a not-offered answer.
-      console.warn(`catalogue_only lookup failed: ${/** @type {any} */ (err)?.message ?? err}`);
+    let row = listed ? { title: listed.title, description: listed.description } : null;
+    if (!listed) {
+      try {
+        row = await d1Timed(trace, 'pin', () => db.prepare('SELECT title, description FROM catalogue_only WHERE code = ?').bind(nm.code).first());
+      } catch (err) {
+        // No catalogue_only table yet (migration 0008 not applied): still a not-offered answer.
+        console.warn(`catalogue_only lookup failed: ${/** @type {any} */ (err)?.message ?? err}`);
+      }
     }
     /** @type {string[]} */
     let related = [];
@@ -902,6 +915,11 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
       related = related.slice(0, RELATED_K);
     }
     log.counts = { returned: 0, related: related.length };
+    if (listed) {
+      return respond([], { vector: related.length, lexical: 0, fused: 0 }, {
+        noMatch: { reason: 'ng-unscheduled', code: nm.code, title: listed.title, ngSemesters: listed.ngSemesters, related },
+      });
+    }
     return respond([], { vector: related.length, lexical: 0, fused: 0 }, {
       noMatch: { reason: nm.reason, code: nm.code, title: row?.title ?? null, related },
     });

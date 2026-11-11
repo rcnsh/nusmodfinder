@@ -440,6 +440,8 @@ export async function handleVerify(request, env) {
           examSemesters: f.examSemesters ?? [], su: f.su === true, suGrading: suGrading(f.gradingBasis),
           workloadHours: f.workloadHours ?? null, prereqNone: f.prereqNone === true, prereqCohortOnly: f.prereqCohortOnly === true,
           ngAllow: f.ngAllow ?? 0, ngRules: f.ngRules ?? null, examDates: f.examDates ?? [],
+          // 6A: verify --pre-deploy checks the year files against it.
+          acadYear: r.acad_year,
         };
       }),
       meta: metaOf([rows]),

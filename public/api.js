@@ -11,8 +11,10 @@ export const SEARCH_TIMEOUT_MS = 10_000;
 /**
  * `code` is the Worker's `error` field, or one of the fetch layer's own:
  * `timeout`, `network`, `not_json` (an answer that is not JSON), `http` (a
- * JSON error without a code). `retryAfter` is seconds, 429 only.
- * @typedef {{ code: string, status?: number, retryAfter?: number | null }} ApiError
+ * JSON error without a code). `retryAfter` is seconds, 429 only. `detail`
+ * (6A) is a JSON error body's other fields, its `message` left out, when it
+ * has any: a /module 404's `kind`, `acadYear` and the course's fields.
+ * @typedef {{ code: string, status?: number, retryAfter?: number | null, detail?: Record<string, unknown> }} ApiError
  */
 /** @typedef {{ kind: 'ok', body: any } | { kind: 'error', error: ApiError } | { kind: 'superseded' }} Outcome */
 /** @typedef {{ fetch?: typeof fetch }} Deps */
@@ -35,6 +37,20 @@ export function parseRetryAfter(value, now = Date.now()) {
 const TIMEOUT = Symbol('timeout');
 /** Thrown into a request's signal when a newer search replaces it. */
 const SUPERSEDED = Symbol('superseded');
+
+/**
+ * A JSON error body's fields but `error` and `message`, as `{ detail }`, or
+ * nothing when there are none (6A). The server's message never reaches the page.
+ * @param {unknown} body
+ * @returns {{ detail?: Record<string, unknown> }}
+ */
+function errorDetail(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return {};
+  const rest = { .../** @type {Record<string, unknown>} */ (body) };
+  delete rest.error;
+  delete rest.message;
+  return Object.keys(rest).length ? { detail: rest } : {};
+}
 
 /**
  * GETs `url` as JSON with a timeout, mapping every failure to an ApiError.
@@ -62,7 +78,7 @@ async function getJson(doFetch, url, ctrl) {
     }
     if (!res.ok) {
       const code = typeof body?.error === 'string' && body.error ? body.error : 'http';
-      return { kind: 'error', error: { code, status: res.status } };
+      return { kind: 'error', error: { code, status: res.status, ...errorDetail(body) } };
     }
     return { kind: 'ok', body };
   } catch {
@@ -113,8 +129,9 @@ export function fetchSearch(params, { fetch: doFetch = (...a) => fetch(...a) } =
 /**
  * GET /module/:code for the detail and the hidden-code lines (5C), each code
  * fetched once per page (the response is also browser-cached for 5 minutes).
- * Answers and requests in flight are shared; a failure is not kept, so asking
- * again retries.
+ * Answers and requests in flight are shared. A 404 is an answer and is kept
+ * (6A: its `detail` says which kind of miss); any other failure is not, so
+ * asking again retries.
  * @param {Deps} [deps]
  * @returns {{ get: (code: string) => Promise<Outcome> }}
  */
@@ -127,7 +144,7 @@ export function createModuleClient({ fetch: doFetch = (...a) => fetch(...a) } = 
       const hit = cache.get(key);
       if (hit) return hit;
       const pending = getJson(doFetch, `/module/${encodeURIComponent(key)}`, new AbortController()).then((outcome) => {
-        if (outcome.kind !== 'ok') cache.delete(key);
+        if (outcome.kind === 'error' && outcome.error.status !== 404) cache.delete(key);
         return outcome;
       });
       cache.set(key, pending);

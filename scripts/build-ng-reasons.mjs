@@ -4,7 +4,9 @@
 // in ng_rules (src/eligibility.js's built-ins plus every closed and note rule
 // in data/ng-restrictions-<year>.json), and the source documents with their
 // dates for /facets. D1 stores ids only, so a wording edit here rewrites no
-// rows. Deterministic; test/ng-reasons.node.test.js fails when the committed
+// rows. Phase 6 6A: also NUS's rules about courses off the exchange list (the
+// rules file's info entries with a `text`), with the scope each states, for
+// /facets' `offListRules`. Deterministic; test/ng-reasons.node.test.js fails when the committed
 // file differs from a rebuild. Usage: node scripts/build-ng-reasons.mjs
 import { writeFileSync } from 'node:fs';
 import { GRAD_LEVELS, NOT_NG_IN_SEM, OFF_NG_LIST, SEMESTER_MISMATCH } from '../src/eligibility.js';
@@ -34,8 +36,8 @@ const BUILT_IN = {
 
 /** @param {string} acadYear */
 export function buildNgReasons(acadYear) {
-  const rules = /** @type {import('../src/eligibility.js').Rules & { rules: { id: string, effect: string, note?: string, reason: string, cite?: string }[] }} */ (
-    loadNgRestrictions(acadYear));
+  const rules = /** @type {import('../src/eligibility.js').Rules & { rules: { id: string, effect: string, note?: string, reason: string, cite?: string }[],
+    info?: { id: string, text?: string, scope?: Record<string, unknown> }[] }} */ (loadNgRestrictions(acadYear));
   /** @type {Record<string, { kind: string, text: string, cite: string }>} */
   const reasons = { ...BUILT_IN };
   for (const r of rules.rules) {
@@ -52,6 +54,7 @@ export function buildNgReasons(acadYear) {
       { name: 'Course restrictions for exchange (NG) students', updatedAsAt: '31 Aug 2026', url: NG_PAGE },
     ],
     reasons,
+    offListRules: (rules.info ?? []).filter((i) => i.text !== undefined).map((i) => ({ id: i.id, text: i.text, scope: i.scope ?? {} })),
   };
 }
 

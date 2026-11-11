@@ -7172,7 +7172,9 @@
   },
   {
    "id": "E-offerings-list",
-   "why": "Jacob's Q7"
+   "why": "Jacob's Q7",
+   "text": "If the courses cannot be found at the Course offerings list, they are not available during application stage but may be available during Course registration.",
+   "scope": {}
   },
   {
    "id": "F-links",
@@ -7180,15 +7182,45 @@
   },
   {
    "id": "2-biz-no-late-add",
-   "why": "why rule E can't apply to Business (plan §2 step 1); off-list courses are hidden anyway"
+   "why": "why rule E can't apply to Business (plan §2 step 1); off-list courses are hidden anyway",
+   "text": "If you have not been offered Business courses at the point of initial acceptance (first week of June or November), you will not be able to add the Course during the Submit Course Requests period.",
+   "scope": {
+    "faculties": [
+     "NUS Business School"
+    ]
+   }
   },
   {
    "id": "4-cee-no-appeal",
-   "why": "about courses off the NG list, which Jacob's Q7 hides"
+   "why": "about courses off the NG list, which Jacob's Q7 hides",
+   "text": "No appeal will be accepted for any Level 1000 to Level 4000 courses that are not listed in the NG Course offerings list.",
+   "scope": {
+    "departments": [
+     "Civil and Environmental Engineering"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   }
   },
   {
    "id": "4-isem-no-appeal",
-   "why": "about courses off the NG list, which Jacob's Q7 hides"
+   "why": "about courses off the NG list, which Jacob's Q7 hides",
+   "text": "No appeals will be accepted for any level 1000 to level 4000 courses that are not listed in the NG courses listing.",
+   "scope": {
+    "departments": [
+     "Industrial Systems Engineering and Management"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   }
   },
   {
    "id": "5-law-double-major",
