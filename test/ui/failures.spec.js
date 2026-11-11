@@ -88,7 +88,8 @@ test('[F4] the first search starts before /facets answers, and the faculty list 
   await page.route('**/facets', async (route) => { await facetsHeld; await route.continue(); });
   await page.goto('/?q=databases&faculty=Computing');
   await expect(page.locator('#status')).toContainText(matchFor('databases'));
-  await expect(page.locator('#faculty option')).toHaveText(['Any faculty', 'Computing']);
+  // Quoted until /facets lists it: until then it is only the link's text (5G S2).
+  await expect(page.locator('#faculty option')).toHaveText(['Any faculty', '“Computing”']);
   /** @type {any} */ (release)();
   await expect(page.locator('#faculty option[value="Computing"]')).toHaveText(/^Computing \(\d+\)$/);
   await expect(page.locator('#faculty')).toHaveValue('Computing');
