@@ -122,3 +122,5 @@ o7	browser other	/facets	phase0 0b fe.mjs
 116	ref	Page-ship smoke on version 810c903b: /health, /, /search machine learning, /module/ACC1701XB; >= 4 s apart, all 200	Phase 5 5G, 2026-11-11 06:23:57-06:24:15 UTC
 117	ref	p5-live.mjs on version 810c903b: 99 requests >= 4 s apart (docs/evidence/phase5/p5-live.jsonl; 578 more rows served from memory, not sent), all 200; 32 of 32 checks pass	Phase 5 5G, 2026-11-11 06:24:25-06:30:59 UTC
 118	ref	Phase 5 persona red team: 73 requests to the live page (21 page files, 1 /facets, 28 /search, 23 /module), >= 4 s apart but one pair at 3,999 ms, all 200 (docs/evidence/phase5/redteam/requests-*.jsonl), on version 810c903b	Phase 5 5G red team, 2026-11-11 06:43:49-07:02:08 UTC
+119	ref	Live version check before the semester-representative ship: 1 /health on version 810c903b (tag fdec96f)	Phase 5, 2026-11-11 07:54:04 UTC
+120	ref	Semester-representative smoke on version 91c09381: /health, /search intro accounting (ng=1&sem=1&study=ug2: ACC1701XA first, XB and XC as variants), /search machine learning (EE2211 first); >= 4 s apart, all 200	Phase 5, 2026-11-11 07:54:40-07:54:57 UTC

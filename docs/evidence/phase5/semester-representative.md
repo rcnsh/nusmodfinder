@@ -109,3 +109,11 @@ errors; no exact-code regression.
 
 Every check of the amendment holds (§1 group identity, §2 `no-loss`, §3 suites, §4 count 0),
 and ADR 0003's amendment is adopted.
+
+## 6. Shipped (2026-11-11)
+
+Merged as `c645e85` (PR #80) and deployed as version `91c09381`. The custodian stored
+`run-shipped-c645e85` with `--store-only` (81 queries, no ledger row): its `--by-group` count
+against `shipped-fdec96f` is **0**, and its plain count against the gated candidate
+`cand-3f96d79` is 0 (the merge shipped the ranker the gate judged). `SHIPPED_BASELINE` is
+`c645e85`; holdout looks stay at 7 of 12.
