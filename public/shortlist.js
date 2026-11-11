@@ -113,8 +113,10 @@ export const TOTAL_LINES = Object.freeze({
   weeks: `GRO: “${GRO_WEEKS}”`,
   admitted: 'To be admitted, NUS must accept you into at least 12 units in a semester (NUS\'s brochure; GRO: “three pre-registered courses (or 12 units)”)',
   courseReg: 'In CourseReg you must keep at least 12 units or three courses (GRO)',
-  // G2 (Jacob, 2026-11-11).
-  maximum: 'NUS\'s brochure says at most 23 units a semester (NUS Business School\'s exchange students: 20); some pages say 20, so ask NUS before going above 20. This limits the courses NUS enrols you in, not the courses you list',
+  // G2, as Jacob worded it after the 6-0 fact check (ADR 0010): word for word, typographic apostrophes.
+  maximum: 'NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20.',
+  // What the maximum limits (G2): a semester's picks above 20 are flagged (Totals.over20), never refused.
+  maximumScope: 'This limits the courses NUS enrols you in, not the courses you list',
 });
 
 /** The lines for applicants, under the form order. */
@@ -636,7 +638,7 @@ export function totalLines(sem, t, { exchange, year }) {
   out.push(`About ${t.hours} hours a week at NUS's rate (2.5 hours a week per unit)`, TOTAL_LINES.rate, TOTAL_LINES.weeks);
   if (t.economics) out.push(`Includes ${t.economics} units of Economics courses. GRO: “${GRO_POPULAR}”`);
   if (t.overlap) out.push(`Picks with overlapping ${year} exams: NUS approves at most one of each pair`);
-  out.push(TOTAL_LINES.admitted, TOTAL_LINES.courseReg, TOTAL_LINES.maximum);
+  out.push(TOTAL_LINES.admitted, TOTAL_LINES.courseReg, TOTAL_LINES.maximum, TOTAL_LINES.maximumScope);
   return out;
 }
 

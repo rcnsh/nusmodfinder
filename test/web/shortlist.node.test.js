@@ -426,8 +426,10 @@ describe('totals, lines and helpers (6B)', () => {
     expect(lines).toContain('About 20 hours a week at NUS\'s rate (2.5 hours a week per unit)');
     expect(lines).toContain(TOTAL_LINES.weeks);
     expect(lines).toContain(`Includes 4 units of Economics courses. GRO: “${GRO_POPULAR}”`);
-    expect(lines.slice(-3)).toEqual([TOTAL_LINES.admitted, TOTAL_LINES.courseReg, TOTAL_LINES.maximum]);
-    expect(TOTAL_LINES.maximum).toContain('NUS\'s brochure says at most 23 units a semester (NUS Business School\'s exchange students: 20); some pages say 20, so ask NUS before going above 20');
+    expect(lines.slice(-4)).toEqual([TOTAL_LINES.admitted, TOTAL_LINES.courseReg, TOTAL_LINES.maximum, TOTAL_LINES.maximumScope]);
+    // G2 as Jacob worded it after the 6-0 fact check (ADR 0010, PR #88), typographic apostrophes and all.
+    expect(TOTAL_LINES.maximum).toBe('NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20.');
+    expect(TOTAL_LINES.maximumScope).toBe('This limits the courses NUS enrols you in, not the courses you list');
     expect(r.sems[1].over20).toBe(false);
     const big = Object.fromEntries(Array.from({ length: 6 }, (_, i) => [`AB${1000 + i}`, synthOutcome(`AB${1000 + i}`)]));
     expect(run(`ng=1&study=ug2&${Object.keys(big).map((c) => `pick=${c}.1`).join('&')}`, big).sems[1].over20).toBe(true);
