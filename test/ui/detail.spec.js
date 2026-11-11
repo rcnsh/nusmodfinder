@@ -125,6 +125,15 @@ test('a cohort-only prerequisite reads "No course prerequisite", NUS\'s text one
   await expect(d).toContainText('0200ACCHON Bachelor of Business Administration (Accountancy)');
 });
 
+test('[PD1] a preclusion gets the prerequisite\'s spacing back: ACC1701XB\'s "DegreeTHEN((" and ")OR(" read as words', async ({ page }) => {
+  await page.goto('/?q=ACC1701XB&open=ACC1701XB');
+  const d = await region(page, 'ACC1701XB');
+  const text = d.getByRole('heading', { name: 'Preclusions' }).locator('xpath=..').locator('.nus-text');
+  await expect(text).toContainText('If undertaking an Undergraduate Degree THEN ((must not be undertaking 1 of 0200ACCHON');
+  await expect(text).toContainText('Applied Business Analytics) OR ( must not have completed 1 of EC2204');
+  await expect(text).not.toContainText(/DegreeTHEN|\)OR\(/);
+});
+
 test('outside exchange mode the detail has the table for all five years', async ({ page }) => {
   await page.goto('/?q=CS3244&open=CS3244');
   const d = await region(page, 'CS3244');

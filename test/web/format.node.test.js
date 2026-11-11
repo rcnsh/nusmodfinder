@@ -79,6 +79,21 @@ describe('cleanPrereq (NUS rule language, spacing only)', () => {
     expect(cleanPrereq(null)).toBe('');
   });
 
+  it('[PD1] preclusions use the same rule language: CS2106\'s, as p2 heard it ("DegreeTHEN(", "at least DOR(must not")', () => {
+    expect(cleanPrereq('If undertaking an Undergraduate DegreeTHEN( must not have completed 1 of CG2271/EE4214 at a grade of at least DOR(must not be undertaking 2001CEGHON Bachelor of Engineering (Computer Engineering) (Hons)))'))
+      .toBe('If undertaking an Undergraduate Degree THEN ( must not have completed 1 of CG2271/EE4214 at a grade of at least D OR (must not be undertaking 2001CEGHON Bachelor of Engineering (Computer Engineering) (Hons)))');
+  });
+
+  it('[PD1] on every fixture preclusion too: only spaces change, and no keyword stays glued to a word', () => {
+    const texts = fixture.modules.map((m) => m.preclusion).filter((t) => typeof t === 'string' && t !== '');
+    expect(texts.filter((t) => /[a-z)](?:THEN|AND|OR)|(?:THEN|AND|OR)[a-z(]/.test(/** @type {string} */ (t))).length).toBeGreaterThan(50);
+    for (const t of /** @type {string[]} */ (texts)) {
+      const out = cleanPrereq(t);
+      expect(out.replace(/\s+/g, ''), t).toBe(t.replace(/\s+/g, ''));
+      expect(out, t).not.toMatch(/[a-z)](?:THEN|AND|OR)|(?:THEN|AND|OR)[a-z(]/);
+    }
+  });
+
   it('on every fixture prerequisite: only spaces change, and no keyword stays glued to a word', () => {
     const texts = fixture.modules.map((m) => m.prerequisite).filter((t) => typeof t === 'string' && t !== '');
     expect(texts.length).toBeGreaterThan(50);

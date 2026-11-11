@@ -11,7 +11,7 @@
 // detail an "Also as" link opened, which entry it was opened from.
 import { h, setChildren } from './dom.js';
 import { noteText, reasonLine, sourceNote, stampText, statusText } from './explain.js';
-import { codeSegments, examLines, prereqView, semLabel, workloadText } from './format.js';
+import { cleanPrereq, codeSegments, examLines, prereqView, semLabel, workloadText } from './format.js';
 import { icon } from './icons.js';
 import { noteItem, searchLink, stamp } from './render.js';
 import { STUDIES } from './state.js';
@@ -76,7 +76,8 @@ function prerequisites(raw, cohortOnly, ctx) {
  * @param {DetailContext} ctx
  */
 function preclusions(raw, ctx) {
-  const text = typeof raw === 'string' ? raw.replace(/\s+/g, ' ').trim() : '';
+  // The same rule language as the prerequisite, with the same spacing restored (5G PD1).
+  const text = cleanPrereq(typeof raw === 'string' ? raw : '');
   if (!text) return section('Preclusions', h('p', null, 'No preclusions listed'));
   return section('Preclusions', h('p', { class: 'as-stated-label' }, 'As NUS states it:'), nusText(text, ctx));
 }
