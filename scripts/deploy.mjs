@@ -19,7 +19,8 @@
 //    `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`
 //    with the bundle aliased in; refuses if the reported startup time is
 //    missing or above 200 ms (the version is then uploaded but serves no
-//    traffic); only then `wrangler versions deploy <id>@100%`.
+//    traffic); only then `wrangler versions deploy <id>@100%`, then
+//    `wrangler triggers deploy` for the Custom Domain in wrangler.jsonc.
 // The Worker reports the tag as `x-app-version` and in GET /health.
 // Before any of that, it refuses a wrangler.jsonc whose `vars` hold anything
 // but DENSE_BACKEND (Phase 4: test-only switches such as SC1_TRACE never ship).
@@ -293,6 +294,9 @@ export async function deploy({
 
   const promote = await exec('npx', ['wrangler', 'versions', 'deploy', `${versionId}@100%`, '--yes', '--message', message], { stream: true });
   if (promote.code !== 0) { error(`deploy: wrangler versions deploy failed (exit ${promote.code}); ${versionId} is uploaded, not live.`); return promote.code; }
+  // `versions deploy` leaves routes alone; this applies wrangler.jsonc's Custom Domain (ADR 0009).
+  const triggers = await exec('npx', ['wrangler', 'triggers', 'deploy'], { stream: true });
+  if (triggers.code !== 0) { error(`deploy: wrangler triggers deploy failed (exit ${triggers.code}); ${versionId} is live, the custom domain may be stale.`); return triggers.code; }
   log(`deploy: version ${versionId} (tag ${short}) is live. Record it in remote-ops.md (the rollback target list).`);
   return 0;
 }

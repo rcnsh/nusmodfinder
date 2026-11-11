@@ -5,6 +5,14 @@
   "compatibility_date": "2026-09-01",
   "observability": { "enabled": true },
 
+  // The public address (ADR 0009). A Custom Domain: Cloudflare makes the DNS
+  // record and certificate on rcn.sh. `npm run deploy` applies it with
+  // `wrangler triggers deploy` after promoting, since `versions deploy` does
+  // not touch routes. workers.dev keeps serving: wrangler turns it off once
+  // `routes` is set unless `workers_dev` says otherwise.
+  "routes": [{ "pattern": "nusmodfinder.rcn.sh", "custom_domain": true }],
+  "workers_dev": true,
+
   // The page (Phase 5 5B): public/ as Workers Static Assets. No binding, so
   // Env gains nothing, and a request for a file there (`/`, `/app.js`) is
   // answered without running the Worker or spending its CPU; every other path,
@@ -65,7 +73,7 @@
   // eventually consistent: a measured burst of 80 requests in 2s passed
   // untouched before the counter caught up. It stops a runaway script; it does
   // NOT protect the account-wide monthly Vectorize allowance, which stays an
-  // accepted residual risk (see README).
+  // accepted residual risk (see docs/REFERENCE.md).
   "ratelimits": [
     {
       "name": "SEARCH_LIMIT",
