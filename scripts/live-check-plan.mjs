@@ -68,7 +68,7 @@ export function rng(seed) {
  * @param {() => number} r
  * @returns {T[]}
  */
-function draw(list, n, r) {
+export function draw(list, n, r) {
   const out = [...list].sort((a, b) => (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
   for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(r() * (i + 1));

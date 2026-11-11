@@ -1,9 +1,9 @@
 {
   // The Playwright specs (Phase 5 5D): Node drives them, and the callbacks they
   // hand to page.evaluate run in the page, so they get the DOM lib as well.
-  // scripts/p5-live.mjs (5G's live checks) drives the live page the same way.
+  // scripts/p5-live.mjs and p6-live.mjs (5G's and 6E's live checks) drive the live page the same way.
   "extends": "./tsconfig.node.json",
   "compilerOptions": { "lib": ["es2023", "dom", "dom.iterable"] },
-  "include": ["test/ui/**/*.spec.js", "test/ui/**/*.mjs", "scripts/p5-live.mjs", "scripts/corpus-types.d.ts"],
+  "include": ["test/ui/**/*.spec.js", "test/ui/**/*.mjs", "scripts/p5-live.mjs", "scripts/p6-live.mjs", "scripts/corpus-types.d.ts"],
   "exclude": []
 }
