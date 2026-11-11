@@ -162,7 +162,7 @@
     - heading "Preclusions" [level=4]
     - paragraph: "As NUS states it:"
     - paragraph:
-      - text: If undertaking an Undergraduate DegreeTHEN( must not have completed 1 of
+      - text: If undertaking an Undergraduate Degree THEN ( must not have completed 1 of
       - link "BT4240":
         - /url: /?q=BT4240
       - text: /
