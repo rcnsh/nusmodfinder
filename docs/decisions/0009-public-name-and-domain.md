@@ -9,9 +9,12 @@ Status: accepted (Jacob, 2026-11-11)
 - The icon is a plum (`#6A2E56`) rounded tile with a white magnifier (`public/favicon.svg`; option B
   in the ephemera set `vector-nusmods-nusmodfinder-icon-rlvvsy`). It uses none of NUS's crest,
   colours or lion.
-- The Worker keeps its name `vector-nusmods`, so its bindings and version history stay as they
-  are. Its workers.dev URL is off (`workers_dev: false`, Jacob, 2026-11-11): the custom domain is
-  the only address.
+- The Worker is `nusmodfinder` (Jacob, 2026-11-11; it was created under the project's first name and
+  moved, so its version history starts at the move). Its workers.dev URL is off
+  (`workers_dev: false`): the custom domain is the only address.
+- Internal identifiers keep the `vnm-` prefix (schema ids, seeds, temp dirs), and the test Worker
+  configs keep theirs: they are inside sealed-set hashes, the vectors bundle and the pinned
+  ranker hash, so renaming them would break the eval record for no visible gain.
 
 ## Why
 
@@ -19,8 +22,6 @@ Status: accepted (Jacob, 2026-11-11)
   read as an official NUS service. "Mod" is ordinary NUS slang and "NUS" names the university
   the courses belong to, with "unofficial" beside it everywhere the name appears.
 - The search works for any NUS student; exchange mode is one feature. The name does not narrow it.
-- Renaming the Worker would buy nothing a visitor sees and would move every binding and the
-  deploy guard's history.
 
 ## Consequences
 

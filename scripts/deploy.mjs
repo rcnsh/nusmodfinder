@@ -39,7 +39,7 @@ const MAX_MESSAGE = 100;
 /** The startup gate (docs/plans/phase3.md 3-0, B-4); the platform limit is 1 s. */
 export const MAX_STARTUP_MS = 200;
 /** Where the local startup pre-check writes its CPU profile. */
-export const STARTUP_PROFILE = join(tmpdir(), 'vector-nusmods-startup.cpuprofile');
+export const STARTUP_PROFILE = join(tmpdir(), 'nusmodfinder-startup.cpuprofile');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 /** The only var the deployed Worker may have (docs/plans/phase4.md §4, gate 2). */
 export const ALLOWED_VARS = ['DENSE_BACKEND'];
