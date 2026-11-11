@@ -1,10 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-/// <reference lib="dom" />
-/// <reference lib="dom.iterable" />
-/* global document, window */
-// The callbacks this hands to page.evaluate run in the page, so it declares the
-// DOM itself (p5-live.mjs gets it from tsconfig.ui.json and eslint.config.mjs).
 // The shortlist ship's live checks (Phase 6 6E, docs/plans/phase6.md §3 6E
 // "Live checks"), run by the lead after the deploy. Built like p5-live.mjs.
 //
