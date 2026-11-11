@@ -6,7 +6,7 @@ const HTML_SINK = 'Build DOM nodes and set textContent (public/dom.js); HTML str
 
 export default [
   {
-    ignores: ['node_modules/', '**/.wrangler/', '.data/', '.eval-work/', 'docs/', 'eval/v1/', 'worker-configuration.d.ts'],
+    ignores: ['node_modules/', '.claude/', '**/.wrangler/', '.data/', '.eval-work/', 'docs/', 'eval/v1/', 'worker-configuration.d.ts'],
   },
   js.configs.recommended,
   {

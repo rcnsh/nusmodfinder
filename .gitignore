@@ -28,3 +28,5 @@ eval/diag/*/runs/
 # Playwright (npm run test:ui)
 test-results/
 playwright-report/
+# Agent worktrees and session files (Claude Code).
+.claude/
