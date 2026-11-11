@@ -203,14 +203,23 @@ checks every text/background and boundary pair in both themes against WCAG AA.
   changed in the rail), and the entries in three columns: code and units; title, department,
   timetable semesters, exam day and time (Singapore) and other codes; the exchange stamp per
   semester (an icon, a word and a colour) with every note in full after a lead-in word. Below
-  1040px the status drops under the title.
+  1040px the status drops under the title. An entry's other codes ("Also as") are links: each
+  opens that code's own search with its detail open (`open=`), whose head says "Opened from
+  <code>" (`from=`); Back returns to the list. For a query of course codes only, the count line
+  names the typed codes shown ("20 courses shown: CS2030, then 19 other matches").
+- **Typed codes not shown** are explained above the entries (D4): each with its title, a stamp
+  ("Not in Sem 1", "Not offered", "Not open in Sem 1", "Outside your filters", or "Not this
+  year" for a code not offered in 2026/27), and why, from its own stored reasons. Where the
+  other semester is open to the student and nothing else hides the course, "Switch to Sem 2 to
+  see CS3244" changes the semester and focuses the course's entry.
 - **On a phone** (≤ 640px) the form is one bar (query and Search), and the rail opens as a modal
   `<dialog>` from "Filters (n)": its controls move into the dialog while it is open, so there is
   one copy of each; focus stays inside, Escape or Done closes it, and focus returns to the
   button. Inputs are 16px, so iOS doesn't zoom.
-- **The detail** opens as a sheet under its entry: "can you take it" (per semester, every note
-  with its source and date, "check with NUS", the NUSMods link) beside the course facts, and
-  above them on a narrow screen.
+- **The detail** opens as a sheet under its entry: its head repeats the code and title (one
+  heading) with the units and department, then "can you take it" (per semester, every note with
+  its source and date, "check with NUS", the NUSMods link) beside the course facts, and above
+  them on a narrow screen.
 - **Accessibility** (5E, SC8): a skip link is the first Tab stop and moves focus to the shown
   `<main>`; one `<h1>`; landmarks for the header, the rail, the search and the footer. One polite
   live region (`#live`, in the header, and in the filters dialog while it is open, since a modal
@@ -233,13 +242,13 @@ path, so `/search`, `/facets`, `/module/:code`, `/health` and `/admin/*` still r
 
 | module | does |
 |---|---|
-| `state.js` | the state ↔ URL mapping (pure). In exchange mode `ng=1` and `study` are always in the URL; `open=` names the one open detail; `pick` and `alt` are reserved for Phase 6 |
-| `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed |
+| `state.js` | the state ↔ URL mapping (pure). In exchange mode `ng=1` and `study` are always in the URL; `open=` names the one open detail, and `from=` the entry whose "Also as" link opened it (kept only beside `open=`); `pick` and `alt` are reserved for Phase 6 |
+| `nav.js` | the history transitions (pure): submit pushes, filter changes replace and drop `open=`, closing a detail goes `back()` only from the entry the page pushed, an "Also as" link pushes that code's search with its detail open; every action that changes `open=` drops `from=` |
 | `api.js` | the fetch layer: each search aborts the previous one, 10 s timeout, non-JSON bodies caught before parsing, `Retry-After` read on 429 |
 | `messages.js` | a plain sentence for every error code and `noMatch` reason; raw codes are never shown |
 | `format.js` | semester names, workload, exams in Singapore time, NUS prerequisite spacing, the cohort-only prerequisite line, course codes in NUS's text |
-| `explain.js` | exchange wording (pure): each stamp's words, each note in full with its lead-in word ("Places.", "Your major."), the `semester` note as an action, each source with its "updated as at" date, why a typed code is hidden (its own stored reasons), the partial-code empty state, and the typed codes past the three that pin |
-| `detail.js` | a card's detail, inline, from `/module/:code` (fetched once per page): description, prerequisites and preclusions as NUS states them with codes linked to a search, exams, workload, exchange availability per semester, the NUSMods link for class times |
+| `explain.js` | exchange wording (pure): each stamp's words, each note in full with its lead-in word ("Places.", "Your major."), the `semester` note as an action, each source with its "updated as at" date, why a typed code is hidden (its own stored reasons) and its stamp, the partial-code empty state, the typed codes past the three that pin, and the count line for a query of codes only |
+| `detail.js` | a card's detail, inline, from `/module/:code` (fetched once per page): its head (code, title, units, department; "Opened from …" after an "Also as" link), description, prerequisites and preclusions as NUS states them with codes linked to a search, exams, workload, exchange availability per semester, the NUSMods link for class times |
 | `keys.js` | Enter submits only outside IME composition |
 | `intents.js`, `intent-chips.js` | the phrases `/search` read from the query (5F's `interpreted`) as chip labels (pure), and the chip row under the count, each chip's button re-running the search with `ignore=` that phrase; empty while `PARSE_PHRASES` is off |
 | `icons.js` | the stamps' and controls' small line icons, built as SVG nodes, all decorative (`aria-hidden`) |
@@ -279,7 +288,7 @@ partial-code states run on the fixture. 5D's specs: `setup.spec.js` (the first s
 `mobile.spec.js` (F10 and the chips), `fold.spec.js` (the 390×664 fold check, also as an
 iPhone 13, after a shared link and a typed search) and `fonts.spec.js` (self-hosting, weights,
 the plain zero); 5F's `intents.spec.js` tests the phrase chips on intercepted answers. SC8's
-specs (5E): `a11y.spec.js` (axe with every rule on 23 states, both themes, 1280 and 390×664, no
+specs (5E): `a11y.spec.js` (axe with every rule on 24 states, both themes, 1280 and 390×664, no
 violation allowed; the experimental and off-by-default rules are on too, all but AAA's 7:1
 contrast, since the bar is AA; the states the fixture lacks are intercepted), `keyboard.spec.js` (the whole
 task keyboard-only at both widths, each stop's order and computed focus ring; in WebKit on a Mac
@@ -289,7 +298,11 @@ control's accessible name) and `aria.spec.js` (accessibility snapshots, committe
 `test/ui/aria.spec.js-snapshots/` and compared exactly; after a deliberate change,
 `VNM_ARIA_UPDATE=1 npx playwright test aria --project chromium` rewrites them). `shots.spec.js` saves the
 five mockup states from the real page in both themes to `docs/evidence/phase5/shots/` when
-asked (`VNM_SHOTS=1 npx playwright test shots --project chromium`). CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
+asked (`VNM_SHOTS=1 npx playwright test shots --project chromium`). 5G's: `sc2.spec.js` (SC2:
+every fixture code, 434, through `?q=CODE&open=CODE`, each field with the fixture's value or its
+"not listed" text, read by `test/ui/sc2-fields.mjs`, which the live checks share; about 25 s in
+both browsers) and `mockup.spec.js` (the hidden-code stamps and "Switch to Sem 2", "Also as"
+links and "Opened from", the detail's head, the code-only count line). CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
 fixtures, `data/` or the lockfile change. The Phase 4 page is kept frozen as
 `docs/evidence/phase0/page-phase4.html` for the findings tests (`test/findings/frontend.node.test.js`).
 
@@ -323,6 +336,35 @@ touching D1. `vectors` is the bundle's `{ corpus, count, dataVersion }`, so afte
 must say `production`. The page (`/` and the files in `public/`) is static assets, answered
 without running the Worker, so it carries no `x-app-version`: `GET /health` is the version
 trace for `/`, and a deploy ships the page and the Worker as one version.
+
+**Live checks after a page ship** (Phase 5 5G). After a deploy that changes `public/`, from the
+deployed commit on `main`, after the smoke:
+
+```bash
+node scripts/p5-live.mjs --dry-run   # the draw; sends nothing
+node scripts/p5-live.mjs             # about 7 min; exit 0 only if every check passes
+git add docs/evidence/phase5/p5-live.jsonl   # commit the log
+```
+
+It checks the live page in Chromium (and WebKit for the iPhone 13 fold):
+- SC2 on 20 codes drawn with seed 5 from the production-normalised modules
+  (`.data/cache/…-moduleInfo.json`), 4 each with exams in two semesters, a cohort-only
+  prerequisite, no workload, two or more notes, and none of those;
+- axe (every rule but AAA's 7:1) on the first screen, an open detail and a hidden code, light
+  and dark, at 1280 and 390×664;
+- the 390×664 fold, in Chromium and as an iPhone 13 in WebKit;
+- the hidden-code explanation for 3 drawn closed codes (off the NG list, listed for the other
+  semester only, closed by a restriction: line, stamp and switch as the page's rules give them
+  from each code's `/module` answer) and 1 drawn partial code;
+- `/health`: `versionTag` is a prefix of `HEAD`, the data version is `src/data-version.json`'s,
+  and the bundle is `production`.
+
+Every request it or its browsers send starts at least 4 s after the last (about 100 requests).
+The page's files, `/facets` and any answer already fetched are fetched once and then served to
+the browsers from memory. Each request, sent or served from memory, is a line in the JSONL log
+(`--log`, default `docs/evidence/phase5/p5-live.jsonl`), with a summary line at the end. A 429
+is waited out and re-sent twice at most. Against `npm run dev`, `--url http://127.0.0.1:<port>`
+draws from the fixture and expects no version tag.
 
 **Instrumentation.** `/search`, `/module/:code` and `/facets` responses carry a
 `Server-Timing` header. `/search` has spans `cache` (`desc=hit|miss`), `limit`, `pin`,
