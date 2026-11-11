@@ -180,7 +180,8 @@ The lead read the GRO page and the brochure on 2026-11-11; critic C re-read them
   - a FAQ text, "The minimum study workload is 12 units (approximately 3 courses), not more than
     20 units" and "A workload of 20 units would typically require … 50 hours of study per week
     over 13 weeks", which critic C found in round 8 only in copies of older NUS brochures that
-    still say "MCs", not on the current GRO page;
+    still say "MCs"; 6-0 found it on the current GRO page too, in its FAQ and in units
+    (`docs/evidence/phase6/facts.md` §2);
 - NUS Global, "Exchange at NUS" brochure (`https://nus.edu.sg/gro/docs/default-source/prog/sep/
   exchangeatnus.pdf`, "As at 4 Jun 2026"): "select up to [40] units worth of courses in your
   application", "You must be accepted in at least [12] units … before you will receive an offer
@@ -240,9 +241,9 @@ The lead read the GRO page and the brochure on 2026-11-11; critic C re-read them
   `4-isem-no-appeal` and `2-biz-no-late-add`, filed as info only (hidden in search under Q7).
 - **The maximum:** 23 in the brochure only; the CourseReg FAQ limits one course request to 23
   units and offers a Max Workload Waiver above "the allowed maximum workload" without giving
-  it; 20 in the Business School's factsheet, for its own exchange students, in the older FAQ
-  text and on some partner universities' pages (UBC, Calgary). Each limits what a student
-  takes, not what they list. G2.
+  it; 20 in GRO's own FAQ on the exchange page (found there in 6-0), in the Business School's
+  factsheet and FAQ for its own exchange students, and on some partner universities' pages
+  (UBC, Calgary). Each limits what a student takes, not what they list. G2.
 - **Full-year applicants (read by critic C in round 10, not yet by the lead):** NUS's AY2018/19
   exchange info sheet: "Full-year exchange students will be informed via email to select
   modules for semester 2 before semester 1 ends", and the course list is updated "mid-March for
@@ -252,7 +253,10 @@ The lead read the GRO page and the brochure on 2026-11-11; critic C re-read them
   relevant modules". The Registrar's transcript legend: 1 unit is 2.5 hours a week "in a
   regular semester". Business School's factsheet: "During the Online Application, only core BBA
   courses are available"; every nominated student, Business or not, gets an emailed link to
-  apply. G5.
+  apply. G5. **6-0** (`docs/evidence/phase6/facts.md` §4) found no current NUS source either
+  way: GRO puts "NUS Semester 1 … & Full year (August to May)" in one application window (25
+  March to 12 April), and the only text on choosing Sem 2 later is NUS's 2018/19 and March 2019
+  SEP information sheets. So G5 is not asked; the lead takes the recommendation (ADR 0010).
 - **Who uses the page now:** Sem 2 2026/27 students had their results in early November and
   change courses in CourseReg in January, on the data's own year; Sem 1 and full-year 2027/28
   applicants apply from March, on next year's lists.
@@ -639,7 +643,8 @@ whatever their semesters.
   under 40; an entry that would take them past 40 is marked and takes no number ("won't fit in
   NUS's 40 units"), and a later, smaller entry that still fits takes the next number. Past the
   10th numbered entry of a semester each is marked, keeping its number: "NUS has said up to 10
-  courses (pre-departure slides): check". The form line, per semester: "Sem 1 on NUS's form: 36
+  courses (NUS's 2018/19 exchange information sheet): check" (6-0 found no current cap and not
+  the slides; Cornell's current NUS guide also says 10). The form line, per semester: "Sem 1 on NUS's form: 36
   of 40 units". A full-year list's Sem 2 order carries: "NUS has asked full-year students to
   choose Sem 2 courses later, by email before Sem 1 ends (NUS info sheet, 2018/19): check with
   NUS whether to list them now". Exam overlaps never take a number away: the overlap is flagged
@@ -694,8 +699,9 @@ whatever their semesters.
   - level 5 or above and not open at the student's year: "NUS: master-level courses are open
     only to students on a master-level exchange agreement";
 - **lines for applicants:** "NUS recommends listing as many relevant courses as you can, up to
-  40 units" (GRO); NUS's top-three recommendation; "NUS's form asks, for each course,
-  your class choice and the home course that meets its prerequisite" (the application guide);
+  40 units" (GRO); NUS's top-three recommendation; "NUS's form asks, for each course with
+  a prerequisite, the home course that meets it" (the application guide; 6-0 found no class
+  choice in it);
   GRO's "If you did not secure any of the popular courses during the first round … please do
   not repeat your request for any of these courses in subsequent rounds". Which courses are compulsory is the student's to know;
 - **the CourseReg box**, for admitted students: NUS's rules, each quoted and cited, then the
@@ -1122,7 +1128,8 @@ settled, the export question answered or not needed), not set and cleared around
   - a rollback drops `ay`, `inv` and `view` from links it settles;
   - live-region sentences are checked as text, not as speech (the VoiceOver walkthrough was
     dropped in Phase 5);
-  - the full-year form order rests on a 2018/19 NUS sheet until 6-0 finds a current source.
+  - the full-year form order rests on a 2018/19 NUS sheet: 6-0 found no current source (G5
+    not asked; the lead's call, ADR 0010).
 
 ## 5. Exit criteria
 - SC3, measured: lists, ranks, semesters, `ay` and `view` round-trip through the URL, reload,
@@ -1172,6 +1179,11 @@ student is a lead rule too: NUS's own condition, asked only when the list holds 
   pages say 20, so ask NUS before going above 20", as a limit on the courses NUS enrols you in,
   not the courses you list.* The brochure is NUS's current word, but 20 is common enough that a
   student planning 23 should check; one who plans 20 loses nothing.
+  *After 6-0, for the lead to put to Jacob:* one of the pages that says 20 is NUS Global's own
+  exchange page (its FAQ: "not more than 20 units"; `docs/evidence/phase6/facts.md` §2). The
+  answer's advice stands; its words could name that page: "NUS's brochure says at most 23 units
+  a semester; NUS Global's exchange page and NUS Business School say 20, so ask NUS before going
+  above 20".
 - **G3. Remember the list.** Keep the last list this student edited on this device, offered as
   "Restore your last shortlist" when a link has none, with "Forget this list on this device"?
   Opening someone else's link never overwrites it. *Recommended: yes.* A list that lives only

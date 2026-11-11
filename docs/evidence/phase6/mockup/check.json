@@ -1,0 +1,258 @@
+{
+ "axe": [
+  {
+   "state": "results",
+   "w": "desktop",
+   "theme": "light",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "results",
+   "w": "desktop",
+   "theme": "dark",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "results",
+   "w": "phone",
+   "theme": "light",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "results",
+   "w": "phone",
+   "theme": "dark",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "view",
+   "w": "desktop",
+   "theme": "light",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "view",
+   "w": "desktop",
+   "theme": "dark",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "view",
+   "w": "phone",
+   "theme": "light",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "view",
+   "w": "phone",
+   "theme": "dark",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "fullyear",
+   "w": "desktop",
+   "theme": "light",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "fullyear",
+   "w": "desktop",
+   "theme": "dark",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "fullyear",
+   "w": "phone",
+   "theme": "light",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "fullyear",
+   "w": "phone",
+   "theme": "dark",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "print",
+   "w": "desktop",
+   "theme": "light",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "print",
+   "w": "desktop",
+   "theme": "dark",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "print",
+   "w": "phone",
+   "theme": "light",
+   "violations": [],
+   "incomplete": []
+  },
+  {
+   "state": "print",
+   "w": "phone",
+   "theme": "dark",
+   "violations": [],
+   "incomplete": []
+  }
+ ],
+ "fold": [
+  {
+   "theme": "light",
+   "scrollY": 0,
+   "height": 664,
+   "firstCode": "ACC1701XB",
+   "label": "Your shortlistSem 1: 22.5 · Sem 2: 21.5 units picked",
+   "stamps": 2,
+   "parts": {
+    "unofficial": {
+     "top": 11,
+     "bottom": 31,
+     "inView": true
+    },
+    "search": {
+     "top": 55,
+     "bottom": 97,
+     "inView": true
+    },
+    "go": {
+     "top": 55,
+     "bottom": 97,
+     "inView": true
+    },
+    "shortlistButton": {
+     "top": 187,
+     "bottom": 240,
+     "inView": true
+    },
+    "code": {
+     "top": 313,
+     "bottom": 336,
+     "inView": true
+    },
+    "title": {
+     "top": 337,
+     "bottom": 359,
+     "inView": true
+    },
+    "toggle": {
+     "top": 332,
+     "bottom": 358,
+     "inView": true
+    },
+    "stamp1": {
+     "top": 461,
+     "bottom": 485,
+     "inView": true
+    },
+    "stamp2": {
+     "top": 461,
+     "bottom": 485,
+     "inView": true
+    }
+   },
+   "docWidth": 390
+  },
+  {
+   "theme": "dark",
+   "scrollY": 0,
+   "height": 664,
+   "firstCode": "ACC1701XB",
+   "label": "Your shortlistSem 1: 22.5 · Sem 2: 21.5 units picked",
+   "stamps": 2,
+   "parts": {
+    "unofficial": {
+     "top": 11,
+     "bottom": 31,
+     "inView": true
+    },
+    "search": {
+     "top": 55,
+     "bottom": 97,
+     "inView": true
+    },
+    "go": {
+     "top": 55,
+     "bottom": 97,
+     "inView": true
+    },
+    "shortlistButton": {
+     "top": 187,
+     "bottom": 240,
+     "inView": true
+    },
+    "code": {
+     "top": 313,
+     "bottom": 336,
+     "inView": true
+    },
+    "title": {
+     "top": 337,
+     "bottom": 359,
+     "inView": true
+    },
+    "toggle": {
+     "top": 332,
+     "bottom": 358,
+     "inView": true
+    },
+    "stamp1": {
+     "top": 461,
+     "bottom": 485,
+     "inView": true
+    },
+    "stamp2": {
+     "top": 461,
+     "bottom": 485,
+     "inView": true
+    }
+   },
+   "docWidth": 390
+  }
+ ],
+ "pdf": {
+  "tagged": {
+   "file": "docs/evidence/phase6/mockup/print-tagged.pdf",
+   "pages": 6,
+   "bytes": 159648,
+   "structTreeRoot": true,
+   "markInfo": true,
+   "textChars": 14007,
+   "startsWith": "Courses planned for Sem 1, based on NUS’s 2026/27 courses, exams",
+   "hasDescription": true,
+   "hasLink": true,
+   "hasPageBreakBeforeForm": null,
+   "formOrderPage": 6,
+   "firstPageHead": true
+  },
+  "untagged": {
+   "file": "docs/evidence/phase6/mockup/print-untagged.pdf",
+   "pages": 6,
+   "bytes": 100862,
+   "structTreeRoot": false,
+   "markInfo": false,
+   "textChars": 14007,
+   "startsWith": "Courses planned for Sem 1, based on NUS’s 2026/27 courses, exams",
+   "hasDescription": true,
+   "hasLink": true,
+   "hasPageBreakBeforeForm": null
+  }
+ }
+}

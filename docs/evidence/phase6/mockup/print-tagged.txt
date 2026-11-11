@@ -1,0 +1,274 @@
+Courses planned for Sem 1, based on NUS’s 2026/27 courses, exams
+and exchange list
+Year of study during the exchange: 2 · Made on 11 Nov 2026
+https://nusmodfinder.rcn.sh/?
+pick=CS2113.1&pick=GE2101.1&pick=PC3270.1&pick=ACC1701XA.1&alt=CS3244.1&alt=EE4407.1&ay=2026-
+2027&ng=1&sem=1&study=ug2&view=shortlist
+For a later year, check that year’s: NUS publishes the exchange course list in March or April and updates it later
+(this one is dated 1 Sep 2026), and publishes the course descriptions and exam timetable in July or August (NUS
+Global).
+
+
+Sem 1
+
+Primary picks
+
+CS2113 Software Engineering & Object-Oriented Programming                                             Application form, Sem 1
+                                                                                                                              1
+Primary pick 1 · Sem 1 · 4 units
+Department, faculty          Computer Science, Computing
+Level                        Level 1000–3000, undergraduate
+Counts                       Counted, if NUS accepts you into it
+Exchange status, Sem 1               Sem 1 · Open to exchange students
+
+NUS’s notes                  – NUS says these courses are extremely oversubscribed, gives priority to students majoring in
+                               them, and advises students with other majors against choosing them. (NUS Global, Incoming
+                               Exchange Students)
+2026/27 exam                 Mon 30 Nov 2026, 5:00 pm, 1 h 30 min (Singapore time)
+Workload (NUSMods)           10 hours a week: 2 lecture, 1 tutorial, 3 project, 4 preparation
+Estimated study time         about 10 hours a week (NUS’s rate: 2.5 hours a week per unit). NUS states hours a week only; your
+                             university’s own conversion decides credit.
+Prerequisite                 If undertaking an Undergraduate Degree THEN ( must have completed 1 of
+                             CS2040/CS2040C/CS2040DE/CS2040HS/CS2040S at a grade of at least D)
+Preclusion                   If undertaking an Undergraduate Degree THEN ( must not have completed 1 of
+                             CS2103/CS2103DE/CS2103T/CS2113T at a grade of at least D)
+NUSMods                      https://nusmods.com/courses/CS2113
+COURSE DESCRIPTION (NUS, VIA NUSMODS)
+
+This course introduces the necessary skills for systematic and rigorous development of software systems. It covers
+requirements, design, implementation, quality assurance, and project management aspects of small-to-medium size multi-
+person software projects. The course uses the Object Oriented Programming paradigm. Students of this course will receive
+hands-on practice of tools commonly used in the industry, such as test automation tools, build automation tools, and code
+revisioning tools will be covered.
+
+
+GE2101 Methods and Practices in Geography                                                             Application form, Sem 1
+                                                                                                                              2
+Primary pick 2 · Sem 1 · 4 units
+Department, faculty          Geography, Arts and Social Science
+Level                        Level 1000–3000, undergraduate
+Counts                       Counted, if NUS accepts you into it
+Exchange status, Sem 1               Sem 1 · Open, with 1 note
+
+                             – Places. The number of places is limited, so you may not get one (NG restrictions, updated 31
+                               Aug 2026).
+2026/27 exam                  no final exam listed
+Workload (NUSMods)            10 hours a week: 2 lecture, 1 tutorial, 1 lab, 4 project, 2 preparation
+Estimated study time          about 10 hours a week (NUS’s rate: 2.5 hours a week per unit). NUS states hours a week only; your
+                              university’s own conversion decides credit.
+Prerequisite                  None listed
+Preclusion                    None listed
+NUSMods                       https://nusmods.com/courses/GE2101
+COURSE DESCRIPTION (NUS, VIA NUSMODS)
+
+This introductory course on methods has two fundamental aims. In addition to highlight the ‘best practices’ in research, this
+course aims to equip students with a range of practical qualitative and quantitative research skills that will be ‘transferable’ to
+a variety of post-university situations.
+
+
+PC3270 Machine Learning for Physicists                                                                     Application form, Sem 1
+                                                                                                                                  3
+Primary pick 3 · Sem 1 · 4 units
+Department, faculty           Physics, Science
+Level                         Level 1000–3000, undergraduate
+Counts                        To confirm with NUS
+Exchange status, Sem 1             Sem 1 · Open, with 1 note
+
+                              – Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the
+                                department that teaches it whether it will run (NG list, updated 01 Sep 2026).
+2026/27 exam                  no final exam listed
+Workload (NUSMods)            10 hours a week: 2 lecture, 2 tutorial, 3 project, 3 preparation
+Estimated study time          about 10 hours a week (NUS’s rate: 2.5 hours a week per unit). NUS states hours a week only; your
+                              university’s own conversion decides credit.
+Prerequisite                  If undertaking an Undergraduate Degree THEN ( must have completed PC2134 at a grade of at
+                              least D)
+Preclusion                    If undertaking an Undergraduate Degree THEN ( must not have completed 1 of CS3244/IT3011 at
+                              a grade of at least D)
+NUSMods                       https://nusmods.com/courses/PC3270
+COURSE DESCRIPTION (NUS, VIA NUSMODS)
+
+By extracting and predicting insightful correlations within observations of complex physical phenomena, Machine Learning
+(ML) models push the boundaries of data-driven scientific exploration. This couse introduces ML models and their underlying
+principles, including a short overview of foundational statistics and information theory. Furthermore, students will see
+applications of ML models to the Physical Sciences (e.g. optics, statistical physics, condensed matter, biological physics).
+Although this course will be taught in the Python programming language, prior experience in any programming language will
+nonetheless be helpful.
+
+
+ACC1701XA Accounting for Decision Makers                                                                 On the form only if invited
+Primary pick 4 · Sem 1 · 4 units
+Department, faculty           Accounting, NUS Business School
+Level                         Level 1000–3000, undergraduate
+Counts                        Only if invited by NUS Business School (not counted until you say so)
+Exchange status, Sem 1             Sem 1 · Open, with 2 notes
+
+                              – Places. Business courses are very popular, so a place is not guaranteed. NUS students who need
+                                them for their degree, and students from the Business School's own exchange partners, get
+                                places first (NG restrictions, updated 31 Aug 2026).
+                              – Your major. Only for students majoring in business at their home university (NG restrictions,
+                                updated 31 Aug 2026).
+                            – NUS: “Business and Law courses are only available to students who are invited by NUS Business
+                              School and NUS Law respectively to apply for the exchange during the nomination period”.
+                            – If you’re not sure whether you were invited, ask your exchange office.
+                            – NUS’s CourseReg FAQ: “Only students who have been offered Business courses during the
+                              application stage will be able to see the courses during “Submit Course Requests.””
+2026/27 exam                Fri 27 Nov 2026, 2:30 pm, 2 h (Singapore time)
+Workload (NUSMods)          10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation
+Estimated study time        about 10 hours a week (NUS’s rate: 2.5 hours a week per unit). NUS states hours a week only; your
+                            university’s own conversion decides credit.
+Prerequisite                If undertaking an Undergraduate Degree THEN must be in one of the cohorts from 2017 inclusive
+Preclusion                  If undertaking an Undergraduate Degree THEN ((must not be undertaking 1 of 0200ACCHON
+                            Bachelor of Business Administration (Accountancy), 0200BBAHON Bachelor of Business
+                            Administration (Hons), 0200BIZMAJ Bachelor of Business Administration Hons - Undeclared
+                            Major, 0200BREHON Bachelor of Business Administration (Real Estate) Hons, 0200BIZHON
+                            Bachelor of Business Administration Hons - General Management, 0200OSCHON Bachelor of
+                            Business Administration Hons - Operations & Supply Chain Management, 0200MKTHON Bachelor
+                            of Business Administration Hons - Marketing, 0200LHCHON Bachelor of Business Administration
+                            Hons - Leadership & Human Capital Management, 0200ACYHON Bachelor of Business
+                            Administration (Accountancy) Hons, 0200INEHON Bachelor of Business Administration Hons -
+                            Innovation & Entrepreneurship, 0200BECHON Bachelor of Business Administration Hons -
+                            Business Economics, 0200FINHON Bachelor of Business Administration Hons - Finance,
+                            0200ABAHON Bachelor of Business Administration Hons - Applied Business Analytics) OR ( must
+                            not have completed 1 of EC2204 at a grade of at least D, any Courses beginning with ACC1701 at
+                            a grade of at least D))
+NUSMods                     https://nusmods.com/courses/ACC1701XA
+COURSE DESCRIPTION (NUS, VIA NUSMODS)
+
+The course provides an introduction to accounting from a user perspective. Financial reporting is covered from the viewpoint of
+an external investor. The focus is on how accounting can help investors make better decisions. Book-keeping and preparation
+of financial statements are also covered at an introductory level, as investors need to be aware of how the financial statements
+are derived.
+
+
+Backups
+
+EE4407 Analog Electronics                                                                                 Application form, Sem 1
+                                                                                                                               4
+Backup 2 · Sem 1 · 4 units
+Department, faculty         Electrical and Computer Engineering, College of Design and Engineering
+Level                       Level 4000, Honours
+Counts                      To confirm: NUS lists it for Sem 1 in 2026/27, but NUSMods shows no classes: ask NUS
+Exchange status, Sem 1           Sem 1 · Open, with 1 note
+
+                            – Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the
+                               department that teaches it whether it will run (NG list, updated 01 Sep 2026).
+NUS’s notes                 – “Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very
+                               limited supply and are usually NOT available to exchange students. In order to increase the
+                               chances of securing enough courses, incoming exchange students should consider taking
+                               courses with course code starting from 1000 to 3000.” (NUS Global, Incoming Exchange
+                               Students)
+2026/27 exam                exam timetable not published in NUSMods
+Workload (NUSMods)          10 hours a week: 2 lecture, 1 tutorial, 0.5 lab, 1.5 project, 5 preparation
+Estimated study time        about 10 hours a week (NUS’s rate: 2.5 hours a week per unit). NUS states hours a week only; your
+                            university’s own conversion decides credit.
+Prerequisite                 If undertaking an Undergraduate Degree THEN ( must have completed 1 of
+                             CG2027/EE2021/EE2027/ESP1104A at a grade of at least D)
+Preclusion                   (If undertaking a Graduate Degree Coursework THEN ( must not have completed EE3407 at a
+                             grade of at least D)) OR (if undertaking an Undergraduate Degree THEN must not have completed
+                             1 of E3407/EE3407E/TEE3407/TEE4407 at a grade of at least D)
+NUSMods                      https://nusmods.com/courses/EE4407
+COURSE DESCRIPTION (NUS, VIA NUSMODS)
+
+This course builds on the basic concepts in electronics which students learned in earlier courses. This will enable students to
+design complex electronic circuits and systems for processing analog signals. Topics covered: Passive filters, poles and zeros;
+Transistor amplifiers, Negative feedback amplifiers; Oscillators; Mixers, modulators and demodulators for communication
+systems; Instrumentation amplifiers, CMRR; DC power supply design: Linear and switching regulators, current limiting; Power
+amplifiers: Output stage, efficiency and distortion; Active filters; Interconnections: propagation of signal and energy in
+transmission lines; and introduction of design techniques for integrated circuits (IC).
+
+
+Sem 1 totals
+– Picks: 8 units counted, if NUS accepts you into each; plus 4 units to confirm with NUS; plus 4 units only if invited
+– If you were invited: Business courses are very popular, so a place is not guaranteed. NUS students who need them for their
+  degree, and students from the Business School's own exchange partners, get places first.
+– 8 units is about 20 hours a week at NUS’s rate (2.5 hours a week per unit). NUS states hours a week only; your university’s
+  own conversion decides credit.
+– “Each semester normally includes 13 weeks of instruction and 2 weeks of examinations.” (NUS Global)
+– To be admitted, NUS must accept you into at least 12 units in a semester (NUS brochure). NUS’s brochure says at most 23
+  units a semester (NUS Business School’s exchange students: 20); some pages say 20, so ask NUS before going above 20.
+
+
+Closed, or not on NUS’s exchange list, in that semester
+
+CS3244 Machine Learning                                                                                            Not on the form
+Backup 1 · Sem 1 · 4 units
+Department, faculty          Computer Science, Computing
+Level                        Level 1000–3000, undergraduate
+Counts                       Not counted: not on NUS’s 2026/27 exchange course list for Sem 1
+Exchange status, Sem 1            Sem 1 · Not open to exchange students
+
+                             – Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+                             – The Registrar: “If the courses cannot be found at the Course offerings list, they are not available
+                               during application stage but may be available during Course registration.”
+2026/27 exam                 Thu 26 Nov 2026, 5:00 pm, 2 h (Singapore time)
+Workload (NUSMods)           10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation
+Estimated study time         about 10 hours a week (NUS’s rate: 2.5 hours a week per unit). NUS states hours a week only; your
+                             university’s own conversion decides credit.
+Prerequisite                 If undertaking an Undergraduate Degree THEN must have completed 1 of
+                             CS2040/CS2040C/CS2040DE/CS2040HS/CS2040S/YSC2229 at a grade of at least D AND must
+                             have completed 1 of EE2012/EE2012A/MA2116/MA2116T/MA2216/ST2131/ST2334/YSC2243
+                             at a grade of at least D AND ( must have completed all of MA1511/MA1512 at a grade of at least D
+                             OR must have completed 1 of MA1101R/MA1311/MA1508E/MA1513/MA1522/MA2001 at a
+                             grade of at least D AND must have completed 1 of MA1102R/MA1505/MA1507/MA1521/MA2002
+                             at a grade of at least D)
+Preclusion                   If undertaking an Undergraduate Degree THEN ( must not have completed 1 of
+                             BT4240/CG3201/CS2109S/CS3264/DMX1401AI/IT3011 at a grade of at least D)
+NUSMods                      https://nusmods.com/courses/CS3244
+COURSE DESCRIPTION (NUS, VIA NUSMODS)
+This course introduces basic concepts and algorithms in machine learning and neural networks. The main reason for studying
+computational learning is to make better use of powerful computers to learn knowledge (or regularities) from the raw data. The
+ultimate objective is to build self-learning systems to relieve human from some of already-too-many programming tasks. At the
+end of the course, students are expected to be familiar with the theories and paradigms of computational learning, and
+capable of implementing basic learning systems.
+NUS’s application form order, for applicants
+This order uses NUS’s 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1’s list in
+March or April, Sem 2’s later (the 2026/27 list is dated 1 Sep 2026), and the timetable in mid-July: check each
+course there.
+
+Sem 1 on NUS’s form: 16 of 40 units
+
+No.                 Course                             Units                     On your list
+
+1                   CS2113                             4                         Pick 1
+
+2                   GE2101                             4                         Pick 2
+
+3                   PC3270                             4                         Pick 3
+
+4                   EE4407                             4                         Backup 2
+
+– NUS recommends listing as many relevant courses as you can, up to 40 units. (NUS Global)
+– “It is recommended that you rank your compulsory courses among your top three course choices.” (NUS Global)
+– NUS’s form asks, for each course with a prerequisite, the home course that meets it. (NUS’s application guide)
+– “If you did not secure any of the popular courses during the first round … please do not repeat your request for any of these
+  courses in subsequent rounds.” (NUS Global)
+
+
+ALREADY ADMITTED? NUS’S RULES FOR COURSEREG
+
+– Keep at least 12 units or three courses a semester; drop any course that clashes. (NUS Global)
+– On Business, Law and Economics courses: “If you are not successful in gaining placements into these popular courses at the
+    point of offer, you are not able to add these courses during CourseReg.” (NUS Global)
+– Missing the drop deadlines “could lead to a Grade “W” (Withdrawn) or a Grade “F” (Fail) printed on your transcript”. (NUS
+  Global)
+– The Non-Graduating Office signs your Learning Agreement or Study Plan; “no particular course can be guaranteed by NUS”.
+  (NUS Global)
+– A course not approved at application can be requested in “Submit Course Requests”, or appealed as “Unable to secure
+    course”. “Students are not allowed to read courses with any kind of timetable clashes.” You can’t drop below the minimum.
+    “You can select courses up to 23 Units in one course request”; above the maximum, a “Max Workload Waiver” appeal. (NUS
+    CourseReg FAQ)
+– Courses not on the exchange course list “are not available during application stage but may be available during Course
+  registration”. (the Registrar, rule E)
+– “To check if the course is offered to Non-Graduating students, refer to the Vacancy Report.” (NUS CourseReg FAQ)
+– Get your home university’s approval before changing your study plan. (NUS brochure)
+– This page can’t see your offer. Your offer and CourseReg show which courses are yours.
+
+– NUS posts each course’s full syllabus on Canvas when the semester starts; the text here is NUS’s course description (the
+  Registrar’s NG course list).
+– “Transfer of units is entirely at the discretion of your home university.” (NUS Global)
+– NG course list updated as at 01 Sep 2026; NG course restrictions updated as at 31 Aug 2026.
+– Class times and corequisites aren’t checked here.
+– For courses that have prerequisites, NUS asks for the syllabi of the courses you have completed or are taking (NUS
+    brochure).
+– Unofficial. Check with NUS before you register. NUS Mod Finder, nusmodfinder.rcn.sh
+
