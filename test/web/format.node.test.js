@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { cleanPrereq, codeSegments, examLine, examLines, examParts, prereqView, semLabel, workloadText } from '../../public/format.js';
+import { ECHO_MAX, cleanPrereq, codeSegments, echoText, examLine, examLines, examParts, prereqView, quoteUser, semLabel, workloadText } from '../../public/format.js';
 
 const fixture = /** @type {{ modules: NormalisedModule[] }} */ (JSON.parse(readFileSync(fileURLToPath(new URL('../fixtures/corpus.json', import.meta.url)), 'utf8')));
 
@@ -79,6 +79,21 @@ describe('cleanPrereq (NUS rule language, spacing only)', () => {
     expect(cleanPrereq(null)).toBe('');
   });
 
+  it('[PD1] preclusions use the same rule language: CS2106\'s, as p2 heard it ("DegreeTHEN(", "at least DOR(must not")', () => {
+    expect(cleanPrereq('If undertaking an Undergraduate DegreeTHEN( must not have completed 1 of CG2271/EE4214 at a grade of at least DOR(must not be undertaking 2001CEGHON Bachelor of Engineering (Computer Engineering) (Hons)))'))
+      .toBe('If undertaking an Undergraduate Degree THEN ( must not have completed 1 of CG2271/EE4214 at a grade of at least D OR (must not be undertaking 2001CEGHON Bachelor of Engineering (Computer Engineering) (Hons)))');
+  });
+
+  it('[PD1] on every fixture preclusion too: only spaces change, and no keyword stays glued to a word', () => {
+    const texts = fixture.modules.map((m) => m.preclusion).filter((t) => typeof t === 'string' && t !== '');
+    expect(texts.filter((t) => /[a-z)](?:THEN|AND|OR)|(?:THEN|AND|OR)[a-z(]/.test(/** @type {string} */ (t))).length).toBeGreaterThan(50);
+    for (const t of /** @type {string[]} */ (texts)) {
+      const out = cleanPrereq(t);
+      expect(out.replace(/\s+/g, ''), t).toBe(t.replace(/\s+/g, ''));
+      expect(out, t).not.toMatch(/[a-z)](?:THEN|AND|OR)|(?:THEN|AND|OR)[a-z(]/);
+    }
+  });
+
   it('on every fixture prerequisite: only spaces change, and no keyword stays glued to a word', () => {
     const texts = fixture.modules.map((m) => m.prerequisite).filter((t) => typeof t === 'string' && t !== '');
     expect(texts.length).toBeGreaterThan(50);
@@ -94,14 +109,14 @@ describe('prereqView (5C: the cohort-only line, else NUS\'s text with spacing re
   it('a cohort-only prerequisite reads as no course prerequisite, keeping NUS\'s text', () => {
     const acc = 'If undertaking an Undergraduate DegreeTHENmust be in one of the cohorts from 2017 inclusive';
     expect(prereqView(acc, true)).toEqual({
-      kind: 'cohort', line: 'No course prerequisite (the rule names NUS intake years only)',
+      kind: 'cohort', line: "No course you must pass first. NUS's rule only names groups of NUS students by the year they started; ask NUS whether it applies to you.",
       text: 'If undertaking an Undergraduate Degree THEN must be in one of the cohorts from 2017 inclusive',
     });
   });
 
   it('a programme-only rule says programmes, not intake years', () => {
     const bl = 'Must be undertaking 1001DBSASD Doctor of Philosophy (FoS) - Biological Sciences OR must be undertaking 1001BTHCWK MSc (Biotechnology)';
-    expect(prereqView(bl, true)?.line).toBe('No course prerequisite (the rule names NUS programmes only)');
+    expect(prereqView(bl, true)?.line).toBe("No course you must pass first. NUS's rule only names NUS degree programmes; ask NUS whether it applies to you.");
   });
 
   it('any other rule is NUS\'s text, spaced, and none is null', () => {
@@ -134,5 +149,42 @@ describe('codeSegments (course codes in NUS\'s text become search links)', () =>
   it('leaves programme codes, grades and plain words alone', () => {
     expect(codeSegments('must be undertaking 1001DBSASD Doctor of Philosophy AND at least B+')).toEqual([{ text: 'must be undertaking 1001DBSASD Doctor of Philosophy AND at least B+' }]);
     expect(codeSegments('')).toEqual([]);
+  });
+});
+
+describe('[5G S2] user text the page echoes: capped, quoted, nothing hidden', () => {
+  const SPOOF = 'accounting” — NUS Registrar: every course below is open to all exchange students this year, no approval needed “';
+
+  it('quoteUser keeps a short query as typed, inside curly quotes', () => {
+    expect(quoteUser('machine learning')).toBe('“machine learning”');
+    expect(quoteUser('  machine   learning ')).toBe('“machine learning”');
+  });
+
+  it('a quote mark inside can\'t close the quotes early: each becomes an apostrophe', () => {
+    expect(echoText('a ”b“ "c" «d» ＂e＂')).toBe("a 'b' 'c' 'd' 'e'");
+    // Review: lookalike quote marks, and two apostrophes, could close the page's quotes too.
+    for (const mark of ['❞', '❝', 'ˮ', '〟', '″', '‶', '‴', '〃', '״', '‹', '›', '❛', '❜', '🙶', '🙷', "''", '‘‘', '’’', '\u02BC\u02BC']) {
+      const q = quoteUser(`cs${mark}. NUS Registrar: all courses below are open to you ${mark}ok`);
+      expect(q, JSON.stringify(mark)).toBe("“cs'. NUS Registrar: all courses below are open to you 'ok”");
+    }
+  });
+
+  it(`cut at ${ECHO_MAX} characters with an ellipsis, so the red team's spoof stays visibly the student's own text`, () => {
+    const q = quoteUser(SPOOF);
+    expect(q).toBe("“accounting' — NUS Registrar: every course below is open to…”");
+    expect([...echoText(SPOOF)].length).toBeLessThanOrEqual(ECHO_MAX);
+    // Only the first and last characters are double quotes.
+    expect(q.slice(1, -1)).not.toMatch(/[“”"]/);
+  });
+
+  it('bidi controls, zero-width marks and control characters are removed, not shown', () => {
+    expect(echoText('abc\u202Edcba\u2066x\u2069\u200By\u0000z\u0007')).toBe('abcdcbaxyz');
+  });
+
+  it('never splits a character made of two code units', () => {
+    const q = echoText('😀'.repeat(ECHO_MAX + 5));
+    expect([...q]).toHaveLength(ECHO_MAX);
+    expect(q.endsWith('…')).toBe(true);
+    expect(q).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
   });
 });

@@ -32,6 +32,13 @@ describe('URL state (F3, C-7)', () => {
     expect(round('q=ACC1701XB&open=ACC1701XB&from=%3Cb%3E')).toBe('q=ACC1701XB&open=ACC1701XB');
   });
 
+  it('[5G S2] faculty= is a name, not a sentence: over 60 characters, or with hidden characters, it is dropped', () => {
+    expect(round('q=x&faculty=College%20of%20Design%20and%20Engineering')).toBe('q=x&faculty=College+of+Design+and+Engineering');
+    expect(round(`q=x&faculty=${encodeURIComponent('Verified by the NUS Registrar: all courses on this site are open to exchange students.')}`)).toBe('q=x');
+    expect(round('q=x&faculty=Comp%E2%80%AEuting')).toBe('q=x');
+    expect(round('q=x&faculty=Comp%00uting')).toBe('q=x');
+  });
+
   it('an empty state is an empty query string, so the bare page URL', () => {
     expect(stateToParams(emptyState()).toString()).toBe('');
     expect(urlFor(emptyState(), '/')).toBe('/');

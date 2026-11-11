@@ -4,22 +4,22 @@
   - list:
     - listitem:
       - paragraph: CS3244 Machine Learning
-      - paragraph: Not in Sem 1
+      - paragraph: Not on the NG list for Sem 1
       - paragraph: CS3244 is open to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
       - button "Switch to Sem 2 to see CS3244"
     - listitem:
       - paragraph: CS5562 Trustworthy Machine Learning
-      - paragraph: Not offered
+      - paragraph: Not for exchange students
       - paragraph: CS5562 isn't on the Registrar's list of courses offered to exchange students (NG list, updated 01 Sep 2026).
     - listitem:
       - paragraph: AR5801 Options Design Research Studio 1
       - paragraph: Not open in Sem 1
-      - paragraph: AR5801 isn't open to exchange students in Sem 1 at 2nd year. Level 5000 and 6000 courses are not open to exchange students unless a department says so (NG restrictions, updated 31 Aug 2026).
+      - paragraph: AR5801 isn't open to 2nd-year exchange students in Sem 1. Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).
     - listitem:
       - paragraph: CS1001
       - paragraph: Not this year
       - paragraph: CS1001 isn't offered this academic year.
-  - paragraph: Only the first three course codes you type that are offered this year are pinned to the top of the results.
+  - paragraph: "The results put at most three of the codes you type at the top: the first three that NUS offers this year."
   - paragraph: "NG list: the NUS Registrar's list of courses offered to exchange (“non-graduating”) students."
 - paragraph:
   - strong: 20 courses

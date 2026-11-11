@@ -2,6 +2,7 @@
 // The page's source as a whole (Phase 5 5B): static assets in public/ that
 // never shadow an API path, DOM-only rendering enforced by lint (F8), and
 // Enter that waits for IME composition (F9).
+import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +21,7 @@ const read = (/** @type {string} */ rel) => readFileSync(join(ROOT, rel), 'utf8'
 describe('static assets', () => {
   it('public/ holds the page, its stylesheet, its ES modules and its self-hosted fonts, with no build output', () => {
     expect(files).toEqual(expect.arrayContaining(['/index.html', '/styles.css', '/app.js', '/state.js', '/nav.js', '/api.js', '/messages.js', '/format.js', '/keys.js', '/dom.js', '/render.js', '/explain.js', '/detail.js', '/icons.js', '/fonts/OFL.txt']));
-    for (const f of files) expect(f, f).toMatch(/^\/fonts\/[\w-]+\.(woff2|txt)$|^\/[\w-]+\.(html|css|js|svg|ico|png|txt)$/);
+    for (const f of files) expect(f, f).toMatch(/^\/fonts\/[\w-]+\.(woff2|txt)$|^\/[\w-]+\.(html|css|js|svg|ico|png|txt)$|^\/_headers$/);
   });
 
   it('no file in public/ matches an API path, so every API request still reaches the Worker', () => {
@@ -131,5 +132,55 @@ describe('accessibility in the source (5E, F5)', () => {
     expect(read('public/render.js')).toContain("t.results.setAttribute('aria-busy', String(busy))");
     // Disabling the focused Search button dropped focus to the page (F5); nothing is disabled now.
     expect(scripts).not.toMatch(/\.disabled\s*=\s*true|setAttribute\('disabled'|toggleAttribute\('disabled'/);
+  });
+});
+
+describe('[5G S3] public/_headers: the page can\'t be framed, and runs only its own code', () => {
+  /** The rules as Workers Static Assets reads them: a path line, then indented "Name: value" lines. */
+  const rules = (() => {
+    /** @type {Record<string, Record<string, string>>} */
+    const out = {};
+    let path = '';
+    for (const line of read('public/_headers').split('\n')) {
+      if (!line.trim() || line.trim().startsWith('#')) continue;
+      if (!/^\s/.test(line)) { path = line.trim(); out[path] = {}; continue; }
+      const at = line.indexOf(':');
+      out[path][line.slice(0, at).trim().toLowerCase()] = line.slice(at + 1).trim();
+    }
+    return out;
+  })();
+  const all = rules['/*'] ?? {};
+  /** @type {Record<string, string[]>} */
+  const csp = Object.fromEntries((all['content-security-policy'] ?? '').split(';').map((d) => d.trim()).filter(Boolean)
+    .map((d) => { const [name, ...values] = d.split(/\s+/); return [name, values]; }));
+
+  it('every path forbids framing, both ways, and sniffing', () => {
+    expect(Object.keys(rules)).toEqual(['/*']);
+    expect(all['x-frame-options']).toBe('DENY');
+    expect(csp['frame-ancestors']).toEqual(["'none'"]);
+    expect(all['x-content-type-options']).toBe('nosniff');
+  });
+
+  it('the CSP allows only the page\'s own files, and nothing inline but the one hashed script', () => {
+    expect(csp['default-src']).toEqual(["'none'"]);
+    for (const d of ['style-src', 'font-src', 'connect-src', 'img-src', 'manifest-src']) expect(csp[d], d).toEqual(["'self'"]);
+    expect(csp['base-uri']).toEqual(["'none'"]);
+    expect(csp['form-action']).toEqual(["'self'"]);
+    expect(Object.values(csp).flat()).not.toContain("'unsafe-inline'");
+    expect(Object.values(csp).flat()).not.toContain("'unsafe-eval'");
+    // script-src: 'self' and a hash for each inline <script> in index.html, so changing one fails here.
+    const html = read('public/index.html');
+    const inline = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => `'sha256-${createHash('sha256').update(m[1]).digest('base64')}'`);
+    expect(inline).toHaveLength(1);
+    expect(csp['script-src']).toEqual(["'self'", ...inline]);
+  });
+
+  it('nothing in the page writes a style attribute or loads from another origin (the CSP would block it)', () => {
+    for (const f of files.filter((x) => /\.(js|html|css)$/.test(x))) {
+      const text = read(`public${f}`);
+      expect(text, f).not.toMatch(/setAttribute\(\s*['"]style|\sstyle="|<style[\s>]/);
+      expect(text, f).not.toMatch(/(?:src|href)="https?:\/\/(?!nusmods\.com|www\.nus\.edu\.sg|nus\.edu\.sg)/);
+      expect(text, f).not.toMatch(/url\(\s*["']?(?:https?:|data:)/);
+    }
   });
 });

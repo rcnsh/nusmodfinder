@@ -11,7 +11,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
 import { reasonsFor } from '../src/ng-reasons.js';
 import { searchCacheKey } from '../src/search.js';
-import { oracle } from './sc1/oracle.node.mjs';
+import { oracle, oracleShown, yearNoteOf } from './sc1/oracle.node.mjs';
 import { BASE, adminCall, callJson, fixture, seed } from './helpers.js';
 
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
@@ -187,11 +187,83 @@ describe('result cards and /module/:code (4C)', () => {
   });
 
   it('an id the reason texts don\'t know gets a generic text, never an error', () => {
-    expect(reasonsFor(['no-such-rule'])).toEqual([{ id: 'no-such-rule', kind: 'unknown', text: expect.stringMatching(/source documents/) }]);
+    expect(reasonsFor(['no-such-rule'])).toEqual([{ id: 'no-such-rule', kind: 'unknown', text: expect.stringMatching(/can't show the rule/) }]);
   });
 
   it('/facets names the exchange-mode sources with their dates', async () => {
     const { body } = await callJson('/facets');
     expect(body.ngSources.map((/** @type {any} */ s) => s.updatedAsAt)).toEqual(['01 Sep 2026', '31 Aug 2026']);
+  });
+});
+
+describe('R3 (ADR 0008): the year-of-study note, read from the prerequisite on every path', () => {
+  // ESE3101: on the NG list for Sem 2; its prerequisite binds every undergraduate to Year 2, 3 or 4.
+  const ese = /** @type {NormalisedModule} */ (moduleOf.get('ESE3101'));
+  const YEAR = 'prereq:year-of-study';
+  /** @param {any} e */
+  const ids = (e) => (e?.reasons ?? []).map((/** @type {any} */ r) => r.id);
+
+  it('the fixture has the case: the oracle opens ESE3101 in Sem 2 to every year, and R3 notes it for a 1st-year only', () => {
+    expect(ese.prerequisite).toMatch(/must be Year 2,3 or 4/);
+    for (const study of STUDIES) expect(oracle(ese, { sem: 2, study }), study).toBe('open');
+    expect(STUDIES.map((study) => yearNoteOf(ese, study) !== null)).toEqual([true, false, false, false, false]);
+  });
+
+  it('a 1st-year sees it open with the note on the pin, the bundle, a vector search, the standby and the mask route; a 2nd-year and a graduate without', async () => {
+    for (const study of STUDIES) {
+      for (const [q, extra, envOver] of /** @type {[string, string, Record<string, string>][]} */ ([
+        ['ESE3101', '&mode=lexical', {}], ['resource management circular economy', '', {}],
+        ['resource management circular economy', '&mode=vector', {}], ['resource management circular economy', '', { DENSE_BACKEND: 'vectorize' }],
+        ['ESE3', '', {}],
+      ])) {
+        const path = `/search?q=${encodeURIComponent(q)}&ng=1&study=${study}&sem=2&topK=50${extra}`;
+        const { body } = await callJson(path, { fakes, env: envOver });
+        const card = body.results.find((/** @type {any} */ r) => r.code === 'ESE3101');
+        const where = `${path} ${envOver.DENSE_BACKEND ?? ''}`;
+        expect(card, where).toBeDefined();
+        expect(card.exchange.status, where).toBe(oracleShown(ese, { sem: 2, study }));
+        expect(ids(card.exchange).includes(YEAR), where).toBe(study === 'ug1');
+      }
+    }
+  });
+
+  it('the note\'s text names the years and the next step, after the stored reasons', async () => {
+    const { body } = await callJson('/search?q=ESE3101&ng=1&study=ug1&sem=2&mode=lexical', { fakes });
+    const card = body.results.find((/** @type {any} */ r) => r.code === 'ESE3101');
+    expect(card.exchange).toEqual({
+      status: 'note',
+      reasons: [{ id: YEAR, kind: 'year', text: 'NUS lists this course for Year 2, 3 or 4 students. Ask the department whether your year at your home university counts.' }],
+    });
+    // The prerequisite itself is not part of a card.
+    expect(card.prerequisite).toBeUndefined();
+  });
+
+  it('exchangeBySem: with no semester, Sem 2 carries the note and Sem 1 stays closed without it', async () => {
+    const { body } = await callJson('/search?q=ESE3101&ng=1&study=ug1&mode=lexical', { fakes });
+    const card = body.results.find((/** @type {any} */ r) => r.code === 'ESE3101');
+    expect(card.exchange.status).toBe(oracleShown(ese, { sem: 'any', study: 'ug1' }));
+    expect(ids(card.exchange)).toContain(YEAR);
+    expect(card.exchangeBySem[2].status).toBe('note');
+    expect(ids(card.exchangeBySem[2])).toEqual([YEAR]);
+    expect(card.exchangeBySem[1].status).toBe('closed');
+    expect(ids(card.exchangeBySem[1])).not.toContain(YEAR);
+  });
+
+  it('/module/:code: all 15 entries equal the oracle with R3, the note only where a shown entry is below Year 2', async () => {
+    const { body } = await callJson('/module/ESE3101');
+    expect(body.exchange).toHaveLength(15);
+    for (const e of body.exchange) {
+      const where = `${e.sem} ${e.study}`;
+      expect(e.status, where).toBe(oracleShown(ese, { sem: e.sem, study: e.study }));
+      expect(ids(e).includes(YEAR), where).toBe(e.status !== 'closed' && e.study === 'ug1');
+    }
+  });
+
+  it('never hides or shows a course: the set shown for each study level is the stored one', async () => {
+    for (const study of STUDIES) {
+      const { body } = await callJson(`/search?q=resource%20management&ng=1&study=${study}&sem=2&topK=50`, { fakes });
+      for (const code of shown(body)) expect(shownByOracle(code, 2, study), `${study} ${code}`).toBe(true);
+      expect(shown(body), study).toContain('ESE3101');
+    }
   });
 });

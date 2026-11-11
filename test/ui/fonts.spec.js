@@ -85,7 +85,9 @@ test('neither face draws a slashed or dotted zero: the middle of every 0 the pag
     }, features);
     const png = (await el.screenshot()).toString('base64');
     return page.evaluate(async (b64) => {
-      const bmp = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob());
+      // Decoded in place, not fetched: the page's CSP (connect-src 'self', 5G S3) refuses a data: fetch.
+      const bytes = Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
+      const bmp = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
       const c = new OffscreenCanvas(bmp.width, bmp.height);
       const ctx = /** @type {OffscreenCanvasRenderingContext2D} */ (c.getContext('2d'));
       ctx.drawImage(bmp, 0, 0);

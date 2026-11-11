@@ -20,7 +20,7 @@ import { moduleWorkload } from './workload.js';
  * }} ModuleRow
  * @typedef {Pick<ModuleRow, 'code' | 'title' | 'department' | 'faculty' | 'credits' | 'level' | 'semesters' | 'ng' | 'ng_semesters'
  *   | 'exam_semesters' | 'su' | 'grading_basis' | 'workload_hours' | 'prereq_none' | 'prereq_cohort_only'
- *   | 'ng_allow' | 'ng_rules' | 'exam_dates'>} ResultRow
+ *   | 'ng_allow' | 'ng_rules' | 'exam_dates'> & { year_prereq?: string | null }} ResultRow
  *   The columns a search result renders (rowToModule) and filters on (pin, dense rows, 3H).
  * @typedef {{ updatedAsAt: string | null, source: string | null, count: number }} NgList
  *   Provenance of data/ng-courses-*.json, written to meta('ng_list') by ingest.
@@ -50,9 +50,13 @@ const MODULE_CACHE = Object.freeze({ ok: 'public, max-age=300', notFound: 'publi
 export const nusmodsUrl = (code) => `https://nusmods.com/courses/${code}`;
 
 // /search: only what rowToModule renders and the pin's filter check reads.
-// 5C-api adds exam_dates, answered as each result's `examDates`.
+// 5C-api adds exam_dates, answered as each result's `examDates`. R3 (ADR 0008)
+// adds `year_prereq`: the prerequisite, only where it mentions a year (the
+// rest read NULL, so B8's hydrate stays small), for the year-of-study note
+// (src/year-note.js). The text itself is not answered; the same rows are read.
 export const RESULT_COLUMNS = 'code, title, department, faculty, credits, level, semesters, ng, ng_semesters, '
-  + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules, exam_dates';
+  + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules, exam_dates, '
+  + "CASE WHEN prerequisite LIKE '%year%' THEN prerequisite END AS year_prereq";
 
 /**
  * A read on the nearest replica, or the primary when replication is off.

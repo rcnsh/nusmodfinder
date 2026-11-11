@@ -35,7 +35,7 @@
     ],
     "notCodeRe": "^LSM"
    },
-   "reason": "Medicine courses other than LSM-coded ones are not open to exchange students.",
+   "reason": "Medicine courses are not open to exchange students. This rule does not cover courses whose code starts with LSM.",
    "cite": "restrictions PDF §A, p1",
    "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Yong Loo Lin School of Medicine (Course codes that do not start with LSM only)"
   },
@@ -2598,7 +2598,7 @@
     ],
     "titleRe": "\\bUROPS?\\b|Undergraduate Research Opportunit"
    },
-   "reason": "UROP courses in Arts & Social Sciences are not open to exchange students.",
+   "reason": "Undergraduate research courses (UROP) in Arts & Social Sciences are not open to exchange students.",
    "cite": "restrictions PDF §C, p1",
    "quote": "Undergraduate Research Opportunities Programme offered by the College/ Faculty/ School below are NOT available to Non-Graduating applicants/ students. a. Arts & Social Sciences"
   },
@@ -2611,7 +2611,7 @@
     ],
     "titleRe": "\\bUROPS?\\b|Undergraduate Research Opportunit"
    },
-   "reason": "UROP courses in Design & Engineering are not open to exchange students.",
+   "reason": "Undergraduate research courses (UROP) in Design & Engineering are not open to exchange students.",
    "cite": "restrictions PDF §C, p1",
    "quote": "Undergraduate Research Opportunities Programme offered by the College/ Faculty/ School below are NOT available to Non-Graduating applicants/ students. b. Design & Engineering"
   },
@@ -2652,7 +2652,7 @@
      "Centre for Language Studies"
     ]
    },
-   "reason": "Language courses must be taken on a graded basis (no audit).",
+   "reason": "You must take it for a grade. You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §1 (Centre for Language Studies), p3",
    "quote": "Language courses can be taken only on graded basis; cannot be set to audit grading basis."
   },
@@ -2839,7 +2839,7 @@
      6
     ]
    },
-   "reason": "Graduate courses need case-by-case approval.",
+   "reason": "You need approval to take a graduate course. NUS decides each request separately; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (English, Linguistics & Theatre Studies), p3",
    "quote": "Level 5000 and 6000 Graduate Courses – Approval will be granted on a case-by-case basis."
   },
@@ -2874,7 +2874,7 @@
      "GE3252"
     ]
    },
-   "reason": "Limited quota.",
+   "reason": "The number of places is limited, so you may not get one.",
    "cite": "restrictions PDF §1 (Geography), p3",
    "quote": "Courses with limited quota",
    "titles": [
@@ -2954,7 +2954,7 @@
      "AS3240"
     ]
    },
-   "reason": "Limited quota.",
+   "reason": "The number of places is limited, so you may not get one.",
    "cite": "restrictions PDF §1 (History), p4",
    "quote": "Courses cross-listed with HY coded courses and with limited quota",
    "titles": [
@@ -3005,7 +3005,7 @@
    "match": {
     "codeRe": "^FMA120\\dH$"
    },
-   "reason": "History freshmen seminars are not open to exchange students.",
+   "reason": "History first-year seminars are not open to exchange students.",
    "cite": "restrictions PDF §1 (History), p4",
    "quote": "All History (Honours) Level 4000 courses and Freshmen seminar courses FMA120XH are NOT open to Non-Graduating students."
   },
@@ -3054,7 +3054,7 @@
      4
     ]
    },
-   "reason": "Level 4000 courses need case-by-case approval.",
+   "reason": "You need approval to take a level 4000 course. NUS decides each request separately; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (Japanese Studies), p4",
    "quote": "All Level 4000 courses – Approval will be done on a case-by-case basis."
   },
@@ -3067,7 +3067,7 @@
      "Malay Studies"
     ]
    },
-   "reason": "Cannot be audited.",
+   "reason": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §1 (Malay Studies), p4",
    "quote": "All courses cannot be audited."
   },
@@ -3106,7 +3106,7 @@
      6
     ]
    },
-   "reason": "Graduate courses need case-by-case approval.",
+   "reason": "You need approval to take a graduate course. NUS decides each request separately; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (Malay Studies), p4",
    "quote": "Graduate Courses - Approval will be done on a case-by-case basis."
   },
@@ -3186,7 +3186,7 @@
      4
     ]
    },
-   "reason": "Level 4000 courses by appeal only.",
+   "reason": "You can get a place in a level 4000 course only by appeal, and only if places are left. Appeal when NUS opens the “Unable to secure Course” appeal; an appeal sent earlier is rejected.",
    "cite": "restrictions PDF §1 (Psychology), p4",
    "quote": "Level 4000 courses (excluding research courses) – Only appeals for courses with remaining availability will be considered, and will be reviewed on a case-by-case basis when the \"Unable to secure Course\" appeal type opens. Appeals submitted before that will be rejected."
   },
@@ -3331,7 +3331,7 @@
      6
     ]
    },
-   "reason": "Graduate courses are subject to approval.",
+   "reason": "You need approval to take a graduate course; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (Sociology and Anthropology), p4",
    "quote": "Graduate Courses (Level 5000 or 6000 courses) - Only open to Non-Graduating graduate students and subject to approval."
   },
@@ -3344,7 +3344,7 @@
      "South Asian Studies"
     ]
    },
-   "reason": "Cannot be audited.",
+   "reason": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §1 (South Asian Studies), p4",
    "quote": "All courses cannot be audited."
   },
@@ -3383,7 +3383,7 @@
      6
     ]
    },
-   "reason": "Graduate courses need case-by-case approval.",
+   "reason": "You need approval to take a graduate course. NUS decides each request separately; ask NUS how to apply.",
    "cite": "restrictions PDF §1 (South Asian Studies), p5",
    "quote": "Graduate Courses - Approval will be done on a case-by-case basis."
   },
@@ -3470,7 +3470,7 @@
      "Southeast Asian Studies"
     ]
    },
-   "reason": "Cannot be audited.",
+   "reason": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §1 (Southeast Asian Studies), p5",
    "quote": "All courses cannot be Audited."
   },
@@ -3483,7 +3483,7 @@
      "SE3234"
     ]
    },
-   "reason": "Apply with the department's form; not open for online selection.",
+   "reason": "You cannot choose this course in NUS's online course registration. Apply with the Southeast Asian Studies department's application form, in the application period of the semester it runs (email fasbox59@nus.edu.sg for details).",
    "cite": "restrictions PDF §1 (Southeast Asian Studies), p5",
    "quote": "SE3234 – Course is NOT open for online selection. Interested Non-Graduating students are required to submit application using the department’s application form that is available during application period in the semester that the Course is offered. Please send an email to fasbox59@nus.edu.sg for more details.",
    "titles": [
@@ -3564,7 +3564,7 @@
      4
     ]
    },
-   "reason": "Business courses are over-subscribed and not guaranteed.",
+   "reason": "Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first.",
    "cite": "restrictions PDF §2, p6",
    "quote": "Level 1000 to 4000 courses: Please note that courses from the NUS Business School are extremely popular, over-subscribed and cannot be guaranteed. As such, priorities in allocating Business courses will be given firstly to our full-time NUS undergraduates who reading these Business courses as their core courses as well as exchange students from the Business School faculty-level exchange partners."
   },
@@ -3607,7 +3607,7 @@
    "match": {
     "codeRe": "^BMA\\d"
    },
-   "reason": "Only for graduate students from Business School partner universities with 1.5+ years of work experience.",
+   "reason": "Only for graduate students from a university that is an exchange partner of NUS Business School, with at least 1.5 years of work experience after their bachelor's degree.",
    "cite": "restrictions PDF §2, p6",
    "quote": "Only students who are currently pursuing a graduate degree in the NUS Business School’s faculty-level exchange partner universities AND have at least 1.5 years of post-bachelor work experience will be considered for admission to read MBA courses (i.e. Course codes with prefix BMA)."
   },
@@ -3631,7 +3631,7 @@
    "match": {
     "codeRe": "^BMS\\d"
    },
-   "reason": "Only for students nominated by a CEMS partner school.",
+   "reason": "Only for students whom a CEMS member school has nominated for the CEMS Master's in International Management. Ask your exchange office if this applies to you.",
    "cite": "restrictions PDF §2, p6",
    "quote": "Level 5000 courses with prefix BMS: Only students who are nominated by a CEMS partner school for CEMS Master’s in International Management programme will be considered for admission to read these courses."
   },
@@ -3861,7 +3861,7 @@
    "match": {
     "codeRe": "^CG\\d"
    },
-   "reason": "Listed as open, but the School of Computing's restrictions say all CG-coded courses are not open; check with NUS.",
+   "reason": "The NG list offers this course to exchange students, but the School of Computing says no course whose code starts with CG is open to them. Ask NUS before you choose it.",
    "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p7",
    "quote": "All CG coded courses are NOT open to Non-Graduating students."
   },
@@ -3889,7 +3889,7 @@
      "CG2271"
     ]
    },
-   "reason": "Listed as not available to exchange students.",
+   "reason": "Listed by the Multidisciplinary Programme as not available to exchange students.",
    "cite": "restrictions PDF §3 (Multidisciplinary Programme), p7",
    "quote": "Courses NOT available to NG students",
    "titles": [
@@ -4388,7 +4388,7 @@
      "DEP5102"
     ]
    },
-   "reason": "Cannot be audited.",
+   "reason": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §4 (Architecture), p9",
    "quote": "(Reading the Course on Audit basis is not permitted)",
    "titles": [
@@ -4419,7 +4419,7 @@
      "LAD4008"
     ]
    },
-   "reason": "Needs a letter from your home university stating your design year.",
+   "reason": "You need a letter from your home university saying which year's design course you should take at NUS.",
    "cite": "restrictions PDF §4 (Architecture), p9",
    "quote": "Students are required to submit a letter of confirmation from the student’s home university to state the year of design Course that they should be enrolled in during their exchange at if they wish to take the following Design courses",
    "titles": [
@@ -4544,7 +4544,7 @@
      "AR5321"
     ]
    },
-   "reason": "Cannot be audited.",
+   "reason": "You cannot audit it (attend without a grade).",
    "cite": "restrictions PDF §4 (Architecture), p10",
    "quote": "(Reading the course on Audit basis is not permitted",
    "titles": [
@@ -4871,7 +4871,7 @@
      "PF4309"
     ]
    },
-   "reason": "Limited quota.",
+   "reason": "The number of places is limited, so you may not get one.",
    "cite": "restrictions PDF §4 (Built Environment), p11",
    "quote": "Courses available to NG students with limited quota (Semester 1: PF2102 ... GESS1014; Semester 2: PF2203 ... PF4306)",
    "titles": [
@@ -5021,7 +5021,7 @@
      4
     ]
    },
-   "reason": "Must be taken on a graded basis.",
+   "reason": "You must take it for a grade.",
    "cite": "restrictions PDF §4 (Built Environment), p11",
    "quote": "Building undergraduate courses must be taken on graded basis."
   },
@@ -5641,7 +5641,7 @@
    "match": {
     "codeRe": "^ID\\d"
    },
-   "reason": "Industrial Design courses must be taken on a graded basis.",
+   "reason": "You must take it for a grade.",
    "cite": "restrictions PDF §4 (Division of Industrial Design), p14",
    "quote": "Industrial Design Courses must be taken on graded basis."
   },
@@ -5853,7 +5853,7 @@
     ],
     "notInList": "ystElectives"
    },
-   "reason": "Only for students from YST Conservatory's partner institutions.",
+   "reason": "Only for students from universities that partner with NUS's Yong Siew Toh Conservatory of Music. Ask your exchange office if yours is one.",
    "cite": "restrictions PDF §6, p15",
    "quote": "Non-graduating students from non-YST Conservatory’s partner institutions are eligible to read Music electives listed HERE."
   },
@@ -5875,7 +5875,7 @@
      "MUT3223"
     ]
    },
-   "reason": "Needs an audition or placement test; allocated after you pass it.",
+   "reason": "You must pass an audition or placement test, and you can't choose it in the normal application. You get a place only after you pass.",
    "cite": "restrictions PDF §6, p15",
    "quote": "The following electives (when offered in the semester) require an audition or a placement test and will not be available for selection during the application period: ... Students will be allocated the course upon passing the audition or placement test.",
    "titles": [
@@ -5953,7 +5953,7 @@
     ],
     "codeRe": "^PP"
    },
-   "reason": "Only for graduate students from LKYSPP's partner universities.",
+   "reason": "Only for graduate students from universities that partner with NUS's Lee Kuan Yew School of Public Policy. Ask your exchange office if yours is one.",
    "cite": "restrictions PDF §7, p15",
    "quote": "Only students who are currently pursuing a graduate degree in LKYSPP’s faculty exchange partner universities will be considered."
   },
@@ -5983,7 +5983,7 @@
     ],
     "codeRe": "^PP"
    },
-   "reason": "Must be taken on a graded basis.",
+   "reason": "You must take it for a grade.",
    "cite": "restrictions PDF §7, p15",
    "quote": "LKYSPP courses must be taken on graded basis."
   },
@@ -6343,7 +6343,7 @@
    "match": {
     "codeRe": "^FMS12\\d\\dM$"
    },
-   "reason": "Freshman seminars are not available to exchange students.",
+   "reason": "First-year seminars are not available to exchange students.",
    "cite": "restrictions PDF §8 (Mathematics), p17",
    "quote": "Courses NOT open Non-Graduating students (FMS12XXM: Freshman Seminar)"
   },
@@ -6387,7 +6387,7 @@
    "match": {
     "codeRe": "^DSA\\d"
    },
-   "reason": "Listed as open, but Mathematics' restrictions say DSA-coded courses are not open; check with NUS.",
+   "reason": "The NG list offers this course to exchange students, but the Department of Mathematics says no course whose code starts with DSA is open to them. Ask NUS before you choose it.",
    "cite": "restrictions PDF §8 (Mathematics), p17",
    "quote": "Course codes DSAXXXX are NOT open to Non-Graduating students."
   },
@@ -6411,7 +6411,7 @@
    "match": {
     "codeRe": "^GEH\\d"
    },
-   "reason": "Listed as open, but Mathematics' restrictions say GEH-coded courses are not open; check with NUS.",
+   "reason": "The NG list offers this course to exchange students, but the Department of Mathematics says no course whose code starts with GEH is open to them. Ask NUS before you choose it.",
    "cite": "restrictions PDF §8 (Mathematics), p17",
    "quote": "Course codes GEHXXXX are NOT open to Non-Graduating students."
   },
@@ -7007,7 +7007,7 @@
      "Risk Management Institute"
     ]
    },
-   "reason": "Limited; approval is case by case.",
+   "reason": "Only some of these courses are open to exchange students, and you need approval: NUS decides each request separately. Ask NUS how to apply.",
    "cite": "restrictions PDF §10, p19",
    "quote": "Courses open to Non-Graduating students are limited and approval will be done on a case-by-case basis."
   },
@@ -7020,7 +7020,7 @@
      "Risk Management Institute"
     ]
    },
-   "reason": "A per-course tuition fee applies.",
+   "reason": "You must pay a tuition fee for each of these courses you take.",
    "cite": "restrictions PDF §10, p19",
    "quote": "Students will be required to pay for the per Course tuition fees."
   },

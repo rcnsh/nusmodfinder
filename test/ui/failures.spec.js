@@ -88,7 +88,8 @@ test('[F4] the first search starts before /facets answers, and the faculty list 
   await page.route('**/facets', async (route) => { await facetsHeld; await route.continue(); });
   await page.goto('/?q=databases&faculty=Computing');
   await expect(page.locator('#status')).toContainText(matchFor('databases'));
-  await expect(page.locator('#faculty option')).toHaveText(['Any faculty', 'Computing']);
+  // Quoted until /facets lists it: until then it is only the link's text (5G S2).
+  await expect(page.locator('#faculty option')).toHaveText(['Any faculty', '“Computing”']);
   /** @type {any} */ (release)();
   await expect(page.locator('#faculty option[value="Computing"]')).toHaveText(/^Computing \(\d+\)$/);
   await expect(page.locator('#faculty')).toHaveValue('Computing');
@@ -98,7 +99,7 @@ test('[F4] the first search starts before /facets answers, and the faculty list 
 test('a keyword-only (degraded) answer says so, with no source or reason code', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({ json: body({ degraded: { source: 'workers-ai', reason: 'timeout' } }) }));
   await page.goto('/?q=networks');
-  await expect(page.locator('#status')).toContainText('Showing keyword matches only: meaning-based search is unavailable right now.');
+  await expect(page.locator('#status')).toContainText('Search is in a simpler mode right now: it finds only courses that contain the words you typed. Try the course name or code, or search again later.');
   await expect(page.locator('#status')).not.toContainText('workers-ai');
   await expect(page.locator('#results > li')).toHaveCount(1);
 });

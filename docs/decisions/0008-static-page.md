@@ -74,6 +74,13 @@ course's exchange status, but when the student's home year is below N the course
 "ask NUS" note: NUS lists it for Year N students, so the student asks the department whether
 their home year counts. The red team's expected answer for such a course is "ask NUS".
 
+How it ships: code-only, read per request from the stored prerequisite (`src/year-note.js`, called
+by `exchangeAt` in `src/ng-reasons.js`), so every `/search` path and `/module/:code` get it the way
+they get the stored notes. `/module/:code` already reads the prerequisite; `/search`'s hydrate
+SELECT reads it only where it mentions a year (`year_prereq`), the same rows as before. No column,
+no migration, no row-hash change. Only unambiguous texts are read (one undergraduate branch, a year
+item no OR sits beside); the note never closes, opens or reorders anything.
+
 ## Lead decision 2026-11-11: SC8's axe gate is WCAG AA
 SC8's "axe-core zero violations" runs every axe rule, the AAA ones included, except
 `color-contrast-enhanced` (WCAG AAA's 7:1). The plan's contrast bar is WCAG AA (§3 5D: 4.5:1 text,
