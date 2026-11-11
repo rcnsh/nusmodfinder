@@ -1,0 +1,410 @@
+{
+ "totals": {
+  "p1": {
+   "answers": 7,
+   "agree": 5,
+   "disagree": 2,
+   "missing": 0
+  },
+  "p2": {
+   "answers": 6,
+   "agree": 5,
+   "disagree": 1,
+   "missing": 0
+  },
+  "p3": {
+   "answers": 8,
+   "agree": 8,
+   "disagree": 0,
+   "missing": 0
+  }
+ },
+ "rows": [
+  {
+   "persona": "p1",
+   "code": "AR3101",
+   "sem": 1,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [
+    "letter"
+   ],
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Architecture design studio: letter of confirmation from home university"
+   ],
+   "page_said": "Sem 1 · Open, with 1 note. \"Letter. Needs a letter from your home university stating your design year.\" No prerequisites listed. (I have that letter.)",
+   "where": "Course details panel for AR3101 (Can you take it? section), opened from search results",
+   "confidence": "high"
+  },
+  {
+   "persona": "p1",
+   "code": "AR3223",
+   "sem": 1,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "\"Sem 1 · Open to exchange students\"; no prerequisites or preclusions listed",
+   "where": "Course details panel for AR3223",
+   "confidence": "high"
+  },
+  {
+   "persona": "p1",
+   "code": "AR4601",
+   "sem": 1,
+   "persona_answer": "ask NUS",
+   "persona_norm": "ask",
+   "expected": "yes",
+   "agree": false,
+   "kinds": [
+    "major:architecture"
+   ],
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Architecture majors (or related disciplines) only"
+   ],
+   "page_said": "Can you take it? \"As a 3rd-year exchange student\": \"Sem 1 · Open, with 1 note. Your major. Only for students majoring in Architecture or a related discipline.\" (I meet that.) But PREREQUISITES: \"If undertaking an Undergraduate Degree THEN must be Year 4\" and I am in 3rd year; the site doesn't say whether that applies to exchange students.",
+   "where": "Course details panel for AR4601: Can you take it? section vs PREREQUISITES section",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p1",
+   "code": "PF3210",
+   "sem": 1,
+   "persona_answer": "yes if I get one of the limited places",
+   "persona_norm": "yes-if",
+   "expected": "yes-if",
+   "agree": true,
+   "kinds": [
+    "graded",
+    "quota"
+   ],
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Built Environment undergraduate courses: graded basis only",
+    "Limited quota"
+   ],
+   "page_said": "Sem 1 · Open, with 2 notes: \"Places. Limited quota.\" \"Grading. Must be taken on a graded basis.\" (I take everything graded.) No prerequisites listed.",
+   "where": "Course details panel for PF3210",
+   "confidence": "high"
+  },
+  {
+   "persona": "p1",
+   "code": "PF3208",
+   "sem": 1,
+   "persona_answer": "yes if I get one of the limited places",
+   "persona_norm": "yes-if",
+   "expected": "yes-if",
+   "agree": true,
+   "kinds": [
+    "graded",
+    "quota"
+   ],
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Built Environment undergraduate courses: graded basis only",
+    "Limited quota"
+   ],
+   "page_said": "Sem 1 · Open, with 2 notes: \"Places. Limited quota.\" \"Grading. Must be taken on a graded basis.\" No prerequisites listed.",
+   "where": "Course details panel for PF3208",
+   "confidence": "high"
+  },
+  {
+   "persona": "p1",
+   "code": "PF4306",
+   "sem": 1,
+   "persona_answer": "yes if the department confirms it actually runs in Sem 1 and I get one of the limited places",
+   "persona_norm": "yes-if",
+   "expected": "ask",
+   "agree": false,
+   "kinds": [
+    "semester",
+    "graded",
+    "quota"
+   ],
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "R2: the NUSMods timetable doesn't list it in this semester",
+    "Built Environment undergraduate courses: graded basis only",
+    "Limited quota"
+   ],
+   "page_said": "Sem 1 · Open, with 3 notes: \"Timetable. Not on NUSMods' timetable for Sem 1: check with the department.\" \"Places. Limited quota.\" \"Grading. Must be taken on a graded basis.\" Card says \"Taught in Sem 2\"; only a Sem 2 exam is listed.",
+   "where": "Course details panel for PF4306; result card",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p1",
+   "code": "RE4701",
+   "sem": 1,
+   "persona_answer": "no",
+   "persona_norm": "no",
+   "expected": "no",
+   "agree": true,
+   "kinds": [
+    "major:business"
+   ],
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Business: must be majoring in business at home university (I8)"
+   ],
+   "page_said": "\"Your major. Only for students majoring in business at their home university.\" (also \"Places. Business courses are over-subscribed and not guaranteed.\"; prerequisites RE2705, RE3701 and RE2704/RE3706)",
+   "where": "Course details panel for RE4701",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "CS3244",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Can you take it? As a 2nd-year exchange student: \"Sem 2 · Open to exchange students\" (Sem 1: \"Offered to exchange students only in Sem 2\"). No notes.",
+   "where": "Search results for \"CS3244 CS2106 CS3231 CS3240\" (Sem 2, 2nd year, exchange filter on), CS3244 course details panel",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "CS2106",
+   "sem": 2,
+   "persona_answer": "no",
+   "persona_norm": "no",
+   "expected": "no",
+   "agree": true,
+   "kinds": [
+    "closed"
+   ],
+   "oracle": "closed",
+   "oracle_closed": [
+    "R1: not on the NG list"
+   ],
+   "oracle_notes": [],
+   "page_said": "\"Not offered. CS2106 isn't on the Registrar's list of courses offered to exchange students (NG list, updated 01 Sep 2026).\" Details table: Not open to exchange students in Sem 1 and Sem 2 for every year of study.",
+   "where": "\"Codes you typed that aren't shown\" region on the results page; CS2106 details panel after removing the Exchange students filter",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "CS3231",
+   "sem": 2,
+   "persona_answer": "no",
+   "persona_norm": "no",
+   "expected": "no",
+   "agree": true,
+   "kinds": [
+    "closed"
+   ],
+   "oracle": "closed",
+   "oracle_closed": [
+    "NG list does not offer it in Sem 2"
+   ],
+   "oracle_notes": [
+    "R2: the NUSMods timetable doesn't list it in this semester"
+   ],
+   "page_said": "\"Not in Sem 2. CS3231 is open to exchange students only in Sem 1 (NG list, updated 01 Sep 2026).\" Details table, 2nd year, Sem 2: \"Not open to exchange students. Offered to exchange students only in Sem 1\".",
+   "where": "\"Codes you typed that aren't shown\" region; CS3231 details panel after removing the Sem 2 filter",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "CS3240",
+   "sem": 2,
+   "persona_answer": "yes if the Computing department confirms CS3240 is actually taught in Sem 2 (NUSMods lists it as Sem 1 only)",
+   "persona_norm": "yes-if",
+   "expected": "ask",
+   "agree": false,
+   "kinds": [
+    "semester"
+   ],
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "R2: the NUSMods timetable doesn't list it in this semester"
+   ],
+   "page_said": "\"Sem 2 · Open, with 1 note\" - \"Timetable. Not on NUSMods' timetable for Sem 2: check with the department. NG list, updated 01 Sep 2026\". Result line says \"Taught in Sem 1\". With the exchange filter off, the site says \"CS3240 is hidden by your filters: it isn't offered in Sem 2.\"",
+   "where": "Search results and CS3240 details panel (Sem 2, 2nd year); the \"Codes you typed that aren't shown\" region with the Exchange students filter removed",
+   "confidence": "medium"
+  },
+  {
+   "persona": "p2",
+   "code": "CS3234",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Can you take it? As a 2nd-year exchange student: \"Sem 2 · Open to exchange students\" (\"Offered to exchange students only in Sem 2\"). No notes. Exam Mon 26 Apr 2027 9:00 am.",
+   "where": "Search \"automata formal languages computability\", CS3234 details panel (replacement for CS3231)",
+   "confidence": "high"
+  },
+  {
+   "persona": "p2",
+   "code": "CS3210",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Can you take it? As a 2nd-year exchange student: \"Sem 1 · Open to exchange students Sem 2 · Open to exchange students Your semester\". No notes. Exam Wed 5 May 2027 5:00 pm.",
+   "where": "Search \"processes threads concurrency systems programming\", CS3210 details panel (replacement for CS2106)",
+   "confidence": "high"
+  },
+  {
+   "persona": "p3",
+   "code": "GE3206",
+   "sem": 1,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Open to exchange students (Sem 2: 'Offered to exchange students only in Sem 1.'); no prerequisites or preclusions listed",
+   "where": "Course details panel for GE3206 (search 'GE3206 HY3226 GE3204 GE2231 HY2208')",
+   "confidence": "high"
+  },
+  {
+   "persona": "p3",
+   "code": "HY3226",
+   "sem": 1,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Open to exchange students; no prerequisites or preclusions listed",
+   "where": "Course details panel for HY3226",
+   "confidence": "high"
+  },
+  {
+   "persona": "p3",
+   "code": "LAJ1201",
+   "sem": 1,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [
+    "graded"
+   ],
+   "oracle": "note",
+   "oracle_closed": [],
+   "oracle_notes": [
+    "Language courses: graded basis only, no audit"
+   ],
+   "page_said": "Sem 1 · Open, with 1 note: 'Grading. Language courses must be taken on a graded basis (no audit).' Description: 'designed for students with no prior knowledge of Japanese'",
+   "where": "Course details panel for LAJ1201 (search 'Japanese 1')",
+   "confidence": "high"
+  },
+  {
+   "persona": "p3",
+   "code": "GEC1023",
+   "sem": 1,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Open to exchange students; Sem 2 · Open to exchange students; preclusion only GEH1060 (I haven't taken it)",
+   "where": "Course details panel for GEC1023 (search 'piano')",
+   "confidence": "high"
+  },
+  {
+   "persona": "p3",
+   "code": "GE3204",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 1 · Not open ('Offered to exchange students only in Sem 2.'); Sem 2 · Open to exchange students",
+   "where": "Course details panel for GE3204",
+   "confidence": "high"
+  },
+  {
+   "persona": "p3",
+   "code": "GE2231",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students; Sem 2 exam Fri 30 Apr 2027",
+   "where": "Course details panel for GE2231 (search 'GE2231 HY2208')",
+   "confidence": "high"
+  },
+  {
+   "persona": "p3",
+   "code": "HY2208",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students; preclusion: 'must not have completed HY3207' (I haven't)",
+   "where": "Course details panel for HY2208",
+   "confidence": "high"
+  },
+  {
+   "persona": "p3",
+   "code": "HY2253",
+   "sem": 2,
+   "persona_answer": "yes",
+   "persona_norm": "yes",
+   "expected": "yes",
+   "agree": true,
+   "kinds": [],
+   "oracle": "open",
+   "oracle_closed": [],
+   "oracle_notes": [],
+   "page_said": "Sem 2 · Open to exchange students; Sem 2 exam Wed 5 May 2027",
+   "where": "Course details panel for HY2253 (search 'HY2253')",
+   "confidence": "high"
+  }
+ ]
+}

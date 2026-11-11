@@ -93,8 +93,8 @@ async function gated(send, path) {
     try {
       const sent = readNum(`${S}/sent`);
       if (sent >= TOTAL_MAX || mine >= MAX) { log({ path, source: 'refused', why: sent >= TOTAL_MAX ? 'total budget' : 'persona budget' }); return null; }
-      const wait = readNum(`${S}/last`) + GAP_MS - Date.now();
-      if (wait > 0) await sleep(wait);
+      // A timer can fire a millisecond early (the run's one 3,999 ms gap): loop until the gap holds.
+      for (let wait; (wait = readNum(`${S}/last`) + GAP_MS - Date.now()) > 0;) await sleep(wait + 1);
       const started = Date.now();
       writeFileSync(`${S}/last`, String(started));
       writeFileSync(`${S}/sent`, String(sent + 1));
