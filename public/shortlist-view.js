@@ -34,14 +34,16 @@ import { STUDIES } from './state.js';
  *   result: Result, answers: Map<string, Answer>, study: string, sem: string,
  *   lines: string[], removed: string, linkField: string, said: string,
  *   ask: { year: boolean, entries: string[] }, faculties: ('biz' | 'law')[], inv: string[],
- *   listDate: string,
+ *   listDate: string, exportLine: string,
  * }} Model
  *   `lines`: the sentences under the heading (the settings sentence, the year line, values a link dropped);
  *   `removed`: the code a Remove in the view took out, while its Undo stands ('' for none);
  *   `linkField`: Copy link's fallback, the link to copy by hand ('' hides it);
  *   `said`: the line beside the actions ("Link copied");
  *   `ask`: the parts of the export question shown (6C asks it; app.js keeps them while the view is open);
- *   `faculties`: Business and Law, when the list holds a course of theirs
+ *   `faculties`: Business and Law, when the list holds a course of theirs;
+ *   `exportLine`: the export's progress after a press before every row is in (6D: "Loading 7 of 12
+ *   courses", then "Ready: press again to download"), '' otherwise
  * @typedef {{
  *   close: () => void, copy: () => void, exportPress: (kind: 'csv' | 'print') => void,
  *   invite: (which: 'biz' | 'law', on: boolean) => void,
@@ -115,13 +117,14 @@ export function createShortlistView(root, on) {
   // The actions come first, so a long list never puts them 200 Tab stops away.
   const copy = h('button', { class: 'btn', attrs: { type: 'button' } }, 'Copy link');
   copy.addEventListener('click', on.copy);
-  // 6D builds the CSV and the print page; until then the buttons stand where they go, and
-  // only open the export question (6C) when it is asked.
-  const soonId = 'slExportSoon';
-  const csv = h('button', { class: 'btn', attrs: { type: 'button', 'aria-disabled': 'true', 'aria-describedby': soonId, 'data-export': 'csv' } }, 'Download CSV');
-  const print = h('button', { class: 'btn', attrs: { type: 'button', 'aria-disabled': 'true', 'aria-describedby': soonId, 'data-export': 'print' } }, 'Print or save as PDF');
+  // The exports (6D). Pressed before every row is in, a button keeps its name, and the line it
+  // points to says how far the rows are, then that a second press will do it.
+  const statusId = 'slExportStatus';
+  const csv = h('button', { class: 'btn', attrs: { type: 'button', 'aria-describedby': statusId, 'data-export': 'csv' } }, 'Download CSV');
+  const print = h('button', { class: 'btn', attrs: { type: 'button', 'aria-describedby': statusId, 'data-export': 'print' } }, 'Print or save as PDF');
   for (const b of [csv, print]) b.addEventListener('click', () => on.exportPress(/** @type {'csv' | 'print'} */ (b.dataset.export)));
-  const soon = h('p', { class: 'hint', attrs: { id: soonId } }, 'Download CSV and Print or save as PDF aren\'t ready yet.');
+  const hint = h('p', { class: 'hint' }, 'On a phone: Share, then Print, then pinch out the preview to save the PDF. Excel shows one column? Use Data › From Text/CSV.');
+  const exportStatus = h('p', { class: 'sl-said', attrs: { id: statusId } });
   const said = h('p', { class: 'sl-said' });
   const fieldInput = h('input', { class: 'field', attrs: { id: 'slLinkField', type: 'text', readonly: '', spellcheck: 'false', autocomplete: 'off' } });
   const field = h('div', { class: 'sl-linkfield' },
@@ -129,14 +132,14 @@ export function createShortlistView(root, on) {
     fieldInput,
     h('p', { class: 'sl-src' }, 'The browser didn\'t let the page copy it: select the link and copy it yourself.'));
   field.hidden = true;
-  const actions = h('div', { class: 'sl-actions' }, h('div', { class: 'btns' }, copy, csv, print), soon, said, field);
+  const actions = h('div', { class: 'sl-actions' }, h('div', { class: 'btns' }, copy, csv, print), hint, exportStatus, said, field);
 
   // The export question (6C): parts kept while the view is open, so answering one never
   // removes the control that has focus.
   const askTitle = h('h3', { attrs: { id: 'slAskTitle', tabindex: '-1' } }, 'Before you download or print');
   const askParts = h('div', { class: 'sl-ask-parts' });
-  const askCsv = h('button', { class: 'btn', attrs: { type: 'button', 'aria-disabled': 'true', 'aria-describedby': soonId } }, 'Download CSV');
-  const askPrint = h('button', { class: 'btn', attrs: { type: 'button', 'aria-disabled': 'true', 'aria-describedby': soonId } }, 'Print or save as PDF');
+  const askCsv = h('button', { class: 'btn', attrs: { type: 'button', 'aria-describedby': statusId } }, 'Download CSV');
+  const askPrint = h('button', { class: 'btn', attrs: { type: 'button', 'aria-describedby': statusId } }, 'Print or save as PDF');
   askCsv.addEventListener('click', () => on.exportPress('csv'));
   askPrint.addEventListener('click', () => on.exportPress('print'));
   const ask = h('section', { class: 'sl-ask', attrs: { id: 'slAsk', 'aria-labelledby': 'slAskTitle' } },
@@ -560,6 +563,7 @@ export function createShortlistView(root, on) {
       setChildren(removedText, m.removed ? `${m.removed} removed.` : '');
       undo.setAttribute('aria-label', m.removed ? `Undo, put ${m.removed} back` : 'Undo');
       setChildren(said, m.said);
+      if (exportStatus.textContent !== m.exportLine) setChildren(exportStatus, m.exportLine);
       field.hidden = !m.linkField;
       if (fieldInput.value !== m.linkField) fieldInput.value = m.linkField;
       fillAsk(m);

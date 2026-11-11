@@ -3,9 +3,9 @@
   - paragraph: Sem 1 · 2nd-year exchange student · NUS's 2026/27 courses
   - button "Back to results"
   - button "Copy link"
-  - button "Download CSV" [disabled]
-  - button "Print or save as PDF" [disabled]
-  - paragraph: Download CSV and Print or save as PDF aren't ready yet.
+  - button "Download CSV"
+  - button "Print or save as PDF"
+  - paragraph: "On a phone: Share, then Print, then pinch out the preview to save the PDF. Excel shows one column? Use Data › From Text/CSV."
   - group "Did NUS Business School invite you to apply for its exchange programme (an invitation during the nomination period)?":
     - text: Did NUS Business School invite you to apply for its exchange programme (an invitation during the nomination period)?
     - checkbox "Yes, NUS Business School invited me"

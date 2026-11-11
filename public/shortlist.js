@@ -27,9 +27,11 @@ import { DEFAULT_ACAD_YEAR } from './year.js';
  *   ng_semesters?: number[], exchange?: ExchangeEntry[] | null,
  *   examDates?: { sem: number, date: string, durationMins: number | null }[] | null,
  *   preclusion?: string | null, otherCodes?: string[] | null, acad_year?: string, acadYear?: string,
+ *   description?: string | null, prerequisite?: string | null, gradingBasis?: string | null, nusmodsUrl?: string,
+ *   workload?: { lecture: number, tutorial: number, lab: number, project: number, prep: number, total: number } | { raw: string } | null,
  * }} Course
  * @typedef {{ kind: 'row', course: Course } | { kind: 'ng-listed', course: Course }
- *   | { kind: 'catalogue-only', title: string, acadYear: string } | { kind: 'unknown', acadYear: string }
+ *   | { kind: 'catalogue-only', title: string, description: string, acadYear: string } | { kind: 'unknown', acadYear: string }
  *   | { kind: 'loading' } | { kind: 'failed' }} Answer
  * @typedef {{ id: string, text: string, scope?: { departments?: string[], faculties?: string[], levels?: number[] } | null }} OffListRule
  *   /facets' `offListRules` (6A, data/ng-reasons.json): `levels` as digits (4 is level 4000)
@@ -218,7 +220,10 @@ export function answerOf(outcome) {
       const listed = nums(d.ngSemesters ?? d.ng_semesters ?? d.semesters);
       return { kind: 'ng-listed', course: { ...d, ng: true, semesters: [], ng_semesters: listed, acad_year: acadYear } };
     }
-    if (d.kind === 'catalogue-only') return { kind: 'catalogue-only', title: typeof d.title === 'string' ? d.title : '', acadYear };
+    if (d.kind === 'catalogue-only') {
+      // Its title and description, so the exports carry its text (6A, 6D).
+      return { kind: 'catalogue-only', title: typeof d.title === 'string' ? d.title : '', description: typeof d.description === 'string' ? d.description : '', acadYear };
+    }
     return { kind: 'unknown', acadYear };
   }
   return { kind: 'failed' };

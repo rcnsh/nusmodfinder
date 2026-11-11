@@ -31,6 +31,7 @@
 <link rel="modulepreload" href="/render.js"><link rel="modulepreload" href="/state.js">
 <link rel="modulepreload" href="/list.js"><link rel="modulepreload" href="/history.js"><link rel="modulepreload" href="/saved.js">
 <link rel="modulepreload" href="/shortlist.js"><link rel="modulepreload" href="/shortlist-view.js"><link rel="modulepreload" href="/preclusion.js">
+<link rel="modulepreload" href="/export.js"><link rel="modulepreload" href="/csv.js"><link rel="modulepreload" href="/print.js">
 <!-- Until app.js runs: a link with any state shows the results layout, not the first screen. -->
 <script>if (location.search) document.documentElement.dataset.view = 'results';</script>
 </head>
@@ -156,6 +157,8 @@
       <div class="sl-restore" id="slRestore" hidden></div>
       <!-- 6C: the shortlist view (view=shortlist); the results region is hidden while it shows. -->
       <section class="sl-view" id="slView" aria-labelledby="slTitle" hidden></section>
+      <!-- 6D: the print page, never shown on screen; print shows it alone once the page's print class is on. -->
+      <section class="sl-print" id="slPrint" aria-labelledby="ppTitle"></section>
       <div id="status" class="status"></div>
       <ol id="results" class="entries" aria-label="Results" aria-busy="false"></ol>
     </main>
