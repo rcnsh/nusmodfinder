@@ -52,3 +52,13 @@ Headroom: about 7k rows read and about 100 requests; the rule holds by orders of
 
 Rollback, if needed: `npx wrangler rollback b9f7e0e4-d4e9-4517-bc40-765c5c4773e8` (the 5A version).
 Code-only, so D1 needs no restore.
+
+## 2026-11-11: the semester representative (code-only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 07:54:04 | `/health` (`requests.tsv` 119): version `810c903b` (tag `fdec96f`) | 1 call | 1 call |
+| 07:54:06–07:54:40 | `npm run deploy` of `c645e85` (guard read ~6.8k rows; no D1 write) | ~6.8k rows read | version **`91c09381-36d8-4bde-a34d-d18e08995a55`** (tag `c645e85`), startup 2 ms |
+| 07:54:40–07:54:57 | Smoke (`requests.tsv` 120): `/health` (tag `c645e85`); `intro accounting` Sem 1, 2nd year: ACC1701XA first with XB and XC as variants; `machine learning`: EE2211 first | 3 calls | 3 × 200 |
+
+Rollback: `npx wrangler rollback 810c903b-60fd-4a24-b824-e33906a9007a` (code-only).
