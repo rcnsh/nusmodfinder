@@ -18,3 +18,4 @@ holdout ledger never reads this file and refuses a row copied from it.
 | 2026-11-11 | holdout | count: lists-differing | shipped-c645e85 vs cand-3f96d79 | 0 |
 | 2026-11-11 | holdout | count: lists-differing | shipped-75ca23c vs l8-ff54fdc | 0 |
 | 2026-11-11 | holdout | count: lists-differing | shipped-8a86bf6 vs shipped-75ca23c | 0 |
+| 2026-11-11 | holdout | count: lists-differing | shipped-0b5f360 vs shipped-8a86bf6 | 0 |
