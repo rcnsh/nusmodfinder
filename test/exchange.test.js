@@ -331,7 +331,7 @@ describe('R6-2 (ADR 0010): GRO\'s level 4000 note, a condition on every path', (
       for (const e of body.exchange) {
         const where = `${code} ${e.sem} ${e.study}`;
         expect(e.status, where).toBe(oracleShown(m, { sem: e.sem, study: e.study }));
-        expect(ids(e).filter((id) => id === GRO), where).toEqual(e.status !== 'closed' && e.study !== 'grad' && code !== 'LL4295' ? [GRO] : []);
+        expect(ids(e).filter((/** @type {string} */ id) => id === GRO), where).toEqual(e.status !== 'closed' && e.study !== 'grad' && code !== 'LL4295' ? [GRO] : []);
       }
     }
   });
