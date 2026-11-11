@@ -75,10 +75,10 @@ describe('noteText (every note in full; C2-3)', () => {
   });
 
   it('[R3] the year-of-study note leads with "Year of study." and is said in full, with its source', () => {
-    const year = { id: 'prereq:year-of-study', kind: 'year', text: 'NUS lists this course for Year 4 students. Ask the department whether your year at your home university counts.' };
+    const year = { id: 'prereq:year-of-study', kind: 'year', text: 'NUS lists this course for Year 4 students. Ask the department whether your year of study during your exchange counts.' };
     expect(noteLead('year')).toBe('Year of study.');
     expect(noteText(year, 1)).toBe(year.text);
-    expect(reasonLine(year, 1, SOURCES)).toBe('NUS lists this course for Year 4 students. Ask the department whether your year at your home university counts (NUS prerequisite).');
+    expect(reasonLine(year, 1, SOURCES)).toBe('NUS lists this course for Year 4 students. Ask the department whether your year of study during your exchange counts (NUS prerequisite).');
   });
 
   it('reasonLine adds the source and its date', () => {
