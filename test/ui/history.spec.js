@@ -341,7 +341,7 @@ test('[6B] a refused push is retried, and an edit made meanwhile folds into it: 
     const g = /** @type {any} */ (globalThis);
     g.refusePush = 0;
     const push = History.prototype.pushState;
-    History.prototype.pushState = function (...a) {
+    History.prototype.pushState = function (/** @type {any[]} */ ...a) {
       if (g.refusePush > 0) { g.refusePush -= 1; throw new DOMException('refused', 'SecurityError'); }
       return push.apply(this, /** @type {any} */ (a));
     };
@@ -369,7 +369,7 @@ test('[6B] 150 edits in 5 s make no more history writes than the writer\'s budge
     g.writes = 0;
     for (const name of /** @type {const} */ (['pushState', 'replaceState'])) {
       const real = History.prototype[name];
-      History.prototype[name] = function (...a) { g.writes += 1; return real.apply(this, /** @type {any} */ (a)); };
+      History.prototype[name] = function (/** @type {any[]} */ ...a) { g.writes += 1; return real.apply(this, /** @type {any} */ (a)); };
     }
   });
   await page.goto('/?q=networks');
