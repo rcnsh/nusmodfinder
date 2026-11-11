@@ -141,7 +141,8 @@ No objection was rejected outright. Four were applied in part:
   - The group keeps the place its first-ranked member gave it, and that member's score. Only
     the member shown changes. The swapped-out member is listed in `variants` with the other
     passing members.
-  - A pin is never swapped.
+  - A code the query types is never swapped: a pin, and an offered code past the 3-pin cap,
+    which ranks like any result but is still the student's explicit choice.
   - Unchanged: requests with no semester (both semesters, or no `sem`), `related`, the order of
     mask pages, and `COLLAPSE_GROUPS=off`.
   - Outside exchange mode `sem` already filters on the timetable, so every passing member is

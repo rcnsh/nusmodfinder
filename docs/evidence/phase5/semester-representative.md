@@ -7,8 +7,11 @@ highest-ranked member that passes the filters and is on NUSMods' timetable that 
 the holdout count and moves the pin.
 
 - Pin: `SHIPPED_BASELINE` `fdec96f`.
-- Candidate: the ranker commit `567ebdc` (ranker `treeHash` `1c4d03707f78…`). Later commits
-  on the branch touch only tests, eval tooling and docs, so the ranker files are unchanged.
+- Candidate: the ranker commit `3ab3335`, ranker `treeHash` `c06e08f56728…`. The runs were made
+  at `5591a2f`, the same commit before a rebase onto `main`, with the same `treeHash`. It adds the
+  review's fix (a typed code past the pin cap is never swapped) to the first candidate
+  `567ebdc`. Its results equal `567ebdc`'s byte for byte in every mode below. Later commits on
+  the branch touch only tests, eval tooling and docs, so the ranker files are unchanged.
 - All runs are local (`npm run eval -- --ref <sha>`), clean ranker and runner. The fixture
   runs use `--set fixture --set-dir <a copy of eval/fixtures>`.
 
@@ -37,7 +40,7 @@ Every change is in exchange mode, Sem 1, and moves the group to a member taught 
 
 ## 2. Dev `no-loss`
 
-`npm run eval:report -- --set dev --run rep-cand --baseline rep-pin --change-kind no-loss`
+`npm run eval:report -- --set dev --run rep2-cand --baseline rep-pin --change-kind no-loss`
 (`qrels-dev-v10`, 85 primary answerable queries):
 
 | metric | pin | candidate | Δ | BCa 95% CI |
@@ -59,22 +62,22 @@ documents have no grade. The candidate has 7, a strict subset of the pin's: d-00
 MA4211, d-021 HSI2014, d-050 GL2102, d-054 CM3296, d-066 CS4212, d-086 EE4435. The change adds
 no unjudged document. It replaces three unjudged FIN3701B hits with the judged FIN3701A. The
 earlier dev screens reached 100% with a pooling and judging round
-(`eval:pool --runs rep-pin,rep-cand --unjudged`, then `eval:judge`, giving `qrels-dev-v11`).
+(`eval:pool --runs rep-pin,rep2-cand --unjudged`, then `eval:judge`, giving `qrels-dev-v11`).
 That round is the lead's to run, and it was not run here.
 
 ## 3. Suites
 
 - SC1 (`FULL_CORPUS=1 npm run test:sc1`): green, 7 of 7. `test/sc1/identity.test.js` now
   rebuilds each page with the semester representative.
-- Full corpus (`FULL_CORPUS=1 npm run test:full`): see the PR.
+- Full corpus (`FULL_CORPUS=1 npm run test:full`): green, 99 of 99.
 - The rule's tests: `test/search-semester-rep.test.js` covers the fixture's own case (NGN2001F,
   Sem 2 only, above NGN2001G, Sem 1, for "nus college" with `ng=1&sem=1`), an ACC1701X-shaped
-  group, pins, `COLLAPSE_GROUPS=off`, and every path (hybrid, lexical, vector, the standby,
-  and the mask in dense and code order). `test/groups.node.test.js` covers the pure rule.
+  group, pins and typed codes past the pin cap, `COLLAPSE_GROUPS=off`, and every path (hybrid,
+  lexical, vector, the standby, and the mask in dense and code order). `test/groups.node.test.js` covers the pure rule.
 
 ## 4. Holdout (the custodian)
 
-Store the candidate with `--store-only` at `567ebdc` (or the merge commit, whose ranker files
+Store the candidate with `--store-only` at `3ab3335` (or the merge commit, whose ranker files
 are the same), then run:
 
 ```

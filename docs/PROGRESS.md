@@ -1161,8 +1161,8 @@ fails on the previous code.
 ## 2026-11-11 — The semester representative (5F's follow-up): PR open, gate run without a look
 
 - **Change:** with `sem` named, the collapse shows each group as its highest-ranked member that
-  passes the filters and is timetabled that semester. The group keeps its place, pins are never
-  swapped, and nothing changes with no semester (ADR 0006, amendment 2026-11-11).
+  passes the filters and is timetabled that semester. The group keeps its place, a code the
+  query types is never swapped, and nothing changes with no semester (ADR 0006, amendment 2026-11-11).
 - **Gate** (`docs/evidence/phase5/semester-representative.md`; ADR 0003 draft amendment
   2026-11-11, for the lead to adopt):
   - group identity holds in all four modes: 4 dev lists change (5 codes, all `ng` + Sem 1,
