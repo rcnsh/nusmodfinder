@@ -26,7 +26,7 @@ async function foldHolds(page, stamps) {
   await expect(page.locator('#results > li.card').first()).toBeVisible();
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   const h1 = page.getByRole('heading', { level: 1 });
-  await expect(h1.getByText('unofficial, for NUS')).toBeInViewport({ ratio: 1 });
+  await expect(h1.getByText('(unofficial)')).toBeInViewport({ ratio: 1 });
   await expect(page.locator('#q')).toBeInViewport({ ratio: 1 });
   await expect(page.locator('#go')).toBeInViewport({ ratio: 1 });
   const first = page.locator('#results > li.card').first();

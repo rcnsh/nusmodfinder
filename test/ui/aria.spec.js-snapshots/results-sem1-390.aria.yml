@@ -1,7 +1,7 @@
 - link "Skip to main content":
   - /url: "#main"
 - banner:
-  - heading "Exchange Course Finder ( unofficial, for NUS )" [level=1]
+  - heading "NUS Mod Finder ( unofficial )" [level=1]
   - status: "17 courses shown: ACC1701XB, then 16 other matches."
 - main "Search and results":
   - search "Search courses":

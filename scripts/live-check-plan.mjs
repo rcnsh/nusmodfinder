@@ -12,7 +12,7 @@ import { oracle } from '../test/sc1/oracle.node.mjs';
 import { DEFAULT_ACAD_YEAR, loadNgCourses, offeredModules } from './lib.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-export const PRODUCTION_URL = 'https://vector-nusmods.jacobjameswiltshire.workers.dev';
+export const PRODUCTION_URL = 'https://nusmodfinder.rcn.sh';
 /** Requests start at least this far apart. */
 export const GAP_MS = 4_000;
 const PER_STRATUM = 4;

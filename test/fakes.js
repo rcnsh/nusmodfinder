@@ -101,7 +101,7 @@ export class FakeAI extends Switchable {
   }
 }
 
-/** The metadata properties production has indexes for (README). */
+/** The metadata properties production has indexes for (docs/REFERENCE.md). */
 export const INDEXED_PROPERTIES = ['sem1', 'sem2', 'sem3', 'sem4', 'level', 'credits', 'faculty', 'ng'];
 
 /**

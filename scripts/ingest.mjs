@@ -10,7 +10,7 @@
 // already holds the AI, Vectorize and D1 bindings — so no Cloudflare API token
 // needs to exist on disk. The 19 MB moduleInfo.json is parsed here, locally,
 // never in a Worker (landmine L2). Requires INGEST_SECRET on both sides.
-// The run itself is scripts/ingest-core.mjs; README "Re-ingesting" is the
+// The run itself is scripts/ingest-core.mjs; docs/REFERENCE.md "Re-ingesting" is the
 // runbook.
 //
 // Flags:
@@ -368,7 +368,7 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, s
   if (result.status === 'done' && result.dataVersion) {
     await writeFile(dataVersionPath, dataVersionFile(result.dataVersion));
     log(`data version       ${result.dataVersion} -> src/data-version.json`);
-    log('next               commit src/data-version.json, then npm run deploy (README "Re-ingesting")');
+    log('next               commit src/data-version.json, then npm run deploy (docs/REFERENCE.md "Re-ingesting")');
     return 0;
   }
   return { done: 0, refused: 1, failed: 1, budget: 2, 'wait-timeout': 3, interrupted: 130 }[result.status];

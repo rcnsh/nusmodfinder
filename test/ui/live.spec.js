@@ -239,7 +239,7 @@ test('[F5] the controls are named as a screen reader should say them', async ({ 
     await expect(page.getByRole(role, name ? { name, exact: true } : {}).first(), `${role} "${name}"`).toBeAttached();
   }
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Exchange Course Finder (unofficial, for NUS)');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('NUS Mod Finder (unofficial)');
   await expect(page.getByRole('main')).toHaveCount(1);
 });
 
