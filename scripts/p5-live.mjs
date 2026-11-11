@@ -203,7 +203,7 @@ async function foldProblems(page, stamps) {
     if (window.scrollY !== 0) out.push(`scrolled to ${window.scrollY}`);
     const first = document.querySelector('#results > li.card');
     const unofficial = document.querySelector('h1 .unofficial');
-    if (!/unofficial, for NUS/.test(unofficial?.textContent ?? '')) out.push('the header doesn\'t say "unofficial, for NUS"');
+    if (!/\(?unofficial\)?/.test(unofficial?.textContent ?? '')) out.push('the header doesn\'t say "unofficial"');
     const status = [...(first?.querySelectorAll('.exchange-status') ?? [])];
     if (status.length !== want) out.push(`${status.length} status stamps, expected ${want}`);
     /** @type {[string, Element | null | undefined][]} */

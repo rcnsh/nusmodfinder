@@ -1204,3 +1204,13 @@ fails on the previous code.
   which Jacob dropped (ADR 0008); SC8's screen-reader flow rests on the automated checks.
 - **Live:** version `0b81c82e` (tag `8a86bf6`); pin `8a86bf6`; holdout looks 8 of 12.
 - **Next:** Phase 6 (the shortlist, SC3): plan with critics, then Jacob's gate questions.
+
+## 2026-11-11 — Public as NUS Mod Finder
+
+- **ADR 0009**: the site is NUS Mod Finder (unofficial) at `https://nusmodfinder.rcn.sh`, repo
+  `rcnsh/nusmodfinder`; the Worker keeps the name `vector-nusmods` and its workers.dev URL.
+  Plum-tile magnifier icon, Open Graph image, MIT licence, a short README, the technical README
+  moved to `docs/REFERENCE.md`, `npm run deploy` applies the Custom Domain.
+- **Live:** version `a6103634` (tag `a7b90f4`); `p5-live.mjs` 32 of 32 on the new domain. Ranking
+  untouched; pin stays `8a86bf6`; looks stay at 8 of 12.
+- **Next:** Phase 6 (the shortlist, SC3).

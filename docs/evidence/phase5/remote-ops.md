@@ -84,3 +84,18 @@ Rollback: `npx wrangler rollback 91c09381-36d8-4bde-a34d-d18e08995a55` (code-onl
 | 09:46:09–09:52:50 | `node scripts/p5-live.mjs` (`requests.tsv` 123, `p5-live.jsonl`) | ~100 calls | 100 sent ≥ 4 s apart; **32 of 32 checks pass** |
 
 Rollback: `npx wrangler rollback 78a2672a-fc36-403a-b090-9ca266f905d4` (code-only).
+
+## 2026-11-11: NUS Mod Finder on nusmodfinder.rcn.sh (ADR 0009)
+
+| Time (UTC) | Step | Estimate | Actual |
+|---|---|---|---|
+| 12:34–12:37 | `npm run deploy` of `a7b90f4` | ~6.8k rows read | refused at the guard: `wrangler dev --remote` never answered (Cloudflare `code 10021`, "binding DB of type d1 failed to generate"); nothing uploaded. The config before this change failed the same way |
+| 12:40 | `npx wrangler triggers deploy` | 0 rows | Custom Domain `nusmodfinder.rcn.sh` attached to the live version `0b81c82e`; workers.dev kept |
+| 12:45–13:10 | `wrangler dev --remote` retried every ~2.5 min | 0 rows | `code 10021` on 8 tries, then answered |
+| 13:11 | `npm run deploy` of `a7b90f4` (guard read 6,778 D1 rows; no D1 write) | ~6.8k rows read | version **`a6103634-25a3-45bd-8a79-fa15ef5be8dd`** (tag `a7b90f4`), startup 4 ms; triggers applied |
+| 13:12–13:16 | `node scripts/p5-live.mjs` | ~100 calls | 25 of 32: 3 SC2 loads hit `ECONNRESET` from the dev Mac, 4 fold checks still wanted "unofficial, for NUS" (script fixed) |
+| 13:26–13:33 | `node scripts/p5-live.mjs`, after the fix | ~100 calls | 99 sent ≥ 4 s apart; **32 of 32 checks pass** |
+
+Both `https://nusmodfinder.rcn.sh` and the workers.dev URL answer `/health` with tag `a7b90f4`.
+
+Rollback: `npx wrangler rollback 0b81c82e-4c45-47fe-9efc-a1b93afd71db` (code-only; the Custom Domain stays).
