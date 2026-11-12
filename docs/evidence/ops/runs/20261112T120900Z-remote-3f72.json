@@ -1,0 +1,43 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T12:09:00.253Z",
+  "finishedAt": "2026-11-12T12:09:27.307Z",
+  "script": "remote",
+  "args": [
+    "vectors",
+    "standby"
+  ],
+  "commit": {
+    "sha": "46c8d56b9d4aec6a596f90257dc713ca1978e3c4",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "wrangler dev --remote (production D1, Vectorize and Workers AI bindings)",
+  "read": [],
+  "written": [],
+  "requests": {
+    "wrangler dev --remote": 1
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "command": [
+      "vectors",
+      "standby"
+    ],
+    "signals": [],
+    "tries": [
+      {
+        "n": 1,
+        "port": 62785,
+        "result": "answered",
+        "startedAt": "2026-11-12T12:09:00.282Z"
+      }
+    ],
+    "port": 62785,
+    "commandExitCode": 1
+  },
+  "exitCode": 1,
+  "message": "the command exited 1",
+  "outcome": "failed"
+}

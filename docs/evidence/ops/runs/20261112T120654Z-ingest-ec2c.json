@@ -1,0 +1,53 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T12:06:54.416Z",
+  "finishedAt": "2026-11-12T12:07:08.071Z",
+  "script": "ingest",
+  "args": [
+    "--d1-only"
+  ],
+  "commit": {
+    "sha": "46c8d56b9d4aec6a596f90257dc713ca1978e3c4",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "http://127.0.0.1:62379 (wrangler dev --remote (production D1, Vectorize and Workers AI bindings) on 127.0.0.1:62379)",
+  "read": [
+    {
+      "what": "D1 rows (ingest and delete calls; /admin/hashes and facets not metered)",
+      "estimate": null,
+      "actual": 229
+    }
+  ],
+  "written": [
+    {
+      "what": "D1 rows (estimate: charged to the write budget, with FTS)",
+      "estimate": 2273,
+      "actual": 1118
+    }
+  ],
+  "requests": {
+    "/admin/hashes": 1,
+    "/admin/catalogue": 3,
+    "/admin/ingest": 4,
+    "/admin/delete": 1,
+    "/admin/facets": 1
+  },
+  "versions": {
+    "dataVersion": "7eb77cf0828b"
+  },
+  "bookmark": "0000004b-00000000-00005121-9700d9ffa113f4d2bc2388418b0cd7be",
+  "details": {
+    "bookmarkRecord": "20261112T120641Z-d1-bookmark-7db2.json",
+    "preflight": "20261112T120629Z-deploy-preflight-f036.json",
+    "corpus": {
+      "release": "prod-2026-2027-20261112",
+      "sha256": "7dbf2238c7b82fc331f99a19f048e516866b97dd0d76ca3804ad5ff4cc50e40e"
+    },
+    "mode": "d1-only",
+    "status": "done"
+  },
+  "exitCode": 0,
+  "message": "done (D1 only)     174 rows written, 15 deleted, 229 rows read, 2273 rows charged (1118 reported by D1); data version 7eb77cf0828b = src/data-version.json; no Vectorize or Workers AI call",
+  "outcome": "ok"
+}
