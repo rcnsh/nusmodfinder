@@ -42,7 +42,7 @@ export const fixture = /** @type {FixtureCorpus} */ (/** @type {unknown} */ (fix
  * @returns {Env}
  */
 export function buildEnv(fakes, extra = {}) {
-  const withFakes = fakes ? { AI: fakes.ai, VECTORIZE: fakes.vectorize, SEARCH_LIMIT: fakes.limit } : {};
+  const withFakes = fakes ? { AI: fakes.ai, VECTORIZE: fakes.vectorize, SEARCH_LIMIT: fakes.limit, SEARCH_LIMIT_MINUTE: fakes.limitMinute } : {};
   return /** @type {Env} */ (/** @type {unknown} */ ({ ...env, ...withFakes, ...extra }));
 }
 

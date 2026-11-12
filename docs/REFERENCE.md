@@ -24,6 +24,34 @@ filter by semester, level, credits and faculty.
 | `GET /search?q=&sem=&level=&credits=&faculty=&ng=&study=&topK=&mode=` | Ranked results as JSON |
 | `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study, its exams, its workload, its NUSMods link, its grading basis and its other codes; a 404 says which kind of miss it is (below) |
 | `GET /facets` | Distinct faculties and levels, with counts, for the filter UI, the exchange-mode sources with their dates, and NUS's rules about courses off the exchange list (`offListRules`, below) |
+| `GET /privacy` | The privacy note (`public/privacy.html`, a static asset): what Cloudflare's logs and the site's own line keep, what stays on the device, no cookies |
+| any other path | JSON 404 `{ error: "not_found", message }`; for a browser (`GET` or `HEAD` whose `Accept` prefers `text/html`), the 404 page instead (below) |
+
+**The 404 page** (Phase 8 8B) is `src/404.html`, a Text module, sent with status 404 and the CSP,
+`X-Frame-Options` and `X-Content-Type-Options` of `public/_headers`' `/*` rule, since Cloudflare
+applies `_headers` to static assets only. `src/not-found.js` holds a copy of the three, so the
+Worker (and the ranking lock's inputs) reaches no file outside `src/`; `test/visitor.test.js`
+parses `public/_headers` and fails when the copy differs. It is static: nothing from the request is
+written into it. `curl` and Node's `fetch` (`*/*`) and the page's own fetches (`application/json`)
+keep the JSON; so does any `Accept` that ranks HTML below JSON or `*/*`. It lives in `src/`, so it
+is never also served as `/404.html`. `/favicon.ico` is a static file (the 32 px PNG in an ICO), so
+a browser's request for it never runs the Worker.
+
+**`/search` refuses other sites' pages** (Phase 8 8B): a request with `Sec-Fetch-Site: cross-site`
+and any `Sec-Fetch-Dest` but `document` answers 403 `{ error: "cross_site", message }` with
+`no-store`, before the cache, the rate limits and any binding. It stops another site's fetch, image
+or hidden iframe spending this account's Workers AI through its visitors' browsers. A link a
+student follows (`navigate` + `document`), the page itself (`same-origin`), a bookmark (`none`), and
+callers that send no `Sec-Fetch-Site` (Node's `fetch` as smoke sends it, the eval, `curl`) are
+served as before. `/module` and `/facets` don't refuse, and `access-control-allow-origin: *` stays.
+
+**Two per-IP rate limits** guard `/search` (Phase 8 8B, ADR 0012 G5 (b)): `SEARCH_LIMIT`, 40 per
+10 s, and `SEARCH_LIMIT_MINUTE`, 200 per 60 s, both keyed by `cf-connecting-ip`, asked together
+(one `limit` span) after the cache and before any other binding. Either refusing answers 429
+`{ error: "rate_limited", message }` with `retry-after: 60`; each fails open on its own. A cache
+hit skips them. A hit is re-sent with its own TTL, `public, max-age=3600`, or 60 for a keyword-only
+answer, which is stored with `x-search-degraded: 1`: the copy Cloudflare's cache returns carries
+the zone's Browser Cache TTL (4 hours), not the one it was stored with.
 
 `ng=1` is **exchange mode**: only courses an exchange (Non-Graduating) student may take, under
 the Registrar's NG course list and course restrictions (below). It needs `study=ug1|ug2|ug3|ug4|grad`,
@@ -810,7 +838,19 @@ I/O, so the spans measure waiting on bindings, not CPU. A cache hit gets fresh s
 never the stored ones. Each `/search` also writes one JSON log line (`"event":"search"`)
 with the status, cache result, the query (first 100 characters) and its length, the mode,
 filters, result counts, the fallback (`degraded`), spans, D1 rows read and serving region
-(`d1.servedByRegion`, `d1.servedByPrimary`), and the colo. Headers and IPs are never logged.
+(`d1.servedByRegion`, `d1.servedByPrimary`), and the colo. The `search` and `d1_error` lines
+hold no header or IP (the `unhandled` line, below, carries the `cf-ray`). A D1 failure on `/module/:code` or `/facets` writes one line
+`{"event":"d1_error","route","error"}`: the route pattern and the error, no URL, code, query or IP.
+
+**What is kept about visitors** (ADR 0012 G3 (a): kept as it is, and said in
+`public/privacy.html`). `observability` is on with no `logs` block, so Workers Logs keep an
+invocation log for every Worker request (the request URL, so the search text and filters, and the
+request's metadata and headers, `cf-connecting-ip` among them) beside the Worker's own lines, for
+7 days on Workers Paid (Cloudflare's Workers Logs docs; Workers Logs move to Observability pricing
+on 2026-12-01, and the note promises nothing past today's retention). Cloudflare's zone analytics
+keep sampled request records, the page's own `/?q=…` included, which the Worker can't turn off.
+The page keeps the year of study and the last edited shortlist in `localStorage` and sets no
+cookies. A change to any of these changes the note in the same PR.
 
 **Failure behaviour.** Workers AI and Vectorize calls time out after 1.5 s, D1 calls after
 3 s. In hybrid mode, if embedding or the dense index fails (a bundle that doesn't parse is
@@ -1153,8 +1193,9 @@ search path, then commit both files. The month defaults to the current UTC one.
   or an error (an API error that echoes it is redacted). Neither the token nor the account id is
   recorded; the record counts each call as `/client/v4/graphql`.
 
-Workers Logs keep every event (`head_sampling_rate` unset): Paid includes their volume, and this
-Worker's is tiny (`docs/evidence/phase7/measure.md`).
+Workers Logs keep every event (`head_sampling_rate` unset) for 7 days: Paid includes their volume, and this
+Worker's is tiny (`docs/evidence/phase7/measure.md`). The privacy note states that retention
+(above, "What is kept about visitors").
 
 **Drift and reminder issues** (`.github/workflows/drift.yml`, `scripts/drift.mjs`, Phase 7 7F,
 G3 (a) in ADR 0011). The workflow has `contents: read` and `issues: write`, reads only NUSMods'
@@ -1352,9 +1393,9 @@ returns HTTP 502 with the upstream message. It does not silently return empty re
 25 billion rows/month are included.
 
 **The caveat:** the Vectorize and D1 allowances are per *account*, not per project.
-Another project on the same account can consume them. The `/search` rate limit (20 per
-10s per IP) is a burst guard — per-colo and eventually consistent — and does not protect
-the daily account-wide budget.
+Another project on the same account can consume them. The `/search` rate limits (40 per 10 s
+and 200 per 60 s per IP, Phase 8 8B) are burst guards — per-colo and eventually consistent — and
+do not protect the daily account-wide budget against traffic spread over many addresses.
 
 ## Data source
 

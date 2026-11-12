@@ -46,7 +46,7 @@ import { SITE_URL, buildExport, fileName } from './export.js';
 import { createPrintView } from './print.js';
 import { askSentence, createShortlistView } from './shortlist-view.js';
 import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, parseState, searchParams, shortlistUrl, unitsLabel, urlFor } from './state.js';
-import { DEFAULT_ACAD_YEAR, semesterMonths } from './year.js';
+import { DEFAULT_ACAD_YEAR, headerYearLine, semesterMonths } from './year.js';
 
 /** @typedef {import('./state.js').State} State */
 
@@ -163,6 +163,8 @@ const radio = (cls, name, value, content) => {
 // The rail's semester at NUS in exchange mode: Sem 1, Sem 2 or both. It drives
 // #sem, which holds the value in every mode.
 for (const [value, label] of [['1', 'Sem 1'], ['2', 'Sem 2'], ['', 'Both']]) els.semSegOptions.append(radio('seg-opt', 'xsem', value, [label]));
+// The header's year line (Phase 8 8B): the year's lists, and a clause for next year's applicants.
+setChildren($('yearLine'), headerYearLine(DEFAULT_ACAD_YEAR));
 // The first screen's two questions (D2).
 const months = semesterMonths(DEFAULT_ACAD_YEAR);
 for (const [value, name, when] of [['1', 'Sem 1', months[1]], ['2', 'Sem 2', months[2]], ['', 'Both semesters', months.both]]) {

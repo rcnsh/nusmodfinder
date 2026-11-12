@@ -13,6 +13,7 @@ describe('raw test env', () => {
     expect(raw.AI).toBeUndefined();
     expect(raw.VECTORIZE).toBeUndefined();
     expect(raw.SEARCH_LIMIT).toBeUndefined();
+    expect(raw.SEARCH_LIMIT_MINUTE).toBeUndefined();
     expect(raw.INGEST_SECRET).toBeUndefined();
     expect(raw.EMBEDDING_MODEL).toBeUndefined();
   });

@@ -35,9 +35,11 @@ describe('static assets', () => {
     expect(config).not.toMatch(/"assets":\s*\{[^}]*"binding"/);
   });
 
-  it('src/ no longer serves a page: the Worker answers / with its JSON 404 (assets answer it in front)', () => {
-    expect(walk(join(ROOT, 'src')).filter((f) => f.endsWith('.html'))).toEqual([]);
-    expect(read('src/index.js')).not.toMatch(/page\.html|text\/html/);
+  it('src/ serves no page but the 404 (Phase 8 8B): `/` is answered by assets in front', () => {
+    // src/, not public/, so the 404 isn't also served as /404.html with a 200.
+    expect(walk(join(ROOT, 'src')).filter((f) => f.endsWith('.html')).map((f) => relative(ROOT, f))).toEqual(['src/404.html']);
+    expect(files).not.toContain('/404.html');
+    expect(read('src/index.js')).not.toMatch(/page\.html/);
   });
 
   it('every module is a native ES module with // @ts-check, loaded from index.html with no build step', () => {

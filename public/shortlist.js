@@ -13,7 +13,7 @@
 // place in its `pick` or `alt` sequence, one order for the year.
 import { semLabel } from './format.js';
 import { names } from './preclusion.js';
-import { DEFAULT_ACAD_YEAR } from './year.js';
+import { DEFAULT_ACAD_YEAR, nextYearLabel, yearLabel } from './year.js';
 
 /** @typedef {import('./list.js').List} List */
 /** @typedef {import('./list.js').Which} Which */
@@ -140,7 +140,7 @@ export const FORM_LINES = Object.freeze({
    */
   applicants: (year, listDate) => {
     const dated = listDate ? ` (the ${year} list is dated ${listDate.replace(/^0/, '')})` : '';
-    return `This order uses NUS's ${year} exchange list and exams. Applying for ${nextYear(year)}? NUS publishes Sem 1's list in March or April, Sem 2's later${dated}, and the timetable in July or August (the Registrar says mid-July): check each course there.`;
+    return `This order uses NUS's ${year} exchange list and exams. Applying for ${nextYearLabel(year)}? NUS publishes Sem 1's list in March or April, Sem 2's later${dated}, and the timetable in July or August (the Registrar says mid-July): check each course there.`;
   },
   setYear: 'Set your year of study during the exchange to see NUS\'s form order',
   fullYear: 'NUS has asked full-year students to choose Sem 2 courses later, by email before Sem 1 ends (NUS info sheet, 2018/19): check with NUS whether to list them now',
@@ -189,16 +189,8 @@ const FORM_TENTHS = 400;
 /** NUS's rate: 2.5 hours a week per unit (the Registrar's transcript legend; the brochure's 4 units for about 10 hours). */
 const HOURS_PER_UNIT = 2.5;
 
-/** 'YYYY-YYYY' → 'YYYY/YY' (an acad year's label). @param {string} ay */
-export const yearLabel = (ay) => {
-  const m = /^(\d{4})-\d{2}(\d{2})$/.exec(ay);
-  return m ? `${m[1]}/${m[2]}` : ay;
-};
-/** A year label → the next year's ('YYYY/YY' a year on). @param {string} label */
-function nextYear(label) {
-  const m = /^(\d{4})\/(\d{2})$/.exec(label);
-  return m ? `${Number(m[1]) + 1}/${String((Number(m[2]) + 1) % 100).padStart(2, '0')}` : 'a later year';
-}
+// The year labels live in public/year.js with the header's year line (Phase 8 8B).
+export { yearLabel };
 
 /** A sum in tenths, so 2.5 + 1.5 is 4. @param {number} n */
 const tenths = (n) => Math.round(n * 10);

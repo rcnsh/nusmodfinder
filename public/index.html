@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#6A2E56">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="NUS Mod Finder">
+<meta property="og:site_name" content="NUS Mod Finder (unofficial)">
 <meta property="og:title" content="NUS Mod Finder (unofficial)">
 <meta property="og:description" content="Search every NUS course in plain English, or by code, and see which ones exchange students may take. Unofficial; course data from NUSMods.">
 <meta property="og:url" content="https://nusmodfinder.rcn.sh/">
@@ -41,11 +41,13 @@
   <a class="skip" id="skip" href="#setup">Skip to main content</a>
   <header class="hdr">
     <h1 class="brand"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7" fill="currentColor"/><g class="lens" fill="none" stroke-linecap="round"><circle cx="14" cy="14" r="6.5" stroke-width="2.6"/><path d="M19 19l5.5 5.5" stroke-width="3"/></g></svg><span class="brand-name">NUS Mod Finder</span> <span class="unofficial"><span class="paren">(</span>unofficial<span class="paren">)</span></span></h1>
-    <p class="hdr-r">Academic year 2026/27</p>
+    <!-- The year line at every width (Phase 8 8B): app.js writes it from public/year.js; this is what shows before. -->
+    <p class="year-line" id="yearLine">Academic year 2026/27</p>
     <!-- The one polite live region (5E, F5): result counts, no match, hidden codes, errors and 429, in a
          sentence (app.js). In the header, so it is in the tree in every view before it first speaks. -->
     <p class="vh" id="live" role="status" aria-live="polite" aria-atomic="true"></p>
   </header>
+  <noscript><p class="noscript">NUS Mod Finder needs JavaScript to search: turn it on in your browser, then reload this page.</p></noscript>
 
   <!-- The first screen (D2): the exchange set-up, then the query. -->
   <main class="setup" id="setup" aria-labelledby="setupTitle" tabindex="-1">
@@ -177,8 +179,9 @@
     <ul class="footer-links">
       <li><a href="https://nusmods.com/" target="_blank" rel="noopener">NUSMods</a></li>
       <li><a href="https://www.nus.edu.sg/registrar/prospective-students/non-graduating" target="_blank" rel="noopener">Courses offered to exchange (NG) students</a></li>
-      <li><a href="https://www.nus.edu.sg/registrar/prospective-students/non-graduating" target="_blank" rel="noopener">Course restrictions for exchange (NG) students</a></li>
+      <li><a href="https://www.nus.edu.sg/registrar/docs/default-source/prospective-students---non-graduating/non-graduating-course-restrictions.pdf" target="_blank" rel="noopener">Course restrictions for exchange (NG) students</a></li>
       <li><a href="https://nus.edu.sg/coursereg/resources.html" target="_blank" rel="noopener">The Registrar's course vacancy report</a></li>
+      <li><a href="/privacy">Privacy</a></li>
     </ul>
   </footer>
 </div>
