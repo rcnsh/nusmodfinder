@@ -72,3 +72,19 @@ sha256 of each run's `results` (first 16):
 | fixture, `--strip ng` | 11 | `7a5d58bbe50972c0` both | yes |
 
 The four equal 6E's. No holdout run, no count and no look; holdout looks stay at 8 of 12.
+
+## The red-team follow-up ships: ranking-neutral (pin move, no look)
+
+PRs #98 (RT6-PD1) and #99 (R6-2, RT6-SA2) merged as `a23601d` and deployed as version `b0834844`.
+Local eval runs at `a23601d` against the pin `0b5f360`, sha256 of each run's `results` (first 16):
+
+| run | queries | results sha256 (first 16) | identical |
+|---|---|---|---|
+| dev, the queries' filters | 98 | `21245ed8fe04ba32` both | yes |
+| dev, `--strip ng` | 98 | `62e5ab9a8150508f` both | yes |
+| dev, `--unfiltered` | 98 | `a7593696c94b041a` both | yes |
+| fixture, `--strip ng` | 11 | `7a5d58bbe50972c0` both | yes |
+
+Holdout, custodian only: `run-shipped-a23601d` stored with `--store-only` (81 queries, no
+verdict, no ledger row); `eval:count --lists-differing --run shipped-a23601d --baseline
+shipped-0b5f360` printed `0`. `SHIPPED_BASELINE` is `a23601d`; holdout looks stay at 8 of 12.

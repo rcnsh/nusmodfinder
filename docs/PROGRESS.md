@@ -1228,3 +1228,14 @@ fails on the previous code.
   ranker-pin hashes), the local folder `~/dev/vector-nusmods` (Phase 6 worktrees point at it), and
   history in `docs/evidence/` and `docs/plans/`.
 - `.claude/` is ignored by git and eslint: an agent worktree there made `npm run deploy` refuse.
+
+## 2026-11-12 — Phase 6 closed
+
+- **Live:** version `b0834844` (tag `a23601d`) at https://nusmodfinder.rcn.sh: the shortlist (picks
+  and backups per semester in the link, remembered on the device), the per-semester totals and
+  NUS's form order, the CSV and the print-to-PDF export; GRO's level-4000 note as a condition.
+- **Checks:** `p6-live.mjs` 18 of 18 on production; the persona red team (`redteam.md`) left no
+  page defect open after RT6-PD1's fix; Jacob ruled R6-2 and RT6-SA1.
+- **CI:** the UI suite runs in Playwright's image, one job per browser.
+- **Pin** `a23601d`; holdout looks 8 of 12. Exit: `docs/evidence/phase6/exit.md`.
+- **Next:** Phase 7 (ops and architecture, SC9): plan with critics (a hard cap of three rounds).
