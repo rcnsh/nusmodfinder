@@ -78,15 +78,17 @@ Phase 0 built most of this. Measured at `a64a024`, the gaps were these:
 
 ## Jacob's answers (2026-11-12)
 - **G1, deploys:** Jacob wants pushes to `main` to deploy, but only once CI is green. Workers
-  Builds alone deploys on every push, in parallel with GitHub's CI, with no option to wait for it
-  (Cloudflare's docs: "every push event made to this branch will trigger a build", then the
-  deploy command). So the lead's design: Workers Builds with build-on-push turned off, started by
-  a Deploy Hook that a GitHub Actions job POSTs only after CI and Findings pass on that `main`
-  commit. The hook URL is the only secret in GitHub, and it can only start a build of `main`. The
-  build's deploy command is `npm run deploy` (bundle fetched and sha-checked, guard, startup
-  gate). 7-0 checks that the guard's D1 read works with Workers Builds' own token; if it can't,
-  deploys stay on the Mac with the green-CI refusal (the original recommendation), and the lead
-  reports why.
+  Builds (connecting the repo in the dashboard) deploys on every push, in parallel with GitHub's CI,
+  with no option to wait for it, so the repo is not connected there. Instead a GitHub Actions
+  `deploy` job runs on `workflow_run` after CI and Findings pass on a `main` commit, and runs
+  `npm run deploy` with an account-owned API token scoped to this one Worker (the dashboard's
+  "API token for external CI/CD", Workers role Editor: it can upload and deploy this Worker, not
+  delete it or touch any other). The deploy guard's D1 read needs D1 access the Worker-scoped token
+  lacks: 7-0 settles the narrowest way (the D1 REST query endpoint with D1 read on the one
+  database, rather than `wrangler dev --remote`, which binds Vectorize and Workers AI too), and the
+  exact permissions go in the runbook before Jacob creates the token. Re-ingest deploys (D1
+  writes) stay on the Mac. If the guard can't run in Actions, every deploy stays on the Mac with
+  the green-CI refusal, and the lead reports why.
 - **G2, year switch:** July, as recommended: switch once NUSMods has the new year and NUS's Sem 1
   list is out; until NUS's Sem 2 list appears, Sem 2 shows last year's Sem 2 list, labelled
   "On NUS's 2026/27 list; NUS hasn't published 2027/28's yet", counted "to confirm", never open.
