@@ -5,8 +5,11 @@
 // its startup time, and only then promotes it. git and wrangler are a fake
 // exec, the bundle and D1's hashes are injected, so nothing here deploys,
 // reads D1 or touches the repo.
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { createServer } from 'node:net';
-import { describe, expect, it } from 'vitest';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ALLOWED_VARS, MAX_STARTUP_MS, STARTUP_PROFILE, deploy, freePort, remoteHashes, wranglerVars } from '../scripts/deploy.mjs';
 import { dataVersion } from '../src/rowhash.js';
 import { rowsKey } from '../src/vector-bundle.js';
@@ -68,6 +71,12 @@ function fakeExec(over = {}) {
   return { exec, calls };
 }
 
+/** Each test's run records (Phase 7 7C), in a temp dir. @type {string} */
+let runsDir;
+beforeEach(() => { runsDir = mkdtempSync(join(tmpdir(), 'vnm-deploy-runs-')); });
+afterEach(() => { rmSync(runsDir, { recursive: true, force: true }); });
+const records = () => readdirSync(runsDir).sort().map((f) => JSON.parse(readFileSync(join(runsDir, f), 'utf8')));
+
 /**
  * @param {import('../scripts/deploy.mjs').Exec} exec
  * @param {{ bundle?: () => Promise<import('../scripts/deploy.mjs').DeployBundle>, d1?: any, committed?: string, vars?: Record<string, unknown> }} [o]
@@ -84,6 +93,7 @@ async function runDeploy(exec, o = {}) {
     d1Hashes: async () => { d1Reads++; if (o.d1 instanceof Error) throw o.d1; return o.d1 ?? D1; },
     committedDataVersion: async () => o.committed ?? DV,
     vars: async () => o.vars ?? { DENSE_BACKEND: 'bundle' },
+    runsDir,
   });
   return { code, out: out.join('\n'), err: err.join('\n'), d1Reads };
 }
@@ -212,6 +222,53 @@ describe('npm run deploy', () => {
       expect(err).toContain(msg);
       expect(ranWrangler(calls)).toBe(false);
     }
+  });
+});
+
+describe('Phase 7 7C: the clean-tree exemption and the run record', () => {
+  it('admits new, untracked run records under docs/evidence/ops/runs/ and nothing else', async () => {
+    const { exec } = fakeExec({ 'git status --porcelain --untracked-files=all --ignore-submodules=none': {
+      stdout: '?? docs/evidence/ops/runs/20261112T101530Z-ingest-ab12.json\n?? docs/evidence/ops/runs/20261112T101544Z-verify-cd34.json\n',
+    } });
+    expect((await runDeploy(exec)).code).toBe(0);
+  });
+
+  it('refuses a modified tracked run record, a new file elsewhere, and a new file that is not a run record', async () => {
+    for (const line of [
+      ' M docs/evidence/ops/runs/20261112T101530Z-ingest-ab12.json',
+      'A  docs/evidence/ops/runs/20261112T101530Z-ingest-ab12.json',
+      '?? docs/evidence/ops/notes.md',
+      '?? docs/evidence/ops/runs/sub/20261112T101530Z-ingest-ab12.json',
+      '?? docs/evidence/ops/runs/scratch.txt',
+      '?? src/scratch.js',
+    ]) {
+      const { exec, calls } = fakeExec({ 'git status --porcelain --untracked-files=all --ignore-submodules=none': { stdout: `?? docs/evidence/ops/runs/20261112T101530Z-ingest-ff00.json\n${line}\n` } });
+      const { code, err } = await runDeploy(exec);
+      expect(code, line).toBe(1);
+      expect(err).toContain(line.trim());
+      expect(err).not.toContain('ingest-ff00');
+      expect(ranWrangler(calls)).toBe(false);
+    }
+  });
+
+  it('every exit path leaves exactly one record: refused, failed after the upload, and live', async () => {
+    await runDeploy(fakeExec({ 'git status --porcelain --untracked-files=all --ignore-submodules=none': { stdout: ' M src/index.js\n' } }).exec);
+    await runDeploy(fakeExec({ promote: { code: 4 } }).exec);
+    await runDeploy(fakeExec().exec);
+    const [refused, failed, live] = records();
+    expect(records()).toHaveLength(3);
+    expect(refused).toMatchObject({ script: 'deploy', outcome: 'refused', exitCode: 1 });
+    expect(failed).toMatchObject({ script: 'deploy', outcome: 'failed', exitCode: 4, versions: { versionId: VERSION, tag: '0123456' } });
+    expect(live).toMatchObject({
+      script: 'deploy', outcome: 'ok', exitCode: 0, target: 'nusmodfinder',
+      versions: { versionId: VERSION, tag: '0123456', dataVersion: DV }, read: [{ what: expect.stringMatching(/D1 rows/), actual: 2 }],
+    });
+  });
+
+  it('a throw anywhere still leaves a record, and the error goes on up', async () => {
+    const exec = /** @type {import('../scripts/deploy.mjs').Exec} */ (async () => { throw new Error('git vanished'); });
+    await expect(runDeploy(exec)).rejects.toThrow('git vanished');
+    expect(records()).toEqual([expect.objectContaining({ script: 'deploy', outcome: 'failed', message: expect.stringContaining('git vanished') })]);
   });
 });
 
