@@ -1,29 +1,29 @@
 name: Deploy
 
-# Phase 7 7B (G1, ADR 0011): a push to main deploys once that commit's CI and Findings runs have
-# both succeeded. Workers Builds would deploy alongside CI rather than after it, so the repo is
-# not connected there; this workflow runs `npm run deploy`, the same command the Mac runs:
-# preflight, the guard over D1's REST query, upload, startup gate, promote, the deploy/* tag,
-# triggers, then smokes the deployed commit (Phase 8 8C). Re-ingests (D1 writes) stay on the Mac: if D1 doesn't hold the commit's data yet, the
+# A push to main deploys once that commit's CI run has succeeded (ADR 0011). Workers Builds
+# would deploy alongside CI rather than after it, so the repo is not connected there; this
+# workflow runs `npm run deploy`, the same command the Mac runs: preflight, the guard over D1's
+# REST query, upload, startup gate, promote, the deploy/* tag, triggers, then smokes the deployed
+# commit. Re-ingests (D1 writes) stay on the Mac: if D1 doesn't hold the commit's data yet, the
 # guard fails the job and says so, and nothing deploys.
 #
-# The event fires once per workflow, so the gate (scripts/deploy-gate.mjs) deploys only when both
-# runs of that sha succeeded, the sha is still main's tip, and no deploy/* tag names it yet.
-# The pushed annotated tag is the durable trace; the run record is kept as an artifact. Nothing is
-# ever committed from here to main (that would start CI, then a deploy, in a loop).
+# The gate (scripts/deploy-gate.mjs) deploys only when the sha's CI push run succeeded, the sha is
+# still main's tip, and no deploy/* tag names it yet. The pushed annotated tag is the durable
+# trace; the run records are kept as an artifact. Nothing is ever committed from here to main
+# (that would start CI, then a deploy, in a loop).
 #
-# Off until the repo variable DEPLOY_FROM_ACTIONS is 'true' (the lead turns it on after a watched
-# first run). test/deploy-workflow.node.test.js holds this shape.
+# Off unless the repo variable DEPLOY_FROM_ACTIONS is 'true'.
+# test/deploy-workflow.node.test.js holds this shape.
 on:
   workflow_run:
-    workflows: [CI, Findings]
+    workflows: [CI]
     types: [completed]
     branches: [main]
 
 permissions:
   # The deploy/* tag push.
   contents: write
-  # The gate and the preflight list the sha's CI and Findings runs.
+  # The gate and the preflight list the sha's CI runs.
   actions: read
 
 concurrency:
@@ -48,7 +48,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Gate (both runs green, still main's tip, not yet deployed)
+      - name: Gate (CI green, still main's tip, not yet deployed)
         id: gate
         env:
           GH_TOKEN: ${{ github.token }}
@@ -68,7 +68,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: npm run deploy
-      # Phase 8 8C: five GETs to the live site, at least 4 s apart (scripts/smoke.mjs). It needs no
+      # Five GETs to the live site, at least 4 s apart (scripts/smoke.mjs). It needs no
       # token: the deploy step above has already put the production bundle in .data/vectors/ and
       # restored the corpus manifest's current to .data/prod/, so smoke's own restores are no-ops.
       # If this step ever runs before the deploy, give it GH_TOKEN. A failed smoke fails the job,
@@ -81,6 +81,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: deploy-run-record-${{ github.event.workflow_run.head_sha }}
-          path: docs/evidence/ops/runs/
+          path: ops/runs/
           if-no-files-found: warn
           retention-days: 90

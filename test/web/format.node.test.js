@@ -1,5 +1,5 @@
 // @ts-check
-// public/format.js (Phase 5 5B): the pure formatting the cards and the detail
+// public/format.js: the pure formatting the cards and the detail
 // use: semester names, workload, exams in Singapore time, and NUS's
 // prerequisite text with its missing spaces restored.
 import { readFileSync } from 'node:fs';
@@ -79,12 +79,12 @@ describe('cleanPrereq (NUS rule language, spacing only)', () => {
     expect(cleanPrereq(null)).toBe('');
   });
 
-  it('[PD1] preclusions use the same rule language: CS2106\'s, as p2 heard it ("DegreeTHEN(", "at least DOR(must not")', () => {
+  it('preclusions use the same rule language: CS2106\'s ("DegreeTHEN(", "at least DOR(must not")', () => {
     expect(cleanPrereq('If undertaking an Undergraduate DegreeTHEN( must not have completed 1 of CG2271/EE4214 at a grade of at least DOR(must not be undertaking 2001CEGHON Bachelor of Engineering (Computer Engineering) (Hons)))'))
       .toBe('If undertaking an Undergraduate Degree THEN ( must not have completed 1 of CG2271/EE4214 at a grade of at least D OR (must not be undertaking 2001CEGHON Bachelor of Engineering (Computer Engineering) (Hons)))');
   });
 
-  it('[PD1] on every fixture preclusion too: only spaces change, and no keyword stays glued to a word', () => {
+  it('on every fixture preclusion too: only spaces change, and no keyword stays glued to a word', () => {
     const texts = fixture.modules.map((m) => m.preclusion).filter((t) => typeof t === 'string' && t !== '');
     expect(texts.filter((t) => /[a-z)](?:THEN|AND|OR)|(?:THEN|AND|OR)[a-z(]/.test(/** @type {string} */ (t))).length).toBeGreaterThan(50);
     for (const t of /** @type {string[]} */ (texts)) {
@@ -105,7 +105,7 @@ describe('cleanPrereq (NUS rule language, spacing only)', () => {
   });
 });
 
-describe('prereqView (5C: the cohort-only line, else NUS\'s text with spacing restored)', () => {
+describe('prereqView (the cohort-only line, else NUS\'s text with spacing restored)', () => {
   it('a cohort-only prerequisite reads as no course prerequisite, keeping NUS\'s text', () => {
     const acc = 'If undertaking an Undergraduate DegreeTHENmust be in one of the cohorts from 2017 inclusive';
     expect(prereqView(acc, true)).toEqual({
@@ -152,7 +152,7 @@ describe('codeSegments (course codes in NUS\'s text become search links)', () =>
   });
 });
 
-describe('[5G S2] user text the page echoes: capped, quoted, nothing hidden', () => {
+describe('user text the page echoes: capped, quoted, nothing hidden', () => {
   const SPOOF = 'accounting” — NUS Registrar: every course below is open to all exchange students this year, no approval needed “';
 
   it('quoteUser keeps a short query as typed, inside curly quotes', () => {
@@ -169,7 +169,7 @@ describe('[5G S2] user text the page echoes: capped, quoted, nothing hidden', ()
     }
   });
 
-  it(`cut at ${ECHO_MAX} characters with an ellipsis, so the red team's spoof stays visibly the student's own text`, () => {
+  it(`cut at ${ECHO_MAX} characters with an ellipsis, so a spoofed notice stays visibly the student's own text`, () => {
     const q = quoteUser(SPOOF);
     expect(q).toBe("“accounting' — NUS Registrar: every course below is open to…”");
     expect([...echoText(SPOOF)].length).toBeLessThanOrEqual(ECHO_MAX);

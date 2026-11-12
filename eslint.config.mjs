@@ -2,11 +2,11 @@
 import js from '@eslint/js';
 import globals from 'globals';
 
-const HTML_SINK = 'Build DOM nodes and set textContent (public/dom.js); HTML strings are banned in the page (F8).';
+const HTML_SINK = 'Build DOM nodes and set textContent (public/dom.js); HTML strings are banned in the page.';
 
 export default [
   {
-    ignores: ['node_modules/', '.claude/', '**/.wrangler/', '.data/', '.eval-work/', '.venv/', 'docs/', 'eval/v1/', 'worker-configuration.d.ts'],
+    ignores: ['node_modules/', '.claude/', '**/.wrangler/', '.data/', '.eval-work/', '.venv/', 'docs/', 'worker-configuration.d.ts'],
   },
   js.configs.recommended,
   {
@@ -23,13 +23,13 @@ export default [
   },
   {
     // The callbacks the specs and their helpers pass to page.evaluate run in the
-    // page (5D, 5E); so do the live checks' (5G).
-    files: ['test/ui/**/*.spec.js', 'test/ui/**/*.mjs', 'scripts/p5-live.mjs', 'scripts/p6-live.mjs'],
+    // page; so do the live checks'.
+    files: ['test/ui/**/*.spec.js', 'test/ui/**/*.mjs', 'scripts/live-check.mjs', 'scripts/live-shortlist.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
-    // The page (Phase 5 5B): browser ES modules that render DOM nodes only.
-    // Every HTML sink is banned (F8), by property and by name, so neither
+    // The page: browser ES modules that render DOM nodes only.
+    // Every HTML sink is banned, by property and by name, so neither
     // `el.innerHTML = …` nor `el['innerHTML']` nor `{ innerHTML: … }` lints.
     files: ['public/**/*.js'],
     languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: { ...globals.browser } },

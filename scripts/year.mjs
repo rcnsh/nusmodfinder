@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// The year's source gate (Phase 7 7E, docs/plans/phase7.md 7E; the procedure is
-// docs/year-refresh/README.md):
+// The year's source gate (the procedure is docs/year-refresh/README.md):
 //
 //   npm run year -- check [<year>]
 //       CI mode, no key: every year source agrees; no stub remains; the source manifest's
@@ -14,8 +13,8 @@
 //       on the Mac, with the sources key: CI mode, then restores the newest revision's archive
 //       (sha-checked, text extractions included) into a temp dir, checks every indexed quote
 //       verbatim in its document's text, re-extracts data/ng-courses-<year>.json from the archived
-//       NG list PDF (scripts/extract-ng.py run by .venv/bin/python, which needs pypdf: red team
-//       H-1) and requires it byte for byte, its semester sections included, and rebuilds
+//       NG list PDF (scripts/extract-ng.py run by .venv/bin/python, which needs pypdf) and
+//       requires it byte for byte, its semester sections included, and rebuilds
 //       data/ng-restrictions-<year>.json byte for byte. While a semester is unpublished, last
 //       year's NG list (which exchange mode shows for it) is re-extracted from last year's archive
 //       the same way. Refuses a pending archive, uncommitted
@@ -113,14 +112,14 @@ export function yearCheck({ root = ROOT, year } = {}) {
     if (STUB_LINE.test(text) || text.includes(STUB_MARK)) problems.push(`${manifest[k]} is a stub (year next); its author hasn't written it yet`);
   }
   // 6. An oracle exists for the year, where the selector looks.
-  if (manifest.oracle !== oracleRel(y)) problems.push(`${manifestRel(y)} names oracle ${manifest.oracle}; the selector (test/sc1/oracle.mjs) reads ${oracleRel(y)}`);
+  if (manifest.oracle !== oracleRel(y)) problems.push(`${manifestRel(y)} names oracle ${manifest.oracle}; the selector (test/oracle/oracle.mjs) reads ${oracleRel(y)}`);
   if (manifest.overlay !== overlayRel(y)) problems.push(`${manifestRel(y)} names overlay ${manifest.overlay}, not ${overlayRel(y)}`);
 
   // 3. The documents and dates.
   const rev = latestRevision(manifest);
   if (rev) {
     if (!rev.archive.sha256) notes.push(`archive: pending (${rev.archive.release}): ${rev.archive.pending}`);
-    for (const c of toConfirm(rev)) notes.push(`to confirm (the lead): ${c}`);
+    for (const c of toConfirm(rev)) notes.push(`to confirm (the maintainer): ${c}`);
     const list = documentOf(rev, 'ng-list');
     if (courses.acadYear !== y) problems.push(`${ngCoursesRel(y)} is for ${courses.acadYear}`);
     if (list && courses.updatedAsAt !== list.updatedAsAt) problems.push(`${ngCoursesRel(y)} says the NG list is updated as at ${courses.updatedAsAt}; the source manifest says ${list.updatedAsAt}`);
@@ -138,7 +137,7 @@ export function yearCheck({ root = ROOT, year } = {}) {
     }
   }
 
-  // Published semesters: a published one has its section, an unpublished one none (G2).
+  // Published semesters: a published one has its section, an unpublished one none.
   const published = publishedSemesters(manifest);
   for (const s of [1, 2]) {
     const has = Array.isArray(courses.semesters?.[String(s)]);
@@ -284,7 +283,7 @@ export const venvNgExtractor = (root) => async ({ pdf, year, published, out }) =
 
 /**
  * One year's NG list against its archived PDF: extracts it into `out` and compares it with the
- * committed data/ng-courses-<year>.json byte for byte (red team H-1).
+ * committed data/ng-courses-<year>.json byte for byte.
  * @param {{ year: string, rev: import('./ng-sources.mjs').Revision, published: number[], dir: string, root: string, extract: NgExtractor, out: string }} o
  * @returns {Promise<{ problem: string | null, detail: { result: string, semesters?: Record<string, number> } }>}
  */
@@ -337,7 +336,7 @@ export async function yearCheckFull({
     return { ok: false, problems: [`commit the source-derived inputs (and the transcription and builder) first, so the record names their committed bytes:\n${dirt.join('\n')}`], notes, record: null, sourceInputsHash: null };
   }
   // The NG list is re-extracted with the repo's venv: refuse up front, naming the setup, when it
-  // can't run (red team H-1: never a silent pass).
+  // can't run (never a silent pass).
   if (!extractNg) {
     const why = await ngVenvProblem(root);
     if (why) return { ok: false, problems: [why], notes, record: null, sourceInputsHash: null };
@@ -381,7 +380,7 @@ export async function yearCheckFull({
     for (const u of unarchived) notes.push(`unarchived, not checked: ${u}`);
     record.detail('quotes', { checked, unarchived: unarchived.length });
 
-    // The NG list (red team H-1): the archived PDF re-extracts to the committed file byte for byte,
+    // The NG list: the archived PDF re-extracts to the committed file byte for byte,
     // with a section for each semester the manifest marks published (extract-ng.py fails otherwise).
     scratch = mkdtempSync(join(tmpdir(), 'vnm-year-ng-'));
     const current = await checkNgList({ year: y, rev, published: publishedSemesters(/** @type {any} */ (manifest)), dir, root, extract, out: join(scratch, 'ng-courses.json') });
@@ -491,15 +490,15 @@ export function yearNext(year, { root = ROOT } = {}) {
 /** The year switch's checklist (docs/year-refresh/README.md has each step in full). @param {string} year */
 export const CHECKLIST = (year) => [
   `Year switch to ${year} (docs/year-refresh/README.md):`,
-  ' 1. When: NUSMods has the year and NUS has published its Sem 1 list (G2, July).',
+  ' 1. When: NUSMods has the year and NUS has published its Sem 1 list (about July).',
   ` 2. Scaffold: npm run year -- next ${year} (done).`,
   ' 3. Sources: save the documents by hand into a new dir; npm run sources -- hash --from <dir>; fill in the revision; npm run sources -- publish --from <dir>.',
   ' 4. Transcription: two independent transcriptions (brief-transcription.md), node scripts/transcription-diff.mjs, then --map-to last year; the register with the maintainer\'s rulings (register.md).',
   ` 5. Corpus and rules: npm run corpus -- fetch ${year}; npm run corpus -- publish --new-data-version; the overlay (overlay.md); python3 scripts/extract-ng.py <pdf> --year ${year}; node scripts/build-ng-restrictions.mjs --sources <restored dir>; node scripts/build-ng-reasons.mjs; DEFAULT_ACAD_YEAR, public/year.js and the header.`,
-  ' 6. Oracle: the changed sections by a fresh author (brief-oracle.md), then agreement (npm run test:sc1).',
+  ' 6. Oracle: the changed sections by a fresh author (brief-oracle.md), then agreement (npm run test:oracle).',
   ` 7. Checks: npm run year -- check --full (commit its record; it re-extracts the NG list with ${NG_VENV_PYTHON}: ${NG_VENV_SETUP}); node scripts/vectors.mjs build --corpus production.`,
-  ' 7b. Docs: the <!-- year:live --> sentences in README.md, EVAL.md and docs/REFERENCE.md name the new year and the new NG list\'s counts (npm test: test/docs-facts.node.test.js must pass).',
-  ' 8. PR: CI runs sc1 and rollover on the new year; merge only when complete.',
+  ' 7b. Docs: the <!-- year:live --> sentences in README.md and docs/ name the new year and the new NG list\'s counts (npm test: test/docs-facts.node.test.js must pass).',
+  ' 8. PR: CI runs oracle and rollover on the new year; merge only when complete.',
   ' 9. On merged main: npm run deploy -- --preflight; npm run d1:bookmark.',
   '10. npm run remote -- ingest --d1-only --allow-year-change --write-budget 80000; npm run remote -- verify --pre-deploy.',
   '11. npm run deploy; npm run smoke.',

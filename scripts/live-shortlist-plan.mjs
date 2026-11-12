@@ -1,22 +1,22 @@
 // @ts-check
-// What scripts/p6-live.mjs (Phase 6 6E's live checks) does before it sends
+// What scripts/live-shortlist.mjs (the shortlist's live checks) does before it sends
 // anything: its arguments, the seeded draw of the shortlist it checks and the
 // three 404 codes, the calls it will make, and the reading and comparing of
 // totals. Node only and pure but for loading the data, so
-// test/p6-live.node.test.js runs it with no network; the browser half is
-// p6-live.mjs.
+// test/live-shortlist.node.test.js runs it with no network; the browser half is
+// live-shortlist.mjs.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { oracleShown } from '../test/sc1/oracle.mjs';
+import { oracleShown } from '../test/oracle/oracle.mjs';
 import { reference } from '../test/web/shortlist-reference.node.mjs';
 import { productionCorpus } from './corpus-manifest.mjs';
 import { catalogueOnlyRecords } from './lib.mjs';
-import { GAP_MS, PRODUCTION_URL, draw, loadModules, rng } from './p5-live-plan.mjs';
+import { GAP_MS, PRODUCTION_URL, draw, loadModules, rng } from './live-check-plan.mjs';
 
 export { GAP_MS, PRODUCTION_URL, rng };
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-/** The study level the shortlist is checked at (the 6B/6C/6D tests' own). */
+/** The study level the shortlist is checked at (the shortlist tests' own). */
 export const STUDY = 'ug2';
 /** The unknown code: well formed, in no list (test/ui's own unknown code). */
 const UNKNOWN = 'CS9999';
@@ -45,7 +45,7 @@ export function parseArgs(argv) {
   if (corpus !== 'production' && corpus !== 'fixture') throw new Error('--corpus is production or fixture');
   const seed = Number(opts.seed ?? 6);
   if (!Number.isInteger(seed)) throw new Error('--seed is an integer');
-  return { url: url.origin, log: opts.log ?? 'docs/evidence/phase6/p6-live.jsonl', corpus, seed, plan };
+  return { url: url.origin, log: opts.log ?? '.data/live-shortlist.jsonl', corpus, seed, plan };
 }
 
 // ---------- the data ----------
@@ -80,7 +80,7 @@ export async function loadData(corpus) {
   const file = readJson('data/catalogue-only.json');
   let catalogueOnly = /** @type {[string, string, string][]} */ (file.rows).map(([code]) => code);
   if (corpus === 'production') {
-    // Phase 7 7D: data/catalogue-only.json is built from `current` (data/corpus.json); filtered
+    // data/catalogue-only.json is built from `current` (data/corpus.json); filtered
     // by it all the same, so a stale file can't send a code production doesn't hold.
     const current = new Set(catalogueOnlyRecords((await productionCorpus()).records).map((r) => r.code));
     catalogueOnly = catalogueOnly.filter((c) => current.has(c));
@@ -129,7 +129,7 @@ export const SLOTS = Object.freeze(/** @type {const} */ ([
 /**
  * @typedef {{ which: 'pick' | 'alt', code: string, sem: '1' | '2', title: string, faculty: string | null, credits: number,
  *   standing: string, status: 'open' | 'note' | 'closed' }} PlannedEntry
- *   `standing`: the reference's; `status`: the SC1 oracle's (with R3's year note) at the entry's semester
+ *   `standing`: the reference's; `status`: the exchange oracle's (with the year-of-study note) at the entry's semester
  */
 
 /**

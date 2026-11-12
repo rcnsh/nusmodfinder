@@ -1,7 +1,6 @@
 // @ts-check
-// SC1 (docs/plans/phase4.md 4E), over the production corpus (Phase 7 7D: CI on
-// the live year): src/eligibility.js with the committed rules agrees with the
-// independent oracle (test/sc1/oracle.mjs, written from the sources and
+// Over the production corpus (CI on the live year): src/eligibility.js with the committed rules agrees with the
+// independent oracle (test/oracle/oracle.mjs, written from the sources and
 // the interpretations register only) on every production module, in every
 // semester and at every study level, and on every NG-listed code with no
 // classes in data/ng-unscheduled.json. And every department and faculty a rule
@@ -9,8 +8,8 @@
 // those strings, so a NUSMods rename would leave a closed rule matching
 // nothing and CI green while those courses showed as open.
 //
-// The sc1-node project (vitest.config.mjs) provides `corpus`: `current` from
-// data/corpus.json, normalised with HEAD's NG files for its year. The sc1 CI
+// The oracle-node project (vitest.config.mjs) provides `corpus`: `current` from
+// data/corpus.json, normalised with HEAD's NG files for its year. The oracle CI
 // job restores it and sets FULL_CORPUS=1, so a missing corpus fails there; a
 // local run without `npm run corpus -- restore` skips.
 import { readFileSync } from 'node:fs';
@@ -20,12 +19,12 @@ import { bitOf, eligibility, NG_SEMS, STUDIES } from '../../src/eligibility.js';
 import * as live from './oracle.mjs';
 
 const corpus = inject('corpus');
-// Phase 7 7E: the oracle for the corpus's year (test/sc1/oracle.mjs picks it); the live year's without one.
+// The oracle for the corpus's year (test/oracle/oracle.mjs picks it); the live year's without one.
 const { oracle } = corpus ? await live.oracleFor(corpus.acadYear) : live;
 /** @param {string} rel */
 const readJson = (rel) => JSON.parse(readFileSync(new URL(`../../${rel}`, import.meta.url), 'utf8'));
 
-describe.skipIf(!corpus)('SC1: eligibility agrees with the oracle over production', () => {
+describe.skipIf(!corpus)('eligibility agrees with the oracle over production', () => {
   const c = /** @type {FullCorpus} */ (corpus);
   /** @type {import('../../src/eligibility.js').Rules & { rules: { id: string, match: { departments?: string[], faculties?: string[] } }[] }} */
   const rules = readJson(`data/ng-restrictions-${c.acadYear}.json`);
@@ -50,7 +49,7 @@ describe.skipIf(!corpus)('SC1: eligibility agrees with the oracle over productio
     expect(ngShown).toBeGreaterThan(0);
   }, 60_000); // ~100k cases: 3-4 s locally, 8.4 s once on a CI runner (past the 5 s default)
 
-  // 6A: the NG-listed codes with no classes, as the Worker ships them (data/ng-unscheduled.json, built
+  // The NG-listed codes with no classes, as the Worker ships them (data/ng-unscheduled.json, built
   // from `current`): each stored mask and its rule ids give, at every semester and study level, the
   // oracle's answer for a course with no classes.
   it('on every NG-listed code with no classes in data/ng-unscheduled.json x {Sem 1, Sem 2} x {ug1..ug4, grad}', () => {

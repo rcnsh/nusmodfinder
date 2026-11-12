@@ -13,14 +13,14 @@
   "routes": [{ "pattern": "nusmodfinder.rcn.sh", "custom_domain": true }],
   "workers_dev": false,
 
-  // The page (Phase 5 5B): public/ as Workers Static Assets. No binding, so
+  // The page: public/ as Workers Static Assets. No binding, so
   // Env gains nothing, and a request for a file there (`/`, `/app.js`) is
   // answered without running the Worker or spending its CPU; every other path,
   // the API included, reaches the Worker. Asset responses carry no
   // x-app-version: GET /health is the version trace for the page.
   "assets": { "directory": "./public" },
 
-  // The bundled corpus vectors (src/dense.js, Phase 3 3-0). Defaults to the
+  // The bundled corpus vectors (src/dense.js). Defaults to the
   // committed fixture, so a fresh checkout, `wrangler dev` and CI build
   // without the 10 MB production bundle. `npm run deploy` overrides it with
   // --alias to the sha-checked production bundle and refuses the fixture and
@@ -28,14 +28,14 @@
   // An alias to a .bin file directly is not collected as a Data module, so it
   // points at a two-line module that imports one.
   //
-  // 3C's vocabulary and 3F's groups (src/intent-data.js, src/group-data.js) are
-  // bare names too (Phase 5 5B, A2-1), so the UI test config can point them at
+  // The vocabulary and the groups (src/intent-data.js, src/group-data.js) are
+  // bare names too, so the UI test config can point them at
   // the fixture's: esbuild accepts no relative alias keys. Wrangler merges these
-  // with deploy's --alias, so the deploy adds none for them. 6A's NG-listed
+  // with deploy's --alias, so the deploy adds none for them. The NG-listed
   // codes with no classes (src/ng-unscheduled.js) are one more, built with the
-  // groups (scripts/build-ng-unscheduled.mjs). Phase 7 7D's catalogue codes and
+  // groups (scripts/build-ng-unscheduled.mjs). The catalogue codes and
   // prefixes (src/intent-data.js) follow the corpus too: built from `current`
-  // (data/corpus.json) by scripts/build-3b-data.mjs --corpus production; the
+  // (data/corpus.json) by scripts/build-catalogue-data.mjs --corpus production; the
   // deploy guard checks D1's catalogue_only against the catalogue file.
   "alias": {
     "vectors-bundle": "./test/fixtures/vectors.js",
@@ -67,16 +67,15 @@
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
 
   // Which dense retriever /search uses: "bundle" (exact search over the
-  // bundled vectors) or "vectorize" (the cold standby, degraded service;
-  // docs/plans/phase3.md 3-0, B3-6). Flipped by a deploy; every deploy gets a
+  // bundled vectors) or "vectorize" (the cold standby, degraded service).
+  // Flipped by a deploy; every deploy gets a
   // new version id, which is in the /search cache key.
   "vars": { "DENSE_BACKEND": "bundle" },
 
   // /search costs a Workers AI embedding and a Vectorize query per request.
-  // The guardrail lives in the Worker. It predates the Custom Domain, when
-  // workers.dev was the only address and no zone rate-limiting rule applied.
+  // The guardrail lives in the Worker.
   //
-  // Two per-IP limits (Phase 8 8B, ADR 0012 G5 (b)), both asked before any
+  // Two per-IP limits (ADR 0012), both asked before any
   // other binding: 40 per 10 s lets a class behind one address search, and
   // 200 per 60 s caps a script that stays just under the burst limit.
   //
@@ -86,7 +85,7 @@
   // untouched before the counter caught up. They stop a runaway script; they
   // do NOT protect the account-wide monthly allowances against traffic spread
   // over many addresses, which stays an accepted residual risk (see
-  // docs/REFERENCE.md).
+  // docs/cost.md).
   "ratelimits": [
     {
       "name": "SEARCH_LIMIT",

@@ -1,6 +1,6 @@
-// The SC1 oracle selector (Phase 7 7E): every caller imports this file, never a dated oracle
+// The exchange-eligibility oracle selector: every caller imports this file, never a dated oracle
 // (test/oracle-selector.node.test.js fails on a direct import). It picks the year's oracle,
-// test/sc1/oracle-<year>.node.mjs, written from that year's PDFs and register only.
+// test/oracle/oracle-<year>.node.mjs, written from that year's PDFs and register only.
 //
 //   oracleFor(year)   the oracle for a corpus's year (tests over a corpus pass its acadYear);
 //                     refuses a missing or stub oracle (`year next` scaffolds a stub)
@@ -8,7 +8,7 @@
 //                     the live year's (public/year.js, which `year check` holds equal to
 //                     DEFAULT_ACAD_YEAR), for callers over fixture data or the live corpus
 //
-// G2 (Jacob's answer, ADR 0011): a semester NUS hasn't published yet shows the courses on last
+// ADR 0015: a semester NUS hasn't published yet shows the courses on last
 // year's list for it, each "to confirm" (a note), never open. The normalised module marks those
 // semesters in `ngUnpublished` (scripts/lib.mjs, from the year's source manifest), and its
 // `ngSemesters` hold an unpublished semester exactly when the course was on last year's list. The
@@ -23,12 +23,12 @@
 import { DEFAULT_ACAD_YEAR } from '../../public/year.js';
 
 const RANK = { open: 0, note: 1, closed: 2 };
-const G2_NOTE = "G2: on last year's NG list for this semester; NUS hasn't published this year's yet";
+const UNPUBLISHED_NOTE = "unpublished semester: on last year's NG list for this semester; NUS hasn't published this year's yet";
 
 /** @param {any} m @param {number} sem */
 const carried = (m, sem) => (m.ngUnpublished || []).includes(sem) && (m.ngSemesters || []).includes(sem);
 
-/** The year's oracle with G2 applied. @param {any} o the dated module */
+/** The year's oracle with the unpublished-semester ruling applied. @param {any} o the dated module */
 function withUnpublished(o) {
   const pending = (m) => Array.isArray(m.ngUnpublished) && m.ngUnpublished.length > 0;
   /** @param {(m: any, ctx: any) => any} base */
@@ -36,7 +36,7 @@ function withUnpublished(o) {
     const one = (m, ctx) => {
       const e = base(m, ctx);
       if (e.result === 'closed' || !carried(m, ctx.sem)) return e;
-      return { result: 'note', closed: [], notes: [...e.notes, G2_NOTE] };
+      return { result: 'note', closed: [], notes: [...e.notes, UNPUBLISHED_NOTE] };
     };
     return (m, ctx) => {
       if (!pending(m)) return base(m, ctx);
@@ -73,9 +73,9 @@ export async function oracleFor(year) {
   try {
     mod = await import(`./oracle-${year}.node.mjs`);
   } catch (err) {
-    throw new Error(`no SC1 oracle for ${year}: test/sc1/oracle-${year}.node.mjs is missing (npm run year -- next ${year} scaffolds it; docs/year-refresh/brief-oracle.md)`, { cause: err });
+    throw new Error(`no oracle for ${year}: test/oracle/oracle-${year}.node.mjs is missing (npm run year -- next ${year} scaffolds it; docs/year-refresh/brief-oracle.md)`, { cause: err });
   }
-  if (mod.stub) throw new Error(`test/sc1/oracle-${year}.node.mjs is a stub: its author hasn't written ${year}'s oracle yet (docs/year-refresh/brief-oracle.md)`);
+  if (mod.stub) throw new Error(`test/oracle/oracle-${year}.node.mjs is a stub: its author hasn't written ${year}'s oracle yet (docs/year-refresh/brief-oracle.md)`);
   return withUnpublished({ ...mod, year });
 }
 

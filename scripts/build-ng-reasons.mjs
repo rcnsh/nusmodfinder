@@ -1,17 +1,17 @@
 // @ts-check
 // Builds data/ng-reasons.json, the Worker's reason texts for exchange mode
-// (docs/plans/phase4.md §2 "Storage"): one entry per rule id ingest can store
+// one entry per rule id ingest can store
 // in ng_rules (src/eligibility.js's built-ins plus every closed and note rule
 // in data/ng-restrictions-<year>.json), and the source documents with their
 // dates for /facets. D1 stores ids only, so a wording edit here rewrites no
-// rows. Phase 6 6A: also NUS's rules about courses off the exchange list (the
+// rows. It also holds NUS's rules about courses off the exchange list (the
 // rules file's info entries with a `text`), with the scope each states, for
 // /facets' `offListRules`. Deterministic; test/ng-reasons.node.test.js fails when the committed
 // file differs from a rebuild. Usage: node scripts/build-ng-reasons.mjs
 //
-// Phase 7 7E: the documents' dates come from the year's source manifest (data/ng-sources-<year>.json),
-// the off-list rule's role (`off-list-rule`, rule E) from the year's overlay module, and the two G2
-// reasons (a semester NUS hasn't published) are worded from the year.
+// The documents' dates come from the year's source manifest (data/ng-sources-<year>.json),
+// the off-list rule's role (`off-list-rule`, rule E) from the year's overlay module, and the two
+// unpublished-semester reasons (a semester NUS hasn't published) are worded from the year.
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -44,7 +44,7 @@ const BUILT_IN = {
 };
 
 /**
- * G2's two reasons, worded from the year (ADR 0011): for a year Y, "On NUS's <Y-1> list; NUS hasn't
+ * The two unpublished-semester reasons, worded from the year (ADR 0015): for a year Y, "On NUS's <Y-1> list; NUS hasn't
  * published <Y>'s yet", each year as the page labels it.
  * @param {string} acadYear
  */

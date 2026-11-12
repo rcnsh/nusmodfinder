@@ -1,5 +1,5 @@
 // @ts-check
-// Rebuild proof for the D1 schema (Phase 0, ADR 0001). Entirely local: every
+// Rebuild proof for the D1 schema (ADR 0001). Entirely local: every
 // wrangler call carries --local and --persist-to a fresh temp dir, and uses the
 // test config, whose D1 id is not production's.
 //
@@ -7,21 +7,21 @@
 //    0001–0005 only (the migrations production holds before 0006), runs the
 //    exact pragma query used for the read-only remote capture, normalises, and
 //    diffs against test/fixtures/remote-schema.json.
-// 2. Builds the old recipe (schema.sql + 0002–0005, all from 3b18041) and diffs
+// 2. Builds the old recipe (schema.sql + 0002–0005, all from 9d48532) and diffs
 //    normalised sqlite_master.sql and pragma_index_xinfo against build 1,
 //    covering index columns, trigger bodies and the FTS tokenize option.
 // 3. Builds the full chain (every file in migrations/) and diffs the same
 //    pragma rows, sqlite_master and index_xinfo against the committed expected
 //    snapshot test/fixtures/schema-full.json (every migration). Production applies the
-//    same chain, so a fresh remote capture must match it (Phase 7 7G).
+//    same chain, so a fresh remote capture must match it.
 //
 // Exits non-zero on any difference. Usage: npm run db:rebuild-check
 // `-- --update` rewrites test/fixtures/schema-full.json from build 3 instead.
 //
-// `-- --compare-remote <file-or-dir>` (Phase 7 7A) builds nothing: it diffs a production capture
+// `-- --compare-remote <file-or-dir>` builds nothing: it diffs a production capture
 // against the full-chain snapshot, offline. The capture is what `wrangler d1 execute … --remote
 // --command … --json` printed, one file per query, in a directory (`pragma.json`, `master.json`,
-// `index_xinfo.json`, `d1_migrations.json`, as in docs/evidence/phase7/schema/), or one JSON file
+// `index_xinfo.json`, `d1_migrations.json`), or one JSON file
 // holding those four sections. Every section of the snapshot is compared, and the migrations as a
 // set against the files in migrations/: production applied 0008 before 0007.
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -34,10 +34,8 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const CONFIG = join(ROOT, 'test/wrangler.test.jsonc');
 const WRANGLER = join(ROOT, 'node_modules/.bin/wrangler');
 const QUERY_FILE = join(ROOT, 'test/fixtures/schema-query.sql');
-const EVIDENCE_QUERY_FILE = join(ROOT, 'docs/evidence/phase0/remote-schema-query.sql');
 const REMOTE_SNAPSHOT = join(ROOT, 'test/fixtures/remote-schema.json');
-const EVIDENCE_SNAPSHOT = join(ROOT, 'docs/evidence/phase0/remote-schema.json');
-const OLD_RECIPE_COMMIT = '3b18041';
+const OLD_RECIPE_COMMIT = '9d48532';
 const OLD_RECIPE_FILES = [
   'schema.sql',
   'migrations/0002_fts.sql',
@@ -307,11 +305,6 @@ async function main() {
   const update = process.argv.includes('--update');
   const problems = [];
 
-  const [fixtureQuery, evidenceQuery] = await Promise.all([readFile(QUERY_FILE), readFile(EVIDENCE_QUERY_FILE)]);
-  if (!fixtureQuery.equals(evidenceQuery)) {
-    problems.push(`${QUERY_FILE} is not byte-identical to ${EVIDENCE_QUERY_FILE}`);
-  }
-
   const tmp = await mkdtemp(join(tmpdir(), 'vnm-schema-'));
   try {
     // Build 1: 0001–0005 from empty, as production stands before 0006.
@@ -321,16 +314,12 @@ async function main() {
     if (applied.join() !== REMOTE_MIGRATIONS.join()) problems.push(`build 1 applied ${applied.join(', ')}`);
 
     const remote = normalisePragmaRows(unwrap(JSON.parse(await readFile(REMOTE_SNAPSHOT, 'utf8'))));
-    // The fixture is the evidence capture with wrangler's envelope removed;
-    // it must not drift from what was actually read from production.
-    const evidence = normalisePragmaRows(unwrap(JSON.parse(await readFile(EVIDENCE_SNAPSHOT, 'utf8'))));
-    problems.push(...diffRows('evidence-vs-fixture', evidence, remote));
     const local = normalisePragmaRows(queryFile(fresh, QUERY_FILE));
     const remoteDiff = diffRows('remote-vs-migrations', remote, local);
     console.log(`pragma snapshot: ${local.length} local rows vs ${remote.length} remote rows, ${remoteDiff.length} differences`);
     problems.push(...remoteDiff);
 
-    // Build 2: the old by-hand recipe, every file as deployed at 3b18041.
+    // Build 2: the old by-hand recipe, every file as deployed at 9d48532.
     const old = join(tmp, 'old-recipe');
     const sqlDir = join(tmp, 'old-sql');
     await mkdir(sqlDir);

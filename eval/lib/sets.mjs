@@ -15,7 +15,7 @@
 // ciphertext must be listed, with its sha256, in the set directory's
 // MANIFEST.json (the check `eval:verify` makes), so a `--set-dir` of files
 // the manifest never saw cannot be scored. A plaintext set directory that has
-// a MANIFEST.json (eval/diag/typo, 3C's diagnostic) has its queries and qrels
+// a MANIFEST.json (a pinned diagnostic set) has its queries and qrels
 // checked against it on every read; eval/dev has none.
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
@@ -144,7 +144,7 @@ export async function assertPlainManifest(set, path) {
 export async function loadQueries(set, options = {}) {
   const path = setFile(set, 'queries.json');
   if (!existsSync(path)) {
-    throw new Error(`${path} does not exist: the ${set.name} query set has not been written yet (workstream 2b)`);
+    throw new Error(`${path} does not exist: the ${set.name} query set has not been written yet`);
   }
   await assertPlainManifest(set, path);
   const qs = await readSetJson(set, path, options);
@@ -159,7 +159,7 @@ export async function loadQueries(set, options = {}) {
  */
 export async function loadQrels(set, options = {}) {
   const path = setFile(set, 'qrels.json');
-  if (!existsSync(path)) throw new Error(`${path} does not exist: the ${set.name} set has not been judged yet (workstream 2d)`);
+  if (!existsSync(path)) throw new Error(`${path} does not exist: the ${set.name} set has not been judged yet`);
   await assertPlainManifest(set, path);
   return readSetJson(set, path, options);
 }
@@ -195,7 +195,7 @@ export const FILTER_PARAMS = ['sem', 'ng', 'level', 'credits', 'faculty'];
 export const MODES = ['hybrid', 'lexical', 'vector'];
 
 /**
- * The committed persona -> study-level map (eval/study-map.json, Phase 4 §4),
+ * The committed persona -> study-level map (eval/study-map.json),
  * and its sha256 for the run config.
  * @typedef {{ personas: Record<string, string>, noPersona: string }} StudyMap
  */
@@ -207,8 +207,8 @@ export const studyMapSha256 = () => createHash('sha256').update(readFileSync(STU
 /**
  * The query string for one query: production defaults (no topK, no mode) plus
  * the query's filters as API params. `mode` (lexical, vector) is for pool
- * variants only; hybrid, the shipped mode, sends no parameter. Phase 4: an ng
- * query also gets `study` from the study map by its persona (throwing on an
+ * variants only; hybrid, the shipped mode, sends no parameter. An ng query
+ * also gets `study` from the study map by its persona (throwing on an
  * unmapped one); `strip` drops filters by name (`--strip ng`, the unfiltered
  * guard), and with them `study`.
  * @param {import('./metrics.mjs').EvalQuery} q

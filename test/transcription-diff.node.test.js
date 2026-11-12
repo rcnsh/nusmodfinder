@@ -1,17 +1,20 @@
 // @ts-check
-// Phase 7 7E (docs/plans/phase7.md 7E, tests first): scripts/transcription-diff.mjs maps a new
-// year's rule ids to last year's by the quoted sentence, so the overlay (keyed by id) carries over
-// and only real changes reach the register. Measured on the two Phase 4 transcriptions, which
-// named the same rules independently: B's C-urop-fass is A's C-urops-fass.
+// scripts/transcription-diff.mjs maps a new year's rule ids to last year's by the quoted sentence,
+// so the overlay (keyed by id) carries over and only real changes reach the register. Measured on
+// the live year's two independent transcriptions (A, and B, the one its source manifest names),
+// which named the same rules differently: B's C-urop-fass is A's C-urops-fass.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { diffTranscriptions, main, mapIds, normaliseRuleQuote } from '../scripts/transcription-diff.mjs';
-import { REPO } from './year-fakes.node.mjs';
+import { REPO, Y } from './year-fakes.node.mjs';
 
-const rules = (/** @type {string} */ f) => JSON.parse(readFileSync(join(REPO, 'docs/evidence/phase4', f), 'utf8')).rules;
-const A = rules('transcription-a.json');
-const B = rules('transcription-b.json');
+/** @type {string} */
+const B_PATH = join(REPO, JSON.parse(readFileSync(join(REPO, `data/ng-sources-${Y}.json`), 'utf8')).transcription);
+const A_PATH = B_PATH.replace(/-b\.json$/, '-a.json');
+const rules = (/** @type {string} */ p) => JSON.parse(readFileSync(p, 'utf8')).rules;
+const A = rules(A_PATH);
+const B = rules(B_PATH);
 
 describe('transcription-diff', () => {
   it('maps B\'s ids to A\'s by quote: renamed, kept, ambiguous only where two rules share a quote and place', () => {
@@ -44,7 +47,7 @@ describe('transcription-diff', () => {
   it('the CLI prints the id map', () => {
     /** @type {string[]} */
     const lines = [];
-    expect(main(['--map-to', join(REPO, 'docs/evidence/phase4/transcription-a.json'), join(REPO, 'docs/evidence/phase4/transcription-b.json')], { log: (m) => lines.push(m) })).toBe(0);
+    expect(main(['--map-to', A_PATH, B_PATH], { log: (m) => lines.push(m) })).toBe(0);
     expect(lines.join('\n')).toMatch(/^C-urop-fass -> C-urops-fass$/m);
   });
 });

@@ -1,5 +1,5 @@
 // @ts-check
-// src/vocabulary.js (3C): the corpus vocabulary, surface tokens by the FTS
+// src/vocabulary.js: the corpus vocabulary, surface tokens by the FTS
 // tokenisation (queryTokens) with document frequency, plus the FTS index terms
 // those tokens make, so a prefix term's fate is decided without a D1 query.
 // Also the vocabulary files: the committed fixture vocabulary is current, and
@@ -74,7 +74,7 @@ describe('prefixMatches is FTS5 deciding a prefix term `"tok"*`', () => {
   });
 });
 
-describe('osaDistance (C2-5)', () => {
+describe('osaDistance', () => {
   it('counts a transposition of adjacent letters as 1', () => {
     expect(osaDistance('desgin', 'design')).toBe(1);
     expect(osaDistance('fiannce', 'finance')).toBe(1);
@@ -94,7 +94,7 @@ describe('osaDistance (C2-5)', () => {
   });
 });
 
-describe('nearestTerm (C19)', () => {
+describe('nearestTerm', () => {
   const v = parseVocabulary(buildVocabulary([
     { title: 'marketing marketing', description: 'markets' },
     { title: 'marketing', description: 'bases cases' },
@@ -149,7 +149,7 @@ describe('the vocabulary files', () => {
   });
 });
 
-describe('the fixture vocabulary holds the 3H phrase words (5A, B-7, B2-9)', () => {
+describe('the fixture vocabulary holds the constraint phrase words', () => {
   const phrases = JSON.parse(read('data/constraint-phrases.json'));
   const fixtureVocab = parseVocabulary(JSON.parse(read(OUTPUTS.fixture)));
   const fromCorpus = parseVocabulary(buildVocabulary(fixture.modules, { corpus: 'fixture', dataVersion: 'dv' }));
@@ -159,7 +159,7 @@ describe('the fixture vocabulary holds the 3H phrase words (5A, B-7, B2-9)', () 
     expect(phraseWords(phrases)).not.toContain('n');
   });
 
-  it('every phrase word is in the committed fixture vocabulary, so 3C corrects no phrase (`hours` was `tours`)', () => {
+  it('every phrase word is in the committed fixture vocabulary, so the corrector changes no phrase (otherwise `hours` corrects to `tours`)', () => {
     for (const w of phraseWords(phrases)) expect(dfOf(fixtureVocab, w), w).toBeGreaterThan(0);
     for (const kind of ['exam', 'su', 'hoursBelow', 'prereq']) {
       for (const p of phrases[kind]) expect(correctQuery(p.replace('N', '6'), fixtureVocab).corrections, p).toEqual([]);

@@ -1,6 +1,6 @@
 // @ts-check
-// The semester representative's gate on the open sets (ADR 0003, draft
-// amendment "representative-only changes are gated without a look"): between
+// The representative-only check on the open sets (ADR 0003: a change to which
+// member stands for a duplicate group is gated without a look): between
 // a baseline run and a candidate made with the same settings on the same
 // queries and corpus, every list has the same status and the same sequence of
 // group keys (groups-v1), and every position whose code differs shows, in the

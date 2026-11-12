@@ -1,11 +1,11 @@
-# P-6: texts that need a query embedding before the SC4 suite and 3G can run.
-# The lead embedded them on 2026-11-06 (docs/evidence/neurons.tsv). One raw text per line, in suite order, then the
+# Texts the query suite and the no-signal check need a query embedding for, beyond the dev cache.
+# They are embedded in test/query-suite/embeddings.json. One raw text per line, in suite order, then the
 # gibberish set (eval/dev/gibberish.json). Embed every form eval/lib/query-forms.mjs `queryTextForms` gives
 # (the raw text, and its canonical form when that differs), keyed by sha256(model + "\n" + text), into
-# test/sc4/embeddings.json (vnm-eval-embeddings/1, @cf/baai/bge-small-en-v1.5). test/sc4/embeddings.node.test.js
+# test/query-suite/embeddings.json (vnm-eval-embeddings/1, @cf/baai/bge-small-en-v1.5). test/query-suite/embeddings.node.test.js
 # checks this list is exact, and runs its embedding checks once that file exists.
-# 143 texts, 156 forms. The four dev texts §4 names (d-016, d-022, d-024, d-079) are already embedded.
-# 3A-1 (query instruction prefix) will need these again with its prefix; that is 3A-1's embedding pass, not this one.
+# 143 texts, 156 forms. The four dev texts the suite allows (d-016, d-022, d-024, d-079) are in the dev cache.
+# A query instruction prefix would change every form, so these would need embedding again with it.
 cs 1010s
 ma 1521
 cs1010 s

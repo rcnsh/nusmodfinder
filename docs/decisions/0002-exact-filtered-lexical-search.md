@@ -1,40 +1,24 @@
-# 0002 — Phase 1 remote operations: 0006 write budget, read replication, ordering
+# 0002: Filtered keyword search stays exact, paid for with filter indexes
 
-Status: accepted (lead decision, 2026-11-04). Read replication enabled 2026-11-03 21:57 UTC;
-0006 applied the same evening (`docs/evidence/phase1/remote-ops.md`); forced re-ingest run
-2026-11-04 05:44 UTC. **The daily-cap reasoning below is superseded by ADR 0004** (the account is on
-Workers Paid: no daily cap, 50M writes/month included).
+Status: accepted.
 
 ## Context
-Phase 1 changes the production D1 schema (0006) and forces a full re-ingest (SC6). D1 Free caps
-writes at 100k rows/day **account-wide**; exceeding it fails every D1 query on the account until
-00:00 UTC. The plan (`docs/plans/phase1.md`, Final) budgeted 0006 at ~16k rows written.
-
-## Evidence (PR #8, `docs/evidence/phase1/0006-cost.md`, `lexical-cost.md`)
-- Without filter-column indexes the exact filtered fallback scans `modules`: worst case 13,278 rows
-  read per search, over the 8,000 gate. With indexes on level, credits, partial sem3/sem4:
-  worst 6,989 (`"how to"` + `credits=8`), p99 6,018, mean 1,071, over 440 queries × 13 filters,
-  0 mismatches vs brute force.
-- Cost of those indexes: 0006 ≈ 30,100 rows written (16,008 FTS rebuild + 14,068 index entries),
-  ≈ 48k read; forced full re-ingest ≈ 6,771 read / 34,381 written (vs ~20k without indexes; old
-  triggers: ~45.9M read).
-
-## Options
-1. Drop the indexes, accept a 13k-row worst case (violates the 8k gate).
-2. Keep exactness, add indexes, pay ~14k extra writes once and ~14k extra per forced re-ingest.
-3. Bound the fallback and give up exactness (violates SC6).
+The keyword half of a search is a D1 FTS5 query with the request's filters in SQL. Without
+indexes on the filter columns, the exact filtered fallback scans `modules`: up to 13,278 rows
+read for one search. Bounding the scan instead (stop after N rows) would make deep matches
+disappear under a filter, which is a recall bug.
 
 ## Decision
-Option 2. Both remote write steps fit inside the cap individually with the ×1.5 headroom rule
-(0006: 45k; re-ingest: 52k) but **not together** (97k + other projects). So:
-- 0006 and the forced re-ingest run on **different UTC days**, each late in the UTC day, each only
-  after the account-wide headroom check (`estimate × 1.5 < 100k − today's writes`).
-- Ingest's `--write-budget` default is raised to 40k so a single forced run completes in one go.
+- **Keep the filtered search exact**, and add indexes on the filter columns: `level`,
+  `credits`, and partial indexes on `sem3` and `sem4` (`migrations/0006_fts_external.sql`).
+  Measured over 440 queries × 13 filters with 0 mismatches against brute force: worst case
+  6,989 rows read (`"how to"` + `credits=8`), p99 6,018, mean 1,071.
+- **Pay the write cost.** The indexes add about 14k rows written to a forced full re-ingest
+  (about 34k in all against about 20k without them) and about 14k once to build them.
+- **Ingest's `--write-budget` defaults to 40,000 rows**, so a forced full re-ingest finishes in
+  one run. It is a runaway guard, not a cost limit: ADR 0004 sets the cost rule.
 
-## Read replication
-Enable `read_replication.mode = auto` (free; APAC replica; reversible within 24 h) before the
-Phase 1 deploy, verified by `served_by_region` in the structured logs. The Worker already reads via
-`withSession('first-unconstrained')` (PR #7), which is harmless with replication off.
-
-## Dissent
-None from critics (this trade-off was found during implementation, after the planning loop).
+## Consequences
+- Every remote D1 write is estimated first and logged (ADR 0004's headroom rule).
+- A cold load writes far more than the default budget (about 137k rows with the FTS5 shadow
+  tables) and passes `--write-budget` explicitly (docs/data.md, "Write budget").

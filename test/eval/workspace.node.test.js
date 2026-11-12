@@ -25,7 +25,7 @@ async function tree(name, files) {
   return root;
 }
 
-describe('treeHash (review finding 8)', () => {
+describe('treeHash', () => {
   const files = { 'src/index.js': 'export default 1;\n', 'src/lib/a.js': 'a\n', 'migrations/0001.sql': 'create table t;\n', 'scripts/lib.mjs': 'x\n', 'data/ng.json': '{}\n' };
 
   it('covers exactly the ranker paths', () => {
@@ -53,7 +53,7 @@ describe('treeHash (review finding 8)', () => {
     expect(await treeHash(g)).not.toBe(await treeHash(h));
   });
 
-  it('covers the test Worker config too: its compatibility date and flags change what runs (PR #6 review round 2, finding 7)', async () => {
+  it('covers the test Worker config too: its compatibility date and flags change what runs', async () => {
     expect(TEST_CONFIG).toBe('test/wrangler.test.jsonc');
     expect(HASHED).toEqual([...RANKER, TEST_CONFIG]);
     const cfg = (/** @type {string} */ date, /** @type {string[]} */ flags) => JSON.stringify({ main: '../src/index.js', compatibility_date: date, compatibility_flags: flags });
@@ -104,7 +104,7 @@ describe('the overlaid runner works with any ranker ref', () => {
     }
   });
 
-  it('the specifier reader sees every import form (PR #6 review round 4)', () => {
+  it('the specifier reader sees every import form', () => {
     const src = [
       "import worker from '../../src/index.js'; import { denseCircuit } from '../../src/upstream.js';",
       "export { x } from '../../src/a.js';",

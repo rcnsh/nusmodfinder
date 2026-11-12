@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
-// The shortlist ship's live checks (Phase 6 6E, docs/plans/phase6.md §3 6E
-// "Live checks"), run by the lead after the deploy. Built like p5-live.mjs.
+// The shortlist's live checks, run by hand after a deploy that changes the shortlist. Built like
+// live-check.mjs.
 //
 // First it fetches every answer the check needs, from Node, one call in
 // flight and each starting at least 4 s after the one before: /facets, the
@@ -14,10 +14,10 @@
 // that wasn't fetched first is refused, and fails the run.
 //
 // The checks, on a link with 6 picks and 2 backups drawn with a fixed seed
-// from the corpus's modules (scripts/p6-live-plan.mjs: over Sem 1 and Sem 2,
+// from the corpus's modules (scripts/live-shortlist-plan.mjs: over Sem 1 and Sem 2,
 // with a counted, a to-confirm, a Business and a closed entry; each entry's
 // standing from the independent reference, test/web/shortlist-reference.node.mjs,
-// and its status from the SC1 oracle):
+// and its status from the exchange oracle):
 // - the view's rows: each entry in its list and rank, with its title and its
 //   stamp's status as the oracle gives it;
 // - the view's totals equal the reference over the corpus's rows, and the
@@ -33,14 +33,14 @@
 //   `unknown`), each answering its kind.
 //
 // Each request, sent or served from memory, is a line in the JSONL log (time,
-// path, status; `source` network, memory or refused), for
-// docs/evidence/requests.tsv, and the run ends with a summary line. A 429 is
+// path, status; `source` network, memory or refused), and the run ends with a
+// summary line. A 429 is
 // waited out (Retry-After, at least 4 s) and re-sent, twice at most.
 //
-//   node scripts/p6-live.mjs [--url URL] [--log FILE] [--corpus production|fixture] [--seed N] [--plan]
+//   node scripts/live-shortlist.mjs [--url URL] [--log FILE] [--corpus production|fixture] [--seed N] [--plan]
 //
 // --url     the site (default: production, https://nusmodfinder.rcn.sh)
-// --log     the JSONL log (default docs/evidence/phase6/p6-live.jsonl), appended to
+// --log     the JSONL log (default .data/live-shortlist.jsonl), appended to
 // --corpus  the modules drawn from and the reference runs over: `production`
 //           (`current` in data/corpus.json normalised as ingest does, data/'s groups and
 //           NG-listed codes with no classes) or `fixture` (the local UI server's,
@@ -50,7 +50,7 @@
 //
 // Exit 0 when every check passes, 1 when one fails, 2 on a usage error. Against
 // a live URL (not localhost) each run writes a run record with every request
-// sent, by path (scripts/run-record.mjs, Phase 7 7C).
+// sent, by path (scripts/run-record.mjs).
 import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -58,7 +58,7 @@ import { chromium, devices, webkit } from '@playwright/test';
 import { hasStructTree, pdfPages, squash } from '../test/ui/pdf-text.mjs';
 import { axeViolations } from '../test/ui/support.mjs';
 import { parseCsv } from '../test/web/rfc4180.node.mjs';
-import { GAP_MS, STUDY, csvTotals, loadData, makePlan, parseArgs, readTotals, totalsProblems } from './p6-live-plan.mjs';
+import { GAP_MS, STUDY, csvTotals, loadData, makePlan, parseArgs, readTotals, totalsProblems } from './live-shortlist-plan.mjs';
 import { recordedLiveRun } from './run-record.mjs';
 
 const UA = devices['Desktop Chrome'].userAgent;
@@ -81,7 +81,7 @@ const firstLine = (err) => String(/** @type {Error} */ (err)?.message ?? err).sp
 
 /**
  * @param {{ url: string, log: string, onSend?: (path: string) => void }} opts
- *   `onSend`: each request sent to the network, by path (the run record, Phase 7 7C)
+ *   `onSend`: each request sent to the network, by path (the run record)
  */
 function createSite(opts) {
   /** @type {Map<string, Answer>} */
@@ -257,7 +257,7 @@ async function viewTotals(page) {
   const cards = await page.evaluate(() => [...document.querySelectorAll('#slTotals .sl-total')].map((c) => ({
     heading: c.querySelector('h4')?.textContent ?? '', sum: [...(c.querySelector('.sl-sum')?.children ?? [])].map((s) => s.textContent ?? ''),
   })));
-  /** @type {Record<string, import('./p6-live-plan.mjs').ReadTotals | null>} */
+  /** @type {Record<string, import('./live-shortlist-plan.mjs').ReadTotals | null>} */
   const out = {};
   for (const c of cards) out[/^Sem ([12]) picks$/.exec(c.heading)?.[1] ?? c.heading] = readTotals(c.sum);
   return out;
@@ -284,7 +284,7 @@ async function downloadCsv(page) {
 }
 
 /**
- * Whether the view's fold holds at 390×664 (6C's layout: on a phone the
+ * Whether the view's fold holds at 390×664 (the view's layout: on a phone the
  * view's head and its export actions come before the list): no scroll either
  * way, and the header's "unofficial", the search box and Search, the view's
  * heading, "Back to results", and Copy link, Download CSV and Print or save
@@ -324,8 +324,8 @@ const viewFoldProblems = (page) => page.evaluate(async () => {
 async function run(opts) {
   const data = await loadData(opts.corpus);
   const plan = makePlan(data, opts.seed);
-  console.log(`p6-live: ${opts.url}, ${opts.corpus} modules (${data.modules.length}), seed ${opts.seed}, study ${STUDY}`);
-  console.log('the shortlist (rank order; standing by the reference, status by the SC1 oracle):');
+  console.log(`live-shortlist: ${opts.url}, ${opts.corpus} modules (${data.modules.length}), seed ${opts.seed}, study ${STUDY}`);
+  console.log('the shortlist (rank order; standing by the reference, status by the exchange oracle):');
   for (const e of plan.entries) console.log(`  ${e.which === 'pick' ? 'pick  ' : 'backup'} ${e.code.padEnd(10)} Sem ${e.sem}  ${String(e.credits).padStart(2)} units  ${e.standing.padEnd(7)} ${e.status.padEnd(6)}  ${e.faculty ?? ''}`);
   console.log(`the reference's totals: Sem 1 ${JSON.stringify(plan.totals[1])}, Sem 2 ${JSON.stringify(plan.totals[2])}`);
   console.log(`the 404 codes: ${plan.missing.map((m) => `${m.code} (${m.kind})`).join(', ')}`);
@@ -513,7 +513,7 @@ async function run(opts) {
 
   const failed = out.filter((o) => !o.pass).length;
   site.log({ check: 'summary', url: opts.url, corpus: opts.corpus, seed: opts.seed, sent: site.network.length, api: apiSent, files: site.network.length - apiSent, pass: out.length - failed, fail: failed, failures: out.filter((o) => !o.pass) });
-  console.log(`\np6-live: ${out.length - failed} of ${out.length} checks pass, ${failed} fail; ${site.network.length} requests sent (${apiSent} API, ${site.network.length - apiSent} page files), one at a time, at least ${GAP_MS / 1000} s apart; log ${opts.log}`);
+  console.log(`\nlive-shortlist: ${out.length - failed} of ${out.length} checks pass, ${failed} fail; ${site.network.length} requests sent (${apiSent} API, ${site.network.length - apiSent} page files), one at a time, at least ${GAP_MS / 1000} s apart; log ${opts.log}`);
   return out;
 }
 
@@ -522,10 +522,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   try {
     opts = parseArgs(process.argv.slice(2));
   } catch (err) {
-    console.error(`p6-live: ${/** @type {Error} */ (err).message}`);
+    console.error(`live-shortlist: ${/** @type {Error} */ (err).message}`);
     process.exit(2);
   }
-  // Phase 7 7C: a run against a live URL leaves a run record (scripts/run-record.mjs), whatever the result.
-  const outcomes = opts.plan ? await run(opts) : await recordedLiveRun('p6-live', opts, run);
+  // A run against a live URL leaves a run record (scripts/run-record.mjs), whatever the result.
+  const outcomes = opts.plan ? await run(opts) : await recordedLiveRun('live-shortlist', opts, run);
   process.exit(outcomes.some((o) => !o.pass) ? 1 : 0);
 }

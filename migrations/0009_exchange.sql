@@ -1,5 +1,4 @@
--- Phase 4 4A (docs/plans/phase4.md §2 "Storage"): exchange-mode eligibility,
--- computed at ingest by src/eligibility.js from the NG list and the
+-- Exchange-mode eligibility (ADR 0007), computed at ingest by src/eligibility.js from the NG list and the
 -- restrictions data (data/ng-restrictions-<year>.json). The Worker runs no
 -- rule logic; it reads these.
 -- ng_allow: 15 bits, bit (NG_SEMS index * 5 + STUDIES index) set = shown in

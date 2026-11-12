@@ -1,5 +1,5 @@
 // @ts-check
-// A `current` corpus for tests of the scripts that read one (Phase 7 7D): a corpus manifest
+// A `current` corpus for tests of the scripts that read one: a corpus manifest
 // (data/corpus.json's shape) and its restored file, in a temp dir. Nothing is downloaded.
 import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';

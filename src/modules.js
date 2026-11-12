@@ -23,7 +23,7 @@ import { moduleWorkload } from './workload.js';
  * @typedef {Pick<ModuleRow, 'code' | 'title' | 'department' | 'faculty' | 'credits' | 'level' | 'semesters' | 'ng' | 'ng_semesters'
  *   | 'exam_semesters' | 'su' | 'grading_basis' | 'workload_hours' | 'prereq_none' | 'prereq_cohort_only'
  *   | 'ng_allow' | 'ng_rules' | 'exam_dates'> & { year_prereq?: string | null }} ResultRow
- *   The columns a search result renders (rowToModule) and filters on (pin, dense rows, 3H).
+ *   The columns a search result renders (rowToModule) and filters on (pin, dense rows, constraints).
  * @typedef {{ updatedAsAt: string | null, source: string | null, count: number }} NgList
  *   Provenance of data/ng-courses-*.json, written to meta('ng_list') by ingest.
  * @typedef {import('./timing.js').Trace} Trace
@@ -34,28 +34,28 @@ export const MODULE_CODE_RE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 // /module/:code: every column of the row as of migrations 0001–0005, in table
 // order, named so a later column (generated filter columns, row_hash) does not
 // change the response shape.
-// Phase 4 adds ng_allow and ng_rules, answered as `exchange` (one entry per
-// semester and study level, with reasons). 5A adds exam_dates, answered as
-// `examDates`. 5D adds prereq_cohort_only, answered as `prereqCohortOnly`.
-// 6A adds grading_basis, answered as `gradingBasis` (stored and hashed since 3H).
+// Then ng_allow and ng_rules, answered as `exchange` (one entry per semester
+// and study level, with reasons); exam_dates, answered as `examDates`;
+// prereq_cohort_only, answered as `prereqCohortOnly`; and grading_basis,
+// answered as `gradingBasis`.
 const MODULE_COLUMNS =
   'code, title, description, credits, department, faculty, level, semesters, workload, prerequisite, preclusion, acad_year, text_hash, ng, ng_semesters, '
   + 'ng_allow, ng_rules, exam_dates, prereq_cohort_only, grading_basis';
 
 /**
- * /module/:code's Cache-Control (5A): a row changes only at an ingest, so a
+ * /module/:code's Cache-Control: a row changes only at an ingest, so a
  * 200 may sit in browsers and shared caches for 5 minutes and a 404 for one;
- * a failure is never stored. No ETag and no edge cache (docs/plans/phase5.md 5A).
+ * a failure is never stored. No ETag and no edge cache.
  */
 const MODULE_CACHE = Object.freeze({ ok: 'public, max-age=300', notFound: 'public, max-age=60', failed: 'no-store' });
 
-/** NUSMods' page for a course, which has its class times (5A). @param {string} code */
+/** NUSMods' page for a course, which has its class times. @param {string} code */
 export const nusmodsUrl = (code) => `https://nusmods.com/courses/${code}`;
 
 // /search: only what rowToModule renders and the pin's filter check reads.
-// 5C-api adds exam_dates, answered as each result's `examDates`. R3 (ADR 0008)
-// adds `year_prereq`: the prerequisite, only where it mentions a year (the
-// rest read NULL, so B8's hydrate stays small), for the year-of-study note
+// exam_dates is answered as each result's `examDates`. `year_prereq` (ADR 0007)
+// is the prerequisite, only where it mentions a year (the rest read NULL, so
+// the result hydrate stays small), for the year-of-study note
 // (src/year-note.js). The text itself is not answered; the same rows are read.
 export const RESULT_COLUMNS = 'code, title, department, faculty, credits, level, semesters, ng, ng_semesters, '
   + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules, exam_dates, '
@@ -82,7 +82,7 @@ export const d1Timed = (trace, name, fn) => trace.time(name, () => withTimeout('
  * @param {number} [score]
  * @param {number | null} [bit] exchange mode's allow-mask bit (src/ng-bit.js): the card gets
  *   `exchange`, that bit's status and reasons
- * @param {{ 1: number, 2: number } | null} [semBits] exchange mode with no semester (5C-api): the
+ * @param {{ 1: number, 2: number } | null} [semBits] exchange mode with no semester: the
  *   bits for Sem 1 and Sem 2 at the request's study level; the card gets `exchangeBySem`, each
  *   semester's status and reasons, so a student planning both sees one value per semester
  */
@@ -99,7 +99,7 @@ export function rowToModule(row, score, bit = null, semBits = null) {
     ngSemesters: JSON.parse(row.ng_semesters ?? '[]'),
     ...(bit === null ? {} : { exchange: exchangeAt(row, bit) }),
     ...(semBits === null ? {} : { exchangeBySem: { 1: exchangeAt(row, semBits[1]), 2: exchangeAt(row, semBits[2]) } }),
-    // 5C-api: each exam, its date ISO UTC, as /module/:code's `examDates`.
+    // Each exam, its date ISO UTC, as /module/:code's `examDates`.
     examDates: JSON.parse(row.exam_dates ?? '[]'),
     ...(score === undefined ? {} : { score }),
   };
@@ -123,8 +123,8 @@ export async function handleFacets(env, trace) {
     const cached = /** @type {{ value: string } | null} */ (await d1Timed(trace, 'd1', () =>
       db.prepare('SELECT value FROM meta WHERE key = ?').bind('facets').first()));
     if (cached?.value) {
-      // Phase 4 (4D, 4F): the exchange-mode sources and their dates ship with the Worker,
-      // and 6A's rules about courses off the exchange list beside them.
+      // The exchange-mode sources and their dates are bundled with the Worker,
+      // and the rules about courses off the exchange list beside them.
       return new Response(JSON.stringify({ ...JSON.parse(cached.value), ngSources: NG_SOURCES, offListRules: OFF_LIST_RULES }), {
         headers: {
           'content-type': 'application/json; charset=utf-8',
@@ -143,7 +143,7 @@ export async function handleFacets(env, trace) {
 }
 
 /**
- * A D1 failure on /module or /facets (Phase 8 8B): one log line with the route and the error,
+ * A D1 failure on /module or /facets: one log line with the route and the error,
  * and nothing about the request (no URL, query or IP), then the 502 every caller answers.
  * /search writes its own `search` line instead.
  * @param {'/module/:code' | '/facets'} route
@@ -201,7 +201,7 @@ export async function computeFacets(db) {
 }
 
 /**
- * A course's other codes (6A): its duplicate group's members but itself
+ * A course's other codes: its duplicate group's members but itself
  * (src/group-data.js), [] when it has none. No D1 read.
  * @param {string} code
  */
@@ -221,7 +221,7 @@ const semWords = (sems) => sems.map((s) => `Sem ${s}`).join(' and ');
 const noSuchTable = (err) => /no such table/i.test(String(/** @type {any} */ (err)?.message ?? err));
 
 /**
- * /module/:code's 404 (6A), saying which kind of miss it is:
+ * /module/:code's 404, saying which kind of miss it is:
  * - `ng-listed`: on the NG list with no classes this year (data/ng-unscheduled.json):
  *   the fields a row has, `semesters` and `examDates` empty, and `exchange` from
  *   the file's allow mask by exchangeAll, so the page reads it like a row with no
@@ -241,7 +241,7 @@ async function notFound(db, code, trace) {
   if (entry) {
     const { ngAllow, ngRules, ...fields } = entry;
     const acadYear = unscheduledAcadYear();
-    // G2 (Phase 7 7E): a semester NUS hasn't published is last year's list, said as such.
+    // A semester NUS hasn't published is last year's list, said as such.
     const pending = (entry.ngUnpublished ?? []).filter((s) => entry.ngSemesters.includes(s));
     const listed = entry.ngSemesters.filter((s) => !pending.includes(s));
     const lists = [
@@ -301,7 +301,7 @@ export async function handleModule(env, code, trace) {
   } catch (err) {
     return withHeaders(d1Failed('/module/:code', err), { 'cache-control': MODULE_CACHE.failed });
   }
-  // 6A: a row wins over the file, so a code that gained classes at a re-ingest answers as a row.
+  // A row wins over the file, so a code that gained classes at a re-ingest answers as a row.
   if (!row) return notFound(db, upper, trace);
   /** @type {Partial<ModuleRow>} */
   const rest = { ...row };
@@ -316,15 +316,15 @@ export async function handleModule(env, code, trace) {
     ng: row.ng === 1,
     ng_semesters: JSON.parse(row.ng_semesters ?? '[]'),
     ng_allow: row.ng_allow ?? 0,
-    // Phase 4 (4C): why the course is open, noted or closed, per semester and study level.
+    // Why the course is open, noted or closed, per semester and study level.
     exchange: exchangeAll(row),
-    // 5A: each exam, its date ISO UTC (the page shows Singapore time), and where the class times are.
+    // Each exam, its date ISO UTC (the page shows Singapore time), and where the class times are.
     examDates: JSON.parse(row.exam_dates ?? '[]'),
     nusmodsUrl: nusmodsUrl(row.code),
-    // 5D: 3H-0's flag (src/cohort-only.js, set at ingest): the prerequisite names only NUS intake
+    // The cohort-only flag (src/cohort-only.js, set at ingest): the prerequisite names only NUS intake
     // years or programmes, so the page says there is no course prerequisite.
     prereqCohortOnly: row.prereq_cohort_only === 1,
-    // 6A: NUSMods' grading basis ("Graded", "Completed Satisfactory/Unsatisfactory", ...), and the
+    // NUSMods' grading basis ("Graded", "Completed Satisfactory/Unsatisfactory", ...), and the
     // course's other codes, which the shortlist counts as the same course.
     gradingBasis: row.grading_basis ?? null,
     otherCodes: otherCodes(row.code),

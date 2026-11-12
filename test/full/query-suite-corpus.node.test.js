@@ -1,20 +1,20 @@
 // @ts-check
-// P-6 corpus checks for the SC4 suite (docs/plans/phase3.md §4), against the
+// Corpus checks for the query suite and the query-rule lists, against the
 // pinned corpus and groups-v1. Skipped when .data/ has no corpus; with
 // FULL_CORPUS=1 (the full-corpus CI job) a missing corpus fails instead.
-// - G ≤ 50 for every partial-code and pillar item (A3-3, C3-3), G being the
+// - G ≤ 50 for every partial-code and pillar item, G being the
 //   distinct groups-v1 groups among the members (a singleton is its own group);
 // - the codes each rule names are offered, catalogue-only or absent as the
 //   rule needs;
-// - gibberish texts carry no corpus signal a 3G trigger reads, and typo texts
-//   correct to their clean forms under the P-6 thresholds;
+// - gibberish texts carry no corpus signal the no-signal check reads, and typo
+//   texts correct to their clean forms under the typo corrector's thresholds;
 // - the collision list and pillar prefixes are corpus prefixes;
 // - the cohort-only rule's count on the pinned corpus.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { REPO } from '../../eval/lib/sets.mjs';
-import { isCohortOnly } from '../../eval/prereg/cohort-only.mjs';
+import { isCohortOnly } from '../../eval/query-rules/cohort-only.mjs';
 import { loadPinnedCorpus, MODULE_INFO_PATH } from '../../scripts/pinned-corpus.mjs';
 import { queryTokens } from '../../src/fts-query.js';
 
@@ -23,10 +23,10 @@ const available = process.env.FULL_CORPUS === '1' || existsSync(MODULE_INFO_PATH
 const readJson = (p) => JSON.parse(readFileSync(join(REPO, p), 'utf8'));
 
 /** @type {any[]} */
-const items = readJson('test/sc4/queries.json').items;
+const items = readJson('test/query-suite/queries.json').items;
 const gibberish = readJson('eval/dev/gibberish.json').strings;
-const collision = readJson('eval/prereg/collision-list.json');
-const pillars = readJson('eval/prereg/ge-pillars.json').prefixes;
+const collision = readJson('eval/query-rules/collision-list.json');
+const pillars = readJson('eval/query-rules/ge-pillars.json').prefixes;
 const groups = readJson('eval/groups.json').groups;
 
 /** Members of a partial code: the PK range [P(+'0' if letters only), P + ':'). @param {string[]} codes @param {string} p */
@@ -50,7 +50,7 @@ function osa(a, b) {
   return d[a.length][b.length];
 }
 
-describe.skipIf(!available)('SC4 suite against the pinned corpus (P-6)', () => {
+describe.skipIf(!available)('the query suite against the pinned corpus', () => {
   /** @type {Awaited<ReturnType<typeof loadPinnedCorpus>>} */
   let corpus;
   /** @type {Map<string, any>} */
@@ -147,7 +147,7 @@ describe.skipIf(!available)('SC4 suite against the pinned corpus (P-6)', () => {
     for (const c of it.params.answers) expect(offered.get(c).prerequisite, c).toBeNull();
   });
 
-  it('gibberish texts (the set and the suite\'s) give no 3G-readable signal: every token df 0, no ≥ 4-letter prefix match, no prefix or code shape', () => {
+  it('gibberish texts (the set and the suite\'s) give no signal the no-signal check reads: every token df 0, no ≥ 4-letter prefix match, no prefix or code shape', () => {
     const texts = [...gibberish.map((/** @type {any} */ g) => g.text), ...items.filter((x) => x.row === 'gibberish').map((x) => x.text)];
     const vocab = [...df.keys()];
     /** @type {string[]} */
@@ -164,7 +164,7 @@ describe.skipIf(!available)('SC4 suite against the pinned corpus (P-6)', () => {
     expect(problems).toEqual([]);
   });
 
-  it('every typo item\'s misspelt tokens have df 0 and no prefix match, and correct to its clean form under the P-6 OSA thresholds', () => {
+  it('every typo item\'s misspelt tokens have df 0 and no prefix match, and correct to its clean form under the corrector\'s OSA thresholds', () => {
     const vocab = [...df.keys()];
     for (const it of items.filter((x) => x.row === 'typo')) {
       const typo = queryTokens(it.text);
@@ -196,7 +196,7 @@ describe.skipIf(!available)('SC4 suite against the pinned corpus (P-6)', () => {
       if (toks.length) binding[it.id] = toks;
     }
     expect(binding).toEqual({ 'sc4-085': ['cs'], 'sc4-087': ['lsm'] });
-    const M = readJson('test/sc4/queries.json').thresholds.M;
+    const M = readJson('test/query-suite/queries.json').thresholds.M;
     for (const t of Object.values(binding).flat()) {
       const P = t.toUpperCase();
       expect(collision.list, t).not.toContain(P);
@@ -206,20 +206,20 @@ describe.skipIf(!available)('SC4 suite against the pinned corpus (P-6)', () => {
     }
   });
 
-  it('every collision-list entry and pillar prefix is an offered-module prefix; the plan\'s non-prefixes are not', () => {
+  it('every collision-list entry and pillar prefix is an offered-module prefix; the listed non-prefixes are not', () => {
     for (const p of [...collision.list, ...pillars]) expect(prefixes.has(p), p).toBe(true);
     for (const p of collision.notPrefixes) expect(prefixes.has(p), p).toBe(false);
   });
 
-  it('the collision review covers every offered prefix that is on neither the list nor the pillar list, once (C13)', () => {
-    const r = readJson('eval/prereg/collision-review.json');
+  it('the collision review covers every offered prefix that is on neither the list nor the pillar list, once', () => {
+    const r = readJson('eval/query-rules/collision-review.json');
     const reviewed = [...Object.keys(r.added), ...Object.keys(r.keptOff), ...Object.keys(r.dictionaryHitKeptOff)].sort();
     const before = collision.list.filter((/** @type {string} */ p) => !(p in r.added));
     expect(reviewed).toEqual([...prefixes].filter((p) => !before.includes(p) && !pillars.includes(p)).sort());
     expect(prefixes.size).toBe(304);
   });
 
-  it('the cohort-only rule: d-011\'s modules as the plan reads them, and 65 offered modules in all', () => {
+  it('the cohort-only rule: d-011\'s modules, and 65 offered modules in all', () => {
     for (const c of ['ACC1701XA', 'ACC1701XC']) expect(isCohortOnly(offered.get(c).prerequisite), c).toBe(true);
     for (const c of ['ACC2706', 'FIN2704X', 'QF1100']) expect(isCohortOnly(offered.get(c).prerequisite), c).toBe(false);
     expect(corpus.modules.filter((m) => isCohortOnly(m.prerequisite)).length).toBe(65);

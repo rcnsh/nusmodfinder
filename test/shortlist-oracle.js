@@ -1,18 +1,17 @@
 // @ts-check
-// SC1 over the shortlist (Phase 6 6C; docs/plans/phase6.md 6C "SC1 over the
-// shortlist"), shared by the pinned run (test/sc1/paths.test.js) and the
-// fixture run (test/shortlist-sc1.test.js). Each code's /module answer is
+// The exchange-eligibility oracle over the shortlist, shared by the pinned run (test/oracle/paths.test.js) and the
+// fixture run (test/shortlist-oracle.test.js). Each code's /module answer is
 // fetched once through the page's own client (public/api.js) and read by
 // public/shortlist.js's answerOf and workOut, as a one-entry list at Sem 1 and
-// at Sem 2, at each study level and in browse mode. Against the SC1 oracle
-// (test/sc1/oracle.mjs, with R3), a closed case is never counted (not in
+// at Sem 2, at each study level and in browse mode. Against the oracle
+// (test/oracle/oracle.mjs, with the year-of-study note), a closed case is never counted (not in
 // the semester's totals, standing "out"), has no form number and carries its
 // closed stamp; an open or noted one takes part. In browse mode no entry gets a
 // form number.
 import { createModuleClient } from '../public/api.js';
 import { emptyList } from '../public/list.js';
 import { answerOf, workOut } from '../public/shortlist.js';
-import { oracleShown } from './sc1/oracle.mjs';
+import { oracleShown } from './oracle/oracle.mjs';
 
 const STUDIES = /** @type {const} */ (['ug1', 'ug2', 'ug3', 'ug4', 'grad']);
 const TAKES_PART = ['counted', 'confirm', 'invite'];

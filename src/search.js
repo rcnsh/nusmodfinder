@@ -4,8 +4,8 @@
 // the GE mask, noMatch), both retrievers (run concurrently), rank fusion,
 // hydration, and the keyword-only fallback when the dense half fails. Every
 // response carries Server-Timing and `interpreted`, and each request writes
-// one structured log line. 3C: the lexical half searches the corrected text
-// with its prefix terms; under 3C-2 the dense half also embeds the corrected
+// one structured log line. Typos: the lexical half searches the corrected text
+// with its prefix terms; under `3c2` the dense half also embeds the corrected
 // text, in parallel, and keeps each module's better cosine (mergeDense).
 import dataVersion from './data-version.json';
 import { bundleSearch, denseBundle } from './dense.js';
@@ -34,22 +34,22 @@ import {
  * @typedef {Record<string, string | number | boolean>} VectorFilter
  * @typedef {'hybrid' | 'vector' | 'lexical'} Mode
  * @typedef {{ q: string, echo: FilterEcho, filter: VectorFilter, mode: Mode, topK: number, ignore: string[] }} SearchQuery
- *   `ignore`: the intents to undo, sorted and de-duplicated (3B; plan §2 "Response cache key").
+ *   `ignore`: the intents to undo, sorted and de-duplicated (part of the cache key).
  * @typedef {import('./vector-bundle.js').Constraints} Constraints
  * @typedef {import('./vector-bundle.js').CodeRange} CodeRange
  * @typedef {import('./query-intent.js').ParsedQuery} ParsedQuery
  * @typedef {{ source: string, reason: 'error' | 'timeout' | 'circuit-open' }} Degraded
  * @typedef {{ code: string, score: number }} DenseHit A dense candidate with its cosine score. Kept
- *   inside the search (3B's masks and 3G read them); the response's `score` stays the fused one.
+ *   inside the search (the masks and the no-signal check read them); the response's `score` stays the fused one.
  * @typedef {'bundle' | 'vectorize'} DenseBackend
  */
 
 const MAX_QUERY_CHARS = 200;
-// Each retriever's depth is capped at 50. That was Vectorize's ceiling with
-// metadata returned; the metadata is no longer requested (so the ceiling is
-// 100), but a deeper list would change rankings, which Phase 1 must not.
+// Each retriever's depth is capped at 50, Vectorize's ceiling with metadata
+// returned. The metadata isn't requested (so the ceiling is 100), but a
+// deeper list would change rankings.
 const MAX_TOPK = 50;
-const DEFAULT_TOPK = 20;      // R3: at most 20 results
+const DEFAULT_TOPK = 20;      // at most 20 results
 // The structured log carries the query text cut to this length. Search text is
 // public and contains no identifiers; headers and IPs are never logged.
 const LOGGED_QUERY_CHARS = 100;
@@ -58,7 +58,7 @@ const LOGGED_QUERY_CHARS = 100;
 // recovered upstream is used again within a minute.
 const CACHE_TTL_S = 3600;
 const DEGRADED_CACHE_TTL_S = 60;
-// Phase 8 8B: a degraded entry carries this header in the cache, so its hit is
+// A degraded entry carries this header in the cache, so its hit is
 // re-sent with the degraded TTL. The stored copy `cache.match` returns carries
 // the zone's Browser Cache TTL (4 hours), not the TTL it was stored with, so a
 // hit always sets cache-control itself.
@@ -67,7 +67,7 @@ const DEGRADED_HEADER = 'x-search-degraded';
 const cacheControl = (degraded) => `public, max-age=${degraded ? DEGRADED_CACHE_TTL_S : CACHE_TTL_S}`;
 
 /**
- * Whether a browser sent this /search for another site's page (Phase 8 8B): `Sec-Fetch-Site:
+ * Whether a browser sent this /search for another site's page: `Sec-Fetch-Site:
  * cross-site` on anything but a top-level navigation. A fetch, an <img> or a hidden iframe on a
  * stranger's page would spend this account's Workers AI through each visitor's browser and IP; a
  * link a student follows is a navigation (`Sec-Fetch-Dest: document`) and is served. Browsers set
@@ -91,7 +91,7 @@ export const NO_VERSION_ID = 'dev';
 /**
  * The deployed version's id (version_metadata), which every deploy changes:
  * a new ranker, new vectors or a DENSE_BACKEND flip each get fresh cache keys
- * (B-7, B2-6), with no hand-bumped constant to forget.
+ * with no hand-bumped constant to forget.
  * @param {Env} env
  */
 export function versionId(env) {
@@ -102,8 +102,8 @@ export function versionId(env) {
 /**
  * Which dense retriever /search uses (wrangler.jsonc `vars.DENSE_BACKEND`).
  * `bundle`, the default, is the exact search over the bundled vectors;
- * `vectorize` is the cold standby (B-1): it swaps only the retriever, so the
- * filters still apply the same way, and it is degraded service (B3-6).
+ * `vectorize` is the cold standby: it swaps only the retriever, so the
+ * filters still apply the same way, and it is degraded service.
  * @param {Env} env
  * @returns {DenseBackend}
  */
@@ -120,7 +120,7 @@ const RRF_K = 60;
 const CANDIDATE_MULTIPLIER = 3;
 
 // Reads sem/level/credits/faculty off the query string. Returns the echoed
-// filters plus the Vectorize metadata filter they translate to (R4).
+// filters plus the Vectorize metadata filter they translate to.
 /** @param {URLSearchParams} params */
 function parseFilters(params) {
   /** @type {FilterEcho} */
@@ -163,13 +163,13 @@ function parseFilters(params) {
   if (ng !== null && ng !== '' && ng !== 'false' && ng !== '0') {
     echo.ng = true;
     filter.ng = true;
-    // Phase 4 (plan §2 "Paths"): under ng, sem only picks the allow-mask bit,
+    // Under ng, sem only picks the allow-mask bit,
     // never the NUSMods semesters. The standby keeps the yearly ng filter and
     // rechecks every dense row against D1's ng_allow.
     if (echo.sem !== undefined) delete filter[`sem${echo.sem}`];
   }
 
-  // Phase 4 (4C): the study level, required in exchange mode, ignored outside it.
+  // The study level, required in exchange mode, ignored outside it.
   let studyRequired = false;
   const study = params.get('study');
   if (echo.ng === true) {
@@ -178,8 +178,8 @@ function parseFilters(params) {
     else echo.study = /** @type {import('./ng-bit.js').Study} */ (study);
   }
 
-  // 3H's explicit params (plan 3H "Query side"). Vectorize metadata has no 3H
-  // field, so they never reach `filter`: the standby applies them after hydrate.
+  // The explicit constraint params. Vectorize metadata has no field for them,
+  // so they never reach `filter`: the standby applies them after hydrate.
   const exam = params.get('exam');
   if (exam !== null && exam !== '') {
     if (exam !== '0') errors.push('exam must be 0 (no final exam listed)');
@@ -219,7 +219,7 @@ export function parseSearch(params) {
   /** @type {Record<string, unknown>} */
   const log = { q: q?.slice(0, LOGGED_QUERY_CHARS) ?? null, qLength: q?.length ?? null, degraded: null };
 
-  // R6: missing, empty or over-long queries are 400s that name the problem.
+  // Missing, empty or over-long queries are 400s that name the problem.
   if (trimmed === null || q === null) return { log, error: 'Missing required query parameter "q".' };
   if (trimmed === '') return { log, error: 'Query parameter "q" was empty.' };
   if (trimmed.length > MAX_QUERY_CHARS) {
@@ -237,7 +237,7 @@ export function parseSearch(params) {
     };
   }
 
-  // Retrieval mode. Defaults to the hybrid that ships; `vector` and `lexical`
+  // Retrieval mode. Defaults to the hybrid; `vector` and `lexical`
   // exist so the evaluation harness can measure each half on its own, which is
   // what the gate is actually about.
   const mode = params.get('mode') ?? 'hybrid';
@@ -247,8 +247,8 @@ export function parseSearch(params) {
   }
   log.mode = mode;
 
-  // R6/L-limits: topK above the ceiling is clamped, not rejected. An empty
-  // topK= is the default (B8), not Number('') = 0 clamped to 1.
+  // topK above the ceiling is clamped, not rejected. An empty
+  // topK= is the default, not Number('') = 0 clamped to 1.
   const rawTopK = params.get('topK')?.trim() ?? '';
   const requestedTopK = rawTopK === '' ? DEFAULT_TOPK : Number(rawTopK);
   const topK = Number.isFinite(requestedTopK)
@@ -256,7 +256,7 @@ export function parseSearch(params) {
     : DEFAULT_TOPK;
   log.topK = topK;
 
-  // 3B: intents to undo, in parsed form (sorted, de-duplicated).
+  // Intents to undo, in parsed form (sorted, de-duplicated).
   const ignored = parseIgnore(params.get('ignore'));
   if (ignored.error !== undefined) return { log, error: ignored.error };
   if (ignored.ignore.length) log.ignore = ignored.ignore;
@@ -265,14 +265,14 @@ export function parseSearch(params) {
 }
 
 /**
- * The cache key for a validated search (B7): only the parameters that change
+ * The cache key for a validated search: only the parameters that change
  * the answer, in their parsed form, sorted, with defaults omitted, plus the
- * data version (`dv`) and the deployed version id (`v`, B3-1). Spelling,
- * order and junk parameters all map to one entry. Every parameter a later
- * workstream adds joins the key here, parsed, in the PR that adds it (3H's
- * `exam`, `su`, `hoursBelow`, `prereq`; `ignore` as a sorted, de-duplicated
- * list), with its own test beside the B7 key tests; intents parsed from `q`
- * need none, since `q` is in the key.
+ * data version (`dv`) and the deployed version id (`v`). Spelling,
+ * order and junk parameters all map to one entry. Every parameter that
+ * changes the answer joins the key here, parsed (`exam`, `su`, `hoursBelow`,
+ * `prereq`; `ignore` as a sorted, de-duplicated list), with its own test
+ * beside the other cache key tests; intents parsed from `q` need none, since
+ * `q` is in the key.
  * @param {string} origin
  * @param {SearchQuery} query
  * @param {string} [version] the deployed version id (versionId(env))
@@ -285,7 +285,7 @@ export function canonicalCacheKey(origin, { q, echo, mode, topK, ignore }, versi
   if (echo.credits !== undefined) pairs.push(['credits', String(echo.credits)]);
   if (echo.faculty !== undefined) pairs.push(['faculty', echo.faculty]);
   if (echo.ng === true) pairs.push(['ng', '1']);
-  // Phase 4: only under ng, as the echo (parseFilters ignores study without it).
+  // Only under ng, as the echo (parseFilters ignores study without it).
   if (echo.ng === true && echo.study !== undefined) pairs.push(['study', echo.study]);
   if (echo.exam === 0) pairs.push(['exam', '0']);
   if (echo.su === 1) pairs.push(['su', '1']);
@@ -311,14 +311,14 @@ export function searchCacheKey(url, version = NO_VERSION_ID) {
 }
 
 /**
- * Whether a fresh D1 row passes the filters and 3B's constraints (code
+ * Whether a fresh D1 row passes the filters and the parsed constraints (code
  * ranges, a level window).
  * @param {ResultRow} row
  * @param {Constraints} echo
  */
 export function localMatchesFilters(row, echo) {
   if (echo.ng === true && row.ng !== 1) return false;
-  // Phase 4: the allow-mask bit; a missing or zero ng_allow is closed, and under ng sem only picks the bit.
+  // The allow-mask bit; a missing or zero ng_allow is closed, and under ng sem only picks the bit.
   if (echo.ng === true && !echo.ngIgnoreAllow && ((row.ng_allow ?? 0) & (ngBit(echo) ?? 0)) === 0) return false;
   if (echo.sem !== undefined && echo.ng !== true && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
   if (echo.level !== undefined && row.level !== echo.level) return false;
@@ -329,7 +329,7 @@ export function localMatchesFilters(row, echo) {
     if (row.level === null || row.level < min || (max !== null && row.level > max)) return false;
   }
   if (echo.ranges && !echo.ranges.some(([lo, hi]) => row.code >= lo && row.code < hi)) return false;
-  // 3H, as lexical.js filterSql and the bundle mask state them.
+  // The constraints, as lexical.js filterSql and the bundle mask state them.
   if (echo.exam === 0) {
     const exams = JSON.parse(row.exam_semesters ?? '[]');
     if (echo.sem !== undefined ? exams.includes(echo.sem) : exams.length > 0) return false;
@@ -404,7 +404,7 @@ class DenseFailure extends Error {
 }
 
 /**
- * Embeds one text, a single-text call: the query, 3C-2's corrected text, or a
+ * Embeds one text, a single-text call: the query, its typo-corrected text, or a
  * catalogue-only module's text for noMatch `related`.
  * @param {Env} env
  * @param {string} text
@@ -423,7 +423,7 @@ async function embedOne(env, text) {
 }
 
 /**
- * Embeds each text in its own call, all at once (B-11: neither depends on
+ * Embeds each text in its own call, all at once (neither depends on
  * batching), so the `embed` span is the slowest call, not the sum.
  * @param {Env} env @param {string[]} texts @param {Trace} trace
  * @returns {Promise<number[][]>}
@@ -432,7 +432,7 @@ const embedAll = (env, texts, trace) => trace.time('embed', () => Promise.all(te
 
 /**
  * The texts the dense half embeds: the query as typed (the canonical q), and
- * under 3C-2 also its corrected text when 3C corrected anything.
+ * under `3c2` also its corrected text when the typo step corrected anything.
  * @param {Pick<ParsedQuery, 'dense' | 'corrected'>} parsed
  * @param {boolean} [embedCorrected] the variant's choice (src/typo.js)
  */
@@ -468,7 +468,7 @@ export function mergeDense(lists, depth) {
  * @param {Constraints} constraints
  * @param {number} depth
  * @param {Trace} trace
- * @param {(score: number) => void} [firstTop] told the first vector's top cosine (3G), unless it found none
+ * @param {(score: number) => void} [firstTop] told the first vector's top cosine (the no-signal check), unless it found none
  * @returns {Promise<DenseHit[]>}
  */
 async function bundleHits(vectors, constraints, depth, trace, firstTop) {
@@ -488,8 +488,8 @@ async function bundleHits(vectors, constraints, depth, trace, firstTop) {
 /**
  * Searches the corpus vectors: the bundled exact search, or Vectorize under
  * `DENSE_BACKEND=vectorize`. Vectorize gets the filters only (its metadata has
- * no prefix or level-window field): 3B's code ranges and level window are
- * applied to its rows after hydrate (B3-6), as dense-only rows always are.
+ * no prefix or level-window field): the parsed code ranges and level window are
+ * applied to its rows after hydrate, as dense-only rows always are.
  * Embedding and vector search are attributed separately: guessing the source
  * from the message text mislabelled Workers AI failures as Vectorize.
  * @param {Env} env
@@ -498,12 +498,12 @@ async function bundleHits(vectors, constraints, depth, trace, firstTop) {
  * @param {VectorFilter} filter the filters as a Vectorize metadata filter
  * @param {number} depth
  * @param {Trace} trace
- * @param {(score: number) => void} [firstTop] told the first vector's top cosine (3G), unless it found none
+ * @param {(score: number) => void} [firstTop] told the first vector's top cosine (the no-signal check), unless it found none
  * @returns {Promise<DenseHit[]>}
  */
 async function vectorSearch(env, vectors, constraints, filter, depth, trace, firstTop) {
   if (denseBackend(env) === 'bundle') return bundleHits(vectors, constraints, depth, trace, firstTop);
-  // Phase 4 (plan §2 "Paths"): the metadata has the yearly ng flag, not the
+  // The metadata has the yearly ng flag, not the
   // allow mask, so under ng the standby reads as deep as Vectorize allows and
   // every dense row is rechecked against D1 after hydrate.
   const topK = constraints.ng === true ? Math.max(depth, STANDBY_NG_DEPTH) : depth;
@@ -521,7 +521,7 @@ async function vectorSearch(env, vectors, constraints, filter, depth, trace, fir
 
 /**
  * Embeds `texts` and runs `then` on their vectors, under the dense circuit
- * breaker: a dense half that keeps failing is skipped for a while (B6).
+ * breaker: a dense half that keeps failing is skipped for a while.
  * @template T
  * @param {Env} env @param {string[]} texts @param {Trace} trace
  * @param {(vectors: number[][]) => Promise<T>} then
@@ -534,7 +534,7 @@ const denseRun = (env, texts, trace, then) => embedAll(env, texts, trace).then(t
 
 /** D1 binds at most 100 parameters per statement. */
 const D1_PARAMS = 100;
-/** Vectorize's topK limit without values or metadata: the standby's depth under ng (plan §2). */
+/** Vectorize's topK limit without values or metadata: the standby's depth under ng. */
 const STANDBY_NG_DEPTH = 100;
 
 /**
@@ -546,7 +546,7 @@ const STANDBY_NG_DEPTH = 100;
 async function fetchRows(db, codes, trace) {
   /** @type {Map<string, ResultRow>} */
   const rows = new Map();
-  // D1 binds at most D1_PARAMS per statement; a collapsed mask page can need more members (3F).
+  // D1 binds at most D1_PARAMS per statement; a collapsed mask page can need more members.
   for (let i = 0; i < codes.length; i += D1_PARAMS) {
     const chunk = codes.slice(i, i + D1_PARAMS);
     const res = /** @type {D1Result<ResultRow>} */ (await d1Timed(trace, 'hydrate', () => db.prepare(
@@ -564,7 +564,7 @@ const VARIANT_COLUMNS = 'code, credits, level, faculty, semesters, ng, ng_semest
   + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules';
 
 /**
- * 3G's τ: NO_SIGNAL_TAU, or the NO_SIGNAL_TAU var (tests only; production
+ * The no-signal τ: NO_SIGNAL_TAU, or the NO_SIGNAL_TAU var (tests only; production
  * sets none): a number (or a numeric string), or "off" for none.
  * @param {Env} env
  * @returns {number | null}
@@ -577,15 +577,15 @@ const noSignalTau = (env) => {
 };
 
 /**
- * Whether 3F's collapse runs: always, unless the COLLAPSE_GROUPS var is "off"
+ * Whether the duplicate-group collapse runs: always, unless the COLLAPSE_GROUPS var is "off"
  * (an operator's switch, and how the tests fetch the uncollapsed list).
  * @param {Env} env
  */
 const collapseOn = (env) => /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (env)).COLLAPSE_GROUPS !== 'off';
 
 /**
- * Phase 4's per-list identity gate (docs/plans/phase4.md §4, gate 2): with
- * SC1_TRACE set, /search also returns its internal lists, and "ignore" runs
+ * The oracle suite's trace (test/oracle/identity.test.js checks each list is unchanged): with
+ * ORACLE_TRACE set, /search also returns its internal lists, and "ignore" runs
  * them with the yearly ng flag and no allow-mask bit, at full depth. Honoured
  * only when TEST_MIGRATIONS is bound too, which only the vitest configs bind
  * (test/guard.test.js; scripts/deploy.mjs refuses any var but DENSE_BACKEND).
@@ -593,10 +593,10 @@ const collapseOn = (env) => /** @type {Record<string, unknown>} */ (/** @type {u
  * @param {Env} env
  * @returns {'filtered' | 'ignore' | null}
  */
-export function sc1TraceMode(env) {
+export function oracleTraceMode(env) {
   const e = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (env));
-  if (!e.SC1_TRACE || !e.TEST_MIGRATIONS) return null;
-  return e.SC1_TRACE === 'ignore' ? 'ignore' : 'filtered';
+  if (!e.ORACLE_TRACE || !e.TEST_MIGRATIONS) return null;
+  return e.ORACLE_TRACE === 'ignore' ? 'ignore' : 'filtered';
 }
 /** The ignore mode's depth: every row (the bundle and lexical paths have a total order). */
 const TRACE_FULL_DEPTH = 100_000;
@@ -613,7 +613,7 @@ const TRACE_FULL_DEPTH = 100_000;
  *   pinned: Set<string>,
  *   toModule: (row: ResultRow, score?: number) => ReturnType<typeof rowToModule>,
  * }} SemesterSwap
- * - `constraints`: what a result must pass (the request's filters, 3H's intents, 3B's ranges
+ * - `constraints`: what a result must pass (the request's filters, the constraint intents, the code ranges
  *   and level window), stricter than the variants' filter, which has no ranges;
  * - `rank`: each code's position in the ranked list the page was cut from;
  * - `pinned`: codes the query types (its pins, and offered codes past the pin cap), never swapped.
@@ -623,7 +623,7 @@ const TRACE_FULL_DEPTH = 100_000;
 const offeredIn = (row, sem) => JSON.parse(row.semesters ?? '[]').includes(sem);
 
 /**
- * 3F (plan 3F, C-8): each result in a duplicate group (groups-v1) carries its
+ * Each result in a duplicate group (groups-v1) carries its
  * group's other members that pass the filters as `variants: [{ code, credits }]`,
  * in code order, read from D1 (credits differ inside some groups). Results with
  * none are left as they are. With `swap`, a result not offered in the
@@ -689,7 +689,7 @@ async function attachVariants(db, results, echo, trace, swap = null) {
  * ingest and the deploy that bundles its vectors (runbook steps 4–6), a new
  * module, or one that moved from catalogue-only to offered, is in D1 and not
  * yet in the bundle, and it must still pin. When the bundle does not parse
- * (keyword-only, B6) every question goes to D1. The parse is re-run until it
+ * (keyword-only) every question goes to D1. The parse is re-run until it
  * asks about no code D1 has not answered (one read in practice; a join that
  * D1 confirms can ask one more).
  * @param {D1DatabaseSession} db @param {string} q @param {string[]} ignore @param {Trace} trace
@@ -725,9 +725,9 @@ async function parseWithCorpus(db, q, ignore, trace) {
 
 /** noMatch `related` holds this many dense neighbours of the catalogue text. */
 const RELATED_K = 5;
-/** 3H's request params (C-12): hard filters the standby's metadata cannot apply. */
+/** The constraint params: hard filters the standby's metadata cannot apply. */
 const INTENT_PARAMS = /** @type {const} */ (['exam', 'su', 'hoursBelow', 'prereq']);
-/** How deep the standby reads `related` under a 3H constraint: the dense path's cap. */
+/** How deep the standby reads `related` under a constraint param: the dense path's cap. */
 const STANDBY_RELATED_DEPTH = 50;
 /** The catalogue text embedded for `related` is cut here (bge-small reads ~512 tokens anyway). */
 const RELATED_TEXT_CHARS = 2_000;
@@ -750,8 +750,8 @@ const catalogueText = (row) => [row.title, row.description]
  *   whose members are the results, by exact dense score (in code order
  *   without the dense half: mode=lexical, the keyword-only fallback, the
  *   Vectorize standby);
- * - `search`: pin lookup, lexical retrieval and embed→dense start together
- *   (B4), with the GE pre-retrieval mask on both halves and a code token's
+ * - `search`: pin lookup, lexical retrieval and embed→dense start together,
+ *   with the GE pre-retrieval mask on both halves and a code token's
  *   prefix members as a third RRF list; hydration follows once all have settled.
  * @param {SearchQuery} query
  * @param {Env} env
@@ -761,13 +761,13 @@ const catalogueText = (row) => [row.title, row.description]
  */
 async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, env, trace, log) {
   const db = readSession(env);
-  const traceMode = sc1TraceMode(env);
+  const traceMode = oracleTraceMode(env);
   const ignoreAllow = traceMode === 'ignore' && requestEcho.ng === true;
   /** @type {FilterEcho & { ngIgnoreAllow?: true }} */
   const echo = ignoreAllow ? { ...requestEcho, ngIgnoreAllow: true } : requestEcho;
   /** What the trace returns: the pipeline's lists and depths (filled in as they are known). */
   /** @type {Record<string, unknown>} */
-  const sc1 = {};
+  const oracleLists = {};
   // Spans in pipeline order, whichever branch finishes first.
   trace.reserve('pin', 'embed', 'vector', 'fts', 'hydrate');
 
@@ -780,7 +780,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   }
   log.route = parsed.kind;
   const collapsing = collapseOn(env);
-  // Retrieval depth per list. 3F collapses the deepest uncollapsed ranking
+  // Retrieval depth per list. The group collapse takes the deepest uncollapsed ranking
   // (topK 50, so each list 50 deep) to fill its page. A single list (lexical,
   // or the bundle's exact dense order, with no code list) can go deeper,
   // since a deeper list only continues the same order. A fused one cannot,
@@ -788,10 +788,10 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   const singleList = !parsed.codeList && (mode === 'lexical' || (mode === 'vector' && denseBackend(env) === 'bundle'));
   const depth = ignoreAllow ? TRACE_FULL_DEPTH
     : !collapsing ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK) : singleList ? MAX_TOPK * 2 : MAX_TOPK;
-  sc1.depth = depth;
+  oracleLists.depth = depth;
 
-  // Dense retrieval. In hybrid mode a failure degrades to keyword-only results
-  // (B6); in vector mode it fails loudly, because the eval measures that half.
+  // Dense retrieval. In hybrid mode a failure degrades to keyword-only results;
+  // in vector mode it fails loudly, because the eval measures that half.
   // A dense half that keeps failing is skipped outright for a while, so it does
   // not add its timeout to every search.
   /** @type {Degraded | null} */
@@ -804,9 +804,9 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     log.degradedMessage = err.message;
   };
 
-  // 5C-api: the typed codes the page explains. `notOffered` comes from the
+  // The typed codes the page explains. `notOffered` comes from the
   // parse (no read); `hiddenPins` is filled by the search route's pin lookup.
-  // 6A: an NG-listed code with no classes (src/ng-unscheduled.js) is not
+  // An NG-listed code with no classes (src/ng-unscheduled.js) is not
   // offered, even where the bundled catalogue (`catalogue-codes-data`) lacks
   // it and the parse calls it unknown (the pinned one the tests use lacks 9). The parse is untouched,
   // so no ranking changes.
@@ -841,12 +841,12 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
         ...(degraded ? { degraded } : {}),
         retrieval,
         results,
-        ...(traceMode ? { sc1 } : {}),
+        ...(traceMode ? { oracle: oracleLists } : {}),
       }),
     };
   };
 
-  // 3H: the parsed intents join the explicit params (the tighter hour limit holds).
+  // The parsed intents join the explicit params (the tighter hour limit holds).
   /** @type {FilterEcho} */
   const intentFilter = { ...echo, ...parsed.constraints };
   if (echo.hoursBelow !== undefined && parsed.constraints.hoursBelow !== undefined) {
@@ -858,19 +858,19 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     ...(parsed.level ? { levelWindow: parsed.level } : {}),
     ...(parsed.ranges ? { ranges: parsed.ranges } : {}),
   };
-  // 3F: variants pass the request's filters, 3H's intents and the query's level
+  // Variants pass the request's filters, the constraint intents and the query's level
   // window, but not its code ranges (a GES result may list its GESS cross-listing).
   const variantFilter = parsed.level ? { ...intentFilter, levelWindow: parsed.level } : intentFilter;
 
-  // Phase 4 (plan §2): the NG list has no special-term data, so exchange mode
+  // The NG list has no special-term data, so exchange mode
   // in Special Term I or II answers no courses, saying why.
   if (echo.ng === true && (echo.sem === 3 || echo.sem === 4)) {
     log.counts = { returned: 0 };
     return respond([], { vector: 0, lexical: 0, fused: 0 }, { noMatch: { reason: 'ng-special-term' } });
   }
-  // Phase 4: exchange mode shows the allow-mask bit's notes on each card.
+  // Exchange mode shows the allow-mask bit's notes on each card.
   const bit = ngBit(echo);
-  // 5C-api: with no semester, each card also gets Sem 1's and Sem 2's (never a merged value).
+  // With no semester, each card also gets Sem 1's and Sem 2's (never a merged value).
   const semBits = bit !== null && echo.sem === undefined && echo.study !== undefined
     ? { 1: bitOf(1, echo.study), 2: bitOf(2, echo.study) } : null;
   /** @param {ResultRow} row @param {number} [score] */
@@ -888,7 +888,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   });
 
   // ── no-match: `count: 0`; a not-offered code names its catalogue title and
-  // the dense neighbours of its catalogue text, never in `results`. 6A: an
+  // the dense neighbours of its catalogue text, never in `results`. An
   // NG-listed code with no classes is checked first, ahead of the unknown-code
   // answer and the catalogue read: it answers `ng-unscheduled`, with the
   // semesters NUS lists it for and the neighbours of its own text.
@@ -913,9 +913,9 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     let related = [];
     if (row && tryDense) {
       const text = catalogueText(row);
-      // The standby's metadata has no 3H fields or allow mask: it reads deeper,
+      // The standby's metadata has no constraint fields or allow mask: it reads deeper,
       // and its neighbours are checked after hydrate. Under ng every backend's
-      // neighbours are rechecked (B-2): the bundle can be older than D1.
+      // neighbours are rechecked: the bundle can be older than D1.
       const standbyRecheck = denseBackend(env) !== 'bundle' && (INTENT_PARAMS.some((k) => intentFilter[k] !== undefined) || echo.ng === true);
       const recheck = standbyRecheck || echo.ng === true;
       const depth = standbyRecheck ? STANDBY_RELATED_DEPTH : RELATED_K;
@@ -949,10 +949,10 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     const maskConstraints = /** @type {Constraints & { ranges: CodeRange[] }} */ (constraints);
     /** @type {DenseHit[] | null} */
     let hits = null;
-    // With 3F's collapse a page of topK groups can need more members than topK.
+    // With the group collapse a page of topK groups can need more members than topK.
     const maskDepth = ignoreAllow ? TRACE_FULL_DEPTH
       : collapsing ? Math.min(topK * CANDIDATE_MULTIPLIER, MAX_TOPK * CANDIDATE_MULTIPLIER) : topK;
-    sc1.maskDepth = maskDepth;
+    oracleLists.maskDepth = maskDepth;
     if (tryDense && denseBackend(env) === 'bundle') {
       const r = await settle(denseRun(env, denseTexts(parsed), trace, (vs) => bundleHits(vs, maskConstraints, maskDepth, trace)));
       if (r.ok) hits = r.value;
@@ -973,16 +973,16 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     } catch (err) {
       return { response: upstream('d1', err), degraded: null };
     }
-    sc1.mask = order;
-    sc1.maskOrder = hits ? 'dense' : 'code';
+    oracleLists.mask = order;
+    oracleLists.maskOrder = hits ? 'dense' : 'code';
     const score = new Map((hits ?? []).map((h) => [h.code, h.score]));
-    // Dense members re-checked against their fresh D1 row (B-3); code-order members came from D1.
+    // Dense members re-checked against their fresh D1 row; code-order members came from D1.
     let results = order.flatMap((code) => {
       const row = rows.get(code);
       if (!row || (hits && !localMatchesFilters(row, maskConstraints))) return [];
       return [toModule(row, score.get(code))];
     });
-    // 3F: after the filters, one result per duplicate group, the rest as its variants.
+    // After the filters, one result per duplicate group, the rest as its variants.
     if (collapsing) {
       const { groupOf } = groups();
       const seen = new Set();
@@ -1000,8 +1000,8 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   }
 
   // ── search: pins, then the fused lists.
-  // R5: offered codes jump to the front, in query order, if the filters allow them.
-  // 5C-api: the same statement also reads every other typed offered code (at most
+  // Offered codes jump to the front, in query order, if the filters allow them.
+  // The same statement also reads every other typed offered code (at most
   // MAX_CODES in all), only to report the ones the filters hide; none of them pins.
   const lookup = [...new Set([...parsed.pins, ...parsed.codes.filter((t) => t.status === 'offered').map((t) => t.code)])];
   const pinning = lookup.length
@@ -1020,8 +1020,8 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   /** @returns {Promise<string[]>} */
   const codeOrder = () => withTimeout('D1', D1_TIMEOUT_MS, () => rangeMembers(db, /** @type {Constraints & { ranges: CodeRange[] }} */ (codeCons), depth, trace));
 
-  // 3G: the top cosine of the query as typed (the first dense text), read only when noSignal
-  // holds. With no dense hit (filters no module passes) there is none, and 3G does not fire.
+  // The no-signal check: the top cosine of the query as typed (the first dense text), read only
+  // when noSignal holds. With no dense hit (filters no module passes) there is none, and it does not fire.
   let topCosine = Infinity;
   const tau = noSignalTau(env);
   const dense = tryDense
@@ -1032,7 +1032,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     : null;
 
   // Lexical retrieval over the same corpus (corrected, GE phrases stripped,
-  // 3C's prefix terms), fused by rank.
+  // the typo step's prefix terms), fused by rank.
   const lexical = mode !== 'vector'
     ? settle(withTimeout('D1', D1_TIMEOUT_MS, () => lexicalSearch(db, parsed.lexical, constraints, depth, trace, parsed.fts)))
     : null;
@@ -1044,7 +1044,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   const { groupOf } = groups();
   /** @type {ReturnType<typeof rowToModule>[]} */
   const pinned = [];
-  // 3F: each duplicate group's first member stands for it, pins included.
+  // Each duplicate group's first member stands for it, pins included.
   /** @type {Set<string>} */
   const groupsShown = new Set();
   if (pin) {
@@ -1054,7 +1054,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     const byCodeRow = new Map(res.results.map((r) => [r.code, r]));
     for (const code of parsed.pins) {
       const row = byCodeRow.get(code);
-      // A pin passes the filters and 3H's intents (not 3B's ranges, which it routes around).
+      // A pin passes the filters and the constraint intents (not the code ranges, which it routes around).
       if (!row || !localMatchesFilters(row, intentFilter)) continue;
       if (collapsing) {
         const k = groupKeyOf(groupOf, code);
@@ -1089,12 +1089,12 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   if (lex && !lex.ok) return { response: upstream('d1-fts', lex.error), degraded: null };
   if (lex) lexicalCodes = lex.value;
 
-  sc1.pins = pinned.map((p) => p.code);
-  sc1.dense = denseHits.map((h) => h.code);
-  sc1.lexical = lexicalCodes;
-  sc1.topCosine = Number.isFinite(topCosine) ? topCosine : null;
-  sc1.degraded = degraded !== null;
-  // 3G: no route, no vocabulary match before correction, and the dense half
+  oracleLists.pins = pinned.map((p) => p.code);
+  oracleLists.dense = denseHits.map((h) => h.code);
+  oracleLists.lexical = lexicalCodes;
+  oracleLists.topCosine = Number.isFinite(topCosine) ? topCosine : null;
+  oracleLists.degraded = degraded !== null;
+  // No signal: no route, no vocabulary match before correction, and the dense half
   // finds nothing near: `count: 0`, before hydration. Needs the dense half.
   if (vec && vec.ok && tau !== null && parsed.noSignal && topCosine < tau) {
     log.counts = { returned: 0, vector: denseHits.length, lexical: lexicalCodes.length };
@@ -1108,7 +1108,7 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
     codeCodes = got.value;
   }
   const vectorCodes = denseHits.map((h) => h.code);
-  sc1.code = codeCodes;
+  oracleLists.code = codeCodes;
 
   /** @type {string[][]} */
   const lists = mode === 'vector' ? [vectorCodes]
@@ -1118,16 +1118,16 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   const pinnedCodes = new Set(pinned.map((p) => p.code));
   const fused = fuse(lists).filter((f) => !pinnedCodes.has(f.code));
 
-  // Hydrate only as many fused candidates as the response shows (B8). A
+  // Hydrate only as many fused candidates as the response shows. A
   // candidate missing from D1 means a stale index: drop it and hydrate the
   // next one, so the page is the same as hydrating every candidate would give.
   // A dense candidate (either dense list) whose fresh D1 row fails the filters
-  // or 3B's constraints is dropped the same way (B-3): between a D1-only
+  // or the parsed constraints is dropped the same way: between a D1-only
   // ingest and the deploy that bundles its vectors, the live bundle's filter
-  // table (or the standby's metadata, which has no 3B field) can be older than
+  // table (or the standby's metadata, which has no code-range field) can be older than
   // D1. Lexical and code-order candidates were filtered by D1 itself.
   let results = [...pinned];
-  // 3F: later members of a shown group are skipped after the filters, so one never stands in.
+  // Later members of a shown group are skipped after the filters, so one never stands in.
   const lexicalSet = new Set(lexicalCodes);
   const denseOnly = new Set([...vectorCodes, ...(codeByDense ? codeCodes ?? [] : [])].filter((c) => !lexicalSet.has(c)));
   /** @type {string[]} */
@@ -1207,7 +1207,7 @@ export async function searchRoute(request, env, ctx, trace) {
     return response;
   };
 
-  // Another site's page is refused before the cache, the limits and any binding (Phase 8 8B).
+  // Another site's page is refused before the cache, the limits and any binding.
   if (crossSite(request.headers)) {
     return finish(new Response(
       JSON.stringify({ error: 'cross_site', message: 'Searches sent from another site\'s page are refused. Search on this site instead.' }, null, 2),
@@ -1223,19 +1223,19 @@ export async function searchRoute(request, env, ctx, trace) {
   // Identical searches are common — a shared link, a reload, a load test,
   // the evaluation harness running the same fixture repeatedly. Serving
   // those from cache costs zero D1 rows, zero Vectorize queries and zero
-  // Workers AI calls. The key is canonical (B7), and needs no D1 read.
+  // Workers AI calls. The key is canonical, and needs no D1 read.
   const cache = caches.default;
   const cacheKey = canonicalCacheKey(url.origin, parsed.query, versionId(env));
-  // The SC1 trace (tests only) never reads or writes the cache: its body differs from the page's.
-  const tracing = sc1TraceMode(env) !== null;
+  // The oracle trace (tests only) never reads or writes the cache: its body differs from the page's.
+  const tracing = oracleTraceMode(env) !== null;
   const hit = tracing ? undefined : await trace.time('cache', () => cache.match(cacheKey));
   trace.describe('cache', hit ? 'hit' : 'miss');
   // The stored copy has no Server-Timing; this request's spans are set fresh,
-  // and so is its TTL, from the degraded flag stored with it (Phase 8 8B).
+  // and so is its TTL, from the degraded flag stored with it.
   if (hit) return finish(withHeaders(hit, { 'cache-control': cacheControl(hit.headers.has(DEGRADED_HEADER)) }), 'hit');
 
   // Guardrail: /search is the only route that spends metered upstream quota.
-  // Two per-IP limits (Phase 8 8B, G5 (b)): SEARCH_LIMIT, 40 per 10 s, and
+  // Two per-IP limits: SEARCH_LIMIT, 40 per 10 s, and
   // SEARCH_LIMIT_MINUTE, 200 per 60 s, asked together in one `limit` span,
   // before any other binding. Either refusing is a 429. Each fails open: a
   // broken limiter must not take search down with it.

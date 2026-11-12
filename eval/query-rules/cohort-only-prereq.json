@@ -1,7 +1,6 @@
 {
  "schema": "vnm-p6-cohort-only/1",
- "fixedAt": "P-6",
- "plan": "docs/plans/phase3.md 3H (prereq_cohort_only, A2-12, A3-7); prereq semantics (ii) = prerequisite IS NULL or cohort-only",
+ "purpose": "prereq_cohort_only: a prerequisite that only restricts the cohort or programme. prereq=none (semantics ii) means prerequisite IS NULL or cohort-only",
  "rule": "A prerequisite text is cohort-only iff, after `normalise`, deleting every match of every pattern in `remove` (in order, each match replaced by one space) leaves only characters matched by `remainder`. NULL is not cohort-only (semantics (ii) adds NULL separately).",
  "normalise": [
   { "find": "(THEN|AND|OR)", "flags": "g", "replace": " $1 ", "why": "EduRec glues connectors to words (DegreeTHENmust, (Hons)ANDmust); upper-case only, so programme names are untouched" },
@@ -38,6 +37,6 @@
  "checks": {
   "cohortOnly": ["ACC1701XA", "ACC1701XC"],
   "notCohortOnly": ["ACC2706", "FIN2704X", "QF1100"],
-  "source": "docs/plans/phase3.md §1, d-011's five relevant modules"
+  "source": "dev query d-011's five relevant modules"
  }
 }

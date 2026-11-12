@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 // @ts-check
-// The page ship's live checks (Phase 5 5G, docs/plans/phase5.md §3 5G), run by
-// the lead after the deploy:
-// - SC2 on 20 codes drawn with a fixed seed, 4 from each stratum of the
+// The page's live checks, run by hand after a deploy that changes the page:
+// - the full detail on 20 codes drawn with a fixed seed, 4 from each stratum of the
 //   production-normalised modules: exams in two semesters, a cohort-only
 //   prerequisite, no workload, two or more notes, plain. `?q=CODE&open=CODE`
-//   must show each field or its "not listed" text (test/ui/sc2-fields.mjs, as
-//   CI's test/ui/sc2.spec.js does for every fixture code);
+//   must show each field or its "not listed" text (test/ui/detail-fields.mjs, as
+//   CI's test/ui/detail-fields.spec.js does for every fixture code);
 // - axe, every rule but WCAG AAA's 7:1 (test/ui/support.mjs), on the first
 //   screen, an open detail and the hidden codes, light and dark;
 // - the 390×664 fold check, in Chromium and as an iPhone 13 in WebKit;
@@ -19,18 +18,17 @@
 //   and the bundle is the production one.
 //
 // Requests: every request the script or its browsers send to the site starts
-// at least 4 s after the one before (the Worker's per-IP limiter, as Phase 4's
-// sc1-live.mjs). The page's files, /facets, and any /search or /module answer
+// at least 4 s after the one before (the Worker's per-IP limiter). The page's files, /facets, and any /search or /module answer
 // already fetched are fetched once per run and then served to the browsers
 // from memory. Each request, sent or served from memory, is a line in the
 // JSONL log, and the run ends with a summary line. A 429 is waited out
 // (Retry-After, at least 4 s) and re-sent, twice at most.
 //
-//   node scripts/p5-live.mjs [--url URL] [--log FILE] [--corpus production|fixture]
+//   node scripts/live-check.mjs [--url URL] [--log FILE] [--corpus production|fixture]
 //                            [--expect-commit SHA|none] [--seed N] [--dry-run]
 //
-// --url            the site (default: production, docs/REFERENCE.md's Live URL)
-// --log            the JSONL log (default docs/evidence/phase5/p5-live.jsonl), appended to
+// --url            the site (default: production, PRODUCTION_URL in scripts/live-check-plan.mjs)
+// --log            the JSONL log (default .data/live-check.jsonl), appended to
 // --corpus         the modules drawn from: `production` (`current` in data/corpus.json,
 //                  normalised as ingest does) or `fixture` (test/fixtures/corpus.json,
 //                  for the local UI server, `npm run dev`); default: fixture for a
@@ -43,7 +41,7 @@
 //
 // Exit 0 when every check passes, 1 when one fails, 2 on a usage error. Against
 // a live URL (not localhost) each run writes a run record with every request
-// sent, by path (scripts/run-record.mjs, Phase 7 7C).
+// sent, by path (scripts/run-record.mjs).
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -51,9 +49,9 @@ import { fileURLToPath } from 'node:url';
 import { chromium, devices, webkit } from '@playwright/test';
 import { hiddenCodeLine, hiddenCodeStamp, partialCodeLine } from '../public/explain.js';
 import { semLabel } from '../public/format.js';
-import { readSc2, sc2Expected, sc2Problems } from '../test/ui/sc2-fields.mjs';
+import { readDetail, detailExpected, detailProblems } from '../test/ui/detail-fields.mjs';
 import { axeViolations } from '../test/ui/support.mjs';
-import { CLOSED_KINDS, GAP_MS, drawHidden, drawSc2, loadModules, parseArgs, rng } from './p5-live-plan.mjs';
+import { CLOSED_KINDS, GAP_MS, drawDetails, drawHidden, loadModules, parseArgs, rng } from './live-check-plan.mjs';
 import { recordedLiveRun } from './run-record.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -95,7 +93,7 @@ const isApi = (path) => path === '/search' || path === '/facets' || path === '/h
 
 /**
  * @param {{ url: string, log: string, onSend?: (path: string) => void }} opts
- *   `onSend`: each request sent to the network, by path (the run record, Phase 7 7C)
+ *   `onSend`: each request sent to the network, by path (the run record)
  */
 function createSite(opts) {
   const slot = createPacer();
@@ -229,10 +227,10 @@ async function foldProblems(page, stamps) {
 async function run(opts) {
   const modules = await loadModules(opts.corpus);
   const r = rng(opts.seed);
-  const sc2 = drawSc2(modules, r);
+  const details = drawDetails(modules, r);
   const hidden = drawHidden(modules, r);
-  console.log(`p5-live: ${opts.url}, ${opts.corpus} modules (${modules.length}), seed ${opts.seed}`);
-  console.log(`SC2 draw: ${sc2.map((d) => `${d.m.code} (${d.stratum})`).join(', ')}`);
+  console.log(`live-check: ${opts.url}, ${opts.corpus} modules (${modules.length}), seed ${opts.seed}`);
+  console.log(`detail draw: ${details.map((d) => `${d.m.code} (${d.stratum})`).join(', ')}`);
   console.log(`hidden draw: ${hidden.closed.map((c) => `${c.m.code} (${c.kind}, Sem ${c.sem}, ${c.study})`).join(', ')}; partial ${hidden.partial ? `${hidden.partial.prefix} (Sem ${hidden.partial.sem}, ${hidden.partial.study})` : 'none'}`);
   if (opts.dryRun) return [];
 
@@ -308,20 +306,20 @@ async function run(opts) {
       await page.locator('#setupSources td').nth(1).filter({ hasNotText: '…' }).waitFor();
       await axeHere('the first screen', [[1280, 800], [390, 664]]);
 
-      // SC2 on the 20 drawn codes.
-      for (const { stratum, m } of sc2) {
-        now = `SC2 ${m.code}`;
+      // The full detail on the 20 drawn codes.
+      for (const { stratum, m } of details) {
+        now = `detail ${m.code}`;
         let problems;
         try {
           await page.goto(`${opts.url}/?q=${encodeURIComponent(m.code)}&open=${encodeURIComponent(m.code)}`);
-          problems = sc2Problems(await readSc2(page, m.code, PAGE_TIMEOUT_MS), sc2Expected(m));
+          problems = detailProblems(await readDetail(page, m.code, PAGE_TIMEOUT_MS), detailExpected(m));
         } catch (err) {
           problems = [String(/** @type {Error} */ (err).message).split('\n')[0]];
         }
-        record(`SC2 ${m.code} (${stratum})`, problems, 'every field');
+        record(`detail ${m.code} (${stratum})`, problems, 'every field');
       }
       now = 'axe detail';
-      await axeHere(`an open detail (${sc2.at(-1)?.m.code})`, [[1280, 800], [390, 664]]);
+      await axeHere(`an open detail (${details.at(-1)?.m.code})`, [[1280, 800], [390, 664]]);
 
       // The hidden-code explanations: each line, stamp and switch as the page's
       // rules give them from the code's own /module answer and /facets' sources.
@@ -348,7 +346,7 @@ async function run(opts) {
           if (got.stamp !== c.stamp) problems.push(`stamp "${got.stamp}", expected "${c.stamp}" for a code ${c.kind}`);
           const wantButton = c.otherOpen ? `Switch to ${semLabel(c.sem === 1 ? 2 : 1)} to see ${c.m.code}` : null;
           if (got.button !== wantButton) problems.push(`switch ${JSON.stringify(got.button)}, expected ${JSON.stringify(wantButton)}`);
-          // Never a result (SC1): not an entry, not another entry's "Also as".
+          // Never a result (exchange mode hides it): not an entry, not another entry's "Also as".
           if (await page.locator(`#results [data-code="${c.m.code}"], #results [data-variant="${c.m.code}"]`).count()) problems.push('shown as a result');
         } catch (err) {
           problems.push(String(/** @type {Error} */ (err).message).split('\n')[0]);
@@ -381,7 +379,7 @@ async function run(opts) {
         record('partial code drawn', ['no prefix is emptied at any drawn semester and year']);
       }
 
-      // The fold at 390×664: Chromium, then WebKit as an iPhone 13 (SC8).
+      // The fold at 390×664: Chromium, then WebKit as an iPhone 13.
       const FOLD = /** @type {const} */ ([['Sem 1', `/?q=ACC1701XB&sem=1&ng=1&study=ug2`, 1], ['both semesters', `/?q=ACC1701XB&ng=1&study=ug2`, 2]]);
       for (const [engine, launch, ctxOpts] of /** @type {const} */ ([
         ['chromium 390×664', null, { viewport: { width: 390, height: 664 }, userAgent: UA }],
@@ -418,7 +416,7 @@ async function run(opts) {
   }
   const failed = out.filter((o) => !o.pass).length;
   site.log({ check: 'summary', url: opts.url, corpus: opts.corpus, seed: opts.seed, sent: site.sent(), pass: out.length - failed, fail: failed, failures: out.filter((o) => !o.pass) });
-  console.log(`\np5-live: ${out.length - failed} of ${out.length} checks pass, ${failed} fail; ${site.sent()} requests sent, at least ${GAP_MS / 1000} s apart; log ${opts.log}`);
+  console.log(`\nlive-check: ${out.length - failed} of ${out.length} checks pass, ${failed} fail; ${site.sent()} requests sent, at least ${GAP_MS / 1000} s apart; log ${opts.log}`);
   return out;
 }
 
@@ -427,10 +425,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   try {
     opts = parseArgs(process.argv.slice(2));
   } catch (err) {
-    console.error(`p5-live: ${/** @type {Error} */ (err).message}`);
+    console.error(`live-check: ${/** @type {Error} */ (err).message}`);
     process.exit(2);
   }
-  // Phase 7 7C: a run against a live URL leaves a run record (scripts/run-record.mjs), whatever the result.
-  const outcomes = opts.dryRun ? await run(opts) : await recordedLiveRun('p5-live', opts, run);
+  // A run against a live URL leaves a run record (scripts/run-record.mjs), whatever the result.
+  const outcomes = opts.dryRun ? await run(opts) : await recordedLiveRun('live-check', opts, run);
   process.exit(outcomes.some((o) => !o.pass) ? 1 : 0);
 }

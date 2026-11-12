@@ -3,7 +3,7 @@
 //
 // workerd freezes the clock during synchronous CPU work and advances it only
 // across I/O, so a span measures time spent waiting on a binding (D1, Workers
-// AI, Vectorize, the cache), not CPU. That is the quantity SC7 is about.
+// AI, Vectorize, the cache), not CPU. That is the search latency the p50 budget measures.
 
 const now = () => performance.now();
 

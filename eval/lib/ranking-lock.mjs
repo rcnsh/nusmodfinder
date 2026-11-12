@@ -1,5 +1,5 @@
 // @ts-check
-// The ranking lock (Phase 7 7A, docs/plans/phase7.md §2 "7A CI"): CI's eval gate.
+// The ranking lock: CI's eval gate.
 //
 // eval/ranking-lock.json holds, for every open-set query the eval runner answers, the sha256 of
 // its HTTP status and ordered result codes, in two seeds: the dev set on the pinned corpus,
@@ -50,7 +50,7 @@ export const MODES = Object.freeze({
   unfiltered: Object.freeze({ unfiltered: true, strip: /** @type {string[]} */ ([]) }),
 });
 
-/** The two seeds: the dev set (v2, judged) on the pinned corpus, and the fixture on its own. */
+/** The two seeds: the judged dev set on the pinned corpus, and the fixture on its own. */
 export const SEEDS = Object.freeze({
   dev: Object.freeze({ dir: 'eval/dev', corpus: 'the pinned corpus' }),
   fixture: Object.freeze({ dir: 'eval/fixtures', corpus: 'eval/fixtures/corpus.json' }),
@@ -123,7 +123,7 @@ export const LOCK_INPUTS = Object.freeze([
   'eval/dev',
   'eval/fixtures',
   'eval/embeddings.json',
-  // The pinned corpus's NG list and restrictions (Phase 7 7D, eval/lib/corpus.mjs).
+  // The pinned corpus's NG list and restrictions (eval/lib/corpus.mjs).
   'eval/pinned',
   // workerd and its SQLite, Vitest and the plugin.
   'package-lock.json',

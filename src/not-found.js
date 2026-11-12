@@ -1,5 +1,5 @@
 // @ts-check
-// The 404 for a browser (Phase 8 8B). An unknown path answers JSON, as every API route does,
+// The 404 for a browser. An unknown path answers JSON, as every API route does,
 // unless the request prefers HTML: then it gets src/404.html (a Text module) with the security
 // headers of public/_headers' `/*` rule. Cloudflare applies _headers to static assets only, so the
 // Worker sets them itself. They are copied here, not imported, so the Worker (and the ranking

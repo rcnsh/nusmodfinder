@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// WCAG AA contrast for the page's colours (Phase 5 5D, F6): every text/background
+// WCAG AA contrast for the page's colours: every text/background
 // pair and every UI-boundary pair public/styles.css uses, in both themes,
 // read from the stylesheet's own tokens (the light :root and the dark one under
 // prefers-color-scheme), so a token change is checked where it is made.

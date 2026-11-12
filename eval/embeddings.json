@@ -16,7 +16,7 @@
    "release": "emb-bge-small-v1",
    "model": "@cf/baai/bge-small-en-v1.5",
    "dims": 384,
-   "textRef": "3a2-v1",
+   "textRef": "embedding-text-v1",
    "count": 6771,
    "files": {
     "corpus.f32.gz": "c7b52f56e8cb6f4750b83e79e38c0dd0d0b7015dcbc9814be154748b5de593a9",
@@ -27,7 +27,7 @@
    "release": "emb-bge-small-v2",
    "model": "@cf/baai/bge-small-en-v1.5",
    "dims": 384,
-   "textRef": "3a2-v2",
+   "textRef": "embedding-text-v2",
    "count": 6771,
    "files": {
     "corpus.f32.gz": "19f3b8f1df2f08522dc01177ab11b520fe48867a85d4ef4fbd81d6d559241018",
@@ -38,7 +38,7 @@
    "release": "emb-bge-small-v3",
    "model": "@cf/baai/bge-small-en-v1.5",
    "dims": 384,
-   "textRef": "3a2-v3",
+   "textRef": "embedding-text-v3",
    "count": 6197,
    "files": {
     "corpus.f32.gz": "474c3bf3d7e954da9439223ad4739978e39d877c5ad448de4fa1c8cb82776591",

@@ -1,34 +1,34 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run eval:count`: custodian-only counts on an encrypted set
-// (docs/plans/phase3.md §3 P-5b, A3-1, A-N9). It prints one integer and
-// nothing else:
+// `npm run eval:count`: custodian-only counts on an encrypted set. A count
+// answers one question about the hidden set without a verdict, so it is not a
+// look. It prints one integer and nothing else:
 //
 //   npm run eval:count -- --custodian --set test --answerable
-//       the sealed test set's primary answerable queries (§5's stopping rule)
+//       the sealed test set's primary answerable queries
 //   npm run eval:count -- --custodian --holdout --emptied-untagged --run <variant>
 //       holdout queries not tagged no-answer that the stored run returns
-//       empty (status 200, no codes): 3G's custodian count
+//       empty (status 200, no codes): the no-signal cutoff's custodian count
 //   npm run eval:count -- --custodian --holdout --lists-differing --run <A> --baseline <B>
 //       holdout queries whose stored lists differ between runs A and B (status,
 //       or the codes in order); both made on these queries with the same
 //       settings: the identity check that moves the shipped-ranker pin without
-//       a look (docs/plans/phase5.md §3 5A)
+//       a look
 //   npm run eval:count -- --custodian --holdout --lists-differing --by-group --run <A> --baseline <B>
 //       the same, comparing each list's status and its sequence of group keys
 //       (groups-v1, eval/groups.json): a change of which member stands for a
 //       group is not counted, a change of which groups show or their order is
-//       (the semester representative's gate, ADR 0003 draft amendment)
+//       (the representative-only route, ADR 0003)
 //   … --route <route>
-//       names the ADR 0003 no-look route the count is taken for (amendment 2026-11-12:
-//       representative-only, answerable-floor, group-first or gated-without-a-look), written into
+//       names the ADR 0003 no-look route the count is taken for
+//       (representative-only, answerable-floor, group-first or gated-without-a-look), written into
 //       the row's route column; a ranking-lock change cites the row (eval:lock -- --evidence
 //       no-look <row>). Without it the route cell is "—".
 //
 // Every call appends a row (date, set, kind, run, count, route) to the set's count
 // log (eval/count-log.md; the self-test set's beside its own ledger). The
 // ledger never reads the count log and refuses a row copied from it, so a
-// count prints no verdict and is not a look (ADR 0003, amendment 2026-11-06).
+// count prints no verdict and is not a look (ADR 0003).
 // Any option outside the ones above is refused, so no flag can make it print
 // ids or metrics; any failure after the checks prints only the error class.
 import { createHash } from 'node:crypto';

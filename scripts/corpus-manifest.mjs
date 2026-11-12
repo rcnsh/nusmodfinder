@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7D, the corpus manifest (data/corpus.json, docs/plans/phase7.md 7D).
+// The corpus manifest (data/corpus.json).
 // Each production corpus is a GitHub release asset, `prod-<year>-<yyyymmdd>`,
 // holding NUSMods' moduleInfo.json gzipped. The manifest records the asset,
 // the raw file's sha256 and when NUSMods served it; `current` names the entry
@@ -217,7 +217,7 @@ export async function fetchStaging(year, { fetchImpl = fetch, dir = STAGING_DIR,
  * Publishes a corpus: refuses one whose data version (with HEAD's NG files) is not the committed
  * src/data-version.json unless `newDataVersion` (a refresh whose data moves; ingest and the bundle
  * follow), and a release the manifest already has. Uploads the gz asset, writes the entry, sets
- * `current`, and leaves the corpus restored here. Writes a run record (Phase 7 7C).
+ * `current`, and leaves the corpus restored here. Writes a run record.
  * @param {{ file?: string, fetchedAt?: string, year?: string, manifestPath?: string, dataVersionPath?: string, dir?: string,
  *   upload?: Upload, log?: (line: string) => void, runsDir?: string, newDataVersion?: boolean, args?: string[] }} [o]
  * @returns {Promise<{ entry: CorpusEntry, dataVersion: string }>}
@@ -262,7 +262,7 @@ export async function publishCorpus(o = {}) {
     await upload(release, gz, {
       title: `Production corpus ${year}, fetched ${fetchedAt}`,
       notes: `NUSMods moduleInfo.json for ${year}, as api.nusmods.com served it at ${fetchedAt}. Raw sha256 ${entry.sha256}. `
-        + 'Recorded in data/corpus.json (docs/plans/phase7.md 7D). The data is NUSMods\'; see ADR 0011 "Republishing NUSMods data".',
+        + 'Recorded in data/corpus.json. The data is NUSMods\'; see ADR 0014 "Republishing NUSMods data".',
     });
     record.wrote('GitHub release asset', { actual: 1 });
     record.version('release', release);

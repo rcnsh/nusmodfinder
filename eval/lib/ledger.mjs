@@ -3,7 +3,7 @@
 // set, so the number of looks is visible in git history. A look is any run
 // that prints a verdict. Append-only; the CLI refuses a look past the limit.
 // Each row records the rule the verdict applied (`general`, `targeted:
-// <shapes>`, `cutoff`, `sc5`) and the baseline's ranker sha.
+// <shapes>`, `cutoff`, `compliance`, `test-set`) and the baseline's ranker sha.
 //
 // Tamper resistance (honour system, but not trivially editable):
 // - every table row except the header and separator lines counts, whatever
@@ -14,8 +14,7 @@
 //   is caught), if it has fewer rows in total, or if the file is missing
 //   while git has it;
 // - a row with a `count: …` cell is an eval:count log row (eval/count-log.md),
-//   and the ledger refuses it: a count is not a look (ADR 0003, amendment
-//   2026-11-06), so it can never be recorded, or spent, as one. The ledger
+//   and the ledger refuses it: a count is not a look (ADR 0003), so it can never be recorded, or spent, as one. The ledger
 //   never reads the count log.
 //
 // Concurrency: check-then-append runs under an exclusive lock file
@@ -38,7 +37,7 @@ import { REPO } from './sets.mjs';
 const HEADER = `# Holdout ledger
 
 Append-only. One row per look at an encrypted set (\`holdout\` max 12, \`test\` max 1), written
-by \`npm run eval -- --holdout\`. Phase 3 tuning stops at 12 holdout looks.
+by \`npm run eval\` and \`npm run eval:report\` on those sets. A look past the limit is refused.
 
 | date | set | commit | variant | baseline | verdict | ΔnDCG@10 [95% CI] | ΔP@5 [95% CI] | rule | baseline ranker |
 |---|---|---|---|---|---|---|---|---|---|
@@ -179,29 +178,6 @@ export async function assertLookAllowed(path, set, max, options = {}) {
 }
 
 /**
- * Under the holdout reading of SC5 (gate.mjs `SC5_READING`) the SC5 look is
- * L12 and nothing comes after it. Throws LookLimitError
- * - for an SC5 look (`sc5`), unless the ledger records exactly `maxLooks - 1`
- *   looks at `set` and no `sc5` row for it;
- * - for a per-change look, once the ledger records an `sc5` row for `set`.
- * Callers hold the ledger lock. The look limit itself is assertLookAllowed's.
- * @param {string} path
- * @param {string} set
- * @param {number} maxLooks the set's limit, SC5 look included
- * @param {boolean} sc5 is this the SC5 look?
- */
-export async function assertSc5Order(path, set, maxLooks, sc5) {
-  const rows = await readLedger(path);
-  const n = countLooks(rows, set);
-  const sc5Rows = rows.filter((r) => r.set === set && r.rule === 'sc5').length;
-  if (sc5 && sc5Rows) throw new LookLimitError(`refusing a second SC5 look at the ${set} set: the ledger (${path}) already records one`);
-  if (sc5 && n !== maxLooks - 1) {
-    throw new LookLimitError(`refusing the SC5 look at the ${set} set: it is look ${maxLooks} and comes after exactly ${maxLooks - 1}, but the ledger (${path}) records ${n}`);
-  }
-  if (!sc5 && sc5Rows) throw new LookLimitError(`refusing a per-change look at the ${set} set: the ledger (${path}) records its SC5 look, which is the last`);
-}
-
-/**
  * `rule` is gate.mjs `ruleOf`; `baselineRanker` the baseline run's ranker sha (7 characters).
  * @typedef {{ date: string, set: string, commit: string, variant: string, baseline: string, verdict: string, ndcg: string, p5: string, rule?: string, baselineRanker?: string }} LedgerRow
  */
@@ -334,19 +310,17 @@ export async function withLedgerLock(path, fn, options = {}) {
 }
 
 /**
- * Reserves a look before retrieval starts: checks the limit (and `check`, a
- * caller's further refusal, under the same lock) and appends a
+ * Reserves a look before retrieval starts: checks the limit and appends a
  * `reserved <token>` row, atomically. The row counts as a look from now on.
  * @param {string} path
  * @param {number} max
  * @param {Omit<LedgerRow, 'verdict' | 'ndcg' | 'p5'>} row
- * @param {{ repo?: string, waitMs?: number, check?: () => Promise<void> }} [options]
+ * @param {{ repo?: string, waitMs?: number }} [options]
  * @returns {Promise<string>} the reserved line, for finaliseLook
  */
 export function reserveLook(path, max, row, options = {}) {
   return withLedgerLock(path, async (lock) => {
     await assertLookAllowed(path, row.set, max, options);
-    await options.check?.();
     const line = formatRow({ ...row, verdict: `reserved ${randomBytes(4).toString('hex')}`, ndcg: '—', p5: '—' });
     lock.assertHeld();
     await appendLook(path, row, line);

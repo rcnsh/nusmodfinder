@@ -1,8 +1,8 @@
 // @ts-check
-// Phase 8 8B (docs/plans/phase8.md §2 "8B", as §5's answers adjust it): what a visitor and a
+// What a visitor and a
 // stranger's page get from the Worker. The HTML 404 with public/_headers' security headers, the
 // search hit's TTL re-sent, the cross-site refusal on /search before the cache, the limiters and any
-// binding, the two per-IP rate limits (G5 (b)), and one log line for a D1 error on /module and
+// binding, the two per-IP rate limits, and one log line for a D1 error on /module and
 // /facets.
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import headersFile from '../public/_headers';
@@ -42,7 +42,7 @@ function headersRule() {
 /** What Chromium sends for a typed address or a link. */
 const BROWSER_ACCEPT = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7';
 
-describe('the 404 for a browser (8B)', () => {
+describe('the 404 for a browser', () => {
   it('a browser asking for an unknown path gets an HTML page: the name, "unofficial" and a link home', async () => {
     const res = await call('/no-such-page', { init: { headers: { accept: BROWSER_ACCEPT } } });
     expect(res.status).toBe(404);
@@ -87,7 +87,7 @@ describe('the 404 for a browser (8B)', () => {
   });
 });
 
-describe('the search hit\'s TTL (8B)', () => {
+describe('the search hit\'s TTL', () => {
   /**
    * Production's `cache.match` returns the stored copy with the zone's Browser Cache TTL on it
    * (max-age=14400); Miniflare's returns what was stored, so only a stub shows it.
@@ -148,7 +148,7 @@ const SERVED = [
   ['the eval and curl (no Sec-Fetch-*)', { accept: '*/*', 'user-agent': 'curl/8.7.1' }],
 ];
 
-describe('the cross-site refusal on /search (8B)', () => {
+describe('the cross-site refusal on /search', () => {
   /** A D1 binding that fails the test if anything touches it. */
   const untouchable = new Proxy({}, { get(_t, prop) { throw new Error(`D1 touched: ${String(prop)}`); } });
 
@@ -182,7 +182,7 @@ describe('the cross-site refusal on /search (8B)', () => {
   });
 });
 
-describe('the rate limits (8B, G5 (b))', () => {
+describe('the rate limits', () => {
   const IP = { 'cf-connecting-ip': '203.0.113.9' };
 
   it('both limits are asked, keyed by the client IP, before any other binding', async () => {
@@ -218,7 +218,7 @@ describe('the rate limits (8B, G5 (b))', () => {
   });
 });
 
-describe('a D1 error outside /search leaves one log line (8B)', () => {
+describe('a D1 error outside /search leaves one log line', () => {
   /** The `d1_error` lines console.error wrote. @param {import('vitest').MockInstance} spy */
   const d1Lines = (spy) => spy.mock.calls.map((args) => String(args[0])).filter((l) => l.includes('d1_error'));
   const IP = '198.51.100.23';

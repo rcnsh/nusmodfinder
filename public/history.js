@@ -1,5 +1,5 @@
 // @ts-check
-// The one history writer (Phase 6 6B). Every pushState and replaceState the
+// The one history writer. Every pushState and replaceState the
 // page makes goes through it, for every caller (act(), checkFrom, settle,
 // popstate, shortlist edits):
 // - it counts its writes over a sliding 10 s and, past BUDGET of them,

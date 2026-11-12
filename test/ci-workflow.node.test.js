@@ -2,7 +2,7 @@
 // The CI workflow's shape, read as text (the repo has no YAML parser and needs none for this).
 // - The UI job runs in Playwright's own image, whose browsers must be the ones the locked
 //   @playwright/test drives: bump one without the other and every UI test fails to launch.
-// - Phase 7 7A: every job always starts. `check` and `eval-gate` carry only the draft guard;
+// - Every job always starts. `check` and `eval-gate` carry only the draft guard;
 //   the heavy jobs skip by steps, on scripts/ci-changes.mjs's outputs, and run in full when
 //   `changes` failed; `main`'s runs never cancel each other.
 import { readFileSync } from 'node:fs';
@@ -25,7 +25,7 @@ const jobIf = (text) => text.match(/^ {4}if: (.+)$/m)?.[1];
 const steps = (text) => text.slice(text.indexOf('\n    steps:\n')).split(/\n {6}- /).slice(1);
 
 const DRAFT = 'github.event.pull_request.draft != true';
-const HEAVY = ['full-corpus', 'sc1', 'ui', 'rollover'];
+const HEAVY = ['full-corpus', 'oracle', 'ui', 'rollover'];
 
 describe('the ui CI job', () => {
   const ui = job('ui');
@@ -55,7 +55,7 @@ describe('the workflow is valid YAML', () => {
   });
 });
 
-describe('every CI job always starts (Phase 7 7A)', () => {
+describe('every CI job always starts', () => {
   it('has no paths-ignore or paths filter on any trigger', () => {
     expect(workflow).not.toMatch(/paths-ignore|^\s+paths:/m);
   });
@@ -89,7 +89,7 @@ describe('every CI job always starts (Phase 7 7A)', () => {
 
   it('the ui job reads the ui output and full-corpus its grid from the grid output', () => {
     expect(job('ui')).toMatch(/RUN: \$\{\{ needs\.changes\.outputs\.ui != 'false' \}\}/);
-    expect(job('sc1')).toMatch(/RUN: \$\{\{ needs\.changes\.outputs\.code != 'false' \}\}/);
+    expect(job('oracle')).toMatch(/RUN: \$\{\{ needs\.changes\.outputs\.code != 'false' \}\}/);
     expect(job('full-corpus')).toMatch(/RUN: \$\{\{ needs\.changes\.outputs\.code != 'false' \}\}/);
     expect(job('full-corpus')).toMatch(/needs\.changes\.outputs\.grid != 'false'/);
   });
@@ -124,7 +124,7 @@ describe('every CI job always starts (Phase 7 7A)', () => {
   });
 });
 
-describe('Phase 7 7E: the rollover job', () => {
+describe('the rollover job', () => {
   const rollover = job('rollover');
 
   it('reads the rollover output and runs the rehearsal over the pinned corpus, sha-checked', () => {
@@ -143,28 +143,28 @@ describe('Phase 7 7E: the rollover job', () => {
   });
 });
 
-describe('Phase 7 7D: CI on the live year', () => {
-  const sc1 = job('sc1');
+describe('the oracle job runs on the live year', () => {
+  const oracle = job('oracle');
   const full = job('full-corpus');
 
-  it('sc1 restores `current` from its release asset, with no pinned corpus, and the production bundle', () => {
-    expect(sc1).toMatch(/npm run corpus -- restore/);
-    expect(sc1).not.toMatch(/PINNED_RELEASE|data-2026-2027-20260904|MODULE_INFO/);
-    expect(sc1).toMatch(/vectors\.mjs fetch --corpus production/);
-    expect(sc1).not.toMatch(/fetch --corpus pinned/);
+  it('restores `current` from its release asset, with no pinned corpus, and the production bundle', () => {
+    expect(oracle).toMatch(/npm run corpus -- restore/);
+    expect(oracle).not.toMatch(/PINNED_RELEASE|data-2026-2027-20260904|MODULE_INFO/);
+    expect(oracle).toMatch(/vectors\.mjs fetch --corpus production/);
+    expect(oracle).not.toMatch(/fetch --corpus pinned/);
   });
 
-  it('sc1 checks the data version and the catalogueKey against the asset before its tests', () => {
-    const names = steps(sc1);
+  it('checks the data version and the catalogueKey against the asset before its tests', () => {
+    const names = steps(oracle);
     const check = names.findIndex((s) => /npm run corpus -- check/.test(s));
-    const tests = names.findIndex((s) => /--project sc1 --project sc1-node/.test(s));
+    const tests = names.findIndex((s) => /--project oracle --project oracle-node/.test(s));
     expect(check).toBeGreaterThan(0);
     expect(tests).toBeGreaterThan(check);
   });
 
-  it('sc1 runs both projects into one report, and fails unless every test passed (none skipped)', () => {
-    expect(sc1).toMatch(/npx vitest run --project sc1 --project sc1-node --reporter=default --reporter=json --outputFile="\$RUNNER_TEMP\/sc1\.json"/);
-    expect(sc1).toMatch(/r\.numPassedTests === 0 \|\| r\.numPassedTests !== r\.numTotalTests/);
+  it('runs both projects into one report, and fails unless every test passed (none skipped)', () => {
+    expect(oracle).toMatch(/npx vitest run --project oracle --project oracle-node --reporter=default --reporter=json --outputFile="\$RUNNER_TEMP\/oracle\.json"/);
+    expect(oracle).toMatch(/r\.numPassedTests === 0 \|\| r\.numPassedTests !== r\.numTotalTests/);
   });
 
   it('full-corpus keeps the pinned corpus and bundle (the eval\'s)', () => {
@@ -172,7 +172,7 @@ describe('Phase 7 7D: CI on the live year', () => {
     expect(full).toMatch(/vectors\.mjs fetch --corpus pinned/);
   });
 
-  it('npm run test:sc1 runs both projects', () => {
-    expect(JSON.parse(read('package.json')).scripts['test:sc1']).toBe('vitest run --project sc1 --project sc1-node');
+  it('npm run test:oracle runs both projects', () => {
+    expect(JSON.parse(read('package.json')).scripts['test:oracle']).toBe('vitest run --project oracle --project oracle-node');
   });
 });

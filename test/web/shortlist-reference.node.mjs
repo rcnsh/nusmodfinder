@@ -1,15 +1,15 @@
 // @ts-check
-// The shortlist's independent reference (Phase 6 6B, SC3): the counting rules
-// written again from docs/plans/phase6.md 6B, over a corpus's own columns (its
-// allow mask and stored rule ids, its groups and data/ng-reasons.json's kinds),
-// not through public/shortlist.js or the /module answers it reads. The 6B
-// property test (test/web/shortlist.node.test.js) runs it over the fixture;
-// scripts/p6-live.mjs (6E) over the production-normalised modules.
+// The shortlist's independent reference: the counting rules written again
+// over a corpus's own columns (its allow mask and stored rule ids, its groups
+// and data/ng-reasons.json's kinds), not through public/shortlist.js or the
+// /module answers it reads. The property test in test/web/shortlist.node.test.js
+// runs it over the fixture; scripts/live-shortlist.mjs over the
+// production-normalised modules.
 import { yearNote } from '../../src/year-note.js';
 
 const STUDY_LIST = ['ug1', 'ug2', 'ug3', 'ug4', 'grad'];
 const CONDITIONS = ['quota', 'supply', 'major', 'approval', 'graded', 'letter', 'fee'];
-/** R6-2 (ADR 0010), read again: GRO's level 4000 note, a condition, for an undergraduate outside Law. */
+/** Read again (ADR 0007): GRO's level 4000 note, a condition, for an undergraduate outside Law. */
 const GRO_UG = ['ug1', 'ug2', 'ug3', 'ug4'];
 
 /**

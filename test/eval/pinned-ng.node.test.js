@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7D (ADR 0003, amendment "the eval's pinned NG files"): the eval
+// The eval's pinned NG files (ADR 0003): the eval
 // normalises the pinned corpus with byte-identical copies of its year's NG
 // list and restrictions from eval/pinned/, passed into the ranker's
 // offeredModules, never the live data/ files through loadNgCourses. So a

@@ -1,160 +1,95 @@
-# 0006: Phase 3 search-quality plan
+# 0006: The search pipeline: exact vectors in the Worker, query understanding, duplicate groups
 
-Status: accepted (lead, 2026-11-04). Jacob answered the gate questions on 2026-11-06
-(`docs/plans/phase3.md` §10): Q1 sealed test set, Q2 VPN off, Q4 the standing rule as written.
-Q3 did not trigger (`docs/evidence/phase3/embed-latency.md`). The plan converged at r3.1 after three critic rounds (eval discipline; vectors, deploy and
-cost; SC4 and student queries). Its §11 logs every objection and where it landed.
+Status: accepted. How a search is answered, step by step, is in
+[docs/architecture.md](../architecture.md); this records why it is built that way.
 
-## Context
-Phase 3 must meet SC4 (codes, GE pillars, typos, level and exam/S/U/workload intents, "no
-matches") and SC5 (the shipped ranker beats the current one on held-out data), and re-measure
-SC7, which failed at a pooled p50 of 351 ms. Warm searches spend ~232 ms in Vectorize, and the
-holdout allows 12 looks.
+## Exact dense search inside the Worker; Vectorize as the cold standby
 
-## Decisions
-- **In-Worker exact vectors, Vectorize as standby.** Dense search is a brute-force dot product
-  over float32 corpus vectors bundled in the Worker as a `Data` module (10.7 MB of 64 MiB,
-  measured below).
-  - One keyed builder makes a pinned bundle for CI and SC4 and a production bundle for deploys.
-    The manifest records `rowsKey`, and the deploy guard refuses any bundle that differs from D1.
-  - Every corpus change follows one runbook. The manifest and an offline data version merge
-    first, then D1 is written in a D1-only mode behind a bookmark, then the deploy and smoke.
-    Vectorize is written last, with every code upserted and the mutation awaited.
-  - Vectorize stays an identical cold standby behind `DENSE_BACKEND=vectorize`. That flip is
-    degraded service: masks fall back to code order, and 3H applies after hydrate.
-  - The cache key carries the deploy's version id and every new parameter.
-- **Look budget.** Seven change looks (L1–L7: 3A-1, 3A-2, 3B, 3C, 3D, 3E, 3H). The reserve is
-  5 under the sealed SC5 reading and 4 under the holdout reading, where L12 is the SC5 look.
-  - Retries are named before each look, and the reserve funds at most one per failed change.
-    Never a 13th look.
-  - Each look's baseline is stored and judged, and the verdict comes from `eval:report` on
-    fully judged runs.
-  - A count from the custodian-only `eval:count` prints one integer, is logged outside the
-    ledger, and is not a look. ADR 0003's look definition is amended to say so.
-- **No-look gates.**
-  - 3-0: identical result lists on dev and the fixture.
-  - 3F: identity with the group-first projection, plus dev ΔnDCG@10 ≥ 0.
-  - 3G must pass all of:
-    - the SC4 suite;
-    - ≥ 90% of a held-apart gibberish half;
-    - no untagged dev query emptied;
-    - dev answerable ΔnDCG@10 ≥ −0.01;
-    - a custodian count of emptied untagged holdout queries equal to 0.
-- **Hard beginner exclusion.** An explicit beginner phrase removes level ≥ 5 outright and adds a
-  soft prior for levels 1–2. It is echoed in `interpreted` and undoable with `ignore=level`.
-- **Year as a level window.** `3rd year` means 3 ≤ level ≤ 4, because d-064's answers are level
-  4. `level 3000`, `3000 level` and `3k` stay exact. Several level phrases take the union.
+### Context
+With Vectorize on the search path, a warm search spent about 232 ms in Vectorize and 88 ms
+embedding the query, so the server time sat near 350 ms. Vectorize is also approximate, so the
+offline eval (an exact search) and production disagreed near ties, and its queried dimensions
+were the account's binding allowance (about 4,100 uncached searches a day).
+
+### Decision
+- **Dense search is a brute-force dot product** over L2-normalised float32 corpus vectors bundled
+  into the Worker as one `Data` module (`src/vector-bundle.js` documents the layout: 384 floats
+  and a 32-byte filter row per module). It is parsed on the first dense search, costs no I/O per
+  request, and deploys and rolls back with the code that reads it.
+- **One keyed builder** (`scripts/vectors.mjs`) makes a fixture, a pinned and a production
+  bundle. The manifest (`data/vectors.json`) records each bundle's data version, rows, sha256 and
+  `rowsKey` (the sha256 of its sorted code and `text_hash` pairs). The deploy guard refuses a
+  bundle that differs from D1, and `npm run deploy` refuses any bundle but production's.
+- **Every corpus change follows one runbook order:** the manifest and an offline data version
+  merge first, then D1 is written in a D1-only mode behind a Time Travel bookmark, then the deploy
+  and smoke, and Vectorize last, with every code upserted and the mutation awaited.
+- **Vectorize stays an identical cold standby** behind `DENSE_BACKEND=vectorize`. The flip is
+  degraded service: masks fall back to code order, and constraint filters apply after hydrate. No
+  new Vectorize metadata is added (10 indexes allowed, 8 used), so the standby relies on the D1
+  recheck at topK 100, with a recorded recall loss.
+- **The search cache key** carries the deployed version id and every parameter in parsed form, so
+  every deploy starts a fresh cache.
+
+### Measured
+- Bundle: 32 B of filter row plus 384 float32 per module, about 10.7 MB, 16% of the Worker's
+  64 MiB limit. The filter row is 32 B, not the ~12 B first estimated, because 16 B are reserved
+  for the prefix id, group id and constraint fields.
+- Startup: 0 ms active CPU locally (the module is an ArrayBuffer); the deploy refuses a version
+  whose `startup_time_ms` is over 200.
+- CPU: the exact search takes 1.44 ms warm and unfiltered locally (0.17–0.99 ms filtered). Live,
+  CPU per request was p50 9.1 ms, p75 15.5 ms, and 33–34 ms on a fresh isolate's first search.
+  A warm burst read server `total` p50 131 ms against 332 ms with Vectorize.
+- Identity: on dev, 98 of 98 queries return the same results as the Vectorize-era replica; the
+  fixture's dense differences were all swaps of exact ties (|Δ| ≤ 2.2e-16).
+
+### Consequences
+- Production dense search is exact, so the replica-against-production caveat narrows to the
+  corpus and query-embedding noise (ADR 0003, "Replica fidelity").
+- Vectorize queried dimensions drop to about 0; Workers CPU and the shared neurons become the
+  binding allowances (ADR 0004).
+- Every corpus change needs a deploy, and the guard blocks deploys from `main` between the merge
+  and the D1 write.
+
+## Query understanding
+- **Typed codes pin.** Up to 3 typed course codes are pinned to the top; partial codes, code
+  prefixes and GE pillar phrases become code-range masks; a whole query that is one of these
+  answers that set in dense order.
+- **Typos are corrected against the catalogue's own words** (`src/typo.js`,
+  `data/vocabulary.json`), and a corrected query is embedded once more.
+- **No signal, no answer.** A query with no route and no catalogue word whose best cosine is below
+  τ answers `noMatch: { reason: "no-signal" }` instead of the least-bad results.
+- **A beginner phrase is a hard exclusion.** An explicit beginner phrase removes level ≥ 5 and
+  adds a soft prior for levels 1–2. It is echoed in `interpreted` and undone with `ignore=level`.
+- **Year as a level window.** `3rd year` means 3 ≤ level ≤ 4, because the judged answers to a
+  "3rd year" query are level 4000 courses as well as 3000. `level 3000`, `3000 level` and `3k` stay exact.
+  Several level phrases take the union.
+- **Constraints are hard filters.** `exam=0`, `su=1`, `hoursBelow=N` and `prereq=none` filter
+  exactly, as params and as phrases read from the query (*no final exam*, *S/U*, *light
+  workload*). Each parsed phrase is echoed so the page can show a chip that undoes it
+  (`ignore=`). Parsed phrases are gated by the compliance rule (ADR 0003), because a relevance
+  look scores a hard filter's intended removals as loss.
+- **The query suite** (`test/query-suite/`) holds pre-registered queries, each with its exact
+  expected `interpreted` JSON. It runs on the pinned bundle in CI and is checked against the
+  holdout by count only.
+
+## Duplicate groups
 - **groups-v1 is the product's duplicate rule**, the same rule the eval scores by (variant
-  families and exact cross-listings). Collapsed members ride as `variants` with their credits.
-- **The SC4 suite** is 90 pre-registered queries, each with an exact expected `interpreted`
-  JSON.
-  - It runs on the pinned bundle in CI, with partial codes at topK = 50, and is confirmed live
-    by ≤ 20 fresh queries.
-  - The custodian checks it against the holdout by count only.
-- **3H's dev screen** exempts queries whose only relevant documents fail the parsed constraint
-  (d-099 under both prereq semantics, d-011 under the literal one). L7's holdout rule has no
-  such exemption.
-
-## Consequences
-- Production dense search becomes exact, so the replica-vs-production caveat narrows to the
-  corpus pin. Vectorize queried dims drop to ~0, and the binding limit becomes Workers CPU or
-  neurons, whichever measures smaller.
-- Every corpus change needs a deploy, and the guard blocks deploys from `main` between the
-  merge and the D1 write.
-- 3-0's PR adds the measured bundle size, startup time and CPU per query to this ADR (below).
-
-## Measured at 3-0 (local, 2026-11-06; [`3-0.md`](../evidence/phase3/3-0.md))
-- **Bundle size.** 32 B/row of filter table plus 384 float32 per row. That is pinned
-  10,683,976 B (6,771 rows) and production 10,695,040 B (6,778 rows, dry build). The Worker
-  uploads 10,520 KiB (gzip 8,666 KiB): 16% of 64 MiB. The filter row is 32 B, not the ~12 B
-  estimated, because 16 B are reserved for 3B's prefix id, 3F's group id and 3H's fields.
-- **Startup.** With `wrangler check startup` (local Miniflare, Apple M5 Pro), the 10.5 MB
-  bundle and the 0.7 MB fixture both show an 8–20 ms profile window and 0 ms active CPU. The
-  `Data` module is an ArrayBuffer, parsed on the first dense search (~1 ms). The binding gate,
-  `startup_time_ms` ≤ 200 from `wrangler versions upload`, runs at deploy.
-- **CPU per query.** The exact search over the pinned bundle in the Vitest workerd pool takes
-  **1.44 ms** warm and unfiltered, 0.17–0.99 ms filtered, and 3 ms on the first call. The live
-  figure is the 3-0 smoke's mean `CPUTimeMs`.
-- **Identity, no look.** On dev, 98 of 98 queries return the same `results` as the `eval-v0`
-  replica, hybrid and dense-only. On the fixture, all 111 dense differences are swaps of exact
-  ties (|Δ| ≤ 2.2e-16), each one listed.
-
-## Measured live (version `343ea371`, 2026-11-06; [`3-0-cutover.md`](../evidence/phase3/3-0-cutover.md))
-- **Startup.** The deploy gate passed it under 200 ms, but the figure is not recorded; the next
-  deploy records it.
-- **CPU per request.** GraphQL `workersInvocationsAdaptive` over the first 18 requests (searches
-  and `/health` mixed): p50 9.1 ms, p75 15.5 ms, p99 34.2 ms. A fresh isolate's first search
-  takes 33–34 ms. At ~12 ms a request, the 30M included CPU-ms cover ~2.5M requests a month,
-  so CPU is the binding allowance.
-- **Latency.** A warm SIN burst of 12 fresh queries reads server `total` p50 131 ms and p67
-  156.8 ms (Vectorize before: 332 / 335.4). That is the warm half of SC7 only; the counted run
-  is at the freeze.
-- **Standby.** Vectorize holds all 6,778 rows and agrees with D1 (runbook step 8).
-
-## Dissent
-No objection was rejected outright. Four were applied in part:
-1. **B-8 (round 1): delay the D1 write until the smoke passes.** The deploy guard needs D1 to
-   match the manifest before the deploy, so the D1 write cannot wait. It runs behind a Time
-   Travel bookmark and is restored, with the merge reverted, if the smoke fails. Every Vectorize
-   write still waits for the smoke.
-2. **A2-7 (round 2): a working fallback for every change SC4 needs.** Each has one, but some
-   can coincide with the failed candidate or be ineligible (3B without `stopwords-v2`, 3C's other
-   variant, 3D's α = 0 point, 3G's next τ). Those failures go straight to Jacob (Q4) rather than
-   to new variants no critic has reviewed.
-3. **A2-13 (round 2): cite the group-aware baseline on `docs/phase2-baseline`.** It is scored
-   under `qrels-dev-v1`, which scores five answerable code queries as no-answer. The plan gates
-   on the `qrels-dev-v2` baseline in `EVAL.md` (PR #30).
-4. **A3-2 (round 3): the whole SC4 suite green at 3G's gate.** 3G can merge before 3H, and a
-   change can be dropped under Q4, so the gate skips items owned by an unmerged or dropped
-   workstream. It never skips the typo, gibberish, non-existent-code and guard items. SC4's exit
-   check still needs the whole suite.
-
-## Deviations
-- **3H goes to L7 on (ii)-stripped, which fails the dev screen (Jacob, 2026-11-08).** The
-  pre-registered selection picks (ii)-stripped. It fails dev no-loss by −0.0044, and no query is
-  exempt under (ii) on `qrels-dev-v10`.
-  - **Where the loss comes from:** all of it is d-011 and d-099. The filter removes the
-    relevant modules that have real prerequisites, which caps each query's nDCG@10 near 0.7.
-  - **Why the fallback is not taken:** (i)-stripped passes the screen only because the
-    exemption leaves out its larger losses on the same two queries.
-  - **What stays as written:** L7 runs the unchanged holdout no-loss rule, and (i)-stripped
-    remains the named retry.
-  - Evidence: [`3h-dev-screen.md`](../evidence/phase3/3h-dev-screen.md).
-- **3H ships its explicit params only (Jacob, Q4, 2026-11-08).**
-  - **The looks:** (ii)-stripped failed L7 (look 6), ΔnDCG@10 −0.024 [−0.081, −0.005]. Its
-    named retry, (i)-stripped, failed look 7 with the same figures.
-  - **What ships:** `exam=0`, `su=1`, `hoursBelow=N` and `prereq=none` as hard filters. Phrases
-    in `q` are not read.
-  - **Gate:** identical lists to shipped on dev and holdout, so no look.
-  - **SC4:** its 14 parsed-intent items stay unmet until Phase 4.
-  - **Lesson:** the judges never see the constraint fields, so the holdout rule scores a hard
-    filter's intended removals as loss. A parsed hard filter needs a rule that measures
-    compliance, not relevance alone.
-
-
-## Amendment 2026-11-11: the semester representative (after Phase 5's dev screen)
-- **Rule.** When the request names a semester (`sem=1|2`, with or without `ng=1`), 3F's
-  collapse shows each duplicate group as its highest-ranked member that passes the result
-  filters and is on NUSMods' timetable that semester. If no member is, it shows the
-  first-ranked passing member, as before. A member outside the ranked list ranks after every
-  ranked one, and such members go in code order (`semesterRepresentative`, `src/groups.js`).
-  - The group keeps the place its first-ranked member gave it, and that member's score. Only
-    the member shown changes. The swapped-out member is listed in `variants` with the other
-    passing members.
-  - A code the query types is never swapped: a pin, and an offered code past the 3-pin cap,
-    which ranks like any result but is still the student's explicit choice.
-  - Unchanged: requests with no semester (both semesters, or no `sem`), `related`, the order of
-    mask pages, and `COLLAPSE_GROUPS=off`.
-  - Outside exchange mode `sem` already filters on the timetable, so every passing member is
-    offered and nothing swaps. In practice the rule acts under `ng=1`, where `sem` picks only
-    the allow-mask bit.
-- **Why.** Members of one group share their text, so which one ranks first is close to
-  arbitrary. Phase 5's 5F dev screen (`docs/evidence/phase5/gates.md`) found a Sem 1 page
-  showing ACC1701XB, which is off NUSMods' Sem 1 timetable and carries the "semester" note,
-  while ACC1701XC, taught in Sem 1, sat in its variants.
-- **Where.** `attachVariants` in `src/search.js` already reads every member of each shown group
-  from D1. With a semester named, that one read takes a whole card's columns, so a swap costs
-  no extra read. Every path goes through it: the bundle's in-Worker dense, D1 lexical, the
-  Vectorize standby, the keyword-only fallback and both mask orders.
-- **Gate.** Representative-only, with no look (ADR 0003, draft amendment 2026-11-11). Evidence:
-  [`semester-representative.md`](../evidence/phase5/semester-representative.md).
+  families and exact cross-listings; ADR 0003). A result list shows one entry per group; the other
+  members ride as `variants`, with their credits.
+- **The semester representative.** When the request names a semester (`sem=1|2`, with or
+  without `ng=1`), each group is shown as its highest-ranked member that passes the result filters
+  and is on NUSMods' timetable that semester; if none is, the first-ranked passing member. A member
+  outside the ranked list ranks after every ranked one, in code order (`semesterRepresentative`,
+  `src/groups.js`). The group keeps its place and its first member's score; only the member shown
+  changes, and the swapped-out one is listed in `variants`.
+  - A typed code is never swapped: it is the student's explicit choice.
+  - Unchanged: requests with no semester, `related`, the order of mask pages, and
+    `COLLAPSE_GROUPS=off`. Outside exchange mode `sem` already filters on the timetable, so in
+    practice the rule acts under `ng=1`, where `sem` picks only the allow-mask bit.
+  - **Why:** members of one group share their text, so which ranks first is close to arbitrary;
+    a Sem 1 page could show ACC1701XB, which is off NUSMods' Sem 1 timetable, while ACC1701XC,
+    taught in Sem 1, sat in its variants.
+  - **Where:** `attachVariants` in `src/search.js` already reads every member of each shown group
+    from D1; with a semester named that read takes a whole card's columns, so a swap costs no
+    extra read. Every path goes through it.
+  - Gated by the representative-only route (ADR 0003).

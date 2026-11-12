@@ -31,7 +31,7 @@ describe('AES-256-GCM files', () => {
     expect(() => decrypt(ct, Buffer.alloc(32, 7), 'qrels.json.enc', 'holdout')).toThrow(/decryption failed/);
   });
 
-  it('binds the set name, so a ciphertext copied into another set fails to decrypt (review finding 2)', async () => {
+  it('binds the set name, so a ciphertext copied into another set fails to decrypt', async () => {
     const key = await readKey(await generateKey(join(dir, 'k-set', 'holdout.key')));
     const ct = encrypt(Buffer.from('{"q":1}'), key, '/somewhere/eval/holdout/queries.json.enc', 'holdout');
     // Same file name, any directory: the set name decides.
@@ -89,7 +89,7 @@ describe('ledger', () => {
   });
 });
 
-describe('ledger tampering (review finding 5)', () => {
+describe('ledger tampering', () => {
   const row = { date: '2026-11-04', set: 'holdout', commit: 'abc1234', variant: 'v', baseline: 'v0', verdict: 'fail', ndcg: '+0.000 [0.000, 0.000]', p5: '+0.000 [0.000, 0.000]' };
 
   it('counts every table row however it is spaced', async () => {
@@ -167,7 +167,7 @@ describe('sets', () => {
     expect(() => layout('nope')).toThrow(/unknown set/);
   });
 
-  it('keeps the custody ledger at its fixed repo path whatever --set-dir says (review finding 2)', () => {
+  it('keeps the custody ledger at its fixed repo path whatever --set-dir says', () => {
     const fixed = join(REPO, 'eval', 'holdout-ledger.md');
     for (const name of ['holdout', 'test']) {
       expect(layout(name).ledger).toBe(fixed);
@@ -189,14 +189,14 @@ describe('sets', () => {
   });
 
   it('maps filters to /search params with production defaults (no topK, no mode)', () => {
-    // Phase 4: an ng query takes `study` from eval/study-map.json; persona-less ones take noPersona (ug2).
+    // An ng query takes `study` from eval/study-map.json; persona-less ones take noPersona (ug2).
     expect(searchParams({ id: 'a', text: 'ml', filters: { ng: true, sem: 1, level: 3, faculty: 'Computing' } }))
       .toEqual({ q: 'ml', ng: '1', sem: '1', level: '3', faculty: 'Computing', study: 'ug2' });
     expect(searchParams({ id: 'a', text: 'ml', filters: { ng: false } })).toEqual({ q: 'ml' });
     expect(searchParams({ id: 'a', text: 'ml', filters: { sem: 2 } }, { unfiltered: true })).toEqual({ q: 'ml' });
   });
 
-  it('Phase 4: maps each persona to its study level, throws on an unmapped one, and strips filters by name', () => {
+  it('maps each persona to its study level, throws on an unmapped one, and strips filters by name', () => {
     const q = (/** @type {string} */ persona) => /** @type {any} */ ({ id: 'a', text: 'ml', filters: { ng: true, sem: 2 }, persona });
     expect(searchParams(q('P1')).study).toBe('ug3');
     expect(searchParams(q('P5')).study).toBe('ug3');
@@ -210,7 +210,7 @@ describe('sets', () => {
     expect(() => searchParams(q('P1'), { strip: ['topK'] })).toThrow(/strip: unknown filter/);
   });
 
-  it('Phase 4: every persona of the dev and fixture sets is mapped', async () => {
+  it('every persona of the dev and fixture sets is mapped', async () => {
     const map = loadStudyMap();
     for (const f of ['../../eval/dev/queries.json', '../../eval/fixtures/queries.json']) {
       const qs = JSON.parse(readFileSync(new URL(f, import.meta.url), 'utf8')).queries;
@@ -241,7 +241,7 @@ describe('embedding keys and token estimates', () => {
   });
 });
 
-describe('ledger concurrency (review finding 3)', () => {
+describe('ledger concurrency', () => {
   const row = { date: '2026-11-04', set: 'holdout', commit: 'abc1234', variant: 'v', baseline: 'v0', verdict: 'fail', ndcg: '+0.000 [0.000, 0.000]', p5: '+0.000 [0.000, 0.000]' };
 
   it('three parallel looks from 11 rows: one is recorded, two are refused', async () => {
@@ -313,7 +313,7 @@ describe('ledger concurrency (review finding 3)', () => {
   });
 });
 
-describe('ledger edits and lock ownership (PR #6 review round 2, findings 2-4)', () => {
+describe('ledger edits and lock ownership', () => {
   const row = { date: '2026-11-04', set: 'holdout', commit: 'abc1234', variant: 'v', baseline: 'v0', verdict: 'fail', ndcg: '+0.000 [0.000, 0.000]', p5: '+0.000 [0.000, 0.000]' };
 
   it('moving committed holdout rows to another known set is refused', async () => {

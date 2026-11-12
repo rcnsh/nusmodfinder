@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// `node scripts/uptime.mjs [--url <url>] [--dry-run]` (Phase 8 8C, G4 in ADR 0012): the hourly
+// `node scripts/uptime.mjs [--url <url>] [--dry-run]` (ADR 0012): the hourly
 // uptime check that .github/workflows/uptime.yml runs. Three GETs to the live site, one at a time,
 // each sent at least 4 s after the last answer (Actions runners share addresses, and the site's
 // limit is per address):

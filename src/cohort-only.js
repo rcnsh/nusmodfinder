@@ -1,10 +1,10 @@
 // @ts-check
-// 3H-0's `prereq_cohort_only` (docs/plans/phase3.md 3H, A2-12, A3-7): a
-// prerequisite text that is only a cohort or programme restriction, by the
-// P-6 pattern list (eval/prereg/cohort-only-prereq.json, mirrored into
-// data/cohort-only-prereq.json by scripts/build-3b-data.mjs, since the eval
+// `prereq_cohort_only`: a prerequisite text that is only a cohort or
+// programme restriction, by the pattern list
+// (eval/query-rules/cohort-only-prereq.json, mirrored into
+// data/cohort-only-prereq.json by scripts/build-catalogue-data.mjs, since the eval
 // workspace and the Worker cannot read eval/). The same reading as
-// eval/prereg/cohort-only.mjs; test/intents-data.node.test.js holds them equal.
+// eval/query-rules/cohort-only.mjs; test/intents-data.node.test.js holds them equal.
 
 /**
  * @typedef {{ normalise: { find: string, flags: string, replace: string }[], remove: { pattern: string, flags: string }[],

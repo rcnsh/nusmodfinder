@@ -1,17 +1,17 @@
 // @ts-check
-// Phase 4 exchange mode in /search on the fixture (docs/plans/phase4.md §2,
-// 4A, 4C): `study` is required with ng=1; every path (D1 lexical, the
-// bundle, the Vectorize standby, pins, mask routes, 3F variants, a
+// Exchange mode in /search on the fixture: `study` is required with ng=1;
+// every path (D1 lexical, the bundle, the Vectorize standby, pins, mask
+// routes, duplicate-group variants, a
 // not-offered code's `related`) shows exactly the modules the independent
-// oracle (test/sc1/oracle.mjs) calls open or noted for (sem, study);
+// oracle (test/oracle/oracle.mjs) calls open or noted for (sem, study);
 // a zero ng_allow is closed on every path; cards carry the bit's reasons.
-// The whole-corpus set equality per path is test/sc1/paths.test.js.
+// The whole-corpus set equality per path is test/oracle/paths.test.js.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
 import { reasonsFor } from '../src/ng-reasons.js';
 import { searchCacheKey } from '../src/search.js';
-import { levelNoteOf, oracle, oracleShown, yearNoteOf } from './sc1/oracle.mjs';
+import { levelNoteOf, oracle, oracleShown, yearNoteOf } from './oracle/oracle.mjs';
 import { BASE, adminCall, callJson, fixture, seed } from './helpers.js';
 
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
@@ -36,7 +36,7 @@ beforeAll(async () => {
   if (res.status !== 200) throw new Error(`catalogue seed: HTTP ${res.status}`);
 });
 
-describe('the study parameter (4C)', () => {
+describe('the study parameter', () => {
   it('is required with ng=1: 400 study-required, before any binding is touched', async () => {
     for (const qs of ['&ng=1', '&ng=1&sem=1', '&ng=true&study=']) {
       const before = fakes.ai.calls.length;
@@ -76,7 +76,7 @@ describe('the study parameter (4C)', () => {
   });
 });
 
-describe('every path shows exactly what the oracle shows (4A)', () => {
+describe('every path shows exactly what the oracle shows', () => {
   it('results and variants, in every mode and on the standby, for all 15 (sem, study)', async () => {
     let checked = 0;
     for (const [semQs, sem] of SEMS) {
@@ -141,7 +141,7 @@ describe('every path shows exactly what the oracle shows (4A)', () => {
   });
 });
 
-describe('a zero ng_allow is closed on every path (plan §2 "Storage")', () => {
+describe('a zero ng_allow is closed on every path', () => {
   it('a module whose D1 row has ng_allow 0 disappears from results, pins, the standby and the bundle\'s dense rows', async () => {
     await seed();
     const path = (/** @type {string} */ q, /** @type {string} */ extra) => `/search?q=${q}&ng=1&study=ug3&sem=2&topK=50${extra}`;
@@ -163,7 +163,7 @@ describe('a zero ng_allow is closed on every path (plan §2 "Storage")', () => {
   });
 });
 
-describe('result cards and /module/:code (4C)', () => {
+describe('result cards and /module/:code', () => {
   it('a card in exchange mode carries its bit\'s status and reasons; outside exchange mode none', async () => {
     const ug2 = await callJson('/search?q=CG3201&ng=1&study=ug2&sem=2&mode=lexical', { fakes });
     const cg = ug2.body.results.find((/** @type {any} */ r) => r.code === 'CG3201');
@@ -196,14 +196,14 @@ describe('result cards and /module/:code (4C)', () => {
   });
 });
 
-describe('R3 (ADR 0008): the year-of-study note, read from the prerequisite on every path', () => {
+describe('the year-of-study note (ADR 0007), read from the prerequisite on every path', () => {
   // ESE3101: on the NG list for Sem 2; its prerequisite binds every undergraduate to Year 2, 3 or 4.
   const ese = /** @type {NormalisedModule} */ (moduleOf.get('ESE3101'));
   const YEAR = 'prereq:year-of-study';
   /** @param {any} e */
   const ids = (e) => (e?.reasons ?? []).map((/** @type {any} */ r) => r.id);
 
-  it('the fixture has the case: the oracle opens ESE3101 in Sem 2 to every year, and R3 notes it for a 1st-year only', () => {
+  it('the fixture has the case: the oracle opens ESE3101 in Sem 2 to every year, and the year note marks it for a 1st-year only', () => {
     expect(ese.prerequisite).toMatch(/must be Year 2,3 or 4/);
     for (const study of STUDIES) expect(oracle(ese, { sem: 2, study }), study).toBe('open');
     expect(STUDIES.map((study) => yearNoteOf(ese, study) !== null)).toEqual([true, false, false, false, false]);
@@ -249,7 +249,7 @@ describe('R3 (ADR 0008): the year-of-study note, read from the prerequisite on e
     expect(ids(card.exchangeBySem[1])).not.toContain(YEAR);
   });
 
-  it('/module/:code: all 15 entries equal the oracle with R3, the note only where a shown entry is below Year 2', async () => {
+  it('/module/:code: all 15 entries equal the oracle with the year note, the note only where a shown entry is below Year 2', async () => {
     const { body } = await callJson('/module/ESE3101');
     expect(body.exchange).toHaveLength(15);
     for (const e of body.exchange) {
@@ -268,10 +268,10 @@ describe('R3 (ADR 0008): the year-of-study note, read from the prerequisite on e
   });
 });
 
-describe('R6-2 (ADR 0010): GRO\'s level 4000 note, a condition on every path', () => {
+describe('GRO\'s level 4000 note (ADR 0007), a condition on every path', () => {
   // PC4262: level 4000 (Science), on the NG list for both semesters, no stored note in Sem 1.
   const pc = /** @type {NormalisedModule} */ (moduleOf.get('PC4262'));
-  // LL4295: level 4000 Law, on the NG list for Sem 2 (C5-m1: Law is outside the note).
+  // LL4295: level 4000 Law, on the NG list for Sem 2 (Law is outside the note).
   const ll = /** @type {NormalisedModule} */ (moduleOf.get('LL4295'));
   const GRO = 'gro:level-4000';
   /** @param {any} e */

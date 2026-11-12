@@ -1,7 +1,7 @@
 // @ts-check
 // SQLite FTS5's porter stemmer (ext/fts5/fts5_tokenize.c, the `porter`
 // tokenizer modules_fts uses over unicode61), ported rule for rule and run on
-// the token's UTF-8 bytes as the C code is. 3C needs it because FTS5 stems a
+// the token's UTF-8 bytes as the C code is. The typo step needs it because FTS5 stems a
 // prefix query's token too: `"learnin"*` looks for index terms starting with
 // porter("learnin") = "learnin", and "learning" is indexed as "learn", so it
 // matches nothing. Deciding a prefix term's fate from the vocabulary (no D1

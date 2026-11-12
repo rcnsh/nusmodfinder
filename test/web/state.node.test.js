@@ -1,5 +1,5 @@
 // @ts-check
-// public/state.js and public/nav.js (Phase 5 5B, F3, F4, C-7, A2-4, A3-3): the
+// public/state.js and public/nav.js: the
 // page's state lives in the URL, parsed and written by one pure module, and
 // every history transition is decided by one pure function. The browser half
 // (pushState, popstate) is test/ui/history.spec.js.
@@ -22,19 +22,19 @@ describe('URL state (F3, C-7)', () => {
       q: 'machine learning', sem: '2', level: '3', credits: '4', faculty: 'Computing', ng: true, study: 'ug2',
       ignore: [], open: 'CS3244', from: '', view: '',
     });
-    // The list is not the state's (6B): stateToParams alone writes no pick or alt.
+    // The list is not part of the state: stateToParams alone writes no pick or alt.
     expect(stateToParams(s).toString())
       .toBe('q=machine+learning&sem=2&level=3&credits=4&faculty=Computing&ng=1&study=ug2&open=CS3244');
   });
 
-  it('[5G] from= is a course code kept only beside open= (and never open= itself)', () => {
+  it('from= is a course code kept only beside open= (and never open= itself)', () => {
     expect(round('q=ACC1701XB&open=acc1701xb&from=acc1701xa')).toBe('q=ACC1701XB&open=ACC1701XB&from=ACC1701XA');
     expect(round('q=ACC1701XB&from=ACC1701XA')).toBe('q=ACC1701XB');
     expect(round('q=ACC1701XB&open=ACC1701XB&from=ACC1701XB')).toBe('q=ACC1701XB&open=ACC1701XB');
     expect(round('q=ACC1701XB&open=ACC1701XB&from=%3Cb%3E')).toBe('q=ACC1701XB&open=ACC1701XB');
   });
 
-  it('[5G S2] faculty= is a name, not a sentence: over 60 characters, or with hidden characters, it is dropped', () => {
+  it('faculty= is a name, not a sentence: over 60 characters, or with hidden characters, it is dropped', () => {
     expect(round('q=x&faculty=College%20of%20Design%20and%20Engineering')).toBe('q=x&faculty=College+of+Design+and+Engineering');
     expect(round(`q=x&faculty=${encodeURIComponent('Verified by the NUS Registrar: all courses on this site are open to exchange students.')}`)).toBe('q=x');
     expect(round('q=x&faculty=Comp%E2%80%AEuting')).toBe('q=x');
@@ -65,12 +65,12 @@ describe('URL state (F3, C-7)', () => {
     expect(round('study=ug1&q=x')).toBe('q=x');
   });
 
-  it('[6B] the list is written after the search state, in rank order (test/web/list.node.test.js has the rest)', () => {
+  it('the list is written after the search state, in rank order (test/web/list.node.test.js has the rest)', () => {
     const params = new URLSearchParams('q=x&pick=CS3244&pick=CS2040&alt=MA1521');
     expect(urlFor(parseState(params), parseList(params).list, '/')).toBe('/?q=x&pick=CS3244&pick=CS2040&alt=MA1521');
   });
 
-  it('[6B] Copy link\'s URL: the list, ay once known, inv, ng, sem, study and view=shortlist; no q, filters or detail', () => {
+  it('Copy link\'s URL: the list, ay once known, inv, ng, sem, study and view=shortlist; no q, filters or detail', () => {
     const params = new URLSearchParams('q=networks&sem=1&level=2&ng=1&study=ug2&open=CS2105&pick=CS2105.1&alt=GE2101.1&inv=biz');
     const { list } = parseList(params);
     expect(shortlistUrl(parseState(params), list, '/')).toBe('/?sem=1&ng=1&study=ug2&pick=CS2105.1&alt=GE2101.1&inv=biz&view=shortlist');
@@ -101,7 +101,7 @@ describe('URL state (F3, C-7)', () => {
     expect(searchParams(parse('q=x&ng=1'))).toBeNull();
   });
 
-  it('[F4 fixed] the semester, level, credits and study-level options are static: no filter waits on /facets', () => {
+  it('the semester, level, credits and study-level options are static: no filter waits on /facets', () => {
     expect(SEMESTERS.map((o) => o.value)).toEqual(['1', '2', '3', '4']);
     expect(LEVELS.map((o) => o.value)).toEqual(['1', '2', '3', '4', '5', '6', '8']);
     expect(CREDITS).toEqual(['2', '4', '5', '6', '8', '12']);
@@ -109,11 +109,11 @@ describe('URL state (F3, C-7)', () => {
   });
 });
 
-describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md 5B)', () => {
+describe('history transitions', () => {
   const list = parse('q=networks&sem=1');
   const open = parse('q=networks&sem=1&open=CS2105');
 
-  it('[F3 fixed] submit a query: push, and Back restores the previous query (its URL is the entry left behind)', () => {
+  it('submit a query: push, and Back restores the previous query (its URL is the entry left behind)', () => {
     const t = transition(list, { type: 'submit', form: parse('q=databases&sem=1') }, { detailPushed: false });
     expect(t.op).toBe('push');
     expect(stateToParams(t.state).toString()).toBe('q=databases&sem=1');
@@ -128,7 +128,7 @@ describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md
     expect(t).toMatchObject({ op: 'push', state: { open: '' } });
   });
 
-  it('change a filter, exchange setting or remove a chip: replace, and drop open= (A3-3)', () => {
+  it('change a filter, exchange setting or remove a chip: replace, and drop open=', () => {
     for (const form of [parse('q=networks&sem=2'), parse('q=networks&sem=1&ng=1&study=ug2'), parse('q=networks&sem=1&ignore=exam')]) {
       const t = transition(open, { type: 'settings', form }, { detailPushed: true });
       expect(t.op).toBe('replace');
@@ -137,7 +137,7 @@ describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md
     }
   });
 
-  it('a settings change while a different query is typed submits that query (push), as the Phase 4 page searched the typed text', () => {
+  it('a settings change while a different query is typed submits that query (push), so the results match the box', () => {
     const t = transition(list, { type: 'settings', form: parse('q=databases&sem=2') }, { detailPushed: false });
     expect(t).toMatchObject({ op: 'push', state: { q: 'databases', sem: '2' } });
     expect(transition(list, { type: 'settings', form: parse('q=networks%20&sem=2') }, { detailPushed: false }).op).toBe('replace');
@@ -162,14 +162,14 @@ describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md
     expect(transition(list, { type: 'close' }, { detailPushed: false }).op).toBe('none');
   });
 
-  it('[F3 fixed] clear the query: push the URL without q (filters and the exchange set-up stay)', () => {
+  it('clear the query: push the URL without q (filters and the exchange set-up stay)', () => {
     const t = transition(parse('q=networks&ng=1&study=ug2&open=CS2105'), { type: 'submit', form: parse('ng=1&study=ug2') }, { detailPushed: false });
     expect(t.op).toBe('push');
     expect(stateToParams(t.state).toString()).toBe('ng=1&study=ug2');
     expect(transition(list, { type: 'submit', form: parse('q=%20') }, { detailPushed: false })).toMatchObject({ op: 'push', state: { q: '' } });
   });
 
-  it('[5G] an "Also as" link: push that code\'s search with its detail open and from=, keeping the settings', () => {
+  it('an "Also as" link: push that code\'s search with its detail open and from=, keeping the settings', () => {
     const s = parse('q=introductory+accounting&sem=1&ng=1&study=ug2&ignore=exam&open=ACC1701XA');
     const t = transition(s, { type: 'variant', code: 'acc1701xb', from: 'ACC1701XA' }, { detailPushed: true });
     expect(t.op).toBe('push');
@@ -178,7 +178,7 @@ describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md
     expect(transition(t.state, { type: 'variant', code: 'ACC1701XB', from: 'ACC1701XA' }, { detailPushed: false }).op).toBe('none');
   });
 
-  it('[5G] from= belongs to the detail it opened: every other action that changes open= drops it', () => {
+  it('from= belongs to the detail it opened: every other action that changes open= drops it', () => {
     const v = parse('q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA');
     expect(v.from).toBe('ACC1701XA');
     for (const action of /** @type {const} */ ([
@@ -189,7 +189,7 @@ describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md
     }
   });
 
-  it('[6B] the list is not in a transition: it is page-wide, so every action keeps it by not touching it', () => {
+  it('the list is not in a transition: it is page-wide, so every action keeps it by not touching it', () => {
     const s = parse('q=x&pick=CS1010');
     expect(Object.keys(s)).not.toContain('pick');
     for (const action of /** @type {const} */ ([{ type: 'submit', form: parse('q=y') }, { type: 'settings', form: parse('q=x&sem=1') }, { type: 'open', code: 'CS1010' }])) {
@@ -197,7 +197,7 @@ describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md
     }
   });
 
-  it('[6B] settings while the view is shown keep the view and the submitted q (never the box\'s text); a submit closes it', () => {
+  it('settings while the view is shown keep the view and the submitted q (never the box\'s text); a submit closes it', () => {
     const view = parse('q=networks&sem=1&view=shortlist');
     const t = transition(view, { type: 'settings', form: { ...parse('q=networks&sem=2'), view: 'shortlist' } }, { detailPushed: false });
     expect(t).toMatchObject({ op: 'replace', state: { q: 'networks', sem: '2', view: 'shortlist' } });
@@ -210,7 +210,7 @@ describe('history transitions (F3, A2-4, A3-3; the table in docs/plans/phase5.md
   });
 });
 
-describe('[6B] the view\'s history (the table in docs/plans/phase6.md 6B)', () => {
+describe('the view\'s history', () => {
   const list = parse('q=networks&sem=1');
   it('open the view: push; from a detail this page pushed, replace that entry; from a detail by link, replace without it, then push', () => {
     expect(transition(list, { type: 'openView' }, { detailPushed: false })).toMatchObject({ op: 'push', state: { view: 'shortlist', open: '' } });
@@ -230,7 +230,7 @@ describe('[6B] the view\'s history (the table in docs/plans/phase6.md 6B)', () =
   });
 });
 
-describe('[6B] popstate: search again only when the search changed, or after a network or server error (never after a 429)', () => {
+describe('popstate: search again only when the search changed, or after a network or server error (never after a 429)', () => {
   const a = parse('q=networks&sem=1');
   const b = parse('q=databases&sem=1');
   it('a changed search runs', () => {

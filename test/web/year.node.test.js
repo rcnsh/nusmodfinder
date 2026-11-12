@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7D, one year source: the first screen's semester months come from
+// One year source: the first screen's semester months come from
 // the acad year (public/year.js), not from literals in public/app.js.
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ACAD_YEAR, semesterMonths } from '../../public/year.js';

@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7C: `npm run remote` and the deploy guard share one session module
+// `npm run remote` and the deploy guard share one session module
 // (scripts/remote-session.mjs). `wrangler` here is a fake: a Node script that
 // serves /health on the port it is given, or prints Cloudflare's code 10021 and
 // fails, as told. No real `wrangler dev --remote` ever starts, and nothing

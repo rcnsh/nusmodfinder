@@ -1,18 +1,14 @@
-#!/usr/bin/env node
 // @ts-check
-// The deploy trace in git (Phase 7 7B): an annotated tag on the deployed commit for every
+// The deploy trace in git: an annotated tag on the deployed commit for every
 // deploy and rollback,
 //
 //   deploy/<UTC yyyymmddThhmmssZ>-<version id, first 8>     on HEAD, by `npm run deploy`
 //   rollback/<UTC yyyymmddThhmmssZ>-<version id, first 8>   on the target's commit, by `npm run rollback`
 //
 // whose annotation is a title paragraph and one `key: value` paragraph per field (versionId,
-// previousVersionId, commit, dataVersion, startupMs, and every guard check's `field`, 7D's
-// catalogueKey among them). Rollback reads a target's commit and data from its tag.
-//
-//   node scripts/deploy-tag.mjs backfill   prints the commands that create and push the two
-//                                          back-filled tags (it runs nothing)
-import { pathToFileURL } from 'node:url';
+// previousVersionId, commit, dataVersion, startupMs, and every guard check's `field`, the
+// catalogueKey among them). Rollback reads a target's commit and data from its tag. The two
+// oldest deploy tags were made by hand after the fact and carry `backfilled: true` and `source`.
 
 /**
  * @typedef {(cmd: string, args: string[], opts?: { stream?: boolean }) => Promise<{ code: number, stdout: string }>} Exec
@@ -104,56 +100,4 @@ export async function findVersionTag({ exec, versionId, fetch = true }) {
   const r = await exec('git', ['for-each-ref', '--format=%(contents)', `refs/tags/${hit.name}`]);
   if (r.code !== 0) throw new Error(`could not read tag ${hit.name}`);
   return { name: hit.name, commit: hit.commit, fields: parseTagFields(r.stdout) };
-}
-
-/**
- * The catalogueKey the back-filled tags record (Phase 7 7D): D1's catalogue_only as both Phase 6
- * deploys served it. D1 was loaded from data/corpus.json's first entry (`current` when 7D merged,
- * the corpus D1's data version d820d578cf81 comes from) and has not been written since, so this is that
- * corpus's catalogue-only codes' key (`npm run corpus -- check` prints it), computed, not read
- * from D1; the first catalogueKey read of D1 after 7D merges checks it.
- */
-export const BACKFILL_CATALOGUE_KEY = '5b1e2f06e559';
-
-/**
- * The two back-filled tags (Phase 7 7B): the Phase 6 deploys, made before deploy tagged its
- * versions, at their promote times (docs/evidence/phase6/remote-ops.md, corrected to UTC dates).
- * @type {{ name: string, commit: string, date: string, title: string, fields: Record<string, string> }[]}
- */
-export const BACKFILL = [
-  {
-    name: 'deploy/20261111T183946Z-f8aefeab', commit: '0b5f360c7faea8424215b4d4ddde81ebb1d850ff', date: '2026-11-11T18:39:46Z',
-    title: 'deploy f8aefeab (back-filled)',
-    fields: {
-      versionId: 'f8aefeab-49c4-4548-b994-73bc6bae4f86', previousVersionId: '59986aa3-48d9-4344-8f5d-29e095709ca6',
-      commit: '0b5f360c7faea8424215b4d4ddde81ebb1d850ff', dataVersion: 'd820d578cf81', catalogueKey: BACKFILL_CATALOGUE_KEY, startupMs: '2', backfilled: 'true',
-      source: 'docs/evidence/phase6/remote-ops.md',
-    },
-  },
-  {
-    name: 'deploy/20261111T235933Z-b0834844', commit: 'a23601de0b15934960bfef1d8b56ab3e80fa5587', date: '2026-11-11T23:59:33Z',
-    title: 'deploy b0834844 (back-filled)',
-    fields: {
-      versionId: 'b0834844-f6fd-4bb9-838d-a45927c195fb', previousVersionId: 'f8aefeab-49c4-4548-b994-73bc6bae4f86',
-      commit: 'a23601de0b15934960bfef1d8b56ab3e80fa5587', dataVersion: 'd820d578cf81', catalogueKey: BACKFILL_CATALOGUE_KEY, backfilled: 'true',
-      source: 'docs/evidence/phase6/remote-ops.md',
-    },
-  },
-];
-
-/** A shell word, single-quoted. @param {string} s */
-const q = (s) => (/^[\w./:@=-]+$/.test(s) && !s.includes(' ') ? s : `'${s.replaceAll("'", "'\\''")}'`);
-
-/** The exact commands for the back-filled tags, the tag date set to the promote time. */
-export function backfillCommands() {
-  return BACKFILL.map((b) => `GIT_COMMITTER_DATE='${b.date}' git ${tagArgs(b.name, b.commit, b.title, b.fields).map((a) => (a.startsWith('-') ? a : q(a))).join(' ')} && ${pushCommand(b.name)}`);
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  if (process.argv[2] === 'backfill') {
-    for (const c of backfillCommands()) console.log(c);
-  } else {
-    console.error('usage: node scripts/deploy-tag.mjs backfill   (prints the back-filled tags\' commands; runs nothing)');
-    process.exitCode = 2;
-  }
 }

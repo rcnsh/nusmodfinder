@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 // @ts-check
-// Phase 5 5F's dev-side tooling (docs/plans/phase5.md §3 5F). Open sets only
+// Dev-side tooling for a change to the constraint phrases. Open sets only
 // (dev, the fixture, or a plaintext --set-dir): it prints ids and texts, so
 // it refuses every encrypted set.
 //
 //   npm run eval:phrases -- list [--set dev] [--set-dir <dir>] [--lib <ref>] [--json <file>]
 //       every query the frozen reference parse (tag 3h) parses, with its
-//       constraints, for the lead to confirm by hand before the dev screen
+//       constraints, to confirm by hand before the dev screen
 //   npm run eval:phrases -- screen --candidate <ref> [--pin <ref>] [--set dev] [--set-dir <dir>]
-//       [--prefix 5f] [--reuse] [--json-dir <dir>]
+//       [--prefix phrases] [--reuse] [--json-dir <dir>]
 //       the dev screen: runs the candidate, the pin, and the pin with the
 //       reference's parsed constraints as explicit params; then the
 //       compliance rule on the candidate vs the pin (the same rule as the
-//       holdout's verdict path, with per-query detail) and the B2-4
+//       holdout's verdict path, with per-query detail) and the explicit-params
 //       diagnostic (the candidate vs the explicit-params pin, reported, no
 //       gate). The screen passes iff the rule passes and the candidate run's
-//       vocabulary is the one the reference parsed over (A3-1). SC4's 14
-//       parsed-intent items run separately (test/full/sc4.test.js).
+//       vocabulary is the one the reference parsed over. The query suite's 14
+//       parsed-intent items run separately (test/full/query-suite.test.js).
 //
 // `--candidate` omitted runs the working tree; `--pin` defaults to the
 // shipped-ranker pin. `--reuse` keeps run files that already exist.
@@ -39,7 +39,7 @@ const OPTIONS = /** @type {const} */ ({
   lib: { type: 'string' },
   candidate: { type: 'string' },
   pin: { type: 'string' },
-  prefix: { type: 'string', default: '5f' },
+  prefix: { type: 'string', default: 'phrases' },
   reuse: { type: 'boolean', default: false },
   json: { type: 'string' },
   'json-dir': { type: 'string' },
@@ -87,7 +87,7 @@ async function cmdList(a) {
     console.log(`${parsed.length} of ${queries.length} queries parsed (queries ${version})\n`);
     for (const { q, p } of parsed) {
       const filters = Object.keys(q.filters ?? {}).length ? `  filters ${JSON.stringify(q.filters)}` : '';
-      const corrected = p.corrected !== null ? `  (3C-corrected, phrases stripped: ${JSON.stringify(p.corrected)})` : '';
+      const corrected = p.corrected !== null ? `  (typo-corrected, phrases stripped: ${JSON.stringify(p.corrected)})` : '';
       console.log(`${q.id}  ${JSON.stringify(q.text)}  ->  ${words(p.constraints, p.semantics)}${filters}${corrected}`);
     }
     if (a.json) {
@@ -165,7 +165,7 @@ async function cmdScreen(a) {
   }
   const pass = screen.verdict === 'pass' && screen.vocabMatch;
   console.log(`\ndev screen (${set.name}): ${pass ? 'PASS' : 'FAIL'} · compliance rule ${screen.verdict} · vocabulary ${screen.vocabMatch ? 'same as the reference\'s' : 'DIFFERENT from the reference\'s'}`);
-  console.log('SC4\'s 14 parsed-intent items are part of the screen and run separately: npx vitest run test/full/sc4.test.js');
+  console.log('The query suite\'s 14 parsed-intent items are part of the screen and run separately: npx vitest run test/full/query-suite.test.js');
   if (!pass) process.exitCode = 1;
 }
 

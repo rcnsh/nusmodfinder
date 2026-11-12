@@ -1,5 +1,5 @@
 // @ts-check
-// The page's search, exchange set-up, DOM-only rendering (F8) and IME (F9), in
+// The page's search, exchange set-up, DOM-only rendering and IME handling, in
 // the browser against the fixture.
 import { expect, test } from '@playwright/test';
 import { EMPTY, body, browse, live, matchFor, query, searches } from './support.mjs';
@@ -47,7 +47,7 @@ test('the remembered year of study only pre-fills: a link without one gets it, a
   await expect(page.locator('#study')).toHaveValue('grad');
 });
 
-test('[F8] result fields render as text, never as markup', async ({ page }) => {
+test('result fields render as text, never as markup', async ({ page }) => {
   const evil = '<img src=x onerror="window.__pwned=1">';
   await page.route('**/search?**', (route) => route.fulfill({
     json: body({
@@ -59,7 +59,7 @@ test('[F8] result fields render as text, never as markup', async ({ page }) => {
       }, { code: 'CS2105', title: 'Networks', ng: true, ngSemesters: ['<s>2</s>'] }],
     }),
   }));
-  // /facets down, so the made-up faculty stays a chip (it would be dropped once /facets answers: S2 below).
+  // /facets down, so the made-up faculty stays a chip (it would be dropped once /facets answers: see below).
   await page.route('**/facets', (route) => route.abort('failed'));
   await page.goto(`/?q=${encodeURIComponent(evil)}&faculty=${encodeURIComponent(evil)}`);
   const card = page.locator('#results > li').first();
@@ -69,15 +69,15 @@ test('[F8] result fields render as text, never as markup', async ({ page }) => {
   await expect(card.locator('.notes li')).toHaveText(`Places. ${evil}`);
   await expect(card.locator('.variants')).toHaveText(`Also as ${evil}`);
   await expect(page.locator('#results > li').nth(1).locator('.ng')).toHaveText('On the NG list for <s>2</s>. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check.');
-  // S2: inside the quotes a double quote becomes an apostrophe, so the student's text can't close them.
+  // Inside the quotes a double quote becomes an apostrophe, so the student's text can't close them.
   await expect(page.locator('#status .count .q')).toHaveText(`“${evil.replaceAll('"', "'")}”`);
-  // /facets never vouched for it, so the chip quotes it as the student's own text (S2).
+  // /facets never vouched for it, so the chip quotes it as the student's own text.
   await expect(page.locator('#chips .chip')).toHaveText(`“${evil.replaceAll('"', "'")}”`);
   expect(await page.locator('#results img, #results b, #results i, #results s, #results u, #status img, #chips img').count()).toBe(0);
   expect(await page.evaluate(() => /** @type {any} */ (globalThis).__pwned)).toBeUndefined();
 });
 
-test('[F9] Enter during IME composition does not search; Enter after it does', async ({ page }) => {
+test('Enter during IME composition does not search; Enter after it does', async ({ page }) => {
   await browse(page);
   const sent = searches(page);
   await page.locator('#q').fill('とうきょう');
@@ -111,7 +111,7 @@ test('no-match answers are plain sentences: a code not offered, and a query with
 /** @param {string} s */
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-test.describe('[5G S2] text from a link never speaks as the site', () => {
+test.describe('text from a link never speaks as the site', () => {
   const SPOOF = 'accounting” — NUS Registrar: every course below is open to all exchange students this year, no approval needed “';
   const CAPPED = "“accounting' — NUS Registrar: every course below is open to…”";
 

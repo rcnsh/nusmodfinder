@@ -1,13 +1,8 @@
 // @ts-check
-// Phase 7 7B: the annotated `deploy/*` and `rollback/*` tags (scripts/deploy-tag.mjs): their
-// names, their `key: value` annotation, the lookup by version id that rollback uses, and the
-// two back-filled tags (`b0834844` on `a23601d`, `f8aefeab` on `0b5f360`, both at data version
-// d820d578cf81), printed as the exact commands the lead runs after the merge. Nothing is pushed.
-import { execFileSync } from 'node:child_process';
+// The annotated `deploy/*` and `rollback/*` tags (scripts/deploy-tag.mjs): their names, their
+// `key: value` annotation, and the lookup by version id that rollback uses. Nothing is pushed.
 import { describe, expect, it } from 'vitest';
-import { BACKFILL, BACKFILL_CATALOGUE_KEY, backfillCommands, findVersionTag, parseTagFields, tagArgs, tagName } from '../scripts/deploy-tag.mjs';
-import { GUARD_CHECKS } from '../scripts/guard.mjs';
-import { catalogueKey } from '../src/rowhash.js';
+import { findVersionTag, parseTagFields, tagArgs, tagName } from '../scripts/deploy-tag.mjs';
 import { TAG_FETCH } from './deploy-fakes.node.mjs';
 
 describe('deploy and rollback tags', () => {
@@ -33,7 +28,7 @@ describe('deploy and rollback tags', () => {
       const key = [cmd, ...args].join(' ');
       if (key === TAG_FETCH) return { code: 0, stdout: '' };
       if (key.startsWith('git for-each-ref --format=%(refname:short)%09%(*objectname)')) {
-        return { code: 0, stdout: `rollback/20261112T090000Z-b0834844\tcccc\ndeploy/20261111T235933Z-b0834844\ta23601de\ndeploy/20261111T183946Z-f8aefeab\t0b5f360c\n` };
+        return { code: 0, stdout: `rollback/20261112T090000Z-b0834844\tcccc\ndeploy/20261111T235933Z-b0834844\tb75ac190\ndeploy/20261111T183946Z-f8aefeab\t8e24b21d\n` };
       }
       if (key === 'git for-each-ref --format=%(contents) refs/tags/deploy/20261111T235933Z-b0834844') {
         return { code: 0, stdout: `deploy b0834844 (back-filled)\n\nversionId: ${V}\n\ndataVersion: d820d578cf81\n` };
@@ -41,55 +36,8 @@ describe('deploy and rollback tags', () => {
       throw new Error(`unexpected ${key}`);
     };
     expect(await findVersionTag({ exec, versionId: V })).toEqual({
-      name: 'deploy/20261111T235933Z-b0834844', commit: 'a23601de', fields: { versionId: V, dataVersion: 'd820d578cf81' },
+      name: 'deploy/20261111T235933Z-b0834844', commit: 'b75ac190', fields: { versionId: V, dataVersion: 'd820d578cf81' },
     });
     expect(await findVersionTag({ exec, versionId: '00000000-0000-0000-0000-000000000000' })).toBeNull();
-  });
-});
-
-describe('the back-filled tags', () => {
-  it('name the two Phase 6 versions on their commits, at their promote times, both back-filled at d820d578cf81', () => {
-    expect(BACKFILL.map((b) => [b.name, b.commit, b.fields.versionId, b.fields.previousVersionId, b.fields.dataVersion, b.fields.backfilled])).toEqual([
-      ['deploy/20261111T183946Z-f8aefeab', '0b5f360c7faea8424215b4d4ddde81ebb1d850ff', 'f8aefeab-49c4-4548-b994-73bc6bae4f86', '59986aa3-48d9-4344-8f5d-29e095709ca6', 'd820d578cf81', 'true'],
-      ['deploy/20261111T235933Z-b0834844', 'a23601de0b15934960bfef1d8b56ab3e80fa5587', 'b0834844-f6fd-4bb9-838d-a45927c195fb', 'f8aefeab-49c4-4548-b994-73bc6bae4f86', 'd820d578cf81', 'true'],
-    ]);
-  });
-
-  it('their data version is each commit\'s own src/data-version.json', () => {
-    for (const b of BACKFILL) {
-      const committed = JSON.parse(execFileSync('git', ['show', `${b.commit}:src/data-version.json`], { encoding: 'utf8' })).version;
-      expect(b.fields.dataVersion, b.name).toBe(committed);
-    }
-  });
-
-  it('carry every guard field, so rollback to either can check D1 (Phase 7 7D: catalogueKey)', () => {
-    for (const b of BACKFILL) {
-      for (const c of GUARD_CHECKS.filter((x) => x.field)) expect(b.fields, `${b.name} ${c.field}`).toHaveProperty(/** @type {string} */ (c.field));
-    }
-  });
-
-  it('their catalogueKey is the key of the corpus D1 was loaded from (prod-2026-2027-20261104), as its bundled catalogue file says', async () => {
-    // Read at 894bc1f, the first Actions deploy, whose `current` was still that corpus; a later
-    // NUSMods refresh moves `current` and the working tree's files on, and these tags stay put.
-    const AT = '894bc1fade8045b8cd60f22f1ef331632a632caf';
-    const show = (/** @type {string} */ f) => JSON.parse(execFileSync('git', ['show', `${AT}:${f}`], { encoding: 'utf8' }));
-    const manifest = show('data/corpus.json');
-    expect(manifest.current).toBe('prod-2026-2027-20261104');
-    expect(show('src/data-version.json').version).toBe('d820d578cf81');
-    const file = show('data/catalogue-codes.json');
-    expect(file.source.moduleInfoSha256).toBe(manifest.corpora[manifest.current].sha256);
-    expect(BACKFILL_CATALOGUE_KEY).toBe(await catalogueKey(file.codes));
-    for (const b of BACKFILL) expect(b.fields.catalogueKey, b.name).toBe(BACKFILL_CATALOGUE_KEY);
-  });
-
-  it('print as exact `git tag -a … && git push origin <tag>` commands with the promote time as the tag date', () => {
-    const cmds = backfillCommands();
-    expect(cmds).toHaveLength(2);
-    expect(cmds[0]).toBe("GIT_COMMITTER_DATE='2026-11-11T18:39:46Z' git tag -a deploy/20261111T183946Z-f8aefeab 0b5f360c7faea8424215b4d4ddde81ebb1d850ff"
-      + " -m 'deploy f8aefeab (back-filled)' -m 'versionId: f8aefeab-49c4-4548-b994-73bc6bae4f86' -m 'previousVersionId: 59986aa3-48d9-4344-8f5d-29e095709ca6'"
-      + " -m 'commit: 0b5f360c7faea8424215b4d4ddde81ebb1d850ff' -m 'dataVersion: d820d578cf81' -m 'catalogueKey: 5b1e2f06e559' -m 'startupMs: 2' -m 'backfilled: true'"
-      + " -m 'source: docs/evidence/phase6/remote-ops.md' && git push origin refs/tags/deploy/20261111T183946Z-f8aefeab");
-    expect(cmds[1]).toMatch(/^GIT_COMMITTER_DATE='2026-11-11T23:59:33Z' git tag -a deploy\/20261111T235933Z-b0834844 a23601de0b15934960bfef1d8b56ab3e80fa5587 /);
-    expect(cmds[1]).toMatch(/ && git push origin refs\/tags\/deploy\/20261111T235933Z-b0834844$/);
   });
 });

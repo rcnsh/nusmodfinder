@@ -1,10 +1,10 @@
 // @ts-check
-// public/history.js (Phase 6 6B): the one history writer. Every pushState and
+// public/history.js: the one history writer. Every pushState and
 // replaceState the page makes goes through it; it counts its writes over a
 // sliding 10 s, coalesces past 80 into one write 300 ms after the last, wraps
 // each in try, retries a refusal with backoff, and queues later writes behind
 // a refused one so nothing is written out of order. WebKit refuses the 101st
-// write within 10 s (docs/plans/phase6.md §1 "Browser limits").
+// write within 10 s.
 import { describe, expect, it } from 'vitest';
 import { BUDGET, COALESCE_MS, createWriter } from '../../public/history.js';
 
@@ -57,7 +57,7 @@ function fakes() {
 /** @param {ReturnType<typeof fakes>} f @param {object} [over] */
 const writer = (f, over = {}) => createWriter({ history: f.history, now: f.clock.now, setTimer: f.clock.setTimer, clearTimer: f.clock.clearTimer, ...over });
 
-describe('the history writer (6B)', () => {
+describe('the history writer', () => {
   it('writes at once while under budget; replace keeps the entry\'s state unless given one', () => {
     const f = fakes();
     const w = writer(f);
@@ -105,7 +105,7 @@ describe('the history writer (6B)', () => {
     ]);
   });
 
-  it('replace then push (opening the view from a detail opened by link) stays two writes when coalesced (review finding 3)', () => {
+  it('replace then push (opening the view from a detail opened by link) stays two writes when coalesced', () => {
     const f = fakes();
     const w = writer(f, { forceCoalesce: true });
     w.replace('/?q=a', null);

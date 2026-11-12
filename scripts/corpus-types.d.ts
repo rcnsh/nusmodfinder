@@ -19,20 +19,20 @@ interface NormalisedModule {
   textHash: string;
   ng: boolean;
   ngSemesters: number[];
-  /** G2 (Phase 7 7E): the semesters NUS has not published this year's list for; set only when there are any. */
+  /** The semesters NUS has not published this year's list for; set only when there are any. */
   ngUnpublished?: number[];
-  /** 3H-0: offered semesters with an examDate. */
+  /** Offered semesters with an examDate. */
   examSemesters: number[];
   su: boolean;
   gradingBasis: string | null;
   workloadHours: number | null;
   prereqNone: boolean;
   prereqCohortOnly: boolean;
-  /** Phase 4: the exchange-mode allow mask (src/eligibility.js bitOf); 0 = closed everywhere. */
+  /** The exchange-mode allow mask (src/eligibility.js bitOf); 0 = closed everywhere. */
   ngAllow: number;
-  /** Phase 4: `{ "<bit index>": [rule id, ...] }` for the bits with reasons; null off the NG list. */
+  /** `{ "<bit index>": [rule id, ...] }` for the bits with reasons; null off the NG list. */
   ngRules: Record<string, string[]> | null;
-  /** Phase 5 5A: one per offered semester with an exam, by semester; the date ISO UTC as moduleInfo gives it. */
+  /** One per offered semester with an exam, by semester; the date ISO UTC as moduleInfo gives it. */
   examDates: { sem: number; date: string; durationMins: number | null }[];
 }
 
@@ -46,7 +46,7 @@ interface FullCorpus {
   modules: NormalisedModule[];
   skipped: { code: string; why: string }[];
   ng: { updatedAsAt: string | null; semesters: Record<string, string[]> };
-  /** Phase 7 7D: every department and faculty name the corpus's records carry, sorted. */
+  /** Every department and faculty name the corpus's records carry, sorted. */
   departments: string[];
   faculties: string[];
 }

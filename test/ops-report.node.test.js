@@ -1,6 +1,6 @@
 // @ts-check
-// Phase 7 7F: `npm run ops:report -- --month <yyyy-mm>`, the monthly usage report from Cloudflare's
-// GraphQL Analytics API (docs/plans/phase7.md §2 7F). Fixture GraphQL answers only: fetch, the
+// `npm run ops:report -- --month <yyyy-mm>`, the monthly usage report from Cloudflare's
+// GraphQL Analytics API. Fixture GraphQL answers only: fetch, the
 // token's source, the clock and the sleep are injected, and nothing here reaches Cloudflare.
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -259,7 +259,7 @@ describe('the calls', () => {
       'rowsRead', 'rowsWritten', 'databaseId', 'aiInferenceAdaptiveGroups', 'totalNeurons', 'date_geq', 'datetime_geq']) expect(q).toContain(f);
   });
 
-  it('without CLOUDFLARE_ACCOUNT_ID, takes the one account `wrangler whoami` lists (7B\'s resolveAccountId)', async () => {
+  it('without CLOUDFLARE_ACCOUNT_ID, takes the one account `wrangler whoami` lists (resolveAccountId)', async () => {
     const cf = fakeCloudflare([answer(), answer()]);
     /** @type {string[][]} */
     const ran = [];
@@ -293,7 +293,7 @@ describe('the calls', () => {
 });
 
 describe('the token', () => {
-  it('otherwise comes from `npx wrangler auth token --json` (7B\'s resolveToken), sent only in the header', async () => {
+  it('otherwise comes from `npx wrangler auth token --json` (resolveToken), sent only in the header', async () => {
     const cf = fakeCloudflare([answer(), answer()]);
     /** @type {string[][]} */
     const ran = [];

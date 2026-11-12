@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 8 8B (docs/plans/phase8.md §2 "8B", as §5's answers adjust it): what a visitor sees on
+// What a visitor sees on
 // the local stack. The no-JavaScript sentence on the first screen at 390×664; the year line, with
 // its clause for applicants, at 390, 768 and 1024 px in the set-up, results and shortlist views;
 // the footer's restrictions and privacy links; /favicon.ico from assets; and the 404 page and the
@@ -81,7 +81,7 @@ test('a mistyped address shows the 404 page, with the page\'s security headers a
 for (const [name, url] of [['the 404 page', '/no-such-page'], ['the privacy note', '/privacy']]) {
   for (const scheme of /** @type {const} */ (['light', 'dark'])) {
     for (const [w, h] of [[1280, 800], [390, 664]]) {
-      test(`[SC8] axe, every rule: ${name}, ${scheme}, ${w}: no violation`, async ({ page }) => {
+      test(`axe, every rule: ${name}, ${scheme}, ${w}: no violation`, async ({ page }) => {
         await page.emulateMedia({ colorScheme: scheme });
         await page.setViewportSize({ width: w, height: h });
         await page.goto(url);

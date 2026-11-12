@@ -113,7 +113,7 @@ describe('guards: refuse before any write', () => {
     expect(mutatingCalls()).toEqual([]);
   });
 
-  it('[PR13 #1a] refuses when the deletes exceed 5% of D1, even when the corpus is as large as D1', async () => {
+  it('refuses when the deletes exceed 5% of D1, even when the corpus is as large as D1', async () => {
     // Same size, entirely different codes: the count check alone passes this.
     const renamed = fixture.modules.map((m) => ({ ...m, code: `Q${m.code}` }));
     const refused = await ingest(renamed);
@@ -125,7 +125,7 @@ describe('guards: refuse before any write', () => {
     expect(await rowCount()).toBe(fixture.modules.length);
   });
 
-  it('[PR13 #1b] refuses a corpus for another acad year than D1 holds unless allowYearChange; /admin/hashes reports the year', async () => {
+  it('refuses a corpus for another acad year than D1 holds unless allowYearChange; /admin/hashes reports the year', async () => {
     const hashes = await (await adminCall('/admin/hashes', fakes)).json();
     expect(/** @type {any} */ (hashes).acadYears).toEqual({ '2026-2027': fixture.modules.length });
     // 96% of the same codes: inside the mass-delete threshold.
@@ -144,7 +144,7 @@ describe('guards: refuse before any write', () => {
     expect(results).toEqual([{ y: '2019-2020' }]);
   });
 
-  it('[PR13 #1b] the year D1 holds is its majority year: a corpus for it still cleans up a stray row of another year', async () => {
+  it('the year D1 holds is its majority year: a corpus for it still cleans up a stray row of another year', async () => {
     const [x] = fixture.modules;
     await adminCall('/admin/ingest', fakes, { modules: [{ ...x, acadYear: '2019-2020' }] });
     expect(await ingest(fixture.modules)).toMatchObject({ status: 'done', plan: { rowOnly: 1 } });
@@ -155,7 +155,7 @@ describe('guards: refuse before any write', () => {
     expect((await ingest(otherYear)).message).toMatch(new RegExp(`2026-2027 \\(${rest} rows\\), 2019-2020 \\(1 rows\\).*--allow-year-change`));
   });
 
-  it('[PR13 #1b] an empty database has no acad year, so any year loads', async () => {
+  it('an empty database has no acad year, so any year loads', async () => {
     await reset();
     await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
     fakes = createFakes();
@@ -164,7 +164,7 @@ describe('guards: refuse before any write', () => {
   });
 
   for (const trigger of ['modules_fts_insert', 'modules_fts_delete', 'modules_fts_update', 'modules_rowid_immutable']) {
-    it(`[PR13 #4] refuses a database missing the 0006 trigger ${trigger}`, async () => {
+    it(`refuses a database missing the 0006 trigger ${trigger}`, async () => {
       await env.DB.prepare(`DROP TRIGGER ${trigger}`).run();
       const result = await ingest(fixture.modules.map((m) => ({ ...m, credits: 99 })));
       expect(result.status).toBe('refused');
@@ -198,7 +198,7 @@ describe('deletes', () => {
   });
 });
 
-describe('[PR13 #5] a delete that fails halfway', () => {
+describe('a delete that fails halfway', () => {
   it('leaves the module re-embedded when it comes back: hashes are cleared before Vectorize deletes', async () => {
     const [x] = fixture.modules;
     const without = fixture.modules.filter((m) => m !== x);
@@ -235,7 +235,7 @@ describe('row-only changes', () => {
   });
 });
 
-describe('[PR13 #2] row-only changes against a lagging Vectorize', () => {
+describe('row-only changes against a lagging Vectorize', () => {
   it('re-embed when the stored vector is not for this text_hash, so an old embedding never overwrites a new one', async () => {
     const [x] = fixture.modules;
     fakes.vectorize.deferApply = true;
@@ -362,7 +362,7 @@ describe('data version', () => {
   });
 });
 
-describe('[PR13 #6b] the write budget charges FTS writes local D1 does not report', () => {
+describe('the write budget charges FTS writes local D1 does not report', () => {
   const insertCost = (/** @type {number} */ n) => Math.ceil(n * (DEFAULTS.writesPerInsert + DEFAULTS.ftsWritesPerInsert));
 
   it('a cold load charges each batch the larger of meta.rows_written and the estimate with FTS inserts', async () => {
@@ -397,7 +397,7 @@ describe('[PR13 #6b] the write budget charges FTS writes local D1 does not repor
   });
 });
 
-describe('[PR13 #3] an unconfirmed mutation outlives the run that sent it', () => {
+describe('an unconfirmed mutation outlives the run that sent it', () => {
   it('a rerun that sends nothing waits for it, and reports done only once Vectorize has processed it', async () => {
     const pending = memoryPending();
     fakes.vectorize.processPerDescribe = 0;
@@ -426,7 +426,7 @@ describe('[PR13 #3] an unconfirmed mutation outlives the run that sent it', () =
   });
 });
 
-describe('[PR13b #1] the FTS charge follows the columns the 0006 FTS triggers watch', () => {
+describe('the FTS charge follows the columns the 0006 FTS triggers watch', () => {
   it('/admin/hashes reports ftsHash of the stored code, title and description', async () => {
     const [x] = fixture.modules;
     const body = /** @type {any} */ (await (await adminCall('/admin/hashes', fakes)).json());
@@ -460,7 +460,7 @@ describe('[PR13b #1] the FTS charge follows the columns the 0006 FTS triggers wa
   });
 });
 
-describe('[PR13b #2] a pending mutation Vectorize has moved past', () => {
+describe('a pending mutation Vectorize has moved past', () => {
   afterEach(() => { vi.restoreAllMocks(); });
 
   it('ingest and delete responses carry the Worker\'s Date.now() at the Vectorize call', async () => {
@@ -493,9 +493,9 @@ describe('[PR13b #2] a pending mutation Vectorize has moved past', () => {
   });
 });
 
-// Red team L-1 (docs/evidence/phase7/redteam.md): step 4b deleted every catalogue_only code the
-// corpus lacked, with no guard, so a truncated or hostile NUSMods answer emptied the table.
-describe('catalogue_only has the modules\' mass-delete guard (red team L-1)', () => {
+// Ingest deletes the catalogue_only codes the corpus lacks; without a guard, a truncated or hostile
+// NUSMods answer would empty the table.
+describe('catalogue_only has the modules\' mass-delete guard', () => {
   /** @param {{ code: string, title: string, description: string | null }[]} catalogue @param {Record<string, unknown>} [options] */
   const ingestCatalogue = (catalogue, options = {}) => runIngest({
     modules: fixture.modules, facetsBody, api: adminApi(() => fakes), options: { embeddingModel: MODEL, ...options }, sleep, now, catalogue,
@@ -524,9 +524,9 @@ describe('catalogue_only has the modules\' mass-delete guard (red team L-1)', ()
   });
 });
 
-// Red team M-1: /admin/hashes and GET /admin/catalogue answer a row's hash only when the stored
+// /admin/hashes and GET /admin/catalogue answer a row's hash only when the stored
 // row_hash agrees with the row's columns, so a row changed behind it is rewritten by the next run.
-describe('a row changed behind its row_hash is rewritten by the next ingest (red team M-1)', () => {
+describe('a row changed behind its row_hash is rewritten by the next ingest', () => {
   it('modules and catalogue_only alike', async () => {
     const catalogue = [{ code: 'ZZ1000', title: 'A course', description: null }];
     const run = () => runIngest({ modules: fixture.modules, facetsBody, api: adminApi(() => fakes), options: { embeddingModel: MODEL }, sleep, now, catalogue });

@@ -1,6 +1,6 @@
--- Added after the Phase 4 gate failed: vector-only recall lost to BM25 on
--- topical queries, so the plan's fallback (reciprocal-rank fusion) is in force.
--- FTS5 gives the Worker a lexical ranking to fuse the vector results against.
+-- Vector-only recall loses to BM25 on topical queries, so search fuses the two
+-- (reciprocal-rank fusion). FTS5 gives the Worker a lexical ranking to fuse the
+-- vector results against.
 CREATE VIRTUAL TABLE IF NOT EXISTS modules_fts USING fts5(
   code UNINDEXED,
   title,

@@ -1,8 +1,6 @@
 {
  "schema": "vnm-sc4-suite/1",
  "version": "sc4-v1",
- "fixedAt": "P-6",
- "plan": "docs/plans/phase3.md §4; schema and rules in docs/plans/phase3-prereg.md",
  "thresholds": {
   "T": 5,
   "M": 3
@@ -39,7 +37,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-002",
@@ -62,7 +60,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-003",
@@ -85,7 +83,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-004",
@@ -108,7 +106,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6 (replaces the plan example `is 4246`, which is dev d-089)"
+   "origin": "written"
   },
   {
    "id": "sc4-005",
@@ -131,7 +129,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-006",
@@ -154,7 +152,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-007",
@@ -177,7 +175,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-008",
@@ -205,7 +203,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-009",
@@ -232,7 +230,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-010",
@@ -264,7 +262,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-011",
@@ -286,7 +284,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-012",
@@ -308,7 +306,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-013",
@@ -330,7 +328,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-014",
@@ -352,7 +350,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-015",
@@ -374,7 +372,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6 (replaces the plan example `gec`, which is dev d-092)"
+   "origin": "written"
   },
   {
    "id": "sc4-016",
@@ -396,7 +394,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-017",
@@ -418,7 +416,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-018",
@@ -440,7 +438,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-019",
@@ -482,7 +480,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-021",
@@ -594,7 +592,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-024",
@@ -616,7 +614,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-025",
@@ -638,7 +636,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-026",
@@ -666,7 +664,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-027",
@@ -688,7 +686,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-028",
@@ -725,7 +723,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-029",
@@ -771,7 +769,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-030",
@@ -806,7 +804,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-031",
@@ -845,7 +843,7 @@
      "semantics": "$selected"
     }
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-032",
@@ -873,7 +871,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-033",
@@ -901,7 +899,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-034",
@@ -929,7 +927,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan phrase"
+   "origin": "written"
   },
   {
    "id": "sc4-035",
@@ -957,7 +955,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan phrase"
+   "origin": "written"
   },
   {
    "id": "sc4-036",
@@ -985,7 +983,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan phrase"
+   "origin": "written"
   },
   {
    "id": "sc4-037",
@@ -1013,7 +1011,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan phrase"
+   "origin": "written"
   },
   {
    "id": "sc4-038",
@@ -1041,7 +1039,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan phrase"
+   "origin": "written"
   },
   {
    "id": "sc4-039",
@@ -1069,7 +1067,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan phrase"
+   "origin": "written"
   },
   {
    "id": "sc4-040",
@@ -1119,7 +1117,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan phrase"
+   "origin": "written"
   },
   {
    "id": "sc4-042",
@@ -1144,7 +1142,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-043",
@@ -1175,7 +1173,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-044",
@@ -1206,7 +1204,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-045",
@@ -1237,7 +1235,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-046",
@@ -1262,7 +1260,7 @@
     "hoursBelow": 10,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-047",
@@ -1287,7 +1285,7 @@
     "hoursBelow": 8,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-048",
@@ -1312,7 +1310,7 @@
     "hoursBelow": 10,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-049",
@@ -1340,7 +1338,7 @@
      "semantics": "$selected"
     }
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-050",
@@ -1368,7 +1366,7 @@
      "semantics": "$selected"
     }
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-051",
@@ -1396,7 +1394,7 @@
      "semantics": "$selected"
     }
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-052",
@@ -1417,7 +1415,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-053",
@@ -1438,7 +1436,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-054",
@@ -1459,7 +1457,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-055",
@@ -1480,7 +1478,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-056",
@@ -1501,7 +1499,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-057",
@@ -1523,7 +1521,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-058",
@@ -1545,7 +1543,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-059",
@@ -1567,7 +1565,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-060",
@@ -1590,7 +1588,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-061",
@@ -1613,7 +1611,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-062",
@@ -1638,7 +1636,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-063",
@@ -1663,7 +1661,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-064",
@@ -1694,7 +1692,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-065",
@@ -1719,7 +1717,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-066",
@@ -1743,7 +1741,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-067",
@@ -1767,7 +1765,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-068",
@@ -1791,7 +1789,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-069",
@@ -1815,7 +1813,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-070",
@@ -1839,7 +1837,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-071",
@@ -1863,7 +1861,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-072",
@@ -1887,7 +1885,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-073",
@@ -1911,7 +1909,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-074",
@@ -1939,7 +1937,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-075",
@@ -1966,7 +1964,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-076",
@@ -1990,7 +1988,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-077",
@@ -2014,7 +2012,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-078",
@@ -2044,7 +2042,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-079",
@@ -2074,7 +2072,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan"
+   "origin": "written"
   },
   {
    "id": "sc4-080",
@@ -2104,7 +2102,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan text (3B joins)"
+   "origin": "written"
   },
   {
    "id": "sc4-081",
@@ -2135,7 +2133,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "plan text (3B joins)"
+   "origin": "written"
   },
   {
    "id": "sc4-082",
@@ -2159,7 +2157,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-083",
@@ -2183,7 +2181,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-084",
@@ -2207,7 +2205,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-085",
@@ -2234,7 +2232,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-086",
@@ -2260,7 +2258,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-087",
@@ -2286,7 +2284,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-088",
@@ -2310,7 +2308,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-089",
@@ -2337,7 +2335,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   },
   {
    "id": "sc4-090",
@@ -2364,7 +2362,7 @@
     "hoursBelow": null,
     "prereq": null
    },
-   "origin": "p6"
+   "origin": "written"
   }
  ]
 }

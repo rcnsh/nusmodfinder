@@ -1,5 +1,5 @@
 // @ts-check
-// The card and its detail (Phase 5 5C, SC2, F1): an APG disclosure per card,
+// The card and its detail: an APG disclosure per card,
 // the exchange status on the card for the chosen semester or per semester,
 // every note in full, no score; the detail inline from /module/:code, fetched
 // once. Against the fixture, plus interception for what it lacks (a raw
@@ -17,7 +17,7 @@ async function region(page, code) {
   return page.locator(`#${id}`);
 }
 
-test('[F1] a card is a disclosure: a heading holding one button (code and title) that controls the detail; no score', async ({ page }) => {
+test('a card is a disclosure: a heading holding one button (code and title) that controls the detail; no score', async ({ page }) => {
   await page.goto('/?q=CS3244');
   const b = toggle(page, 'CS3244');
   await expect(b).toHaveAccessibleName('CS3244 Machine Learning');
@@ -62,7 +62,7 @@ test('exchange status on the card, one semester: every note in full, the semeste
   ]);
 });
 
-test('[R6-2] a level 4000 course: "Open, with 1 note" on the card, GRO\'s sentence led "Places.", and in the detail with GRO\'s page; a graduate sees "Open"', async ({ page }) => {
+test('a level 4000 course: "Open, with 1 note" on the card, GRO\'s sentence led "Places.", and in the detail with GRO\'s page; a graduate sees "Open"', async ({ page }) => {
   const gro = 'GRO: “Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students. In order to increase the chances of securing enough courses, incoming exchange students should consider taking courses with course code starting from 1000 to 3000”';
   await page.goto('/?q=PC4262&ng=1&study=ug2&sem=1&open=PC4262');
   const c = card(page, 'PC4262');
@@ -93,12 +93,12 @@ test('exchange status on the card, both semesters: one line per semester, never 
   ]);
 });
 
-test('outside exchange mode the card keeps a marker of the exchange-list semesters (D2)', async ({ page }) => {
+test('outside exchange mode the card keeps a marker of the exchange-list semesters', async ({ page }) => {
   await page.goto('/?q=CS3244');
   await expect(card(page, 'CS3244').locator('.ng')).toHaveText('On the NG list for Sem 2. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check.');
 });
 
-test('[SC2] the detail: description, prerequisites as NUS states them with codes linked, exam, workload, exchange per semester, NUSMods', async ({ page }) => {
+test('the detail: description, prerequisites as NUS states them with codes linked, exam, workload, exchange per semester, NUSMods', async ({ page }) => {
   const fetched = /** @type {string[]} */ ([]);
   page.on('request', (r) => { if (new URL(r.url()).pathname.startsWith('/module/')) fetched.push(new URL(r.url()).pathname); });
   await page.goto('/?q=CS3244&ng=1&study=ug2&sem=2&open=CS3244');
@@ -138,7 +138,7 @@ test('a cohort-only prerequisite reads "No course you must pass first", NUS\'s t
   await expect(d).toContainText('0200ACCHON Bachelor of Business Administration (Accountancy)');
 });
 
-test('[PD1] a preclusion gets the prerequisite\'s spacing back: ACC1701XB\'s "DegreeTHEN((" and ")OR(" read as words', async ({ page }) => {
+test('a preclusion gets the prerequisite\'s spacing back: ACC1701XB\'s "DegreeTHEN((" and ")OR(" read as words', async ({ page }) => {
   await page.goto('/?q=ACC1701XB&open=ACC1701XB');
   const d = await region(page, 'ACC1701XB');
   const text = d.getByRole('heading', { name: 'Preclusions' }).locator('xpath=..').locator('.nus-text');
@@ -207,7 +207,7 @@ test('a course code in the detail runs a search for it, in place', async ({ page
   await expect(await region(page, 'CS3244')).toBeVisible();
 });
 
-test('[F8] detail fields render as text, never as markup', async ({ page }) => {
+test('detail fields render as text, never as markup', async ({ page }) => {
   const evil = '<img src=x onerror="window.__pwned=1">';
   await page.route('**/module/CS3244', async (route) => {
     const res = await route.fetch();

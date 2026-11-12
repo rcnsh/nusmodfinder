@@ -1,12 +1,12 @@
 // @ts-check
-// Reads the text of a PDF Chromium wrote (Phase 6 6D's print checks), with no
+// Reads the text of a PDF Chromium wrote (the print checks), with no
 // dependency: the objects, each page's content streams (Flate, as Skia writes
 // them) and each font's ToUnicode map, enough to say which characters each
 // page shows, in the order it draws them. It handles what Chromium's
 // page.pdf() writes (no object streams, Type0 fonts with 2-byte codes, Type3
 // fonts with 1-byte codes, hex and literal strings in Tj and TJ); it is not a
 // general PDF reader. test/ui/export.spec.js checks it against the page's own
-// text, and the evidence against poppler's pdftotext.
+// text.
 import { inflateSync } from 'node:zlib';
 
 /**

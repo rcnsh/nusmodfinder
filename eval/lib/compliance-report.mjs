@@ -1,8 +1,10 @@
 // @ts-check
-// The compliance rule's open-set report (dev and the fixture; Phase 5 5F).
+// The compliance rule's open-set report (dev and the fixture).
 // The same rule as the holdout's verdict path (lib/compliance.mjs, gate.mjs
 // `complianceGate`), with the per-query detail an open set may print. With
-// `gate: false` it is the B2-4 diagnostic: reported, never a verdict.
+// `gate: false` it is the explicit-params diagnostic: the candidate against
+// the baseline sent the parsed constraints as explicit params; reported, never
+// a verdict.
 // Never called for an encrypted set (the CLI prints complianceVerdictOnly).
 import { applyComplianceRule } from './compliance.mjs';
 import { gateFor } from './gate.mjs';
@@ -33,7 +35,7 @@ export function devComplianceReport(o) {
   const vocabMatch = recorded === o.sources.source.vocabularySha256;
   /** @type {string[]} */
   const out = [];
-  out.push(`\n${gate ? 'compliance rule' : 'diagnostic (B2-4): candidate vs the baseline run with the parsed constraints as explicit params; reported, never gated'} · set ${o.set.name}`);
+  out.push(`\n${gate ? 'compliance rule' : 'diagnostic: candidate vs the baseline run with the parsed constraints as explicit params; reported, never gated'} · set ${o.set.name}`);
   out.push(`reference parse ${o.sources.source.reference} · its vocabulary sha256 ${o.sources.source.vocabularySha256.slice(0, 12)}…; candidate run recorded ${recorded ? `${String(recorded).slice(0, 12)}…` : 'none'} (${vocabMatch ? 'same' : 'DIFFERENT'})`);
   out.push(`constraint fields: ${o.sources.source.fields}`);
   out.push(summaryTable([{ name: `${o.base.variant} (filtered)`, summary: summarise(r.scores.base) }, { name: `${o.cand.variant} (filtered)`, summary: summarise(r.scores.cand) }]));
@@ -70,7 +72,7 @@ export function devComplianceReport(o) {
       compliance: { raw: r.raw, block: r.block, compliance: { queries: r.compliance.queries, violations: r.compliance.violations.length }, identity: { queries: r.identity.queries, differing: r.identity.differing.length }, newErrors: r.newErrors.length },
     });
     out.push(`\n${verdictBlock(verdict)}`);
-    if (!vocabMatch) out.push('  note: the candidate run\'s vocabulary is not the one the reference parsed over (A3-1); the dev screen does not pass with this difference');
+    if (!vocabMatch) out.push('  note: the candidate run\'s vocabulary is not the one the reference parsed over; the dev screen does not pass with this difference');
   } else {
     out.push('\ndiagnostic: reported, no gate');
   }

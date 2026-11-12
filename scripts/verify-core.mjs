@@ -3,7 +3,7 @@
 // admin API and the vector id listing injected (no Node APIs), so Worker tests
 // run it against the real /admin/verify route and the fake index.
 //
-// Drift (docs/plans/phase1.md "Ingest (changes vs r1)"):
+// Drift:
 // - missing vectors: D1 codes with no vector id (from `wrangler vectorize
 //   list-vectors`, ids only);
 // - extra vectors: vector ids with no D1 row;
@@ -14,8 +14,8 @@
 // - value drift (with a bundle, after runbook step 8): a sampled vector's
 //   values differ from the bundle's bits.
 //
-// runPreDeployVerify is runbook step 5 (`npm run verify -- --pre-deploy`,
-// Phase 3 3-0, B2-1): D1 against the manifest and the bundle, before the
+// runPreDeployVerify is runbook step 5 (`npm run verify -- --pre-deploy`):
+// D1 against the manifest and the bundle, before the
 // deploy, with no Vectorize read at all.
 import { catalogueKey, dataVersion } from '../src/rowhash.js';
 import { base64ToFloat32, decodeFilterRow, rowsKey } from '../src/vector-bundle.js';
@@ -86,10 +86,10 @@ export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, 
  *   acadYear: { d1: string | null, ngReasons: string, ngUnscheduled: string },
  *   unscheduled: { missing: string[], withRow: string[], notNg: string[] },
  * }} PreDeployReport
- *   `unknownReasons`: stored ng_rules ids the Worker's reason texts (data/ng-reasons.json) lack (Phase 4, B3-5).
- *   `acadYear` (6A): D1's `acad_year` (null when its rows hold more than one, or none) and the
+ *   `unknownReasons`: stored ng_rules ids the Worker's reason texts (data/ng-reasons.json) lack.
+ *   `acadYear`: D1's `acad_year` (null when its rows hold more than one, or none) and the
  *   year of each file this deploy ships that names one.
- *   `unscheduled` (6A): against data/ng-unscheduled.json, the NG codes with no D1 row that it
+ *   `unscheduled`: against data/ng-unscheduled.json, the NG codes with no D1 row that it
  *   lacks (`missing`), and its codes that have a row (`withRow`) or are off the NG list (`notNg`).
  * @typedef {{ ngReasonsAcadYear: string, unscheduled: { acadYear: string, codes: string[] }, ngCodes: string[] }} PreDeployDataFiles
  *   The year files this deploy ships and the codes on the NG list for D1's year.
@@ -99,10 +99,10 @@ export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, 
  * Runbook step 5: D1's (code, text_hash) pairs equal the manifest's rowsKey,
  * D1's data version (from its row_hashes) equals the committed one, and the
  * bundle's codes and filter table equal D1's fields, and each row's exam
- * dates (5A) name exactly the bundle's exam semesters. 6A: data/ng-reasons.json's and
+ * dates name exactly the bundle's exam semesters. data/ng-reasons.json's and
  * data/ng-unscheduled.json's acadYear equal D1's acad_year, and the latter's
  * codes are exactly the NG codes without a D1 row. Reads D1 once through
- * /admin/verify `{ preDeploy: true }`, which makes no Vectorize call. Phase 7 7D: D1's
+ * /admin/verify `{ preDeploy: true }`, which makes no Vectorize call. D1's
  * catalogueKey (its catalogue_only codes) equals the bundled catalogue file's.
  * @param {{
  *   api: import('./ingest-core.mjs').AdminApi, bundle: import('../src/vector-bundle.js').Bundle,
@@ -134,7 +134,7 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
   for (const r of rows) {
     const i = index.get(r.code);
     if (i === undefined) continue;
-    // Every filter field, 3H's and Phase 4's included, in decodeFilterRow's order.
+    // Every filter field, in decodeFilterRow's order.
     const d1 = {
       semesters: r.semesters, level: r.level, credits: r.credits, faculty: r.faculty, ng: r.ng, ngSemesters: r.ngSemesters,
       ngAllow: r.ngAllow, examSemesters: r.examSemesters, su: r.su, suGrading: r.suGrading, workloadHours: r.workloadHours,
@@ -142,7 +142,7 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
     };
     const b = decodeFilterRow(bundle, i);
     if (JSON.stringify(d1) !== JSON.stringify(b)) { fieldDrift.push({ code: r.code, d1, bundle: b }); continue; }
-    // 5A: exam_dates is not in the bundle, but its semesters must be the
+    // exam_dates is not in the bundle, but its semesters must be the
     // bundle's exam semesters. A Worker too old to answer examDates has none.
     const examDates = r.examDates ?? [];
     if (JSON.stringify(examDates.map((d) => d.sem)) !== JSON.stringify(b.examSemesters)) {
@@ -154,7 +154,7 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
   for (const r of rows) {
     for (const id of new Set(Object.values(r.ngRules ?? {}).flat())) if (!knownReason(id)) unknownReasons.push({ code: r.code, id });
   }
-  // 6A: one year in D1, and every file that names a year names it.
+  // One year in D1, and every file that names a year names it.
   const years = new Set(rows.map((r) => r.acadYear));
   const d1Year = years.size === 1 ? /** @type {string | null} */ ([...years][0] ?? null) : null;
   const ng = new Set(dataFiles.ngCodes);
@@ -204,7 +204,7 @@ export function formatPreDeployReport(r) {
     `bundle rows        ${r.bundleRows}`,
     `rowsKey            ${agree(r.rowsKey)}  ${Object.entries(r.rowsKey).map(([k, v]) => `${k} ${v.slice(0, 12)}`).join(', ')}`,
     `data version       ${agree(r.dataVersion)}  ${Object.entries(r.dataVersion).map(([k, v]) => `${k} ${v}`).join(', ')}`,
-    `catalogueKey       ${r.catalogueKey.d1 !== null && agree(r.catalogueKey) === 'agree' ? 'agree' : 'DIFFER'}  d1 ${r.catalogueKey.d1 ?? 'none (no catalogue_only, or a Worker from before 7D)'}, file ${r.catalogueKey.file}`,
+    `catalogueKey       ${r.catalogueKey.d1 !== null && agree(r.catalogueKey) === 'agree' ? 'agree' : 'DIFFER'}  d1 ${r.catalogueKey.d1 ?? 'none (no catalogue_only, or a Worker without the catalogueKey check)'}, file ${r.catalogueKey.file}`,
     line('missing in bundle', r.missingInBundle),
     line('extra in bundle', r.extraInBundle),
     line('field drift', r.fieldDrift, (d) => d.code),
@@ -240,6 +240,6 @@ export function formatReport(r) {
     line('sample w/o vector', r.sampleMissingVectors),
     ...(r.valuesChecked ? [`values sample      ${r.valuesChecked}`, line('value drift', r.valueDrift)] : []),
     `D1 rows read       ${r.rowsRead}`,
-    r.ok ? 'OK: D1 and Vectorize agree' : 'DRIFT: D1 and Vectorize disagree (rerun ingest; see docs/REFERENCE.md "Re-ingesting")',
+    r.ok ? 'OK: D1 and Vectorize agree' : 'DRIFT: D1 and Vectorize disagree (rerun ingest; see docs/data.md "Re-ingesting")',
   ];
 }

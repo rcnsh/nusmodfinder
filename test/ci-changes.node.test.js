@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7A: scripts/ci-changes.mjs, the one diff rule CI's heavy jobs skip by. Every case is a
+// scripts/ci-changes.mjs, the one diff rule CI's heavy jobs skip by. Every case is a
 // table row over injected git and GitHub answers; nothing here calls GitHub, and git only in a temp repo.
 import { spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -14,13 +14,13 @@ const NONE = { code: false, ui: false, grid: false, rollover: false };
 
 describe('decide: which heavy jobs a diff needs', () => {
   it.each([
-    ['a docs-only diff', ['docs/plans/phase7.md', 'docs/evidence/phase7/measure.md'], NONE],
-    ['a REFERENCE.md diff (npm test reads it, and check always runs)', ['docs/REFERENCE.md'], NONE],
+    ['a docs-only diff', ['docs/incidents.md', 'docs/year-refresh/README.md'], NONE],
+    ['a docs/ diff (npm test reads it, and check always runs)', ['docs/operations.md'], NONE],
     ['a root markdown diff', ['README.md', 'EVAL.md'], NONE],
     ['a public/ diff', ['public/app.js'], { code: true, ui: true, grid: false, rollover: true }],
     ['a data/ diff', [`data/ng-courses-${DEFAULT_ACAD_YEAR}.json`], { code: true, ui: true, grid: false, rollover: true }],
     ['a file the UI suite imports from test/web', ['test/web/rfc4180.node.mjs'], { code: true, ui: true, grid: false, rollover: true }],
-    ['the SC1 oracle, which the UI suite imports', [`test/sc1/oracle-${DEFAULT_ACAD_YEAR}.node.mjs`], { code: true, ui: true, grid: false, rollover: true }],
+    ['the exchange oracle, which the UI suite imports', [`test/oracle/oracle-${DEFAULT_ACAD_YEAR}.node.mjs`], { code: true, ui: true, grid: false, rollover: true }],
     ['a src/ diff', ['src/search.js'], ALL],
     ['a test/full diff', ['test/full/lexical.test.js'], { code: true, ui: false, grid: true, rollover: true }],
     ['an eval/ diff', ['eval/lib/sets.mjs'], { code: true, ui: false, grid: false, rollover: true }],
@@ -38,7 +38,7 @@ const inputs = (o = {}) => ({
   prBase: 'b'.repeat(40),
   listGreen: () => { throw new Error('a PR never lists runs'); },
   reachable: () => true,
-  diff: () => ['docs/REFERENCE.md'],
+  diff: () => ['docs/operations.md'],
   ...o,
 });
 

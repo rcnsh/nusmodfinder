@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7A: `eval:count --route` and `eval:representatives --route` write ADR 0003's no-look
+// `eval:count --route` and `eval:representatives --route` write ADR 0003's no-look
 // route into the count log's `route` column, the evidence `eval:lock -- --evidence no-look <row>`
 // cites. Every set, run and log here lives in a temp dir: the count runs on a `selftest` set (its
 // count log sits in its own directory) with a throwaway key and synthetic queries, and the

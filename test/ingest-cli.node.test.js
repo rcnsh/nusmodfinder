@@ -2,7 +2,7 @@
 // scripts/ingest.mjs, the CLI around scripts/ingest-core.mjs: flags and their
 // defaults, exit codes, and src/data-version.json written only after a run
 // that finished. The Worker is a stub fetch; the corpus is three records as a
-// temporary `current` (Phase 7 7D), so nothing reaches api.nusmods.com or Cloudflare.
+// temporary `current`, so nothing reaches api.nusmods.com or Cloudflare.
 import { execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -21,7 +21,7 @@ const records = ['AA1001', 'AA1002', 'AA1003'].map((code, i) => ({
   moduleCode: code, title: `Title ${i}`, description: `Description ${i}.`, moduleCredit: '4',
   department: 'D', faculty: 'F', semesterData: [{ semester: 1 }],
 })).concat([{
-  // Catalogue-only: in moduleInfo.json, offered in no semester (3B, D1 catalogue_only).
+  // Catalogue-only: in moduleInfo.json, offered in no semester (D1 catalogue_only).
   moduleCode: 'AA0999', title: 'Retired', description: 'No longer offered.', moduleCredit: '4', department: 'D', faculty: 'F', semesterData: [],
 }]);
 
@@ -98,7 +98,7 @@ const run = async (argv, worker, o = {}) => {
 const state = async () => JSON.parse(await readFile(join(dir, 'ingest-state.json'), 'utf8').catch(() => '{}'));
 
 describe('scripts/ingest.mjs', () => {
-  it('defaults: write budget 40,000 (ADR 0002), batches of 50; no cache, year or offline flag (Phase 7 7D: only `current`)', () => {
+  it('defaults: write budget 40,000 (ADR 0002), batches of 50; no cache, year or offline flag (only `current`)', () => {
     const a = parseIngestArgs([], {});
     expect(a.options).toMatchObject({ writeBudget: 40_000, batchSize: 50, concurrency: 4, force: false, allowMassDelete: false });
     expect(parseIngestArgs(['--write-budget', '500', '--allow-mass-delete'], {}))
@@ -110,7 +110,7 @@ describe('scripts/ingest.mjs', () => {
     expect(() => parseIngestArgs(['--wat'], {})).toThrow();
   });
 
-  it('Phase 7 7E: refuses, sending nothing, when the year\'s NG file is a stub (`year next`) or missing', async () => {
+  it('refuses, sending nothing, when the year\'s NG file is a stub (`year next`) or missing', async () => {
     const ng = join(dir, 'ng');
     await mkdir(ng);
     const ngDataDir = pathToFileURL(`${ng}/`);
@@ -165,7 +165,7 @@ describe('scripts/ingest.mjs', () => {
     expect(lines.join('\n')).toMatch(/commit src\/data-version\.json, then npm run deploy/);
     // Revalidation was not needed: the cache entry is fresh.
     expect(worker.paths.some((p) => p.includes('nusmods'))).toBe(false);
-    // 3B: the catalogue-only record reaches D1 catalogue_only; the offered ones do not.
+    // The catalogue-only record reaches D1 catalogue_only; the offered ones do not.
     expect(worker.paths).toContain('POST /admin/catalogue');
     expect([...worker.catalogue.keys()]).toEqual(['AA0999']);
   });
@@ -296,7 +296,7 @@ describe('scripts/ingest.mjs', () => {
   });
 });
 
-describe('Phase 7 7B: ingest after a bookmark and a preflight', () => {
+describe('ingest after a bookmark and a preflight', () => {
   /** @type {string} */
   let runsDir;
   beforeEach(async () => { runsDir = join(dir, 'runs'); await mkdir(runsDir, { recursive: true }); });

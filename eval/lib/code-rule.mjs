@@ -17,7 +17,7 @@
 // Inputs are public corpus fields only (code, title, description, level,
 // credits, semesters, NG semesters, faculty) and the query's own fields; never
 // a judge's output. Where the qrels already hold a grade for a pair, the
-// rule's replaces it (ADR 0004: the final grade is rule's where one applies);
+// rule's replaces it (ADR 0016: the final grade is rule's where one applies);
 // judge A's grade stays in the judgment's `judges` for provenance.
 import { buildGroups, familyOf } from './groups.mjs';
 import { pairKey, splitKey, nextVersion, RULE } from './judging.mjs';

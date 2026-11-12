@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run eval:representatives`: the semester representative's group-identity
+// `npm run eval:representatives`: the representative-only group-identity
 // check on an open set (dev, the fixture), from two stored run files:
 //
 //   npm run eval:representatives -- --set dev --run <cand> --baseline <pin>
 //   npm run eval:representatives -- --set fixture --set-dir <dir> --run <cand> --baseline <pin>
 //   … --route representative-only
 //       on a pass, also appends a row to the count log (eval/count-log.md; with --set-dir, the
-//       set directory's count-log.md) naming the ADR 0003 no-look route (amendment 2026-11-12),
+//       set directory's count-log.md) naming the ADR 0003 no-look route,
 //       which a ranking-lock change can cite (eval:lock -- --evidence no-look <row>). A failing
 //       check writes nothing.
 //

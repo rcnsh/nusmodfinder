@@ -1,16 +1,16 @@
 // @ts-check
-// The page's state and its URL (Phase 5 5B, F3, C-7): one pure state <->
+// The page's state and its URL: one pure state <->
 // URLSearchParams mapping, so a shared link, Back and a reload all show the
 // same page. No DOM here; test/web/state.node.test.js runs it in Node.
 //
 // - In exchange mode `ng=1` and `study` are always in the URL, and `sem` is
 //   absent for both semesters; localStorage only pre-fills the set-up.
-// - `open` names the one open detail (at most one, A2-4).
-// - `from` names the course whose "Also as" link opened `open` (5G): the
+// - `open` names the one open detail (at most one).
+// - `from` names the course whose "Also as" link opened `open`: the
 //   detail says "Opened from …". Kept only beside `open`, and dropped by every
 //   transition that changes `open`; app.js also drops it once the answer shows
-//   it isn't one of the open entry's other codes (5G S1).
-// - `view=shortlist` opens the shortlist view (Phase 6 6B); a link that names
+//   it isn't one of the open entry's other codes.
+// - `view=shortlist` opens the shortlist view; a link that names
 //   it drops `open`.
 // - The shortlist (`pick`, `alt`, `ay`, `inv`) is not part of the state: it is
 //   page-wide (list.js), and urlFor writes the two together.
@@ -31,7 +31,7 @@ export { isCode };
 /** @typedef {{ value: string, label: string }} Option */
 
 /**
- * Semesters /search accepts (`sem=1..4`). Static, so no filter waits on /facets (F4).
+ * Semesters /search accepts (`sem=1..4`). Static, so no filter waits on /facets.
  * Labelled as the chips and the cards say them (V1: "Sem 2", never "2").
  * @type {readonly Option[]}
  */
@@ -53,7 +53,7 @@ export const unitsLabel = (v) => `${v} unit${v === '1' ? '' : 's'}`;
 /** The unit counts the credits filter offers. A URL may name any other. */
 export const CREDITS = Object.freeze(['2', '4', '5', '6', '8', '12']);
 
-/** Years of study during the exchange, as NUS's portal asks (/search `study`; Phase 6 6C relabelled them). */
+/** Years of study during the exchange, as NUS's portal asks (/search `study`). */
 /** @type {readonly Option[]} */
 export const STUDIES = Object.freeze([
   { value: 'ug1', label: '1st year' }, { value: 'ug2', label: '2nd year' }, { value: 'ug3', label: '3rd year' },
@@ -72,7 +72,7 @@ export function emptyState() {
 }
 
 /**
- * A faculty name as a link may give it (5G S2): every real one is under 40
+ * A faculty name as a link may give it: every real one is under 40
  * characters of plain text, so anything longer, or with a control, bidi or
  * zero-width character, is not one, and is dropped before it becomes a chip.
  * @param {string} v
@@ -178,7 +178,7 @@ export function searchParams(s) {
 }
 
 /**
- * Copy link's URL (6B): the shortlist (with `ay` once a row has loaded: the
+ * Copy link's URL: the shortlist (with `ay` once a row has loaded: the
  * caller passes list.js withYear's list), the invitations, the exchange
  * set-up and the semester, and `view=shortlist`; no query, filters or detail,
  * so the link opens on the list itself.

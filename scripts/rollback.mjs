@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // @ts-check
 // `npm run rollback -- [--to <version id or its first 8>] [--accept-data-mismatch] [--yes]`
-// (Phase 7 7B): puts an earlier Worker version back at 100%, code only.
+// Puts an earlier Worker version back at 100%, code only.
 //
 // 1. Target: --to, else the newest deployment before the live one whose version differs
 //    (`wrangler deployments list --json`). Its commit, data version (and every other guard
-//    field, 7D's catalogueKey among them) come from its deploy/* tag.
+//    field, the catalogueKey among them) come from its deploy/* tag.
 // 2. Data check: D1 read directly over the REST query (scripts/d1-rest.mjs; ~6.8k rows today,
-//    more with 7D's catalogue), never a Worker session or the working tree's code. Every tagged
+//    more with the catalogue), never a Worker session or the working tree's code. Every tagged
 //    field must equal D1's. A mismatch refuses unless --accept-data-mismatch, which prints the
 //    risk; the usual path across a data change is `npm run d1:restore`, then rollback.
 // 3. `wrangler rollback <id> --message "rollback to <tag>" -y`, after a confirmation (or --yes).
@@ -150,7 +150,7 @@ export async function rollback({
     // 4. The trace.
     if (tag) {
       const name = tagName('rollback', now(), target);
-      // The target's data fields (dataVersion, 7D's catalogueKey…), not its deploy's own.
+      // The target's data fields (dataVersion, catalogueKey…), not its deploy's own.
       const own = new Set(['versionId', 'previousVersionId', 'commit', 'backfilled', 'source', 'startupMs', 'actionsRun', 'rolledBackFrom', 'targetTag']);
       const data = Object.fromEntries(Object.entries(tag.fields).filter(([k]) => !own.has(k)));
       const made = await createAndPushTag({

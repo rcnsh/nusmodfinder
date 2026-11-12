@@ -1,5 +1,5 @@
 // @ts-check
-// F6 (Phase 5 5D): every text/background and UI-boundary pair the page uses
+// Every text/background and UI-boundary pair the page uses
 // passes WCAG AA in both themes, from public/styles.css's own tokens
 // (scripts/contrast.mjs), and every colour token the stylesheet puts on text,
 // a background or a border is one the check covers.
@@ -14,8 +14,8 @@ const css = readFileSync(fileURLToPath(new URL('../../public/styles.css', import
 const used = (prop) => new Set([...css.matchAll(new RegExp(`(?:^|[;{\\s])${prop.source}\\s*:([^;}]*)`, 'g'))]
   .flatMap((m) => [...m[1].matchAll(/var\(--([\w-]+)\)/g)].map((v) => v[1])));
 
-describe('[F6] contrast, both themes', () => {
-  it('[F6 fixed] every text/background and UI-boundary pair passes WCAG AA (4.5:1 text, 3:1 UI) in light and dark', () => {
+describe('contrast, both themes', () => {
+  it('every text/background and UI-boundary pair passes WCAG AA (4.5:1 text, 3:1 UI) in light and dark', () => {
     const rows = check(css);
     expect(rows).toHaveLength(PAIRS.length * 2);
     expect(rows.filter((r) => !r.ok).map((r) => `${r.theme}: --${r.fg} on --${r.bg} ${r.ratio.toFixed(2)}`)).toEqual([]);

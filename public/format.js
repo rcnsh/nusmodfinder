@@ -1,9 +1,9 @@
 // @ts-check
-// Pure formatting for the cards and the detail (Phase 5 5B, 5C): semester
-// names, workload, exams in Singapore time, and NUS's prerequisite text with
-// its missing spaces put back, its cohort-only case named, and its course codes
-// found. Every function returns plain text or plain data; the caller puts it in
-// a node with textContent.
+// Pure formatting for the cards and the detail: semester names, workload, exams
+// in Singapore time, and NUS's prerequisite text with its missing spaces put
+// back, its cohort-only case named, and its course codes found. Every function
+// returns plain text or plain data; the caller puts it in a node with
+// textContent.
 
 /** @type {Readonly<Record<string, string>>} */
 const SEM_NAMES = Object.freeze({ 1: 'Sem 1', 2: 'Sem 2', 3: 'Special term 1', 4: 'Special term 2' });
@@ -67,7 +67,7 @@ export function examLine(e) {
 }
 
 /**
- * The card's exams (direction D): the chosen semester's as "Exam" and its day
+ * The card's exams: the chosen semester's as "Exam" and its day
  * and time ("Fri 27 Nov, 2:30 pm", Singapore time), else each semester's
  * labelled with its semester; [] when there is none (the card says "No final
  * exam").
@@ -94,7 +94,7 @@ export function examLines(exams) {
   return list.length ? list.map(examLine) : ['No final exam listed'];
 }
 
-/** The most of a student's own text the page repeats in its sentences (5G S2). */
+/** The most of a student's own text the page repeats in its sentences. */
 export const ECHO_MAX = 60;
 /** Characters that reorder or hide text: bidi controls and marks, zero-width marks, C0 and C1 controls. */
 // eslint-disable-next-line no-control-regex -- matching control characters is the point: they are removed.
@@ -114,7 +114,7 @@ const APOSTROPHES = /'{2,}/g;
 
 /**
  * A student's own text (the query, from the search box or a link) as the
- * page's sentences repeat it (5G S2): nothing hidden or reordered, no quote
+ * page's sentences repeat it: nothing hidden or reordered, no quote
  * mark or lookalike (one apostrophe instead), and at most ECHO_MAX characters, cut
  * with an ellipsis, so a crafted link can't add a sentence in the site's voice.
  * @param {unknown} text
@@ -151,10 +151,10 @@ export function cleanPrereq(text) {
 
 /**
  * The detail's prerequisite: null when NUS lists none; `cohort` when the rule
- * names only NUS intake years or programmes (3H-0's P-6 rule, which ingest
+ * names only NUS intake years or programmes (ingest
  * stores and /module/:code answers as `prereqCohortOnly`), with a plain line;
  * otherwise NUS's `rule`, spaced. `text` is always NUS's own words. No
- * plain-English rewrite of the rule language (docs/plans/phase5.md 5C).
+ * plain-English rewrite of the rule language.
  * @param {string | null | undefined} raw
  * @param {boolean} cohortOnly /module/:code's `prereqCohortOnly`
  * @returns {{ kind: 'cohort' | 'rule', line: string | null, text: string } | null}
@@ -165,7 +165,7 @@ export function prereqView(raw, cohortOnly) {
   if (!cohortOnly) return { kind: 'rule', line: null, text };
   const cohorts = /\bcohorts?\b/i.test(text);
   const programmes = /\bundertaking (?:1 of )?\d{4}[A-Z0-9]{2,}/i.test(text);
-  // Plain language (5G): what the rule names, and what to do about it.
+  // Plain language: what the rule names, and what to do about it.
   const names = cohorts && programmes ? 'groups of NUS students by the year they started and by degree programme'
     : programmes ? 'NUS degree programmes' : 'groups of NUS students by the year they started';
   return { kind: 'cohort', line: `No course you must pass first. NUS's rule only names ${names}; ask NUS whether it applies to you.`, text };

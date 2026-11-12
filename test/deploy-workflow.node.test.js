@@ -1,8 +1,8 @@
 // @ts-check
-// Phase 7 7B (G1): `.github/workflows/deploy.yml`, the deploy from Actions after green CI, read
+// `.github/workflows/deploy.yml`, the deploy from Actions after green CI, read
 // as text (the repo has no YAML parser), and its gate (scripts/deploy-gate.mjs) as a table.
-// - It runs on `workflow_run` for CI and Findings on main, and deploys a sha only when both of
-//   that sha's push runs succeeded, the sha is still main's tip, and no deploy tag names it yet.
+// - It runs on `workflow_run` for CI on main, and deploys a sha only when that sha's CI push run
+//   succeeded, the sha is still main's tip, and no deploy tag names it yet.
 // - The kill switch: the job runs only when the repo variable DEPLOY_FROM_ACTIONS is 'true'.
 // - Permissions are contents: write (the tag) and actions: read, nothing else; the Cloudflare
 //   token and account reach the deploy step's env only; nothing commits to main.
@@ -21,8 +21,8 @@ const step = (re) => {
 };
 
 describe('deploy.yml', () => {
-  it('runs on workflow_run for CI and Findings, completed, on main only', () => {
-    expect(workflow).toMatch(/^on:\n {2}workflow_run:\n {4}workflows: \[CI, Findings\]\n {4}types: \[completed\]\n {4}branches: \[main\]\n/m);
+  it('runs on workflow_run for CI, completed, on main only', () => {
+    expect(workflow).toMatch(/^on:\n {2}workflow_run:\n {4}workflows: \[CI\]\n {4}types: \[completed\]\n {4}branches: \[main\]\n/m);
     expect(workflow).not.toMatch(/^\s+(push|pull_request|pull_request_target|schedule):/m);
   });
 
@@ -91,7 +91,7 @@ describe('deploy.yml', () => {
   it('uploads the run records and writes a summary on every outcome, and never commits to main', () => {
     const upload = step(/upload-artifact@/);
     expect(upload).toMatch(/if: \$\{\{ always\(\) && steps\.gate\.outputs\.deploy == 'true' \}\}/);
-    expect(upload).toContain('docs/evidence/ops/runs/');
+    expect(upload).toContain('path: ops/runs/');
     expect(workflow).not.toMatch(/git commit|git push origin (main|HEAD)|git push(?! origin refs\/tags)/);
   });
 
@@ -111,13 +111,13 @@ describe('the gate (scripts/deploy-gate.mjs)', () => {
   const r = (name, status = 'completed', conclusion = 'success') => ({ id: name === 'CI' ? 1 : 2, name, status, conclusion, head_sha: SHA, event: 'push', run_number: 1 });
 
   it.each([
-    ['both green, the tip, not deployed', [r('CI'), r('Findings')], SHA, [], true, /deploying/],
-    ['Findings still running (CI\'s event came first)', [r('CI'), r('Findings', 'in_progress', null)], SHA, [], false, /Findings.*not finished/],
-    ['CI failed', [r('CI', 'completed', 'failure'), r('Findings')], SHA, [], false, /CI.*failure/],
-    ['Findings cancelled', [r('CI'), r('Findings', 'completed', 'cancelled')], SHA, [], false, /Findings.*cancelled/],
-    ['no Findings run', [r('CI')], SHA, [], false, /no Findings push run/],
-    ['main moved on', [r('CI'), r('Findings')], 'b'.repeat(40), [], false, /not main's tip.*newer commit/],
-    ['already deployed (both events saw both green)', [r('CI'), r('Findings')], SHA, [SHA], false, /already deployed/],
+    ['CI green, the tip, not deployed', [r('CI')], SHA, [], true, /deploying/],
+    ['CI still running', [r('CI', 'in_progress', null)], SHA, [], false, /CI.*not finished/],
+    ['CI failed', [r('CI', 'completed', 'failure')], SHA, [], false, /CI.*failure/],
+    ['CI cancelled', [r('CI', 'completed', 'cancelled')], SHA, [], false, /CI.*cancelled/],
+    ['no CI run', [], SHA, [], false, /no CI push run/],
+    ['main moved on', [r('CI')], 'b'.repeat(40), [], false, /not main's tip.*newer commit/],
+    ['already deployed (a re-run CI saw it green again)', [r('CI')], SHA, [SHA], false, /already deployed/],
   ])('%s', (_name, runs, tip, deployed, deploy, reason) => {
     const d = gateDecision({ sha: SHA, tip, runs, deployed });
     expect(d.deploy).toBe(deploy);

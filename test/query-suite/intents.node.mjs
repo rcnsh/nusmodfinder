@@ -1,19 +1,19 @@
 // @ts-check
-// The P-6 phrase rules, read straight from eval/prereg/intent-phrases.json and
-// eval/prereg/ge-pillars.json, applied to a suite text to give the intent half
+// The phrase rules, read straight from eval/query-rules/intent-phrases.json and
+// eval/query-rules/ge-pillars.json, applied to a suite text to give the intent half
 // of its `interpreted` object (ge, level, exam, su, hoursBelow, prereq). It is
-// the matching rules the doc fixes (docs/plans/phase3-prereg.md §5, §7) and no
+// the matching rules those files state (intent-phrases.json `matching`) and no
 // more: no code join, no code resolution, no correction. The suite tests use it
 // to check every item's `interpreted` against its text.
 import { join } from 'node:path';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { queryTokens } from '../../src/fts-query.js';
-import { readJson } from './sc4.node.mjs';
+import { readJson } from './suite-files.node.mjs';
 
-export const PHRASES = readJson(join(REPO, 'eval/prereg/intent-phrases.json'));
-export const GE = readJson(join(REPO, 'eval/prereg/ge-pillars.json'));
-export const COLLISION = new Set(readJson(join(REPO, 'eval/prereg/collision-list.json')).list.map((/** @type {string} */ s) => s.toLowerCase()));
-export const STOPWORDS = new Set(readJson(join(REPO, 'eval/prereg/stopwords.json')).current);
+export const PHRASES = readJson(join(REPO, 'eval/query-rules/intent-phrases.json'));
+export const GE = readJson(join(REPO, 'eval/query-rules/ge-pillars.json'));
+export const COLLISION = new Set(readJson(join(REPO, 'eval/query-rules/collision-list.json')).list.map((/** @type {string} */ s) => s.toLowerCase()));
+export const STOPWORDS = new Set(readJson(join(REPO, 'eval/query-rules/stopwords.json')).current);
 
 /** The intent keys this module derives; `pin` and `prefix` come from codes, not phrases. */
 export const INTENT_KEYS = Object.freeze(['ge', 'level', 'exam', 'su', 'hoursBelow', 'prereq']);
@@ -40,7 +40,7 @@ export function phraseRegex(phrase, n) {
  * @typedef {{ key: string, kind?: string, phrase: string, n: 'level' | 'hours' | null }} Phrase
  */
 
-/** @returns {Phrase[]} pass A: the 3H constraint phrases. */
+/** @returns {Phrase[]} pass A: the constraint phrases. */
 function passA() {
   /** @type {Phrase[]} */
   const out = [];
@@ -50,7 +50,7 @@ function passA() {
   return out;
 }
 
-/** @returns {Phrase[]} pass B: the 3D level phrases and the GE phrases. */
+/** @returns {Phrase[]} pass B: the level phrases and the GE phrases. */
 function passB() {
   /** @type {Phrase[]} */
   const out = [];
@@ -115,7 +115,7 @@ function levelWindow(m) {
 }
 
 /**
- * The level an `XX N000` code token sets (3B resolution step 3), given the
+ * The level an `XX N000` code token sets (code resolution step 3), given the
  * prefix the item echoes: the token must be that prefix's letters, off the
  * collision and stopword lists, followed (with or without one space) by N000.
  * @param {string} raw @param {string | null} prefix

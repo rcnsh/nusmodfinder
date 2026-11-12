@@ -1,18 +1,17 @@
 // @ts-check
-// Phase 1A over the full pinned corpus (6,771 modules, loaded through
+// Lexical search over the full pinned corpus (6,771 modules, loaded through
 // /admin/ingest): migration 0006 applied on top of a populated 0001–0005
-// database, as it will be remotely, then
+// database, as it was remotely, then
 // - ranking neutrality: unfiltered lexical top-50 unchanged by 0006 for every
 //   query in test/fixtures/lexical-queries.json (only exact-bm25 tie groups may
 //   reorder);
-// - filtered lexical (B1) equals brute force for every query x single filter
+// - filtered lexical (filters in SQL, before the depth cut) equals brute force for every query x single filter
 //   value, every two-filter combination and a sample of 3-5-filter ones on
 //   broad queries, with and without the facets counts that pick the driver;
 // - worst-case D1 rows read per filtered search <= 8,000 (with counts);
 // - the counts are read once per isolate, only on the filter-driven path;
-// - re-ingest and per-row update costs under the new triggers (B3).
-// Each measured block logs one `[1A] {...}` JSON line; docs/evidence/phase1/
-// quotes them.
+// - re-ingest and per-row update costs under the rowid-keyed FTS triggers.
+// Each measured block logs one `[lexical-cost] {...}` JSON line.
 import { applyD1Migrations, reset } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, inject, it } from 'vitest';
@@ -26,7 +25,7 @@ import queryFixture from '../fixtures/lexical-queries.json';
 const corpus = inject('corpus');
 const SAMPLED = inject('lexicalGrid') === 'sample';
 
-/** docs/plans/phase1.md Final #1. */
+/** The most D1 rows a filtered search may read. */
 const ROWS_READ_GATE = 8000;
 /** MAX_TOPK: the deepest list either retriever is ever asked for. */
 const DEPTH = 50;
@@ -76,7 +75,7 @@ async function ingest(modules, size, db) {
 
 /**
  * Loads modules into a pre-0006 database the way production's rows were
- * written: the pre-1C Worker's column list, no row_hash. (/admin/ingest now
+ * written: the column list from before row_hash, no row_hash. (/admin/ingest now
  * writes row_hash, which exists only from 0006 on, so it fails on this schema
  * by design; see scripts/ingest-core.mjs's schema guard.)
  * @param {NormalisedModule[]} modules
@@ -118,7 +117,7 @@ async function unfilteredTopN() {
  * @param {FilterEcho} echo
  */
 function passes(row, echo) {
-  // Phase 4: under ng, sem picks the allow-mask bit instead of testing the semesters.
+  // Under ng, sem picks the allow-mask bit instead of testing the semesters.
   if (echo.sem !== undefined && echo.ng !== true && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
   if (echo.ng === true && (row.ng_allow & bitOf(echo.sem === 1 || echo.sem === 2 ? echo.sem : 'any', /** @type {any} */ (echo.study))) === 0) return false;
   if (echo.level !== undefined && row.level !== echo.level) return false;
@@ -131,7 +130,7 @@ function passes(row, echo) {
 /** @param {number[]} xs sorted ascending @param {number} p */
 const pct = (xs, p) => xs[Math.min(xs.length - 1, Math.floor(xs.length * p))];
 
-describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)', () => {
+describe.skipIf(!corpus)('lexical search over the full pinned corpus', () => {
   const c = /** @type {FullCorpus} */ (corpus);
   /** @type {Map<string, { codes: string[], rank: Map<string, number> }>} */
   let before;
@@ -147,7 +146,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
     await legacyLoad(c.modules);
     before = await unfilteredTopN();
     await applyD1Migrations(env.DB, rest);
-    // Phase 4's allow mask (0009), as ingest computes it, for the ng filter.
+    // The allow mask (0009), as ingest computes it, for the ng filter.
     const set = env.DB.prepare('UPDATE modules SET ng_allow = ? WHERE code = ?');
     for (let i = 0; i < c.modules.length; i += 100) await env.DB.batch(c.modules.slice(i, i + 100).map((m) => set.bind(m.ngAllow, m.code)));
   }, 600_000);
@@ -172,7 +171,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
       if (ranksA.join() === ranksB.join() && group(a.codes, a.rank) === group(b.codes, b.rank)) tieOnly++;
       else other.push(q);
     }
-    console.log(`[1A] ${JSON.stringify({ neutrality: { queries: before.size, identical, tieOnly, other: other.length, rankValueChanges } })}`);
+    console.log(`[lexical-cost] ${JSON.stringify({ neutrality: { queries: before.size, identical, tieOnly, other: other.length, rankValueChanges } })}`);
     expect(other).toEqual([]);
     expect(rankValueChanges).toBe(0);
   }, 600_000);
@@ -336,8 +335,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
     // written before they existed): the driver comes from FIXED_DRIVER_ORDER.
     // Exact, but not inside the gate: no per-filter order can know that
     // level=5 (2,713 rows) is a worse driver than credits=5 (407) but a
-    // better one than credits=4 (5,081). Measured and documented in
-    // docs/evidence/phase1/lexical-cost.md, not asserted.
+    // better one than credits=4 (5,081). Measured, not asserted.
     await env.DB.prepare("UPDATE meta SET value = json_remove(value, '$.credits') WHERE key = 'facets'").run();
     resetFilterCounts();
     const fixedQueries = broad.slice(0, 4);
@@ -358,7 +356,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
       single: single.summary, two: two.summary, many: more.summary,
       fixedOrder: { two: fixedTwo.summary, many: fixedMore.summary },
     };
-    console.log(`[1A] ${JSON.stringify({ filteredCost: report })}`);
+    console.log(`[lexical-cost] ${JSON.stringify({ filteredCost: report })}`);
     for (const g of [single, two, more, fixedTwo, fixedMore]) expect(g.mismatches.slice(0, 20)).toEqual([]);
     expect(single.summary.searches + two.summary.searches + more.summary.searches).toBeGreaterThan(SAMPLED ? 3000 : 30000);
     for (const g of [single, two, more]) expect(g.max).toBeLessThanOrEqual(ROWS_READ_GATE);
@@ -379,7 +377,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
     expect(await queries('in', { faculty: 'Computing', level: 4 })).toBe(2);
   });
 
-  it('[B3] a forced full re-ingest writes nothing to the FTS index; one title change reads a handful of rows', async () => {
+  it('a forced full re-ingest writes nothing to the FTS index; one title change reads a handful of rows', async () => {
     const ftsState = async () => {
       const [data, docsize] = await env.DB.batch([
         env.DB.prepare('SELECT id, hex(block) AS h FROM modules_fts_data ORDER BY id'),
@@ -407,9 +405,9 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
       changedRowUpsert: { rowsRead: one.read, rowsWritten: one.written },
       titleUpdate: { rowsRead: update.meta.rows_read, rowsWritten: update.meta.rows_written },
     };
-    console.log(`[1A] ${JSON.stringify(reingestCost)}`);
-    // One row read per updated row (PR #8 review round 3: a BEFORE UPDATE
-    // trigger made SQLite re-read each row, doubling these).
+    console.log(`[lexical-cost] ${JSON.stringify(reingestCost)}`);
+    // One row read per updated row (a BEFORE UPDATE trigger would make SQLite
+    // re-read each row, doubling these).
     expect(update.meta.rows_read).toBe(1);
     expect(one.read).toBe(1);
     expect(full.read).toBe(c.modules.length);

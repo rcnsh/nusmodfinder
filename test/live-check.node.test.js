@@ -1,20 +1,20 @@
 // @ts-check
-// scripts/p5-live-plan.mjs (Phase 5 5G): the live check's arguments and its
+// scripts/live-check-plan.mjs: the page's live check's arguments and its
 // seeded draw, on the fixture (the production modules live in .data/, which
-// CI doesn't have). The browser half, scripts/p5-live.mjs, is run by hand:
+// CI doesn't have). The browser half, scripts/live-check.mjs, is run by hand:
 // against the local UI server before the PR, against production after the
-// deploy (docs/REFERENCE.md, "Live checks after a page ship").
+// deploy (docs/operations.md, "Live checks").
 import { describe, expect, it } from 'vitest';
-import { CLOSED_KINDS, GAP_MS, PRODUCTION_URL, STRATA, drawHidden, drawSc2, loadModules, parseArgs, rng } from '../scripts/p5-live-plan.mjs';
+import { CLOSED_KINDS, GAP_MS, PRODUCTION_URL, STRATA, drawDetails, drawHidden, loadModules, parseArgs, rng } from '../scripts/live-check-plan.mjs';
 import { bitOf } from '../src/ng-bit.js';
-import { oracle } from './sc1/oracle.mjs';
+import { oracle } from './oracle/oracle.mjs';
 
 const modules = await loadModules('fixture');
 
 describe('arguments', () => {
-  it('defaults to production: its URL, the production modules, the commit from git, the committed log', () => {
+  it('defaults to production: its URL, the production modules, the commit from git, a log under .data/', () => {
     expect(parseArgs([])).toEqual({
-      url: PRODUCTION_URL, log: 'docs/evidence/phase5/p5-live.jsonl', corpus: 'production', expectCommit: '', seed: 5, dryRun: false,
+      url: PRODUCTION_URL, log: '.data/live-check.jsonl', corpus: 'production', expectCommit: '', seed: 5, dryRun: false,
     });
   });
 
@@ -36,8 +36,8 @@ describe('arguments', () => {
   });
 });
 
-describe('the SC2 draw', () => {
-  const picks = drawSc2(modules, rng(5));
+describe('the detail draw', () => {
+  const picks = drawDetails(modules, rng(5));
 
   it('20 distinct codes, 4 from each stratum and 4 plain, each fitting its stratum', () => {
     expect(picks).toHaveLength(20);
@@ -53,14 +53,14 @@ describe('the SC2 draw', () => {
   });
 
   it('the same seed draws the same codes, whatever the modules\' order; another seed differs', () => {
-    expect(drawSc2([...modules].reverse(), rng(5)).map((p) => p.m.code)).toEqual(picks.map((p) => p.m.code));
-    expect(drawSc2(modules, rng(6)).map((p) => p.m.code)).not.toEqual(picks.map((p) => p.m.code));
+    expect(drawDetails([...modules].reverse(), rng(5)).map((p) => p.m.code)).toEqual(picks.map((p) => p.m.code));
+    expect(drawDetails(modules, rng(6)).map((p) => p.m.code)).not.toEqual(picks.map((p) => p.m.code));
   });
 });
 
 describe('the hidden-code draw', () => {
   const r = rng(5);
-  drawSc2(modules, r);
+  drawDetails(modules, r);
   const { closed, partial } = drawHidden(modules, r);
 
   it('one closed code of each kind, closed by the oracle and the stored bit', () => {

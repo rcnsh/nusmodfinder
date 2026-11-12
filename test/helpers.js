@@ -17,7 +17,7 @@ export const BASE = 'https://vector-nusmods.test';
 export const TEST_INGEST_SECRET = 'test-ingest-secret';
 
 /**
- * The NG list of the fixture's year (Phase 7 7D, one year source: found by the year, not named):
+ * The NG list of the fixture's year, found by the year rather than named:
  * data/ng-courses-<acad year>.json, which the fixture corpus was built with.
  */
 const ngJson = /** @type {{ updatedAsAt: string, source: string, semesters: Record<string, string[]> }} */ (

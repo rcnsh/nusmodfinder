@@ -1,8 +1,7 @@
 # Brief: transcribing the restrictions PDF
 
 For each of the two transcribers of a year's (or a revision's) "Course Restrictions for
-Non-Graduating Students" PDF. Phase 4 ran this as step 4B (`docs/evidence/phase4/transcription.md`);
-this brief makes the id scheme fixed, so a later year's ids can be matched to last year's.
+Non-Graduating Students" PDF. This brief makes the id scheme fixed, so a later year's ids can be matched to last year's.
 
 ## What you get, and what you don't
 
@@ -17,7 +16,7 @@ this brief makes the id scheme fixed, so a later year's ids can be matched to la
 ## What you write
 
 One JSON file, `{ source, rules, doubts }`, the same schema as
-`docs/evidence/phase4/transcription-b.json`:
+`docs/year-refresh/transcriptions/2026-2027-b.json`:
 
 - `source`: the PDF's file name, sha256 and "updated as at" date.
 - `rules`: one entry per rule as printed, in page order:

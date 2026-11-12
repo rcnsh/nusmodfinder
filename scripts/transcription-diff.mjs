@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// Two transcriptions of the restrictions PDF, compared (docs/year-refresh/brief-transcription.md;
-// Phase 4 4B's script, docs/evidence/phase4/scripts/transcription-diff.mjs, made general in 7E).
+// Two transcriptions of the restrictions PDF, compared (docs/year-refresh/brief-transcription.md).
 //
 //   node scripts/transcription-diff.mjs <a.json> <b.json>
 //       the facts each holds that the other doesn't: (code, pattern or school) × kind × students

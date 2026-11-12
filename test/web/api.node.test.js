@@ -1,5 +1,5 @@
 // @ts-check
-// public/api.js (Phase 5 5B, F2, F7): each search aborts the previous, gives up
+// public/api.js: each search aborts the previous, gives up
 // after 10 s, reads 429's Retry-After, and handles a non-JSON body before
 // parsing it. Driven with a fake fetch and fake timers; the browser half is
 // test/ui/failures.spec.js.
@@ -38,7 +38,7 @@ beforeEach(() => { vi.useFakeTimers(); });
 afterEach(() => { vi.useRealTimers(); });
 
 describe('search (F2)', () => {
-  it('[F2 fixed] a new search aborts the one in flight, which settles as superseded, never as an error', async () => {
+  it('a new search aborts the one in flight, which settles as superseded, never as an error', async () => {
     const { fetch, calls } = fakeFetch([hang, jsonResponse({ count: 0, results: [] })]);
     const search = createSearchClient({ fetch });
     const first = search(params('a'));
@@ -49,7 +49,7 @@ describe('search (F2)', () => {
     expect(calls.map((c) => c.url)).toEqual(['/search?q=a', '/search?q=b']);
   });
 
-  it('[F2 fixed] gives up after 10 s with a timeout error, aborting the request', async () => {
+  it('gives up after 10 s with a timeout error, aborting the request', async () => {
     expect(SEARCH_TIMEOUT_MS).toBe(10_000);
     const { fetch, calls } = fakeFetch([hang]);
     const pending = createSearchClient({ fetch })(params('slow'));
@@ -94,7 +94,7 @@ describe('search (F2)', () => {
 });
 
 describe('responses (F7)', () => {
-  it('[F7 fixed] 429 reads Retry-After in seconds, whatever the body is', async () => {
+  it('429 reads Retry-After in seconds, whatever the body is', async () => {
     const { fetch } = fakeFetch([
       jsonResponse({ error: 'rate_limited', message: 'Too many searches' }, 429, { 'retry-after': '60' }),
       async () => new Response('<html>slow down</html>', { status: 429, headers: { 'content-type': 'text/html', 'retry-after': '7' } }),
@@ -106,7 +106,7 @@ describe('responses (F7)', () => {
     expect(await search(params('c'))).toEqual({ kind: 'error', error: { code: 'rate_limited', status: 429, retryAfter: null } });
   });
 
-  it('[F7 fixed] a non-JSON body (an HTML or plain-text error page) is handled before parsing', async () => {
+  it('a non-JSON body (an HTML or plain-text error page) is handled before parsing', async () => {
     const { fetch } = fakeFetch([
       async () => new Response('<!doctype html><h1>502 Bad Gateway</h1>', { status: 502, headers: { 'content-type': 'text/html' } }),
       async () => new Response('error code: 1101', { status: 500, headers: { 'content-type': 'text/plain' } }),
@@ -145,7 +145,7 @@ describe('parseRetryAfter', () => {
 });
 
 describe('fetchFacets (F4)', () => {
-  it('[F4 fixed] fetchFacets resolves null, never rejects, when /facets fails, hangs or answers garbage', async () => {
+  it('fetchFacets resolves null, never rejects, when /facets fails, hangs or answers garbage', async () => {
     const { fetch } = fakeFetch([
       async () => { throw new TypeError('Failed to fetch'); },
       async () => new Response('<html>', { status: 500, headers: { 'content-type': 'text/html' } }),
@@ -161,8 +161,8 @@ describe('fetchFacets (F4)', () => {
   });
 });
 
-describe('/module/:code for the detail and the hidden-code lines (5C)', () => {
-  it('[F1 fixed] /module/:code is fetched once per code: a second ask, even while the first is in flight, shares it', async () => {
+describe('/module/:code for the detail and the hidden-code lines', () => {
+  it('/module/:code is fetched once per code: a second ask, even while the first is in flight, shares it', async () => {
     const { fetch, calls } = fakeFetch([jsonResponse({ code: 'CS3244', title: 'Machine Learning' })]);
     const modules = createModuleClient({ fetch });
     const [a, b] = await Promise.all([modules.get('CS3244'), modules.get('cs3244')]);
@@ -180,7 +180,7 @@ describe('/module/:code for the detail and the hidden-code lines (5C)', () => {
     expect(calls).toHaveLength(2);
   });
 
-  it('6A: a 404\'s fields pass through as `detail`, and a 404 is kept as final; a 5xx is not', async () => {
+  it('a 404\'s fields pass through as `detail`, and a 404 is kept as final; a 5xx is not', async () => {
     const notFound = { error: 'not_found', message: 'NUS lists EE4407 for Sem 1, but NUSMods shows no classes.', kind: 'ng-listed', code: 'EE4407', ngSemesters: [1] };
     const { fetch, calls } = fakeFetch([jsonResponse(notFound, 404), jsonResponse({ error: 'upstream_failure', source: 'd1' }, 502), jsonResponse({ code: 'CS3244' })]);
     const modules = createModuleClient({ fetch });

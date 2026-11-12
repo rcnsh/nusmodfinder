@@ -1,22 +1,21 @@
 // @ts-check
-// Shared by the P-6 tests (test/sc4/*.node.test.js, test/full/sc4-prereg.node.test.js):
-// the suite and gibberish files, §4's row counts, the `interpreted` schema,
+// Shared by the query-suite tests (test/query-suite/*.node.test.js, test/full/query-suite-corpus.node.test.js):
+// the suite and gibberish files, the suite's row counts, the `interpreted` schema,
 // and the near-duplicate check against dev.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { REPO } from '../../eval/lib/sets.mjs';
 
-export const SUITE_PATH = join(REPO, 'test/sc4/queries.json');
-export const DOC_PATH = join(REPO, 'docs/plans/phase3-prereg.md');
+export const SUITE_PATH = join(REPO, 'test/query-suite/queries.json');
 export const GIBBERISH_PATH = join(REPO, 'eval/dev/gibberish.json');
-export const NEEDS_EMBEDDING_PATH = join(REPO, 'test/sc4/needs-embedding.txt');
+export const NEEDS_EMBEDDING_PATH = join(REPO, 'test/query-suite/needs-embedding.txt');
 /** Where the suite's and gibberish set's query embeddings go once embedded (eval cache format). */
-export const SC4_EMBEDDINGS_PATH = join(REPO, 'test/sc4/embeddings.json');
+export const SUITE_EMBEDDINGS_PATH = join(REPO, 'test/query-suite/embeddings.json');
 
 /** @returns {any} */
 export const readJson = (/** @type {string} */ path) => JSON.parse(readFileSync(path, 'utf8'));
 
-/** §4's item table: row key → n. */
+/** The suite's rows: row key → number of items. */
 export const ROW_COUNTS = Object.freeze({
   'space-code': 5,
   'code-vs-level': 3,
@@ -40,10 +39,10 @@ export const ROW_COUNTS = Object.freeze({
   guard: 29,
 });
 
-/** The `interpreted` schema (docs/plans/phase3-prereg.md, "The `interpreted` schema"). */
+/** The keys of `interpreted`, the parse the Worker echoes for a query. */
 export const INTERPRETED_KEYS = Object.freeze(['pin', 'prefix', 'ge', 'level', 'exam', 'su', 'hoursBelow', 'prereq']);
 
-/** The only dev texts §4 lets into the suite, and the row each belongs to. */
+/** The only dev texts allowed into the suite, and the row each belongs to. */
 export const ALLOWED_DEV = Object.freeze({ 'd-024': 'no-exam', 'd-079': 'ge-in-longer', 'd-022': 'ge-in-longer', 'd-016': 'unrouted-code-in-longer' });
 
 /** Lower-case, every non-alphanumeric run to one space. @param {string} s */

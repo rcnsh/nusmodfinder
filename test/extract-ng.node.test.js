@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7E (docs/plans/phase7.md 7E, tests first): scripts/extract-ng.py keeps only the target
+// scripts/extract-ng.py keeps only the target
 // year's sections. NUS prepends new sections, so an April PDF can hold Sem 1 of the next year above
 // Sem 2 of this one. Run over fake text with --from-text (no pypdf, no real PDF), the extractor
 // drops the other year's section and names it, fails on a published semester with no section,
@@ -62,7 +62,7 @@ describe('extract-ng.py, the target year only', () => {
     expect(r.stderr).toMatch(/Semester 1 section of .* has no rows/);
   });
 
-  it('fails on a section for a semester the manifest marks unpublished (G2), and passes without it', () => {
+  it('fails on a section for a semester the manifest marks unpublished, and passes without it', () => {
     const pages = [`${PAGE_HEAD}${heading(1, A, B)}\nFASS | History | HY1101E | Asia | 2 | Tue\n${heading(2, A, B)}\nSoC | CS | CS2030S | P | 3 | Wed\n`];
     const r = run(pages, ['--published', '1']);
     expect(r.status).toBe(1);

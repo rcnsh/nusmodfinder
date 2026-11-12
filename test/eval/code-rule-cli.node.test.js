@@ -1,6 +1,6 @@
 // @ts-check
-// The code-target rule through the CLIs: the red-team's cutoff demo on the
-// committed dev qrels, and `eval:judge -- code-rule --holdout` printing
+// The code-target rule through the CLIs: the cutoff check on five code
+// queries of the committed dev qrels, and `eval:judge -- code-rule --holdout` printing
 // counts only (a dev-derived fixture encrypted as holdout, throwaway key).
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -30,9 +30,9 @@ function node(script, args) {
 }
 
 const readJson = async (/** @type {string} */ p) => JSON.parse(await readFile(join(REPO, p), 'utf8'));
-const RED_TEAM = ['d-087', 'd-089', 'd-090', 'd-091', 'd-092'];
+const CODE_QUERIES = ['d-087', 'd-089', 'd-090', 'd-091', 'd-092'];
 
-describe('the red-team cutoff demo (dev)', () => {
+describe('a cutoff that empties code queries (dev)', () => {
   it('emptying the five code queries fails --change-kind cutoff: they are answerable losses, not correct empties', async () => {
     const querySet = await readJson('eval/dev/queries.json');
     const qrels = await readJson('eval/dev/qrels.json');
@@ -50,7 +50,7 @@ describe('the red-team cutoff demo (dev)', () => {
       queries: { version: querySet.version, sha256: createHash('sha256').update(JSON.stringify(querySet.queries)).digest('hex'), count: querySet.queries.length },
       config: { mode: 'hybrid' }, results: res, docs: {},
     });
-    const emptied = { ...results, ...Object.fromEntries(RED_TEAM.map((id) => [id, { status: 200, codes: [] }])) };
+    const emptied = { ...results, ...Object.fromEntries(CODE_QUERIES.map((id) => [id, { status: 200, codes: [] }])) };
     const dir = join(tmp, 'demo');
     await mkdir(dir, { recursive: true });
     await writeFile(join(dir, 'base.json'), JSON.stringify(run('base', results)));

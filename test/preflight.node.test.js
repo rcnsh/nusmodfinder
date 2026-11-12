@@ -1,7 +1,7 @@
 // @ts-check
-// Phase 7 7B: `npm run deploy -- --preflight` runs every check but D1's, for HEAD, and writes
-// a run record: the git checks, CI and Findings green on HEAD's push runs, the vars, the
-// bundle, 7D's corpus manifest and 7E's `year check` (each skipped, and said so, while its
+// `npm run deploy -- --preflight` runs every check but D1's, for HEAD, and writes a run record:
+// the git checks, CI green on HEAD's push run, the vars, the bundle, the corpus manifest and
+// `year check` (each skipped, and said so, while its
 // module is absent), a committed `year check --full` record when HEAD changes a source-derived
 // input, and `wrangler check startup`. It refuses on each failing check and writes nothing
 // remote. git, gh and wrangler are a fake exec (test/deploy-fakes.js).
@@ -68,11 +68,10 @@ describe('npm run deploy -- --preflight', () => {
       ['git', { 'git merge-base --is-ancestor HEAD refs/remotes/origin/main': { code: 1 } }, /not on origin\/main/],
       ['git', { 'git rev-parse refs/remotes/origin/main': { stdout: 'feedfacefeedfacefeedfacefeedfacefeedface\n' } }, /behind origin\/main.*--behind-ok/s],
       ['ci', { [RUNS_API]: { stdout: runsBody([]) } }, /no CI push run/],
-      ['ci', { [RUNS_API]: { stdout: runsBody([ghRun('CI', { status: 'in_progress', conclusion: null }), ghRun('Findings')]) } }, /gh run watch 101/],
-      ['ci', { [RUNS_API]: { stdout: runsBody([ghRun('CI', { conclusion: 'failure' }), ghRun('Findings')]) } }, /gh run rerun 101/],
-      ['ci', { [RUNS_API]: { stdout: runsBody([ghRun('CI', { conclusion: 'cancelled' }), ghRun('Findings')]) } }, /cancelled.*gh run rerun 101/s],
-      ['ci', { [RUNS_API]: { stdout: runsBody([ghRun('CI'), ghRun('Findings', { conclusion: 'failure' })]) } }, /Findings.*gh run rerun 202/s],
-      ['ci', { [RUNS_API]: { stdout: runsBody([ghRun('CI')]) } }, /no Findings push run/],
+      ['ci', { [RUNS_API]: { stdout: runsBody([ghRun('CI', { status: 'in_progress', conclusion: null })]) } }, /gh run watch 101/],
+      ['ci', { [RUNS_API]: { stdout: runsBody([ghRun('CI', { conclusion: 'failure' })]) } }, /gh run rerun 101/],
+      ['ci', { [RUNS_API]: { stdout: runsBody([ghRun('CI', { conclusion: 'cancelled' })]) } }, /cancelled.*gh run rerun 101/s],
+      ['ci', { [RUNS_API]: { stdout: runsBody([ghRun('CI', { head_sha: 'f'.repeat(40) })]) } }, /no CI push run/],
       ['ci', { [RUNS_API]: { code: 1, stdout: '' } }, /could not list/],
       ['startup', { check: { code: 2 } }, /wrangler check startup failed/],
     ];
@@ -95,9 +94,9 @@ describe('npm run deploy -- --preflight', () => {
   });
 
   it('refuses extra vars and any bundle but the production one', async () => {
-    const vars = await preflight(fakeExec().exec, { vars: { DENSE_BACKEND: 'bundle', SC1_TRACE: '1' } });
+    const vars = await preflight(fakeExec().exec, { vars: { DENSE_BACKEND: 'bundle', ORACLE_TRACE: '1' } });
     expect(vars.code).toBe(1);
-    expect(vars.out).toContain('SC1_TRACE');
+    expect(vars.out).toContain('ORACLE_TRACE');
     const pinned = await preflight(fakeExec().exec, { bundle: bundleOf({ corpus: 'pinned' }) });
     expect(pinned.code).toBe(1);
     expect(pinned.out).toContain('only the production bundle deploys');
@@ -111,7 +110,7 @@ describe('npm run deploy -- --preflight', () => {
     expect(records()[0]).toMatchObject({ args: ['--preflight', '--behind-ok'], details: { behindOk: true } });
   });
 
-  it('7D\'s and 7E\'s checks run when their modules exist, and refuse when they fail', async () => {
+  it('the corpus manifest and year checks run when their modules exist, and refuse when they fail', async () => {
     const ok = { preflight: async () => ({ ok: true, message: 'manifest current matches' }) };
     const bad = { preflight: async () => ({ ok: false, message: 'year sources disagree: public/year.js' }) };
     const pass = await preflight(fakeExec().exec, { modules: { [OPTIONAL_CHECKS[0].module]: ok, [OPTIONAL_CHECKS[1].module]: ok } });
@@ -123,10 +122,10 @@ describe('npm run deploy -- --preflight', () => {
   });
 });
 
-describe('the year check --full record (7E) is needed only when a source-derived input changes', () => {
+describe('the year check --full record is needed only when a source-derived input changes', () => {
   const NG = `data/ng-courses-${Y}.json`;
   const LS_TREE = `100644 blob ${'a'.repeat(40)}\t${NG}\n100644 blob ${'b'.repeat(40)}\tdata/ng-restrictions-${Y}.json\n100644 blob ${'c'.repeat(40)}\tsrc/search.js\n`;
-  const RECORD_PATH = 'docs/evidence/ops/runs/20261112T090000Z-year-check-ab12.json';
+  const RECORD_PATH = 'ops/runs/20261112T090000Z-year-check-ab12.json';
   /** @param {string} hash @param {string} [outcome] @param {Record<string, unknown>} [extra] */
   const yearRecord = (hash, outcome = 'ok', extra = { ngList: { result: 'byte-identical', semesters: { 1: 730, 2: 750 } } }) => JSON.stringify({
     schema: 'vnm-run/1', script: 'year check', outcome, details: { mode: 'full', sourceInputsHash: hash, ...extra },
@@ -136,11 +135,11 @@ describe('the year check --full record (7E) is needed only when a source-derived
   it('the source-derived paths', () => {
     for (const p of [NG, `data/ng-restrictions-${Y}.json`, `data/ng-sources-${Y}.json`, 'data/ng-reasons.json', `scripts/ng-overlay/${Y}.mjs`]) expect(isSourceInput(p), p).toBe(true);
     for (const p of ['data/groups.json', 'src/search.js', 'scripts/ingest.mjs', 'data/vectors.json']) expect(isSourceInput(p), p).toBe(false);
-    // 7E: a corpus-only refresh rewrites data/ng-unscheduled.json (it follows production) and needs no sources key.
+    // A corpus-only refresh rewrites data/ng-unscheduled.json (it follows production) and needs no sources key.
     expect(isSourceInput('data/ng-unscheduled.json')).toBe(false);
   });
 
-  // Red team H-1: a hand edit to the NG course list must need a record of its own.
+  // A hand edit to the NG course list must need a record of its own.
   it('the inputs hash covers data/ng-courses-*: a change to its blob alone moves the hash', async () => {
     const other = LS_TREE.replace(`${'a'.repeat(40)}\t${NG}`, `${'d'.repeat(40)}\t${NG}`);
     expect(other).not.toBe(LS_TREE);
@@ -161,20 +160,20 @@ describe('the year check --full record (7E) is needed only when a source-derived
   it('a change to one refuses without a committed record for HEAD\'s inputs hash, and passes with one', async () => {
     const hash = await sourceInputsHash(fakeExec(changed).exec);
     expect(hash).toMatch(/^[0-9a-f]{64}$/);
-    const none = await preflight(fakeExec({ ...changed, [`git ls-tree -r --name-only HEAD -- docs/evidence/ops/runs`]: { stdout: '' } }).exec);
+    const none = await preflight(fakeExec({ ...changed, [`git ls-tree -r --name-only HEAD -- ops/runs`]: { stdout: '' } }).exec);
     expect(none.code).toBe(1);
     expect(none.out).toMatch(/year check --full/);
     expect(none.out).toContain(NG);
 
     const withRecord = (/** @type {string} */ body) => fakeExec({
       ...changed,
-      'git ls-tree -r --name-only HEAD -- docs/evidence/ops/runs': { stdout: `${RECORD_PATH}\ndocs/evidence/ops/runs/20261112T080000Z-ingest-cd34.json\n` },
+      'git ls-tree -r --name-only HEAD -- ops/runs': { stdout: `${RECORD_PATH}\nops/runs/20261112T080000Z-ingest-cd34.json\n` },
       [`git show HEAD:${RECORD_PATH}`]: { stdout: body },
     }).exec;
     expect((await preflight(withRecord(yearRecord(hash)))).code).toBe(0);
     expect((await preflight(withRecord(yearRecord('f'.repeat(64))))).code).toBe(1);
     expect((await preflight(withRecord(yearRecord(hash, 'failed')))).code).toBe(1);
-    // A record from before the red team's H-1 fix never checked the NG list: it covers nothing.
+    // A record without details.ngList never re-extracted the NG list: it covers nothing.
     expect((await preflight(withRecord(yearRecord(hash, 'ok', {})))).code).toBe(1);
     expect((await preflight(withRecord(yearRecord(hash, 'ok', { ngList: { result: 'differs' } })))).code).toBe(1);
   });
@@ -198,9 +197,9 @@ describe('the year check --full record (7E) is needed only when a source-derived
   });
 });
 
-// Red team L-2 (docs/evidence/phase7/redteam.md): wranglerVars matched `"vars": {[^{}]*}`, so one
-// object-valued var made it answer {} and the vars check pass blind.
-describe('the vars check reads wrangler.jsonc as JSONC (red team L-2)', () => {
+// wranglerVars parses wrangler.jsonc as JSONC: a pattern match over the text would answer {} for
+// an object-valued var and let the vars check pass blind.
+describe('the vars check reads wrangler.jsonc as JSONC', () => {
   /** @type {string} */
   let tmp;
   beforeEach(() => { tmp = mkdtempSync(join(tmpdir(), 'vnm-preflight-vars-')); });
@@ -240,5 +239,5 @@ describe('the vars check reads wrangler.jsonc as JSONC (red team L-2)', () => {
 
 it('the default runs list reads HEAD\'s own push runs', () => {
   expect(RUNS_API).toContain(`head_sha=${SHA}&event=push`);
-  expect(GREEN).toContain('"Findings"');
+  expect(GREEN).toContain('"CI"');
 });

@@ -1,7 +1,7 @@
 // @ts-check
-// Building DOM nodes (Phase 5 5B, F8). Text only ever enters the page as a
-// Text node or through textContent, so data can never become markup; lint
-// bans every HTML-string sink in public/ (eslint.config.mjs).
+// Building DOM nodes. Text only ever enters the page as a Text node or through
+// textContent, so data can never become markup; lint bans every HTML-string
+// sink in public/ (eslint.config.mjs).
 
 /** @typedef {Node | string | number | null | undefined | false} Child */
 

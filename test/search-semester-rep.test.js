@@ -1,6 +1,5 @@
 // @ts-check
-// The semester representative (docs/decisions/0006, 3F's collapse; Phase 5's
-// dev screen, docs/evidence/phase5/gates.md "5F"): when a request names a
+// The semester representative (ADR 0006, the duplicate-group collapse): when a request names a
 // semester, a duplicate group stands as its highest-ranked member that passes
 // the filters and is on NUSMods' timetable in that semester, falling back to
 // the group's first-ranked passing member when none is. The group keeps its
@@ -13,7 +12,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import groupsFile from './fixtures/groups.json';
 import { parseGroupsFile } from '../src/groups.js';
 import { callJson, fixture, seed } from './helpers.js';
-import { recordingDb } from './findings/support.js';
+import { recordingDb } from './regressions/support.js';
 
 const OFF = { COLLAPSE_GROUPS: 'off' };
 const STANDBY = { DENSE_BACKEND: 'vectorize' };
@@ -135,7 +134,7 @@ describe('the fixture: NGN2001F (Sem 2 only) ranks above NGN2001G (Sem 1) in exc
   });
 
   it('still one variants read, with the columns a card needs when a semester can swap', async () => {
-    /** @type {import('./findings/support.js').DbCall[]} */
+    /** @type {import('./regressions/support.js').DbCall[]} */
     const log = [];
     const { body } = await callJson('/search?q=nus%20college&ng=1&study=ug2&sem=1&topK=20', { fakes, env: { DB: recordingDb(log) } });
     expect(codes(body)).toContain('NGN2001G');

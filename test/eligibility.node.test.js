@@ -1,9 +1,9 @@
 // @ts-check
 // src/eligibility.js with the committed rules (data/ng-restrictions-<DEFAULT_ACAD_YEAR>.json):
-// one case per interpretations-register row that touches a course this year
-// (docs/evidence/phase4/interpretations.md), the allow mask, and the rules
-// file's integrity against its sources and transcription. The whole-corpus
-// agreement with the independent oracle is test/full/sc1-oracle.node.test.js.
+// one case per interpretations-register row that touches a course this year (the
+// register the year's source manifest names), the allow mask, and the rules file's
+// integrity against its sources and transcription. The whole-corpus agreement with
+// the independent oracle is test/oracle/oracle.node.test.js.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ACAD_YEAR } from '../scripts/lib.mjs';
@@ -13,6 +13,8 @@ import { bitOf, eligibility, eligibilityMask, GRAD_LEVELS, NOT_NG_IN_SEM, OFF_NG
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 /** @type {import('../src/eligibility.js').Rules & { sourceSha256: Record<string, string>, info: { id: string }[], rules: { id: string }[] }} */
 const rules = JSON.parse(read(`../data/ng-restrictions-${DEFAULT_ACAD_YEAR}.json`));
+/** The year's source manifest: its documents and where its transcription lives. */
+const sources = JSON.parse(read(`../data/ng-sources-${DEFAULT_ACAD_YEAR}.json`));
 
 /**
  * A module as normalise() + offeredModules() give it, with the fields eligibility reads.
@@ -27,16 +29,16 @@ const mod = (code, over = {}) => ({
 const e = (m, sem, study) => eligibility(m, { sem, study }, rules);
 
 describe('the NG list (R1-R3)', () => {
-  it('R1: a course off the NG list is closed everywhere (Jacob, Q7)', () => {
+  it('R1: a course off the NG list is closed everywhere', () => {
     expect(e(mod('CS2030', { ng: false, ngSemesters: [] }), 'any', 'ug2')).toEqual({ status: 'closed', reasons: [OFF_NG_LIST] });
   });
-  it('NG-listed in Sem 2 only: closed in Sem 1, open in Sem 2 and either (P1: CS3244)', () => {
+  it('NG-listed in Sem 2 only: closed in Sem 1, open in Sem 2 and either (CS3244)', () => {
     const m = mod('CS3244', { department: 'Computer Science', faculty: 'Computing', ngSemesters: [2] });
     expect(e(m, 1, 'ug3')).toEqual({ status: 'closed', reasons: [NOT_NG_IN_SEM] });
     expect(e(m, 2, 'ug3').status).toBe('open');
     expect(e(m, 'any', 'ug3').status).toBe('open');
   });
-  it('R2: NG-listed in a semester NUSMods does not offer it in is a note (Jacob, Q5: PC3270)', () => {
+  it('R2: NG-listed in a semester NUSMods does not offer it in is a note (PC3270)', () => {
     const m = mod('PC3270', { department: 'Physics', faculty: 'Science', semesters: [2], ngSemesters: [1] });
     expect(e(m, 1, 'ug2')).toEqual({ status: 'note', reasons: [SEMESTER_MISMATCH] });
     expect(e(m, 2, 'ug2').reasons).toEqual([NOT_NG_IN_SEM]);
@@ -50,7 +52,7 @@ describe('levels (R4, R5, R7, C3-C5)', () => {
       expect(e(mod('CM5223', { department: 'Chemistry', faculty: 'Science' }), 'any', study).reasons).toEqual([GRAD_LEVELS]);
     }
   });
-  it('R5: Southeast Asian Studies level 5000 opens to 4th-years and graduates (C-3: CAS5101)', () => {
+  it('R5: Southeast Asian Studies level 5000 opens to 4th-years and graduates (CAS5101)', () => {
     const m = mod('CAS5101', { department: 'Southeast Asian Studies', faculty: 'Arts and Social Science', ngSemesters: [1] });
     expect(e(m, 1, 'ug3').status).toBe('closed');
     expect(e(m, 1, 'ug4')).toEqual({ status: 'note', reasons: ['1-sea-no-audit'] });
@@ -65,23 +67,23 @@ describe('levels (R4, R5, R7, C3-C5)', () => {
     const m = mod('AR5221', { department: 'Architecture', faculty: 'College of Design and Engineering', ngSemesters: [2] });
     expect(e(m, 2, 'ug2')).toEqual({ status: 'note', reasons: ['4-arch-major-architecture'] });
   });
-  it('C5: PC5202 is closed for graduates too: it is in a self-funded programme (Jacob, red team R1)', () => {
+  it('C5: PC5202 is closed for graduates too: it is in a self-funded programme', () => {
     expect(e(mod('PC5202', { department: 'Physics', faculty: 'Science' }), 'any', 'grad').reasons).toContain('A-self-funded');
   });
 });
 
 describe('conflicts and readings (C1, C2, C6, I1, I5, I9, I11)', () => {
-  it('C1: explicit closures of NG-listed courses (Jacob, Q1a)', () => {
+  it('C1: explicit closures of NG-listed courses', () => {
     expect(e(mod('LL4011V', { faculty: 'Law', department: "FoL Dean's Office" }), 'any', 'ug3').reasons).toContain('5-law-closed');
     expect(e(mod('GEC1011', { faculty: 'Yong Loo Lin Sch of Medicine', department: 'Microbiology and Immunology' }), 'any', 'ug2').reasons).toEqual(['A-medicine']);
     expect(e(mod('LSM2106', { faculty: 'Yong Loo Lin Sch of Medicine', department: 'Biochemistry' }), 'any', 'ug2').status).toBe('open');
   });
-  it('C2: blanket CG/DSA/GEH rules are a note outside their section\'s department (Jacob, Q1b)', () => {
+  it('C2: blanket CG/DSA/GEH rules are a note outside their section\'s department', () => {
     expect(e(mod('CG3201', { department: 'Computing and Engineering Programme', faculty: 'Multi Disciplinary Programme' }), 'any', 'ug2'))
       .toEqual({ status: 'note', reasons: ['3-soc-cg:elsewhere'] });
     expect(e(mod('DSA4211', { department: 'Statistics and Data Science', faculty: 'Science' }), 'any', 'ug3').reasons).toEqual(['8-math-dsa:elsewhere']);
   });
-  it('C6: NUS College courses are open (Jacob, Q6)', () => {
+  it('C6: NUS College courses are open', () => {
     expect(e(mod('NGN2001A', { department: "NUS College Dean's Office", faculty: 'NUS College' }), 'any', 'ug2').status).toBe('open');
   });
   it('I1: rule B closes only its 7 listed X courses, not every X-suffix course', () => {
@@ -108,7 +110,7 @@ describe('conflicts and readings (C1, C2, C6, I1, I5, I9, I11)', () => {
     expect(e(mod('HY3288', { ...fass, title: 'UROPS in History' }), 'any', 'ug3').reasons).toContain('C-urop-fass');
     expect(e(mod('PH3207', { ...fass, department: 'Philosophy', title: 'European Philosophy' }), 'any', 'ug3').status).toBe('open');
   });
-  it('I19: "cannot be audited" is a note on Southeast Asian, South Asian and Malay Studies courses (Jacob, red team R2)', () => {
+  it('I19: "cannot be audited" is a note on Southeast Asian, South Asian and Malay Studies courses', () => {
     for (const [code, department] of [['SE2217', 'Southeast Asian Studies'], ['SN3283', 'South Asian Studies'], ['GESS1006', 'Malay Studies']]) {
       const r = e(mod(code, { department, faculty: 'Arts and Social Science' }), 1, 'ug3');
       expect(r.status, code).toBe('note');
@@ -139,17 +141,16 @@ describe('the allow mask', () => {
 });
 
 describe('the rules file', () => {
-  it('records the source hashes docs/evidence/phase4/sources.md lists', () => {
-    const md = read('../docs/evidence/phase4/sources.md');
-    /** @type {Record<string, string>} */
-    const listed = {};
-    for (const m of md.matchAll(/^\| `([^`]+)` \|.*\| `([0-9a-f]{64})` \|$/gm)) listed[m[1]] = m[2];
+  it('records the hashes of the builder\'s documents in the source manifest\'s newest revision', () => {
+    /** @type {{ file: string, sha256: string, builder?: boolean }[]} */
+    const documents = sources.revisions.at(-1).documents;
+    const listed = Object.fromEntries(documents.filter((d) => d.builder).map((d) => [d.file, d.sha256]));
     expect(Object.keys(listed).length).toBeGreaterThanOrEqual(6);
     expect(rules.sourceSha256).toEqual(listed);
   });
   it('accounts for every transcribed rule, as a rule or as info, with unique ids', () => {
     /** @type {{ rules: { id: string }[] }} */
-    const transcription = JSON.parse(read('../docs/evidence/phase4/transcription-b.json'));
+    const transcription = JSON.parse(read(`../${sources.transcription}`));
     const ids = rules.rules.map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
     const covered = new Set([...ids.map((id) => id.split(':')[0]), ...rules.info.map((i) => i.id)]);

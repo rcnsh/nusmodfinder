@@ -1,5 +1,5 @@
 // @ts-check
-// groups-v1, the duplicate-group rule (docs/plans/phase3.md 3F, A-2, C-8): one
+// groups-v1, the duplicate-group rule: one
 // rule for the eval's scoring and the product's collapse. Pure: the eval
 // imports it (eval/lib/groups.mjs), and the Worker reads its output from a
 // versioned module (data/groups.json, built with the production bundle by

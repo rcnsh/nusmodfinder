@@ -1,10 +1,10 @@
 // @ts-check
-// 3H in /search (docs/plans/phase3.md 3H): the explicit params `exam=0`,
+// Constraint intents in /search: the explicit params `exam=0`,
 // `su=1`, `hoursBelow=N` and `prereq=none` are hard filters in SQL, in the
 // bundle's filter table and on every hydrated dense row, in every mode and
-// route, on results, pins, 3F variants and a not-offered code's neighbours.
-// Each param joins the cache key (plan §2 "Response cache key"). Phrases in q
-// are read (PARSE_PHRASES on after L8; off from L7 until then, ADR 0006).
+// route, on results, pins, duplicate-group variants and a not-offered code's neighbours.
+// Each param joins the cache key. Phrases in q are read too (PARSE_PHRASES,
+// ADR 0003 and ADR 0006).
 import { beforeAll, describe, expect, it } from 'vitest';
 import { INTENT, PARSE_PHRASES } from '../src/intents.js';
 import { searchCacheKey } from '../src/search.js';
@@ -13,7 +13,7 @@ import { BASE, adminCall, callJson, fixture, seed } from './helpers.js';
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
 const CSCU = 'Completed Satisfactory/Unsatisfactory';
 /**
- * Whether a module satisfies a 3H constraint, as the plan states it.
+ * Whether a module satisfies a constraint, stated independently of src/.
  * @param {NormalisedModule} m @param {string} param @param {number} [sem]
  */
 function satisfies(m, param, sem) {
@@ -74,8 +74,8 @@ describe('explicit params', () => {
   });
 });
 
-describe('phrases in q (PARSE_PHRASES on after L8: ADR 0003 5F amendment, docs/evidence/phase5/gates.md)', () => {
-  it('are read as their 3H intent, and ignore= undoes each one', async () => {
+describe('phrases in q (PARSE_PHRASES on)', () => {
+  it('are read as their constraint intent, and ignore= undoes each one', async () => {
     expect(PARSE_PHRASES).toBe(true);
     for (const [q, key] of [['introduction without final exam', 'exam'], ['introduction s/u', 'su'], ['introduction light workload', 'hoursBelow'], ['introduction no prerequisites', 'prereq']]) {
       const { body } = await callJson(`/search?q=${encodeURIComponent(q)}&topK=50`, { fakes });
@@ -103,7 +103,7 @@ describe('explicit params on masks and pins', () => {
 });
 
 describe('a not-offered code\'s related neighbours', () => {
-  it('hold every 3H param on the bundle and on the standby', async () => {
+  it('hold every constraint param on the bundle and on the standby', async () => {
     for (const [q, param] of [['GEQ1000&exam=0', 'exam=0'], ['GEQ1000&su=1', 'su=1'], ['GEQ1000&hoursBelow=10', 'hoursBelow=10'],
       ['GEQ1000&prereq=none', 'prereq=none']]) {
       for (const env of [{}, { DENSE_BACKEND: 'vectorize' }]) {
@@ -117,7 +117,7 @@ describe('a not-offered code\'s related neighbours', () => {
   });
 });
 
-describe('the cache key (plan §2, beside the B7 key tests)', () => {
+describe('the cache key (beside the canonical-key tests in test/regressions/backend.test.js)', () => {
   it('each param changes the key; spelling and order do not', () => {
     const key = (/** @type {string} */ qs) => searchCacheKey(`${BASE}/search?q=x${qs}`)?.url;
     const plain = key('');

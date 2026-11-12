@@ -1,9 +1,8 @@
-// The SC1 oracle's year-invariant readings (Phase 7 7E: moved out of the 2026/27 oracle, as
-// written): R3's year-of-study note, read from a course's NUS prerequisite, and R6-2's GRO level
-// 4000 note. Neither depends on a year's PDFs, so every year's oracle (test/sc1/oracle-<year>.node.mjs)
-// imports them from here, and the selector (test/sc1/oracle.mjs) re-exports them.
+// The oracle's year-invariant readings, as their author wrote them: the year-of-study note, read from a course's NUS prerequisite, and GRO's level
+// 4000 note. Neither depends on a year's PDFs, so every year's oracle (test/oracle/oracle-<year>.node.mjs)
+// imports them from here, and the selector (test/oracle/oracle.mjs) re-exports them.
 //
-// R3 (Jacob's ruling, docs/decisions/0008-phase5-frontend-plan.md): a NUS prerequisite that requires an
+// The year-of-study note (ADR 0007): a NUS prerequisite that requires an
 // undergraduate year of study ("must be Year N") leaves the status above alone, but an undergraduate
 // whose home year is below N gets an "ask NUS" note on a course that is not closed. explainShown() and
 // oracleShown() add it; explain() and oracle() stay the Registrar's lists only (what ingest stores).
@@ -17,9 +16,9 @@
 //      that is an alternative anywhere above (an OR group, or an ambiguous one) gives no note.
 //  Y4  "or greater" (and higher, better, above, more) after a GPA or units figure is a comparison, not OR.
 //  Y5  Several binding items: the one with the highest lowest year. The note fires when the home year
-//      (ug1..ug4 = 1..4) is below that lowest year; a home year above every year named is not R3's case.
+//      (ug1..ug4 = 1..4) is below that lowest year; a home year above every year named gets no note.
 //
-// R6-2 (Jacob's ruling, docs/decisions/0010-phase6-shortlist-plan.md): NUS Global (GRO), "Incoming Exchange
+// The level-4000 note (ADR 0007): NUS Global (GRO), "Incoming Exchange
 // Students": "Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very
 // limited supply and are usually NOT available to exchange students." It leaves the status above alone, but
 // a course that is not closed gets it as a note (a condition, like a quota). explainShown() and
@@ -29,11 +28,11 @@
 //      level 5000 and 6000 courses are graduate courses). So the undergraduate courses "from 4000 & above"
 //      are those whose code's first digit is 4. A graduate course is rule D's and the departments' business.
 //  G2  Undergraduate exchange students only (ug1..ug4): GRO's list is of "courses available to undergraduate
-//      exchange students" (phase 6 plan, C5-m1: no note for a graduate).
-//  G3  Not Law (C5-m1): §5 opens only LL4 electives to exchange students, so every Law course on the list
+//      exchange students" (no note for a graduate).
+//  G3  Not Law: §5 opens only LL4 electives to exchange students, so every Law course on the list
 //      is level 4000 and NUS Law, not the general pool, decides who takes it. By NUSMods `faculty` (D3).
 
-// ---- R3: the year-of-study note ---------------------------------------------------------------------
+// ---- The year-of-study note ---------------------------------------------------------------------
 
 /** The years an unambiguous prerequisite requires of every undergraduate (Y1-Y5), ascending, or null. */
 export function prereqYears(prerequisite) {
@@ -104,21 +103,21 @@ export function prereqYears(prerequisite) {
   return binding[0];
 }
 
-/** R3's note for (m, study), or null. */
+/** The year-of-study note for (m, study), or null. */
 export function yearNoteOf(m, study) {
   const home = { ug1: 1, ug2: 2, ug3: 3, ug4: 4 }[study];
   if (!home) return null;
   const years = prereqYears(m.prerequisite);
   if (!years || home >= years[0]) return null;
-  return `R3: NUS's prerequisite lists it for Year ${years.join('/')}`;
+  return `year-of-study: NUS's prerequisite lists it for Year ${years.join('/')}`;
 }
 
-// ---- R6-2: GRO's level 4000 note -----------------------------------------------------------------------
+// ---- GRO's level 4000 note -----------------------------------------------------------------------
 
-/** R6-2's note for (m, study) (G1-G3), or null. */
+/** The level 4000 note for (m, study) (G1-G3), or null. */
 export function levelNoteOf(m, study) {
   if (!['ug1', 'ug2', 'ug3', 'ug4'].includes(study)) return null;
   const firstDigit = (String(m.code).match(/\d/) || [''])[0];
   if (firstDigit !== '4' || m.faculty === 'Law') return null;
-  return 'R6-2: GRO, level 4000 undergraduate courses have very limited supply';
+  return 'level-4000: GRO, level 4000 undergraduate courses have very limited supply';
 }

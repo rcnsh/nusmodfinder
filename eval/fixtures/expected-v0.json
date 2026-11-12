@@ -1,6 +1,6 @@
 {
- "note": "Golden output of the fixture set at ranker eval-v0 (7ac9841) with the committed fixture embeddings. eval-v0 never changes, so any difference is a harness or embedding change. Regenerate only deliberately: see eval/README.md.",
- "ranker": "7ac984174ded88cb2b6497d9835b456981acdd99",
+ "note": "Golden output of the fixture set at ranker eval-v0 (5c5cce4) with the committed fixture embeddings. eval-v0 never changes, so any difference is a harness or embedding change. Regenerate only deliberately: see eval/README.md.",
+ "ranker": "5c5cce441bd33c8f66bb2857e4d7f5584cbc20ed",
  "queries": {
   "version": "fixture-v1",
   "sha256": "08d73068003967bf09662935be7cc716c397b7606a46977f28ff87894915cacf",

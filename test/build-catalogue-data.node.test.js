@@ -1,15 +1,14 @@
 // @ts-check
-// Phase 7 7D: the catalogue codes, the prefixes and catalogue-only.json follow
-// the corpus. scripts/build-3b-data.mjs builds them from `current` (data/) and
+// The catalogue codes, the prefixes and catalogue-only.json follow the corpus. scripts/build-catalogue-data.mjs builds them from `current` (data/) and
 // from the pinned corpus (data/pinned/), and `--check` fails on a committed
 // file that is not what the build writes. Fake records in a temp dir: no corpus
-// needed. test/full/build-3b-data.node.test.js checks the committed pinned
+// needed. test/full/build-catalogue-data.node.test.js checks the committed pinned
 // files against the real pinned corpus.
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { CORPUS_OUTPUTS, corpusFiles, staleFiles } from '../scripts/build-3b-data.mjs';
+import { CORPUS_OUTPUTS, corpusFiles, staleFiles } from '../scripts/build-catalogue-data.mjs';
 import { offeredModules } from '../scripts/lib.mjs';
 
 /** @param {string} code @param {number[]} sems */
@@ -33,7 +32,7 @@ async function writeAll(files) {
   }
 }
 
-describe('the per-corpus 3B files', () => {
+describe('the per-corpus query-understanding files', () => {
   const { modules } = offeredModules(RECORDS, SOURCE.acadYear);
 
   it('are the offered prefixes, the catalogue-only codes and their rows, for production under data/ and pinned under data/pinned/', () => {

@@ -1,6 +1,6 @@
 // @ts-check
-// Plain sentences for every error and every no-match answer (Phase 5 5B, F7).
-// The page never shows a raw code (`rate_limited`) or the server's message.
+// Plain sentences for every error and every no-match answer. The page never
+// shows a raw code (`rate_limited`) or the server's message.
 // test/web/messages.node.test.js reads src/ for every code and reason the
 // Worker can answer, so a new one fails the tests until it has a sentence here.
 
@@ -18,7 +18,7 @@ export const ERROR_SENTENCES = Object.freeze({
   bad_request: 'That search could not be run. Check the query and the filters, then try again.',
   'study-required': 'Choose your year of study to see the courses open to you as an exchange student.',
   rate_limited: 'Too many searches from your connection. Try again in a minute.',
-  // Phase 8 8B: /search refuses a search another site's page sent. Retrying never helps, so it says where to search.
+  // /search refuses a search another site's page sent. Retrying never helps, so it says where to search.
   cross_site: 'This search was sent from another website, so it was not run. Open NUS Mod Finder itself to search.',
   upstream_failure: `The search service could not reach its course data. ${TRY_AGAIN}`,
   internal: `Something went wrong in the search service. ${TRY_AGAIN}`,
@@ -54,7 +54,7 @@ export function errorSentence(error) {
  * @typedef {{ query: string, noMatch?: NoMatch | null }} NoMatchBody
  */
 
-/** The student's query, capped and quoted (5G S2). */
+/** The student's query, capped and quoted. */
 const quoted = quoteUser;
 
 /**
@@ -74,7 +74,7 @@ export const NO_MATCH = Object.freeze({
   'ng-special-term': () => "The NG list covers only Sem 1 and Sem 2, not NUS's special terms (short terms in the vacation). Choose Sem 1 or Sem 2.",
   'not-offered': (_b, nm) => `${nm.code}${nm.title ? ` (${nm.title})` : ''} isn't offered this academic year.`,
   'unknown-code': (_b, nm) => `There is no course ${nm.code} in the NUS catalogue. Check the code.`,
-  // 6A: on the NG list, with no classes in NUSMods this year (data/ng-unscheduled.json).
+  // On the NG list, with no classes in NUSMods this year (data/ng-unscheduled.json).
   'ng-unscheduled': (_b, nm) => `NUS lists ${nm.code}${nm.title ? ` (${nm.title})` : ''} for ${listedFor(nm.ngSemesters)}, but NUSMods shows no classes for it this academic year.`,
   'no-signal': (b) => `Nothing in the catalogue matches ${quoted(b.query)}. Try other words for the topic.`,
 });

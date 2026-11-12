@@ -1,6 +1,6 @@
 // @ts-check
-// The two baseline pins (ADR 0003): the SC5 / test-set baseline is eval-v0 =
-// 7ac9841 and never moves; the shipped-ranker pin, which per-change holdout
+// The two baseline pins (ADR 0003): the test-set baseline is eval-v0 =
+// 5c5cce4 and never moves; the shipped-ranker pin, which per-change holdout
 // looks compare against, moves only in the PR that ships a change, with a
 // line in ADR 0003's "Shipped-ranker pin" section. The CLI's use of each is
 // tested end to end in gate-custody.node.test.js.
@@ -11,8 +11,8 @@ import { baselinePinFor, PINNED_BASELINE, pinLabel, SHIPPED_BASELINE } from '../
 import { REPO } from '../../eval/lib/sets.mjs';
 
 describe('baseline pins', () => {
-  it('the SC5 / test-set baseline is eval-v0 = 7ac9841', () => {
-    expect(PINNED_BASELINE).toEqual({ ref: 'eval-v0', sha: '7ac984174ded88cb2b6497d9835b456981acdd99' });
+  it('the test-set baseline is eval-v0 = 5c5cce4', () => {
+    expect(PINNED_BASELINE).toEqual({ ref: 'eval-v0', sha: '5c5cce441bd33c8f66bb2857e4d7f5584cbc20ed' });
     expect(Object.isFrozen(PINNED_BASELINE)).toBe(true);
   });
 
@@ -27,16 +27,13 @@ describe('baseline pins', () => {
     expect(Object.isFrozen(SHIPPED_BASELINE)).toBe(true);
   });
 
-  it('SC5 verdicts (the test set, or --gate sc5) use the SC5 pin; per-change holdout looks the shipped pin', () => {
-    expect(baselinePinFor('test', {})).toBe(PINNED_BASELINE);
-    expect(baselinePinFor('holdout', { gate: 'sc5' })).toBe(PINNED_BASELINE);
-    for (const change of [{}, { kind: /** @type {const} */ ('cutoff') }, { targetShapes: ['topical'] }]) {
-      expect(baselinePinFor('holdout', change)).toBe(SHIPPED_BASELINE);
-    }
+  it('the test set uses eval-v0; per-change holdout looks use the shipped pin', () => {
+    expect(baselinePinFor('test')).toBe(PINNED_BASELINE);
+    expect(baselinePinFor('holdout')).toBe(SHIPPED_BASELINE);
   });
 
   it('labels a tag pin with its name and a plain-sha pin with its short sha', () => {
-    expect(pinLabel(PINNED_BASELINE)).toBe('eval-v0 7ac9841');
+    expect(pinLabel(PINNED_BASELINE)).toBe('eval-v0 5c5cce4');
     expect(pinLabel({ ref: 'a'.repeat(40), sha: 'a'.repeat(40) })).toBe('aaaaaaa');
   });
 });

@@ -1,5 +1,5 @@
 // @ts-check
-// Runbook step 8 (docs/plans/phase3.md 3-0, B-1, B2-1, B3-3): bring the
+// Runbook step 8: bring the
 // Vectorize standby level with the bundle. The admin API and the parsed
 // bundle are injected and no Node API is used, so the Worker tests run this
 // exact code against the real /admin/vectors route and the fake index.

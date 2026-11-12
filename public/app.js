@@ -1,27 +1,26 @@
 // @ts-check
-// The page's controller (Phase 5 5B, 5C): reads the URL into state, keeps the
-// form and the URL in step through nav.js's transitions, searches through
-// api.js, and renders with render.js. 5C adds the cards' disclosure (one open
-// detail, `open=`), the detail from /module/:code, why typed codes are hidden,
-// and the partial-code check of the other semester. 5D lays it out as direction
-// D: the exchange set-up as the first screen (D2), then a rail with the set-up,
-// filters and key beside the search; removable filter chips; and on a phone
-// one search bar with the rail in a modal "Filters" dialog (F10). 5E (F5,
-// SC8): a skip link to the shown <main>; one polite live region that says each
-// answer in a sentence (the count or why there is none, the typed codes not
-// shown, errors and 429); the Search button is never disabled, so it keeps
-// focus, and a second search aborts the first; Escape closes the open detail
-// and focus returns to its button, as it does after Back to an open detail.
-// 5G: an "Also as" code is a link to its own search with its detail open
-// ("Opened from …", `from=`); a hidden typed code carries a stamp, and a
-// "Switch to Sem 2" button when the other semester is open to the student.
-// 6B (Phase 6): the shortlist (`pick`, `alt`, `ay`, `inv`) is page-wide, held
-// apart from `current` (list.js); every history write goes through one writer
+// The page's controller: reads the URL into state, keeps the form and the URL
+// in step through nav.js's transitions, searches through api.js, and renders
+// with render.js. Each card is a disclosure (one open detail, `open=`) whose
+// detail comes from /module/:code; typed codes that are hidden say why, and a
+// partial code checks the other semester. The exchange set-up is the first
+// screen, then a rail with the set-up, filters and key beside the search;
+// filter chips are removable; on a phone the search is one bar with the rail in
+// a modal "Filters" dialog. A skip link goes to the shown <main>; one polite
+// live region says each answer in a sentence (the count or why there is none,
+// the typed codes not shown, errors and 429); the Search button is never
+// disabled, so it keeps focus, and a second search aborts the first; Escape
+// closes the open detail and focus returns to its button, as it does after
+// Back to an open detail. An "Also as" code is a link to its own search with
+// its detail open ("Opened from …", `from=`); a hidden typed code carries a
+// stamp, and a "Switch to Sem 2" button when the other semester is open to the
+// student.
+// The shortlist (`pick`, `alt`, `ay`, `inv`) is page-wide, held apart from
+// `current` (list.js); every history write goes through one writer
 // (history.js); Back and Forward keep the list and write it into the entry
 // they reach; edits replace the entry at once and keep a copy on this device
-// (saved.js, G3). 6C: the shortlist's controls: a toggle on each card and in
-// the detail head, the shortlist button (in the rail, and on a phone under the
-// search form), and the view (shortlist-view.js, `view=shortlist`) with its
+// (saved.js). Its controls: a toggle on each card and in the detail head, the
+// shortlist button (in the rail, and on a phone under the search form), and the view (shortlist-view.js, `view=shortlist`) with its
 // own history entries; rows load from /module four at a time; every edit says
 // what it did in the live region; while the view is shown the search behind
 // it neither speaks nor moves focus.
@@ -118,12 +117,12 @@ function announce(text) {
   }
 }
 
-/** When the page last said what an edit did (6C: the rows' "done" sentence then waits its turn). */
+/** When the page last said what an edit did (the rows' "done" sentence then waits its turn). */
 let editSaidAt = 0;
 /**
  * What the search says (its count, why there is none, a detail that failed,
  * the other semester's check). While the shortlist view is shown the search
- * runs behind it and says nothing (6B, 6C).
+ * runs behind it and says nothing.
  * @param {string} text
  */
 function resultsSay(text) {
@@ -140,7 +139,7 @@ function message(text, error = false) {
   resultsSay(text);
 }
 
-// Static option lists (F4): every filter but faculty works before /facets answers.
+// Static option lists: every filter but faculty works before /facets answers.
 for (const o of SEMESTERS) els.sem.add(new Option(o.label, o.value));
 for (const o of LEVELS) els.level.add(new Option(o.label, o.value));
 for (const c of CREDITS) els.credits.add(new Option(unitsLabel(c), c));
@@ -163,9 +162,9 @@ const radio = (cls, name, value, content) => {
 // The rail's semester at NUS in exchange mode: Sem 1, Sem 2 or both. It drives
 // #sem, which holds the value in every mode.
 for (const [value, label] of [['1', 'Sem 1'], ['2', 'Sem 2'], ['', 'Both']]) els.semSegOptions.append(radio('seg-opt', 'xsem', value, [label]));
-// The header's year line (Phase 8 8B): the year's lists, and a clause for next year's applicants.
+// The header's year line: the year's lists, and a clause for next year's applicants.
 setChildren($('yearLine'), headerYearLine(DEFAULT_ACAD_YEAR));
-// The first screen's two questions (D2).
+// The first screen's two questions.
 const months = semesterMonths(DEFAULT_ACAD_YEAR);
 for (const [value, name, when] of [['1', 'Sem 1', months[1]], ['2', 'Sem 2', months[2]], ['', 'Both semesters', months.both]]) {
   els.setupSems.append(radio('tile', 'setupSem', value, [h('b', null, name), h('small', null, when), icon('tick', 'tick')]));
@@ -219,9 +218,9 @@ const EMPTY = 'Type what you want to study in the box above, then press Search.'
 let current = parseState(new URLSearchParams(location.search));
 
 /**
- * The shortlist (6B): page-wide, not per entry. Read from the URL once; Back
+ * The shortlist: page-wide, not per entry. Read from the URL once; Back
  * and Forward keep it. `droppedOnLoad`: how many of the link's values it left
- * out (malformed, duplicates, past a cap), for the view to say (6C).
+ * out (malformed, duplicates, past a cap), for the view to say.
  */
 const loaded = parseList(new URLSearchParams(location.search));
 let list = loaded.list;
@@ -242,7 +241,7 @@ const rowYear = (l = list) => {
 
 /** The test hooks, when a spec installs `globalThis.vnmTest` before the page loads. */
 const testHooks = /** @type {any} */ (globalThis).vnmTest;
-/** Every pushState and replaceState the page makes (6B). */
+/** Every pushState and replaceState the page makes. */
 const writer = createWriter({ history, forceCoalesce: testHooks?.forceCoalesce === true });
 /** The page URL for a state, with the list. @param {State} s */
 const pageUrl = (s) => urlFor(s, list, location.pathname);
@@ -251,7 +250,7 @@ const pageUrl = (s) => urlFor(s, list, location.pathname);
 const storage = (() => { try { return localStorage; } catch { return null; } })();
 
 /**
- * The query the view opened with (6B): while the view is shown the box keeps
+ * The query the view opened with: while the view is shown the box keeps
  * whatever the student types, and on closing it keeps text that differs from
  * this. null when the view isn't shown.
  * @type {string | null}
@@ -260,7 +259,7 @@ let viewQ = null;
 
 /** @param {State} s */
 function applyToForm(s) {
-  // While the view is shown the box is the student's, not the state's (6B "settings" while the view is shown).
+  // While the view is shown the box is the student's, not the state's (see nav.js: settings while the view is shown).
   const keepBox = viewQ !== null && (s.view !== '' || els.q.value !== viewQ);
   if (!keepBox) els.q.value = s.q;
   selectValue(els.sem, s.sem);
@@ -279,7 +278,7 @@ function applyToForm(s) {
 }
 
 /**
- * The first screen (the exchange set-up, D2) shows until the student searches
+ * The first screen (the exchange set-up) shows until the student searches
  * or chooses to browse, or a link opens the page with any state; then the
  * results layout stays for the page's life, Back to an empty entry included.
  */
@@ -337,7 +336,7 @@ function chipList(s) {
   }
   if (s.level) out.push({ key: 'level', label: levelLabel(s.level), removable: true });
   if (s.credits) out.push({ key: 'credits', label: unitsLabel(s.credits), removable: true });
-  // Until /facets lists it, a link's faculty is the student's own text: quoted (5G S2).
+  // Until /facets lists it, a link's faculty is the student's own text: quoted.
   if (s.faculty) out.push({ key: 'faculty', label: facultyNames?.has(s.faculty) ? s.faculty : quoteUser(s.faculty), removable: true });
   return out;
 }
@@ -368,14 +367,14 @@ function readForm() {
 }
 
 const search = createSearchClient();
-/** Answers already shown, by /search query string, so Back re-renders without a fetch (F3). */
+/** Answers already shown, by /search query string, so Back re-renders without a fetch. */
 const answers = new Map();
 const ANSWERS_KEPT = 50;
 const targets = { status: els.status, results: els.results };
 const moduleClient = createModuleClient();
 /**
  * /module/:code through the shared client, noting each row's acad year: a row
- * loaded before its code joins the list still gives `ay` (6B).
+ * loaded before its code joins the list still gives `ay`.
  */
 const modules = {
   /** @param {string} code */
@@ -385,7 +384,7 @@ const modules = {
   }),
 };
 /**
- * The last search's error kind, kept beside `shown` (6B): Back and Forward to
+ * The last search's error kind, kept beside `shown`: Back and Forward to
  * the same search run it again only after a network or server error, never
  * after a 429. Null when the last search answered.
  * @type {'retry' | 'rate' | 'other' | null}
@@ -402,7 +401,7 @@ let sources = null;
 let shown = null;
 
 // The links the page renders carry no list and no view: a new tab starts with
-// no list (or offers the remembered one, G3), so two tabs never fork one list.
+// no list (or offers the remembered one), so two tabs never fork one list.
 /** A link to the search for a course code, keeping the filters and exchange set-up. @param {string} code */
 const searchHref = (code) => urlFor({ ...current, q: code, ignore: [], open: '', from: '', view: '' }, emptyList(), location.pathname);
 /** An "Also as" link: the other code's search, its detail open, from the entry. @param {string} code @param {string} from */
@@ -434,8 +433,8 @@ async function loadDetail(code, region, { quiet = false } = {}) {
 }
 
 /**
- * `from=` makes the detail say the open course and that code are one course
- * (5G S1): it stands only when the code is one of the open entry's own other
+ * `from=` makes the detail say the open course and that code are one course:
+ * it stands only when the code is one of the open entry's own other
  * codes ("Also as"). Otherwise it is dropped, from the state and the URL, so a
  * crafted link can't claim two unrelated courses are the same.
  * @param {State} s
@@ -456,7 +455,7 @@ function checkFrom(s) {
 }
 
 /**
- * Opens the state's detail and closes every other (at most one, A2-4).
+ * Opens the state's detail and closes every other (at most one).
  * `focusCode`: return focus to that card's button (a detail just closed).
  * @param {State} s
  * @param {string} [focusCode]
@@ -486,9 +485,9 @@ function announceAnswer() {
 }
 
 /**
- * Says why each hidden typed code isn't shown, from its own stored reasons
- * (D4), under a stamp; where the other semester is open to the student, a
- * button switches to it (5G, direction D).
+ * Says why each hidden typed code isn't shown, from its own stored reasons,
+ * under a stamp; where the other semester is open to the student, a
+ * button switches to it.
  */
 function explainHidden() {
   if (!shown) return;
@@ -561,7 +560,7 @@ async function actThenFocus(action, code) {
 
 /**
  * A partial code emptied in one semester: does the other semester have
- * results? The button to see it appears only if it does (C3-2).
+ * results? The button to see it appears only if it does.
  * @param {State} s
  */
 async function checkOtherSemester(s) {
@@ -608,7 +607,7 @@ function render(s, key, body) {
 }
 
 /**
- * The chips for the phrases /search read from the query (5F); removing one
+ * The chips for the phrases /search read from the query; removing one
  * re-runs the search with `ignore=` that intent.
  * @param {any} body
  */
@@ -639,7 +638,7 @@ async function show(s, { fromUser = false, submitted = false } = {}) {
       // runs this inside the label's activation, and WebKit then focuses the
       // checkbox itself where checkboxes take focus on click (Linux), which
       // would undo a focus moved here.
-      // Not while the view is shown: its own controls keep focus (6C's export question).
+      // Not while the view is shown: its own controls keep focus (the export question).
       if (fromUser && !s.view) setTimeout(() => els.study.focus(), 0);
     } else if (leftSetup) {
       message(EMPTY);
@@ -664,7 +663,7 @@ async function show(s, { fromUser = false, submitted = false } = {}) {
     render(s, key, answers.get(key));
     return;
   }
-  // The Search button stays enabled (5E, F5): disabling the focused button
+  // The Search button stays enabled: disabling the focused button
   // would drop focus to the page, and a second search aborts this one anyway.
   shown = null;
   showLoading(targets);
@@ -689,7 +688,7 @@ async function show(s, { fromUser = false, submitted = false } = {}) {
  * @returns {Promise<void>}
  */
 async function act(action) {
-  // A pending edit lands in the entry being left first (6B).
+  // A pending edit lands in the entry being left first.
   writer.flush();
   const detailPushed = writer.state()?.vnmDetail === true;
   const { state, op } = transition(current, action, { detailPushed });
@@ -699,7 +698,7 @@ async function act(action) {
   const url = pageUrl(state);
   const before = current;
   if (action.type === 'openView') {
-    // The view's entry (6B): it records the search it opened from, and this page pushed it (a detail
+    // The view's entry: it records the search it opened from, and this page pushed it (a detail
     // entry this page pushed is replaced by it), so closing it with nothing changed goes back().
     const data = { vnmShortlist: true, atOpen: searchKey(current) };
     if (op === 'replace-push') writer.replace(pageUrl({ ...current, open: '', from: '' }), null);
@@ -741,7 +740,7 @@ els.form.addEventListener('submit', (e) => {
   act({ type: 'submit', form: readForm() });
 });
 // Enter is bound explicitly so the primary interaction never depends on
-// implicit form submission, and so it can wait for IME composition (F9).
+// implicit form submission, and so it can wait for IME composition.
 /**
  * @param {HTMLInputElement} input
  * @param {() => void} submit
@@ -787,7 +786,7 @@ els.chips.addEventListener('click', (e) => {
   (left[Math.min(at, left.length - 1)] ?? els.q).focus();
 });
 
-// The first screen: the semester and the year of study, then the query (D2).
+// The first screen: the semester and the year of study, then the query.
 /** @param {string} text @param {HTMLElement} focus */
 function setupAsk(text, focus) {
   els.setupError.textContent = text;
@@ -820,14 +819,14 @@ els.browseAll.addEventListener('click', () => {
   els.q.focus();
 });
 
-// On a phone the rail is a modal dialog behind "Filters (n)" (F10): its panel
+// On a phone the rail is a modal dialog behind "Filters (n)": its panel
 // moves into the dialog while it is open, so there is one set of controls.
 // The browser's modal dialog keeps the rest of the page inert and closes on
 // Escape; focus also wraps inside it, and returns to the button on close.
 const rail = /** @type {HTMLElement} */ (els.panel.parentElement);
 // The live region goes into the dialog too while it is open: a modal dialog
 // makes the rest of the page inert, the header's live region included, so a
-// change made in the dialog would be said to no one (5E).
+// change made in the dialog would be said to no one.
 const liveHome = /** @type {HTMLElement} */ (els.live.parentElement);
 els.filtersBtn.addEventListener('click', () => {
   els.dialogSlot.append(els.panel);
@@ -890,7 +889,7 @@ matchMedia('(min-width: 641px)').addEventListener('change', (e) => {
 
 document.addEventListener('keydown', (e) => {
   if (!isCloseEscape(e) || els.dialog.open) return;
-  // The view closes on Escape (6B), as a detail does; the box, if focused, keeps its text.
+  // The view closes on Escape, as a detail does; the box, if focused, keeps its text.
   if (current.view) {
     e.preventDefault();
     closeView();
@@ -909,7 +908,7 @@ els.results.addEventListener('click', (e) => {
   act(button.getAttribute('aria-expanded') === 'true' ? { type: 'close' } : { type: 'open', code: button.dataset.code ?? '' });
 });
 // An "Also as" code opens its own entry: its search, with its detail open and
-// saying where it came from (5G). Focus goes to that entry's button, which
+// saying where it came from. Focus goes to that entry's button, which
 // brings the open detail into view; the href opens the same in a new tab.
 els.results.addEventListener('click', (e) => {
   const link = e.target instanceof Element ? e.target.closest('a[data-variant]') : null;
@@ -929,10 +928,10 @@ document.addEventListener('click', (e) => {
 });
 // After Back and Forward the page places the view itself: the browser's own
 // restoration runs after popstate, and would scroll a card just focused out of
-// view (5E).
+// view.
 history.scrollRestoration = 'manual';
 window.addEventListener('popstate', async () => {
-  // The browser has moved: a pending write is for the entry left (6B). The
+  // The browser has moved: a pending write is for the entry left. The
   // page keeps its list and writes it into the entry it arrived at (settle).
   writer.cancel();
   const left = current;
@@ -940,7 +939,7 @@ window.addEventListener('popstate', async () => {
   const answerBefore = shown?.key;
   current = settle(parseState(new URLSearchParams(location.search)));
   const after = current;
-  // The view (6B, 6C): Forward or Back into it shows it, focus on its heading; Back out of it,
+  // The view: Forward or Back into it shows it, focus on its heading; Back out of it,
   // focus on the shortlist button that is displayed. The search runs by the rule below.
   if (after.view && !left.view) enterView();
   if (!after.view && left.view) leaveView();
@@ -983,7 +982,7 @@ document.addEventListener('keydown', () => { document.documentElement.dataset.ke
 document.addEventListener('pointerdown', () => { delete document.documentElement.dataset.keys; }, true);
 
 // /facets fills the faculty list and the exchange-mode sources. Nothing waits
-// on it (F4): the first search starts below, at once, and a shared link's
+// on it: the first search starts below, at once, and a shared link's
 // faculty is already an option.
 fetchFacets().then((f) => {
   if (!f) return;
@@ -1006,7 +1005,7 @@ fetchFacets().then((f) => {
     if (existing) existing.text = label;
     else els.faculty.add(new Option(label, name));
   }
-  // A link's faculty that /facets doesn't list is no faculty (5G S2): it would
+  // A link's faculty that /facets doesn't list is no faculty: it would
   // only stand as a chip in the site's voice over no results. Drop it, and its
   // option, and search without it (a settings change: replace).
   if (names.length) {
@@ -1025,7 +1024,7 @@ fetchFacets().then((f) => {
       : 'The NG list could not be loaded. Reload the page to try again.';
   }
   if (sources) renderSources();
-  // 6A: NUS's rules on courses off the exchange list, and the list's date, for the shortlist's rows and form.
+  // NUS's rules on courses off the exchange list, and the list's date, for the shortlist's rows and form.
   offListRules = Array.isArray(f.offListRules) ? f.offListRules : null;
   renderShortlist();
 });
@@ -1075,9 +1074,9 @@ function settle(s) {
   return settled;
 }
 
-// ---- The shortlist (6B's state, 6C's controls). The exports (6D) call these too.
+// ---- The shortlist (state and controls). The exports call these too.
 
-/** /facets' offListRules (6A): null until it answers, and for good if it fails (the rows then say to ask NUS). */
+/** /facets' offListRules: null until it answers, and for good if it fails (the rows then say to ask NUS). */
 /** @type {import('./shortlist.js').OffListRule[] | null} */
 let offListRules = null;
 /** Each entry's /module answer (shortlist.js answerOf); missing while it loads. @type {Map<string, import('./shortlist.js').Answer>} */
@@ -1087,7 +1086,7 @@ const rowWanted = new Set();
 /** @type {string[]} */
 const rowQueue = [];
 let rowsActive = 0;
-/** At most this many /module requests at once (6C "Rows load … four at a time"). */
+/** At most this many /module requests at once. */
 const ROWS_AT_ONCE = 4;
 /**
  * The last removal, for Undo, until the next edit: from a card's toggle (Undo
@@ -1107,7 +1106,7 @@ let progressSaid = false;
 /** Counts edits, so a slow "added" sentence stands down when another edit came after it. */
 let editCount = 0;
 /**
- * An export pressed before every row was in (6D): which, until the second
+ * An export pressed before every row was in: which, until the second
  * press does it or the view closes; and whether "Ready: press again" was said.
  * @type {'csv' | 'print' | null}
  */
@@ -1193,14 +1192,14 @@ const entry = (code) => worked().entries.find((w) => w.code === code);
 /**
  * Units picked in a semester, as the shortlist button, the sentences and the
  * view's settings sentence say them: every tagged pick there whose units have
- * loaded, counted or not (the mockup's call; `workOut`'s `picked`).
+ * loaded, counted or not (`workOut`'s `picked`).
  * @param {'1' | '2'} sem
  */
 const picked = (sem) => worked().sems[sem].picked;
 /** Picks in a semester still loading. @param {string} sem */
 const loadingIn = (sem) => list.pick.filter((e) => e.sem === sem && !rowAnswers.has(e.code)).length;
 
-/** "Sem 1: 12 units picked", "Sem 1: 12 · Sem 2: 16 units picked" (6C, the shortlist button). */
+/** "Sem 1: 12 units picked", "Sem 1: 12 · Sem 2: 16 units picked" (the shortlist button). */
 function buttonLine() {
   const n = entryCount(list);
   if (!n) return 'No courses yet';
@@ -1259,7 +1258,7 @@ const whenSettled = (code) => (rowAnswers.has(code) ? Promise.resolve() : new Pr
   rowSettled.set(code, [...(rowSettled.get(code) ?? []), resolve]);
 }));
 
-/** "Loading 12 courses", once, only while the view is shown (6C). */
+/** "Loading 12 courses", once, only while the view is shown. */
 function progressStart() {
   const waiting = [...list.pick, ...list.alt].filter((e) => !rowAnswers.has(e.code)).length;
   if (!current.view || !waiting || progressSaid) return;
@@ -1289,7 +1288,7 @@ function viewLines() {
 
 /**
  * Draws everything the list shows: the view, the shortlist buttons, every
- * toggle's state, Undo beside the button, and G3's restore offer.
+ * toggle's state, Undo beside the button, and the restore offer.
  */
 function renderShortlist() {
   const result = worked();
@@ -1324,7 +1323,7 @@ function renderShortlist() {
   renderRestore();
 }
 
-/** G3: "Restore your last shortlist", when this page's link has no list and the device keeps one. */
+/** "Restore your last shortlist", when this page's link has no list and the device keeps one. */
 function renderRestore() {
   const offer = restoreOffer(list, storage);
   for (const slot of els.slRestore) {
@@ -1339,7 +1338,7 @@ function renderRestore() {
   }
 }
 
-/** Writes the device's list, leaves the first screen and opens the view (G3; focus on its heading). */
+/** Writes the device's list, leaves the first screen and opens the view (focus on its heading). */
 function restoreSaved() {
   const saved = restoreOffer(list, storage);
   if (!saved) return;
@@ -1358,7 +1357,7 @@ function restoreSaved() {
 /**
  * Applies an edit to the list (list.js): the URL is replaced at once through
  * the writer (coalesced only past its budget), with `ay` from the rows once
- * one has loaded, and the device's copy is written at once (G3). Never calls
+ * one has loaded, and the device's copy is written at once. Never calls
  * show(): the search and the history position stay. Ends any Undo on offer;
  * draws the list and loads any row it lacks.
  * @param {(l: import('./list.js').List) => import('./list.js').Edit} fn
@@ -1523,7 +1522,7 @@ function copyLink() {
 
 /** Every entry's row has settled: loaded, failed or a 404. */
 const rowsSettled = () => [...list.pick, ...list.alt].every((e) => rowAnswers.has(e.code));
-/** The export question still has something to answer (6C asks it; the exports wait on it). */
+/** The export question still has something to answer (the view asks it; the exports wait on it). */
 const questionOpen = () => exportQuestion({ list, study: current.ng ? current.study : '', answers: rowAnswers }).ask;
 
 /**
@@ -1542,7 +1541,7 @@ function exportDoc(result = worked()) {
 
 /**
  * The print page, built eagerly from the rows while the view is shown, and
- * the print class (6D): on only while the view is shown, every row has
+ * the print class: on only while the view is shown, every row has
  * settled and the export question is answered or not needed. Derived from
  * state, never set around print(), so Ctrl+P prints the shortlist then, and
  * the screen otherwise.
@@ -1572,13 +1571,13 @@ function exportReady() {
 }
 
 /**
- * Download CSV or Print or save as PDF (6D). While the export question has
+ * Download CSV or Print or save as PDF. While the export question has
  * something to answer, either focuses its heading and says so. Before every
  * row is in, the press waits: the button keeps its name, and its line says
  * how far the rows are, then "Ready: press again", so the export starts from
  * the user's own second press (print() and a download need the click).
  * Otherwise the CSV downloads, or the print page prints with the file name
- * as the title. Either writes `ay` into the URL (6B).
+ * as the title. Either writes `ay` into the URL.
  * @param {'csv' | 'print'} kind
  */
 function exportPress(kind) {
@@ -1636,7 +1635,7 @@ window.addEventListener('beforeprint', () => {
 });
 window.addEventListener('afterprint', () => { document.title = pageTitle; });
 
-/** The print fonts load when the view opens, so a print right after has them (6C, 6D). */
+/** The print fonts load when the view opens, so a print right after has them. */
 function loadPrintFonts() {
   if (!document.fonts) return;
   for (const face of ['400 1em "IBM Plex Sans"', '500 1em "IBM Plex Sans"', '600 1em "IBM Plex Sans"', '400 1em "IBM Plex Mono"', '500 1em "IBM Plex Mono"']) {
@@ -1691,7 +1690,7 @@ function settingsInView() {
   renderShortlist();
   say(viewSentence);
 }
-/** Closes the view: back() when this page pushed it and nothing changed since, else replace (6B). */
+/** Closes the view: back() when this page pushed it and nothing changed since, else replace. */
 function closeView() {
   const data = writer.state();
   act({ type: 'closeView', viewPushed: data?.vnmShortlist === true, atOpen: typeof data?.atOpen === 'string' ? data.atOpen : '' });
@@ -1710,7 +1709,7 @@ document.addEventListener('click', (e) => {
   if (t instanceof HTMLButtonElement && t.dataset.sl) toggle(t.dataset.sl);
 });
 
-/** Copy link's URL, `ay` once a row has loaded; never waits (6B). */
+/** Copy link's URL, `ay` once a row has loaded; never waits. */
 function shortlistLink() {
   writer.flush();
   return `${location.origin}${shortlistUrl(current, withYear(list, rowYear()), location.pathname)}`;
@@ -1746,7 +1745,7 @@ if (testHooks && typeof testHooks === 'object') {
 // The first screen pre-fills the year of study remembered on this device.
 if (STUDIES.some((o) => o.value === savedStudy())) checkValue('setupStudy', savedStudy());
 
-// Start: the URL's state, and its search, now; the list's rows load at once (6C), and a link
+// Start: the URL's state, and its search, now; the list's rows load at once, and a link
 // that opens on the view says their progress.
 current = settle(current);
 ensureRows();

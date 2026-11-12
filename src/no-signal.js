@@ -1,5 +1,5 @@
 // @ts-check
-// 3G's τ (docs/plans/phase3.md 3G, A2-9, C2-10, A3-6): /search answers
+// The no-signal threshold τ: /search answers
 // `noMatch: { reason: "no-signal" }` when parsed.noSignal holds and the top
 // exact cosine of the query as typed is below τ. The candidates come from the
 // gibberish set's derivation half (noSignalCandidates); the variant in force
@@ -7,8 +7,8 @@
 // one its fallback. `off` never fires.
 
 /**
- * τ per variant (null: off). Filled from 3G-1's measurement
- * (docs/evidence/phase3/3g-1-cosines.json).
+ * τ per variant (null: off), from the derivation half's measured cosines
+ * (scripts/no-signal-cosines.mjs).
  * @type {Readonly<Record<string, number | null>>}
  */
 export const NO_SIGNAL_VARIANTS = Object.freeze({
@@ -21,7 +21,7 @@ export const NO_SIGNAL_VARIANTS = Object.freeze({
 /** The variant in force. */
 export const NO_SIGNAL_VARIANT = 'max';
 
-/** τ in force (null: 3G never fires). */
+/** τ in force (null: the no-signal answer never fires). */
 export const NO_SIGNAL_TAU = NO_SIGNAL_VARIANTS[NO_SIGNAL_VARIANT];
 
 /**

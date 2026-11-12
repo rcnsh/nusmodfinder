@@ -1,24 +1,24 @@
 // @ts-check
-// The deploy's preflight (Phase 7 7B): every check but D1's, for HEAD, in order, stopping at the
+// The deploy's preflight: every check but D1's, for HEAD, in order, stopping at the
 // first that fails. `npm run deploy -- --preflight` runs it alone (before any D1 write, per the
 // runbook) and `npm run deploy` runs it first. It writes nothing remote: it reads git, GitHub's
 // runs for HEAD and the release asset of the bundle, and runs `wrangler check startup` locally.
 //
 //   git             clean tree (new run records aside), nothing hidden, HEAD on origin/main and
 //                   at its tip (or --behind-ok)
-//   ci              HEAD's own CI and Findings push runs succeeded
+//   ci              HEAD's own CI push run succeeded
 //   vars            wrangler.jsonc's vars hold only DENSE_BACKEND
 //   bundle          the production bundle, sha-checked, at the committed data version
-//   corpus manifest 7D's check (scripts/corpus.mjs preflight): restores `current` (gh, sha-checked),
-//                   then `npm run corpus -- check`: the data version, catalogueKey and 3B files follow it
-//   year check      7E's CI mode (scripts/year.mjs `preflight()`): the year's sources agree, no
+//   corpus manifest scripts/corpus.mjs `preflight()`: restores `current` (gh, sha-checked), then
+//                   `npm run corpus -- check`: the data version, catalogueKey and catalogue files follow it
+//   year check      the CI mode of scripts/year.mjs (`preflight()`): the year's sources agree, no
 //                   stub, an oracle; the sources archive may still be pending
 //   source inputs   when HEAD changes a source-derived input since the live tag, a committed
-//                   `year check --full` record (7E) for those inputs' hash (sourceInputsCheck)
+//                   `year check --full` record for those inputs' hash (sourceInputsCheck)
 //   startup         `wrangler check startup` with the bundle aliased in
 //
-// An optional check's module exports `preflight({ exec, head, log })`, answering
-// `{ ok, message }`. 7D and 7E add their modules; nothing here changes.
+// A module check's module exports `preflight({ exec, head, log })`, answering
+// `{ ok, message }`; a missing module is skipped and said so.
 import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
@@ -29,34 +29,34 @@ import { pushRuns, runStates } from './github-runs.mjs';
 import { RUNS_REL, isNewRunRecord } from './run-record.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-/** The only var the deployed Worker may have (docs/plans/phase4.md §4, gate 2). */
+/** The only var the deployed Worker may have: test-only switches never deploy. */
 export const ALLOWED_VARS = ['DENSE_BACKEND'];
 /** Where the local startup pre-check writes its CPU profile (not the clean working tree). */
 export const STARTUP_PROFILE = join(tmpdir(), 'nusmodfinder-startup.cpuprofile');
 
-/** The checks whose module another workstream adds; absent, they are skipped and said so. */
+/** The checks that live in another script's module; absent, they are skipped and said so. */
 export const OPTIONAL_CHECKS = /** @type {const} */ ([
-  { name: 'corpus manifest', module: 'scripts/corpus.mjs', owner: '7D' },
-  { name: 'year check', module: 'scripts/year.mjs', owner: '7E' },
+  { name: 'corpus manifest', module: 'scripts/corpus.mjs' },
+  { name: 'year check', module: 'scripts/year.mjs' },
 ]);
 
 /** The one data/ng-* file built from the corpus, not from NUS's documents. */
 export const PER_CORPUS_NG_FILE = 'data/ng-unscheduled.json';
 
 /**
- * Source-derived inputs (7E): what NUS's documents decide. A change to one needs a committed
+ * Source-derived inputs: what NUS's documents decide. A change to one needs a committed
  * `year check --full` record. The quoted NUS sentences in src/ and public/ count through the quote
  * index in data/ng-sources-<year>.json: `year check` fails when a quote is no longer in its file, so
  * changing one means changing the index, a source-derived input.
  *
- * Not data/ng-unscheduled.json: it follows the production corpus (7D, rebuilt with the bundle), so
+ * Not data/ng-unscheduled.json: it follows the production corpus (rebuilt with the bundle), so
  * a corpus-only refresh changes it with no source changing, and `year check --full` doesn't check
  * it (`npm run corpus -- check` and `build-ng-unscheduled.mjs --check` do).
  * @param {string} path
  */
 export const isSourceInput = (path) => (path.startsWith('data/ng-') && path !== PER_CORPUS_NG_FILE) || path.startsWith('scripts/ng-overlay/');
 
-/** The run record script that `year check --full` writes (7E), and the mode it records. */
+/** The run record script that `year check --full` writes, and the mode it records. */
 export const FULL_RECORD = { script: 'year check', mode: 'full' };
 
 /**
@@ -75,7 +75,7 @@ export const FULL_RECORD = { script: 'year check', mode: 'full' };
 
 /**
  * The hash of HEAD's source-derived inputs: sha256 over their `git ls-tree` lines (mode, type,
- * object, path), so it names exactly the committed bytes. 7E's `year check --full` records it.
+ * object, path), so it names exactly the committed bytes. `year check --full` records it.
  * @param {Exec} exec @param {string} [rev]
  */
 export async function sourceInputsHash(exec, rev = 'HEAD') {
@@ -91,8 +91,8 @@ const answer = (ok, message) => ({ ok, message });
 /**
  * The "source inputs" check: when HEAD changes a source-derived input since what is live (the
  * newest deploy/* or rollback/* tag), a `year check --full` run record committed at HEAD must
- * carry an ok outcome, HEAD's sourceInputsHash and a byte-identical NG list (`details.ngList`, red
- * team H-1: older records didn't check it). A hand-edited rules file has a hash no
+ * carry an ok outcome, HEAD's sourceInputsHash and a byte-identical NG list (`details.ngList`; a
+ * record without it never re-extracted the NG list). A hand-edited rules file has a hash no
  * record names, so it can't pass.
  * @param {Exec} exec
  * @returns {Promise<{ ok: boolean, message: string }>}
@@ -102,7 +102,7 @@ export async function sourceInputsCheck(exec) {
   const git = async (args) => { const r = await exec('git', args); return { ...r, out: r.stdout.trim() }; };
   if (!(await fetchTraceTags(exec))) return answer(false, 'could not fetch the deploy/* and rollback/* tags from origin, so what is live is unknown.');
   const live = newestTag(await listTraceTags(exec));
-  if (!live) return answer(false, 'no deploy/* or rollback/* tag says what is live, so a change to source-derived inputs can\'t be told apart; push the back-filled tags (docs/REFERENCE.md "Deploying").');
+  if (!live) return answer(false, 'no deploy/* or rollback/* tag says what is live, so a change to source-derived inputs can\'t be told apart (docs/operations.md "Deploying").');
   const diff = await git(['diff', '--name-only', '--no-renames', live.commit, 'HEAD']);
   if (diff.code !== 0) return answer(false, `git diff against the live tag ${live.name} failed.`);
   const changed = diff.out.split('\n').filter((p) => p && isSourceInput(p));
@@ -115,14 +115,14 @@ export async function sourceInputsCheck(exec) {
     /** @type {any} */
     let r = null;
     try { r = JSON.parse(shown.out); } catch { continue; }
-    // A record from before the red team's H-1 fix never checked the NG list, so it vouches for nothing.
+    // A record without details.ngList never re-extracted the NG list, so it vouches for nothing.
     if (r?.script === FULL_RECORD.script && r?.outcome === 'ok' && r?.details?.mode === FULL_RECORD.mode && r?.details?.sourceInputsHash === hash
       && r?.details?.ngList?.result === 'byte-identical') {
       return answer(true, `${changed.length} source-derived input(s) changed since ${live.name}; ${path} covers them`);
     }
   }
   return answer(false, `HEAD changes source-derived inputs since ${live.name} (${changed.join(', ')}), so it needs a committed \`year check --full\` `
-    + `run record (7E, on the Mac with the sources key) for their hash ${hash.slice(0, 12)}…; none at HEAD matches.`);
+    + `run record (on the Mac with the sources key) for their hash ${hash.slice(0, 12)}…; none at HEAD matches.`);
 }
 
 /**
@@ -146,7 +146,7 @@ export async function runPreflight(deps) {
       // hidden by assume-unchanged (lower-case tag) or skip-worktree (S).
       const status = await git(['status', '--porcelain', '--untracked-files=all', '--ignore-submodules=none']);
       if (status.code !== 0) return answer(false, '`git status` failed.');
-      // Phase 7 7C: new run records (this run's own and earlier ones not yet committed) are not dirt.
+      // New run records (this run's own and earlier ones not yet committed) are not dirt.
       const dirt = status.out.split('\n').filter((l) => l && !isNewRunRecord(l));
       if (dirt.length) return answer(false, `the working tree is not clean:\n${dirt.join('\n')}\nCommit (via a PR to main) or discard these first.`);
       const flags = await git(['ls-files', '-v']);
@@ -180,7 +180,7 @@ export async function runPreflight(deps) {
       let runs;
       try { runs = await pushRuns({ sha: state.head, exec }); } catch (err) { return answer(false, /** @type {Error} */ (err).message); }
       const { ok, states } = runStates(runs, state.head);
-      return answer(ok, ok ? `CI run ${states[0].run?.id} and Findings run ${states[1].run?.id} succeeded`
+      return answer(ok, ok ? `CI run ${states[0].run?.id} succeeded`
         : states.filter((s) => s.state !== 'green').map((s) => s.message).join(' '));
     } },
     { name: 'vars', run: async () => {
@@ -208,7 +208,7 @@ export async function runPreflight(deps) {
       return answer(true, `production, ${b.entry.count} rows, data version ${committed}, sha256 ${b.sha256.slice(0, 12)}`);
     } },
     ...OPTIONAL_CHECKS.map((c) => ({ name: c.name, run: async () => {
-      if (!moduleExists(c.module)) return { ok: true, skipped: true, message: `${c.module} is absent; ${c.owner} adds it` };
+      if (!moduleExists(c.module)) return { ok: true, skipped: true, message: `${c.module} is absent` };
       try {
         const mod = await loadModule(c.module);
         if (typeof mod?.preflight !== 'function') return answer(false, `${c.module} exports no preflight() check.`);

@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7B: `npm run smoke -- [--expect <sha>]` (scripts/smoke.mjs), five requests each at
+// `npm run smoke -- [--expect <sha>]` (scripts/smoke.mjs), five requests each at
 // least 4 s after the last: /health (the tag, the data version, the production bundle), / (200
 // with the CSP header), /module/<code> for an ungrouped, uniquely titled code of the expected
 // commit's corpus, /search for that title (a cache miss, not degraded, the code in the top 5)
@@ -12,8 +12,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_ACAD_YEAR as Y } from '../scripts/lib.mjs';
 import { SMOKE_GAP_MS, smoke } from '../scripts/smoke.mjs';
 
-const SHA = 'a23601de0b15934960bfef1d8b56ab3e80fa5587';
-const OTHER = '0b5f360c7faea8424215b4d4ddde81ebb1d850ff';
+const SHA = 'b75ac19016a2073e77d37c2c44485c9a5d8c99a2';
+const OTHER = '8e24b21ddfcacc5cc67edf4a7cd07c41aaa5a690';
 /** @type {Record<string, string>} */
 const DVS = { [SHA]: 'd820d578cf81', [OTHER]: '0123456789ab' };
 const URL_BASE = 'https://nusmodfinder.rcn.sh';
@@ -28,7 +28,7 @@ const CORPUS = [
   { code: 'CS9999', title: 'A Title Nobody Else Has' },
 ];
 const BUNDLE_CODES = ['CS1010', 'CS1010E', 'CS2030', 'CS2040', 'CS3230'];
-/** The expected commit's corpus manifest (Phase 7 7D): its `current` is the corpus titles come from. */
+/** The expected commit's corpus manifest: its `current` is the corpus titles come from. */
 const CORPUS_ENTRY = { year: Y, release: `prod-${Y}-29991231`, asset: `${Y}-moduleInfo.json.gz`, sha256: 'c'.repeat(64), bytes: 1, fetchedAt: '2999-12-31T00:00:00Z' };
 const CORPUS_MANIFEST = { schema: 'vnm-corpus-manifest/1', current: CORPUS_ENTRY.release, corpora: { [CORPUS_ENTRY.release]: CORPUS_ENTRY } };
 const GROUPS = { schema: 'vnm-groups/1', groups: [['CS1010', 'CS1010E']] };
@@ -162,7 +162,7 @@ describe('npm run smoke', () => {
   });
 });
 
-describe('smoke\'s corpus (Phase 7 7D)', () => {
+describe('smoke\'s corpus', () => {
   it('draws from the expected commit\'s data/corpus.json `current`, not the Mac\'s download cache', async () => {
     const r = await run(fakeSite());
     expect(r.code).toBe(0);

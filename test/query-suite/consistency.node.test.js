@@ -1,8 +1,8 @@
 // @ts-check
-// P-6: the SC4 suite's `interpreted` objects and rule params checked against
+// The query suite's `interpreted` objects and rule params checked against
 // what they mean, not only their shape. Every item's intents (ge, level, exam,
 // su, hoursBelow, prereq) must be what the committed phrase rules
-// (eval/prereg/intent-phrases.json, ge-pillars.json) give for its text, or for
+// (eval/query-rules/intent-phrases.json, ge-pillars.json) give for its text, or for
 // its clean form when it is a typo item, in both directions: a phrase in the
 // text sets its intent, and a set intent is backed by a phrase, an `XX N000`
 // code token or the clean form. Each rule's params must agree with the same
@@ -10,13 +10,13 @@
 import { describe, expect, it } from 'vitest';
 import { queryTokens } from '../../src/fts-query.js';
 import { COLLISION, INTENT_KEYS, PHRASES, STOPWORDS, canonical, codeLevel, deriveIntents, phraseMatches, phraseRegex } from './intents.node.mjs';
-import { SUITE_PATH, readJson } from './sc4.node.mjs';
+import { SUITE_PATH, readJson } from './suite-files.node.mjs';
 
 /** @type {any[]} */
 const items = readJson(SUITE_PATH).items;
 const CONSTRAINT_ROWS = ['no-exam', 'su', 'workload', 'no-prereq'];
 
-/** The text an item's intents are read from: the clean form for a typo item (3C's corrections are not echoed). @param {any} it */
+/** The text an item's intents are read from: the clean form for a typo item (typo corrections are not echoed). @param {any} it */
 const intentText = (it) => (it.row === 'typo' ? it.params.clean : it.text);
 
 /** @param {any} it */
@@ -47,7 +47,7 @@ describe('the phrase matcher reads the rules as the doc states them', () => {
   });
 });
 
-describe('SC4 suite: interpreted means what the text says', () => {
+describe('the query suite: interpreted means what the text says', () => {
   it('sets every intent a non-negated phrase in the text (or the typo item\'s clean form) names, to that phrase\'s value', () => {
     for (const it of items) {
       const want = derived(it);
@@ -108,7 +108,7 @@ describe('SC4 suite: interpreted means what the text says', () => {
   });
 });
 
-describe('SC4 suite: rule params agree with interpreted', () => {
+describe('the query suite: rule params agree with interpreted', () => {
   /** A constraint param (`{ exam: "0" }` …) as the interpreted value it implies. @param {string} key @param {string} value */
   const paramValue = (key, value) => {
     if (key === 'hoursBelow') return Number(value);

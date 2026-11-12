@@ -90,7 +90,7 @@ export function verdictBlock(v) {
 export const COMPLIANCE_UNSCORED_NOTE = 'no grade-≥1 document, or none left once the constraints filter the qrels; in neither set';
 
 /**
- * The compliance rule's output on an encrypted set (Phase 5 5F): the verdict,
+ * The compliance rule's output on an encrypted set: the verdict,
  * the Δ lines (primary nDCG@10 and P@5 with their CIs, the constraint block's
  * nDCG@10) and the counts (scored, unscored, parsed). Never an id, a text, a
  * check's detail or which check failed.
@@ -119,7 +119,7 @@ export function complianceVerdictOnly(v, cmp, c, qrelsVersion, baseline) {
 /**
  * The only output an encrypted set ever produces. The first line names the
  * rule applied (gate.mjs `ruleOf`) and the baseline ranker it was taken
- * against ("eval-v0 7ac9841"); the last gives the unscored count, never ids.
+ * against ("eval-v0 5c5cce4"); the last gives the unscored count, never ids.
  * @param {import('./gate.mjs').Verdict} v
  * @param {import('./metrics.mjs').Comparison} cmp
  * @param {string} qrelsVersion

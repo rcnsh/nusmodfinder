@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 2d judging: pure functions over a pool file and a round's state.
+// Judging: pure functions over a pool file and a round's state.
 // eval/judge.mjs does the I/O (files, encryption); eval/JUDGING.md is the
 // protocol. A round:
 //   pool --preGrade--> rule grades (hard-constraint violations, judge `rule`)

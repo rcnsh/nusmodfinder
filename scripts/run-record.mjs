@@ -1,12 +1,16 @@
 // @ts-check
-// The ops log (Phase 7 7C, docs/plans/phase7.md §2 7C): one JSON file per run
-// of any script that touches a remote, written on every exit path, at
+// The ops log: one JSON file per run of any script that touches a remote,
+// written on every exit path, at
 //
-//   docs/evidence/ops/runs/<UTC yyyymmddThhmmssZ>-<script>-<4 hex>.json
+//   ops/runs/<UTC yyyymmddThhmmssZ>-<script>-<4 hex>.json
 //
 // Unique names mean two worktrees never conflict and nothing is numbered at
-// write time. docs/REFERENCE.md "Operations: run records" is the contract the
-// writers follow; check:findings validates every file (validateRunRecord).
+// write time. Records are committed with the change they belong to, and read
+// back: d1:restore and ingest find the newest bookmark, ingest the preflight
+// for HEAD, the deploy preflight a `year check --full` record, ops:requests
+// totals the requests. docs/operations.md "Run records" is the
+// contract the writers follow; test/run-record.node.test.js validates every
+// committed file (checkRunRecords).
 //
 // A writer, in one line when it has nothing to add:
 //
@@ -26,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 /** The records' directory, relative to the repo root. */
-export const RUNS_REL = 'docs/evidence/ops/runs';
+export const RUNS_REL = 'ops/runs';
 export const RUNS_DIR = join(ROOT, RUNS_REL);
 export const RUN_SCHEMA = 'vnm-run/1';
 /**
@@ -226,7 +230,7 @@ export class RunRecord {
 export const startRun = (script, o) => new RunRecord(script, o);
 
 /**
- * p5-live and p6-live: a record for a run against a live URL (none for a local server), with
+ * live-check and live-shortlist: a record for a run against a live URL (none for a local server), with
  * every request the run sends by path, on success, failure and a throw alike.
  * @template {{ pass: boolean }} T
  * @template {{ url: string }} O
@@ -259,7 +263,7 @@ const isObject = (v) => typeof v === 'object' && v !== null && !Array.isArray(v)
 const isCount = (v) => v === null || (typeof v === 'number' && Number.isFinite(v) && v >= 0);
 
 /**
- * The checks check:findings runs on one record.
+ * The checks on one record.
  * @param {any} record
  * @param {{ file: string, now?: Date }} o
  * @returns {string[]}
@@ -327,7 +331,7 @@ export function readRunRecords(dir = RUNS_DIR) {
 }
 
 /**
- * check:findings' run-record check: `<file>: <problem>` for each problem.
+ * Every record in `dir` checked: `<file>: <problem>` for each problem.
  * @param {string} [dir]
  * @param {Date} [now]
  */

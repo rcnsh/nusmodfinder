@@ -96,7 +96,7 @@ function cli(args, env = {}) {
   return { code: r.status, stdout: r.stdout, stderr: r.stderr };
 }
 
-describe('holdout errors are withheld (review finding 4)', () => {
+describe('holdout errors are withheld', () => {
   it('a bad grade prints only the generic line: no rationale, no query id', async () => {
     const { dir } = await makeSet('bad-grade', {
       qrels: (q) => { q.queries['fx-03'].judgments.CS3244 = { grade: 7, rationale: 'SECRET-RATIONALE fx-03 wants machine learning' }; },
@@ -117,7 +117,7 @@ describe('holdout errors are withheld (review finding 4)', () => {
   });
 });
 
-describe('--embed-missing on an encrypted set (PR #6 review round 3)', () => {
+describe('--embed-missing on an encrypted set', () => {
   it('a failed embedding prints only the withheld line and finalises the reserved look as aborted', async () => {
     const { dir } = await makeSet('embed-fails');
     // A corrupt cache: embed.mjs fails reading it, before any network call.
@@ -131,7 +131,7 @@ describe('--embed-missing on an encrypted set (PR #6 review round 3)', () => {
   });
 });
 
-describe('set-bound ciphertexts (review finding 2)', () => {
+describe('set-bound ciphertexts', () => {
   it('a look on the self-test set records one row in that set\'s own ledger', async () => {
     const { dir } = await makeSet('one-look');
     const r = cli(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base']);
@@ -163,7 +163,7 @@ function cliAsync(args) {
   });
 }
 
-describe('parallel looks (review finding 3)', () => {
+describe('parallel looks', () => {
   it('three parallel reports from 11 ledger rows record exactly one look', async () => {
     const { dir } = await makeSet('parallel');
     const ledger = join(dir, 'ledger.md');
@@ -177,7 +177,7 @@ describe('parallel looks (review finding 3)', () => {
   }, 60_000);
 });
 
-describe('qrels and runs must share a corpus (review finding 7)', () => {
+describe('qrels and runs must share a corpus', () => {
   /**
    * A plaintext copy of the fixture set with synthetic runs; `edit` changes the qrels.
    * @param {string} name

@@ -1,10 +1,9 @@
 // @ts-check
-// Phase 7 7D: the catalogueKey, the hash of D1's catalogue_only codes, and the
+// The catalogueKey, the hash of D1's catalogue_only codes, and the
 // comparison the deploy guard and `verify --pre-deploy` make against the
 // bundled catalogue file (catalogue-codes-data, data/catalogue-codes.json in
 // production). The comparison takes catalogue_only rows as a SELECT returns
-// them, so the guard's D1 read (/admin/hashes today, the D1 REST query in 7B)
-// can call it.
+// them, so the guard's D1 read (the D1 REST query) can call it.
 import { describe, expect, it } from 'vitest';
 import { catalogueKeyMismatch, catalogueMismatch, readBundledCatalogue } from '../scripts/catalogue-check.mjs';
 import { catalogueKey } from '../src/rowhash.js';

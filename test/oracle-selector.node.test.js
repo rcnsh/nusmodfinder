@@ -1,7 +1,6 @@
 // @ts-check
-// Phase 7 7E (docs/plans/phase7.md 7E, tests first): the SC1 oracle selector. test/sc1/oracle.mjs
-// picks the oracle written for a corpus's year, test/sc1/oracle-<year>.node.mjs, and refuses a
-// missing or stub one. No other file imports a dated oracle directly, so a new year cannot be
+// The exchange oracle's selector: test/oracle/oracle.mjs picks the oracle written for a corpus's
+// year, test/oracle/oracle-<year>.node.mjs, and refuses a missing or stub one. No other file imports a dated oracle directly, so a new year cannot be
 // tested against last year's readings by an import nobody updated.
 import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -11,10 +10,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_ACAD_YEAR } from '../scripts/lib.mjs';
 import { nextYear, previousYear } from '../scripts/ng-sources.mjs';
-import * as live from './sc1/oracle.mjs';
+import * as live from './oracle/oracle.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const SELECTOR = 'test/sc1/oracle.mjs';
+const SELECTOR = 'test/oracle/oracle.mjs';
 
 /** @type {string} */
 let dir;
@@ -27,11 +26,11 @@ afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
  * @param {Record<string, string>} oracles
  */
 async function selectorWith(oracles) {
-  mkdirSync(join(dir, 'test/sc1'), { recursive: true });
+  mkdirSync(join(dir, 'test/oracle'), { recursive: true });
   mkdirSync(join(dir, 'public'), { recursive: true });
   cpSync(join(ROOT, SELECTOR), join(dir, SELECTOR));
   cpSync(join(ROOT, 'public/year.js'), join(dir, 'public/year.js'));
-  for (const [y, src] of Object.entries(oracles)) writeFileSync(join(dir, `test/sc1/oracle-${y}.node.mjs`), src);
+  for (const [y, src] of Object.entries(oracles)) writeFileSync(join(dir, `test/oracle/oracle-${y}.node.mjs`), src);
   return import(pathToFileURL(join(dir, SELECTOR)).href);
 }
 
@@ -42,7 +41,7 @@ export const explainShown = explain;
 export const prereqYears = () => null; export const yearNoteOf = () => null; export const levelNoteOf = () => null;
 `;
 
-describe('the SC1 oracle selector', () => {
+describe('the exchange oracle selector', () => {
   it('picks the oracle written for the year it is given', async () => {
     const y = DEFAULT_ACAD_YEAR;
     const n = nextYear(y);
@@ -57,7 +56,7 @@ describe('the SC1 oracle selector', () => {
     const y = DEFAULT_ACAD_YEAR;
     const n = nextYear(y);
     const sel = await selectorWith({ [y]: fakeOracle(y), [n]: fakeOracle(n, 'export const stub = true;') });
-    await expect(sel.oracleFor(previousYear(y))).rejects.toThrow(/no SC1 oracle for .*is missing/);
+    await expect(sel.oracleFor(previousYear(y))).rejects.toThrow(/no oracle for .*is missing/);
     await expect(sel.oracleFor(n)).rejects.toThrow(/is a stub/);
     await expect(sel.oracleFor('2026')).rejects.toThrow(/not an acad year/);
   });
@@ -84,7 +83,7 @@ describe('the SC1 oracle selector', () => {
     }
     expect(found).toEqual([]);
     const dated = `oracle-${DEFAULT_ACAD_YEAR}.node.mjs`;
-    for (const line of [`import { oracle } from './sc1/${dated}';`, `const o = await import('../test/sc1/${dated}');`, 'await import(`./sc1/oracle-${y}.node.mjs`)', "import x from './oracle.node.mjs';"]) {
+    for (const line of [`import { oracle } from './oracle/${dated}';`, `const o = await import('../test/oracle/${dated}');`, 'await import(`./oracle/oracle-${y}.node.mjs`)', "import x from './oracle.node.mjs';"]) {
       expect([...line.matchAll(IMPORT)], line).toHaveLength(1);
     }
   });

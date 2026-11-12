@@ -1,5 +1,5 @@
 // @ts-check
-// The vectors bundle (Phase 3, 3-0): every corpus vector, L2-normalised
+// The vectors bundle: every corpus vector, L2-normalised
 // float32, with a per-row filter table, in one binary file the Worker imports
 // as a `Data` module (an ArrayBuffer, read zero-copy). Shared by the Worker
 // (parseBundle, exactSearch: src/dense.js) and the Node builders
@@ -20,15 +20,15 @@
 //   2  u8   flags: bit 0 = ng
 //   3  u8   NG semesters 1–4 as bits 0–3
 //   4  u16  faculty id, an index into header.faculties; 0xFFFF = null
-//   6  u16  Phase 4: ng_allow, the exchange-mode allow mask (src/ng-bit.js); 0 = closed
+//   6  u16  ng_allow, the exchange-mode allow mask (src/ng-bit.js); 0 = closed
 //   8  f64  credits, NaN = null
-//   16 4 B  reserved, zero: 3F's group id (3F keeps its groups in data/groups.json)
-//   20 u8   3H: exam semesters 1–4 as bits 0–3
-//   21 u8   3H: S/U flags: bit 0 = attributes.su, bit 1 = graded CS/CU (C-12)
-//   22 u8   3H: prerequisite flags: bit 0 = none (C-5), bit 1 = cohort-only (A2-12)
+//   16 4 B  reserved, zero: a group id slot (groups live in data/groups.json)
+//   20 u8   exam semesters 1–4 as bits 0–3
+//   21 u8   S/U flags: bit 0 = attributes.su, bit 1 = graded CS/CU
+//   22 u8   prerequisite flags: bit 0 = none, bit 1 = cohort-only
 //   23 1 B  reserved, zero
-//   24 f64  3H: workload hours a week, NaN = null (C-11)
-// A workstream that adds a field fills its slot and bumps BUNDLE_SCHEMA, so
+//   24 f64  workload hours a week, NaN = null
+// A change that adds a field fills its slot and bumps BUNDLE_SCHEMA, so
 // an old reader refuses a new bundle.
 import { INTENT } from './intents.js';
 import { ngBit } from './ng-bit.js';
@@ -43,7 +43,7 @@ const NULL_FACULTY = 0xffff;
 /**
  * What a bundle was built from.
  * - fixture: test/fixtures/corpus.json, fake embedder (npm test, wrangler dev);
- * - pinned: the 6,771-module pinned corpus, eval corpus asset (full-corpus CI, SC4);
+ * - pinned: the 6,771-module pinned corpus, eval corpus asset (full-corpus CI, the query suite);
  * - production: the corpus D1 holds (npm run deploy only);
  * - eval: built by the eval harness for one run (eval/runner/run.mjs).
  * @typedef {'fixture' | 'pinned' | 'production' | 'eval'} BundleCorpus
@@ -58,15 +58,15 @@ const NULL_FACULTY = 0xffff;
  * @typedef {import('./rowhash.js').RowFields} RowFields
  * @typedef {{ sem?: number, level?: number, credits?: number, faculty?: string, ng?: boolean,
  *   study?: import('./ng-bit.js').Study, exam?: 0, su?: 1, hoursBelow?: number, prereq?: 'none' }} FilterEcho
- *   `exam`, `su`, `hoursBelow` and `prereq` are 3H's (explicit params or parsed from q). `study` is
- *   Phase 4's: with `ng`, the filter is the allow-mask bit for (sem, study), and `sem` only picks it.
+ *   `exam`, `su`, `hoursBelow` and `prereq` are the constraints (explicit params or parsed from q).
+ *   `study` is exchange mode's: with `ng`, the filter is the allow-mask bit for (sem, study), and `sem` only picks it.
  * @typedef {[string, string]} CodeRange a primary-key range [lo, hi) over codes (src/query-intent.js codeRange)
  * @typedef {FilterEcho & { ranges?: CodeRange[], levelWindow?: { min: number, max: number | null }, ngIgnoreAllow?: true }} Constraints
- *   The filters plus 3B's routes: `ranges`, the codes a mask admits (a partial
- *   code, the GE pillars), and `levelWindow`, a parsed level (`XX N000`; 3D's
- *   windows later). Built from the bundle's code list, which is in code order,
+ *   The filters plus the code parse's routes: `ranges`, the codes a mask admits (a partial
+ *   code, the GE pillars), and `levelWindow`, a parsed level (`XX N000`; level
+ *   phrases would add windows). Built from the bundle's code list, which is in code order,
  *   so a range is a contiguous block of rows: the filter table needs no prefix id.
- *   `ngIgnoreAllow` is the SC1 trace's ignore mode only (src/search.js sc1TraceMode, never
+ *   `ngIgnoreAllow` is the oracle trace's ignore mode only (src/search.js oracleTraceMode, never
  *   live): under ng, the yearly flag without the allow-mask bit.
  */
 
@@ -74,7 +74,7 @@ const NULL_FACULTY = 0xffff;
 const byCode = (/** @type {string} */ a, /** @type {string} */ b) => (a < b ? -1 : a > b ? 1 : 0);
 
 /**
- * Whether a grading basis is CS/CU, which 3H's `su=1` also admits (C-12).
+ * Whether a grading basis is CS/CU, which `su=1` also admits.
  * @param {string | null | undefined} basis
  */
 export const suGrading = (basis) => basis === 'Completed Satisfactory/Unsatisfactory';
@@ -85,7 +85,7 @@ const semBits = (sems) => sems.reduce((bits, s) => (Number.isInteger(s) && s >= 
 const bitsSems = (bits) => [1, 2, 3, 4].filter((s) => bits & (1 << (s - 1)));
 
 /**
- * The manifest's `rowsKey` (B-2): sha256 over the sorted "code<TAB>textHash"
+ * The manifest's `rowsKey`: sha256 over the sorted "code<TAB>textHash"
  * lines, so the deploy guard can tell whether D1 holds exactly the texts the
  * bundle embeds.
  * @param {{ code: string, textHash: string }[]} rows
@@ -275,7 +275,7 @@ export function rowBlocks(b, ranges) {
   return merged;
 }
 
-/** Whether the bundle holds `code` (an offered module, for 3B's code resolution). @param {Bundle} b @param {string} code */
+/** Whether the bundle holds `code` (an offered module, for code resolution). @param {Bundle} b @param {string} code */
 export function hasCode(b, code) {
   const i = lowerBound(b.codes, code);
   return i < b.count && b.codes[i] === code;
@@ -286,7 +286,7 @@ export function hasCode(b, code) {
  * none. The same semantics as the Vectorize metadata filter it replaces
  * (src/search.js parseFilters): every given filter must hold; null fields
  * never match.
- * A parsed level window (3B's `XX N000`) admits levels min..max; a null level
+ * A parsed level window (`XX N000`) admits levels min..max; a null level
  * never matches it. Code ranges are not tested here: exactSearch walks only
  * the rows they cover (rowBlocks).
  * @param {Bundle} b
@@ -297,7 +297,7 @@ export function compileMask(b, echo) {
   /** @type {((i: number) => boolean)[]} */
   const tests = [];
   const { table, view } = b;
-  // Phase 4 (plan §2 "Paths"): under ng, sem only picks the allow-mask bit.
+  // Under ng, sem only picks the allow-mask bit.
   const allowBit = ngBit(echo);
   if (echo.sem !== undefined && echo.ng !== true) {
     const bit = 1 << (echo.sem - 1);
@@ -327,7 +327,7 @@ export function compileMask(b, echo) {
     const credits = echo.credits;
     tests.push((i) => view.getFloat64(i * ROW_STRIDE + 8, true) === credits);
   }
-  // 3H (plan 3H "Query side"): no exam in the selected semester (any offered one
+  // The constraints: no exam in the selected semester (any offered one
   // without sem); su or CS/CU; workload under N (NULL excluded); prereq by the semantics in force.
   if (echo.exam === 0) {
     const bits = echo.sem !== undefined ? 1 << (echo.sem - 1) : 0xf;

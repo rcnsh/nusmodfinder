@@ -1,7 +1,6 @@
 // @ts-check
-// The vectors bundle format and the exact search over it (Phase 3, 3-0;
-// docs/plans/phase3.md §2 "3-0 In-Worker exact vector search"). Pure code, so
-// it runs in Node; test/dense.test.js covers the same search through /search.
+// The vectors bundle format and the exact in-Worker search over it. Pure code,
+// so it runs in Node; test/dense.test.js covers the same search through /search.
 import { describe, expect, it } from 'vitest';
 import {
   BUNDLE_SCHEMA, ROW_STRIDE, compileMask, decodeFilterRow, encodeBundle, exactSearch, parseBundle, rowsKey,
@@ -56,7 +55,7 @@ describe('encodeBundle / parseBundle', () => {
     expect(row(2)[1]).toBe(1);
     const n = Math.hypot(...row(1));
     expect(Math.abs(n - 1)).toBeLessThan(1e-6);
-    // The 3H fields a hand-built row leaves out read as their neutral values (test/intents-data.node.test.js sets them).
+    // The intent fields a hand-built row leaves out read as their neutral values (test/intents-data.node.test.js sets them).
     const none = { examSemesters: [], su: false, suGrading: false, workloadHours: null, prereqNone: false, prereqCohortOnly: false };
     // A row without ngAllow reads 0: closed in exchange mode everywhere.
     expect(decodeFilterRow(b, 0)).toEqual({ semesters: [1], level: null, credits: null, faculty: null, ng: false, ngSemesters: [], ngAllow: 0, ...none });
@@ -181,7 +180,7 @@ describe('exactSearch', () => {
     expect(codes({ credits: 0 })).toEqual([]);
     expect(codes({ faculty: 'Computing' })).toEqual(['B2000', 'C3000']);
     expect(codes({ faculty: 'Nowhere' })).toEqual([]);
-    // Phase 4: under ng the allow-mask bit for (sem, study) decides, and sem tests no NUSMods semester.
+    // Under ng the allow-mask bit for (sem, study) decides, and sem tests no NUSMods semester.
     expect(codes({ ng: true, study: 'ug2' })).toEqual(['A1000', 'C3000']);
     expect(codes({ ng: true, sem: 1, study: 'ug2' })).toEqual(['A1000']);
     expect(codes({ ng: true, sem: 2, study: 'grad' })).toEqual(['C3000']);

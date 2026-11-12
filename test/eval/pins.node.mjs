@@ -1,7 +1,7 @@
 // @ts-check
 // The two baseline pins as ADR 0003 states them, for tests that build a
 // genuine baseline run. They are read from the ADR, not imported from the code
-// under test: the SC5 pin is spelled out (it never moves), and the shipped pin
+// under test: the test-set pin is spelled out (it never moves), and the shipped pin
 // is the last "- shipped pin:" line of the ADR's "Shipped-ranker pin" section,
 // so a ship that moves the pin needs no test edits.
 import { spawnSync } from 'node:child_process';
@@ -14,8 +14,8 @@ import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
 
 /** @typedef {{ ref: string, sha: string }} Pin */
 
-/** The SC5 / test-set pin. @type {Pin} */
-export const SC5_PIN = { ref: 'eval-v0', sha: '7ac984174ded88cb2b6497d9835b456981acdd99' };
+/** The test-set pin. @type {Pin} */
+export const TEST_SET_PIN = { ref: 'eval-v0', sha: '5c5cce441bd33c8f66bb2857e4d7f5584cbc20ed' };
 
 /** The shipped-ranker pin: the last line of ADR 0003's "Shipped-ranker pin" section. @type {Pin} */
 export const SHIPPED_PIN = (() => {
@@ -26,7 +26,7 @@ export const SHIPPED_PIN = (() => {
   return { ref: last[1], sha: last[2] };
 })();
 
-/** How a verdict prints a pin: "eval-v0 7ac9841" for a tag, the short sha for a plain sha. @param {Pin} pin */
+/** How a verdict prints a pin: "eval-v0 5c5cce4" for a tag, the short sha for a plain sha. @param {Pin} pin */
 export const labelOf = (pin) => (pin.ref === pin.sha ? pin.sha.slice(0, 7) : `${pin.ref} ${pin.sha.slice(0, 7)}`);
 
 /** labelOf(pin), escaped for a RegExp. @param {Pin} pin */

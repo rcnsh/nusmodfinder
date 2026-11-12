@@ -1,14 +1,14 @@
 // @ts-check
-// What scripts/p5-live.mjs (Phase 5 5G's live checks) does, before it sends
+// What scripts/live-check.mjs (the page's live checks) does, before it sends
 // anything: its arguments, and the seeded draw of the codes it checks, from
 // the production-normalised modules (or the fixture, for the local UI server).
-// Node only and pure but for loading the modules, so test/p5-live.node.test.js
-// runs it; the browser half is p5-live.mjs.
+// Node only and pure but for loading the modules, so test/live-check.node.test.js
+// runs it; the browser half is live-check.mjs.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { bitOf, STUDIES } from '../src/ng-bit.js';
 import { moduleWorkload } from '../src/workload.js';
-import { oracle } from '../test/sc1/oracle.mjs';
+import { oracle } from '../test/oracle/oracle.mjs';
 import { productionCorpus } from './corpus-manifest.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -41,7 +41,7 @@ export function parseArgs(argv) {
   const seed = Number(opts.seed ?? 5);
   if (!Number.isInteger(seed)) throw new Error('--seed is an integer');
   return {
-    url: url.origin, log: opts.log ?? 'docs/evidence/phase5/p5-live.jsonl', corpus,
+    url: url.origin, log: opts.log ?? '.data/live-check.jsonl', corpus,
     expectCommit: opts['expect-commit'] ?? (local ? 'none' : ''), seed, dryRun,
   };
 }
@@ -94,7 +94,7 @@ const rulesAt = (m, bit) => {
 /** Whether the stored mask opens the course at a bit (bitOf). @param {any} m @param {number} bit */
 const allowedAt = (m, bit) => (Number(m.ngAllow ?? 0) & bit) !== 0;
 
-/** The SC2 strata, in draw order; a code goes to the first stratum it fits. */
+/** The detail strata, in draw order; a code goes to the first stratum it fits. */
 export const STRATA = Object.freeze(/** @type {const} */ ([
   ['exams in two semesters', (/** @type {any} */ m) => [1, 2].every((s) => (m.examDates ?? []).some((/** @type {any} */ e) => e.sem === s))],
   ['cohort-only prerequisite', (/** @type {any} */ m) => m.prereqCohortOnly === true],
@@ -103,12 +103,12 @@ export const STRATA = Object.freeze(/** @type {const} */ ([
 ]));
 
 /**
- * 20 codes for SC2: 4 from each stratum, then 4 plain ones (in none of them).
+ * 20 codes for the detail check: 4 from each stratum, then 4 plain ones (in none of them).
  * @param {any[]} modules
  * @param {() => number} r
  * @returns {{ stratum: string, m: any }[]}
  */
-export function drawSc2(modules, r) {
+export function drawDetails(modules, r) {
   const taken = new Set();
   /** @type {{ stratum: string, m: any }[]} */
   const out = [];
@@ -135,7 +135,7 @@ export const CLOSED_KINDS = Object.freeze(/** @type {const} */ ([
 /**
  * 3 closed codes (one of each kind) at a drawn semester and year of study, and
  * 1 partial code exchange mode empties there. Closed means closed by the
- * independent oracle (test/sc1/oracle.mjs) and by the stored bit. Each
+ * independent oracle (test/oracle/oracle.mjs) and by the stored bit. Each
  * closed code says the stamp it must show and whether the other semester is
  * open to the student (so "Switch to Sem N" must show), by the same two.
  * @param {any[]} modules
@@ -186,6 +186,6 @@ export function drawHidden(modules, r) {
  */
 export async function loadModules(corpus) {
   if (corpus === 'fixture') return JSON.parse(readFileSync(`${ROOT}test/fixtures/corpus.json`, 'utf8')).modules;
-  // Phase 7 7D: `current` (data/corpus.json), never the .data/cache download.
+  // `current` (data/corpus.json), never the .data/cache download.
   return (await productionCorpus()).modules;
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run eval:lock`: the ranking lock, eval/ranking-lock.json (Phase 7 7A; eval/lib/ranking-lock.mjs).
+// `npm run eval:lock`: the ranking lock, eval/ranking-lock.json (eval/lib/ranking-lock.mjs).
 //
 //   npm run eval:lock                                   rewrite the lock at HEAD; refused if the lists change
 //   npm run eval:lock -- --evidence <kind> <ref>        write changed lists with their evidence:

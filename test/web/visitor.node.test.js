@@ -1,8 +1,7 @@
 // @ts-check
-// Phase 8 8B (docs/plans/phase8.md §2 "8B", as §5's answers adjust it): what a visitor sees, read
-// from the files. /favicon.ico as a static file, the share preview's site name, the no-JavaScript
-// sentence, the footer's restrictions and privacy links, no contact (G6 (d)), the privacy note
-// (G3 (a)), the year line's wording, the 403's sentence, and the two rate limits (G5 (b)).
+// What a visitor sees, read from the files (ADR 0012): /favicon.ico as a static file, the share
+// preview's site name, the no-JavaScript sentence, the footer's restrictions and privacy links, no
+// contact, the privacy note, the year line's wording, the 403's sentence, and the two rate limits.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +20,7 @@ const label = (ay) => `${ay.slice(0, 4)}/${ay.slice(7, 9)}`;
 /** The acad year after `ay`. @param {string} ay */
 const next = (ay) => `${Number(ay.slice(0, 4)) + 1}-${Number(ay.slice(5, 9)) + 1}`;
 
-describe('/favicon.ico (8B)', () => {
+describe('/favicon.ico', () => {
   it('is a static file in public/, so a browser\'s request for it never runs the Worker', () => {
     expect(existsSync(join(ROOT, 'public/favicon.ico'))).toBe(true);
     const ico = readFileSync(join(ROOT, 'public/favicon.ico'));
@@ -36,7 +35,7 @@ describe('/favicon.ico (8B)', () => {
   });
 });
 
-describe('the page\'s head and footer (8B)', () => {
+describe('the page\'s head and footer', () => {
   it('names the site "NUS Mod Finder (unofficial)" in the share preview too', () => {
     expect(page).toContain('<meta property="og:site_name" content="NUS Mod Finder (unofficial)">');
   });
@@ -73,7 +72,7 @@ describe('the page\'s head and footer (8B)', () => {
   });
 });
 
-describe('the privacy note (8B, G3 (a))', () => {
+describe('the privacy note', () => {
   const html = read('public/privacy.html');
   const text = html.replace(/<[^>]+>/g, ' ').replace(/&rsquo;|&#39;/g, '\'').replace(/\s+/g, ' ');
 
@@ -126,7 +125,7 @@ describe('the privacy note (8B, G3 (a))', () => {
   });
 });
 
-describe('the year line (8B)', () => {
+describe('the year line', () => {
   it('names the rows\' year, and tells applicants for the next one what to expect', () => {
     const y = '2030-2031';
     const line = headerYearLine(y);
@@ -141,7 +140,7 @@ describe('the year line (8B)', () => {
   });
 });
 
-describe('the 403\'s sentence (8B)', () => {
+describe('the 403\'s sentence', () => {
   it('says the search came from another site, and doesn\'t invite a retry', () => {
     expect(Object.keys(ERROR_SENTENCES)).toContain('cross_site');
     const s = errorSentence({ code: 'cross_site' });
@@ -150,7 +149,7 @@ describe('the 403\'s sentence (8B)', () => {
   });
 });
 
-describe('the rate limits (8B, G5 (b))', () => {
+describe('the rate limits', () => {
   const config = /** @type {any} */ (parseJsonc(read('wrangler.jsonc'), 'wrangler.jsonc'));
 
   it('SEARCH_LIMIT allows 40 per 10 s and SEARCH_LIMIT_MINUTE 200 per 60 s, in their own namespaces', () => {
@@ -167,7 +166,7 @@ describe('the rate limits (8B, G5 (b))', () => {
     expect(types).toMatch(/\bSEARCH_LIMIT_MINUTE: RateLimit;/);
   });
 
-  it('observability stays as it is (G3 (a))', () => {
+  it('observability stays enabled, with no extra logging settings', () => {
     expect(config.observability).toEqual({ enabled: true });
   });
 });

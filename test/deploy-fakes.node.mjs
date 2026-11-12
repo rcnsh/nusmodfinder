@@ -1,5 +1,5 @@
 // @ts-check
-// Fakes shared by the Phase 7 7B tests (deploy, preflight, rollback, d1:restore): a git, gh
+// Fakes shared by the deploy tests (deploy, preflight, rollback, d1:restore): a git, gh
 // and wrangler exec answered from a table, GitHub's push runs, and production D1 behind the
 // real D1 REST client (scripts/d1-rest.mjs) with a fake fetch. Nothing here reaches GitHub,
 // Cloudflare or the repo's remote.
@@ -11,7 +11,7 @@ import { d1RestClient } from '../scripts/d1-rest.mjs';
 export const SHA = '0123456789abcdef0123456789abcdef01234567';
 export const SHORT = '0123456';
 /** The commit the live version's tag names (the back-filled `b0834844`'s). */
-export const LIVE_SHA = 'a23601de0b15934960bfef1d8b56ab3e80fa5587';
+export const LIVE_SHA = 'b75ac19016a2073e77d37c2c44485c9a5d8c99a2';
 export const LIVE_TAG = 'deploy/20261111T235933Z-b0834844';
 export const VERSION = '9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d';
 export const PREVIOUS = 'b0834844-f6fd-4bb9-838d-a45927c195fb';
@@ -23,7 +23,7 @@ export const TOKEN = 'cf-token-NEVER-PRINT-ME-0123456789';
 
 /**
  * A `modules` row as /admin/ingest writes it: every ROW_COLUMNS column and the row_hash of exactly
- * those values (src/rowhash.js), so the guard's recomputation (red team M-1) agrees with it.
+ * those values (src/rowhash.js), so the guard's recomputation agrees with it.
  * @param {{ code: string, title: string, description: string, textHash: string, credits?: number }} m
  * @returns {Promise<import('../src/rowhash.js').ModuleRow & { row_hash: string }>}
  */
@@ -44,7 +44,7 @@ export const D1_MODULES = Object.freeze([
 ]);
 export const DV = await dataVersion(D1_MODULES.map((m) => ({ code: m.code, rowHash: m.row_hash })));
 export const KEY = await rowsKey(D1_MODULES.map((m) => ({ code: m.code, textHash: m.text_hash })));
-/** D1's catalogue_only codes, and the bundled catalogue file built with them (Phase 7 7D). */
+/** D1's catalogue_only codes, and the bundled catalogue file built with them. */
 export const CATALOGUE = /** @type {const} */ (['AA0999', 'GEQ1000']);
 export const CATALOGUE_KEY = await catalogueKey([...CATALOGUE]);
 /** The bundled catalogue file, as deploy's `catalogue` dep reads it. @param {readonly string[]} [codes] */
@@ -65,13 +65,13 @@ export const bundleOf = (o = {}) => async () => {
  * @param {string} name @param {Partial<{ id: number, status: string, conclusion: string | null, head_sha: string, run_number: number }>} [o]
  */
 export const ghRun = (name, o = {}) => ({
-  id: o.id ?? (name === 'CI' ? 101 : 202), name, event: 'push', head_sha: o.head_sha ?? SHA, head_branch: 'main',
+  id: o.id ?? 101, name, event: 'push', head_sha: o.head_sha ?? SHA, head_branch: 'main',
   status: o.status ?? 'completed', conclusion: o.conclusion === undefined ? 'success' : o.conclusion,
   run_number: o.run_number ?? 1, created_at: '2026-11-12T10:00:00Z', html_url: `https://github.com/o/r/actions/runs/${o.id ?? 0}`,
 });
 /** @param {object[]} runs */
 export const runsBody = (runs) => JSON.stringify({ total_count: runs.length, workflow_runs: runs });
-export const GREEN = runsBody([ghRun('CI'), ghRun('Findings')]);
+export const GREEN = runsBody([ghRun('CI')]);
 
 export const RUNS_API = `gh api repos/{owner}/{repo}/actions/runs?head_sha=${SHA}&event=push&per_page=100`;
 export const TAG_FETCH = 'git fetch --quiet --force origin +refs/tags/deploy/*:refs/tags/deploy/* +refs/tags/rollback/*:refs/tags/rollback/*';

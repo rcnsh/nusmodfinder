@@ -1,15 +1,15 @@
 // @ts-check
-// 3F in /search (docs/plans/phase3.md 3F): after filters and fusion only a
+// Duplicate groups in /search: after filters and fusion only a
 // duplicate group's first member stays, the others ride along as
 // `variants: [{ code, credits }]`, and the page fills with the next distinct
-// results. The gate's identity half on the fixture: the collapsed list equals
+// results. The identity check on the fixture: the collapsed list equals
 // the group-first projection of the uncollapsed one (COLLAPSE_GROUPS=off).
 import { beforeAll, describe, expect, it } from 'vitest';
 import groupsFile from './fixtures/groups.json';
 import { parseGroupsFile } from '../src/groups.js';
 import { createFakes } from './fakes.js';
 import { callJson, fixture, seed } from './helpers.js';
-import { recordingDb } from './findings/support.js';
+import { recordingDb } from './regressions/support.js';
 
 const OFF = { COLLAPSE_GROUPS: 'off' };
 const STANDBY = { DENSE_BACKEND: 'vectorize' };
@@ -29,7 +29,7 @@ let fakes;
 beforeAll(async () => { fakes = await seed(); });
 
 describe('the collapse', () => {
-  it('S8: one TR3202 result for "start-up internship", the others as variants with their credits', async () => {
+  it('one TR3202 result for "start-up internship", the others as variants with their credits', async () => {
     const { body } = await callJson('/search?q=start-up%20internship&mode=lexical&topK=10', { fakes });
     const tr = body.results.filter((/** @type {any} */ r) => r.code.startsWith('TR3202'));
     expect(tr).toHaveLength(1);
@@ -134,13 +134,13 @@ describe('the collapse', () => {
   });
 
   it('costs one variants read with only the columns a variant needs; hydration reads the page and the duplicates it skipped', async () => {
-    /** @type {import('./findings/support.js').DbCall[]} */
+    /** @type {import('./regressions/support.js').DbCall[]} */
     const log = [];
     const { body } = await callJson('/search?q=programming%20methodology%20cost&topK=20', { fakes, env: { DB: recordingDb(log) } });
     const variants = log.filter((c) => c.sql.includes('WHERE code IN') && !c.sql.includes('title'));
     const hydrate = log.filter((c) => c.sql.includes('WHERE code IN') && c.sql.includes('title'));
     expect(variants).toHaveLength(1);
-    // A variant's code and credits, and the fields localMatchesFilters reads, 3H's included.
+    // A variant's code and credits, and the fields localMatchesFilters reads, the constraint fields included.
     expect(variants[0].sql).toContain('SELECT code, credits, level, faculty, semesters, ng, ng_semesters, '
       + 'exam_semesters, su, grading_basis, workload_hours, prereq_none, prereq_cohort_only, ng_allow, ng_rules FROM');
     const listed = body.results.flatMap((/** @type {any} */ r) => (r.variants ?? []).map((/** @type {any} */ v) => v.code));

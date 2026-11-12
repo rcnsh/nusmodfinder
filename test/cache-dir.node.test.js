@@ -1,7 +1,7 @@
 // @ts-check
 // The ingest download cache must never share a path with the pinned snapshot
-// the eval and the full-corpus tests read: a fresh NUSMods fetch overwrote
-// the pinned snapshot in .data/ (PINNED_ACAD_YEAR) during Phase 1.
+// the eval and the full-corpus tests read (.data/, PINNED_ACAD_YEAR): a fresh
+// NUSMods fetch there would overwrite the pinned snapshot.
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { CACHE_DIR } from '../scripts/lib.mjs';

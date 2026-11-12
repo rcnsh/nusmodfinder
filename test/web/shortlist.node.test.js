@@ -1,11 +1,11 @@
 // @ts-check
-// public/shortlist.js (Phase 6 6B; docs/plans/phase6.md 6B "Tests first"):
+// public/shortlist.js:
 // counting, the same course, NUS's form order, totals, flags and NUS's notes,
 // over /module answers built from the fixture and its groups
 // (shortlist-answers.node.mjs), with synthetic answers where the fixture has
 // no such course. The seeded property test checks the totals against a
-// reference written separately (shortlist-reference.node.mjs, which 6E's
-// scripts/p6-live.mjs runs over production's rows).
+// reference written separately (shortlist-reference.node.mjs, which
+// scripts/live-shortlist.mjs also runs over production's rows).
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -20,10 +20,10 @@ import { DEFAULT_ACAD_YEAR } from '../../public/year.js';
 import { FIXTURE, GROUP_OF, REASONS_FILE, exchange, fixtureOutcome, ngListedOutcome, synthOutcome } from './shortlist-answers.node.mjs';
 
 /**
- * /facets' offListRules (6A), exactly as the Worker answers them: data/ng-reasons.json's,
+ * /facets' offListRules, exactly as the Worker answers them: data/ng-reasons.json's,
  * whose scopes are `{ departments, levels }` (levels as digits) or `{ faculties }`, and `{}`
- * for rule E. 6B's tests first used a synthetic shape (`{ department }`, levels in 1000s),
- * which the real rules never matched (6C's shape check).
+ * for rule E. A synthetic shape (`{ department }`, levels in 1000s) would pass here and
+ * never match the real rules.
  * @type {import('../../public/shortlist.js').OffListRule[]}
  */
 const RULES = REASONS_FILE.offListRules;
@@ -57,8 +57,8 @@ const at = (r, code) => {
 /** @param {import('../../public/shortlist.js').Result} r @param {string} code */
 const number = (r, code) => at(r, code).form.number;
 
-describe('counting (6B)', () => {
-  it('[R6-2] GRO\'s level 4000 note counts as a quota note does: "Open, with 1 note", counted if NUS accepts you', () => {
+describe('counting', () => {
+  it('GRO\'s level 4000 note counts as a quota note does: "Open, with 1 note", counted if NUS accepts you', () => {
     // PC4262 in Sem 1: open to everyone with no stored note; an undergraduate gets GRO's note, a graduate none.
     const r = run('ng=1&study=ug2&pick=PC4262.1&pick=GE2101.1');
     expect(at(r, 'PC4262')).toMatchObject({ status: 'note', standing: 'counted', why: 'Counted, if NUS accepts you: read its notes' });
@@ -109,7 +109,7 @@ describe('counting (6B)', () => {
     expect(at(r, 'GEC1028').why).toContain(RULE_E);
   });
 
-  it('6A\'s real scopes: a department at levels 1 to 4 (not 5), a faculty, and rule E\'s empty scope covering nothing on its own', () => {
+  it('the restrictions\' real scopes: a department at levels 1 to 4 (not 5), a faculty, and rule E\'s empty scope covering nothing on its own', () => {
     const offS2 = exchange({ 1: ['open', []], 2: ['closed', ['ng-list:not-listed']] });
     const r = run('ng=1&study=ug2&pick=CE2183.2&pick=CE5101.2&pick=IE2141.2&pick=ACC2706.2&pick=GE2101.2', {
       CE2183: synthOutcome('CE2183', { department: 'Civil and Environmental Engineering', level: 2, exchange: offS2 }),
@@ -171,7 +171,7 @@ describe('counting (6B)', () => {
   });
 });
 
-describe('NG-listed codes with no classes (404 kind ng-listed, 6A)', () => {
+describe('NG-listed codes with no classes (404 kind ng-listed)', () => {
   const EE4407 = ngListedOutcome('EE4407', {
     title: 'Selected Topics', department: 'Electrical and Computer Engineering', faculty: 'College of Design and Engineering', ngSemesters: [1],
     exchange: exchange({ 1: ['open', []], 2: ['closed', ['ng-list:not-in-semester']] }),
@@ -204,7 +204,7 @@ describe('NG-listed codes with no classes (404 kind ng-listed, 6A)', () => {
   });
 });
 
-describe('the same course (6B)', () => {
+describe('the same course', () => {
   it('two codes in one group are the same course when both are on the NG list, or either\'s preclusion names the other', () => {
     // CS2030S is off the NG list, but its preclusion names CS2030 (and CS2030's names it).
     expect(at(run('ng=1&study=ug2&pick=CS2030S.1&pick=CS2030.1'), 'CS2030').standing).toBe('counted');
@@ -252,7 +252,7 @@ describe('the same course (6B)', () => {
     const r = run('ng=1&study=ug2&pick=ACC1701XB.1&pick=ACC1701XA.1');
     expect(at(r, 'ACC1701XB')).toMatchObject({ standing: 'invite' });
     expect(at(r, 'ACC1701XA')).toMatchObject({ standing: 'duplicate', sameAs: 'ACC1701XB' });
-    // Business and Law units sit on a line of their own, out of the to-confirm sum (6B "Business and Law").
+    // Business and Law units sit on a line of their own, out of the to-confirm sum.
     expect(r.sems[1]).toMatchObject({ counted: 0, confirm: 0, invite: 4 });
   });
 
@@ -289,7 +289,7 @@ describe('the same course (6B)', () => {
   });
 });
 
-describe('NUS\'s application form order (6B, G5)', () => {
+describe('NUS\'s application form order', () => {
   /** n synthetic courses, `units` each, open in both semesters. @param {string} prefix @param {number} n @param {number} units */
   const many = (prefix, n, units = 4) => Object.fromEntries(Array.from({ length: n }, (_, i) => {
     const code = `${prefix}${1000 + i}`;
@@ -367,7 +367,7 @@ describe('NUS\'s application form order (6B, G5)', () => {
   });
 });
 
-describe('flags (6B)', () => {
+describe('flags', () => {
   it('exam overlap: CS2030 pick and CS2113 backup at the same start, both numbered, both flagged, and the totals\' line', () => {
     const r = run('ng=1&study=ug2&pick=CS2030.1&alt=CS2113.1');
     expect([number(r, 'CS2030'), number(r, 'CS2113')]).toEqual([1, 2]);
@@ -416,7 +416,7 @@ describe('flags (6B)', () => {
   });
 });
 
-describe('NUS\'s notes on particular courses (6B, a lead rule)', () => {
+describe('NUS\'s notes on particular courses', () => {
   /** @param {string} code @param {Record<string, any>} over @param {string} [study] */
   const notes = (code, over, study = 'ug2') => at(run(`ng=1&study=${study}&pick=${code}.1`, { [code]: synthOutcome(code, over) }), code).notes;
   it('AR, CE, CS, EC and PL codes each get theirs; the EC code also GRO\'s CourseReg line', () => {
@@ -433,7 +433,7 @@ describe('NUS\'s notes on particular courses (6B, a lead rule)', () => {
     expect(at(run('ng=1&study=ug2&pick=LAK1201.1'), 'LAK1201').notes).toContain(NOTES.language1);
     expect(notes('LAJ2201', { department: 'Centre for Language Studies', level: 2 })).toEqual([NOTES.language2]);
   });
-  it('[R6-2] level 4000: GRO\'s line is the exchange note the /module answer carries, said once, never one of these notes', () => {
+  it('level 4000: GRO\'s line is the exchange note the /module answer carries, said once, never one of these notes', () => {
     // The shortlist adds no line of its own: a synthetic level 4000 row whose answer has no note gets none.
     expect(notes('GE4101', {})).toEqual([]);
     const w = at(run('ng=1&study=ug2&pick=PC4262.1'), 'PC4262');
@@ -456,8 +456,8 @@ describe('NUS\'s notes on particular courses (6B, a lead rule)', () => {
   });
 });
 
-describe('totals, lines and helpers (6B)', () => {
-  it('the totals\' lines: hours at NUS\'s rate, the 13 weeks, the minimum and G2\'s maximum, flagged past 20', () => {
+describe('totals, lines and helpers', () => {
+  it('the totals\' lines: hours at NUS\'s rate, the 13 weeks, the minimum and the 20-unit maximum, flagged past 20', () => {
     const r = run('ng=1&study=ug2&pick=CS2113.1&pick=EC1101E.1');
     const lines = totalLines('1', r.sems[1], r);
     expect(lines[0]).toBe('Sem 1: 8 units picked, if NUS accepts you into each');
@@ -465,7 +465,7 @@ describe('totals, lines and helpers (6B)', () => {
     expect(lines).toContain(TOTAL_LINES.weeks);
     expect(lines).toContain(`Includes 4 units of Economics courses. GRO: “${GRO_POPULAR}”`);
     expect(lines.slice(-4)).toEqual([TOTAL_LINES.admitted, TOTAL_LINES.courseReg, TOTAL_LINES.maximum, TOTAL_LINES.maximumScope]);
-    // G2 as Jacob worded it after the 6-0 fact check (ADR 0010, PR #88), typographic apostrophes and all.
+    // The maximum-units line word for word (ADR 0010), typographic apostrophes and all.
     expect(TOTAL_LINES.maximum).toBe('NUS’s brochure says at most 23 units a semester, but NUS Global’s exchange page says 20 (NUS Business School’s exchange students: 20). Ask NUS before planning more than 20.');
     expect(TOTAL_LINES.maximumScope).toBe('This limits the courses NUS enrols you in, not the courses you list');
     expect(r.sems[1].over20).toBe(false);
@@ -478,7 +478,7 @@ describe('totals, lines and helpers (6B)', () => {
       .toBe('Sem 2 first: 8 units picked; Sem 1: 8');
   });
 
-  it('"units picked" is one measure: every loaded pick\'s units, counted or not (review finding 4)', () => {
+  it('"units picked" is one measure: every loaded pick\'s units, counted or not', () => {
     // CS3244 is closed in Sem 1 at ug2: not counted, but picked, as the shortlist button says.
     const r = run('sem=2&ng=1&study=ug2&pick=CS3244.1&pick=CS2030.1');
     expect(r.sems[1]).toMatchObject({ counted: 4, picked: 8 });
@@ -521,13 +521,12 @@ describe('totals, lines and helpers (6B)', () => {
 
   it('the fixed lines are NUS\'s, cited: applicants, the form, the CourseReg box', () => {
     expect(APPLICANT_LINES).toHaveLength(4);
-    // The plan's r13 edits from 6-0's fact check (docs/evidence/phase6/facts.md §3, §5): the 2025
-    // application guide has a prerequisite field but no class choice (P4), and the 10-course caution
-    // rests on NUS's 2018/19 information sheet, not slides 6-0 couldn't find (P2).
+    // The 2025 application guide has a prerequisite field but no class choice, and the
+    // 10-course caution rests on NUS's 2018/19 information sheet.
     expect(APPLICANT_LINES[2]).toBe('NUS\'s form asks, for each course with a prerequisite, the home course that meets it (NUS\'s application guide)');
     expect(FORM_LINES.ten).toBe('NUS has said up to 10 courses (NUS\'s 2018/19 exchange information sheet): check');
     expect(FORM_LINES.applicants('2026/27', '01 Sep 2026')).toBe('This order uses NUS\'s 2026/27 exchange list and exams. Applying for 2027/28? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later (the 2026/27 list is dated 1 Sep 2026), and the timetable in July or August (the Registrar says mid-July): check each course there.');
-    // The list's date comes from /facets' NG list source, never a constant (review finding 6); without it, no date.
+    // The list's date comes from /facets' NG list source, never a constant; without it, no date.
     expect(FORM_LINES.applicants('2027/28', '15 Apr 2027')).toContain('(the 2027/28 list is dated 15 Apr 2027)');
     expect(FORM_LINES.applicants('2027/28', '')).toBe('This order uses NUS\'s 2027/28 exchange list and exams. Applying for 2028/29? NUS publishes Sem 1\'s list in March or April, Sem 2\'s later, and the timetable in July or August (the Registrar says mid-July): check each course there.');
     expect(COURSEREG_BOX.rules.join(' ')).toContain(RULE_E);
@@ -554,7 +553,7 @@ const STUDY_LIST = ['ug1', 'ug2', 'ug3', 'ug4', 'grad'];
 /** The reference (shortlist-reference.node.mjs) over the fixture's own columns and groups. */
 const REF_DATA = { rowOf: (/** @type {string} */ c) => FIXTURE.get(c), groupOf: (/** @type {string} */ c) => GROUP_OF.get(c) ?? [], reasons: REASONS_FILE.reasons };
 
-describe('totals over 500 random shortlists (6B, SC3: the reference)', () => {
+describe('totals over 500 random shortlists, against the reference', () => {
   it('counted, to-confirm and only-if-invited units per semester equal the reference, at both semesters, every study level and in browse mode', () => {
     const random = rng(20261111);
     const all = [...FIXTURE.keys()];

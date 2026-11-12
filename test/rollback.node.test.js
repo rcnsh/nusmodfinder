@@ -1,6 +1,6 @@
 // @ts-check
-// Phase 7 7B: `npm run rollback` (scripts/rollback.mjs). The target is `--to <id>` or the
-// deployment before the live one; its commit, data version (and 7D's catalogueKey) come from
+// `npm run rollback` (scripts/rollback.mjs). The target is `--to <id>` or the
+// deployment before the live one; its commit, data version (and catalogueKey) come from
 // its `deploy/*` tag. D1 is read directly over the REST query (no Worker session, no working
 // tree code), and the rollback refuses unless every tagged field equals D1's, or
 // `--accept-data-mismatch`. Then `wrangler rollback`, a `rollback/*` tag on the target's
@@ -17,14 +17,14 @@ import { CATALOGUE_KEY, DV, NOW, TAG_FETCH, TAG_LIST, fakeD1 } from './deploy-fa
 const LIVE = '9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d';
 const PREV = 'b0834844-f6fd-4bb9-838d-a45927c195fb';
 const OLDER = 'f8aefeab-49c4-4548-b994-73bc6bae4f86';
-const PREV_COMMIT = 'a23601de0b15934960bfef1d8b56ab3e80fa5587';
-const OLDER_COMMIT = '0b5f360c7faea8424215b4d4ddde81ebb1d850ff';
+const PREV_COMMIT = 'b75ac19016a2073e77d37c2c44485c9a5d8c99a2';
+const OLDER_COMMIT = '8e24b21ddfcacc5cc67edf4a7cd07c41aaa5a690';
 const DEPLOYMENTS = JSON.stringify([
   { id: 'd1', created_on: '2026-11-11T18:39:46Z', versions: [{ version_id: OLDER, percentage: 100 }] },
   { id: 'd2', created_on: '2026-11-11T23:59:33Z', versions: [{ version_id: PREV, percentage: 100 }] },
   { id: 'd3', created_on: '2026-11-12T10:15:30Z', versions: [{ version_id: LIVE, percentage: 100 }] },
 ]);
-/** A tag's annotation; by default with D1's catalogueKey (7D). @param {string} id @param {string} dv @param {Record<string, string>} [more] */
+/** A tag's annotation; by default with D1's catalogueKey. @param {string} id @param {string} dv @param {Record<string, string>} [more] */
 const tagText = (id, dv, more = { catalogueKey: CATALOGUE_KEY }) => [`deploy ${id.slice(0, 8)}`, `versionId: ${id}`, `dataVersion: ${dv}`, ...Object.entries(more).map(([k, v]) => `${k}: ${v}`)].join('\n\n');
 
 /** @param {Record<string, any>} [over] */
@@ -92,7 +92,7 @@ describe('npm run rollback', () => {
     expect(out).toContain(`npm run smoke -- --expect ${PREV_COMMIT}`);
     expect(records()).toEqual([expect.objectContaining({
       script: 'rollback', outcome: 'ok', versions: expect.objectContaining({ versionId: PREV, previousVersionId: LIVE, dataVersion: DV, catalogueKey: CATALOGUE_KEY }),
-      // The schema row, 6,800 module rows, and 7D's catalogue_only table check and its 2 codes.
+      // The schema row, 6,800 module rows, and the catalogue_only table check and its 2 codes.
       read: [expect.objectContaining({ what: expect.stringMatching(/D1 rows/), actual: 6800 + 1 + 1 + 2 })],
     })]);
   });
@@ -122,7 +122,7 @@ describe('npm run rollback', () => {
     expect(rolledBack(calls2)).toBeDefined();
   });
 
-  it('refuses a catalogueKey mismatch, or a tag missing a field a check names (7D\'s shipped check)', async () => {
+  it('refuses a catalogueKey mismatch, or a tag missing a field a check names (the catalogueKey check)', async () => {
     expect(GUARD_CHECKS.map((c) => c.field).filter(Boolean)).toEqual(['dataVersion', 'catalogueKey']);
     const TAG = 'git for-each-ref --format=%(contents) refs/tags/deploy/20261111T235933Z-b0834844';
     const mismatch = fakeExec({ [TAG]: { stdout: tagText(PREV, DV, { catalogueKey: 'cat-then0000' }) } });

@@ -1,6 +1,6 @@
 // @ts-check
-// History (Phase 5 5B, 5C, F3): the transition table of docs/plans/phase5.md
-// 5B in the browser, every row: queries, filters, clearing, and (5C) opening,
+// History: the page's transition table (public/nav.js) in the browser, every
+// row: queries, filters, clearing, and opening,
 // switching and closing a card's detail, with focus back on its button.
 import { expect, test } from '@playwright/test';
 import { EMPTY, browse, matchFor, query, searches } from './support.mjs';
@@ -14,7 +14,7 @@ async function submit(page, q) {
 const resultsFor = (page, q) => expect(page.locator('#status')).toContainText(matchFor(q));
 const historyLength = (/** @type {import('@playwright/test').Page} */ page) => page.evaluate(() => /** @type {any} */ (globalThis).history.length);
 
-test('[F3] each submitted query is an entry: Back and Forward restore its results from memory, with no new fetch', async ({ page }) => {
+test('each submitted query is an entry: Back and Forward restore its results from memory, with no new fetch', async ({ page }) => {
   await browse(page);
   const sent = searches(page);
   for (const q of ['networks', 'databases', 'machine learning']) {
@@ -38,7 +38,7 @@ test('[F3] each submitted query is an entry: Back and Forward restore its result
   expect(page.url()).toMatch(/\/$/);
 });
 
-test('[F3] submitting the same query again adds no entry', async ({ page }) => {
+test('submitting the same query again adds no entry', async ({ page }) => {
   await browse(page);
   await submit(page, 'networks');
   await resultsFor(page, 'networks');
@@ -48,7 +48,7 @@ test('[F3] submitting the same query again adds no entry', async ({ page }) => {
   expect(await historyLength(page)).toBe(before);
 });
 
-test('[F3] a filter change replaces the entry: Back goes to the previous query, not the unfiltered one', async ({ page }) => {
+test('a filter change replaces the entry: Back goes to the previous query, not the unfiltered one', async ({ page }) => {
   await browse(page);
   await submit(page, 'networks');
   await resultsFor(page, 'networks');
@@ -66,7 +66,7 @@ test('[F3] a filter change replaces the entry: Back goes to the previous query, 
   await expect(page.locator('#level')).toHaveValue('2');
 });
 
-test('[F3] clearing the query pushes the URL without it; Back restores the cleared results', async ({ page }) => {
+test('clearing the query pushes the URL without it; Back restores the cleared results', async ({ page }) => {
   await page.goto('/?level=2');
   await submit(page, 'networks');
   await resultsFor(page, 'networks');
@@ -79,7 +79,7 @@ test('[F3] clearing the query pushes the URL without it; Back restores the clear
   expect(query(page)).toBe('q=networks&level=2');
 });
 
-test('[F3] a shared link restores its state on load and on reload', async ({ page }) => {
+test('a shared link restores its state on load and on reload', async ({ page }) => {
   await page.goto('/?q=databases&level=2&credits=4');
   await resultsFor(page, 'databases');
   await expect(page.locator('#level')).toHaveValue('2');
@@ -126,7 +126,7 @@ test('a link with an intent /search cannot undo still searches, and keeps no ign
 /** @param {import('@playwright/test').Page} page @param {string} code */
 const toggle = (page, code) => page.locator(`#results button.card-toggle[data-code="${code}"]`);
 
-test('[F3] opening a detail with none open pushes; Back closes it, with focus on its button', async ({ page }) => {
+test('opening a detail with none open pushes; Back closes it, with focus on its button', async ({ page }) => {
   await page.goto('/?q=CS3244');
   await expect(toggle(page, 'CS3244')).toBeVisible();
   const before = await historyLength(page);
@@ -141,7 +141,7 @@ test('[F3] opening a detail with none open pushes; Back closes it, with focus on
   await expect(toggle(page, 'CS3244')).toBeFocused();
 });
 
-test('[F3] opening another detail while one is open replaces: one open at a time, and Back goes to the list', async ({ page }) => {
+test('opening another detail while one is open replaces: one open at a time, and Back goes to the list', async ({ page }) => {
   await browse(page);
   await submit(page, 'machine learning');
   await resultsFor(page, 'machine learning');
@@ -162,7 +162,7 @@ test('[F3] opening another detail while one is open replaces: one open at a time
   await expect(buttons.nth(1)).toBeFocused();
 });
 
-test('[F3] closing a detail this page opened goes back, by its button, its Close button or Escape; focus returns to its button', async ({ page }) => {
+test('closing a detail this page opened goes back, by its button, its Close button or Escape; focus returns to its button', async ({ page }) => {
   await page.goto('/?q=CS3244');
   const t = toggle(page, 'CS3244');
   const before = await historyLength(page);
@@ -195,7 +195,7 @@ test('a detail opened from a shared link closes by replace, and focus goes to it
   await expect(t).toBeFocused();
 });
 
-test('a filter change while a detail is open drops open= and closes it (A3-3)', async ({ page }) => {
+test('a filter change while a detail is open drops open= and closes it', async ({ page }) => {
   await page.goto('/?q=CS3244');
   await toggle(page, 'CS3244').click();
   await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244');
@@ -227,9 +227,9 @@ test('Escape that ends an IME composition in the query box leaves the detail ope
 });
 
 // ---------------------------------------------------------------------------
-// Phase 6 6B: the shortlist's state. The list is page-wide; every history
-// write goes through one writer (public/history.js). Until the view exists
-// (6C) these drive the list through the page's test hooks (`vnmTest`).
+// The shortlist's state. The list is page-wide; every history write goes
+// through one writer (public/history.js). These drive the list through the
+// page's test hooks (`vnmTest`).
 
 /**
  * Installs the page's test hooks before it loads.
@@ -247,7 +247,7 @@ const edit = (page, fn, ...args) => page.evaluate(([f, a]) => /** @type {any} */
 /** The list's URL part, from the page's own URL. @param {import('@playwright/test').Page} page */
 const listPart = (page) => [...new URL(page.url()).searchParams].filter(([k]) => ['pick', 'alt', 'ay', 'inv'].includes(k)).map(([k, v]) => `${k}=${v}`).join('&');
 
-test('[6B] an edit on a later entry: Back and Forward keep the list, and write it into the entry they reach', async ({ page }) => {
+test('an edit on a later entry: Back and Forward keep the list, and write it into the entry they reach', async ({ page }) => {
   await hooks(page);
   await browse(page);
   await submit(page, 'networks');
@@ -271,7 +271,7 @@ test('[6B] an edit on a later entry: Back and Forward keep the list, and write i
   expect(query(page)).toBe('q=databases&pick=CS2105.1&pick=GE2101');
 });
 
-test('[6B] coalescing forced: two edits then Back within 100 ms; the previous query shows and its entry holds both edits', async ({ page }) => {
+test('coalescing forced: two edits then Back within 100 ms; the previous query shows and its entry holds both edits', async ({ page }) => {
   await hooks(page, { forceCoalesce: true });
   await browse(page);
   await submit(page, 'networks');
@@ -289,7 +289,7 @@ test('[6B] coalescing forced: two edits then Back within 100 ms; the previous qu
   await expect.poll(() => query(page)).toBe('q=networks&pick=CS2105.1&pick=CS2030.1');
 });
 
-test('[6B] coalescing forced: two edits then a code link; the URL\'s q matches the screen after 1 s', async ({ page }) => {
+test('coalescing forced: two edits then a code link; the URL\'s q matches the screen after 1 s', async ({ page }) => {
   await hooks(page, { forceCoalesce: true });
   await page.goto('/?q=CS3244&open=CS3244');
   const link = page.locator('#results .detail a[data-search="CS2040"]').first();
@@ -308,7 +308,7 @@ test('[6B] coalescing forced: two edits then a code link; the URL\'s q matches t
   await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&pick=CS2030.1&ay=2026-2027');
 });
 
-test('[6B] open a detail, edit, Escape: no open=, the list kept; Forward re-opens the detail with the list', async ({ page }) => {
+test('open a detail, edit, Escape: no open=, the list kept; Forward re-opens the detail with the list', async ({ page }) => {
   await hooks(page);
   await page.goto('/?q=CS3244');
   await toggle(page, 'CS3244').click();
@@ -325,7 +325,7 @@ test('[6B] open a detail, edit, Escape: no open=, the list kept; Forward re-open
   expect(query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&ay=2026-2027');
 });
 
-test('[6B] two edits within 300 ms then a reload: both survive (edits are written at once)', async ({ page }) => {
+test('two edits within 300 ms then a reload: both survive (edits are written at once)', async ({ page }) => {
   await hooks(page);
   await page.goto('/?q=networks');
   await resultsFor(page, 'networks');
@@ -337,7 +337,7 @@ test('[6B] two edits within 300 ms then a reload: both survive (edits are writte
   expect(listPart(page)).toBe('pick=CS2105.1&pick=CS3103.2');
 });
 
-test('[6B] a refused push is retried, and an edit made meanwhile folds into it: one entry, holding the edit', async ({ page }) => {
+test('a refused push is retried, and an edit made meanwhile folds into it: one entry, holding the edit', async ({ page }) => {
   await hooks(page);
   // The next pushState throws, as WebKit's does past 100 writes in 10 s.
   await page.addInitScript(() => {
@@ -365,7 +365,7 @@ test('[6B] a refused push is retried, and an edit made meanwhile folds into it: 
   await expect.poll(() => query(page)).toBe('q=networks&pick=CS2102.1');
 });
 
-test('[6B] 150 edits in 5 s make no more history writes than the writer\'s budget, and the URL then equals the list', async ({ page }) => {
+test('150 edits in 5 s make no more history writes than the writer\'s budget, and the URL then equals the list', async ({ page }) => {
   await hooks(page);
   await page.addInitScript(() => {
     const g = /** @type {any} */ (globalThis);
@@ -393,9 +393,9 @@ test('[6B] 150 edits in 5 s make no more history writes than the writer\'s budge
   expect(new URL(page.url()).searchParams.getAll('pick')).toEqual(listNow.pick.map((/** @type {any} */ e) => e.code));
 });
 
-test('[6B] ay: never written on load; Copy link carries it once a row has loaded, and the first edit writes it', async ({ page }) => {
+test('ay: never written on load; Copy link carries it once a row has loaded, and the first edit writes it', async ({ page }) => {
   await hooks(page);
-  // 6C loads the list's rows on page load: held here, so "before a row loads" can be seen.
+  // The page loads the list's rows on load: held here, so "before a row loads" can be seen.
   /** @type {import('@playwright/test').Route[]} */
   const held = [];
   await page.route('**/module/CS2030', (route) => { held.push(route); });
@@ -414,7 +414,7 @@ test('[6B] ay: never written on load; Copy link carries it once a row has loaded
   expect(query(page)).toBe('q=networks&ng=1&study=ug2&pick=CS2030.2&ay=2026-2027');
 });
 
-test('[6B] ay comes from a row loaded before its code joined the list (review finding 4)', async ({ page }) => {
+test('ay comes from a row loaded before its code joined the list', async ({ page }) => {
   await hooks(page);
   await page.goto('/?q=CS3244&open=CS3244');
   await expect(page.locator('#results .detail a[data-search]').first()).toBeVisible();
@@ -422,7 +422,7 @@ test('[6B] ay comes from a row loaded before its code joined the list (review fi
   expect(query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&ay=2026-2027');
 });
 
-test('[6B, G3] the device keeps the last list this student edited; opening someone else\'s link never overwrites it', async ({ page }) => {
+test('the device keeps the last list this student edited; opening someone else\'s link never overwrites it', async ({ page }) => {
   await hooks(page);
   await page.goto('/?q=networks');
   await resultsFor(page, 'networks');
@@ -442,7 +442,7 @@ test('[6B, G3] the device keeps the last list this student edited; opening someo
   expect(query(page)).toBe('q=databases');
 });
 
-test('[6B] the links the page renders carry no list: a new tab starts without one', async ({ page }) => {
+test('the links the page renders carry no list: a new tab starts without one', async ({ page }) => {
   await page.goto('/?q=CS3244&open=CS3244&pick=CS3244.2&inv=biz');
   const link = page.locator('#results .detail a[data-search="CS2040"]').first();
   await expect(link).toBeVisible();

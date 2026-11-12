@@ -1,11 +1,10 @@
 // @ts-check
-// src/porter.js is SQLite FTS5's porter stemmer (3C, docs/plans/phase3.md
-// "3C Typos and prefixes"): the corrector decides whether a prefix term
-// `"psych"*` matches anything from the vocabulary alone, and FTS5 stems a
-// prefix query's token before it looks it up, so the decision is exact only if
+// src/porter.js is SQLite FTS5's porter stemmer: the typo corrector decides
+// whether a prefix term `"psych"*` matches anything from the vocabulary alone,
+// and FTS5 stems a prefix query's token before it looks it up, so the decision is exact only if
 // the Worker stems exactly as SQLite does. Checked here against node:sqlite's
 // FTS5 over every term of the fixture corpus, typo-shaped variants of them and
-// Porter's own examples; test/full/porter.node.test.js does the pinned corpus.
+// Porter's own examples; test/full/vocabulary.node.test.js does the pinned corpus.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';

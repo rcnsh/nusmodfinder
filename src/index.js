@@ -2,9 +2,9 @@
 // The Worker entry point: routing only. Each route lives in its own module so
 // search (search.js), module/facet reads (modules.js) and the admin ingest
 // routes (ingest.js) can change independently. The page (`/`) is public/,
-// served as Workers Static Assets in front of the Worker (Phase 5 5B): a
+// served as Workers Static Assets in front of the Worker: a
 // request for one of its files never reaches this code. An unknown path gets
-// JSON, or the 404 page when a browser asks for HTML (not-found.js, Phase 8 8B).
+// JSON, or the 404 page when a browser asks for HTML (not-found.js).
 import { denseBundle } from './dense.js';
 import { appVersion, json, withHeaders } from './http.js';
 import {
@@ -18,7 +18,7 @@ import { Trace } from './timing.js';
 
 /**
  * GET /health: which version is serving, the committed data version, and the
- * bundled vectors' corpus and data version (Phase 3 3-0; null if the bundle
+ * bundled vectors' corpus and data version (null if the bundle
  * does not parse), so a smoke can see that the production bundle is live.
  * Deliberately touches no binding but version_metadata, so it costs nothing
  * and works when D1 is down.
@@ -62,7 +62,7 @@ function route(request, env, ctx, trace) {
   if (path === '/admin/catalogue' && request.method === 'GET') return handleCatalogueHashes(request, env);
   if (path === '/admin/catalogue' && request.method === 'POST') return handleCatalogue(request, env);
 
-  // A browser's mistyped address gets the 404 page (Phase 8 8B); everything else, today's JSON.
+  // A browser's mistyped address gets the 404 page; everything else, today's JSON.
   if ((request.method === 'GET' || request.method === 'HEAD') && prefersHtml(request.headers.get('accept'))) return notFoundPage();
   return json({ error: 'not_found', message: `No route for ${path}.` }, 404);
 }
@@ -96,7 +96,7 @@ export default {
     try {
       response = await route(request, env, ctx, trace);
     } catch (err) {
-      // Anything a route did not handle (B5): a JSON 500 the caller can quote,
+      // Anything a route did not handle: a JSON 500 the caller can quote,
       // never workerd's bare "error code: 1101".
       const id = requestId(request);
       const e = /** @type {any} */ (err);

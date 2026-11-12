@@ -1,5 +1,5 @@
 {
-  // The page: public/, native ES modules in the browser (Phase 5 5B), with the
+  // The page: public/, native ES modules in the browser, with the
   // DOM lib and no Node or Workers types. The pure modules (state, nav, api,
   // messages, format, keys) are also checked by tsconfig.node.json through the
   // Node tests that import them, so they use no DOM types.

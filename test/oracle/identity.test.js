@@ -1,13 +1,12 @@
 // @ts-check
-// Phase 4 gate 2, per-list identity on dev (docs/plans/phase4.md §4): no
-// holdout look gates Phase 4's correctness changes, so each of the 98 dev
+// Per-list identity on dev: the allow-mask bit removes the closed modules and
+// changes nothing else, checked without a holdout look. Each of the 98 dev
 // queries (with `study` from eval/study-map.json, as the eval runner sends it)
-// is run three ways on production's corpus (`current`) and bundle (Phase 7
-// 7D; before it, the pinned ones):
+// is run three ways on production's corpus (`current`) and bundle:
 // - the page (the shipped pipeline);
-// - SC1_TRACE=1: the same request, returning its internal lists (pins, the
+// - ORACLE_TRACE=1: the same request, returning its internal lists (pins, the
 //   dense, lexical and code lists, the mask route's list) and their depths;
-// - SC1_TRACE=ignore: the lists with the yearly ng flag and no allow-mask bit,
+// - ORACLE_TRACE=ignore: the lists with the yearly ng flag and no allow-mask bit,
 //   at full depth.
 // Each ignore-mode list, kept to the modules the independent oracle shows for
 // the query's (sem, study) and cut at the depth the pipeline used, must equal
@@ -17,10 +16,10 @@
 // semesterRepresentative: with a semester, the group's highest-ranked member
 // on that semester's timetable when its first is not). So the bit removes
 // exactly the closed modules and changes nothing else. These are invariants,
-// true of any corpus; 3G's ruling (a dev query outside the no-answer tag that
-// the bit pushes into no-signal) is a fact of the pinned corpus and is
-// asserted over it in test/full/sc1-pinned.test.js. The trace is test-only
-// (src/search.js sc1TraceMode).
+// true of any corpus; the no-signal check's (no dev query outside the no-answer
+// tag that the bit pushes into no-signal) is a fact of the pinned corpus and is
+// asserted over it in test/full/oracle-pinned.test.js. The trace is test-only
+// (src/search.js oracleTraceMode).
 import { beforeAll, describe, expect, inject, it, vi } from 'vitest';
 import catalogueFile from 'catalogue-only-data';
 import devQueries from '../../eval/dev/queries.json';
@@ -36,10 +35,10 @@ import { CacheAI, ngDevRequests } from './shared.js';
 /** The page size the dev queries get: src/search.js DEFAULT_TOPK (they send no topK). */
 const PAGE_SIZE = 20;
 const corpus = inject('corpus');
-// Phase 7 7E: the oracle for the corpus's year (test/sc1/oracle.mjs picks it); the live year's without one.
+// The oracle for the corpus's year (test/oracle/oracle.mjs picks it); the live year's without one.
 const { oracle } = corpus ? await live.oracleFor(corpus.acadYear) : live;
 
-describe.skipIf(!corpus)('gate 2: per-list identity on dev', () => {
+describe.skipIf(!corpus)('per-list identity on dev', () => {
   const c = /** @type {FullCorpus} */ (corpus);
   const moduleOf = new Map(c.modules.map((m) => [m.code, m]));
   const fakes = createFakes();
@@ -82,13 +81,13 @@ describe.skipIf(!corpus)('gate 2: per-list identity on dev', () => {
       };
 
       const page = await callJson(path, { fakes });
-      const traced = await callJson(path, { fakes, env: { SC1_TRACE: '1' } });
-      const ignored = await callJson(path, { fakes, env: { SC1_TRACE: 'ignore' } });
+      const traced = await callJson(path, { fakes, env: { ORACLE_TRACE: '1' } });
+      const ignored = await callJson(path, { fakes, env: { ORACLE_TRACE: 'ignore' } });
       // A request /search refuses (an over-long query) is refused the same way in all three.
       expect([traced.status, ignored.status], path).toEqual([page.status, page.status]);
       if (page.status !== 200) { refused++; continue; }
       expect(traced.headers.get('cache-control'), path).toBe('no-store');
-      const t = traced.body.sc1, u = ignored.body.sc1;
+      const t = traced.body.oracle, u = ignored.body.oracle;
       if (page.body.noMatch?.reason === 'no-signal') noSignal.push(`${q.id} [${q.shapes.join(',')}] topCosine ${t.topCosine}`);
       if (page.body.noMatch) continue;
       if (t.degraded) degraded++;

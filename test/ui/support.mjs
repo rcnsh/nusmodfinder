@@ -1,5 +1,5 @@
 // @ts-check
-// Shared by the Playwright specs in test/ui/ (Phase 5 5B).
+// Shared by the Playwright specs in test/ui/.
 
 /**
  * Records the query string of every /search request the page makes, in order.
@@ -31,11 +31,11 @@ export function body(over = {}) {
   };
 }
 
-/** The empty state's sentence (5D: it names the next step). */
+/** The empty state's sentence (it names the next step). */
 export const EMPTY = 'Type what you want to study in the box above, then press Search.';
 
 /**
- * Opens the page and leaves the first screen (the exchange set-up, D2) by
+ * Opens the page and leaves the first screen (the exchange set-up) by
  * "Browse all courses instead", for a test of the general search.
  * @param {import('@playwright/test').Page} page
  */
@@ -74,13 +74,13 @@ export async function settled(page) {
 
 /**
  * The rule left out of axeViolations: WCAG AAA's 7:1 contrast. The page's bar
- * is AA (F6, `npm run contrast`), which design D's stamps, note scopes and
+ * is AA (`npm run contrast`), which the page's stamps, note scopes and
  * source dates meet at 6.2:1 and up; AAA would change D's colours.
  */
 export const AXE_OFF = Object.freeze(['color-contrast-enhanced']);
 
 /**
- * axe-core with every rule it has but AXE_OFF (5E): no tag filter, and the
+ * axe-core with every rule it has but AXE_OFF: no tag filter, and the
  * rules axe leaves off by default (the experimental ones, the other AAA ones)
  * on too. The violations as `rule: targets` lines, [] when there are none.
  * @param {import('@playwright/test').Page} page
@@ -93,7 +93,7 @@ export async function axeViolations(page) {
   return violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
 }
 
-/** The polite live region (5E): one per page. @param {import('@playwright/test').Page} page */
+/** The polite live region: one per page. @param {import('@playwright/test').Page} page */
 export const live = (page) => page.locator('#live');
 
 /**

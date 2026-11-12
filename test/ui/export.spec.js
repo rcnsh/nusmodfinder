@@ -1,5 +1,5 @@
 // @ts-check
-// The exports (Phase 6 6D; docs/plans/phase6.md 6D "Tests first"): the CSV
+// The exports: the CSV
 // downloaded and read back by a strict RFC 4180 reader (test/web/
 // rfc4180.node.mjs), over every fixture NG code and the fixture's NG-listed
 // codes with no classes, at ug2 and at grad; Print with window.print stubbed;
@@ -8,7 +8,7 @@
 // light on paper even in dark mode, axe clean); and Chromium's tagged PDF,
 // its text read back (pdf-text.mjs). Every flow runs under the production CSP
 // (public/_headers on the local stack). Set VNM_EVIDENCE to a directory to
-// keep the files (docs/evidence/phase6/export/).
+// keep the files.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
@@ -96,7 +96,7 @@ function workloadExpected(w) {
 /**
  * Links over every fixture NG code and the fixture's NG-listed codes with no
  * classes, each tagged with its first NG semester, at most 20 to a semester in
- * each link (6B's cap); every third a backup.
+ * each link (the shortlist's cap); every third a backup.
  */
 function coverageLinks() {
   const codes = [...corpus.modules.filter((m) => m.ng), ...unscheduled.modules].map((m) => ({ code: m.code, sem: m.ngSemesters[0] ?? 1 }));
@@ -123,8 +123,8 @@ function fortyLink() {
   return { codes: [...s1, ...s2], qs: [...s1.map((c) => `pick=${c}.1`), ...s2.map((c) => `alt=${c}.2`)].join('&') };
 }
 
-test.describe('[6D] Download CSV', () => {
-  test('[6D] downloads the file, read back strictly: its name, Sem 1\'s picks and backups, then the closed entry; the URL now holds ay', async ({ page }) => {
+test.describe('Download CSV', () => {
+  test('downloads the file, read back strictly: its name, Sem 1\'s picks and backups, then the closed entry; the URL now holds ay', async ({ page }) => {
     await page.goto(at('ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1&alt=CS3244.1&alt=EE4407.1&view=shortlist'));
     await rowsIn(page);
     expect(query(page)).not.toContain('ay=');
@@ -136,7 +136,7 @@ test.describe('[6D] Download CSV', () => {
     await expect.poll(() => query(page)).toContain('ay=2026-2027');
   });
 
-  test('[6D] every fixture NG code and NG-listed code with no classes: its description and workload as /module answers them, each closed one its reasons, at ug2 and at grad', async ({ page, request, browserName }) => {
+  test('every fixture NG code and NG-listed code with no classes: its description and workload as /module answers them, each closed one its reasons, at ug2 and at grad', async ({ page, request, browserName }) => {
     test.skip(browserName !== 'chromium', 'one browser covers the codes; both download in the test above');
     test.setTimeout(240_000);
     /** @type {Map<string, { status: number, body: any }>} */
@@ -176,8 +176,8 @@ test.describe('[6D] Download CSV', () => {
   });
 });
 
-test.describe('[6D] Print or save as PDF', () => {
-  test('[6D] window.print on the click, with every description on the print page and the file name as the title; afterprint restores it', async ({ page, request }) => {
+test.describe('Print or save as PDF', () => {
+  test('window.print on the click, with every description on the print page and the file name as the title; afterprint restores it', async ({ page, request }) => {
     await stubPrint(page);
     const codes = ['CS2113', 'GE2101', 'CS2030', 'EE4407'];
     await page.goto(at(`ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1&pick=CS2030.2&alt=EE4407.1&view=shortlist`));
@@ -193,7 +193,7 @@ test.describe('[6D] Print or save as PDF', () => {
     await expect(page).toHaveTitle('NUS Mod Finder (unofficial)');
   });
 
-  test('[6D] a press before every row is in: the button keeps its name, its line says "Loading", then "Ready: press again"; the second press downloads, or prints', async ({ page }) => {
+  test('a press before every row is in: the button keeps its name, its line says "Loading", then "Ready: press again"; the second press downloads, or prints', async ({ page }) => {
     await stubPrint(page);
     let downloads = 0;
     page.on('download', () => { downloads += 1; });
@@ -236,7 +236,7 @@ test.describe('[6D] Print or save as PDF', () => {
     expect((await prints(page))[0]).toMatchObject({ on: true, codes: ['GE2101', 'CS3244'] });
   });
 
-  test('[6D] Ctrl+P: before the export question is answered the screen prints; once it is, the shortlist, with the file name as the title', async ({ page }) => {
+  test('Ctrl+P: before the export question is answered the screen prints; once it is, the shortlist, with the file name as the title', async ({ page }) => {
     await page.goto(at('pick=CS5562.2&view=shortlist'));
     await rowsIn(page);
     await expect(page.locator('#slAsk')).toBeVisible();
@@ -297,8 +297,8 @@ const printLayout = (page) => page.evaluate(() => {
   return { outside, lowContrast, width: section.getBoundingClientRect().width, page: document.documentElement.clientWidth };
 });
 
-test.describe('[6D] the print page under print media', () => {
-  test('[6D] only the print section shows, at the page\'s full width; light on paper in a dark theme, AA; axe clean; the breaks set', async ({ page, browserName }) => {
+test.describe('the print page under print media', () => {
+  test('only the print section shows, at the page\'s full width; light on paper in a dark theme, AA; axe clean; the breaks set', async ({ page, browserName }) => {
     await page.setViewportSize({ width: 718, height: 1000 });
     await page.emulateMedia({ colorScheme: 'dark' });
     await page.goto(at('ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1&pick=PC3270.1&pick=ACC1701XA.1&alt=CS3244.1&alt=EE4407.1&view=shortlist'));
@@ -330,8 +330,8 @@ test.describe('[6D] the print page under print media', () => {
   });
 });
 
-test.describe('[6D] the PDF', () => {
-  test('[6D] Chromium\'s tagged PDF of a 40-entry list: a structure tree, selectable text holding every description, workload, status and the link, starting with the head\'s first line; the form order starts a page; at most 20 pages (the plan said 14: see docs/evidence/phase6/export/README.md)', async ({ page, request, browserName }) => {
+test.describe('the PDF', () => {
+  test('Chromium\'s tagged PDF of a 40-entry list: a structure tree, selectable text holding every description, workload, status and the link, starting with the head\'s first line; the form order starts a page; at most 20 pages', async ({ page, request, browserName }) => {
     test.skip(browserName !== 'chromium', 'page.pdf() is Chromium\'s');
     test.setTimeout(120_000);
     const { codes, qs } = fortyLink();
@@ -355,7 +355,7 @@ test.describe('[6D] the PDF', () => {
       link: document.querySelector('#slPrint .pp-link')?.textContent ?? '',
       stamps: [...document.querySelectorAll('#slPrint .pp-course .st')].map((s) => s.textContent ?? ''),
     }));
-    // The head's first line is the h1, "Courses planned for …" (6D), and the PDF's text starts with it.
+    // The head's first line is the h1, "Courses planned for …", and the PDF's text starts with it.
     expect(shown.first).toBe('H1');
     expect(shown.title).toMatch(/^Courses planned for Sem 1 and Sem 2, based on NUS's 2026\/27 courses, exams and exchange list$/);
     expect(all.startsWith(fold(shown.title))).toBe(true);
@@ -371,7 +371,7 @@ test.describe('[6D] the PDF', () => {
     }
     // The forced break: the foot's form order starts a page.
     expect(pages.findIndex((p) => fold(p).startsWith(fold('NUS\'s application form order')))).toBeGreaterThan(0);
-    // The text is Plex, and a system font draws what the Plex subsets lack (recorded in the evidence).
+    // The text is Plex, and a system font draws what the Plex subsets lack.
     const fonts = pdfFonts(pdf);
     expect(fonts.some((f) => /IBMPlexSans/.test(f))).toBe(true);
     expect(fonts.some((f) => !/IBMPlex/.test(f))).toBe(true);

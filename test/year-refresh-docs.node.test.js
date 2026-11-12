@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7E: the year-refresh runbook (docs/year-refresh/) and `year next`'s checklist name only
+// The year-refresh runbook (docs/year-refresh/) and `year next`'s checklist name only
 // commands that exist, with flags their scripts take, and name one secret: the sources key's
 // backup in Bitwarden Secrets Manager.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';

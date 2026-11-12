@@ -5,7 +5,7 @@
   "script": "deploy",
   "args": [],
   "commit": {
-    "sha": "894bc1fade8045b8cd60f22f1ef331632a632caf",
+    "sha": "d9e18c1094a1c9e728cd5ffc52adbce577668734",
     "dirty": false,
     "diffSha256": null
   },
@@ -25,7 +25,7 @@
     "wrangler triggers deploy": 1
   },
   "versions": {
-    "tag": "894bc1f",
+    "tag": "d9e18c1",
     "dataVersion": "d820d578cf81",
     "catalogueKey": "5b1e2f06e559",
     "versionId": "b1ccf7db-ae34-47b9-9977-973084089fb6",
@@ -39,7 +39,7 @@
       {
         "name": "git",
         "status": "ok",
-        "message": "HEAD 894bc1f is on origin/main, at its tip"
+        "message": "HEAD d9e18c1 is on origin/main, at its tip"
       },
       {
         "name": "ci",

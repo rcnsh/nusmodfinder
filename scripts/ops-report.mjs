@@ -1,10 +1,10 @@
 // @ts-check
-// The monthly usage report (Phase 7 7F, docs/plans/phase7.md §2 7F), from Cloudflare's GraphQL
-// Analytics API. Run on the Mac by hand, monthly and after a ship that changes the search path:
+// The monthly usage report, from Cloudflare's GraphQL Analytics API. Run on the Mac by hand,
+// monthly and after a deploy that changes the search path:
 //
 //   npm run ops:report -- [--month <yyyy-mm>]      (default: the current UTC month)
 //
-// It writes docs/evidence/ops/<month>.md and a run record. Two GraphQL calls, one combined query
+// It writes ops/reports/<month>.md and a run record. Two GraphQL calls, one combined query
 // for the month and one for the month before (for growth), at least 4 s apart.
 //
 // - Account-wide, each against its Workers Paid allowance: Worker requests and CPU, D1 rows read
@@ -16,7 +16,7 @@
 //
 // A dataset GraphQL couldn't answer is reported as missing, never as zero; the run then exits 1.
 //
-// The token and the account come from 7B's scripts/d1-read.mjs (resolveToken: CLOUDFLARE_API_TOKEN,
+// The token and the account come from scripts/d1-read.mjs (resolveToken: CLOUDFLARE_API_TOKEN,
 // else `npx wrangler auth token --json`; resolveAccountId: CLOUDFLARE_ACCOUNT_ID, else wrangler's
 // cached account, else the one `wrangler whoami` lists), and the database from wrangler.jsonc
 // (d1Config). The token goes only into the Authorization header: never into the report, the run
@@ -30,7 +30,7 @@ import { run as runCommand } from './deploy.mjs';
 import { startRun } from './run-record.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-export const OUT_DIR = join(ROOT, 'docs/evidence/ops');
+export const OUT_DIR = join(ROOT, 'ops/reports');
 export const GRAPHQL_URL = 'https://api.cloudflare.com/client/v4/graphql';
 export const WORKER = 'nusmodfinder';
 export const DATABASE_NAME = 'nusmods-apac';

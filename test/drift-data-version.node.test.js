@@ -1,6 +1,6 @@
 // @ts-check
-// Phase 7 7F: the drift check's data version is production's, computed offline by the function
-// 7D's CI uses (scripts/corpus-manifest.mjs corpusDataVersion: offeredModules over HEAD's NG
+// The drift check's data version is production's, computed offline by the function CI uses
+// (scripts/corpus-manifest.mjs corpusDataVersion: offeredModules over HEAD's NG
 // files for the year, rowHash, dataVersion), so a match with src/data-version.json means
 // production holds NUSMods' data. Fixture records under DEFAULT_ACAD_YEAR's real NG files.
 import { readFileSync } from 'node:fs';

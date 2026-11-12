@@ -1,8 +1,7 @@
 {
  "schema": "vnm-gibberish/1",
  "version": "gibberish-v1",
- "fixedAt": "P-6",
- "plan": "docs/plans/phase3.md 3G (C-3, A3-6): ≥ 40 strings written before any 3G code, disjoint from SC4, split by a recorded seed into a derivation half and a gate half of ≥ 20 each",
+ "purpose": "≥ 40 strings that should match nothing, written before the no-signal threshold was tuned, disjoint from the query suite, split by a recorded seed into a derivation half and a gate half of ≥ 20 each",
  "strings": [
   {
    "id": "g-01",
@@ -207,7 +206,7 @@
  ],
  "split": {
   "seed": 20261106,
-  "method": "eval/prereg/gibberish-split.mjs: seeded Fisher–Yates (eval/lib/stats.mjs rng) over the ids in file order; the first floor(n/2) are the derivation half",
+  "method": "eval/gibberish-split.mjs: seeded Fisher–Yates (eval/lib/stats.mjs rng) over the ids in file order; the first floor(n/2) are the derivation half",
   "derivation": [
    "g-02",
    "g-05",

@@ -16,7 +16,7 @@ intake ("For Semester 1 of AY<yyyy>/<yyyy> (August <yyyy> ...)"). Semester is tr
 from those headings rather than from page numbers, so re-paginating the PDF next
 year does not silently corrupt the split.
 
-Phase 7 7E (docs/plans/phase7.md): only the sections whose heading names the
+Only the sections whose heading names the
 target year are kept, August of its first year for Sem 1 and January of its
 second for Sem 2. NUS prepends new sections, so an April PDF can hold Sem 1 of
 the next year above Sem 2 of this one; the others are dropped and listed. The
@@ -28,7 +28,7 @@ pdftotext writes them) and needs no pypdf, so CI tests the heading logic.
 
 `npm run year -- check --full` re-runs this script with .venv/bin/python on the
 archived PDF and requires its output to be data/ng-courses-<year>.json byte for
-byte (red team H-1), so create the venv as above before running it.
+byte, so create the venv as above before running it.
 --published 1,2 overrides the manifest's published semesters
 (data/ng-sources-<year>.json). --out writes somewhere other than
 data/ng-courses-<year>.json.

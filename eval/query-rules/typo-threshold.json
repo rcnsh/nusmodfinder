@@ -2,8 +2,8 @@
  "schema": "vnm-p6-typo-threshold/1",
  "rule": "T = min over the 6 dev typo pairs of overlap@10(oracle, clean), capped at 7; oracle = lexical half on the clean form, dense half on the typo form",
  "ranker": {
-  "ref": "e8a712468b2f59c4d9dcaeef2fe9680a8b8b0f7d",
-  "sha": "e8a712468b2f59c4d9dcaeef2fe9680a8b8b0f7d",
+  "ref": "8adb476c3f51e7a2e67dc39b02aa96ff918cf362",
+  "sha": "8adb476c3f51e7a2e67dc39b02aa96ff918cf362",
   "treeHash": "31a9ba34f58ae022e0103443234f0d23b627be9d164f10dcb6c80f78b9efa80a"
  },
  "corpus": "data-2026-2027-20260904",

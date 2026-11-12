@@ -1,6 +1,5 @@
 // @ts-check
-// The corpus vocabulary 3C corrects against (docs/plans/phase3.md "3C Typos
-// and prefixes"): every surface token of the indexed text (title and
+// The corpus vocabulary the typo step (src/typo.js) corrects against: every surface token of the indexed text (title and
 // description, split by queryTokens exactly as modules_fts splits them) with
 // its document frequency, and the FTS index terms those tokens become (folded
 // and porter-stemmed), so whether a prefix term `"tok"*` matches anything is
@@ -115,7 +114,7 @@ let rows = [new Int32Array(32), new Int32Array(32), new Int32Array(32)];
 
 /**
  * The optimal string alignment distance (Levenshtein plus adjacent
- * transposition, each substring edited at most once), C2-5: `desgin` →
+ * transposition, each substring edited at most once): `desgin` →
  * `design` costs 1. Above `max` it stops early and returns max + 1.
  * @param {string} a @param {string} b @param {number} [max]
  */
@@ -151,7 +150,7 @@ export function osaDistance(a, b, max = Infinity) {
 /**
  * The vocabulary term nearest `token` within `maxDist` OSA edits: the
  * smallest distance, then the higher df, then the lexicographically smaller
- * term (C19). Null when none is within the bound.
+ * term. Null when none is within the bound.
  * @param {Vocabulary} v @param {string} token @param {number} maxDist
  */
 export function nearestTerm(v, token, maxDist) {

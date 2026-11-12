@@ -1,5 +1,5 @@
 // @ts-check
-// src/groups.js, groups-v1 in the Worker (docs/plans/phase3.md 3F): the eval's
+// src/groups.js, groups-v1 in the Worker: the eval's
 // duplicate-group rule, one rule for eval and product, as a versioned module
 // (data/groups.json, test/fixtures/groups.json) and the pure collapse.
 import { readFileSync } from 'node:fs';

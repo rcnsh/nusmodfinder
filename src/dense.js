@@ -1,5 +1,5 @@
 // @ts-check
-// The bundled corpus vectors (Phase 3, 3-0). `vectors-bundle` is a wrangler
+// The bundled corpus vectors. `vectors-bundle` is a wrangler
 // `alias` (wrangler.jsonc; resolve.alias in the Vitest configs) to a small
 // module that re-exports a `.bin` Data module: by default the committed
 // fixture (test/fixtures/vectors.js), and for a deploy the production bundle
@@ -13,7 +13,7 @@ let loaded = null;
 
 /**
  * The parsed bundle. A bundle that does not parse throws, every time, with
- * the same error: /search then answers keyword-only (B6), `degraded.source`
+ * the same error: /search then answers keyword-only, `degraded.source`
  * "dense-index".
  */
 export function denseBundle() {

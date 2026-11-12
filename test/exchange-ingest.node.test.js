@@ -1,9 +1,8 @@
 // @ts-check
-// Phase 4 4A, Node side (docs/plans/phase4.md §2 "Storage", §5): ingest
-// computes the allow mask and rule ids from the NG list and the restrictions
-// data; both reach the row hash, the upsert's SET list and the schema guard;
-// the Worker's reason texts are the build of the rules file and know every
-// id ingest stores.
+// Exchange eligibility, Node side: ingest computes the allow mask and rule ids
+// from the NG list and the restrictions data; both reach the row hash, the
+// upsert's SET list and the schema guard; the Worker's reason texts are the
+// build of the rules file and know every id ingest stores.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { buildNgReasons } from '../scripts/build-ng-reasons.mjs';
@@ -18,6 +17,8 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 /** @type {FixtureCorpus} */
 const fixture = JSON.parse(read('./fixtures/corpus.json'));
 const rules = loadNgRestrictions(DEFAULT_ACAD_YEAR);
+/** The year's source manifest: its documents and where its transcription lives. */
+const sources = JSON.parse(read(`../data/ng-sources-${DEFAULT_ACAD_YEAR}.json`));
 
 const record = {
   moduleCode: 'CS3244', title: 'Machine Learning', department: 'Computer Science', faculty: 'Computing',
@@ -49,10 +50,10 @@ describe('offeredModules computes exchange eligibility at ingest', () => {
   });
 });
 
-describe('the row and its writes (plan §5)', () => {
+describe('the row and its writes', () => {
   it('ng_allow and ng_rules are bound and hashed, so a rules-only change rewrites the row', async () => {
     const m = /** @type {NormalisedModule} */ (fixture.modules.find((x) => x.code === 'CS3244'));
-    // 5A's exam_dates follows them (test/exam-dates.node.test.js).
+    // exam_dates follows them (test/exam-dates.node.test.js).
     expect(ROW_COLUMNS.slice(-3, -1)).toEqual(['ng_allow', 'ng_rules']);
     expect(boundTuple(m).slice(-3, -1)).toEqual([m.ngAllow, JSON.stringify(m.ngRules)]);
     const base = await rowHash(m);
@@ -89,7 +90,7 @@ describe('the Worker\'s reason texts (data/ng-reasons.json)', () => {
     }
   });
 
-  it('rule D says the list opens no course to the student\'s year of study, not to everyone (5G review: CAS5101)', () => {
+  it('rule D says the list opens no course to the student\'s year of study, not to everyone (CAS5101)', () => {
     // A level 5000 Southeast Asian Studies course: rule 1-sea-l5-yr4-pg opens it to 4th-years and
     // graduates, so a 3rd-year is closed by rule D alone while a 4th-year is open.
     const cas = /** @type {any} */ ({
@@ -104,21 +105,22 @@ describe('the Worker\'s reason texts (data/ng-reasons.json)', () => {
     expect(text).not.toMatch(/doesn't open this one\./);
   });
 
-  it('name the sources with the dates docs/evidence/phase4/sources.md records', () => {
-    const md = read('../docs/evidence/phase4/sources.md');
-    const dateOf = (/** @type {string} */ f) => new RegExp(`^\\| \`${f}\` \\|[^|]*\\| ([^|]+) \\|`, 'm').exec(md)?.[1].trim();
+  it('name the sources with the dates the source manifest\'s newest revision records', () => {
+    /** @type {{ file?: string, updatedAsAt?: string }[]} */
+    const documents = sources.revisions.at(-1).documents;
+    const dateOf = (/** @type {string} */ f) => documents.find((d) => d.file === f)?.updatedAsAt;
     expect(file.sources.map((/** @type {{ updatedAsAt: string }} */ s) => s.updatedAsAt))
       .toEqual([dateOf('ng-courses.pdf'), dateOf('non-graduating-course-restrictions.pdf')]);
   });
 });
 
-// Phase 6 6A: NUS's rules about courses off the exchange list, transcribed into
+// NUS's rules about courses off the exchange list, transcribed into
 // the rules file's info entries with the scope each states, reach the page
 // through ng-reasons.json and /facets' `offListRules`.
-describe('the rules about courses off the exchange list (6A)', () => {
+describe('the rules about courses off the exchange list', () => {
   const OFF_LIST = ['E-offerings-list', '2-biz-no-late-add', '4-cee-no-appeal', '4-isem-no-appeal'];
   /** @type {{ rules: { id: string, quote: string, department: string | null, scope: { levels: number[] | null, school: string | null } }[] }} */
-  const transcription = JSON.parse(read('../docs/evidence/phase4/transcription-b.json'));
+  const transcription = JSON.parse(read(`../${sources.transcription}`));
   /** @type {{ id: string, why: string, text?: string, scope?: { departments?: string[], faculties?: string[], levels?: number[] } }[]} */
   const info = /** @type {any} */ (rules).info;
 
@@ -145,7 +147,7 @@ describe('the rules about courses off the exchange list (6A)', () => {
     expect(info.find((i) => i.id === 'E-offerings-list')?.scope).toEqual({});
   });
 
-  it('reach data/ng-reasons.json as offListRules: id, text and scope, and rule E its overlay role (7E)', () => {
+  it('reach data/ng-reasons.json as offListRules: id, text and scope, and rule E its overlay role', () => {
     const file = JSON.parse(read('../data/ng-reasons.json'));
     expect(file.offListRules).toEqual(OFF_LIST.map((id) => {
       const entry = /** @type {NonNullable<(typeof info)[number]>} */ (info.find((i) => i.id === id));

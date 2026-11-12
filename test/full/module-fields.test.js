@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 6 6A over the pinned corpus (docs/plans/phase6.md §3 "6A"):
+// Module detail fields over the pinned corpus:
 // `/module/:code`'s otherCodes from the pinned groups, and the pinned
 // NG-listed codes with no classes, built in memory as the pinned groups are
 // (vitest.config.mjs). Skipped without the corpus; with FULL_CORPUS=1 a missing
@@ -10,7 +10,7 @@ import { callJson, seed } from '../helpers.js';
 
 const corpus = inject('corpus');
 
-describe.skipIf(!corpus)('/module/:code over the pinned corpus (6A)', () => {
+describe.skipIf(!corpus)('/module/:code over the pinned corpus', () => {
   const c = /** @type {FullCorpus} */ (corpus);
 
   beforeAll(async () => {

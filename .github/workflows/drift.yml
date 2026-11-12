@@ -1,6 +1,6 @@
 name: Drift
 
-# Phase 7 7F, G3 (a) in ADR 0011: the weekly NUSMods data-change check and the monthly reminder.
+# ADR 0011: the weekly NUSMods data-change check and the monthly reminder.
 # It reads NUSMods' public API and writes issues; it makes no Cloudflare call and no live-site
 # call. The logic is in scripts/drift.mjs (tested in test/drift*.node.test.js); this file only
 # runs it. The crons must match SCHEDULES in scripts/drift.mjs.

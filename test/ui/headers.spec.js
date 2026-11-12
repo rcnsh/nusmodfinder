@@ -1,5 +1,5 @@
 // @ts-check
-// 5G S3 (red-team security review): the page's response headers, from
+// The page's response headers, from
 // public/_headers on the local `wrangler dev` stack, the same Workers Static
 // Assets that serve it live. No other origin may frame the page, and the CSP
 // lets it run only its own files: every flow below runs with no CSP violation.
@@ -23,7 +23,7 @@ const SELECT_LINES = readFileSync(new URL('../../public/index.html', import.meta
  * Records every CSP violation the page reports, from before its first script.
  * WebKit reports `style-src-attr` against each <select> as the parser builds
  * it, with no script and no style attribute (its own control styling): the
- * rail renders pixel-identical with and without the CSP (checked for 5G S3),
+ * rail renders pixel-identical with and without the CSP (checked by hand),
  * so exactly that report is left out; any other fails.
  * @param {import('@playwright/test').Page} page
  * @param {string} browserName
@@ -113,7 +113,7 @@ test('the inline view script runs under the CSP: a link with state never flashes
   expect(await violations()).toEqual([]);
 });
 
-test('[6C] no CSP violation in the shortlist: a toggle, the view, a row, Copy link\'s field, the export question, Restore, dark mode', async ({ page, browserName }) => {
+test('no CSP violation in the shortlist: a toggle, the view, a row, Copy link\'s field, the export question, Restore, dark mode', async ({ page, browserName }) => {
   const violations = await watchCsp(page, browserName);
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('no')) } });
@@ -135,7 +135,7 @@ test('[6C] no CSP violation in the shortlist: a toggle, the view, a row, Copy li
   expect(await violations()).toEqual([]);
 });
 
-test('[6D] no CSP violation in the exports: Download CSV (a blob URL), the print page under print media, print() called', async ({ page, browserName }) => {
+test('no CSP violation in the exports: Download CSV (a blob URL), the print page under print media, print() called', async ({ page, browserName }) => {
   const violations = await watchCsp(page, browserName);
   await page.addInitScript(() => { window.print = () => { /** @type {any} */ (globalThis).printed = true; }; });
   await page.goto('/?ng=1&study=ug2&sem=1&pick=CS2113.1&alt=EE4407.1&view=shortlist');

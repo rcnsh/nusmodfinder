@@ -1,15 +1,15 @@
 // @ts-check
-// The shortlist's export (Phase 6 6D; docs/plans/phase6.md 6D), as one
-// document both exports draw: the CSV (csv.js) and the print page (print.js).
-// Pure: no DOM; test/web/csv.node.test.js runs it in Node.
+// The shortlist's export, as one document both exports draw: the CSV (csv.js)
+// and the print page (print.js). Pure: no DOM; test/web/csv.node.test.js runs
+// it in Node.
 //
-// Every entry is worked out at its own semester (shortlist.js), as in the
-// view. The document holds, in order: the head; each semester present, Sem 1
-// then Sem 2, with its primary picks then its backups in rank order and its
-// totals; the entries closed, or off NUS's exchange list, in their semester;
-// the entries not placed in a semester; then the foot: NUS's form order and
-// the lines for applicants, the CourseReg box and the closing lines.
-// The description is NUS's, labelled as such, never called a syllabus (G1).
+// Every entry is worked out at its own semester (shortlist.js), as in the view.
+// The document holds, in order: the head; each semester present, Sem 1 then Sem
+// 2, with its primary picks then its backups in rank order and its totals; the
+// entries closed, or off NUS's exchange list, in their semester; the entries
+// not placed in a semester; then the foot: NUS's form order and the lines for
+// applicants, the CourseReg box and the closing lines. The description is
+// NUS's, labelled as such, never called a syllabus.
 import { noteLead, reasonLine, stampText } from './explain.js';
 import { cleanPrereq, examLine, examLines, semLabel } from './format.js';
 import { APPLICANT_LINES, COURSEREG_BOX, FORM_LINES, TOTAL_LINES, totalLines } from './shortlist.js';
@@ -48,9 +48,9 @@ export const SECTION = Object.freeze({
   unplaced: 'Not placed in a semester',
 });
 
-/** G1: NUS's description, labelled as such. */
+/** NUS's description, labelled as such. */
 export const DESCRIPTION_LABEL = 'Course description (NUS, via NUSMods)';
-/** G1, and the Registrar's NG course list: where the syllabus is. */
+/** NUS's description, and the Registrar's NG course list: where the syllabus is. */
 export const CANVAS_LINE = 'NUS posts each course\'s full syllabus on Canvas when the semester starts; the text here is NUS\'s course description (the Registrar\'s NG course list)';
 /** NUS's rate (the Registrar's transcript legend; the brochure's 4 units for about 10 hours). */
 const HOURS_PER_UNIT = 2.5;
@@ -110,7 +110,7 @@ export function workloadLine(w) {
 }
 
 /**
- * The estimated study time (G1): hours a week at NUS's rate, with NUSMods'
+ * The estimated study time: hours a week at NUS's rate, with NUSMods'
  * own total where it differs, and that the student's university decides credit.
  * @param {number | null} units
  * @param {Course['workload']} w

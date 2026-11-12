@@ -1,14 +1,14 @@
 // @ts-check
 // What GET /admin/hashes answers, computed from `SELECT` results alone, so the Worker route
 // (src/ingest.js handleHashes, over its D1 binding) and the deploy guard (scripts/guard.mjs,
-// over Cloudflare's D1 REST query endpoint) run the same code over the same rows (Phase 7 7B,
-// G1; test/admin-hashes-rest.test.js proves they agree). A query is any function from a
+// over Cloudflare's D1 REST query endpoint) run the same code over the same rows
+// (test/admin-hashes-rest.test.js proves they agree). A query is any function from a
 // statement and its params to `{ results }`: `d1Query(env.DB)` in the Worker, the REST client's
 // `query` in Node. Read-only statements only. WebCrypto only: no bindings, no Node APIs.
 //
 // Every row's hash is recomputed from the row's own columns, with the functions ingest writes it
-// with (src/rowhash.js rowHash, catalogueRowHash), never taken on trust from the stored row_hash
-// (red team M-1): a row changed behind its row_hash (a hand `d1 execute`, an older writer, a
+// with (src/rowhash.js rowHash, catalogueRowHash), never taken on trust from the stored row_hash:
+// a row changed behind its row_hash (a hand `d1 execute`, an older writer, a
 // one-table restore) is answered with rowHash null and named in rowHashDrift (catalogueDrift for
 // catalogue_only), so the guard refuses it and the next ingest rewrites it. D1 bills rows, not
 // columns, so reading every column reads as many rows as before.
@@ -83,10 +83,10 @@ export async function verifiedRowHash(r) {
 }
 
 /**
- * The catalogueKey (Phase 7 7D, src/rowhash.js) of D1's catalogue_only codes: what the deploy
+ * The catalogueKey (src/rowhash.js) of D1's catalogue_only codes: what the deploy
  * guard, rollback and verify --pre-deploy compare with the bundled catalogue file's
  * (data/catalogue-codes.json) or a deploy tag's; and the codes whose row_hash is not their columns'
- * (red team M-1). Nulls without the table. `result` is the rows read's, for its meta.
+ * Nulls without the table. `result` is the rows read's, for its meta.
  * @param {Query} query
  * @returns {Promise<{ key: string | null, drift: string[] | null, result: Awaited<ReturnType<Query>> | null }>}
  */
@@ -115,8 +115,7 @@ export const d1Query = (db) => (sql, params = []) => db.prepare(sql).bind(...par
  * external-content FTS table, all four of its triggers (the update trigger
  * addressed by rowid) and the row_hash column; and every column the upsert
  * binds (ROW_COLUMNS, so a later migration such as 0009 or 0010). Ingest refuses to write
- * without it: through the old triggers a full re-ingest reads ~46M rows
- * (FINDINGS B3).
+ * without it: through the old triggers a full re-ingest reads ~46M rows.
  * @param {Query} query
  * @returns {Promise<SchemaStatus>}
  */
@@ -136,7 +135,7 @@ export async function schemaStatus(query) {
   const present = new Set(/** @type {string[]} */ (JSON.parse(row?.triggers ?? '[]')));
   const missingTriggers = REQUIRED_TRIGGERS.filter((t) => !present.has(t));
   const rowHashColumn = Number(row?.row_hash ?? 0) === 1;
-  // Every column the upsert binds (Phase 4: 0009's ng_allow, ng_rules; 5A: 0010's exam_dates).
+  // Every column the upsert binds (0009's ng_allow and ng_rules, 0010's exam_dates among them).
   const columns = new Set(/** @type {string[]} */ (JSON.parse(row?.columns ?? '[]')));
   const missingColumns = ROW_COLUMNS.filter((c) => !columns.has(c));
   return {
@@ -151,16 +150,16 @@ export async function schemaStatus(query) {
  * `{ schema, embeddingModel, acadYears, modules: { code: { textHash, rowHash, ftsHash } }, rowHashDrift, catalogueKey, catalogueDrift }`.
  * `rowHash` is recomputed from the row's columns (verifiedRowHash): the stored row_hash when they
  * hash to it, else null, and the code is in `rowHashDrift`. Ingest then rewrites the row (its
- * corpus hash differs from null), and the guard refuses until it has (red team M-1).
+ * corpus hash differs from null), and the guard refuses until it has.
  * `ftsHash` (src/rowhash.js) hashes the stored code, title and description,
  * the columns the 0006 FTS update trigger watches, so ingest charges FTS
  * writes only to upserts that change them; text_hash cannot tell (it also
- * covers the model and the embedded-text version, PR #13 review).
+ * covers the model and the embedded-text version).
  * `acadYears` counts D1's rows per acad year (`{}` for an empty database), so
  * ingest can refuse to rewrite a database to another year.
  * `modules`, `rowHashDrift` and `acadYears` are null when the schema check fails (the
  * row_hash column may not exist), and ingest and the guard refuse.
- * `catalogueKey` and `catalogueDrift` are storedCatalogueKey's (Phase 7 7D), null with the modules.
+ * `catalogueKey` and `catalogueDrift` are storedCatalogueKey's, null with the modules.
  * @param {Query} query
  * @param {{ embeddingModel: string }} o
  * @returns {Promise<AdminHashes>}

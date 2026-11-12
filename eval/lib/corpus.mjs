@@ -4,8 +4,7 @@
 // sha-checked, never fetched upstream) normalised by the *ranker's*
 // scripts/lib.mjs, because the embedding text is part of the ranker.
 //
-// Phase 7 7D (ADR 0003, amendment "the eval's pinned NG files"): the pinned
-// snapshot is normalised with byte-identical copies of its year's NG list and
+// The pinned NG files (ADR 0003): the pinned snapshot is normalised with byte-identical copies of its year's NG list and
 // restrictions from eval/pinned/, passed into the ranker's offeredModules,
 // never the live data/ files the ranker's loadNgCourses reads. A Registrar
 // revision of the live files then moves neither the eval nor the ranking lock.
@@ -77,7 +76,7 @@ export async function pinnedModulesWith(root, records) {
  */
 
 /**
- * Phase 7 7D: the run corpus's catalogue codes and prefixes, written over the ranker's own
+ * The run corpus's catalogue codes and prefixes, written over the ranker's own
  * data/ copies in the workspace (which vitest.eval.config.mjs aliases `catalogue-codes-data` and
  * `prefixes-data` to, and older rankers import directly), as its vocabulary and groups are. Both
  * seeds' corpora are the pinned snapshot's (the fixture set's corpus is drawn from it), so both get

@@ -1,4 +1,4 @@
-// The UI test stack's Worker config (Phase 5 5B): the page in public/ as
+// The UI test stack's Worker config: the page in public/ as
 // Workers Static Assets, over test/ui/worker.js (src/index.js with FakeAI and
 // FakeRateLimit) and a local D1 seeded with the fixture by
 // scripts/ui-server.mjs. `npm run dev` and the Playwright suite use it.
@@ -17,7 +17,7 @@
   // for a file in public/ never runs the Worker.
   "assets": { "directory": "../public" },
   // The fixture's bundle, vocabulary, groups and NG-listed codes with no
-  // classes (6A): the corpus this stack seeds.
+  // classes: the corpus this stack seeds.
   "alias": {
     "vectors-bundle": "./fixtures/vectors.js",
     "vocabulary-data": "./fixtures/vocabulary.json",

@@ -1,7 +1,7 @@
 // @ts-check
-// A synthetic set for the 5F compliance rule's tests: its own corpus.json
+// A synthetic set for the compliance rule's tests: its own corpus.json
 // (every constraint field, so the rule needs no pinned snapshot), queries
-// whose 3H phrases the frozen reference parse (tag 3h) reads over that
+// whose constraint phrases the frozen reference parse (tag 3h) reads over that
 // corpus's vocabulary, qrels, and a baseline and candidate run. The candidate
 // applies each parsed constraint (a compliant list) and records the parse it
 // "answered" in `intents`; unparsed queries keep the baseline's list. No
@@ -21,7 +21,7 @@ export const CORPUS_SHA = JSON.parse(readFileSync(join(REPO, 'eval', 'groups.jso
 
 /**
  * One corpus module. Its text carries the phrase words, so the reference's
- * 3C correction leaves them alone on this corpus's vocabulary.
+ * typo correction leaves them alone on this corpus's vocabulary.
  * @param {string} code @param {Record<string, unknown>} [f]
  */
 export function mod(code, f = {}) {
@@ -110,9 +110,9 @@ export function syntheticSet(set, o) {
     cand[u.id] = [...codes];
     intents[u.id] = { exam: null, su: null, hoursBelow: null, prereq: null };
   }
-  const querySet = { schema: 'vnm-eval-queries/1', set, version: 'synthetic-5f-v1', queries };
-  const qrels = { schema: 'vnm-eval-qrels/1', set, version: 'qrels-synthetic-5f-v1', corpus: { moduleInfoSha256: CORPUS_SHA }, groups: [], queries: judged };
-  const corpus = { source: { generator: '5F compliance tests' }, count: modules.length, modules };
+  const querySet = { schema: 'vnm-eval-queries/1', set, version: 'synthetic-compliance-v1', queries };
+  const qrels = { schema: 'vnm-eval-qrels/1', set, version: 'qrels-synthetic-compliance-v1', corpus: { moduleInfoSha256: CORPUS_SHA }, groups: [], queries: judged };
+  const corpus = { source: { generator: 'compliance tests' }, count: modules.length, modules };
   // What a run of this corpus records (eval/runner/run.mjs): its text and its constraint fields.
   const byCode = new Map(modules.map((m) => [m.code, m]));
   const recorded = { moduleInfoSha256: CORPUS_SHA, textSha256: textSha(/** @type {any} */ (modules)), constraintFieldsSha256: constraintFieldsSha256([...byCode.keys()], (c) => byCode.get(c)) };

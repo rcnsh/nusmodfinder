@@ -1,5 +1,5 @@
 // @ts-check
-// B2 and S3, Node side: what scripts/lib.mjs and src/rowhash.js hash, the
+// Re-ingest, Node side: what scripts/lib.mjs and src/rowhash.js hash, the
 // ingest skip rule (scripts/ingest-core.mjs planIngest), what is embedded, and
 // how the download cache revalidates. Runs in Node (vitest project "node").
 // The cache tests use a temporary directory and a stubbed fetch: no request
@@ -27,12 +27,12 @@ const record = {
 const ng = (/** @type {Record<string, number[]>} */ bySem) =>
   ({ available: true, bySem: new Map(Object.entries(bySem)), updatedAsAt: '01 Sep 1999', source: null, total: Object.keys(bySem).length, rules: loadNgRestrictions(DEFAULT_ACAD_YEAR) });
 
-describe('B2', () => {
+describe('row and text hashes', () => {
   const Y = DEFAULT_ACAD_YEAR;
   /** @param {Partial<import('../../scripts/lib.mjs').NusModsRecord>} over @param {Record<string, number[]>} [ngSems] */
   const one = (over, ngSems = {}) => offeredModules([{ ...record, ...over }], Y, ng(ngSems)).modules[0];
 
-  it('[B2 fixed] row_hash changes with semesters, credits, workload, prerequisite, preclusion, NG flags and acad year; text_hash does not', async () => {
+  it('row_hash changes with semesters, credits, workload, prerequisite, preclusion, NG flags and acad year; text_hash does not', async () => {
     const before = one({});
     const variants = {
       semesters: one({ semesterData: [{ semester: 2 }, { semester: 3 }] }),
@@ -55,13 +55,13 @@ describe('B2', () => {
     expect(await rowHash(retitled)).not.toBe(base);
   });
 
-  it('[B2 fixed] text_hash is the hash of the model id, the embedded-text version and the text', () => {
+  it('text_hash is the hash of the model id, the embedded-text version and the text', () => {
     const m = one({});
     expect(m.textHash).toBe(hashOf(JSON.stringify([EMBEDDING_MODEL, EMBEDDING_TEXT_VERSION, m.text])));
     expect(m.textHash).not.toBe(hashOf(m.text));
   });
 
-  it('[B2 fixed] row_hash is the hash of the normaliser version, the exact bound tuple and the vector metadata, and is recomputable from the stored row', async () => {
+  it('row_hash is the hash of the normaliser version, the exact bound tuple and the vector metadata, and is recomputable from the stored row', async () => {
     const m = one({}, { CS1010S: [1, 2] });
     const expected = (await sha256Hex(JSON.stringify([NORMALISER_VERSION, boundTuple(m), vectorMetadata(m)]))).slice(0, 32);
     expect(await rowHash(m)).toBe(expected);
@@ -71,7 +71,7 @@ describe('B2', () => {
     expect(await rowHash(fieldsFromRow(row))).toBe(expected);
   });
 
-  it('[B2 fixed] the skip rule: text changed re-embeds, only the row changed re-upserts without embedding, unchanged is skipped', async () => {
+  it('the skip rule: text changed re-embeds, only the row changed re-upserts without embedding, unchanged is skipped', async () => {
     const same = await withHash(one({}));
     const rowOnly = await withHash(one({ moduleCredit: '2' }));
     const textToo = await withHash(one({ title: 'Programming Methodology I' }));
@@ -112,7 +112,7 @@ describe('B2', () => {
         ? new Response(null, { status: 304, headers: { etag: '"v1"' } })
         : new Response(body, { status: 200, headers: { etag: '"v9"' } })));
 
-    it('[PR13 #7] a fresh entry whose body does not match its sidecar sha256 is refetched in full, without validators', async () => {
+    it('a fresh entry whose body does not match its sidecar sha256 is refetched in full, without validators', async () => {
       await prime(1 * HOUR, true, '{"v":"what was really downloaded"}');
       const fetchImpl = nusmods('{"v":9}');
       const got = await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl });
@@ -122,7 +122,7 @@ describe('B2', () => {
       expect(await readFile(new URL(`${Y}-${FILE}`, dir), 'utf8')).toBe('{"v":9}');
     });
 
-    it('[PR13 #7] a stale entry whose body does not match is never revalidated into a 304', async () => {
+    it('a stale entry whose body does not match is never revalidated into a 304', async () => {
       await prime(25 * HOUR, true, '{"v":"other"}');
       const fetchImpl = nusmods('{"v":9}');
       const got = await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl });
@@ -130,7 +130,7 @@ describe('B2', () => {
       expect(got).toMatchObject({ data: { v: 9 } });
     });
 
-    it('[PR13 #7] the sidecar records the body sha256; --offline refuses a body that does not match it', async () => {
+    it('the sidecar records the body sha256; --offline refuses a body that does not match it', async () => {
       await prime(0, false);
       await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl: nusmods('{"v":9}') });
       expect((await sidecar()).sha256).toBe(createHash('sha256').update('{"v":9}').digest('hex'));
@@ -138,7 +138,7 @@ describe('B2', () => {
       await expect(fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl: nusmods('{}'), offline: true })).rejects.toThrow(/sha256/);
     });
 
-    it('[PR13 #7] a sidecar without sha256 (written before it was recorded) cannot vouch for its body: full GET', async () => {
+    it('a sidecar without sha256 cannot vouch for its body: full GET', async () => {
       await prime(1 * HOUR, true);
       const side = await sidecar();
       delete side.sha256;
@@ -149,7 +149,7 @@ describe('B2', () => {
     });
     const sidecar = async () => JSON.parse(await readFile(new URL(`${Y}-${FILE}.cache.json`, dir), 'utf8'));
 
-    it('[B2 fixed] an entry older than --max-age is revalidated with If-None-Match, and a 304 keeps the cached body', async () => {
+    it('an entry older than --max-age is revalidated with If-None-Match, and a 304 keeps the cached body', async () => {
       await prime(25 * HOUR);
       const fetchImpl = vi.fn(async () => new Response(null, { status: 304, headers: { etag: '"v1"' } }));
       const got = await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl });
@@ -160,7 +160,7 @@ describe('B2', () => {
       expect(Date.now() - Date.parse((await sidecar()).fetchedAt)).toBeLessThan(60_000);
     });
 
-    it('[B2 fixed] a 200 on revalidation replaces the body and records the new ETag and Last-Modified', async () => {
+    it('a 200 on revalidation replaces the body and records the new ETag and Last-Modified', async () => {
       await prime(25 * HOUR);
       const fetchImpl = vi.fn(async () => new Response('{"v":2}', {
         status: 200, headers: { etag: '"v2"', 'last-modified': 'Thu, 02 Sep 1999 00:00:00 GMT' },
@@ -171,7 +171,7 @@ describe('B2', () => {
       expect(await sidecar()).toMatchObject({ etag: '"v2"', lastModified: 'Thu, 02 Sep 1999 00:00:00 GMT' });
     });
 
-    it('[B2 fixed] an entry younger than --max-age (default 24 h) is used without a request', async () => {
+    it('an entry younger than --max-age (default 24 h) is used without a request', async () => {
       await prime(23 * HOUR);
       const fetchImpl = vi.fn(async () => { throw new Error('no network'); });
       expect(await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl })).toMatchObject({ cached: true, revalidated: false });
@@ -180,7 +180,7 @@ describe('B2', () => {
       expect(fetchImpl).toHaveBeenCalledTimes(1);
     });
 
-    it('[B2 fixed] --offline uses the cache however old and never fetches; with no cache it fails', async () => {
+    it('--offline uses the cache however old and never fetches; with no cache it fails', async () => {
       await prime(1000 * HOUR, false);
       const fetchImpl = vi.fn(async () => new Response('{}'));
       expect(await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl, offline: true })).toMatchObject({ data: { v: 1 }, cached: true });
@@ -188,7 +188,7 @@ describe('B2', () => {
       expect(fetchImpl).not.toHaveBeenCalled();
     });
 
-    it('[B2 fixed] an entry with no sidecar is stale: fetched unconditionally, then given one', async () => {
+    it('an entry with no sidecar is stale: fetched unconditionally, then given one', async () => {
       await prime(0, false);
       const fetchImpl = vi.fn(async () => new Response('{"v":3}', { headers: { etag: '"v3"' } }));
       expect(await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl })).toMatchObject({ data: { v: 3 } });
@@ -204,8 +204,8 @@ describe('B2', () => {
 /** @param {NormalisedModule} m */
 const withHash = async (m) => ({ ...m, rowHash: await rowHash(m) });
 
-describe('S3', () => {
-  it('[S3 3A-2] the embedded text is the selected 3A-2 variant, with the code\'s level and its label', () => {
+describe('embedded text', () => {
+  it('the embedded text is the selected variant, with the code\'s level and its label', () => {
     expect(EMBEDDING_TEXT_VARIANT).toBe('v1');
     expect(embeddingText(record)).toBe(
       'CS1010S. Programming Methodology. Level 1 (introductory). This course introduces the fundamental concepts of problem solving by computing. Computer Science. Computing.');

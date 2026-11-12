@@ -1,6 +1,6 @@
 {
  "schema": "vnm-3h-cohort-only/1",
- "from": "eval/prereg/cohort-only-prereq.json (P-6, unchanged)",
+ "from": "eval/query-rules/cohort-only-prereq.json (copied unchanged)",
  "normalise": [
   {
    "find": "(THEN|AND|OR)",

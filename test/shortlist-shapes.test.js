@@ -1,10 +1,9 @@
 // @ts-check
-// Phase 6 6C's shape check: 6B's shortlist (public/shortlist.js) was built
-// and tested against hand-made /module 404s and /facets rules, because 6A
-// wasn't merged yet. Here the Worker answers for real (the fixture, the
+// The shortlist's shape check: public/shortlist.js's own tests use hand-made
+// /module 404s and /facets rules. Here the Worker answers for real (the fixture, the
 // fixture's ng-unscheduled.json, a catalogue-only row), through the page's
 // own fetch layer (public/api.js createModuleClient and fetchFacets), and
-// 6B's answerOf and workOut read them. A field renamed on either side fails
+// the shortlist's answerOf and workOut read them. A field renamed on either side fails
 // here, not on the live page.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createModuleClient, fetchFacets } from '../public/api.js';
@@ -44,7 +43,7 @@ const at = (r, code) => {
   return w;
 };
 
-describe('6A\'s answers, read by 6B\'s shortlist (6C shape check)', () => {
+describe('the Worker\'s answers, read by the shortlist', () => {
   it('an ng-listed 404 (EE4407) reads like a row with no classes: to confirm in Sem 1, numbered; not on the list in Sem 2; its buttons from ngSemesters', async () => {
     const { answers, r } = await run({ pick: [['EE4407', '1']] });
     const a = /** @type {any} */ (answers.get('EE4407'));
@@ -67,7 +66,7 @@ describe('6A\'s answers, read by 6B\'s shortlist (6C shape check)', () => {
     }
   });
 
-  it('a catalogue-only 404 keeps its title and description (6D exports its text); an unknown 404 says so; both carry the year', async () => {
+  it('a catalogue-only 404 keeps its title and description (the export prints its text); an unknown 404 says so; both carry the year', async () => {
     const { answers, r } = await run({ pick: [['CS1010J', '1'], ['CS9999', '1']] });
     expect(answers.get('CS1010J')).toEqual({ kind: 'catalogue-only', title: 'Introduction to Programming', description: 'An introductory course in Java.', acadYear: '2026-2027' });
     expect(answers.get('CS9999')).toEqual({ kind: 'unknown', acadYear: '2026-2027' });

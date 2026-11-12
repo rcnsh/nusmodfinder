@@ -1,5 +1,5 @@
 // @ts-check
-// The UI test stack's Worker entry (Phase 5 5B, A-1): src/index.js with the
+// The UI test stack's Worker entry: src/index.js with the
 // fakes test/wrangler.ui.jsonc deliberately has no bindings for. FakeAI
 // reproduces the fixture bundle's embedder (hashEmbed), so hybrid search runs
 // both halves and no-signal can occur; both FakeRateLimits allow everything. No

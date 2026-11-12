@@ -1,7 +1,7 @@
 // @ts-check
-// SC2's fields in an open detail (Phase 5 5G), shared by the CI spec
-// (test/ui/sc2.spec.js, every fixture code) and the live check
-// (scripts/p5-live.mjs, 20 drawn production codes), so both read the page the
+// The fields of an open detail, shared by the CI spec
+// (test/ui/detail-fields.spec.js, every fixture code) and the live check
+// (scripts/live-check.mjs, 20 drawn production codes), so both read the page the
 // same way and expect the same things:
 // - the head: the code and title;
 // - the description;
@@ -15,13 +15,13 @@
 // fixture corpus, or the production modules) through the page's own pure
 // formatters and /module's workload rule; NUS's prerequisite and preclusion
 // texts are compared with the module's (spacing aside, which the page
-// restores); and each year and semester's status is the independent SC1
-// oracle's (test/sc1/oracle.mjs). So a field the page leaves out, or one
+// restores); and each year and semester's status is the independent exchange
+// oracle's (test/oracle/oracle.mjs). So a field the page leaves out, or one
 // it fills from the wrong course, is a problem.
 import { examLines, prereqView, workloadText } from '../../public/format.js';
 import { STUDIES } from '../../src/ng-bit.js';
 import { moduleWorkload } from '../../src/workload.js';
-import { oracleShown } from '../sc1/oracle.mjs';
+import { oracleShown } from '../oracle/oracle.mjs';
 
 /** The detail's years of study, in the all-years table's order. */
 export const YEARS = Object.freeze(['1st year', '2nd year', '3rd year', '4th year or later', 'Graduate']);
@@ -36,20 +36,20 @@ const bare = (s) => String(s ?? '').replace(/\s+/g, '');
  * @typedef {{
  *   head: string, description: string, prereq: string, prereqText: string, precl: string, preclText: string,
  *   exams: string[], workload: string, exchange: { year: string, statuses: string[] }[], nusmods: string,
- * }} Sc2Expected
+ * }} DetailExpected
  *   `prereqText`, `preclText`: NUS's text with no whitespace, '' when there is none
  * @typedef {{
  *   head: string, description: string, prereq: string, prereqText: string, precl: string, preclText: string,
  *   exams: string[], workload: string, exchange: { year: string, statuses: (string | null)[] }[], nusmods: string | null,
- * }} Sc2Found
+ * }} DetailFound
  */
 
 /**
  * What the detail must say for a normalised module.
  * @param {any} m
- * @returns {Sc2Expected}
+ * @returns {DetailExpected}
  */
-export function sc2Expected(m) {
+export function detailExpected(m) {
   const view = prereqView(m.prerequisite ?? null, m.prereqCohortOnly === true);
   return {
     head: `${m.code} ${m.title}`,
@@ -67,14 +67,14 @@ export function sc2Expected(m) {
 
 /**
  * Waits for a code's detail to be open and loaded (`?q=CODE&open=CODE`), then
- * reads every SC2 field from it. Rejects if the entry or the detail never
+ * reads every detail field from it. Rejects if the entry or the detail never
  * appears, or the detail failed to load.
  * @param {import('@playwright/test').Page} page
  * @param {string} code
  * @param {number} [timeout]
- * @returns {Promise<Sc2Found>}
+ * @returns {Promise<DetailFound>}
  */
-export async function readSc2(page, code, timeout = 15_000) {
+export async function readDetail(page, code, timeout = 15_000) {
   const toggle = page.locator(`#results button.card-toggle[data-code="${code}"][aria-expanded="true"]`);
   await toggle.waitFor({ state: 'visible', timeout });
   const region = page.locator(`#${await toggle.getAttribute('aria-controls')}`);
@@ -106,12 +106,12 @@ export async function readSc2(page, code, timeout = 15_000) {
 }
 
 /**
- * Every way the detail falls short of SC2 for this module: [] when it holds.
- * @param {Sc2Found} got
- * @param {Sc2Expected} want
+ * Every way the detail falls short of a full detail for this module: [] when it holds.
+ * @param {DetailFound} got
+ * @param {DetailExpected} want
  * @returns {string[]}
  */
-export function sc2Problems(got, want) {
+export function detailProblems(got, want) {
   const out = [];
   /** @param {string} field @param {unknown} a @param {unknown} b */
   const same = (field, a, b) => { if (JSON.stringify(a) !== JSON.stringify(b)) out.push(`${field}: ${JSON.stringify(a)}, expected ${JSON.stringify(b)}`); };

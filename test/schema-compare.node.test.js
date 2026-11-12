@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7A: `schema-snapshot.mjs --compare-remote`, which diffs a production capture (the
+// `schema-snapshot.mjs --compare-remote`, which diffs a production capture (the
 // output of `wrangler d1 execute … --json`, one file per query) against the full-chain snapshot
 // offline. The captures here are built from the committed snapshot; nothing remote is read.
 import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -70,7 +70,7 @@ describe('--compare-remote', () => {
     expect(compare(c)).toEqual(['d1_migrations - 0009_exchange.sql']);
   });
 
-  it('loads a capture directory of wrangler outputs, one file per query, as committed in docs/evidence/phase7/schema', async () => {
+  it('loads a capture directory of wrangler outputs, one file per query', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'vnm-capture-'));
     try {
       const c = capture();

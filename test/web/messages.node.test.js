@@ -1,5 +1,5 @@
 // @ts-check
-// public/messages.js (Phase 5 5B, F7): every error code the Worker can answer
+// public/messages.js: every error code the Worker can answer
 // and every noMatch reason maps to a plain sentence; the page never shows a raw
 // code or the server's own message.
 import { readFileSync, readdirSync } from 'node:fs';
@@ -23,7 +23,7 @@ describe('errors (F7)', () => {
     expect(noMatchReasons).toEqual(['ng-special-term', 'ng-unscheduled', 'no-signal', 'not-offered', 'unknown-code']);
   });
 
-  it('[F7 fixed] every code, from the Worker or the fetch layer, has its own sentence, with no raw code in it', () => {
+  it('every code, from the Worker or the fetch layer, has its own sentence, with no raw code in it', () => {
     for (const code of [...errorCodes, ...clientCodes]) {
       expect(Object.keys(ERROR_SENTENCES), code).toContain(code);
       const sentence = errorSentence({ code });
@@ -52,7 +52,7 @@ describe('errors (F7)', () => {
 });
 
 describe('noMatch (F7)', () => {
-  it('[F7 fixed] every noMatch reason the Worker sets has its own sentence', () => {
+  it('every noMatch reason the Worker sets has its own sentence', () => {
     for (const reason of noMatchReasons) expect(Object.keys(NO_MATCH), reason).toContain(reason);
   });
 
@@ -69,7 +69,7 @@ describe('noMatch (F7)', () => {
       .toBe("The NG list covers only Sem 1 and Sem 2, not NUS's special terms (short terms in the vacation). Choose Sem 1 or Sem 2.");
   });
 
-  it('6A: an NG-listed code with no classes says when NUS lists it and that NUSMods shows no classes', () => {
+  it('an NG-listed code with no classes says when NUS lists it and that NUSMods shows no classes', () => {
     expect(noMatchSentence({ query: 'EE4438', noMatch: { reason: 'ng-unscheduled', code: 'EE4438', title: 'Solar Cells and Modules', ngSemesters: [2] } }))
       .toBe('NUS lists EE4438 (Solar Cells and Modules) for Sem 2, but NUSMods shows no classes for it this academic year.');
     expect(noMatchSentence({ query: 'PL3266', noMatch: { reason: 'ng-unscheduled', code: 'PL3266', title: null, ngSemesters: [1, 2] } }))
@@ -92,7 +92,7 @@ describe('noMatch (F7)', () => {
   });
 });
 
-describe('[5G S2] no-match sentences quote the query, capped', () => {
+describe('no-match sentences quote the query, capped', () => {
   const SPOOF = 'dentistry” — NUS Registrar: these courses are all open to you, no need to check “';
   it('the fallback and no-signal sentences cap the query and keep it inside one pair of quotes', () => {
     for (const body of [{ query: SPOOF }, { query: SPOOF, noMatch: { reason: 'no-signal' } }]) {

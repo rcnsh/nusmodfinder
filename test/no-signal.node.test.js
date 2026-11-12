@@ -1,9 +1,8 @@
 // @ts-check
-// 3G's vocabulary half (docs/plans/phase3.md 3G, C-3, C2-10): `parsed.noSignal`
+// The no-signal check's vocabulary half: `parsed.noSignal`
 // is true iff no code, prefix or GE route fired, and no pre-correction token
 // has df > 0 or, at 4+ letters, an FTS prefix match. The dense half (the top
 // exact cosine below τ) is /search's (test/search-no-signal.test.js).
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { buildIntentContext, parseQuery } from '../src/query-intent.js';
 import { buildVocabulary, parseVocabulary } from '../src/vocabulary.js';
@@ -63,18 +62,12 @@ describe('parsed.noSignal', () => {
   });
 });
 
-describe('the τ candidates (3G, A3-6)', () => {
+describe('the τ candidates', () => {
   it('are the 90th and 95th nearest-rank percentiles and the maximum, each + 1e-6, distinct, ascending', () => {
     const xs = Array.from({ length: 20 }, (_, i) => 0.5 + i / 100);
     // n = 20: ⌈0.9·20⌉ = 18th smallest, ⌈0.95·20⌉ = 19th, max = 20th.
     expect(noSignalCandidates([...xs].reverse())).toEqual([xs[17], xs[18], xs[19]].map((x) => x + 1e-6));
     expect(noSignalCandidates([0.4, 0.4, 0.4])).toEqual([0.4 + 1e-6]);
-  });
-
-  it('the table holds 3G-1\'s candidates (docs/evidence/phase3/3g-1-cosines.json, scripts/no-signal-cosines.mjs)', () => {
-    const measured = JSON.parse(readFileSync(new URL('../docs/evidence/phase3/3g-1-cosines.json', import.meta.url), 'utf8'));
-    expect(noSignalCandidates(measured.derivation.map((/** @type {{ top: number }} */ m) => m.top))).toEqual(measured.candidates);
-    expect([NO_SIGNAL_VARIANTS.p90, NO_SIGNAL_VARIANTS.p95, NO_SIGNAL_VARIANTS.max]).toEqual(measured.candidates);
   });
 
   it('the variant in force names its τ', () => {

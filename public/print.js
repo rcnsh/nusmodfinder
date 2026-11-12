@@ -1,14 +1,12 @@
 // @ts-check
-// The print page (Phase 6 6D "PDF", G1): the export's document (export.js)
-// drawn into #slPrint, a section the screen never shows (`display: none`, so
-// screen readers skip it) and print shows alone when the page's print class
-// is on (styles.css, `html.print-shortlist`). "Print or save as PDF" is the
-// browser's own print to PDF of this section: no library, real text, its
-// structure from the HTML. Built to the approved mockup's print state
-// (docs/design/phase6-shortlist/a/, state 4): the head, each semester's
-// courses and totals, the closed entries, the forced page break, then the
-// foot's form order, the lines for applicants, the CourseReg rules and the
-// closing lines. DOM nodes only (F8).
+// The print page: the export's document (export.js) drawn into #slPrint, a
+// section the screen never shows (`display: none`, so screen readers skip it)
+// and print shows alone when the page's print class is on (styles.css,
+// `html.print-shortlist`). "Print or save as PDF" is the browser's own print to
+// PDF of this section: no library, real text, its structure from the HTML. It
+// holds the head, each semester's courses and totals, the closed entries, the
+// forced page break, then the foot's form order, the lines for applicants, the
+// CourseReg rules and the closing lines. DOM nodes only.
 import { h, setChildren } from './dom.js';
 import { SITE_NAME, SITE_URL } from './export.js';
 import { stamp } from './render.js';
@@ -16,7 +14,7 @@ import { stamp } from './render.js';
 /** @typedef {import('./export.js').Doc} Doc */
 /** @typedef {import('./export.js').Entry} Entry */
 
-/** The facts each course prints, in the mockup's order, after its head. */
+/** The facts each course prints, in this order, after its head. */
 const FACTS = /** @type {const} */ ([
   'department', 'level', 'grading', 'counts', 'status', 'nus', 'exam', 'workload', 'estimate', 'flags', 'prerequisite', 'preclusion', 'nusmods',
 ]);
@@ -27,7 +25,7 @@ const lines = (text) => text.split('\n').filter(Boolean);
 const list = (items) => h('ul', { class: 'pp-list' }, ...items.map((t) => h('li', null, t)));
 
 /**
- * The form cell as the mockup draws it: "Application form, Sem 1" over its number.
+ * The form cell: "Application form, Sem 1" over its number.
  * @param {string} text
  */
 function formCell(text) {

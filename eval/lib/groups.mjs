@@ -1,10 +1,10 @@
 // @ts-check
-// Duplicate groups for scoring (docs/plans/phase2.md, "Metrics (changes)"):
+// Duplicate groups for scoring:
 // only the first member of a group to appear earns gain (metrics.mjs). The
 // groups are built from public corpus fields only, never from qrels or judge
 // grades, so they apply equally to every set (dev, holdout, test).
 //
-// The rule is groups-v1 in src/groups.js, one rule for eval and product (3F),
+// The rule is groups-v1 in src/groups.js, one rule for eval and product,
 // over the offered modules of the pinned corpus (code, title, description as
 // scripts/lib.mjs `normalise()` returns them).
 //

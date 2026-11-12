@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7C: no default URL. ingest, verify and `vectors standby` refuse to
+// No default URL: ingest, verify and `vectors standby` refuse to
 // run without --url or WORKER_URL, and refuse ports 8787 and 8799 (another
 // project's on the dev Mac), before any request. Each writer that does run
 // leaves one run record on success and one on failure. The Worker is a stub

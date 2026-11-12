@@ -1,8 +1,7 @@
 // @ts-check
-// B1: the semester filter used to be applied in JS after the FTS query had
-// already been cut to `LIMIT depth * 4`, so keyword matches ranked below that
-// cut-off were silently dropped from a sem-filtered search. Since 0006 the
-// filters run in SQL on generated columns (src/lexical.js runFts).
+// The semester filter runs in SQL on generated columns (migrations/0006,
+// src/lexical.js runFts), before the FTS query's `LIMIT depth * 4` cut-off, so
+// a sem-filtered search keeps keyword matches that rank below that cut-off.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { callJson, seed } from '../helpers.js';
@@ -24,11 +23,10 @@ beforeAll(async () => {
   fakes = await seed({ modules: [...decoys, ...targets] });
 });
 
-describe('B1', () => {
-  // Was `[B1 known-bug] lexical sem=3 returns 0 results although 3 sem-3 modules match "management"`.
-  it('[B1 fixed] lexical sem=3 returns the sem-3 "management" matches however many sem-1 matches outrank them', async () => {
-    // topK=1 -> depth 3. The 20 sem-1 decoys outrank every target; the old
-    // FTS LIMIT 12 + JS filter returned nothing.
+describe('semester filter depth', () => {
+  it('lexical sem=3 returns the sem-3 "management" matches however many sem-1 matches outrank them', async () => {
+    // topK=1 -> depth 3. The 20 sem-1 decoys outrank every target, so a JS
+    // filter after FTS LIMIT 12 would return nothing.
     const { status, body } = await callJson('/search?q=management&sem=3&mode=lexical&topK=1', { fakes });
     expect(status).toBe(200);
     expect(body.count).toBe(1);
@@ -45,9 +43,8 @@ describe('B1', () => {
     expect(codes(all.body.results)).toEqual(expected);
   });
 
-  // Was `[B1 known-bug] hybrid sem=3 finds the targets only through the vector half`.
-  it('[B1 fixed] hybrid sem=3 finds the targets through both halves', async () => {
-    // Uncollapsed: 3F's hybrid lists are 50 deep at any topK (src/search.js depth).
+  it('hybrid sem=3 finds the targets through both halves', async () => {
+    // Uncollapsed: the group collapse's hybrid lists are 50 deep at any topK (src/search.js depth).
     const { body } = await callJson('/search?q=management&sem=3&topK=1', { fakes, env: { COLLAPSE_GROUPS: 'off' } });
     expect(body.retrieval.lexical).toBe(3);
     expect(body.retrieval.vector).toBe(3);

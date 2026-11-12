@@ -1,9 +1,6 @@
 // @ts-check
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { assertSc5Allowed, assertTruncation, devGate, gateFor, holdoutGate, ruleOf, SC5_READING, sc5Gate } from '../../eval/lib/gate.mjs';
-import { REPO } from '../../eval/lib/sets.mjs';
+import { assertTruncation, devGate, gateFor, holdoutGate, ruleOf, testSetGate } from '../../eval/lib/gate.mjs';
 import { compare, scoreRun, summarise } from '../../eval/lib/metrics.mjs';
 
 /** @typedef {import('../../eval/lib/metrics.mjs').QueryScore} QueryScore */
@@ -89,7 +86,7 @@ describe('holdoutGate', () => {
     expect(v.verdict).toBe('fail');
   });
 
-  it('dev also fails an exact-code regression (ADR 0003 v2.1)', () => {
+  it('dev also fails an exact-code regression', () => {
     const base = [...many(30, 0.4, 0.4).base, q('x1', 1, { shapes: ['code', 'code-exact'], top1: 'CS2040', top1Grade: 2 })];
     const cand = [...spread(many(30, 0.4, 0.6).cand), q('x1', 0.6, { shapes: ['code', 'code-exact'], top1: 'CS2040S', top1Grade: 1 })];
     const v = devGate(compare(base, cand));
@@ -98,7 +95,7 @@ describe('holdoutGate', () => {
     expect(v.verdict).toBe('fail');
   });
 
-  it('an exact-code improvement or an equal-grade swap is not a regression (PR #10 review round 2)', () => {
+  it('an exact-code improvement or an equal-grade swap is not a regression', () => {
     const exact = (/** @type {string} */ id, /** @type {string} */ top1, /** @type {number} */ g) => q(id, g / 2, { shapes: ['code', 'code-exact'], top1, top1Grade: g });
     const base = [...many(30, 0.4, 0.4).base, exact('fix', 'CS2040S', 1), exact('swap', 'TR3202I', 2), exact('drop', 'CS1010', 2)];
     const cand = [...spread(many(30, 0.4, 0.6).cand), exact('fix', 'CS2040', 2), exact('swap', 'TR3202S', 2), exact('drop', 'CS1010S', 1)];
@@ -136,13 +133,13 @@ describe('holdoutGate', () => {
   });
 });
 
-describe('sc5Gate', () => {
+describe('testSetGate', () => {
   it('needs both lower bounds above 0', () => {
     const { base } = many(40, 0.3, 0.4);
     const cand = spread(many(40, 0.3, 0.4).cand);
-    expect(sc5Gate(compare(base, cand)).verdict).toBe('pass');
+    expect(testSetGate(compare(base, cand)).verdict).toBe('pass');
     const flatP5 = cand.map((s, i) => ({ ...s, p5: base[i].p5 }));
-    expect(sc5Gate(compare(base, flatP5)).verdict).toBe('fail');
+    expect(testSetGate(compare(base, flatP5)).verdict).toBe('fail');
   });
 
   it('gateFor routes by set', () => {
@@ -154,7 +151,7 @@ describe('sc5Gate', () => {
   });
 });
 
-describe('small samples and degenerate intervals (review finding 6)', () => {
+describe('small samples and degenerate intervals', () => {
   it('every gate fails with "insufficient queries" below 10 answerable queries, however large the gain', () => {
     const one = compare([q('a', 0.2)], [q('a', 0.5)]);
     for (const set of ['dev', 'holdout', 'test']) {
@@ -187,7 +184,7 @@ describe('small samples and degenerate intervals (review finding 6)', () => {
     const dev = devGate(cmp);
     expect(names(dev)['ΔnDCG@10 BCa 95% lower bound > 0']).toBe(false);
     expect(detail(dev, 'ΔnDCG@10 BCa 95% lower bound > 0')).toMatch(/degenerate/);
-    expect(sc5Gate(cmp).verdict).toBe('fail');
+    expect(testSetGate(cmp).verdict).toBe('fail');
     // The holdout gate uses point estimates only, so it is unaffected.
     expect(holdoutGate(cmp).verdict).toBe('pass');
   });
@@ -208,7 +205,7 @@ describe('small samples and degenerate intervals (review finding 6)', () => {
     expect(names(devGate(withTypo([0.5], [0.5]), { targetShapes: ['typo'] }))[tw]).toBe(true);
   });
 
-  it('a tripwire whose every query moved by exactly 0 passes (ADR 0003 amendment 2026-11-07)', () => {
+  it('a tripwire whose every query moved by exactly 0 passes (no change is no regression)', () => {
     const core = many(30, 0.3, 0.3);
     const tw = 'tripwire: abbreviation not confidently regressed';
     const withShape = (/** @type {number[]} */ from, /** @type {number[]} */ to) => compare(
@@ -228,7 +225,7 @@ describe('small samples and degenerate intervals (review finding 6)', () => {
   });
 });
 
-describe('errored queries (review finding 1)', () => {
+describe('errored queries', () => {
   // 8 identical answerable queries plus 4 no-answer ones; the candidate
   // returns HTTP 500 with no codes on the 4 no-answer queries.
   const queries = [
@@ -279,7 +276,7 @@ describe('errored queries (review finding 1)', () => {
   });
 });
 
-describe('decisive-comparison floors (PR #6 review round 2, finding 5)', () => {
+describe('decisive-comparison floors', () => {
   const judgedAll = (/** @type {QueryScore[]} */ xs) => xs.map((s) => ({ ...s, judged: s.top }));
   const noAnswer = (/** @type {boolean[]} */ empties) => empties.map((e, i) => q(`n${i}`, 0, { shapes: ['noanswer'], answerable: false, noAnswer: true, empty: e, judged: 0, top: e ? 0 : 1 }));
 
@@ -324,12 +321,12 @@ describe('decisive-comparison floors (PR #6 review round 2, finding 5)', () => {
   });
 });
 
-describe('the rule a verdict applies (red-team gap 1)', () => {
-  it('names general, targeted with its targets, cutoff and sc5', () => {
+describe('the rule a verdict applies', () => {
+  it('names general, targeted with its targets, cutoff and test-set', () => {
     expect(ruleOf('holdout')).toBe('general');
     expect(ruleOf('holdout', { targetShapes: ['typo', 'jargon'] })).toBe('targeted: typo,jargon');
     expect(ruleOf('dev', { kind: 'cutoff' })).toBe('cutoff');
-    expect(ruleOf('test', { kind: 'cutoff' })).toBe('sc5');
+    expect(ruleOf('test', { kind: 'cutoff' })).toBe('test-set');
     expect(ruleOf('holdout', { targetShapes: ['a|b\nc'] })).toBe('targeted: a?b?c');
   });
 
@@ -337,11 +334,11 @@ describe('the rule a verdict applies (red-team gap 1)', () => {
     const cmp = compare([q('a', 0.5)], [q('a', 0.5)]);
     expect(gateFor('holdout', cmp, { kind: 'cutoff' }).rule).toBe('cutoff');
     expect(gateFor('dev', cmp, { targetShapes: ['t'] }).rule).toBe('targeted: t');
-    expect(gateFor('test', cmp).rule).toBe('sc5');
+    expect(gateFor('test', cmp).rule).toBe('test-set');
   });
 });
 
-describe('assertTruncation: a cutoff only shortens result lists (red-team gap 1)', () => {
+describe('assertTruncation: a cutoff only shortens result lists', () => {
   /** @param {Record<string, { status?: number, codes: string[] }>} results */
   const run = (results) => /** @type {any} */ ({ variant: 'r', results: Object.fromEntries(Object.entries(results).map(([id, r]) => [id, { status: 200, ...r }])) });
   const base = run({ a: { codes: ['X', 'Y', 'Z'] }, b: { codes: ['P'] }, c: { codes: [] } });
@@ -367,7 +364,7 @@ describe('assertTruncation: a cutoff only shortens result lists (red-team gap 1)
   });
 });
 
-describe('change kinds no-loss and answerable-floor (P-5b; dev screen only)', () => {
+describe('change kinds no-loss and answerable-floor (dev screen only)', () => {
   const NOLOSS = 'ΔnDCG@10 >= 0 (no-loss)';
   const FLOOR = 'answerable ΔnDCG@10 >= -0.01';
   /** 20 answerable queries; the candidate moves each by `d`. */
@@ -417,38 +414,5 @@ describe('change kinds no-loss and answerable-floor (P-5b; dev screen only)', ()
         expect(() => gateFor(set, shifted(0), { kind })).toThrow(/dev screen only/);
       }
     }
-  });
-});
-
-describe('--gate sc5 on the holdout (P-5b)', () => {
-  it('applies the SC5 rule to a holdout comparison and records rule sc5', () => {
-    const { base } = many(40, 0.3, 0.4);
-    const cand = spread(many(40, 0.3, 0.4).cand);
-    expect(() => gateFor('holdout', compare(base, cand), { gate: 'sc5' })).toThrow(/sealed-test-set reading/);
-    const holdoutReading = /** @type {const} */ ({ reading: 'holdout' });
-    const v = gateFor('holdout', compare(base, cand), { gate: 'sc5' }, holdoutReading);
-    expect(v).toMatchObject({ set: 'holdout', rule: 'sc5', verdict: 'pass' });
-    expect(Object.keys(names(v))).toEqual(['no new errors', ENOUGH, 'judged@10 = 100%', 'ΔnDCG@10 BCa 95% lower bound > 0', 'ΔP@5 BCa 95% lower bound > 0']);
-    // A point-estimate gain whose interval spans 0 passes the per-change rule and fails SC5.
-    const noisy = base.map((s, i) => ({ ...s, ndcg: s.ndcg + (i % 2 ? 0.2 : -0.19), p5: s.p5 + (i % 2 ? 0.2 : -0.19) }));
-    expect(gateFor('holdout', compare(base, noisy)).verdict).toBe('pass');
-    expect(gateFor('holdout', compare(base, noisy), { gate: 'sc5' }, holdoutReading).verdict).toBe('fail');
-  });
-
-  it('SC5_READING is the reading ADR 0003 records', () => {
-    const adr = readFileSync(join(REPO, 'docs/decisions/0003-eval-holdout-and-gate.md'), 'utf8');
-    const section = adr.split(/^## /m).find((s) => s.startsWith('SC5 reading'));
-    expect(section, 'ADR 0003 has an "SC5 reading" section').toBeDefined();
-    const m = /** @type {string} */ (section).match(/\*\*(sealed test set|holdout)\*\*/);
-    expect(m, 'the section names the reading in bold').not.toBeNull();
-    expect(SC5_READING).toBe(/** @type {RegExpMatchArray} */ (m)[1] === 'holdout' ? 'holdout' : 'sealed');
-  });
-
-  it('is refused on the holdout unless the recorded reading is the holdout, and on dev always', () => {
-    expect(() => assertSc5Allowed('holdout', 'sealed')).toThrow(/ADR 0003 records the sealed-test-set reading/);
-    expect(() => assertSc5Allowed('holdout', 'holdout')).not.toThrow();
-    expect(() => assertSc5Allowed('test', 'sealed')).not.toThrow();
-    expect(() => assertSc5Allowed('dev', 'holdout')).toThrow(/dev/);
-    expect(() => assertSc5Allowed('holdout')).toThrow(/sealed/); // the recorded reading by default
   });
 });

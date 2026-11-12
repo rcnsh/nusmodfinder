@@ -1,12 +1,12 @@
 // @ts-check
-// Phase 7 7E, G2 (docs/plans/phase7.md 7E, tests first; Jacob's answer, ADR 0011): in July NUS
-// has published the coming year's Sem 1 NG list but not Sem 2's. Until it does, a Sem 2 course on
-// last year's Sem 2 list is "to confirm" (reason ng:unpublished-sem, kind ask), never open; one
+// An unpublished semester (ADR 0015): in July NUS has published the coming year's Sem 1 NG list
+// but not Sem 2's. Until it does, a Sem 2 course on last year's Sem 2 list is "to confirm" (reason ng:unpublished-sem, kind ask), never open; one
 // that wasn't on it is hidden with its own reason. These cases cover each piece: the loader carries
 // last year's list from the manifest, eligibility's state, the reason texts, the shortlist and the
-// hidden-code stamp, and the SC1 oracle's G2 wrapper agreeing with eligibility. With every
-// semester published nothing changes (SC1 over production and the unchanged ranking lock prove
-// that at full scale; the no-op case here proves it on the fixture).
+// hidden-code stamp, and the exchange oracle's unpublished-semester wrapper agreeing with
+// eligibility. With every semester published nothing changes (the oracle suite over production
+// and the unchanged ranking lock prove that at full scale; the no-op case here proves it on the
+// fixture).
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -20,7 +20,7 @@ import {
 import { hiddenCodeStamp, noteLead, sourceNote, stampText, statusText } from '../public/explain.js';
 import { parseList } from '../public/list.js';
 import { answerOf, workOut } from '../public/shortlist.js';
-import { oracleFor } from './sc1/oracle.mjs';
+import { oracleFor } from './oracle/oracle.mjs';
 import { FIXTURE, REASONS_FILE, exchange, ngListedOutcome, synthOutcome } from './web/shortlist-answers.node.mjs';
 import { LAST, REPO, Y, readJson, writeJson } from './year-fakes.node.mjs';
 
@@ -36,7 +36,7 @@ const mod = (code, over = {}) => ({
   semesters: [1, 2], ng: true, ngSemesters: [1, 2], ...over,
 });
 
-describe('G2 in src/eligibility.js', () => {
+describe('an unpublished semester in src/eligibility.js', () => {
   it('a course on last year\'s list for an unpublished semester is to confirm there, at every study level, never open', () => {
     const m = mod('XX2101', { ngSemesters: [1, 2], ngUnpublished: [2] });
     for (const study of STUDIES) {
@@ -78,7 +78,7 @@ describe('G2 in src/eligibility.js', () => {
   });
 });
 
-describe('G2 in scripts/lib.mjs: last year\'s list for an unpublished semester', () => {
+describe('an unpublished semester in scripts/lib.mjs: last year\'s list for an unpublished semester', () => {
   /** @type {string} */
   let dir;
   /** @type {URL} */
@@ -126,7 +126,7 @@ describe('G2 in scripts/lib.mjs: last year\'s list for an unpublished semester',
   });
 });
 
-describe('G2\'s words', () => {
+describe('an unpublished semester\'s words', () => {
   it('the reasons are worded from the year: last year\'s list, this year\'s not out', () => {
     expect(REASONS_FILE.reasons[UNPUBLISHED_SEM]).toEqual({
       kind: 'ask', text: `On NUS's ${yearLabel(LAST)} list; NUS hasn't published ${yearLabel(Y)}'s yet.`, cite: `NG course list, ${yearLabel(LAST)}`,
@@ -178,7 +178,7 @@ describe('G2\'s words', () => {
   });
 });
 
-describe('G2 in the SC1 oracle (the selector\'s wrapper) agrees with eligibility', () => {
+describe('the exchange oracle\'s unpublished-semester wrapper (the selector\'s) agrees with eligibility', () => {
   it('on every fixture module with Sem 2 unpublished, at every semester and study level', async () => {
     const { oracle } = await oracleFor(Y);
     /** @type {string[]} */

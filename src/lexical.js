@@ -11,12 +11,12 @@ export { ftsMatch, queryTokens } from './fts-query.js';
 
 /**
  * @typedef {import('./timing.js').Trace} Trace
- * @typedef {import('./vector-bundle.js').Constraints} FilterEcho The filters, and 3B's code ranges
+ * @typedef {import('./vector-bundle.js').Constraints} FilterEcho The filters, and the parsed code ranges
  *   and level window (written as SQL predicates; never an index driver).
  */
 
 // Lexical half of the hybrid retriever. Filters are applied in SQL so the two
-// halves see the same candidate universe (R4 holds on both paths).
+// halves see the same candidate universe.
 /**
  * @param {D1Database | D1DatabaseSession} db
  * @param {string} query
@@ -32,7 +32,7 @@ export async function lexicalSearch(db, query, echo, limit, trace, terms) {
 }
 
 // Filtered lexical search keeps at most this many FTS hits before joining
-// `modules` for the filters (docs/plans/phase1.md r2): the join costs one row
+// `modules` for the filters: the join costs one row
 // read per hit, so the cap bounds a filtered search at about 2 x FTS_CAP rows.
 export const FTS_CAP = 2_000;
 
@@ -56,8 +56,7 @@ const indexed = (key, echo) => key !== 'sem' || echo.sem === 3 || echo.sem === 4
 
 /**
  * Driver order when the facets row has no counts: the indexed filters by their
- * largest per-value row count on the pinned corpus
- * (docs/evidence/phase1/lexical-cost.md). Also breaks ties between equal counts.
+ * largest per-value row count on the pinned corpus. Also breaks ties between equal counts.
  * @type {FilterKey[]}
  */
 export const FIXED_DRIVER_ORDER = ['sem', 'faculty', 'ng', 'level', 'credits'];
@@ -96,9 +95,9 @@ export function chooseDriver(echo, counts) {
 
 /**
  * SQL predicates over `modules m` for the active filters. Semester and NG use
- * the generated columns from migrations/0006_fts_external.sql. 3B's code
- * ranges become `m.code >= ? AND m.code < ?` (OR-ed), the primary-key range
- * scan the plan names, and a level window `m.level BETWEEN`; neither drives
+ * the generated columns from migrations/0006_fts_external.sql. Parsed code
+ * ranges become `m.code >= ? AND m.code < ?` (OR-ed), a primary-key range
+ * scan, and a level window `m.level BETWEEN`; neither drives
  * the filter-driven plan. With `driver`,
  * every other predicate is written `+m.col`: unary plus makes it unusable as
  * an index constraint, so the planner can only walk the driver's index.
@@ -115,7 +114,7 @@ export function filterSql(echo, driver) {
   const binds = [];
   const col = (/** @type {FilterKey} */ key, /** @type {string} */ name) =>
     `${driver !== undefined && key !== driver ? '+' : ''}m.${name}`;
-  // Phase 4 (plan §2 "Paths"): under ng, sem only picks the allow-mask bit.
+  // Under ng, sem only picks the allow-mask bit.
   if (echo.sem !== undefined && echo.ng !== true) {
     // Interpolated into a column name, so it must be one of the four columns.
     if (![1, 2, 3, 4].includes(echo.sem)) throw new RangeError(`sem must be 1-4, got ${echo.sem}`);
@@ -127,13 +126,13 @@ export function filterSql(echo, driver) {
   if (echo.ng === true) clauses.push(`${col('ng', 'ng')} = 1`);
   const plus = driver !== undefined ? '+' : '';
   if (echo.ng === true && !echo.ngIgnoreAllow) {
-    // The bit is a validated integer literal (?1 is the MATCH text, B2-7); never
+    // The bit is a validated integer literal (?1 is the MATCH text); never
     // an index driver (SQLite can't index a bitmask). No study: 0, closed.
     const bit = ngBit(echo) ?? 0;
     if (!Number.isInteger(bit) || bit < 0 || bit > 0x7fff) throw new RangeError(`bad allow bit ${bit}`);
     clauses.push(`(+m.ng_allow & ${bit}) != 0`);
   }
-  // 3H (plan 3H "Query side"): never an index driver.
+  // The constraint params: never an index driver.
   if (echo.exam === 0) {
     if (echo.sem !== undefined) clauses.push(`${plus}m.exam_sem${echo.sem} = 0`);
     else clauses.push(`${plus}m.exam_semesters = '[]'`);
@@ -254,8 +253,8 @@ async function runFts(db, match, echo, limit, trace) {
   }
 
   // Filters run in SQL against the generated columns, after a bounded FTS
-  // top-N (FINDINGS B1: they used to run in JS after the LIMIT, dropping
-  // matches). FTS5 returns rank ties in rowid order, so (rank, rowid) is the
+  // top-N, never in JS after the LIMIT, which would drop deeper matches.
+  // FTS5 returns rank ties in rowid order, so (rank, rowid) is the
   // total order every path here agrees on. The outer LIMIT stops the scan as
   // soon as `limit` hits survive, which is the common case. CROSS JOIN keeps
   // `hits` the outer loop: given a plain JOIN and the filter indexes, SQLite
@@ -300,7 +299,7 @@ async function runFts(db, match, echo, limit, trace) {
 }
 
 /**
- * The members of 3B's code ranges that pass the filters, in code order, at
+ * The members of the parsed code ranges that pass the filters, in code order, at
  * most `limit`: a primary-key range scan, reading about the rows it returns.
  * A whole-query mask's results, and the third RRF list, wherever the exact
  * dense order is unavailable (mode=lexical, the keyword-only fallback, the

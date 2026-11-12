@@ -1,7 +1,6 @@
 // @ts-check
 // Smoke tests: prove the harness drives the real Worker (src/index.js) end to
-// end over the fixture corpus. Behaviour checks for the Phase 0 findings live
-// in their own files (workstream 0c).
+// end over the fixture corpus. Behaviour checks live in their own files.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createFakes } from './fakes.js';
 import { adminCall, call, callJson, fixture, seed } from './helpers.js';
@@ -29,7 +28,7 @@ describe('/search', () => {
     expect(body.mode).toBe('lexical');
     expect(body.retrieval.vector).toBe(0);
     expect(body.results.length).toBeGreaterThan(0);
-    // CS1010S may stand in its duplicate group's variants (3F).
+    // CS1010S may stand in its duplicate group's variants.
     expect(body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)])).toContain('CS1010S');
     expect(fakes.ai.calls).toHaveLength(0);
     expect(fakes.vectorize.calls).toHaveLength(0);
@@ -97,7 +96,7 @@ describe('/search', () => {
 });
 
 describe('/module/:code', () => {
-  it('returns the full row for CS1010S: the columns of migrations 0001-0005, Phase 4\'s allow mask and its reasons, then 5A\'s exams and link, 5D\'s cohort-only flag, and 6A\'s grading basis and other codes', async () => {
+  it('returns the full row for CS1010S: the columns of migrations 0001-0005, the exchange allow mask and its reasons, then the exams and link, the cohort-only flag, and the grading basis and other codes', async () => {
     const { status, body } = await callJson('/module/CS1010S');
     expect(status).toBe(200);
     expect(body).toMatchObject({ code: 'CS1010S', title: 'Programming Methodology', semesters: [1, 2], ng: false, ng_allow: 0 });
@@ -113,11 +112,11 @@ describe('/module/:code', () => {
 });
 
 describe('/facets', () => {
-  it('6A: carries offListRules beside ngSources: NUS\'s four rules about courses off the exchange list, each with its scope', async () => {
+  it('carries offListRules beside ngSources: NUS\'s four rules about courses off the exchange list, each with its scope', async () => {
     const { body } = await callJson('/facets');
     expect(Object.keys(body).slice(-2)).toEqual(['ngSources', 'offListRules']);
     expect(body.offListRules.map((/** @type {{ id: string }} */ r) => r.id)).toEqual(['E-offerings-list', '2-biz-no-late-add', '4-cee-no-appeal', '4-isem-no-appeal']);
-    // 7E: the page finds rule E by its overlay role, not by an id a new year may rename.
+    // The page finds rule E by its overlay role, not by an id a new year may rename.
     for (const r of body.offListRules) {
       expect(Object.keys(r), r.id).toEqual(r.id === 'E-offerings-list' ? ['id', 'text', 'scope', 'role'] : ['id', 'text', 'scope']);
       expect(r.text, r.id).toMatch(/\S{3}/);

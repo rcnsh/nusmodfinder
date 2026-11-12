@@ -1,17 +1,12 @@
-# 0004: Workers Paid quotas, and one relevance judge
+# 0004: Stay inside the Workers Paid allowances; no overage
 
-Status: accepted (Jacob, 2026-11-04); amended 2026-11-06 (per-round cross-family check, below).
-Amends ADR 0002 (write cap and ordering) and ADR 0003 and `docs/plans/phase2.md` §3 (judges).
+Status: accepted.
 
-## 1. The account is on Workers Paid
-
-### Context
-The brief and ADR 0002 assumed the Free limits. Those are D1 at 100k rows written and 5M read
-**a day**, account-wide, with every query failing once either is reached, and 10 ms CPU per
-request. The vault already recorded Workers Paid. Jacob confirmed it on 2026-11-04.
-
-### Included allowances on Paid
-Checked against the Cloudflare docs on 2026-11-04:
+## Context
+The Cloudflare account is on Workers Paid ($5 a month). Its allowances are per account, shared
+with the owner's other projects. On Paid, going over an allowance is **billed**, not refused, and
+nothing in Cloudflare stops Workers AI or D1 spending automatically. Monthly allowances reset on
+the subscription renewal day, not at 00:00 UTC.
 
 | | included | above it |
 |---|---|---|
@@ -19,107 +14,30 @@ Checked against the Cloudflare docs on 2026-11-04:
 | D1 rows written | 50 million / month | $1.00 / million |
 | Vectorize queried dims | 50 million / month | $0.01 / million |
 | Vectorize stored dims | 10 million | $0.05 / 100 million |
-| Workers AI | 10,000 neurons / day (as on Free) | $0.011 / 1,000 neurons |
-| Worker CPU per HTTP request | 30 s default (up to 5 min) | 30M CPU-ms / month included |
+| Workers AI | 10,000 neurons / day | $0.011 / 1,000 neurons |
+| Worker CPU | 30 million CPU-ms / month; 30 s per request by default | billed per million CPU-ms |
 | D1 Time Travel | 30 days | — |
 
-Going over an allowance on Paid is **billed**, not refused. Monthly allowances reset on the
-subscription renewal day, not at 00:00 UTC.
+## Decision
+- **No spending.** The project never runs up an overage. Every allowance above is a hard limit
+  for design and operations, even though Cloudflare would bill rather than refuse.
+- **Headroom before a remote D1 write.** Estimate it, check the month's account-wide usage, and
+  proceed only if `estimate × 1.5` fits in the month's remaining included writes. Log every
+  remote operation (run records, ADR 0011).
+- **Measure on a small batch** before any forced or full re-ingest, and keep live checks light
+  (at least 4 s between requests).
+- **At most one forced re-ingest or corpus embed per UTC day.** A forced re-ingest spends about
+  2,400 of the account's 10,000 daily neurons; searches need the rest.
+- **No corpus embed or forced re-ingest in a week the site is announced**, so visitors' searches
+  have the day's neurons.
+- **A Cloudflare budget alert** at the lowest amount emails the day after a billed day. It caps
+  nothing; the rules above are what keep the project inside the allowances.
 
-### Decision
-- **No spending.** The brief's "spend money" rule now means staying inside the included
-  allowances above; it does not mean the Free limits. Nothing in this project may run up an
-  overage.
-- **The daily write cap is gone.** ADR 0002's rule that 0006 and the forced re-ingest run on
-  different UTC days no longer applies. The headroom rule becomes: before a remote D1 write,
-  estimate it, check month-to-date account usage, and proceed only if `estimate × 1.5` fits
-  in the month's remaining included writes. In practice every operation here is under 0.3% of
-  50M.
-- **The brief's other hard rules stand:**
-  - estimate and log every remote D1 operation;
-  - measure on a small batch before any forced or full re-ingest;
-  - keep live traffic light.
-- **The binding limit is Vectorize queried dims.** At 50M / 384 − 6,771 that is about **123,400
-  uncached searches a month**, about 4,100 a day. Workers AI embeds a query for ~0.03 neurons,
-  so its 10k/day limit allows ~350k queries a day and is not binding. A forced re-ingest
-  (~2–3k neurons) is the only large daily AI cost, so at most one runs per UTC day.
-- **The 10 ms CPU concern is retired.** The production p99 of 18.5 ms (PROGRESS, Phase 1
-  baseline) is far under 30 s.
-- **The ingest `--write-budget` default stays at 40k** as a runaway guard, now well inside the
-  allowance. A cold load (~137k writes) is affordable; pass a larger budget explicitly.
-
-## 2. One relevance judge
-
-### Context
-ADR 0003 and the Phase 2 plan named two judges from different model families: judge A
-`claude-opus-5-5` and judge B `gemini-3.1-pro-low`. Disagreements were to go to a
-`claude-sonnet-5-5` adjudicator, and quadratic κ and Krippendorff α were to be reported
-between the judges. Judge B could not run: the proxy answered "400 unknown provider for model
-gemini-3.1-pro-low" twice. Judge A finished all 1,671 dev items of round r1, with exact
-agreement on 80 of 80 planted repeats.
-
-### Decision (Jacob)
-No second judge. The final grade of a pair is the mechanical rule grade where one applies,
-else judge A's grade. There is no adjudicator.
-
-### Consequences
-- **Inter-judge agreement (κ, α) is not reported**, and the plan's κ ≥ 0.6 target lapses.
-- **The quality checks on the grades** are:
-  - planted-repeat self-consistency (a lower bound, because a repeat sits in the same packet
-    as its original);
-  - the drift re-judge sample in later rounds;
-  - **Jacob's human calibration** (`eval:judge calibrate`, ~150 stratified pairs). This is
-    now the only independent check on judge A, so it stays a decision-gate item and should
-    run before Phase 3 gates rely on the qrels.
-- **Same-family risk.** Plan objection 9 ("same-family judges"), answered by Opus plus Gemini,
-  is now open by choice. Judge A and any Claude-based ranking change could share blind spots.
-  The human calibration subset is the mitigation, and its Δ-sign check (final vs human) is
-  reported with every gate verdict that uses those qrels.
-- **Holdout judging** is single-judge too, through the custodian as before. The Gemini-only
-  `delegate_task` isolation path in ADR 0003 is moot.
-- The round-r1 B packets are discarded unjudged. `drop-judge` records the slot, judge and
-  reason in the round state, and the merged qrels record `mode: single`.
-
-### Amendment (Jacob, 2026-11-04): model cross-check instead of human calibration
-Jacob chose not to grade the calibration sheet himself. Instead:
-- a different-family model (`gemini-3.8-flash-high`) graded the same 150 stratified pairs blind to A;
-- fresh Claude Sonnet verifiers checked every Gemini grade, also blind to A.
-
-Verified grades vs A: raw agreement 0.880, quadratic κ 0.915, α 0.915. A is slightly lenient
-(12 higher, 6 lower, never 0 against 2), and the Δ sign matches on the subset. Details are in
-`docs/evidence/phase2/calibration/`.
-
-This lowers the same-family risk above but does not remove it. The verifiers are Claude, and no
-human has graded any pair.
-
-### Amendment (2026-11-06, Phase 3 P-5): a cross-family check every round
-For Phase 3 (`docs/plans/phase3.md` §3, objection A-N2), the one-off calibration above becomes a
-check made on every pooling round that decides a selection:
-- **Scope:** 3A-2, 3D and 3E on dev, and the SC5 test pool.
-- **Pairs:** every pair in the symmetric difference of the selected point's top 10 and the
-  shipped ranker's top 10.
-- **Grading:** `gemini-3.8-flash-high` grades them blind to judge A, through a T3 `delegate_task`
-  thread. A fresh Claude Sonnet verifier checks every Gemini grade, also blind to A.
-- **Report:** the verified grades' agreement with A, and the dev ΔnDCG@10 sign recomputed with
-  the verified grades on those pairs. The final grade of a pair is still the rule's, else A's.
-  The cross-check measures A and never replaces its grades.
-- **Stop:** on dev, if the recomputed sign is opposite to judge A's, the change does not go to
-  its look until the lead records a decision with a reason.
-
-It replaces the calibration Δ-sign report that "Same-family risk" above attaches to every gate
-verdict. The calibration subset's agreement figures stand as the Phase 2 record.
-
-Deviations, each with Jacob's sign-off:
-- **3A-2 (2026-11-07):** checked on 435 of 519 pairs; the Gemini route was rate-limited for the
-  rest (`docs/evidence/phase3/3a2-dev-screen.md`).
-- **3D (2026-11-07): not run.** `gemini-3.8-flash-high` hit its rate limit on all three attempts
-  (two chunks of 51 in parallel, then one alone) before grading any of the 102 pairs. Jacob chose
-  to skip the check rather than swap to another Gemini model or wait. 3D goes to L5 on judge A's
-  grades alone, as 3B and 3C did (`docs/evidence/phase3/3d-dev-screen.md`).
-- **SC5 test pool (2026-11-08): not run.** `gemini-3.8-flash-high` hit its rate limit on all
-  three attempts before grading any of the 1,154 pairs. Jacob chose to skip the check, as for 3D.
-  SC5 rests on judge A's grades alone (`docs/evidence/phase3/sc5.md`).
-
-### Dissent
-None recorded. The planning critics' preference for two families (Phase 2 plan, objection 9)
-is the overridden position.
+## Consequences
+- The binding limits are Workers CPU and the shared daily neurons (docs/cost.md has the
+  arithmetic); D1 reads and Vectorize are far from theirs since dense search runs in the Worker
+  (ADR 0006).
+- Ingest's `--write-budget` (40,000 rows, ADR 0002) is a runaway guard well inside the monthly
+  write allowance; a cold load passes a larger budget explicitly.
+- The per-IP rate limits and the cross-site refusal (ADR 0012) protect the neurons from scripts
+  and other sites; they don't protect against traffic spread over many addresses.

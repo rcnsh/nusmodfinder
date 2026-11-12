@@ -5,22 +5,21 @@
 //   npm run deploy -- --preflight      the preflight alone (before any D1 write, per the runbook)
 //   npm run deploy -- --behind-ok      deploy a HEAD behind origin/main's tip (logged)
 //
-// 1. The preflight (scripts/preflight.mjs, Phase 7 7B): every check but D1's. The git checks
-//    (clean tree, nothing hidden, HEAD on origin/main at its tip unless --behind-ok), HEAD's own
-//    CI and Findings push runs green, the vars (only DENSE_BACKEND), the production bundle at
-//    the committed data version (Phase 3 3-0, B-9, B2-4), 7D's and 7E's checks when their
-//    modules exist, a `year check --full` record when source-derived inputs changed, and
+// 1. The preflight (scripts/preflight.mjs): every check but D1's. The git checks (clean tree,
+//    nothing hidden, HEAD on origin/main at its tip unless --behind-ok), HEAD's own CI push run
+//    green, the vars (only DENSE_BACKEND), the production bundle at the committed data version,
+//    the corpus manifest and year checks, a `year check --full` record when source-derived inputs changed, and
 //    `wrangler check startup` with the bundle aliased in.
-// 2. The guard (scripts/guard.mjs; B-2, B3-4): D1's (code, text_hash) pairs must hash to the
+// 2. The guard (scripts/guard.mjs): D1's (code, text_hash) pairs must hash to the
 //    bundle's rowsKey, D1's data version must be the committed one, and D1's catalogueKey (its
-//    catalogue_only codes, Phase 7 7D) the bundled catalogue file's. Every row's hash is
-//    recomputed from its columns (red team M-1): the data version is over those, and a stored
+//    catalogue_only codes) the bundled catalogue file's. Every row's hash is recomputed from its
+//    columns, since the data version is over those, and a stored
 //    row_hash that differs (modules or catalogue_only) refuses. Read over D1's REST query endpoint
 //    (scripts/d1-rest.mjs; ~6.8k module and ~14.4k catalogue rows, every column), the code GET
 //    /admin/hashes runs, so no Worker session and no secret is bound anywhere. In Actions a mismatch means a data change
 //    D1 doesn't hold yet: the job fails and says the re-ingest runs on the Mac.
 // 3. `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`; the startup gate
-//    (B-4) refuses to promote above 200 ms or with no reported time.
+//    refuses to promote above 200 ms or with no reported time.
 // 4. The intent record: the version id, the previous one (`wrangler deployments status`), the
 //    data version and the startup time, in the run record and printed, before the promote.
 // 5. `wrangler versions deploy <id>@100%`; then the annotated tag
@@ -47,7 +46,7 @@ export { ALLOWED_VARS, STARTUP_PROFILE };
 
 // Cloudflare caps version messages at 100 characters.
 const MAX_MESSAGE = 100;
-/** The startup gate (docs/plans/phase3.md 3-0, B-4); the platform limit is 1 s. */
+/** The startup gate: well under the platform's 1 s limit. */
 export const MAX_STARTUP_MS = 200;
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const DATA_VERSION_PATH = join(ROOT, 'src/data-version.json');
@@ -58,7 +57,7 @@ const SIGNAL_CODES = /** @type {const} */ ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 
 
 /**
  * The `vars` object of wrangler.jsonc, read as JSONC (scripts/jsonc.mjs), so an object-valued var
- * is one key like any other (red team L-2). No `vars` is no vars; a file or a `vars` it can't read
+ * is one key like any other. No `vars` is no vars; a file or a `vars` it can't read
  * throws, so the preflight's check fails rather than passing blind.
  * @param {string} [path]
  * @returns {Promise<Record<string, unknown>>}
@@ -258,7 +257,7 @@ async function deployRun(deps, args, record, stage) {
   let guard;
   const READ = 'D1 rows (the guard, over the D1 REST query: modules and catalogue_only with every column, and the schema check)';
   const catalogue = await (deps.catalogue ?? readBundledCatalogue)();
-  // The module rows and the catalogue_only rows (7D), as D1 should hold them.
+  // The module rows and the catalogue_only rows, as D1 should hold them.
   const estimate = b.entry.count + catalogue.codes.length;
   try {
     client = await (deps.d1 ?? (() => productionD1({ env, exec })))();
@@ -274,7 +273,7 @@ async function deployRun(deps, args, record, stage) {
   if (!guard.ok) {
     const lines = guard.results.filter((r) => !r.ok).map((r) => `deploy: refusing, ${r.message}`);
     if (ci) {
-      lines.push('deploy: this is a data change D1 doesn\'t hold yet. The re-ingest runs on the Mac through the runbook (docs/REFERENCE.md '
+      lines.push('deploy: this is a data change D1 doesn\'t hold yet. The re-ingest runs on the Mac through the runbook (docs/data.md '
         + '"Re-ingesting": preflight, d1:bookmark, ingest, verify --pre-deploy), and that deploy runs there. Nothing was deployed.');
     }
     error(lines.join('\n'));
@@ -284,7 +283,7 @@ async function deployRun(deps, args, record, stage) {
   // 3. Upload and the startup gate.
   record.version('tag', short);
   record.version('dataVersion', committed);
-  // Every other guard field (7D's catalogueKey), as the tag will carry it.
+  // Every other guard field (the catalogueKey), as the tag will carry it.
   for (const [k, v] of Object.entries(guard.values)) if (k !== 'dataVersion' && v !== null) record.version(k, v);
   const message = `${short} ${subject}`.slice(0, MAX_MESSAGE);
   const alias = `vectors-bundle:${b.shim}`;

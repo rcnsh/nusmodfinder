@@ -1,5 +1,5 @@
 // @ts-check
-// 3G in /search (docs/plans/phase3.md 3G): a query with no signal (no route,
+// The no-signal answer in /search: a query with no signal (no route,
 // no vocabulary match before correction: parsed.noSignal) whose top exact
 // cosine, for the query as typed, is below τ answers `count: 0` with
 // `noMatch: { reason: "no-signal" }`, before hydration. The fixture's fake
@@ -8,7 +8,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createFakes } from './fakes.js';
 import { callJson, seed } from './helpers.js';
-import { recordingDb } from './findings/support.js';
+import { recordingDb } from './regressions/support.js';
 
 const ALWAYS = { NO_SIGNAL_TAU: '1.01' };
 const NEVER = { NO_SIGNAL_TAU: '-1.01' };
@@ -68,7 +68,7 @@ describe('no-signal', () => {
   });
 
   it('answers before hydration: no module rows are read', async () => {
-    /** @type {import('./findings/support.js').DbCall[]} */
+    /** @type {import('./regressions/support.js').DbCall[]} */
     const log = [];
     const { body } = await callJson(`${GIBBERISH}%20hydrate`, { fakes, env: { ...ALWAYS, DB: recordingDb(log) } });
     expect(body.noMatch).toMatchObject({ reason: 'no-signal' });

@@ -5,7 +5,7 @@
   "script": "vectors standby",
   "args": [],
   "commit": {
-    "sha": "81309992d11b88365da72e39b32f9f7e82cb33d4",
+    "sha": "aaa160d354b7b15bf468f23689f514424d4539b6",
     "dirty": false,
     "diffSha256": null
   },

@@ -1,15 +1,18 @@
 // @ts-check
-// P-6: the SC4 acceptance suite (docs/plans/phase3.md §4) is fixed in one
-// commit. These tests pin its shape: §4's per-row counts, the `interpreted`
-// schema, the topK rule, the thresholds, no dev text beyond the four §4 names,
-// and the sha256 recorded in docs/plans/phase3-prereg.md, so the file cannot
-// change without the doc (implementers may not edit the suite).
+// The query suite (test/query-suite/queries.json) is the fixed acceptance set
+// for query understanding. These tests pin its shape: the per-row counts, the
+// `interpreted` schema, the topK rule, the thresholds, no dev text beyond the
+// four allowed ones, and its sha256, so a ranking change cannot quietly edit
+// the suite it is checked against.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { REPO } from '../../eval/lib/sets.mjs';
-import { ALLOWED_DEV, DOC_PATH, INTERPRETED_KEYS, ROW_COUNTS, SUITE_PATH, devQueries, nearDuplicate, normalise, suiteTexts } from './sc4.node.mjs';
+import { ALLOWED_DEV, INTERPRETED_KEYS, ROW_COUNTS, SUITE_PATH, devQueries, nearDuplicate, normalise, suiteTexts } from './suite-files.node.mjs';
+
+/** Changing the suite means updating this constant in the same change. */
+const SUITE_SHA256 = '6cb2cbe3987ac69f22257139e5cb6ad4bdf5fee33018d3c8acb6dfc458e1574a';
 
 const raw = readFileSync(SUITE_PATH);
 /** @type {any} */
@@ -18,8 +21,8 @@ const suite = JSON.parse(raw.toString('utf8'));
 const items = suite.items;
 const dev = devQueries();
 
-describe('SC4 suite (test/sc4/queries.json)', () => {
-  it('has exactly 90 items with §4\'s per-row counts', () => {
+describe('the query suite (test/query-suite/queries.json)', () => {
+  it('has exactly 90 items with the per-row counts', () => {
     expect(items).toHaveLength(90);
     /** @type {Record<string, number>} */
     const counts = {};
@@ -67,8 +70,8 @@ describe('SC4 suite (test/sc4/queries.json)', () => {
     for (const it of items) expect(it.topK, it.id).toBe(it.row === 'partial-code' ? 50 : 20);
   });
 
-  it('carries the thresholds fixed at P-6: T from eval/prereg/typo-threshold.json, M = 3', () => {
-    const t = JSON.parse(readFileSync(join(REPO, 'eval/prereg/typo-threshold.json'), 'utf8'));
+  it('carries its thresholds: T from eval/query-rules/typo-threshold.json, M = 3', () => {
+    const t = JSON.parse(readFileSync(join(REPO, 'eval/query-rules/typo-threshold.json'), 'utf8'));
     expect(suite.thresholds).toEqual({ T: t.T, M: 3 });
     for (const it of items.filter((x) => x.row === 'typo')) expect(it.params.T, it.id).toBe(t.T);
     for (const it of items.filter((x) => x.row === 'code-in-longer')) expect(it.params.M, it.id).toBe(3);
@@ -87,7 +90,7 @@ describe('SC4 suite (test/sc4/queries.json)', () => {
     }
   });
 
-  it('holds no dev text, or near-duplicate of one, beyond the four §4 names (d-024, d-079, d-022, d-016)', () => {
+  it('holds no dev text, or near-duplicate of one, beyond the four allowed ones (d-024, d-079, d-022, d-016)', () => {
     // Only the four named items may carry dev text, each verbatim and in its row.
     const named = items.filter((x) => String(x.origin).startsWith('dev:'));
     expect(named.map((x) => x.origin).sort()).toEqual(Object.keys(ALLOWED_DEV).map((id) => `dev:${id}`).sort());
@@ -114,10 +117,7 @@ describe('SC4 suite (test/sc4/queries.json)', () => {
     }
   });
 
-  it('is pinned by the sha256 docs/plans/phase3-prereg.md records', () => {
-    const doc = readFileSync(DOC_PATH, 'utf8');
-    const m = doc.match(/SC4 suite sha256 `([0-9a-f]{64})`/);
-    expect(m, 'the prereg doc records the suite sha256').not.toBeNull();
-    expect(createHash('sha256').update(raw).digest('hex')).toBe(/** @type {RegExpMatchArray} */ (m)[1]);
+  it('is the pinned file, byte for byte', () => {
+    expect(createHash('sha256').update(raw).digest('hex')).toBe(SUITE_SHA256);
   });
 });

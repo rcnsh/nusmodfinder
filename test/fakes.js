@@ -101,7 +101,7 @@ export class FakeAI extends Switchable {
   }
 }
 
-/** The metadata properties production has indexes for (docs/REFERENCE.md). */
+/** The metadata properties production has indexes for (docs/operations.md, "Setup"). */
 export const INDEXED_PROPERTIES = ['sem1', 'sem2', 'sem3', 'sem4', 'level', 'credits', 'faculty', 'ng'];
 
 /**
@@ -346,6 +346,6 @@ export function createFakes() {
 }
 
 /**
- * `limit` is SEARCH_LIMIT (per 10 s), `limitMinute` SEARCH_LIMIT_MINUTE (per 60 s; Phase 8 8B, G5).
+ * `limit` is SEARCH_LIMIT (per 10 s), `limitMinute` SEARCH_LIMIT_MINUTE (per 60 s).
  * @typedef {{ ai: FakeAI, vectorize: FakeVectorize, limit: FakeRateLimit, limitMinute: FakeRateLimit }} Fakes
  */

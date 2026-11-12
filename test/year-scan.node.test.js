@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7D, one year source (docs/plans/phase7.md 7D): DEFAULT_ACAD_YEAR
+// One year source: DEFAULT_ACAD_YEAR
 // (scripts/lib.mjs) is the only year. This scan reads every tracked text file
 // under src/, public/ and scripts/, and the tests under test/ that read
 // production or pinned data, and fails on any `\b20\d\d\b` that is not on the
@@ -31,10 +31,10 @@ const NOT_YEARS = [
 ];
 
 /**
- * A year's own file, named by its year (Phase 7 7E): the overlay and the SC1 oracle hold their
+ * A year's own file, named by its year: the overlay and the exchange oracle hold their
  * year's readings by design, and `npm run year -- check` checks the year's manifest names them.
  */
-const PER_YEAR_FILE = /^(?:scripts\/ng-overlay\/|test\/sc1\/oracle-)\d{4}-\d{4}(?:\.node)?\.mjs$/;
+const PER_YEAR_FILE = /^(?:scripts\/ng-overlay\/|test\/oracle\/oracle-)\d{4}-\d{4}(?:\.node)?\.mjs$/;
 
 /** Whole files that are not about years. */
 const FILES = {
@@ -58,8 +58,6 @@ const ALLOWED = [
   { file: 'public/preclusion.js', text: 'the cohorts from 2018 inclusive', kind: 'cited', why: 'an NUSMods prerequisite string, quoted as the example of what the parser skips' },
   { file: 'public/shortlist.js', text: 'NUS info sheet, 2018/19', kind: 'cited', why: 'NUS\'s exchange information sheet, cited by its own year' },
   { file: 'public/shortlist.js', text: '2018/19 exchange information sheet', kind: 'cited', why: 'the same sheet, in the page\'s own words' },
-  { file: 'scripts/deploy-tag.mjs', text: "date: '2026-11-11T18:39:46Z'", kind: 'cited', why: 'a Phase 6 deploy\'s promote time, a past event the back-filled tag records' },
-  { file: 'scripts/deploy-tag.mjs', text: "date: '2026-11-11T23:59:33Z'", kind: 'cited', why: 'the other Phase 6 deploy\'s promote time, likewise' },
 ];
 
 /** A test that reads production or pinned data, so it is scanned. */
@@ -107,7 +105,7 @@ function scannedFiles() {
   });
 }
 
-describe('one year source: the year scan (Phase 7 7D)', () => {
+describe('one year source: the year scan', () => {
   it('finds a year in a string, a comment and a data-file name', () => {
     expect(unallowedYears('src/x.js', "const y = '2026-2027'; // Academic year 2026/27\nimport x from '../data/ng-courses-2026-2027.json';"))
       .toHaveLength(5);
@@ -116,7 +114,7 @@ describe('one year source: the year scan (Phase 7 7D)', () => {
   it('skips a year\'s own overlay and oracle, and nothing else named by a year', () => {
     const y = DEFAULT_ACAD_YEAR;
     expect(unallowedYears(`scripts/ng-overlay/${y}.mjs`, '// The 2026/27 overlay')).toEqual([]);
-    expect(unallowedYears(`test/sc1/oracle-${y}.node.mjs`, '// D1 (2026/27)')).toEqual([]);
+    expect(unallowedYears(`test/oracle/oracle-${y}.node.mjs`, '// D1 (2026/27)')).toEqual([]);
     expect(unallowedYears(`scripts/ng-overlay/${y}-notes.mjs`, '// 2026/27')).toHaveLength(1);
     expect(unallowedYears(`src/${y}.js`, '// 2026/27')).toHaveLength(1);
   });

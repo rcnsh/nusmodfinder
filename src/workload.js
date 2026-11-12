@@ -1,5 +1,5 @@
 // @ts-check
-// The workload /module/:code answers (Phase 5 5A). Pure: no bindings, no JSON
+// The workload /module/:code answers. Pure: no bindings, no JSON
 // imports, so the Node tests import it as the Worker does.
 
 /**
@@ -7,11 +7,11 @@
  */
 
 /**
- * The workload /module/:code answers (5A), from the stored `workload` column
+ * The workload /module/:code answers, from the stored `workload` column
  * (the JSON of moduleInfo's value): NUSMods' 5-number array as named hours a
  * week with their total; `{ raw }` when moduleInfo gives anything else (two
  * modules give a string such as `3-.5-0--0-6.5`, which has six parts); null
- * when it is not listed: absent, or all zero (C-11). The total is 3H's
+ * when it is not listed: absent, or all zero. The total is the column
  * workload_hours (scripts/lib.mjs workloadHours) wherever that is not null.
  * @param {string | null} stored
  * @returns {Workload | { raw: string } | null}

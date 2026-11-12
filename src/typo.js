@@ -1,21 +1,20 @@
 // @ts-check
-// 3C, typos and prefixes (docs/plans/phase3.md "3C Typos and prefixes",
-// docs/plans/phase3-prereg.md §4): parse step 3, on the canonical q. For each
+// Typos and prefixes: parse step 3, on the canonical q. For each
 // pre-correction token with df 0 in the corpus vocabulary, letter-only:
 //   1. 4+ letters: an FTS prefix term `"psych"*` (0006's prefix index);
 //   2. only if that prefix term matches nothing (decided from the vocabulary)
 //      and the token has 5+ letters: correct it to the nearest vocabulary term
 //      by OSA distance, ≤ 1 for 5–7 letters and ≤ 2 for 8+, ties to the higher
-//      df, then the lexicographically smaller term (C19);
+//      df, then the lexicographically smaller term;
 //   3. the original stays in the OR, as its prefix term.
-// The corrected text is what every later parse step reads (C2-4). Pure.
+// The corrected text is what every later parse step reads. Pure.
 import { FTS_SEPARATORS } from './fts-separators.js';
 import { queryTokens } from './fts-query.js';
 import { dfOf, nearestTerm, prefixMatches } from './vocabulary.js';
 
 /**
- * The pre-registered variants (plan 3C "Variants"). Each 3C ref differs from
- * the other only in TYPO_VARIANT (tags `3c1`, `3c2`), so the ranker tree hash
+ * The pre-registered variants. Each typo ref differs from
+ * the other only in TYPO_VARIANT (`3c1` or `3c2`), so the ranker tree hash
  * names the variant the eval scored.
  * - `3c1`: the lexical half only; the dense half embeds the query as typed.
  * - `3c2`: also embeds the corrected text, a second single-text call in
@@ -31,7 +30,7 @@ export const TYPO_VARIANTS = Object.freeze({
 /** @type {TypoVariant} */
 export const TYPO_VARIANT = '3c2';
 
-/** Whether the dense half also embeds the corrected text (3C-2). */
+/** Whether the dense half also embeds the corrected text (`3c2`). */
 export const EMBED_CORRECTED = TYPO_VARIANTS[TYPO_VARIANT].embedCorrected;
 
 /** A df-0 token this long becomes a prefix term. */
@@ -48,8 +47,8 @@ const PIECES = new RegExp(`(${FTS_SEPARATORS.source})`, FTS_SEPARATORS.flags);
 /**
  * @typedef {{ from: string, to: string }} Correction
  * @typedef {{ tokens: string[], text: string, prefixes: string[], corrections: Correction[] }} CorrectedQuery
- *   `tokens`: the pre-correction tokens (queryTokens of q; 3G's vocabulary
- *   test reads them). `text`: q with each corrected token replaced, separators
+ *   `tokens`: the pre-correction tokens (queryTokens of q; the no-signal
+ *   vocabulary test reads them). `text`: q with each corrected token replaced, separators
  *   kept. `prefixes`: the df-0 tokens of 4+ letters, in query order, each an FTS
  *   prefix term. `corrections`: original → vocabulary term, in query order.
  */

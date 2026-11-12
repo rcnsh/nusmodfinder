@@ -179,7 +179,7 @@ describe('scoreRun / summarise', () => {
     expect(() => scoreRun(run({ q1: [] }), queries, qrels)).toThrow(/^run v has no result for query #2 of 5$/);
   });
 
-  it('a bad grade error carries the value and position, never the judgment (review finding 4)', () => {
+  it('a bad grade error carries the value and position, never the judgment', () => {
     const secret = { version: 'r', queries: { ...qrels.queries, q2: { judgments: { CS1010: 2, CS1010S: { grade: 7, rationale: 'SECRET-RATIONALE about q2' } } } } };
     /** @type {unknown} */
     let err;
@@ -221,7 +221,7 @@ describe('compare', () => {
   });
 });
 
-describe('assertSameCorpus (review finding 7)', () => {
+describe('assertSameCorpus', () => {
   const MI = 'a'.repeat(64), NG = 'b'.repeat(64);
   /** @param {Record<string, unknown>} corpus @returns {RunFile} */
   const runOn = (corpus) => ({ schema: 'vnm-eval-run/1', variant: 'cand', set: 'dev', corpus, results: {}, docs: {} });
@@ -245,7 +245,7 @@ describe('assertSameCorpus (review finding 7)', () => {
   });
 });
 
-describe('no-answer is tagged AND no grade-≥1 document (P-5b; ADR 0003 amendment 2026-11-06)', () => {
+describe('no-answer is tagged AND no grade-≥1 document', () => {
   /**
    * A tagged query with a grade-2 document (answerable: the grades decide), each tag with
    * no grade-≥1 document (no-answer), untagged queries with none (unscored), an answerable
@@ -328,12 +328,12 @@ describe('no-answer is tagged AND no grade-≥1 document (P-5b; ADR 0003 amendme
   });
 });
 
-describe('Phase 7 7D: the pinned NG restrictions in a run', () => {
+describe('the pinned NG restrictions in a run', () => {
   const MI = 'a'.repeat(64);
   const qrels = /** @type {any} */ ({ version: 'q1', corpus: { moduleInfoSha256: MI }, queries: {} });
   const run = (/** @type {Record<string, string>} */ corpus) => /** @type {any} */ ({ variant: 'v', corpus: { moduleInfoSha256: MI, ...corpus } });
 
-  it('passes a pinned run on the eval\'s pinned copy, and a run from before 7D that records none', () => {
+  it('passes a pinned run on the eval\'s pinned copy, and an older run that records none', () => {
     expect(() => assertSameCorpus(qrels, [run({ source: 'pinned', ngRestrictionsSha256: 'p'.repeat(64) })], { pinnedRestrictionsSha256: 'p'.repeat(64) })).not.toThrow();
     expect(() => assertSameCorpus(qrels, [run({ source: 'pinned' })], { pinnedRestrictionsSha256: 'p'.repeat(64) })).not.toThrow();
   });

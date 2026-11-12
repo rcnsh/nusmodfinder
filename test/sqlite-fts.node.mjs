@@ -1,7 +1,7 @@
 // @ts-check
 // SQLite's FTS5 (node:sqlite), configured as modules_fts is
 // (migrations/0006_fts_external.sql: `porter unicode61`, prefix '2 3 4'), as
-// the reference the 3C vocabulary and corrector are checked against.
+// the reference the typo vocabulary and corrector are checked against.
 import { DatabaseSync } from 'node:sqlite';
 
 /**

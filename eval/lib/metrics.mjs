@@ -1,6 +1,6 @@
 // @ts-check
 // Retrieval metrics over a run file and a qrels file. Pure functions; no I/O.
-// Rules (docs/plans/phase2.md, r2/r3/Final):
+// Rules:
 // - nDCG@10, gain 2^g - 1, log2(rank + 1) discount. Duplicate-group aware:
 //   only the first member of a group to appear in the ranking earns gain, and
 //   the ideal ranking holds one document per group (its best grade). A
@@ -9,7 +9,7 @@
 // - P@5: group-first documents with grade >= 1 in the top 5, divided by 5.
 // - MRR@10: 1 / rank of the first group-first document with grade >= 1.
 // - Unjudged documents count as grade 0; judged@10 coverage is reported.
-// - The no-answer set (ADR 0003, amendment 2026-11-06): a query is no-answer
+// - The no-answer set (ADR 0003): a query is no-answer
 //   iff it is tagged (a NO_ANSWER_TAGS shape, or `noAnswerByRule` for
 //   non-existent codes) AND no judged document has grade >= 1. The judges'
 //   grades are the ground truth; the tag is necessary, not sufficient. A query
@@ -28,7 +28,7 @@ import { bcaInterval, clusteredInterval, mean, signFlipP } from './stats.mjs';
 
 export const K = 10;
 export const P_K = 5;
-/** Shapes reported as a feature-gap block, outside the primary metric (r2). */
+/** Shapes reported as a feature-gap block, outside the primary metric. */
 export const FEATURE_GAP_SHAPES = ['constraint'];
 /** Shapes whose rank-1 hit must not regress (gate rule 3). */
 export const EXACT_CODE_SHAPES = ['code-exact'];
@@ -56,7 +56,7 @@ export const METRICS = /** @type {const} */ (['ndcg', 'p5', 'rr']);
  *   queries?: Record<string, unknown>, config?: Record<string, unknown>,
  *   results: Record<string, QueryRun>, docs: Record<string, DocMeta>,
  *   intents?: Record<string, unknown>,
- * }} RunFile `intents` (Phase 5 5F runner on): each query's 3H `interpreted` echo
+ * }} RunFile `intents`: each query's `interpreted` echo of the constraint keys, where the runner records it
  */
 
 /**
@@ -232,9 +232,9 @@ export function violates(doc, c) {
 /**
  * Throws unless every run used the corpus the qrels were judged on: the
  * same moduleInfo sha256, and the same NG list and restrictions sha256s when
- * the qrels record them. Phase 7 7D: a run on the pinned corpus records the
+ * the qrels record them. A run on the pinned corpus records the
  * sha256 of the restrictions it was normalised with, which must be the eval's
- * pinned copy (eval/pinned/, ADR 0003); run files from before 7D record none.
+ * pinned copy (eval/pinned/, ADR 0003); older run files record none.
  * @param {Qrels} qrels
  * @param {RunFile[]} runs
  * @param {{ pinnedRestrictionsSha256?: string }} [o] defaults to the eval/pinned/ copy's
@@ -348,7 +348,7 @@ export function summarise(scores) {
 
 /**
  * The unscored queries' ids. Dev only: holdout and test reports give the
- * count alone (A2-11).
+ * count alone.
  * @param {QueryScore[]} scores
  */
 export const unscoredIds = (scores) => scores.filter((s) => s.unscored).map((s) => s.id);
@@ -431,7 +431,7 @@ export function compare(base, cand, options = {}) {
     exactCodeRegressions: pairs
       // A regression is a worse rank-1 hit (lower grade, or none), not any
       // change: a variant replaced by the exact course, or a swap between
-      // equally graded cross-listings, is not one (PR #10 review round 2).
+      // equally graded cross-listings, is not one.
       .filter(({ b }) => b.shapes.some((t) => EXACT_CODE_SHAPES.includes(t)) && b.top1 !== null && b.top1Grade >= 1)
       .filter(({ b, c }) => c.top1Grade < b.top1Grade)
       .map(({ b }) => b.id),

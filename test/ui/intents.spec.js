@@ -1,7 +1,7 @@
 // @ts-check
-// The parsed-phrase chips (Phase 5 5F, A2-2). Most cases use intercepted
-// /search answers in the Worker's `interpreted` shape; one checks the real
-// Worker, which reads phrases since L8 passed (PARSE_PHRASES on).
+// The parsed-phrase chips. Most cases use intercepted /search answers in the
+// Worker's `interpreted` shape; one checks the real Worker, which reads
+// phrases (PARSE_PHRASES on).
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { body, query, searches } from './support.mjs';
@@ -9,7 +9,7 @@ import { body, query, searches } from './support.mjs';
 const Q = 'history no final exam under 10 hours no prerequisites';
 
 /**
- * Answers /search as a Worker with phrases on would: every 3H intent the
+ * Answers /search as a Worker with phrases on would: every intent the
  * request's `ignore=` leaves.
  * @param {import('@playwright/test').Page} page
  */
@@ -30,7 +30,7 @@ async function phrasesOn(page) {
 
 const chips = (/** @type {import('@playwright/test').Page} */ page) => page.locator('#status .intents li');
 
-test('[5F] each parsed phrase is a chip, and removing one re-runs the search with ignore= in place', async ({ page }) => {
+test('each parsed phrase is a chip, and removing one re-runs the search with ignore= in place', async ({ page }) => {
   await phrasesOn(page);
   const sent = searches(page);
   await page.goto(`/?q=${encodeURIComponent(Q)}`);
@@ -52,7 +52,7 @@ test('[5F] each parsed phrase is a chip, and removing one re-runs the search wit
   expect(new URLSearchParams(sent.at(-1)).get('ignore')).toBe('exam,prereq');
 });
 
-test('[5F] the remove button works from the keyboard and a shared link with ignore= keeps it', async ({ page }) => {
+test('the remove button works from the keyboard and a shared link with ignore= keeps it', async ({ page }) => {
   await phrasesOn(page);
   await page.goto(`/?q=${encodeURIComponent(Q)}&ignore=hoursBelow`);
   await expect(chips(page)).toHaveText(['No final exam×', 'No prerequisites×']);
@@ -62,7 +62,7 @@ test('[5F] the remove button works from the keyboard and a shared link with igno
   expect(new URLSearchParams(query(page)).get('ignore')).toBe('exam,hoursBelow');
 });
 
-test('[5F] removing a chip closes an open detail, and a new query starts without ignore=', async ({ page }) => {
+test('removing a chip closes an open detail, and a new query starts without ignore=', async ({ page }) => {
   await phrasesOn(page);
   await page.goto(`/?q=${encodeURIComponent(Q)}&open=CS2105`);
   await page.getByRole('button', { name: 'Remove “Under 10 h a week” and search again' }).click();
@@ -76,13 +76,13 @@ test('[5F] removing a chip closes an open detail, and a new query starts without
   expect(new URLSearchParams(query(page)).get('ignore')).toBeNull();
 });
 
-test('[5F] a no-result answer still shows its chips, so the student can undo the phrase that emptied it', async ({ page }) => {
+test('a no-result answer still shows its chips, so the student can undo the phrase that emptied it', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({ json: body({ query: 'x', count: 0, results: [], interpreted: { exam: 0, su: { value: 1, basis: ['CS/CU', 'su'] }, hoursBelow: null, prereq: null } }) }));
   await page.goto('/?q=x');
   await expect(chips(page)).toHaveText(['No final exam×', 'Can be taken S/U×']);
 });
 
-test('[5F] the Worker (PARSE_PHRASES on after L8) reads the phrases, and the chips show them', async ({ page }) => {
+test('the Worker, with PARSE_PHRASES on, reads the phrases, and the chips show them', async ({ page }) => {
   const answered = page.waitForResponse((r) => new URL(r.url()).pathname === '/search');
   await page.goto('/?q=programming%20no%20final%20exam%20no%20prerequisites');
   const res = await answered;
@@ -93,13 +93,13 @@ test('[5F] the Worker (PARSE_PHRASES on after L8) reads the phrases, and the chi
 });
 
 for (const scheme of /** @type {const} */ (['light', 'dark'])) {
-  test(`[5F] axe, every rule, on the chips (${scheme}): no violation`, async ({ page }) => {
+  test(`axe, every rule, on the chips (${scheme}): no violation`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: scheme });
     await phrasesOn(page);
     await page.goto(`/?q=${encodeURIComponent(Q)}`);
     await expect(chips(page)).toHaveCount(3);
     const { violations } = await new AxeBuilder({ page }).analyze();
-    // As a11y.spec.js: 5D fixed F5's landmarks and F6's contrast, so no violation is allowed.
+    // As a11y.spec.js: no violation is allowed.
     expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
   });
 }

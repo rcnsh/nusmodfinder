@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// The vectors bundles (docs/plans/phase3.md 3-0, B-2, B-9, B2-4, B2-5, A-N6)
-// and runbook step 8. One builder, three bundles:
+// The vectors bundles and runbook step 8. One builder, three bundles:
 //
 //   node scripts/vectors.mjs build --corpus fixture
 //       test/fixtures/vectors.bin (committed): the fixture corpus
@@ -12,33 +11,33 @@
 //       .data/vectors/vec-pinned-<dataVersion>-<embedding>.bin: the 6,771
 //       modules of the pinned corpus, each vector looked up in the eval's
 //       corpus asset by embeddingKey(model, embeddingText). For full-corpus
-//       CI and the SC4 suite. Upload it as a release asset (it prints how).
+//       CI and the query suite. Upload it as a release asset (it prints how).
 //   node scripts/vectors.mjs build --corpus production --expect-count <D1 rows>
 //       [--embedding <version>] [--extra <cache.json> ...]
 //       .data/vectors/vec-production-<dataVersion>-<embedding>.bin: the
-//       corpus ingest will write, `current` in data/corpus.json (Phase 7 7D;
-//       `npm run corpus -- restore` first), with the NG files of its year,
+//       corpus ingest will write, `current` in data/corpus.json
+//       (`npm run corpus -- restore` first), with the NG files of its year,
 //       vectors reused by key from the eval asset and the --extra caches.
 //       Texts in neither are written to .data/vectors/missing-production.json
 //       and the build stops: embed them with
 //       `npm run eval:embed -- --texts <that file> --out <cache.json>`, then
 //       rebuild with --extra <cache.json>. Also writes src/data-version.json,
-//       computed offline from the rows ingest will write (B3-4), and
-//       data/vocabulary.json, 3C's vocabulary of the same corpus
-//       (scripts/build-vocabulary.mjs), data/groups.json, 3F's duplicate
-//       groups (scripts/build-groups.mjs), and data/ng-unscheduled.json, 6A's
+//       computed offline from the rows ingest will write, and
+//       data/vocabulary.json, the vocabulary of the same corpus
+//       (scripts/build-vocabulary.mjs), data/groups.json, the duplicate
+//       groups (scripts/build-groups.mjs), and data/ng-unscheduled.json, the
 //       NG-listed codes with no classes (scripts/build-ng-unscheduled.mjs).
 //
 // Each build records the bundle in data/vectors.json: data version, embedding
 // version, count, sha256 and rowsKey, the sha256 of the sorted
-// (code, textHash) pairs (B-2). A row with no textHash is refused (A-N6).
+// (code, textHash) pairs. A row with no textHash is refused.
 //
 //   node scripts/vectors.mjs fetch --corpus pinned|production
 //       Downloads the release asset into .data/vectors/ if absent (gh), checks
 //       its sha256 against data/vectors.json, and writes the module the
 //       `vectors-bundle` alias points at.
 //   node scripts/vectors.mjs data-version
-//       Prints the data version of the rows ingest would write (B3-4).
+//       Prints the data version of the rows ingest would write.
 //   npm run remote -- vectors standby [--deletes <file>]
 //   node scripts/vectors.mjs standby --url <a wrangler dev --remote> [--deletes <file>]
 //       Runbook step 8: upsert every code with the production bundle's
@@ -46,7 +45,7 @@
 //       mutation, then verify (metadata, the id list, and a getByIds sample
 //       of values against the bundle). Needs INGEST_SECRET, as ingest does,
 //       and --url or WORKER_URL (no default; ports 8787 and 8799 refused). Writes
-//       a run record (scripts/run-record.mjs, Phase 7 7C).
+//       a run record (scripts/run-record.mjs).
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -57,7 +56,7 @@ import { cachePart, embeddingKey, loadCorpusEmbeddings, readCache, readManifest,
 import { hashEmbed } from '../test/fakes.js';
 import { encodeBundle, parseBundle } from '../src/vector-bundle.js';
 import { dataVersion, rowHash } from '../src/rowhash.js';
-import { build as build3b } from './build-3b-data.mjs';
+import { build as build3b } from './build-catalogue-data.mjs';
 import { writeProductionGroups } from './build-groups.mjs';
 import { writeProductionNgUnscheduled } from './build-ng-unscheduled.mjs';
 import { writeProductionVocabulary } from './build-vocabulary.mjs';
@@ -114,7 +113,7 @@ export async function offlineDataVersion(modules) {
 
 /**
  * Looks up each module's vector by embeddingKey(model, text); shared texts
- * share one vector (B2-5).
+ * share one vector.
  * @param {NormalisedModule[]} modules
  * @param {Map<string, Float32Array>} byKey
  */
@@ -211,17 +210,17 @@ async function build(argv, log) {
   if (corpus === 'production') {
     await writeFile(DATA_VERSION_PATH, dataVersionFile(dv));
     log(`  src/data-version.json -> ${dv} (offline, from the rows ingest will write)`);
-    log(`  ${await writeProductionVocabulary(modules)} -> the 3C vocabulary of the same corpus`);
-    log(`  ${await writeProductionGroups(modules)} -> the 3F duplicate groups of the same corpus`);
-    log(`  ${await writeProductionNgUnscheduled(modules)} -> 6A's NG-listed codes with no classes, from the same moduleInfo`);
-    // Phase 7 7D: the catalogue codes, prefixes and catalogue-only rows of the same corpus.
+    log(`  ${await writeProductionVocabulary(modules)} -> the vocabulary of the same corpus`);
+    log(`  ${await writeProductionGroups(modules)} -> the duplicate groups of the same corpus`);
+    log(`  ${await writeProductionNgUnscheduled(modules)} -> the NG-listed codes with no classes, from the same moduleInfo`);
+    // The catalogue codes, prefixes and catalogue-only rows of the same corpus.
     for (const [rel, bytes] of Object.entries(await build3b('production'))) {
       await writeFile(join(ROOT, rel), bytes);
-      log(`  ${rel} -> 3B's per-corpus file, from the same moduleInfo`);
+      log(`  ${rel} -> the per-corpus catalogue file, from the same moduleInfo`);
     }
   }
   log(`upload: gh release create ${asset.replace(/\.bin$/, '')} ${relative(ROOT, bin)} --title "${asset}" --notes "vectors bundle, sha256 ${manifest.bundles[corpus]?.sha256}"`);
-  log('then commit data/vectors.json' + (corpus === 'production' ? ', src/data-version.json, data/vocabulary.json, data/groups.json, data/ng-unscheduled.json and the 3B files (runbook step 1)' : ''));
+  log('then commit data/vectors.json' + (corpus === 'production' ? ', src/data-version.json, data/vocabulary.json, data/groups.json, data/ng-unscheduled.json and the catalogue files (runbook step 1)' : ''));
   return 0;
 }
 

@@ -1,7 +1,6 @@
 // @ts-check
-// Phase 6 6A (docs/plans/phase6.md §3 "6A"): the NG-listed codes with no
-// classes this year (data/ng-unscheduled.json, test/fixtures/ng-unscheduled.json),
-// built by scripts/build-ng-unscheduled.mjs.
+// The NG-listed codes with no classes this year (data/ng-unscheduled.json,
+// test/fixtures/ng-unscheduled.json), built by scripts/build-ng-unscheduled.mjs.
 // - Every production entry's allow mask and rule ids are what eligibility()
 //   gives from the entry's own fields and listed semesters under the committed
 //   rules, recomputed here with no cache, so a stale mask fails CI.
@@ -52,8 +51,8 @@ describe('data/ng-unscheduled.json', () => {
     expect(production.modules.map((e) => e.code)).toEqual([...production.modules.map((e) => e.code)].sort());
   });
 
-  it('holds some codes, every one in data/catalogue-codes.json now that it follows the same corpus (Phase 7 7D)', () => {
-    // How many follows NUSMods (40 in the first 7D corpus, 43 after the first refresh), so no count is pinned.
+  it('holds some codes, every one in data/catalogue-codes.json, since both follow the same corpus', () => {
+    // How many follows NUSMods, so no count is pinned.
     expect(production.count).toBeGreaterThan(0);
     const catalogue = new Set(read('data/catalogue-codes.json').codes);
     expect(production.modules.map((e) => e.code).filter((c) => !catalogue.has(c))).toEqual([]);

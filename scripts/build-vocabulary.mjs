@@ -1,29 +1,29 @@
 #!/usr/bin/env node
 // @ts-check
-// The 3C vocabularies (docs/plans/phase3.md "3C Typos and prefixes": "built
-// from the same corpus as the vectors bundle and ships beside it, versioned
-// the same way"). Each records the data version of the corpus it was built
+// The vocabularies typo correction and prefix expansion read, built from the
+// same corpus as the vectors bundle and bundled beside it, versioned the same
+// way. Each records the data version of the corpus it was built
 // from, as the bundle's manifest entry does (data/vectors.json):
 //
 //   node scripts/build-vocabulary.mjs --corpus production
 //       data/vocabulary.json, the Worker's (src/intent-data.js): the corpus
-//       `npm run ingest` writes, `current` in data/corpus.json (Phase 7 7D;
-//       `npm run corpus -- restore` first). Refused unless its row count and data
+//       `npm run ingest` writes, `current` in data/corpus.json
+//       (`npm run corpus -- restore` first). Refused unless its row count and data
 //       version are the production bundle's in data/vectors.json, so it can
 //       only describe what production serves. `vectors.mjs build --corpus
 //       production` rewrites it with the bundle.
 //   node scripts/build-vocabulary.mjs --corpus fixture
 //       test/fixtures/vocabulary.json, from the fixture corpus: what the
-//       Worker tests search (vitest.config.mjs aliases it). Plus every 3H
+//       Worker tests search (vitest.config.mjs aliases it). Plus every
 //       constraint-phrase word (data/constraint-phrases.json) the fixture's
-//       434 texts lack, at df 1, so 3C does not "correct" a phrase the
-//       production vocabulary would leave alone (`hours` to `tours`;
-//       docs/plans/phase5.md 5A, B-7, B2-9). Only here: buildVocabulary
+//       434 texts lack, at df 1, so typo correction does not "correct" a
+//       phrase the production vocabulary would leave alone (`hours` to
+//       `tours`). Only here: buildVocabulary
 //       builds every eval run's vocabulary and stays the corpus's alone.
 //   add --check to rebuild in memory and exit 1 if the committed file differs.
 //
 // The pinned vocabulary is never committed: vitest.config.mjs builds it from
-// the pinned corpus for test/full and the SC4 suite (pinnedVocabularyPath),
+// the pinned corpus for test/full and the query suite (pinnedVocabularyPath),
 // and every eval run builds its own from the run corpus with the ranker's own
 // builder (eval/lib/corrected.mjs).
 import { existsSync } from 'node:fs';
@@ -61,7 +61,7 @@ export async function vocabularyBytes(modules, corpus) {
 }
 
 /**
- * Every word of the 3H constraint phrases, as queryTokens splits them, the N
+ * Every word of the constraint phrases, as queryTokens splits them, the N
  * placeholder (a number) left out.
  * @param {import('../src/intents.js').ConstraintPhrasesFile} phrases
  */
@@ -143,7 +143,7 @@ export async function writeProductionVocabulary(modules) {
 /**
  * The pinned vocabulary as a file (.data/vocabulary/, git-ignored), built from
  * the pinned corpus if absent or stale: what vitest.config.mjs aliases for
- * test/full and the SC4 suite.
+ * test/full and the query suite.
  */
 export async function pinnedVocabularyPath() {
   const bytes = await build('pinned');

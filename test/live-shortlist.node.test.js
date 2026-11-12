@@ -1,16 +1,16 @@
 // @ts-check
-// scripts/p6-live-plan.mjs (Phase 6 6E): the live check's arguments, its
+// scripts/live-shortlist-plan.mjs: the shortlist's live check's arguments, its
 // seeded draw of the shortlist and the 404 codes, the calls it plans, and the
 // reading and comparing of totals, on the fixture (the production modules live
 // in .data/, which CI doesn't have), with no network. The browser half,
-// scripts/p6-live.mjs, is run by hand: against the local UI server before the
-// PR, against production after the deploy (docs/REFERENCE.md).
+// scripts/live-shortlist.mjs, is run by hand: against the local UI server before the
+// PR, against production after the deploy (docs/operations.md, "Live checks").
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { csvTotals, draw404, GAP_MS, loadData, makePlan, parseArgs, PRODUCTION_URL, readTotals, refData, rng, SLOTS, STUDY, totalsProblems } from '../scripts/p6-live-plan.mjs';
+import { csvTotals, draw404, GAP_MS, loadData, makePlan, parseArgs, PRODUCTION_URL, readTotals, refData, rng, SLOTS, STUDY, totalsProblems } from '../scripts/live-shortlist-plan.mjs';
 import { toCsv } from '../public/csv.js';
 import { totalLines } from '../public/shortlist.js';
-import { oracleShown } from './sc1/oracle.mjs';
+import { oracleShown } from './oracle/oracle.mjs';
 import { reference } from './web/shortlist-reference.node.mjs';
 import { parseCsv } from './web/rfc4180.node.mjs';
 
@@ -19,8 +19,8 @@ const plan = makePlan(data, 6);
 const byCode = new Map(data.modules.map((m) => [m.code, m]));
 
 describe('arguments', () => {
-  it('defaults to production: its URL, the production modules, seed 6, the committed log, and sends', () => {
-    expect(parseArgs([])).toEqual({ url: PRODUCTION_URL, log: 'docs/evidence/phase6/p6-live.jsonl', corpus: 'production', seed: 6, plan: false });
+  it('defaults to production: its URL, the production modules, seed 6, a log under .data/, and sends', () => {
+    expect(parseArgs([])).toEqual({ url: PRODUCTION_URL, log: '.data/live-shortlist.jsonl', corpus: 'production', seed: 6, plan: false });
     expect(PRODUCTION_URL).toBe('https://nusmodfinder.rcn.sh');
   });
 
@@ -58,7 +58,7 @@ describe('the shortlist draw', () => {
     expect(plan.entries.map((e) => e.standing)).toEqual(SLOTS.map((s) => s.want));
   });
 
-  it('each status is the SC1 oracle\'s at the entry\'s semester, and each standing the reference\'s over the whole list', () => {
+  it('each status is the exchange oracle\'s at the entry\'s semester, and each standing the reference\'s over the whole list', () => {
     for (const e of plan.entries) {
       expect(e.status, e.code).toBe(oracleShown(byCode.get(e.code), { sem: Number(e.sem) === 1 ? 1 : 2, study: STUDY }));
     }

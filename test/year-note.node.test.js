@@ -1,9 +1,9 @@
 // @ts-check
-// src/year-note.js (Jacob's ruling R3, ADR 0008): the "ask NUS" note for a
+// src/year-note.js (ADR 0007): the "ask NUS" note for a
 // prerequisite that requires an undergraduate year of study above the
 // student's home year. Every text below is a production prerequisite
 // (.data/2026-2027-moduleInfo.json), verbatim; the whole-corpus agreement with
-// the SC1 oracle's own reading is in test/sc1/paths.test.js.
+// the exchange oracle's own reading is in test/oracle/paths.test.js.
 import { describe, expect, it } from 'vitest';
 import { requiredYears, YEAR_NOTE, yearNote } from '../src/year-note.js';
 
@@ -49,7 +49,7 @@ const LEFT_ALONE = {
   none: 'If undertaking an Undergraduate Degree THEN must have completed CS2040 at a grade of at least D',
 };
 
-describe('requiredYears (R3: which prerequisites name a binding undergraduate year)', () => {
+describe('requiredYears (which prerequisites name a binding undergraduate year)', () => {
   for (const [code, [text, years]] of Object.entries(HANDLED)) {
     it(`${code}: ${JSON.stringify(years)}`, () => {
       expect(requiredYears(/** @type {string} */ (text))).toEqual(years);
@@ -74,7 +74,7 @@ describe('requiredYears (R3: which prerequisites name a binding undergraduate ye
   });
 });
 
-describe('yearNote (R3: an undergraduate below that year asks NUS)', () => {
+describe('yearNote (an undergraduate below that year asks NUS)', () => {
   const AR4601 = HANDLED.AR4601[0];
   it('a 3rd-year gets the note on a Year 4 course; the text says what to do', () => {
     expect(yearNote(/** @type {string} */ (AR4601), 'ug3')).toEqual({

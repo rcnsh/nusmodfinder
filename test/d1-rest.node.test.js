@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7B (G1): the deploy guard, rollback and d1:restore read production D1 through
+// The deploy guard, rollback and d1:restore read production D1 through
 // Cloudflare's D1 REST query endpoint (scripts/d1-rest.mjs), never `wrangler dev --remote`.
 // The client sends only SELECT and read-only PRAGMA statements, refusing anything else before
 // a request leaves; it sums `meta.rows_read`; and the token (CLOUDFLARE_API_TOKEN, else
@@ -52,7 +52,7 @@ describe('assertReadOnly', () => {
       'VACUUM',
       'BEGIN',
       // SQLite's TCL-style parameter tokens run to the next ')' and swallow quotes, so a quote
-      // inside one would hide a second statement from a quote-aware scan (review finding 1).
+      // inside one would hide a second statement from a quote-aware scan.
       "SELECT $a(');DELETE FROM modules --')",
       "SELECT @x(');DELETE FROM modules --')",
       'SELECT :name',
@@ -61,11 +61,11 @@ describe('assertReadOnly', () => {
   });
 });
 
-// Red team M-3 (docs/evidence/phase7/redteam.md): SQLite reads `$`, `@`, `:` or `#` followed by an
+// SQLite reads `$`, `@`, `:` or `#` followed by an
 // identifier character as a parameter, and its identifier characters include `$` and every byte
 // >= 0x80, so `$$(')` or `@é(')` is a TCL-style parameter that swallows a quote the literal-blanking
-// took for a string's start, hiding the `;` after it. The check now refuses any parameter sigil.
-describe('assertReadOnly, strict (red team M-3)', () => {
+// took for a string's start, hiding the `;` after it. The check refuses any parameter sigil.
+describe('assertReadOnly refuses every parameter sigil', () => {
   const PAYLOADS = [
     "SELECT $$(');UPDATE modules SET title='pwned';--')",
     "SELECT @é(');UPDATE modules SET title='pwned';--')",
@@ -235,7 +235,7 @@ describe('the token and the account', () => {
     expect(await d1Config()).toEqual({ databaseName: 'nusmods-apac', databaseId: 'de4527ff-19ec-4a5b-9c5c-4d1791078b25' });
   });
 
-  // Red team L-3: d1Config took the first d1_databases entry, whatever its binding.
+  // d1Config picks the d1_databases entry bound as DB, not the first one listed.
   it('picks the DB binding when another database is listed first, and fails when none is bound as DB', async () => {
     const path = join(dir, 'wrangler.jsonc');
     writeFileSync(path, `{

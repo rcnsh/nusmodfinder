@@ -5,10 +5,10 @@
 // and polls, and the log. No Node APIs, so the Worker tests run this exact
 // code against the real routes and local D1.
 //
-// One run (docs/plans/phase1.md "Ingest (changes vs r1)", FINDINGS B2):
+// One run:
 //  1. GET /admin/hashes. Refuse unless the database has migration 0006
 //     (external-content FTS keyed on rowid, its four triggers, row_hash): a
-//     full rewrite through the old triggers reads ~46M rows (B3). Refuse a
+//     full rewrite through the old triggers reads ~46M rows. Refuse a
 //     mixed acad year, duplicate codes, a Worker embedding with another model,
 //     or (unless allowYearChange) a corpus for another acad year than D1
 //     holds — all before any write.
@@ -17,7 +17,7 @@
 //     metadata (the Worker re-embeds if the stored vector is not for this
 //     text_hash); both equal → skip. Refuse (unless allowMassDelete) a plan
 //     that deletes more than 5% of the codes D1 holds, or more than 5% of the
-//     catalogue_only codes (red team L-1), before any write.
+//     catalogue_only codes, before any write.
 //  3. Upsert in batches, concurrently, inside a write budget. Each batch is
 //     charged the larger of its D1 meta.rows_written and an estimate that
 //     includes the FTS5 shadow-table writes local D1 does not report (and
@@ -26,7 +26,7 @@
 //     so the run's last Vectorize mutation is well defined.
 //  4. Only if no batch failed and the budget held: delete codes D1 has and the
 //     corpus lacks (hashes cleared, Vectorize, then D1), one request at a time.
-//  4b. 3B: when given the catalogue-only codes, bring D1 catalogue_only in
+//  4b. When given the catalogue-only codes, bring D1 catalogue_only in
 //     line with them (GET /admin/catalogue's row hashes, then POST the changed
 //     rows and the dropped codes), inside the same write budget. D1 only, so
 //     the D1-only mode runs it unchanged. A database without the table
@@ -37,7 +37,7 @@
 //     src/data-version.json. A mutation id that could not be recorded in the
 //     pending store does not stop the run, but it ends 'failed', naming it.
 //
-// D1-only (`d1Only`, Phase 3 runbook step 4, B3-5): the same plan and guards,
+// D1-only (`d1Only`, runbook step 4): the same plan and guards,
 // but every write goes to D1 alone (`?d1Only=1`: no getByIds, AI.run or
 // Vectorize call). The data version is computed from the corpus before any
 // write and must equal `expectedDataVersion`, the committed
@@ -58,8 +58,7 @@ export const DEFAULTS = Object.freeze({
   waitTimeoutMs: 10 * 60_000,
   waitIntervalMs: 5_000,
   // The write estimate per module, by what the upsert does to its row
-  // (docs/evidence/phase1/ingest-cost.md, fts-writes.mjs). Table and index
-  // rows, as local D1 reports them, measured over the full corpus and rounded
+  // (table and index rows, as local D1 reports them), measured over the full corpus and rounded
   // up: an INSERT ~7.1, an UPDATE ~5.1 (5.4 for field-only changes).
   writesPerInsert: 8,
   writesPerUpdate: 5.5,
@@ -74,7 +73,7 @@ export const DEFAULTS = Object.freeze({
    * (row, primary key and ≤ 6 index entries), FTS 'delete' (2.92 measured).
    */
   writesPerDelete: 12,
-  /** A catalogue_only row written or deleted: the row and its primary-key index entry (3B, 0008). */
+  /** A catalogue_only row written or deleted: the row and its primary-key index entry (migration 0008). */
   writesPerCatalogueRow: 2,
   /** Rows per /admin/catalogue call (its limit). */
   catalogueBatchSize: 100,
@@ -90,7 +89,7 @@ export const REQUIRED_SCHEMA = 6;
  * @typedef {{
  *   version: number | null, ftsExternal: boolean, rowidTriggers: boolean, missingTriggers?: string[],
  *   rowHashColumn: boolean, missingColumns?: string[], ok: boolean,
- * }} SchemaStatus `missingColumns`: ROW_COLUMNS the table lacks; absent from a Worker older than Phase 4.
+ * }} SchemaStatus `missingColumns`: ROW_COLUMNS the table lacks; absent from a Worker without the exchange-mode columns.
  * @typedef {{
  *   schema: SchemaStatus, embeddingModel?: string, acadYears?: Record<string, number> | null,
  *   modules: Record<string, StoredHashes> | null,
@@ -329,7 +328,7 @@ export async function runIngest({
     if (res.status !== 200 || res.body?.ok !== true || !res.body.rows || typeof res.body.rows !== 'object') {
       return stop('refused', res.status === 200
         ? 'D1 has no catalogue_only table: apply migration 0008 (migrations/0008_catalogue.sql) first. Nothing was written.'
-        : `GET /admin/catalogue -> HTTP ${res.status}: the Worker is older than this script (3B). Nothing was written.`);
+        : `GET /admin/catalogue -> HTTP ${res.status}: the Worker is older than this script (no catalogue routes). Nothing was written.`);
     }
     catalogueStored = /** @type {Record<string, string>} */ (res.body.rows);
   }
@@ -358,7 +357,7 @@ export async function runIngest({
       + `(${((plan.deletes.length / d1Count) * 100).toFixed(1)}% > ${((1 - o.massDeleteRatio) * 100).toFixed(0)}%). Nothing was written. `
       + 'If the drop is real, rerun with --allow-mass-delete.');
   }
-  // The same guard for catalogue_only (step 4b; red team L-1): a truncated or hostile NUSMods
+  // The same guard for catalogue_only (step 4b): a truncated or hostile NUSMods
   // answer, refreshed by the corpus-only runbook, would otherwise empty the table unasked.
   if (catalogue && catalogueStored && !o.allowMassDelete) {
     const held = Object.keys(catalogueStored);
@@ -543,7 +542,7 @@ export async function runIngest({
   }
   if (plan.deletes.length) log(`deleted            ${result.deleted} (${plan.deletes.slice(0, 10).join(', ')}${plan.deletes.length > 10 ? ', …' : ''})`);
 
-  // 4b. catalogue_only (3B), in code order: changed rows, then dropped codes.
+  // 4b. catalogue_only, in code order: changed rows, then dropped codes.
   if (catalogue && catalogueStored) {
     const have = catalogueStored;
     const year = years[0];
@@ -673,9 +672,9 @@ export function describeSchemaProblem(schema) {
     ...(schema.rowHashColumn ? [] : ['the modules.row_hash column']),
   ];
   return `Refusing to ingest: the target database lacks migration 0006 (${missing.join('; ')}). `
-    + 'Rewriting rows through the pre-0006 FTS triggers reads ~46M rows for a full re-ingest (FINDINGS B3), '
+    + 'Rewriting rows through the pre-0006 FTS triggers reads ~46M rows for a full re-ingest, '
     + 'and without all four 0006 triggers the FTS index drifts from modules. '
-    + 'Apply migrations/0006_fts_external.sql first (docs/decisions/0002-phase1-remote-ops.md).';
+    + 'Apply migrations/0006_fts_external.sql first (ADR 0002).';
 }
 
 /**

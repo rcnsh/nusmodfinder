@@ -1,5 +1,5 @@
 // @ts-check
-// SC8's keyboard item (Phase 5 5E; plan §3 5E): the whole task, keyboard only,
+// The whole task, keyboard only,
 // at 1280 and at 390×664, in Chromium and WebKit: the skip link, the exchange
 // set-up on the first screen, a search, a filter and the set-up changed in the
 // rail (in the Filters dialog on a phone), a detail opened, a course code in it
@@ -46,7 +46,7 @@ const ring = (page) => page.evaluate(() => {
   const a = document.activeElement;
   if (!a || a === document.body) return 'focus on the page';
   // A landing point, not a control: the shown <main> the skip link focuses, or a heading the
-  // page focuses (tabindex -1: the shortlist view's, 6C).
+  // page focuses (tabindex -1: the shortlist view's).
   if (a.tagName === 'MAIN' || (/^H[1-6]$/.test(a.tagName) && a.getAttribute('tabindex') === '-1')) return 'ok';
   const el = a instanceof HTMLInputElement && a.type === 'radio' ? a.closest('.tile, .pill, .seg-opt') ?? a : a;
   const cs = getComputedStyle(el);
@@ -139,7 +139,7 @@ async function detailLinkBackEscape(page, k) {
   await expect(button).toHaveAttribute('aria-expanded', 'true');
   await expect.poll(() => query(page)).toBe(`${URL_FILTERED}&open=CS2104`);
   await settled(page);
-  // The card's shortlist toggle (6C), then into the detail: its own toggle and Close first, then
+  // The card's shortlist toggle, then into the detail: its own toggle and Close first, then
   // "can you take it" (its sources, the NUSMods link), then the course facts, whose prerequisites link CS2030.
   /** @type {string[]} */
   const inside = [];
@@ -172,7 +172,7 @@ async function detailLinkBackEscape(page, k) {
 test.describe('at 1280', () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test('[F5] [SC8] keyboard only at 1280: set-up, search, filter, rail set-up, detail, a link, Back, Escape; focus order and a visible ring at every stop', async ({ page }) => {
+  test('keyboard only at 1280: set-up, search, filter, rail set-up, detail, a link, Back, Escape; focus order and a visible ring at every stop', async ({ page }) => {
     const k = keys(page, await tabKey(page));
     await firstScreen(page, k);
     // Forward from the query: Search, the chips, the first entry.
@@ -204,7 +204,7 @@ test.describe('at 1280', () => {
     await detailLinkBackEscape(page, k);
   });
 
-  test('[F5] the skip link on the results goes past the header and the rail: the next stop is the search box', async ({ page }) => {
+  test('the skip link on the results goes past the header and the rail: the next stop is the search box', async ({ page }) => {
     const k = keys(page, await tabKey(page));
     await page.goto('/?q=networks');
     await settled(page);
@@ -220,7 +220,7 @@ test.describe('at 1280', () => {
 test.describe('at 390×664', () => {
   test.use({ viewport: { width: 390, height: 664 } });
 
-  test('[F5] [SC8] keyboard only at 390×664: set-up, search, filter and set-up in the Filters dialog, detail, a link, Back, Escape; focus order and a visible ring at every stop', async ({ page }) => {
+  test('keyboard only at 390×664: set-up, search, filter and set-up in the Filters dialog, detail, a link, Back, Escape; focus order and a visible ring at every stop', async ({ page }) => {
     const k = keys(page, await tabKey(page));
     await firstScreen(page, k);
     // Forward from the query: Search, then Filters (the rail is behind it on a phone).
@@ -244,7 +244,7 @@ test.describe('at 390×664', () => {
     await expect(page.locator('#filtersBtn')).toHaveText('Filters (4)');
     await settled(page);
     await expect(live(page)).toHaveText(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
-    // The shortlist button sits under the search form on a phone (6C), before the entries.
+    // The shortlist button sits under the search form on a phone, before the entries.
     expect(await k.tab(5)).toEqual([
       'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', 'button "Remove filter: Level 2000"', '#slOpenPhone', CARD,
     ]);
@@ -252,11 +252,11 @@ test.describe('at 390×664', () => {
   });
 });
 
-// 6C: the shortlist by keyboard, at both widths: a card's toggle, the shortlist button (the rail's,
+// The shortlist by keyboard, at both widths: a card's toggle, the shortlist button (the rail's,
 // or the phone's under the form), the view's controls in order with a ring at every stop, and
 // Escape back to the button.
 for (const [label, width, height, opener] of /** @type {const} */ ([['1280', 1280, 800, '#slOpenRail'], ['390×664', 390, 664, '#slOpenPhone']])) {
-  test(`[6C] [SC8] keyboard only at ${label}: a card's toggle, the shortlist button, the view's controls, Escape`, async ({ page }) => {
+  test(`keyboard only at ${label}: a card's toggle, the shortlist button, the view's controls, Escape`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     const k = keys(page, await tabKey(page));
     await page.goto('/?q=CS2113&sem=1&ng=1&study=ug2');
@@ -286,7 +286,7 @@ for (const [label, width, height, opener] of /** @type {const} */ ([['1280', 128
   });
 }
 
-test('[F5] Escape in the search box with a detail open closes the detail and keeps the typed query', async ({ page }) => {
+test('Escape in the search box with a detail open closes the detail and keeps the typed query', async ({ page }) => {
   await page.goto('/?q=CS3244&open=CS3244');
   await settled(page);
   await page.locator('#q').focus();
@@ -296,7 +296,7 @@ test('[F5] Escape in the search box with a detail open closes the detail and kee
   await expect(page.locator('#results button[data-code="CS3244"]')).toBeFocused();
 });
 
-test('[F5] Back to another answer, after focus was on a card of this one: focus is on the results <main>, and Tab reaches the search box', async ({ page }) => {
+test('Back to another answer, after focus was on a card of this one: focus is on the results <main>, and Tab reaches the search box', async ({ page }) => {
   await page.goto('/?q=networks');
   await settled(page);
   await page.locator('#q').fill('compilers');

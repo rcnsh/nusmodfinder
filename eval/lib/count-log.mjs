@@ -1,14 +1,14 @@
 // @ts-check
 // The count log (eval/count-log.md; the self-test set's beside its own ledger): one row per
 // `eval:count` call, and per passing `eval:representatives --route` call. Its `route` column
-// names the ADR 0003 no-look route a count was taken for (amendment 2026-11-12), which
-// `eval:lock -- --evidence no-look <row>` cites. Rows from before the column read as route ''.
+// names the ADR 0003 no-look route a count was taken for, which
+// `eval:lock -- --evidence no-look <row>` cites. A row without the column reads as route ''.
 import { existsSync } from 'node:fs';
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { ledgerRows } from './ledger.mjs';
 
-/** ADR 0003's no-look routes (amendment 2026-11-12); test/eval/lock.node.test.js ties them to the ADR. */
+/** ADR 0003's no-look routes; test/eval/lock.node.test.js ties them to the ADR. */
 export const NO_LOOK_ROUTES = Object.freeze(['representative-only', 'answerable-floor', 'group-first', 'gated-without-a-look']);
 
 /** The route cell of a row written without a route. */
@@ -18,9 +18,8 @@ export const COUNT_LOG_HEADER = `# Count log
 
 Append-only. One row per \`npm run eval:count\` call, which only the custodian runs, and per passing
 \`npm run eval:representatives -- --route\` call. A count prints one integer and no verdict, so it is
-not a look (ADR 0003, amendment 2026-11-06). The holdout ledger never reads this file and refuses a
-row copied from it. \`route\` names the no-look route the row was taken for (ADR 0003, amendment
-2026-11-12); a ranking-lock change can cite such a row once (\`eval:lock -- --evidence no-look <row>\`).
+not a look (ADR 0003). The holdout ledger never reads this file and refuses a row copied from it.
+\`route\` names the no-look route the row was taken for (ADR 0003); a ranking-lock change can cite such a row once (\`eval:lock -- --evidence no-look <row>\`).
 
 | date | set | kind | run | count | route |
 |---|---|---|---|---|---|

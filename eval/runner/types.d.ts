@@ -32,7 +32,7 @@ declare global {
     codes: string[];
     docs: Record<string, EvalDocMeta>;
     error?: string;
-    /** The Worker's `interpreted` echo, 3H's keys only (Phase 5 5F); null for a non-200 or no echo. */
+    /** The Worker's `interpreted` echo, the constraint keys only; null for a non-200 or no echo. */
     interpreted: Record<string, unknown> | null;
     /** Texts the fake AI had no vector for (holdout: written encrypted only). */
     missing: string[];

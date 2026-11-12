@@ -1,18 +1,16 @@
 // @ts-check
-// The status area and the result entries (Phase 5 5B, 5C; laid out as direction
-// D's annotated catalogue in 5D). Built with DOM nodes only (F8). Each entry is
-// an APG disclosure (A-8): a heading holding one button (code and title) that
-// controls the detail region below it; the units, facts and the exchange status
-// are plain text outside the button. The status is a stamp per semester (an
-// icon, a word and a colour, so never colour alone), and every note shows in
-// full (C2-3) with a lead-in word. No raw score (F1). app.js wires the buttons
-// and fills the detail and the hidden-code lines. 5E: the list is `aria-busy`
-// while a search runs, and each answer comes with the one sentence app.js puts
-// in the page's polite live region (`announce`). 5G adds what direction D's
-// mockup has that 5D left out: "Also as" codes as links to that code's own
-// entry, a stamp on each typed code not shown (and room for app.js's "Switch
-// to Sem 2"), and, for a query of course codes only, which typed codes the
-// count shows.
+// The status area and the result entries, laid out as an annotated catalogue.
+// Built with DOM nodes only. Each entry is an APG disclosure: a heading holding
+// one button (code and title) that controls the detail region below it; the
+// units, facts and the exchange status are plain text outside the button. The
+// status is a stamp per semester (an icon, a word and a colour, so never colour
+// alone), and every note shows in full with a lead-in word. No raw score.
+// app.js wires the buttons and fills the detail and the hidden-code lines. The
+// list is `aria-busy` while a search runs, and each answer comes with the one
+// sentence app.js puts in the page's polite live region (`announce`). "Also as"
+// codes are links to that code's own entry; each typed code not shown carries a
+// stamp (with room for app.js's "Switch to Sem 2"); and, for a query of course
+// codes only, the count says which typed codes it shows.
 import { h, setChildren } from './dom.js';
 import { NOT_OFFERED_STAMP, boxNotOffered, codesCount, codesOnly, noteLead, noteText, notOfferedLine, partialCodeLine, stampText, studyAdj, typedCodes, unpinnedLine } from './explain.js';
 import { examParts, quoteUser, semLabel } from './format.js';
@@ -38,7 +36,7 @@ import { isCode } from './state.js';
  *   `variantHref`: the page URL an "Also as" link opens: that code's search with its detail open, from `from`
  *   `removableFilters`: how many filter chips the student could remove (not the exchange set-up);
  *   `query`: the query as the student typed it (/search echoes it normalised), for the count line;
- *   `listed`: whether a code is on the shortlist (6C), so each card's toggle starts pressed or not
+ *   `listed`: whether a code is on the shortlist, so each card's toggle starts pressed or not
  */
 
 /** The stamp class and icon for a status. @type {Readonly<Record<string, string>>} */
@@ -90,7 +88,7 @@ export function searchLink(code, ctx) {
 
 /**
  * An "Also as" code: a link to that code's own search, its detail open and
- * saying which entry it was opened from (5G). app.js handles the click, so the
+ * saying which entry it was opened from. app.js handles the click, so the
  * page doesn't reload; the href works in a new tab. A code in no code's shape
  * stays text.
  * @param {string} code
@@ -103,7 +101,7 @@ function variantLink(code, from, ctx) {
 }
 
 /**
- * The shortlist toggle (Phase 6 6C), on a card and in a detail's head: a
+ * The shortlist toggle, on a card and in a detail's head: a
  * button "Shortlist" with `aria-pressed`, named "Shortlist, CS3244" (the
  * visible text first). Pressed also shows by a filled bookmark, not colour
  * alone. app.js handles the click and keeps every toggle for a code in step.
@@ -117,7 +115,7 @@ export function shortlistToggle(code, pressed) {
 }
 
 /**
- * A status stamp: shape, word and colour (direction D).
+ * A status stamp: shape, word and colour.
  * @param {string} status 'open' | 'note' | 'closed'
  * @param {string} text
  */
@@ -163,7 +161,7 @@ function notesBox(groups) {
  * The entry's exchange column: the chosen semester's stamp and its notes; or,
  * planning both, a stamp per semester (never one merged value) with the notes
  * each semester shares said once; outside exchange mode, the semesters the
- * course is on the exchange list for (D2's marker).
+ * course is on the exchange list for (the first screen's marker).
  * @param {any} m a /search result
  * @param {Record<string, unknown>} filters
  */
@@ -191,7 +189,7 @@ function exchangeBlock(m, filters) {
       notesBox([{ scope: '', items: notes }]));
   }
   if (!m.ng) return null;
-  // Not "you can take it" (5G plain language): the restrictions and the year of study aren't applied here.
+  // Not "you can take it": the restrictions and the year of study aren't applied here.
   const sems = (Array.isArray(m.ngSemesters) ? m.ngSemesters : []).map(semLabel);
   const listed = sems.length < 2 ? sems.join('') : `${sems.slice(0, -1).join(', ')} and ${sems[sems.length - 1]}`;
   return h('div', { class: 'guide' }, h('p', {
@@ -225,7 +223,7 @@ function card(m, filters, cards, ctx) {
   const fac = m.department && m.faculty && m.faculty !== m.department ? String(m.faculty) : '';
   return h('li', { class: 'card entry' },
     h('h2', { class: 'card-head' }, button),
-    // The toggle sits outside the h2, under the units (beside them on a phone), so the stamps don't move (6C).
+    // The toggle sits outside the h2, under the units (beside them on a phone), so the stamps don't move.
     h('div', { class: 'unitcol' }, h('p', { class: 'units' }, `${m.credits ?? '?'} units`), shortlistToggle(code, ctx.listed(code))),
     h('p', { class: 'meta' },
       h('span', { class: 'dept' }, dept, fac ? h('span', { class: 'fac' }, ` · ${fac}`) : null),
@@ -255,7 +253,7 @@ function hiddenBox(data, filters, hidden, unpinned) {
   const notOffered = boxNotOffered(data.notOffered, nm);
   if (!hiddenPins.length && !notOffered.length) return null;
   /**
-   * Each code as direction D draws it: the code and its title in one column
+   * Each code is drawn as the code and its title in one column
    * (app.js fills the title from /module/:code); in the other, a stamp, why,
    * and any action (app.js fills the three for a hidden code).
    * @param {string} code
@@ -282,7 +280,7 @@ function hiddenBox(data, filters, hidden, unpinned) {
   const intro = hiddenPins.length && exchange
     ? `You chose ${when} as a ${studyAdj(String(filters.study))} exchange student, so courses you can't take then are left out.`
     : null;
-  // Every code typed is missing: say so plainly, not "1 of the 1 code" (5G plain language).
+  // Every code typed is missing: say so plainly, not "1 of the 1 code".
   const heading = count === typed
     ? (count === 1 ? "The code you typed isn't shown" : `The ${count} codes you typed aren't shown`)
     : `${count} of the ${typed} code${typed === 1 ? '' : 's'} you typed ${count === 1 ? "isn't" : "aren't"} shown`;
@@ -297,7 +295,7 @@ function hiddenBox(data, filters, hidden, unpinned) {
 
 /**
  * The stamp on a typed code that isn't shown: the "not shown" shape, a word
- * and the colour (direction D). Not an `exchange-status`: it says why the code
+ * and the colour. Not an `exchange-status`: it says why the code
  * is missing, not a course's status.
  * @param {string} text
  */
@@ -310,7 +308,7 @@ const sentence = (...parts) => parts.filter(Boolean).join(' ');
 
 /**
  * A whole-query partial code ("CS32") that exchange mode emptied, with only
- * the exchange set-up as filters (C3-2), or null.
+ * the exchange set-up as filters, or null.
  * @param {any} data
  * @param {Record<string, unknown>} filters
  */
@@ -369,7 +367,7 @@ export function showResults(t, data, ctx) {
       ? h('p', { class: 'related' }, 'Related courses offered this year: ', ...related.flatMap((c, i) => [i ? ', ' : null, searchLink(c, ctx)]))
       : null;
     // Exchange mode with no other filter: eligibility emptied the list, so say that, not "no course
-    // matches" (NUS does have one), and don't send the student to other words (5G plain language).
+    // matches" (NUS does have one), and don't send the student to other words.
     const exchange = filters.ng === true && typeof filters.study === 'string';
     const eligibility = !data.noMatch && !box && exchange && ctx.removableFilters === 0;
     // The next step. Never "loosen" the exchange set-up: it is eligibility, not a preference.
@@ -387,13 +385,13 @@ export function showResults(t, data, ctx) {
   const typedQuery = ctx.query.trim() || query;
   let countLine;
   if (codesOnly(typedQuery)) {
-    // Course codes only: say which of them the list shows (direction D).
+    // Course codes only: say which of them the list shows.
     const { count, rest } = codesCount(typedQuery, results, Array.isArray(data.interpreted?.pin) ? data.interpreted.pin.map(String) : []);
     out.announce = sentence(`${count}${rest}.`, hb?.summary, note);
     countLine = h('p', { class: 'count' }, h('strong', null, count), rest);
   } else {
     const count = `${results.length} course${results.length === 1 ? '' : 's'}`;
-    // The student's own words, capped and kept inside the quotes (5G S2).
+    // The student's own words, capped and kept inside the quotes.
     const typed = quoteUser(typedQuery);
     const verb = results.length === 1 ? 'matches' : 'match';
     out.announce = sentence(`${count} ${verb} ${typed}.`, hb?.summary, note);

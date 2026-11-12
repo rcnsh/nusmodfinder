@@ -1,14 +1,14 @@
 // @ts-check
-// The shortlist as CSV (Phase 6 6D "CSV"): RFC 4180, every field quoted, `"`
-// doubled, CRLF line ends, UTF-8 with a byte-order mark, and OWASP's CSV
-// injection guard. The column header is the first row, then one row per
-// entry in the export's order (export.js); then a separator row of empty
-// fields, then the head's, the totals' and the foot's lines as label/value
-// rows. Every row has the header's field count. Pure: test/web/csv.node.test.js.
+// The shortlist as CSV: RFC 4180, every field quoted, `"` doubled, CRLF line
+// ends, UTF-8 with a byte-order mark, and OWASP's CSV injection guard. The
+// column header is the first row, then one row per entry in the export's order
+// (export.js); then a separator row of empty fields, then the head's, the
+// totals' and the foot's lines as label/value rows. Every row has the header's
+// field count. Pure: test/web/csv.node.test.js.
 
 /** @typedef {import('./export.js').Doc} Doc */
 
-/** Beside the button and in the file's foot: Excel in `;` locales puts a CSV in one column (B-7). */
+/** Beside the button and in the file's foot: Excel in `;` locales puts a CSV in one column. */
 export const EXCEL_HINT = 'Excel shows one column? Use Data › From Text/CSV.';
 
 /**

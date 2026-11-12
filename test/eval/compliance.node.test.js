@@ -1,11 +1,11 @@
 // @ts-check
-// Phase 5 5F's compliance rule (`--change-kind compliance`), on a synthetic
+// The compliance rule (`--change-kind compliance`), on a synthetic
 // set built here (test/eval/compliance-set.node.mjs): pure checks of the
 // rule, then the CLI end to end, on the encrypted `selftest` set with a
 // throwaway key (the holdout's verdict path: verdict, Δ lines and counts
 // only; a parse mismatch, a reference parsing nothing, missing constraint
 // fields or a missing parse record spend no look) and on an open set (the
-// dev path, with per-query detail). The real reference parse (tag 3h) runs
+// dev path, with per-query detail). The real reference parse (tag parse-reference) runs
 // over the synthetic corpus's vocabulary.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -13,7 +13,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ADR_0003, applyComplianceRule, assertReferenceTag, assertRuleAdopted, candidateParse, DRAFT_MARKER, failedConstraint, queryConstraints, REFERENCE_PARSE, sameParse } from '../../eval/lib/compliance.mjs';
+import { applyComplianceRule, assertReferenceTag, candidateParse, failedConstraint, queryConstraints, REFERENCE_PARSE, sameParse } from '../../eval/lib/compliance.mjs';
 import { generateKey, readKey, updateManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { ParseMismatchError, ReferenceParseError } from '../../eval/lib/errors.mjs';
 import { GateRuleError } from '../../eval/lib/errors.mjs';
@@ -174,25 +174,12 @@ describe('the rule, pure', () => {
     expect(gateFor('holdout', cmp, { kind: 'compliance' }, { compliance: { ...checks, newErrors: 1 } }).verdict).toBe('fail');
   });
 
-  it('a draft amendment refuses the rule on the holdout and test sets (not the throwaway selftest set); the adopted ADR allows it', async () => {
-    const adopted = await readFile(ADR_0003, 'utf8');
-    // The lead adopted the amendment on 2026-11-11: the draft line is gone.
-    expect(adopted).not.toContain(DRAFT_MARKER);
-    expect(adopted).toContain('Adopted by the lead, 2026-11-11');
-    expect(() => assertRuleAdopted({ name: 'holdout', encrypted: true }, adopted)).not.toThrow();
-    const draft = `${adopted}\n${DRAFT_MARKER}\n`;
-    expect(() => assertRuleAdopted({ name: 'holdout', encrypted: true }, draft)).toThrow(GateRuleError);
-    expect(() => assertRuleAdopted({ name: 'test', encrypted: true }, draft)).toThrow(GateRuleError);
-    expect(() => assertRuleAdopted({ name: 'selftest', encrypted: true }, draft)).not.toThrow();
-    expect(() => assertRuleAdopted({ name: 'dev', encrypted: false }, draft)).not.toThrow();
-  });
-
-  it('the reference is frozen at tag 3h = 2476012, and a moved tag is refused', async () => {
-    expect(REFERENCE_PARSE).toEqual({ tag: '3h', sha: '24760122a489dac6e4c604c1bacb8cd002624391' });
+  it('the reference is frozen at tag parse-reference = fbfae10, and a moved tag is refused', async () => {
+    expect(REFERENCE_PARSE).toEqual({ tag: 'parse-reference', sha: 'fbfae1012af3556a49b67ac4bec1bee88d863b8f' });
     expect(() => assertReferenceTag()).not.toThrow();
     const clone = join(tmp, 'moved-tag');
     expect(spawnSync('git', ['clone', '--quiet', '--shared', '--no-checkout', REPO, clone]).status).toBe(0);
-    expect(spawnSync('git', ['update-ref', 'refs/tags/3h', '7ac984174ded88cb2b6497d9835b456981acdd99'], { cwd: clone }).status).toBe(0);
+    expect(spawnSync('git', ['update-ref', 'refs/tags/parse-reference', '5c5cce441bd33c8f66bb2857e4d7f5584cbc20ed'], { cwd: clone }).status).toBe(0);
     expect(() => assertReferenceTag(clone)).toThrow(ReferenceParseError);
   });
 });
@@ -206,14 +193,14 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     assertNoLeak(r.out, s);
     const lines = r.stdout.trim().split('\n');
     expect(lines).toHaveLength(5);
-    expect(lines[0]).toMatch(new RegExp(`^holdout verdict: PASS · rule compliance · baseline ${labelRe(SHIPPED_PIN)} · qrels qrels-synthetic-5f-v1$`));
+    expect(lines[0]).toMatch(new RegExp(`^holdout verdict: PASS · rule compliance · baseline ${labelRe(SHIPPED_PIN)} · qrels qrels-synthetic-compliance-v1$`));
     expect(lines[1]).toMatch(/^ΔnDCG@10 \+\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%, constraint-filtered qrels\)$/);
     expect(lines[2]).toMatch(/^ΔP@5 +[+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%, constraint-filtered qrels\)$/);
     expect(lines[3]).toMatch(/^constraint block ΔnDCG@10 \+\d\.\d{3} \(n 1\)$/);
     expect(lines[4]).toBe('scored queries: 15 primary, 1 constraint block · unscored queries: 0 · parsed queries: 4');
     const rows = await ledgerOf(dir);
     expect(rows.map((c) => [c[3], c[5], c[8]])).toEqual([['cand', 'pass', 'compliance']]);
-    // The same runs fail the general rule, which scores removed ineligible documents as loss (3H's L7).
+    // The same runs fail the general rule, which scores removed ineligible documents as loss.
     const general = report(dir, ['--change-kind', 'general']);
     expect(general.stdout).toMatch(/^holdout verdict: FAIL · rule general/m);
   });
@@ -271,7 +258,7 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     expect(existsSync(join(noDigest.dir, 'ledger.md'))).toBe(false);
   });
 
-  it('reads only the corpus the candidate was seeded with: an edited corpus.json is refused, with no look (review finding 1)', async () => {
+  it('reads only the corpus the candidate was seeded with: an edited corpus.json is refused, with no look', async () => {
     const { dir } = await makeSet('tampered', { encrypted: true, tweak: (x) => { x.cand.results['syn-p2'].codes.unshift(codeOf('syn-p2', 0)); } });
     expect(report(dir).stdout).toMatch(/^holdout verdict: FAIL · rule compliance/m);
     const corpus = JSON.parse(await readFile(join(dir, 'corpus.json'), 'utf8'));
@@ -286,7 +273,7 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     expect(await readFile(join(dir, 'ledger.md'), 'utf8')).toBe(before);
   });
 
-  it('a candidate error on a query the baseline answered fails, even when the error totals match (review finding 2)', async () => {
+  it('a candidate error on a query the baseline answered fails, even when the error totals match', async () => {
     const { dir, s } = await makeSet('error-swap', {
       encrypted: true,
       tweak: (x) => {
@@ -376,7 +363,7 @@ describe('the open-set path (dev and the fixture)', () => {
     const { dir } = await makeSet('open-mismatch', { encrypted: false, tweak: (x) => { /** @type {any} */ (x.cand.intents)['syn-p2'].exam = null; } });
     const r = node(CLI, ['report', '--set', 'fixture', '--set-dir', dir, '--run', 'cand', '--baseline', 'base', '--change-kind', 'compliance']);
     expect(r.code).toBe(1);
-    expect(r.stderr).toMatch(/differs from the reference parse \(3h\) on 1 of 16 queries/);
+    expect(r.stderr).toMatch(/differs from the reference parse \(parse-reference\) on 1 of 16 queries/);
     const list = node(PHRASES, ['list', '--set', 'fixture', '--set-dir', dir]);
     expect(list.code).toBe(0);
     expect(list.stdout).toMatch(/^4 of 16 queries parsed/m);
@@ -384,18 +371,18 @@ describe('the open-set path (dev and the fixture)', () => {
     expect(list.stdout).toMatch(/^syn-p2 {2}"project course with no final exam" {2}-> {2}exam=0 {2}filters \{"ng":true,"sem":1\}$/m);
   });
 
-  it('the screen reuses existing runs and reports the gate and the B2-4 diagnostic', async () => {
+  it('the screen reuses existing runs and reports the gate and the explicit-params diagnostic', async () => {
     const { dir, s } = await makeSet('screen', { encrypted: false });
     // The screen's run names; the diagnostic's baseline carries the explicit params.
     await writeFile(join(dir, 'runs', 't-cand.json'), JSON.stringify({ ...s.cand, variant: 't-cand', config: { ...s.cand.config, vocabulary: { sha256: 'none' } } }));
     await writeFile(join(dir, 'runs', 't-pin.json'), JSON.stringify({ ...s.base, variant: 't-pin' }));
     await writeFile(join(dir, 'runs', 't-pin-explicit.json'), JSON.stringify({ ...s.cand, intents: undefined, variant: 't-pin-explicit', config: { ...s.base.config, explicit: 'reference-3h' } }));
     const r = node(PHRASES, ['screen', '--set', 'fixture', '--set-dir', dir, '--prefix', 't', '--reuse', '--json-dir', join(dir, 'json')]);
-    expect(r.stdout).toMatch(/^reference parse 3h: 4 of 16 fixture queries parsed$/m);
+    expect(r.stdout).toMatch(/^reference parse parse-reference: 4 of 16 fixture queries parsed$/m);
     expect(r.stdout).toMatch(/^gate \(dev\): PASS · rule compliance$/m);
-    expect(r.stdout).toMatch(/^diagnostic \(B2-4\)/m);
+    expect(r.stdout).toMatch(/^diagnostic: candidate vs the baseline run with the parsed constraints as explicit params/m);
     expect(r.stdout).toMatch(/^diagnostic: reported, no gate$/m);
-    // The rule passes but the candidate run's vocabulary is not the reference's (A3-1): the screen fails.
+    // The rule passes but the candidate run's vocabulary is not the reference's: the screen fails.
     expect(r.stdout).toMatch(/^dev screen \(fixture\): FAIL · compliance rule pass · vocabulary DIFFERENT/m);
     expect(r.code).toBe(1);
     const diag = JSON.parse(await readFile(join(dir, 'json', 't-diagnostic.json'), 'utf8'));
@@ -407,7 +394,7 @@ describe('the open-set path (dev and the fixture)', () => {
     const { dir } = await makeSet('explicit-base', { encrypted: false, tweak: (x) => { /** @type {any} */ (x.base.config).explicit = 'reference-3h'; } });
     const r = node(CLI, ['report', '--set', 'fixture', '--set-dir', dir, '--run', 'cand', '--baseline', 'base', '--change-kind', 'compliance']);
     expect(r.code).toBe(1);
-    expect(r.stderr).toMatch(/explicit 3H params/);
+    expect(r.stderr).toMatch(/explicit .*params/);
   });
 });
 

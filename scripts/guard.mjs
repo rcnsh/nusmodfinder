@@ -1,16 +1,16 @@
 // @ts-check
-// The deploy guard's comparisons (Phase 7 7B; Phase 3 3-0's B-2 and B3-4): what D1 holds
+// The deploy guard's comparisons: what D1 holds
 // against what the deploy ships, read over D1's REST query (scripts/d1-rest.mjs) and computed
 // by src/admin-hashes.js, the code GET /admin/hashes runs.
 //
 // Each comparison is one entry in GUARD_CHECKS: how to compute D1's value, what it must equal,
 // and what to do when it doesn't. A check with a `field` also goes into the `deploy/*` tag under
-// that name, and rollback compares D1 with the target's tag on it. 7D's catalogueKey is the
+// that name, and rollback compares D1 with the target's tag on it. catalogueKey is the
 // third: D1's from its catalogue_only codes (the SELECT src/admin-hashes.js runs over the same
 // query), against the bundled catalogue file's (data/catalogue-codes.json, which the deploy
 // reads and passes in as `catalogue`).
 //
-// Red team M-1: every row's hash is recomputed from the row's columns (src/admin-hashes.js, with
+// Every row's hash is recomputed from the row's columns (src/admin-hashes.js, with
 // src/rowhash.js's functions, as ingest writes them), so the data version is over the rows D1
 // actually holds, not over the row_hash values it stores. Two `integrity` checks refuse any row
 // whose stored row_hash is not its columns' hash, in modules (rowHashes) and catalogue_only
@@ -52,7 +52,7 @@ const driftValue = (drift) => (!Array.isArray(drift) ? null : drift.length === 0
   : `${drift.length}: ${drift.slice(0, DRIFT_SHOWN).join(', ')}${drift.length > DRIFT_SHOWN ? ', …' : ''}`);
 /** @param {string} table @param {string | null} d1 */
 const driftMessage = (table, d1) => (d1 === null
-  ? `D1 reported no row_hash check for ${table} (a Worker or reader from before the red team's M-1 fix).`
+  ? `D1 reported no row_hash check for ${table} (a Worker or reader without the row_hash integrity check).`
   : `${d1.split(':')[0]} of D1's ${table} rows ${d1.startsWith('1:') ? 'has a row_hash that is not its' : 'have a row_hash that is not their'} columns' hash (${d1.slice(d1.indexOf(':') + 2)}): `
     + 'their columns changed behind row_hash (a hand `d1 execute`, an older writer, a one-table restore). '
     + 'Run the D1-only ingest (runbook step 4): it rewrites them.');
@@ -82,7 +82,7 @@ export const GUARD_CHECKS = [
     fix: 'D1 holds other rows than the committed ones: run the D1-only ingest (runbook step 4) first.',
   },
   {
-    // Red team M-1: D1's modules rows against their own row_hash, recomputed from their columns.
+    // D1's modules rows against their own row_hash, recomputed from their columns.
     name: 'rowHashes',
     integrity: true,
     d1: async ({ hashes }) => driftValue(hashes.rowHashDrift),
@@ -90,7 +90,7 @@ export const GUARD_CHECKS = [
     describe: (d1) => driftMessage('modules', d1),
   },
   {
-    // Phase 7 7D: the Worker answers not-offered for the bundled file's codes and names the title
+    // The Worker answers not-offered for the bundled file's codes and names the title
     // D1's catalogue_only holds, so the two must hold the same codes.
     name: 'catalogueKey',
     field: 'catalogueKey',
@@ -99,10 +99,10 @@ export const GUARD_CHECKS = [
     d1: async ({ hashes }) => hashes.catalogueKey ?? null,
     expected: ({ catalogue }) => catalogueKey(/** @type {NonNullable<GuardContext['catalogue']>} */ (catalogue).codes),
     fix: 'D1\'s catalogue_only is not the codes the Worker answers not-offered for: load it from `current` (the D1-only ingest, '
-      + 'runbook step 4), or rebuild the file (node scripts/build-3b-data.mjs --corpus production).',
+      + 'runbook step 4), or rebuild the file (node scripts/build-catalogue-data.mjs --corpus production).',
   },
   {
-    // Red team M-1: catalogue_only rows (the titles search names) against their own row_hash. The
+    // catalogue_only rows (the titles search names) against their own row_hash. The
     // bundled file holds codes only, which catalogueKey covers.
     name: 'catalogueRows',
     integrity: true,
@@ -152,7 +152,7 @@ export async function runGuard({ client, bundle, committed, catalogue, checks = 
 
 /**
  * Rollback's data check: every check with a `field`, D1 against the target tag's value; and every
- * `integrity` check (red team M-1), D1 against itself.
+ * `integrity` check, D1 against itself.
  * @param {{ client: import('./d1-rest.mjs').D1Client, fields: Record<string, string>, checks?: GuardCheck[] }} o
  * @returns {Promise<{ ok: boolean, results: CheckResult[], values: Record<string, string | null> }>}
  */

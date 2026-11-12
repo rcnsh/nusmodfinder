@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7A: the ranking lock (eval/ranking-lock.json) and its gate
+// The ranking lock (eval/ranking-lock.json) and its gate
 // (eval/lib/ranking-lock.mjs). Every case runs over a throwaway git repo in a
 // temp dir with fake list files: `recompute` stands in for the eval runner and
 // returns the lists a test names, so no case runs workerd, reads the real
@@ -14,8 +14,8 @@ import {
 } from '../../eval/lib/ranking-lock.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 
-const PIN = 'a23601de0b15934960bfef1d8b56ab3e80fa5587';
-const OLD_PIN = '0b5f360c7faea8424215b4d4ddde81ebb1d850ff';
+const PIN = 'b75ac19016a2073e77d37c2c44485c9a5d8c99a2';
+const OLD_PIN = '8e24b21ddfcacc5cc67edf4a7cd07c41aaa5a690';
 const EMBEDDING = 'emb-test-v1';
 const CORPUS = { release: 'data-test', moduleInfoSha256: 'c'.repeat(64) };
 
@@ -129,7 +129,7 @@ const lockText = (dir, o) => `${JSON.stringify({
 /** A repo whose base commit holds the bootstrap lock over SPEC's lists. */
 async function withBootstrap() {
   const dir = await newRepo();
-  const base = await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: listsOf(SPEC()), evidence: { kind: 'bootstrap', ref: 'a23601d' } }) }, 'lock');
+  const base = await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: listsOf(SPEC()), evidence: { kind: 'bootstrap', ref: 'b75ac19' } }) }, 'lock');
   return { dir, base };
 }
 
@@ -147,7 +147,7 @@ const gate = (dir, base, recompute) => checkGate({ repo: dir, base, head: 'HEAD'
 describe('the ranking lock gate: inputs', () => {
   it('passes on the fast path when the inputs are unchanged since the lock', async () => {
     const { dir, base } = await withBootstrap();
-    await commit(dir, { 'docs/REFERENCE.md': 'a doc\n' }, 'docs');
+    await commit(dir, { 'docs/operations.md': 'a doc\n' }, 'docs');
     const recompute = notCalled();
     const r = await gate(dir, base, recompute);
     expect(r).toMatchObject({ ok: true, path: 'fast' });
@@ -319,7 +319,7 @@ describe('the ranking lock gate: evidence for a ranking change', () => {
     await rankingChange(dir, { kind: 'holdout-pass', ref: '1' }, { 'eval/holdout-ledger.md': `${await ledger(dir)}${ledgerRow({ ranker: OLD_PIN })}` });
     const r = await gate(dir, base, recomputing(CHANGED()));
     expect(r.ok).toBe(false);
-    expect(r.problems.join('\n')).toMatch(/baseline ranker 0b5f360.*a23601d/);
+    expect(r.problems.join('\n')).toMatch(/baseline ranker 8e24b21.*b75ac19/);
   });
 
   it('passes a count-log row with a no-look route, appended after the base lock', async () => {
@@ -339,7 +339,7 @@ describe('the ranking lock gate: evidence for a ranking change', () => {
   it('refuses a stale count-log row, one already there when the base lock was written', async () => {
     const dir = await newRepo();
     await commit(dir, { 'eval/count-log.md': `${COUNT_HEAD}${countRow('group-first')}` }, 'old count');
-    const base = await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: listsOf(SPEC()), evidence: { kind: 'bootstrap', ref: 'a23601d' } }) }, 'lock');
+    const base = await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: listsOf(SPEC()), evidence: { kind: 'bootstrap', ref: 'b75ac19' } }) }, 'lock');
     await rankingChange(dir, { kind: 'no-look', ref: '1' });
     const r = await gate(dir, base, recomputing(CHANGED()));
     expect(r.ok).toBe(false);
@@ -364,7 +364,7 @@ describe('the ranking lock gate: evidence for a ranking change', () => {
   it('refuses an unchanged evidence', async () => {
     const { dir, base } = await withBootstrap();
     await commit(dir, { 'src/search.js': 'export const RRF_K = 70;\n' }, 'change');
-    await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: CHANGED(), evidence: { kind: 'bootstrap', ref: 'a23601d' } }) }, 'same evidence');
+    await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: CHANGED(), evidence: { kind: 'bootstrap', ref: 'b75ac19' } }) }, 'same evidence');
     const r = await gate(dir, base, recomputing(CHANGED()));
     expect(r.ok).toBe(false);
     expect(r.problems.join('\n')).toMatch(/evidence is unchanged/);
@@ -372,7 +372,7 @@ describe('the ranking lock gate: evidence for a ranking change', () => {
 
   it('refuses an ADR pin line as evidence (pin lines are written after the merge)', async () => {
     const { dir, base } = await withBootstrap();
-    await rankingChange(dir, { kind: 'pin', ref: 'a23601d' });
+    await rankingChange(dir, { kind: 'pin', ref: 'b75ac19' });
     const r = await gate(dir, base, recomputing(CHANGED()));
     expect(r.ok).toBe(false);
     expect(r.problems.join('\n')).toMatch(/pin line/);
@@ -383,7 +383,7 @@ describe('the ranking lock gate: bootstrap', () => {
   it('allows bootstrap only when the base has no lock, and refuses a second', async () => {
     const dir = await newRepo();
     const base = git(dir, ['rev-parse', 'HEAD']);
-    await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: listsOf(SPEC()), evidence: { kind: 'bootstrap', ref: 'a23601d' } }) }, 'lock');
+    await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: listsOf(SPEC()), evidence: { kind: 'bootstrap', ref: 'b75ac19' } }) }, 'lock');
     expect(await gate(dir, base, recomputing(listsOf(SPEC())))).toMatchObject({ ok: true, path: 'recompute', problems: [] });
     const locked = git(dir, ['rev-parse', 'HEAD']);
     await commit(dir, { 'src/search.js': 'export const RRF_K = 80;\n' }, 'change');
@@ -427,7 +427,6 @@ describe('LOCK_INPUTS completeness', () => {
     for (const p of ['package-lock.json', 'test/fakes.js', 'vitest.eval.config.mjs', 'eval/study-map.json', 'eval/dev', 'eval/fixtures', 'eval/embeddings.json', 'src', 'data', 'migrations', 'scripts/lib.mjs', 'test/wrangler.test.jsonc']) {
       expect(LOCK_INPUTS).toContain(p);
     }
-    expect(LOCK_INPUTS.some((p) => p.startsWith('eval/v1'))).toBe(false);
   });
 
   it('fails when sets.mjs imports a file outside LOCK_INPUTS', async () => {

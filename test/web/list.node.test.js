@@ -1,5 +1,5 @@
 // @ts-check
-// public/list.js (Phase 6 6B): the shortlist's half of the URL. `pick` and
+// public/list.js: the shortlist's half of the URL. `pick` and
 // `alt` repeated in rank order, each `CODE.S` or an untagged `CODE`, then `ay`,
 // `inv` and `view`; the caps (20 a tagged semester, 40 in all); and every edit
 // the view makes, as pure functions of the list.
@@ -23,7 +23,7 @@ const ok = (e) => {
   return e.list;
 };
 
-describe('the list in the URL (6B)', () => {
+describe('the list in the URL', () => {
   it('reads pick and alt in rank order, CODE.S or untagged CODE, and writes them back after the search state', () => {
     const { list, dropped } = parse('pick=CS2030.1&pick=CS2113.2&alt=GE2101&pick=CS5562');
     expect(values(list)).toEqual({ pick: ['CS2030.1', 'CS2113.2', 'CS5562'], alt: ['GE2101'] });
@@ -59,7 +59,7 @@ describe('the list in the URL (6B)', () => {
     const all = parse([...codes(20, '.1'), ...Array.from({ length: 20 }, (_, i) => `alt=CD${2000 + i}.2`), 'alt=EF3000'].join('&'));
     expect(all.list.pick.length + all.list.alt.length).toBe(MAX_ENTRIES);
     expect(all.dropped).toBe(1);
-    // A code dropped at the cap stays dropped: its later duplicates are dropped too (review finding 5).
+    // A code dropped at the cap stays dropped: its later duplicates are dropped too.
     const twenty = codes(20, '.1').join('&');
     for (const tail of ['pick=CS2030.1&alt=CS2030.2', 'pick=CS2030.1&pick=CS2030.2']) {
       const p = parse(`${twenty}&${tail}`);
@@ -103,7 +103,7 @@ describe('the list in the URL (6B)', () => {
   });
 });
 
-describe('edits (6B; the view in 6C calls them)', () => {
+describe('edits (the shortlist view makes them)', () => {
   const start = () => parse('pick=A1001.1&pick=B1002.2&alt=C1003.1').list;
 
   it('add puts the course last among the picks; adding one already there changes nothing', () => {

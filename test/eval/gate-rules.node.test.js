@@ -1,29 +1,25 @@
 // @ts-check
-// Phase 3 gate rules (docs/plans/phase3.md §3 P-5b), end to end through the
-// CLI, on sets built here from dev-derived synthetic data with a throwaway
-// key (no workerd, no Cloudflare, no real holdout file):
+// The gate rules end to end through the CLI, on sets built here from
+// dev-derived synthetic data with a throwaway key (no workerd, no Cloudflare,
+// no real holdout file):
 //   - the no-answer set (tagged AND no grade-≥1 document): dev reports list
 //     unscored ids, encrypted sets print only their count;
-//   - change kinds `no-loss` (with `--exempt`) and `answerable-floor`, dev only;
-//   - `--gate sc5`, refused on the holdout under the recorded sealed reading,
-//     and, in a temporary clone whose SC5_READING says `holdout`, the SC5
-//     look recorded in that clone's ledger (never this checkout's).
+//   - change kinds `no-loss` (with `--exempt`) and `answerable-floor`, dev only.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { appendFile, cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { generateKey, readKey, updateManifest, writeEncryptedJson } from '../../eval/lib/crypto.mjs';
 import { ledgerRows } from '../../eval/lib/ledger.mjs';
-import { emptyCloneLedger, resetCloneLedger } from './clone.node.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
 import { archiveTree, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
-const PINNED_SHA = '7ac984174ded88cb2b6497d9835b456981acdd99';
+const PINNED_SHA = '5c5cce441bd33c8f66bb2857e4d7f5584cbc20ed';
 
 /** @type {string} */
 let tmp;
@@ -216,7 +212,7 @@ describe('change kind no-loss (dev only)', () => {
 
   it('takes an { ids } object as well, and refuses an id the set does not have', async () => {
     const { dir, d, report } = await devSet('noloss-ids', smallLoss);
-    await writeFile(join(dir, 'ok.json'), JSON.stringify({ rule: 'C3-8', ids: [d.answerable[0]] }));
+    await writeFile(join(dir, 'ok.json'), JSON.stringify({ rule: 'constraint-exempt', ids: [d.answerable[0]] }));
     expect(report(['--change-kind', 'no-loss', '--exempt', join(dir, 'ok.json')]).stdout).toMatch(/^gate \(dev\): PASS · rule no-loss$/m);
     await writeFile(join(dir, 'bad.json'), JSON.stringify(['d-999']));
     const bad = report(['--change-kind', 'no-loss', '--exempt', join(dir, 'bad.json')]);
@@ -249,38 +245,21 @@ describe('change kind answerable-floor (dev only)', () => {
   });
 });
 
-describe('--gate sc5', () => {
-  it('is refused on dev', async () => {
-    const { report } = await devSet('sc5-dev', (x) => copy(x.ranked));
-    const r = report(['--gate', 'sc5']);
-    expect(r.code).toBe(1);
-    expect(r.stderr).toMatch(/^eval: --gate sc5 is not taken on dev/);
-    expect(r.stdout).not.toMatch(/gate \(dev\)/);
-  });
-
-  it('takes only sc5, and no --change-kind or --target-shapes', async () => {
-    const { report } = await devSet('sc5-args', (x) => copy(x.ranked));
-    expect(report(['--gate', 'holdout']).stderr).toMatch(/^eval: --gate takes only sc5, got holdout/);
-    expect(report(['--gate', 'sc5', '--change-kind', 'cutoff']).stderr).toMatch(/--gate sc5 takes no --change-kind or --target-shapes/);
-    expect(report(['--gate', 'sc5', '--target-shapes', 'topical']).stderr).toMatch(/--gate sc5 takes no --change-kind or --target-shapes/);
-  });
-});
-
 // ---------------------------------------------------------------------------
 // encrypted sets
 
 /**
  * An encrypted set bound to `as`, with a pinned baseline and a candidate. The
- * baseline is the shipped pin's, which per-change looks take; `sc5: true` makes
- * it eval-v0's, which SC5 looks take (always so on the test set).
+ * baseline is the shipped pin's, which per-change looks take; on the test set
+ * it is eval-v0's.
  * @param {string} name @param {string} as @param {(d: Derived) => Record<string, string[]>} cand
  */
-async function encSet(name, as, cand, { sc5 = as === 'test' } = {}) {
+async function encSet(name, as, cand) {
   const dir = join(tmp, name);
   const d = await derived();
   await writeEncryptedJson(join(dir, 'queries.json.enc'), { ...d.querySet, set: as }, key, as);
   await writeEncryptedJson(join(dir, 'qrels.json.enc'), { ...d.qrels, set: as }, key, as);
-  await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), runFile(d.querySet, 'base', as, sc5 ? pinnedRanker() : holdoutRanker(), copy(d.ranked)), key, as);
+  await writeEncryptedJson(join(dir, 'runs', 'run-base.json.enc'), runFile(d.querySet, 'base', as, as === 'test' ? pinnedRanker() : holdoutRanker(), copy(d.ranked)), key, as);
   await writeEncryptedJson(join(dir, 'runs', 'run-cand.json.enc'), runFile(d.querySet, 'cand', as, candRanker(), cand(d)), key, as);
   await updateManifest(dir);
   return { dir, d };
@@ -316,103 +295,5 @@ describe('the self-test set (holdout rules, its own ledger)', () => {
     expect(r.code).toBe(1);
     expect(r.stderr).toMatch(/--exempt is dev only/);
     expect(await rowsOf(join(dir, 'ledger.md'))).toHaveLength(0);
-  });
-
-  it('refuses --gate sc5 under the recorded sealed reading, before any look', async () => {
-    const { dir } = await encSet('enc-sc5', 'selftest', (x) => copy(x.ranked));
-    const r = report(dir, ['--gate', 'sc5']);
-    expect(r.code).toBe(1);
-    expect(r.stderr).toMatch(/^eval: --gate sc5 is refused on the holdout: ADR 0003 records the sealed-test-set reading/);
-    expect(await rowsOf(join(dir, 'ledger.md'))).toHaveLength(0);
-  });
-
-  it('`run --gate sc5` is refused: an SC5 verdict is taken on stored runs', async () => {
-    const { dir } = await encSet('enc-sc5-run', 'selftest', (x) => copy(x.ranked));
-    const r = cli(['run', '--set', 'selftest', '--set-dir', dir, '--variant', 'never', '--baseline', 'base', '--gate', 'sc5']);
-    expect(r.code).toBe(1);
-    expect(r.stderr).toMatch(/--gate sc5 is taken with eval:report on stored runs/);
-    expect(await rowsOf(join(dir, 'ledger.md'))).toHaveLength(0);
-  });
-});
-
-describe('the holdout reading, in a temporary clone whose SC5_READING is holdout', () => {
-  /** @type {string} */
-  let clone;
-  /** @type {string} */
-  let cloneCli;
-  const cloneLedger = () => join(clone, 'eval', 'holdout-ledger.md');
-  beforeAll(async () => {
-    clone = join(tmp, 'clone');
-    expect(spawnSync('git', ['clone', '--quiet', '--shared', '--no-checkout', REPO, clone]).status).toBe(0);
-    expect(spawnSync('git', ['checkout', '--quiet', 'HEAD'], { cwd: clone }).status).toBe(0);
-    for (const p of ['eval/cli.mjs', 'eval/lib', 'eval/groups.json', 'scripts']) {
-      await rm(join(clone, p), { recursive: true, force: true });
-      await cp(join(REPO, p), join(clone, p), { recursive: true });
-    }
-    const gate = join(clone, 'eval', 'lib', 'gate.mjs');
-    const src = await readFile(gate, 'utf8');
-    expect(src).toContain("export const SC5_READING = 'sealed';");
-    await writeFile(gate, src.replace("export const SC5_READING = 'sealed';", "export const SC5_READING = 'holdout';"));
-    emptyCloneLedger(clone);
-    cloneCli = join(clone, 'eval', 'cli.mjs');
-  });
-  const restoreLedger = async () => resetCloneLedger(clone);
-  /** @param {string} dir @param {string[]} [extra] */
-  const holdout = (dir, extra = []) => cli(['report', '--holdout', '--set-dir', dir, '--run', 'cand', '--baseline', 'base', ...extra], { cli: cloneCli });
-
-  const withheld = 'eval: holdout run failed (LookLimitError); details withheld\n';
-  /** @param {string} rule */
-  const filler = (rule) => `| 2026-11-06 | holdout | ccccccc | filler | base | pass | +0.000 | +0.000 | ${rule} | 7ac9841 |\n`;
-  /** Restores the clone's ledger and appends one filler holdout row per rule. @param {string[]} rules */
-  const ledgerWith = async (rules) => {
-    await restoreLedger();
-    expect((await rowsOf(cloneLedger())).filter((c) => c[1] === 'holdout')).toHaveLength(0);
-    await appendFile(cloneLedger(), rules.map(filler).join(''));
-  };
-
-  it('--gate sc5 is L12 only: refused unless the ledger holds exactly 11 holdout looks', async () => {
-    const { dir } = await encSet('holdout-sc5-early', 'holdout', (x) => copy(x.ranked), { sc5: true });
-    for (const n of [0, 1, 10]) {
-      await ledgerWith(Array(n).fill('general'));
-      const r = holdout(dir, ['--gate', 'sc5']);
-      expect(`${r.stdout}${r.stderr}`, `SC5 look after ${n} looks`).toBe(withheld);
-      expect(await rowsOf(cloneLedger())).toHaveLength(n);
-    }
-    await restoreLedger();
-  });
-
-  it('the 12th holdout look is the SC5 look: per-change refused at 11, SC5 taken once and recorded as rule sc5', async () => {
-    await ledgerWith(Array(11).fill('general'));
-    const { dir } = await encSet('holdout-slot12', 'holdout', (x) => copy(x.ranked), { sc5: true });
-    const general = holdout(dir);
-    expect(`${general.stdout}${general.stderr}`).toBe(withheld);
-    expect(await rowsOf(cloneLedger())).toHaveLength(11);
-    const sc5 = holdout(dir, ['--gate', 'sc5']);
-    expect(sc5.stderr).toBe('');
-    // An unchanged candidate passes the per-change rule but not SC5.
-    expect(sc5.stdout).toMatch(/^holdout verdict: FAIL · rule sc5 · baseline eval-v0 7ac9841 · qrels qrels-derived-v1$/m);
-    const rows = await rowsOf(cloneLedger());
-    expect(rows).toHaveLength(12);
-    expect(rows.at(-1)?.slice(1, 2).concat(rows.at(-1)?.slice(5, 6) ?? [], rows.at(-1)?.slice(8) ?? [])).toEqual(['holdout', 'fail', 'sc5', '7ac9841']);
-    const again = holdout(dir, ['--gate', 'sc5']);
-    expect(`${again.stdout}${again.stderr}`).toBe(withheld);
-    expect(await rowsOf(cloneLedger())).toHaveLength(12);
-    await restoreLedger();
-  });
-
-  it('once an sc5 row exists, every per-change holdout look is refused (report and run) and so is a second SC5 look', async () => {
-    await ledgerWith(['general', 'general', 'sc5']);
-    const { dir } = await encSet('holdout-after-sc5', 'holdout', (x) => copy(x.ranked));
-    for (const extra of [[], ['--target-shapes', 'topical']]) {
-      const r = holdout(dir, extra);
-      expect(`${r.stdout}${r.stderr}`, extra.join(' ') || 'general').toBe(withheld);
-    }
-    // `run` is refused when it reserves its look, before any retrieval.
-    const run = cli(['run', '--holdout', '--set-dir', dir, '--variant', 'never', '--baseline', 'base'], { cli: cloneCli });
-    expect(`${run.stdout}${run.stderr}`).toBe(withheld);
-    const sc5 = holdout(dir, ['--gate', 'sc5']);
-    expect(`${sc5.stdout}${sc5.stderr}`).toBe(withheld);
-    expect(await rowsOf(cloneLedger())).toHaveLength(3);
-    await restoreLedger();
   });
 });

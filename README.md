@@ -38,12 +38,12 @@ One Cloudflare Worker, no framework and no build step.
 
 It is measured, not assumed. Queries written for student personas are graded blind by a model
 judge, and the ranker is scored offline over a pinned copy of the catalogue. On a sealed test set
-of 195 queries, looked at once, the Phase 3 ranker raised nDCG@10 over the first hybrid version
-(`eval-v0`) by **+0.120** (95% CI 0.083 to 0.161) ([evidence](docs/evidence/phase3/sc5.md)).
-Each later ranking change is compared with the ranker in production: it ships after a passing look
-at a separate holdout set, or by a no-look route the eval's rules allow, and CI's ranking lock
-fails any change to a ranked list that lacks that evidence. [EVAL.md](EVAL.md) has the current
-state, the Phase 2 baseline and what the numbers do not show.
+of 195 queries, looked at once, the ranker raised nDCG@10 over the first hybrid version
+(`eval-v0`) by **+0.120** (95% CI 0.083 to 0.161). Every later ranking change is compared with the
+ranker in production: it merges after a passing look at a separate holdout set, or by a no-look
+route the eval's rules allow, and CI's ranking lock fails any change to a ranked list that lacks
+that evidence. [EVAL.md](EVAL.md) has how it is measured, how a change is checked and what the
+numbers do not show.
 
 ## Run it locally
 
@@ -59,10 +59,10 @@ npm run test:ui                          # Playwright, in Chromium and WebKit
 `npm run dev` serves the real page and Worker over a few hundred fixture courses with a fake
 embedder, so its ranking is not production's.
 
-Deploying, re-ingesting a new academic year, the API routes and the cost model are in
-[docs/REFERENCE.md](docs/REFERENCE.md); what to do when the site is down is in
-[docs/launch.md](docs/launch.md). How the project was planned and checked, phase by phase,
-is in [docs/](docs/README.md).
+How it is built, deployed, refreshed each academic year and kept running is in
+[docs/](docs/README.md): the API, the architecture, operations, the re-ingest runbook, cost and
+the decision records. What to do when the site is down is in
+[docs/incidents.md](docs/incidents.md).
 
 ## Data
 

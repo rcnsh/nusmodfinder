@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7B (G1): the deploy guard reads production D1 over the D1 REST query endpoint, not
+// The deploy guard reads production D1 over the D1 REST query endpoint, not
 // through GET /admin/hashes on a `wrangler dev --remote` session. Both run the same code
 // (src/admin-hashes.js); this proves they give the same answer over the same rows: a local D1
 // seeded through the Worker's own /admin/ingest, read once through the route and once through
@@ -67,7 +67,7 @@ describe('/admin/hashes and the REST guard read agree', () => {
     expect(after).toEqual(await guardValues(route));
   });
 
-  it('agree on the catalogueKey (Phase 7 7D): the key of catalogue_only\'s codes, moving when a code is added', async () => {
+  it('agree on the catalogueKey: the key of catalogue_only\'s codes, moving when a code is added', async () => {
     const codes = ['ZZ1000', 'ZZ2000', 'AA0999'];
     const upsert = codes.map((code) => ({ code, title: `Title ${code}`, description: null, acadYear: fixture.modules[0].acadYear }));
     expect((await adminCall('/admin/catalogue', fakes, { upsert })).status).toBe(200);
@@ -86,11 +86,11 @@ describe('/admin/hashes and the REST guard read agree', () => {
   });
 });
 
-// Red team M-1 (docs/evidence/phase7/redteam.md): the guard hashed D1's stored row_hash values, so
-// a row changed behind its row_hash (a hand `d1 execute`, an older writer, a one-table restore)
-// gave the same dataVersion and the deploy shipped over it. It now recomputes each row's hash from
-// the row's own columns (src/rowhash.js, as ingest does), for modules and catalogue_only alike.
-describe('the guard recomputes every row\'s hash from its columns (red team M-1)', () => {
+// The guard recomputes each row's hash from the row's own columns (src/rowhash.js, as ingest does),
+// for modules and catalogue_only alike. Hashing D1's stored row_hash values instead would let a row
+// changed behind its row_hash (a hand `d1 execute`, an older writer, a one-table restore) keep the
+// same dataVersion, and the deploy would ship over it.
+describe('the guard recomputes every row\'s hash from its columns', () => {
   /** What the deploy would ship, taken from D1 as it is now (so the guard passes before the edit). */
   async function shipped() {
     const values = await guardValues((await readD1(localRest().client)).hashes);
@@ -128,7 +128,7 @@ describe('the guard recomputes every row\'s hash from its columns (red team M-1)
     expect(rollback.ok).toBe(false);
     expect(rollback.results.filter((r) => !r.ok).map((r) => r.name).sort()).toEqual(['dataVersion', 'rowHashes']);
 
-    // The red team's whole-table edit: every value the guard compares moves.
+    // A whole-table edit: every value the guard compares moves.
     const before = await guardValues((await readD1(localRest().client)).hashes);
     await env.DB.batch([
       env.DB.prepare("UPDATE modules SET ng = 0, ng_allow = 0, ng_semesters = '[]', semesters = '[]', credits = credits + 99"),

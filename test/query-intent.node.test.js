@@ -1,8 +1,8 @@
 // @ts-check
-// src/query-intent.js, the 3B half of the parse (docs/plans/phase3-prereg.md
-// §3, steps 1 and 5–7): canonical q, code joins, code resolution, partial codes,
+// src/query-intent.js, the code and GE half of the parse (steps 1 and 5–7):
+// canonical q, code joins, code resolution, partial codes,
 // letter-only tokens, the collision list and the GE intent. Pure, so it runs in
-// Node over the 3B-0 data files and a hand-written offered set.
+// Node over the query-understanding data files and a hand-written offered set.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -11,11 +11,11 @@ import { STOPWORDS_CURRENT } from '../src/fts-query.js';
 import {
   INTERPRETED_KEYS, IGNORABLE_INTENTS, MAX_CODES, buildIntentContext, canonicalQuery, codeRange, parseIgnore, parseQuery,
 } from '../src/query-intent.js';
-import { deriveIntents } from './sc4/intents.node.mjs';
+import { deriveIntents } from './query-suite/intents.node.mjs';
 
 /** @param {string} rel */
 const readJson = (rel) => JSON.parse(readFileSync(join(REPO, rel), 'utf8'));
-const suite = readJson('test/sc4/queries.json');
+const suite = readJson('test/query-suite/queries.json');
 
 /** Offered codes the cases and the suite name (the pinned corpus has them all), plus the fixture's. */
 const OFFERED = new Set([
@@ -224,14 +224,15 @@ describe('ignore', () => {
   });
 });
 
-describe('the SC4 suite, the keys 3B sets', () => {
-  // pin, prefix and ge are 3B's; level only through XX N000. The other keys
-  // wait for 3D and 3H (test/full/sc4.test.js runs each item's full rule).
-  const B3 = /** @type {const} */ (['pin', 'prefix', 'ge']);
+describe('the query suite, the keys this half of the parse sets', () => {
+  // pin, prefix and ge are this half's; level only through XX N000. The other keys
+  // come from the level phrases and the constraint intents (test/full/query-suite.test.js
+  // runs each item's full rule).
+  const KEYS = /** @type {const} */ (['pin', 'prefix', 'ge']);
   for (const item of suite.items) {
     it(`${item.id} ${JSON.stringify(item.text)}`, () => {
       const p = parse(item.text);
-      for (const k of B3) expect(p.interpreted[k], k).toEqual(item.interpreted[k]);
+      for (const k of KEYS) expect(p.interpreted[k], k).toEqual(item.interpreted[k]);
       const phraseLevel = deriveIntents(item.params?.clean ?? item.text).level;
       if (!phraseLevel) expect(p.interpreted.level).toEqual(item.interpreted.level);
       for (const k of ['exam', 'su', 'hoursBelow', 'prereq']) expect(p.interpreted[/** @type {'exam'} */ (k)], k).toBeNull();
@@ -244,7 +245,7 @@ describe('the SC4 suite, the keys 3B sets', () => {
   }
 });
 
-describe('review fixes (PR #44)', () => {
+describe('punctuation and the GE intent', () => {
   it('a punctuation-only word does not count toward the whole query or the collision guard', () => {
     expect(parse('GEQ1000 ?')).toMatchObject({ kind: 'no-match', noMatch: { reason: 'not-offered', code: 'GEQ1000' } });
     expect(parse('cs9999 ?')).toMatchObject({ kind: 'no-match', noMatch: { reason: 'unknown-code', code: 'CS9999' } });
@@ -262,7 +263,7 @@ describe('review fixes (PR #44)', () => {
     expect(parse('cs1231 s-u').interpreted.pin).toEqual(['CS1231']);
   });
 
-  it('lead decision: `ge` directly followed by a token starting with a digit is plain text, not the GE intent', () => {
+  it('`ge` directly followed by a token starting with a digit is plain text, not the GE intent', () => {
     for (const q of ['ge 2101 workload', 'geography ge 2101 syllabus', 'ge 2 easy modules']) {
       const p = parse(q);
       expect([p.kind, p.interpreted.ge, p.interpreted.pin, p.ranges], q).toEqual(['search', null, null, null]);
@@ -274,7 +275,7 @@ describe('review fixes (PR #44)', () => {
   });
 });
 
-describe('typed codes (Phase 5 5C-api)', () => {
+describe('typed codes', () => {
   it('records every code-shaped token, de-duplicated, in query order, with its status; pins stay at the first 3 offered', () => {
     const p = parse('cs2040 cs1010s cs2030 cs1231 cs2040 cs1001 cs9999');
     expect(p.pins).toEqual(['CS2040', 'CS1010S', 'CS2030']);

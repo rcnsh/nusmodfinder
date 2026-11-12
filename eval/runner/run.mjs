@@ -45,7 +45,7 @@ function fieldsDigest(modules) {
  */
 export async function runVariant(options) {
   const { set, variant, ref, unfiltered = false, strip = [], mode = 'hybrid' } = options;
-  if (options.explicit && set.encrypted) throw new Error('explicit per-query params are the dev diagnostic\'s (B2-4); never on an encrypted set');
+  if (options.explicit && set.encrypted) throw new Error('explicit per-query params are the dev diagnostic\'s; never on an encrypted set');
   const log = options.log ?? ((/** @type {string} */ l) => console.log(l));
   const key = set.encrypted ? await setKey() : null;
   const querySet = await loadQueries(set);
@@ -83,14 +83,15 @@ export async function runVariant(options) {
   if (missingQueries.length) {
     throw new Error(`${missingQueries.length} query text(s) of the ${set.name} set have no embedding; run \`npm run eval:embed -- --set ${set.name}${setDirArg}\` locally`);
   }
-  // 7D: the run corpus's catalogue codes and prefixes, never the production ones its ref commits.
+  // The run corpus's catalogue codes and prefixes, never the production ones its ref commits.
   await writeRunCatalogue(ws.root);
-  // 3C: the ranker's vocabulary from this run's corpus (never the production
-  // one its ref commits), and, for a 3C-2 ranker, every corrected query text embedded.
+  // The ranker's typo vocabulary from this run's corpus (never the production
+  // one its ref commits), and, for a ranker that embeds corrected text, every
+  // corrected query text embedded.
   const corrector = await rankerCorrector(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));
   assertCorrectedEmbedded({ set: set.name, setDirArg, ref: ws.ranker.ref, queries: querySet.queries, corrector, have });
   const vocabulary = corrector ? await writeRankerVocabulary(ws.root, corrector) : null;
-  // 3F: the ranker's duplicate groups from this run's corpus.
+  // The ranker's duplicate groups from this run's corpus.
   const groups = await writeRankerGroups(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));
 
   const dense = await writeBundle(ws.root, corpus.modules, lookup, String(embedding.corpus));
@@ -102,7 +103,7 @@ export async function runVariant(options) {
     set: set.name,
     createdAt: new Date().toISOString(),
     ranker: ws.ranker,
-    // Phase 5 5F: a digest of the constraint fields the Worker is seeded with, which the compliance rule checks its source against.
+    // A digest of the constraint fields the Worker is seeded with, which the compliance rule checks its source against.
     corpus: { ...corpus.info, constraintFieldsSha256: fieldsDigest(corpus.modules) },
     embedding,
     queries: {
@@ -112,9 +113,9 @@ export async function runVariant(options) {
     },
     config: {
       topK: 'worker default', filters: !unfiltered, mode, dense,
-      // Phase 4: the persona -> study map ng queries take, and the filters stripped (the unfiltered guard).
+      // The persona -> study map ng queries take, and the filters stripped (the unfiltered guard).
       studyMap: studyMapSha256(), ...(strip.length ? { strip } : {}),
-      // Phase 5 5F's B2-4 diagnostic: extra /search params per query, recorded as sent (a dev baseline, never a gate's).
+      // The explicit-params diagnostic: extra /search params per query, recorded as sent (a dev baseline, never a gate's).
       ...(options.explicit ? { explicit: options.explicit } : {}),
       ...(vocabulary ? { vocabulary, typo: corrector?.embedsCorrected ? '3c2' : '3c1' } : {}), ...(groups ? { groups } : {}),
     },
@@ -149,7 +150,7 @@ export async function runVariant(options) {
 }
 
 /**
- * A ranker with in-Worker vectors (Phase 3 3-0: it has src/vector-bundle.js)
+ * A ranker with in-Worker vectors (it has src/vector-bundle.js)
  * searches a bundle, not the fake Vectorize. Built here from this run's corpus
  * and vectors, by the ranker's own encoder, at the path its `vectors-bundle`
  * alias resolves to in the workspace (test/fixtures/vectors.js, which

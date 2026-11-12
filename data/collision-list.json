@@ -1,6 +1,6 @@
 {
  "schema": "vnm-3b-collision-list/1",
- "from": "eval/prereg/collision-list.json (P-6, unchanged)",
+ "from": "eval/query-rules/collision-list.json (copied unchanged)",
  "list": [
   "ABM",
   "AC",

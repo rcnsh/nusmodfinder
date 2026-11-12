@@ -1,33 +1,34 @@
 // @ts-check
-// The SC4 acceptance suite (docs/plans/phase3.md §4, docs/plans/phase3-prereg.md
-// §9) through the real Worker, over the pinned vectors bundle and the pinned
-// corpus loaded through /admin/ingest, with D1 catalogue_only loaded from
-// `catalogue-only-data` (the pinned rows, built in memory) and the committed query embeddings
-// (test/sc4/embeddings.json, and eval/dev/embeddings.json for the four dev
-// texts §4 names) answering Workers AI. 3C-2's corrected forms, which P-6 did
-// not embed, come from test/fixtures/sc4-corrected-embeddings.json
-// (`npm run eval:embed -- --sc4 --corrected-from-ref <ref>`, the lead's);
-// test/sc4/embeddings.json stays as P-6 pinned it. Each item checks its exact
-// `interpreted` and its rule.
+// The query suite through the real Worker, over the pinned vectors bundle and
+// the pinned corpus loaded through /admin/ingest, with D1 catalogue_only loaded
+// from `catalogue-only-data` (the pinned rows, built in memory) and the
+// committed query embeddings (test/query-suite/embeddings.json, and
+// eval/dev/embeddings.json for the four dev texts the suite allows) answering
+// Workers AI. Typo-corrected forms come from
+// test/fixtures/query-suite-corrected-embeddings.json
+// (`npm run eval:embed -- --suite --corrected-from-ref <ref>`). Each item checks
+// its exact `interpreted` and its rule.
 //
-// An item runs once every workstream it needs has merged into this ranker
-// (MERGED). Ownership comes from the row and the intents the item needs:
-// typo 3C, gibberish 3G, a level phrase 3D, an exam/S-U/workload/prerequisite
-// intent 3H; `count = G` with variants is 3F's collapse. The rest is 3B. Items
-// not run are listed in one test, with the workstream they wait for: the
-// full-corpus CI job fails on any skipped test, so nothing here is it.skip.
-// The typo, gibberish, non-existent-code and guard items are never skipped
-// (plan 737–739): until their machinery merges they are listed as pending.
-// Under 3C-2 an item whose corrected text has no committed embedding yet is
-// listed as waiting on lead embedding, with the command that makes it.
+// An item runs when every feature it needs is in force in this ranker
+// (IN_FORCE). The row and the intents an item needs decide them: typo items
+// need typo correction, gibberish items the no-signal check, a level phrase the
+// level-phrase intent, an exam/S-U/workload/prerequisite phrase the constraint
+// phrases; `count = G` with variants needs duplicate-group collapse. Everything
+// else needs only code handling. Items not run are listed in one test, with the
+// feature they wait for: the full-corpus CI job fails on any skipped test, so
+// nothing here is it.skip. The typo, gibberish, non-existent-code and guard
+// items are never skipped: without their feature they are listed as pending.
+// When typo correction embeds its corrected text, an item whose corrected text
+// has no committed embedding is listed as waiting on an embedding, with the
+// command that makes it.
 import { describe, expect, inject, it, beforeAll } from 'vitest';
 import catalogueFile from 'catalogue-only-data';
 import groupsFile from '../../eval/groups.json';
 import gibberishFile from '../../eval/dev/gibberish.json';
-import suiteFile from '../sc4/queries.json';
-import sc4Embeddings from '../sc4/embeddings.json';
+import suiteFile from '../query-suite/queries.json';
+import suiteEmbeddings from '../query-suite/embeddings.json';
 import devEmbeddings from '../../eval/dev/embeddings.json';
-import correctedEmbeddings from '../fixtures/sc4-corrected-embeddings.json';
+import correctedEmbeddings from '../fixtures/query-suite-corrected-embeddings.json';
 import { intentContext } from '../../src/intent-data.js';
 import { INTENT, PARSE_PHRASES } from '../../src/intents.js';
 import { canonicalQuery, parseQuery } from '../../src/query-intent.js';
@@ -40,41 +41,42 @@ const corpus = inject('corpus');
 const bundleKind = inject('vectorsBundle');
 
 /**
- * The workstreams merged into this ranker. 3D was dropped for Phase 3. 3H's parsed-intent items
- * run only while `PARSE_PHRASES` is on (Phase 5 5F; off after L7, ADR 0006); with it off, the
- * `[3H params]` test checks the explicit params on the full corpus.
+ * The features in force in this ranker. Level phrases are not among them (`level-phrases` items
+ * are listed as skipped). Parsed constraint phrases run only while `PARSE_PHRASES` is on (off,
+ * ADR 0006); with it off, the `[constraint params]` test checks the explicit params on the
+ * full corpus.
  */
-const MERGED = new Set(['3B', '3C', '3F', '3G', ...(PARSE_PHRASES ? ['3H'] : [])]);
-/** 3H's prereq semantics, substituted for `$selected` (prereg C9): the variant in force's (src/intents.js). */
+const IN_FORCE = new Set(['codes', 'typos', 'groups', 'no-signal', ...(PARSE_PHRASES ? ['constraint-phrases'] : [])]);
+/** The prereq semantics substituted for `$selected`: the variant in force's (src/intents.js). */
 const SELECTED_PREREQ = INTENT.prereq;
-/** Rows whose items are never skipped once their machinery exists (plan 737–739). */
+/** Rows whose items are never skipped: without their feature they are listed as pending. */
 const NEVER_SKIPPED = new Set(['typo', 'gibberish', 'nonexistent-code', 'guard']);
 
 /** @typedef {{ id: string, row: string, text: string, topK: number, rule: string, params: any, interpreted: any, origin: string }} Item */
 const suite = /** @type {{ items: Item[], thresholds: { T: number, M: number } }} */ (/** @type {unknown} */ (suiteFile));
 
 /**
- * The workstreams an item needs. `partial` lists the clauses of a run item
- * that wait for an unmerged workstream (checked once it merges).
+ * The features an item needs. `partial` lists the clauses of a run item
+ * that wait for a feature not in force (checked once it is).
  * @param {Item} item
  */
 function ownership(item) {
   const i = item.interpreted;
   /** @type {Set<string>} */
-  const needs = new Set(['3B']);
-  if (item.row === 'typo') needs.add('3C');
-  if (item.row === 'gibberish') needs.add('3G');
-  // A level from a phrase is 3D's; `XX N000` (the prefix-level rule) is 3B's.
-  if (i.level !== null && item.rule !== 'prefix-level-mask') needs.add('3D');
-  if (i.exam !== null || i.su !== null || i.hoursBelow !== null || i.prereq !== null) needs.add('3H');
+  const needs = new Set(['codes']);
+  if (item.row === 'typo') needs.add('typos');
+  if (item.row === 'gibberish') needs.add('no-signal');
+  // A level from a phrase needs level phrases; `XX N000` (the prefix-level rule) is code handling.
+  if (i.level !== null && item.rule !== 'prefix-level-mask') needs.add('level-phrases');
+  if (i.exam !== null || i.su !== null || i.hoursBelow !== null || i.prereq !== null) needs.add('constraint-phrases');
   /** @type {string[]} */
-  const partial = item.rule === 'partial-mask' && !MERGED.has('3F') ? ['count = G (3F variants)'] : [];
-  const waiting = [...needs].filter((w) => !MERGED.has(w)).sort();
+  const partial = item.rule === 'partial-mask' && !IN_FORCE.has('groups') ? ['count = G (group variants)'] : [];
+  const waiting = [...needs].filter((w) => !IN_FORCE.has(w)).sort();
   return { needs: [...needs].sort(), waiting, partial };
 }
 
-/** The command that embeds 3C-2's corrected forms of the suite's texts. */
-const EMBED_CORRECTED_COMMAND = 'npm run eval:embed -- --sc4 --corrected-from-ref 3c2';
+/** The command that embeds the typo-corrected forms of the suite's texts. */
+const EMBED_CORRECTED_COMMAND = 'npm run eval:embed -- --suite --corrected-from-ref typo-corrector';
 
 const letters = (/** @type {string} */ c) => /** @type {RegExpExecArray} */ (/^[A-Z]+/.exec(c))[0];
 /** @param {string} p @returns {[string, string]} */
@@ -84,12 +86,12 @@ const inRange = (code, p) => { const [lo, hi] = range(p); return code >= lo && c
 /** @returns {string[]} */
 const codesOf = (/** @type {any} */ body) => body.results.map((/** @type {{ code: string }} */ r) => r.code);
 
-/** groups-v1, a singleton its own group (A2-5). */
+/** groups-v1, a singleton its own group. */
 /** @type {Map<string, number>} */
 const groupOf = new Map();
 groupsFile.groups.forEach((g, i) => g.forEach((m) => groupOf.set(m, i)));
 const gkey = (/** @type {string} */ c) => (groupOf.has(c) ? `g${groupOf.get(c)}` : c);
-/** The group-first projection of a list (3F). @param {string[]} list */
+/** The group-first projection of a list. @param {string[]} list */
 const projectGroups = (list) => { const seen = new Set(); return list.filter((c) => (seen.has(gkey(c)) ? false : (seen.add(gkey(c)), true))); };
 
 /** @param {string} s */
@@ -100,14 +102,14 @@ async function sha256Hex(s) {
 
 /** Every cache's entries: sha256(model + "\n" + text) → base64 float32. */
 /** @type {Record<string, string>} */
-const ENTRIES = { ...devEmbeddings.entries, ...sc4Embeddings.entries, .../** @type {Record<string, string>} */ (correctedEmbeddings.entries) };
-for (const cache of [sc4Embeddings, devEmbeddings, correctedEmbeddings]) if (cache.model !== '@cf/baai/bge-small-en-v1.5' || cache.dims !== 384) throw new Error('unexpected embedding cache');
+const ENTRIES = { ...devEmbeddings.entries, ...suiteEmbeddings.entries, .../** @type {Record<string, string>} */ (correctedEmbeddings.entries) };
+for (const cache of [suiteEmbeddings, devEmbeddings, correctedEmbeddings]) if (cache.model !== '@cf/baai/bge-small-en-v1.5' || cache.dims !== 384) throw new Error('unexpected embedding cache');
 
 /**
  * The texts the dense half embeds for what an item sends (its text, a typo
  * item's clean form, a constraint reference) beyond the canonical query, as
- * the Worker's own parse gives them (denseTexts): 3C-2's corrected form and
- * 3H's stripped form. Those with no committed embedding await the lead's.
+ * the Worker's own parse gives them (denseTexts): the typo-corrected form and
+ * the constraint-stripped form. Those with no committed embedding wait for one.
  * @param {Item} item
  */
 async function missingCorrected(item) {
@@ -117,14 +119,14 @@ async function missingCorrected(item) {
   for (const text of [item.text, item.params.clean, item.params.reference].filter((t) => typeof t === 'string')) {
     const q = canonicalQuery(text.trim());
     for (const t of denseTexts(parseQuery(q, ctx))) {
-      if (t !== q && !ENTRIES[await sha256Hex(`${sc4Embeddings.model}\n${t}`)]) out.push(t);
+      if (t !== q && !ENTRIES[await sha256Hex(`${suiteEmbeddings.model}\n${t}`)]) out.push(t);
     }
   }
   return out;
 }
 
 const READY = suite.items.filter((it) => ownership(it).waiting.length === 0);
-/** Items whose machinery has merged but whose 3C-2 corrected forms await the lead's embedding. @type {Item[]} */
+/** Items whose features are in force but whose corrected forms have no committed embedding. @type {Item[]} */
 const WAITING_EMBEDDING = [];
 for (const item of READY) if ((await missingCorrected(item)).length) WAITING_EMBEDDING.push(item);
 const RUN = READY.filter((it) => !WAITING_EMBEDDING.includes(it));
@@ -144,26 +146,26 @@ class SuiteAI {
     const data = [];
     for (const text of texts) {
       const b64 = ENTRIES[await sha256Hex(`${model}\n${text}`)];
-      if (model !== sc4Embeddings.model || !b64) { this.missing.push(text); throw new Error('no committed SC4 embedding for this text'); }
+      if (model !== suiteEmbeddings.model || !b64) { this.missing.push(text); throw new Error('no committed query-suite embedding for this text'); }
       const bin = atob(b64);
       const bytes = new Uint8Array(bin.length);
       for (let k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
       data.push(Array.from(new Float32Array(bytes.buffer)));
     }
-    return { shape: [texts.length, sc4Embeddings.dims], data, pooling: 'mean' };
+    return { shape: [texts.length, suiteEmbeddings.dims], data, pooling: 'mean' };
   }
 }
 
-describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinned corpus and bundle', () => {
+describe.skipIf(!corpus || bundleKind !== 'pinned')('the query suite over the pinned corpus and bundle', () => {
   const c = /** @type {FullCorpus} */ (corpus);
   const offered = c.modules.map((m) => m.code).sort();
   const moduleOf = new Map(c.modules.map((m) => [m.code, m]));
   /** @param {string} p */
   const members = (p) => offered.filter((code) => inRange(code, p));
-  /** Results and their 3F variants. @param {any} body @returns {string[]} */
+  /** Results and their group variants. @param {any} body @returns {string[]} */
   const shownOf = (body) => body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)]);
   /**
-   * Whether a module meets a 3H param (prereg §4 `constraint`), under the selected prereq semantics.
+   * Whether a module meets a constraint param (the `constraint` rule), under the selected prereq semantics.
    * @param {string} code @param {Record<string, string>} param
    */
   const satisfies = (code, param) => {
@@ -173,7 +175,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
       if (k === 'su') return m.su || m.gradingBasis === 'Completed Satisfactory/Unsatisfactory';
       if (k === 'hoursBelow') return m.workloadHours !== null && m.workloadHours < Number(v);
       if (k === 'prereq') return m.prereqNone || (SELECTED_PREREQ === 'ii' && m.prereqCohortOnly);
-      throw new Error(`unknown 3H param ${k}`);
+      throw new Error(`unknown constraint param ${k}`);
     });
   };
   const fakes = createFakes();
@@ -219,7 +221,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
           for (const code of p.allSatisfy ? shownOf(body) : []) expect(satisfies(code, p.allSatisfy), code).toBe(true);
           break;
         case 'constraint': {
-          // Every returned result (A8), its 3F variants included, satisfies the param;
+          // Every returned result, its group variants included, satisfies the param;
           // the top 10 overlaps the reference searched with the explicit param.
           expect(body.count).toBeGreaterThan(0);
           for (const code of shownOf(body)) expect(satisfies(code, p.param), code).toBe(true);
@@ -228,7 +230,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
           expect(ref.missing, 'reference texts with no committed embedding').toEqual([]);
           const refTop = new Set(codesOf(ref.body).slice(0, 10));
           const overlap = top10.filter((code) => refTop.has(code)).length;
-          console.info(`[SC4] ${item.id} constraint overlap@10 with ${JSON.stringify(p.reference)}&${qs}: ${overlap} (min ${p.minOverlap})`);
+          console.info(`[query suite] ${item.id} constraint overlap@10 with ${JSON.stringify(p.reference)}&${qs}: ${overlap} (min ${p.minOverlap})`);
           expect(overlap).toBeGreaterThanOrEqual(p.minOverlap);
           break;
         }
@@ -249,8 +251,8 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
           for (const code of m) expect(shown.has(code), `member ${code}`).toBe(true);
           const G = new Set(m.map((code) => (groupOf.has(code) ? `g${groupOf.get(code)}` : code))).size;
           expect(G).toBe(p.G);
-          // Before 3F's collapse every member is its own result; with it, count = G.
-          expect(body.count).toBe(MERGED.has('3F') ? p.G : m.length);
+          // Without group collapse every member is its own result; with it, count = G.
+          expect(body.count).toBe(IN_FORCE.has('groups') ? p.G : m.length);
           break;
         }
         case 'mixed-prefix':
@@ -300,17 +302,17 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
           const clean = await search(p.clean, item.topK);
           const cleanTop = new Set(codesOf(clean.body).slice(0, 10));
           const overlap = top10.filter((code) => cleanTop.has(code)).length;
-          console.info(`[SC4] ${item.id} typo overlap@10 with its clean form: ${overlap} (T = ${p.T})`);
+          console.info(`[query suite] ${item.id} typo overlap@10 with its clean form: ${overlap} (T = ${p.T})`);
           expect(overlap).toBeGreaterThanOrEqual(p.T);
           break;
         }
         default:
-          throw new Error(`rule ${item.rule} needs a workstream that has not merged`);
+          throw new Error(`rule ${item.rule} needs a feature that is not in force`);
       }
     });
   }
 
-  it('[3B] a bare prefix never takes in a longer one: cs returns no CSA code, ges no GESS code (hybrid and lexical)', async () => {
+  it('[codes] a bare prefix never takes in a longer one: cs returns no CSA code, ges no GESS code (hybrid and lexical)', async () => {
     expect(offered.some((code) => code.startsWith('CSA'))).toBe(true);
     expect(offered.some((code) => code.startsWith('GESS'))).toBe(true);
     for (const mode of ['hybrid', 'lexical']) {
@@ -320,16 +322,16 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
       expect(codesOf(cs.body).every((code) => /^CS\d/.test(code)), mode).toBe(true);
       const ges = await search('ges', 50, `&mode=${mode}`);
       expect(codesOf(ges.body).some((code) => code.startsWith('GESS')), mode).toBe(false);
-      // 3F: one result per duplicate group (a GES code can be cross-listed as a GESS variant).
+      // One result per duplicate group (a GES code can be cross-listed as a GESS variant).
       expect(new Set(codesOf(ges.body).map(gkey)), mode).toEqual(new Set(members('GES').map(gkey)));
     }
     // In mode=lexical the members are in code order, one per duplicate group.
     expect(codesOf((await search('cs', 50, '&mode=lexical')).body)).toEqual(projectGroups(members('CS')).slice(0, 50));
   });
 
-  // 3H ships its explicit params (ADR 0006): each constraint item's reference, searched with its
-  // param, returns only modules that satisfy it, its 3F variants included.
-  it('[3H params] each constraint item\'s reference with its explicit param: every shown module satisfies it', async () => {
+  // The explicit constraint params (ADR 0006): each constraint item's reference, searched with its
+  // param, returns only modules that satisfy it, its group variants included.
+  it('[constraint params] each constraint item\'s reference with its explicit param: every shown module satisfies it', async () => {
     const items = suite.items.filter((item) => item.rule === 'constraint');
     expect(items.length).toBe(12);
     for (const item of items) {
@@ -342,8 +344,8 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
     }
   });
 
-  // 3G's gate (plan 3G): ≥ 90% of the gibberish set's gate half answers count 0, under the τ in force.
-  it.skipIf(!MERGED.has('3G'))('[3G] the gibberish gate half: at least 90% answer count 0 with noMatch no-signal', async () => {
+  // The no-signal check: ≥ 90% of the gibberish set's gate half answers count 0, under the τ in force.
+  it.skipIf(!IN_FORCE.has('no-signal'))('[no-signal] the gibberish gate half: at least 90% answer count 0 with noMatch no-signal', async () => {
     const strings = new Map(gibberishFile.strings.map((g) => [g.id, g.text]));
     /** @param {string[]} ids */
     const outcome = async (ids) => {
@@ -357,15 +359,15 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
       }
       return out;
     };
-    // The derivation half is measured offline (scripts/no-signal-cosines.mjs): some of its 3C-2
+    // The derivation half is measured offline (scripts/no-signal-cosines.mjs): some of its typo-
     // corrected forms (g-23 `gatt`) have no committed embedding.
     const gate = await outcome(gibberishFile.split.gate);
     const empty = (/** @type {{ count: number }[]} */ xs) => xs.filter((x) => x.count === 0).length;
-    console.log(`[3G] gate half ${empty(gate)}/${gate.length} count 0 (not: ${gate.filter((x) => x.count).map((x) => x.id).join(' ')})`);
+    console.log(`[no-signal] gate half ${empty(gate)}/${gate.length} count 0 (not: ${gate.filter((x) => x.count).map((x) => x.id).join(' ')})`);
     expect(empty(gate) / gate.length).toBeGreaterThanOrEqual(0.9);
   });
 
-  it('lists the items it does not run yet, each with the workstream it waits for', () => {
+  it('lists the items it does not run yet, each with the feature it waits for', () => {
     const lines = NOT_RUN.map((item) => {
       const { waiting } = ownership(item);
       const kind = NEVER_SKIPPED.has(item.row) ? 'pending' : 'skipped';
@@ -373,13 +375,13 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the SC4 suite over the pinn
     });
     const partial = RUN.filter((it) => ownership(it).partial.length)
       .map((it) => `partial ${it.id} [${it.row}] ${JSON.stringify(it.text)}: ${ownership(it).partial.join(', ')}`);
-    const embedding = WAITING_EMBEDDING.map((it) => `waiting on lead embedding ${it.id} [${it.row}] ${JSON.stringify(it.text)}: ${EMBED_CORRECTED_COMMAND}`);
-    console.log(`[SC4] ${RUN.length} run (${partial.length} with a clause pending), ${NOT_RUN.length} not run, `
-      + `${WAITING_EMBEDDING.length} waiting on lead embedding\n${[...lines, ...embedding, ...partial].join('\n')}`);
+    const embedding = WAITING_EMBEDDING.map((it) => `waiting on an embedding ${it.id} [${it.row}] ${JSON.stringify(it.text)}: ${EMBED_CORRECTED_COMMAND}`);
+    console.log(`[query suite] ${RUN.length} run (${partial.length} with a clause pending), ${NOT_RUN.length} not run, `
+      + `${WAITING_EMBEDDING.length} waiting on an embedding\n${[...lines, ...embedding, ...partial].join('\n')}`);
     expect(RUN.length + NOT_RUN.length + WAITING_EMBEDDING.length).toBe(90);
-    // Only 3C-2 waits on an embedding, and only for a corrected form P-6 did not embed.
+    // Only typo correction that embeds its corrected text can wait on an embedding.
     if (!EMBED_CORRECTED) expect(WAITING_EMBEDDING).toEqual([]);
-    // Nothing 3B owns alone is left out, and a never-skipped item is only pending while its machinery is unmerged.
+    // No item that needs only code handling is left out, and a never-skipped item is only pending while its feature is off.
     for (const item of NOT_RUN) expect(ownership(item).waiting.length, item.id).toBeGreaterThan(0);
     for (const item of suite.items.filter((x) => x.row === 'nonexistent-code' || x.row === 'not-offered-code')) expect(RUN, item.id).toContain(item);
   });

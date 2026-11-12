@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7D, the corpus manifest (data/corpus.json, docs/plans/phase7.md 7D):
+// The corpus manifest (data/corpus.json):
 // each production corpus is a sha-checked release asset, `current` names the
 // one ingest uses, and ingest, the bundle and every per-corpus file read only
 // that one, never the .data/cache download. Everything here runs on temp
@@ -218,7 +218,7 @@ describe('CI: npm run corpus -- check', () => {
   });
 });
 
-describe('the deploy preflight\'s "corpus manifest" check (7B\'s optional check, scripts/corpus.mjs preflight)', () => {
+describe('the deploy preflight\'s "corpus manifest" check (an optional check, scripts/corpus.mjs preflight)', () => {
   /** A real checkCurrent over a temp manifest, a restored BODY and the given committed files, as corpusCheck. */
   async function setup(/** @type {{ version?: string, codes?: string[], stale?: string[] }} */ o = {}) {
     const manifestPath = await manifest();
@@ -251,7 +251,7 @@ describe('the deploy preflight\'s "corpus manifest" check (7B\'s optional check,
     expect(lines.join('\n')).toMatch(/deploy: preflight: corpus: restored/);
   });
 
-  it('fails on a stale src/data-version.json, a catalogue file missing a code, or a stale 3B file, naming each', async () => {
+  it('fails on a stale src/data-version.json, a catalogue file missing a code, or a stale prefixes file, naming each', async () => {
     const dv = await setup({ version: 'aaaaaaaaaaaa' });
     expect(await dv.run()).toMatchObject({ ok: false, message: expect.stringMatching(/data version.*aaaaaaaaaaaa/) });
     const cat = await setup({ codes: ['AA0999'] });

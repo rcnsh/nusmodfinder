@@ -1,6 +1,5 @@
 // @ts-check
-// What design D's mockup (docs/design/phase5-direction-d.html) has that 5D left
-// out as new behaviour, built in 5G: a stamp on each typed code not shown and
+// Typed codes and the links between codes: a stamp on each typed code not shown and
 // a "Switch to Sem 2" action where the other semester is open; "Also as" codes
 // as links to their own entry, which then says where it was opened from; the
 // detail's head repeating the code and title; and, for a query of course codes
@@ -111,8 +110,8 @@ test.describe('"Also as" codes are links to their own entry', () => {
     await expect(d.locator('.kicker')).toHaveText('Course details');
   });
 
-  test('[S1] a from= that is not one of the open course\'s other codes says nothing, and the URL drops it', async ({ page }) => {
-    // The red team's link: PP5288 has no other codes; CS1010 is an unrelated course.
+  test('a from= that is not one of the open course\'s other codes says nothing, and the URL drops it', async ({ page }) => {
+    // A crafted link: PP5288 has no other codes; CS1010 is an unrelated course.
     await page.goto('/?q=PP5288&open=PP5288&from=CS1010');
     const d = await region(page, 'PP5288');
     await expect(d.locator('.kicker')).toHaveText('Course details');

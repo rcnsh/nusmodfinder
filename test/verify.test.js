@@ -48,11 +48,11 @@ describe('verify', () => {
     expect(r.metadataDrift.map((d) => d.code)).toEqual([a.code]);
   });
 
-  it('[PR13 #2] reports a sampled vector whose metadata textHash is not the row\'s text_hash, or has none', async () => {
+  it('reports a sampled vector whose metadata textHash is not the row\'s text_hash, or has none', async () => {
     const [a, b, c] = fixture.modules;
     const vec = (/** @type {string} */ code) => /** @type {import('./fakes.js').StoredVector} */ (fakes.vectorize.vectors.get(code));
     expect((await verify({ sample: [a.code, b.code, c.code] })).ok).toBe(true);
-    // The F2 end state: D1 has the new text_hash, the vector still embeds the old text.
+    // A row-only change Vectorize missed: D1 has the new text_hash, the vector still embeds the old text.
     vec(a.code).metadata = { ...vec(a.code).metadata, textHash: 'old-text-hash' };
     const legacy = { .../** @type {Record<string, unknown>} */ (vec(b.code).metadata) };
     delete legacy.textHash;

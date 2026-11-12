@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 8 8C (G4 in ADR 0012): the hourly uptime check (scripts/uptime.mjs) and its workflow
+// The hourly uptime check (scripts/uptime.mjs, ADR 0012) and its workflow
 // (.github/workflows/uptime.yml). Each run GETs /health, one /module/<code> and one /search that
 // must be a cache miss and not degraded; a failure is checked again 90 s later; a pass pings
 // healthchecks.io's HC_UPTIME_URL, two failures ping HC_UPTIME_URL/fail with a one-line reason.

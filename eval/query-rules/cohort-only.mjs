@@ -1,8 +1,9 @@
 // @ts-check
-// Reference reading of the P-6 cohort-only prerequisite rule
-// (eval/prereg/cohort-only-prereq.json). 3H-0 derives `prereq_cohort_only`
-// from the same JSON; this module exists so the rule has one executable
-// reading that the P-6 tests and the corpus count share.
+// Reference reading of the cohort-only prerequisite rule
+// (eval/query-rules/cohort-only-prereq.json). The ingest derives
+// `prereq_cohort_only` from the same rule (mirrored in data/cohort-only-prereq.json);
+// this module gives it one executable reading that the query-rule tests and
+// the corpus count share.
 import { readFileSync } from 'node:fs';
 
 /** @type {any} */

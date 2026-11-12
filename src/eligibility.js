@@ -1,11 +1,11 @@
 // @ts-check
-// Exchange-mode eligibility (docs/plans/phase4.md §2, ADR 0007): whether an
+// Exchange-mode eligibility (ADR 0007): whether an
 // exchange (Non-Graduating) student may take a module in a semester at a study
 // level, under the NG course list and the Registrar's course restrictions.
 //
 // Pure, and the rules come in as an argument (data/ng-restrictions-<year>.json,
 // built by scripts/build-ng-restrictions.mjs), so nothing here imports JSON:
-// scripts/lib.mjs reads the file and calls this at ingest (4A), and the Worker
+// scripts/lib.mjs reads the file and calls this at ingest, and the Worker
 // only ever reads the stored result. Runs no I/O.
 
 import { NG_SEMS, OFF_NG_LIST, STUDIES, bitOf } from './ng-bit.js';
@@ -29,7 +29,7 @@ export { NG_SEMS, OFF_NG_LIST, STUDIES, bitOf };
  */
 
 /**
- * The fields eligibility reads from a normalised module. `ngUnpublished` (G2, Phase 7 7E): the
+ * The fields eligibility reads from a normalised module. `ngUnpublished`: the
  * semesters NUS hasn't published this year's list for, set by scripts/lib.mjs on every module
  * when there are any; `ngSemesters` then holds such a semester exactly when the course was on
  * last year's list for it.
@@ -41,7 +41,7 @@ export { NG_SEMS, OFF_NG_LIST, STUDIES, bitOf };
 export const NOT_NG_IN_SEM = 'ng-list:not-in-semester';
 export const SEMESTER_MISMATCH = 'ng-list:nusmods-semester-differs';
 export const GRAD_LEVELS = 'D-grad-levels-closed-exchange';
-// G2 (Jacob's answer, ADR 0011): in a semester NUS hasn't published, a course on last year's list
+// In a semester NUS hasn't published (ADR 0015), a course on last year's list
 // is "to confirm" (kind `ask`), never open; one that wasn't stays hidden, with its own reason, since
 // "only in the other semester" would be false there.
 export const UNPUBLISHED_SEM = 'ng:unpublished-sem';
@@ -88,9 +88,9 @@ export function eligibility(m, { sem, study }, rules) {
   /** @type {string[]} */ const closed = [];
   /** @type {string[]} */ const notes = [];
 
-  // 1. The NG list (plan §2 step 1; Jacob's Q7: off the list is closed; Q5: a
-  //    NUSMods semester that differs from the NG list's is a note; G2: a semester
-  //    NUS hasn't published is last year's list, to confirm).
+  // 1. The NG list: off the list is closed; a NUSMods semester that differs
+  //    from the NG list's is a note; a semester NUS hasn't published is last
+  //    year's list, to confirm.
   const unpublished = m.ngUnpublished ?? [];
   if (!m.ng || m.ngSemesters.length === 0) closed.push(OFF_NG_LIST);
   else if (sem === 'any') {

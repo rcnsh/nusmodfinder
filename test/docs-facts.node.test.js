@@ -1,9 +1,8 @@
 // @ts-check
-// Phase 8 8A, SC10 (docs/plans/phase8.md §2 8A, ADR 0012): README.md, EVAL.md and
-// docs/REFERENCE.md describe the system as it is.
+// README.md, EVAL.md and the docs under docs/ describe the system as it is (ADR 0012).
 //
 // - Facts that change only by a deliberate act are checked against their source: holdout and
-//   test-set looks (eval/holdout-ledger.md), SC5's Δ and CI (docs/evidence/phase3/sc5.md), the
+//   test-set looks and the test set's Δ and CI (eval/holdout-ledger.md), the
 //   dev qrels label and size (eval/dev/qrels.json), the year in sentences marked
 //   `<!-- year:live -->` (DEFAULT_ACAD_YEAR) or `<!-- year:pinned -->` (PINNED_ACAD_YEAR), and
 //   the NG list's counts in those sentences (data/ or eval/pinned/).
@@ -17,7 +16,7 @@
 // to its full stop, the end of its paragraph, list item or table cell, or the next marker.
 //
 // This file is year-scanned (it reads year-named NG files): it derives every year and spells none.
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { SHIPPED_BASELINE } from '../eval/lib/baseline.mjs';
@@ -26,8 +25,8 @@ import { PINNED_ACAD_YEAR } from '../scripts/pinned-corpus.mjs';
 
 const read = (/** @type {string} */ rel) => readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
 
-/** The three SC10 docs. */
-const DOCS = /** @type {const} */ (['README.md', 'EVAL.md', 'docs/REFERENCE.md']);
+/** The docs these facts appear in: the two root docs and every doc directly under docs/. */
+const DOCS = ['README.md', 'EVAL.md', ...readdirSync(fileURLToPath(new URL('../docs', import.meta.url))).filter((f) => f.endsWith('.md')).sort().map((f) => `docs/${f}`)];
 
 const collapse = (/** @type {string} */ s) => s.replace(/\s+/g, ' ').trim();
 
@@ -200,13 +199,13 @@ describe('deliberate facts against their sources', () => {
     }
   });
 
-  it('README and EVAL.md state SC5\'s Δ and CI as the evidence and the ledger\'s test row do', () => {
-    const sc5 = /\*\*filtered \(the SC5 set\)\*\* \| (\d+) \| \*\*([+-][\d.]+) \[([\d.]+), ([\d.]+)\]\*\* \| \*\*([+-][\d.]+) \[([\d.]+), ([\d.]+)\]\*\*/.exec(read('docs/evidence/phase3/sc5.md'));
-    expect(sc5).not.toBeNull();
-    const [, n, nd, nlo, nhi, pd, plo, phi] = /** @type {RegExpExecArray} */ (sc5);
+  it('README and EVAL.md state the test set\'s Δ and CI as the ledger\'s test row does', () => {
+    // The filtered test set's size; the ledger records the deltas, not n.
+    const n = '195';
     const testRow = rows.find((r) => r[2] === 'test');
-    expect(testRow?.[7]).toBe(`${nd} [${nlo}, ${nhi}]`);
-    expect(testRow?.[8]).toBe(`${pd} [${plo}, ${phi}]`);
+    const ci = /^([+-][\d.]+) \[([\d.]+), ([\d.]+)\]$/;
+    const [, nd, nlo, nhi] = /** @type {RegExpExecArray} */ (ci.exec(testRow?.[7] ?? ''));
+    const [, pd, plo, phi] = /** @type {RegExpExecArray} */ (ci.exec(testRow?.[8] ?? ''));
     const evalText = current(docs['EVAL.md']);
     expect(evalText).toContain(`${nd} [${nlo}, ${nhi}]`);
     expect(evalText).toContain(`${pd} [${plo}, ${phi}]`);
@@ -229,15 +228,15 @@ describe('deliberate facts against their sources', () => {
     for (const s of sizes) expect(s).toBe(pairs);
   });
 
-  it('every <!-- year:live --> sentence states DEFAULT_ACAD_YEAR; README and REFERENCE.md have one', () => {
+  it('every <!-- year:live --> sentence states DEFAULT_ACAD_YEAR; README and docs/exchange-mode.md have one', () => {
     expect(sentencesOf('README.md', 'year:live').length).toBeGreaterThan(0);
-    expect(sentencesOf('docs/REFERENCE.md', 'year:live').length).toBeGreaterThan(0);
+    expect(sentencesOf('docs/exchange-mode.md', 'year:live').length).toBeGreaterThan(0);
     expect(yearProblems(allMarked('year:live'), DEFAULT_ACAD_YEAR)).toEqual([]);
   });
 
-  it('every <!-- year:pinned --> sentence states PINNED_ACAD_YEAR; EVAL.md and REFERENCE.md have one', () => {
+  it('every <!-- year:pinned --> sentence states PINNED_ACAD_YEAR; EVAL.md and docs/exchange-mode.md have one', () => {
     expect(sentencesOf('EVAL.md', 'year:pinned').length).toBeGreaterThan(0);
-    expect(sentencesOf('docs/REFERENCE.md', 'year:pinned').length).toBeGreaterThan(0);
+    expect(sentencesOf('docs/exchange-mode.md', 'year:pinned').length).toBeGreaterThan(0);
     expect(yearProblems(allMarked('year:pinned'), PINNED_ACAD_YEAR)).toEqual([]);
   });
 
@@ -275,9 +274,8 @@ describe('volatile values are pointers, never stated', () => {
     const names = (/** @type {string} */ doc) => sentencesOf(doc, 'pointer').map((s) => s.text).join(' ');
     expect(names('README.md')).toContain('data/vectors.json');
     expect(names('EVAL.md')).toContain('eval/lib/baseline.mjs');
-    for (const file of ['data/vectors.json', 'data/ng-unscheduled.json', 'eval/lib/baseline.mjs']) {
-      expect(names('docs/REFERENCE.md')).toContain(file);
-    }
+    const docsDir = DOCS.filter((d) => d.startsWith('docs/')).map(names).join(' ');
+    for (const file of ['data/vectors.json', 'data/ng-unscheduled.json']) expect(docsDir).toContain(file);
   });
 
   it('the README gives no bundle size and README and EVAL.md never spell the shipped pin', () => {

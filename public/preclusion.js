@@ -1,5 +1,5 @@
 // @ts-check
-// Whether one course's NUS preclusion text names another (Phase 6 6B): the
+// Whether one course's NUS preclusion text names another: the
 // shortlist's preclusion flag and its same-course rule. Pure; checked on NUS's
 // own texts in test/web/preclusion.node.test.js.
 //

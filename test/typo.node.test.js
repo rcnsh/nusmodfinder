@@ -1,6 +1,5 @@
 // @ts-check
-// 3C's corrector (src/typo.js) at parse step 3 (docs/plans/phase3-prereg.md §3
-// and §4 "3C Typos and prefixes"), the parse after it (src/query-intent.js),
+// The typo corrector (src/typo.js) at parse step 3, the parse after it (src/query-intent.js),
 // and the FTS expression it yields (src/fts-query.js). Per pre-correction
 // token with df 0: 4+ letters → a prefix term; only if that prefix term
 // matches nothing, 5+ letters → the nearest vocabulary term by OSA distance
@@ -94,13 +93,13 @@ describe('the parse after correction', () => {
   });
   const parse = (/** @type {string} */ q) => parseQuery(canonicalQuery(q.trim()), ctx);
 
-  it('reads intents on the corrected text (C2-4): `genral educaton` is the GE phrase', () => {
+  it('reads intents on the corrected text: `genral educaton` is the GE phrase', () => {
     const p = parse('genral educaton society');
     expect(p.interpreted.ge).not.toBeNull();
     expect(p.lexical).toBe('society');
   });
 
-  it('exposes the pre-correction tokens (3G reads them) and the corrected text, and echoes no correction in interpreted', () => {
+  it('exposes the pre-correction tokens (the no-signal check reads them) and the corrected text, and echoes no correction in interpreted', () => {
     const p = parse('psycholgy of learning');
     expect(p.tokens).toEqual(['psycholgy', 'of', 'learning']);
     expect(p.corrected).toBe('psychology of learning');
@@ -116,7 +115,7 @@ describe('the parse after correction', () => {
     expect(ftsMatch(p.lexical, p.fts)).toBe('"psychology" OR "psycholgy"* OR "learning"');
   });
 
-  it('without a vocabulary the parse is 3B\'s: no correction, no prefix term', () => {
+  it('without a vocabulary there is no correction and no prefix term', () => {
     const plain = parseQuery('psycholgy of learning', { ...ctx, vocabulary: null });
     expect(plain.corrected).toBeNull();
     expect(plain.fts).toEqual({ prefixes: [], corrections: [] });
@@ -124,7 +123,7 @@ describe('the parse after correction', () => {
   });
 });
 
-describe('ftsMatch with 3C terms', () => {
+describe('ftsMatch with the corrector\'s terms', () => {
   it('is unchanged without them, and for a query with no df-0 token', () => {
     expect(ftsMatch('machine design')).toBe('"machine" OR "design"');
     expect(ftsMatch('machine design', { prefixes: [], corrections: [] })).toBe('"machine" OR "design"');
@@ -147,7 +146,7 @@ describe('ftsMatch with 3C terms', () => {
 });
 
 describe('the variant selector', () => {
-  it('is one constant naming 3C-1 (lexical half only) or 3C-2 (also embeds the corrected text)', () => {
+  it('is one constant naming 3c1 (lexical half only) or 3c2 (also embeds the corrected text)', () => {
     expect(Object.keys(TYPO_VARIANTS)).toEqual(['3c1', '3c2']);
     expect(TYPO_VARIANTS['3c1'].embedCorrected).toBe(false);
     expect(TYPO_VARIANTS['3c2'].embedCorrected).toBe(true);

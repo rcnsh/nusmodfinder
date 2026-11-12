@@ -1,9 +1,8 @@
 // @ts-check
-// Phase 7 7E (docs/plans/phase7.md 7E, tests first): the restrictions builder reads its year's
-// overlay (scripts/ng-overlay/<year>.mjs) and documents through the year's source manifest, and
-// finds the self-funded list and the off-list rule by role, not by an id a new year may rename.
-// The move was pure: from documents matching the manifest, the builder writes the committed rules
-// file byte for byte (here from fakes that hold the committed lists, so only `sourceSha256`, which
+// The restrictions builder reads its year's overlay (scripts/ng-overlay/<year>.mjs) and documents
+// through the year's source manifest, and finds the self-funded list and the off-list rule by
+// role, not by an id a new year may rename. From documents matching the manifest, the builder
+// writes the committed rules file byte for byte (here from fakes that hold the committed lists, so only `sourceSha256`, which
 // names the documents, differs, and that is checked equal to the manifest's hashes separately).
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

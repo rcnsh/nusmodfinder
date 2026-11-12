@@ -1,11 +1,11 @@
--- Phase 1 (1A): external-content FTS keyed on rowid, filter columns for SQL-side
--- filtering, and a row_hash slot for ingest. docs/plans/phase1.md "0006".
+-- External-content FTS keyed on rowid, filter columns for SQL-side filtering,
+-- and a row_hash slot for ingest.
 --
--- The old FTS table stored its own copy of every title and description, and its
+-- 0002's FTS table stored its own copy of every title and description, and its
 -- update/delete triggers deleted by the UNINDEXED `code` column: a full scan of
--- the FTS table per changed row (FINDINGS B3; ~46M rows read for a forced full
--- re-ingest). The new table reads its content from `modules` and every trigger
--- addresses the FTS row by rowid, which is a point lookup.
+-- the FTS table per changed row (~46M rows read for a forced full re-ingest).
+-- This table reads its content from `modules` and every trigger addresses the
+-- FTS row by rowid, which is a point lookup.
 --
 -- Hazard: nothing may change a modules rowid. The FTS row is keyed on it and no
 -- trigger here moves it: the update trigger fires only when code, title or
@@ -17,8 +17,8 @@
 -- hazard (see the triggers below; a test bans it).
 --
 -- `code` stays UNINDEXED: indexing it, even at bm25 weight 0, changes bm25's
--- document lengths and so the ranking (plan r2). Prefix indexes cost nothing at
--- query time for full-token queries and spare Phase 3 a second remote rebuild.
+-- document lengths and so the ranking. Prefix indexes cost nothing at query
+-- time for full-token queries and serve prefix terms without another rebuild.
 --
 -- This file inserts no d1_migrations row: wrangler (local), applyD1Migrations
 -- (tests) and the generated remote wrapper (scripts/remote-migration.mjs) do.
@@ -74,7 +74,8 @@ BEGIN
   SELECT RAISE(ABORT, 'modules.rowid is immutable: modules_fts is keyed on it');
 END;
 
--- Filter columns for SQL-side filtering (FINDINGS B1). VIRTUAL generated
+-- Filter columns for SQL-side filtering, so a filter never drops matches that a
+-- LIMIT cut before it (src/lexical.js). VIRTUAL generated
 -- columns: computed on read, never stored, so no backfill and no drift from the
 -- JSON they are derived from. `semesters` and `ng_semesters` are JSON integer
 -- arrays written by JSON.stringify ("[1,2]"); turning the brackets into commas
@@ -105,10 +106,10 @@ CREATE INDEX IF NOT EXISTS idx_modules_credits ON modules(credits);
 CREATE INDEX IF NOT EXISTS idx_modules_sem3 ON modules(sem3) WHERE sem3 = 1;
 CREATE INDEX IF NOT EXISTS idx_modules_sem4 ON modules(sem4) WHERE sem4 = 1;
 
--- Hash of the full normalised row (Phase 1C). NULL until ingest writes it.
+-- Hash of the full normalised row (src/rowhash.js). NULL until ingest writes it.
 ALTER TABLE modules ADD COLUMN row_hash TEXT;
 
 -- Schema marker: ingest refuses to run against a database without it, because
--- a full rewrite through the old triggers reads ~46M rows (plan r2).
+-- a full rewrite through 0002's triggers reads ~46M rows.
 INSERT INTO meta (key, value, updated_at) VALUES ('schema', '6', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
   ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at;

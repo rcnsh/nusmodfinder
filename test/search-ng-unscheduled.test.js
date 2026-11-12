@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 6 6A (docs/plans/phase6.md §3 "6A"): /search reads the NG-listed codes
+// /search reads the NG-listed codes
 // with no classes this year (src/ng-unscheduled.js, here
 // test/fixtures/ng-unscheduled.json) before its unknown-code and not-offered
 // answers, so a typed EE4438, which the workers project's catalogue

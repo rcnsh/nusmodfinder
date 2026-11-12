@@ -1,6 +1,6 @@
 // @ts-check
 // scripts/deploy.mjs: the preflight (test/preflight.node.test.js covers each check), then the
-// guard over D1's REST query endpoint (Phase 7 7B, G1), the upload with the commit as its tag,
+// guard over D1's REST query endpoint, the upload with the commit as its tag,
 // the startup gate, the intent record (the previous version id), the promote, an annotated
 // `deploy/*` tag pushed before `wrangler triggers deploy`, and one run record on every exit
 // path. git, gh and wrangler are a fake exec, D1 is the real REST client over a fake fetch, the
@@ -18,7 +18,7 @@ import {
   bundleOf, catalogueOf, fakeD1, fakeExec, ghRun, runsBody,
 } from './deploy-fakes.node.mjs';
 
-/** Each test's run records (Phase 7 7C), in a temp dir. @type {string} */
+/** Each test's run records, in a temp dir. @type {string} */
 let runsDir;
 beforeEach(() => { runsDir = mkdtempSync(join(tmpdir(), 'vnm-deploy-runs-')); });
 afterEach(() => { rmSync(runsDir, { recursive: true, force: true }); });
@@ -60,12 +60,12 @@ const promoted = (/** @type {string[][]} */ calls) => calls.some((c) => c[2] ===
 const at = (calls, p) => calls.findIndex(p);
 
 describe('npm run deploy', () => {
-  it('Phase 4: the committed wrangler.jsonc vars hold only DENSE_BACKEND, and any other var is refused before wrangler', async () => {
+  it('the committed wrangler.jsonc vars hold only DENSE_BACKEND, and any other var is refused before wrangler', async () => {
     expect(Object.keys(await wranglerVars())).toEqual(ALLOWED_VARS);
     const { exec, calls } = fakeExec({});
-    const { code, err } = await runDeploy(exec, { vars: { DENSE_BACKEND: 'bundle', SC1_TRACE: '1' } });
+    const { code, err } = await runDeploy(exec, { vars: { DENSE_BACKEND: 'bundle', ORACLE_TRACE: '1' } });
     expect(code).toBe(1);
-    expect(err).toContain('SC1_TRACE');
+    expect(err).toContain('ORACLE_TRACE');
     expect(wrangler(calls)).toEqual([]);
   });
 
@@ -104,14 +104,13 @@ describe('npm run deploy', () => {
     expect(records().find((r) => r.outcome === 'ok')).toMatchObject({ args: ['--behind-ok'], details: { behindOk: true } });
   });
 
-  it('refuses no run, a running run, a failed or cancelled run, and a Findings failure, before D1 or any upload', async () => {
+  it('refuses no run, a running run, a failed or cancelled run, and another commit\'s run, before D1 or any upload', async () => {
     for (const runs of [
       [],
-      [ghRun('CI', { status: 'queued', conclusion: null }), ghRun('Findings')],
-      [ghRun('CI', { conclusion: 'failure' }), ghRun('Findings')],
-      [ghRun('CI', { conclusion: 'cancelled' }), ghRun('Findings')],
-      [ghRun('CI'), ghRun('Findings', { conclusion: 'failure' })],
-      [ghRun('CI'), ghRun('Findings', { head_sha: 'f'.repeat(40) })],
+      [ghRun('CI', { status: 'queued', conclusion: null })],
+      [ghRun('CI', { conclusion: 'failure' })],
+      [ghRun('CI', { conclusion: 'cancelled' })],
+      [ghRun('CI', { head_sha: 'f'.repeat(40) })],
     ]) {
       const { exec, calls } = fakeExec({ [RUNS_API]: { stdout: runsBody(runs) } });
       const { code, d1Reads } = await runDeploy(exec);
@@ -138,7 +137,7 @@ describe('npm run deploy', () => {
     expect(out).toContain('startup 21 ms');
     expect(out).toContain(`version ${VERSION} (tag ${SHORT}) is live`);
     // The schema check reads 1 row in the fake, the hashes 6,800.
-    // The schema row, 6,800 module rows, and 7D's catalogue_only table check and codes.
+    // The schema row, 6,800 module rows, and the catalogue_only table check and codes.
     expect(out).toMatch(new RegExp(`guard: 2 modules, ${6800 + 1 + 1 + CATALOGUE.length} D1 rows read`));
     expect(out).toContain(`previous version ${PREVIOUS}`);
   });
@@ -212,7 +211,7 @@ describe('npm run deploy', () => {
     }
   });
 
-  it(`[B-4] refuses to promote a version whose startup time is above ${MAX_STARTUP_MS} ms, or missing`, async () => {
+  it(`refuses to promote a version whose startup time is above ${MAX_STARTUP_MS} ms, or missing`, async () => {
     for (const stdout of [`Worker Startup Time: ${MAX_STARTUP_MS + 1} ms\nWorker Version ID: ${VERSION}\n`, `Worker Version ID: ${VERSION}\n`]) {
       const { exec, calls } = fakeExec({ upload: { stdout } });
       const { code, err } = await runDeploy(exec);
@@ -224,7 +223,7 @@ describe('npm run deploy', () => {
     expect((await runDeploy(exec)).code).toBe(0);
   });
 
-  it('[B-9, B2-4] refuses the fixture and the pinned bundle, before reading D1 or running wrangler', async () => {
+  it('refuses the fixture and the pinned bundle, before reading D1 or running wrangler', async () => {
     for (const bundle of [bundleOf({ corpus: 'fixture' }), bundleOf({ corpus: 'pinned' }), bundleOf({ sha256: 'pinned-sha' })]) {
       const { exec, calls } = fakeExec();
       const { code, err, d1Reads } = await runDeploy(exec, { bundle });
@@ -246,12 +245,12 @@ describe('npm run deploy', () => {
   });
 });
 
-describe('the guard over the D1 REST query (Phase 7 7B, G1)', () => {
-  it('[B-2, B3-4] refuses when D1 does not hold the bundle\'s texts or the committed data version, or cannot be read', async () => {
+describe('the guard over the D1 REST query', () => {
+  it('refuses when D1 does not hold the bundle\'s texts or the committed data version, or cannot be read', async () => {
     const otherText = D1_MODULES.map((m) => (m.code === 'CS2040' ? { ...m, text_hash: 'old' } : m));
     // Rows written by ingest, but not the committed ones: only the data version differs.
     const otherRow = [D1_MODULES[0], await d1Row({ code: 'CS2040', title: 'Data Structures and Algorithms', description: 'd2', textHash: 't2', credits: 5 })];
-    // Red team M-1: a column changed behind its row_hash.
+    // A column changed behind its row_hash.
     const behind = D1_MODULES.map((m) => (m.code === 'CS2040' ? { ...m, credits: 99 } : m));
     for (const [d1, msg] of /** @type {const} */ ([
       [() => fakeD1({ modules: otherText }).client, 'rowsKey'],
@@ -313,7 +312,7 @@ describe('the guard over the D1 REST query (Phase 7 7B, G1)', () => {
     expect(ranWrangler(calls2)).toBe(false);
   });
 
-  it('the shipped checks are rowsKey, the data version, 7D\'s catalogueKey, and the two row_hash checks (red team M-1)', () => {
+  it('the checks are rowsKey, the data version, the catalogueKey, and the two row_hash checks', () => {
     expect(GUARD_CHECKS.map((c) => c.name)).toEqual(['rowsKey', 'dataVersion', 'rowHashes', 'catalogueKey', 'catalogueRows']);
     expect(GUARD_CHECKS.find((c) => c.name === 'dataVersion')?.field).toBe('dataVersion');
     expect(GUARD_CHECKS.find((c) => c.name === 'catalogueKey')?.field).toBe('catalogueKey');
@@ -323,7 +322,7 @@ describe('the guard over the D1 REST query (Phase 7 7B, G1)', () => {
   });
 });
 
-describe('Phase 7 7D: the catalogueKey in the guard', () => {
+describe('the catalogueKey in the guard', () => {
   it('D1\'s catalogue_only codes equal to the bundled file\'s deploy, with the key in the tag and the record', async () => {
     const { exec, calls } = fakeExec();
     expect((await runDeploy(exec)).code).toBe(0);
@@ -351,24 +350,24 @@ describe('Phase 7 7D: the catalogueKey in the guard', () => {
   });
 });
 
-describe('Phase 7 7C: the clean-tree exemption and the run record', () => {
-  it('admits new, untracked run records under docs/evidence/ops/runs/ and nothing else', async () => {
+describe('the clean-tree exemption and the run record', () => {
+  it('admits new, untracked run records under ops/runs/ and nothing else', async () => {
     const { exec } = fakeExec({ [STATUS_KEY]: {
-      stdout: '?? docs/evidence/ops/runs/20261112T101530Z-ingest-ab12.json\n?? docs/evidence/ops/runs/20261112T101544Z-verify-cd34.json\n',
+      stdout: '?? ops/runs/20261112T101530Z-ingest-ab12.json\n?? ops/runs/20261112T101544Z-verify-cd34.json\n',
     } });
     expect((await runDeploy(exec)).code).toBe(0);
   });
 
   it('refuses a modified tracked run record, a new file elsewhere, and a new file that is not a run record', async () => {
     for (const line of [
-      ' M docs/evidence/ops/runs/20261112T101530Z-ingest-ab12.json',
-      'A  docs/evidence/ops/runs/20261112T101530Z-ingest-ab12.json',
-      '?? docs/evidence/ops/notes.md',
-      '?? docs/evidence/ops/runs/sub/20261112T101530Z-ingest-ab12.json',
-      '?? docs/evidence/ops/runs/scratch.txt',
+      ' M ops/runs/20261112T101530Z-ingest-ab12.json',
+      'A  ops/runs/20261112T101530Z-ingest-ab12.json',
+      '?? ops/notes.md',
+      '?? ops/runs/sub/20261112T101530Z-ingest-ab12.json',
+      '?? ops/runs/scratch.txt',
       '?? src/scratch.js',
     ]) {
-      const { exec, calls } = fakeExec({ [STATUS_KEY]: { stdout: `?? docs/evidence/ops/runs/20261112T101530Z-ingest-ff00.json\n${line}\n` } });
+      const { exec, calls } = fakeExec({ [STATUS_KEY]: { stdout: `?? ops/runs/20261112T101530Z-ingest-ff00.json\n${line}\n` } });
       const { code, err } = await runDeploy(exec);
       expect(code, line).toBe(1);
       expect(err).toContain(line.trim());

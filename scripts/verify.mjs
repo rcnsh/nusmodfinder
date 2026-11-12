@@ -7,20 +7,20 @@
 // D1 side through the Worker's /admin/verify (INGEST_SECRET, like ingest);
 // vector ids from `wrangler vectorize list-vectors <index> --json`, paged
 // 1,000 at a time. Run it against the same `wrangler dev --remote` Worker as
-// ingest (docs/REFERENCE.md "Re-ingesting"), after ingest reports done. What counts as
+// ingest (docs/data.md "Re-ingesting"), after ingest reports done. What counts as
 // drift: scripts/verify-core.mjs.
 //
 // Flags: --url <base> (else $WORKER_URL; no default, and ports 8787 and 8799
-// are refused: Phase 7 7C),
+// are refused),
 // --index <name> (default the wrangler.jsonc index), --sample <n> (default 100,
 // max 100), --json (print the report as JSON).
 //
-// Phase 3 splits verify in two (docs/plans/phase3.md 3-0, B2-1):
+// Verify has two modes:
 //   --pre-deploy [--bundle production|pinned|fixture]   runbook step 5, before
 //     the deploy: D1's (code, text_hash) pairs equal the manifest's rowsKey,
 //     D1's data version equals the committed one, and the bundle's codes and
 //     filter table equal D1's fields. Reads no Vectorize.
-//   (default)   after runbook step 8: today's check (Vectorize metadata
+//   (default)   after runbook step 8: the full check (Vectorize metadata
 //     against D1, and the id list). `--values` (or scripts/vectors.mjs
 //     standby) also compares a getByIds sample of values with the production
 //     bundle's bits.
@@ -77,7 +77,7 @@ export async function listVectorIds(index, exec = run) {
 }
 
 /**
- * 6A: the year files this deploy ships, and the NG list of the year the reason texts name.
+ * The year files this deploy ships, and the NG list of the year the reason texts name.
  * @param {string} acadYear
  * @returns {import('./verify-core.mjs').PreDeployDataFiles}
  */
@@ -147,13 +147,13 @@ export async function main(argv, deps = {}) {
     if (values['pre-deploy']) {
       const { entry, bundle } = await loadBundle();
       const committedDataVersion = String(JSON.parse(await readFile(DATA_VERSION_PATH, 'utf8')).version);
-      // Phase 4 (B3-5): every stored rule id has a text in the reasons this deploy ships.
+      // Every stored rule id has a text in the reasons this deploy ships.
       const ngReasons = JSON.parse(readFileSync(new URL('../data/ng-reasons.json', import.meta.url), 'utf8'));
       const reasons = ngReasons.reasons;
       const report = await runPreDeployVerify({
         api: httpAdminApi(base, secret, fetchImpl), bundle, manifest: entry, committedDataVersion,
         knownReason: (id) => Object.hasOwn(reasons, id), dataFiles: preDeployDataFiles(ngReasons.acadYear),
-        // Phase 7 7D: D1's catalogue_only against the catalogue file this deploy bundles.
+        // D1's catalogue_only against the catalogue file this deploy bundles.
         catalogue: await readBundledCatalogue(),
       });
       if (values.json) log(JSON.stringify(report, null, 2));

@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7D: the Worker reports D1's catalogueKey (src/rowhash.js, over the
+// The Worker reports D1's catalogueKey (src/rowhash.js, over the
 // catalogue_only codes) in GET /admin/hashes, the deploy guard's read, and in
 // POST /admin/verify `{ preDeploy: true }`, the read of `verify --pre-deploy`,
 // which refuses a key that is not the bundled catalogue file's.

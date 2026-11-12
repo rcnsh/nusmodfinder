@@ -1,11 +1,11 @@
 // @ts-check
-// The shortlist on this device (Phase 6 6B, G3: Jacob). The last
-// list this student edited is kept in localStorage, as the URL would write it;
-// the page offers it ("Restore your last shortlist") when a link has no list,
-// and "Forget this list on this device" clears it. The page saves only on its
-// own edits, so opening someone else's link never overwrites it. Storage may
-// be missing or throw (private mode, blocked): then there is no copy, never an
-// error. No DOM: test/web/saved.node.test.js passes a stand-in.
+// The shortlist on this device. The last list this student edited is kept in
+// localStorage, as the URL would write it; the page offers it ("Restore your
+// last shortlist") when a link has no list, and "Forget this list on this
+// device" clears it. The page saves only on its own edits, so opening someone
+// else's link never overwrites it. Storage may be missing or throw (private
+// mode, blocked): then there is no copy, never an error. No DOM:
+// test/web/saved.node.test.js passes a stand-in.
 import { entryCount, listPairs, parseList } from './list.js';
 
 export const SAVED_KEY = 'vnm.shortlist';

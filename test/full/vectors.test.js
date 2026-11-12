@@ -1,10 +1,10 @@
 // @ts-check
-// The pinned vectors bundle (Phase 3 3-0, B2-4): what the full-corpus CI job
-// and the SC4 suite search. Skipped unless vitest.config.mjs aliased it in
+// The pinned vectors bundle: what the full-corpus CI job and the query suite
+// search. Skipped unless vitest.config.mjs aliased it in
 // (it is fetched by `node scripts/vectors.mjs fetch --corpus pinned`; with
 // FULL_CORPUS=1 a missing bundle fails the config before any test runs).
 //
-// The CPU microbenchmark (B-5, B2-8): workerd's clock reads ~0 for CPU work
+// The CPU microbenchmark: workerd's clock reads ~0 for CPU work
 // in production, so the `vector` span is no evidence. Locally, under the
 // Vitest pool, performance.now() advances with CPU time, so the exact search
 // is timed here: cold (the first call in this isolate: the bundle parse, then
@@ -35,7 +35,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the pinned vectors bundle',
     expect(hits[0].code).toBe(b.codes[0]);
   });
 
-  it('is the bundle data/vectors.json records, keyed by the pinned corpus\'s texts (B-2, B2-5)', async () => {
+  it('is the bundle data/vectors.json records, keyed by the pinned corpus\'s texts', async () => {
     const b = denseBundle();
     expect(b.header).toMatchObject({ corpus: 'pinned', count: 6771, dims: 384, embedding: entry.embedding, dataVersion: entry.dataVersion, rowsKey: entry.rowsKey });
     expect(await rowsKey(c.modules)).toBe(entry.rowsKey);
@@ -54,7 +54,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the pinned vectors bundle',
     }
   });
 
-  it('shares one vector between codes with the same text (B2-5)', () => {
+  it('shares one vector between codes with the same text', () => {
     const b = denseBundle();
     const index = new Map(b.codes.map((code, i) => [code, i]));
     /** @type {Map<string, string[]>} */
@@ -70,7 +70,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the pinned vectors bundle',
   });
 
   // A measurement, not a gate: 1,000+ searches take ~7 s on a CI runner (3.4 ms each), so it gets room.
-  it('[B-5] CPU per exact search over 6,771 x 384 float32 rows, warm, unfiltered and filtered', { timeout: 60_000 }, () => {
+  it('CPU per exact search over 6,771 x 384 float32 rows, warm, unfiltered and filtered', { timeout: 60_000 }, () => {
     const b = denseBundle();
     // The clock ticks in whole milliseconds here, so each figure is a batch of
     // N searches timed together; five batches, their per-search means reported.

@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 6 6A (docs/plans/phase6.md §3 "6A"): the NG-listed codes with no
+// The NG-listed codes with no
 // classes this year. NUS lists them for exchange students, NUSMods has no
 // offering for them, so D1 has no `modules` row (only a `catalogue_only` one,
 // which holds no units, faculty or restrictions). This file holds each one's
@@ -27,7 +27,7 @@ export const NG_UNSCHEDULED_SCHEMA = 'vnm-ng-unscheduled/1';
  *   otherCodes: string[], ngAllow: number, ngRules: Record<string, string[]> | null,
  *   ngUnpublished?: number[],
  * }} NgUnscheduledEntry
- *   `ngUnpublished` (G2, Phase 7 7E): the semesters NUS hasn't published, present only when there are any
+ *   `ngUnpublished`: the semesters NUS hasn't published, present only when there are any
  * @typedef {'production' | 'pinned' | 'fixture'} NgUnscheduledCorpus
  * @typedef {{
  *   schema: string, generator: string, corpus: NgUnscheduledCorpus, acadYear: string, dataVersion: string,

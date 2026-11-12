@@ -1,7 +1,7 @@
 // @ts-check
-// The page's source as a whole (Phase 5 5B): static assets in public/ that
-// never shadow an API path, DOM-only rendering enforced by lint (F8), and
-// Enter that waits for IME composition (F9).
+// The page's source as a whole: static assets in public/ that never shadow an
+// API path, DOM-only rendering enforced by lint, and Enter that waits for IME
+// composition.
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -35,7 +35,7 @@ describe('static assets', () => {
     expect(config).not.toMatch(/"assets":\s*\{[^}]*"binding"/);
   });
 
-  it('src/ serves no page but the 404 (Phase 8 8B): `/` is answered by assets in front', () => {
+  it('src/ serves no page but the 404: `/` is answered by assets in front', () => {
     // src/, not public/, so the 404 isn't also served as /404.html with a 200.
     expect(walk(join(ROOT, 'src')).filter((f) => f.endsWith('.html')).map((f) => relative(ROOT, f))).toEqual(['src/404.html']);
     expect(files).not.toContain('/404.html');
@@ -51,8 +51,8 @@ describe('static assets', () => {
   });
 });
 
-describe('rendering builds DOM nodes (F8)', () => {
-  it('[F8 fixed] lint bans innerHTML, outerHTML and insertAdjacentHTML in public/', async () => {
+describe('rendering builds DOM nodes', () => {
+  it('lint bans innerHTML, outerHTML and insertAdjacentHTML in public/', async () => {
     const eslint = new ESLint({ cwd: ROOT });
     const sinks = [
       'document.body.innerHTML = location.hash;',
@@ -74,8 +74,8 @@ describe('rendering builds DOM nodes (F8)', () => {
   });
 });
 
-describe('provenance (P3)', () => {
-  it('[P3 fixed] the title and the visible header say unofficial, and the footer links the sources', () => {
+describe('provenance', () => {
+  it('the title and the visible header say unofficial, and the footer links the sources', () => {
     const html = read('public/index.html');
     expect(html).toContain('<title>NUS Mod Finder (unofficial)</title>');
     // The h1's text; the brackets are visually hidden (the badge's outline stands in for them) but read aloud.
@@ -97,8 +97,8 @@ describe('provenance (P3)', () => {
   });
 });
 
-describe('IME (F9)', () => {
-  it('[F9 fixed] Enter submits only when !e.isComposing && e.keyCode !== 229', () => {
+describe('IME', () => {
+  it('Enter submits only when !e.isComposing && e.keyCode !== 229', () => {
     expect(isSubmitEnter({ key: 'Enter', isComposing: false, keyCode: 13 })).toBe(true);
     expect(isSubmitEnter({ key: 'Enter', isComposing: true, keyCode: 13 })).toBe(false);
     expect(isSubmitEnter({ key: 'Enter', isComposing: false, keyCode: 229 })).toBe(false);
@@ -114,12 +114,12 @@ describe('IME (F9)', () => {
   });
 });
 
-describe('accessibility in the source (5E, F5)', () => {
+describe('accessibility in the source', () => {
   const page = read('public/index.html');
   const body = /** @type {string} */ (page.match(/<body>([\s\S]*)<\/body>/)?.[1]);
   const scripts = files.filter((f) => f.endsWith('.js')).map((f) => read(`public${f}`)).join('\n');
 
-  it('[F5 fixed] one <h1>, a skip link before everything else, <main> and role="search", one polite live region, aria-busy on the list, and no script disables a control', () => {
+  it('one <h1>, a skip link before everything else, <main> and role="search", one polite live region, aria-busy on the list, and no script disables a control', () => {
     expect(page.match(/<h1\b/g)).toHaveLength(1);
     // The skip link is the first focusable element in the body.
     expect(body.match(/<(a|button|input|select|textarea)\b[^>]*>/)?.[0]).toBe('<a class="skip" id="skip" href="#setup">');
@@ -132,12 +132,12 @@ describe('accessibility in the source (5E, F5)', () => {
     expect(scripts).not.toMatch(/aria-live|'role',\s*'(status|alert)'|role: '(status|alert)'/);
     expect(page).toContain('<ol id="results" class="entries" aria-label="Results" aria-busy="false"></ol>');
     expect(read('public/render.js')).toContain("t.results.setAttribute('aria-busy', String(busy))");
-    // Disabling the focused Search button dropped focus to the page (F5); nothing is disabled now.
+    // Disabling the focused Search button would drop focus to the page, so nothing is disabled.
     expect(scripts).not.toMatch(/\.disabled\s*=\s*true|setAttribute\('disabled'|toggleAttribute\('disabled'/);
   });
 });
 
-describe('[5G S3] public/_headers: the page can\'t be framed, and runs only its own code', () => {
+describe('public/_headers: the page can\'t be framed, and runs only its own code', () => {
   /** The rules as Workers Static Assets reads them: a path line, then indented "Name: value" lines. */
   const rules = (() => {
     /** @type {Record<string, Record<string, string>>} */

@@ -1,15 +1,15 @@
 // @ts-check
-// The acad year the page names before any course row has loaded (Phase 6 6B):
-// the header's default and the shortlist's year until a /module row gives its
-// own `acad_year`. Every year the page prints comes from the rows once one
-// loads. The re-ingest runbook (docs/REFERENCE.md) updates it with the data;
+// The acad year the page names before any course row has loaded: the header's
+// default and the shortlist's year until a /module row gives its own
+// `acad_year`. Every year the page prints comes from the rows once one loads.
+// The re-ingest runbook (docs/data.md) updates it with the data;
 // test/web/shortlist.node.test.js checks it against data/ng-reasons.json.
 
 /** As acad_year writes it. */
 export const DEFAULT_ACAD_YEAR = '2026-2027';
 
 /**
- * The first screen's semester months for an acad year (Phase 7 7D: from the year, never literals):
+ * The first screen's semester months for an acad year (from the year, never literals):
  * Sem 1 runs August to December of its first year, Sem 2 January to May of its second.
  * @param {string} acadYear as acad_year writes it
  * @returns {{ 1: string, 2: string, both: string }}
@@ -32,7 +32,7 @@ export function nextYearLabel(label) {
 }
 
 /**
- * The header's year line at every width (Phase 8 8B): which year's lists the site shows, and, in
+ * The header's year line at every width: which year's lists the site shows, and, in
  * the shortlist's words (public/shortlist.js FORM_LINES.applicants), what an applicant for the next
  * year should expect. The site moves to the next year in July (docs/year-refresh/README.md).
  * @param {string} acadYear as acad_year writes it

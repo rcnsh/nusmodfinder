@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { isCohortOnly } from '../src/cohort-only.js';
 import { storedEligibility } from '../src/eligibility.js';
 
-/** 3H-0's P-6 cohort-only rule, as scripts/build-3b-data.mjs mirrors it into data/. */
+/** The pre-registered cohort-only rule, as scripts/build-catalogue-data.mjs mirrors it into data/. */
 const COHORT_ONLY = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.json', import.meta.url), 'utf8'));
 
 /**
@@ -18,14 +18,14 @@ const COHORT_ONLY = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.
  *   attributes?: { su?: boolean }, gradingBasisDescription?: string,
  * }} NusModsRecord
  * @typedef {Omit<Awaited<ReturnType<typeof loadNgCourses>>, 'stub' | 'unpublished'> & { stub?: boolean, unpublished?: number[] }} NgCourses
- *   `stub` and `unpublished` (Phase 7 7E) are optional for an NgCourses built by hand (tests)
+ *   `stub` and `unpublished` are optional for an NgCourses built by hand (tests)
  */
 
 export const DEFAULT_ACAD_YEAR = '2026-2027';
 export const EMBEDDING_MODEL = '@cf/baai/bge-small-en-v1.5';
 /**
  * Bump when embeddingText() changes, so text_hash changes and every module is
- * re-embedded once (FINDINGS B2: text_hash = hash(model + this + text)).
+ * re-embedded once (text_hash = hash(model + this + text)).
  */
 export const EMBEDDING_TEXT_VERSION = 2;
 export { EMBEDDING_DIMS } from '../src/embedding.js';
@@ -38,8 +38,8 @@ export const CACHE_DIR = new URL('../.data/cache/', import.meta.url);
 export const MAX_BLOB_CHARS = 1900;
 
 // NUS codes are 1-4 letters, four digits, then an optional variant suffix of up
-// to five alphanumerics. Widened from the plan's `[A-Z]?` after the Phase 1 probe
-// found ACC1701XA, DMA1401L01, DMR1201GEQA and LC6009GRSII in the live corpus.
+// to five alphanumerics: the live corpus has ACC1701XA, DMA1401L01, DMR1201GEQA
+// and LC6009GRSII.
 // A query only short-circuits if the code actually exists, so a loose match is safe.
 export const MODULE_CODE_RE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 
@@ -58,7 +58,7 @@ const bodySha256 = (body) => createHash('sha256').update(body).digest('hex');
 
 /**
  * Fetches `https://api.nusmods.com/v2/<acadYear>/<file>` through the .data/
- * cache (FINDINGS B2: the cache used to be served however old it was).
+ * cache.
  * - An entry younger than `maxAgeMs` (by its sidecar's `fetchedAt`) is used
  *   without a request.
  * - Otherwise it is revalidated: a conditional GET with `If-None-Match` /
@@ -149,7 +149,7 @@ function parseJson(body, where) {
 
 const REQUIRED_KEYS = ['moduleCode', 'title', 'description', 'moduleCredit', 'faculty', 'semesterData'];
 
-// Aborts rather than writing malformed rows if NUSMods changes shape (L6).
+// Aborts rather than writing malformed rows if NUSMods changes shape.
 /** @param {unknown} records */
 export function assertExpectedShape(records) {
   if (!Array.isArray(records) || records.length === 0) {
@@ -181,9 +181,7 @@ export function semestersOf(record) {
 }
 
 /**
- * The level label in 3A-2's embedding text (docs/plans/phase3-prereg.md §2,
- * eval/prereg/grids.json `3A-2`.levelLabels; level 8 is choice C24). Levels
- * with no label (0, 9, none) get null and the Level field is left out.
+ * The level label in the embedding text. Levels with no label (0, 9, none) get null and the Level field is left out.
  * @param {number | null} level
  */
 export function levelLabel(level) {
@@ -195,8 +193,7 @@ export function levelLabel(level) {
 }
 
 /**
- * 3A-2's pre-registered embedding texts (docs/plans/phase3.md 3A-2,
- * eval/prereg/grids.json `3A-2`.variants): the fields, in order.
+ * The embedding text variants: the fields, in order.
  */
 export const EMBEDDING_TEXT_VARIANTS = /** @type {const} */ ({
   v1: ['code', 'title', 'level', 'description', 'department', 'faculty'],
@@ -206,15 +203,15 @@ export const EMBEDDING_TEXT_VARIANTS = /** @type {const} */ ({
 /** @typedef {keyof typeof EMBEDDING_TEXT_VARIANTS} EmbeddingTextVariant */
 
 /**
- * The 3A-2 variant embeddingText() builds (EMBEDDING_TEXT_VERSION 2). Each
- * 3A-2 ref (tags 3a2-v1…v3) differs from the next only here, so the ranker
- * tree hash names the text the eval scored.
+ * The variant embeddingText() builds (EMBEDDING_TEXT_VERSION 2). It is the
+ * only place the variants differ, so the ranker tree hash names the text the
+ * eval scored.
  * @type {EmbeddingTextVariant}
  */
 export const EMBEDDING_TEXT_VARIANT = 'v1';
 
 /**
- * A 3A-2 variant's text. Each field is whitespace-collapsed and ends with one
+ * A variant's text. Each field is whitespace-collapsed and ends with one
  * sentence mark: a "." is added unless it already ends in ".", "!" or "?", so
  * a description's own full stop is not doubled. Empty fields are skipped; the
  * whole is cut at MAX_BLOB_CHARS.
@@ -259,10 +256,10 @@ export function hashOf(text) {
 // Non-Graduating (exchange student) availability. NUS publishes this only as a
 // PDF, so it is extracted by scripts/extract-ng.py into a committed artifact
 // rather than fetched. Absent file => no NG data, and every module is marked
-// unknown rather than silently false; ingest refuses that, and a stub (Phase 7
-// 7E: `year next` writes stubs), since exchange mode would show every course closed.
+// unknown rather than silently false; ingest refuses that, and a stub
+// (`year next` writes stubs), since exchange mode would show every course closed.
 //
-// G2 (Phase 7 7E, ADR 0011): a semester the year's source manifest
+// ADR 0015: a semester the year's source manifest
 // (data/ng-sources-<year>.json) marks unpublished takes last year's list for that
 // semester (data/ng-courses-<last year>.json), and `unpublished` names it, so
 // offeredModules marks it on every module (`ngUnpublished`) and src/eligibility.js
@@ -368,8 +365,8 @@ export function workloadHours(workload) {
 const hasExam = (d) => typeof d.examDate === 'string' && d.examDate !== '';
 
 /**
- * The exams of a module (Phase 5 5A): one per offered semester with an
- * examDate, by semester, so their semesters are exactly 3H's examSemesters.
+ * The exams of a module: one per offered semester with an examDate, by
+ * semester, so their semesters are exactly examSemesters.
  * The date stays as moduleInfo gives it (ISO UTC); a duration that is not a
  * finite number is null, not a guess.
  * @param {NusModsRecord} record
@@ -425,12 +422,12 @@ export function normalise(record, acadYear) {
       // Filled in by offeredModules() when an NG list is present.
       ng: false,
       ngSemesters: [],
-      // Phase 4: filled in by offeredModules() from the NG list and restrictions; 0 = closed everywhere.
+      // Filled in by offeredModules() from the NG list and restrictions; 0 = closed everywhere.
       ngAllow: 0,
       ngRules: null,
-      // 3H-0 (plan 3H "Data"): what the no-exam, S/U, workload and prerequisite intents filter on.
+      // What the no-exam, S/U, workload and prerequisite intents filter on.
       examSemesters: semesters.filter((s) => (record.semesterData ?? []).some((d) => d.semester === s && hasExam(d))),
-      // Phase 5 5A: each exam's date and duration, for /module/:code (migrations/0010_exam_dates.sql).
+      // Each exam's date and duration, for /module/:code (migrations/0010_exam_dates.sql).
       examDates: examDatesOf(record, semesters),
       su: record.attributes?.su === true,
       gradingBasis: record.gradingBasisDescription ?? null,
@@ -442,7 +439,8 @@ export function normalise(record, acadYear) {
 }
 
 // Only modules actually offered this acad year are indexed. moduleInfo.json
-// carries the whole historical catalogue; see docs/evidence/phase1/probe.md for the sizing reason.
+// carries the whole historical catalogue, about three times the offered modules
+// (`npm run probe` prints both counts and the index size they need).
 /**
  * @param {NusModsRecord[]} records
  * @param {string} acadYear
@@ -461,9 +459,9 @@ export function offeredModules(records, acadYear, ngCourses = null) {
     if (ngCourses?.available) {
       const sems = ngCourses.bySem.get(module.code);
       if (sems) { module.ng = true; module.ngSemesters = sems; }
-      // G2: only when a semester is unpublished, so every module's shape is unchanged otherwise.
+      // Only when a semester is unpublished, so every module's shape is unchanged otherwise.
       if (ngCourses.unpublished?.length) module.ngUnpublished = ngCourses.unpublished;
-      // Phase 4 (plan §2 "Storage"): every (semester, study level) at ingest.
+      // Every (semester, study level) is decided at ingest.
       if (!ngCourses.rules) throw new Error('offeredModules: an NG list without restrictions data (loadNgRestrictions)');
       Object.assign(module, storedEligibility(module, ngCourses.rules));
     }
@@ -473,7 +471,7 @@ export function offeredModules(records, acadYear, ngCourses = null) {
 }
 
 /**
- * The catalogue-only codes (3B, C-7): records in moduleInfo.json with no
+ * The catalogue-only codes: records in moduleInfo.json with no
  * offering this acad year, with their title and description, for noMatch
  * `not-offered` (D1 `catalogue_only`, migrations/0008_catalogue.sql). A record
  * without a code or title is left out; a missing description is null.

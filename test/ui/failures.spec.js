@@ -1,5 +1,5 @@
 // @ts-check
-// Failure states by request interception (Phase 5 5B, F2, F4, F7): a hung
+// Failure states by request interception: a hung
 // search, 429, an HTML error page, the network gone, /facets down or slow, and
 // a keyword-only answer. The page shows a plain sentence, never a raw code.
 import { expect, test } from '@playwright/test';
@@ -7,7 +7,7 @@ import { body, matchFor, searches } from './support.mjs';
 
 const RAW = /rate_limited|upstream_failure|not_json|bad_request|internal|SyntaxError|\b5\d\d\b|\b429\b/;
 
-test('[F2] a search that never answers gives up after 10 s with a sentence; the button stays enabled throughout (5E)', async ({ page }) => {
+test('a search that never answers gives up after 10 s with a sentence; the button stays enabled throughout', async ({ page }) => {
   await page.clock.install();
   await page.route('**/search?**', () => { /* never answers */ });
   await page.goto('/?q=slow');
@@ -21,7 +21,7 @@ test('[F2] a search that never answers gives up after 10 s with a sentence; the 
   await expect(page.locator('#go')).toBeEnabled();
 });
 
-test('[F2] a newer search aborts the one in flight, whose answer is never shown', async ({ page }) => {
+test('a newer search aborts the one in flight, whose answer is never shown', async ({ page }) => {
   /** @type {import('@playwright/test').Route[]} */
   const held = [];
   await page.route('**/search?q=first**', (route) => { held.push(route); });
@@ -37,7 +37,7 @@ test('[F2] a newer search aborts the one in flight, whose answer is never shown'
   await expect(page.locator('#status')).toContainText(matchFor('networks'));
 });
 
-test('[F7] 429 says when to try again, from Retry-After', async ({ page }) => {
+test('429 says when to try again, from Retry-After', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({
     status: 429, headers: { 'retry-after': '30' }, json: { error: 'rate_limited', message: 'Too many searches from this address. Try again in a minute.' },
   }));
@@ -46,7 +46,7 @@ test('[F7] 429 says when to try again, from Retry-After', async ({ page }) => {
   await expect(page.locator('#status')).not.toHaveText(RAW);
 });
 
-test('[F7] an HTML error page is an answer from the service, not "could not reach"', async ({ page }) => {
+test('an HTML error page is an answer from the service, not "could not reach"', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({
     status: 502, contentType: 'text/html', body: '<!doctype html><title>502</title><h1>Bad gateway</h1>',
   }));
@@ -54,7 +54,7 @@ test('[F7] an HTML error page is an answer from the service, not "could not reac
   await expect(page.locator('#status')).toHaveText('The search service answered with an error page. Try again in a moment.');
 });
 
-test('[F7] a JSON error shows its sentence, never its code or message', async ({ page }) => {
+test('a JSON error shows its sentence, never its code or message', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({
     status: 502, json: { error: 'upstream_failure', source: 'd1', message: 'D1_ERROR: database is locked' },
   }));
@@ -63,13 +63,13 @@ test('[F7] a JSON error shows its sentence, never its code or message', async ({
   await expect(page.locator('#status')).not.toHaveText(/D1_ERROR|upstream/);
 });
 
-test('[F7] the network gone says the service could not be reached', async ({ page }) => {
+test('the network gone says the service could not be reached', async ({ page }) => {
   await page.route('**/search?**', (route) => route.abort('internetdisconnected'));
   await page.goto('/?q=x');
   await expect(page.locator('#status')).toHaveText('Could not reach the search service. Check your connection and try again.');
 });
 
-test('[F4] /facets down: a shared link keeps every filter, faculty included, and searches with them', async ({ page }) => {
+test('/facets down: a shared link keeps every filter, faculty included, and searches with them', async ({ page }) => {
   await page.route('**/facets', (route) => route.abort('failed'));
   const sent = searches(page);
   const answered = page.waitForResponse((r) => new URL(r.url()).pathname === '/search');
@@ -81,14 +81,14 @@ test('[F4] /facets down: a shared link keeps every filter, faculty included, and
   expect(sent).toEqual(['q=databases&level=2&credits=10&faculty=Computing']);
 });
 
-test('[F4] the first search starts before /facets answers, and the faculty list fills in later around the chosen one', async ({ page }) => {
+test('the first search starts before /facets answers, and the faculty list fills in later around the chosen one', async ({ page }) => {
   /** @type {(() => void) | null} */
   let release = null;
   const facetsHeld = new Promise((resolve) => { release = () => resolve(undefined); });
   await page.route('**/facets', async (route) => { await facetsHeld; await route.continue(); });
   await page.goto('/?q=databases&faculty=Computing');
   await expect(page.locator('#status')).toContainText(matchFor('databases'));
-  // Quoted until /facets lists it: until then it is only the link's text (5G S2).
+  // Quoted until /facets lists it: until then it is only the link's text.
   await expect(page.locator('#faculty option')).toHaveText(['Any faculty', '“Computing”']);
   /** @type {any} */ (release)();
   await expect(page.locator('#faculty option[value="Computing"]')).toHaveText(/^Computing \(\d+\)$/);

@@ -1,5 +1,5 @@
 // @ts-check
-// The UI suite (Phase 5 5B): test/ui/*.spec.js in Chromium and WebKit against
+// The UI suite: test/ui/*.spec.js in Chromium and WebKit against
 // scripts/ui-server.mjs, the page and the Worker on a local `wrangler dev`
 // with FakeAI over a D1 seeded with the fixture. Nothing reaches Cloudflare.
 //

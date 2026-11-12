@@ -1,5 +1,5 @@
 // @ts-check
-// F10 (Phase 5 5D): on a phone, 16px inputs (iOS zooms into anything smaller);
+// On a phone: 16px inputs (iOS zooms into anything smaller);
 // after the first search the form is one bar that keeps the query field and the
 // Search button in view; the exchange set-up and filters open in a modal
 // <dialog> from a "Filters (n)" button: focus stays inside it, Escape closes
@@ -11,7 +11,7 @@ test.use({ viewport: { width: 390, height: 664 } });
 
 const fontSize = (/** @type {import('@playwright/test').Locator} */ l) => l.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
 
-test('[F10] every text input and select is at least 16px, on the first screen and after a search', async ({ page }) => {
+test('every text input and select is at least 16px, on the first screen and after a search', async ({ page }) => {
   await page.goto('/');
   for (const el of await page.locator('#setup input[type="search"], #setup select').all()) expect(await fontSize(el)).toBeGreaterThanOrEqual(16);
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1');
@@ -21,7 +21,7 @@ test('[F10] every text input and select is at least 16px, on the first screen an
   for (const el of await controls.all()) expect(await fontSize(el), await el.getAttribute('id') ?? '').toBeGreaterThanOrEqual(16);
 });
 
-test('[F10] after the first search the form is one bar: the query field and Search side by side, in view; the rail is behind "Filters (n)"', async ({ page }) => {
+test('after the first search the form is one bar: the query field and Search side by side, in view; the rail is behind "Filters (n)"', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('radio', { name: /^Sem 1/ }).check();
   await page.getByRole('radio', { name: '2nd year' }).check();
@@ -42,7 +42,7 @@ test('[F10] after the first search the form is one bar: the query field and Sear
   await expect(page.getByRole('button', { name: 'Filters (3)' })).toBeVisible();
 });
 
-test('[F10] Filters opens a modal dialog with the set-up and filters; a change applies at once; Escape closes it and focus returns', async ({ page }) => {
+test('Filters opens a modal dialog with the set-up and filters; a change applies at once; Escape closes it and focus returns', async ({ page }) => {
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1');
   const button = page.getByRole('button', { name: 'Filters (3)' });
   await button.click();
@@ -66,7 +66,7 @@ test('[F10] Filters opens a modal dialog with the set-up and filters; a change a
   expect(query(page)).toBe('q=networks&sem=1&level=2&ng=1&study=ug2');
 });
 
-test('[F10] focus is trapped in the dialog: Tab and Shift+Tab wrap around inside it', async ({ page }) => {
+test('focus is trapped in the dialog: Tab and Shift+Tab wrap around inside it', async ({ page }) => {
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1');
   await page.getByRole('button', { name: /^Filters/ }).click();
   const dialog = page.getByRole('dialog');
@@ -90,7 +90,7 @@ test('[F10] focus is trapped in the dialog: Tab and Shift+Tab wrap around inside
   }
 });
 
-test('[F10] Done closes the dialog and returns focus to the button', async ({ page }) => {
+test('Done closes the dialog and returns focus to the button', async ({ page }) => {
   await page.goto('/?q=networks&level=3');
   const button = page.getByRole('button', { name: 'Filters (1)' });
   await button.click();
@@ -99,7 +99,7 @@ test('[F10] Done closes the dialog and returns focus to the button', async ({ pa
   await expect(button).toBeFocused();
 });
 
-test('[V1] a chip removes its filter, and focus moves to the next chip', async ({ page }) => {
+test('a chip removes its filter, and focus moves to the next chip', async ({ page }) => {
   await page.goto('/?q=databases&level=2&credits=4&faculty=Computing');
   await expect(page.locator('#chips .chip')).toHaveText(['Level 2000', '4 units', 'Computing']);
   await page.getByRole('button', { name: 'Remove filter: Level 2000' }).click();
@@ -114,7 +114,7 @@ test('[V1] a chip removes its filter, and focus moves to the next chip', async (
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 1']);
 });
 
-test('[V1] filters are labelled one way everywhere: "Sem 2", "Level 2000", "4 units", in the options and the chips', async ({ page }) => {
+test('filters are labelled one way everywhere: "Sem 2", "Level 2000", "4 units", in the options and the chips', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/?q=databases&sem=2&level=2&credits=4');
   await expect(page.locator('#sem option:checked')).toHaveText('Sem 2');
@@ -124,7 +124,7 @@ test('[V1] filters are labelled one way everywhere: "Sem 2", "Level 2000", "4 un
   await expect(page.locator('#sem option')).toHaveText(['Any semester', 'Sem 1', 'Sem 2', 'Special term 1', 'Special term 2']);
 });
 
-test('[V1] no results with filters on names the next step: remove a filter', async ({ page }) => {
+test('no results with filters on names the next step: remove a filter', async ({ page }) => {
   await page.goto('/?q=qwzx+vbnm&level=2');
   await expect(page.locator('#status')).toContainText('Nothing in the catalogue matches');
   await page.route('**/search?**', (route) => route.fulfill({ json: { query: 'networks', filters: { level: 6 }, count: 0, results: [], interpreted: {}, hiddenPins: [], notOffered: [] } }));
@@ -133,11 +133,11 @@ test('[V1] no results with filters on names the next step: remove a filter', asy
   await expect(page.getByRole('button', { name: 'Remove filter: Level 6000' })).toBeVisible();
 });
 
-test('[V1] in exchange mode the next step is never to drop the set-up: only real filters are offered', async ({ page }) => {
+test('in exchange mode the next step is never to drop the set-up: only real filters are offered', async ({ page }) => {
   const empty = { query: 'basket weaving', count: 0, results: [], interpreted: {}, hiddenPins: [], notOffered: [] };
   await page.route('**/search?**', (route) => route.fulfill({ json: { ...empty, filters: { sem: 1, ng: true, study: 'ug2' } } }));
   await page.goto('/?q=basket+weaving&sem=1&ng=1&study=ug2');
-  // 5G plain language: the exchange set-up emptied the list, so say that; other words won't help.
+  // Plain language: the exchange set-up emptied the list, so say that; other words won't help.
   await expect(page.locator('#status')).toHaveText('No course that matches “basket weaving” is open to you in Sem 1 as a 2nd-year exchange student.');
   await page.unroute('**/search?**');
   await page.route('**/search?**', (route) => route.fulfill({ json: { ...empty, filters: { sem: 1, level: 2, ng: true, study: 'ug2' } } }));
@@ -145,7 +145,7 @@ test('[V1] in exchange mode the next step is never to drop the set-up: only real
   await expect(page.locator('#status')).toContainText('Remove a filter above to see more courses');
 });
 
-test('[V1] an option a link adds is labelled as the chips are: "Level 7000", "3 units"', async ({ page }) => {
+test('an option a link adds is labelled as the chips are: "Level 7000", "3 units"', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/?q=design&level=7&credits=3');
   await expect(page.locator('#level option:checked')).toHaveText('Level 7000');
@@ -210,7 +210,7 @@ test('the dialog closes if the window widens past the phone layout, and the rail
   await expect(page.locator('.rail #study')).toBeVisible();
 });
 
-// Phase 6 6C (plan 6C "Tests first"; A6-m6, A9-M1): the shortlist in the same
+// The shortlist in the same
 // reflow loop. The view with LC6009GRSII's row (the longest code) and the
 // Copy-link fallback field, and results with the toggles and the shortlist
 // button's longest label (two semesters with half units; the fixture has no
@@ -227,7 +227,7 @@ async function noSideways(page, where) {
 /** @param {import('@playwright/test').Page} page */
 const longestLabel = (page) => page.locator('.sl-open small').evaluateAll((els, t) => { for (const el of els) el.textContent = t; }, LONGEST);
 
-test('[6C] no width scrolls sideways: the view with LC6009GRSII\'s row and the link field, and results with toggles and the longest label', async ({ page }) => {
+test('no width scrolls sideways: the view with LC6009GRSII\'s row and the link field, and results with toggles and the longest label', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('no')) } });
   });
@@ -245,7 +245,7 @@ test('[6C] no width scrolls sideways: the view with LC6009GRSII\'s row and the l
   }
 });
 
-test('[6C] the rail\'s shortlist button stays inside the rail with the longest label, at 641, 900 and 1280', async ({ page }) => {
+test('the rail\'s shortlist button stays inside the rail with the longest label, at 641, 900 and 1280', async ({ page }) => {
   for (const width of [641, 900, 1280]) {
     await page.setViewportSize({ width, height: 800 });
     await page.goto('/?q=networks&ng=1&study=ug2&pick=ACC1701XB.1&pick=CS2113.2');

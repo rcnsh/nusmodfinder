@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7F (G3 (a)): the weekly NUSMods data-change check and the monthly reminder
+// The weekly NUSMods data-change check and the monthly reminder
 // (scripts/drift.mjs, run by .github/workflows/drift.yml). Fixture NUSMods records, a fake
 // NUSMods and a fake GitHub: nothing here reaches the network or creates a real issue. The years
 // here are fixture data (no NG file is read); the data version over HEAD's NG files is checked
@@ -83,7 +83,7 @@ describe('the issue text', () => {
     expect(issue.body).toContain('Added: CS5000');
     expect(issue.body).toContain('Removed: CS4248');
     expect(issue.body).toMatch(/Last checked 2026-11-16 01:17 UTC/);
-    // 7E: the runbook's corpus-only path, which a REFERENCE.md heading can't be renamed out from under.
+    // The runbook's corpus-only path, which a docs heading can't be renamed out from under.
     expect(issue.body).toContain('"A corpus-only refresh" in `docs/year-refresh/README.md`');
     expect(readFileSync(new URL('../docs/year-refresh/README.md', import.meta.url), 'utf8')).toMatch(/^## A corpus-only refresh \(NUSMods changed\)$/m);
   });
@@ -141,7 +141,7 @@ describe('the issue text', () => {
     expect(issue.body).toMatch(/01 Sep 2026/);
     expect(issue.body).toMatch(/npm run ops:report -- --month 2026-10/);
     expect(issue.body).not.toMatch(/60 days/);
-    // 7E: a revision is checked against the year's source manifest and follows the runbook.
+    // A revision is checked against the year's source manifest and follows the runbook.
     expect(issue.body).toContain('`data/ng-sources-2026-2027.json`');
     expect(issue.body).toContain('"A mid-year revision" in `docs/year-refresh/README.md`');
     expect(readFileSync(new URL('../docs/year-refresh/README.md', import.meta.url), 'utf8')).toMatch(/^## A mid-year revision$/m);
@@ -389,10 +389,10 @@ describe('the weekly check', () => {
   });
 });
 
-// Red team M-2 (docs/evidence/phase7/redteam.md): NUSMods' module codes reached the pending issue
-// as they came (an @mention, a link, raw HTML), and a forged `<!-- vnm-drift:state … -->` before
-// the real one was what the next run read.
-describe('NUSMods text in the pending issue (red team M-2)', () => {
+// NUSMods controls the module codes: an @mention, a link or raw HTML must not reach the pending
+// issue as it came, and a forged `<!-- vnm-drift:state … -->` before the real one must not be what
+// the next run reads.
+describe('NUSMods text in the pending issue', () => {
   const FORGED = { history: [{ date: '1999-01-01', dataVersion: 'forgedforged', comparison: null }] };
   // No `>` inside the JSON is needed; the marker's own `-->` closes it.
   const EVIL_CODE = `CS9999 @octocat [refresh here](https://evil.example/x) <img src=https://evil.example/p.gif> <!-- vnm-drift:state ${JSON.stringify(FORGED)} -->`;

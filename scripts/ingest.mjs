@@ -1,10 +1,10 @@
 // @ts-check
 // Bring D1 + Vectorize in line with the production corpus, `current` in
-// data/corpus.json (Phase 7 7D; restored by `npm run corpus -- restore`, never
+// data/corpus.json (restored by `npm run corpus -- restore`, never
 // the .data/cache download), normalised with the NG files of its year:
 // re-embed what changed text, rewrite rows whose fields changed, delete
 // modules that left the corpus, load the catalogue-only codes into D1
-// catalogue_only (3B), then write src/data-version.json.
+// catalogue_only, then write src/data-version.json.
 //
 //   npm run remote -- ingest --d1-only        (the runbook: a session sets WORKER_URL)
 //   npm run ingest -- --url <base>            (any Worker you started yourself)
@@ -12,13 +12,13 @@
 // Embedding and upserting happen inside the Worker (POST /admin/ingest), which
 // already holds the AI, Vectorize and D1 bindings — so no Cloudflare API token
 // needs to exist on disk. The 19 MB moduleInfo.json is parsed here, locally,
-// never in a Worker (landmine L2). Requires INGEST_SECRET on both sides.
-// The run itself is scripts/ingest-core.mjs; docs/REFERENCE.md "Re-ingesting" is the
+// never in a Worker. Requires INGEST_SECRET on both sides.
+// The run itself is scripts/ingest-core.mjs; docs/data.md "Re-ingesting" is the
 // runbook.
 //
 // Flags:
 //   --url <base>           Worker base URL (else $WORKER_URL; no default, and ports 8787 and 8799
-//                          are refused: Phase 7 7C)
+//                          are refused: they belong to other projects)
 //   --force                re-embed and rewrite every module, whatever the hashes say
 //   --from <code>          only modules whose code sorts at or after <code> (resume a forced run)
 //   --write-budget <n>     stop before D1 rows written would pass n (default 40000, ADR 0002)
@@ -27,7 +27,7 @@
 //   --batch <n>            modules per /admin/ingest call (default 50, max 100)
 //   --concurrency <n>      parallel batches (default 4)
 //   --wait-timeout <dur>   how long to wait for Vectorize to apply the last mutation (default 10m)
-//   --d1-only              Phase 3 runbook step 4: write D1 only (no Workers AI, no Vectorize);
+//   --d1-only              write D1 only (no Workers AI, no Vectorize);
 //                          refuses unless the corpus's data version equals the committed
 //                          src/data-version.json, which it never writes; the codes it deletes
 //                          go to .data/d1-only-deletes.json for runbook step 8
@@ -36,7 +36,7 @@
 // (resumable); 3 Vectorize did not confirm the last mutation in time.
 //
 // Each run that gets past its arguments and the run lock writes a run record
-// (scripts/run-record.mjs, Phase 7 7C) on every exit path: the target, the
+// (scripts/run-record.mjs) on every exit path: the target, the
 // requests by path, D1 rows read and written, the data version, the outcome.
 //
 // .data/ingest-state.json (git-ignored) keeps, per --url, the last Vectorize
@@ -281,7 +281,7 @@ export function httpAdminApi(base, secret, fetchImpl = fetch) {
 export const dataVersionFile = (version) => `${JSON.stringify({ version }, null, 2)}\n`;
 
 /**
- * Phase 7 7B: the runbook takes a preflight (`npm run deploy -- --preflight`) and a bookmark
+ * The runbook takes a preflight (`npm run deploy -- --preflight`) and a bookmark
  * (`npm run d1:bookmark`) before any D1 write. The newest bookmark record's bookmark goes into
  * this run's record, so `d1:restore` can name the ingest it came before; a missing preflight
  * record for HEAD is a warning, not a refusal.
@@ -365,7 +365,7 @@ export async function main(argv, deps = {}) {
  * @returns {Promise<{ code: number, status: string | null, message: string | null }>}
  */
 async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPath, corpusDir, statePath, secret, deletesPath, record, ngDataDir }) {
-  // Phase 7 7D: only `current`, sha-checked; a missing or mismatched file refuses before any request.
+  // Only `current`, sha-checked; a missing or mismatched file refuses before any request.
   /** @type {Awaited<ReturnType<typeof loadCurrentCorpus>>} */
   let corpus;
   try {
@@ -377,8 +377,8 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPat
   }
   const acadYear = corpus.entry.year;
   record.detail('corpus', { release: corpus.entry.release, sha256: corpus.entry.sha256 });
-  // Phase 7 7E: a missing or stub NG file would show every course closed in exchange mode, so it
-  // refuses here (it used to warn), before any request.
+  // A missing or stub NG file would show every course closed in exchange mode, so it refuses
+  // here, before any request.
   /** @type {Awaited<ReturnType<typeof loadNgCourses>>} */
   let ngCourses;
   try {
@@ -396,7 +396,7 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPat
     return { code: 1, status: 'refused', message };
   }
   const { modules, skipped } = offeredModules(corpus.records, acadYear, ngCourses);
-  // 3B: the codes with no offering this year, for D1 catalogue_only (noMatch `not-offered`).
+  // The codes with no offering this year, for D1 catalogue_only (noMatch `not-offered`).
   const catalogue = catalogueOnlyRecords(corpus.records);
 
   log(`acad year          ${acadYear}`);
@@ -404,15 +404,15 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPat
   log(`catalogue records  ${corpus.records.length}`);
   log(`offered & usable   ${modules.length}`);
   log(`catalogue-only     ${catalogue.length}`);
-  // R2: a record missing a title or description is skipped by code, not dropped silently.
+  // A record missing a title or description is skipped by code, not dropped silently.
   log(`skipped            ${skipped.length}${skipped.length ? ` (${skipped.slice(0, 10).map((s) => `${s.code}: ${s.why}`).join('; ')})` : ''}`);
   const matched = modules.filter((m) => m.ng).length;
   log(`NG list            ${ngCourses.total} codes (updated ${ngCourses.updatedAsAt}); ${matched} matched this corpus, ${ngCourses.total - matched} not offered this year`);
-  if (ngCourses.unpublished.length) log(`NG list            Sem ${ngCourses.unpublished.join(', ')} unpublished: last year's list, each course to confirm (G2)`);
+  if (ngCourses.unpublished.length) log(`NG list            Sem ${ngCourses.unpublished.join(', ')} unpublished: last year's list, each course to confirm`);
   log(`write budget       ${args.options.writeBudget} D1 rows`);
 
   // /admin/facets also records where the NG list came from, so /facets reports
-  // the date in data/ng-courses-*.json rather than a hand-kept copy (O3).
+  // the date in data/ng-courses-*.json rather than a hand-kept copy.
   const facetsBody = facetsPayload(ngCourses);
   const api = httpAdminApi(args.base, secret, fetchImpl);
   const pending = fileStateStore(statePath, args.base);
@@ -441,7 +441,7 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPat
   if (result.status === 'done' && result.dataVersion) {
     await writeFile(dataVersionPath, dataVersionFile(result.dataVersion));
     log(`data version       ${result.dataVersion} -> src/data-version.json`);
-    log('next               commit src/data-version.json, then npm run deploy (docs/REFERENCE.md "Re-ingesting")');
+    log('next               commit src/data-version.json, then npm run deploy (docs/data.md "Re-ingesting")');
     return { code: 0, status: result.status, message };
   }
   return { code: { done: 0, refused: 1, failed: 1, budget: 2, 'wait-timeout': 3, interrupted: 130 }[result.status], status: result.status, message };

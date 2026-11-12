@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // @ts-check
-// NUS's source documents, archived per revision (Phase 7 7E, G5): an AES-256-GCM archive of a
+// NUS's source documents, archived per revision: an AES-256-GCM archive of a
 // revision's documents, uploaded as release asset `sources-<year>-<yyyymmdd>`, its sha256 written
 // into that revision in data/ng-sources-<year>.json. NUS's legal notice allows a copy for one's own
-// study, not republication (ADR 0011, G5), so the documents are never published in the clear.
+// study, not republication (ADR 0014), so the documents are never published in the clear.
 //
 //   npm run sources -- keygen --out <path>
 //       a random 256-bit key (64 hex), mode 0600; refuses to overwrite; never prints the key
@@ -14,7 +14,7 @@
 //       against its textSha256, when the manifest has one), packs and encrypts them, uploads the
 //       asset (gh release create), and writes the archive's sha256 and each text's textSha256 into
 //       the manifest; leaves a run record; commit the manifest afterwards. Every file and text
-//       name must be a plain base name (red team L-4).
+//       name must be a plain base name.
 //   npm run sources -- restore [<year>] [--revision <date>] [--key <path>] [--out <dir>]
 //       downloads the asset (gh release download), checks its sha256 and every file's (text
 //       extractions included: a file the manifest doesn't pin is refused), checks each entry's
@@ -161,7 +161,7 @@ export const releaseName = (year, date) => `sources-${year}-${date.replaceAll('-
 
 /**
  * The files a revision archives: every document's file and its text extraction, each with the
- * sha256 the manifest pins it to (the text's is `textSha256`, red team L-5; null until publish
+ * sha256 the manifest pins it to (the text's is `textSha256`; null until publish
  * writes it).
  * @param {import('./ng-sources.mjs').Revision} rev
  * @returns {{ name: string, sha256: string | null, id: string }[]}
@@ -177,7 +177,7 @@ export function archivedFiles(rev) {
 }
 
 /**
- * The names among `files` that are not plain base names (red team L-4), as refusals.
+ * The names among `files` that are not plain base names, as refusals.
  * @param {{ name: string, id?: string }[]} files
  */
 const pathNames = (files) => files.filter((f) => !isPlainName(f.name)).map((f) => notPlain(f.id ? `${f.id}'s` : 'the archive entry', f.name));
@@ -243,7 +243,7 @@ export async function publish({ from, year = DEFAULT_ACAD_YEAR, revision, key, r
     record.detail('sha256', digest);
     record.detail('files', files.length);
     rev.archive = { release, asset, sha256: digest };
-    // Each text extraction's sha256 (red team L-5), so restore, --full and the builder check it.
+    // Each text extraction's sha256, so restore, --full and the builder check it.
     for (const d of rev.documents) {
       const text = d.text && !d.unarchived ? files.find((f) => f.name === d.text) : undefined;
       if (text) d.textSha256 = sha256(text.bytes);

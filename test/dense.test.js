@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 3 3-0: the bundled exact dense search (src/dense.js) on the fixture
+// The bundled exact dense search (src/dense.js) on the fixture
 // corpus. The fixture bundle (test/fixtures/vectors.bin) holds the fake
 // embedder's vectors for the fixture modules, the vectors seed() puts in the
 // fake Vectorize, so the two dense backends must rank alike.
@@ -13,7 +13,7 @@ import { createFakes, hashEmbed } from './fakes.js';
 import { callJson, fixture, seed } from './helpers.js';
 
 const STANDBY = { DENSE_BACKEND: 'vectorize' };
-/** Adjacent items whose scores differ by less than this may swap (docs/plans/phase3.md 3-0, A-N6). */
+/** Adjacent items whose scores differ by less than this may swap. */
 const SWAP_TOLERANCE = 1e-6;
 
 /** @type {import('./fakes.js').Fakes} */
@@ -59,7 +59,7 @@ const faculties = [...new Set(fixture.modules.map((m) => m.faculty).filter(Boole
 const FILTERS = ['', '&sem=1', '&sem=3', '&level=2', '&credits=4', '&ng=1&study=ug2', '&ng=1&sem=2&study=grad', `&faculty=${encodeURIComponent(String(faculties[0]))}`,
   `&faculty=${encodeURIComponent(String(faculties[1]))}&level=3`, '&level=5&credits=4'];
 
-describe('3-0 identity on the fixture (A-N6)', () => {
+describe('the bundle and the Vectorize standby agree on the fixture', () => {
   it('the bundle ranks like the fake Vectorize (exact cosine, id tiebreak) for every query and filter; near-tie swaps listed', async () => {
     /** @type {{ path: string, at: number, a: string, b: string, delta: number }[]} */
     const swaps = [];
@@ -71,7 +71,7 @@ describe('3-0 identity on the fixture (A-N6)', () => {
         /** @param {string} mode */
         const both = async (mode) => {
           const path = `/search?q=${encodeURIComponent(q)}${f}&mode=${mode}&topK=50`;
-          // Uncollapsed: 3F reads a single bundle list deeper than Vectorize's (src/search.js depth).
+          // Uncollapsed: the group collapse reads a single bundle list deeper than Vectorize's (src/search.js depth).
           const bundle = await callJson(path, { fakes, env: { COLLAPSE_GROUPS: 'off' } });
           const standby = await callJson(path, { fakes, env: { ...STANDBY, COLLAPSE_GROUPS: 'off' } });
           expect(bundle.status, path).toBe(200);
@@ -81,7 +81,7 @@ describe('3-0 identity on the fixture (A-N6)', () => {
         };
         // mode=vector is the whole dense list (depth 50 = topK 50).
         const dense = await both('vector');
-        // Phase 4 (plan §2 "Paths"): in exchange mode the standby filters on the
+        // In exchange mode the standby filters on the
         // yearly ng flag, reads 100 deep and drops what D1's allow mask closes,
         // so its list is the start of the bundle's, possibly shorter.
         const exchange = f.includes('ng=1');
@@ -101,7 +101,7 @@ describe('3-0 identity on the fixture (A-N6)', () => {
     // Every dense difference is a pair of items tied to within the tolerance
     // (the fake embedder's integer word counts tie exactly; float rounding orders them).
     expect(swaps.filter((s) => !(s.delta < SWAP_TOLERANCE))).toEqual([]);
-    console.log(`3-0 fixture identity: ${compared} query x filter cells; ${swaps.length} near-tie swap positions in the dense lists `
+    console.log(`dense fixture identity: ${compared} query x filter cells; ${swaps.length} near-tie swap positions in the dense lists `
       + `(max |Δ| ${swaps.length ? Math.max(...swaps.map((s) => s.delta)).toExponential(1) : 0}), ${hybridFollows.length} hybrid pages reordered by them:\n`
       + swaps.map((s) => `  ${s.path} @${s.at}: ${s.a} <-> ${s.b} (|Δ| ${s.delta.toExponential(1)})`).join('\n'));
   }, 120_000); // 800 searches
@@ -148,7 +148,7 @@ describe('3-0 identity on the fixture (A-N6)', () => {
   });
 });
 
-describe('3-0 between a D1-only ingest and the deploy (B-3)', () => {
+describe('between a D1-only ingest and the deploy', () => {
   it('a dense row whose fresh D1 row fails the filters is dropped after hydrate, and the next one fills the page', async () => {
     await seed();
     const path = '/search?q=machine%20learning&mode=vector&sem=1&topK=10';
@@ -177,7 +177,7 @@ describe('3-0 between a D1-only ingest and the deploy (B-3)', () => {
     await seed();
     // Hybrid: a module both retrievers find, which still matches in D1.
     const { body } = await callJson('/search?q=programming%20methodology&sem=1');
-    // CS1010S may stand in its duplicate group's variants (3F).
+    // CS1010S may stand in its duplicate group's variants.
     expect(body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)])).toContain('CS1010S');
   });
 

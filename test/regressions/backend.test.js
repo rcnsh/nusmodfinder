@@ -1,6 +1,7 @@
 // @ts-check
-// Backend findings B3-B8, O3 and O4 over the fixture corpus: characterisation
-// tests for what is still open, correctness tests for what Phase 1 fixed.
+// The Worker's backend over the fixture corpus: the FTS triggers, the concurrent
+// search pipeline, timeouts and error answers, the degraded fallback, the cache
+// key, hydration and the NG list date.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import worker from '../../src/index.js';
@@ -14,7 +15,7 @@ import { BASE, NG_LIST, adminCall, call, callJson, fixture, seed } from '../help
 import { codes, ftsCalls, recordingDb, settlesWithin, shownCodes } from './support.js';
 
 /**
- * The Vectorize standby (DENSE_BACKEND=vectorize, Phase 3 3-0): the tests of
+ * The Vectorize standby (DENSE_BACKEND=vectorize): the tests of
  * how /search treats the Vectorize binding run under it; test/dense.test.js
  * covers the bundled default.
  */
@@ -26,10 +27,10 @@ beforeAll(async () => {
   fakes = await seed();
 });
 
-describe('B3', () => {
-  // Was `[B3 known-bug] the FTS update/delete triggers delete by the UNINDEXED
-  // code column, a full scan`. Fixed by migrations/0006_fts_external.sql.
-  it('[B3 fixed] the FTS triggers address the index by rowid: no full FTS scan, constant cost per row', async () => {
+describe('FTS triggers', () => {
+  // migrations/0006_fts_external.sql keys the index on rowid, so a trigger never
+  // scans the FTS table for the UNINDEXED code column.
+  it('the FTS triggers address the index by rowid: no full FTS scan, constant cost per row', async () => {
     const { results: triggers } = /** @type {D1Result<{ name: string, sql: string }>} */ (await env.DB.prepare(
       "SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'modules' ORDER BY name").all());
     // modules_rowid_immutable (0006) only compares rowids and touches no table.
@@ -56,7 +57,7 @@ describe('B3', () => {
       expect(plan.results.map((r) => r.detail)).toEqual(['SEARCH modules USING INDEX sqlite_autoindex_modules_1 (code=?)']);
     }
 
-    // Cost: changing one title used to read the whole FTS table (401 rows here).
+    // Cost: changing one title reads a handful of rows, not the whole FTS table (401 rows here).
     const res = await env.DB.prepare("UPDATE modules SET title = title || ' revised' WHERE code = 'CS1010S'").run();
     expect(res.meta.rows_written).toBeGreaterThan(0);
     expect(res.meta.rows_read).toBeLessThan(10);
@@ -64,8 +65,8 @@ describe('B3', () => {
   });
 });
 
-describe('B4', () => {
-  it('[B4 fixed] with Workers AI hanging, the pin and lexical queries still start before the embedding resolves', async () => {
+describe('search pipeline', () => {
+  it('with Workers AI hanging, the pin and lexical queries still start before the embedding resolves', async () => {
     const hanging = createFakes();
     hanging.vectorize.vectors = fakes.vectorize.vectors;
     hanging.ai.hangs();
@@ -83,7 +84,7 @@ describe('B4', () => {
     expect(body.results[0]).toMatchObject({ code: 'CS1010S', score: 1 });
   });
 
-  it('[B4 fixed] pin, lexical and embed -> Vectorize run concurrently, then one hydrate query, all on a read session', async () => {
+  it('pin, lexical and embed -> Vectorize run concurrently, then one hydrate query, all on a read session', async () => {
     /** @type {string[]} */
     const order = [];
     const f = createFakes();
@@ -97,8 +98,8 @@ describe('B4', () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
     const db = recordingDb(log);
-    // No code in the text: since 3B an offered code inside a longer query pins too (prereg §3 step 1).
-    // The uncollapsed pipeline (3F's collapse adds hydrate and variants reads: test/search-groups.test.js).
+    // No code in the text: an offered code inside a longer query pins too (src/query-intent.js).
+    // The uncollapsed pipeline (the group collapse adds hydrate and variants reads: test/search-groups.test.js).
     const pending = callJson('/search?q=programming%20methodology', { fakes: f, env: { DB: db, ...STANDBY, COLLAPSE_GROUPS: 'off' } });
     // While the embedding is held back, pin and FTS have both been issued and nothing has been hydrated.
     expect(await settlesWithin(pending, 50)).toBe('pending');
@@ -125,9 +126,8 @@ describe('B4', () => {
     expect(kinds().filter((k) => k === 'hydrate').length).toBeLessThanOrEqual(1);
   });
 
-  // Was `[B4 known-bug] responses carry no Server-Timing header`; Phase 1 step 0
-  // added the spans so SC7 can be measured. Concurrent spans keep pipeline order.
-  it('[B4 instrumented] /search responses carry Server-Timing spans for each stage', async () => {
+  // The spans measure search latency per stage; concurrent spans keep pipeline order.
+  it('/search responses carry Server-Timing spans for each stage', async () => {
     const res = await call('/search?q=databases%20timing', { fakes });
     expect(res.status).toBe(200);
     const names = (res.headers.get('server-timing') ?? '').split(', ').map((p) => p.split(';')[0]);
@@ -137,8 +137,8 @@ describe('B4', () => {
 
 // Timeouts are behavioural: the search must still be pending just before the
 // budget and settled just after it, however the timer is armed.
-describe('B5', () => {
-  it('[B5 fixed] /module/%E0%A4%A is a 400 naming the bad encoding, not an exception out of fetch', async () => {
+describe('timeouts and errors', () => {
+  it('/module/%E0%A4%A is a 400 naming the bad encoding, not an exception out of fetch', async () => {
     const { status, body } = await callJson('/module/%E0%A4%A');
     expect(status).toBe(400);
     expect(body).toEqual({ error: 'bad_request', message: 'The module code in the path is not valid percent-encoding.' });
@@ -147,7 +147,7 @@ describe('B5', () => {
   it.each([
     ['ai', 'workers-ai'],
     ['vectorize', 'vectorize'],
-  ])('[B5 fixed] a hanging %s call times out at 1.5 s and the search answers keyword-only', async (which, source) => {
+  ])('a hanging %s call times out at 1.5 s and the search answers keyword-only', async (which, source) => {
     const hanging = createFakes();
     hanging.vectorize.vectors = fakes.vectorize.vectors;
     (which === 'ai' ? hanging.ai : hanging.vectorize).hangs();
@@ -160,7 +160,7 @@ describe('B5', () => {
     expect(shownCodes(body.results)).toContain('CS1010S');
   });
 
-  it('[B5 fixed] a hanging D1 query times out at 3 s with a 502 naming D1', async () => {
+  it('a hanging D1 query times out at 3 s with a 502 naming D1', async () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
     const db = recordingDb(log, { hang: (sql) => sql.includes('MATCH') });
@@ -172,7 +172,7 @@ describe('B5', () => {
     expect(body).toEqual({ error: 'upstream_failure', source: 'd1-fts', message: 'D1 did not answer within 3000 ms' });
   }, 10_000);
 
-  it('[B5 fixed] a throwing rate limiter fails open, and the failure is logged', async () => {
+  it('a throwing rate limiter fails open, and the failure is logged', async () => {
     const f = createFakes();
     f.vectorize.vectors = fakes.vectorize.vectors;
     f.limit.throws('limiter down');
@@ -185,7 +185,7 @@ describe('B5', () => {
     } finally { errors.mockRestore(); }
   });
 
-  it('[B5 fixed] an exception no route handles is a JSON 500 carrying the request id, and is logged', async () => {
+  it('an exception no route handles is a JSON 500 carrying the request id, and is logged', async () => {
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       // No DB binding at all: the route throws before any of its own try blocks.
@@ -202,11 +202,11 @@ describe('B5', () => {
   });
 });
 
-describe('B6', () => {
+describe('degraded fallback', () => {
   it.each([
     ['ai', 'workers-ai'],
     ['vectorize', 'vectorize'],
-  ])('[B6 fixed] %s throwing in hybrid mode returns the keyword results, flagged degraded and cached for 60 s', async (which, source) => {
+  ])('%s throwing in hybrid mode returns the keyword results, flagged degraded and cached for 60 s', async (which, source) => {
     const f = createFakes();
     f.vectorize.vectors = fakes.vectorize.vectors;
     (which === 'ai' ? f.ai : f.vectorize).throws('down');
@@ -231,7 +231,7 @@ describe('B6', () => {
     } finally { logs.mockRestore(); warn.mockRestore(); }
   });
 
-  it('[B6 fixed] mode=vector still fails loudly with a 502 from the failing binding', async () => {
+  it('mode=vector still fails loudly with a 502 from the failing binding', async () => {
     for (const [which, source] of [['ai', 'workers-ai'], ['vectorize', 'vectorize']]) {
       const f = createFakes();
       f.vectorize.vectors = fakes.vectorize.vectors;
@@ -242,7 +242,7 @@ describe('B6', () => {
     }
   });
 
-  it('[B6 fixed] after 3 consecutive dense failures the dense half is skipped for 30 s, then retried', async () => {
+  it('after 3 consecutive dense failures the dense half is skipped for 30 s, then retried', async () => {
     const f = createFakes();
     f.vectorize.vectors = fakes.vectorize.vectors;
     f.ai.throws('down');
@@ -279,8 +279,8 @@ describe('B6', () => {
   });
 });
 
-describe('B7', () => {
-  it('[B7 fixed] the cache key is canonical: order, case, whitespace, defaults and junk params share one entry', async () => {
+describe('search cache key', () => {
+  it('the cache key is canonical: order, case, whitespace, defaults and junk params share one entry', async () => {
     const urls = [
       '/search?q=data%20visualisation&sem=2&topK=7',
       '/search?topK=7&sem=2&q=data%20visualisation',
@@ -318,13 +318,13 @@ describe('B7', () => {
     expect(searchCacheKey(new URL('/search?q=x&sem=9', BASE))).toBeNull();
   });
 
-  // Phase 3 3-0 (B3-1): every parameter that changes the answer, in parsed
-  // form, and the deployed version id. 3H's exam/su/hoursBelow/prereq and the
-  // sorted `ignore` list add their own cases here, in the PR that adds them.
+  // The key holds every parameter that changes the answer, in parsed form, and
+  // the deployed version id. The constraint params (exam, su, hoursBelow,
+  // prereq) have their cases in test/search-constraints.test.js.
   it.each([
     ['sem', 'sem=2'], ['level', 'level=3'], ['credits', 'credits=4'], ['faculty', 'faculty=Computing'], ['ng', 'ng=1'],
     ['mode', 'mode=vector'], ['topK', 'topK=7'], ['ignore', 'ignore=ge'],
-  ])('[B3-1] a request with %s has a different key from one without', (_name, param) => {
+  ])('a request with %s has a different key from one without', (_name, param) => {
     const without = searchCacheKey(new URL('/search?q=data%20visualisation', BASE));
     const withIt = searchCacheKey(new URL(`/search?q=data%20visualisation&${param}`, BASE));
     expect(withIt?.url).not.toBe(without?.url);
@@ -333,7 +333,7 @@ describe('B7', () => {
     expect(searchCacheKey(new URL(`/search?_x=1&${spelled}&q=Data%20%20Visualisation`, BASE))?.url).toBe(withIt?.url);
   });
 
-  it('[B3-1, 3B] ignore joins the key as a sorted, de-duplicated list: ignore=su,level and ignore=level,su share one key', () => {
+  it('ignore joins the key as a sorted, de-duplicated list: ignore=su,level and ignore=level,su share one key', () => {
     const key = (/** @type {string} */ q) => searchCacheKey(new URL(`/search?q=data%20visualisation&${q}`, BASE))?.url;
     expect(key('ignore=su,level')).toBe(key('ignore=level,su'));
     expect(key('ignore=level,su,level')).toBe(key('ignore=level,su'));
@@ -345,7 +345,7 @@ describe('B7', () => {
     expect(searchCacheKey(new URL('/search?q=x&ignore=banana', BASE))).toBeNull();
   });
 
-  it('[B-7, B2-6] the key carries the deployed version id, so every deploy (ranker, vectors, DENSE_BACKEND) starts a fresh cache', async () => {
+  it('the key carries the deployed version id, so every deploy (ranker, vectors, DENSE_BACKEND) starts a fresh cache', async () => {
     const url = new URL('/search?q=data%20visualisation', BASE);
     const a = searchCacheKey(url, 'version-a')?.url;
     expect(a).toContain('v=version-a');
@@ -365,7 +365,7 @@ describe('B7', () => {
     expect(next.headers.get('server-timing')).toContain('cache;desc=miss');
   });
 
-  it('[B7 evidence] every stage is case- and whitespace-insensitive, so the key may lower-case q', async () => {
+  it('every stage is case- and whitespace-insensitive, so the key may lower-case q', async () => {
     // The fake embedder (and bge-small-en-v1.5, an uncased model) ignores case and spacing.
     expect(hashEmbed('Machine  LEARNING')).toEqual(hashEmbed('machine learning'));
     // So does the FTS query lexical.js builds.
@@ -376,17 +376,17 @@ describe('B7', () => {
   });
 });
 
-describe('B8', () => {
-  it('[B8 fixed] an empty topK= returns the default 20 results', async () => {
+describe('hydration and parameters', () => {
+  it('an empty topK= returns the default 20 results', async () => {
     const { body } = await callJson('/search?q=machine%20learning&topK=', { fakes });
     expect(body.count).toBe(20);
     expect(body.results).toHaveLength(20);
   });
 
-  it('[B8 fixed] hydration reads only the rows and columns the response renders', async () => {
+  it('hydration reads only the rows and columns the response renders', async () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
-    // The uncollapsed pipeline; 3F's reads are checked in test/search-groups.test.js.
+    // The uncollapsed pipeline; the group collapse's reads are checked in test/search-groups.test.js.
     const { body } = await callJson('/search?q=machine%20learning%20hydrate&topK=20', { fakes, env: { DB: recordingDb(log), COLLAPSE_GROUPS: 'off' } });
     const hydrate = log.filter((c) => c.sql.includes('WHERE code IN'));
     expect(hydrate).toHaveLength(1);
@@ -394,16 +394,16 @@ describe('B8', () => {
     expect(body.retrieval.fused).toBeGreaterThan(20);
     expect(hydrate[0].binds).toEqual(codes(body.results));
     expect(hydrate[0].sql).toContain(`SELECT ${RESULT_COLUMNS} FROM`);
-    // Whole column names: 3H's filter columns (workload_hours, prereq_none, …) are small and read on purpose.
+    // Whole column names: the constraint filter columns (workload_hours, prereq_none, …) are small and read on purpose.
     const cols = /** @type {RegExpMatchArray} */ (hydrate[0].sql.match(/^SELECT (.*) FROM/))[1].split(', ');
     for (const col of ['description', 'workload', 'prerequisite', 'preclusion', 'acad_year', 'text_hash']) {
       expect(cols).not.toContain(col);
     }
-    // R3 (ADR 0008): the prerequisite only where it mentions a year, for the year-of-study note.
+    // ADR 0007: the prerequisite only where it mentions a year, for the year-of-study note.
     expect(cols).toContain("CASE WHEN prerequisite LIKE '%year%' THEN prerequisite END AS year_prereq");
   });
 
-  it('[B8 fixed] a candidate missing from D1 (stale vector) is skipped and the next one hydrated', async () => {
+  it('a candidate missing from D1 (stale vector) is skipped and the next one hydrated', async () => {
     const f = createFakes();
     f.vectorize.vectors = new Map(fakes.vectorize.vectors);
     const top = (await callJson('/search?q=machine%20learning%20stale&mode=vector&topK=5', { fakes: f, env: STANDBY })).body.results;
@@ -420,7 +420,7 @@ describe('B8', () => {
     } finally { warn.mockRestore(); }
   });
 
-  it('[B8 fixed] Vectorize is asked for ids only; the candidate depth stays 50', async () => {
+  it('Vectorize is asked for ids only; the candidate depth stays 50', async () => {
     const before = fakes.vectorize.calls.length;
     const { body } = await callJson('/search?q=machine%20learning%20ceiling&topK=100', { fakes, env: STANDBY });
     const opts = /** @type {any} */ (fakes.vectorize.calls[before].args[1]);
@@ -428,11 +428,11 @@ describe('B8', () => {
     expect(body.count).toBe(50);
   });
 
-  it('[B8 fixed] "naïve" stays one token, and D1\'s FTS5 folds it to the same term as "naive"', async () => {
+  it('"naïve" stays one token, and D1\'s FTS5 folds it to the same term as "naive"', async () => {
     /** @type {import('./support.js').DbCall[]} */
     const log = [];
     await callJson('/search?q=na%C3%AFve%20bayes&mode=lexical', { fakes, env: { DB: recordingDb(log) } });
-    // 3C: `bayes` has df 0 in the fixture, so it is a prefix term; `naïve` is not letter-only ASCII and stays as typed.
+    // The typo step: `bayes` has df 0 in the fixture, so it is a prefix term; `naïve` is not letter-only ASCII and stays as typed.
     expect(ftsCalls(log)[0].binds[0]).toBe('"naïve" OR "bayes"*');
     // The table's own tokenizer (porter unicode61) strips the diaeresis, so the
     // quoted token matches what "naive" matches in the fixture.
@@ -443,8 +443,8 @@ describe('B8', () => {
   });
 });
 
-describe('O3', () => {
-  it('[O3 fixed] /facets reports the NG list date ingest recorded from data/ng-courses-*.json', async () => {
+describe('NG list date', () => {
+  it('/facets reports the NG list date ingest recorded from data/ng-courses-*.json', async () => {
     await seed({ fakes, facets: true });
     const stored = await env.DB.prepare("SELECT value FROM meta WHERE key = 'ng_list'").first('value');
     expect(JSON.parse(String(stored))).toEqual(NG_LIST);
@@ -464,8 +464,8 @@ describe('O3', () => {
   });
 });
 
-describe('O4', () => {
-  it('[O4 known-bug] the Worker has no scheduled handler, so nothing refreshes the data', () => {
+describe('handlers', () => {
+  it('the Worker exports only fetch: scheduled checks run in GitHub Actions, not a cron trigger', () => {
     expect(Object.keys(worker)).toEqual(['fetch']);
   });
 });

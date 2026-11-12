@@ -1,8 +1,8 @@
 // @ts-check
-// 3C in the eval harness (eval/lib/corrected.mjs): a run builds the ranker's
+// Typo correction in the eval harness (eval/lib/corrected.mjs): a run builds the ranker's
 // vocabulary from the run's own corpus with the ranker's own builder and
 // writes it where the ranker reads it, so no run reads a production
-// vocabulary; a 3C-2 ranker's corrected query texts must have embeddings
+// vocabulary; a ranker's corrected query texts must have embeddings
 // before a run starts, and the refusal names the command that adds them; and
 // `eval:embed --corrected-from-ref` collects exactly the corrected texts the
 // ref produces.
@@ -11,7 +11,7 @@ import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
-  assertCorrectedEmbedded, correctedTexts, rankerCorrector, sc4Texts, writeRankerVocabulary,
+  assertCorrectedEmbedded, correctedTexts, rankerCorrector, suiteTexts, writeRankerVocabulary,
 } from '../../eval/lib/corrected.mjs';
 import { MODEL, embeddingKey } from '../../eval/lib/embeddings.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
@@ -28,8 +28,8 @@ afterAll(async () => {
 });
 
 describe('rankerCorrector', () => {
-  it('is null for a ranker without 3C (no src/typo.js)', async () => {
-    const dir = await mkdtemp(join(REPO, '.eval-work', 'no-3c-'));
+  it('is null for a ranker without typo correction (no src/typo.js)', async () => {
+    const dir = await mkdtemp(join(REPO, '.eval-work', 'no-typo-'));
     await mkdir(join(dir, 'src'), { recursive: true });
     expect(await rankerCorrector(dir, fixture.modules, 'x')).toBeNull();
     await rm(dir, { recursive: true, force: true });
@@ -69,12 +69,12 @@ describe('the corrected texts a ranker embeds', () => {
     expect(correctedTexts(corrector(true), ['Machne learning', 'databases', 'machne learning'])).toEqual(['machine learning']);
   });
 
-  it('a 3C-2 run is refused when one lacks an embedding, naming the command to run', () => {
+  it('a run that embeds corrected texts is refused when one lacks an embedding, naming the command to run', () => {
     const have = new Set([embeddingKey(MODEL, 'machine learning')]);
     expect(() => assertCorrectedEmbedded({ set: 'dev', setDirArg: '', ref: '3c2', queries, corrector: corrector(true), have }))
-      .toThrow('1 dense query text(s) of the dev set have no embedding (the ranker embeds each query\'s corrected text, 3C-2, or its 3H-stripped text); run `npm run eval:embed -- --set dev --corrected-from-ref 3c2` locally');
-    expect(() => assertCorrectedEmbedded({ set: 'dev', setDirArg: ' --set-dir eval/diag/typo', ref: 'WORKTREE', queries, corrector: corrector(true), have }))
-      .toThrow('`npm run eval:embed -- --set dev --set-dir eval/diag/typo --corrected-from-ref WORKTREE`');
+      .toThrow(/^1 dense query text\(s\) of the dev set have no embedding \(.*\); run `npm run eval:embed -- --set dev --corrected-from-ref 3c2` locally$/);
+    expect(() => assertCorrectedEmbedded({ set: 'dev', setDirArg: ' --set-dir eval/other', ref: 'WORKTREE', queries, corrector: corrector(true), have }))
+      .toThrow('`npm run eval:embed -- --set dev --set-dir eval/other --corrected-from-ref WORKTREE`');
   });
 
   it('never names a query text in the refusal (holdout)', () => {
@@ -87,7 +87,7 @@ describe('the corrected texts a ranker embeds', () => {
     }
   });
 
-  it('a 3C-1 run, or a run with every corrected text embedded, passes', () => {
+  it('a ranker that embeds the raw text, or a run with every corrected text embedded, passes', () => {
     expect(() => assertCorrectedEmbedded({ set: 'dev', setDirArg: '', ref: '3c1', queries, corrector: corrector(false), have: new Set() })).not.toThrow();
     const have = new Set(['machine learning', 'machine vision'].map((t) => embeddingKey(MODEL, t)));
     expect(() => assertCorrectedEmbedded({ set: 'dev', setDirArg: '', ref: '3c2', queries, corrector: corrector(true), have })).not.toThrow();
@@ -95,10 +95,10 @@ describe('the corrected texts a ranker embeds', () => {
   });
 });
 
-describe('sc4Texts', () => {
-  it('is every text the SC4 runner sends: item texts, typo clean forms and constraint references', () => {
-    const suite = JSON.parse(readFileSync(join(REPO, 'test/sc4/queries.json'), 'utf8'));
-    const texts = sc4Texts(suite);
+describe('the query suite texts (suiteTexts)', () => {
+  it('is every text the query-suite runner sends: item texts, typo clean forms and constraint references', () => {
+    const suite = JSON.parse(readFileSync(join(REPO, 'test/query-suite/queries.json'), 'utf8'));
+    const texts = suiteTexts(suite);
     expect(texts).toContain('psycholgy of learning and memory');
     expect(texts).toContain('psychology of learning and memory');
     for (const item of suite.items) {
@@ -109,9 +109,9 @@ describe('sc4Texts', () => {
   });
 });
 
-describe('the SC4 corrected-form cache', () => {
-  it('exists in the eval cache format, beside the pinned SC4 caches it never replaces', async () => {
-    const path = join(REPO, 'test/fixtures/sc4-corrected-embeddings.json');
+describe('the query suite\'s corrected-form cache', () => {
+  it('exists in the eval cache format, beside the suite\'s pinned caches, which it never replaces', async () => {
+    const path = join(REPO, 'test/fixtures/query-suite-corrected-embeddings.json');
     expect(existsSync(path)).toBe(true);
     const cache = JSON.parse(await readFile(path, 'utf8'));
     expect(cache).toMatchObject({ schema: 'vnm-eval-embeddings/1', model: MODEL, dims: 384 });

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// The year-switch rehearsal (Phase 7 7E, CI job `rollover`; docs/plans/phase7.md 7E "Rehearsal in
-// CI"). In a temp copy of the repo, with no PDF and no archive, it relabels the pinned corpus as
+// The year-switch rehearsal (CI job `rollover`). In a temp copy of the repo, with no PDF and no archive, it relabels the pinned corpus as
 // next year's and runs the switch the runbook describes, locally:
 //
 //   1. setup: copies the tree; sets DEFAULT_ACAD_YEAR, public/year.js and the header to next
@@ -9,7 +8,7 @@
 //      each marked as next year; makes the pinned corpus next year's `current`;
 //   2. `year next`, which must keep every copy (it never overwrites) and change nothing;
 //   3. the builders other than the restrictions builder: the reason texts, then the production
-//      bundle (with the data version, vocabulary, groups, NG-unscheduled and 3B files), then
+//      bundle (with the data version, vocabulary, groups, NG-unscheduled and catalogue files), then
 //      `corpus check`;
 //   4. `year check` (CI mode), which must pass;
 //   5. a local Worker (scripts/ui-server.mjs: wrangler dev --local, FakeAI, a temp D1) holding
@@ -17,18 +16,19 @@
 //      --allow-year-change and done in one run with it, then `verify --pre-deploy`;
 //   6. what each copy must fail on: a stale public/year.js (year check) and a stub NG file
 //      (year check and ingest);
-//   7. the SC1 tests (sc1 and sc1-node) over the relabelled corpus against the oracle the
-//      selector picks for next year, every test passing and none skipped (all but B12, whose
-//      premise, codes production gained since the pin, is false when the pin is production);
-//   8. the variant with Sem 2 unpublished (G2): the manifest marks it so and the NG list loses
+//   7. the oracle tests (oracle and oracle-node) over the relabelled corpus against the oracle
+//      the selector picks for next year, every test passing and none skipped (all but
+//      test/oracle/catalogue.test.js, whose premise, codes production gained since the pin, is
+//      false when the pin is production);
+//   8. the variant with Sem 2 unpublished: the manifest marks it so and the NG list loses
 //      its Sem 2; year check passes, the state is exercised (courses on last year's Sem 2 list
-//      are "to confirm"), and sc1-node agrees with the oracle.
+//      are "to confirm"), and oracle-node agrees with the oracle.
 //
 // It proves the code has no year built in. It cannot show what a new PDF layout or new rules will
 // break: the wrong-year heading and the missing role are unit tests, and a real year still needs
 // the source gate and a person's rulings.
 //
-//   node scripts/rollover.mjs [--keep] [--skip-sc1]
+//   node scripts/rollover.mjs [--keep] [--skip-oracle]
 //
 // Needs the pinned corpus (.data/<year>-moduleInfo.json, sha-checked) and the eval's corpus
 // embeddings (downloaded by the bundle build with gh when absent). Never contacts Cloudflare or
@@ -162,7 +162,7 @@ async function githubRepo() {
 const hashes = (copy, rels) => Object.fromEntries(rels.filter((r) => existsSync(join(copy, r))).map((r) => [r, sha(join(copy, r))]));
 
 async function main() {
-  const { values } = parseArgs({ options: { keep: { type: 'boolean' }, 'skip-sc1': { type: 'boolean' } }, strict: true });
+  const { values } = parseArgs({ options: { keep: { type: 'boolean' }, 'skip-oracle': { type: 'boolean' } }, strict: true });
   const y0 = DEFAULT_ACAD_YEAR;
   const y1 = nextYear(y0);
   const copy = mkdtempSync(join(tmpdir(), 'vnm-rollover-'));
@@ -210,7 +210,7 @@ async function main() {
       if (res.status !== 200) fail(`seeding ${y0}: /admin/ingest answered ${res.status}`);
     }
     // And its catalogue-only rows as this year's: their row hash includes the year, so the switch
-    // rewrites them too (about 28.7k rows charged, docs/plans/phase7.md 7E), which the 80,000-row
+    // rewrites them too (about 28.7k rows charged), which the 80,000-row
     // budget must cover in one run.
     const catalogue = readJson(join(copy, 'data/catalogue-only.json'));
     for (let i = 0; i < catalogue.rows.length; i += 100) {
@@ -248,18 +248,18 @@ async function main() {
     await worker.stop();
     worker = null;
 
-    if (!values['skip-sc1']) {
-      say(`${SECTION} 7. SC1 over ${y1}, against the oracle the selector picks`);
-      const report = join(copy, '.sc1.json');
-      // B12 (test/sc1/catalogue.test.js) checks the codes production gained since the pin; here
+    if (!values['skip-oracle']) {
+      say(`${SECTION} 7. the oracle tests over ${y1}, against the oracle the selector picks`);
+      const report = join(copy, '.oracle.json');
+      // test/oracle/catalogue.test.js checks the codes production gained since the pin; here
       // production is the pinned corpus relabelled, so it has none by construction.
-      await run(copy, 'npx', ['vitest', 'run', '--project', 'sc1', '--project', 'sc1-node', '--exclude', 'test/sc1/catalogue.test.js',
+      await run(copy, 'npx', ['vitest', 'run', '--project', 'oracle', '--project', 'oracle-node', '--exclude', 'test/oracle/catalogue.test.js',
         '--reporter=default', '--reporter=json', `--outputFile=${report}`], { ...env, PRODUCTION_CORPUS: '1' });
       const r = readJson(report);
-      if (r.numPassedTests === 0 || r.numPassedTests !== r.numTotalTests) fail(`SC1: passed ${r.numPassedTests} of ${r.numTotalTests}`);
+      if (r.numPassedTests === 0 || r.numPassedTests !== r.numTotalTests) fail(`oracle tests: passed ${r.numPassedTests} of ${r.numTotalTests}`);
     }
 
-    say(`${SECTION} 8. the variant: Sem 2 unpublished (G2)`);
+    say(`${SECTION} 8. the variant: Sem 2 unpublished`);
     const manifestPath = join(copy, manifestRel(y1));
     const m = readJson(manifestPath);
     m.published.ngList['2'] = false;
@@ -282,11 +282,11 @@ async function main() {
     const opened = carried.filter((/** @type {any} */ x) => elig.eligibility(x, { sem: 2, study: 'ug2' }, ng.rules).status === 'open');
     say(`Sem 2: ${carried.length} courses on ${y0}'s list, ${asked.length} of them "to confirm" for a 2nd-year, ${opened.length} open`);
     if (!asked.length || opened.length) fail('the unpublished Sem 2 state is not exercised, or a course on last year\'s list shows open');
-    if (!values['skip-sc1']) {
-      const report = join(copy, '.sc1-variant.json');
-      await run(copy, 'npx', ['vitest', 'run', '--project', 'sc1-node', '--reporter=default', '--reporter=json', `--outputFile=${report}`], { ...env, PRODUCTION_CORPUS: '1' });
+    if (!values['skip-oracle']) {
+      const report = join(copy, '.oracle-variant.json');
+      await run(copy, 'npx', ['vitest', 'run', '--project', 'oracle-node', '--reporter=default', '--reporter=json', `--outputFile=${report}`], { ...env, PRODUCTION_CORPUS: '1' });
       const r = readJson(report);
-      if (r.numPassedTests === 0 || r.numPassedTests !== r.numTotalTests) fail(`SC1 (Sem 2 unpublished): passed ${r.numPassedTests} of ${r.numTotalTests}`);
+      if (r.numPassedTests === 0 || r.numPassedTests !== r.numTotalTests) fail(`oracle-node (Sem 2 unpublished): passed ${r.numPassedTests} of ${r.numTotalTests}`);
     }
     say(`${SECTION} the rehearsal passed: ${y0} -> ${y1}, Sem 2 unpublished included`);
     return 0;

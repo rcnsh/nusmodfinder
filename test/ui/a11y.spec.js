@@ -1,14 +1,13 @@
 // @ts-check
-// SC8's axe gate (Phase 5 5E; plan §3 5E): axe-core with every rule (no tag
+// The axe gate: axe-core with every rule (no tag
 // filter, and the rules axe leaves off by default turned on: the experimental
 // ones and the AAA ones), except WCAG AAA's 7:1 contrast (support.mjs's
-// AXE_OFF: the bar is AA), on every state the plan lists, plus the loading list, the first
+// AXE_OFF: the bar is AA), on every state the page has, plus the loading list, the first
 // screen's validation message, a missing year of study and a detail that
 // failed to load, in both themes, at 1280 and at 390×664, in Chromium and
 // WebKit. No violation is allowed. The fixture gives most states; the ones it
 // can't (phrase chips, an error, 429, keyword-only, a held search, a failed
-// detail) answer by request interception. Phase 6 6C adds the shortlist's
-// states: the toggles, the restore offer, the view (picks and backups, a full
+// detail) answer by request interception. The shortlist's states run too: the toggles, the restore offer, the view (picks and backups, a full
 // year, empty, the export question, Business counted, rows loading, a failed
 // row, the Copy-link field and an Undo line). The filters dialog exists only at
 // phone width (at 1280 its controls are the rail, checked in every results
@@ -106,7 +105,7 @@ const STATES = [
       await expect(page.getByRole('dialog')).toBeVisible();
     },
   },
-  // Phase 6 6C: the shortlist's states (docs/plans/phase6.md 6C, SC8).
+  // The shortlist's states.
   { name: 'results with shortlist toggles, one pressed', open: '/?q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1' },
   {
     name: 'first screen with the restore offer',
@@ -156,7 +155,7 @@ for (const s of STATES) {
   for (const scheme of /** @type {const} */ (['light', 'dark'])) {
     for (const [label, width, height] of WIDTHS) {
       if (s.phoneOnly && width !== 390) continue;
-      test(`[SC8] axe, every rule: ${s.name}, ${scheme}, ${label}: no violation`, async ({ page }) => {
+      test(`axe, every rule: ${s.name}, ${scheme}, ${label}: no violation`, async ({ page }) => {
         await page.emulateMedia({ colorScheme: scheme });
         await page.setViewportSize({ width, height });
         await s.route?.(page);

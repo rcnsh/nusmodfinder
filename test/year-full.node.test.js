@@ -1,6 +1,5 @@
 // @ts-check
-// Phase 7 7E, `year check --full` (docs/plans/phase7.md 7E, tests first) and what the deploy
-// preflight makes of its record (7B).
+// `year check --full` and what the deploy preflight makes of its record.
 //
 // --full runs on the Mac with the real archive; these cases use fake documents, a throwaway key
 // and a fake release store in temp dirs instead. As the plan says, the two --full cases (a missing
@@ -16,7 +15,7 @@ import { publish } from '../scripts/sources.mjs';
 import { NG_VENV_SETUP, execIn, yearCheckFull } from '../scripts/year.mjs';
 import { LAST, Y, copyTree, fakeDocuments, fakeNgPages, fakeReleases, fromTextExtractor, git, gitInit, readJson, sha, throwawayKey, useFakeDocuments, writeJson } from './year-fakes.node.mjs';
 
-const RUNS = 'docs/evidence/ops/runs';
+const RUNS = 'ops/runs';
 
 /** @type {string} */
 let dir;
@@ -45,7 +44,7 @@ async function setup(o = {}) {
   gitInit(root, origin);
   git(root, ['tag', '-a', '-m', 'live', 'deploy/20261111T235933Z-b0834844']);
   git(root, ['push', '-q', 'origin', 'main', '--tags']);
-  // The archive's publish changes a source-derived input (the manifest), as the lead's will.
+  // The archive's publish changes a source-derived input (the manifest), as a real publish does.
   await publish({ from: docs, root, key: keyFile, upload: releases.upload, runsDir: join(dir, 'publish-runs'), log: () => {} });
   git(root, ['commit', '-q', '-am', 'publish the sources archive']);
 }
@@ -81,7 +80,7 @@ describe('the --full record and the deploy preflight', () => {
       script: FULL_RECORD.script, outcome: 'ok',
       details: {
         mode: FULL_RECORD.mode, sourceInputsHash: await sourceInputsHash(exec), rules: 'byte-identical',
-        // Red team H-1: the NG list, re-extracted from the archived PDF, byte for byte, with its sections.
+        // The NG list, re-extracted from the archived PDF, byte for byte, with its sections.
         ngList: { result: 'byte-identical', semesters: { 1: courses.semesters['1'].length, 2: courses.semesters['2'].length } },
       },
     });
@@ -103,8 +102,8 @@ describe('the --full record and the deploy preflight', () => {
     expect(after.message).toContain(rel);
   });
 
-  // Red team H-1 (docs/evidence/phase7/redteam.md): --full rebuilt only the restrictions file, so a
-  // hand edit to the NG list got an ok record and passed the preflight's record rule.
+  // --full re-extracts the NG list as well as rebuilding the restrictions file, so a hand edit to
+  // the NG list can't get an ok record past the preflight's record rule.
   it('a hand-edited NG course list fails --full (the archived list re-extracts otherwise), so the preflight refuses it', async () => {
     const rel = `data/ng-courses-${Y}.json`;
     const courses = readJson(root, rel);
@@ -156,7 +155,7 @@ describe('the --full record and the deploy preflight', () => {
   });
 });
 
-// Review of the H-1 fix: while a semester is unpublished, exchange mode serves last year's list for
+// While a semester is unpublished, exchange mode serves last year's list for
 // it (scripts/lib.mjs loadNgCourses), so --full checks that file against last year's archive too.
 describe('--full and last year\'s NG list, while Sem 2 is unpublished', () => {
   const LAST_REL = `data/ng-courses-${LAST}.json`;

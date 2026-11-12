@@ -1,8 +1,6 @@
 // @ts-check
-// 3A-2's embedding-text variants (docs/plans/phase3.md 3A-2,
-// docs/plans/phase3-prereg.md §2, eval/prereg/grids.json `3A-2`): the exact
-// text each variant builds for records copied from the pinned corpus, and the
-// level labels. Runs in Node (vitest project "node").
+// The embedding-text variants the eval screened: the exact text each variant
+// builds for records copied from the pinned corpus, and the level labels. Runs in Node (vitest project "node").
 import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import {
@@ -17,7 +15,7 @@ const CS5242 = {
   description: 'This course provides students with the knowledge of deep neural network and enables them to apply deep learning methods effectively on real world problems. The course emphasizes on the understanding of the principles of neural networks and deep learning; practical guidelines and techniques for deep learning; and their applications. Through assignments and projects, students will design, develop, and evaluate deep learning-based solutions to practical problems, such as those in the areas of computer vision, bioinformatics, fintech, cybersecurity, and games.',
 };
 
-/** Level 8 (choice C24: "graduate"). @type {NusModsRecord} */
+/** Level 8 ("graduate", like 5 and 6). @type {NusModsRecord} */
 const PLS8001 = {
   moduleCode: 'PLS8001', title: 'Cultivating Collaboration', department: 'Psychology', faculty: 'Arts and Social Science',
   description: 'This 1-unit course is part of the Roots & Wings 2.0 programme. It focuses on soft skills on the interpersonal level in terms of more effective working with other people and reaching for better outcomes jointly. Through various experiential activities (e.g., role-play, negotiation exercises), students learn to understand the importance of collaboration in various settings and to apply basic techniques to help resolve conflicts and to strive for win-win situations when collaborating with other people in task accomplishment.',
@@ -37,16 +35,11 @@ const BMS5130 = {
 
 const D = (/** @type {NusModsRecord} */ r) => /** @type {string} */ (r.description);
 
-describe('3A-2 level labels', () => {
-  it('1 introductory, 2–3 intermediate, 4 advanced, 5–8 graduate (C24), anything else none', () => {
+describe('the embedding text\'s level labels', () => {
+  it('1 introductory, 2–3 intermediate, 4 advanced, 5–8 graduate, anything else none', () => {
     expect([1, 2, 3, 4, 5, 6, 7, 8].map(levelLabel)).toEqual([
       'introductory', 'intermediate', 'intermediate', 'advanced', 'graduate', 'graduate', 'graduate', 'graduate']);
     expect([0, 9, null].map(levelLabel)).toEqual([null, null, null]);
-  });
-
-  it('agrees with the pre-registered table in eval/prereg/grids.json', async () => {
-    const grids = JSON.parse(await readFile(new URL('../eval/prereg/grids.json', import.meta.url), 'utf8'));
-    for (const [level, label] of Object.entries(grids['3A-2'].levelLabels)) expect(levelLabel(Number(level)), level).toBe(label);
   });
 
   it('N is the code\'s level digit, as levelOf reads it', () => {
@@ -55,14 +48,19 @@ describe('3A-2 level labels', () => {
   });
 });
 
-describe('3A-2 variant texts', () => {
-  it('the variants are the three pre-registered field orders', async () => {
-    const grids = JSON.parse(await readFile(new URL('../eval/prereg/grids.json', import.meta.url), 'utf8'));
+describe('the embedding-text variant texts', () => {
+  it('the variants are the three field orders the eval screened', () => {
+    /** @type {Record<string, string>} */
+    const orders = {
+      v1: 'CODE. Title. Level N (label). Description. Department. Faculty.',
+      v2: 'CODE. Title. Level N (label). Description.',
+      v3: 'Title. Level N (label). Description. Department. Faculty.',
+    };
     const spelled = { code: 'CODE', title: 'Title', level: 'Level N (label)', description: 'Description', department: 'Department', faculty: 'Faculty' };
     for (const [v, fields] of Object.entries(EMBEDDING_TEXT_VARIANTS)) {
-      expect(fields.map((f) => `${spelled[f]}.`).join(' '), v).toBe(grids['3A-2'].variants[v]);
+      expect(fields.map((f) => `${spelled[f]}.`).join(' '), v).toBe(orders[v]);
     }
-    expect(Object.keys(EMBEDDING_TEXT_VARIANTS)).toEqual(Object.keys(grids['3A-2'].variants));
+    expect(Object.keys(EMBEDDING_TEXT_VARIANTS)).toEqual(Object.keys(orders));
   });
 
   it('level 5 (CS5242)', () => {

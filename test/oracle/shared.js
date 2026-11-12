@@ -1,11 +1,11 @@
 // @ts-check
-// What the SC1 tests (test/sc1, over production) and their pinned-corpus
-// assertions (test/full/sc1-pinned.test.js) share (Phase 7 7D): the 15
+// What the oracle tests (test/oracle, over production) and their pinned-corpus
+// assertions (test/full/oracle-pinned.test.js) share: the 15
 // (sem, study) combinations, the standby's queries, and Workers AI answered
 // from the committed query embeddings.
 import devEmbeddings from '../../eval/dev/embeddings.json';
-import correctedEmbeddings from '../fixtures/sc4-corrected-embeddings.json';
-import sc4Embeddings from '../sc4/embeddings.json';
+import correctedEmbeddings from '../fixtures/query-suite-corrected-embeddings.json';
+import sc4Embeddings from '../query-suite/embeddings.json';
 import { NG_SEMS, STUDIES } from '../../src/ng-bit.js';
 import { sha256Hex } from '../../src/rowhash.js';
 
@@ -24,7 +24,7 @@ export const QUERIES = [
   'quantum mechanics', 'psychology', 'supply chain management', 'materials science',
 ];
 
-/** Results and their 3F variants. @param {any} body @returns {string[]} */
+/** Results and their duplicate-group variants. @param {any} body @returns {string[]} */
 export const shownCodes = (body) => body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)]);
 
 /** @type {Record<string, string>} */

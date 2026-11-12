@@ -1,8 +1,7 @@
 // @ts-check
-// Phase 5 5A (docs/plans/phase5.md §3 "5A Exam dates"): the exam date and
-// duration per semester, normalised from moduleInfo's semesterData, stored by
-// migration 0010 as `exam_dates`, bound and hashed into row_hash; and the
-// workload shape /module/:code answers.
+// The exam date and duration per semester, normalised from moduleInfo's
+// semesterData, stored by migration 0010 as `exam_dates`, bound and hashed into
+// row_hash; and the workload shape /module/:code answers.
 import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { describeSchemaProblem } from '../scripts/ingest-core.mjs';
@@ -69,7 +68,7 @@ describe('normalise() derives examDates', () => {
     expect(norm({ semesterData: [{ semester: 1, examDate: '2026-11-25T01:00:00.000Z', examDuration: '120' }] }).examDates[0].durationMins).toBeNull();
   });
 
-  it('names exactly the semesters examSemesters (3H) names', () => {
+  it('names exactly the semesters examSemesters names', () => {
     for (const over of [{}, { semesterData: [{ semester: 1 }, { semester: 3, examDate: 'z', examDuration: 60 }] }]) {
       const m = norm(over);
       expect(m.examDates.map((d) => d.sem)).toEqual(m.examSemesters);
@@ -149,13 +148,13 @@ describe('moduleWorkload: the workload /module/:code answers', () => {
     expect(moduleWorkload(stored([1, -1, 2, 0, 0]))).toEqual({ raw: '[1,-1,2,0,0]' });
   });
 
-  it('null when not listed: absent, or all zero (C-11)', () => {
+  it('null when not listed: absent, or all zero', () => {
     expect(moduleWorkload(stored(undefined))).toBeNull();
     expect(moduleWorkload(null)).toBeNull();
     expect(moduleWorkload(stored([0, 0, 0, 0, 0]))).toBeNull();
   });
 
-  it('agrees with 3H\'s workload_hours on every fixture module: the total where it has one, null or raw where it hasn\'t', () => {
+  it('agrees with the workload_hours intent field on every fixture module: the total where it has one, null or raw where it hasn\'t', () => {
     for (const m of fixture.modules) {
       const w = moduleWorkload(m.workload);
       if (m.workloadHours !== null) expect(w, m.code).toMatchObject({ total: m.workloadHours });

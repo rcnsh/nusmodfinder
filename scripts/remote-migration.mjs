@@ -1,6 +1,6 @@
 // @ts-check
 // Writes (never runs) the SQL file for applying one migration to the remote D1
-// with `wrangler d1 execute --remote --file` (ADR 0001, docs/plans/phase1.md r3).
+// with `wrangler d1 execute --remote --file` (ADR 0001).
 //
 //   node scripts/remote-migration.mjs 0006_fts_external [--bootstrap]
 //

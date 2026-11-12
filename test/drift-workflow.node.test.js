@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7F (G3 (a)): .github/workflows/drift.yml stays thin and harmless. It may read NUSMods'
+// .github/workflows/drift.yml stays thin and harmless. It may read NUSMods'
 // public API and write issues, nothing else: no Cloudflare call, no live-site call, no secret but
 // the run's own GITHUB_TOKEN. Text checks (the repo has no YAML parser, and needs none for this).
 import { readFileSync } from 'node:fs';

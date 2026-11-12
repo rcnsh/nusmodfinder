@@ -1,6 +1,5 @@
 // @ts-check
-// scripts/vectors.mjs and scripts/vectors-manifest.mjs (Phase 3 3-0, B-2,
-// B-9, B2-5, A-N6): the committed fixture bundle is what the builder makes,
+// scripts/vectors.mjs and scripts/vectors-manifest.mjs: the committed fixture bundle is what the builder makes,
 // the manifest checks catch a wrong file, vectors are keyed by text, and the
 // `vectors-bundle` alias defaults to the fixture everywhere.
 import { createHash } from 'node:crypto';
@@ -69,7 +68,7 @@ describe('manifest checks (B-2)', () => {
   });
 });
 
-describe('keyed vectors (B2-5)', () => {
+describe('keyed vectors', () => {
   it('looks each code up by embeddingKey(model, text), so codes sharing a text share one vector, and lists texts with none', () => {
     const [a, b] = fixture.modules;
     const c = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.text !== a.text));
@@ -83,7 +82,7 @@ describe('keyed vectors (B2-5)', () => {
   });
 });
 
-describe('the vocabulary-data and groups-data aliases (Phase 5 5B, A2-1, A3-1)', () => {
+describe('the vocabulary-data and groups-data aliases', () => {
   it('src/intent-data.js and src/group-data.js import the vocabulary and groups by bare name, never by a relative path', () => {
     const intentData = read('src/intent-data.js').toString();
     const groupData = read('src/group-data.js').toString();
@@ -112,7 +111,7 @@ describe('the vocabulary-data and groups-data aliases (Phase 5 5B, A2-1, A3-1)',
     expect(config).not.toContain('find: /^\\.\\.\\/data\\/');
   });
 
-  it("vitest.eval.config.mjs aliases them, 6A's ng-unscheduled-data and 7D's catalogue files to the run workspace's own data/ copies (A3-1, B3-2)", async () => {
+  it("vitest.eval.config.mjs aliases them, ng-unscheduled-data and the catalogue files to the run workspace's own data/ copies", async () => {
     const ws = await mkdtemp(join(tmpdir(), 'vnm-ws-'));
     const before = process.env.VNM_EVAL_WORKSPACE;
     try {
@@ -127,7 +126,7 @@ describe('the vocabulary-data and groups-data aliases (Phase 5 5B, A2-1, A3-1)',
         'vocabulary-data': join(ws, 'data/vocabulary.json'),
         'groups-data': join(ws, 'data/groups.json'),
         'ng-unscheduled-data': join(ws, 'data/ng-unscheduled.json'),
-        // Phase 7 7D: the run corpus's catalogue codes and prefixes (eval/lib/corpus.mjs writeRunCatalogue).
+        // The run corpus's catalogue codes and prefixes (eval/lib/corpus.mjs writeRunCatalogue).
         'catalogue-codes-data': join(ws, 'data/catalogue-codes.json'),
         'prefixes-data': join(ws, 'data/prefixes.json'),
       });

@@ -1,14 +1,13 @@
 // @ts-check
-// A course's detail, inline below its card (Phase 5 5C, SC2), from
-// /module/:code: the description, prerequisites and preclusions as NUS states
-// them (spacing restored, the cohort-only case named, course codes linked to a
-// search), the exam per semester in Singapore time, the workload, exchange
-// availability per semester with every reason and its source, and the link to
-// NUSMods for class times. DOM nodes only (F8). Laid out as direction D's
-// sheet (5D): the course facts on the left, "can you take it" on the right
-// (below them on a phone), and the Close button at the top. 5G adds the
-// mockup's head: the code, title, units and department again, and, for a
-// detail an "Also as" link opened, which entry it was opened from.
+// A course's detail, inline below its card, from /module/:code: the
+// description, prerequisites and preclusions as NUS states them (spacing
+// restored, the cohort-only case named, course codes linked to a search), the
+// exam per semester in Singapore time, the workload, exchange availability per
+// semester with every reason and its source, and the link to NUSMods for class
+// times. DOM nodes only. Laid out as a sheet: the course facts on the left,
+// "can you take it" on the right (below them on a phone), and the Close button
+// at the top. Its head repeats the code, title, units and department, and, for
+// a detail an "Also as" link opened, which entry it was opened from.
 import { h, setChildren } from './dom.js';
 import { noteText, reasonLine, sourceNote, stampText, statusText } from './explain.js';
 import { cleanPrereq, codeSegments, examLines, prereqView, semLabel, workloadText } from './format.js';
@@ -25,7 +24,7 @@ import { STUDIES } from './state.js';
  *   toggle?: (code: string) => HTMLElement,
  * }} DetailContext `filters` is the /search echo the card came from; `from` the
  *   entry whose "Also as" link opened this detail, if one did; `toggle` the
- *   shortlist toggle for the head (6C)
+ *   shortlist toggle for the head
  */
 
 /** @param {HTMLElement} region */
@@ -78,7 +77,7 @@ function prerequisites(raw, cohortOnly, ctx) {
  * @param {DetailContext} ctx
  */
 function preclusions(raw, ctx) {
-  // The same rule language as the prerequisite, with the same spacing restored (5G PD1).
+  // The same rule language as the prerequisite, with the same spacing restored.
   const text = cleanPrereq(typeof raw === 'string' ? raw : '');
   if (!text) return section('Preclusions', h('p', null, 'No preclusions listed'));
   return section('Preclusions', h('p', { class: 'as-stated-label' }, 'As NUS states it:'), nusText(text, ctx));
@@ -177,7 +176,7 @@ export function renderDetail(region, m, ctx) {
   const units = typeof m.credits === 'number' ? `${m.credits} unit${m.credits === 1 ? '' : 's'}` : '';
   setChildren(region,
     h('div', { class: 'sheet-head' }, kicker, h('div', { class: 'sheet-acts' }, code && ctx.toggle ? ctx.toggle(code) : null, close)),
-    // The head repeats the entry's code and title (direction D), so the sheet reads on its own.
+    // The head repeats the entry's code and title, so the sheet reads on its own.
     // The code is in the heading (on its own line), so the heading's name is the code and title.
     h('div', { class: 'dhead' },
       h('h3', { class: 'dtitle' }, code ? h('span', { class: 'dcode' }, code) : null, code ? ' ' : null, typeof m.title === 'string' ? m.title : ''),

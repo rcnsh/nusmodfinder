@@ -1,6 +1,6 @@
 {
  "schema": "vnm-3h-constraint-phrases/1",
- "from": "eval/prereg/intent-phrases.json `constraints` (P-6, unchanged)",
+ "from": "eval/query-rules/intent-phrases.json `constraints` (copied unchanged)",
  "exam": [
   "no exam",
   "no exams",

@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 2d judging (eval/lib/judging.mjs): pre-grading, batches, repeats,
+// Judging (eval/lib/judging.mjs): pre-grading, batches, repeats,
 // packets, validation, collection, adjudication, merge, drift, calibration.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';

@@ -1,7 +1,6 @@
 {
  "schema": "vnm-p6-collision-review/1",
- "fixedAt": "P-6",
- "plan": "docs/plans/phase3.md §2 3B and phase3-prereg.md C13: the rule applied to every offered prefix that was on neither the collision list nor the pillar list",
+ "purpose": "the rule applied to every offered prefix that was on neither the collision list nor the pillar list",
  "rule": [
   "add a prefix if its lowercase form is an English word, or a common abbreviation outside NUS that a student could type meaning something other than that department",
   "leave it off if it is a department or subject code a student types to mean that department, or if the suite routes or joins on it",
@@ -10,7 +9,7 @@
  ],
  "source": {
   "corpus": "eval/lib/corpus.mjs loadPinnedWith: 304 offered prefixes, 53 on the list before this review, 10 pillar prefixes, 241 reviewed here",
-  "dictionary": "/usr/share/dict/words (macOS web2, Webster's Second), matched case-insensitively; read once at P-6. This file is the result: nothing reads the dictionary at runtime or in CI.",
+  "dictionary": "/usr/share/dict/words (macOS web2, Webster's Second), matched case-insensitively; read once when the list was built. This file is the result: nothing reads the dictionary at runtime or in CI.",
   "dictionaryHits": 36,
   "dictionaryHitsAdded": ["AR", "ASP", "BAA", "BIS", "DE", "FE", "GI", "LAT", "MEM", "SA", "SH", "ST", "TEE", "TIC"]
  },
@@ -86,7 +85,7 @@
   "TIC": "English word (tic, tic-tac-toe)"
  },
  "keptOff": {
-  "ACC": "department code students plainly use (accounting; the lead's ruling)",
+  "ACC": "department code students plainly use (accounting)",
   "BBP": "no English word and no common outside abbreviation",
   "BDC": "no English word and no common outside abbreviation",
   "BHD": "no English word and no common outside abbreviation",
@@ -252,7 +251,7 @@
   "EM": "obscure two-letter dictionary word (printer's em)",
   "EN": "obscure two-letter dictionary word; English Literature's code",
   "ES": "obscure two-letter dictionary word; the suite joins on it (sc4-007)",
-  "FIN": "department code students plainly use (finance; the lead's ruling)",
+  "FIN": "department code students plainly use (finance)",
   "HSI": "proper noun only; HSI1000 is a common-curriculum code students use",
   "HY": "proper noun only; History's code",
   "IAN": "personal name only",

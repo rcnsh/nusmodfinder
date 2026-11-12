@@ -1,5 +1,5 @@
 // @ts-check
-// The exchange-mode allow-mask bit (docs/plans/phase4.md §2 "Storage"): one
+// The exchange-mode allow-mask bit: one
 // per (semester, study level), sem-major, 15 in all. Shared by ingest
 // (src/eligibility.js, which computes the mask) and the Worker (every search
 // path tests the one bit), which runs no rule logic and never imports

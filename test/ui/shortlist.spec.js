@@ -1,9 +1,8 @@
 // @ts-check
-// The shortlist UI (Phase 6 6C; docs/plans/phase6.md 6C "Tests first"), and
-// the view's history cases 6B left to it: the cards' and the detail head's
+// The shortlist UI and the view's history: the cards' and the detail head's
 // toggles, the shortlist button, the view's rows, Move, Make, the semester
-// buttons, Remove and Undo, the export question, Copy link, Try again, G3's
-// restore and forget, and the view's entries in history (a 429 and a 500
+// buttons, Remove and Undo, the export question, Copy link, Try again, the
+// device list's restore and forget, and the view's entries in history (a 429 and a 500
 // behind it, Escape, Back and Forward, a submit from it). Focus is asserted
 // after every move the page makes, with the control in view and not covered,
 // driven by real clicks and keys (Playwright WebKit doesn't scroll for a
@@ -20,7 +19,7 @@ const row = (page, code) => page.locator(`#slView li.sl-entry[data-code="${code}
 /** @param {import('@playwright/test').Page} page @param {string} name */
 const button = (page, name) => page.getByRole('button', { name, exact: true });
 /**
- * Activates a control by keyboard, as SC8's keyboard user does: focus on it,
+ * Activates a control by keyboard, as a keyboard user does: focus on it,
  * then a real Enter (Space for a checkbox or radio). The page's own focus moves
  * then run inside a key event, in both browsers (WebKit, like Safari, doesn't
  * focus a button on a mouse click).
@@ -74,7 +73,7 @@ async function rowsIn(page) {
 }
 
 test.describe('the toggle and the list', () => {
-  test('[6C] three added from results: toggles pressed; reload, Back, Forward and a fresh context show the same lists', async ({ page, browser }) => {
+  test('three added from results: toggles pressed; reload, Back, Forward and a fresh context show the same lists', async ({ page, browser }) => {
     await page.goto(at('q=networks&ng=1&study=ug2&sem=1'));
     await settled(page);
     await page.locator('#q').fill('ACC1701XB CS2113 CS2030');
@@ -108,7 +107,7 @@ test.describe('the toggle and the list', () => {
     await fresh.close();
   });
 
-  test('[6C] the card\'s and the detail head\'s toggles agree after either is pressed, and after Remove in the view', async ({ page }) => {
+  test('the card\'s and the detail head\'s toggles agree after either is pressed, and after Remove in the view', async ({ page }) => {
     await page.goto(at('q=CS3244&ng=1&study=ug2&sem=2&open=CS3244'));
     await settled(page);
     const both = page.getByRole('button', { name: 'Shortlist, CS3244' });
@@ -125,7 +124,7 @@ test.describe('the toggle and the list', () => {
     await expect(button(page, 'Shortlist, CS3244')).toHaveAttribute('aria-pressed', 'false');
   });
 
-  test('[6C] a card\'s toggle off removes from either list and offers Undo beside the shortlist button', async ({ page }) => {
+  test('a card\'s toggle off removes from either list and offers Undo beside the shortlist button', async ({ page }) => {
     await page.goto(at('q=CS2113+CS2030&ng=1&study=ug2&sem=1&pick=CS2030.1&alt=GE2101.1&alt=CS2113.1'));
     await settled(page);
     await activate(page, 'Shortlist, CS2113');
@@ -137,7 +136,7 @@ test.describe('the toggle and the list', () => {
     await focusOn(page, 'Shortlist, CS2113');
   });
 
-  test('[6C] the card\'s Undo is offered again the second time the same course is taken off (review finding 1)', async ({ page }) => {
+  test('the card\'s Undo is offered again the second time the same course is taken off', async ({ page }) => {
     await page.goto(at('q=CS2113+CS2030&ng=1&study=ug2&sem=1&pick=CS2030.1&pick=CS2113.1'));
     await settled(page);
     const undo = page.locator('.sl-undo:visible').getByRole('button', { name: 'Undo, put CS2113 back' });
@@ -149,12 +148,12 @@ test.describe('the toggle and the list', () => {
     await expect(undo).toBeVisible();
   });
 
-  test('[6C] a list of backups only: the button says so, not "no semester yet" (review finding 3)', async ({ page }) => {
+  test('a list of backups only: the button says so, not "no semester yet"', async ({ page }) => {
     await page.goto(at('q=CS2030&ng=1&study=ug2&sem=1&alt=CS2030.1'));
     await expect(openButton(page).locator('small')).toHaveText('1 backup, no primary picks yet');
   });
 
-  test('[6C] adding from a card with /module held: the total once it settles; held past 2 s, the loading sentence', async ({ page }) => {
+  test('adding from a card with /module held: the total once it settles; held past 2 s, the loading sentence', async ({ page }) => {
     /** @type {import('@playwright/test').Route[]} */
     const held = [];
     await page.route('**/module/CS2113', (route) => { held.push(route); });
@@ -180,7 +179,7 @@ test.describe('the view at 1280 and 390×664', () => {
     test.describe(label, () => {
       test.use({ viewport: { width, height } });
 
-      test(`[6C] every row control by keyboard on a full-year list, before and after a Sem change: focus kept, in view (${label})`, async ({ page }) => {
+      test(`every row control by keyboard on a full-year list, before and after a Sem change: focus kept, in view (${label})`, async ({ page }) => {
         await page.goto(at('ng=1&study=ug2&pick=CS2113.1&pick=CS2030.2&pick=GE2101.1&view=shortlist'));
         await rowsIn(page);
         // Move down on the first row with the page at the top: the neighbour moves, focus stays and scrolls in view.
@@ -239,7 +238,7 @@ test.describe('the view at 1280 and 390×664', () => {
         await expect(page.locator('#slView .sl-none').first()).toBeVisible();
       });
 
-      test(`[6C] Remove then Undo restores the entry in its place, and its focus (${label})`, async ({ page }) => {
+      test(`Remove then Undo restores the entry in its place, and its focus (${label})`, async ({ page }) => {
         await page.goto(at('ng=1&study=ug2&sem=1&pick=CS2113.1&pick=CS2030.1&pick=GE2101.1&view=shortlist'));
         await rowsIn(page);
         await activate(page, 'Remove, CS2030');
@@ -250,7 +249,7 @@ test.describe('the view at 1280 and 390×664', () => {
         await expect(live(page)).toHaveText('CS2030 is back on your shortlist');
       });
 
-      test(`[6C] a course taught in one semester: "Sem 2, CS5562" becomes aria-disabled "Sem 2 chosen", focus kept (${label})`, async ({ page }) => {
+      test(`a course taught in one semester: "Sem 2, CS5562" becomes aria-disabled "Sem 2 chosen", focus kept (${label})`, async ({ page }) => {
         await page.goto(at('pick=CS5562&view=shortlist'));
         await rowsIn(page);
         await activate(page, 'Sem 2, CS5562');
@@ -259,7 +258,7 @@ test.describe('the view at 1280 and 390×664', () => {
         await expect.poll(() => query(page)).toContain('pick=CS5562.2');
       });
 
-      test(`[6C] opening and closing the view: its button, Escape, Back, Forward, and the button while it is shown (${label})`, async ({ page }) => {
+      test(`opening and closing the view: its button, Escape, Back, Forward, and the button while it is shown (${label})`, async ({ page }) => {
         await page.goto(at('q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1'));
         await settled(page);
         await openButton(page).click();
@@ -291,8 +290,8 @@ test.describe('the view at 1280 and 390×664', () => {
   }
 });
 
-test.describe('the view\'s history (6B, built in 6C)', () => {
-  test('[RT6-PD1] the subheading names the semesters the list holds, not the search filter\'s', async ({ page }) => {
+test.describe('the view\'s history', () => {
+  test('the subheading names the semesters the list holds, not the search filter\'s', async ({ page }) => {
     await page.goto(at('q=ACC1701XB&ng=1&study=ug3&sem=2&pick=CS2030.2&pick=CS2113.1&view=shortlist'));
     await settled(page);
     await expect(view(page).locator('.sl-sub')).toHaveText(/^Sem 1 and Sem 2 · 3rd-year exchange student · /);
@@ -301,7 +300,7 @@ test.describe('the view\'s history (6B, built in 6C)', () => {
     await expect(view(page).locator('.sl-sub')).toHaveText(/^Sem 1 · 3rd-year exchange student · /);
   });
 
-  test('[6C] open the view, change Sem to 2, close: sem=2 stays, no view, the first card\'s stamp is Sem 2\'s, the count said', async ({ page }) => {
+  test('open the view, change Sem to 2, close: sem=2 stays, no view, the first card\'s stamp is Sem 2\'s, the count said', async ({ page }) => {
     await page.goto(at('q=ACC1701XB&ng=1&study=ug2&sem=1&pick=CS2113.1'));
     await settled(page);
     await openButton(page).click();
@@ -313,7 +312,7 @@ test.describe('the view\'s history (6B, built in 6C)', () => {
     await expect(live(page)).toContainText('ACC1701XB');
   });
 
-  test('[6C] a detail open, the view opened, closed, then Back: the previous query shows', async ({ page }) => {
+  test('a detail open, the view opened, closed, then Back: the previous query shows', async ({ page }) => {
     await page.goto(at('q=networks&ng=1&study=ug2&sem=1'));
     await settled(page);
     await page.locator('#q').fill('CS3244');
@@ -330,7 +329,7 @@ test.describe('the view\'s history (6B, built in 6C)', () => {
     await expect(page.locator('#q')).toHaveValue('networks');
   });
 
-  test('[6C] a submit from the view closes it by a push: the list kept, the results said', async ({ page }) => {
+  test('a submit from the view closes it by a push: the list kept, the results said', async ({ page }) => {
     await page.goto(at('q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1'));
     await settled(page);
     await openButton(page).click();
@@ -344,7 +343,7 @@ test.describe('the view\'s history (6B, built in 6C)', () => {
     await focusOn(page, '#slTitle');
   });
 
-  test('[6C] text typed in the box with the view open stays after Escape, after Back, and through a Sem change', async ({ page }) => {
+  test('text typed in the box with the view open stays after Escape, after Back, and through a Sem change', async ({ page }) => {
     await page.goto(at('q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1'));
     await settled(page);
     await openButton(page).click();
@@ -363,7 +362,7 @@ test.describe('the view\'s history (6B, built in 6C)', () => {
     await expect(page.locator('#q')).toHaveValue('history');
   });
 
-  test('[6C] behind a 500: open the view, Back searches again; behind a 429: Back and Escape don\'t, and five edits send no search', async ({ page }) => {
+  test('behind a 500: open the view, Back searches again; behind a 429: Back and Escape don\'t, and five edits send no search', async ({ page }) => {
     let status = 500;
     await page.route('**/search?**', (route) => route.fulfill({ status, headers: status === 429 ? { 'retry-after': '30' } : {}, json: { error: status === 429 ? 'rate_limited' : 'internal' } }));
     const seen = searches(page);
@@ -398,7 +397,7 @@ test.describe('the view\'s history (6B, built in 6C)', () => {
     await expect(page.locator('#status')).toHaveText('Too many searches from your connection. Try again in 30 seconds.');
   });
 
-  test('[6C] Escape with the filters dialog open over the view closes only the dialog (390×664)', async ({ page }) => {
+  test('Escape with the filters dialog open over the view closes only the dialog (390×664)', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 664 });
     await page.goto(at('q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1&view=shortlist'));
     await page.getByRole('button', { name: /^Filters/ }).click();
@@ -411,7 +410,7 @@ test.describe('the view\'s history (6B, built in 6C)', () => {
 });
 
 test.describe('rows', () => {
-  test('[6C] rows arriving keep focus: a held row\'s Move down keeps focus when the rows answer 200 and 404', async ({ page }) => {
+  test('rows arriving keep focus: a held row\'s Move down keeps focus when the rows answer 200 and 404', async ({ page }) => {
     /** @type {import('@playwright/test').Route[]} */
     const held = [];
     await page.route(/\/module\/(CS2113|CS9999)$/, (route) => { held.push(route); });
@@ -428,7 +427,7 @@ test.describe('rows', () => {
     expect(await focused(page)).toBe(before);
   });
 
-  test('[6C] a closed pick and each 404 kind from a link: each reads as its kind says and keeps Move, Make and Remove', async ({ page }) => {
+  test('a closed pick and each 404 kind from a link: each reads as its kind says and keeps Move, Make and Remove', async ({ page }) => {
     await page.goto(at('ng=1&study=ug2&sem=1&pick=CS3244.1&pick=CS1010J.1&pick=EE4407.1&pick=CS9999.1&view=shortlist'));
     await rowsIn(page);
     await expect(row(page, 'CS3244').locator('.exchange-status')).toHaveText('Sem 1 · Not open to exchange students');
@@ -446,7 +445,7 @@ test.describe('rows', () => {
     await expect(page.locator('#slTotals .sl-total .big')).toHaveText('0 units counted, if NUS accepts you into each');
   });
 
-  test('[R6-2] a row with no semester says every note its stamps count, once: one both semesters share, then one only Sem 2 has', async ({ page }) => {
+  test('a row with no semester says every note its stamps count, once: one both semesters share, then one only Sem 2 has', async ({ page }) => {
     // PC4262 at ug2: Sem 1 has GRO's level 4000 note; Sem 2 has it and the NG list's timetable note.
     await page.goto(at('ng=1&study=ug2&sem=1&pick=PC4262&view=shortlist'));
     await rowsIn(page);
@@ -457,7 +456,7 @@ test.describe('rows', () => {
     ]);
   });
 
-  test('[6C] Try again: focus on the row\'s first control, then how it ended (loaded; a 404; still failing)', async ({ page }) => {
+  test('Try again: focus on the row\'s first control, then how it ended (loaded; a 404; still failing)', async ({ page }) => {
     const tries = { CS3244: 0, CS2113: 0, GE2101: 0 };
     await page.route(/\/module\/(CS3244|CS2113|GE2101)$/, (route) => {
       const code = /** @type {keyof typeof tries} */ (new URL(route.request().url()).pathname.split('/').pop());
@@ -481,8 +480,8 @@ test.describe('rows', () => {
   });
 });
 
-test.describe('the export question, Copy link, the invitation, G3', () => {
-  test('[6C] browse mode: Download CSV focuses the question; choosing a year keeps focus in it, arrowing starts nothing, and turns on exchange mode', async ({ page }) => {
+test.describe('the export question, Copy link, the invitation, the device\'s list', () => {
+  test('browse mode: Download CSV focuses the question; choosing a year keeps focus in it, arrowing starts nothing, and turns on exchange mode', async ({ page }) => {
     await page.addInitScript(() => {
       /** @type {any} */ (globalThis).printed = 0;
       window.print = () => { /** @type {any} */ (globalThis).printed += 1; };
@@ -505,7 +504,7 @@ test.describe('the export question, Copy link, the invitation, G3', () => {
     expect(await page.evaluate(() => /** @type {any} */ (globalThis).printed)).toBe(0);
   });
 
-  test('[6C] an untagged entry gets its own semester question; a 404 in browse mode asks the year', async ({ page }) => {
+  test('an untagged entry gets its own semester question; a 404 in browse mode asks the year', async ({ page }) => {
     await page.goto(at('ng=1&study=ug2&pick=CS2113&view=shortlist'));
     await rowsIn(page);
     await activate(page, page.getByRole('group', { name: 'CS2113: which semester?' }).getByRole('radio', { name: 'Sem 2' }));
@@ -516,7 +515,7 @@ test.describe('the export question, Copy link, the invitation, G3', () => {
     await expect(page.getByRole('group', { name: 'Your year of study during the exchange at NUS' })).toBeVisible();
   });
 
-  test('[6C] the export question is worked out again as rows arrive: an unknown code drops out, a one-semester course offers only its semester (review finding 2)', async ({ page }) => {
+  test('the export question is worked out again as rows arrive: an unknown code drops out, a one-semester course offers only its semester', async ({ page }) => {
     /** @type {import('@playwright/test').Route[]} */
     const held = [];
     await page.route(/\/module\/(CS9999|CS5562)$/, (route) => { held.push(route); });
@@ -530,7 +529,7 @@ test.describe('the export question, Copy link, the invitation, G3', () => {
     await expect(group.getByRole('radio', { name: 'Sem 2' })).toBeVisible();
   });
 
-  test('[6C] the view\'s sentence and the shortlist button count "units picked" the same way (review finding 4)', async ({ page }) => {
+  test('the view\'s sentence and the shortlist button count "units picked" the same way', async ({ page }) => {
     await page.goto(at('q=CS2030&ng=1&study=ug2&sem=1&pick=CS3244.1&pick=CS2030.1&view=shortlist'));
     await rowsIn(page);
     await page.locator('#semSegOptions').getByText('Sem 2', { exact: true }).click();
@@ -538,7 +537,7 @@ test.describe('the export question, Copy link, the invitation, G3', () => {
     await expect(openButton(page).locator('small')).toHaveText('Sem 1: 8 units picked');
   });
 
-  test('[6C] Copy link: writeText called within the click; when it rejects, the link in a field labelled "Shortlist link", selected', async ({ page }) => {
+  test('Copy link: writeText called within the click; when it rejects, the link in a field labelled "Shortlist link", selected', async ({ page }) => {
     await page.addInitScript(() => {
       const g = /** @type {any} */ (globalThis);
       g.copied = [];
@@ -565,7 +564,7 @@ test.describe('the export question, Copy link, the invitation, G3', () => {
     expect(await page.evaluate(() => { const f = /** @type {HTMLInputElement} */ (document.activeElement); return (f.selectionEnd ?? 0) - (f.selectionStart ?? 0); })).toBe(first.t.length);
   });
 
-  test('[6C] the invitation checkbox: only for the faculty the list holds; ticking counts Business and says so', async ({ page }) => {
+  test('the invitation checkbox: only for the faculty the list holds; ticking counts Business and says so', async ({ page }) => {
     await page.goto(at('ng=1&study=ug2&sem=1&pick=ACC1701XA.1&pick=CS2113.1&view=shortlist'));
     await rowsIn(page);
     await expect(page.getByRole('group', { name: /Did NUS Law invite you/ })).toBeHidden();
@@ -578,7 +577,7 @@ test.describe('the export question, Copy link, the invitation, G3', () => {
     await focusOn(page, '#slInvBiz');
   });
 
-  test('[6C, G3] Restore on the first screen opens the view with the device\'s list; Forget clears only the device\'s copy', async ({ page }) => {
+  test('Restore on the first screen opens the view with the device\'s list; Forget clears only the device\'s copy', async ({ page }) => {
     await page.goto(at('q=CS2113&ng=1&study=ug2&sem=1'));
     await settled(page);
     await activate(page, 'Shortlist, CS2113');
@@ -597,7 +596,7 @@ test.describe('the export question, Copy link, the invitation, G3', () => {
     await expect(page.locator('#slRestoreSetup')).toBeHidden();
   });
 
-  test('[6C] a refused push is retried: the URL catches up and equals the screen', async ({ page }) => {
+  test('a refused push is retried: the URL catches up and equals the screen', async ({ page }) => {
     await page.addInitScript(() => {
       const g = /** @type {any} */ (globalThis);
       g.refuse = 0;

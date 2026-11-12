@@ -1,9 +1,9 @@
 // @ts-check
-// The parsed-phrase chip row (Phase 5 5F): one chip per phrase /search read
-// from the query (intents.js), each with a button that undoes it. Undoing
-// re-runs the search with `ignore=<intent>` (app.js; nav.js: a replace that
-// drops `open=`). Its own module, wired into app.js at one point, so the
-// cards (render.js) stay 5C's.
+// The parsed-phrase chip row: one chip per phrase /search read from the query
+// (intents.js), each with a button that undoes it. Undoing re-runs the search
+// with `ignore=<intent>` (app.js; nav.js: a replace that drops `open=`). Its
+// own module, wired into app.js at one point, so the cards (render.js) don't
+// depend on it.
 import { h } from './dom.js';
 import { intentChips } from './intents.js';
 

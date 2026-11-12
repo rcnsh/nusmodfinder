@@ -1,9 +1,9 @@
 // @ts-check
-// The fetch layer (Phase 5 5B, F2, F7). Each search aborts the one before it
-// and gives up after 10 s; a non-JSON body (Cloudflare's HTML or plain-text
-// error pages) is caught before parsing; 429 reads Retry-After. Callers get an
-// outcome, never a rejection, and never the server's message text: the codes
-// here are mapped to sentences by messages.js.
+// The fetch layer. Each search aborts the one before it and gives up after 10
+// s; a non-JSON body (Cloudflare's HTML or plain-text error pages) is caught
+// before parsing; 429 reads Retry-After. Callers get an outcome, never a
+// rejection, and never the server's message text: the codes here are mapped to
+// sentences by messages.js.
 
 /** How long a /search or /facets request may take, body included. */
 export const SEARCH_TIMEOUT_MS = 10_000;
@@ -12,7 +12,7 @@ export const SEARCH_TIMEOUT_MS = 10_000;
  * `code` is the Worker's `error` field, or one of the fetch layer's own:
  * `timeout`, `network`, `not_json` (an answer that is not JSON), `http` (a
  * JSON error without a code). `retryAfter` is seconds, 429 only. `detail`
- * (6A) is a JSON error body's other fields, its `message` left out, when it
+ * is a JSON error body's other fields, its `message` left out, when it
  * has any: a /module 404's `kind`, `acadYear` and the course's fields.
  * @typedef {{ code: string, status?: number, retryAfter?: number | null, detail?: Record<string, unknown> }} ApiError
  */
@@ -40,7 +40,7 @@ const SUPERSEDED = Symbol('superseded');
 
 /**
  * A JSON error body's fields but `error` and `message`, as `{ detail }`, or
- * nothing when there are none (6A). The server's message never reaches the page.
+ * nothing when there are none. The server's message never reaches the page.
  * @param {unknown} body
  * @returns {{ detail?: Record<string, unknown> }}
  */
@@ -92,7 +92,7 @@ async function getJson(doFetch, url, ctrl) {
 }
 
 /**
- * A search function whose every call aborts the call before it (F2): the
+ * A search function whose every call aborts the call before it: the
  * aborted one settles as `superseded`, so a stale answer can never be shown.
  * `abort()` cancels the one in flight the same way (the query was cleared).
  * @param {Deps} [deps]
@@ -127,10 +127,10 @@ export function fetchSearch(params, { fetch: doFetch = (...a) => fetch(...a) } =
 }
 
 /**
- * GET /module/:code for the detail and the hidden-code lines (5C), each code
+ * GET /module/:code for the detail and the hidden-code lines, each code
  * fetched once per page (the response is also browser-cached for 5 minutes).
  * Answers and requests in flight are shared. A 404 is an answer and is kept
- * (6A: its `detail` says which kind of miss); any other failure is not, so
+ * (its `detail` says which kind of miss); any other failure is not, so
  * asking again retries.
  * @param {Deps} [deps]
  * @returns {{ get: (code: string) => Promise<Outcome> }}
@@ -155,7 +155,7 @@ export function createModuleClient({ fetch: doFetch = (...a) => fetch(...a) } = 
 
 /**
  * GET /facets: the faculty list and the exchange-mode sources. Resolves null
- * on any failure, so nothing on the page waits on it or breaks without it (F4).
+ * on any failure, so nothing on the page waits on it or breaks without it.
  * @param {Deps} [deps]
  * @returns {Promise<any | null>}
  */

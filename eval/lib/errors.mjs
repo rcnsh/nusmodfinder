@@ -33,13 +33,13 @@ export class RunFailedError extends EvalError {}
 export class RunFileError extends EvalError {}
 /** A ciphertext a verdict reads is missing from MANIFEST.json, differs from it, or the set has no manifest. */
 export class ManifestError extends EvalError {}
-/** A holdout or SC5 baseline is not the pinned eval-v0 ranker (ref, sha, treeHash or the tag's resolution). */
+/** A custody verdict's baseline is not its pinned ranker (ref, sha, treeHash or the tag's resolution). */
 export class BaselineError extends EvalError {}
 /** A `--change-kind cutoff` candidate is not a truncation of its baseline. */
 export class CutoffError extends EvalError {}
-/** A gate rule asked of a set it does not apply to (a dev-only kind on an encrypted set, `--gate sc5` against the recorded SC5 reading). */
+/** A gate rule asked of a set it does not apply to (a dev-only kind on an encrypted set, compliance on the test set). */
 export class GateRuleError extends EvalError {}
-/** The compliance rule's frozen reference parse is unavailable (tag `3h` gone or moved) or parses no query of the set. */
+/** The compliance rule's frozen reference parse is unavailable (tag `parse-reference` gone or moved) or parses no query of the set. */
 export class ReferenceParseError extends EvalError {}
 /** The candidate's parse differs from the frozen reference parse on at least one query (no look is spent). */
 export class ParseMismatchError extends EvalError {}

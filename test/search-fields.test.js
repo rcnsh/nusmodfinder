@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 5 5C-api (docs/plans/phase5.md §3 "5C-api"): /search's additive,
+// /search's additive,
 // ranking-neutral fields on the fixture.
 // - `hiddenPins`: every typed offered code (up to 10, not only the 3 pinned)
 //   whose row the filters remove. A code with no row, or a pin skipped because
@@ -9,12 +9,12 @@
 //   for Sem 1 and Sem 2 at the request's study level, from the stored row.
 // - `examDates`: each result's exams, as /module/:code answers them.
 // The whole-corpus check of exchangeBySem against the oracle is
-// test/sc1/paths.test.js.
+// test/oracle/paths.test.js.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
 import { exchangeAt } from '../src/ng-reasons.js';
-import { oracleShown } from './sc1/oracle.mjs';
+import { oracleShown } from './oracle/oracle.mjs';
 import { callJson, fixture, seed } from './helpers.js';
 
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
@@ -74,7 +74,7 @@ describe('hiddenPins', () => {
     }
   });
 
-  it('follows the filters the pins follow: 3H\'s intents, not 3B\'s level window', async () => {
+  it('follows the filters the pins follow: the constraint intents, not the parse\'s level window', async () => {
     // exam=0: CS3244 has exams, so it is hidden; PC3270 has none.
     const exam = await callJson('/search?q=CS3244%20PC3270&exam=0', { fakes });
     expect(exam.body.hiddenPins).toEqual(['CS3244']);

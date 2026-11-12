@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7E, G5: NUS's source documents in an AES-256-GCM archive per revision
+// NUS's source documents in an AES-256-GCM archive per revision
 // (scripts/sources.mjs). Every case uses fake documents, a throwaway key and a fake release store
 // in temp dirs: no real document, key or release is touched. The key path never defaults to, or
 // reads, the holdout key's.
@@ -156,9 +156,9 @@ describe('publish and restore', () => {
 /** The newest revision of a manifest read as JSON (untyped, as the tests edit it). @param {any} m @returns {any} */
 const latestOf = (m) => latestRevision(m);
 
-// Red team L-4 (docs/evidence/phase7/redteam.md): no file name in the manifest was checked, so
-// `../escaped.png` was read from outside --from at publish and written outside the restore dir.
-describe('manifest file names are plain base names (red team L-4)', () => {
+// Every file name in the manifest is checked, so `../escaped.png` can't be read from outside
+// --from at publish or written outside the restore dir.
+describe('manifest file names are plain base names', () => {
   /** @type {string} */
   let root;
   /** @type {string} */
@@ -239,10 +239,10 @@ describe('manifest file names are plain base names (red team L-4)', () => {
   });
 });
 
-// Red team L-5: a document's `text` extraction was archived with no sha256, so a hand-"fixed"
-// extraction changed what --full accepts as NUS's words and what the builder reads.
-describe('text extractions are pinned by textSha256 (red team L-5)', () => {
-  /** The lead's sha256 of each published extraction (npm run sources -- hash over the archive), by document id. */
+// A document's `text` extraction is pinned by its sha256, so a hand-"fixed" extraction can't
+// change what --full accepts as NUS's words or what the builder reads.
+describe('text extractions are pinned by textSha256', () => {
+  /** The sha256 of each published extraction (npm run sources -- hash over the archive), by document id. */
   const REAL_TEXT_SHA256 = {
     'ng-list': '60948390f9a3cedff9ebaeff0df3ad54317e93d6905a3421fc0abb8cd3e71816',
     restrictions: '572e172bba8f240cba5734d3727710ab9a7a70284cd4391e74a5c4de149482e5',

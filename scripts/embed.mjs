@@ -5,10 +5,10 @@
 // comes from `wrangler auth token` on every run and is never stored or
 // printed; the account id from $CLOUDFLARE_ACCOUNT_ID or `wrangler whoami`.
 // Every run estimates its cost from token counts first (1,841 neurons per
-// million tokens), refuses to start above the cap, and logs the estimate to
-// docs/evidence/neurons.tsv. A run that passes the gate (not a dry run) also
-// writes a run record (scripts/run-record.mjs, Phase 7 7C) on every exit path:
-// the estimate, each REST call by path (never the account id), the outcome.
+// million tokens) and refuses to start above the cap. A run that passes the
+// cap (not a dry run) writes a run record (scripts/run-record.mjs) on every
+// exit path: the estimate, each REST call by path (never the account id), the
+// outcome.
 // Counts only: no query text reaches the record.
 //
 //   npm run eval:embed                        dev queries (+ texts a failed run reported missing)
@@ -21,25 +21,25 @@
 //                                             (scripts/vectors.mjs writes the file) -> a cache
 //                                             it reads with --extra (cap 2,500)
 //   npm run eval:embed -- --set <set> [--set-dir <dir>] --corrected-from-ref <ref>
-//                                             3C-2: the corrected query texts the ranker at <ref>
+//                                             the corrected query texts the ranker at <ref>
 //                                             (WORKTREE: the working tree) produces for the set,
 //                                             with its vocabulary built from the set's corpus, into
 //                                             the set's query cache (encrypted for holdout and test;
 //                                             custodian only), as `npm run eval` asks for them
-//   npm run eval:embed -- --sc4 --corrected-from-ref <ref>
-//                                             the same for the SC4 suite's texts over the pinned
-//                                             corpus -> test/fixtures/sc4-corrected-embeddings.json
-//                                             (test/sc4/embeddings.json stays as P-6 pinned it)
+//   npm run eval:embed -- --suite --corrected-from-ref <ref>
+//                                             the same for the query suite's texts over the pinned
+//                                             corpus -> test/fixtures/query-suite-corrected-embeddings.json
+//                                             (test/query-suite/embeddings.json is never rewritten)
 //   add --dry-run to print the estimate and stop.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { appendFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { gzipSync } from 'node:zlib';
 import { loadCorpusFile, loadPinnedWith } from '../eval/lib/corpus.mjs';
-import { correctedTexts, rankerCorrector, sc4Texts } from '../eval/lib/corrected.mjs';
+import { correctedTexts, rankerCorrector, suiteTexts } from '../eval/lib/corrected.mjs';
 import { readEncryptedJson, recordInManifest, sha256 } from '../eval/lib/crypto.mjs';
 import {
   DIMS, EMB_DIR, MODEL, embeddingKey, estimateTokens, f32ToBase64, neuronsFor, readCache, writeCache, queryTextForms,
@@ -51,7 +51,6 @@ import { startRun } from './run-record.mjs';
 const BATCH = 100;
 const QUERY_CAP = 500;
 const CORPUS_CAP = 2500;
-const LOG = join(REPO, 'docs/evidence/neurons.tsv');
 
 const { values: a } = parseArgs({
   options: {
@@ -66,15 +65,15 @@ const { values: a } = parseArgs({
     texts: { type: 'string' },
     out: { type: 'string' },
     'corrected-from-ref': { type: 'string' },
-    sc4: { type: 'boolean', default: false },
+    suite: { type: 'boolean', default: false },
   },
 });
 
 /** This run's record, once the gate has passed (scripts/run-record.mjs). @type {import('./run-record.mjs').RunRecord | null} */
 let record = null;
 
-/** The SC4 runner's corrected-form cache (test/full/sc4.test.js reads it beside the P-6 caches). */
-const SC4_CORRECTED = join(REPO, 'test/fixtures/sc4-corrected-embeddings.json');
+/** The query-suite runner's corrected-form cache (test/full/query-suite.test.js reads it beside the suite's own caches). */
+const SUITE_CORRECTED = join(REPO, 'test/fixtures/query-suite-corrected-embeddings.json');
 
 /** @param {string} msg @returns {never} */
 function fail(msg) {
@@ -99,8 +98,7 @@ function estimate(texts) {
 async function logSpend(mode, est, note) {
   record?.read(`Workers AI neurons (${mode}; estimated from tokens)`, { estimate: Number(est.neurons.toFixed(1)) });
   record?.detail('texts', (Number(record.data.details.texts) || 0) + est.texts);
-  if (!existsSync(LOG)) await writeFile(LOG, 'date\tmode\ttexts\test_tokens\test_neurons\trequests\tnote\n');
-  await appendFile(LOG, `${new Date().toISOString()}\t${mode}\t${est.texts}\t${est.tokens}\t${est.neurons.toFixed(1)}\t${est.requests}\t${note}\n`);
+  if (note) record?.detail('note', note);
 }
 
 /** Token and account, never printed. */
@@ -196,13 +194,13 @@ async function gate(mode, texts) {
 
 // ---------------------------------------------------------------------------
 
-if (a.sc4 && !a['corrected-from-ref']) fail('--sc4 needs --corrected-from-ref <ref>');
+if (a.suite && !a['corrected-from-ref']) fail('--suite needs --corrected-from-ref <ref>');
 
 if (a['corrected-from-ref']) {
-  // 3C-2: the texts the ranker at the ref embeds beside each query, asked of
+  // The corrected texts the ranker at the ref embeds beside each query, asked of
   // its own corrector over a vocabulary built from the corpus the run uses.
   const ref = /** @type {string} */ (a['corrected-from-ref']);
-  const ws = await buildWorkspace({ ref: ref === 'WORKTREE' ? undefined : ref, name: `embed-corrected-${a.sc4 ? 'sc4' : a.set}` });
+  const ws = await buildWorkspace({ ref: ref === 'WORKTREE' ? undefined : ref, name: `embed-corrected-${a.suite ? 'suite' : a.set}` });
   /** @type {string[]} */
   let texts;
   /** @type {import('../eval/lib/corpus.mjs').Corpus} */
@@ -215,12 +213,12 @@ if (a['corrected-from-ref']) {
   let set = null;
   /** Keys the run already finds elsewhere. @type {Set<string>} */
   const elsewhere = new Set();
-  if (a.sc4) {
-    texts = sc4Texts(JSON.parse(await readFile(join(REPO, 'test/sc4/queries.json'), 'utf8')));
+  if (a.suite) {
+    texts = suiteTexts(JSON.parse(await readFile(join(REPO, 'test/query-suite/queries.json'), 'utf8')));
     corpus = await loadPinnedWith(ws.root);
-    cachePath = SC4_CORRECTED;
-    for (const p of ['test/sc4/embeddings.json', 'eval/dev/embeddings.json']) {
-      for (const k of Object.keys((await readCache(join(REPO, p), null, 'sc4')).entries)) elsewhere.add(k);
+    cachePath = SUITE_CORRECTED;
+    for (const p of ['test/query-suite/embeddings.json', 'eval/dev/embeddings.json']) {
+      for (const k of Object.keys((await readCache(join(REPO, p), null, 'suite')).entries)) elsewhere.add(k);
     }
   } else {
     set = layout(/** @type {string} */ (a.set), a['set-dir'] ? resolve(a['set-dir']) : undefined);
@@ -230,11 +228,11 @@ if (a['corrected-from-ref']) {
     corpus = existsSync(corpusFile) ? await loadCorpusFile(corpusFile) : await loadPinnedWith(ws.root);
     cachePath = setFile(set, 'embeddings.json');
   }
-  const label = a.sc4 ? 'sc4' : /** @type {string} */ (a.set);
+  const label = a.suite ? 'suite' : /** @type {string} */ (a.set);
   const corrector = await rankerCorrector(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));
-  if (!corrector) fail(`${ref} has no 3C corrector (src/typo.js), so it embeds no corrected text`);
-  if (!corrector.embedsCorrected) console.log(`note: ${ref} is 3C-1 and embeds none of these; they are the texts 3C-2 on the same corrector embeds`);
-  const cache = await readCache(cachePath, key, set?.name ?? 'sc4');
+  if (!corrector) fail(`${ref} has no typo corrector (src/typo.js), so it embeds no corrected text`);
+  if (!corrector.embedsCorrected) console.log(`note: ${ref} does not embed corrected text; these are the texts the same corrector would embed with EMBED_CORRECTED on`);
+  const cache = await readCache(cachePath, key, set?.name ?? 'suite');
   // Counts only: holdout query text must not reach the terminal.
   const wanted = correctedTexts(corrector, texts);
   const todo = wanted.filter((t) => !(embeddingKey(MODEL, t) in cache.entries) && !elsewhere.has(embeddingKey(MODEL, t)));
@@ -246,11 +244,11 @@ if (a['corrected-from-ref']) {
   const { vectors } = await embedAll(todo);
   await logSpend(`corrected:${label}`, est, `${ref} ${ws.ranker.sha.slice(0, 7)}${a.note ? `; ${a.note}` : ''}`);
   todo.forEach((t, i) => { cache.entries[embeddingKey(MODEL, t)] = f32ToBase64(Float32Array.from(vectors[i])); });
-  await writeCache(cachePath, cache, key, set?.name ?? 'sc4');
+  await writeCache(cachePath, cache, key, set?.name ?? 'suite');
   if (key && set) await recordInManifest(set.dir, [cachePath]);
   console.log(`added ${todo.length} vectors to ${cachePath} (${Object.keys(cache.entries).length} total)`);
 } else if (a.texts) {
-  // Phase 3 3-0: the texts the production bundle has no vector for, into a
+  // The texts the production bundle has no vector for, into a
   // plaintext cache (the QueryCache format) that `scripts/vectors.mjs build
   // --extra` reads. Texts already in --out are not embedded again.
   if (!a.out) fail('--texts needs --out <cache.json>');

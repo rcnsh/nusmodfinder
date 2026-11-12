@@ -3,7 +3,7 @@
 
 /**
  * The texts a ranker may embed for a query: the raw text (eval-v0) and the
- * canonical form rankers since PR #7 embed (src/search.js canonicalQuery:
+ * canonical form later rankers embed (src/search.js canonicalQuery:
  * trimmed, whitespace collapsed, ASCII letters lowercased). Embedding both
  * keeps a set's queries from going missing mid-run, where the dense breaker
  * would hide the misses (three in a row skip the dense half).

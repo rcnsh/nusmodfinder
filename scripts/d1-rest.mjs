@@ -1,5 +1,5 @@
 // @ts-check
-// Read-only access to production D1 over Cloudflare's D1 REST query endpoint (Phase 7 7B, G1):
+// Read-only access to production D1 over Cloudflare's D1 REST query endpoint:
 //
 //   POST https://api.cloudflare.com/client/v4/accounts/<account>/d1/database/<id>/query
 //   { "sql": "...", "params": [...] }
@@ -58,7 +58,7 @@ function skeleton(sql) {
 
 /**
  * Words that write or change the schema. None may appear anywhere outside a literal, so a reader
- * that is wrong about where a statement ends still can't let one through (red team M-3).
+ * that is wrong about where a statement ends still can't let one through.
  * RETURNING is here too: no read has one.
  */
 export const WRITE_KEYWORDS = ['INSERT', 'UPDATE', 'DELETE', 'REPLACE', 'CREATE', 'DROP', 'ALTER', 'ATTACH', 'DETACH', 'VACUUM', 'REINDEX', 'RETURNING'];
@@ -70,7 +70,7 @@ const WRITE_RE = new RegExp(`\\b(${WRITE_KEYWORDS.join('|')})\\b`, 'i');
  * write keyword anywhere; and no `$`, `@`, `:` or `#` at all. SQLite reads any of those four
  * followed by an identifier character as a parameter, its identifier characters include `$` and
  * every byte >= 0x80, and a TCL-style `$a(...)` swallows quotes up to the next `)`, which would hide
- * a `;` from the literal-blanking (red team M-3: `SELECT $$(');UPDATE …`). Every caller sends a
+ * a `;` from the literal-blanking (`SELECT $$(');UPDATE …`). Every caller sends a
  * constant with `?` parameters, so being this strict costs nothing.
  * @param {string} sql
  */

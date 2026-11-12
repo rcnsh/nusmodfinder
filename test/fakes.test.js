@@ -139,7 +139,7 @@ describe('throw and hang switches', () => {
 });
 
 describe('FakeVectorize describe()', () => {
-  it('[PR13b #2] reports processedUpToDatetime as the ISO time of the last processed mutation, null before any', async () => {
+  it('reports processedUpToDatetime as the ISO time of the last processed mutation, null before any', async () => {
     const v = new FakeVectorize();
     v.processPerDescribe = 0;
     expect(await v.describe()).toMatchObject({ processedUpToMutation: null, processedUpToDatetime: null });

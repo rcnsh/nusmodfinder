@@ -30,20 +30,20 @@ export default defineConfig(async () => {
     // The workspace's test/wrangler.test.jsonc `alias` (the plugin does not
     // read it): the bundle eval/runner/run.mjs built for this run. Unused by
     // rankers without in-Worker vectors (eval-v0).
-    // The vocabulary and groups (Phase 5 5B, A3-1, B3-2): this run's own copies
+    // The vocabulary and groups: this run's own copies
     // in the workspace, which the run overwrites with ones built from its
     // corpus (eval/lib/corrected.mjs), never the repo's data/. Rankers from
-    // before the bare names import ../data/*.json, the same files. 6A's
+    // before the bare names import ../data/*.json, the same files. The
     // NG-listed codes with no classes: the workspace's committed copy, which
     // only the no-match branch reads, so it never touches a ranking; rankers
-    // from before 6A import none and have none.
+    // from before them import none and have none.
     resolve: {
       alias: {
         'vectors-bundle': join(ws, 'test/fixtures/vectors.js'),
         'vocabulary-data': join(ws, 'data/vocabulary.json'),
         'groups-data': join(ws, 'data/groups.json'),
         'ng-unscheduled-data': join(ws, 'data/ng-unscheduled.json'),
-        // Phase 7 7D: the run corpus's catalogue codes and prefixes, which the run writes over
+        // The run corpus's catalogue codes and prefixes, which the run writes over
         // the workspace's copies (eval/lib/corpus.mjs writeRunCatalogue).
         'catalogue-codes-data': join(ws, 'data/catalogue-codes.json'),
         'prefixes-data': join(ws, 'data/prefixes.json'),

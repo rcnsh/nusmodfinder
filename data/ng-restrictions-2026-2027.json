@@ -12,7 +12,7 @@
   "yst-sem2-non-music-majors.html": "6361e644c38b7cf2d25b39220f9ee6f851d1419c920890d46886566c4f804e92",
   "yst-sem2-non-music-majors.txt": "7b63f960ca5b94245288b70c7e808755b39837b22ff5a93d8fd480478cd02f65"
  },
- "register": "docs/evidence/phase4/interpretations.md",
+ "register": "docs/year-refresh/registers/2026-2027.md",
  "rules": [
   {
    "id": "A-dentistry",
@@ -7058,7 +7058,7 @@
      "AR5601"
     ]
    },
-   "cite": "Jacob's Q1c; register: dual-coded pairs",
+   "cite": "register C4: dual-coded pairs",
    "reason": "Dual-coded with an undergraduate Architecture course that is open to Architecture majors."
   }
  ],
@@ -7164,15 +7164,15 @@
   },
   {
    "id": "D-grad-levels-closed-exchange",
-   "why": "built into src/eligibility.js as the level default (plan §2 step 2)"
+   "why": "built into src/eligibility.js as the level default (register R4)"
   },
   {
    "id": "E-case-by-case",
-   "why": "Jacob's Q7: courses off the NG list are hidden"
+   "why": "register R1: courses off the NG list are hidden"
   },
   {
    "id": "E-offerings-list",
-   "why": "Jacob's Q7",
+   "why": "register R1",
    "text": "If the courses cannot be found at the Course offerings list, they are not available during application stage but may be available during Course registration.",
    "scope": {}
   },
@@ -7182,7 +7182,7 @@
   },
   {
    "id": "2-biz-no-late-add",
-   "why": "why rule E can't apply to Business (plan §2 step 1); off-list courses are hidden anyway",
+   "why": "why rule E can't apply to Business (register R1); off-list courses are hidden anyway",
    "text": "If you have not been offered Business courses at the point of initial acceptance (first week of June or November), you will not be able to add the Course during the Submit Course Requests period.",
    "scope": {
     "faculties": [
@@ -7192,7 +7192,7 @@
   },
   {
    "id": "4-cee-no-appeal",
-   "why": "about courses off the NG list, which Jacob's Q7 hides",
+   "why": "about courses off the NG list, which register R1 hides",
    "text": "No appeal will be accepted for any Level 1000 to Level 4000 courses that are not listed in the NG Course offerings list.",
    "scope": {
     "departments": [
@@ -7208,7 +7208,7 @@
   },
   {
    "id": "4-isem-no-appeal",
-   "why": "about courses off the NG list, which Jacob's Q7 hides",
+   "why": "about courses off the NG list, which register R1 hides",
    "text": "No appeals will be accepted for any level 1000 to level 4000 courses that are not listed in the NG courses listing.",
    "scope": {
     "departments": [
@@ -7232,7 +7232,7 @@
   },
   {
    "id": "9-usp-partner",
-   "why": "Jacob's Q6: NUS College courses are open"
+   "why": "register C6: NUS College courses are open"
   }
  ]
 }

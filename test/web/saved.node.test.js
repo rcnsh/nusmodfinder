@@ -1,5 +1,5 @@
 // @ts-check
-// public/saved.js (Phase 6 6B, G3): the last list this student edited, kept
+// public/saved.js: the last list this student edited, kept
 // on this device. "Restore your last shortlist" offers it when a link has no
 // list; "Forget this list on this device" clears it; opening someone else's
 // link never overwrites it (the page saves only on its own edits).
@@ -22,7 +22,7 @@ function memory(broken = false) {
 const list = (/** @type {string} */ qs) => parseList(new URLSearchParams(qs)).list;
 const values = (/** @type {import('../../public/list.js').List | null} */ l) => (l ? [...l.pick, ...l.alt].map(entryValue) : null);
 
-describe('the list on this device (G3)', () => {
+describe('the list on this device', () => {
   it('saves the list and loads it back: lists, ranks, semesters, ay and inv', () => {
     const s = memory();
     saveList(s, list('pick=CS2030.1&pick=CS2113&alt=GE2101.2&ay=2026-2027&inv=biz'));

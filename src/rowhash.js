@@ -1,5 +1,5 @@
 // @ts-check
-// What ingest compares to decide what to write (FINDINGS B2), shared by the
+// What ingest compares to decide what to write, shared by the
 // Worker (src/ingest.js) and the Node scripts (scripts/ingest-core.mjs,
 // scripts/lib.mjs), so both sides hash the same bytes. WebCrypto only: no
 // bindings, no Node APIs.
@@ -29,12 +29,12 @@ export const NORMALISER_VERSION = 2;
  *   ngAllow?: number, ngRules?: Record<string, string[]> | null,
  *   examDates?: ExamDate[],
  * }} RowFields
- *   The 3H-0 fields (plan 3H "Data") are optional for callers that build
- *   rows by hand (tests); a missing one is written as its neutral value.
- *   So are Phase 4's: a missing ngAllow is 0, closed everywhere (plan §2),
- *   and 5A's: missing examDates is [], no exam.
+ *   The constraint fields are optional for callers that build rows by hand
+ *   (tests); a missing one is written as its neutral value. So are the
+ *   exchange fields (a missing ngAllow is 0, closed everywhere) and the exams
+ *   (a missing examDates is [], no exam).
  * @typedef {{ sem: number, date: string, durationMins: number | null }} ExamDate
- *   One exam (Phase 5 5A, migrations/0010_exam_dates.sql): the semester, the
+ *   One exam (migrations/0010_exam_dates.sql): the semester, the
  *   date as moduleInfo gives it (ISO UTC) and the duration in minutes.
  */
 
@@ -49,7 +49,7 @@ export const ROW_COLUMNS = ['code', 'title', 'description', 'credits', 'departme
 /**
  * The upsert's SET list (src/ingest.js writeRows): every ROW_COLUMNS column
  * but the key, plus row_hash, so a new column can't keep its old value under a
- * new hash (docs/plans/phase4.md §5).
+ * new hash.
  */
 export const UPSERT_SET = [...ROW_COLUMNS.filter((c) => c !== 'code'), 'row_hash'].map((c) => `${c}=excluded.${c}`).join(', ');
 
@@ -189,7 +189,7 @@ export async function dataVersion(rows) {
 }
 
 /**
- * Phase 7 7D: the key of a catalogue, over its catalogue-only codes alone, so
+ * The key of a catalogue, over its catalogue-only codes alone, so
  * it can be read from D1 `catalogue_only` (GET /admin/hashes, the deploy
  * guard, rollback) and computed from a corpus or the bundled catalogue file
  * (`catalogue-codes-data`) alike. The codes search answers `not-offered` for

@@ -33,7 +33,7 @@ describe('remote migration wrapper', () => {
   });
 
   it("uses wrangler's own d1_migrations DDL and the hand-applied set from ADR 0001", () => {
-    const adr = read('docs/decisions/0001-migrations-and-remote-bootstrap.md');
+    const adr = read('docs/decisions/0001-schema-migrations.md');
     expect(adr).toContain(WRANGLER_MIGRATIONS_DDL);
     expect(BOOTSTRAP_APPLIED).toEqual(readdirSync(join(ROOT, 'migrations')).filter((f) => f < '0006').sort());
   });
@@ -61,7 +61,7 @@ describe('migrations/0006_fts_external.sql', () => {
       "CREATE VIRTUAL TABLE modules_fts USING fts5( code UNINDEXED, title, description, content = 'modules', content_rowid = 'rowid', tokenize = 'porter unicode61', prefix = '2 3 4' );");
     expect(sql).toContain("INSERT INTO modules_fts(modules_fts) VALUES('rebuild');");
     expect(sql).toContain("INSERT INTO modules_fts(modules_fts, rank) VALUES('rank', 'bm25(0.0, 3.0, 1.0)');");
-    // Every trigger addresses the FTS row by rowid; none deletes by code (B3).
+    // Every trigger addresses the FTS row by rowid; none deletes by code.
     expect(sql).not.toMatch(/DELETE\s+FROM\s+modules_fts/i);
   });
 });
@@ -70,7 +70,7 @@ describe('INSERT OR REPLACE', () => {
   // On an external-content FTS table, REPLACE's implicit delete fires no
   // delete trigger (recursive_triggers is off), so the old row's index
   // entries stay behind and integrity-check fails. UPDATE OR REPLACE onto an
-  // existing code does the same (PR #8 review round 3).
+  // existing code does the same.
   const REPLACES_MODULES = /\b(?:(?:INSERT|UPDATE)\s+OR\s+REPLACE(?:\s+INTO)?|REPLACE\s+INTO)\s+["`[]?(?:main\s*\.\s*)?["`[]?modules\b(?!_)/i;
 
   it('the pattern catches every REPLACE form on modules and nothing else', () => {
@@ -110,8 +110,8 @@ describe('INSERT OR REPLACE', () => {
 describe('modules.rowid is immutable', () => {
   // The external-content FTS table is keyed on modules.rowid. Changing a
   // rowid moves the row out from under its FTS entry, and no text pattern
-  // catches every spelling (PR #8 review round 2: the upsert form ingest
-  // uses, schema-qualified names, row-value SET, [bracketed] identifiers).
+  // catches every spelling (the upsert form ingest uses, schema-qualified
+  // names, row-value SET, [bracketed] identifiers).
   // 0006's modules_rowid_immutable trigger refuses them in the database.
   const FORMS = [
     "INSERT INTO modules (code, title, acad_year, text_hash) VALUES ('A1', 't', 'y', 'h') ON CONFLICT(code) DO UPDATE SET rowid = 100",

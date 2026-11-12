@@ -2,7 +2,7 @@
 // The ranking lock's lists from the eval runner (eval/runner/run.mjs, unchanged): the dev set on
 // the pinned corpus and the fixture set on its own corpus, each in the three modes of
 // ranking-lock.mjs MODES. Run files go to a temp dir and are deleted; only the per-query hashes
-// leave. Never in the `sc1` Vitest project, so no production alias reaches it. No Workers AI
+// leave. Never in the `oracle` Vitest projects, so no production alias reaches it. No Workers AI
 // call: the runner reads committed query vectors and the sha-checked corpus embeddings release
 // asset, and stops (with the command to run locally) when a text has no vector.
 import { createHash } from 'node:crypto';
@@ -41,7 +41,7 @@ export async function computeLists(o = {}) {
         /** @type {import('./metrics.mjs').RunFile} */
         const run = JSON.parse(await readFile(res.output, 'utf8'));
         lists[set][mode] = Object.fromEntries(Object.entries(run.results).map(([id, r]) => [id, queryHash(r.status, r.codes)]));
-        // The figure each earlier ship's gates table recorded (docs/evidence/phase6/gates.md).
+        // A digest of each run's whole results, printed beside the lock so a PR can quote it.
         resultsSha256[`${set} ${mode}`] = createHash('sha256').update(JSON.stringify(run.results)).digest('hex');
         if (set === 'dev') {
           const r = /** @type {any} */ (run);

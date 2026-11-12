@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run smoke -- [--expect <sha>] [--url <url>]` (Phase 7 7B): five requests to the live site,
+// `npm run smoke -- [--expect <sha>] [--url <url>]`: five requests to the live site,
 // one at a time, each sent at least 4 s after the last answered:
 //
 //   /health          versionTag is a prefix of the expected commit, its data version is the
@@ -13,7 +13,7 @@
 // The expected commit (default HEAD; after a rollback, the target's) supplies the data version,
 // the groups and the production bundle's code list (`git show <sha>:…`; the bundle from its
 // release asset, sha-checked), so a rolled-back site is checked against its own data. Titles
-// come from that commit's production corpus: `current` in its data/corpus.json (Phase 7 7D),
+// come from that commit's production corpus: `current` in its data/corpus.json,
 // restored from its release asset and sha-checked; a commit from before the manifest uses the
 // working tree's `current`, and says so. The draw is random, so the search is a cache miss. The URL is wrangler.jsonc's Custom Domain at
 // that commit unless --url is given. Writes a run record.
@@ -60,7 +60,7 @@ async function productionTitles(entry) {
 
 /**
  * The expected commit's production corpus entry: `current` in its data/corpus.json, else (a
- * commit from before Phase 7 7D) the working tree's, with a note saying so.
+ * commit from before the manifest) the working tree's, with a note saying so.
  * @param {(path: string) => Promise<string>} show `git show <sha>:<path>`
  * @param {string} sha
  * @param {(m: string) => void} log

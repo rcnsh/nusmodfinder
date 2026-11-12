@@ -1,5 +1,5 @@
 {
-  "description": "Lexical query list for the Phase 1 filtered-lexical property, cost and ranking-neutrality tests (critic C's set, docs/plans/phase1.md r3).",
+  "description": "Lexical query list for the filtered-lexical property, cost and ranking-neutrality tests.",
   "howGenerated": "The 27 eval queries (eval/queries.json then eval/holdout.json, in file order); 400 synthetic queries: for i < 400, pick module mods[floor(rnd()*N)] of the pinned corpus (normalised order, N = 6,771), split `title + \" \" + description` on whitespace, take 1 + floor(rnd()*3) words each at floor(rnd()*words.length), join with a space; rnd is the LCG seed = (seed*1103515245 + 12345) mod 2^31, starting at seed 1, returning seed/2^31. Then 13 hand-written natural-language and stopword queries.",
   "queries": [
     "computer science ai",

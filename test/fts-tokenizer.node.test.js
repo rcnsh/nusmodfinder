@@ -1,5 +1,5 @@
 // @ts-check
-// B8: the query tokeniser in src/lexical.js splits exactly where the
+// The query tokeniser in src/lexical.js splits exactly where the
 // modules_fts tokenizer (`porter unicode61`, migrations/0006_fts_external.sql)
 // splits, and ASCII queries keep their MATCH strings byte for byte, so only
 // non-ASCII queries can rank differently. Runs in Node against node:sqlite's
@@ -13,7 +13,7 @@ import { ftsMatch, queryTokens } from '../src/fts-query.js';
 
 const read = (/** @type {string} */ p) => readFileSync(fileURLToPath(new URL(`../${p}`, import.meta.url)), 'utf8');
 
-/** The tokeniser before B8 was fixed, kept verbatim as the differential reference. */
+/** The ASCII-only tokeniser, kept verbatim as the differential reference for ASCII queries. */
 const STOPWORDS = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do', 'for', 'from',
   'how', 'i', 'in', 'is', 'it', 'me', 'my', 'of', 'on', 'or', 'own', 'the', 'to', 'with', 'you', 'your']);
 /** @param {string} query */
@@ -48,17 +48,17 @@ function rng(/** @type {number} */ seed) {
   };
 }
 
-describe('B8 tokeniser', () => {
+describe('the query tokeniser', () => {
   // The full probe (every code point through SQLite) takes ~5.2 s on a GitHub
   // runner, past vitest's 5 s default; it is kept whole, not sampled.
-  it('[B8 fixed] the separator table equals the unicode61 separators probed from SQLite, for every code point', () => {
+  it('the separator table equals the unicode61 separators probed from SQLite, for every code point', () => {
     expect(read('src/fts-separators.js')).toBe(render(probeSeparators()));
   }, 60_000);
 
   // "At most": a token of nothing but strippable diacritics folds to no term at
   // all, in the index as in the query; FTS5 treats that empty phrase as
   // matching nothing, without an error (checked below).
-  it('[B8 fixed] every query token is at most one FTS5 term, and together they are the FTS5 terms of the query', () => {
+  it('every query token is at most one FTS5 term, and together they are the FTS5 terms of the query', () => {
     const random = rng(8);
     // Mixed strings: ASCII, Latin diacritics (precomposed and decomposed),
     // marks unicode61 splits on, CJK, symbols, emoji old and new, private use.
@@ -85,18 +85,18 @@ describe('B8 tokeniser', () => {
     expect(n(/** @type {string} */ (ftsMatch('́')))).toBe(0);
   });
 
-  it('[B8 fixed] "naïve" is one token, precomposed or decomposed', () => {
+  it('"naïve" is one token, precomposed or decomposed', () => {
     expect(ftsMatch('naïve bayes')).toBe('"naïve" OR "bayes"');
     expect(ftsMatch('naïve bayes')).toBe('"naïve" OR "bayes"');
     expect(ftsTerms(['naïve', 'naïve', 'naive'])).toEqual([['naiv'], ['naiv'], ['naiv']]);
   });
 
-  it('[B8 fixed] stopwords are recognised through diacritics and case, as FTS5 folds them', () => {
+  it('stopwords are recognised through diacritics and case, as FTS5 folds them', () => {
     expect(ftsMatch('Ánd the café')).toBe('"café"');
     expect(ftsMatch('ÁND THE')).toBe('"ánd" OR "the"');
   });
 
-  it('[B8 fixed] ASCII queries keep byte-identical MATCH strings (differential over every query fixture)', () => {
+  it('ASCII queries keep byte-identical MATCH strings (differential over every query fixture)', () => {
     const lexical = /** @type {{ queries: string[] }} */ (JSON.parse(read('test/fixtures/lexical-queries.json'))).queries;
     const dev = /** @type {{ queries: { text: string }[] }} */ (JSON.parse(read('eval/dev/queries.json'))).queries.map((q) => q.text);
     const queries = [...new Set([...lexical, ...dev])];

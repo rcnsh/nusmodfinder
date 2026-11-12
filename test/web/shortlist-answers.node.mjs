@@ -1,8 +1,8 @@
 // @ts-check
-// /module answers for the shortlist's Node tests (Phase 6 6B), built from the
+// /module answers for the shortlist's Node tests, built from the
 // fixture (test/fixtures/corpus.json) and its groups (test/fixtures/groups.json)
 // the way the Worker answers them (src/modules.js handleModule; `otherCodes`
-// as 6A adds it), without importing the Worker. Synthetic answers stand in for
+// included), without importing the Worker. Synthetic answers stand in for
 // what the fixture lacks.
 import { readFileSync } from 'node:fs';
 import { URL, fileURLToPath } from 'node:url';
@@ -34,8 +34,8 @@ export const reason = (id) => {
 
 /**
  * src/ng-reasons.js exchangeAll over a fixture row: closed where the allow
- * bit is clear, else open or noted, with the stored reasons, R3's year note
- * and R6-2's GRO level 4000 note.
+ * bit is clear, else open or noted, with the stored reasons, the year-of-study
+ * note and GRO's level 4000 note.
  * @param {any} m a fixture module
  */
 function exchangeOf(m) {
@@ -65,7 +65,7 @@ export function fixtureOutcome(code) {
       code: m.code, title: m.title, description: m.description, credits: m.credits, department: m.department, faculty: m.faculty,
       level: m.level, semesters: m.semesters, prerequisite: m.prerequisite, preclusion: m.preclusion, acad_year: m.acadYear,
       ng: m.ng, ng_semesters: m.ngSemesters, exchange: exchangeOf(m), examDates: m.examDates, otherCodes: GROUP_OF.get(code) ?? [],
-      // 6D's exports read these too (src/modules.js answers them).
+      // The exports read these too (src/modules.js answers them).
       workload: moduleWorkload(m.workload ?? null), gradingBasis: m.gradingBasis ?? null, nusmodsUrl: `https://nusmods.com/courses/${m.code}`,
     },
   };
@@ -102,7 +102,7 @@ export function synthOutcome(code, over = {}) {
 }
 
 /**
- * A 404 of kind `ng-listed` (6A: an NG-listed code with no classes, from
+ * A 404 of kind `ng-listed` (an NG-listed code with no classes, from
  * data/ng-unscheduled.json), as api.js passes its detail through.
  * @param {string} code
  * @param {Record<string, any>} over

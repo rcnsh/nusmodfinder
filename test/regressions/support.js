@@ -1,5 +1,5 @@
 // @ts-check
-// Shared helpers for the Phase 0 characterisation tests in this directory.
+// Shared helpers for the Worker tests: a recording D1, timeouts and synthetic modules.
 import { env } from 'cloudflare:workers';
 import { fixture } from '../helpers.js';
 
@@ -91,5 +91,5 @@ export function syntheticModule(over) {
 
 /** @param {{ code: string }[]} results */
 export const codes = (results) => results.map((r) => r.code);
-/** Result codes and their 3F variants. @param {any[]} results @returns {string[]} */
+/** Result codes and their duplicate-group variants. @param {any[]} results @returns {string[]} */
 export const shownCodes = (results) => results.flatMap((r) => [r.code, ...(r.variants ?? []).map((/** @type {{ code: string }} */ v) => v.code)]);

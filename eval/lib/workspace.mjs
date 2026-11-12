@@ -1,9 +1,9 @@
 // @ts-check
 // Builds the directory a run executes in: the ranker under test (src/,
-// migrations/, scripts/lib.mjs and data/ — the embedding text is part of the
-// ranker) from a git ref or the working tree, overlaid with the HEAD runner
-// (eval/runner/retrieval.eval.js, harness.js, lookup-ai.js and test/fakes.js). Used
-// for `--ref eval-v0`: tag + overlaid runner, as the plan's r3 requires.
+// migrations/, scripts/lib.mjs and data/, since the embedding text is part of
+// the ranker) from a git ref or the working tree, overlaid with the HEAD runner
+// (eval/runner/retrieval.eval.js, harness.js, lookup-ai.js and test/fakes.js),
+// so an old ref such as `eval-v0` runs under today's harness.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';

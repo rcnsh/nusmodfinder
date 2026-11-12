@@ -1,5 +1,5 @@
 // @ts-check
-// 3C over the pinned corpus: the vocabulary test/full and the SC4 suite search
+// The typo step's vocabulary over the pinned corpus: the vocabulary test/full and the query suite search
 // with is the one scripts/build-vocabulary.mjs builds from the pinned corpus,
 // its index terms are exactly the terms SQLite's FTS5 indexes for that corpus,
 // the porter port agrees with SQLite on every pinned term and typo-shaped
@@ -17,7 +17,7 @@ import { ftsIndex, sqliteTerms, typoVariants } from '../sqlite-fts.node.mjs';
 
 const available = process.env.FULL_CORPUS === '1' || existsSync(MODULE_INFO_PATH);
 
-describe.skipIf(!available)('3C vocabulary over the pinned corpus', () => {
+describe.skipIf(!available)('typo-step vocabulary over the pinned corpus', () => {
   it('the pinned vocabulary the full project aliases is what the build script writes', { timeout: 60_000 }, async () => {
     const path = await pinnedVocabularyPath();
     expect(readFileSync(path, 'utf8')).toBe(await build('pinned'));
@@ -47,9 +47,9 @@ describe.skipIf(!available)('3C vocabulary over the pinned corpus', () => {
   });
 });
 
-// 3H's pass A reads the corrected text (prereg C2-4), so a phrase 3C corrected would never match.
-describe.skipIf(!available)('3H phrases survive 3C over the real corpora', () => {
-  it('3C corrects no word of any 3H phrase, on the pinned and the production vocabulary', async () => {
+// The constraint-phrase pass reads the corrected text, so a phrase the typo step corrected would never match.
+describe.skipIf(!available)('constraint phrases survive the typo step over the real corpora', () => {
+  it('the typo step corrects no word of any constraint phrase, on the pinned and the production vocabulary', async () => {
     const phrases = JSON.parse(readFileSync(new URL('../../data/constraint-phrases.json', import.meta.url), 'utf8'));
     const texts = [...phrases.exam, ...phrases.su, ...phrases.hoursBelow.map((/** @type {string} */ p) => p.replace('N', '12')), ...phrases.prereq];
     const production = JSON.parse(readFileSync(new URL('../../data/vocabulary.json', import.meta.url), 'utf8'));

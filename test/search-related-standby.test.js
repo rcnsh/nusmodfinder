@@ -1,6 +1,6 @@
 // @ts-check
-// A not-offered code's `related` on the Vectorize standby: with no 3H param the
-// neighbours come straight from Vectorize, with no D1 read (as before 3H); with
+// A not-offered code's `related` on the Vectorize standby: with no constraint
+// param the neighbours come straight from Vectorize, with no D1 read; with
 // one, they are checked after hydrate, and a failed read gives none rather than
 // unfiltered neighbours or a 500.
 import { env } from 'cloudflare:test';
@@ -19,7 +19,7 @@ beforeAll(async () => {
 });
 
 describe('related on the standby', () => {
-  it('with no 3H param, reads no D1 row: a neighbour whose row is gone still shows', async () => {
+  it('with no constraint param, reads no D1 row: a neighbour whose row is gone still shows', async () => {
     const before = await callJson('/search?q=GEQ1000', { fakes, env: STANDBY });
     const related = before.body.noMatch.related;
     expect(related.length).toBe(5);

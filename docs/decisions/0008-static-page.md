@@ -1,103 +1,39 @@
-# 0008: Phase 5 frontend plan
+# 0008: The page is static, framework-free and accessible to WCAG AA
 
-Status: accepted by the lead (2026-11-11). The plan converged at r3.1 after three critic rounds
-(frontend and accessibility; data, eval and ship; the product for exchange students).
-`docs/plans/phase5.md` §7 logs every objection and where it landed. No objection was declined,
-so there is no dissent. Jacob's answers to D1–D4 are added below as they come.
+Status: accepted. The page's modules and tests are described in [docs/page.md](../page.md).
 
-## Context
-SC2 wants every result card to open onto what a student needs to decide; SC8 wants zero axe
-violations, working keyboard and screen-reader flows, and the first result above the fold at
-390px. The page is one 14.9 kB HTML file with ten open frontend findings (F1–F10), a visual
-critique (V1) and a provenance gap (P3). SC4's parsed-phrase items carry over from Phase 4.
-
-## Decisions
-- **Exam dates are data.** Migration 0010 stores them; since the row hash covers every column,
-  this is a data-version change with its own full runbook cycle and deploy, shipped before and
-  apart from the page.
-- **The page is static assets**, native ES modules with `// @ts-check`, no framework and no build
-  step, rendering DOM nodes only (`innerHTML` and friends banned by lint). State lives in the URL
-  with a fixed transition table; `pick` and `alt` are reserved for Phase 6.
-- **`/search` gains ranking-neutral fields** the page can't compute: `hiddenPins` and
-  `notOffered` (every typed code, not only the three pinned), `exchangeBySem`, `examDates`.
-- **A hidden typed code is explained with its own stored reasons**, never listed as a result,
-  so SC1's "never shows" holds (subject to Jacob's D4).
-- **Every exchange note shows in full on the card.**
-- **The UI test stack** is a Worker entry with the fake AI and rate limiter over a locally seeded
-  D1, under Playwright with axe running every rule; the vocabulary and groups become bare-name
-  aliases, pointed at each eval run's workspace by the eval config.
-- **SC8 is measured** by axe on every state × theme × width, a keyboard-only task at 1280 and
-  390×664, live-region assertions, a VoiceOver checklist locally and live, and the fold at
-  390×664 (`iPhone 13`), in CI and live.
-- **Phrase parsing** returns only under a compliance-aware rule committed before any count or
-  look: constraint-filtered qrels for both candidate and pin, a reference parse frozen at tag
-  `3h`, the constraint block gated, counts inside the verdict path only, a dev screen first, and
-  one look (L8 of 12) with no retry. The rule also says how exchange-mode removals are scored
-  for every later look. The holdout misparse risk is accepted in writing.
-- **The red team** is three exchange-student personas whose expected answers (yes / yes if / no
-  / ask NUS) are fixed per note kind before the run; disagreements are classified, and exit needs
-  zero page defects.
-
-## Jacob's answers (2026-11-11)
-- **D2, first screen: exchange set-up first.** The page asks the semester (Sem 1, Sem 2 or both)
-  and the year of study before the first search; "browse all courses" leads to the full
-  catalogue, whose cards keep a marker of the semesters a course is on the exchange list for.
-- **D3, working name: "Exchange Course Finder (unofficial, for NUS)"** in the title and the
-  visible header at every width, until Phase 8's name gate.
-- **D4, hidden codes: say why**, from each code's own stored reasons; the course is never listed
-  as a result.
-- **D1, design direction: D, "Annotated catalogue"** (2026-11-11). Jacob saw A ("Registrar's
-  ledger"), B ("Planner") and C ("Field guide") and asked for "a middle ground between A and C,
-  with less bold"; D was built to that and picked. It takes C's structure (a "Your exchange" rail
-  with the semester, year and key on desktop; results as entries with code, details and status
-  columns; notes as plain guidance with a lead-in word; one accent) and A's type and precision
-  (IBM Plex Sans with Plex Mono for codes, units and exam times; an outlined status stamp with a
-  shape, a word and a colour, one per semester). It drops C's display headwords, thick rules and
-  filled black chips, and A's dense zebra table: nothing heavier than 600, 1px rules, outlined or
-  lightly tinted chips and stamps, a near-white ground and a muted plum accent. The mockup is
-  `docs/design/phase5-direction-d.html` (contrast script beside it); the four directions are in
-  the ephemera set `vector-nusmods-phase-5-design-directions-tk3piy`, with D picked and A–C
-  rejected. 5D builds D in both themes.
-
-## Jacob's answers 2026-11-11 (5G)
-- **VoiceOver:** the page ships without the pre-deploy walkthrough on the local server; the
-  checklist (`docs/evidence/phase5/voiceover-checklist.md`) is run once on the live page after
-  the deploy instead. This departs from §3 5E's "before the deploy and again live".
-- **Phrases:** pursue them. First the collapsed result prefers the group member on the chosen
-  semester's timetable (a fix on its own, with its own gate); then the 5F dev screen runs again
-  on a phrases-on candidate. L8 is taken only if that screen passes.
-
-## Jacob's answer 2026-11-11 (exit): no VoiceOver walkthrough
-- The VoiceOver checklist is not run, locally or live; Jacob does not want a manual screen-reader
-  walkthrough. SC8's screen-reader flow rests on the automated checks (`aria.spec.js`'s
-  accessibility-tree snapshots, `live.spec.js`'s live-region text, axe). This replaces the
-  answer above that moved the walkthrough to after the deploy.
-
-## Jacob's ruling R3 (2026-11-11, red team)
-A NUS prerequisite that requires an undergraduate year of study ("If undertaking an Undergraduate
-Degree THEN must be Year 4"; 942 courses carry a "must be Year N" rule) does not change a
-course's exchange status, but when the student's home year is below N the course carries an
-"ask NUS" note: NUS lists it for Year N students, so the student asks the department whether
-their home year counts. The red team's expected answer for such a course is "ask NUS".
-
-How it ships: code-only, read per request from the stored prerequisite (`src/year-note.js`, called
-by `exchangeAt` in `src/ng-reasons.js`), so every `/search` path and `/module/:code` get it the way
-they get the stored notes. `/module/:code` already reads the prerequisite; `/search`'s hydrate
-SELECT reads it only where it mentions a year (`year_prereq`), the same rows as before. No column,
-no migration, no row-hash change. Only unambiguous texts are read (one undergraduate branch, a year
-item no OR sits beside); the note never closes, opens or reorders anything.
-
-## Lead decision 2026-11-11: SC8's axe gate is WCAG AA
-SC8's "axe-core zero violations" runs every axe rule, the AAA ones included, except
-`color-contrast-enhanced` (WCAG AAA's 7:1). The plan's contrast bar is WCAG AA (§3 5D: 4.5:1 text,
-3:1 large text and UI), which `npm run contrast` checks for every pair in both themes; design D's
-lowest text pair is 6.21:1. Reaching 7:1 would mean darkening D's status colours, which Jacob
-picked, for a level the plan never set. axe ships that rule disabled by default for the same
-reason.
+## Decision
+- **Static assets, no build step.** `public/` is native ES modules with `// @ts-check` and
+  JSDoc, served by Workers Static Assets (no Worker CPU). No framework.
+- **DOM nodes only.** Lint bans `innerHTML` and the other HTML sinks in `public/`, and a CSP with
+  `default-src 'none'` allows only the page's own scripts, styles, fonts and API. Nothing is
+  loaded from another origin, fonts included.
+- **State lives in the URL** with a fixed transition table (`public/nav.js`), so every view is a
+  link and Back works.
+- **The first screen is the exchange set-up:** the semester at NUS and the year of study during
+  the exchange, before the first search, because the page's main users are incoming exchange
+  students. "Browse all courses instead" leads to the general search, whose cards keep a marker
+  of the semesters a course is on the exchange list for.
+- **A hidden typed code is explained with its own stored reasons**, never listed as a result, so
+  exchange mode never shows a course the student can't take.
+- **Every exchange note shows in full on the card**, after a lead-in word.
+- **`/search` carries ranking-neutral fields the page can't compute** (`hiddenPins`,
+  `notOffered`, `exchangeBySem`, `examDates`), and exam dates are stored data (migration 0010).
+- **The design is "Annotated catalogue":** IBM Plex Sans with Plex Mono for codes, units and exam
+  times; nothing heavier than 600; 1px rules; outlined or lightly tinted chips and stamps; a
+  near-white ground and one muted plum accent; a matching dark theme by system setting. Every
+  colour is a token at the top of `public/styles.css`.
+- **The accessibility bar is WCAG AA.** axe runs every rule, the experimental and
+  off-by-default ones included, except `color-contrast-enhanced` (AAA's 7:1), on every state,
+  theme and width; `npm run contrast` checks every text and boundary pair against 4.5:1 and 3:1.
+  The lowest text pair is 6.21:1. Reaching 7:1 would mean darkening the status colours for a level
+  the project never set; axe ships that rule off by default for the same reason.
+- **The screen-reader flow rests on automated checks** (the accessibility-tree snapshots, the
+  live-region specs and axe), not a manual walkthrough.
+- **The UI test stack** is the real Worker with the fake AI and rate limiter over a locally
+  seeded D1, under Playwright in Chromium and WebKit; the first result is above the fold at
+  390×664 (iPhone 13), checked in CI and live.
 
 ## Consequences
-- Two production deploys before 5F: the data change, then the page (code-only, rolled back
-  alone). Each moves the shipped-ranker pin as ranking-neutral.
-- One new CI job (`ui`) with two browsers.
-- At most one holdout look this phase.
-- Prerequisite text stays in NUS's rule language; class times stay on NUSMods.
+- Prerequisite text stays in NUS's rule language, and class times stay on NUSMods.
+- The `ui` CI job runs two browsers.

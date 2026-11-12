@@ -1,9 +1,9 @@
 {
  "schema": "vnm-3b-ge-pillars/1",
- "from": "eval/prereg/ge-pillars.json (P-6, unchanged)",
+ "from": "eval/query-rules/ge-pillars.json (copied unchanged)",
  "source": {
   "url": "https://www.nus.edu.sg/registrar/academic-information-policies/undergraduate-students/general-education",
-  "check": "docs/evidence/phase3/3b-0.md \"GE page\""
+  "check": "one fetch returned an empty body, so the URL and pillar names are unconfirmed; each prefix matches the pinned corpus"
  },
  "prefixes": [
   "GEA",

@@ -1,11 +1,10 @@
 {
  "schema": "vnm-p6-ge-pillars/1",
- "fixedAt": "P-6",
- "plan": "docs/plans/phase3.md 3B-0 and 'GE intent' (C-2, C2-3)",
+ "purpose": "the GE intent: the phrases that mean general education, and the pillar prefixes they map to",
  "source": {
   "url": "https://www.nus.edu.sg/registrar/academic-information-policies/undergraduate-students/general-education",
   "fetched": false,
-  "note": "P-6 makes no remote call. Pillar names are the NUS GE curriculum's (AY2021/22 on: GEA, GEC, GEI, GEN, GES/GESS, GEX) and the earlier pillars still offered (GEH, GEQ, GET); each prefix and its modules' titles were checked against the pinned corpus. 3B-0 confirms the URL and names, and any change goes through the lead."
+  "note": "Nothing fetches the page. Pillar names are the NUS GE curriculum's (AY2021/22 on: GEA, GEC, GEI, GEN, GES/GESS, GEX) and the earlier pillars still offered (GEH, GEQ, GET); each prefix and its modules' titles were checked against the pinned corpus. A change to the curriculum means editing this file and rebuilding data/ge-pillars.json."
  },
  "prefixes": ["GEA", "GEC", "GEH", "GEI", "GEN", "GEQ", "GES", "GESS", "GET", "GEX"],
  "genericPhrases": ["ge", "gen ed", "general education"],
@@ -23,7 +22,7 @@
  "rules": [
   "a generic phrase maps to every prefix in `prefixes`; a pillar name maps to its own prefixes; several in one query take the union",
   "never GE\\d (Geography)",
-  "matched at parse step 7, with the 3D phrases, on tokens no join consumed",
+  "matched at parse step 7, with the level phrases, on tokens no join consumed",
   "interpreted.ge echoes the sorted prefixes; ignore=ge undoes it",
   "a bare pillar prefix (`GEX`, `gess`) is a partial code (interpreted.prefix), not the GE intent"
  ]

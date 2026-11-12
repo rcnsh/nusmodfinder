@@ -40,5 +40,5 @@ the build.
 ## Department renames
 
 When NUSMods renames a department or faculty, change the map, not the rules:
-`test/sc1/oracle.node.test.js` fails when a name a rule uses is missing from the production corpus,
+`test/oracle/oracle.node.test.js` fails when a name a rule uses is missing from the production corpus,
 which would otherwise leave a closed rule matching nothing.

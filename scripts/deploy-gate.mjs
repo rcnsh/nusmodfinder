@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 // @ts-check
-// The Actions deploy's gate (.github/workflows/deploy.yml, Phase 7 7B, G1). The workflow runs
-// once per completed CI or Findings run on main; this decides whether that sha deploys:
+// The Actions deploy's gate (.github/workflows/deploy.yml). The workflow runs once per completed
+// CI run on main; this decides whether that sha deploys:
 //
-// - both its CI and its Findings push runs succeeded (the first event to arrive usually finds
-//   the other still running and skips; the second deploys);
-// - it is still main's tip (otherwise the newer commit's own runs deploy it);
-// - no deploy/* tag names it yet (both events can see both runs green; the concurrency group
-//   runs them one after the other, and the second finds the first's tag).
+// - its CI push run succeeded;
+// - it is still main's tip (otherwise the newer commit's own run deploys it);
+// - no deploy/* tag names it yet (a re-run of CI completes again; the concurrency group runs
+//   deploys one after the other, and a later one finds the earlier one's tag).
 //
 //   node scripts/deploy-gate.mjs --sha <sha>   writes deploy=true|false and reason to GITHUB_OUTPUT
 //
@@ -29,7 +28,7 @@ export function gateDecision({ sha, tip, runs, deployed }) {
   }
   if (sha !== tip) return { deploy: false, reason: `${sha.slice(0, 7)} is not main's tip (${tip.slice(0, 7)}); the newer commit's own runs deploy it.` };
   if (deployed.includes(sha)) return { deploy: false, reason: `${sha.slice(0, 7)} is already deployed (a deploy/* tag names it).` };
-  return { deploy: true, reason: `CI and Findings succeeded on ${sha.slice(0, 7)}, main's tip; deploying.` };
+  return { deploy: true, reason: `CI succeeded on ${sha.slice(0, 7)}, main's tip; deploying.` };
 }
 
 /** @type {import('./github-runs.mjs').Exec} */

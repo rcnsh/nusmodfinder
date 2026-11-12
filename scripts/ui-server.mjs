@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// The UI test stack's server (Phase 5 5B): the page and the Worker on a local
+// The UI test stack's server: the page and the Worker on a local
 // `wrangler dev` (test/wrangler.ui.jsonc: test/ui/worker.js with FakeAI and
 // FakeRateLimit, public/ as static assets), over a local D1 seeded with the
 // fixture. `npm run dev` runs it; the Playwright suite starts it per run.
@@ -13,7 +13,7 @@
 // - `wrangler d1 migrations apply --local`, then seeding through the admin
 //   routes as ingest does: /admin/ingest?d1Only=1 in batches of 100,
 //   /admin/catalogue with the catalogue-only rows (so a not-offered code has
-//   its title, A3-4), and /admin/facets with the NG list (A2-9).
+//   its title), and /admin/facets with the NG list.
 // No remote binding exists in the config, so nothing here can reach Cloudflare.
 // Ports 8787 and 8799 belong to other projects and are refused; by default a
 // free port is picked.

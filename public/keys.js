@@ -1,5 +1,5 @@
 // @ts-check
-// Keyboard handling shared by the page's inputs (Phase 5 5B, F9).
+// Keyboard handling shared by the page's inputs.
 
 /**
  * Whether a keydown is an Enter that should submit. While an IME is composing

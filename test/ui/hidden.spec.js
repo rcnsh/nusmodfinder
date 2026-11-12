@@ -1,15 +1,15 @@
 // @ts-check
-// Typed codes the page does not show (Phase 5 5C, D4, C2-4, C3-1, C3-2): each
+// Typed codes the page does not show: each
 // hidden code with its own stored reasons and sources, codes not offered this
 // year, a partial code exchange mode empties (with and without "see Sem 2"),
 // and the typed codes past the three that pin. A hidden course is never a
-// result card (SC1).
+// result card.
 import { expect, test } from '@playwright/test';
 import { body, query } from './support.mjs';
 
 const cards = (/** @type {import('@playwright/test').Page} */ page) => page.locator('#results button.card-toggle');
 
-test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from its own reasons and sources', async ({ page }) => {
+test('four typed codes at 2nd year, Sem 1: each hidden one says why, from its own reasons and sources', async ({ page }) => {
   await page.goto('/?q=CS2030+CS3244+CS5562+AR5801&ng=1&study=ug2&sem=1');
   const lines = page.locator('#status .hidden-codes .why');
   await expect(lines).toHaveText([
@@ -17,7 +17,7 @@ test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from i
     "CS5562 isn't on the Registrar's list of courses offered to exchange students (NG list, updated 01 Sep 2026).",
     "AR5801 isn't open to 2nd-year exchange students in Sem 1. Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).",
   ]);
-  // Each line is headed by the code and its title (direction D), the title from /module/:code.
+  // Each line is headed by the code and its title, the title from /module/:code.
   await expect(page.locator('#status .hidden-codes li[data-code="CS3244"] .hc-head')).toHaveText('CS3244 Machine Learning');
   await expect(page.locator('#status .hiddenbox h2')).toHaveText("3 of the 4 codes you typed aren't shown");
   await expect(cards(page).first()).toHaveAttribute('data-code', 'CS2030');
@@ -25,7 +25,7 @@ test('[D4] four typed codes at 2nd year, Sem 1: each hidden one says why, from i
   await expect(page.locator('#status .unpinned')).toHaveText('The results put at most three of the codes you type at the top: the first three that NUS offers this year.');
 });
 
-test('[D4] both semesters: a code closed in both says why for either semester', async ({ page }) => {
+test('both semesters: a code closed in both says why for either semester', async ({ page }) => {
   await page.goto('/?q=CS2030+PP5164&ng=1&study=ug2');
   await expect(page.locator('#status .hidden-codes .why')).toHaveText([
     "PP5164 isn't open to 2nd-year exchange students in either semester. Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026). Undergraduates may not take Public Policy (PP) courses (NG restrictions, updated 31 Aug 2026).",
@@ -63,7 +63,7 @@ test('a code not offered this year, inside a list and as the whole query (with r
   await expect.poll(() => query(page)).toBe('q=CS1010');
 });
 
-test('[C3-2] a partial code emptied in Sem 1, open in Sem 2: says so, and the button shows Sem 2', async ({ page }) => {
+test('a partial code emptied in Sem 1, open in Sem 2: says so, and the button shows Sem 2', async ({ page }) => {
   await page.goto('/?q=CG32&ng=1&study=ug2&sem=1');
   await expect(page.locator('#status .partial')).toHaveText('No CG32xx course is open to 2nd-year exchange students in Sem 1.');
   const see = page.getByRole('button', { name: 'See Sem 2 courses' });
@@ -76,7 +76,7 @@ test('[C3-2] a partial code emptied in Sem 1, open in Sem 2: says so, and the bu
   await expect(cards(page).first()).toHaveAttribute('data-code', 'CG3201');
 });
 
-test('[C3-2] a partial code empty in both semesters: either semester, no button', async ({ page }) => {
+test('a partial code empty in both semesters: either semester, no button', async ({ page }) => {
   await page.goto('/?q=AI52&ng=1&study=ug2&sem=1');
   await expect(page.locator('#status .partial')).toHaveText('No AI52xx course is open to 2nd-year exchange students in either semester.');
   await expect(page.locator('#status button')).toHaveCount(0);

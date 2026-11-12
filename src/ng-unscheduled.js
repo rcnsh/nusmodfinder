@@ -1,9 +1,9 @@
 // @ts-check
-// The NG-listed codes with no classes this year, for the Worker (6A):
+// The NG-listed codes with no classes this year, for the Worker:
 // data/ng-unscheduled.json (src/ng-unscheduled-file.js), imported by the bare
 // name `ng-unscheduled-data` that wrangler.jsonc aliases to it. The Vitest
 // configs and test/wrangler.ui.jsonc alias it to the fixture's
-// (test/fixtures/ng-unscheduled.json) or, for test/full and test/sc1, to the
+// (test/fixtures/ng-unscheduled.json) or, for test/full and test/oracle, to the
 // pinned corpus's, built in memory; vitest.eval.config.mjs to the run
 // workspace's data/ng-unscheduled.json. Parsed once per isolate.
 import file from 'ng-unscheduled-data';

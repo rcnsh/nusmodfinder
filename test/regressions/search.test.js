@@ -1,7 +1,7 @@
 // @ts-check
-// Search and exchange-mode findings (S3-S8, P1, P2) over the fixture corpus.
-// Ranking quality itself (S2, S6) needs the real embedding model, so those are
-// cited from the recorded live evidence in docs/FINDINGS.md instead.
+// Query handling and exchange-mode filtering in /search over the fixture corpus.
+// Ranking quality needs the real embedding model, so the eval (eval/) measures
+// it, not these tests.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { callJson, fixture, seed } from '../helpers.js';
@@ -21,8 +21,8 @@ async function matchExpression(/** @type {string} */ q) {
   return ftsCalls(log)[0]?.binds[0];
 }
 
-describe('S3', () => {
-  it('[S3 known-bug] the query is embedded verbatim, with no bge query instruction prefix', async () => {
+describe('query embedding', () => {
+  it('the query is embedded verbatim, with no bge query instruction prefix', async () => {
     const before = fakes.ai.calls.length;
     await callJson('/search?q=machine%20learning%20prefix', { fakes });
     const [model, input] = /** @type {[string, { text: string[] }]} */ (fakes.ai.calls[before].args);
@@ -31,19 +31,19 @@ describe('S3', () => {
   });
 });
 
-describe('S4', () => {
-  // `code` stays UNINDEXED (0006 rationale); 3B's partial-code route replaces it.
-  it.each(['CS32', 'GEA'])('[S4 fixed] "%s" routes to the modules with that prefix, though the code column stays UNINDEXED', async (q) => {
+describe('partial codes and keywords', () => {
+  // `code` stays UNINDEXED (see migrations/0006); the partial-code route covers prefix queries.
+  it.each(['CS32', 'GEA'])('"%s" routes to the modules with that prefix, though the code column stays UNINDEXED', async (q) => {
     const { body } = await callJson(`/search?q=${q}&mode=lexical&topK=50`, { fakes });
     const members = fixture.modules.map((m) => m.code).filter((c) => c >= (/\d$/.test(q) ? q : `${q}0`) && c < `${q}:`).sort();
     expect(members.length).toBeGreaterThan(0);
     expect(body.interpreted.prefix).toBe(q);
-    // 3F: one result per duplicate group; the other members ride along as its variants.
+    // One result per duplicate group; the other members ride along as its variants.
     expect(shownCodes(body.results).sort()).toEqual(members);
   });
 
-  it('[S4 known-bug] "modules", "intro", "teach" and "something" are not stopwords', async () => {
-    // 3C writes a df-0 token as a prefix term (`"modules"*` in the fixture); the stopword list is unchanged.
+  it('"modules", "intro", "teach" and "something" are not stopwords', async () => {
+    // The typo step writes a df-0 token as a prefix term (`"modules"*` in the fixture); the stopword list is unchanged.
     expect(String(await matchExpression('intro to modules that teach something')).replace(/\*/g, '')).toBe(
       '"intro" OR "modules" OR "that" OR "teach" OR "something"');
   });
@@ -51,15 +51,15 @@ describe('S4', () => {
   it.each([
     ['machne', '"machine" OR "machne"*'],
     ['progr', '"progr"*'],
-  ])('[S4 fixed] 3C: "%s" gets lexical hits, as a correction or a prefix term', async (q, expr) => {
+  ])('"%s" gets lexical hits, as a correction or a prefix term', async (q, expr) => {
     expect(await matchExpression(q)).toBe(expr);
     const { body } = await callJson(`/search?q=${q}&mode=lexical`, { fakes });
     expect(body.retrieval.lexical).toBeGreaterThan(0);
   });
 });
 
-describe('S5', () => {
-  it('[S5 fixed] "cs 1010s" is joined into the code CS1010S and pinned at rank 1', async () => {
+describe('codes', () => {
+  it('"cs 1010s" is joined into the code CS1010S and pinned at rank 1', async () => {
     for (const mode of ['hybrid', 'lexical']) {
       const { body } = await callJson(`/search?q=cs%201010s&mode=${mode}`, { fakes });
       expect(body.interpreted.pin, mode).toEqual(['CS1010S']);
@@ -67,7 +67,7 @@ describe('S5', () => {
     }
   });
 
-  it('[S5 fixed] the partial code "CS101" routes to its members, and only them', async () => {
+  it('the partial code "CS101" routes to its members, and only them', async () => {
     const { body } = await callJson('/search?q=CS101&mode=lexical', { fakes });
     const members = fixture.modules.map((m) => m.code).filter((c) => c.startsWith('CS101')).sort();
     expect(members.length).toBeGreaterThan(1);
@@ -76,24 +76,24 @@ describe('S5', () => {
   });
 });
 
-describe('S7', () => {
-  it('[S7 fixed] 3H-0: the schema has exam, S/U, grading-basis, workload-hours and prerequisite columns', async () => {
+describe('constraints', () => {
+  it('the schema has exam, S/U, grading-basis, workload-hours and prerequisite columns', async () => {
     const { results } = await env.DB.prepare("SELECT name FROM pragma_table_info('modules') ORDER BY cid").all();
     expect(results.map((r) => r.name)).toEqual([
       'code', 'title', 'description', 'credits', 'department', 'faculty', 'level', 'semesters', 'workload',
-      // row_hash: 0006 (Phase 1C). The generated sem/ng_sem/exam_sem columns
+      // row_hash: 0006. The generated sem/ng_sem/exam_sem columns
       // are hidden from table_info.
       'prerequisite', 'preclusion', 'acad_year', 'text_hash', 'ng', 'ng_semesters', 'row_hash',
-      // 0007 (3H-0).
+      // 0007.
       'exam_semesters', 'su', 'grading_basis', 'workload_hours', 'prereq_none', 'prereq_cohort_only',
-      // ng_allow, ng_rules: 0009 (Phase 4).
+      // ng_allow, ng_rules: 0009.
       'ng_allow', 'ng_rules',
-      // exam_dates: 0010 (Phase 5 5A).
+      // exam_dates: 0010.
       'exam_dates',
     ]);
   });
 
-  it('[S7 fixed] 3H: /search filters on no exam, S/U, workload and prerequisite params', async () => {
+  it('/search filters on no exam, S/U, workload and prerequisite params', async () => {
     const plain = await callJson('/search?q=introduction&mode=lexical&topK=50', { fakes });
     const filtered = await callJson('/search?q=introduction&mode=lexical&topK=50&exam=0&su=1&hoursBelow=10&prereq=none', { fakes });
     expect(filtered.body.filters).toEqual({ exam: 0, su: 1, hoursBelow: 10, prereq: 'none' });
@@ -101,14 +101,14 @@ describe('S7', () => {
   });
 });
 
-describe('S8', () => {
-  it('[S8 fixed] 3G: gibberish answers count 0 with noMatch no-signal', async () => {
+describe('no-signal queries and duplicates', () => {
+  it('gibberish answers count 0 with noMatch no-signal', async () => {
     const { body } = await callJson('/search?q=xqzvbnm%20flurble', { fakes });
     expect(body.retrieval.lexical).toBe(0);
     expect(body).toMatchObject({ count: 0, results: [], noMatch: { reason: 'no-signal' } });
   });
 
-  it('[S8 fixed] 3F: near-duplicate variants (TR3202*) collapse to one result, the others listed as its variants', async () => {
+  it('near-duplicate variants (TR3202*) collapse to one result, the others listed as its variants', async () => {
     const { body } = await callJson('/search?q=start-up%20internship&mode=lexical&topK=10', { fakes });
     const tr = body.results.filter((/** @type {any} */ r) => r.code.startsWith('TR3202'));
     expect(tr).toHaveLength(1);
@@ -117,9 +117,9 @@ describe('S8', () => {
   });
 });
 
-describe('P1', () => {
+describe('exchange mode by semester', () => {
   // CS3244 and CG3201 are on the NG list for Sem 2 only (NUSMods offers them in both).
-  it('[P1 fixed] ng=1&sem=1 shows only modules open to exchange students in Sem 1 (D1 path)', async () => {
+  it('ng=1&sem=1 shows only modules open to exchange students in Sem 1 (D1 path)', async () => {
     const sem1 = await callJson('/search?q=machine%20learning&ng=1&sem=1&study=ug3&mode=lexical', { fakes });
     expect(sem1.body.results.length).toBeGreaterThan(0);
     expect(sem1.body.results.filter((/** @type {any} */ r) => !r.ngSemesters.includes(1))).toEqual([]);
@@ -128,27 +128,27 @@ describe('P1', () => {
     expect(codes(sem2.body.results)).toContain('CS3244');
   });
 
-  it('[P1 fixed] the Vectorize standby filters on the yearly ng flag only, reads 100 deep and rechecks the semester in D1', async () => {
+  it('the Vectorize standby filters on the yearly ng flag only, reads 100 deep and rechecks the semester in D1', async () => {
     const before = fakes.vectorize.calls.length;
     const { body } = await callJson('/search?q=machine%20learning%20vecfilter&ng=1&sem=1&study=ug3', { fakes, env: { DENSE_BACKEND: 'vectorize' } });
     expect(fakes.vectorize.calls[before].args[1]).toEqual({ topK: 100, filter: { ng: true } });
     expect(body.results.filter((/** @type {any} */ r) => !r.ngSemesters.includes(1))).toEqual([]);
   });
 
-  it('[P1 fixed] the bundle\'s filter mask tests the allow-mask bit for (sem, study)', async () => {
+  it('the bundle\'s filter mask tests the allow-mask bit for (sem, study)', async () => {
     const { body } = await callJson('/search?q=machine%20learning&ng=1&sem=1&study=ug3&mode=vector&topK=50', { fakes });
     expect(body.results.length).toBeGreaterThan(0);
     expect(body.results.filter((/** @type {any} */ r) => !r.ngSemesters.includes(1))).toEqual([]);
   });
 });
 
-describe('P2', () => {
-  it('[P2 fixed] ng=1 shows no level-5 module to an undergraduate exchange student; LI5202 is closed to graduates too', async () => {
+describe('exchange mode by study level', () => {
+  it('ng=1 shows no level-5 module to an undergraduate exchange student; LI5202 is closed to graduates too', async () => {
     for (const study of ['ug2', 'ug4']) {
       const { body } = await callJson(`/search?q=supply%20chain%20management&ng=1&study=${study}&mode=lexical`, { fakes });
       expect(body.results.filter((/** @type {any} */ r) => r.level >= 5), study).toEqual([]);
     }
-    // Self-funded programme (rule A), and closed by Jacob's Q1a.
+    // A self-funded programme (rule A), closed to exchange graduates too.
     const grad = await callJson('/search?q=supply%20chain%20management&ng=1&study=grad&mode=lexical', { fakes });
     expect(codes(grad.body.results)).not.toContain('LI5202');
   });

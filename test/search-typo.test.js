@@ -1,9 +1,9 @@
 // @ts-check
-// 3C in /search (docs/plans/phase3.md "3C Typos and prefixes") on the fixture
+// Typos and prefixes in /search on the fixture
 // corpus, the fixture bundle and the fixture vocabulary: a typo's lexical half
 // finds what the corrected query finds, `interpreted` echoes no correction,
-// and the dense half follows the variant selector: 3C-1 embeds the query as
-// typed; 3C-2 also embeds the corrected text, a second single-text call in
+// and the dense half follows the variant selector: `3c1` embeds the query as
+// typed; `3c2` also embeds the corrected text, a second single-text call in
 // parallel, and takes each module's better cosine of the two.
 import { beforeAll, describe, expect, it } from 'vitest';
 import vocabFile from './fixtures/vocabulary.json';
@@ -66,7 +66,7 @@ describe('a typo in /search', () => {
     expect(body.query).toBe(typo);
   });
 
-  it(`dense half (${EMBED_CORRECTED ? '3C-2' : '3C-1'}): embeds ${EMBED_CORRECTED ? 'the typed and the corrected text, one call each' : 'the query as typed, once'}`, async () => {
+  it(`dense half (${EMBED_CORRECTED ? '3c2' : '3c1'}): embeds ${EMBED_CORRECTED ? 'the typed and the corrected text, one call each' : 'the query as typed, once'}`, async () => {
     const f = createFakes();
     await callJson(`/search?q=${typo}%20design`, { fakes: f });
     const texts = f.ai.calls.filter((c) => c.method === 'run').map((c) => /** @type {any} */ (c.args[1]).text);
@@ -80,7 +80,7 @@ describe('a typo in /search', () => {
 
 describe('denseTexts', () => {
   const parsed = /** @type {any} */ ({ dense: 'machne learning', corrected: 'machine learning' });
-  it('is the typed text under 3C-1, and also the corrected text under 3C-2 when there is one', () => {
+  it('is the typed text under 3c1, and also the corrected text under 3c2 when there is one', () => {
     expect(denseTexts(parsed, false)).toEqual(['machne learning']);
     expect(denseTexts(parsed, true)).toEqual(['machne learning', 'machine learning']);
     expect(denseTexts({ ...parsed, corrected: null }, true)).toEqual(['machne learning']);

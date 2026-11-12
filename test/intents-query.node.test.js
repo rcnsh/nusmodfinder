@@ -1,8 +1,7 @@
 // @ts-check
-// 3H's query side, parse step 4 (docs/plans/phase3.md 3H, prereg §3 step 4
-// and §7 "3H"): pass A matches the no-exam, S/U, workload and prerequisite
-// phrases leftmost-longest, strips them from the lexical query before any
-// code join (C-4, C3-1), and echoes them in `interpreted`. The dense query is
+// The constraint intents, parse step 4: pass A matches the no-exam, S/U,
+// workload and prerequisite phrases leftmost-longest, strips them from the
+// lexical query before any code join, and echoes them in `interpreted`. The dense query is
 // raw or stripped by the variant in force.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -38,13 +37,13 @@ describe('passA', () => {
     expect(passA('no background in coding', phrases, new Set())).toMatchObject({ text: 'in coding', prereq: true });
   });
 
-  it('is leftmost-longest: `without final exam` strips `exam` too (C2-6); a phrase needs word boundaries', () => {
+  it('is leftmost-longest: `without final exam` strips `exam` too; a phrase needs word boundaries', () => {
     expect(passA('without final exams please', phrases, new Set()).text).toBe('please');
     expect(passA('no-exam modules', phrases, new Set())).toMatchObject({ text: 'modules', exam: true });
     expect(passA('noexam modules', phrases, new Set())).toMatchObject({ text: 'noexam modules', exam: false });
   });
 
-  it('N is an integer 1-99 (C26); the smallest of several hour limits holds', () => {
+  it('N is an integer 1-99; the smallest of several hour limits holds', () => {
     expect(passA('under 0 hours', phrases, new Set()).hoursBelow).toBeNull();
     expect(passA('under 100 hours', phrases, new Set()).hoursBelow).toBeNull();
     expect(passA('light workload under 6 hours', phrases, new Set()).hoursBelow).toBe(6);
@@ -67,7 +66,7 @@ describe('parseQuery step 4', () => {
     expect(parse('sociology').constraints).toEqual({});
   });
 
-  it('strips the phrases from the lexical query (C-4): `final` no longer reaches FTS', () => {
+  it('strips the phrases from the lexical query: `final` no longer reaches FTS', () => {
     expect(parse('no finals creative writing').lexical).toBe('creative writing');
   });
 
@@ -83,15 +82,15 @@ describe('parseQuery step 4', () => {
     expect(parse('no exams', [], { dense: 'stripped' }).dense).toBe('no exams');
   });
 
-  it('a 3H intent is a signal: 3G never fires on it', () => {
+  it('a constraint intent is a signal: the no-signal check never fires on it', () => {
     expect(parse('xqzv no exam').noSignal).toBe(false);
   });
 });
 
-describe('the variants (prereg §7, grids.json [3H])', () => {
-  it('are the four pooled points, and the variant in force is one of them', () => {
-    const grid = JSON.parse(readFileSync(new URL('../eval/prereg/grids.json', import.meta.url), 'utf8'))['3H'];
-    expect(Object.values(INTENT_VARIANTS).map((v) => [v.prereq, v.dense])).toEqual(grid.pooled);
+describe('the variants', () => {
+  it('are the four points the eval screened (prerequisite semantics i or ii, dense query stripped or raw), and the variant in force is one of them', () => {
+    const pooled = [['i', 'stripped'], ['i', 'raw'], ['ii', 'stripped'], ['ii', 'raw']];
+    expect(Object.values(INTENT_VARIANTS).map((v) => [v.prereq, v.dense])).toEqual(pooled);
     expect(Object.keys(INTENT_VARIANTS)).toContain(INTENT_VARIANT);
   });
 });

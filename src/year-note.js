@@ -1,5 +1,5 @@
 // @ts-check
-// Jacob's ruling R3 (docs/decisions/0008-phase5-frontend-plan.md): a NUS
+// ADR 0007: a NUS
 // prerequisite that requires an undergraduate year of study ("If undertaking
 // an Undergraduate Degree THEN must be Year 4") does not change a course's
 // exchange status, but an undergraduate whose home year is below that year
@@ -12,7 +12,7 @@
 // around it. A year item that is one alternative among others ("GPA of 3.2 or
 // greater OR must be Year 4"), a text with several "if undertaking" branches,
 // or unbalanced brackets gives no note. test/year-note.node.test.js lists the
-// patterns; the SC1 oracle (test/sc1/oracle.mjs) reads them on its own.
+// patterns; the exchange-eligibility oracle (test/oracle/oracle.mjs) reads them on its own.
 
 /** @typedef {import('./ng-bit.js').Study} Study */
 

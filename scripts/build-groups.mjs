@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // @ts-check
-// The 3F groups modules (docs/plans/phase3.md 3F): groups-v1 (src/groups.js)
-// over the corpus each Worker searches, versioned with that corpus's bundle
-// the way 3C's vocabulary is (scripts/build-vocabulary.mjs):
+// The module groups: groups-v1 (src/groups.js) over the corpus each Worker
+// searches, versioned with that corpus's bundle the way the vocabulary is
+// (scripts/build-vocabulary.mjs):
 //
 //   node scripts/build-groups.mjs --corpus production
 //       data/groups.json, the Worker's (src/group-data.js): the corpus
-//       `npm run ingest` writes, `current` in data/corpus.json (Phase 7 7D). Refused unless its row count and data version
+//       `npm run ingest` writes, `current` in data/corpus.json. Refused unless its row count and data version
 //       are the production bundle's in data/vectors.json. `vectors.mjs build
 //       --corpus production` rewrites it with the bundle.
 //   node scripts/build-groups.mjs --corpus fixture
@@ -15,7 +15,7 @@
 //   add --check to rebuild in memory and exit 1 if the committed file differs.
 //
 // The pinned groups are never committed here: vitest.config.mjs builds them for
-// test/full and the SC4 suite (pinnedGroupsPath), and every eval run writes its
+// test/full and the query suite (pinnedGroupsPath), and every eval run writes its
 // own from the run corpus (eval/runner/run.mjs). They equal eval/groups.json's.
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';

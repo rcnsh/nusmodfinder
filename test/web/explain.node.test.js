@@ -1,5 +1,5 @@
 // @ts-check
-// public/explain.js (Phase 5 5C, D4, C2-3, C3-1, C3-2): the sentences the page
+// public/explain.js: the sentences the page
 // writes about exchange status. Each exchange note in full (the `semester` one
 // as an action), each hidden typed code with its own stored reasons and their
 // sources, a partial code exchange mode empties, and the typed codes past the
@@ -40,12 +40,12 @@ describe('sources and statuses', () => {
     expect(sourceNote('ng-list:not-listed', [])).toBe('NG list');
   });
 
-  it('[R3] the year-of-study note cites the course\'s NUS prerequisite, not either NG list', () => {
+  it('the year-of-study note cites the course\'s NUS prerequisite, not either NG list', () => {
     expect(sourceNote('prereq:year-of-study', SOURCES)).toBe('NUS prerequisite');
     expect(sourceNote('prereq:year-of-study', null)).toBe('NUS prerequisite');
   });
 
-  it('[R6-2] GRO\'s level 4000 note cites GRO\'s page, not either NG list', () => {
+  it('GRO\'s level 4000 note cites GRO\'s page, not either NG list', () => {
     expect(sourceNote('gro:level-4000', SOURCES)).toBe('GRO, Incoming Exchange Students');
     expect(sourceNote('gro:level-4000', null)).toBe('GRO, Incoming Exchange Students');
   });
@@ -62,7 +62,7 @@ describe('sources and statuses', () => {
   });
 });
 
-describe('noteText (every note in full; C2-3)', () => {
+describe('noteText (every note in full)', () => {
   it('words the `semester` note as an action, for the semester it is about', () => {
     expect(noteText(reason('ng-list:nusmods-semester-differs'), 1)).toBe("The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.");
     expect(noteText(reason('ng-list:nusmods-semester-differs'), '2')).toBe("The NG list offers it in Sem 2, but NUSMods shows no classes for it in Sem 2. Ask the department that teaches it whether it will run.");
@@ -80,14 +80,14 @@ describe('noteText (every note in full; C2-3)', () => {
     }
   });
 
-  it('[R3] the year-of-study note leads with "Year of study." and is said in full, with its source', () => {
+  it('the year-of-study note leads with "Year of study." and is said in full, with its source', () => {
     const year = { id: 'prereq:year-of-study', kind: 'year', text: 'NUS lists this course for Year 4 students. Ask the department whether your year of study during your exchange counts.' };
     expect(noteLead('year')).toBe('Year of study.');
     expect(noteText(year, 1)).toBe(year.text);
     expect(reasonLine(year, 1, SOURCES)).toBe('NUS lists this course for Year 4 students. Ask the department whether your year of study during your exchange counts (NUS prerequisite).');
   });
 
-  it('[R6-2] GRO\'s level 4000 note leads with "Places." like a quota, is GRO\'s sentence in full, with its source, and makes the stamp "with 1 note"', () => {
+  it('GRO\'s level 4000 note leads with "Places." like a quota, is GRO\'s sentence in full, with its source, and makes the stamp "with 1 note"', () => {
     const gro = levelNote({ level: 4, faculty: 'Science' }, 'ug2');
     if (!gro) throw new Error('no note');
     expect(noteLead(gro.kind)).toBe('Places.');
@@ -102,7 +102,7 @@ describe('noteText (every note in full; C2-3)', () => {
   });
 });
 
-describe('hiddenCodeLine (D4: each hidden typed code, with its own stored reasons; C3-1)', () => {
+describe('hiddenCodeLine (each hidden typed code, with its own stored reasons)', () => {
   it('not on the NG list', () => {
     const ex = exchange('ug2', { 1: ['closed', ['ng-list:not-listed']], 2: ['closed', ['ng-list:not-listed']], any: ['closed', ['ng-list:not-listed']] });
     expect(hiddenCodeLine({ code: 'CS5562', sem: '1', study: 'ug2', exchange: ex, sources: SOURCES }))
@@ -158,9 +158,9 @@ describe('hiddenCodeLine (D4: each hidden typed code, with its own stored reason
 });
 
 describe('boxNotOffered: the typed codes the hidden-codes box lists as not offered', () => {
-  it('leaves out the code a whole-query noMatch already names, for not-offered and 6A\'s ng-unscheduled alike', () => {
+  it('leaves out the code a whole-query noMatch already names, for not-offered and ng-unscheduled alike', () => {
     expect(boxNotOffered(['EE4407'], { reason: 'not-offered', code: 'EE4407' })).toEqual([]);
-    // 6A review finding: the page said EE4407 twice, once as "isn't offered this academic year".
+    // Otherwise the page says EE4407 twice, once as "isn't offered this academic year".
     expect(boxNotOffered(['EE4407'], { reason: 'ng-unscheduled', code: 'EE4407' })).toEqual([]);
     expect(boxNotOffered(['EE4438', 'CS1001'], { reason: 'ng-unscheduled', code: 'EE4438' })).toEqual(['CS1001']);
   });
@@ -173,7 +173,7 @@ describe('boxNotOffered: the typed codes the hidden-codes box lists as not offer
   });
 });
 
-describe('notOfferedLine and the partial-code empty state (C3-2)', () => {
+describe('notOfferedLine and the partial-code empty state', () => {
   it('a catalogue-only code', () => {
     expect(notOfferedLine('CS1001')).toBe("CS1001 isn't offered this academic year.");
     expect(notOfferedLine('CS1001', 'Programming Methodology')).toBe("CS1001 (Programming Methodology) isn't offered this academic year.");
@@ -202,7 +202,7 @@ describe('notOfferedLine and the partial-code empty state (C3-2)', () => {
   });
 });
 
-describe('typed codes past the three that pin (5C-api leaves a 4th code unexplained)', () => {
+describe('typed codes past the three that pin (/search says nothing about a 4th typed code)', () => {
   it('typedCodes finds code-shaped words in order, upper-cased, once each, joined across one space as /search joins them', () => {
     expect(typedCodes('cs2030 CS3244 and cs2030 MA1301 machine learning cs2040s')).toEqual(['CS2030', 'CS3244', 'MA1301', 'CS2040S']);
     expect(typedCodes('CS1010 cs 3244 LC6009GRSII')).toEqual(['CS1010', 'CS3244', 'LC6009GRSII']);
@@ -233,7 +233,7 @@ describe('typed codes past the three that pin (5C-api leaves a 4th code unexplai
   });
 });
 
-describe('[5G] the stamp on a hidden typed code, and its switch (direction D)', () => {
+describe('the stamp on a hidden typed code, and its switch', () => {
   it('on the NG list for the other semester only: "Not on the NG list for Sem 1", switch to Sem 2', () => {
     const ex = exchange('ug2', { 1: ['closed', ['ng-list:not-in-semester']], 2: ['open', []], any: ['open', []] });
     expect(hiddenCodeStamp({ sem: '1', study: 'ug2', exchange: ex })).toEqual({ text: 'Not on the NG list for Sem 1', switchTo: '2' });
@@ -272,7 +272,7 @@ describe('[5G] the stamp on a hidden typed code, and its switch (direction D)', 
   });
 });
 
-describe('[5G] the count line for a query of course codes only', () => {
+describe('the count line for a query of course codes only', () => {
   it('codesOnly: codes and separators, nothing else; a partial code or a word is not', () => {
     expect(codesOnly('CS2030 CS3244')).toBe(true);
     expect(codesOnly(' cs 3244, ma1521 ')).toBe(true);
@@ -301,14 +301,14 @@ describe('[5G] the count line for a query of course codes only', () => {
     expect(codesCount('CS3244 CS5562', [r('A'), r('B')], ['CS3244'])).toEqual({ count: '2 courses', rest: ' shown: other matches for the codes you typed' });
   });
 
-  it('[PD2] a typed code that is not pinned, shown lower as an ordinary match, is not named as if it led the list (p1, live)', () => {
-    // p1 typed six codes; the first three pinned; PF3210 (the 4th) ranked 20th as an ordinary match.
+  it('a typed code that is not pinned, shown lower as an ordinary match, is not named as if it led the list', () => {
+    // Six typed codes; the first three pin; PF3210 (the 4th) ranked 20th as an ordinary match.
     const results = [r('AR3101'), r('AR4601'), r('AR3223'), ...Array.from({ length: 16 }, (_, i) => r(`XX${1000 + i}`)), r('PF3210')];
     expect(codesCount('AR3101 AR4601 AR3223 PF3210 PF3208 RE4701', results, ['AR3101', 'AR4601', 'AR3223']))
       .toEqual({ count: '20 courses', rest: ' shown: AR3101, AR4601, AR3223, then 17 other matches' });
   });
 
-  it('[PD2] a pinned code is named only if its entry is at the top: a pin the filters hid is not named', () => {
+  it('a pinned code is named only if its entry is at the top: a pin the filters hid is not named', () => {
     // CS3244 pins but the filters hide it (it is in `interpreted.pin`, not in the results); MA1521 ranks 2nd unpinned.
     expect(codesCount('CS2030 CS3244 MA1521', [r('CS2030'), r('MA1521'), r('A')], ['CS2030', 'CS3244', 'MA1521']))
       .toEqual({ count: '3 courses', rest: ' shown: CS2030, MA1521, then 1 other match' });

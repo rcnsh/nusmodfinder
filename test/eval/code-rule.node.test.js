@@ -154,7 +154,7 @@ describe('merge applies the rule', () => {
 });
 
 describe('the committed dev qrels (qrels-dev-v2 and later)', () => {
-  it('make the five red-team code queries answerable, with the rule grades', async () => {
+  it('make the five dev code queries the cutoff check empties answerable, with the rule grades', async () => {
     const qrels = JSON.parse(await readFile(join(REPO, 'eval/dev/qrels.json'), 'utf8'));
     expect(Number(/^qrels-dev-v(\d+)$/.exec(qrels.version)?.[1])).toBeGreaterThanOrEqual(2);
     expect(qrels.judging).toContainEqual(expect.objectContaining({ round: CODE_RULE, mode: 'rule', groups: 'groups-v1' }));

@@ -200,7 +200,7 @@ assert.ok(['pass', 'fail'].includes(rows1[0].verdict), `the reserved row is fina
 const overwrite = node(CLI, ['run', ...hargs, '--variant', 'base', '--ref', SHIPPED_BASELINE.ref, '--store-only'], env);
 assert.notEqual(overwrite.code, 0);
 assert.match(overwrite.out, /runs\/run-base\.json\.enc is already in .*retire-run/s);
-// A pool-variant baseline is refused before a look is reserved (PR #15 review).
+// A pool-variant baseline is refused before a look is reserved.
 ok(node(CLI, ['run', ...hargs, '--variant', 'lexbase', '--ref', SHIPPED_BASELINE.ref, '--mode', 'lexical', '--store-only'], env), 'holdout lexical pool run');
 const lexBase = node(CLI, ['run', ...hargs, '--variant', 'cand-l', '--baseline', 'lexbase'], env);
 assert.notEqual(lexBase.code, 0, 'a lexical baseline must be refused');
@@ -423,7 +423,7 @@ ok(node(JUDGE, ['adjudicate', 'collect', ...fx, '--pass', '2']), 'adjudicate col
 const merged = join(WORK, 'qrels-merged.json');
 const mergeOut = ok(node(JUDGE, ['merge', ...fx, '--no-base', '--out', merged]), 'merge');
 assert.match(mergeOut, /^qrels qrels-fixture-v1 -> /m);
-// --no-base never silently overwrites existing qrels (PR #15 review).
+// --no-base never silently overwrites existing qrels.
 const clobber = node(JUDGE, ['merge', ...fx, '--no-base', '--out', merged]);
 assert.notEqual(clobber.code, 0, '--no-base over an existing qrels file must be refused');
 assert.match(clobber.out, /already exists/);

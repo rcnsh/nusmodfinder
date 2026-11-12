@@ -1,12 +1,12 @@
 // @ts-check
-// The parsed-phrase chips' words (public/intents.js, Phase 5 5F), in Node.
+// The parsed-phrase chips' words (public/intents.js), in Node.
 import { describe, expect, it } from 'vitest';
 import { intentChips, PHRASE_INTENTS } from '../../public/intents.js';
 import { IGNORABLE } from '../../public/state.js';
 import { IGNORABLE_INTENTS, INTERPRETED_KEYS } from '../../src/query-intent.js';
 
 describe('intentChips', () => {
-  it('names each parsed 3H intent in the Worker\'s interpreted shape, in its order', () => {
+  it('names each parsed-phrase intent in the Worker\'s interpreted shape, in its order', () => {
     expect(intentChips({ pin: ['CS2105'], prefix: null, ge: ['GEA'], level: null, exam: 0, su: { value: 1, basis: ['CS/CU', 'su'] }, hoursBelow: 10, prereq: { value: 'none', semantics: 'ii' } }))
       .toEqual([
         { intent: 'exam', label: 'No final exam' },

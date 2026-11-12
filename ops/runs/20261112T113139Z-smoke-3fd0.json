@@ -5,10 +5,10 @@
   "script": "smoke",
   "args": [
     "--expect",
-    "a23601de0b15934960bfef1d8b56ab3e80fa5587"
+    "b75ac19016a2073e77d37c2c44485c9a5d8c99a2"
   ],
   "commit": {
-    "sha": "894bc1fade8045b8cd60f22f1ef331632a632caf",
+    "sha": "d9e18c1094a1c9e728cd5ffc52adbce577668734",
     "dirty": false,
     "diffSha256": null
   },
@@ -24,7 +24,7 @@
   },
   "versions": {
     "versionId": "b0834844-f6fd-4bb9-838d-a45927c195fb",
-    "tag": "a23601d"
+    "tag": "b75ac19"
   },
   "bookmark": null,
   "details": {
@@ -32,7 +32,7 @@
       {
         "name": "/health",
         "pass": true,
-        "detail": "tag a23601d, data version d820d578cf81, production bundle"
+        "detail": "tag b75ac19, data version d820d578cf81, production bundle"
       },
       {
         "name": "/",
@@ -55,7 +55,7 @@
         "detail": "200"
       }
     ],
-    "expect": "a23601de0b15934960bfef1d8b56ab3e80fa5587"
+    "expect": "b75ac19016a2073e77d37c2c44485c9a5d8c99a2"
   },
   "exitCode": 0,
   "message": "5 of 5 checks pass",

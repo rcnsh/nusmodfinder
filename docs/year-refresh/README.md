@@ -1,7 +1,7 @@
 # Year refresh: the runbook
 
 How the site takes a new NUSMods corpus for the same year (the most common refresh), moves to a new
-acad year, and takes a new copy of an NUS source mid-year (Phase 7 7E, `docs/plans/phase7.md`). `npm run year -- next <yyyy-yyyy>` prints this checklist.
+acad year, and takes a new copy of an NUS source mid-year. `npm run year -- next <yyyy-yyyy>` prints this checklist.
 The CI job `rollover` rehearses steps 2–13 on every code change (`scripts/rollover.mjs`), so the
 code has no year built in; it cannot show what a new PDF layout or new rules will break, which is
 what steps 3–7 are for.
@@ -12,8 +12,8 @@ The other pages here:
 - [`brief-oracle.md`](brief-oracle.md): the brief for the oracle's author.
 - [`overlay.md`](overlay.md): the year's overlay module, its ids and roles.
 - [`register.md`](register.md): the register of readings, and how rulings are logged.
-- `registers/<year>.md`: each later year's register (2026/27's is
-  `docs/evidence/phase4/interpretations.md`).
+- `registers/<year>.md`: each year's register; `transcriptions/<year>-{a,b}.json`: each year's two
+  transcriptions (the manifest names `-b`).
 
 ## What each year has
 
@@ -23,7 +23,7 @@ The other pages here:
 | `data/ng-courses-<year>.json` | the NG list | `scripts/extract-ng.py --year` |
 | `data/ng-restrictions-<year>.json` | the rules | `scripts/build-ng-restrictions.mjs --sources <dir>` |
 | `scripts/ng-overlay/<year>.mjs` | the overlay: rule effects, the department map, `DECIDED`, roles | hand ([overlay.md](overlay.md)) |
-| `test/sc1/oracle-<year>.node.mjs` | the SC1 oracle | a fresh author ([brief-oracle.md](brief-oracle.md)) |
+| `test/oracle/oracle-<year>.node.mjs` | the oracle | a fresh author ([brief-oracle.md](brief-oracle.md)) |
 | `registers/<year>.md` | the register | the maintainer's rulings ([register.md](register.md)) |
 
 `data/ng-reasons.json` (`node scripts/build-ng-reasons.mjs`) takes its dates from the manifest.
@@ -43,11 +43,12 @@ npm run sources -- publish --from <dir> [<year>] [--revision <date>] # refuses a
 npm run sources -- restore [<year>] [--revision <date>] [--out <dir>] # unpacks into a temp dir and prints it
 ```
 
-Every document's `file` and `text` is a plain base name: no `/`, `\`, `..`, absolute path or NUL
-(red team L-4); `year check`, publish and restore refuse any other, and restore checks each archive
-entry's name before writing. A document's `text` is its pdftotext extraction, archived with it;
-publish writes its sha256 into the manifest as `textSha256` (red team L-5), and restore,
-`year check --full` and the restrictions builder refuse a text that differs. List `text` in the
+Every document's `file` and `text` is a plain base name: no `/`, `\`, `..`, absolute path or NUL,
+so no name can reach outside its directory. `year check`, publish and restore refuse any other,
+and restore checks each archive entry's name before writing. A document's `text` is its
+pdftotext extraction, archived with it; publish writes its sha256 into the manifest as
+`textSha256`, and restore, `year check --full` and the restrictions builder refuse a text that
+differs. List `text` in the
 revision before publishing and leave `textSha256` out: publish fills it in.
 
 The key is read from `--key <path>`, else `VNM_SOURCES_KEY_FILE`, else
@@ -84,7 +85,7 @@ and the oracle stay as they are, so there are no sources, no transcription, no k
    ```
    Then upload the bundle with the `gh release create …` line the build prints. The build rewrites
    `data/vectors.json`, `src/data-version.json`, `data/vocabulary.json`, `data/groups.json`,
-   `data/ng-unscheduled.json` and the 3B files (`data/prefixes.json`, `data/catalogue-codes.json`,
+   `data/ng-unscheduled.json` and the code-parser files (`data/prefixes.json`, `data/catalogue-codes.json`,
    `data/catalogue-only.json`).
 3. **Checks.**
    ```bash
@@ -96,8 +97,8 @@ and the oracle stay as they are, so there are no sources, no transcription, no k
    `data/ng-unscheduled.json` follows the corpus, so its change needs no `year check --full`
    record. If the diff touches any other `data/ng-*` file or `scripts/ng-overlay/`, it is a source
    change: see "A mid-year revision" below.
-4. **PR.** Commit the files above (`docs/REFERENCE.md`, "Re-ingesting for a new acad year", step 1,
-   lists them). CI runs `sc1` over the new `current` and `rollover`. Merge when green. Nothing
+4. **PR.** Commit the files above (`docs/data.md`, "Re-ingesting", step 1,
+   lists them). CI runs `oracle` over the new `current` and `rollover`. Merge when green. Nothing
    deploys yet: the deploy guard refuses until D1 matches.
 5. **Before any D1 write**, on merged `main`:
    ```bash
@@ -133,7 +134,7 @@ from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollb
 
 ## A year switch
 
-1. **When.** NUSMods has the new year, and NUS has published its Sem 1 NG list (July, G2). The
+1. **When.** NUSMods has the new year, and NUS has published its Sem 1 NG list (July; ADR 0015). The
    monthly reminder issue prompts the check. Sem 2 may be unpublished: set
    `published.ngList["2"]` to `false` and exchange mode shows last year's Sem 2 list, each course
    "On NUS's <last> list; NUS hasn't published <this year>'s yet", to confirm, never open
@@ -165,7 +166,7 @@ from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollb
    Then `DEFAULT_ACAD_YEAR`, `public/year.js` and the header, and YST's text with
    `node scripts/yst-text.mjs <page.html> --out <page.txt>`.
 6. **Oracle.** A fresh author rewrites the sections whose rules changed, from last year's oracle
-   ([brief-oracle.md](brief-oracle.md)). Then agreement: `npm run test:sc1` must find no
+   ([brief-oracle.md](brief-oracle.md)). Then agreement: `npm run test:oracle` must find no
    difference. Classify each disagreement and fix it at its source: a transcription error in the
    transcription, a ruling in the register, a rules bug in the overlay or builder, an oracle bug by
    a fresh oracle author (never by whoever wrote the rules).
@@ -178,12 +179,12 @@ from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollb
    `python3 -m venv .venv && .venv/bin/pip install pypdf`. Commit the run record it writes (the
    deploy preflight needs it whenever a source-derived input changed). Then the bundle:
    `node scripts/vectors.mjs build --corpus production --expect-count <rows>` and the other
-   builders (`docs/REFERENCE.md`, "Re-ingesting for a new acad year", step 1).
-   **The docs' year labels:** in README.md, EVAL.md and `docs/REFERENCE.md`, every sentence
+   builders (`docs/data.md`, "Re-ingesting", step 1).
+   **The docs' year labels:** in README.md, EVAL.md and the files under `docs/`, every sentence
    marked `<!-- year:live -->` names the new year, and the NG list counts in them are the new
    list's. `npm test` (`test/docs-facts.node.test.js`) fails until they are. Sentences marked
    `<!-- year:pinned -->` describe the eval's pinned corpus and stay.
-8. **PR.** CI runs `sc1` and `rollover` on the new year. Merge only when the PR is complete.
+8. **PR.** CI runs `oracle` and `rollover` on the new year. Merge only when the PR is complete.
 9. **Before any D1 write**, on merged `main`:
    ```bash
    npm run deploy -- --preflight
@@ -207,7 +208,7 @@ from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollb
     npm run remote -- vectors standby
     npm run remote -- verify
     ```
-13. **Live checks** with the year's oracle (`docs/REFERENCE.md`, the live probes).
+13. **Live checks** with the year's oracle (`docs/operations.md`, "Live checks").
 
 ### When something fails
 

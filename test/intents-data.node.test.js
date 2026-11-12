@@ -1,11 +1,11 @@
 // @ts-check
-// 3H-0 (docs/plans/phase3.md 3H "Data"): the fields the 3H intents filter on,
-// derived by normalise() (scripts/lib.mjs), bound by ingest and hashed into
-// row_hash (src/rowhash.js), and carried in the bundle's filter table
+// The fields the constraint intents filter on, derived by normalise()
+// (scripts/lib.mjs), bound by ingest and hashed into row_hash (src/rowhash.js),
+// and carried in the bundle's filter table
 // (src/vector-bundle.js, bytes 20–27).
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { COHORT_ONLY, isCohortOnly } from '../eval/prereg/cohort-only.mjs';
+import { COHORT_ONLY, isCohortOnly } from '../eval/query-rules/cohort-only.mjs';
 import { isCohortOnly as workerCohortOnly } from '../src/cohort-only.js';
 import { normalise } from '../scripts/lib.mjs';
 import { NORMALISER_VERSION, ROW_COLUMNS, boundTuple, fieldsFromRow, rowHash } from '../src/rowhash.js';
@@ -25,7 +25,7 @@ const record = (over = {}) => ({
 /** @param {Record<string, unknown>} over */
 const norm = (over = {}) => /** @type {NormalisedModule} */ (normalise(/** @type {any} */ (record(over)), '2026-2027').module);
 
-describe('normalise() derives the 3H fields', () => {
+describe('normalise() derives the intent fields', () => {
   it('exam semesters: the offered semesters with an examDate, sorted', () => {
     expect(norm().examSemesters).toEqual([1]);
     expect(norm({ semesterData: [{ semester: 2, examDate: 'x' }, { semester: 1, examDate: 'y' }] }).examSemesters).toEqual([1, 2]);
@@ -39,7 +39,7 @@ describe('normalise() derives the 3H fields', () => {
     expect(norm({ attributes: undefined, gradingBasisDescription: undefined })).toMatchObject({ su: false, gradingBasis: null });
   });
 
-  it('workload hours: the array\'s sum; NULL when missing, unparseable or all zero (C-11)', () => {
+  it('workload hours: the array\'s sum; NULL when missing, unparseable or all zero', () => {
     expect(norm().workloadHours).toBe(10);
     expect(norm({ workload: [0, 0, 0, 0, 0] }).workloadHours).toBeNull();
     expect(norm({ workload: '3-.5-0--0-6.5' }).workloadHours).toBeNull();
@@ -48,9 +48,9 @@ describe('normalise() derives the 3H fields', () => {
     expect(norm({ workload: [0.5, 0.5, 0, 0, 1.5] }).workloadHours).toBe(2.5);
   });
 
-  it('prerequisites: none iff the field is absent (C-5); cohort-only by the P-6 rule (A2-12, A3-7)', () => {
+  it('prerequisites: none iff the field is absent; cohort-only by the eval\'s rule', () => {
     expect(norm({ prerequisite: undefined })).toMatchObject({ prereqNone: true, prereqCohortOnly: false });
-    // ACC1701XA's and ACC2706's texts, the P-6 rule's own checks (cohort-only-prereq.json).
+    // ACC1701XA's and ACC2706's texts, the rule's own checks (cohort-only-prereq.json).
     expect(isCohortOnly(COHORT)).toBe(true);
     expect(norm({ prerequisite: COHORT })).toMatchObject({ prereqNone: false, prereqCohortOnly: true });
     expect(norm({ prerequisite: COURSE })).toMatchObject({ prereqNone: false, prereqCohortOnly: false });
@@ -58,7 +58,7 @@ describe('normalise() derives the 3H fields', () => {
 });
 
 describe('row_hash and the bound tuple', () => {
-  it('the normaliser version is 2, and every 3H field is a column ingest binds', () => {
+  it('the normaliser version is 2, and every intent field is a column ingest binds', () => {
     expect(NORMALISER_VERSION).toBe(2);
     expect(ROW_COLUMNS).toEqual(expect.arrayContaining(['exam_semesters', 'su', 'grading_basis', 'workload_hours', 'prereq_none', 'prereq_cohort_only']));
     expect(boundTuple(norm()).length).toBe(ROW_COLUMNS.length);
@@ -71,7 +71,7 @@ describe('row_hash and the bound tuple', () => {
     expect(await rowHash(fieldsFromRow(row))).toBe(await rowHash(m));
   });
 
-  it('each 3H field changes the row hash', async () => {
+  it('each intent field changes the row hash', async () => {
     const base = await rowHash(norm());
     for (const over of [{ attributes: {} }, { gradingBasisDescription: 'Pass and Fail' }, { semesterData: [{ semester: 1 }, { semester: 2 }] },
       { workload: [2, 1, 1, 3, 4] }]) {
@@ -81,7 +81,7 @@ describe('row_hash and the bound tuple', () => {
 });
 
 describe('the bundle filter table', () => {
-  it('carries the 3H fields under schema vnm-vectors/3 (Phase 4 added ng_allow)', async () => {
+  it('carries the intent fields and ng_allow under schema vnm-vectors/3', async () => {
     expect(BUNDLE_SCHEMA).toBe('vnm-vectors/3');
     const a = norm();
     const b = norm({ moduleCode: 'CS1010X', semesterData: [{ semester: 1 }, { semester: 3, examDate: 'z' }], attributes: {},
@@ -98,8 +98,8 @@ describe('the bundle filter table', () => {
   });
 });
 
-describe('the fixture (C-15)', () => {
-  it('holds an example of every 3H case: mixed per-semester exams, CS/CU grading, unlisted workload, no prerequisite, cohort-only', () => {
+describe('the fixture', () => {
+  it('holds an example of every intent case: mixed per-semester exams, CS/CU grading, unlisted workload, no prerequisite, cohort-only', () => {
     const { modules } = /** @type {FixtureCorpus} */ (JSON.parse(readFileSync(new URL('./fixtures/corpus.json', import.meta.url), 'utf8')));
     const has = (/** @type {(m: NormalisedModule) => boolean} */ p) => modules.filter(p).length;
     expect(has((m) => m.examSemesters.length > 0 && m.examSemesters.length < m.semesters.length)).toBeGreaterThan(0);
@@ -114,7 +114,7 @@ describe('the fixture (C-15)', () => {
 });
 
 describe('the cohort-only rule normalise() applies', () => {
-  it('is the P-6 rule: data/cohort-only-prereq.json mirrors it, and src/ reads it as eval/prereg does', () => {
+  it('is the eval\'s rule: data/cohort-only-prereq.json mirrors it, and src/ reads it as eval/query-rules does', () => {
     const mirror = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.json', import.meta.url), 'utf8'));
     for (const k of ['normalise', 'remove', 'remainder', 'remainderFlags']) expect(mirror[k], k).toEqual(COHORT_ONLY[k]);
     const { modules } = /** @type {FixtureCorpus} */ (JSON.parse(readFileSync(new URL('./fixtures/corpus.json', import.meta.url), 'utf8')));

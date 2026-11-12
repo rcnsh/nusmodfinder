@@ -1,13 +1,13 @@
 // @ts-check
-// 3H's query side (docs/plans/phase3.md 3H, prereg §7 "3H"): the grid
-// variants and parse pass A, which reads the no-exam, S/U, workload and
-// prerequisite phrases (data/constraint-phrases.json, the P-6 lists mirrored
-// by scripts/build-3b-data.mjs) and strips them from the lexical query.
+// The constraint phrases' query side: the grid variants and parse pass A,
+// which reads the no-exam, S/U, workload and prerequisite phrases
+// (data/constraint-phrases.json, the eval's phrase lists mirrored
+// by scripts/build-catalogue-data.mjs) and strips them from the lexical query.
 
 /**
- * The four pooled points (eval/prereg/grids.json [3H]): prereq semantics
+ * The four pooled points of the eval's grid: prereq semantics
  * (i) prerequisite IS NULL, (ii) NULL or cohort-only; the dense query raw or
- * with the 3H phrases stripped.
+ * with the constraint phrases stripped.
  * @type {Readonly<Record<string, Readonly<{ prereq: 'i' | 'ii', dense: 'stripped' | 'raw' }>>>}
  */
 export const INTENT_VARIANTS = Object.freeze({
@@ -21,17 +21,18 @@ export const INTENT_VARIANTS = Object.freeze({
 export const INTENT_VARIANT = 'ii-stripped';
 
 /**
- * Whether the Worker reads 3H phrases from `q`. Off: parsed intents failed L7
- * and its retry (holdout looks 6 and 7), and Jacob chose to ship the explicit
- * `exam`/`su`/`hoursBelow`/`prereq` params alone (ADR 0006, 3H). Pass A stays
- * for Phase 4; with this off, src/intent-data.js gives the parse no phrases.
+ * Whether the Worker reads constraint phrases from `q`. With this off, only the
+ * explicit `exam`/`su`/`hoursBelow`/`prereq` params act (ADR 0006) and
+ * src/intent-data.js gives the parse no phrases. On: the phrases passed their
+ * holdout look under ADR 0003's compliance rule for parsed phrases
+ * (eval/holdout-ledger.md), so pass A reads them too.
  */
 export const PARSE_PHRASES = true;
 
 /** The variant in force's settings. */
 export const INTENT = INTENT_VARIANTS[INTENT_VARIANT];
 
-/** The bases `su=1` accepts, as `interpreted.su` names them (C-12, prereg A2). */
+/** The bases `su=1` accepts, as `interpreted.su` names them. */
 export const SU_BASIS = Object.freeze(['CS/CU', 'su']);
 
 /**
@@ -42,9 +43,9 @@ export const SU_BASIS = Object.freeze(['CS/CU', 'su']);
  */
 
 /**
- * A phrase as a regex (prereg §5 "Matching"): bounded by no [a-z0-9] on
+ * A phrase as a regex: bounded by no [a-z0-9] on
  * either side, a space matching a run of whitespace or '-', every other
- * character literal, and N an integer 1–99 (C26).
+ * character literal, and N an integer 1–99.
  * @param {string} phrase
  */
 const phraseRegex = (phrase) => new RegExp(`(?<![a-z0-9])${phrase.split('N').map((part) =>
@@ -66,10 +67,10 @@ export function compileConstraintPhrases(file) {
 }
 
 /**
- * Pass A (parse step 4): every 3H phrase, leftmost-longest and
+ * Pass A (parse step 4): every constraint phrase, leftmost-longest and
  * non-overlapping, read and stripped. An ignored intent's phrases are not
  * read and stay in the text. Of several hour limits the smallest holds.
- * @param {string} text the canonical query (after 3C's correction for the lexical side)
+ * @param {string} text the canonical query (after the typo correction for the lexical side)
  * @param {ConstraintPhrase[]} phrases
  * @param {Set<string>} ignored
  * @returns {PassA}

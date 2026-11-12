@@ -1,17 +1,16 @@
 // @ts-check
-// SC8's screen-reader items that a test can measure (Phase 5 5E, F5): the one
+// The screen-reader behaviour a test can measure: the one
 // polite live region says each answer in a sentence (the count, no match,
 // hidden codes, errors and 429), the list is aria-busy while a search runs,
 // the Search button is never disabled (it keeps focus; a second search aborts
-// the first), and every control has an accessible name. The VoiceOver
-// walkthrough itself is docs/evidence/phase5/voiceover-checklist.md.
+// the first), and every control has an accessible name.
 import { expect, test } from '@playwright/test';
 import { body, live, liveLog, query, recordLive, settled } from './support.mjs';
 
 /** Every live region on the page: there must be one. @param {import('@playwright/test').Page} page */
 const liveRegions = (page) => page.locator('[aria-live], [role="status"], [role="alert"], [role="log"], [role="marquee"], [role="timer"], output');
 
-test('[F5] one polite live region, in the header, present in every view', async ({ page }) => {
+test('one polite live region, in the header, present in every view', async ({ page }) => {
   for (const path of ['/', '/?q=networks', '/?q=CS3244&open=CS3244']) {
     await page.goto(path);
     await settled(page);
@@ -23,7 +22,7 @@ test('[F5] one polite live region, in the header, present in every view', async 
   }
 });
 
-test('[F5] after a search the live region says the count and the query', async ({ page }) => {
+test('after a search the live region says the count and the query', async ({ page }) => {
   await page.goto('/?q=machine+learning');
   await expect(live(page)).toHaveText('20 courses match “machine learning”.');
   await page.locator('#q').fill('CS3244');
@@ -31,14 +30,14 @@ test('[F5] after a search the live region says the count and the query', async (
   await expect(live(page)).toHaveText(/^\d+ courses shown: CS3244, then \d+ other matches\.$/);
 });
 
-test('[F5] one result: "1 course matches", on screen and in the live region', async ({ page }) => {
+test('one result: "1 course matches", on screen and in the live region', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({ json: body() }));
   await page.goto('/?q=networks');
   await expect(live(page)).toHaveText('1 course matches “networks”.');
   await expect(page.locator('#status .count')).toHaveText('1 course matches “networks”');
 });
 
-test('[F5] no match: the live region says why, and the next step', async ({ page }) => {
+test('no match: the live region says why, and the next step', async ({ page }) => {
   await page.goto('/?q=qwzx+vbnm');
   await expect(live(page)).toHaveText('Nothing in the catalogue matches “qwzx vbnm”. Try other words for the topic.');
   await page.goto('/?q=CS1001');
@@ -48,7 +47,7 @@ test('[F5] no match: the live region says why, and the next step', async ({ page
   await expect(live(page)).toHaveText('No courses match “networks”. Remove a filter above to see more courses, or try other words.');
 });
 
-test('[F5] hidden codes: the live region says how many typed codes aren\'t shown, and which', async ({ page }) => {
+test('hidden codes: the live region says how many typed codes aren\'t shown, and which', async ({ page }) => {
   await page.goto('/?q=CS2030+CS3244+CS5562+AR5801&ng=1&study=ug2&sem=1');
   await expect(live(page)).toHaveText(/^\d+ courses shown: CS2030, then \d+ other matches\. 3 of the 4 codes you typed aren't shown: CS3244, CS5562, AR5801\.$/);
   await page.goto('/?q=CS2030+CS1001');
@@ -58,14 +57,14 @@ test('[F5] hidden codes: the live region says how many typed codes aren\'t shown
   await expect(live(page)).toHaveText("No results for “CS3244”. The code you typed isn't shown: CS3244.");
 });
 
-test('[F5] a partial code: the live region says the semester, then that a button shows the other', async ({ page }) => {
+test('a partial code: the live region says the semester, then that a button shows the other', async ({ page }) => {
   await page.goto('/?q=CG32&ng=1&study=ug2&sem=1');
   await expect(live(page)).toHaveText('No CG32xx course is open to 2nd-year exchange students in Sem 1. The “See Sem 2 courses” button shows them.');
   await page.goto('/?q=AI52&ng=1&study=ug2&sem=1');
   await expect(live(page)).toHaveText('No AI52xx course is open to 2nd-year exchange students in either semester.');
 });
 
-test('[F5] errors and 429: the live region says the same sentence the page shows', async ({ page }) => {
+test('errors and 429: the live region says the same sentence the page shows', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({ status: 502, json: { error: 'upstream_failure', message: 'D1_ERROR' } }));
   await page.goto('/?q=x');
   await expect(live(page)).toHaveText('The search service could not reach its course data. Try again in a moment.');
@@ -80,7 +79,7 @@ test('[F5] errors and 429: the live region says the same sentence the page shows
   await expect(live(page)).toHaveText('Could not reach the search service. Check your connection and try again.');
 });
 
-test('[F5] keyword-only, the phrase chips, and a missing year of study are said too', async ({ page }) => {
+test('keyword-only, the phrase chips, and a missing year of study are said too', async ({ page }) => {
   await page.route('**/search?**', (route) => route.fulfill({ json: body({ degraded: { source: 'workers-ai', reason: 'timeout' } }) }));
   await page.goto('/?q=networks');
   await expect(live(page)).toHaveText('1 course matches “networks”. Search is in a simpler mode right now: it finds only courses that contain the words you typed. Try the course name or code, or search again later.');
@@ -93,21 +92,21 @@ test('[F5] keyword-only, the phrase chips, and a missing year of study are said 
   await expect(live(page)).toHaveText('Choose your year of study to see the courses open to you as an exchange student.');
 });
 
-test('[F5] the first screen\'s questions left unanswered are said in the live region as focus moves to them', async ({ page }) => {
+test('the first screen\'s questions left unanswered are said in the live region as focus moves to them', async ({ page }) => {
   await page.goto('/');
   await page.locator('#setupForm').getByRole('button', { name: 'Search' }).click();
   await expect(live(page)).toHaveText('Choose the semester you will study at NUS.');
   await expect(page.getByRole('radio', { name: /^Sem 1/ })).toBeFocused();
 });
 
-test('[F5] a detail that fails to load is said in the live region', async ({ page }) => {
+test('a detail that fails to load is said in the live region', async ({ page }) => {
   await page.route('**/module/CS3244', (route) => route.fulfill({ status: 502, json: { error: 'upstream_failure' } }));
   await page.goto('/?q=CS3244');
   await page.locator('#results button[data-code="CS3244"]').click();
   await expect(live(page)).toHaveText('The details of CS3244 could not be loaded. The search service could not reach its course data. Try again in a moment.');
 });
 
-test('[F5] the same sentence again is said again: the region clears, then repeats it', async ({ page }) => {
+test('the same sentence again is said again: the region clears, then repeats it', async ({ page }) => {
   await page.goto('/?q=CS2104&sem=1&ng=1&study=ug2');
   await settled(page);
   const said = await live(page).textContent();
@@ -126,7 +125,7 @@ test('[F5] the same sentence again is said again: the region clears, then repeat
   expect(await page.evaluate(() => /** @type {any} */ (globalThis).liveLog)).toEqual(['', said, '', said]);
 });
 
-test('[F5] the list is aria-busy while a search runs, and not after', async ({ page }) => {
+test('the list is aria-busy while a search runs, and not after', async ({ page }) => {
   /** @type {import('@playwright/test').Route[]} */
   const held = [];
   await page.route('**/search?**', (route) => { held.push(route); });
@@ -144,7 +143,7 @@ test('[F5] the list is aria-busy while a search runs, and not after', async ({ p
   await expect(page.locator('#results')).toHaveAttribute('aria-busy', 'false');
 });
 
-test('[F5] the Search button is never disabled: it keeps focus while a search runs, and a second press aborts the first', async ({ page }) => {
+test('the Search button is never disabled: it keeps focus while a search runs, and a second press aborts the first', async ({ page }) => {
   /** @type {import('@playwright/test').Route[]} */
   const held = [];
   await page.goto('/?q=networks');
@@ -213,7 +212,7 @@ const NAMED = [
 ];
 
 for (const [name, path, width, then] of NAMED) {
-  test(`[F5] every control has an accessible name: ${name} at ${width}`, async ({ page }) => {
+  test(`every control has an accessible name: ${name} at ${width}`, async ({ page }) => {
     await page.setViewportSize({ width, height: width === 390 ? 664 : 800 });
     await page.goto(path);
     await settled(page);
@@ -224,7 +223,7 @@ for (const [name, path, width, then] of NAMED) {
   });
 }
 
-test('[F5] the controls are named as a screen reader should say them', async ({ page }) => {
+test('the controls are named as a screen reader should say them', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1&level=2');
   await settled(page);
@@ -243,7 +242,7 @@ test('[F5] the controls are named as a screen reader should say them', async ({ 
   await expect(page.getByRole('main')).toHaveCount(1);
 });
 
-test('[F5] the live region stays in the accessibility tree while the filters dialog is open, and goes back to the header after', async ({ page, browserName }) => {
+test('the live region stays in the accessibility tree while the filters dialog is open, and goes back to the header after', async ({ page, browserName }) => {
   await page.setViewportSize({ width: 390, height: 664 });
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1');
   await settled(page);
@@ -273,7 +272,7 @@ test('[F5] the live region stays in the accessibility tree while the filters dia
   await expect(liveRegions(page)).toHaveCount(1);
 });
 
-test('[F5] each answer is said once: a failed other-semester check and a late /facets say nothing again', async ({ page }) => {
+test('each answer is said once: a failed other-semester check and a late /facets say nothing again', async ({ page }) => {
   await recordLive(page);
   // The partial code's other-semester check fails (429): the line doesn't change, so nothing more is said.
   await page.route('**/search?**sem=2**', (route) => route.fulfill({ status: 429, headers: { 'retry-after': '30' }, json: { error: 'rate_limited' } }));
@@ -284,7 +283,7 @@ test('[F5] each answer is said once: a failed other-semester check and a late /f
   expect(await liveLog(page)).toEqual(['No CG32xx course is open to 2nd-year exchange students in Sem 1.']);
 });
 
-test('[F5] a failed detail is said once, even when /facets answers after it and the detail is filled again', async ({ page }) => {
+test('a failed detail is said once, even when /facets answers after it and the detail is filled again', async ({ page }) => {
   await recordLive(page);
   await page.route('**/module/CS3244', (route) => route.fulfill({ status: 502, json: { error: 'upstream_failure' } }));
   /** @type {(() => void) | null} */
@@ -303,7 +302,7 @@ test('[F5] a failed detail is said once, even when /facets answers after it and 
   await expect(live(page)).toHaveText(said);
 });
 
-test('[F5] pressing Search again on the answer already shown says it again', async ({ page }) => {
+test('pressing Search again on the answer already shown says it again', async ({ page }) => {
   await page.goto('/?q=networks');
   await settled(page);
   const said = /** @type {string} */ (await live(page).textContent());
@@ -316,10 +315,10 @@ test('[F5] pressing Search again on the answer already shown says it again', asy
   await expect.poll(() => liveLog(page)).toEqual(['', said]);
 });
 
-// Phase 6 6C (plan 6C "Tests first"): the shortlist's sentences and what it keeps
+// The shortlist's sentences and what it keeps
 // quiet. Each edit's own sentence is asserted in shortlist.spec.js where the edit
 // is made; these are the cases about which sentence wins.
-test('[6C] a link with q and picks says the count, never the rows\' progress', async ({ page }) => {
+test('a link with q and picks says the count, never the rows\' progress', async ({ page }) => {
   await recordLive(page);
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1');
   await expect(live(page)).toHaveText(/^\d+ courses match “networks”\.$/);
@@ -329,7 +328,7 @@ test('[6C] a link with q and picks says the count, never the rows\' progress', a
   expect(log.filter((t) => /Loading|loaded/.test(t))).toEqual([]);
 });
 
-test('[6C] a link to the view says the rows\' progress, never the search under it', async ({ page }) => {
+test('a link to the view says the rows\' progress, never the search under it', async ({ page }) => {
   await recordLive(page);
   // The rows held until the search has answered, so both sentences have their turn.
   /** @type {import('@playwright/test').Route[]} */
@@ -346,7 +345,7 @@ test('[6C] a link to the view says the rows\' progress, never the search under i
   expect(log.filter((t) => /match/.test(t))).toEqual([]);
 });
 
-test('[6C] a Sem change in the view says the view\'s sentence, not the search it starts', async ({ page }) => {
+test('a Sem change in the view says the view\'s sentence, not the search it starts', async ({ page }) => {
   await recordLive(page);
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1&pick=CS2113.1&view=shortlist');
   await expect(live(page)).toHaveText('1 course loaded');
@@ -360,7 +359,7 @@ test('[6C] a Sem change in the view says the view\'s sentence, not the search it
   expect(after).toEqual(['Sem 2 first: 0 units picked; Sem 1: 4']);
 });
 
-test('[6C] Make primary says where the entry went', async ({ page }) => {
+test('Make primary says where the entry went', async ({ page }) => {
   await page.goto('/?ng=1&study=ug2&sem=1&pick=CS2113.1&alt=GE2101.1&view=shortlist');
   await expect(live(page)).toHaveText('2 courses loaded');
   await page.getByRole('button', { name: 'Make primary, GE2101', exact: true }).focus();

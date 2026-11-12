@@ -1,5 +1,5 @@
 // @ts-check
-// The per-year source manifest (Phase 7 7E, docs/plans/phase7.md 7E), data/ng-sources-<year>.json:
+// The per-year source manifest, data/ng-sources-<year>.json:
 // which NUS documents exchange mode's rules and quotes come from, revision by revision, with
 // each document's name, URL, file, sha256 and "updated as at" date; which semesters NUS has
 // published a list for; the year's transcription, overlay module, oracle and register; and the
@@ -7,7 +7,7 @@
 //
 // Pure helpers plus file reads under a root (the repo by default), so `year check`, the
 // restrictions builder, `sources` and the rehearsal share one reading. docs/year-refresh/ is the
-// procedure; docs/REFERENCE.md "A new academic year" the summary.
+// procedure; docs/exchange-mode.md the summary.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,11 +23,11 @@ export const ROLES = /** @type {const} */ (['self-funded-list', 'off-list-rule']
  *   updatedAsAt: string | null, builder?: boolean, derivedFrom?: string, text?: string, textSha256?: string, note?: string,
  *   confirm?: string[], unarchived?: string,
  * }} SourceDocument
- *   `confirm` lists the fields the lead has still to fill in from the saved document (a URL or
+ *   `confirm` lists the fields the maintainer has still to fill in from the saved document (a URL or
  *   date not in git); `unarchived` gives the reason a quoted source can't go in the archive.
  *   `text` is the document's text extraction (pdftotext), archived with it, and `textSha256` its
- *   sha256 (red team L-5): `sources publish` writes it, and restore, `year check --full` and the
- *   restrictions builder check it. `file` and `text` are plain base names (red team L-4).
+ *   sha256: `sources publish` writes it, and restore, `year check --full` and the
+ *   restrictions builder check it. `file` and `text` are plain base names.
  * @typedef {{ release: string, asset: string, sha256: string | null, pending?: string }} ArchiveRef
  * @typedef {{ date: string, archive: ArchiveRef, documents: SourceDocument[] }} Revision
  * @typedef {{ id: string, file: string, text: string, document: string }} Quote
@@ -66,8 +66,8 @@ export const ngRestrictionsRel = (year) => `data/ng-restrictions-${year}.json`;
 /** @param {string} year */
 export const overlayRel = (year) => `scripts/ng-overlay/${year}.mjs`;
 /** @param {string} year */
-export const oracleRel = (year) => `test/sc1/oracle-${year}.node.mjs`;
-/** A new year's register (the first year's stays at docs/evidence/phase4/interpretations.md, as its manifest says). @param {string} year */
+export const oracleRel = (year) => `test/oracle/oracle-${year}.node.mjs`;
+/** A new year's register (an earlier year's is wherever its manifest's `register` says). @param {string} year */
 export const registerRel = (year) => `docs/year-refresh/registers/${year}.md`;
 
 /**
@@ -98,7 +98,7 @@ export function revisionOf(m, date) {
 export const publishedSemesters = (m) => /** @type {const} */ (['1', '2']).filter((s) => m.published?.ngList?.[s] === true).map(Number);
 
 /**
- * The semesters NUS hasn't published yet (G2): Sem 2 between the July switch and NUS's Sem 2
+ * The semesters NUS hasn't published yet: Sem 2 between the July switch and NUS's Sem 2
  * list. Exchange mode shows last year's list for them, each course "to confirm".
  * @param {Pick<SourceManifest, 'published'>} m
  */
@@ -120,8 +120,8 @@ export function builderHashes(rev) {
 }
 
 /**
- * Whether a manifest's file name is a plain base name, safe to join onto a directory (red team
- * L-4): not empty, not `.`, and no `/`, `\\`, `..`, drive or absolute path, or NUL.
+ * Whether a manifest's file name is a plain base name, safe to join onto a directory:
+ * not empty, not `.`, and no `/`, `\\`, `..`, drive or absolute path, or NUL.
  * @param {unknown} name
  */
 export const isPlainName = (name) => typeof name === 'string' && name !== '' && name !== '.'
@@ -187,7 +187,7 @@ export function manifestProblems(m, year) {
   return out;
 }
 
-/** The documents whose fields the lead must still confirm, as `id: fields`. @param {Revision} rev */
+/** The documents whose fields the maintainer must still confirm, as `id: fields`. @param {Revision} rev */
 export const toConfirm = (rev) => rev.documents.filter((d) => d.confirm?.length).map((d) => `${d.id}: ${d.confirm?.join(', ')}`);
 
 // ---------------------------------------------------------------- quotes

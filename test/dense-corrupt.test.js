@@ -1,7 +1,7 @@
 // @ts-check
-// Phase 3 3-0: a bundle that does not parse (missing, truncated, the wrong
+// A bundle that does not parse (missing, truncated, the wrong
 // schema) never fails a search. Hybrid answers keyword-only, flagged
-// degraded with source "dense-index" (B6); mode=vector is a 502 naming it.
+// degraded with source "dense-index"; mode=vector is a 502 naming it.
 import { describe, expect, it, vi } from 'vitest';
 import * as dense from '../src/dense.js';
 import { parseBundle } from '../src/vector-bundle.js';
@@ -14,7 +14,7 @@ const corrupt = () => {
   return [];
 };
 
-describe('3-0 with a corrupt bundle', () => {
+describe('a corrupt vectors bundle', () => {
   it('hybrid answers keyword-only with degraded.source dense-index; vector mode is a 502; Vectorize is never asked', async () => {
     const fakes = await seed();
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});

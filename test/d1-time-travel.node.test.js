@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7B: `npm run d1:bookmark` records D1's current Time Travel bookmark (a read), and
+// `npm run d1:bookmark` records D1's current Time Travel bookmark (a read), and
 // `npm run d1:restore -- [--bookmark <id>]` restores the newest recorded one (a D1 write; Time
 // Travel restores aren't billed as row writes), recording the restore and re-reading D1's data
 // version over the REST query. The code stays where it is. Fake exec and D1 only.
@@ -108,7 +108,7 @@ describe('npm run d1:restore', () => {
     expect(calls[0]).toContain(B_OLD);
   });
 
-  it('refuses a flag where the bookmark should be, and unknown arguments, before asking or restoring (review finding 2)', async () => {
+  it('refuses a flag where the bookmark should be, and unknown arguments, before asking or restoring', async () => {
     seedRecords();
     for (const argv of [['--bookmark', '--yes'], ['--bookmark'], ['--yes', '--bokmark', 'x'], ['stray']]) {
       const { exec, calls } = fakeExec({});

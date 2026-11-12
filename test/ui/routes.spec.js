@@ -1,5 +1,5 @@
 // @ts-check
-// Static assets in front of the Worker (Phase 5 5B): `/` is the page from
+// Static assets in front of the Worker: `/` is the page from
 // public/, and every API path still reaches the Worker.
 import { expect, test } from '@playwright/test';
 

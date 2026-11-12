@@ -1,5 +1,5 @@
 // @ts-check
-// Production D1, read-only, for the deploy guard, rollback and d1:restore (Phase 7 7B, G1): the
+// Production D1, read-only, for the deploy guard, rollback and d1:restore: the
 // REST client (scripts/d1-rest.mjs) with its token, account and database.
 //
 // - Token: CLOUDFLARE_API_TOKEN (GitHub Actions: the account-owned deploy token), else
@@ -28,7 +28,7 @@ export const DB_BINDING = 'DB';
 
 /**
  * wrangler.jsonc's DB binding: the d1_databases entry whose `binding` is DB, whatever its place in
- * the list (red team L-3). None, or more than one, fails.
+ * the list. None, or more than one, fails.
  * @param {string} [path]
  * @returns {Promise<{ databaseName: string, databaseId: string }>}
  */

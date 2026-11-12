@@ -1,5 +1,5 @@
 // @ts-check
-// The shortlist (Phase 6 6B): its half of the URL and every edit made to it,
+// The shortlist: its half of the URL and every edit made to it,
 // as pure functions. No DOM; test/web/list.node.test.js runs it in Node.
 //
 // - `pick` (primary) and `alt` (backup), each repeated in rank order. A value

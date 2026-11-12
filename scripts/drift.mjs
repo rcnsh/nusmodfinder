@@ -1,5 +1,5 @@
 // @ts-check
-// The NUSMods drift check and the monthly reminder (Phase 7 7F, G3 (a) in ADR 0011), run by
+// The NUSMods drift check and the monthly reminder (ADR 0011), run by
 // .github/workflows/drift.yml. It reads NUSMods' public API and writes GitHub issues, and talks
 // to nothing else: not the hosting platform, not the live site. Refreshing stays a command run
 // on the Mac.
@@ -14,7 +14,7 @@
 // - fetch this year's moduleInfo.json (a conditional GET with the ETag kept in --cache-dir, which
 //   the workflow keeps with actions/cache) and next year's moduleList.json;
 // - compute the data version offline with corpusDataVersion (scripts/corpus-manifest.mjs: the
-//   function 7D's CI checks src/data-version.json with, offeredModules over HEAD's NG files,
+//   function CI checks src/data-version.json with, offeredModules over HEAD's NG files,
 //   rowHash, dataVersion), and compare it with src/data-version.json, production's;
 // - keep one "pending refresh" issue updated while they differ, with what changed in each check
 //   by D1 column, and close it once they match;
@@ -28,7 +28,7 @@
 //
 // Issues are found by label and a hidden marker in the body, never by title.
 //
-// NUSMods controls the codes the pending issue names (red team M-2), so a code reaches an issue only
+// NUSMods controls the codes the pending issue names, so a code reaches an issue only
 // if it has the course-code shape the rest of the repo uses (scripts/lib.mjs MODULE_CODE_RE: letters,
 // digits, at most 13 characters); any other is counted, never shown. The issue's hidden state is
 // read from the last `vnm-drift:state` block of the body the check writes, keeps only entries of the
@@ -117,7 +117,7 @@ export function nextAcadYear(acadYear) {
  */
 export async function summarise(records, acadYear, ngCourses) {
   const { modules, skipped } = offeredModules(records, acadYear, ngCourses);
-  // The data version by the function 7D's CI checks src/data-version.json with.
+  // The data version by the function CI checks src/data-version.json with.
   const version = await corpusDataVersion(records, acadYear, ngCourses);
   const catalogue = new Map(catalogueOnlyRecords(records).map((r) => [r.code, JSON.stringify([r.title, r.description])]));
   return {
@@ -298,7 +298,7 @@ export function nextYearIssue({ nextYear, count, checkedAt }) {
     MARKERS.nextYear(nextYear),
     `NUSMods now publishes ${nextYear}: its \`moduleList.json\` lists ${fmt(count)} courses (weekly check, ${day(checkedAt)}).`,
     '',
-    'The switch follows G2 in ADR 0011 (`docs/decisions/0011-phase7-ops-and-architecture-plan.md`): switch once NUSMods has the new year '
+    'The switch follows ADR 0015: switch once NUSMods has the new year '
       + 'and NUS\'s Sem 1 exchange list is out (about July). Until NUS publishes the Sem 2 list, Sem 2 shows last year\'s, labelled, and counted "to confirm".',
     '',
     'The check never closes this issue, and opens no second one for this year. Close it when the switch is done.',
@@ -365,12 +365,12 @@ export function reminderIssue({ month, today, lastCommit, ngUpdatedAsAt, acadYea
   const note = quietNote(lastCommit.date, today);
   const body = [
     MARKERS.reminder(month),
-    'The monthly check (G3). NUS blocks scripted downloads, so these pages are checked by hand.',
+    'The monthly check. NUS blocks scripted downloads, so these pages are checked by hand.',
     '',
     `- [ ] The Registrar's list of courses offered to Non-Graduating (NG) students: is its "updated as at" later than ${ngUpdatedAsAt ?? 'the one recorded'} (\`data/ng-courses-${acadYear}.json\`), or is a new semester's list out?`,
     `- [ ] The Registrar's course restrictions for NG students: a revision later than the one in \`data/ng-sources-${acadYear}.json\`?`,
     '- [ ] YST\'s pages of courses for NUS non-music majors: a new semester\'s page?',
-    `- [ ] Last month's usage report, on the Mac: \`npm run ops:report -- --month ${report}\`, then commit \`docs/evidence/ops/${report}.md\` and its run record.`,
+    `- [ ] Last month's usage report, on the Mac: \`npm run ops:report -- --month ${report}\`, then commit \`ops/reports/${report}.md\` and its run record.`,
     '',
     'A changed source is a revision: "A mid-year revision" in `docs/year-refresh/README.md`. The weekly check covers NUSMods.',
     ...(note ? ['', note] : []),

@@ -1,4 +1,4 @@
-# Workers Static Assets response headers for the page and its files (5G S3).
+# Workers Static Assets response headers for the page and its files.
 # They apply to public/ only; the Worker's JSON answers set their own.
 # - No other site may frame the page (frame-ancestors, and X-Frame-Options for
 #   browsers without it): a framed page could take a click on the year of study.

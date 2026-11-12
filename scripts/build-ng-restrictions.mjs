@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
-// Builds data/ng-restrictions-<year>.json, the rules src/eligibility.js reads
-// (docs/plans/phase4.md 4B; Phase 7 7E: per year, from the year's source manifest). Inputs, all
-// named by data/ng-sources-<year>.json:
+// Builds data/ng-restrictions-<year>.json, the rules src/eligibility.js reads, per year from
+// the year's source manifest. Inputs, all named by data/ng-sources-<year>.json:
 //   - `transcription`: the restrictions PDF as transcribed (two transcriptions, diffed;
 //     docs/year-refresh/brief-transcription.md); every code, title and quote below comes from it;
 //   - `overlay`: the year's module (scripts/ng-overlay/<year>.mjs): how each transcribed rule
@@ -71,7 +70,7 @@ const CODE_RE = /\b[A-Z]{2,4}\d{4}[A-Z]{0,3}\b/g;
 // (its codes start that line, or the nearest line above it within three, as
 // titles wrap), and the heading's code is in an orange (#ff5200) span. The
 // union of the two is the list. Codes in Pre-requisite, Co-requisite and
-// Preclusion lines are in neither (audit 4B).
+// Preclusion lines are in neither.
 const LEAD = /^\*?([A-Z]{2,4}\d{4}[A-Z]?(?:\/[A-Z]{2,4}\d{4}[A-Z]?)*)\b/;
 
 /**
@@ -116,7 +115,7 @@ export function buildRestrictions({ manifest, revision, transcription, overlay, 
     return [...codes].sort();
   };
   source('restrictions'); source('law-compulsory'); source('ng-list');
-  // Each builder document's text extraction is pinned too (red team L-5): checked, not read.
+  // Each builder document's text extraction is pinned too: checked, not read.
   for (const d of revision.documents) {
     if (!d.builder || !d.text) continue;
     if (!d.textSha256) throw new Error(`${d.id}'s text ${d.text} has no textSha256 in the ${revision.date} revision (npm run sources -- publish writes it)`);

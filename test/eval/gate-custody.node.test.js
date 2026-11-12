@@ -1,18 +1,17 @@
 // @ts-check
-// The Phase 2 exit red-team's three gaps in the gate and holdout custody,
-// end to end through the CLI on encrypted sets built here with a throwaway
-// key from dev-derived synthetic data (no workerd, no Cloudflare, no real
-// holdout file):
+// Three guarantees of the gate and holdout custody, end to end through the
+// CLI on encrypted sets built here with a throwaway key from dev-derived
+// synthetic data (no workerd, no Cloudflare, no real holdout file):
 //   1. `--change-kind cutoff` must be a truncation of the baseline, and the
 //      rule applied is printed and recorded in the ledger;
-//   2. holdout and SC5 verdicts refuse a baseline that is not their pin
-//      (eval-v0 for SC5, the shipped ranker for a per-change look), the
-//      ledger records the baseline's ranker sha, and
+//   2. holdout and test-set verdicts refuse a baseline that is not their
+//      pin (eval-v0 for the test set, the shipped ranker for a per-change
+//      look), the ledger records the baseline's ranker sha, and
 //      `--store-only` never overwrites a manifested run file;
 //   3. every ciphertext a verdict reads is checked against MANIFEST.json.
-// The `selftest` set keeps its ledger in its own directory. The SC5 tests run
-// the CLI from a temporary shared clone, so the `test` set's fixed ledger is
-// that clone's, never this checkout's eval/holdout-ledger.md.
+// The `selftest` set keeps its ledger in its own directory. The test-set
+// tests run the CLI from a temporary shared clone, so the `test` set's fixed
+// ledger is that clone's, never this checkout's eval/holdout-ledger.md.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -31,7 +30,7 @@ import { archiveTree, labelRe, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 const CLI = join(REPO, 'eval', 'cli.mjs');
 const SET = 'selftest';
 /** ADR 0003's pin, spelled out here rather than imported from the code under test. */
-const PINNED_SHA = '7ac984174ded88cb2b6497d9835b456981acdd99';
+const PINNED_SHA = '5c5cce441bd33c8f66bb2857e4d7f5584cbc20ed';
 
 /** @type {string} */
 let tmp;
@@ -174,7 +173,7 @@ const truncatingCutoff = (/** @type {Awaited<ReturnType<typeof derived>>} */ d) 
   return c;
 };
 
-describe('gap 1: a cutoff verdict needs a truncation, and the rule is recorded', () => {
+describe('a cutoff verdict needs a truncation, and the rule is recorded', () => {
   it('refuses --change-kind cutoff for a candidate that reorders, before counting a look; general still fails it', async () => {
     const { dir } = await makeSet('cutoff-reorders', { cand: reorderingCutoff });
     const general = report(dir, ['--change-kind', 'general']);
@@ -243,7 +242,7 @@ describe('gap 1: a cutoff verdict needs a truncation, and the rule is recorded',
   });
 });
 
-describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not their pin', () => {
+describe('holdout and test-set verdicts refuse a baseline that is not their pin', () => {
   /** Top-10s worst first: the baseline a forger wants. */
   const reversed = (/** @type {Awaited<ReturnType<typeof derived>>} */ d) => Object.fromEntries(Object.entries(copy(d.ranked)).map(([id, c]) => [id, c.reverse()]));
 
@@ -294,7 +293,7 @@ describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not their pi
     expect(rows.map((c) => [c[2], c[3], c[4], c[9]])).toEqual([['ccccccc', 'cand', 'base', SHIPPED_PIN.sha.slice(0, 7)]]);
   });
 
-  describe('SC5 (the test set), from a temporary clone so its fixed ledger is the clone\'s', () => {
+  describe('the test set, from a temporary clone so its fixed ledger is the clone\'s', () => {
     /** @type {string} */
     let clone;
     /** @type {string} */
@@ -313,37 +312,37 @@ describe('gap 2: holdout and SC5 verdicts refuse a baseline that is not their pi
     });
     const cloneLedger = () => join(clone, 'eval', 'holdout-ledger.md');
     /** @param {string} dir @param {Record<string, string>} [env] */
-    const sc5 = (dir, env) => cli(['report', '--set', 'test', '--set-dir', dir, '--run', 'cand', '--baseline', 'base'], { cli: cloneCli, env });
+    const testLook = (dir, env) => cli(['report', '--set', 'test', '--set-dir', dir, '--run', 'cand', '--baseline', 'base'], { cli: cloneCli, env });
 
     it('refuses a forged eval-v0 baseline on the test set; no look is recorded', async () => {
-      const { dir } = await makeSet('sc5-forged', { as: 'test', base: { ranker: { ...pinnedRanker(), sha: '0'.repeat(40) }, codes: reversed }, cand: (d) => copy(d.ranked) });
-      const r = sc5(dir);
+      const { dir } = await makeSet('test-forged', { as: 'test', base: { ranker: { ...pinnedRanker(), sha: '0'.repeat(40) }, codes: reversed }, cand: (d) => copy(d.ranked) });
+      const r = testLook(dir);
       expect(`${r.stdout}${r.stderr}`).toBe('eval: test run failed (BaselineError); details withheld\n');
       expect(await readLedger(cloneLedger())).toHaveLength(0);
     });
 
     it('a genuine eval-v0 baseline gets a verdict', async () => {
-      const { dir } = await makeSet('sc5-genuine', { as: 'test', cand: (d) => copy(d.ranked) });
-      const r = sc5(dir);
+      const { dir } = await makeSet('test-genuine', { as: 'test', cand: (d) => copy(d.ranked) });
+      const r = testLook(dir);
       expect(r.stderr).toBe('');
-      expect(r.stdout).toMatch(/^test verdict: FAIL · rule sc5 · baseline eval-v0 7ac9841 · qrels qrels-derived-v1$/m);
+      expect(r.stdout).toMatch(/^test verdict: FAIL · rule test-set · baseline eval-v0 5c5cce4 · qrels qrels-derived-v1$/m);
       const rows = await rowsOf(cloneLedger());
-      expect(rows.map((c) => [c[1], c[8], c[9]])).toEqual([['test', 'sc5', '7ac9841']]);
+      expect(rows.map((c) => [c[1], c[8], c[9]])).toEqual([['test', 'test-set', '5c5cce4']]);
       // Restore the clone's ledger for the next test (one test-set look only).
       resetCloneLedger(clone);
     });
 
     it('refuses when the eval-v0 tag no longer resolves to the pinned commit', async () => {
       expect(spawnSync('git', ['-c', 'tag.gpgsign=false', 'tag', '-f', 'eval-v0', 'HEAD'], { cwd: clone }).status).toBe(0);
-      const { dir } = await makeSet('sc5-moved-tag', { as: 'test', cand: (d) => copy(d.ranked) });
-      const r = sc5(dir);
+      const { dir } = await makeSet('test-moved-tag', { as: 'test', cand: (d) => copy(d.ranked) });
+      const r = testLook(dir);
       expect(`${r.stdout}${r.stderr}`).toBe('eval: test run failed (BaselineError); details withheld\n');
       expect(await readLedger(cloneLedger())).toHaveLength(0);
     });
   });
 });
 
-describe('gap 2: a stored encrypted run is never overwritten without a logged retirement', () => {
+describe('a stored encrypted run is never overwritten without a logged retirement', () => {
   it('--store-only refuses a run file the manifest already lists, before any retrieval', async () => {
     const { dir } = await makeSet('store-overwrite', { cand: (d) => copy(d.ranked) });
     const before = await readFile(join(dir, 'runs', 'run-base.json.enc'));
@@ -408,7 +407,7 @@ describe('gap 2: a stored encrypted run is never overwritten without a logged re
   });
 });
 
-describe('gap 3: every ciphertext a verdict reads matches MANIFEST.json', () => {
+describe('every ciphertext a verdict reads matches MANIFEST.json', () => {
   /** Two queries' rank-1 grade 2 becomes 0 (and rank 10 becomes 2), enough to flip the verdict. */
   const regrade = (/** @type {any} */ q, /** @type {Awaited<ReturnType<typeof derived>>} */ d) => {
     for (const id of d.answerable.slice(0, 2)) {
@@ -546,7 +545,7 @@ describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is
   it.each([
     ['unfiltered', { mode: 'hybrid', filters: false }],
     ['lexical', { mode: 'lexical', filters: true }],
-    // Phase 4: the unfiltered guard's `--strip ng`, and a study map other than the committed one.
+    // The unfiltered guard's `--strip ng`, and a study map other than the committed one.
     ['ng-stripped', { mode: 'hybrid', filters: true, strip: ['ng'] }],
     ['other-study-map', { mode: 'hybrid', filters: true, studyMap: '0'.repeat(64) }],
   ])('refuses a %s run of the shipped ranker', async (name, config) => {
@@ -557,16 +556,16 @@ describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is
     expect(await rowsOf(ledgerOf(dir))).toHaveLength(0);
   });
 
-  it('the SC5 baseline stays eval-v0: the test set takes an eval-v0 baseline and refuses the shipped one', async () => {
+  it('the test-set baseline stays eval-v0: the test set takes an eval-v0 baseline and refuses the shipped one', async () => {
     const cloneLedger = join(clone, 'eval', 'holdout-ledger.md');
-    const shipped = await makeSet('shipped-sc5-shipped', { as: 'test', base: { ranker: shippedRanker() }, cand: (d) => copy(d.ranked) });
+    const shipped = await makeSet('shipped-test-shipped', { as: 'test', base: { ranker: shippedRanker() }, cand: (d) => copy(d.ranked) });
     const refused = look(shipped.dir, 'test');
     expect(`${refused.stdout}${refused.stderr}`).toBe('eval: test run failed (BaselineError); details withheld\n');
     expect(await readLedger(cloneLedger)).toHaveLength(0);
-    const v0 = await makeSet('shipped-sc5-v0', { as: 'test', cand: (d) => copy(d.ranked) });
+    const v0 = await makeSet('shipped-test-v0', { as: 'test', cand: (d) => copy(d.ranked) });
     const r = look(v0.dir, 'test');
     expect(r.stderr).toBe('');
-    expect(r.stdout).toMatch(/^test verdict: FAIL · rule sc5 · baseline eval-v0 7ac9841 · qrels qrels-derived-v1$/m);
+    expect(r.stdout).toMatch(/^test verdict: FAIL · rule test-set · baseline eval-v0 5c5cce4 · qrels qrels-derived-v1$/m);
     resetCloneLedger(clone);
   });
 });

@@ -1,14 +1,12 @@
 #!/usr/bin/env node
 // @ts-check
-// Phase 6 6A (docs/plans/phase6.md §3 "6A"): the NG-listed codes with no
-// classes this year (src/ng-unscheduled-file.js), built per corpus the way the
-// groups are (scripts/build-groups.mjs):
+// The NG-listed codes with no classes this year (src/ng-unscheduled-file.js),
+// built per corpus the way the groups are (scripts/build-groups.mjs):
 //
 //   node scripts/build-ng-unscheduled.mjs --corpus production
 //       data/ng-unscheduled.json, the Worker's (src/ng-unscheduled.js): every
 //       code on data/ng-courses-<year>.json with no offered row, from
-//       `current` (data/corpus.json, Phase 7 7D). Refused unless its
-//       row count and data version are the production bundle's in
+//       `current` (data/corpus.json). Refused unless its row count and data version are the production bundle's in
 //       data/vectors.json. `vectors.mjs build --corpus production` rewrites it
 //       with the bundle.
 //   node scripts/build-ng-unscheduled.mjs --corpus fixture
@@ -22,7 +20,7 @@
 // over the offered rows plus the file's codes, so FIN3701B joins FIN3701A, C
 // and D), and the allow mask and rule ids ingest stores for a row
 // (storedEligibility with the year's rules). The pinned file is never
-// committed: vitest.config.mjs builds it for test/full and test/sc1
+// committed: vitest.config.mjs builds it for test/full and test/oracle
 // (pinnedNgUnscheduledPath).
 import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -51,7 +49,7 @@ export const OUTPUTS = Object.freeze({
 /** The fixture's hand-kept source, repo-relative. */
 export const FIXTURE_SOURCE = 'test/fixtures/ng-unscheduled-source.json';
 
-/** Where the production build reads `current` from (Phase 7 7D, `npm run corpus -- restore`). */
+/** Where the production build reads `current` from (`npm run corpus -- restore`). */
 export const productionCorpusPath = () => corpusPath(currentEntry(JSON.parse(readFileSync(CORPUS_MANIFEST_PATH, 'utf8'))), PROD_DIR);
 
 /**
@@ -79,7 +77,7 @@ export function unscheduledFile({ codes, records, offered, ngCourses, acadYear, 
     if (!module) throw new Error(`${code}: ${skipped}`);
     module.ng = true;
     module.ngSemesters = sems;
-    // G2 (Phase 7 7E), as offeredModules does: only when a semester is unpublished.
+    // As offeredModules does: only when a semester is unpublished.
     if (ngCourses.unpublished?.length) module.ngUnpublished = ngCourses.unpublished;
     return { module, ...storedEligibility(module, rules) };
   });

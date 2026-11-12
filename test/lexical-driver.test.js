@@ -1,7 +1,7 @@
 // @ts-check
 // The filter-driven plan in src/lexical.js walks the index of the most
 // selective filter. Without sqlite_stat1, SQLite picks among equality indexes
-// by creation order, so with two or more filters it used to drive from
+// by creation order, so with two or more filters it would drive from
 // idx_modules_credits (credits=4: 5,081 rows on the full corpus) instead of,
 // say, faculty=Computing (315). The plan does not depend on the data here
 // (no stat1), so the fixture database shows the same choice as the full one.
@@ -48,7 +48,7 @@ describe('facets row counts', () => {
     expect(parseFilterCounts(facets)).not.toBeNull();
   });
 
-  it('a row without counts is not cached: a facets rebuild is picked up without a new isolate (PR #8 review round 2)', async () => {
+  it('a row without counts is not cached: a facets rebuild is picked up without a new isolate', async () => {
     const put = (/** @type {unknown} */ v) => env.DB.prepare("UPDATE meta SET value = ? WHERE key = 'facets'").bind(JSON.stringify(v)).run();
     const old = { ...facets };
     delete old.credits;
@@ -112,7 +112,7 @@ describe('chooseDriver', () => {
     expect(filterSql(echo).clauses).toEqual(['m.sem3 = 1', 'm.level = ?', 'm.credits = ?', 'm.faculty = ?']);
   });
 
-  it('Phase 4: under ng, sem picks the allow-mask bit (never a sem column) and the bit is never an index driver', () => {
+  it('under ng, sem picks the allow-mask bit (never a sem column) and the bit is never an index driver', () => {
     /** @type {FilterEcho} */
     const echo = { sem: 1, level: 4, credits: 4, faculty: 'Computing', ng: true, study: 'ug2' };
     // bitOf(1, 'ug2') = 1 << 1

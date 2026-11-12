@@ -1,5 +1,5 @@
 // @ts-check
-// A strict RFC 4180 reader for the export tests (Phase 6 6D): written apart
+// A strict RFC 4180 reader for the export tests: written apart
 // from public/csv.js, so the tests read the file the way a spreadsheet would,
 // not the way the page wrote it. It refuses anything RFC 4180 doesn't allow:
 // a bare LF or CR, a quote inside an unquoted field, text after a closing
@@ -54,7 +54,7 @@ export function parseCsv(text) {
 }
 
 /**
- * Whether every field of a CSV text is quoted (6D: "every field quoted").
+ * Whether every field of a CSV text is quoted (the export quotes every field).
  * @param {string} text
  */
 export function everyFieldQuoted(text) {

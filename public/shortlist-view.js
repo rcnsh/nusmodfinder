@@ -1,20 +1,19 @@
 // @ts-check
-// The shortlist view (Phase 6 6C; docs/plans/phase6.md 6C "The view"), built
-// to the approved mockup (docs/design/phase6-shortlist/a/): its heading and
-// actions, the export question, the invitation question, "Primary picks" and
-// "Backups" in rank order, each row worked out at its own semester
-// (shortlist.js), then each semester's totals, NUS's form order, the lines
-// for applicants, the CourseReg box and "Forget this list on this device".
+// The shortlist view: its heading and actions, the export question, the
+// invitation question, "Primary picks" and "Backups" in rank order, each row
+// worked out at its own semester (shortlist.js), then each semester's totals,
+// NUS's form order, the lines for applicants, the CourseReg box and "Forget
+// this list on this device".
 //
-// Updated in place, never rebuilt: each row is an element kept by its code,
-// and its controls (Move up, Move down, Make backup or Make primary, Remove)
-// are made once, when the entry first appears, so a row arriving, a total
-// changing or a neighbour moving never takes focus from a control. Moving a
-// row moves its neighbours, never the row that holds focus (moving that
-// element drops focus to <body> in Chromium and WebKit). Only the semester
-// buttons wait for the row, and a pressed one keeps its element. DOM nodes
-// only (F8). app.js owns the list, the history and the live region; this
-// module draws a model and reports what was pressed.
+// Updated in place, never rebuilt: each row is an element kept by its code, and
+// its controls (Move up, Move down, Make backup or Make primary, Remove) are
+// made once, when the entry first appears, so a row arriving, a total changing
+// or a neighbour moving never takes focus from a control. Moving a row moves
+// its neighbours, never the row that holds focus (moving that element drops
+// focus to <body> in Chromium and WebKit). Only the semester buttons wait for
+// the row, and a pressed one keeps its element. DOM nodes only. app.js owns the
+// list, the history and the live region; this module draws a model and reports
+// what was pressed.
 import { h, setChildren } from './dom.js';
 import { noteText, stampText, studyAdj } from './explain.js';
 import { cleanPrereq, examLine, examLines, semLabel, workloadText } from './format.js';
@@ -40,9 +39,9 @@ import { STUDIES } from './state.js';
  *   `removed`: the code a Remove in the view took out, while its Undo stands ('' for none);
  *   `linkField`: Copy link's fallback, the link to copy by hand ('' hides it);
  *   `said`: the line beside the actions ("Link copied");
- *   `ask`: the parts of the export question shown (6C asks it; app.js keeps them while the view is open);
+ *   `ask`: the parts of the export question shown (the view asks it; app.js keeps them while the view is open);
  *   `faculties`: Business and Law, when the list holds a course of theirs;
- *   `exportLine`: the export's progress after a press before every row is in (6D: "Loading 7 of 12
+ *   `exportLine`: the export's progress after a press before every row is in ("Loading 7 of 12
  *   courses", then "Ready: press again to download"), '' otherwise
  * @typedef {{
  *   close: () => void, copy: () => void, exportPress: (kind: 'csv' | 'print') => void,
@@ -146,7 +145,7 @@ export function createShortlistView(root, on) {
   // The actions come first, so a long list never puts them 200 Tab stops away.
   const copy = h('button', { class: 'btn', attrs: { type: 'button' } }, 'Copy link');
   copy.addEventListener('click', on.copy);
-  // The exports (6D). Pressed before every row is in, a button keeps its name, and the line it
+  // The exports. Pressed before every row is in, a button keeps its name, and the line it
   // points to says how far the rows are, then that a second press will do it.
   const statusId = 'slExportStatus';
   const csv = h('button', { class: 'btn', attrs: { type: 'button', 'aria-describedby': statusId, 'data-export': 'csv' } }, 'Download CSV');
@@ -163,7 +162,7 @@ export function createShortlistView(root, on) {
   field.hidden = true;
   const actions = h('div', { class: 'sl-actions' }, h('div', { class: 'btns' }, copy, csv, print), hint, exportStatus, said, field);
 
-  // The export question (6C): parts kept while the view is open, so answering one never
+  // The export question: parts kept while the view is open, so answering one never
   // removes the control that has focus.
   const askTitle = h('h3', { attrs: { id: 'slAskTitle', tabindex: '-1' } }, 'Before you download or print');
   const askParts = h('div', { class: 'sl-ask-parts' });
@@ -180,7 +179,7 @@ export function createShortlistView(root, on) {
   /** @type {Map<string, HTMLFieldSetElement>} */
   const askSets = new Map();
 
-  // The invitation question, one per faculty the list holds (the mockup's call).
+  // The invitation question, one per faculty the list holds.
   /** @type {Record<'biz' | 'law', { set: HTMLFieldSetElement, box: HTMLInputElement }>} */
   const inv = /** @type {any} */ ({});
   for (const which of /** @type {('biz' | 'law')[]} */ (['biz', 'law'])) {
@@ -274,7 +273,7 @@ export function createShortlistView(root, on) {
 
   /**
    * Puts `ol`'s rows in `codes`' order. The row holding focus stays where it
-   * is and its neighbours move around it (6C: moving the focused element
+   * is and its neighbours move around it (moving the focused element
    * drops focus); a row coming from the other list is appended.
    * @param {HTMLOListElement} ol @param {string[]} codes
    */
@@ -296,7 +295,7 @@ export function createShortlistView(root, on) {
   }
 
   /**
-   * The semester buttons (6C): drawn once the row is in, for the semesters the
+   * The semester buttons: drawn once the row is in, for the semesters the
    * course is taught in or, in exchange mode, on NUS's list for. A pressed one
    * keeps its element and changes its text; on an untagged row the pressed one
    * stays and the other goes; a course taught in only that semester leaves it
@@ -584,7 +583,7 @@ export function createShortlistView(root, on) {
     /** @param {Model} m */
     update(m) {
       const r = m.result;
-      // The semesters the list holds (RT6-PD1); the search filter only names one when the list has none.
+      // The semesters the list holds; the search filter only names one when the list has none.
       const held = [...new Set(r.entries.map((w) => w.sem).filter((x) => x === '1' || x === '2'))].sort();
       const one = held.length === 1 ? held[0] : held.length === 0 && (m.sem === '1' || m.sem === '2') ? m.sem : '';
       const sems = one ? semLabel(one) : 'Sem 1 and Sem 2';

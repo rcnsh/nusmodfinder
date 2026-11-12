@@ -1,7 +1,7 @@
 // @ts-check
 // Builds test/fixtures/corpus.json: ~430 normalised modules from the pinned
-// snapshot, chosen to cover the Phase 0 findings, plus a deterministic filler
-// sample. Output is stable for a given snapshot, so a rebuild with no input
+// snapshot, chosen to cover the cases the tests name (NAMED and RULES below),
+// plus a deterministic filler sample. Output is stable for a given snapshot, so a rebuild with no input
 // change produces no diff. Usage: npm run fixture
 import { writeFile } from 'node:fs/promises';
 import { relative } from 'node:path';
@@ -13,7 +13,7 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUT = fileURLToPath(new URL('../test/fixtures/corpus.json', import.meta.url));
 const TARGET = 400;
 
-// Named because a finding, criterion or code path refers to them directly.
+// Named because a test or code path refers to them directly.
 const NAMED = [
   'CS1010S', 'CS2109S', 'CS3244', 'CG3201', 'PC3270', 'PL1101E', 'CE5316QA', 'LAK1201', 'LAK2201',
   // Long variant codes that motivated the widened MODULE_CODE_RE (lib.mjs).
@@ -76,9 +76,9 @@ async function main() {
     if (!reasons.has(m.code)) pick(m, 'filler');
   }
 
-  // Phase 4 coverage (docs/plans/phase4.md 4A), added after the filler so the
-  // filler sample is unchanged: every NG module at level 5000+ and every NG
-  // module also offered in a special term.
+  // Exchange-mode coverage, added after the filler so the filler sample stays
+  // the same: every NG module at level 5000+ and every NG module also offered
+  // in a special term.
   for (const m of modules) {
     if (m.ng && m.level !== null && m.level >= 5) pick(m, 'ng-level-5');
     if (m.ng && m.semesters.some((s) => s >= 3)) pick(m, 'ng-special-term');

@@ -59,7 +59,7 @@ describe('bcaInterval', () => {
     expect(bcaInterval([0.2, 0.2])).toMatchObject({ lower: 0.2, upper: 0.2 });
   });
 
-  it('flags a zero-variance interval as degenerate (review finding 6)', () => {
+  it('flags a zero-variance interval as degenerate', () => {
     expect(bcaInterval([0.3])).toMatchObject({ estimate: 0.3, lower: 0.3, upper: 0.3, degenerate: true });
     expect(bcaInterval([0.1, 0.1, 0.1]).degenerate).toBe(true);
     expect(bcaInterval([]).degenerate).toBe(true);

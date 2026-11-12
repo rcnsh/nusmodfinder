@@ -1,217 +1,204 @@
-# EVAL.md: retrieval quality for NUS Mod Finder
+# EVAL.md: how ranking quality is measured
 
-The ranker is measured offline, on judged queries, and no ranking change ships without evidence.
-This file gives the current state first: the shipped ranker and how a change ships, then SC5, then
-the Phase 2 baseline on today's dev qrels, then what the numbers don't show. The harness is
-described in [`eval/README.md`](eval/README.md); the gate and custody rules are
-[ADR 0003](docs/decisions/0003-eval-holdout-and-gate.md).
+The ranker is measured offline, on judged queries, and no change to a ranked list merges without
+evidence. This file says what is measured, what the current number is, and how to check a ranking
+change. The harness and every command are in [`eval/README.md`](eval/README.md); the grading
+protocol is [`eval/JUDGING.md`](eval/JUDGING.md); why the rules are what they are, and the hashes
+that lock the sets, are [ADR 0003](docs/decisions/0003-eval-holdout-and-gate.md).
 
-## The shipped ranker and how a change ships
+## The headline
 
-<!-- pointer --> The shipped ranker, the baseline every change is compared with, is the commit
-`SHIPPED_BASELINE` names in [`eval/lib/baseline.mjs`](eval/lib/baseline.mjs). Commits merged since
-it are ranking-neutral, which the ranking lock below proves. ADR 0003's "Shipped-ranker pin" list
-gives every pin with what it shipped and its evidence.
-
-A change that moves any ranked list ships by one of two routes, each against the shipped pin:
-- **A holdout look that passes** ([`eval/lib/gate.mjs`](eval/lib/gate.mjs), ADR 0003 "The gate"):
-  on the encrypted holdout set, ΔnDCG@10 ≥ 0, ΔP@5 ≥ 0 and no exact-code regression, or the rule
-  its declared kind names (targeted, cutoff, or the 5F compliance rule). Each look is a row in [`eval/holdout-ledger.md`](eval/holdout-ledger.md).
-- **An ADR 0003 no-look route**, for a change whose effect the rule can show on open sets plus a
-  custodian count: `representative-only`, `answerable-floor` (3G), `group-first` (3F) or
-  `gated-without-a-look` (Phase 4). Each is a row in [`eval/count-log.md`](eval/count-log.md)
-  whose `route` column names it (amendment 2026-11-12).
-
-A change that moves no list needs neither. **CI enforces this** with the ranking lock
-([`eval/ranking-lock.json`](eval/ranking-lock.json), the `eval-gate` job; "The ranking lock" in
-[docs/REFERENCE.md](docs/REFERENCE.md#the-ranking-lock-cis-eval-gate)). The lock holds the ordered
-result codes of every dev and fixture query in three filter modes. A PR whose lists differ from it
-fails, unless it rewrites the lock with evidence written after its base: a passing ledger row, a
-count-log route row, or a revert to an earlier lock.
-
-**Looks spent:** 8 of 12 holdout looks and 1 of 1 test-set look
-([`eval/holdout-ledger.md`](eval/holdout-ledger.md)). Phase 3 took seven holdout looks (3A-2, 3B
-and 3C-2 passed; two tries each of 3D and 3H failed). The eighth, L8, was Phase 5's parsed phrases
-(5F), under the compliance rule of ADR 0003's amendment 2026-11-11; it passed. The test-set look
-was SC5, below.
-
-The eval's Non-Graduating (NG) files are pinned too: `eval/pinned/` holds the NG list and the
-restrictions the qrels were judged with, and the eval reads nothing else (ADR 0003, amendment
-2026-11-12). A Registrar revision of the live files in `data/` moves no eval list.
-
-## SC5: the sealed test set, one look
-
-**SC5 passes.** On the sealed test set (n = 195 primary answerable queries, filtered), the frozen
-Phase 3 ranker `phase3-final` (`c787dea`) beats `eval-v0` (`7ac9841`, the Phase 2 production
-ranker) on the pinned corpus:
+On the sealed test set (n = 195 primary answerable queries, after the leak filter), the ranker
+frozen for the test (`0878efb`) beats the first hybrid version, `eval-v0` (`5c5cce4`), on the
+pinned corpus:
 
 | | ΔnDCG@10 [BCa 95% CI] | ΔP@5 [BCa 95% CI] |
 |---|---|---|
-| `phase3-final` − `eval-v0` | **+0.120 [0.083, 0.161]** | **+0.059 [0.036, 0.090]** |
+| frozen ranker − `eval-v0` | **+0.120 [0.083, 0.161]** | **+0.059 [0.036, 0.090]** |
 
-Both lower bounds are above 0, which is SC5's rule. The queries were written and judged after
-Phase 3 froze, and the set allows no further look. Evidence, the secondary readings and how the
-set was written: [`docs/evidence/phase3/sc5.md`](docs/evidence/phase3/sc5.md).
+Both lower bounds are above 0, which is the test set's rule. The queries were written and judged
+after the ranker froze, and the set allows one look, which is spent, so this number stands. It
+covers the ranker as it was frozen; every ranking change since is covered by its own holdout look
+or no-look route (below), each against the ranker then in production.
 
-SC5 covers the ranker as Phase 3 left it. Changes shipped since (Phases 4 to 6) are covered by
-their own holdout look or no-look route, not by the test set.
+## The query sets
 
-## What is measured
+| set | where | size | use |
+|---|---|---|---|
+| dev | `eval/dev/` (plaintext) | 98 queries | open; screen every change here, as often as needed |
+| holdout | `eval/holdout/*.enc` (AES-256-GCM) | 81 queries | one look per change; verdict only; 12 looks in all |
+| test (sealed) | `eval/sealed/*.enc` (AES-256-GCM) | 195 primary answerable | one look, spent |
+| fixture | `eval/fixtures/` | 11 synthetic queries over a 23-module corpus | CI: the self-test and the ranking lock |
+
+**Looks spent:** 8 of 12 holdout looks and 1 of 1 test-set look
+([`eval/holdout-ledger.md`](eval/holdout-ledger.md), one row per look). Each further look needs its
+rule committed before it is taken (ADR 0003, "Looks").
+
+**Dev qrels:** `qrels-dev-v11`, 2,476 pairs, graded by one judge model or, for hard-constraint
+violations and code targets, by rule (ADR 0016; [`eval/JUDGING.md`](eval/JUDGING.md)). Every
+pooled document is judged before a gate reads it: a gate needs judged@10 at 100%.
+
+The queries are written for student personas by writer agents, not taken from real searches. Each
+is tagged with its shapes (`topical`, `home-course`, `typo`, `code-exact`, `ge-pillar`,
+`constraint`, `noanswer` and others; [`eval/README.md`](eval/README.md), "Sets and files").
+
+## What a run measures
 
 - **An offline replica.** A run executes the actual Worker in workerd over local D1 holding the
   pinned corpus, with committed query embeddings, corpus embeddings from their release assets
-  (sha-checked against `eval/embeddings.json`), and no Cloudflare call. It is not production (ADR 0003, "Replica fidelity").
+  (sha-checked against `eval/embeddings.json`), and no Cloudflare call. It is not production
+  (ADR 0003, "Replica fidelity").
 - <!-- year:pinned --> **The corpus** is NUSMods' 2026/27 catalogue as pinned on 4 September 2026
   (release `data-2026-2027-20260904`), 6,771 offered modules.
-- **Replica and production differ in three ways.** Since 3-0 both run an exact dense search over
-  vectors held in the Worker, so the differences are:
+- **Replica and production differ in three ways:**
   - the corpus: the pinned snapshot against production's `current` in
     [`data/corpus.json`](data/corpus.json);
   - the NG files: `eval/pinned/` never moves, while `data/` follows NUS's revisions. The two copies
     of the NG list are identical today (the same sha256);
   - query vectors: production embeds each query live with Workers AI, the eval uses committed
-    vectors, and Workers AI isn't bit-deterministic across batches, so ties near the cut can differ
-    ([`eval/README.md`](eval/README.md), "Embeddings").
+    vectors, and Workers AI isn't bit-deterministic across batches, so ties near the cut can differ.
 
   A Δ between two replica runs is unbiased by these. An absolute number describes production only
   approximately.
 - **Metrics:** nDCG@10, P@5 and MRR@10 over the top 10 at production's depth, with duplicate
-  groups `groups-v1` ([`eval/groups.json`](eval/groups.json)): within a group only the first member
-  to appear earns gain. Intervals are BCa bootstraps (10,000 resamples, seeded); paired p values
-  are a sign-flip test.
+  groups `groups-v1` ([`eval/groups.json`](eval/groups.json)): within a group only the first
+  member to appear earns gain. Each query is answerable, no-answer (tagged and with no relevant
+  document; scored by correct-empty rate) or unscored. Intervals are BCa bootstraps (10,000
+  resamples, seeded); paired p values come from a sign-flip test.
 
-## The Phase 2 baseline on today's dev qrels
+## Checking a ranking change
 
-The Phase 2 baseline is `eval-v0` (`7ac9841`) with its own corpus embedding `emb-bge-small-v0`,
-re-scored here on today's dev qrels. The dev set is open, so a re-score takes no look.
+A ranking change is any change to what `/search` returns for some query: `src/`, `data/`,
+`migrations/`, `scripts/lib.mjs` or the test Worker config. <!-- pointer --> The ranker every
+change is compared with is the commit `SHIPPED_BASELINE` names in
+[`eval/lib/baseline.mjs`](eval/lib/baseline.mjs), the shipped pin.
 
-**Queries:** dev v2.1, 98 in total. 85 are primary answerable; the rest are 5 feature-gap, 2
-no-answer and 6 unscored.
-- **No-answer is tagged and unanswered** (ADR 0003, amendment 2026-11-06): a query is no-answer iff
-  it is tagged `noanswer` or `code-nonexistent`, or carries `noAnswerByRule`, and no judged document
-  has grade ≥ 1. Dev has 2: d-012 and d-025. Three more are tagged `noanswer` (d-013, d-051,
-  d-065) but have grade-≥1 documents, so they are primary answerable.
-- **Unscored:** an untagged query with no grade-≥1 document is in neither set. The 6 are d-005,
-  d-017, d-032 and d-042 (home-course pastes over 200 characters, which `/search` rejects with a
-  400), and d-009 and d-020.
+1. **Is it a ranking change at all?** Commit, then run `npm run eval:lock -- --check`. It
+   recomputes every dev and fixture list in three filter modes and compares them with
+   `eval/ranking-lock.json`. Equal lists mean the change is neutral: you are done, and the lock
+   stays as it is. CI's `eval-gate` job runs the same check.
+2. **Screen it on dev**, as often as you like:
+   ```sh
+   npm run eval -- --variant shipped --ref <the SHIPPED_BASELINE sha>
+   npm run eval -- --variant cand --baseline shipped [--target-shapes <a,b>] [--change-kind <kind>]
+   ```
+   This prints the metrics, the CIs, the per-shape breakdown and the dev gate's verdict.
+3. **Take one holdout look** (custodian only; needs the key). Store the candidate's run, have its
+   unjudged top-10 documents judged, then take the verdict on the stored runs:
+   ```sh
+   npm run eval -- --holdout --variant cand --store-only
+   npm run eval:report -- --holdout --run cand --baseline shipped-<sha7> [--change-kind <kind>]
+   ```
+   The verdict appends one row to the ledger, pass or fail. Commit the ledger at once.
+   A change that a no-look route covers skips this step and takes the route's checks and count
+   instead (below).
+4. **Rewrite the lock with its evidence**, in the PR that ships the change:
+   `npm run eval:lock -- --evidence holdout-pass <ledger row>`, or
+   `npm run eval:lock -- --evidence no-look <count-log row>` for a no-look route.
+5. **Move the shipped pin** in the same PR: set `SHIPPED_BASELINE` in `eval/lib/baseline.mjs` to
+   the shipped commit and append a `- shipped pin:` line to ADR 0003's "Shipped-ranker pin"
+   section (`test/eval/baseline.node.test.js` ties the two). After the merge, the custodian stores
+   the new baseline's holdout run before the next look.
 
-**Qrels:** `qrels-dev-v11`, 2,476 pairs (108 graded by rule, the rest by judge A `claude-opus-5-5`
-in single-judge mode, ADR 0004). The rule covers hard-constraint violations and the code-target
-rule (`eval/lib/code-rule.mjs`, [`eval/JUDGING.md`](eval/JUDGING.md) "Code-target rule"). Judged@10
-is 100% for all three runs.
+The full procedure, with every flag, is [`eval/README.md`](eval/README.md), "Checking a ranking
+change".
 
-**Primary answerable queries (n = 85):**
+## The gate rules
 
-| run | nDCG@10 [BCa CI] | P@5 [BCa CI] | MRR@10 [BCa CI] |
-|---|---|---|---|
-| **v0 hybrid** | **0.626** [0.551, 0.689] | **0.558** [0.480, 0.628] | **0.801** [0.713, 0.866] |
-| v0 lexical only | 0.541 [0.465, 0.609] | 0.442 [0.372, 0.515] | 0.734 [0.641, 0.812] |
-| v0 vector only | 0.604 [0.530, 0.667] | 0.525 [0.449, 0.593] | 0.778 [0.690, 0.848] |
+`eval/lib/gate.mjs`. Every rule also fails a candidate with more errored queries than its
+baseline, any comparison over fewer than 10 primary answerable queries, and any CI-based check on
+a degenerate interval. The rule applied is printed with the verdict and recorded in the ledger.
 
-**Paired differences (hybrid minus each half):**
+| rule | where | passes iff |
+|---|---|---|
+| general | dev | no exact-code regression, and the ΔnDCG@10 BCa 95% lower bound > 0 |
+| targeted (`--target-shapes a,b`) | dev | every target's ΔnDCG@10 > 0 and overall Δ ≥ 0, over ≥ 3 target queries; a target whose one-sided 95% upper bound is below 0 fails |
+| holdout | holdout | ΔnDCG@10 ≥ 0 and ΔP@5 ≥ 0 (point estimates), no exact-code regression |
+| cutoff (`--change-kind cutoff`) | dev and holdout | correct-empty gain ≥ 0.25 and answerable ΔnDCG@10 ≥ −0.01; every list must be the baseline's or a prefix of it |
+| no-loss | dev only | ΔnDCG@10 ≥ 0 (point estimate) |
+| answerable-floor | dev only | answerable ΔnDCG@10 ≥ −0.01 |
+| compliance (`--change-kind compliance`) | dev and holdout | for a change to the constraint phrases: scored on constraint-filtered qrels against a frozen reference parse; primary ΔnDCG@10 and ΔP@5 ≥ 0, the constraint block's ΔnDCG@10 ≥ 0, every shown result satisfies its parsed constraints, every unparsed query's top 10 unchanged |
+| test-set | test | BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0, against `eval-v0` |
 
-| | ΔnDCG@10 [BCa CI] | ΔP@5 [BCa CI] | ΔMRR@10 [BCa CI] |
-|---|---|---|---|
-| hybrid − lexical | +0.085 [0.047, 0.132], p = 0.0001 | +0.115 [0.078, 0.167], p = 0.0001 | +0.067 [0.002, 0.133], p = 0.044 |
-| hybrid − vector | +0.022 [−0.013, 0.053], p = 0.21 | +0.033 [−0.002, 0.066], p = 0.088 | +0.023 [−0.029, 0.074], p = 0.41 |
+**No-look routes.** Some changes can't be measured by a relevance look, or are fully checked
+without one. Each is a pre-registered rule in ADR 0003 ("No-look routes") whose checks run on the
+open sets plus a custodian count, which prints one integer and is logged in
+`eval/count-log.md`, not the ledger: `representative-only` (which duplicate-group member is
+shown), `answerable-floor` (the no-match answer), `group-first` (the duplicate collapse) and
+`gated-without-a-look` (exchange-mode correctness, checked by the oracle suites instead).
 
-For hybrid − vector, the persona-clustered intervals are [−0.004, 0.049] for nDCG and
-[0.005, 0.058] for P@5: only the P@5 one excludes 0. The script prints both.
+## The ranking lock
 
-**Reading:**
-- Hybrid clearly beats lexical alone.
-- Hybrid's lead over vector alone, +0.022 nDCG, is not distinguishable from 0. On this dev set the
-  keyword half adds little beyond the dense half.
-- The dense half is the stronger half. The v1 eval's opposite reading (lexical ≈ hybrid) came from
-  title-regex relevance and recall only; it is kept as history in
-  [`eval/v1/README.md`](eval/v1/README.md).
-- **Why the numbers are lower than Phase 2's.** Later rounds judged the documents Phase 3 and 5
-  candidates brought into their top 10s. Today's qrels hold 810 pairs from those nine rounds
-  (`judging` in `eval/dev/qrels.json`); 221 of them have grade ≥ 1, and none of those is in v0's
-  top 10. The ideal ranking rises and v0's scores fall. The ranker did not change.
+CI's eval gate (ADR 0013). `eval/ranking-lock.json` holds, for each open-set query, the sha256 of
+its HTTP status and ordered result codes: the dev set on the pinned corpus filtered, `--strip ng`
+and `--unfiltered`, and the fixture set on its own corpus in the same three modes. It also records
+`inputsHash` (the git objects of `LOCK_INPUTS` in `eval/lib/ranking-lock.mjs`: the ranker, the
+runner's import closure, the fakes, the eval config, the sets, the embeddings manifest and
+`package-lock.json`), the embedding version, the corpus release and the evidence for its lists.
 
-**Outside the primary set (v0 hybrid):**
-- **Feature-gap (constraint queries, n = 5):** nDCG@10 0.449.
-- **No-answer queries (n = 2, d-012 and d-025):** correct-empty 0%, with 2 false positives and no
-  errors. That is below the cutoff rule's floor of 3 no-answer queries, so a cutoff verdict cannot
-  pass on dev (`insufficient queries: 2 no-answer …`). No Phase 3 change took the cutoff kind on
-  dev: 3G used `answerable-floor`.
-- **Unscored queries (n = 6):** d-005, d-009, d-017, d-020, d-032, d-042. The 4 non-200 responses
-  are among them: the 400s to the home-course pastes.
-- **Hard-constraint violations:** 12 in the top 10s.
-- **Weakest dev shapes:** `code-partial` 0.000 (n = 3), `code-space` 0.210 (n = 3), `typo` 0.296,
-  `equivalence` 0.309, `ge` 0.314, `constraint` 0.449.
-
-**Reproduce** (dev set only). The runner downloads the embeddings from their releases with `gh`,
-sha-checked; the pinned corpus comes from its release once:
 ```sh
-gh release download data-2026-2027-20260904 -p '2026-2027-moduleInfo.json.gz' -D .data && gunzip .data/2026-2027-moduleInfo.json.gz
-npm run eval -- run --set dev --variant v0         --ref eval-v0 --embedding emb-bge-small-v0
-npm run eval -- run --set dev --variant v0-lexical --ref eval-v0 --embedding emb-bge-small-v0 --mode lexical
-npm run eval -- run --set dev --variant v0-vector  --ref eval-v0 --embedding emb-bge-small-v0 --mode vector
-npm run eval:report -- --run v0                    # the v0 row, outside-primary lines and per-shape table
-node docs/evidence/phase2/baseline-table.mjs       # both tables above, CIs included
+npm run eval:lock -- --check [--base <rev>]       # the gate (CI's eval-gate; base: merge base with origin/main)
+npm run eval:lock -- --diff-ref <ref>             # <ref>'s ranker against HEAD's lock (e.g. the shipped pin)
+npm run eval:lock -- --evidence <kind> <ref>      # write changed lists, with their evidence
+npm run eval:lock                                 # rewrite for a new embedding version or corpus; refused if the lists change
 ```
-`--embedding emb-bge-small-v0` is required: the default embedding is a later one, and the runner
-refuses a ranker whose corpus texts that embedding lacks. `eval:report` refuses `--baseline` with a
-lexical or vector run, because gates compare hybrid runs only, so the paired Δ against the halves
-comes from `baseline-table.mjs` alone. Re-running gives identical numbers; the run file's hash
-changes, because the file records `createdAt` and the runner's sha.
 
-### History: the Phase 2 baseline as first recorded, on `qrels-dev-v2`
+- **Fast path.** HEAD's lock equals the base's, and HEAD's `inputsHash` equals the lock's or the
+  base's (the PR base, or `main`'s last green). Seconds, with no `npm ci`. Any lock edit skips it.
+- **Recompute.** Otherwise the eval runner recomputes the lists at HEAD (about 30 s locally, no
+  Cloudflare call: the pinned corpus and the corpus embeddings are sha-checked release assets).
+  They must equal HEAD's lock, or the gate fails naming each changed query with its statuses. A
+  neutral change passes and leaves the lock as it is, so PRs never conflict on it.
+- **A ranking change** rewrites the lock with evidence written after the base lock, checked
+  against the base commit's lock: `holdout-pass <n>` (row n of `eval/holdout-ledger.md`, verdict
+  `pass`, against the base commit's `SHIPPED_BASELINE`), `no-look <n>` (row n of
+  `eval/count-log.md`, whose `route` names a no-look route), or `revert <commit>` (the lists of an
+  earlier lock). Commit the row first; each row is cited once. Unchanged evidence and a shipped-pin
+  line are refused; `bootstrap` is allowed only when the base has no lock.
+- **What it does not cover.** It compares open sets only: the custodian's holdout count at a ship
+  stays. It guards against accidents, not against false evidence; a lock change shows in every
+  diff.
+- It reads committed content only, so commit before running it. It needs the pinned corpus in
+  `.data/` (`gh release download data-2026-2027-20260904 -p '2026-2027-moduleInfo.json.gz' -D .data`,
+  then `gunzip`) and downloads the corpus embeddings release asset.
+- `test/eval/ranking-lock.node.test.js` fails if the runner's import closure (read with acorn)
+  reaches a file outside `LOCK_INPUTS`, or a dynamic import it cannot resolve to a listed path.
 
-Phase 2 recorded the baseline on `qrels-dev-v2` (1,666 pairs, 81 graded by rule), where 83 queries
-were primary answerable and 8 unscored (d-061 and d-093 had no grade-≥1 document yet). Under
-`qrels-dev-v1`, before the code-target rule, v0 read 0.758 nDCG@10 over 78 queries. HEAD's
-`baseline-table.mjs` reads today's qrels, so it no longer prints these; `git show
-846fac2:eval/dev/qrels.json` has the v2 file.
+## What CI runs
 
-| run (n = 83, `qrels-dev-v2`) | nDCG@10 [BCa CI] | P@5 [BCa CI] | MRR@10 [BCa CI] |
-|---|---|---|---|
-| v0 hybrid | 0.712 [0.644, 0.770] | 0.571 [0.494, 0.641] | 0.820 [0.740, 0.884] |
-| v0 lexical only | 0.609 [0.532, 0.678] | 0.453 [0.383, 0.525] | 0.752 [0.661, 0.830] |
-| v0 vector only | 0.672 [0.599, 0.731] | 0.537 [0.463, 0.605] | 0.797 [0.712, 0.865] |
+- `check`: `npm run test:eval` (the harness self-test, end to end on the fixture with a throwaway
+  key) and `npm run eval:verify` (every ciphertext's sha256 against its manifest, no key).
+- `eval-gate`: `npm run eval:lock -- --check`.
 
-Paired on v2: hybrid − lexical +0.103 nDCG [0.055, 0.158]; hybrid − vector +0.040 [−0.003, 0.085],
-p = 0.080, with a persona-clustered interval of [0.009, 0.078]. Feature-gap nDCG@10 was 0.604; the
-weakest shapes were `code-partial` 0.000, `code-space` 0.210, `ge` 0.402, `equivalence` 0.507,
-`typo` 0.529 and `constraint` 0.604.
+## Custody
 
-## Judge quality
-
-Every graded pair comes from one judge model, `claude-opus-5-5` (ADR 0004), or from the rule. No
-human has graded a pair. Measured on Phase 2's first round:
-- **Self-consistency:** planted repeats were graded identically 80 of 80 times on dev and 65 of 65
-  on the holdout.
-- **Cross-family check** of 150 stratified dev pairs (ADR 0004 amendment,
-  `docs/evidence/phase2/calibration/`). Gemini graded each pair blind to judge A, and Claude Sonnet
-  then verified every grade. Agreement with A: raw 0.880, quadratic κ 0.915, Krippendorff α 0.915.
-  A is slightly lenient: it graded 12 pairs higher and 6 lower.
-
-**Holdout:** 81 queries, committed only as ciphertext (`eval/holdout/`), with their qrels. A gate
-needs judged@10 at 100%, so before a look the custodian has the candidate's unjudged top-10
-documents judged, and the holdout's qrels grow with each look. A look prints a verdict and Δs only;
-no per-query output leaves custody.
+The held-out sets are protected procedurally (an honest custodian), with encryption at rest:
+- ciphertexts are AES-256-GCM with the set and file name bound as additional data, so a file moved
+  into another slot or set fails to decrypt;
+- the key lives outside the repo (`~/.config/vnm/holdout.key`) and never enters CI, a log or an
+  error;
+- every ciphertext a verdict reads must match its directory's `MANIFEST.json`;
+- the look ledger is append-only, a look past the limit is refused before any retrieval, and a
+  look is refused when the ledger has fewer rows than git's copy;
+- the baselines are pinned: the test set compares with `eval-v0`, a holdout look with the
+  shipped pin, and a baseline run must prove it is that commit's ranker;
+- holdout and test commands print only the verdict, the Δ lines and counts; any error prints its
+  class and nothing else.
 
 ## What the numbers don't show
 
 - **Production.** Every number here is the offline replica on the pinned corpus. Production
   differs in its corpus, its NG files after a revision, and its query vectors (above).
-- **Students.** The queries are written for student personas by writer subagents (ADR 0003,
+- **Students.** The queries are written for student personas by writer agents (ADR 0003,
   "Provenance"), not taken from real searches.
-- **A human view of relevance.** One judge model grades every pair; the cross-family check is the
-  only outside reading.
-- **Dev as an unbiased estimate.** The dev set is open and screened every Phase 3 to 5 change, so
-  dev results for those changes are optimistic. The holdout has been looked at 8 times, which
-  inflates its false-positive rate (ADR 0003, "Context"); the per-change gates are screening.
-  The shipping claim rests on the sealed test set, used once, and it covers Phase 3 only.
+- **A human view of relevance.** One judge model grades every pair; a cross-family model check is
+  the only outside reading (ADR 0016).
+- **Dev as an unbiased estimate.** The dev set is open and has screened every change, so dev
+  results are optimistic. The holdout has been looked at 8 times, which inflates its
+  false-positive rate; the per-change gates are screening. The overall claim rests on the sealed
+  test set, used once.
 - **Constraint queries.** Queries that need a filter the site doesn't parse ("no Friday classes")
-  are feature-gap, scored apart, and score low. The known search limits S2, S3, S4 and S6 stay
-  open ([`docs/FINDINGS.md`](docs/FINDINGS.md), ADR 0011 G4).
+  are a feature-gap block, scored apart, and score low.
 - **Exchange-mode correctness.** Which courses an exchange student may take is checked against an
-  independent oracle by the SC1 suites (`test/sc1/`, docs/REFERENCE.md), not by this eval.
-
-## The v1 eval
-
-The pre-Phase-2 eval (title-regex relevance, recall@10, run against the live site) is history. Its
-write-up, fixtures and scripts are in [`eval/v1/`](eval/v1/README.md).
+  independent oracle by `npm run test:oracle` ([docs/exchange-mode.md](docs/exchange-mode.md)),
+  not by this eval.

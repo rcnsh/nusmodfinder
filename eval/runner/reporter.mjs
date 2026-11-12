@@ -95,7 +95,7 @@ export class EvalReporter {
     const results = {};
     /** @type {Record<string, EvalDocMeta>} */
     const docs = {};
-    // Phase 5 5F: each query's parse as the Worker echoed it, outside `results`
+    // Each query's parse as the Worker echoed it, outside `results`
     // (which the ranking-identity checks hash), for the compliance rule.
     /** @type {Record<string, Record<string, unknown> | null>} */
     const intents = {};

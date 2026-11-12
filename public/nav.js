@@ -1,5 +1,5 @@
 // @ts-check
-// History transitions (Phase 5 5B, F3, A2-4, A3-3): what each user action does
+// History transitions: what each user action does
 // to the state and to the history stack, as one pure function. app.js applies
 // the op (pushState, replaceState or history.back()); popstate then restores
 // whatever state the entry's URL holds.
@@ -11,14 +11,14 @@
 // |   ... with a different query typed          | as submit: push                           |
 // | open a detail with none open                | push                                      |
 // | open another detail while one is open       | replace                                   |
-// | follow an "Also as" link (5G)               | push: that code's search, its detail open, from= |
+// | follow an "Also as" link                    | push: that code's search, its detail open, from= |
 // | close a detail                              | back() if this page pushed its entry, else replace |
 // | clear the query (submit with none)          | push, the URL without q                   |
 //
 // `from` belongs to the detail an "Also as" link opened: every other action
 // that changes `open` drops it.
 //
-// Phase 6 (6B): the shortlist is not part of the state, so no transition
+// The shortlist is not part of the state, so no transition
 // touches it; app.js writes the page's list into every URL. `view=shortlist`:
 //
 // | action                                      | history                                   |
@@ -56,7 +56,7 @@ const sameUrl = (a, b) => stateToParams(a).toString() === stateToParams(b).toStr
 export const searchKey = (s) => stateToParams({ ...s, open: '', from: '', view: '' }).toString();
 
 /**
- * Whether Back or Forward must search (6B): when the search differs from the
+ * Whether Back or Forward must search: when the search differs from the
  * one before the event; when it is the same, only if the last answer was a
  * network or server error, never after a 429.
  * @param {State} before the state before the event
@@ -81,14 +81,14 @@ export function transition(current, action, { detailPushed }) {
       const q = action.form.q.trim() ? action.form.q : '';
       // ignore= undoes phrases parsed from one query; a new query starts without it.
       const ignore = q.trim() === current.q.trim() ? action.form.ignore : [];
-      // A submit from the view closes it (6B).
+      // A submit from the view closes it.
       const state = { ...action.form, q, ignore, open: '', from: '', view: /** @type {''} */ ('') };
       return { state, op: sameUrl(state, current) ? 'replace' : 'push' };
     }
     case 'settings': {
-      // A filter change with a different query typed searches that query, as
-      // the Phase 4 page did, so the results match the box: that is a submit.
-      // Not while the view is shown (6B): the search keeps the submitted q.
+      // A filter change with a different query typed searches that query,
+      // so the results match the box: that is a submit.
+      // Not while the view is shown: the search keeps the submitted q.
       if (!current.view && action.form.q.trim() !== current.q.trim()) return transition(current, { type: 'submit', form: action.form }, { detailPushed });
       const state = { ...action.form, q: current.q, open: '', from: '', view: current.view };
       return { state, op: 'replace' };

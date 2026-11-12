@@ -12,7 +12,7 @@ describe.skipIf(!corpus)('full pinned corpus', () => {
 
   it('is the pinned snapshot', () => {
     expect(c.moduleInfoSha256).toBe('2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1');
-    // docs/REFERENCE.md: 6,771 of the 21,130 records are offered this year.
+    // docs/data.md: 6,771 of the 21,130 records are offered this year.
     expect(c.recordCount).toBe(21130);
     expect(c.modules).toHaveLength(6771);
     expect(c.skipped).toEqual([]);
@@ -27,7 +27,7 @@ describe.skipIf(!corpus)('full pinned corpus', () => {
       for (const code of codes) ngSemesters.set(code, [...(ngSemesters.get(code) ?? []), Number(sem)]);
     }
     const offeredNg = [...ngSemesters.keys()].filter((code) => offered.has(code));
-    // docs/REFERENCE.md: 1,175 of the 1,207 codes in the NG PDF are offered this year.
+    // docs/exchange-mode.md: 1,175 of the 1,207 codes in the NG PDF are offered this year.
     expect(ngSemesters.size).toBe(1207);
     expect(offeredNg).toHaveLength(1175);
 

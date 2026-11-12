@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// The production corpus manifest's commands (Phase 7 7D, scripts/corpus-manifest.mjs):
+// The production corpus manifest's commands (scripts/corpus-manifest.mjs):
 //
 //   npm run corpus -- fetch [<year>]
 //       NUSMods' moduleInfo.json for <year> (default DEFAULT_ACAD_YEAR) into
@@ -21,31 +21,31 @@
 //   npm run corpus -- check
 //       CI: `current`'s data version with HEAD's NG files equals
 //       src/data-version.json, its catalogueKey equals the bundled catalogue
-//       file's, and data/'s per-corpus 3B files are what the build writes from it.
+//       file's, and data/'s per-corpus catalogue files are what the build writes from it.
 //
-// `preflight()` is the deploy preflight's "corpus manifest" check (scripts/preflight.mjs, 7B):
+// `preflight()` is the deploy preflight's "corpus manifest" check (scripts/preflight.mjs):
 // restore, then the same check.
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import { build as build3b, staleFiles } from './build-3b-data.mjs';
+import { build as build3b, staleFiles } from './build-catalogue-data.mjs';
 import { checkCurrent, fetchStaging, publishCorpus, restoreCurrent } from './corpus-manifest.mjs';
 import { DEFAULT_ACAD_YEAR } from './lib.mjs';
 
 /**
- * `check`'s comparisons: current's data version and catalogueKey, and the 3B files' freshness.
+ * `check`'s comparisons: current's data version and catalogueKey, and the catalogue files' freshness.
  * @param {{ check?: typeof checkCurrent, built?: () => Promise<Record<string, string>>, stale?: typeof staleFiles }} [deps]
  */
 export async function corpusCheck({ check = checkCurrent, built = () => build3b('production'), stale = staleFiles } = {}) {
   const r = await check();
   const problems = [...r.problems];
-  for (const rel of await stale(await built())) problems.push(`${rel} is not what node scripts/build-3b-data.mjs --corpus production writes from current`);
+  for (const rel of await stale(await built())) problems.push(`${rel} is not what node scripts/build-catalogue-data.mjs --corpus production writes from current`);
   return { ...r, ok: problems.length === 0, problems };
 }
 
 /**
- * The deploy preflight's "corpus manifest" check (Phase 7 7B's optional-check contract,
- * `{ ok, message }`): restores `current` (sha-checked; a no-op when it is already there), then
- * corpusCheck. A deploy whose src/data-version.json, bundled catalogue file or 3B files don't
+ * The deploy preflight's "corpus manifest" check (the preflight's optional-check
+ * contract, `{ ok, message }`): restores `current` (sha-checked; a no-op when it is already there), then
+ * corpusCheck. A deploy whose src/data-version.json, bundled catalogue file or catalogue files don't
  * follow current stops here, before D1 is read.
  * @param {{ log?: (line: string) => void, restore?: typeof restoreCurrent, check?: typeof corpusCheck }} [deps]
  * @returns {Promise<{ ok: boolean, message: string }>}
@@ -60,7 +60,7 @@ export async function preflight({ log = console.log, restore = restoreCurrent, c
   let r;
   try { r = await check(); } catch (err) { return { ok: false, message: /** @type {Error} */ (err).message }; }
   if (!r.ok) return { ok: false, message: `${r.release} (data/corpus.json current): ${r.problems.join('; ')}` };
-  return { ok: true, message: `${r.release}: data version ${r.dataVersion.committed} and catalogueKey ${r.catalogueKey.file} follow it; the 3B files are fresh` };
+  return { ok: true, message: `${r.release}: data version ${r.dataVersion.committed} and catalogueKey ${r.catalogueKey.file} follow it; the catalogue files are fresh` };
 }
 
 const USAGE = 'usage: npm run corpus -- fetch [<year>] | publish [--file <path>] [--fetched-at <iso>] [--new-data-version] | restore | check';

@@ -1,5 +1,5 @@
 // @ts-check
-// B2, Worker side: scripts/ingest-core.mjs runIngest driven straight into the
+// Re-ingest, Worker side: scripts/ingest-core.mjs runIngest driven straight into the
 // real Worker (local D1 + fake Vectorize), so these tests exercise the same
 // skip rules, deletes and routes `npm run ingest` uses. The hash rules and the
 // download cache are covered in ingest.node.test.js; budget, guards and the
@@ -36,8 +36,8 @@ beforeEach(async () => {
 /** @param {NormalisedModule[]} modules */
 const ingest = (modules) => runIngest({ modules, facetsBody, api: adminApi(() => fakes), sleep: async () => {} });
 
-describe('B2', () => {
-  it('[B2 fixed] /admin/hashes returns text_hash, row_hash and the FTS-column hash for every module', async () => {
+describe('re-ingest into the Worker', () => {
+  it('/admin/hashes returns text_hash, row_hash and the FTS-column hash for every module', async () => {
     const res = await callJson('/admin/hashes', {
       fakes, env: { INGEST_SECRET: 'test-ingest-secret' }, init: { headers: { authorization: 'Bearer test-ingest-secret' } },
     });
@@ -46,7 +46,7 @@ describe('B2', () => {
     expect(Object.keys(res.body.modules)).toHaveLength(fixture.modules.length + 3);
   });
 
-  it('[B2 fixed] a field-only change (semesters, NG flags, credits, prereqs, workload) lands in D1 and the Vectorize metadata, without re-embedding', async () => {
+  it('a field-only change (semesters, NG flags, credits, prereqs, workload) lands in D1 and the Vectorize metadata, without re-embedding', async () => {
     const before = /** @type {number[]} */ (fakes.vectorize.vectors.get('XX2001')?.values);
     const result = await ingest([...fixture.modules, changed]);
     expect(result).toMatchObject({ status: 'done', plan: { embed: 0, rowOnly: 1, unchanged: fixture.modules.length, deletes: 2 } });
@@ -54,7 +54,7 @@ describe('B2', () => {
     const { body } = await callJson('/module/XX2001');
     expect(body).toMatchObject({
       semesters: [2], credits: 2, ng: true, ng_semesters: [2], prerequisite: 'XX1001', preclusion: 'XX2901',
-      // 5A: /module answers the workload as named hours a week.
+      // /module answers the workload as named hours a week.
       workload: { lecture: 3, tutorial: 0, lab: 0, project: 3, prep: 4, total: 10 },
     });
     // The vector keeps its values (re-upserted from getByIds) under new metadata.
@@ -72,7 +72,7 @@ describe('B2', () => {
     expect(again.upserted).toBe(0);
   });
 
-  it('[B2 fixed] a module dropped from the corpus is deleted from Vectorize, then D1', async () => {
+  it('a module dropped from the corpus is deleted from Vectorize, then D1', async () => {
     const result = await ingest([...fixture.modules, original]);
     expect(result).toMatchObject({ status: 'done', deleted: 2 });
     const del = fakes.vectorize.calls.filter((c) => c.method === 'deleteByIds');
@@ -86,7 +86,7 @@ describe('B2', () => {
     expect((await callJson('/admin/delete', { init: { method: 'POST', body: '{"codes":["XX2001"]}' } })).status).toBe(404);
   });
 
-  it('[B2 fixed] acad_year: rows are keyed by code, so a run leaves only the current year (stale rows deleted or rewritten)', async () => {
+  it('acad_year: rows are keyed by code, so a run leaves only the current year (stale rows deleted or rewritten)', async () => {
     // Before: a 2019-2020 row is served.
     expect(codes((await callJson('/search?q=zymurgy&mode=lexical', { fakes })).body.results)).toEqual(['XX2003']);
     // Next year's corpus no longer has XX2003 and still has XX2001.

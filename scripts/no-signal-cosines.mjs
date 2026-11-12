@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 // @ts-check
-// 3G-1 (docs/plans/phase3.md 3G): the top-1 exact cosine of the query as typed,
+// The top-1 exact cosine of the query as typed,
 // with the query's filters, over the corpus the eval scores (the pinned
 // bundle), for both halves of the gibberish set and the dev queries not
 // tagged no-answer. It reads tags, never relevance labels. It uses the
 // product's own parse (parsed.noSignal) and exact search, and the committed
-// embeddings (test/sc4/embeddings.json, eval/dev/embeddings.json), so it
+// embeddings (test/query-suite/embeddings.json, eval/dev/embeddings.json), so it
 // makes no remote call. It also derives the τ candidates from the derivation
 // half (src/no-signal.js) and, per candidate, predicts the dev conditions
 // /search would meet: the gate half's count-0 share and any untagged dev
 // query it would empty.
 //
 //   node scripts/no-signal-cosines.mjs            print the summary
-//   node scripts/no-signal-cosines.mjs --write    also write docs/evidence/phase3/3g-1-cosines.json
+//   node scripts/no-signal-cosines.mjs --write    also write .data/no-signal-cosines.json
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -26,7 +26,7 @@ import { loadPinnedCorpus } from './pinned-corpus.mjs';
 import { loadCheckedBundle, readVectorsManifest } from './vectors-manifest.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const OUT = join(ROOT, 'docs/evidence/phase3/3g-1-cosines.json');
+const OUT = join(ROOT, '.data/no-signal-cosines.json');
 const read = (/** @type {string} */ rel) => JSON.parse(readFileSync(join(ROOT, rel), 'utf8'));
 
 const entry = (await readVectorsManifest()).bundles.pinned;
@@ -46,7 +46,7 @@ const ctx = buildIntentContext({
 
 /** @type {Record<string, string>} */
 const entries = {};
-for (const rel of ['test/sc4/embeddings.json', 'eval/dev/embeddings.json']) {
+for (const rel of ['test/query-suite/embeddings.json', 'eval/dev/embeddings.json']) {
   const cache = read(rel);
   if (cache.model !== '@cf/baai/bge-small-en-v1.5' || cache.dims !== 384) throw new Error(`${rel}: unexpected model`);
   Object.assign(entries, cache.entries);

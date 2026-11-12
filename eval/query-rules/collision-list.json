@@ -1,7 +1,6 @@
 {
  "schema": "vnm-p6-collision-list/1",
- "fixedAt": "P-6",
- "plan": "docs/plans/phase3.md 3B-0 (C-2, C2-7, C3-5): English words and common abbreviations that are also offered-module prefixes; a written list, not 'every prefix with df > 0'. Pillar prefixes are exempt.",
+ "purpose": "English words and common abbreviations that are also offered-module prefixes; a written list, not 'every prefix with df > 0'. Pillar prefixes are exempt.",
  "effect": [
   "letters on this list join with digits only when letters + digits (+ suffix) are the whole query and the joined code is offered or catalogue-only",
   "a whole query that is only these letters is a topical query: no prefix route",
@@ -114,8 +113,8 @@
  "exempt": ["GEA", "GEC", "GEH", "GEI", "GEN", "GEQ", "GES", "GESS", "GET", "GEX"],
  "notPrefixes": ["ART", "LAW", "COMP", "MATH", "ECON"],
  "notes": [
-  "Every entry is a prefix of an offered module in the pinned corpus (test/full/sc4-prereg.node.test.js checks it).",
+  "Every entry is a prefix of an offered module in the pinned corpus (test/full/query-suite-corpus.node.test.js checks it).",
   "GE is Geography's prefix and is on the list; the GE intent (`ge`, `gen ed`, `general education`) maps to the pillar prefixes, never GE\\d.",
-  "Every other offered prefix (241, pillars aside) was reviewed by the rule in eval/prereg/collision-review.json, which records each decision and its reason (choice C13)."
+  "Every other offered prefix (241, pillars aside) was reviewed by the rule in eval/query-rules/collision-review.json, which records each decision and its reason."
  ]
 }

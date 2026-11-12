@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
-import { pinnedCatalogueOnlyPath } from './scripts/build-3b-data.mjs';
+import { pinnedCatalogueOnlyPath } from './scripts/build-catalogue-data.mjs';
 import { productionCorpus } from './scripts/corpus-manifest.mjs';
 import { pinnedGroupsPath } from './scripts/build-groups.mjs';
 import { pinnedNgUnscheduledPath } from './scripts/build-ng-unscheduled.mjs';
@@ -59,9 +59,9 @@ function asFullCorpus(c) {
 }
 
 /**
- * Phase 7 7D, CI on the live year: what the sc1 and sc1-node projects search, `current`
+ * CI on the live year: what the oracle and oracle-node projects search, `current`
  * (data/corpus.json, restored by `npm run corpus -- restore`) normalised with HEAD's NG files, and
- * the production bundle, sha-checked. With PRODUCTION_CORPUS=1 (set only by the sc1 CI job, after
+ * the production bundle, sha-checked. With PRODUCTION_CORPUS=1 (set only by the oracle CI job, after
  * the restore and `node scripts/vectors.mjs fetch --corpus production`) a missing or mismatched
  * one fails the run here; otherwise both are null and those projects skip.
  * @returns {Promise<{ corpus: FullCorpus, bundle: string } | null>}
@@ -90,7 +90,7 @@ async function productionData() {
 const FIXTURE_BUNDLE = fileURLToPath(new URL('./test/fixtures/vectors.js', import.meta.url));
 
 /**
- * What test/full searches (Phase 3 3-0, B2-4): the pinned bundle, the 6,771
+ * What test/full searches: the pinned bundle, the 6,771
  * pinned modules with the eval's corpus vectors, sha-checked against
  * data/vectors.json, so full-corpus tests search the catalogue the eval
  * scores. With FULL_CORPUS=1 (the full-corpus CI job, after
@@ -118,7 +118,7 @@ async function fullBundle() {
 const FIXTURE_VOCABULARY = fileURLToPath(new URL('./test/fixtures/vocabulary.json', import.meta.url));
 
 /**
- * 3C's vocabulary import in src/intent-data.js (the bare name, Phase 5 5B),
+ * The vocabulary import in src/intent-data.js (the bare name),
  * pointed at the vocabulary of the corpus a project searches, never the
  * production one (data/).
  * @param {string} path
@@ -126,14 +126,14 @@ const FIXTURE_VOCABULARY = fileURLToPath(new URL('./test/fixtures/vocabulary.jso
 const vocabularyAlias = (path) => ({ find: 'vocabulary-data', replacement: path });
 /** The committed fixture groups (scripts/build-groups.mjs --corpus fixture). */
 const FIXTURE_GROUPS = fileURLToPath(new URL('./test/fixtures/groups.json', import.meta.url));
-/** 3F's groups import in src/group-data.js (the bare name), pointed at the groups of the corpus the tests search. @param {string} path */
+/** The groups import in src/group-data.js (the bare name), pointed at the groups of the corpus the tests search. @param {string} path */
 const groupsAlias = (path) => ({ find: 'groups-data', replacement: path });
 /** The committed fixture's NG-listed codes with no classes (scripts/build-ng-unscheduled.mjs --corpus fixture). */
 const FIXTURE_NG_UNSCHEDULED = fileURLToPath(new URL('./test/fixtures/ng-unscheduled.json', import.meta.url));
-/** 6A's import in src/ng-unscheduled.js (the bare name), pointed at the file of the corpus the tests search. @param {string} path */
+/** The import in src/ng-unscheduled.js (the bare name), pointed at the file of the corpus the tests search. @param {string} path */
 const ngUnscheduledAlias = (path) => ({ find: 'ng-unscheduled-data', replacement: path });
 /**
- * Phase 7 7D: src/intent-data.js's catalogue codes and prefixes (bare names), the files of the
+ * src/intent-data.js's catalogue codes and prefixes (bare names), the files of the
  * corpus a project searches: data/pinned/ (the pinned corpus, from which the fixture is drawn) or
  * data/ (`current`, what production ships). `catalogue-only-data` is what the corpus tests seed
  * D1's catalogue_only from.
@@ -168,11 +168,11 @@ export default defineConfig(async () => {
   // vocabulary; without the corpus its tests skip, and the fixture's stands in.
   const fullVocabulary = fullCorpusData ? await pinnedVocabularyPath() : FIXTURE_VOCABULARY;
   const fullGroups = fullCorpusData ? await pinnedGroupsPath() : FIXTURE_GROUPS;
-  // 6A: the pinned NG-listed codes with no classes, built in memory as the pinned groups are.
+  // The pinned NG-listed codes with no classes, built in memory as the pinned groups are.
   const fullNgUnscheduled = fullCorpusData ? await pinnedNgUnscheduledPath() : FIXTURE_NG_UNSCHEDULED;
-  // 7D: the pinned catalogue-only rows, built in memory; without the corpus the full tests skip.
+  // The pinned catalogue-only rows, built in memory; without the corpus the full tests skip.
   const fullCatalogueOnly = fullCorpusData ? await pinnedCatalogueOnlyPath() : PRODUCTION_CATALOGUE_ONLY;
-  // 7D, CI on the live year: sc1 and sc1-node over `current` and the production bundle and files.
+  // CI on the live year: oracle and oracle-node over `current` and the production bundle and files.
   const production = await productionData();
   const prod = (/** @type {string} */ rel) => fileURLToPath(new URL(rel, import.meta.url));
   const productionBundle = /** @type {'production' | 'fixture'} */ (production ? 'production' : 'fixture');
@@ -186,8 +186,8 @@ export default defineConfig(async () => {
           test: {
             name: 'workers',
             include: ['test/**/!(*.node).test.js'],
-            // test/full and test/sc1 run in their own projects, against the pinned bundle.
-            exclude: [...configDefaults.exclude, 'test/full/**', 'test/sc1/**'],
+            // test/full and test/oracle run in their own projects, against the pinned bundle.
+            exclude: [...configDefaults.exclude, 'test/full/**', 'test/oracle/**'],
           },
         },
         {
@@ -204,9 +204,9 @@ export default defineConfig(async () => {
           },
         },
         {
-          // Phase 4 4E: SC1's path tests, in their own project and CI job (npm run test:sc1).
-          // Phase 7 7D: over production (`current`, the production bundle and its vocabulary,
-          // groups, NG-unscheduled, catalogue and prefix files), so CI tests the live year.
+          // The exchange oracle's path tests, in their own project and CI job (npm run test:oracle),
+          // over production (`current`, the production bundle and its vocabulary, groups,
+          // NG-unscheduled, catalogue and prefix files), so CI tests the live year.
           plugins: [workerd()],
           resolve: {
             alias: [
@@ -218,19 +218,19 @@ export default defineConfig(async () => {
             ],
           },
           test: {
-            name: 'sc1',
-            include: ['test/sc1/**/!(*.node).test.js'],
+            name: 'oracle',
+            include: ['test/oracle/**/!(*.node).test.js'],
             provide: { corpus: production?.corpus ?? null, vectorsBundle: productionBundle },
           },
         },
         {
-          // Phase 7 7D: SC1's Node-side checks over production, run by the same CI job: the
-          // oracle against src/eligibility.js and the rules' department and faculty names.
-          // `.node` tests can't run in workerd (sc1 above).
+          // The oracle's Node-side checks over production, run by the same CI job: the oracle
+          // against src/eligibility.js and the rules' department and faculty names. `.node`
+          // tests can't run in workerd (oracle above).
           test: {
-            name: 'sc1-node',
+            name: 'oracle-node',
             environment: 'node',
-            include: ['test/sc1/**/*.node.test.js'],
+            include: ['test/oracle/**/*.node.test.js'],
             provide: { corpus: production?.corpus ?? null, vectorsBundle: productionBundle },
           },
         },
@@ -239,9 +239,9 @@ export default defineConfig(async () => {
             name: 'node',
             environment: 'node',
             include: [NODE_TESTS],
-            exclude: [...configDefaults.exclude, 'test/sc1/**'],
-            // Phase 7 7C: scripts write run records; a test run's go to a temp dir, never
-            // docs/evidence/ops/runs/ (scripts/run-record.mjs also refuses that under Vitest).
+            exclude: [...configDefaults.exclude, 'test/oracle/**'],
+            // Scripts write run records; a test run's go to a temp dir, never
+            // ops/runs/ (scripts/run-record.mjs also refuses that under Vitest).
             env: { VNM_RUNS_DIR: join(tmpdir(), 'vnm-test-runs') },
           },
         },

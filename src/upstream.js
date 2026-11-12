@@ -2,7 +2,7 @@
 // Guards for calls to bindings: per-call timeouts and the dense-retrieval
 // circuit breaker.
 
-// Budgets per upstream (B5). Workers AI and Vectorize answer in tens of
+// Budgets per upstream. Workers AI and Vectorize answer in tens of
 // milliseconds when healthy; 1.5 s each keeps a hybrid search that falls back
 // to keyword-only under ~1.6 s from the user's side. D1 gets longer because
 // it is the source of truth: there is nothing to fall back to.

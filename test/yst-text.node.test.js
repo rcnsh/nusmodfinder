@@ -1,7 +1,6 @@
 // @ts-check
-// Phase 7 7E (docs/plans/phase7.md 7E, tests first): scripts/yst-text.mjs, the YST page's text
-// extraction that was done by hand ("tags stripped, one text node per line"). The lead checks it
-// on the Mac against the saved pages (`--expect <the manifest's sha256>`); here, fake pages in a
+// scripts/yst-text.mjs, the YST page's text extraction ("tags stripped, one text node per
+// line"). The maintainer checks it on the Mac against the saved pages (`--expect <the manifest's sha256>`); here, fake pages in a
 // temp dir, and like the --full cases these run on the Mac only and skip in CI.
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -26,8 +25,8 @@ describe.skipIf(Boolean(process.env.CI))('yst-text (on the Mac)', () => {
   afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
 
   it('one text node per line: script, style and comments dropped, entities decoded, white space collapsed', () => {
-    // As the Phase 4 hand extraction did (the committed .txt files reproduce byte for byte, checked
-    // on the Mac against the saved pages): only ASCII white space collapses, so a no-break space
+    // As the committed .txt files have it (they reproduce byte for byte, checked on the Mac
+    // against the saved pages): only ASCII white space collapses, so a no-break space
     // inside a node stays; each node is trimmed of every space, no-break ones too, and a node of
     // only those is dropped; lines are joined by newlines with none after the last.
     expect(ystText(PAGE)).toBe([

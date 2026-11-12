@@ -1,9 +1,8 @@
 // @ts-check
-// Phase 5 5F's compliance-aware rule (docs/plans/phase5.md §3 5F; ADR 0003's
-// draft amendment "Phase 5 5F"). `--change-kind compliance`, on dev and the
-// holdout, never the test set.
+// The compliance-aware rule (ADR 0003), for a change to the constraint
+// phrases. `--change-kind compliance`, on dev and the holdout, never the test set.
 //
-// - The reference parse is frozen: pass A of tag `3h` (2476012, which
+// - The reference parse is frozen: pass A of tag `parse-reference` (fbfae10, which
 //   predates PARSE_PHRASES, so its phrases always compile), run over the
 //   vocabulary its own builder makes from the run corpus. It decides every
 //   query's constraints for scoring, independent of the candidate.
@@ -31,37 +30,19 @@
 // class is printed, but a message must be safe either way.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadCorpusFile, loadPinnedWith } from './corpus.mjs';
 import { rankerIntentParser } from './corrected.mjs';
-import { ConstraintFieldsError, CorpusMismatchError, GateRuleError, ParseMismatchError, ReferenceParseError, RunFileError } from './errors.mjs';
+import { ConstraintFieldsError, CorpusMismatchError, ParseMismatchError, ReferenceParseError, RunFileError } from './errors.mjs';
 import { compare, FEATURE_GAP_SHAPES, K, qrelsFor, scoreRun } from './metrics.mjs';
 import { REPO, loadStudyMap, studyMapSha256 } from './sets.mjs';
 
-/** The frozen reference parse: 3H's pass A at this tag, which must still resolve to this commit. */
-export const REFERENCE_PARSE = Object.freeze({ tag: '3h', sha: '24760122a489dac6e4c604c1bacb8cd002624391' });
-
-/** ADR 0003, whose 5F amendment states the rule; while it is a draft no custody set takes it. */
-export const ADR_0003 = join(REPO, 'docs', 'decisions', '0003-eval-holdout-and-gate.md');
-/** The line that marks the amendment a draft. The lead's adoption removes it. */
-export const DRAFT_MARKER = '**Draft, not yet in force: the lead adopts it before any count or look.**';
-
-/**
- * Throws GateRuleError while ADR 0003's 5F amendment is still a draft, for
- * every encrypted set but the throwaway `selftest` (the tests' set).
- * @param {{ name: string, encrypted: boolean }} set
- * @param {string} [adr] the ADR's text
- */
-export function assertRuleAdopted(set, adr = readFileSync(ADR_0003, 'utf8')) {
-  if (!set.encrypted || set.name === 'selftest') return;
-  if (adr.includes(DRAFT_MARKER)) {
-    throw new GateRuleError(`--change-kind compliance is refused on the ${set.name} set: ADR 0003's 5F amendment is still a draft, and the lead adopts it before any count or look`);
-  }
-}
+/** The frozen reference parse: the constraint-phrase parse (pass A) at this tag, which must still resolve to this commit. */
+export const REFERENCE_PARSE = Object.freeze({ tag: 'parse-reference', sha: 'fbfae1012af3556a49b67ac4bec1bee88d863b8f' });
 
 /** The fields the rule reads per module (scripts/lib.mjs normalise and offeredModules). */
 export const CONSTRAINT_FIELDS = Object.freeze(['examSemesters', 'su', 'gradingBasis', 'workloadHours', 'prereqNone', 'prereqCohortOnly', 'ngAllow']);
@@ -122,7 +103,7 @@ export function failedConstraint(m, c, o) {
 }
 
 /**
- * The candidate's parse from its Worker's `interpreted` echo (3H keys only).
+ * The candidate's parse from its Worker's `interpreted` echo (the constraint keys only).
  * Values pass through as answered, so an unexpected one reads as a mismatch.
  * @param {unknown} interpreted
  * @returns {Parse}
@@ -212,7 +193,7 @@ const shown = (run, id) => {
  * nothing stripped, hybrid, the committed study map, and (`intents`) the
  * per-query parse recorded.
  * @param {import('./metrics.mjs').RunFile} run
- * @param {{ intents?: boolean, explicit?: boolean }} [o] `explicit`: the run may carry explicit 3H params (the B2-4 diagnostic's baseline)
+ * @param {{ intents?: boolean, explicit?: boolean }} [o] `explicit`: the run may carry explicit constraint params (the explicit-params diagnostic's baseline)
  */
 export function assertRuleRun(run, o = {}) {
   const c = /** @type {any} */ (run.config) ?? {};
@@ -221,7 +202,7 @@ export function assertRuleRun(run, o = {}) {
   if (c.strip?.length) throw new RunFileError(`${what} ran with filters stripped; the compliance rule scores filtered runs`);
   if ((c.mode ?? 'hybrid') !== 'hybrid') throw new RunFileError(`${what} ran mode ${c.mode}; the compliance rule scores hybrid runs`);
   if (c.studyMap !== undefined && c.studyMap !== studyMapSha256()) throw new RunFileError(`${what} used another study map than the committed eval/study-map.json`);
-  if (c.explicit !== undefined && !o.explicit) throw new RunFileError(`${what} sent explicit 3H params (the B2-4 diagnostic's baseline); it is never a gate's run`);
+  if (c.explicit !== undefined && !o.explicit) throw new RunFileError(`${what} sent explicit constraint params (the explicit-params diagnostic's baseline); it is never a gate's run`);
   if (o.intents && (!run.intents || typeof run.intents !== 'object')) {
     throw new RunFileError(`${what} records no per-query parse (\`intents\`); re-run it with this runner, which records each query's \`interpreted\``);
   }
@@ -426,7 +407,7 @@ export async function referenceParser(corpus) {
     const file = buildVocabulary(corpus.modules, { corpus: 'eval', dataVersion: corpus.label });
     const vocabularySha256 = createHash('sha256').update(serializeVocabulary(file)).digest('hex');
     const parser = await rankerIntentParser(root, parseVocabulary(file));
-    if (!parser || !INTENT) throw new ReferenceParseError(`tag ${REFERENCE_PARSE.tag} has no 3H parse`);
+    if (!parser || !INTENT) throw new ReferenceParseError(`tag ${REFERENCE_PARSE.tag} has no constraint-phrase parse`);
     return {
       vocabularySha256,
       parse: (text) => {
@@ -510,7 +491,7 @@ export async function loadRuleSources(set, cand) {
 }
 
 /**
- * The explicit /search params a parse maps to (the B2-4 diagnostic's baseline).
+ * The explicit /search params a parse maps to (the explicit-params diagnostic's baseline).
  * @param {Record<string, unknown>} constraints
  * @returns {Record<string, string>}
  */

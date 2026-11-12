@@ -82,7 +82,7 @@ describe('scripts/verify.mjs', () => {
   });
 });
 
-describe('verify --pre-deploy\'s data files (6A)', () => {
+describe('verify --pre-deploy\'s data files', () => {
   it('reads the committed year files and the year\'s NG list: 1,207 NG codes, the file\'s 40 among them', () => {
     const files = preDeployDataFiles('2026-2027');
     expect(files.ngReasonsAcadYear).toBe('2026-2027');

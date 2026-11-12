@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7E (docs/plans/phase7.md 7E, tests first): `year check` in its CI mode, and `year next`.
+// `year check` in its CI mode, and `year next`.
 // Each case runs over a temp copy of the files the check reads (test/year-fakes.node.mjs), changed
 // one way: a consistent tree, a stale constant, a stub, a date that disagrees, a 40% drop in a
 // semester published both years, a missing oracle, and an unpublished semester (which passes).
@@ -23,13 +23,13 @@ afterEach(() => { rmSync(root, { recursive: true, force: true }); });
 const problems = () => yearCheck({ root }).problems.join('\n');
 
 describe('year check, CI mode', () => {
-  it('passes a consistent tree, noting a pending archive and what the lead must confirm', () => {
+  it('passes a consistent tree, noting a pending archive and what the maintainer must confirm', () => {
     // The real manifest's archive is published and nothing is left to confirm, so the copy is
-    // put back in the state the lead started from: both are notes, never failures.
+    // put back in a new year's state: both are notes, never failures.
     const rel = `data/ng-sources-${Y}.json`;
     const pending = readJson(root, rel);
     const rev = pending.revisions.at(-1);
-    rev.archive = { ...rev.archive, sha256: null, pending: 'the lead publishes it' };
+    rev.archive = { ...rev.archive, sha256: null, pending: 'the maintainer publishes it' };
     rev.documents.find((/** @type {any} */ d) => d.id === 'self-funded').confirm = ['url'];
     writeFileSync(join(root, rel), `${JSON.stringify(pending, null, 1)}\n`);
     const r = yearCheck({ root });
@@ -37,7 +37,7 @@ describe('year check, CI mode', () => {
     expect(r.ok).toBe(true);
     expect(r.year).toBe(Y);
     expect(r.notes.join('\n')).toMatch(/archive: pending/);
-    expect(r.notes.join('\n')).toMatch(/to confirm \(the lead\)/);
+    expect(r.notes.join('\n')).toMatch(/to confirm \(the maintainer\)/);
     // YST's Sem 2 page is last year's until YST publishes this year's: said, not failed.
     const m = readJson(root, `data/ng-sources-${Y}.json`);
     for (const s of ['1', '2']) if (m.published.yst[s] !== Y) expect(r.notes.join('\n')).toContain(`YST Sem ${s}: ${yearLabel(m.published.yst[s])}'s page`);
@@ -101,11 +101,11 @@ describe('year check, CI mode', () => {
   });
 
   it('fails when the year has no oracle', () => {
-    unlinkSync(join(root, `test/sc1/oracle-${Y}.node.mjs`));
-    expect(problems()).toMatch(new RegExp(`names oracle test/sc1/oracle-${Y}\\.node\\.mjs, which doesn't exist`));
+    unlinkSync(join(root, `test/oracle/oracle-${Y}.node.mjs`));
+    expect(problems()).toMatch(new RegExp(`names oracle test/oracle/oracle-${Y}\\.node\\.mjs, which doesn't exist`));
   });
 
-  it('passes an unpublished semester (G2) whose last-year list exists, and says so', () => {
+  it('passes an unpublished semester whose last-year list exists, and says so', () => {
     const courses = readJson(root, `data/ng-courses-${Y}.json`);
     writeJson(root, `data/ng-courses-${LAST}.json`, { ...courses, acadYear: LAST }, 2);
     const sem1 = { ...courses.semesters };
@@ -136,18 +136,18 @@ describe('year check, CI mode', () => {
 describe('year next', () => {
   const NEXT = nextYear(Y);
   const scaffold = [`data/ng-sources-${NEXT}.json`, `data/ng-courses-${NEXT}.json`, `data/ng-restrictions-${NEXT}.json`,
-    `scripts/ng-overlay/${NEXT}.mjs`, `test/sc1/oracle-${NEXT}.node.mjs`, `docs/year-refresh/registers/${NEXT}.md`];
+    `scripts/ng-overlay/${NEXT}.mjs`, `test/oracle/oracle-${NEXT}.node.mjs`, `docs/year-refresh/registers/${NEXT}.md`];
 
   it('writes the year\'s files as stubs, each starting from last year\'s, and the checklist names every step', () => {
     const r = yearNext(NEXT, { root });
     expect(r.written).toEqual(scaffold);
     expect(r.kept).toEqual([]);
-    expect(readJson(root, `data/ng-sources-${NEXT}.json`)).toMatchObject({ acadYear: NEXT, stub: true, overlay: `scripts/ng-overlay/${NEXT}.mjs`, oracle: `test/sc1/oracle-${NEXT}.node.mjs` });
+    expect(readJson(root, `data/ng-sources-${NEXT}.json`)).toMatchObject({ acadYear: NEXT, stub: true, overlay: `scripts/ng-overlay/${NEXT}.mjs`, oracle: `test/oracle/oracle-${NEXT}.node.mjs` });
     expect(readJson(root, `data/ng-courses-${NEXT}.json`)).toEqual({ stub: true, acadYear: NEXT, semesters: {} });
     expect(readFileSync(join(root, `scripts/ng-overlay/${NEXT}.mjs`), 'utf8')).toMatch(/^export const stub = true;$/m);
-    const oracle = readFileSync(join(root, `test/sc1/oracle-${NEXT}.node.mjs`), 'utf8');
+    const oracle = readFileSync(join(root, `test/oracle/oracle-${NEXT}.node.mjs`), 'utf8');
     expect(oracle).toMatch(/^export const stub = true;$/m);
-    expect(oracle).toContain(readFileSync(join(root, `test/sc1/oracle-${Y}.node.mjs`), 'utf8'));
+    expect(oracle).toContain(readFileSync(join(root, `test/oracle/oracle-${Y}.node.mjs`), 'utf8'));
     expect(readFileSync(join(root, `docs/year-refresh/registers/${NEXT}.md`), 'utf8')).toMatch(/\| C1 \(re-verify\) \|/);
     expect(CHECKLIST(NEXT)).toMatch(/--write-budget 80000/);
     // The next year's stubs fail its own year check.

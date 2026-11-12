@@ -1,15 +1,15 @@
 // @ts-check
-// Phase 3 3-0's ingest and re-embed runbook (docs/plans/phase3.md 3-0) against
+// The ingest and re-embed runbook (docs/data.md "Re-ingesting") against
 // the real admin routes, local D1 and the fakes:
-// - step 4, the D1-only mode (B3-5): /admin/ingest?d1Only=1, /admin/delete?d1Only=1
+// - step 4, the D1-only mode: /admin/ingest?d1Only=1, /admin/delete?d1Only=1
 //   and ingest-core's d1Only make no Workers AI or Vectorize call;
-// - step 5, `npm run verify -- --pre-deploy` (B2-1): D1 against the manifest
+// - step 5, `npm run verify -- --pre-deploy`: D1 against the manifest
 //   and the bundle, with no Vectorize read;
-// - step 8, /admin/vectors and scripts/vectors-core.mjs runStandby (B2-1, B3-3):
+// - step 8, /admin/vectors and scripts/vectors-core.mjs runStandby:
 //   every code upserted from the bundle with D1's full metadata, in batches of
 //   at most 1,000, deletions after, the mutation awaited, then verify with a
 //   values sample.
-// Phase 7 7C: steps 3-8 go through `npm run remote -- …`, and no step writes
+// Steps 3-8 go through `npm run remote -- …`, and no step writes
 // .dev.vars.
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -25,7 +25,7 @@ import fixtureUnscheduled from './fixtures/ng-unscheduled.json';
 import { hashEmbed } from './fakes.js';
 import { adminCall, fixture, seed } from './helpers.js';
 import { adminApi } from './ingest-support.js';
-import reference from '../docs/REFERENCE.md?raw';
+import reference from '../docs/data.md?raw';
 
 const MODEL = '@cf/baai/bge-small-en-v1.5';
 /** scripts/lib.mjs EMBEDDING_TEXT_VERSION. */
@@ -63,7 +63,7 @@ const bundleFor = async (modules) => {
 /** @param {NormalisedModule[]} modules */
 const versionOf = async (modules) => dataVersion(await Promise.all(modules.map(async (m) => ({ code: m.code, rowHash: await rowHash(m) }))));
 
-describe('runbook step 4: D1-only mode (B3-5)', () => {
+describe('runbook step 4: D1-only mode', () => {
   it('/admin/ingest?d1Only=1 writes the rows and hashes and calls neither Workers AI nor Vectorize', async () => {
     const m = await withText(fixture.modules[0], 'a wholly new embedded text');
     const res = await adminCall('/admin/ingest?d1Only=1', fakes, { modules: [m] });
@@ -131,11 +131,11 @@ describe('runbook step 5: verify --pre-deploy', () => {
   const fixtureEntry = /** @type {any} */ (manifest).bundles.fixture;
   const fixtureBundle = async () => bundleFor(fixture.modules);
   /**
-   * 6A: the year files this deploy ships and the NG list, for the fixture: its NG codes plus the
+   * The year files this deploy ships and the NG list, for the fixture: its NG codes plus the
    * fixture file's, so exactly the file's codes are NG codes with no D1 row.
    */
   const unscheduledCodes = fixtureUnscheduled.modules.map((e) => e.code);
-  /** Phase 7 7D: the bundled catalogue file, here the empty catalogue_only seed() leaves. */
+  /** The bundled catalogue file, here the empty catalogue_only seed() leaves. */
   const catalogue = { codes: /** @type {string[]} */ ([]) };
   const dataFiles = {
     ngReasonsAcadYear: ngReasons.acadYear,
@@ -150,7 +150,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     expect(r).toMatchObject({ ok: true, d1Rows: fixture.modules.length, bundleRows: fixture.modules.length, missingInBundle: [], extraInBundle: [], fieldDrift: [] });
     expect(new Set(Object.values(r.rowsKey)).size).toBe(1);
     expect(new Set(Object.values(r.dataVersion)).size).toBe(1);
-    // Every module row, plus 7D's catalogueKey read of catalogue_only, counted as D1 bills it.
+    // Every module row, plus the catalogueKey read of catalogue_only, counted as D1 bills it.
     const catalogueRead = (await env.DB.prepare('SELECT code FROM catalogue_only').all()).meta.rows_read;
     expect(r.rowsRead).toBe(fixture.modules.length + catalogueRead);
     noRemoteCalls();
@@ -171,7 +171,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     noRemoteCalls();
   });
 
-  it('5A: reports exam dates D1 holds for semesters the bundle has no exam in, even under a consistent row_hash', async () => {
+  it('reports exam dates D1 holds for semesters the bundle has no exam in, even under a consistent row_hash', async () => {
     const bundle = await fixtureBundle();
     const m = /** @type {NormalisedModule} */ (fixture.modules.find((x) => x.examDates.length === 1));
     const wrongSem = m.examDates[0].sem === 1 ? 2 : 1;
@@ -186,7 +186,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     noRemoteCalls();
   });
 
-  it('6A: both year files\' acadYear equal D1\'s acad_year, and the file\'s codes are exactly the NG codes with no row', async () => {
+  it('both year files\' acadYear equal D1\'s acad_year, and the file\'s codes are exactly the NG codes with no row', async () => {
     const bundle = await fixtureBundle();
     const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles, catalogue });
     expect(r.ok).toBe(true);
@@ -208,7 +208,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     expect(stale.unscheduled).toEqual({ missing: ['EE4407'], withRow: [offered.code], notNg: ['ZZ1000'] });
   });
 
-  it('6A: a D1 holding rows of two years agrees with no file', async () => {
+  it('a D1 holding rows of two years agrees with no file', async () => {
     const bundle = await fixtureBundle();
     await env.DB.prepare("UPDATE modules SET acad_year = '2027-2028' WHERE code = ?").bind(fixture.modules[0].code).run();
     const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles, catalogue });
@@ -216,7 +216,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     expect(r.acadYear.d1).toBeNull();
   });
 
-  it('Phase 4 (B3-5): refuses a stored rule id the Worker\'s reason texts don\'t know', async () => {
+  it('refuses a stored rule id the Worker\'s reason texts don\'t know', async () => {
     const bundle = await fixtureBundle();
     const ng = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.ngRules && Object.keys(m.ngRules).length));
     const stored = JSON.stringify({ ...ng.ngRules, 0: ['no-such-rule'] });
@@ -336,7 +336,7 @@ describe('runbook step 8: /admin/vectors and the standby run', () => {
   });
 });
 
-describe('Phase 7 7C: the runbook as written in docs/REFERENCE.md', () => {
+describe('the runbook as written in docs/data.md', () => {
   const runbook = reference.slice(reference.indexOf('## Re-ingesting'), reference.indexOf('**What a run does.**'));
 
   it('no line writes .dev.vars', () => {

@@ -7,7 +7,7 @@
     "--preflight"
   ],
   "commit": {
-    "sha": "447e2e6ad5cd7aea2742deae0deea03dc38d6366",
+    "sha": "bb228f4186cee28313cb416b88cc8b11f964f065",
     "dirty": false,
     "diffSha256": null
   },
@@ -22,7 +22,7 @@
       {
         "name": "git",
         "status": "ok",
-        "message": "HEAD 447e2e6 is on origin/main, at its tip"
+        "message": "HEAD bb228f4 is on origin/main, at its tip"
       },
       {
         "name": "ci",

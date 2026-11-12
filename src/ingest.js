@@ -2,9 +2,9 @@
 // Admin routes used by scripts/ingest.mjs, scripts/verify.mjs and
 // scripts/vectors.mjs: /admin/hashes, /admin/ingest, /admin/delete,
 // /admin/facets, /admin/vectorize, /admin/verify, /admin/vectors and
-// /admin/catalogue (3B's D1 catalogue_only).
+// /admin/catalogue (D1's catalogue_only).
 //
-// D1-only mode (Phase 3 runbook step 4, B3-5): `?d1Only=1` on /admin/ingest
+// D1-only mode (runbook step 4): `?d1Only=1` on /admin/ingest
 // and /admin/delete writes D1 and nothing else, with no getByIds, AI.run or
 // Vectorize call. The vectors reach Vectorize later, from the sha-checked
 // bundle, through /admin/vectors (runbook step 8).
@@ -107,7 +107,7 @@ const metaOf = (results) => ({
 
 /**
  * GET /admin/hashes: src/admin-hashes.js computes the body from two reads, so the
- * deploy guard can compute the same over D1's REST query (Phase 7 7B).
+ * deploy guard can compute the same over D1's REST query.
  * @param {Request} request
  * @param {Env} env
  */
@@ -240,12 +240,12 @@ async function writeRows(env, batch, { embedded, mutationId, sentAt, d1Only }) {
  *  1. D1: clear the rows' text_hash ('', NOT NULL) and row_hash, so if a later
  *     step fails and the module comes back to the corpus, ingest sees no
  *     matching hash and re-embeds it rather than skipping it as unchanged with
- *     its vector gone (PR #13 review). 1 row written per code; no index or FTS
+ *     its vector gone. 1 row written per code; no index or FTS
  *     trigger covers either column.
  *  2. Vectorize deleteByIds.
  *  3. D1 DELETE. If it fails, the row is still in D1, so the next run plans
  *     its delete again; deleting from D1 first would orphan the vector,
- *     invisible to a plan built from D1's codes (plan r2, objection #11).
+ *     invisible to a plan built from D1's codes.
  * Answers `{ deleted, codes, mutationId, sentAt, meta }`; meta covers both D1
  * statements; sentAt as for /admin/ingest.
  * With `?d1Only=1` (runbook step 4) only step 3 runs: the D1 rows are deleted
@@ -333,7 +333,7 @@ const canonicalMetadata = (m) => JSON.stringify(Object.fromEntries(
  * - `preDeploy` (runbook step 5, `npm run verify -- --pre-deploy`): no
  *   Vectorize call at all. Answers the row_hash check plus every row's code,
  *   text and row hashes and filter fields (`rows`), for the comparison with
- *   the manifest and the bundle, and D1's `catalogueKey` (Phase 7 7D) for the
+ *   the manifest and the bundle, and D1's `catalogueKey` for the
  *   comparison with the bundled catalogue file.
  * @param {Request} request
  * @param {Env} env
@@ -374,7 +374,7 @@ export async function handleVerify(request, env) {
     }
     return json({
       codes: [...byCode.keys()],
-      // Phase 7 7D: verify --pre-deploy compares it with the bundled catalogue file's.
+      // verify --pre-deploy compares it with the bundled catalogue file's.
       catalogueKey: catalogue.key,
       rowHash: { checked: rows.results.length, drift: rowHashDrift, missing: missingRowHash },
       rows: rows.results.map((r) => {
@@ -385,7 +385,7 @@ export async function handleVerify(request, env) {
           examSemesters: f.examSemesters ?? [], su: f.su === true, suGrading: suGrading(f.gradingBasis),
           workloadHours: f.workloadHours ?? null, prereqNone: f.prereqNone === true, prereqCohortOnly: f.prereqCohortOnly === true,
           ngAllow: f.ngAllow ?? 0, ngRules: f.ngRules ?? null, examDates: f.examDates ?? [],
-          // 6A: verify --pre-deploy checks the year files against it.
+          // verify --pre-deploy checks the year files against it.
           acadYear: r.acad_year,
         };
       }),
@@ -435,7 +435,7 @@ export async function handleVerify(request, env) {
 }
 
 /**
- * POST /admin/vectors (runbook step 8, B2-1, B3-3): brings the Vectorize
+ * POST /admin/vectors (runbook step 8): brings the Vectorize
  * standby level with the bundle.
  * - `{ ids: string[], values: string }`: upserts at most 1,000 vectors.
  *   `values` is base64 little-endian float32, ids.length × 384 of them, read
@@ -510,7 +510,7 @@ export async function handleVectors(request, env) {
 // Guarded: rebuilds the precomputed facet row. Called by the ingest script once
 // the corpus has finished loading. An optional body `{ ngList: { updatedAsAt,
 // source, count } }` (from data/ng-courses-*.json) is stored as meta('ng_list')
-// first, so /facets reports the NG list date from the file itself (O3). Admin
+// first, so /facets reports the NG list date from the file itself. Admin
 // reads and writes go to the primary (env.DB), never a replica.
 /**
  * @param {Request} request
@@ -563,7 +563,7 @@ export const CATALOGUE_LIMIT = 100;
  * `catalogue_only` holds (migration 0008), so ingest writes only changed rows.
  * Each rowHash is recomputed from the row's columns (src/admin-hashes.js
  * verifiedCatalogueHash): null when the stored row_hash is not it, so ingest
- * rewrites a row changed behind its hash (red team M-1).
+ * rewrites a row changed behind its hash.
  * `ok: false` and `rows: null` when the table does not exist: ingest refuses
  * before any write.
  * @param {Request} request

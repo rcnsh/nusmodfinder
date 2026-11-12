@@ -1,8 +1,7 @@
 // @ts-check
 // wrangler.jsonc, read as JSONC: `//` and `/* */` comments and trailing commas, then JSON.parse.
 // The deploy's preflight (`vars`) and the D1 config (`d1_databases`) read it whole instead of
-// matching one block with a regex, which a nested object or a second entry fooled (red team L-2,
-// L-3). A file it can't read throws, naming the file: the callers fail rather than pass blind.
+// matching one block with a regex, which a nested object or a second entry fools. A file it can't read throws, naming the file: the callers fail rather than pass blind.
 //
 // No Node APIs here (the text is passed in), so anything can use it.
 

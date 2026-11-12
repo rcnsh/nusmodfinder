@@ -10,13 +10,12 @@ import { FTS_SEPARATORS } from './fts-separators.js';
 const STOPWORDS = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'do', 'for', 'from',
   'how', 'i', 'in', 'is', 'it', 'me', 'my', 'of', 'on', 'or', 'own', 'the', 'to', 'with', 'you', 'your']);
 
-/** The list before Phase 3 (eval/prereg/stopwords.json `current`). */
+/** The original list (eval/query-rules/stopwords.json `current`). */
 export const STOPWORDS_CURRENT = STOPWORDS;
 
-// Candidate `stopwords-v2` (docs/plans/phase3.md 3B "Keyword brittleness",
-// eval/prereg/stopwords.json): the list above plus words that name the
+// Candidate `stopwords-v2` (eval/query-rules/stopwords.json): the list above plus words that name the
 // catalogue itself rather than a subject. Screened alone under the general CI
-// rule; it ships only if it passes dev alone.
+// rule; it goes in force only if it passes dev alone.
 export const STOPWORDS_V2 = new Set([...STOPWORDS_CURRENT,
   'class', 'course', 'courses', 'module', 'modules', 'nus', 'something', 'teach']);
 
@@ -24,9 +23,8 @@ export const STOPWORDS_V2 = new Set([...STOPWORDS_CURRENT,
 export const STOPWORD_VARIANTS = Object.freeze({ current: STOPWORDS_CURRENT, v2: STOPWORDS_V2 });
 
 /**
- * The stopword list in force. Each screened ranker differs from the next only
- * here (tags `3b`, `3b-sw2`, `sw2`), so the ranker tree hash names the list the
- * eval scored. The 3B code-join guard reads the same list (src/query-intent.js).
+ * The stopword list in force. The variants differ only in this list, so the ranker tree hash names the
+ * list the eval scored. The code-join guard reads the same list (src/query-intent.js).
  * @type {StopwordVariant}
  */
 export const STOPWORDS_VARIANT = 'current';
@@ -36,10 +34,10 @@ export const STOPWORDS_IN_FORCE = STOPWORD_VARIANTS[STOPWORDS_VARIANT];
 /**
  * The query's tokens, split exactly where the modules_fts tokenizer
  * (`porter unicode61`, 0006) splits text: on the separator table generated
- * from SQLite itself, not on `[^a-z0-9]` (FINDINGS B8: "naïve" became "na",
- * "ve"). Lower-cased; folding diacritics and stemming are left to FTS5, which
+ * from SQLite itself, not on `[^a-z0-9]`, which would split "naïve" into
+ * "na", "ve". Lower-cased; folding diacritics and stemming are left to FTS5, which
  * applies them to each quoted token as it does to the indexed text. For ASCII
- * input this is byte-identical to the old `[^a-z0-9]+` split.
+ * input this is byte-identical to a `[^a-z0-9]+` split.
  * @param {string} query
  */
 export function queryTokens(query) {
@@ -73,16 +71,16 @@ function ftsMatchExpression(tokens) {
 
 /**
  * @typedef {{ prefixes: readonly string[], corrections: readonly { from: string, to: string }[] }} FtsTerms
- *   3C's terms (src/typo.js): tokens written as prefix terms, and corrections
+ *   The typo step's terms (src/typo.js): tokens written as prefix terms, and corrections
  *   whose original joins the OR, as a prefix term, beside its corrected term.
  */
 
 /**
  * The FTS5 MATCH expression for a user query, or null when it has no tokens.
- * With 3C's terms, a token in `prefixes` is written `"tok"*`, and each
+ * With the typo step's terms, a token in `prefixes` is written `"tok"*`, and each
  * correction's original follows its corrected term (or ends the expression
  * when that term is a stopword), so nothing typed is lost. A query with
- * neither gets exactly the expression it had before 3C.
+ * neither gets the plain OR of its tokens.
  * @param {string} query
  * @param {FtsTerms} [terms]
  */

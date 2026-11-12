@@ -1,16 +1,16 @@
 // @ts-check
-// The Worker's IntentContext for src/query-intent.js: the 3B-0 data files
-// (data/, built by scripts/build-3b-data.mjs), the stopword list in force, 3C's
-// corpus vocabulary, and the offered-code lookup the caller supplies (the
+// The Worker's IntentContext for src/query-intent.js: the catalogue data files
+// (data/, built by scripts/build-catalogue-data.mjs), the stopword list in force, the typo
+// step's corpus vocabulary, and the offered-code lookup the caller supplies (the
 // bundle's code list, or D1 when the bundle is unusable). The static part is
 // built once per isolate.
 //
 // The per-corpus files are bare names, so each config points them at the
 // corpus it searches (esbuild accepts no relative alias keys):
-// - `vocabulary-data` (Phase 5 5B, A2-1): wrangler.jsonc aliases it to
+// - `vocabulary-data`: wrangler.jsonc aliases it to
 //   data/vocabulary.json, built from the production bundle's corpus and
 //   versioned with it (scripts/build-vocabulary.mjs);
-// - `catalogue-codes-data` and `prefixes-data` (Phase 7 7D, B12): wrangler.jsonc
+// - `catalogue-codes-data` and `prefixes-data`: wrangler.jsonc
 //   aliases them to data/catalogue-codes.json and data/prefixes.json, built
 //   from `current` (data/corpus.json), so a code added to the catalogue since
 //   the pinned snapshot answers `not-offered`.

@@ -1,5 +1,5 @@
 // @ts-check
-// Fakes for Phase 7 7E's tests (year check, sources, the rehearsal's pieces): a temp copy of the
+// Fakes for the year's source gate tests (year check, sources, the rehearsal's pieces): a temp copy of the
 // files the year's source gate reads, and fake NUS documents that the restrictions builder turns
 // into the committed rules (codes and YST lists taken from the committed file, every other
 // document a few bytes). Never the real documents: those stay on the Mac, out of reach of tests.
@@ -16,13 +16,16 @@ export const REPO = fileURLToPath(new URL('..', import.meta.url));
 export const Y = DEFAULT_ACAD_YEAR;
 export const LAST = previousYear(Y);
 
+/** The live year's source manifest, for the transcription and register it names. */
+const MANIFEST = JSON.parse(readFileSync(join(REPO, `data/ng-sources-${Y}.json`), 'utf8'));
+
 /** What `year check` and the builder read for the live year. */
 export const TREE_FILES = [
   'scripts/lib.mjs', 'public/year.js', 'public/index.html',
   'data/corpus.json', 'data/ng-reasons.json', 'data/ng-unscheduled.json',
   `data/ng-sources-${Y}.json`, `data/ng-courses-${Y}.json`, `data/ng-restrictions-${Y}.json`,
-  `scripts/ng-overlay/${Y}.mjs`, `test/sc1/oracle-${Y}.node.mjs`, 'test/sc1/oracle-shared.node.mjs',
-  'docs/evidence/phase4/interpretations.md', 'docs/evidence/phase4/transcription-b.json',
+  `scripts/ng-overlay/${Y}.mjs`, `test/oracle/oracle-${Y}.node.mjs`, 'test/oracle/oracle-shared.node.mjs',
+  MANIFEST.register, MANIFEST.transcription,
   'src/level-note.js', 'public/shortlist.js', 'public/export.js',
 ];
 
@@ -46,7 +49,7 @@ export const writeJson = (root, rel, data, indent = 1) => {
 export const sha = (b) => createHash('sha256').update(b).digest('hex');
 
 /** The committed rule E sentence, as the restrictions' text extraction would hold it. */
-/** scripts/extract-ng.py, which `year check --full` re-runs over the archived NG list (red team H-1). */
+/** scripts/extract-ng.py, which `year check --full` re-runs over the archived NG list. */
 export const EXTRACT_NG = join(REPO, 'scripts/extract-ng.py');
 
 /**
@@ -111,13 +114,13 @@ export function fakeDocuments(dir, { restrictionsText = `Course restrictions\n${
 export function useFakeDocuments(root, files) {
   const m = readJson(root, `data/ng-sources-${Y}.json`);
   const rev = m.revisions[m.revisions.length - 1];
-  // The fakes publish their own archive, so the copied revision's (the real one, once the lead has
-  // published it) is reset to pending: publish never replaces an archive.
+  // The fakes publish their own archive, so the copied revision's (the real one, once
+  // published) is reset to pending: publish never replaces an archive.
   rev.archive = { ...rev.archive, sha256: null, pending: 'the fakes publish it' };
   rev.documents =rev.documents.filter((/** @type {any} */ d) => d.builder || d.id === 'restrictions').map((/** @type {any} */ d) => {
     const rest = { ...d };
     delete rest.confirm;
-    // The text's pin (red team L-5) is the fake text's, as publish would write it.
+    // The text's pin is the fake text's, as publish would write it.
     const out = {
       ...rest, url: rest.url ?? 'https://example.test/doc', sha256: files[d.file] ? sha(files[d.file]) : d.sha256,
       ...(d.text ? { textSha256: files[d.text] ? sha(files[d.text]) : undefined } : {}),

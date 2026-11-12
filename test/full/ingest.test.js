@@ -1,24 +1,23 @@
 // @ts-check
-// Phase 1C over the full pinned corpus (6,771 modules): what ingest costs in
+// Ingest cost over the full pinned corpus (6,771 modules): what ingest costs in
 // D1 rows, measured on local D1 through the real routes and
 // scripts/ingest-core.mjs (fake Workers AI and Vectorize). Every D1 statement
 // any admin route runs is metered (meta.rows_read / rows_written), including
 // /admin/hashes and the facets rebuild, which the ingest script's own budget
-// does not see. Logs one `[1C] {...}` line; docs/evidence/phase1/ingest-cost.md
-// quotes it.
+// does not see. Logs one `[ingest-cost] {...}` line.
 //
-// SC6: a forced full re-ingest stays under 10% of the daily D1 read limit
+// A forced full re-ingest stays under 10% of the daily D1 read limit
 // (500,000 rows), and within the default write budget (40,000, ADR 0002) as
 // the budget charges it (per batch, the larger of meta.rows_written and the
 // estimate with FTS shadow writes; a forced re-ingest of unchanged text has
 // none).
 //
-// A cold load is charged ~149k rows (FTS inserts: 13.19 per module measured,
-// docs/evidence/phase1/fts-writes.mjs), so the default budget stops it
+// A cold load is charged ~149k rows (FTS inserts: 13.19 per module measured),
+// so the default budget stops it
 // cleanly and the resume here runs with a higher one.
 //
-// The production starting state (PR #13 review): rows written by main, whose
-// text_hash was hashOf(text), with row_hash NULL. The planned run from it
+// The older-format starting state: rows whose text_hash is hashOf(text), with
+// row_hash NULL. The planned run from it
 // re-embeds every module but changes no FTS-indexed column, so it must finish
 // in one run under the default budget.
 import { applyD1Migrations, reset } from 'cloudflare:test';
@@ -31,7 +30,7 @@ import { createFakes } from '../fakes.js';
 import { adminApi } from '../ingest-support.js';
 
 const corpus = inject('corpus');
-const SC6_READ_LIMIT = 500_000;
+const FULL_REINGEST_READ_LIMIT = 500_000;
 const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 
 /** @typedef {{ read: number, written: number, statements: number }} Meter */
@@ -69,7 +68,7 @@ function meteredDb(meter) {
   });
 }
 
-describe.skipIf(!corpus)('ingest cost over the full pinned corpus (Phase 1C, SC6)', () => {
+describe.skipIf(!corpus)('ingest cost over the full pinned corpus', () => {
   const c = /** @type {FullCorpus} */ (corpus);
   const fakes = createFakes();
   /** @type {Record<string, unknown>} */
@@ -106,7 +105,7 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus (Phase 1C, SC6
     await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
   });
 
-  it('cold ingest, forced full re-ingest (SC6), no-op rerun, field-only change, 10 deletes, verify', async () => {
+  it('cold ingest, forced full re-ingest within the read budget, no-op rerun, field-only change, 10 deletes, verify', async () => {
     // Cold: an empty 0006 database. An INSERT writes the row, its primary-key
     // index entry and every filter index (~7.1 rows/module) plus ~13.2 FTS5
     // shadow rows local D1 does not report: far more than the 40,000 default
@@ -119,7 +118,7 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus (Phase 1C, SC6
     expect(cold.result.status).toBe('done');
     expect(stopped.result.upserted + cold.result.upserted).toBe(c.modules.length);
 
-    // The production starting state: main's text_hash, no row_hash.
+    // The older-format starting state: text_hash = hashOf(text), no row_hash.
     const mainFormat = await Promise.all(c.modules.map(async (m) => env.DB
       .prepare('UPDATE modules SET text_hash = ?, row_hash = NULL WHERE code = ?').bind((await sha256Hex(m.text)).slice(0, 32), m.code)));
     for (let i = 0; i < mainFormat.length; i += 500) await env.DB.batch(mainFormat.slice(i, i + 500));
@@ -128,11 +127,11 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus (Phase 1C, SC6
     expect(production.result.plan).toMatchObject({ embed: c.modules.length, rowOnly: 0, unchanged: 0, deletes: 0 });
     expect(production.result.rowsCharged).toBeLessThanOrEqual(40_000);
 
-    // SC6: forced full re-ingest.
+    // Forced full re-ingest.
     const forced = await measured('forced', c.modules, { force: true });
     expect(forced.result.status).toBe('done');
     expect(forced.result.plan.embed).toBe(c.modules.length);
-    expect(forced.meter.read).toBeLessThan(SC6_READ_LIMIT);
+    expect(forced.meter.read).toBeLessThan(FULL_REINGEST_READ_LIMIT);
     expect(forced.result.rowsCharged).toBeLessThanOrEqual(40_000);
     expect(forced.result.rowsCharged).toBeGreaterThanOrEqual(forced.result.rowsWritten);
 
@@ -181,6 +180,6 @@ describe.skipIf(!corpus)('ingest cost over the full pinned corpus (Phase 1C, SC6
     expect(verify.ok).toBe(true);
     report.verify = { rowsRead: vmeter.read, rowsWritten: vmeter.written, sample: verify.sampleChecked };
 
-    console.log(`[1C] ${JSON.stringify(report)}`);
+    console.log(`[ingest-cost] ${JSON.stringify(report)}`);
   }, 900_000);
 });

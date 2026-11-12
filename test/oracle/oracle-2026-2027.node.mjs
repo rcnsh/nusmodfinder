@@ -1,11 +1,12 @@
-// SC1 oracle: which NUS courses an incoming exchange (Non-Graduating, NG) student may take, AY2026/27.
+// Exchange-eligibility oracle: which NUS courses an incoming exchange (Non-Graduating, NG) student may take, AY2026/27.
 //
 // Written independently from the sources only:
 //   - NUS Registrar "Course Restrictions for Non-Graduating Students" (updated 31 Aug 2026)
 //   - "Courses in the NUS Self-funded Programmes" (rule A)
 //   - YST "Courses for NUS Non-Music Majors" pages, AY26/27 Sem 1 and AY25/26 Sem 2 (rule I9)
 //   - Faculty of Law compulsory LLB course listing (image)
-//   - docs/evidence/phase4/interpretations.md (R*, C*, I* rows are cited by id below)
+//   - the 2026/27 interpretations register (`register` in data/ng-sources-2026-2027.json;
+//     R*, C*, I* rows are cited by id below)
 //
 // oracle(m, ctx) -> 'open' | 'note' | 'closed'. explain(m, ctx) returns the same plus the reasons.
 //
@@ -59,10 +60,9 @@
 //  D23 C2's blanket prefixes match the letters before the first digit exactly (CG, DSA, GEH).
 //  D24 Notes do not depend on study level unless the sentence names one.
 //
-// Phase 7 7E: D1-D24 are also the register's rows now, as the lead's rulings
-// (docs/evidence/phase4/interpretations.md). R3's year-of-study note and R6-2's GRO level 4000
+// D1-D24 are also rows of the register. The year-of-study note and GRO's level 4000
 // note, with their readings Y1-Y5 and G1-G3, don't depend on a year's PDFs and live in
-// test/sc1/oracle-shared.node.mjs. Callers import test/sc1/oracle.mjs, which picks the year's oracle.
+// test/oracle/oracle-shared.node.mjs. Callers import test/oracle/oracle.mjs, which picks the year's oracle.
 import { levelNoteOf, yearNoteOf } from './oracle-shared.node.mjs';
 
 export { levelNoteOf, prereqYears, yearNoteOf } from './oracle-shared.node.mjs';
@@ -244,7 +244,7 @@ export function explain(m, ctx) {
   return evalSemester(m, ctx.sem, ctx.study);
 }
 
-/** explain() plus R3's and R6-2's notes: what a card shows. */
+/** explain() plus the year-of-study and level 4000 notes: what a card shows. */
 export function explainShown(m, ctx) {
   const e = explain(m, ctx);
   if (e.result === 'closed') return e;
@@ -252,7 +252,7 @@ export function explainShown(m, ctx) {
   return added.length ? { result: 'note', closed: [], notes: [...e.notes, ...added] } : e;
 }
 
-/** oracle() plus R3's and R6-2's notes. */
+/** oracle() plus the year-of-study and level 4000 notes. */
 export function oracleShown(m, ctx) {
   return explainShown(m, ctx).result;
 }

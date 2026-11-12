@@ -1,5 +1,5 @@
 // @ts-check
-// The first screen (Phase 5 5D, D2 as ADR 0008 records it): the page opens on
+// The first screen: the page opens on
 // the exchange set-up (the semester at NUS, the year of study, then what to
 // study), with "Browse all courses instead" as the way out. A link with any
 // state skips it.

@@ -1,6 +1,5 @@
 // @ts-check
-// The CSV export (Phase 6 6D; docs/plans/phase6.md 6D "CSV" and "Tests
-// first"): public/export.js works the shortlist into the export's document,
+// The CSV export: public/export.js works the shortlist into the export's document,
 // the same one the print page draws, and public/csv.js writes it as RFC 4180.
 // Each file is read back by a strict reader written apart from the page
 // (rfc4180.node.mjs), over /module answers built from the fixture
@@ -24,7 +23,7 @@ const SOURCES = REASONS_FILE.sources;
 /** 12 Nov 2026, noon in Singapore. */
 const TODAY = new Date(Date.UTC(2026, 10, 12, 4));
 
-/** The fixture's ng-unscheduled.json EE4407, as /module's 404 detail answers it (6A). */
+/** The fixture's ng-unscheduled.json EE4407, as /module's 404 detail answers it. */
 const EE4407 = ngListedOutcome('EE4407', {
   title: 'Analog Electronics', description: 'This course builds on the basic concepts in electronics.', faculty: 'College of Design and Engineering',
   department: 'Electrical and Computer Engineering', ngSemesters: [1], workload: { lecture: 2, tutorial: 1, lab: 0.5, project: 1.5, prep: 5, total: 10 },
@@ -72,7 +71,7 @@ const rowOf = (rows, code) => {
   return r;
 };
 
-describe('[6D] the CSV: RFC 4180', () => {
+describe('the CSV: RFC 4180', () => {
   it('every field quoted, CRLF line ends, a byte-order mark, the header first, every row the header\'s field count', () => {
     const { text, records, header } = csvOf('ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1&alt=CS3244.1');
     expect(everyFieldQuoted(text.slice(1))).toBe(true);
@@ -108,7 +107,7 @@ describe('[6D] the CSV: RFC 4180', () => {
   });
 });
 
-describe('[6D] the CSV: each course\'s block', () => {
+describe('the CSV: each course\'s block', () => {
   it('a counted course: its form number, list and rank, semester, units, department, faculty, level, status, exam, workload, estimate, description, NUS\'s texts and its NUSMods link', () => {
     const { rows, header } = csvOf('ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.1');
     const r = rowOf(rows, 'CS2113');
@@ -164,14 +163,14 @@ describe('[6D] the CSV: each course\'s block', () => {
     const { rows } = csvOf('ng=1&study=ug2&pick=CS2030.1&alt=CS2113.1');
     expect(rowOf(rows, 'CS2030').Flags).toMatch(/^CS2030 and CS2113: their 2026\/27 exams overlap\./);
     expect(rowOf(rows, 'CS2113').Flags).toMatch(/^CS2030 and CS2113: their 2026\/27 exams overlap\./);
-    // Browse mode (no study level): CS2030S is the same course as CS2030 (6B).
+    // Browse mode (no study level): CS2030S is the same course as CS2030.
     const browse = csvOf('pick=CS2030.1&pick=CS2030S.1').rows;
     expect(rowOf(browse, 'CS2030S')).toMatchObject({ Section: 'Sem 1', Counts: 'Not counted: the same course as CS2030.', 'Exchange status': 'Not checked: no year of study set' });
     expect(rowOf(browse, 'CS2030').Counts).toBe('Counted: exchange status not checked');
   });
 });
 
-describe('[6D] the CSV: grouped by semester, then closed, then not placed', () => {
+describe('the CSV: grouped by semester, then closed, then not placed', () => {
   it('Sem 1 then Sem 2, primary picks then backups in rank order, then the closed and the not-placed sections', () => {
     const qs = 'ng=1&study=ug2&sem=2&pick=CS2030.2&pick=CS3244.1&pick=CS2113.1&pick=BL5240.1&pick=CS9999.1&alt=GE2101.1&alt=CS2030S&alt=ZZ1001.1';
     const { rows } = csvOf(qs, {
@@ -201,7 +200,7 @@ describe('[6D] the CSV: grouped by semester, then closed, then not placed', () =
   });
 });
 
-describe('[6D] the CSV: head, totals and foot as label/value rows', () => {
+describe('the CSV: head, totals and foot as label/value rows', () => {
   it('the head: what it plans and on which year\'s data, the year of study, the date, the shortlist link, the later-year line and the site', () => {
     const qs = 'ng=1&study=ug3&sem=1&pick=CS2113.1&pick=CS2030.2';
     const { tail } = csvOf(qs);
@@ -215,7 +214,7 @@ describe('[6D] the CSV: head, totals and foot as label/value rows', () => {
     for (const t of tail) expect(t.rest.every((f) => f === '')).toBe(true);
   });
 
-  it('per semester: units counted, then to confirm, the hours at NUS\'s rate, GRO\'s 13 weeks, and NUS\'s minimum and maximum (G2, word for word)', () => {
+  it('per semester: units counted, then to confirm, the hours at NUS\'s rate, GRO\'s 13 weeks, and NUS\'s minimum and maximum (word for word)', () => {
     const { tail } = csvOf('ng=1&study=ug2&sem=1&pick=CS2113.1&pick=GE2101.2');
     const sem1 = tail.filter((t) => t.label === 'Sem 1 totals').map((t) => t.value);
     expect(sem1[0]).toBe('Sem 1: 4 units picked, if NUS accepts you into each');
@@ -246,7 +245,7 @@ describe('[6D] the CSV: head, totals and foot as label/value rows', () => {
   });
 });
 
-describe('[6D] the file name', () => {
+describe('the file name', () => {
   it('from the semesters present and the rows\' year; no semester part when no entry has one', () => {
     expect(fileName(exportOf('ng=1&study=ug2&pick=CS2113.1'), 'csv')).toBe('exchange-shortlist-sem1-2026-27-courses.csv');
     expect(fileName(exportOf('ng=1&study=ug2&pick=CS2113.1&alt=CS2030.2'), 'csv')).toBe('exchange-shortlist-sem1-sem2-2026-27-courses.csv');
@@ -254,7 +253,7 @@ describe('[6D] the file name', () => {
     expect(exportOf('ng=1&study=ug2&pick=CS2030.2').stem).toBe('exchange-shortlist-sem2-2026-27-courses');
   });
 
-  it('names only the semesters the document plans: an entry not placed (special terms only, an unknown 404) or closed adds none (review finding 2)', () => {
+  it('names only the semesters the document plans: an entry not placed (special terms only, an unknown 404) or closed adds none', () => {
     const unknown = { CS9999: { kind: 'error', error: { status: 404, code: 'not_found', detail: { kind: 'unknown', acadYear: '2026-2027' } } } };
     for (const [qs, extra] of /** @type {[string, Record<string, any>][]} */ ([
       ['ng=1&study=ug2&sem=1&pick=CS2113.1&pick=BL5240.2', {}],

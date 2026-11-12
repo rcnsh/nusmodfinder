@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // @ts-check
-// CI's one diff rule (Phase 7 7A). The `changes` job runs it and sets four outputs the heavy jobs
+// CI's one diff rule. The `changes` job runs it and sets four outputs the heavy jobs
 // skip by, by steps, never by a job-level `if`:
-//   code      full-corpus and sc1: anything outside docs/** and the root *.md files;
+//   code      full-corpus and oracle: anything outside docs/** and the root *.md files;
 //   ui        the UI suite: the paths it covers (UI below);
 //   grid      full-corpus's lexical grid in full, else its fixed sample: the paths it covers;
-//   rollover  7E's year-switch rehearsal (scripts/rollover.mjs): as code.
+//   rollover  the year-switch rehearsal (scripts/rollover.mjs): as code.
 // The base: a PR's base sha; a push to main, the newest main commit whose CI run succeeded and
 // which HEAD contains. A workflow_dispatch, an API error, no green run, an unreachable base or a
 // failed diff runs everything. A change to this file or to ci.yml runs everything too.
@@ -21,9 +21,9 @@ import { fileURLToPath } from 'node:url';
 
 /** A change to the decision itself. */
 const SELF = ['.github/workflows/ci.yml', 'scripts/ci-changes.mjs'];
-/** What the UI suite covers: the ui job's former diff step, plus test/web and test/sc1, which test/ui imports. */
+/** What the UI suite covers: the ui job's former diff step, plus test/web and test/oracle, which test/ui imports. */
 const UI = [
-  'public', 'src', 'test/ui', 'test/web', 'test/sc1', 'test/fakes.js', 'scripts/ui-server.mjs', 'scripts/lib.mjs', 'wrangler.jsonc',
+  'public', 'src', 'test/ui', 'test/web', 'test/oracle', 'test/fakes.js', 'scripts/ui-server.mjs', 'scripts/lib.mjs', 'wrangler.jsonc',
   'test/wrangler.ui.jsonc', 'playwright.config.mjs', 'migrations', 'test/fixtures', 'data', 'package.json',
   'package-lock.json', '.nvmrc',
 ];

@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 1 step 0 instrumentation: Server-Timing, the structured /search log
+// Instrumentation: Server-Timing, the structured /search log
 // line, x-app-version and GET /health.
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createFakes } from './fakes.js';
@@ -50,7 +50,7 @@ describe('Server-Timing on /search', () => {
     const res = await call('/search?q=machine%20learning%20timing', { fakes });
     expect(res.status).toBe(200);
     const spans = parseTiming(res.headers.get('server-timing'));
-    // 3F's variants read runs when a result has duplicates to list.
+    // The duplicate-group variants read runs when a result has duplicates to list.
     const variants = (await res.clone().json()).results.some((/** @type {any} */ r) => r.variants) ? ['variants'] : [];
     expect(Object.keys(spans)).toEqual(['cache', 'limit', 'embed', 'vector', 'fts', 'hydrate', ...variants, 'total']);
     expect(spans.cache.desc).toBe('miss');
@@ -111,7 +111,7 @@ describe('Server-Timing on /search', () => {
 });
 
 describe('Server-Timing on /module and /facets', () => {
-  // 6A: a 404 too, whichever kind: an ng-listed code (no catalogue read), a code in no table (two reads, one span).
+  // A 404 too, whichever kind: an ng-listed code (no catalogue read), a code in no table (two reads, one span).
   it.each(['/module/CS1010S', '/module/XX9999', '/module/EE4407', '/facets'])('%s reports d1 and total', async (path) => {
     const res = await call(path);
     const spans = parseTiming(res.headers.get('server-timing'));
@@ -125,7 +125,7 @@ describe('structured /search log', () => {
     const logs = captureSearchLogs();
     const res = await call('/search?q=machine%20learning%20logged&sem=1', {
       fakes,
-      // The uncollapsed pipeline: 3F's collapse adds a variants read (test/search-groups.test.js).
+      // The uncollapsed pipeline: the group collapse adds a variants read (test/search-groups.test.js).
       env: { CF_VERSION_METADATA: VERSION, COLLAPSE_GROUPS: 'off' },
       init: { headers: { 'cf-connecting-ip': '203.0.113.7', 'user-agent': 'secret-agent/1.0' } },
     });
@@ -177,7 +177,7 @@ describe('structured /search log', () => {
 });
 
 describe('version traceability', () => {
-  // The page (`/`) is static assets since Phase 5 5B: those responses skip the
+  // The page (`/`) is static assets: those responses skip the
   // Worker and carry no x-app-version, so GET /health is the version trace for
   // `/` (test/ui/routes.spec.js checks / is the page and the API is the Worker).
   it('x-app-version is the tag, else the version id, else "dev", on every Worker route', async () => {
@@ -201,7 +201,7 @@ describe('version traceability', () => {
   it('GET /health reports the version without touching D1', async () => {
     const { status, headers, body } = await callJson('/health', { env: { CF_VERSION_METADATA: VERSION, DB: undefined } });
     expect(status).toBe(200);
-    // Phase 3 3-0 (plan §7): the bundled vectors' corpus and data version, beside the committed one,
+    // The bundled vectors' corpus and data version, beside the committed one,
     // so a smoke can see which bundle is live (here the fixture, the default alias).
     const vectors = { corpus: 'fixture', count: manifest.bundles.fixture.count, dataVersion: manifest.bundles.fixture.dataVersion };
     expect(body).toEqual({ ok: true, versionId: VERSION.id, versionTag: 'abc1234', dataVersion: DATA_VERSION, vectors });

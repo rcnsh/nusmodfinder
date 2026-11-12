@@ -1,5 +1,5 @@
-// Phase 1: probe the NUSMods data and size the Vectorize index before building.
-// Verifies the acad year exists, the record shape is what the plan assumed, and
+// Probes the NUSMods data and sizes the Vectorize index. Verifies the acad year
+// exists, the record shape is what ingest expects, and
 // whether the corpus fits under the Vectorize free-plan stored-dimension cap.
 import {
   DEFAULT_ACAD_YEAR, EMBEDDING_MODEL, EMBEDDING_DIMS, MODULE_CODE_RE,
@@ -16,11 +16,11 @@ const arg = (name, fallback) => {
 const acadYear = arg('year', DEFAULT_ACAD_YEAR);
 const line = (s = '') => console.log(s);
 
-line(`# Phase 1 probe — acad year ${acadYear}`);
+line(`# NUSMods probe — acad year ${acadYear}`);
 line();
 
 line('## Acad year availability');
-// The probed year, two before it and one after (Phase 7 7D: from the year, no literals).
+// The probed year, two before it and one after (from the year, no literals).
 const first = Number(acadYear.slice(0, 4));
 for (const y of [-2, -1, 0, 1].map((d) => `${first + d}-${first + d + 1}`)) {
   const res = await fetch(`https://api.nusmods.com/v2/${y}/moduleList.json`, { method: 'HEAD' });

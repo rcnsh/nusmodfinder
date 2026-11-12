@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-// Phase 2d judging CLI. Protocol: eval/JUDGING.md. Commands: eval/README.md.
+// The judging CLI. Protocol: eval/JUDGING.md. Commands: eval/README.md.
 //
 //   npm run eval:judge -- prepare --round <r> --judges <idA>[,<idB>] [--set dev] [--pool <file>] [--drift-from <qrels>]
 //   npm run eval:judge -- drop-judge --round <r> --slot B --reason <text> [--force]

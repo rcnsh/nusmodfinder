@@ -1,5 +1,5 @@
 // @ts-check
-// 3B in /search (docs/plans/phase3.md 3B, docs/plans/phase3-prereg.md §3–§4)
+// The query parse in /search
 // on the fixture corpus and the fixture bundle: pins, whole-query masks
 // (partial codes, bare prefixes, XX N000, GE) by exact dense score and in code
 // order without the dense half, the third RRF list, the GE pre-retrieval mask
@@ -27,7 +27,7 @@ const pillarMembers = fixtureCodes.filter((c) => PILLARS.includes(letters(c)));
 /** The exact dense order of `q` over the rows the constraints admit. @param {string} q @param {any} constraints @param {number} depth */
 const denseOrder = (q, constraints, depth) => exactSearch(denseBundle(), hashEmbed(q), constraints, depth).map((h) => h.code);
 
-// 3F: one result per duplicate group (groups-v1), the others as its variants.
+// One result per duplicate group (groups-v1), the others as its variants.
 const groupOf = parseGroupsFile(/** @type {any} */ (groupsFile));
 const gkey = (/** @type {string} */ c) => groupOf.get(c) ?? c;
 /** The group-first projection of a ranked list. @param {string[]} list */
@@ -250,7 +250,7 @@ describe('ignore', () => {
 });
 
 describe('the bundle filter table', () => {
-  it('has 3H-0\'s fields and, from schema 3, Phase 4\'s allow mask in the old prefix-id slot', () => {
+  it('has the constraint fields and, from schema 3, the exchange allow mask in the old prefix-id slot', () => {
     const b = denseBundle();
     expect(b.header.schema).toBe('vnm-vectors/3');
     const cs3244 = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.code === 'CS3244'));
@@ -259,8 +259,8 @@ describe('the bundle filter table', () => {
   });
 });
 
-describe('review fixes (PR #44)', () => {
-  it('lead decision: ge followed by digits inside a longer query is text: no GE mask, Geography stays in both halves', async () => {
+describe('parse edge cases', () => {
+  it('ge followed by digits inside a longer query is text: no GE mask, Geography stays in both halves', async () => {
     for (const mode of ['hybrid', 'lexical']) {
       const { body } = await callJson(`/search?q=${encodeURIComponent('ge 2101 methods practices geography')}&mode=${mode}`, { fakes });
       expect(body.interpreted.ge, mode).toBeNull();

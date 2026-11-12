@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // @ts-check
-// The custodian's holdout check of the SC4 suite and the gibberish set
-// (plan §4 "Custody", A-N1): no holdout text may enter them. Two rules, against
-// every holdout query, decrypted in memory only:
-// - the v2.1 code-overlap rule: a suite code token (any token with a digit,
+// The custodian's holdout check of the query suite and the gibberish set: no
+// holdout text may enter them, or the suite would leak the held-out set. Run it
+// after adding suite or gibberish texts. Two rules, against every holdout query,
+// decrypted in memory only:
+// - the code-overlap rule: a suite code token (any token with a digit,
 //   spaced or not, plus each item's pinned codes and prefix families) overlaps
 //   a holdout code target when either is a prefix of the other;
 // - query-embedding cosine >= 0.9 (ADR 0003's leak-filter threshold), the
@@ -12,29 +13,29 @@
 // holdout id, text, target or score. It is not a look: it reads no run and
 // gives no verdict on any ranker.
 //
-//   node eval/prereg/sc4-custody.mjs --custodian
-//   node eval/prereg/sc4-custody.mjs --against dev   self-check on the open dev set:
+//   node eval/suite-custody.mjs --custodian
+//   node eval/suite-custody.mjs --against dev   self-check on the open dev set:
 //     it must hit at least the four dev texts the suite names (d-016, d-022, d-024, d-079)
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
-import { base64ToF32, embeddingKey, MODEL, queryTextForms, readCache } from '../lib/embeddings.mjs';
-import { REPO, layout, loadQueries, setFile, setKey } from '../lib/sets.mjs';
+import { base64ToF32, embeddingKey, MODEL, queryTextForms, readCache } from './lib/embeddings.mjs';
+import { REPO, layout, loadQueries, setFile, setKey } from './lib/sets.mjs';
 import { readFileSync } from 'node:fs';
 
 const { values: a } = parseArgs({ options: { custodian: { type: 'boolean', default: false }, against: { type: 'string', default: 'holdout' } } });
 if (a.against !== 'holdout' && a.against !== 'dev') {
-  console.error('sc4-custody: --against is holdout or dev');
+  console.error('suite-custody: --against is holdout or dev');
   process.exit(1);
 }
 if (a.against === 'holdout' && !a.custodian) {
-  console.error('sc4-custody: custodian only; pass --custodian');
+  console.error('suite-custody: custodian only; pass --custodian');
   process.exit(1);
 }
 
 const json = (/** @type {string} */ p) => JSON.parse(readFileSync(join(REPO, p), 'utf8'));
-const suite = json('test/sc4/queries.json').items;
+const suite = json('test/query-suite/queries.json').items;
 const gibberish = json('eval/dev/gibberish.json').strings;
-const sc4Cache = json('test/sc4/embeddings.json').entries;
+const suiteCache = json('test/query-suite/embeddings.json').entries;
 const devCache = json('eval/dev/embeddings.json').entries;
 
 /** Code tokens with a digit in a text: `cs 1010s`, `CS32`, `lsm 9876` → CS1010S, CS32, LSM9876. @param {string} text */
@@ -61,7 +62,7 @@ function vectors(text, caches) {
   return queryTextForms(text).map((f) => {
     const k = embeddingKey(MODEL, f);
     const b64 = caches.map((c) => c[k]).find(Boolean);
-    if (!b64) throw new Error('sc4-custody: a text has no embedding; run the embedding step first');
+    if (!b64) throw new Error('suite-custody: a text has no embedding; embed the texts in test/query-suite/needs-embedding.txt first');
     return base64ToF32(b64);
   });
 }
@@ -87,7 +88,7 @@ const entries = [
 const hits = new Set();
 for (const e of entries) {
   if (e.codes.some((/** @type {string} */ c) => targets.some((/** @type {string} */ t) => c.startsWith(t) || t.startsWith(c)))) hits.add(e.id);
-  const mine = vectors(e.text, [sc4Cache, devCache]);
+  const mine = vectors(e.text, [suiteCache, devCache]);
   if (hVecs.some((hv) => hv.some((h) => mine.some((m) => cos(m, h) >= 0.9)))) hits.add(e.id);
 }
 console.log(`checked ${entries.length} suite, comparison and gibberish texts against the ${a.against} set`);

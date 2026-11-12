@@ -1,11 +1,10 @@
 // @ts-check
-// Whether a commit's own CI and Findings push runs succeeded (Phase 7 7B): the deploy's
-// preflight refuses otherwise, and the Actions deploy's gate (scripts/deploy-gate.mjs) waits
-// for both. One `gh api` read of the repo's runs for that sha; `{owner}/{repo}` is filled in by
+// Whether a commit's own CI push run succeeded: the deploy's preflight refuses otherwise, and
+// the Actions deploy's gate (scripts/deploy-gate.mjs) waits for it. One `gh api` read of the repo's runs for that sha; `{owner}/{repo}` is filled in by
 // gh from the checkout's remote (GH_TOKEN in Actions, the deployer's gh login on the Mac).
 
 /** The workflows (by `name:`) whose push runs must have succeeded. */
-export const REQUIRED_WORKFLOWS = /** @type {const} */ (['CI', 'Findings']);
+export const REQUIRED_WORKFLOWS = /** @type {const} */ (['CI']);
 
 /**
  * @typedef {{ id: number, name: string, status: string, conclusion: string | null, head_sha: string, event?: string,

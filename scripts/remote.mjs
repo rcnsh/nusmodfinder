@@ -1,6 +1,6 @@
 // @ts-check
 // Runs one command against production D1, Vectorize and Workers AI through a
-// fresh `wrangler dev --remote` session (Phase 7 7C; scripts/remote-session.mjs):
+// fresh `wrangler dev --remote` session (scripts/remote-session.mjs):
 //
 //   npm run remote -- [--port <n>] <command…>
 //   npm run remote -- ingest --d1-only

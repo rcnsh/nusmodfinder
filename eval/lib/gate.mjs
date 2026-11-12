@@ -1,6 +1,5 @@
 // @ts-check
-// The pre-committed ship gate (docs/plans/phase2.md, r2 "Gate", r3 cutoff
-// rule, Final). Takes a Comparison from metrics.mjs `compare()` (candidate vs
+// The gate a ranking change must pass. Takes a Comparison from metrics.mjs `compare()` (candidate vs
 // the currently shipped ranker, same queries, same qrels) and a declaration
 // of the change, and returns a verdict with every check that produced it.
 //
@@ -20,17 +19,15 @@
 //           candidate whose result list for any query is neither the
 //           baseline's nor a prefix of it (a cutoff truncates; it never
 //           reorders or adds).
-//   SC5     On the sealed test set: BCa 95% lower bounds of ΔnDCG@10 and ΔP@5
-//           both > 0; judged@10 = 100%. On the holdout only by `--gate sc5`,
-//           and only under the holdout reading of SC5 (SC5_READING, tied to
-//           ADR 0003's "SC5 reading" by test/eval/gate.node.test.js).
-//   no-loss            (dev screen only; 3F, 3H) ΔnDCG@10 >= 0, point
+//   test    On the sealed test set (the final measurement against eval-v0):
+//           BCa 95% lower bounds of ΔnDCG@10 and ΔP@5 both > 0; judged@10 = 100%.
+//   no-loss            (dev screen only) ΔnDCG@10 >= 0, point
 //                      estimate, over the primary set less any `exempt` ids.
 //                      Exempt ids leave only that figure: every other check
 //                      (errors, exact-code, query count) is on the full set.
-//   answerable-floor   (dev screen only; 3G) ΔnDCG@10 >= -0.01 over the
+//   answerable-floor   (dev screen only) ΔnDCG@10 >= -0.01 over the
 //                      primary answerable set.
-//   compliance         (Phase 5 5F; dev screen and holdout, never the test
+//   compliance         (dev screen and holdout, never the test
 //                      set) on constraint-filtered qrels (lib/compliance.mjs):
 //                      ΔnDCG@10 >= 0 and ΔP@5 >= 0 over the primary set's
 //                      scored queries; the constraint block's ΔnDCG@10 >= 0,
@@ -71,38 +68,14 @@ export const RULES = Object.freeze({
   minShapeQueriesForCi: 3,
 });
 
-/**
- * Which set decides SC5, as ADR 0003 "SC5 reading" records it: `sealed` (the
- * sealed test set, one look) or `holdout` (L12 on the holdout, `--gate sc5`).
- * A test ties this to the ADR's text, so changing the reading means changing
- * the ADR in the same PR.
- * @type {'sealed' | 'holdout'}
- */
-export const SC5_READING = 'sealed';
-
 /** Change kinds that screen on dev only: no holdout or test verdict uses them. */
 export const DEV_ONLY_KINDS = Object.freeze(['no-loss', 'answerable-floor']);
 /** Every change kind `--change-kind` takes. */
 export const CHANGE_KINDS = Object.freeze(['general', 'cutoff', 'compliance', ...DEV_ONLY_KINDS]);
 
 /**
- * Throws GateRuleError unless the SC5 rule may be taken on `set`'s gate: the
- * test set always; the holdout only under the holdout reading; dev never.
- * @param {string} set dev | holdout | test
- * @param {'sealed' | 'holdout'} [reading]
- */
-export function assertSc5Allowed(set, reading = SC5_READING) {
-  if (set === 'test') return;
-  if (set !== 'holdout') throw new GateRuleError(`--gate sc5 is not taken on dev: SC5 is decided on the sealed test set or, under the holdout reading, on the holdout`);
-  if (reading !== 'holdout') {
-    throw new GateRuleError('--gate sc5 is refused on the holdout: ADR 0003 records the sealed-test-set reading of SC5, so the holdout is never read for SC5 (L12 is unused)');
-  }
-}
-
-/**
- * `gate: 'sc5'` takes the SC5 rule on the holdout (assertSc5Allowed).
  * `exempt` (no-loss only, dev only): ids left out of the no-loss comparison.
- * @typedef {{ kind?: 'general' | 'cutoff' | 'compliance' | 'no-loss' | 'answerable-floor', targetShapes?: string[], gate?: 'sc5', exempt?: string[] }} Change
+ * @typedef {{ kind?: 'general' | 'cutoff' | 'compliance' | 'no-loss' | 'answerable-floor', targetShapes?: string[], exempt?: string[] }} Change
  * @typedef {{ name: string, pass: boolean, detail: string }} Check
  * @typedef {{ set: string, verdict: 'pass' | 'fail', checks: Check[], rule?: string }} Verdict
  * @typedef {import('./metrics.mjs').Comparison} Comparison
@@ -225,7 +198,7 @@ const verdict = (set, checks) => ({ set, verdict: checks.every((c) => c.pass) ? 
  * @returns {Verdict}
  */
 export function devGate(cmp, change = {}, noLoss = cmp) {
-  // Exact-code check on dev too: the holdout has a single exact-code query (ADR 0003 v2.1).
+  // Exact-code check on dev too: the holdout has a single exact-code query.
   const checks = [noNewErrorsCheck(cmp), sufficientCheck(cmp), judgedCheck(cmp), exactCodeCheck(cmp)];
   if (change.kind === 'cutoff') return verdict('dev', [...checks, ...cutoffChecks(cmp)]);
   if (change.kind && DEV_ONLY_KINDS.includes(change.kind)) return verdict('dev', [...checks, devKindCheck(cmp, change, noLoss)]);
@@ -257,7 +230,7 @@ export function devGate(cmp, change = {}, noLoss = cmp) {
       checks.push({ name, pass: s.ndcg.delta >= -EPS, detail: `n ${s.n} < ${RULES.minShapeQueriesForCi}: point estimate ΔnDCG@10 ${f(s.ndcg.delta)} >= 0` });
     } else if (s.ndcg.bca.degenerate && Math.abs(s.ndcg.delta) <= EPS) {
       // Every query moved by exactly 0 (a degenerate interval at 0): no change
-      // is no regression (ADR 0003 amendment 2026-11-07, found at 3B).
+      // is no regression (ADR 0003).
       checks.push({ name, pass: true, detail: `n ${s.n}: every query's ΔnDCG@10 is 0 (degenerate interval at 0: no change, no regression)` });
     } else {
       /** @type {import('./stats.mjs').Interval} */
@@ -302,11 +275,11 @@ export function holdoutGate(cmp, change = {}) {
  * }} ComplianceChecks `newErrors`: queries the candidate errors on where the baseline answered 200
  */
 
-/** The ledger's rule cell when the constraint block had no scored query (B3-3). */
+/** The ledger's rule cell when the constraint block had no scored query. */
 export const VACUOUS_BLOCK_RULE = 'compliance (constraint block vacuous)';
 
 /**
- * The compliance rule (Phase 5 5F), the same on dev and the holdout. `cmp`
+ * The compliance rule, the same on dev and the holdout. `cmp`
  * is the comparison on constraint-filtered qrels.
  * @param {string} set
  * @param {Comparison} cmp
@@ -334,14 +307,12 @@ export function complianceGate(set, cmp, c) {
 }
 
 /**
- * SC5: final shipped ranker vs eval-v0, on the sealed test set (or, under the
- * holdout reading, on the holdout: `set` names it).
+ * The sealed test set: the shipped ranker vs eval-v0.
  * @param {Comparison} cmp
- * @param {string} [set]
  * @returns {Verdict}
  */
-export function sc5Gate(cmp, set = 'test') {
-  return verdict(set, [
+export function testSetGate(cmp) {
+  return verdict('test', [
     noNewErrorsCheck(cmp),
     sufficientCheck(cmp),
     judgedCheck(cmp),
@@ -352,14 +323,14 @@ export function sc5Gate(cmp, set = 'test') {
 
 /**
  * The rule a verdict applies, as printed and recorded in the ledger:
- * `sc5` (the test set, or `--gate sc5`), `cutoff`, `no-loss`,
+ * `test-set`, `cutoff`, `no-loss`,
  * `answerable-floor`, `targeted: <shape,...>` or `general`.
  * Shape names are cut to [A-Za-z0-9._-].
  * @param {string} set dev | holdout | test
  * @param {Change} [change]
  */
 export function ruleOf(set, change = {}) {
-  if (set === 'test' || change.gate === 'sc5') return 'sc5';
+  if (set === 'test') return 'test-set';
   if (change.kind === 'cutoff' || change.kind === 'compliance' || (change.kind && DEV_ONLY_KINDS.includes(change.kind))) return change.kind;
   const targets = (change.targetShapes ?? []).map((t) => t.replace(/[^A-Za-z0-9._-]/g, '?').slice(0, 40));
   return targets.length ? `targeted: ${targets.join(',')}` : 'general';
@@ -391,8 +362,7 @@ export function assertTruncation(base, cand) {
  * @param {string} set dev | holdout | test (anything else is screened as dev)
  * @param {Comparison} cmp
  * @param {Change} [change]
- * @param {{ reading?: 'sealed' | 'holdout', noLoss?: Comparison, compliance?: ComplianceChecks }} [options] the SC5 reading (default: the
- *   recorded SC5_READING); `noLoss`, the comparison without no-loss's exempt ids (dev only);
+ * @param {{ noLoss?: Comparison, compliance?: ComplianceChecks }} [options] `noLoss`, the comparison without no-loss's exempt ids (dev only);
  *   `compliance`, the compliance rule's checks (`cmp` is then on filtered qrels)
  * @returns {Verdict}
  */
@@ -401,17 +371,13 @@ export function gateFor(set, cmp, change = {}, options = {}) {
   if ((set === 'holdout' || set === 'test') && change.kind && DEV_ONLY_KINDS.includes(change.kind)) {
     throw new GateRuleError(`--change-kind ${change.kind} is a dev screen only: no ${set} verdict takes it`);
   }
-  if (change.gate === 'sc5') {
-    assertSc5Allowed(set, options.reading);
-    return { ...sc5Gate(cmp, set), rule };
-  }
   if (change.kind === 'compliance') {
-    if (set === 'test') throw new GateRuleError('--change-kind compliance is not taken on the test set: its one rule is SC5');
+    if (set === 'test') throw new GateRuleError('--change-kind compliance is not taken on the test set: it has one rule');
     if (!options.compliance) throw new GateRuleError('--change-kind compliance needs the compliance rule\'s checks (lib/compliance.mjs)');
     const v = complianceGate(set === 'holdout' ? 'holdout' : 'dev', cmp, options.compliance);
     return { ...v, rule: options.compliance.block.n === 0 ? VACUOUS_BLOCK_RULE : rule };
   }
   if (set === 'holdout') return { ...holdoutGate(cmp, change), rule };
-  if (set === 'test') return { ...sc5Gate(cmp), rule };
+  if (set === 'test') return { ...testSetGate(cmp), rule };
   return { ...devGate(cmp, change, options.noLoss), rule };
 }

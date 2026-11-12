@@ -1,7 +1,7 @@
 // @ts-check
-// Phase 7 7C: the ops log is one file per run (scripts/run-record.mjs). Every
-// record goes to a temp dir; nothing here writes under docs/evidence/ops/runs/
-// or reaches a remote.
+// The ops log is one file per run (scripts/run-record.mjs). Every record these
+// tests write goes to a temp dir; nothing here writes under ops/runs/ or
+// reaches a remote. The committed records under ops/runs/ are validated here.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -94,7 +94,7 @@ describe('a run record', () => {
     expect(validateRunRecord(record, { file, now: new Date('2027-01-01T00:00:00Z') })).toEqual([]);
   });
 
-  it('refuses, under Vitest, to write into the repo\'s docs/evidence/ops/runs/', () => {
+  it('refuses, under Vitest, to write into the repo\'s ops/runs/', () => {
     expect(() => startRun('ingest', { dir: RUNS_DIR })).toThrow(/tests must not write run records into the repo/);
   });
 });
@@ -115,11 +115,11 @@ describe('the commit a record names', () => {
   });
   afterEach(() => { rmSync(repo, { recursive: true, force: true }); });
 
-  it('a clean tree: the sha, dirty false, no diff hash; a new run record under docs/evidence/ops/runs/ is not dirt', () => {
+  it('a clean tree: the sha, dirty false, no diff hash; a new run record under ops/runs/ is not dirt', () => {
     const sha = git('rev-parse', 'HEAD').trim();
     expect(gitState({ cwd: repo })).toEqual({ sha, dirty: false, diffSha256: null });
-    execFileSync('mkdir', ['-p', join(repo, 'docs/evidence/ops/runs')]);
-    writeFileSync(join(repo, 'docs/evidence/ops/runs/20261112T101530Z-ingest-ab12.json'), '{}\n');
+    execFileSync('mkdir', ['-p', join(repo, 'ops/runs')]);
+    writeFileSync(join(repo, 'ops/runs/20261112T101530Z-ingest-ab12.json'), '{}\n');
     expect(gitState({ cwd: repo }).dirty).toBe(false);
   });
 
@@ -162,8 +162,8 @@ describe('every exit path leaves a record', () => {
 
   it('a normal end: one record, outcome ok; a finished record is not written again at exit', () => {
     expect(node("const run = startRun('eval:embed'); run.guardExit();").status).toBe(0);
-    expect(node("const run = startRun('p5-live'); run.guardExit(); run.finish('failed', { exitCode: 1 }); process.exit(1);").status).toBe(1);
-    expect(records().map((x) => [x.record.script, x.record.outcome])).toEqual(expect.arrayContaining([['eval:embed', 'ok'], ['p5-live', 'failed']]));
+    expect(node("const run = startRun('live-check'); run.guardExit(); run.finish('failed', { exitCode: 1 }); process.exit(1);").status).toBe(1);
+    expect(records().map((x) => [x.record.script, x.record.outcome])).toEqual(expect.arrayContaining([['eval:embed', 'ok'], ['live-check', 'failed']]));
     expect(records()).toHaveLength(2);
   });
 
@@ -196,10 +196,10 @@ describe('every exit path leaves a record', () => {
   });
 });
 
-describe('the live checks\' record (p5-live, p6-live)', () => {
+describe('the live checks\' record (live-check, live-shortlist)', () => {
   const pass = [{ pass: true }, { pass: true }];
   it('a live URL: one record on success, with each request by path', async () => {
-    const outcomes = await recordedLiveRun('p6-live', { url: 'https://nusmodfinder.rcn.sh', seed: 6 }, async (o) => {
+    const outcomes = await recordedLiveRun('live-shortlist', { url: 'https://nusmodfinder.rcn.sh', seed: 6 }, async (o) => {
       o.onSend?.('/facets');
       o.onSend?.('/module/CS2040');
       o.onSend?.('/module/CS2040');
@@ -207,25 +207,25 @@ describe('the live checks\' record (p5-live, p6-live)', () => {
     }, { dir, now: () => AT });
     expect(outcomes).toBe(pass);
     const [{ record }] = records();
-    expect(record).toMatchObject({ script: 'p6-live', target: 'https://nusmodfinder.rcn.sh', outcome: 'ok', exitCode: 0, requests: { '/facets': 1, '/module/CS2040': 2 } });
+    expect(record).toMatchObject({ script: 'live-shortlist', target: 'https://nusmodfinder.rcn.sh', outcome: 'ok', exitCode: 0, requests: { '/facets': 1, '/module/CS2040': 2 } });
   });
 
   it('a failed check, or a run that throws: one record each, outcome failed', async () => {
-    await recordedLiveRun('p5-live', { url: 'https://nusmodfinder.rcn.sh' }, async () => [{ pass: true }, { pass: false }], { dir, now: () => AT, random: () => '0001' });
-    await expect(recordedLiveRun('p5-live', { url: 'https://nusmodfinder.rcn.sh' }, async () => { throw new Error('browser crashed'); }, { dir, now: () => AT, random: () => '0002' }))
+    await recordedLiveRun('live-check', { url: 'https://nusmodfinder.rcn.sh' }, async () => [{ pass: true }, { pass: false }], { dir, now: () => AT, random: () => '0001' });
+    await expect(recordedLiveRun('live-check', { url: 'https://nusmodfinder.rcn.sh' }, async () => { throw new Error('browser crashed'); }, { dir, now: () => AT, random: () => '0002' }))
       .rejects.toThrow('browser crashed');
     expect(records().map((r) => [r.record.outcome, r.record.exitCode])).toEqual([['failed', 1], ['failed', 1]]);
     expect(records()[1].record.message).toContain('browser crashed');
   });
 
   it('a local server (npm run dev) is not a remote: no record', async () => {
-    await recordedLiveRun('p6-live', { url: 'http://127.0.0.1:8911' }, async () => pass, { dir });
-    await recordedLiveRun('p5-live', { url: 'http://localhost:8911' }, async () => pass, { dir });
+    await recordedLiveRun('live-shortlist', { url: 'http://127.0.0.1:8911' }, async () => pass, { dir });
+    await recordedLiveRun('live-check', { url: 'http://localhost:8911' }, async () => pass, { dir });
     expect(records()).toEqual([]);
   });
 });
 
-describe('validating run records (check:findings)', () => {
+describe('validating run records', () => {
   const NOW = new Date('2026-11-12T12:00:00Z');
   const good = () => {
     const run = startRun('verify', { dir, now: () => AT, random: () => 'beef' });
@@ -279,6 +279,10 @@ describe('validating run records (check:findings)', () => {
   it('a missing runs dir has no records and no errors', () => {
     expect(checkRunRecords(join(dir, 'none'), NOW)).toEqual([]);
   });
+
+  it('every committed record under ops/runs/ is valid', () => {
+    expect(checkRunRecords(RUNS_DIR)).toEqual([]);
+  });
 });
 
 describe('the writers that exist today', () => {
@@ -291,7 +295,7 @@ describe('the writers that exist today', () => {
     expect(src('vectors.mjs')).toMatch(/startRun\('vectors standby'/);
   });
 
-  it('Phase 7 7B: smoke, rollback, d1:bookmark and d1:restore start a record (their tests run each one)', () => {
+  it('smoke, rollback, d1:bookmark and d1:restore start a record (their tests run each one)', () => {
     expect(src('smoke.mjs')).toMatch(/startRun\('smoke'/);
     expect(src('rollback.mjs')).toMatch(/startRun\('rollback'/);
     expect(src('d1-time-travel.mjs')).toMatch(/startRun\('d1:bookmark'/);
@@ -316,8 +320,8 @@ describe('the writers that exist today', () => {
     expect(embed).toMatch(/record\?\.request\(`\/ai\/run\/\$\{MODEL\}`\)/);
   });
 
-  it('p5-live and p6-live run through recordedLiveRun unless they only plan, and count each request they send', () => {
-    for (const [f, flag] of [['p5-live.mjs', 'dryRun'], ['p6-live.mjs', 'plan']]) {
+  it('live-check and live-shortlist run through recordedLiveRun unless they only plan, and count each request they send', () => {
+    for (const [f, flag] of [['live-check.mjs', 'dryRun'], ['live-shortlist.mjs', 'plan']]) {
       const s = src(f);
       expect(s).toContain(`opts.${flag} ? await run(opts) : await recordedLiveRun('${f.replace('.mjs', '')}', opts, run)`);
       expect(s).toMatch(/opts\.onSend\?\.\(/);

@@ -37,19 +37,19 @@
 </head>
 <body>
 <div class="app" id="app" data-view="setup">
-  <!-- The first stop for Tab (5E): past the header (and the rail) to what the view is for. app.js points it at the shown <main>. -->
+  <!-- The first stop for Tab: past the header (and the rail) to what the view is for. app.js points it at the shown <main>. -->
   <a class="skip" id="skip" href="#setup">Skip to main content</a>
   <header class="hdr">
     <h1 class="brand"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7" fill="currentColor"/><g class="lens" fill="none" stroke-linecap="round"><circle cx="14" cy="14" r="6.5" stroke-width="2.6"/><path d="M19 19l5.5 5.5" stroke-width="3"/></g></svg><span class="brand-name">NUS Mod Finder</span> <span class="unofficial"><span class="paren">(</span>unofficial<span class="paren">)</span></span></h1>
-    <!-- The year line at every width (Phase 8 8B): app.js writes it from public/year.js; this is what shows before. -->
+    <!-- The year line at every width: app.js writes it from public/year.js; this is what shows before. -->
     <p class="year-line" id="yearLine">Academic year 2026/27</p>
-    <!-- The one polite live region (5E, F5): result counts, no match, hidden codes, errors and 429, in a
+    <!-- The one polite live region: result counts, no match, hidden codes, errors and 429, in a
          sentence (app.js). In the header, so it is in the tree in every view before it first speaks. -->
     <p class="vh" id="live" role="status" aria-live="polite" aria-atomic="true"></p>
   </header>
   <noscript><p class="noscript">NUS Mod Finder needs JavaScript to search: turn it on in your browser, then reload this page.</p></noscript>
 
-  <!-- The first screen (D2): the exchange set-up, then the query. -->
+  <!-- The first screen: the exchange set-up, then the query. -->
   <main class="setup" id="setup" aria-labelledby="setupTitle" tabindex="-1">
     <div class="setup-intro">
       <h2 id="setupTitle" class="setup-title">Find the NUS courses you can take on exchange</h2>
@@ -84,7 +84,7 @@
           </div>
           <p class="setup-error" id="setupError" hidden></p>
           <p class="browse"><button type="button" class="linkbtn" id="browseAll">Browse all courses instead</button></p>
-          <!-- G3 (6C): the last shortlist kept on this device, offered when the link has none. -->
+          <!-- The last shortlist kept on this device, offered when the link has none. -->
           <div class="sl-restore setup-restore" id="slRestoreSetup" hidden></div>
         </div>
       </div>
@@ -94,7 +94,7 @@
   <!-- Results: the rail (the exchange set-up, filters and key) beside the search and the entries. -->
   <div class="layout" id="layout">
     <aside class="rail" aria-label="Your exchange and filters">
-      <!-- 6C: the shortlist button, outside #panel, so it never moves into the filters dialog. -->
+      <!-- The shortlist button, outside #panel, so it never moves into the filters dialog. -->
       <div class="sl-rail">
         <button type="button" class="btn sl-open" id="slOpenRail"></button>
         <p class="sl-undo" id="slUndoRail" hidden></p>
@@ -151,15 +151,15 @@
           <ul class="chips" id="chips" aria-label="Filters applied"></ul>
         </div>
       </form>
-      <!-- 6C: on a phone, the shortlist button sits under the search form, outside its landmark. -->
+      <!-- On a phone, the shortlist button sits under the search form, outside its landmark. -->
       <div class="sl-row" id="slRow">
         <button type="button" class="btn sl-open" id="slOpenPhone"></button>
         <p class="sl-undo" id="slUndoPhone" hidden></p>
       </div>
       <div class="sl-restore" id="slRestore" hidden></div>
-      <!-- 6C: the shortlist view (view=shortlist); the results region is hidden while it shows. -->
+      <!-- The shortlist view (view=shortlist); the results region is hidden while it shows. -->
       <section class="sl-view" id="slView" aria-labelledby="slTitle" hidden></section>
-      <!-- 6D: the print page, never shown on screen; print shows it alone once the page's print class is on. -->
+      <!-- The print page, never shown on screen; print shows it alone once the page's print class is on. -->
       <section class="sl-print" id="slPrint" aria-labelledby="ppTitle"></section>
       <div id="status" class="status"></div>
       <ol id="results" class="entries" aria-label="Results" aria-busy="false"></ol>

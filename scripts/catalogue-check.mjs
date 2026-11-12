@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 7 7D: D1's catalogue against the bundled catalogue file. The Worker
+// D1's catalogue against the bundled catalogue file. The Worker
 // answers `not-offered` for the codes it bundles (`catalogue-codes-data`,
 // which wrangler.jsonc aliases to data/catalogue-codes.json, built from
 // `current`) and names the title D1's catalogue_only holds, so the two must
@@ -37,11 +37,11 @@ export async function readBundledCatalogue(path = BUNDLED_CATALOGUE_PATH) {
 export async function catalogueKeyMismatch(d1Key, bundled) {
   const fileKey = await catalogueKey(bundled.codes);
   if (typeof d1Key !== 'string') {
-    return `D1 reported no catalogueKey (a Worker from before Phase 7 7D, or no catalogue_only table); the bundled file's is ${fileKey}.`;
+    return `D1 reported no catalogueKey (a Worker without the catalogueKey check, or no catalogue_only table); the bundled file's is ${fileKey}.`;
   }
   if (d1Key === fileKey) return null;
   return `D1's catalogue_only (catalogueKey ${d1Key}) is not the bundled catalogue file's (catalogueKey ${fileKey}, ${bundled.codes.length} codes). `
-    + 'Load the catalogue from `current` (the runbook\'s ingest) or rebuild the file (node scripts/build-3b-data.mjs --corpus production).';
+    + 'Load the catalogue from `current` (the runbook\'s ingest) or rebuild the file (node scripts/build-catalogue-data.mjs --corpus production).';
 }
 
 /**

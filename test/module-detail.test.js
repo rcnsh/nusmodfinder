@@ -1,5 +1,5 @@
 // @ts-check
-// Phase 5 5A (docs/plans/phase5.md §3 "5A"): /module/:code answers the exam
+// /module/:code answers the exam
 // dates, the workload as named hours, and the NUSMods link, with a short
 // public cache on a 200 and none on a failure.
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -27,7 +27,7 @@ beforeAll(async () => {
   if (res.status !== 200) throw new Error(`ingest XX3104: HTTP ${res.status}`);
 });
 
-describe('/module/:code (5A)', () => {
+describe('/module/:code', () => {
   it('answers every exam: semester, ISO UTC date and duration in minutes, as the fixture has them', async () => {
     const { status, body } = await callJson(`/module/${twoExams.code}`);
     expect(status).toBe(200);
@@ -51,7 +51,7 @@ describe('/module/:code (5A)', () => {
     expect((await callJson(`/module/${zeroWorkload.code}`)).body.workload).toBeNull();
   });
 
-  it('answers prereqCohortOnly from the stored flag, for every fixture course (5D)', async () => {
+  it('answers prereqCohortOnly from the stored flag, for every fixture course', async () => {
     const flagged = fixture.modules.filter((m) => m.prereqCohortOnly);
     expect(flagged.length).toBeGreaterThan(5);
     for (const m of [...flagged, ...fixture.modules.filter((x) => !x.prereqCohortOnly && x.prerequisite).slice(0, 10)]) {
@@ -67,7 +67,7 @@ describe('/module/:code (5A)', () => {
   });
 });
 
-describe('/module/:code caching (5A)', () => {
+describe('/module/:code caching', () => {
   it('a 200 is public for 5 minutes, with no ETag', async () => {
     const { status, headers } = await callJson('/module/CS1010S');
     expect(status).toBe(200);
@@ -103,16 +103,15 @@ describe('/module/:code caching (5A)', () => {
   });
 });
 
-// Phase 6 6A (docs/plans/phase6.md §3 "6A"): a course's other codes, its
+// A course's other codes, its
 // grading basis, and a 404 that says which kind of miss it is.
-describe('/module/:code for the shortlist (6A)', () => {
+describe('/module/:code for the shortlist', () => {
   /**
-   * The sha256 of every fixture code's 200 body, in code order, one JSON line each, as 5D answered
-   * them (before 6A), with one change since: the year note's wording, "whether your year of study
-   * during your exchange counts" (was "your year at your home university"; with the old text this
-   * digest was 129a288c…). The test strips 6A's fields, so any other change still shows here.
+   * The sha256 of every fixture code's 200 body, in code order, one JSON line each, without the
+   * shortlist's fields (gradingBasis, otherCodes) and GRO's level 4000 note. The test strips those,
+   * so any other change to the answer shows here.
    */
-  const BODIES_BEFORE_6A = '8e9e4e8b9c5bb426b65cbb9faac40591ee9ae00ced94d9e3e97c261f06ca678b';
+  const CORE_BODIES_SHA256 = '8e9e4e8b9c5bb426b65cbb9faac40591ee9ae00ced94d9e3e97c261f06ca678b';
   /** A catalogue-only code, seeded through /admin/catalogue as ingest loads them. */
   const CATALOGUE_ONLY = { code: 'CS1010J', title: 'Introduction to Programming', description: 'An introductory course in Java.', acadYear: '2026-2027' };
 
@@ -134,7 +133,7 @@ describe('/module/:code for the shortlist (6A)', () => {
     expect((await callJson('/module/CS1010S')).body.gradingBasis).toBe('Graded');
   });
 
-  it('leaves every other field of every fixture course byte-identical to 5D\'s answer', async () => {
+  it('leaves every other field of every fixture course byte-identical to its answer without the shortlist fields', async () => {
     const lines = [];
     let gro = 0;
     for (const m of [...fixture.modules].sort((a, b) => (a.code < b.code ? -1 : 1))) {
@@ -143,7 +142,7 @@ describe('/module/:code for the shortlist (6A)', () => {
       expect(body.gradingBasis, m.code).toBe(m.gradingBasis);
       delete body.gradingBasis;
       delete body.otherCodes;
-      // R6-2 (ADR 0010) adds GRO's level 4000 note after 5D; without it, an entry is 5D's to the byte.
+      // GRO's level 4000 note (ADR 0007) is stripped with the shortlist fields.
       for (const e of body.exchange) {
         const kept = e.reasons.filter((/** @type {any} */ r) => r.id !== 'gro:level-4000');
         gro += e.reasons.length - kept.length;
@@ -153,7 +152,7 @@ describe('/module/:code for the shortlist (6A)', () => {
       lines.push(JSON.stringify(body));
     }
     expect(gro).toBeGreaterThan(0);
-    expect(await sha256Hex(lines.join('\n'))).toBe(BODIES_BEFORE_6A);
+    expect(await sha256Hex(lines.join('\n'))).toBe(CORE_BODIES_SHA256);
   });
 
   it('a catalogue-only code 404s as catalogue-only, with its title, description and year', async () => {
