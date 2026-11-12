@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { bookmark, restore } from '../scripts/d1-time-travel.mjs';
 import { RUN_SCHEMA } from '../scripts/run-record.mjs';
-import { DV, fakeD1 } from './deploy-fakes.js';
+import { DV, fakeD1 } from './deploy-fakes.node.mjs';
 
 const NOW = new Date('2026-11-12T12:00:00Z');
 const B_OLD = '00000085-0000024c-00004c6d-8e61117bf38d7adb71b934ebbf891683';

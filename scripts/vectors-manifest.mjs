@@ -104,8 +104,8 @@ export async function fetchBundle(corpus, { log = console.log, download = ghDown
   return shim;
 }
 
-/** @param {ManifestEntry} e */
-function ghDownload(e) {
+/** Downloads a bundle's release asset into .data/vectors/ with gh. @param {ManifestEntry} e */
+export function ghDownload(e) {
   const r = spawnSync('gh', ['release', 'download', /** @type {string} */ (e.release), '--pattern', /** @type {string} */ (e.asset), '--dir', VECTORS_DIR, '--clobber'],
     { cwd: ROOT, stdio: ['ignore', 'inherit', 'inherit'] });
   if (r.status !== 0) throw new Error(`gh release download ${e.release} --pattern ${e.asset} failed (exit ${r.status})`);

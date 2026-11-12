@@ -16,7 +16,7 @@ import { GUARD_CHECKS } from '../scripts/guard.mjs';
 import {
   D1_MODULES, DV, KEY, NOW, PREVIOUS, RUNS_API, SHA, SHIM, SHORT, STATUS_KEY, TAG, TOKEN, VERSION,
   bundleOf, fakeD1, fakeExec, ghRun, runsBody,
-} from './deploy-fakes.js';
+} from './deploy-fakes.node.mjs';
 
 /** Each test's run records (Phase 7 7C), in a temp dir. @type {string} */
 let runsDir;
@@ -27,8 +27,8 @@ const recordText = () => readdirSync(runsDir).map((f) => readFileSync(join(runsD
 
 /**
  * @param {import('../scripts/deploy.mjs').Exec} exec
- * @param {{ bundle?: () => Promise<import('../scripts/deploy.mjs').DeployBundle>, d1?: () => Promise<any>, committed?: string,
- *   vars?: Record<string, unknown>, argv?: string[], env?: Record<string, string>, signals?: EventEmitter,
+ * @param {{ bundle?: () => Promise<import('../scripts/deploy.mjs').DeployBundle>, d1?: () => any, committed?: string,
+ *   vars?: Record<string, unknown>, argv?: string[], env?: Record<string, string | undefined>, signals?: EventEmitter,
  *   guardChecks?: import('../scripts/guard.mjs').GuardCheck[] }} [o]
  */
 async function runDeploy(exec, o = {}) {
@@ -78,11 +78,11 @@ describe('npm run deploy', () => {
   });
 
   it('refuses when HEAD is not on origin/main, when files are hidden, and when origin/main cannot be fetched', async () => {
-    for (const over of [
+    for (const over of /** @type {Parameters<typeof fakeExec>[0][]} */ ([
       { 'git rev-parse HEAD': { stdout: 'feedface\n' }, 'git merge-base --is-ancestor HEAD refs/remotes/origin/main': { code: 1 } },
       { 'git ls-files -v': { stdout: 'H package.json\nS src/search.js\n' } },
       { 'git fetch --quiet origin main': { code: 128 } },
-    ]) {
+    ])) {
       const { exec, calls } = fakeExec(over);
       expect((await runDeploy(exec)).code).toBe(1);
       expect(ranWrangler(calls)).toBe(false);
@@ -100,7 +100,7 @@ describe('npm run deploy', () => {
     expect(ok.code).toBe(0);
     expect(ok.out).toMatch(/--behind-ok/);
     expect(promoted(calls)).toBe(true);
-    expect(records().at(-1)).toMatchObject({ outcome: 'ok', args: ['--behind-ok'], details: { behindOk: true } });
+    expect(records().find((r) => r.outcome === 'ok')).toMatchObject({ args: ['--behind-ok'], details: { behindOk: true } });
   });
 
   it('refuses no run, a running run, a failed or cancelled run, and a Findings failure, before D1 or any upload', async () => {
@@ -359,7 +359,8 @@ describe('Phase 7 7C: the clean-tree exemption and the run record', () => {
       const r = records().find((x) => !seen.has(JSON.stringify(x)));
       seen.add(JSON.stringify(r));
       expect(r, JSON.stringify(over)).toMatchObject({ script: 'deploy', outcome, exitCode });
-      if (outcome !== 'refused') expect(r.versions.versionId).toBe(VERSION);
+      // A failed upload never learns its version id; every later exit has it.
+      if (outcome !== 'refused' && exitCode !== 3) expect(r.versions.versionId).toBe(VERSION);
     }
     // A throw after the upload.
     const thrown = fakeExec({ promote: () => { throw new Error('wrangler vanished'); } });

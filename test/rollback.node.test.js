@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GUARD_CHECKS } from '../scripts/guard.mjs';
 import { rollback } from '../scripts/rollback.mjs';
-import { DV, NOW, TAG_FETCH, TAG_LIST, fakeD1 } from './deploy-fakes.js';
+import { DV, NOW, TAG_FETCH, TAG_LIST, fakeD1 } from './deploy-fakes.node.mjs';
 
 const LIVE = '9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d';
 const PREV = 'b0834844-f6fd-4bb9-838d-a45927c195fb';

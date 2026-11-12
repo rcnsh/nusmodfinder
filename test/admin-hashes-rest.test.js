@@ -43,7 +43,7 @@ describe('/admin/hashes and the REST guard read agree', () => {
     const { client, sent } = localRest();
     const rest = await adminHashes(client.query, { embeddingModel: DEFAULT_MODEL });
     expect(rest).toEqual(route);
-    expect(Object.keys(rest.modules)).toHaveLength(fixture.modules.length);
+    expect(Object.keys(rest.modules ?? {})).toHaveLength(fixture.modules.length);
     // Only reads went out, and the client counted what D1 says it read.
     expect(sent.every((s) => /^\s*SELECT/i.test(s))).toBe(true);
     expect(client.rowsRead).toBeGreaterThanOrEqual(fixture.modules.length);

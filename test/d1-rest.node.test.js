@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { assertReadOnly, D1_API, d1RestClient } from '../scripts/d1-rest.mjs';
 import { d1Config, resolveAccountId, resolveToken } from '../scripts/d1-read.mjs';
-import { TOKEN, fakeD1 } from './deploy-fakes.js';
+import { TOKEN, fakeD1 } from './deploy-fakes.node.mjs';
 
 describe('assertReadOnly', () => {
   it('admits SELECT and read-only PRAGMA statements, comments and a trailing semicolon', () => {
@@ -34,7 +34,8 @@ describe('assertReadOnly', () => {
       "INSERT INTO modules (code) VALUES ('X')",
       "UPDATE modules SET title = 'x'",
       'DELETE FROM modules',
-      'REPLACE INTO modules (code) VALUES (1)',
+      // (meta, not modules: test/migrations.node.test.js bans any REPLACE on modules in the repo.)
+      'REPLACE INTO meta (key) VALUES (1)',
       'DROP TABLE modules',
       // 7-0's mistake: a permission probe that would have written, had the token allowed it.
       'CREATE TABLE IF NOT EXISTS probe (x)',

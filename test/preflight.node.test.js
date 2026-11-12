@@ -5,7 +5,7 @@
 // module is absent), a committed `year check --full` record when HEAD changes a source-derived
 // input, and `wrangler check startup`. It refuses on each failing check and writes nothing
 // remote. git, gh and wrangler are a fake exec (test/deploy-fakes.js).
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -13,7 +13,7 @@ import { deploy } from '../scripts/deploy.mjs';
 import { OPTIONAL_CHECKS, isSourceInput, sourceInputsHash } from '../scripts/preflight.mjs';
 import {
   DV, GREEN, LIVE_SHA, NOW, RUNS_API, SHA, STATUS_KEY, TAG_FETCH, TAG_LIST, bundleOf, fakeD1, fakeExec, ghRun, runsBody,
-} from './deploy-fakes.js';
+} from './deploy-fakes.node.mjs';
 
 /** @type {string} */
 let runsDir;
@@ -76,6 +76,9 @@ describe('npm run deploy -- --preflight', () => {
       ['startup', { check: { code: 2 } }, /wrangler check startup failed/],
     ];
     for (const [name, over, msg] of cases) {
+      // Records made in the same (fixed) second sort by their random suffix: one per case.
+      rmSync(runsDir, { recursive: true, force: true });
+      mkdirSync(runsDir);
       const { exec, calls } = fakeExec(over);
       const { code, out } = await preflight(exec);
       expect(code, `${name} ${msg}`).toBe(1);

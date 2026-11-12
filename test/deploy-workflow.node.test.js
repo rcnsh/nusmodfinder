@@ -61,9 +61,12 @@ describe('deploy.yml', () => {
     const deployStep = step(/npm run deploy/);
     expect(deployStep).toMatch(/CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/);
     expect(deployStep).toMatch(/CLOUDFLARE_ACCOUNT_ID: \$\{\{ vars\.CLOUDFLARE_ACCOUNT_ID \}\}/);
-    expect(workflow.match(/CLOUDFLARE_API_TOKEN/g)).toHaveLength(1);
-    expect(workflow.match(/CLOUDFLARE_ACCOUNT_ID/g)).toHaveLength(1);
-    expect(workflow.match(/secrets\./g)).toHaveLength(1);
+    // One line each, in that step: no workflow-level or job-level env carries them.
+    const lines = (/** @type {string} */ name) => workflow.split('\n').filter((l) => l.includes(name));
+    expect(lines('CLOUDFLARE_API_TOKEN')).toHaveLength(1);
+    expect(lines('CLOUDFLARE_ACCOUNT_ID')).toHaveLength(1);
+    expect(lines('secrets.')).toHaveLength(1);
+    expect(deployStep).toContain(lines('CLOUDFLARE_API_TOKEN')[0].trim());
     expect(workflow).not.toMatch(/wrangler (deploy|dev)|--remote/);
   });
 

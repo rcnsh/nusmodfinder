@@ -13,6 +13,7 @@ import { SMOKE_GAP_MS, smoke } from '../scripts/smoke.mjs';
 
 const SHA = 'a23601de0b15934960bfef1d8b56ab3e80fa5587';
 const OTHER = '0b5f360c7faea8424215b4d4ddde81ebb1d850ff';
+/** @type {Record<string, string>} */
 const DVS = { [SHA]: 'd820d578cf81', [OTHER]: '0123456789ab' };
 const URL_BASE = 'https://nusmodfinder.rcn.sh';
 const PRODUCTION_ENTRY = { corpus: 'production', release: 'vec-production-x', asset: 'vec-production-x.bin', sha256: 'abc', count: 5 };

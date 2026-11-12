@@ -6,7 +6,7 @@
 import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { BACKFILL, backfillCommands, findVersionTag, parseTagFields, tagArgs, tagName } from '../scripts/deploy-tag.mjs';
-import { TAG_FETCH } from './deploy-fakes.js';
+import { TAG_FETCH } from './deploy-fakes.node.mjs';
 
 describe('deploy and rollback tags', () => {
   it('are named <kind>/<UTC yyyymmddThhmmssZ>-<version id, first 8>', () => {

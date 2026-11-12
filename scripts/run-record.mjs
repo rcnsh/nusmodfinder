@@ -118,6 +118,8 @@ export class RunRecord {
     this.started = now();
     /** @type {string | null} */
     this.path = null;
+    /** What finish() wrote, once it has. @type {{ outcome: Outcome, exitCode: number | null, message: string | null } | null} */
+    this.result = null;
     /** @type {RunData} */
     this.data = {
       schema: RUN_SCHEMA, time: this.started.toISOString(), finishedAt: null, script, args: [...args],
@@ -180,6 +182,7 @@ export class RunRecord {
       try {
         writeFileSync(path, text, { flag: 'wx' });
         this.path = path;
+        this.result = { outcome, exitCode, message };
         return path;
       } catch (err) {
         if (/** @type {NodeJS.ErrnoException} */ (err).code !== 'EEXIST' || i > 64) throw err;
@@ -331,4 +334,16 @@ export function readRunRecords(dir = RUNS_DIR) {
 export function checkRunRecords(dir = RUNS_DIR, now = new Date()) {
   return readRunRecords(dir).flatMap(({ file, record, error }) => (error ? [`${file}: ${error}`]
     : validateRunRecord(record, { file, now }).map((e) => `${file}: ${e}`)));
+}
+
+/**
+ * The newest record in `dir` (by its start time) that `match` accepts, with its file name.
+ * @param {string} dir
+ * @param {(record: any) => boolean} match
+ * @returns {{ file: string, record: any } | null}
+ */
+export function newestRecord(dir, match) {
+  const hits = readRunRecords(dir).filter((r) => r.error === null && match(r.record));
+  hits.sort((a, b) => String(b.record.time).localeCompare(String(a.record.time)) || b.file.localeCompare(a.file));
+  return hits[0] ? { file: hits[0].file, record: hits[0].record } : null;
 }
