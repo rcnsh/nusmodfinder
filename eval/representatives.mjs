@@ -5,6 +5,11 @@
 //
 //   npm run eval:representatives -- --set dev --run <cand> --baseline <pin>
 //   npm run eval:representatives -- --set fixture --set-dir <dir> --run <cand> --baseline <pin>
+//   … --route representative-only
+//       on a pass, also appends a row to the count log (eval/count-log.md; with --set-dir, the
+//       set directory's count-log.md) naming the ADR 0003 no-look route (amendment 2026-11-12),
+//       which a ranking-lock change can cite (eval:lock -- --evidence no-look <row>). A failing
+//       check writes nothing.
 //
 // It prints the lists compared, how many lists and codes changed, and every
 // problem (eval/lib/representatives.mjs), and exits 1 on any. Groups are
@@ -17,18 +22,25 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { loadCorpusFile, loadPinnedWith } from './lib/corpus.mjs';
+import { appendCountRow, assertRoute } from './lib/count-log.mjs';
 import { buildGroups, groupIndex } from './lib/groups.mjs';
 import { compareRepresentatives } from './lib/representatives.mjs';
-import { REPO, layout, loadQueries, readSetJson, runFile } from './lib/sets.mjs';
+import { COUNT_LOG, REPO, layout, loadQueries, readSetJson, runFile } from './lib/sets.mjs';
 
 const { values: a } = parseArgs({
-  options: { set: { type: 'string', default: 'dev' }, 'set-dir': { type: 'string' }, run: { type: 'string' }, baseline: { type: 'string' } },
+  options: { set: { type: 'string', default: 'dev' }, 'set-dir': { type: 'string' }, run: { type: 'string' }, baseline: { type: 'string' }, route: { type: 'string' } },
   allowPositionals: false,
   strict: true,
 });
 const set = layout(/** @type {string} */ (a.set), a['set-dir'] ? resolve(a['set-dir']) : undefined);
 if (set.encrypted) {
   console.error(`eval:representatives: the ${set.name} set is encrypted; the custodian counts it with eval:count --lists-differing --by-group`);
+  process.exit(1);
+}
+try {
+  assertRoute(a.route);
+} catch (err) {
+  console.error(`eval:representatives: ${/** @type {Error} */ (err).message}`);
   process.exit(1);
 }
 if (!a.run || !a.baseline) {
@@ -61,4 +73,9 @@ const report = compareRepresentatives({
 console.log(`${set.name}: ${a.run} vs ${a.baseline} (${JSON.stringify(run.config?.strip ?? [])} stripped, filters ${run.config?.filters})`);
 console.log(`lists ${report.lists}, lists with a changed representative ${report.changedLists}, codes changed ${report.changedCodes}, problems ${report.problems.length}`);
 for (const p of report.problems) console.log(`  ${p}`);
+if (!report.problems.length && a.route) {
+  const log = a['set-dir'] ? join(resolve(a['set-dir']), 'count-log.md') : join(REPO, COUNT_LOG);
+  await appendCountRow(log, { set: set.name, kind: 'representatives', run: `${a.run} vs ${a.baseline}`, count: String(report.changedLists), route: a.route });
+  console.log(`logged in ${log} with route ${a.route}`);
+}
 process.exit(report.problems.length ? 1 : 0);

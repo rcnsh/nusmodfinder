@@ -19,18 +19,22 @@
 //       (groups-v1, eval/groups.json): a change of which member stands for a
 //       group is not counted, a change of which groups show or their order is
 //       (the semester representative's gate, ADR 0003 draft amendment)
+//   … --route <route>
+//       names the ADR 0003 no-look route the count is taken for (amendment 2026-11-12:
+//       representative-only, answerable-floor, group-first or gated-without-a-look), written into
+//       the row's route column; a ranking-lock change cites the row (eval:lock -- --evidence
+//       no-look <row>). Without it the route cell is "—".
 //
-// Every call appends a row (date, set, kind, run, count) to the set's count
+// Every call appends a row (date, set, kind, run, count, route) to the set's count
 // log (eval/count-log.md; the self-test set's beside its own ledger). The
 // ledger never reads the count log and refuses a row copied from it, so a
 // count prints no verdict and is not a look (ADR 0003, amendment 2026-11-06).
 // Any option outside the ones above is refused, so no flag can make it print
 // ids or metrics; any failure after the checks prints only the error class.
 import { createHash } from 'node:crypto';
-import { existsSync } from 'node:fs';
-import { appendFile, mkdir, writeFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { appendCountRow, assertRoute } from './lib/count-log.mjs';
 import { CorpusMismatchError, errorClass, RunFileError } from './lib/errors.mjs';
 import { groupIndex, groupKeys, loadGroups } from './lib/groups.mjs';
 import { answerableCount, qrelsFor, scoredSet } from './lib/metrics.mjs';
@@ -47,18 +51,9 @@ const OPTIONS = /** @type {const} */ ({
   'by-group': { type: 'boolean', default: false },
   run: { type: 'string' },
   baseline: { type: 'string' },
+  route: { type: 'string' },
 });
-const TAKES = 'eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged, --lists-differing, --by-group, --run and --baseline (it prints one integer, never ids or metrics)';
-
-const LOG_HEADER = `# Count log
-
-Append-only. One row per \`npm run eval:count\` call, which only the custodian runs. A count
-prints one integer and no verdict, so it is not a look (ADR 0003, amendment 2026-11-06). The
-holdout ledger never reads this file and refuses a row copied from it.
-
-| date | set | kind | run | count |
-|---|---|---|---|---|
-`;
+const TAKES = 'eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged, --lists-differing, --by-group, --run, --baseline and --route (it prints one integer, never ids or metrics)';
 
 /** @param {string} msg @returns {never} */
 function refuse(msg) {
@@ -75,6 +70,11 @@ try {
 }
 
 if (!a.custodian) refuse('refusing without --custodian: only the custodian counts an encrypted set');
+try {
+  assertRoute(a.route);
+} catch (err) {
+  refuse(/** @type {Error} */ (err).message);
+}
 if (!a.holdout && !a.set) refuse('name the set: --set test or --holdout');
 const set = (() => {
   try {
@@ -158,14 +158,8 @@ async function counted() {
 
 try {
   const n = await counted();
-  const log = /** @type {string} */ (set.countLog);
-  if (!existsSync(log)) {
-    await mkdir(dirname(log), { recursive: true });
-    await writeFile(log, LOG_HEADER);
-  }
   const runCell = a['lists-differing'] ? `${a.run} vs ${a.baseline}` : a.run ?? '—';
-  const cells = [new Date().toISOString().slice(0, 10), set.name, `count: ${kind}`, runCell, String(n)];
-  await appendFile(log, `| ${cells.map((c) => c.replace(/[|\n]/g, ' ')).join(' | ')} |\n`);
+  await appendCountRow(/** @type {string} */ (set.countLog), { set: set.name, kind: `count: ${kind}`, run: runCell, count: String(n), route: a.route });
   console.log(String(n));
 } catch (err) {
   console.error(`eval: ${set.name} count failed (${errorClass(err)}); details withheld`);

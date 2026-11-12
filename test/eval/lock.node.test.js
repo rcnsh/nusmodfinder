@@ -37,6 +37,21 @@ describe('query-set locks (ADR 0003)', () => {
     expect(sha256(groups)).toBe(recorded(adr, 'groups-v1 `eval/groups.json`'));
   });
 
+  it('the no-look routes the ranking lock accepts are exactly those ADR 0003\'s route amendment names (Phase 7 7A)', async () => {
+    const adr = await readFile(join(REPO, ADR), 'utf8');
+    const start = adr.indexOf('## Amendment 2026-11-12: the count log\'s route column');
+    expect(start, `${ADR} has no route-column amendment`).toBeGreaterThan(0);
+    const section = adr.slice(start, adr.indexOf('\n## ', start + 1));
+    // The bullet, up to the next one: route names in backticks, before each parenthesis.
+    const from = section.indexOf('\n- **The routes:**');
+    expect(from, 'the amendment has no "The routes:" bullet').toBeGreaterThan(0);
+    const end = section.indexOf('\n- ', from + 1);
+    const bullet = section.slice(from, end < 0 ? undefined : end);
+    const named = [...bullet.matchAll(/`([a-z-]+)` \(/g)].map((m) => m[1]);
+    const { NO_LOOK_ROUTES } = await import('../../eval/lib/ranking-lock.mjs');
+    expect(named.sort()).toEqual([...NO_LOOK_ROUTES].sort());
+  });
+
   it('a plaintext file in an encrypted-set directory fails verification', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'vnm-lock-'));
     try {
