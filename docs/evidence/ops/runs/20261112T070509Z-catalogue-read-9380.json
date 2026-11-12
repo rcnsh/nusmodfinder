@@ -1,0 +1,32 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T07:05:09.786Z",
+  "finishedAt": "2026-11-12T07:05:14.057Z",
+  "script": "catalogue-read",
+  "args": [
+    "7D exit check"
+  ],
+  "commit": {
+    "sha": "96c3103f52865d968102a16937a5893beb7e1561",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmods-apac (D1 REST)",
+  "read": [
+    {
+      "what": "D1 rows (catalogue_only codes)",
+      "estimate": 14430,
+      "actual": 14430
+    }
+  ],
+  "written": [],
+  "requests": {
+    "D1 REST query: SELECT code FROM catalogue_only": 1
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {},
+  "exitCode": null,
+  "message": null,
+  "outcome": "ok"
+}
