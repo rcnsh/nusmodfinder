@@ -27,14 +27,15 @@ filter by semester, level, credits and faculty.
 | `GET /privacy` | The privacy note (`public/privacy.html`, a static asset): what Cloudflare's logs and the site's own line keep, what stays on the device, no cookies |
 | any other path | JSON 404 `{ error: "not_found", message }`; for a browser (`GET` or `HEAD` whose `Accept` prefers `text/html`), the 404 page instead (below) |
 
-**The 404 page** (Phase 8 8B) is `src/404.html`, a Text module, sent with status 404 and the
-CSP, `X-Frame-Options` and `X-Content-Type-Options` of `public/_headers`' `/*` rule, since
-Cloudflare applies `_headers` to static assets only. `src/not-found.js` holds a copy of the three,
-so the Worker (and the ranking lock's inputs) reaches no file outside `src/`;
-`test/visitor.test.js` parses `public/_headers` and fails when the copy differs. It is static: nothing from
-the request is written into it. `curl`, Node's `fetch` and the page's own fetches send `*/*` and
-keep the JSON. It lives in `src/`, so it is never also served as `/404.html`. `/favicon.ico` is a
-static file (the 32 px PNG in an ICO), so a browser's request for it never runs the Worker.
+**The 404 page** (Phase 8 8B) is `src/404.html`, a Text module, sent with status 404 and the CSP,
+`X-Frame-Options` and `X-Content-Type-Options` of `public/_headers`' `/*` rule, since Cloudflare
+applies `_headers` to static assets only. `src/not-found.js` holds a copy of the three, so the
+Worker (and the ranking lock's inputs) reaches no file outside `src/`; `test/visitor.test.js`
+parses `public/_headers` and fails when the copy differs. It is static: nothing from the request is
+written into it. `curl` and Node's `fetch` (`*/*`) and the page's own fetches (`application/json`)
+keep the JSON; so does any `Accept` that ranks HTML below JSON or `*/*`. It lives in `src/`, so it
+is never also served as `/404.html`. `/favicon.ico` is a static file (the 32 px PNG in an ICO), so
+a browser's request for it never runs the Worker.
 
 **`/search` refuses other sites' pages** (Phase 8 8B): a request with `Sec-Fetch-Site: cross-site`
 and any `Sec-Fetch-Dest` but `document` answers 403 `{ error: "cross_site", message }` with
@@ -837,8 +838,8 @@ I/O, so the spans measure waiting on bindings, not CPU. A cache hit gets fresh s
 never the stored ones. Each `/search` also writes one JSON log line (`"event":"search"`)
 with the status, cache result, the query (first 100 characters) and its length, the mode,
 filters, result counts, the fallback (`degraded`), spans, D1 rows read and serving region
-(`d1.servedByRegion`, `d1.servedByPrimary`), and the colo. The Worker writes no header or IP
-into its own lines. A D1 failure on `/module/:code` or `/facets` writes one line
+(`d1.servedByRegion`, `d1.servedByPrimary`), and the colo. The `search` and `d1_error` lines
+hold no header or IP (the `unhandled` line, below, carries the `cf-ray`). A D1 failure on `/module/:code` or `/facets` writes one line
 `{"event":"d1_error","route","error"}`: the route pattern and the error, no URL, code, query or IP.
 
 **What is kept about visitors** (ADR 0012 G3 (a): kept as it is, and said in

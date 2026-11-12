@@ -15,9 +15,10 @@ export const PAGE_HEADERS = Object.freeze({
 });
 
 /**
- * Whether an Accept header prefers HTML to JSON: text/html (or XHTML) is listed with q > 0 and at
- * least JSON's q. A browser's navigation does; curl, Node's fetch (`*\/*`) and the page's own
- * fetches don't, so they keep the JSON 404.
+ * Whether an Accept header prefers HTML to JSON: text/html (or XHTML) is named with q > 0, and its
+ * q is at least what JSON would get (application/json, application/*, or *\/*). A browser's
+ * navigation does (text/html at 1, *\/* at 0.8); curl and Node's fetch (*\/* alone) and the page's
+ * own fetches (application/json) don't, so they keep the JSON 404.
  * @param {string | null} accept
  */
 export function prefersHtml(accept) {
@@ -31,7 +32,7 @@ export function prefersHtml(accept) {
     q.set(type, Math.max(q.get(type) ?? 0, Number.isFinite(value) ? value : 0));
   }
   const html = Math.max(q.get('text/html') ?? 0, q.get('application/xhtml+xml') ?? 0);
-  const json = Math.max(q.get('application/json') ?? 0, q.get('application/*') ?? 0);
+  const json = Math.max(q.get('application/json') ?? 0, q.get('application/*') ?? 0, q.get('*/*') ?? 0);
   return html > 0 && html >= json;
 }
 

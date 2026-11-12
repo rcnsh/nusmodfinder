@@ -71,6 +71,8 @@ describe('the 404 for a browser (8B)', () => {
     ['application/json', 'application/json'],
     ['JSON preferred over HTML', 'application/json, text/html;q=0.5'],
     ['HTML refused', 'text/html;q=0, */*'],
+    ['HTML ranked below anything else', 'text/html;q=0.1, */*'],
+    ['HTML ranked below any application type', 'text/html;q=0.5, application/*;q=0.9'],
   ])('%s keeps today\'s JSON 404', async (_label, accept) => {
     const { status, headers, body } = await callJson('/no-such-page', { init: accept === undefined ? {} : { headers: { accept } } });
     expect(status).toBe(404);
