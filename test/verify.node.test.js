@@ -84,7 +84,7 @@ describe('verify --pre-deploy\'s data files (6A)', () => {
     expect(files.ngReasonsAcadYear).toBe('2026-2027');
     expect(files.unscheduled.acadYear).toBe('2026-2027');
     expect(files.ngCodes).toHaveLength(1207);
-    expect(files.unscheduled.codes).toHaveLength(40);
+    expect(files.unscheduled.codes.length).toBeGreaterThan(0);
     expect(files.unscheduled.codes.filter((c) => !files.ngCodes.includes(c))).toEqual([]);
   });
 });

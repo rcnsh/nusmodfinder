@@ -4,7 +4,6 @@
 // two back-filled tags (`b0834844` on `a23601d`, `f8aefeab` on `0b5f360`, both at data version
 // d820d578cf81), printed as the exact commands the lead runs after the merge. Nothing is pushed.
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { BACKFILL, BACKFILL_CATALOGUE_KEY, backfillCommands, findVersionTag, parseTagFields, tagArgs, tagName } from '../scripts/deploy-tag.mjs';
 import { GUARD_CHECKS } from '../scripts/guard.mjs';
@@ -69,12 +68,15 @@ describe('the back-filled tags', () => {
     }
   });
 
-  it('their catalogueKey is the key of the corpus D1 was loaded from: current\'s, which the bundled catalogue file follows', async () => {
-    const manifest = JSON.parse(readFileSync(new URL('../data/corpus.json', import.meta.url), 'utf8'));
-    // D1's data version d820d578cf81 is current's (npm run corpus -- check), and both deploys served it.
+  it('their catalogueKey is the key of the corpus D1 was loaded from (prod-2026-2027-20261104), as its bundled catalogue file says', async () => {
+    // Read at 894bc1f, the first Actions deploy, whose `current` was still that corpus; a later
+    // NUSMods refresh moves `current` and the working tree's files on, and these tags stay put.
+    const AT = '894bc1fade8045b8cd60f22f1ef331632a632caf';
+    const show = (/** @type {string} */ f) => JSON.parse(execFileSync('git', ['show', `${AT}:${f}`], { encoding: 'utf8' }));
+    const manifest = show('data/corpus.json');
     expect(manifest.current).toBe('prod-2026-2027-20261104');
-    expect(JSON.parse(readFileSync(new URL('../src/data-version.json', import.meta.url), 'utf8')).version).toBe('d820d578cf81');
-    const file = JSON.parse(readFileSync(new URL('../data/catalogue-codes.json', import.meta.url), 'utf8'));
+    expect(show('src/data-version.json').version).toBe('d820d578cf81');
+    const file = show('data/catalogue-codes.json');
     expect(file.source.moduleInfoSha256).toBe(manifest.corpora[manifest.current].sha256);
     expect(BACKFILL_CATALOGUE_KEY).toBe(await catalogueKey(file.codes));
     for (const b of BACKFILL) expect(b.fields.catalogueKey, b.name).toBe(BACKFILL_CATALOGUE_KEY);

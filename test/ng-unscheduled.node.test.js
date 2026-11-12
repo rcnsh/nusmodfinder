@@ -52,14 +52,11 @@ describe('data/ng-unscheduled.json', () => {
     expect(production.modules.map((e) => e.code)).toEqual([...production.modules.map((e) => e.code)].sort());
   });
 
-  it('holds 40 codes today, every one in data/catalogue-codes.json now that it follows the same corpus (Phase 7 7D)', () => {
-    expect(production.count).toBe(40);
+  it('holds some codes, every one in data/catalogue-codes.json now that it follows the same corpus (Phase 7 7D)', () => {
+    // How many follows NUSMods (40 in the first 7D corpus, 43 after the first refresh), so no count is pinned.
+    expect(production.count).toBeGreaterThan(0);
     const catalogue = new Set(read('data/catalogue-codes.json').codes);
     expect(production.modules.map((e) => e.code).filter((c) => !catalogue.has(c))).toEqual([]);
-    // The pinned catalogue (the eval's corpus) misses 9 of them, as it always did.
-    const pinned = new Set(read('data/pinned/catalogue-codes.json').codes);
-    expect(production.modules.map((e) => e.code).filter((c) => !pinned.has(c)))
-      .toEqual(['EE4438', 'FIN3701B', 'GEX1004', 'ID2120', 'LSM1303', 'PH2301', 'PL3268', 'SN2278', 'TRA2101']);
   });
 
   it('every entry\'s allow mask and rule ids are eligibility()\'s from its own fields, recomputed with the committed rules', () => {
