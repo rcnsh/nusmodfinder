@@ -242,14 +242,14 @@ describe('manifest file names are plain base names (red team L-4)', () => {
 // Red team L-5: a document's `text` extraction was archived with no sha256, so a hand-"fixed"
 // extraction changed what --full accepts as NUS's words and what the builder reads.
 describe('text extractions are pinned by textSha256 (red team L-5)', () => {
-  /** The lead's sha256 of each published extraction (npm run sources -- hash over the archive). */
+  /** The lead's sha256 of each published extraction (npm run sources -- hash over the archive), by document id. */
   const REAL_TEXT_SHA256 = {
-    'ng-courses.txt': '60948390f9a3cedff9ebaeff0df3ad54317e93d6905a3421fc0abb8cd3e71816',
-    'non-graduating-course-restrictions.txt': '572e172bba8f240cba5734d3727710ab9a7a70284cd4391e74a5c4de149482e5',
-    'exchangeatnus.txt': '71a4e652b6a4e51153ac941a39f0e65c54106772dbcfc34c544728060ef5f22a',
-    'coursereg-student-user-guide.txt': '9782ef676f9049f7b1ac45bc4d7dae8876178aa724a38c02210200a378feddd0',
-    'ng-online-application-guide-2025.txt': 'ba53e356bb9b1c170612fe623cd082feee472e3ad5045faa89c3e4fcba0d1235',
-    'nus-biz-exchange-factsheet-ug-t2620.txt': '83373eacea243b7ba4f320f9d693a803ddf7d35420829286a559957cdd891a1c',
+    'ng-list': '60948390f9a3cedff9ebaeff0df3ad54317e93d6905a3421fc0abb8cd3e71816',
+    restrictions: '572e172bba8f240cba5734d3727710ab9a7a70284cd4391e74a5c4de149482e5',
+    brochure: '71a4e652b6a4e51153ac941a39f0e65c54106772dbcfc34c544728060ef5f22a',
+    'coursereg-guide': '9782ef676f9049f7b1ac45bc4d7dae8876178aa724a38c02210200a378feddd0',
+    'application-guide': 'ba53e356bb9b1c170612fe623cd082feee472e3ad5045faa89c3e4fcba0d1235',
+    'biz-factsheet': '83373eacea243b7ba4f320f9d693a803ddf7d35420829286a559957cdd891a1c',
   };
 
   it('the committed manifest pins every archived file of every revision, text extractions included', () => {
@@ -257,7 +257,9 @@ describe('text extractions are pinned by textSha256 (red team L-5)', () => {
     for (const rev of m.revisions) {
       const files = archivedFiles(rev);
       expect(files.filter((f) => f.sha256 === null).map((f) => f.name), rev.date).toEqual([]);
-      for (const d of rev.documents.filter((/** @type {any} */ x) => x.text)) expect(d.textSha256, `${rev.date} ${d.text}`).toBe(/** @type {any} */ (REAL_TEXT_SHA256)[d.text]);
+      const texts = rev.documents.filter((/** @type {any} */ x) => x.text);
+      expect(texts.map((/** @type {any} */ d) => d.id).sort(), rev.date).toEqual(Object.keys(REAL_TEXT_SHA256).sort());
+      for (const d of texts) expect(d.textSha256, `${rev.date} ${d.text}`).toBe(/** @type {any} */ (REAL_TEXT_SHA256)[d.id]);
     }
     expect(manifestProblems(m, Y)).toEqual([]);
   });
