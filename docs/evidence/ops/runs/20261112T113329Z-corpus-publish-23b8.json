@@ -1,0 +1,36 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:33:29.500Z",
+  "finishedAt": "2026-11-12T11:33:34.599Z",
+  "script": "corpus publish",
+  "args": [
+    "publish",
+    "--new-data-version"
+  ],
+  "commit": {
+    "sha": "82f2992672c55cc20a875f792116c1f85910d515",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "GitHub release prod-2026-2027-20261112",
+  "read": [],
+  "written": [
+    {
+      "what": "GitHub release asset",
+      "estimate": null,
+      "actual": 1
+    }
+  ],
+  "requests": {
+    "gh release create": 1
+  },
+  "versions": {
+    "release": "prod-2026-2027-20261112",
+    "dataVersion": "7eb77cf0828b"
+  },
+  "bookmark": null,
+  "details": {},
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}

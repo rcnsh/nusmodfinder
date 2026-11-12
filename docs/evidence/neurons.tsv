@@ -31,3 +31,4 @@ date	mode	texts	est_tokens	est_neurons	requests	note
 2026-11-07T18:43:33.201Z	set:test	171	4022	7.4	2	
 2026-11-07T18:45:00.242Z	corrected:test	12	305	0.6	1	phase3-final c787dea
 2026-11-07T18:57:31.967Z	corrected:test	5	222	0.4	1	phase3-final c787dea
+2026-11-12T11:33:51.406Z	vectors:production	254	48127	88.6	3	
