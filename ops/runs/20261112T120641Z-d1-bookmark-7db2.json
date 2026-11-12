@@ -1,0 +1,30 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T12:06:41.326Z",
+  "finishedAt": "2026-11-12T12:06:43.329Z",
+  "script": "d1:bookmark",
+  "args": [],
+  "commit": {
+    "sha": "46c8d56b9d4aec6a596f90257dc713ca1978e3c4",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmods-apac",
+  "read": [
+    {
+      "what": "D1 Time Travel bookmark (no table rows)",
+      "estimate": 0,
+      "actual": 0
+    }
+  ],
+  "written": [],
+  "requests": {
+    "wrangler d1 time-travel info": 1
+  },
+  "versions": {},
+  "bookmark": "0000004b-00000000-00005121-9700d9ffa113f4d2bc2388418b0cd7be",
+  "details": {},
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}

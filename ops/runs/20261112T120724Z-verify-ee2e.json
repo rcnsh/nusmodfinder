@@ -1,0 +1,34 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T12:07:24.209Z",
+  "finishedAt": "2026-11-12T12:07:26.461Z",
+  "script": "verify",
+  "args": [
+    "--pre-deploy"
+  ],
+  "commit": {
+    "sha": "46c8d56b9d4aec6a596f90257dc713ca1978e3c4",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "http://127.0.0.1:62473 (wrangler dev --remote (production D1, Vectorize and Workers AI bindings) on 127.0.0.1:62473)",
+  "read": [
+    {
+      "what": "D1 rows (/admin/hashes and fields)",
+      "estimate": 6818,
+      "actual": 21223
+    }
+  ],
+  "written": [],
+  "requests": {
+    "/admin/verify": 1
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "mode": "pre-deploy"
+  },
+  "exitCode": 0,
+  "message": "D1 agrees with the manifest and the bundle",
+  "outcome": "ok"
+}

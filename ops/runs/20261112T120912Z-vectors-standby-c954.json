@@ -1,0 +1,25 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T12:09:12.420Z",
+  "finishedAt": "2026-11-12T12:09:27.295Z",
+  "script": "vectors standby",
+  "args": [],
+  "commit": {
+    "sha": "46c8d56b9d4aec6a596f90257dc713ca1978e3c4",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "http://127.0.0.1:62785 (wrangler dev --remote (production D1, Vectorize and Workers AI bindings) on 127.0.0.1:62785)",
+  "read": [],
+  "written": [],
+  "requests": {
+    "/admin/hashes": 1,
+    "wrangler vectorize list-vectors": 5
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {},
+  "exitCode": 1,
+  "message": "wrangler vectorize list-vectors printed no JSON: wrangler vectorize list-vectors <name>",
+  "outcome": "failed"
+}
