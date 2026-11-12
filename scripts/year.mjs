@@ -219,12 +219,24 @@ function documentText(d, dir) {
 }
 
 /**
+ * A PDF's text in reading order (`pdftotext <file> -`, no `-layout`), or null when pdftotext is
+ * missing or fails. `-layout` sets a page's columns side by side, so a sentence that wraps inside
+ * one column comes out interleaved with its neighbour; reading order keeps it whole.
+ * @param {string} path
+ * @returns {Promise<string | null>}
+ */
+export const pdftotextReadingOrder = (path) => new Promise((resolve) => {
+  execFile('pdftotext', [path, '-'], { maxBuffer: 64 * 1024 * 1024 }, (err, stdout) => resolve(err ? null : String(stdout)));
+});
+
+/**
  * `year check --full`.
  * @param {{ root?: string, year?: string, key?: string, download?: import('./sources.mjs').Download, runsDir?: string,
- *   log?: (m: string) => void, args?: string[], env?: NodeJS.ProcessEnv }} [o]
+ *   log?: (m: string) => void, args?: string[], env?: NodeJS.ProcessEnv, pdfText?: (path: string) => Promise<string | null> }} [o]
+ *   `pdfText`: a PDF's reading-order text, the second text a PDF quote is looked for in.
  * @returns {Promise<{ ok: boolean, problems: string[], notes: string[], record: string | null, sourceInputsHash: string | null }>}
  */
-export async function yearCheckFull({ root = ROOT, year, key, download, runsDir, log = console.log, args = [], env = process.env } = {}) {
+export async function yearCheckFull({ root = ROOT, year, key, download, runsDir, log = console.log, args = [], env = process.env, pdfText = pdftotextReadingOrder } = {}) {
   const ci = yearCheck({ root, ...(year ? { year } : {}) });
   const y = ci.year;
   const problems = [...ci.problems];
@@ -269,7 +281,11 @@ export async function yearCheckFull({ root = ROOT, year, key, download, runsDir,
       if (d.unarchived) { unarchived.push(`${q.id} (${d.id}: ${d.unarchived})`); continue; }
       const text = documentText(d, dir);
       if (text === null) { problems.push(`quote ${q.id}: ${d.id} has no text in the archive (${d.text ?? d.file ?? 'no file'}); a PDF needs its \`text\` extraction`); continue; }
-      if (!quoteIn(text, q.text)) problems.push(`quote ${q.id} (${q.file}) is not in ${d.id} word for word: "${q.text}"`);
+      // A PDF's quote is found in its archived `text` (pdftotext -layout) or, failing that, in the
+      // PDF's own reading-order text: either way NUS's words, in order.
+      const found = quoteIn(text, q.text)
+        || (/\.pdf$/i.test(d.file ?? '') && quoteIn((await pdfText(join(dir, /** @type {string} */ (d.file)))) ?? '', q.text));
+      if (!found) problems.push(`quote ${q.id} (${q.file}) is not in ${d.id} word for word: "${q.text}"`);
       else checked++;
     }
     for (const u of unarchived) notes.push(`unarchived, not checked: ${u}`);

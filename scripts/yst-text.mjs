@@ -14,7 +14,7 @@
 // decoded; each node's ASCII white space collapsed to single spaces (a no-break space inside a node
 // stays, as the hand extraction kept it), then trimmed of every space, no-break ones included;
 // empty nodes dropped; lines joined by newlines, with none after the last. The two committed
-// extractions reproduce byte for byte from the saved pages (checked on the Mac, 2026-11-12).
+// extractions reproduce byte for byte from the saved pages (checked on the Mac against the archive).
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
