@@ -76,16 +76,31 @@ Phase 0 built most of this. Measured at `a64a024`, the gaps were these:
 - **Observability:** a monthly account-wide usage report from GraphQL. Workers Logs keep every
   event unless 7-0 finds the volume billed.
 
-## Jacob's answers
-Pending. The gate questions and their recommendations:
-- **G1, deploy location:** keep deploys on the Mac, with no Cloudflare token in GitHub.
-- **G2, year switch:** switch to a new year once NUSMods has it and NUS's Sem 1 exchange list is
-  out (about July). Until then, Sem 2 shows last year's Sem 2 list, labelled, counted "to confirm".
-- **G3, automatic issues:** a weekly data-drift issue and a monthly reminder, yes; a daily live
-  check, no.
-- **G4, ranking findings:** S2, S3, S4 and S6 stay open as known limits.
-- **G5, source archive:** NUS's source documents go into the repo's releases, encrypted, with the
-  key kept beside the holdout key.
+## Jacob's answers (2026-11-12)
+- **G1, deploys:** Jacob wants pushes to `main` to deploy, but only once CI is green. Workers
+  Builds alone deploys on every push, in parallel with GitHub's CI, with no option to wait for it
+  (Cloudflare's docs: "every push event made to this branch will trigger a build", then the
+  deploy command). So the lead's design: Workers Builds with build-on-push turned off, started by
+  a Deploy Hook that a GitHub Actions job POSTs only after CI and Findings pass on that `main`
+  commit. The hook URL is the only secret in GitHub, and it can only start a build of `main`. The
+  build's deploy command is `npm run deploy` (bundle fetched and sha-checked, guard, startup
+  gate). 7-0 checks that the guard's D1 read works with Workers Builds' own token; if it can't,
+  deploys stay on the Mac with the green-CI refusal (the original recommendation), and the lead
+  reports why.
+- **G2, year switch:** July, as recommended: switch once NUSMods has the new year and NUS's Sem 1
+  list is out; until NUS's Sem 2 list appears, Sem 2 shows last year's Sem 2 list, labelled
+  "On NUS's 2026/27 list; NUS hasn't published 2027/28's yet", counted "to confirm", never open.
+- **G3, automatic issues:** (a) only: the weekly NUSMods data-change issue and the monthly reminder.
+  No daily live check.
+- **G4, ranking findings (the lead):** S2, S3, S4 and S6 stay open as known limits; SC5 passed and
+  each ranking change costs a holdout look.
+- **G5, NUS's source documents:** Jacob asked whether republishing them is a problem. NUS's legal
+  notice (https://www.nus.edu.sg/legal-information-notices) says no part of its web content "may
+  be reproduced, licensed, sold, published, transmitted ... without the prior written permission
+  of the University", and allows saving a copy "solely for your own information, research or
+  study". So the sources are not republished in the clear: they go into the repo's releases
+  encrypted (a private copy for the project's own use), with the key beside the holdout key. The
+  page's short, attributed quotes of NUS's rules are a separate matter and stay as they are.
 
 ## Republishing NUSMods data
 The production corpus assets republish NUSMods' JSON, as the pinned corpus asset
