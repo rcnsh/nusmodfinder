@@ -7,8 +7,8 @@
 // The deploy guard, rollback's data check and d1:restore's re-read go through it, on the Mac
 // and in GitHub Actions alike, instead of a `wrangler dev --remote` session (which would bind
 // Vectorize and Workers AI too). Every statement is checked before it leaves: only SELECT and
-// read-only PRAGMA statements are sent, one per request; anything else is refused in code,
-// whatever the token would allow. The token is asked for once, lazily, and never appears in an
+// read-only PRAGMA statements are sent, one per request, with no write keyword and no named
+// parameter anywhere; anything else is refused in code, whatever the token would allow. The token is asked for once, lazily, and never appears in an
 // error. `rowsRead` sums the responses' `meta.rows_read`, for run records.
 //
 // No Node APIs, so the Worker test harness can drive it (test/admin-hashes-rest.test.js); the
@@ -57,7 +57,21 @@ function skeleton(sql) {
 }
 
 /**
- * Throws unless `sql` is one SELECT, or one PRAGMA that only reads the schema.
+ * Words that write or change the schema. None may appear anywhere outside a literal, so a reader
+ * that is wrong about where a statement ends still can't let one through (red team M-3).
+ * RETURNING is here too: no read has one.
+ */
+export const WRITE_KEYWORDS = ['INSERT', 'UPDATE', 'DELETE', 'REPLACE', 'CREATE', 'DROP', 'ALTER', 'ATTACH', 'DETACH', 'VACUUM', 'REINDEX', 'RETURNING'];
+const WRITE_RE = new RegExp(`\\b(${WRITE_KEYWORDS.join('|')})\\b`, 'i');
+
+/**
+ * Throws unless `sql` is one SELECT, or one PRAGMA that only reads the schema. After comments and
+ * literals are stripped: exactly one statement; the first keyword SELECT (or a listed PRAGMA); no
+ * write keyword anywhere; and no `$`, `@`, `:` or `#` at all. SQLite reads any of those four
+ * followed by an identifier character as a parameter, its identifier characters include `$` and
+ * every byte >= 0x80, and a TCL-style `$a(...)` swallows quotes up to the next `)`, which would hide
+ * a `;` from the literal-blanking (red team M-3: `SELECT $$(');UPDATE …`). Every caller sends a
+ * constant with `?` parameters, so being this strict costs nothing.
  * @param {string} sql
  */
 export function assertReadOnly(sql) {
@@ -69,10 +83,9 @@ export function assertReadOnly(sql) {
   const body = skeleton(sql).trim().replace(/;\s*$/, '').trim();
   if (!body) refuse('empty');
   if (body.includes(';')) refuse('more than one statement');
-  // Only `?` parameters are sent. SQLite's named forms ($a, @a, :a, #a) also have a TCL-style
-  // `$a(...)` that runs to the next ')' and swallows quotes, which would hide a `;` from the
-  // literal-blanking above; so none of them is allowed.
-  if (/[$@:#][A-Za-z0-9_]/.test(body)) refuse('a named parameter ($, @, : or #); only ? parameters are sent');
+  if (/[$@:#]/.test(body)) refuse('a parameter sigil ($, @, : or #); only ? parameters are sent');
+  const write = WRITE_RE.exec(body);
+  if (write) refuse(`the write keyword ${write[1].toUpperCase()}`);
   const keyword = body.match(/^[A-Za-z]+/)?.[0]?.toUpperCase();
   if (keyword === 'SELECT') return;
   if (keyword === 'PRAGMA') {

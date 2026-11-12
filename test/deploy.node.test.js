@@ -14,7 +14,7 @@ import { ALLOWED_VARS, MAX_STARTUP_MS, STARTUP_PROFILE, deploy, wranglerVars } f
 import { productionD1 } from '../scripts/d1-read.mjs';
 import { GUARD_CHECKS } from '../scripts/guard.mjs';
 import {
-  CATALOGUE, CATALOGUE_KEY, D1_MODULES, DV, KEY, NOW, PREVIOUS, RUNS_API, SHA, SHIM, SHORT, STATUS_KEY, TAG, TOKEN, VERSION,
+  CATALOGUE, CATALOGUE_KEY, D1_MODULES, DV, KEY, d1Row, NOW, PREVIOUS, RUNS_API, SHA, SHIM, SHORT, STATUS_KEY, TAG, TOKEN, VERSION,
   bundleOf, catalogueOf, fakeD1, fakeExec, ghRun, runsBody,
 } from './deploy-fakes.node.mjs';
 
@@ -249,10 +249,14 @@ describe('npm run deploy', () => {
 describe('the guard over the D1 REST query (Phase 7 7B, G1)', () => {
   it('[B-2, B3-4] refuses when D1 does not hold the bundle\'s texts or the committed data version, or cannot be read', async () => {
     const otherText = D1_MODULES.map((m) => (m.code === 'CS2040' ? { ...m, text_hash: 'old' } : m));
-    const otherRow = D1_MODULES.map((m) => (m.code === 'CS2040' ? { ...m, row_hash: 'old' } : m));
+    // Rows written by ingest, but not the committed ones: only the data version differs.
+    const otherRow = [D1_MODULES[0], await d1Row({ code: 'CS2040', title: 'Data Structures and Algorithms', description: 'd2', textHash: 't2', credits: 5 })];
+    // Red team M-1: a column changed behind its row_hash.
+    const behind = D1_MODULES.map((m) => (m.code === 'CS2040' ? { ...m, credits: 99 } : m));
     for (const [d1, msg] of /** @type {const} */ ([
       [() => fakeD1({ modules: otherText }).client, 'rowsKey'],
       [() => fakeD1({ modules: otherRow }).client, "D1's data version is"],
+      [() => fakeD1({ modules: behind }).client, "1 of D1's modules rows has a row_hash that is not its columns' hash (CS2040)"],
       [() => fakeD1({ status: 403 }).client, 'HTTP 403'],
     ])) {
       const { exec, calls } = fakeExec();
@@ -272,7 +276,7 @@ describe('the guard over the D1 REST query (Phase 7 7B, G1)', () => {
   });
 
   it('in GitHub Actions, a D1 that differs from the bundle fails with the Mac runbook, and nothing is uploaded', async () => {
-    const otherRow = D1_MODULES.map((m) => (m.code === 'CS2040' ? { ...m, row_hash: 'new' } : m));
+    const otherRow = [D1_MODULES[0], await d1Row({ code: 'CS2040', title: 'Data Structures and Algorithms', description: 'd2', textHash: 't2', credits: 6 })];
     const { exec, calls } = fakeExec();
     const { code, err } = await runDeploy(exec, { d1: async () => fakeD1({ modules: otherRow }).client, env: { GITHUB_ACTIONS: 'true' } });
     expect(code).toBe(1);
@@ -309,10 +313,12 @@ describe('the guard over the D1 REST query (Phase 7 7B, G1)', () => {
     expect(ranWrangler(calls2)).toBe(false);
   });
 
-  it('the shipped checks are rowsKey, the data version and 7D\'s catalogueKey', () => {
-    expect(GUARD_CHECKS.map((c) => c.name)).toEqual(['rowsKey', 'dataVersion', 'catalogueKey']);
+  it('the shipped checks are rowsKey, the data version, 7D\'s catalogueKey, and the two row_hash checks (red team M-1)', () => {
+    expect(GUARD_CHECKS.map((c) => c.name)).toEqual(['rowsKey', 'dataVersion', 'rowHashes', 'catalogueKey', 'catalogueRows']);
     expect(GUARD_CHECKS.find((c) => c.name === 'dataVersion')?.field).toBe('dataVersion');
     expect(GUARD_CHECKS.find((c) => c.name === 'catalogueKey')?.field).toBe('catalogueKey');
+    // D1 against itself: rollback runs them too, and they add nothing to the tag.
+    expect(GUARD_CHECKS.filter((c) => c.integrity).map((c) => [c.name, c.field])).toEqual([['rowHashes', undefined], ['catalogueRows', undefined]]);
     expect(KEY).toMatch(/^[0-9a-f]{64}$/);
   });
 });

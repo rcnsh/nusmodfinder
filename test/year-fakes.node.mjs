@@ -3,7 +3,7 @@
 // files the year's source gate reads, and fake NUS documents that the restrictions builder turns
 // into the committed rules (codes and YST lists taken from the committed file, every other
 // document a few bytes). Never the real documents: those stay on the Mac, out of reach of tests.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -46,6 +46,34 @@ export const writeJson = (root, rel, data, indent = 1) => {
 export const sha = (b) => createHash('sha256').update(b).digest('hex');
 
 /** The committed rule E sentence, as the restrictions' text extraction would hold it. */
+/** scripts/extract-ng.py, which `year check --full` re-runs over the archived NG list (red team H-1). */
+export const EXTRACT_NG = join(REPO, 'scripts/extract-ng.py');
+
+/**
+ * A fake NG list "PDF" whose bytes are the pages extract-ng.py's --from-text mode reads (form-feed
+ * separated): from it the extractor writes `courses` byte for byte. Never the real PDF.
+ * @param {{ acadYear: string, updatedAsAt: string, semesters: Record<string, string[]> }} courses
+ */
+export function fakeNgPages(courses) {
+  const [a, b] = courses.acadYear.split('-');
+  const pages = [`%PDF-1.4 fake NG list\nCourse Offered for Non-Graduating (NG) Students\nUpdated as at ${courses.updatedAsAt}\n`];
+  for (const s of Object.keys(courses.semesters).sort()) {
+    const head = s === '1' ? `For Semester 1 of AY${a}/${b} (August ${a} intake)` : `For Semester 2 of AY${a}/${b} (January ${b} intake)`;
+    pages.push(`${head}\n${courses.semesters[s].map((c) => `Faculty | Department | ${c} | A course | 1 | Mon`).join('\n')}\n`);
+  }
+  return pages.join('\f');
+}
+
+/**
+ * `year check --full`'s NG list extractor for tests: extract-ng.py in --from-text mode over the
+ * fake "PDF" (its bytes are page text), so no pypdf and no real PDF is needed.
+ * @type {import('../scripts/year.mjs').NgExtractor}
+ */
+export const fromTextExtractor = async ({ pdf, year, published, out }) => {
+  const r = spawnSync('python3', [EXTRACT_NG, '--from-text', pdf, '--year', year, '--published', published.join(','), '--out', out], { encoding: 'utf8' });
+  return r.status === 0 ? { ok: true, message: r.stdout.trim() } : { ok: false, message: `${r.stderr || r.stdout}`.trim() || `exit ${r.status}` };
+};
+
 export const RULE_E_SENTENCE = 'Approval for any other courses not listed in this document will be granted on a case-by-case basis. If the courses cannot be found at the Course offerings list, they are not available during application stage but may be available during Course registration.';
 
 /**
@@ -58,7 +86,7 @@ export function fakeDocuments(dir, { restrictionsText = `Course restrictions\n${
   const committed = readJson(REPO, `data/ng-restrictions-${Y}.json`);
   /** @type {Record<string, Buffer>} */
   const files = {
-    'ng-courses.pdf': Buffer.from('%PDF-1.4 fake NG list\n'),
+    'ng-courses.pdf': Buffer.from(fakeNgPages(readJson(REPO, `data/ng-courses-${Y}.json`))),
     'non-graduating-course-restrictions.pdf': Buffer.from('%PDF-1.4 fake restrictions\n'),
     'non-graduating-course-restrictions.txt': Buffer.from(restrictionsText),
     'self-funded-graduate-courses.pdf': Buffer.from('%PDF-1.4 fake self-funded list\n'),
@@ -89,7 +117,11 @@ export function useFakeDocuments(root, files) {
   rev.documents =rev.documents.filter((/** @type {any} */ d) => d.builder || d.id === 'restrictions').map((/** @type {any} */ d) => {
     const rest = { ...d };
     delete rest.confirm;
-    const out = { ...rest, url: rest.url ?? 'https://example.test/doc', sha256: files[d.file] ? sha(files[d.file]) : d.sha256 };
+    // The text's pin (red team L-5) is the fake text's, as publish would write it.
+    const out = {
+      ...rest, url: rest.url ?? 'https://example.test/doc', sha256: files[d.file] ? sha(files[d.file]) : d.sha256,
+      ...(d.text ? { textSha256: files[d.text] ? sha(files[d.text]) : undefined } : {}),
+    };
     return d.id === 'restrictions' ? out : { ...out, text: undefined };
   }).map((/** @type {any} */ d) => JSON.parse(JSON.stringify(d)));
   m.quotes = m.quotes.filter((/** @type {any} */ q) => q.id === 'rule-e');

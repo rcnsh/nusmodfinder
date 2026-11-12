@@ -33,6 +33,7 @@
      "updatedAsAt": "01 Sep 2026",
      "builder": true,
      "text": "ng-courses.txt",
+     "textSha256": "60948390f9a3cedff9ebaeff0df3ad54317e93d6905a3421fc0abb8cd3e71816",
      "note": "the Registrar's non-graduating page links it (https://www.nus.edu.sg/registrar/prospective-students/non-graduating); `text` is its pdftotext output for the quote check, saved with it in the 2026-11-10 folder"
     },
     {
@@ -44,6 +45,7 @@
      "updatedAsAt": "31 Aug 2026",
      "builder": true,
      "text": "non-graduating-course-restrictions.txt",
+     "textSha256": "572e172bba8f240cba5734d3727710ab9a7a70284cd4391e74a5c4de149482e5",
      "note": "also carries a 19 March 2025 footer on its blank pages 21-22 (register I18); `text` is its pdftotext output for the quote check, saved with it in the 2026-11-10 folder"
     },
     {
@@ -167,6 +169,7 @@
      "sha256": "14bf5e878a52862d19ab915ffdc19a97b6778c0479eb5193fc300533b7664cf1",
      "updatedAsAt": "4 Jun 2026",
      "text": "exchangeatnus.txt",
+     "textSha256": "71a4e652b6a4e51153ac941a39f0e65c54106772dbcfc34c544728060ef5f22a",
      "note": "fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output"
     },
     {
@@ -187,7 +190,8 @@
      "sha256": "19560f082cbfb302cd0ca7a1a95f8e26dbcd30c3fdddb800c1aaae691831ade6",
      "updatedAsAt": null,
      "note": "no date found in the copy read 2026-11-11 (docs/evidence/phase6/facts.md §3); fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output",
-     "text": "coursereg-student-user-guide.txt"
+     "text": "coursereg-student-user-guide.txt",
+     "textSha256": "9782ef676f9049f7b1ac45bc4d7dae8876178aa724a38c02210200a378feddd0"
     },
     {
      "id": "application-guide",
@@ -197,7 +201,8 @@
      "sha256": "833680ac6652973033c53d2cbada4989205841a598807439bb4343d6d166f082",
      "updatedAsAt": "August 2024",
      "note": "a 2025 copy (docs/evidence/phase6/facts.md §3); the page paraphrases it and quotes none of it word for word; fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output",
-     "text": "ng-online-application-guide-2025.txt"
+     "text": "ng-online-application-guide-2025.txt",
+     "textSha256": "ba53e356bb9b1c170612fe623cd082feee472e3ad5045faa89c3e4fcba0d1235"
     },
     {
      "id": "biz-factsheet",
@@ -207,7 +212,8 @@
      "sha256": "4fe676012fd6bbfe854da86f6876708da956024bca3d9666caee39e0a9425e4a",
      "updatedAsAt": "July 2026",
      "note": "dated by its T2620 issue (docs/evidence/phase6/facts.md §3); fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output",
-     "text": "nus-biz-exchange-factsheet-ug-t2620.txt"
+     "text": "nus-biz-exchange-factsheet-ug-t2620.txt",
+     "textSha256": "83373eacea243b7ba4f320f9d693a803ddf7d35420829286a559957cdd891a1c"
     },
     {
      "id": "info-sheet-2018-19",
@@ -238,6 +244,7 @@
      "updatedAsAt": "01 Sep 2026",
      "builder": true,
      "text": "ng-courses.txt",
+     "textSha256": "60948390f9a3cedff9ebaeff0df3ad54317e93d6905a3421fc0abb8cd3e71816",
      "note": "the Registrar's non-graduating page links it (https://www.nus.edu.sg/registrar/prospective-students/non-graduating); `text` is its pdftotext output for the quote check, saved with it in the 2026-11-10 folder"
     },
     {
@@ -249,6 +256,7 @@
      "updatedAsAt": "31 Aug 2026",
      "builder": true,
      "text": "non-graduating-course-restrictions.txt",
+     "textSha256": "572e172bba8f240cba5734d3727710ab9a7a70284cd4391e74a5c4de149482e5",
      "note": "also carries a 19 March 2025 footer on its blank pages 21-22 (register I18); `text` is its pdftotext output for the quote check, saved with it in the 2026-11-10 folder"
     },
     {
@@ -341,6 +349,7 @@
      "sha256": "14bf5e878a52862d19ab915ffdc19a97b6778c0479eb5193fc300533b7664cf1",
      "updatedAsAt": "4 Jun 2026",
      "text": "exchangeatnus.txt",
+     "textSha256": "71a4e652b6a4e51153ac941a39f0e65c54106772dbcfc34c544728060ef5f22a",
      "note": "fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output"
     },
     {
@@ -360,7 +369,8 @@
      "sha256": "19560f082cbfb302cd0ca7a1a95f8e26dbcd30c3fdddb800c1aaae691831ade6",
      "updatedAsAt": null,
      "note": "no date found in the copy read 2026-11-11 (docs/evidence/phase6/facts.md §3); fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output",
-     "text": "coursereg-student-user-guide.txt"
+     "text": "coursereg-student-user-guide.txt",
+     "textSha256": "9782ef676f9049f7b1ac45bc4d7dae8876178aa724a38c02210200a378feddd0"
     },
     {
      "id": "application-guide",
@@ -370,7 +380,8 @@
      "sha256": "833680ac6652973033c53d2cbada4989205841a598807439bb4343d6d166f082",
      "updatedAsAt": "August 2024",
      "note": "a 2025 copy (docs/evidence/phase6/facts.md §3); the page paraphrases it and quotes none of it word for word; fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output",
-     "text": "ng-online-application-guide-2025.txt"
+     "text": "ng-online-application-guide-2025.txt",
+     "textSha256": "ba53e356bb9b1c170612fe623cd082feee472e3ad5045faa89c3e4fcba0d1235"
     },
     {
      "id": "biz-factsheet",
@@ -380,7 +391,8 @@
      "sha256": "4fe676012fd6bbfe854da86f6876708da956024bca3d9666caee39e0a9425e4a",
      "updatedAsAt": "July 2026",
      "note": "dated by its T2620 issue (docs/evidence/phase6/facts.md §3); fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output",
-     "text": "nus-biz-exchange-factsheet-ug-t2620.txt"
+     "text": "nus-biz-exchange-factsheet-ug-t2620.txt",
+     "textSha256": "83373eacea243b7ba4f320f9d693a803ddf7d35420829286a559957cdd891a1c"
     },
     {
      "id": "info-sheet-2018-19",

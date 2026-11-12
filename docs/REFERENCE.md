@@ -177,7 +177,9 @@ year (NUS prepends the next year's Sem 1 above this year's Sem 2), and fails whe
 year's source manifest marks published has no section or a section has no rows (Phase 7 7E;
 `--from-text` reads text already extracted, with no `pypdf`). The ingest script picks it up and
 sets `modules.ng` plus the `ng` Vectorize metadata property. A missing or stub file is refused:
-exchange mode would show every course closed.
+exchange mode would show every course closed. `year check --full` re-runs the extractor with
+`.venv/bin/python` on the archived PDF and requires the committed file byte for byte, so a hand
+edit to it can't pass (red team H-1); keep the venv above in the repo.
 
 **The source manifest and the year refresh** (Phase 7 7E). Each year's sources are listed in
 `data/ng-sources-<year>.json`: the revisions of NUS's documents (name, URL, file, sha256, "updated
@@ -185,8 +187,12 @@ as at"), each revision's encrypted archive (a release asset; `npm run sources`),
 NUS has published, the transcription, overlay (`scripts/ng-overlay/<year>.mjs`), oracle and
 register paths, and the quote index (every NUS sentence copied by hand into `src/` or `public/`,
 with its document). `npm run year -- check` checks the year's files agree with it (the deploy
-preflight runs it), and `--full`, on the Mac with the key, finds every quote in its document and
-rebuilds the rules file byte for byte. The runbook for a year switch and a mid-year revision is
+preflight runs it), and `--full`, on the Mac with the key, finds every quote in its document,
+re-extracts `data/ng-courses-<year>.json` from the archived NG list PDF and rebuilds the rules file,
+each byte for byte; while a semester is unpublished it re-extracts last year's list (which exchange
+mode shows for it) from last year's archive too, and refuses when there is none. Every document's `file` and `text` is a plain base name (red team L-4), and each
+`text` extraction carries a `textSha256` (red team L-5), which `sources publish` writes and restore,
+`--full` and the restrictions builder check. The runbook for a year switch and a mid-year revision is
 [`docs/year-refresh/README.md`](year-refresh/README.md).
 
 **A semester NUS hasn't published (G2, ADR 0011).** The site moves to a new year once NUSMods has
@@ -564,7 +570,9 @@ This is the only supported way to deploy, from the Mac or from GitHub Actions (b
    - `ci`: `HEAD`'s own `CI` and `Findings` push runs succeeded (`gh api …/actions/runs?head_sha=`).
      A run in progress names `gh run watch <id> --exit-status`; a failed or cancelled one,
      `gh run rerun <id>`;
-   - `vars`: `wrangler.jsonc`'s vars hold only `DENSE_BACKEND`;
+   - `vars`: `wrangler.jsonc`'s vars hold only `DENSE_BACKEND`. The file is read as JSONC
+     (`scripts/jsonc.mjs`), so an object-valued var counts like any other, and a file or `vars`
+     it can't read fails the check (red team L-2);
    - `bundle`: the production bundle `data/vectors.json` records (downloaded from its release if
      absent), sha256-checked, at `src/data-version.json`'s data version; never the fixture or
      pinned bundle;
@@ -579,18 +587,24 @@ This is the only supported way to deploy, from the Mac or from GitHub Actions (b
      `data/ng-unscheduled.json`, which follows the corpus; `scripts/ng-overlay/`; a quoted NUS
      sentence counts through the quote index) since the live commit (the newest `deploy/*` or `rollback/*` tag), a
      committed `year check --full` run record (7E) whose `details.sourceInputsHash` is those
-     inputs' hash at `HEAD` (`sourceInputsHash` in `scripts/preflight.mjs`: sha256 over their
+     inputs' hash at `HEAD` and whose `details.ngList.result` is `byte-identical` (a record from
+     before the red team's H-1 fix doesn't count) (`sourceInputsHash` in `scripts/preflight.mjs`: sha256 over their
      `git ls-tree` lines). A hotfix that touches none needs no sources key;
    - `startup`: `wrangler check startup` locally with the bundle aliased in;
 2. **the guard** (`scripts/guard.mjs`): reads D1 over the D1 REST query endpoint
    (`scripts/d1-rest.mjs`, ~6.8k module and ~14.4k catalogue rows read, the count taken from the
    answers' `meta.rows_read`) and computes what `GET /admin/hashes` would answer, with the same
-   code (`src/admin-hashes.js`). It refuses unless D1's (code, `text_hash`) pairs hash to the
-   bundle's `rowsKey`, D1's data version is the committed one, and D1's `catalogueKey` (its
-   `catalogue_only` codes, 7D) is the bundled catalogue file's (`data/catalogue-codes.json`). No
-   Worker session starts and no secret is bound. The checks are a list (`GUARD_CHECKS`); one with
-   a `field` (`dataVersion`, `catalogueKey`) also goes into the deploy tag and rollback's data
-   check;
+   code (`src/admin-hashes.js`). Every row is read with every column and its hash recomputed from
+   them with the functions ingest writes it with (`src/rowhash.js`; red team M-1), never taken
+   from the stored `row_hash`; D1 bills rows, not columns, so the read costs the same. It refuses
+   unless D1's (code, `text_hash`) pairs hash to the bundle's `rowsKey`, D1's data version (over
+   the recomputed hashes) is the committed one, every `modules` row's stored `row_hash` is its
+   columns' hash (`rowHashes`), D1's `catalogueKey` (its `catalogue_only` codes, 7D) is the
+   bundled catalogue file's (`data/catalogue-codes.json`), and every `catalogue_only` row's
+   stored `row_hash` is its columns' hash, the year included (`catalogueRows`). No Worker session
+   starts and no secret is bound. The checks are a list (`GUARD_CHECKS`); one with a `field`
+   (`dataVersion`, `catalogueKey`) also goes into the deploy tag and rollback's data check, and
+   one marked `integrity` (`rowHashes`, `catalogueRows`) runs in rollback's data check too;
 3. `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`, and refuses to
    promote a version whose reported startup time is missing or over 200 ms;
 4. **the intent record**: the version id, the previous one (`wrangler deployments status
@@ -611,13 +625,17 @@ checks, the guard's read, the version ids, the tag and the outcome; `--preflight
 
 **The D1 REST reads.** The client sends one statement per request and refuses, in code and
 before anything leaves, any statement but one `SELECT` or one schema-reading `PRAGMA`
-(`table_info`, `index_list` and the like, never an `=` form). The token is
+(`table_info`, `index_list` and the like, never an `=` form). After comments and literals are
+stripped, no write keyword (`INSERT`, `UPDATE`, `DELETE`, `REPLACE`, `CREATE`, `DROP`, `ALTER`,
+`ATTACH`, `DETACH`, `VACUUM`, `REINDEX`, `RETURNING`) may appear anywhere, and no `$`, `@`, `:` or
+`#` at all: SQLite's named and TCL-style parameters can swallow a quote and hide a second
+statement (red team M-3). Every caller sends a constant with `?` parameters. The token is
 `CLOUDFLARE_API_TOKEN`, else `npx wrangler auth token --json` captured in-process (the Mac's
 wrangler login); it is never printed, logged, put in an error or recorded. The account is
 `CLOUDFLARE_ACCOUNT_ID`, else the account wrangler cached
 (`node_modules/.cache/wrangler/wrangler-account.json`); set the variable if neither is there. The
-database is `wrangler.jsonc`'s `DB` binding. Rollback and `d1:restore` read through the same
-client.
+database is the `d1_databases` entry bound as `DB` in `wrangler.jsonc`, wherever it is listed;
+none, or two, is refused (red team L-3). Rollback and `d1:restore` read through the same client.
 
 **Deploying from GitHub Actions** (`.github/workflows/deploy.yml`, ADR 0011 G1). It runs on
 `workflow_run` when `CI` or `Findings` completes on `main`, and `scripts/deploy-gate.mjs` lets
@@ -656,8 +674,9 @@ npm run rollback -- --to <version id>    # or its first 8
 
 `scripts/rollback.mjs` takes the target's commit and data version from its `deploy/*` tag, reads
 D1 directly over the REST query (no Worker session, no working-tree code; ~21k rows) and
-refuses unless every tagged field (`dataVersion`, `catalogueKey`) equals D1's; a tag without one
-of them is refused too. A deliberate
+refuses unless every tagged field (`dataVersion`, `catalogueKey`) equals D1's and every row's
+stored `row_hash` is its columns' hash (the guard's `integrity` checks); a tag without one of the
+fields is refused too. A deliberate
 mismatch needs `--accept-data-mismatch`, which prints the risk; the usual path across a data
 change is `npm run d1:restore` first, then rollback. It asks before acting (or `--yes`), runs
 `wrangler rollback <id> --message "rollback to <tag>" -y`, tags `rollback/<time>-<id8>` on the
@@ -881,11 +900,15 @@ fits in the remaining included writes.
 
 A run for a different acad year than D1 holds is refused unless you pass
 `--allow-year-change` (it rewrites every row to the new year). Pass `--allow-mass-delete`
-as well if more than 5% of the codes D1 holds leave the corpus.
+as well if more than 5% of the codes D1 holds leave the corpus, in `modules` or in
+`catalogue_only` (red team L-1); without it the run is refused before any write.
 
 **What a run does.** It compares two hashes per module with what D1 holds
 (`GET /admin/hashes`): `text_hash` (embedding model + embedded-text version + text) and
 `row_hash` (normaliser version + every column D1 stores + the Vectorize metadata).
+`/admin/hashes` and `GET /admin/catalogue` recompute each stored row's hash from its columns and
+answer null where the stored `row_hash` differs, so a row changed behind its hash (a hand
+`d1 execute`) is rewritten by the next run (red team M-1).
 
 - Text changed: the module is re-embedded, then the vector and the row are upserted.
 - Only the row changed: the row is rewritten, and the vector is re-upserted with its
@@ -1149,7 +1172,11 @@ public API, and makes no Cloudflare or live-site call. It needs no secret but th
   own `drift:reminder` issue, once per quiet stretch (keyed by the last commit).
 
 Issues are found by their label and a hidden marker in the body (`<!-- vnm-drift:… -->`), never by
-title. To see what a check would do without touching GitHub, run `node scripts/drift.mjs weekly
+title. NUSMods controls the codes the pending issue names, so only codes of the course-code shape
+(`MODULE_CODE_RE`) are shown; any other is counted ("N codes not in the course-code shape"). The
+issue's history is read from the last `vnm-drift:state` block of its body, keeping only entries of
+the shape the check writes, and is written with `<` and `>` escaped, so no value can forge it (red
+team M-2). To see what a check would do without touching GitHub, run `node scripts/drift.mjs weekly
 --dry-run` (it does fetch NUSMods) or `monthly --dry-run`. The crons in `drift.yml` must match
 `SCHEDULES` in the script; `test/drift-workflow.node.test.js` checks that.
 

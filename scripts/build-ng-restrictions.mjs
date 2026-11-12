@@ -9,8 +9,8 @@
 //     matches NUSMods fields, per the year's interpretations register, with the roles
 //     `self-funded-list` and `off-list-rule`;
 //   - the newest revision's documents: every `builder` document is read through its sha256 (a
-//     mismatch, or one never read, fails the build); the self-funded course list and the YST
-//     elective lists are extracted here.
+//     mismatch, or one never read, fails the build), and its `text` extraction checked against
+//     its textSha256; the self-funded course list and the YST elective lists are extracted here.
 //
 //   node scripts/build-ng-restrictions.mjs --sources <dir> [--check] [--revision <date>]
 //
@@ -116,6 +116,13 @@ export function buildRestrictions({ manifest, revision, transcription, overlay, 
     return [...codes].sort();
   };
   source('restrictions'); source('law-compulsory'); source('ng-list');
+  // Each builder document's text extraction is pinned too (red team L-5): checked, not read.
+  for (const d of revision.documents) {
+    if (!d.builder || !d.text) continue;
+    if (!d.textSha256) throw new Error(`${d.id}'s text ${d.text} has no textSha256 in the ${revision.date} revision (npm run sources -- publish writes it)`);
+    const got = createHash('sha256').update(sources.read(d.text)).digest('hex');
+    if (got !== d.textSha256) throw new Error(`${d.text}: sha256 ${got} does not match the source manifest's textSha256 (${d.textSha256})`);
+  }
 
   const missing = transcription.rules.map((r) => r.id).filter((id) => !(id in OVERLAY));
   const extra = Object.keys(OVERLAY).filter((id) => !transcription.rules.some((r) => r.id === id));

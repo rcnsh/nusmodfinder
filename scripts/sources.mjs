@@ -10,13 +10,16 @@
 //   npm run sources -- hash --from <dir>
 //       each file's sha256, to fill in a new revision's documents by hand
 //   npm run sources -- publish --from <dir> [<year>] [--revision <date>] [--key <path>]
-//       checks every document of the revision against its sha256, packs and encrypts them,
-//       uploads the asset (gh release create), and writes the archive's sha256 into the
-//       manifest; leaves a run record; commit the manifest afterwards
+//       checks every document of the revision against its sha256 (and each text extraction
+//       against its textSha256, when the manifest has one), packs and encrypts them, uploads the
+//       asset (gh release create), and writes the archive's sha256 and each text's textSha256 into
+//       the manifest; leaves a run record; commit the manifest afterwards. Every file and text
+//       name must be a plain base name (red team L-4).
 //   npm run sources -- restore [<year>] [--revision <date>] [--key <path>] [--out <dir>]
-//       downloads the asset (gh release download), checks its sha256 and every file's, and
-//       unpacks into a fresh temp dir (or --out), printing the dir; the restrictions builder
-//       and `year check --full` read that dir
+//       downloads the asset (gh release download), checks its sha256 and every file's (text
+//       extractions included: a file the manifest doesn't pin is refused), checks each entry's
+//       name is a plain base name, and unpacks into a fresh temp dir (or --out), printing the dir;
+//       the restrictions builder and `year check --full` read that dir
 //
 // The key: --key <path>, else $VNM_SOURCES_KEY_FILE, else ~/.config/vnm/sources-archive.key. It
 // is never the holdout key, and no default reads that key's path. Back it up in Bitwarden
@@ -36,7 +39,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { DEFAULT_ACAD_YEAR } from './lib.mjs';
-import { ROOT, manifestRel, readManifest, revisionOf } from './ng-sources.mjs';
+import { ROOT, isPlainName, manifestRel, notPlain, readManifest, revisionOf } from './ng-sources.mjs';
 import { startRun } from './run-record.mjs';
 
 export const MAGIC = Buffer.from('VNMSRC1\n');
@@ -157,7 +160,9 @@ export function open({ archive, key, year, revision }) {
 export const releaseName = (year, date) => `sources-${year}-${date.replaceAll('-', '')}`;
 
 /**
- * The files a revision archives: every document's file and its text extraction.
+ * The files a revision archives: every document's file and its text extraction, each with the
+ * sha256 the manifest pins it to (the text's is `textSha256`, red team L-5; null until publish
+ * writes it).
  * @param {import('./ng-sources.mjs').Revision} rev
  * @returns {{ name: string, sha256: string | null, id: string }[]}
  */
@@ -166,10 +171,16 @@ export function archivedFiles(rev) {
   for (const d of rev.documents) {
     if (d.unarchived) continue;
     if (d.file) out.push({ name: d.file, sha256: d.sha256, id: d.id });
-    if (d.text) out.push({ name: d.text, sha256: null, id: `${d.id} (text)` });
+    if (d.text) out.push({ name: d.text, sha256: d.textSha256 ?? null, id: `${d.id} (text)` });
   }
   return out;
 }
+
+/**
+ * The names among `files` that are not plain base names (red team L-4), as refusals.
+ * @param {{ name: string, id?: string }[]} files
+ */
+const pathNames = (files) => files.filter((f) => !isPlainName(f.name)).map((f) => notPlain(f.id ? `${f.id}'s` : 'the archive entry', f.name));
 
 /**
  * @typedef {(release: string, file: string, o: { title: string, notes: string }) => Promise<void>} Upload
@@ -201,6 +212,8 @@ export async function publish({ from, year = DEFAULT_ACAD_YEAR, revision, key, r
   const rev = revisionOf(manifest, revision);
   if (!rev) throw new Error(`${rel} has no revision ${revision ?? '(none)'}`);
   if (rev.archive.sha256) throw new Error(`${rel} revision ${rev.date} already has its archive (${rev.archive.release}); an archive is never replaced: add a new revision`);
+  const named = pathNames(archivedFiles(rev));
+  if (named.length) throw new Error(`refusing to publish ${rev.date}:\n  ${named.join('\n  ')}`);
   const files = [];
   const problems = [];
   for (const f of archivedFiles(rev)) {
@@ -230,6 +243,11 @@ export async function publish({ from, year = DEFAULT_ACAD_YEAR, revision, key, r
     record.detail('sha256', digest);
     record.detail('files', files.length);
     rev.archive = { release, asset, sha256: digest };
+    // Each text extraction's sha256 (red team L-5), so restore, --full and the builder check it.
+    for (const d of rev.documents) {
+      const text = d.text && !d.unarchived ? files.find((f) => f.name === d.text) : undefined;
+      if (text) d.textSha256 = sha256(text.bytes);
+    }
     writeFileSync(join(root, rel), `${JSON.stringify(manifest, null, 1)}\n`);
     record.finish('ok', { exitCode: 0 });
     log(`sources: published ${release} (${files.length} files, sha256 ${digest.slice(0, 12)}); wrote it into ${rel}. Commit ${rel}.`);
@@ -255,6 +273,11 @@ export async function restore({ year = DEFAULT_ACAD_YEAR, revision, key, out, ro
   const rev = revisionOf(manifest, revision);
   if (!rev) throw new Error(`${rel} has no revision ${revision ?? '(none)'}`);
   if (!rev.archive.sha256) throw new Error(`${rel} revision ${rev.date}'s archive is pending (${rev.archive.pending ?? 'not published'}): npm run sources -- publish --from <dir>`);
+  const listed = archivedFiles(rev);
+  const named = pathNames(listed);
+  if (named.length) throw new Error(`${rel} revision ${rev.date}: ${named.join('; ')}; nothing restored`);
+  const unpinned = listed.filter((f) => !f.sha256);
+  if (unpinned.length) throw new Error(`${unpinned.map((f) => `${f.name} (${f.id})`).join(', ')} ha${unpinned.length === 1 ? 's' : 've'} no sha256 in the manifest's revision ${rev.date}, so it can't be checked; nothing restored`);
   const k = readKey(keyPath({ ...(key ? { key } : {}), env }), env);
   const dl = mkdtempSync(join(tmpdir(), 'vnm-sources-dl-'));
   try {
@@ -263,11 +286,13 @@ export async function restore({ year = DEFAULT_ACAD_YEAR, revision, key, out, ro
     const got = sha256(archive);
     if (got !== rev.archive.sha256) throw new Error(`${rev.archive.asset} has sha256 ${got}, not the manifest's ${rev.archive.sha256}; nothing unpacked`);
     const files = open({ archive, key: k, year, revision: rev.date });
-    const want = new Map(archivedFiles(rev).map((f) => [f.name, f.sha256]));
+    const entries = pathNames(files);
+    if (entries.length) throw new Error(`${entries.join('; ')}; nothing restored`);
+    const want = new Map(listed.map((f) => [f.name, f.sha256]));
     for (const f of files) {
       const expected = want.get(f.name);
       if (expected === undefined) throw new Error(`the archive holds ${f.name}, which the manifest's revision ${rev.date} doesn't list`);
-      if (expected && expected !== f.sha256) throw new Error(`${f.name}: sha256 ${f.sha256}, not the manifest's ${expected}`);
+      if (expected !== f.sha256) throw new Error(`${f.name}: sha256 ${f.sha256}, not the manifest's ${expected}`);
     }
     const missing = [...want.keys()].filter((n) => !files.some((f) => f.name === n));
     if (missing.length) throw new Error(`the archive lacks ${missing.join(', ')}`);

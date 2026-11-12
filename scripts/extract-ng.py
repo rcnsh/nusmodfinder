@@ -25,6 +25,10 @@ section, or a kept section has no rows, and prints each semester's count.
 
 --from-text reads text already extracted (pages separated by form feeds, as
 pdftotext writes them) and needs no pypdf, so CI tests the heading logic.
+
+`npm run year -- check --full` re-runs this script with .venv/bin/python on the
+archived PDF and requires its output to be data/ng-courses-<year>.json byte for
+byte (red team H-1), so create the venv as above before running it.
 --published 1,2 overrides the manifest's published semesters
 (data/ng-sources-<year>.json). --out writes somewhere other than
 data/ng-courses-<year>.json.

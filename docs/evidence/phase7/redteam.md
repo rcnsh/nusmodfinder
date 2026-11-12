@@ -24,7 +24,9 @@ made to do harm or to lie, and prove each". Nothing here is fixed; the lead tria
   documentation.
 
 Run them all with `npx vitest run test/redteam-*.test.js`. At `0b5b1e1` that gives 7 files, 3 passed
-and 11 expected fail (also with `CI=1`). Lint, typecheck and check:findings pass.
+and 11 expected fail (also with `CI=1`). Lint, typecheck and check:findings pass. (Since the fixes,
+each reproduction is a plain test in the test file of the code it covers, and the `test/redteam-*`
+files are gone: see "Fixes" below.)
 
 ## Personas
 
@@ -207,6 +209,34 @@ Totals: 1 high, 3 medium, 5 low, 0 critical.
 - **Impact.** A hand-"fixed" extraction published in a new revision changes what `--full` accepts as
   NUS's words and what the builder writes. The archive's AES-GCM tag and pinned sha256 then vouch
   for it.
+
+## Fixes
+
+All nine are fixed on `phase7/redteam-fixes`. The first commit, `f44def0`, turned each `it.fails`
+into a plain `it` asserting the safe behaviour, moved it into the test file of the code it covers,
+and removed the `test/redteam-*` files; every one of them failed there. Each fix commit below then
+made its tests pass. The "(evidence)" case for L-5 (the fakes' PDF holds none of the quote) is
+dropped: it showed the gap, and pinning the text closes it. "Main has no branch protection" is not
+a code fix; the lead raises it.
+
+After the merge, `npm run deploy` refuses until a fresh `year check --full` record is committed: the
+manifest's new `textSha256` fields change the source-derived inputs' hash, and the preflight no
+longer accepts the older records. That run needs the sources key and `.venv` with `pypdf`. The
+venv's `pypdf` isn't pinned to a version: if the re-extracted NG list differs from the committed file,
+check the `pypdf` version before suspecting the file.
+
+| ID | Fix | Commit | Tests |
+|---|---|---|---|
+| H-1 | `year check --full` re-extracts `data/ng-courses-<year>.json` from the archived NG list PDF (`scripts/extract-ng.py` run by `.venv/bin/python`) and requires it byte for byte, its semester sections included (the record's `details.ngList`). No venv or no `pypdf`: a refusal naming `python3 -m venv .venv && .venv/bin/pip install pypdf`. The extractor is injectable. | `7b14a07` | `test/year-full.node.test.js` ("a hand-edited NG course list fails --full…", "--full refuses, naming the setup…", the fresh-record case's `ngList`); `test/preflight.node.test.js` ("the inputs hash covers data/ng-courses-*") |
+| M-1 | `src/admin-hashes.js` reads every `ROW_COLUMNS` column (and `catalogue_only`'s title, description and year) and recomputes each row's hash with `src/rowhash.js`; a stored `row_hash` that differs answers null and is listed in `rowHashDrift` / `catalogueDrift`. The guard's data version is over the recomputed hashes, and two `integrity` checks (`rowHashes`, `catalogueRows`) refuse any drift, in the deploy and in rollback's data check. `GET /admin/catalogue` answers the same verified hashes, so the next ingest rewrites a drifted row. | `7a43e8a` | `test/admin-hashes-rest.test.js` ("refuses a module row edited behind its row_hash…"); `test/ingest.test.js` ("a row changed behind its row_hash is rewritten…"); `test/deploy.node.test.js` (the guard's refusals) |
+| M-2 | Only codes of `MODULE_CODE_RE`'s shape reach the pending issue; any other is counted, never shown. The state is written with `<` and `>` escaped, read from the last `vnm-drift:state` block, and kept only where each entry has the shape the check writes. | `77345b3` | `test/drift.node.test.js` ("NUSMods text in the pending issue (red team M-2)", the red team's payload added and removed) |
+| M-3 | `assertReadOnly`, after comments and literals are stripped: one statement, `SELECT` (or a listed `PRAGMA`) first, no write keyword anywhere, and no `$`, `@`, `:` or `#` at all. | `269bab7` | `test/d1-rest.node.test.js` ("assertReadOnly, strict (red team M-3)": `$$(`, `@é(`, the classics, the callers' constants) |
+| L-1 | `catalogue_only` gets the modules' guard: a drop of more than 5% of its rows is refused before any write without `--allow-mass-delete`. | `7db1aed` | `test/ingest.test.js` ("catalogue_only has the modules' mass-delete guard") |
+| L-2 | `wranglerVars` reads `wrangler.jsonc` as JSONC (`scripts/jsonc.mjs`); a file or `vars` it can't read throws, and the preflight's `vars` check fails on it. | `9664fdc` | `test/preflight.node.test.js` ("the vars check reads wrangler.jsonc as JSONC") |
+| L-3 | `d1Config` reads the entry bound as `DB`, and fails on none or two. | `4f42a1e` | `test/d1-rest.node.test.js` ("picks the DB binding…") |
+| L-4 | `year check`, `sources publish` and `restore` refuse a `file` or `text` name that isn't a plain base name; restore checks each archive entry's name before writing. | `ab194d9` | `test/sources.node.test.js` ("manifest file names are plain base names") |
+| H-1 (review) | The fresh review found two more ways round H-1. While a semester is unpublished, exchange mode serves last year's list, so `--full` also restores last year's archive and re-extracts that list byte for byte (`details.ngListPrevious`), refusing when last year has no archive. And the preflight now requires `details.ngList.result: byte-identical`, so a `--full` record from before the fix covers nothing. | `bc6b920` | `test/year-full.node.test.js` ("--full and last year's NG list…"); `test/preflight.node.test.js` |
+| L-5 | Every `text` extraction has a `textSha256`: publish writes it, restore and `--full` check it, the builder refuses a text that differs. The 2026/27 revisions carry the lead's sha256s of the archived `.txt` files. | `ab194d9` | `test/sources.node.test.js` ("text extractions are pinned by textSha256") |
 
 ## Not reproduced (what was tried)
 
