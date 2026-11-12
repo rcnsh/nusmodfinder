@@ -864,6 +864,30 @@ matched in its sentence.
   No holdout look. Ranking lock unchanged.
 
 ## 5. Gate questions for Jacob
+
+**Answered 2026-11-12** (ADR 0012, "Jacob's answers"): G1 keep; G2 (a) no post; G3 (a) keep the
+logs as they are and say so; G4 a health check through healthchecks.io and Pushover; G5 (b) no
+overage, with generous per-IP rate limits; G6 (d) no contact. Where the workstreams in §2 offer
+options, these answers pick them; the changes they make:
+- **8B:** no contact link and no issue template; the privacy note states Workers Logs' invocation
+  logs (the request URL with the search, and request headers including the IP address) and the
+  site's `search` line, kept 7 days, plus the zone's sampled analytics, and names no contact. No
+  `wrangler.jsonc` observability change. **Rate limits (tests first):** `SEARCH_LIMIT` becomes 40
+  per 10 s, and a second binding `SEARCH_LIMIT_MINUTE` allows 200 per 60 s, both keyed by IP and
+  both checked before any binding, after the cross-site refusal; a 429 from either keeps today's
+  body and `retry-after`.
+- **8C:** `docs/launch.md` drafts no posts and has no timing section. The outage check is
+  `.github/workflows/uptime.yml` and `scripts/uptime.mjs` as specified, except that it reports to
+  healthchecks.io instead of opening issues: success pings `HC_UPTIME_URL`; two failures 90 s apart
+  ping `HC_UPTIME_URL/fail` with a one-line reason in the body (no visitor data). healthchecks.io
+  alerts through Pushover. The lead creates the check (period 1 h, grace 12 h, as Actions crons
+  get) and the repo secret before 8C merges. Permissions: `contents: read`, no secret but
+  `HC_UPTIME_URL`. Tests first: fixture responses; a pass pings the base URL, one failure then a
+  pass pings it once, two failures ping `/fail`, a degraded answer is a failure, and the URL never
+  appears in a log line. G5 (b): ADR 0004 stands; Jacob's budget alert at the lowest amount.
+
+The questions as asked:
+
 - **G1. The name and address.** The site is "NUS Mod Finder (unofficial)" at
   nusmodfinder.rcn.sh, as you chose in Phase 5 (ADR 0009). Keep both for the launch?
   - Options: keep both; or change one before any post.
