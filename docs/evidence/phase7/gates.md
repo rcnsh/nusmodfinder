@@ -19,3 +19,10 @@
 | `sc1` green over production | PR #107's CI, and `main`'s; 15 passed, 0 skipped locally | pass |
 | The lock passes as ranking-neutral | `eval-gate` on PR #107 and on `main`; `eval/ranking-lock.json` unchanged | pass |
 | One `catalogueKey` read of D1 from merged `main`, after a preflight | 2026-11-12 07:05:09 UTC, `SELECT code FROM catalogue_only` over the D1 REST client (read-only): 14,430 codes, `catalogueKey` `5b1e2f06e559`, equal to `data/catalogue-codes.json` (14,430 codes); 14,430 rows read, 0 written (run record `20261112T070509Z-catalogue-read-9380.json`; the try at 07:05:01 stopped before any request, for want of an account id: `…-dfc9.json`). The back-filled `deploy/*` tags carry the same key and were pushed after this read. `npm run deploy -- --preflight` on `96c3103` passed at 07:05:30 (`…-deploy-preflight-2c6b.json`) | pass |
+
+## 7F the usage report and the drift issues (merged as `28fe28e`, PR #108)
+
+| Check | Evidence | Result |
+|---|---|---|
+| The first real usage report | `npm run ops:report -- --month 2026-11` at 08:35:31 UTC: `docs/evidence/ops/2026-11.md` and run record `20261112T083531Z-ops-report-7d9d.json`; no token in either. Every allowance is under 16% except the account's busiest Workers AI day (6,805 neurons on 2026-11-06, 68%, flagged; account-wide, so other projects count too). October couldn't be read, so nothing is compared month on month yet | pass |
+| The first drift run on GitHub | `gh workflow run Drift -f check=weekly`, run 43184280725, success: NUSMods 2026-2027 gives data version `7eb77cf0828b` against production's `d820d578cf81` (6,818 offered, 14,405 catalogue-only), so it opened #110 (`drift:pending`); 2027-2028 not published. No Cloudflare and no live-site call | pass; a real refresh is pending |
