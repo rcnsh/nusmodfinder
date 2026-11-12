@@ -39,7 +39,8 @@ const what = prior < (mode.failFirst ?? 0) ? 'fail10021' : mode.what;
 const err10021 = 'X [ERROR] A request to the Cloudflare API (/accounts/x/workers/scripts/y/edge-preview) failed.\n  binding DB of type d1 failed to generate [code: 10021]\n';
 if (what === 'fail10021') { process.stderr.write(err10021); process.exit(1); }
 if (what === 'other') { process.stderr.write('X [ERROR] Authentication error [code: 10000]\n'); process.exit(1); }
-if (what === 'hang10021') { process.stderr.write(err10021); setInterval(() => {}, 1000); }
+// Listens and never answers, as wrangler's proxy holds requests while a session it can't start is paused.
+if (what === 'hang10021') { createServer(() => {}).listen(port, '127.0.0.1', () => { setTimeout(() => process.stderr.write(err10021), 200); }); }
 else {
   if (what === 'stubborn') process.on('SIGTERM', () => {});
   createServer((req, res) => { res.writeHead(req.url === '/health' ? 200 : 404); res.end('{"ok":true}'); }).listen(port, '127.0.0.1');
@@ -147,13 +148,25 @@ describe('the remote session', () => {
     ]);
   });
 
-  it('a session that prints 10021 but stays up is killed and retried too', async () => {
+  it('a session that prints 10021 but stays up, holding /health unanswered, is killed and retried at once', async () => {
     mode({ what: 'hang10021' });
     const clock = fakeClock();
-    const { o } = opts({ ...clock, retryDelayMs: 600_000 });
-    await expect(withRemoteSession(async () => 'ran', o)).rejects.toThrow(/10021/);
-    expect(starts().length).toBeGreaterThan(1);
+    // A held /health never settles by itself: the 10021 line must end the poll, not a timeout.
+    const { o } = opts({ ...clock, retryDelayMs: 600_000, pollTimeoutMs: 60_000, healthTimeoutMs: 60_000 });
+    const started = Date.now();
+    await expect(withRemoteSession(async () => 'ran', o)).rejects.toThrow(/10021 on 4 tries/);
+    expect(Date.now() - started).toBeLessThan(15_000);
+    expect(starts()).toHaveLength(4);
     for (const s of starts()) expect(alive(s.pid)).toBe(false);
+  });
+
+  it('a held /health with no 10021 ends at the per-poll timeout, and the try at the health deadline', async () => {
+    mode({ what: 'hang10021' });
+    writeFileSync(join(dir, 'fake-wrangler.mjs'), FAKE.replace("setTimeout(() => process.stderr.write(err10021), 200);", ''));
+    const started = Date.now();
+    await expect(withRemoteSession(async () => 'ran', opts({ pollTimeoutMs: 200, healthTimeoutMs: 1500 }).o)).rejects.toThrow(/did not answer \/health within 1.5s/);
+    expect(Date.now() - started).toBeLessThan(8000);
+    expect(alive(starts()[0].pid)).toBe(false);
   });
 
   it(`stops retrying at the limit (${RETRY_LIMIT_MS / 60_000} minutes) and never runs the command`, async () => {
@@ -181,6 +194,22 @@ describe('the remote session', () => {
     mode({ what: 'stubborn' });
     await withRemoteSession(async () => 'ok', opts({ killGraceMs: 300 }).o);
     expect(alive(starts()[1].pid)).toBe(false);
+  });
+
+  it('a SIGHUP stops the session at once, even when signals are deferred to the command', async () => {
+    mode({ what: 'serve' });
+    const { EventEmitter } = await import('node:events');
+    const proc = new EventEmitter();
+    /** @type {string[]} */
+    const heard = [];
+    const { o } = opts({ proc: /** @type {any} */ (proc), deferSignals: true, onSignal: (sig, phase) => heard.push(`${sig} ${phase}`) });
+    await expect(withRemoteSession(async () => {
+      proc.emit('SIGHUP');
+      return new Promise(() => {});
+    }, o)).rejects.toThrow(/SIGHUP/);
+    expect(heard).toEqual(['SIGHUP stopping']);
+    expect(alive(starts()[0].pid)).toBe(false);
+    expect(existsSync(/** @type {string} */ (starts()[0].envFile))).toBe(false);
   });
 
   it('kills the child and removes its dir on SIGINT, before the process exits', async () => {
@@ -217,8 +246,46 @@ describe('npm run remote -- <command…>', () => {
     const files = readdirSync(runs);
     expect(files).toHaveLength(1);
     const record = JSON.parse(readFileSync(join(runs, files[0]), 'utf8'));
-    expect(record).toMatchObject({ script: 'remote', outcome: 'ok', exitCode: 0, details: { port: Number(start.args[5]), tries: [expect.objectContaining({ result: 'answered' })] } });
+    expect(record).toMatchObject({
+      script: 'remote', outcome: 'ok', exitCode: 0, requests: { 'wrangler dev --remote': 1 },
+      details: { port: Number(start.args[5]), tries: [expect.objectContaining({ result: 'answered' })] },
+    });
     expect(JSON.stringify(record)).not.toContain(child.secret);
+  });
+
+  it('passes a SIGTERM sent to it alone on to the command, and records the run as interrupted', async () => {
+    mode({ what: 'serve' });
+    const runs = join(dir, 'runs');
+    const { EventEmitter } = await import('node:events');
+    const proc = new EventEmitter();
+    const ready = join(dir, 'ready');
+    const cmd = `require('node:fs').writeFileSync(${JSON.stringify(ready)}, ''); process.on('SIGTERM', () => process.exit(143)); setInterval(() => {}, 1000);`;
+    const pending = remoteMain([process.execPath, '-e', cmd], { session: { ...opts().o, proc: /** @type {any} */ (proc) }, runsDir: runs, log: () => {} });
+    while (!existsSync(ready)) await new Promise((r) => { setTimeout(r, 50); });
+    proc.emit('SIGTERM');
+    expect(await pending).toBe(143);
+    const [file] = readdirSync(runs);
+    expect(JSON.parse(readFileSync(join(runs, file), 'utf8'))).toMatchObject({ outcome: 'interrupted', exitCode: 143, details: { signals: ['SIGTERM'] } });
+    expect(alive(starts()[0].pid)).toBe(false);
+  });
+
+  it('a second signal stops the session and the command at once', async () => {
+    mode({ what: 'serve' });
+    const runs = join(dir, 'runs');
+    const { EventEmitter } = await import('node:events');
+    const proc = new EventEmitter();
+    const ready = join(dir, 'ready');
+    // The command ignores SIGINT, as one still finishing in-flight work would.
+    const cmd = `require('node:fs').writeFileSync(${JSON.stringify(ready)}, String(process.pid)); process.on('SIGINT', () => {}); setInterval(() => {}, 1000);`;
+    const pending = remoteMain([process.execPath, '-e', cmd], { session: { ...opts().o, proc: /** @type {any} */ (proc) }, runsDir: runs, log: () => {} });
+    while (!existsSync(ready) || !readFileSync(ready, 'utf8')) await new Promise((r) => { setTimeout(r, 50); });
+    const commandPid = Number(readFileSync(ready, 'utf8'));
+    proc.emit('SIGINT');
+    proc.emit('SIGINT');
+    expect(await pending).toBe(130);
+    await new Promise((r) => { setTimeout(r, 200); });
+    expect(alive(commandPid)).toBe(false);
+    expect(alive(starts()[0].pid)).toBe(false);
   });
 
   it('expands ingest, verify and vectors to their scripts, passes the command\'s exit code through, and records a failure', async () => {

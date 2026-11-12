@@ -31,9 +31,14 @@ describe('requests.tsv totals', () => {
       '7\tref\tPhase 7 deploy token check: 4 Cloudflare API calls >= 4 s apart\tPhase 7',
       '8\tref\tBack-filled: p5-live first run: requests sent not recorded (estimate ~100)\tPhase 5',
       '9\tcorrection\tRows 4 and 5: the date is 2026-11-11, not 2026-11-12\tPhase 7 7C',
+      '10\tref\tShip: 1 /health before the deploy; live re-check: 68 requests (page files, /search)\tPhase 6',
+      '11\tref\tSC1 live check: 30 exchange /search calls, plus 7 re-sends\tPhase 4',
+      '12\tref\tp6-live: /facets, 8 /module, 3 /module 404s; 43 requests one at a time\tPhase 6',
     ].join('\n');
     expect(tsvTotals(tsv)).toEqual({
-      rows: 9, oneCallRows: 3, refRows: 5, corrections: 1, statedCalls: 3 + 99 + 41 + 4, refRowsWithoutCount: [5, 8],
+      rows: 12, oneCallRows: 3, refRows: 8, corrections: 1, statedCalls: 3 + 99 + 41 + 4 + 68 + 30 + 43, refRowsWithoutCount: [5, 8],
+      // A count's own breakdown (row 12) is not more calls; a /health before it and re-sends are.
+      refRowsPartlyCounted: [10, 11],
     });
   });
 
@@ -82,6 +87,7 @@ describe('npm run ops:requests', () => {
     expect(out.runs).toEqual({ records: 2, requests: 6, byScript: { smoke: 3, 'p6-live': 3 }, byPath: { '/health': 1, '/search': 2, '/module/CS2040': 3 } });
     expect(out.total).toBe(12);
     expect(out.lines.join('\n')).toMatch(/requests\.tsv: 2 rows/);
+    expect(out.lines.join('\n')).toMatch(/0 state a count but describe more calls besides/);
     expect(out.lines.join('\n')).toMatch(/run records: 2 .* 6 requests/);
     expect(out.lines.join('\n')).toMatch(/total: 12 live calls stated/);
   });

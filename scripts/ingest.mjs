@@ -317,7 +317,9 @@ export async function main(argv, deps = {}) {
     return 1;
   }
   const record = startRun('ingest', { target: envVars.VNM_REMOTE_TARGET ? `${base} (${envVars.VNM_REMOTE_TARGET})` : base, args: argv, dir: runsDir });
-  const stopGuard = record.guardExit(/** @type {any} */ (proc));
+  // Signals stay with handleSignals (a graceful stop that records in-flight mutations); a forced
+  // second signal exits through proc.exit, which the exit guard records.
+  const stopGuard = record.guardExit(proc, { signals: false });
   const controller = new AbortController();
   const signals = handleSignals(lock, controller, proc, log);
   try {

@@ -270,6 +270,8 @@ describe('Phase 7 7C: the clean-tree exemption and the run record', () => {
     expect(live).toMatchObject({
       script: 'deploy', outcome: 'ok', exitCode: 0, target: 'nusmodfinder',
       versions: { versionId: VERSION, tag: '0123456', dataVersion: DV }, read: [{ what: expect.stringMatching(/D1 rows/), actual: 2 }],
+      // The local startup check calls no API; the upload, the promote and the triggers do.
+      requests: { 'wrangler versions upload': 1, 'wrangler versions deploy': 1, 'wrangler triggers deploy': 1 },
     });
   });
 

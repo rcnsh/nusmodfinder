@@ -15,8 +15,9 @@
 //   each try logged (the ADR 0009 deploy took 8 tries over 25 minutes);
 // - runs the caller's function with the URL and the secret;
 // - always stops the session (its whole process group, SIGKILL after a
-//   grace period) and deletes the dir, on success, a throw, SIGINT or
-//   SIGTERM, and at process exit.
+//   grace period) and deletes the dir, on success, a throw, SIGINT, SIGTERM
+//   or SIGHUP (the session runs detached, in its own process group, so a
+//   closed terminal reaches it only through this), and at process exit.
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -90,15 +91,20 @@ export async function freePort() {
  *   port?: number, log?: (line: string) => void, fetchImpl?: typeof fetch,
  *   wrangler?: string[], cwd?: string, env?: NodeJS.ProcessEnv,
  *   now?: () => number, sleep?: (ms: number) => Promise<void>,
- *   limitMs?: number, retryDelayMs?: number, healthTimeoutMs?: number, pollMs?: number, killGraceMs?: number,
+ *   limitMs?: number, retryDelayMs?: number, healthTimeoutMs?: number, pollMs?: number, pollTimeoutMs?: number, killGraceMs?: number,
  *   record?: import('./run-record.mjs').RunRecord,
  *   proc?: Pick<NodeJS.Process, 'on' | 'off'>, deferSignals?: boolean,
+ *   onSignal?: (signal: NodeJS.Signals, phase: 'deferred' | 'stopping') => void,
  * }} SessionOptions
  *   `wrangler`: the command and its leading args (default node_modules/.bin/wrangler); `now` and
  *   `sleep` time the retries; `record`: a run record that gets the port and each try.
  *   `deferSignals`: once `fn` runs, the first SIGINT or SIGTERM is left to `fn`'s own child (which
  *   got it too, from the terminal) and the session stays up until `fn` ends; a second one stops it.
- *   Before `fn` runs, and without it, a signal stops the session at once.
+ *   Before `fn` runs, and without it, a signal stops the session at once. SIGHUP is never deferred.
+ *   `onSignal` hears each signal and what the session did with it (`scripts/remote.mjs` passes
+ *   SIGTERM on to its command, which a `kill` of this pid alone would not reach).
+ *   `pollTimeoutMs`: one /health request's limit, so a request wrangler holds (its proxy queues
+ *   requests until the session is ready) never stalls the 10021 and deadline checks.
  */
 
 /**
@@ -135,7 +141,8 @@ export async function withRemoteSession(fn, o = {}) {
   const {
     port: given, log = console.log, fetchImpl = fetch, wrangler = [join(ROOT, 'node_modules/.bin/wrangler')], cwd = ROOT, env = process.env,
     now = Date.now, sleep = (ms) => new Promise((r) => { setTimeout(r, ms); }), limitMs = RETRY_LIMIT_MS, retryDelayMs = RETRY_DELAY_MS,
-    healthTimeoutMs = HEALTH_TIMEOUT_MS, pollMs = 1000, killGraceMs = 5000, record, proc = process, deferSignals = false,
+    healthTimeoutMs = HEALTH_TIMEOUT_MS, pollMs = 1000, pollTimeoutMs = 5000, killGraceMs = 5000, record, proc = process, deferSignals = false,
+    onSignal: hook = () => {},
   } = o;
   if (given !== undefined) {
     const reserved = reservedPortError(given);
@@ -167,19 +174,20 @@ export async function withRemoteSession(fn, o = {}) {
   let running = false;
   let deferred = false;
   const onSignal = (/** @type {NodeJS.Signals} */ sig) => {
-    if (deferSignals && running && !deferred) {
+    if (deferSignals && running && !deferred && sig !== 'SIGHUP') {
       deferred = true;
       log(`remote: ${sig}: the session stays up until the command stops; signal again to stop it now`);
+      hook(sig, 'deferred');
       return;
     }
     log(`remote: ${sig}: stopping the session`);
     killNow();
+    hook(sig, 'stopping');
     abort(new Error(`${sig}: the session was stopped`));
   };
-  const onInt = () => onSignal('SIGINT');
-  const onTerm = () => onSignal('SIGTERM');
-  proc.on('SIGINT', onInt);
-  proc.on('SIGTERM', onTerm);
+  /** @type {[NodeJS.Signals, () => void][]} */
+  const handlers = /** @type {NodeJS.Signals[]} */ (['SIGINT', 'SIGTERM', 'SIGHUP']).map((sig) => [sig, () => onSignal(sig)]);
+  for (const [sig, h] of handlers) proc.on(sig, h);
   proc.on('exit', killNow);
 
   /** @type {{ n: number, port: number, result: string, startedAt: string }[]} */
@@ -192,13 +200,22 @@ export async function withRemoteSession(fn, o = {}) {
       const startedAt = now();
       const base = `http://127.0.0.1:${port}`;
       record?.detail('port', port);
+      // Each try's session start is Cloudflare API calls (a preview session, its bindings).
+      record?.request('wrangler dev --remote');
       log(`remote: try ${n}: wrangler dev --remote on ${base}`);
       const c = spawn(wrangler[0], [...wrangler.slice(1), 'dev', '--remote', '--ip', '127.0.0.1', '--port', String(port), '--env-file', envFile],
         { cwd, env: childEnv, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
       child = c;
       let output = '';
       const closed = new Promise((resolve) => { c.once('close', resolve); });
-      const keep = (/** @type {Buffer} */ b) => { output = (output + b.toString('utf8')).slice(-65_536); };
+      const has10021 = () => output.includes(`code: ${RETRY_CODE}`) || output.includes(`code ${RETRY_CODE}`);
+      /** @type {() => void} */
+      let saw = () => {};
+      const sawRetry = new Promise((resolve) => { saw = () => resolve(false); });
+      const keep = (/** @type {Buffer} */ b) => {
+        output = (output + b.toString('utf8')).slice(-65_536);
+        if (has10021()) saw();
+      };
       c.stdout?.on('data', keep);
       c.stderr?.on('data', (/** @type {Buffer} */ b) => { keep(b); process.stderr.write(b); });
       const spawnError = new Promise((_, reject) => { c.once('error', reject); });
@@ -208,13 +225,19 @@ export async function withRemoteSession(fn, o = {}) {
       let result;
       const deadline = Date.now() + healthTimeoutMs;
       for (;;) {
-        const ok = await Promise.race([fetchImpl(`${base}/health`).then((r) => r.ok, () => false), aborted, spawnError]);
+        // Each poll ends at its own timeout, the 10021 line, the child's exit or a signal,
+        // whichever comes first: a request wrangler holds never stalls the checks below.
+        const ctl = new AbortController();
+        const timer = setTimeout(() => ctl.abort(), Math.max(1, Math.min(pollTimeoutMs, deadline - Date.now())));
+        const ok = await Promise.race([
+          fetchImpl(`${base}/health`, { signal: ctl.signal }).then((r) => r.ok, () => false), aborted, spawnError, sawRetry, closed.then(() => false),
+        ]).finally(() => { clearTimeout(timer); ctl.abort(); });
         if (ok) { result = 'answered'; break; }
-        if (output.includes(`code: ${RETRY_CODE}`) || output.includes(`code ${RETRY_CODE}`)) { result = RETRY_CODE; break; }
+        if (has10021()) { result = RETRY_CODE; break; }
         if (c.exitCode !== null) {
           // Its last output may still be in the pipe: read it all before deciding.
           await closed;
-          result = output.includes(`code: ${RETRY_CODE}`) || output.includes(`code ${RETRY_CODE}`) ? RETRY_CODE : `exited (${c.exitCode}) before answering`;
+          result = has10021() ? RETRY_CODE : `exited (${c.exitCode}) before answering`;
           break;
         }
         if (Date.now() > deadline) { result = `did not answer /health within ${healthTimeoutMs / 1000}s`; break; }
@@ -237,8 +260,7 @@ export async function withRemoteSession(fn, o = {}) {
       await Promise.race([sleep(Math.max(0, next - now())), aborted]);
     }
   } finally {
-    proc.off('SIGINT', onInt);
-    proc.off('SIGTERM', onTerm);
+    for (const [sig, h] of handlers) proc.off(sig, h);
     proc.off('exit', killNow);
     if (child) await stop(child, killGraceMs);
     rmSync(dir, { recursive: true, force: true });

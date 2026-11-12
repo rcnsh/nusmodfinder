@@ -171,6 +171,29 @@ describe('every exit path leaves a record', () => {
     node("const run = startRun('ingest'); run.guardExit(); process.exit(130);");
     expect(records()[0].record.outcome).toBe('interrupted');
   });
+
+  it('a real SIGINT, SIGTERM or SIGHUP (whose default action skips exit handlers) is recorded as interrupted, and exits 130, 143 or 129', async () => {
+    const { spawn } = await import('node:child_process');
+    for (const [sig, code] of /** @type {const} */ ([['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]])) {
+      const child = spawn(process.execPath, ['--input-type=module', '-e',
+        `import { startRun } from ${JSON.stringify(RUN_RECORD)};\nconst run = startRun('verify'); run.guardExit(); console.log('ready'); setInterval(() => {}, 1000);`], {
+        env: { ...process.env, VITEST: '', VNM_RUNS_DIR: dir }, stdio: ['ignore', 'pipe', 'inherit'],
+      });
+      await new Promise((resolve) => { child.stdout.once('data', resolve); });
+      const exited = new Promise((resolve) => { child.once('exit', (c) => resolve(c)); });
+      child.kill(sig);
+      expect(await exited).toBe(code);
+    }
+    expect(records().map((r) => [r.record.outcome, r.record.exitCode, r.record.message]).sort()).toEqual([
+      ['interrupted', 129, 'SIGHUP'], ['interrupted', 130, 'SIGINT'], ['interrupted', 143, 'SIGTERM'],
+    ]);
+  });
+
+  it('with { signals: false } a signal is left to the script\'s own handler', () => {
+    const r = node("const run = startRun('ingest'); run.guardExit(process, { signals: false }); process.on('SIGINT', () => { run.finish('partial', { exitCode: 2 }); process.exit(2); }); process.kill(process.pid, 'SIGINT'); setInterval(() => {}, 1000);");
+    expect(r.status).toBe(2);
+    expect(records().map((x) => x.record.outcome)).toEqual(['partial']);
+  });
 });
 
 describe('the live checks\' record (p5-live, p6-live)', () => {
@@ -219,8 +242,8 @@ describe('validating run records (check:findings)', () => {
   it('fails a wrong schema, a time in the future or not ISO, a missing outcome, and a name that disagrees', () => {
     const { file, record } = good();
     expect(validateRunRecord({ ...record, schema: 'other/1' }, { file, now: NOW })).toEqual([expect.stringMatching(/schema/)]);
-    expect(validateRunRecord({ ...record, time: '2026-11-12T13:00:00.000Z' }, { file: '20261112T130000Z-verify-beef.json', now: NOW }))
-      .toEqual([expect.stringMatching(/in the future/)]);
+    expect(validateRunRecord({ ...record, time: '2026-11-12T13:00:00.000Z', finishedAt: '2026-11-12T13:00:01.000Z' }, { file: '20261112T130000Z-verify-beef.json', now: NOW }))
+      .toEqual([expect.stringMatching(/^time .* in the future/), expect.stringMatching(/^finishedAt .* in the future/)]);
     expect(validateRunRecord({ ...record, time: '12 Nov 2026' }, { file, now: NOW })).toEqual(expect.arrayContaining([expect.stringMatching(/not an ISO UTC time/)]));
     const { outcome, ...noOutcome } = record;
     expect(outcome).toBe('ok');
@@ -229,6 +252,20 @@ describe('validating run records (check:findings)', () => {
     expect(validateRunRecord(record, { file: '20261112T101531Z-verify-beef.json', now: NOW })).toEqual([expect.stringMatching(/file name/)]);
     expect(validateRunRecord({ ...record, commit: { sha: 'x', dirty: true, diffSha256: null } }, { file, now: NOW })).toHaveLength(2);
     expect(validateRunRecord({ ...record, requests: { '/health': -1 } }, { file, now: NOW })).toEqual([expect.stringMatching(/requests/)]);
+  });
+
+  it('fails a record missing the fields a record holds, or with the wrong types', () => {
+    const { file, record } = good();
+    const bare = { schema: record.schema, time: record.time, script: record.script, outcome: 'ok' };
+    expect(validateRunRecord(bare, { file, now: NOW })).toEqual([
+      expect.stringMatching(/commit\.sha/), expect.stringMatching(/target/), expect.stringMatching(/args/), expect.stringMatching(/^read/),
+      expect.stringMatching(/^written/), expect.stringMatching(/requests/), expect.stringMatching(/versions/), expect.stringMatching(/bookmark/),
+      expect.stringMatching(/details/), expect.stringMatching(/exitCode/), expect.stringMatching(/message/), expect.stringMatching(/finishedAt/),
+    ]);
+    expect(validateRunRecord({ ...record, target: 42, versions: 'x', finishedAt: '2099-01-01T00:00:00Z' }, { file, now: NOW })).toEqual([
+      expect.stringMatching(/target/), expect.stringMatching(/versions/), expect.stringMatching(/finishedAt .* in the future/),
+    ]);
+    expect(validateRunRecord({ ...record, finishedAt: '2026-11-12T10:00:00Z' }, { file, now: NOW })).toEqual([expect.stringMatching(/finishedAt is before time/)]);
   });
 
   it('reports a file that is not JSON, and a file that is not a run record\'s name', () => {

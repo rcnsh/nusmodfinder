@@ -188,16 +188,30 @@ export class RunRecord {
   }
 
   /**
-   * Writes the record at process exit if nothing finished it: outcome from the exit code.
-   * @param {Pick<NodeJS.Process, 'on' | 'off'>} [proc]
-   * @returns {() => void} removes the handler
+   * Writes the record at process exit if nothing finished it, outcome from the exit code. A
+   * signal's default action exits without an 'exit' event, so with `signals` (the default) it
+   * also takes SIGINT, SIGTERM and SIGHUP: the record is finished `interrupted` and the process
+   * exits 130, 143 or 129 (its 'exit' handlers, a session's cleanup among them, still run). A
+   * script with its own graceful signal handling (ingest) passes `signals: false`.
+   * @param {Pick<NodeJS.Process, 'on' | 'off' | 'exit'>} [proc]
+   * @param {{ signals?: boolean }} [o]
+   * @returns {() => void} removes the handlers
    */
-  guardExit(proc = process) {
+  guardExit(proc = process, { signals = true } = {}) {
     const onExit = (/** @type {number} */ code) => {
       if (!this.finished) this.finish(outcomeForExit(code), { exitCode: code, message: 'exited before the record was finished' });
     };
     proc.on('exit', onExit);
-    return () => { proc.off('exit', onExit); };
+    /** @type {[NodeJS.Signals, () => void][]} */
+    const handlers = signals ? /** @type {[NodeJS.Signals, number][]} */ ([['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]]).map(([sig, code]) => [sig, () => {
+      if (!this.finished) this.finish('interrupted', { exitCode: code, message: sig });
+      proc.exit(code);
+    }]) : [];
+    for (const [sig, h] of handlers) proc.on(sig, h);
+    return () => {
+      proc.off('exit', onExit);
+      for (const [sig, h] of handlers) proc.off(sig, h);
+    };
   }
 }
 
@@ -222,6 +236,7 @@ export const startRun = (script, o) => new RunRecord(script, o);
 export async function recordedLiveRun(script, opts, runFn, o = {}) {
   if (isLoopback(opts.url)) return runFn(opts);
   const run = startRun(script, { target: opts.url, args: process.argv.slice(2), ...o });
+  const unguard = run.guardExit();
   try {
     const outcomes = await runFn({ ...opts, onSend: (path) => { run.request(path); } });
     const failed = outcomes.filter((x) => !x.pass).length;
@@ -230,6 +245,8 @@ export async function recordedLiveRun(script, opts, runFn, o = {}) {
   } catch (err) {
     run.finish('failed', { exitCode: 1, message: String(/** @type {Error} */ (err)?.message ?? err).split('\n')[0] });
     throw err;
+  } finally {
+    unguard();
   }
 }
 
@@ -259,23 +276,33 @@ export function validateRunRecord(record, { file, now = new Date() }) {
   else if (timeOk && typeof record.script === 'string' && (m[1] !== stamp(new Date(record.time)) || m[2] !== slug(record.script))) {
     errors.push(`the file name does not match the record's time and script (${stamp(new Date(record.time))}-${slug(record.script)})`);
   }
-  // Fields a writer fills in; missing ones are reported once each.
-  if ('commit' in record) {
-    const c = record.commit;
-    if (!isObject(c) || !(c.sha === null || /^[0-9a-f]{40}$/.test(c.sha))) errors.push('commit.sha is not a 40-hex sha or null');
-    if (isObject(c) && (typeof c.dirty !== 'boolean' || (c.dirty ? !/^[0-9a-f]{64}$/.test(c.diffSha256) : c.diffSha256 !== null))) {
-      errors.push('commit.dirty must be a boolean, with diffSha256 a sha256 when dirty and null when clean');
-    }
+  // Every field the spec says a record holds.
+  const c = record.commit;
+  if (!isObject(c) || !(c.sha === null || /^[0-9a-f]{40}$/.test(c.sha))) errors.push('commit.sha is missing, or not a 40-hex sha or null');
+  if (isObject(c) && (typeof c.dirty !== 'boolean' || (c.dirty ? !/^[0-9a-f]{64}$/.test(c.diffSha256) : c.diffSha256 !== null))) {
+    errors.push('commit.dirty must be a boolean, with diffSha256 a sha256 when dirty and null when clean');
   }
+  if (typeof record.target !== 'string') errors.push('target is missing or not a string');
+  if (!Array.isArray(record.args) || !record.args.every((/** @type {unknown} */ a) => typeof a === 'string')) errors.push('args must be a list of strings');
   for (const key of ['read', 'written']) {
-    if (key in record && !(Array.isArray(record[key]) && record[key].every((/** @type {any} */ a) => isObject(a) && typeof a.what === 'string' && isCount(a.estimate) && isCount(a.actual)))) {
+    if (!(Array.isArray(record[key]) && record[key].every((/** @type {any} */ a) => isObject(a) && typeof a.what === 'string' && isCount(a.estimate) && isCount(a.actual)))) {
       errors.push(`${key} must be a list of { what, estimate, actual }`);
     }
   }
-  if ('requests' in record && !(isObject(record.requests) && Object.values(record.requests).every((n) => Number.isInteger(n) && /** @type {number} */ (n) >= 0))) {
+  if (!(isObject(record.requests) && Object.values(record.requests).every((n) => Number.isInteger(n) && /** @type {number} */ (n) >= 0))) {
     errors.push('requests must map paths to counts');
   }
-  if ('bookmark' in record && !(record.bookmark === null || typeof record.bookmark === 'string')) errors.push('bookmark must be a string or null');
+  if (!(isObject(record.versions) && Object.values(record.versions).every((v) => v === null || typeof v === 'string' || typeof v === 'number'))) {
+    errors.push('versions must map names to strings, numbers or null');
+  }
+  if (!(record.bookmark === null || typeof record.bookmark === 'string')) errors.push('bookmark must be a string or null');
+  if (!isObject(record.details)) errors.push('details must be an object');
+  if (!(record.exitCode === null || Number.isInteger(record.exitCode))) errors.push('exitCode must be an integer or null');
+  if (!(record.message === null || typeof record.message === 'string')) errors.push('message must be a string or null');
+  const finishedOk = typeof record.finishedAt === 'string' && ISO_UTC.test(record.finishedAt) && !Number.isNaN(Date.parse(record.finishedAt));
+  if (!finishedOk) errors.push(`finishedAt ${JSON.stringify(record.finishedAt)} is not an ISO UTC time`);
+  else if (Date.parse(record.finishedAt) > now.getTime()) errors.push(`finishedAt ${record.finishedAt} is in the future`);
+  else if (timeOk && Date.parse(record.finishedAt) < Date.parse(record.time)) errors.push('finishedAt is before time');
   return errors;
 }
 

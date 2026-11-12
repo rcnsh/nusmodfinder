@@ -71,6 +71,7 @@ import {
   D1_ONLY_DELETES_PATH, FIXTURE_BUNDLE, FIXTURE_CORPUS, FIXTURE_EMBEDDING, MISSING_PATH, PINNED_COUNT, ROOT, VECTORS_DIR,
   assetName, fetchBundle, loadCheckedBundle, readVectorsManifest, sha256, writeShim, writeVectorsManifest,
 } from './vectors-manifest.mjs';
+import { run } from './deploy.mjs';
 import { DEFAULT_INDEX, listVectorIds } from './verify.mjs';
 import { formatReport, runVerify } from './verify-core.mjs';
 
@@ -261,7 +262,7 @@ async function productionBundle() {
  */
 async function standby(argv, log, deps = {}) {
   const {
-    fetchImpl = fetch, envVars = process.env, runsDir, loadBundle = productionBundle, listIds = () => listVectorIds(DEFAULT_INDEX),
+    fetchImpl = fetch, envVars = process.env, runsDir, loadBundle = productionBundle, listIds: listIdsRaw,
     runStandby: standbyRun = runStandby, runVerify: verifyRun = runVerify, formatReport: format = formatReport,
   } = deps;
   const { values } = parseArgs({ args: argv, options: { url: { type: 'string' }, deletes: { type: 'string' }, 'wait-timeout': { type: 'string' } }, strict: true });
@@ -271,8 +272,15 @@ async function standby(argv, log, deps = {}) {
   if (worker.error !== undefined) { log(`standby: ${worker.error} Nothing was sent.`); return 2; }
   const base = worker.base;
   const record = startRun('vectors standby', { target: envVars.VNM_REMOTE_TARGET ? `${base} (${envVars.VNM_REMOTE_TARGET})` : base, args: argv, dir: runsDir });
+  const unguard = record.guardExit();
   /** @param {number} code @param {import('./run-record.mjs').Outcome} outcome @param {string | null} message */
-  const done = (code, outcome, message) => { record.finish(outcome, { exitCode: code, message }); return code; };
+  const done = (code, outcome, message) => { unguard(); record.finish(outcome, { exitCode: code, message }); return code; };
+  /** Each `wrangler vectorize list-vectors` page is a Cloudflare API call. @type {import('./deploy.mjs').Exec} */
+  const countedExec = (cmd, args, opts) => {
+    if (cmd === 'npx' && args[0] === 'wrangler') record.request(`wrangler ${args.slice(1, 3).join(' ')}`);
+    return run(cmd, args, opts);
+  };
+  const listIds = listIdsRaw ?? (() => listVectorIds(DEFAULT_INDEX, countedExec));
   try {
     const { entry, bundle } = await loadBundle();
     const deletesPath = values.deletes ?? D1_ONLY_DELETES_PATH;

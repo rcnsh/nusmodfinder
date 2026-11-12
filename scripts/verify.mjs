@@ -121,10 +121,17 @@ export async function main(argv, deps = {}) {
   const record = startRun('verify', { target: envVars.VNM_REMOTE_TARGET ? `${base} (${envVars.VNM_REMOTE_TARGET})` : base, args: argv, dir: runsDir });
   record.detail('mode', values['pre-deploy'] ? 'pre-deploy' : 'post-standby');
   const fetchImpl = record.countingFetch(rawFetch);
+  const unguard = record.guardExit();
   /** @param {number} code @param {string | null} [message] */
   const done = (code, message = null) => {
+    unguard();
     record.finish(code === 0 ? 'ok' : 'failed', { exitCode: code, message });
     return code;
+  };
+  /** Each `wrangler vectorize list-vectors` page is a Cloudflare API call. @type {import('./deploy.mjs').Exec} */
+  const countedExec = (cmd, args, opts) => {
+    if (cmd === 'npx' && args[0] === 'wrangler') record.request(`wrangler ${args.slice(1, 3).join(' ')}`);
+    return exec(cmd, args, opts);
   };
   try {
     const corpus = /** @type {'production' | 'pinned' | 'fixture'} */ (values.bundle ?? 'production');
@@ -151,7 +158,7 @@ export async function main(argv, deps = {}) {
     }
     const report = await runVerify({
       api: httpAdminApi(base, secret, fetchImpl),
-      listVectorIds: () => listVectorIds(values.index ?? DEFAULT_INDEX, exec),
+      listVectorIds: () => listVectorIds(values.index ?? DEFAULT_INDEX, countedExec),
       sampleSize,
       ...(values.values ? { bundle: (await loadBundle()).bundle } : {}),
     });

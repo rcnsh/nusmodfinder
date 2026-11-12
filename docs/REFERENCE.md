@@ -630,7 +630,7 @@ git add data/vectors.json src/data-version.json data/vocabulary.json data/groups
 #    year before a row loads; test/web/shortlist.node.test.js checks both against data/ng-reasons.json).
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
 # 3. Note D1's current Time Travel bookmark: npx wrangler d1 time-travel info nusmods-apac
-#    (a read; it goes in the step-4 run record's notes until 7B's npm run d1:bookmark records it).
+#    (a read with no writer yet: add a requests.tsv row until 7B's npm run d1:bookmark records it).
 #    Steps 4, 5 and 8 each start their own wrangler dev --remote session through npm run remote:
 #    a free port, a one-off INGEST_SECRET in a temp env file, code 10021 retried for up to 30 min,
 #    the session stopped when the command ends. Nothing reads or writes .dev.vars.
@@ -643,14 +643,16 @@ npm run remote -- verify --pre-deploy
 # 6. Guard, startup gate, promote. The guard starts its own session, on a free port.
 npm run deploy
 # 7. Smoke (≤ 4 calls): /health says vectors.corpus "production"; read CPUTimeMs in Workers Logs.
+#    No writer yet: add a requests.tsv row until 7B's npm run smoke records it.
 #    On failure: wrangler rollback <previous id>, restore D1 to the step-3 bookmark, revert step 2.
 # 8. The standby: upsert every code (bundle values, D1 metadata, ≤ 1,000 a batch), delete
 #    every index id D1 no longer holds, wait for the mutation, then verify, values included.
 npm run remote -- vectors standby
 ```
 
-Every step leaves run records (`npm run remote` writes one for the session, and the command its
-own), so nothing is logged by hand; commit them with the change that follows. Between steps 4 and 6 the
+Steps 4, 5, 6 and 8 leave run records (`npm run remote` writes one for the session, and the
+command its own); commit them with the change that follows. Steps 3 and 7 have no writer until
+Phase 7 7B adds `d1:bookmark` and `smoke`, so their calls still go in `requests.tsv` by hand. Between steps 4 and 6 the
 live Worker searches its old bundle against the new D1, so `/search` re-checks every dense-only
 candidate's filters against its fresh D1 row after hydrate and drops those that fail. Its old
 groups and `ng-unscheduled.json` sit beside the new rows too: a code that gained a row answers
@@ -796,7 +798,9 @@ session (`scripts/remote-session.mjs`, which the deploy guard shares):
   `vectors` name `scripts/<name>.mjs`, anything else runs as given, without a shell;
 - the session is stopped (its process group, SIGKILL after 5 s) and the temp dir deleted when
   the command ends, on a throw, and at exit. A first Ctrl-C goes to the command, which stops
-  cleanly (ingest records its in-flight mutations); a second stops the session too.
+  cleanly (ingest records its in-flight mutations), and the session stays up until it has; a
+  SIGTERM sent to `npm run remote` alone is passed on to the command. A second signal, or a
+  SIGHUP (a closed terminal), stops the session and the command at once.
 
 The exit code is the command's (1 when the session never answered, 2 on a usage error).
 
@@ -821,7 +825,7 @@ The record (schema `vnm-run/1`):
 | `commit` | `{ sha, dirty, diffSha256 }`: HEAD, whether the tree is dirty (new run records aside), and when it is, the sha256 of `git diff HEAD --binary` |
 | `target` | the URL, the Worker or the service the run touched |
 | `read`, `written` | lists of `{ what, estimate, actual }` (D1 rows, Vectorize vectors, neurons) |
-| `requests` | live requests sent, by path (no query string, no account id) |
+| `requests` | live requests sent, by path (no query string, no account id), plus one `wrangler <command>` entry per wrangler command that calls Cloudflare's API (each try of a `wrangler dev --remote` session, `versions upload`, each `vectorize list-vectors` page) |
 | `versions` | version id, tag, data version, mutation id: whatever the run made or saw |
 | `bookmark` | a D1 Time Travel bookmark, or null |
 | `details` | anything else (the session's port and tries, a mode) |
@@ -833,7 +837,9 @@ none) and finishes it on every return:
 ```js
 import { startRun } from './run-record.mjs';
 const run = startRun('d1:bookmark', { target: 'nusmods-apac', args: argv });
-run.guardExit();                         // writes it at process exit if nothing else did
+run.guardExit();                         // at exit, or on SIGINT/SIGTERM/SIGHUP (then exits 130/143/129),
+                                         // writes it if nothing else did; { signals: false } if the
+                                         // script handles signals itself (ingest)
 run.read('D1 Time Travel info', { estimate: 0, actual: 0 });
 run.setBookmark(bookmark);
 run.finish('ok', { exitCode: 0 });       // once; a second call is a no-op
@@ -842,12 +848,15 @@ run.finish('ok', { exitCode: 0 });       // once; a second call is a no-op
 `run.countingFetch(fetch)` counts each request by path; `run.request(path)` counts one by hand.
 Records go to `$VNM_RUNS_DIR` when it is set (the node test project sets a temp dir), and the
 module refuses the repo's dir under Vitest. `npm run check:findings` validates every file there:
-the schema, an ISO UTC time not in the future, an outcome, and a name matching the record.
+the schema, an ISO UTC time (and `finishedAt`) not in the future, an outcome, every field above
+with its type, and a name matching the record.
 
 **`npm run ops:requests`** prints live-call totals from `docs/evidence/requests.tsv` (rows
 1–131, typed by hand, plus the back-fill of the ADR 0009 and rename deploys and two correction
 rows) and from the run records, by script and path. A `ref` row in the TSV counts only the
-calls it states, so that half is a lower bound and the rows with no count are listed. Phase 7's
+calls it states first, so that half is a lower bound: the rows that state no count are listed,
+and so are the rows that describe more calls than their count (a `/health` before the deploy,
+"plus 7 re-sends"). Phase 7's
 7-0 reads, made before this tooling, are in `docs/evidence/phase7/remote-ops.md`.
 
 ## Evaluation

@@ -151,14 +151,22 @@ export async function deploy(deps = {}) {
   const record = startRun('deploy', { target: WORKER_NAME, args: process.argv.slice(2), dir: deps.runsDir });
   /** How far it got: a failure after the upload is `failed`, before it `refused`. */
   const stage = { uploaded: false };
+  const unguard = record.guardExit();
+  /** Each wrangler command but the local startup check makes Cloudflare API calls. @type {Exec} */
+  const exec = (cmd, args, opts) => {
+    if (cmd === 'npx' && args[0] === 'wrangler' && args[1] !== 'check') record.request(`wrangler ${args.slice(1, 3).join(' ')}`);
+    return (deps.exec ?? run)(cmd, args, opts);
+  };
   try {
-    const code = await deployRun(deps, record, stage);
+    const code = await deployRun({ ...deps, exec }, record, stage);
     record.finish(code === 0 ? 'ok' : stage.uploaded ? 'failed' : 'refused', { exitCode: code });
     if (code === 0) (deps.log ?? console.log)(`deploy: run record ${record.path}`);
     return code;
   } catch (err) {
     record.finish('failed', { exitCode: 1, message: String(/** @type {Error} */ (err)?.message ?? err).split('\n')[0] });
     throw err;
+  } finally {
+    unguard();
   }
 }
 

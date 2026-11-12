@@ -6,10 +6,12 @@
 //   npm run ops:requests
 //
 // In requests.tsv a `curl`, `fetch` or `browser …` row is one call. A `ref`
-// row describes a batch in prose, so only the calls it states ("99 requests",
-// "4 Cloudflare API calls") are summed, and the rows that state no count are
-// listed: the TSV total is a lower bound. A `correction` row is a note, not a
-// call. In a run record every request it lists by path is a call.
+// row describes a batch in prose, so only the first count it states ("99
+// requests", "4 Cloudflare API calls") is summed. Rows that state no count are
+// listed, and so are rows that state one but describe more calls besides (a
+// "1 /health before the deploy", "plus 7 re-sends"): the TSV total is a lower
+// bound. A `correction` row is a note, not a call. In a run record every
+// request it lists by path (or wrangler command) is a call.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { RUNS_DIR, readRunRecords } from './run-record.mjs';
@@ -21,26 +23,48 @@ export const TSV_PATH = fileURLToPath(new URL('../docs/evidence/requests.tsv', i
  */
 const STATED = /(?<![\w.,])(\d{1,3}(?:,\d{3})+|\d+)\s+(?:[^\s\d,;()]+\s+){0,3}?(?:requests?|calls?)\b/;
 
+/**
+ * Phrases that mean a row describes calls beyond the count it states: a `/health` before the
+ * deploy, "plus …", re-sends, a determinism check. A breakdown of the count ("43 requests:
+ * /facets, 8 /module …") is not more.
+ */
+const MORE = /\/health before|\bplus\b|\bre-sends?\b|\bdeterminism check\b/i;
+
 /** The calls a ref row's text states, or null when it states none. @param {string} text */
 export function statedCalls(text) {
   const m = STATED.exec(text);
   return m ? Number(m[1].replace(/,/g, '')) : null;
 }
 
+/** Whether a text that states a count also describes calls outside it. @param {string} text */
+export function describesMore(text) {
+  const m = STATED.exec(text);
+  if (!m) return false;
+  return MORE.test(text.slice(0, m.index)) || MORE.test(text.slice(m.index + m[0].length));
+}
+
 /**
  * @param {string} tsv
- * @returns {{ rows: number, oneCallRows: number, refRows: number, corrections: number, statedCalls: number, refRowsWithoutCount: number[] }}
+ * @returns {{ rows: number, oneCallRows: number, refRows: number, corrections: number, statedCalls: number,
+ *   refRowsWithoutCount: number[], refRowsPartlyCounted: number[] }}
  */
 export function tsvTotals(tsv) {
   const rows = tsv.trimEnd().split('\n').slice(1).filter(Boolean).map((l) => l.split('\t'));
-  const out = { rows: rows.length, oneCallRows: 0, refRows: 0, corrections: 0, statedCalls: 0, refRowsWithoutCount: /** @type {number[]} */ ([]) };
+  const out = {
+    rows: rows.length, oneCallRows: 0, refRows: 0, corrections: 0, statedCalls: 0,
+    refRowsWithoutCount: /** @type {number[]} */ ([]), refRowsPartlyCounted: /** @type {number[]} */ ([]),
+  };
   for (const [n, kind, what = '', note = ''] of rows) {
     if (kind === 'correction') { out.corrections++; continue; }
     if (kind === 'ref') {
       out.refRows++;
-      const calls = statedCalls(what) ?? statedCalls(note);
+      const fromWhat = statedCalls(what);
+      const calls = fromWhat ?? statedCalls(note);
       if (calls === null) out.refRowsWithoutCount.push(Number(n));
-      else out.statedCalls += calls;
+      else {
+        out.statedCalls += calls;
+        if (describesMore(fromWhat === null ? note : what)) out.refRowsPartlyCounted.push(Number(n));
+      }
       continue;
     }
     out.oneCallRows++;
@@ -73,6 +97,7 @@ export function opsRequests({ tsvPath = TSV_PATH, runsDir = RUNS_DIR } = {}) {
   const lines = [
     `requests.tsv: ${tsv.rows} rows; ${tsv.oneCallRows} one-call rows (curl, fetch, browser); ${tsv.refRows} ref rows; ${tsv.corrections} corrections`,
     `  ${tsv.statedCalls} calls stated, a lower bound: ${tsv.refRowsWithoutCount.length} ref rows state no count (rows ${tsv.refRowsWithoutCount.join(', ') || 'none'})`,
+    `  and ${tsv.refRowsPartlyCounted.length} state a count but describe more calls besides (rows ${tsv.refRowsPartlyCounted.join(', ') || 'none'})`,
     `run records: ${records} with requests, ${requests} requests`,
     ...Object.entries(byScript).sort((a, b) => b[1] - a[1]).map(([s, n]) => `  ${s}: ${n}`),
     ...(Object.keys(byPath).length ? ['  by path:', ...Object.entries(byPath).sort((a, b) => b[1] - a[1]).map(([p, n]) => `    ${p}: ${n}`)] : []),
