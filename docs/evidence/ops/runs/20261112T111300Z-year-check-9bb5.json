@@ -1,0 +1,51 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:13:00.691Z",
+  "finishedAt": "2026-11-12T11:13:08.967Z",
+  "script": "year check",
+  "args": [
+    "check",
+    "--full"
+  ],
+  "commit": {
+    "sha": "c8cd3fa3534a9199fad5ffb214f482256bd97f47",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "sources archive sources-2026-2027-20261112",
+  "read": [
+    {
+      "what": "sources archive files",
+      "estimate": null,
+      "actual": 21
+    }
+  ],
+  "written": [],
+  "requests": {
+    "gh release download": 1
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "mode": "full",
+    "year": "2026-2027",
+    "revision": "2026-11-12",
+    "sourceInputsHash": "4d4e8c2ca8ace06f7266a3f01d6e5f52c376367a9ccb8b42d1c02a8f07ae3806",
+    "archiveSha256": "cb7ff544640ad44bd905168e27217206ae79272c65dba9be73a28b14f5aec66f",
+    "quotes": {
+      "checked": 19,
+      "unarchived": 0
+    },
+    "ngList": {
+      "result": "byte-identical",
+      "semesters": {
+        "1": 730,
+        "2": 750
+      }
+    },
+    "rules": "byte-identical"
+  },
+  "exitCode": 0,
+  "message": "19 quotes verbatim; data/ng-courses-2026-2027.json byte-identical (Sem 1 730, Sem 2 750); data/ng-restrictions-2026-2027.json byte-identical",
+  "outcome": "ok"
+}
