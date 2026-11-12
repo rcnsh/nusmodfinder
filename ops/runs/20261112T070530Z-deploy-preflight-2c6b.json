@@ -1,0 +1,67 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T07:05:30.928Z",
+  "finishedAt": "2026-11-12T07:05:44.907Z",
+  "script": "deploy:preflight",
+  "args": [
+    "--preflight"
+  ],
+  "commit": {
+    "sha": "96c3103f52865d968102a16937a5893beb7e1561",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmodfinder",
+  "read": [],
+  "written": [],
+  "requests": {},
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "preflight": [
+      {
+        "name": "git",
+        "status": "ok",
+        "message": "HEAD 96c3103 is on origin/main, at its tip"
+      },
+      {
+        "name": "ci",
+        "status": "ok",
+        "message": "CI run 43171399659 and Findings run 43171399628 succeeded"
+      },
+      {
+        "name": "vars",
+        "status": "ok",
+        "message": "only DENSE_BACKEND"
+      },
+      {
+        "name": "bundle",
+        "status": "ok",
+        "message": "production, 6778 rows, data version d820d578cf81, sha256 706b69a492ee"
+      },
+      {
+        "name": "corpus manifest",
+        "status": "ok",
+        "message": "prod-2026-2027-20261104: data version d820d578cf81 and catalogueKey 5b1e2f06e559 follow it; the 3B files are fresh"
+      },
+      {
+        "name": "year check",
+        "status": "skipped",
+        "message": "scripts/year.mjs is absent; 7E adds it"
+      },
+      {
+        "name": "source inputs",
+        "status": "ok",
+        "message": "no source-derived input changed since deploy/20261111T235933Z-b0834844"
+      },
+      {
+        "name": "startup",
+        "status": "ok",
+        "message": "wrangler check startup passed"
+      }
+    ]
+  },
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}
