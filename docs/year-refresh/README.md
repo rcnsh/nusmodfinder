@@ -179,6 +179,10 @@ from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollb
    deploy preflight needs it whenever a source-derived input changed). Then the bundle:
    `node scripts/vectors.mjs build --corpus production --expect-count <rows>` and the other
    builders (`docs/REFERENCE.md`, "Re-ingesting for a new acad year", step 1).
+   **The docs' year labels:** in README.md, EVAL.md and `docs/REFERENCE.md`, every sentence
+   marked `<!-- year:live -->` names the new year, and the NG list counts in them are the new
+   list's. `npm test` (`test/docs-facts.node.test.js`) fails until they are. Sentences marked
+   `<!-- year:pinned -->` describe the eval's pinned corpus and stay.
 8. **PR.** CI runs `sc1` and `rollover` on the new year. Merge only when the PR is complete.
 9. **Before any D1 write**, on merged `main`:
    ```bash
@@ -236,6 +240,8 @@ published (`published.ngList["2"]: true`, `published.yst["2"]: "<year>"`).
 - **6:** the oracle sections for the changed rules, then agreement.
 - **7:** `npm run year -- check --full`, then the bundle. The data version changes, because the
   row hash covers `ng_allow` and `ng_rules`.
+- **7, the docs:** a new NG list changes the counts in the `<!-- year:live -->` sentences;
+  `test/docs-facts.node.test.js` fails until they match.
 - **10:** a row-only `npm run remote -- ingest --d1-only` (no `--allow-year-change`).
 - **8, 9, 11–13:** as above.
 

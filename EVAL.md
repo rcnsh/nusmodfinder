@@ -1,342 +1,217 @@
-# EVAL.md — retrieval quality for NUS Mod Finder
+# EVAL.md: retrieval quality for NUS Mod Finder
 
-## Phase 2 baseline (current)
+The ranker is measured offline, on judged queries, and no ranking change ships without evidence.
+This file gives the current state first: the shipped ranker and how a change ships, then SC5, then
+the Phase 2 baseline on today's dev qrels, then what the numbers don't show. The harness is
+described in [`eval/README.md`](eval/README.md); the gate and custody rules are
+[ADR 0003](docs/decisions/0003-eval-holdout-and-gate.md).
 
-The harness is described in [`eval/README.md`](eval/README.md). These are the numbers that
-Phase 3 changes are measured against.
+## The shipped ranker and how a change ships
 
-**Setup:**
-- **What is measured:** an **offline replica (exact dense search)** of the ranker at tag
-  `eval-v0` (= 7ac9841), not production (ADR 0003, "Replica fidelity").
-  - The replica of main at the start of Phase 3 gives the same top 20 as `eval-v0` on every dev
-    query (`docs/evidence/phase2/baseline.md` §2).
-  - Production differs from the replica in three ways:
-    - Vectorize search is approximate, while the replica's is exact;
-    - both live fidelity checks failed on the dense half;
-    - production serves the 2026-11-04 catalogue (6,778 modules), not the pinned 2026-09-04
-      snapshot.
-  - Δ between two replicas is unbiased. Absolute numbers describe production only approximately.
-- **Corpus:** pinned `data-2026-2027-20260904`, 6,771 offered modules.
-- **Query embeddings:** `emb-bge-small-v0`, committed vectors.
-- **Queries:** dev queries v2.1, 98 in total. 83 are primary answerable; the rest are 5
-  feature-gap, 2 no-answer and 8 unscored.
-  - **No-answer is tagged and unanswered** (ADR 0003, amendment 2026-11-06): a query is
-    no-answer iff it is tagged `noanswer` or `code-nonexistent`, or carries `noAnswerByRule`,
-    and no judged document has grade ≥ 1. The grades are the ground truth; the tag is
-    necessary, not sufficient. Dev has 2: d-012 and d-025.
-  - Five dev queries are tagged `noanswer`. Three of them (d-013, d-051, d-065) have grade-≥1
-    documents, so they are primary answerable.
-  - An untagged query with no grade-≥1 document is **unscored**: it is in neither set, and
-    reports list its id (dev only). The 8 are d-005, d-017, d-032 and d-042 (home-course pastes
-    over 200 characters, which `/search` rejects with a 400), d-009, d-020, d-061 and d-093.
-    Before the amendment they counted as no-answer.
-- **Qrels:** `qrels-dev-v2`, 1,666 pairs (81 graded by rule, the rest by judge A
-  `claude-opus-5-5`, single-judge mode, ADR 0004). The rule covers hard-constraint
-  violations and the code-target rule (`eval/lib/code-rule.mjs`, JUDGING.md "Code-target rule").
-  The code-target rule makes 5 code queries answerable that no pooled run had found a target
-  for. Under `qrels-dev-v1` those 5 scored as no-answer, and v0 read 0.758 nDCG@10 over 78
-  queries.
-- **Duplicate groups:** `groups-v1` (509 groups, `eval/groups.json`). Within a group, only the
-  first member to appear earns gain.
-- **Judged@10:** 100% for all three runs.
+<!-- pointer --> The shipped ranker, the baseline every change is compared with, is the commit
+`SHIPPED_BASELINE` names in [`eval/lib/baseline.mjs`](eval/lib/baseline.mjs). Commits merged since
+it are ranking-neutral, which the ranking lock below proves. ADR 0003's "Shipped-ranker pin" list
+gives every pin with what it shipped and its evidence.
 
-**Primary answerable queries (n = 83), 95% bootstrap CIs (10,000 resamples, seeded):**
+A change that moves any ranked list ships by one of two routes, each against the shipped pin:
+- **A holdout look that passes** ([`eval/lib/gate.mjs`](eval/lib/gate.mjs), ADR 0003 "The gate"):
+  on the encrypted holdout set, ΔnDCG@10 ≥ 0, ΔP@5 ≥ 0 and no exact-code regression, or the rule
+  its declared kind names (targeted, cutoff, or the 5F compliance rule). Each look is a row in [`eval/holdout-ledger.md`](eval/holdout-ledger.md).
+- **An ADR 0003 no-look route**, for a change whose effect the rule can show on open sets plus a
+  custodian count: `representative-only`, `answerable-floor` (3G), `group-first` (3F) or
+  `gated-without-a-look` (Phase 4). Each is a row in [`eval/count-log.md`](eval/count-log.md)
+  whose `route` column names it (amendment 2026-11-12).
+
+A change that moves no list needs neither. **CI enforces this** with the ranking lock
+([`eval/ranking-lock.json`](eval/ranking-lock.json), the `eval-gate` job; "The ranking lock" in
+[docs/REFERENCE.md](docs/REFERENCE.md#the-ranking-lock-cis-eval-gate)). The lock holds the ordered
+result codes of every dev and fixture query in three filter modes. A PR whose lists differ from it
+fails, unless it rewrites the lock with evidence written after its base: a passing ledger row, a
+count-log route row, or a revert to an earlier lock.
+
+**Looks spent:** 8 of 12 holdout looks and 1 of 1 test-set look
+([`eval/holdout-ledger.md`](eval/holdout-ledger.md)). Phase 3 took seven holdout looks (3A-2, 3B
+and 3C-2 passed; two tries each of 3D and 3H failed). The eighth, L8, was Phase 5's parsed phrases
+(5F), under the compliance rule of ADR 0003's amendment 2026-11-11; it passed. The test-set look
+was SC5, below.
+
+The eval's Non-Graduating (NG) files are pinned too: `eval/pinned/` holds the NG list and the
+restrictions the qrels were judged with, and the eval reads nothing else (ADR 0003, amendment
+2026-11-12). A Registrar revision of the live files in `data/` moves no eval list.
+
+## SC5: the sealed test set, one look
+
+**SC5 passes.** On the sealed test set (n = 195 primary answerable queries, filtered), the frozen
+Phase 3 ranker `phase3-final` (`c787dea`) beats `eval-v0` (`7ac9841`, the Phase 2 production
+ranker) on the pinned corpus:
+
+| | ΔnDCG@10 [BCa 95% CI] | ΔP@5 [BCa 95% CI] |
+|---|---|---|
+| `phase3-final` − `eval-v0` | **+0.120 [0.083, 0.161]** | **+0.059 [0.036, 0.090]** |
+
+Both lower bounds are above 0, which is SC5's rule. The queries were written and judged after
+Phase 3 froze, and the set allows no further look. Evidence, the secondary readings and how the
+set was written: [`docs/evidence/phase3/sc5.md`](docs/evidence/phase3/sc5.md).
+
+SC5 covers the ranker as Phase 3 left it. Changes shipped since (Phases 4 to 6) are covered by
+their own holdout look or no-look route, not by the test set.
+
+## What is measured
+
+- **An offline replica.** A run executes the actual Worker in workerd over local D1 holding the
+  pinned corpus, with committed query embeddings, corpus embeddings from their release assets
+  (sha-checked against `eval/embeddings.json`), and no Cloudflare call. It is not production (ADR 0003, "Replica fidelity").
+- <!-- year:pinned --> **The corpus** is NUSMods' 2026/27 catalogue as pinned on 4 September 2026
+  (release `data-2026-2027-20260904`), 6,771 offered modules.
+- **Replica and production differ in three ways.** Since 3-0 both run an exact dense search over
+  vectors held in the Worker, so the differences are:
+  - the corpus: the pinned snapshot against production's `current` in
+    [`data/corpus.json`](data/corpus.json);
+  - the NG files: `eval/pinned/` never moves, while `data/` follows NUS's revisions. The two copies
+    of the NG list are identical today (the same sha256);
+  - query vectors: production embeds each query live with Workers AI, the eval uses committed
+    vectors, and Workers AI isn't bit-deterministic across batches, so ties near the cut can differ
+    ([`eval/README.md`](eval/README.md), "Embeddings").
+
+  A Δ between two replica runs is unbiased by these. An absolute number describes production only
+  approximately.
+- **Metrics:** nDCG@10, P@5 and MRR@10 over the top 10 at production's depth, with duplicate
+  groups `groups-v1` ([`eval/groups.json`](eval/groups.json)): within a group only the first member
+  to appear earns gain. Intervals are BCa bootstraps (10,000 resamples, seeded); paired p values
+  are a sign-flip test.
+
+## The Phase 2 baseline on today's dev qrels
+
+The Phase 2 baseline is `eval-v0` (`7ac9841`) with its own corpus embedding `emb-bge-small-v0`,
+re-scored here on today's dev qrels. The dev set is open, so a re-score takes no look.
+
+**Queries:** dev v2.1, 98 in total. 85 are primary answerable; the rest are 5 feature-gap, 2
+no-answer and 6 unscored.
+- **No-answer is tagged and unanswered** (ADR 0003, amendment 2026-11-06): a query is no-answer iff
+  it is tagged `noanswer` or `code-nonexistent`, or carries `noAnswerByRule`, and no judged document
+  has grade ≥ 1. Dev has 2: d-012 and d-025. Three more are tagged `noanswer` (d-013, d-051,
+  d-065) but have grade-≥1 documents, so they are primary answerable.
+- **Unscored:** an untagged query with no grade-≥1 document is in neither set. The 6 are d-005,
+  d-017, d-032 and d-042 (home-course pastes over 200 characters, which `/search` rejects with a
+  400), and d-009 and d-020.
+
+**Qrels:** `qrels-dev-v11`, 2,476 pairs (108 graded by rule, the rest by judge A `claude-opus-5-5`
+in single-judge mode, ADR 0004). The rule covers hard-constraint violations and the code-target
+rule (`eval/lib/code-rule.mjs`, [`eval/JUDGING.md`](eval/JUDGING.md) "Code-target rule"). Judged@10
+is 100% for all three runs.
+
+**Primary answerable queries (n = 85):**
 
 | run | nDCG@10 [BCa CI] | P@5 [BCa CI] | MRR@10 [BCa CI] |
 |---|---|---|---|
-| **v0 hybrid** | **0.712** [0.644, 0.770] | **0.571** [0.494, 0.641] | **0.820** [0.740, 0.884] |
-| v0 lexical only | 0.609 [0.532, 0.678] | 0.453 [0.383, 0.525] | 0.752 [0.661, 0.830] |
-| v0 vector only | 0.672 [0.599, 0.731] | 0.537 [0.463, 0.605] | 0.797 [0.712, 0.865] |
-
-The amendment leaves the primary set as it was (PR #30): it moves only the 8 unscored queries,
-which were no-answer and are now in neither set.
+| **v0 hybrid** | **0.626** [0.551, 0.689] | **0.558** [0.480, 0.628] | **0.801** [0.713, 0.866] |
+| v0 lexical only | 0.541 [0.465, 0.609] | 0.442 [0.372, 0.515] | 0.734 [0.641, 0.812] |
+| v0 vector only | 0.604 [0.530, 0.667] | 0.525 [0.449, 0.593] | 0.778 [0.690, 0.848] |
 
 **Paired differences (hybrid minus each half):**
 
 | | ΔnDCG@10 [BCa CI] | ΔP@5 [BCa CI] | ΔMRR@10 [BCa CI] |
 |---|---|---|---|
-| hybrid − lexical | +0.103 [0.055, 0.158], p = 0.0001 | +0.118 [0.077, 0.169], p = 0.0001 | +0.068 [0.003, 0.137], p = 0.044 |
-| hybrid − vector | +0.040 [−0.003, 0.085], p = 0.080 | +0.034 [−0.002, 0.067], p = 0.088 | +0.023 [−0.031, 0.076], p = 0.41 |
+| hybrid − lexical | +0.085 [0.047, 0.132], p = 0.0001 | +0.115 [0.078, 0.167], p = 0.0001 | +0.067 [0.002, 0.133], p = 0.044 |
+| hybrid − vector | +0.022 [−0.013, 0.053], p = 0.21 | +0.033 [−0.002, 0.066], p = 0.088 | +0.023 [−0.029, 0.074], p = 0.41 |
 
-The p values are from a paired sign-flip test. For hybrid − vector, the persona-clustered
-intervals are [0.009, 0.078] for nDCG and [0.005, 0.059] for P@5. Those exclude 0, while the BCa
-intervals don't. The script prints both.
+For hybrid − vector, the persona-clustered intervals are [−0.004, 0.049] for nDCG and
+[0.005, 0.058] for P@5: only the P@5 one excludes 0. The script prints both.
 
 **Reading:**
 - Hybrid clearly beats lexical alone.
-- Hybrid's lead over vector alone is about +0.04 nDCG and is borderline: whether it clears 0
-  depends on the interval method. On this dev set the keyword half adds little beyond the
-  dense half.
-- This reverses v1's conclusion below (lexical ≈ hybrid). v1 graded relevance with a title regex
-  and measured recall only. Phase 2 uses graded judgments over a pooled top 10.
+- Hybrid's lead over vector alone, +0.022 nDCG, is not distinguishable from 0. On this dev set the
+  keyword half adds little beyond the dense half.
+- The dense half is the stronger half. The v1 eval's opposite reading (lexical ≈ hybrid) came from
+  title-regex relevance and recall only; it is kept as history in
+  [`eval/v1/README.md`](eval/v1/README.md).
+- **Why the numbers are lower than Phase 2's.** Later rounds judged the documents Phase 3 and 5
+  candidates brought into their top 10s. Today's qrels hold 810 pairs from those nine rounds
+  (`judging` in `eval/dev/qrels.json`); 221 of them have grade ≥ 1, and none of those is in v0's
+  top 10. The ideal ranking rises and v0's scores fall. The ranker did not change.
 
 **Outside the primary set (v0 hybrid):**
-- **Feature-gap (constraint queries, n = 5):** nDCG@10 0.604.
-- **No-answer queries (n = 2, d-012 and d-025):** correct-empty 0%, with 2 false positives and
-  no errors. That is below the cutoff rule's floor of 3 no-answer queries, so a cutoff verdict
-  cannot pass on dev (`insufficient queries: 2 no-answer …`). No Phase 3 change takes the cutoff
-  kind on dev: 3G uses `answerable-floor`.
-- **Unscored queries (n = 8):** d-005, d-009, d-017, d-020, d-032, d-042, d-061, d-093. The 4 non-200
-  responses are among them: the 400s to the home-course pastes over 200 characters.
+- **Feature-gap (constraint queries, n = 5):** nDCG@10 0.449.
+- **No-answer queries (n = 2, d-012 and d-025):** correct-empty 0%, with 2 false positives and no
+  errors. That is below the cutoff rule's floor of 3 no-answer queries, so a cutoff verdict cannot
+  pass on dev (`insufficient queries: 2 no-answer …`). No Phase 3 change took the cutoff kind on
+  dev: 3G used `answerable-floor`.
+- **Unscored queries (n = 6):** d-005, d-009, d-017, d-020, d-032, d-042. The 4 non-200 responses
+  are among them: the 400s to the home-course pastes.
 - **Hard-constraint violations:** 12 in the top 10s.
-- **Weakest dev shapes:** `code-partial` 0.000 (n = 3), `code-space` 0.210 (n = 3), `ge` 0.402,
-  `equivalence` 0.507, `typo` 0.529, `constraint` 0.604.
+- **Weakest dev shapes:** `code-partial` 0.000 (n = 3), `code-space` 0.210 (n = 3), `typo` 0.296,
+  `equivalence` 0.309, `ge` 0.314, `constraint` 0.449.
 
-**Judge quality:**
-- **Self-consistency:** planted repeats were graded identically 80 of 80 times on dev and 65 of
-  65 on the holdout.
-- **Cross-family check** of 150 stratified dev pairs (ADR 0004 amendment,
-  `docs/evidence/phase2/calibration/`). Gemini graded each pair blind to judge A, and Claude
-  Sonnet then verified every grade. Agreement with A:
-  - raw agreement 0.880;
-  - quadratic κ 0.915;
-  - Krippendorff α 0.915.
-
-  A is slightly lenient: it graded 12 pairs higher and 6 lower. No human has graded a pair.
-
-**Holdout:** `qrels-holdout-v2` is committed only as ciphertext: `qrels-holdout-v1` (23 rule pairs
-and 1,296 pairs graded by A) plus the code-target rule (15 rule pairs over 4 queries, 14 of
-them unpooled before). No look has been taken (`eval/holdout-ledger.md`). Looks are spent only on
-Phase 3 candidates, at most 12.
-
-**Reproduce** (from a clean clone, with the release assets):
+**Reproduce** (dev set only). The runner downloads the embeddings from their releases with `gh`,
+sha-checked; the pinned corpus comes from its release once:
 ```sh
-npm run eval -- run --set dev --variant v0         --ref eval-v0
-npm run eval -- run --set dev --variant v0-lexical --ref eval-v0 --mode lexical
-npm run eval -- run --set dev --variant v0-vector  --ref eval-v0 --mode vector
-npm run eval:report -- --run v0                    # the v0 row and the per-shape table
-node docs/evidence/phase2/baseline-table.mjs       # both tables in this section, CIs included
+gh release download data-2026-2027-20260904 -p '2026-2027-moduleInfo.json.gz' -D .data && gunzip .data/2026-2027-moduleInfo.json.gz
+npm run eval -- run --set dev --variant v0         --ref eval-v0 --embedding emb-bge-small-v0
+npm run eval -- run --set dev --variant v0-lexical --ref eval-v0 --embedding emb-bge-small-v0 --mode lexical
+npm run eval -- run --set dev --variant v0-vector  --ref eval-v0 --embedding emb-bge-small-v0 --mode vector
+npm run eval:report -- --run v0                    # the v0 row, outside-primary lines and per-shape table
+node docs/evidence/phase2/baseline-table.mjs       # both tables above, CIs included
 ```
-`eval:report` refuses `--baseline` with a lexical or vector run, because gates compare hybrid
-runs only. The paired Δ against the halves therefore comes from `baseline-table.mjs` alone.
-Re-running gives identical results, but the run file's hash changes, because the file records
-`createdAt` and the runner's sha.
+`--embedding emb-bge-small-v0` is required: the default embedding is a later one, and the runner
+refuses a ranker whose corpus texts that embedding lacks. `eval:report` refuses `--baseline` with a
+lexical or vector run, because gates compare hybrid runs only, so the paired Δ against the halves
+comes from `baseline-table.mjs` alone. Re-running gives identical numbers; the run file's hash
+changes, because the file records `createdAt` and the runner's sha.
 
----
+### History: the Phase 2 baseline as first recorded, on `qrels-dev-v2`
 
-> **v1 (historical).** Everything below is the superseded v1 eval. Its fixtures and scripts now
-> live in `eval/v1/`.
+Phase 2 recorded the baseline on `qrels-dev-v2` (1,666 pairs, 81 graded by rule), where 83 queries
+were primary answerable and 8 unscored (d-061 and d-093 had no grade-≥1 document yet). Under
+`qrels-dev-v1`, before the code-target rule, v0 read 0.758 nDCG@10 over 78 queries. HEAD's
+`baseline-table.mjs` reads today's qrels, so it no longer prints these; `git show
+846fac2:eval/dev/qrels.json` has the v2 file.
 
-**Verdict up front.** The hybrid retriever passes the pre-committed gate on both the
-development fixture (+1.0pp) and a held-out fixture written after tuning was frozen
-(+1.0pp). But the margin is ~10 documents out of 970 and is not statistically
-significant (sign test p = 0.77). And the component analysis is unflattering:
-**a lexical-only retriever using D1 FTS5 matches the hybrid almost exactly, with 5 wins
-and 0 losses against the baseline.** Vector-only is indistinguishable from the keyword
-baseline (8 wins, 9 losses, net +2 documents, p = 1.00).
+| run (n = 83, `qrels-dev-v2`) | nDCG@10 [BCa CI] | P@5 [BCa CI] | MRR@10 [BCa CI] |
+|---|---|---|---|
+| v0 hybrid | 0.712 [0.644, 0.770] | 0.571 [0.494, 0.641] | 0.820 [0.740, 0.884] |
+| v0 lexical only | 0.609 [0.532, 0.678] | 0.453 [0.383, 0.525] | 0.752 [0.661, 0.830] |
+| v0 vector only | 0.672 [0.599, 0.731] | 0.537 [0.463, 0.605] | 0.797 [0.712, 0.865] |
 
-The honest reading: *the measurable improvement over a keyword box comes from moving
-BM25 into the database with proper stemming, not from the embeddings.* Vectorize earns
-its place on specific query shapes and on nothing else measured here.
+Paired on v2: hybrid − lexical +0.103 nDCG [0.055, 0.158]; hybrid − vector +0.040 [−0.003, 0.085],
+p = 0.080, with a persona-clustered interval of [0.009, 0.078]. Feature-gap nDCG@10 was 0.604; the
+weakest shapes were `code-partial` 0.000, `code-space` 0.210, `ge` 0.402, `equivalence` 0.507,
+`typo` 0.529 and `constraint` 0.604.
 
----
+## Judge quality
 
-## Method
+Every graded pair comes from one judge model, `claude-opus-5-5` (ADR 0004), or from the rule. No
+human has graded a pair. Measured on Phase 2's first round:
+- **Self-consistency:** planted repeats were graded identically 80 of 80 times on dev and 65 of 65
+  on the holdout.
+- **Cross-family check** of 150 stratified dev pairs (ADR 0004 amendment,
+  `docs/evidence/phase2/calibration/`). Gemini graded each pair blind to judge A, and Claude Sonnet
+  then verified every grade. Agreement with A: raw 0.880, quadratic κ 0.915, Krippendorff α 0.915.
+  A is slightly lenient: it graded 12 pairs higher and 6 lower.
 
-Two fixtures, both judged by written criteria applied to the entire 6,771-module corpus:
+**Holdout:** 81 queries, committed only as ciphertext (`eval/holdout/`), with their qrels. A gate
+needs judged@10 at 100%, so before a look the custodian has the candidate's unjudged top-10
+documents judged, and the holdout's qrels grow with each look. A look prints a verdict and Δs only;
+no per-query output leaves custody.
 
-| fixture | queries | status |
-|---|---|---|
-| `eval/queries.json` | 6 topical, 3 exact codes, 3 exact titles, 3 filtered | **tainted** — the retriever was modified in response to it failing |
-| `eval/holdout.json` | 12 topical | **clean** — written after RRF and stopword tuning was frozen |
+## What the numbers don't show
 
-**Not evaluated:** the exchange-student (`ng`) filter added after this measurement. It is
-a hard structural filter with an exhaustive source list, verified to return zero
-violations across all three retrieval modes and in combination with `sem`, `level` and
-`faculty` — but no eval query exercises it, so it contributes nothing to and takes nothing
-from the numbers below.
+- **Production.** Every number here is the offline replica on the pinned corpus. Production
+  differs in its corpus, its NG files after a revision, and its query vectors (above).
+- **Students.** The queries are written for student personas by writer subagents (ADR 0003,
+  "Provenance"), not taken from real searches.
+- **A human view of relevance.** One judge model grades every pair; the cross-family check is the
+  only outside reading.
+- **Dev as an unbiased estimate.** The dev set is open and screened every Phase 3 to 5 change, so
+  dev results for those changes are optimistic. The holdout has been looked at 8 times, which
+  inflates its false-positive rate (ADR 0003, "Context"); the per-change gates are screening.
+  The shipping claim rests on the sealed test set, used once, and it covers Phase 3 only.
+- **Constraint queries.** Queries that need a filter the site doesn't parse ("no Friday classes")
+  are feature-gap, scored apart, and score low. The known search limits S2, S3, S4 and S6 stay
+  open ([`docs/FINDINGS.md`](docs/FINDINGS.md), ADR 0011 G4).
+- **Exchange-mode correctness.** Which courses an exchange student may take is checked against an
+  independent oracle by the SC1 suites (`test/sc1/`, docs/REFERENCE.md), not by this eval.
 
-> **One unverified change.** After this measurement, the lexical SQL changed from
-> `ORDER BY bm25(modules_fts, 0.0, 3.0, 1.0)` to `ORDER BY rank`, with the same weights
-> stored on the table itself (`migrations/0005_rank.sql`). This is a cost fix — 389 D1
-> rows read became 7 — and it is *intended* to be ordering-neutral, because FTS5's `rank`
-> IS bm25 with the table's configured weights. An interim attempt to fix cost by switching
-> the query from OR to AND **was reverted**, precisely because that one *would* have
-> changed retrieval and could not be re-measured. The behaviour evaluated below is the
-> behaviour that ships.
->
-> Still: `ORDER BY rank` has not been re-run against these fixtures, because the D1
-> free-tier daily row-read limit was exhausted the same day. Re-run `npm run eval` and the
-> held-out fixture after the quota resets and confirm the numbers are unchanged.
+## The v1 eval
 
-**Metric: micro-averaged recall@10** — total relevant retrieved ÷ total relevant, pooled
-across queries. Precision@10 (divisor `min(K, |R|)`) and MRR are reported as diagnostics.
-
-**Baseline: BM25** over title (×3) and description, porter-stemmed, stopword-filtered,
-full-corpus scan, with the exact-code shortcut handed to it for free. The same stopword
-list and the same stemming the Worker's FTS5 index uses, so neither side gets an easier
-version of the query. This is deliberately a strong opponent: the point of the gate is
-to find out whether any of this beats the keyword box NUSMods already has.
-
-**Relevance judgements** are generated by `scripts/judge.mjs` — an explicit written
-criterion per query, applied as a rule to all 6,771 modules, plus a small number of named
-additions where the rule provably misses a document. Sets are therefore complete and
-reproducible. `scripts/pool.mjs` builds a blind judging pool (union of every retriever's
-top-20, sorted by code, with no system or rank attribution) for re-judging.
-
-Because the sets are complete, `|R|` exceeds 10 for most topical queries, so recall@10 is
-ceilinged at `10/|R|`. The ceiling is reported and is identical for every system.
-
-The rules are lexical, which biases both fixtures **toward the keyword baseline**. That
-is the conservative direction when testing semantic search, and it is stated rather than
-hidden.
-
----
-
-## Results
-
-### Development fixture (`eval/results-main.txt`)
-
-```
-                      baseline            vector              lexical             hybrid
-ALL                   15.9% (69/433)      14.8% (64/433)      17.1% (74/433)      17.1% (74/433)
-topical                8.8% (35/397)       8.3% (33/397)       9.8% (39/397)       9.8% (39/397)
-code                 100.0% (3/3)        100.0% (3/3)        100.0% (3/3)        100.0% (3/3)
-title                100.0% (12/12)       83.3% (10/12)      100.0% (12/12)      100.0% (12/12)
-filtered              90.5% (19/21)       85.7% (18/21)       95.2% (20/21)       95.2% (20/21)
-
-precision@10          81.7%               76.4%               85.2%               83.8%
-MRR                   0.942               0.869               0.942               0.967
-
-Gate (topical):  vector -0.5% FAIL   lexical +1.0% PASS   hybrid +1.0% PASS
-```
-
-### Held-out fixture (`eval/results-holdout.txt`)
-
-```
-                      baseline            vector              lexical             hybrid
-topical               11.9% (68/573)      12.6% (72/573)      12.7% (73/573)      12.9% (74/573)
-
-precision@10          56.7%               60.0%               60.8%               61.7%
-MRR                   0.833               0.674               0.903               0.820
-
-Gate (topical):  vector +0.7% PASS   lexical +0.9% PASS   hybrid +1.0% PASS
-```
-
-### Pooled across all 18 topical queries (970 relevant documents)
-
-| system | retrieved | vs baseline | wins | losses | ties | sign test |
-|---|---|---|---|---|---|---|
-| baseline (BM25) | 103/970 (10.62%) | — | — | — | — | — |
-| vector only | 105/970 (10.82%) | +0.21pp | 8 | 9 | 1 | p = 1.00 |
-| **lexical only (FTS5)** | **112/970 (11.55%)** | **+0.93pp** | **5** | **0** | 13 | p = 0.063 |
-| hybrid (shipped) | 113/970 (11.65%) | +1.03pp | 7 | 5 | 6 | p = 0.774 |
-
-Vector-only is a **high-variance trade**, not an improvement. Its per-query deltas against
-the baseline are `[+5, +2, −5, −2, −3, +1, +4, −1, +4, −1, +5, −5, −3, +1, −1, −1, 0, +2]`.
-It wins big where the user's words are not the course's words — `learning a foreign
-language` (+5), `keeping computer systems secure` (+5), `computer science ai` (+5),
-`diseases and how they spread` (+4) — and loses just as big on `music theory and
-composition` (−5), `photography and film making` (−5), `how do i start my own company` (−5).
-
-Lexical-only never loses. That is the finding that matters.
-
----
-
-## History: what actually happened
-
-### Phase 2 — baseline recorded
-
-BM25 at ceiling on exact codes (100%), exact titles (100%) and filtered queries (91.7%);
-weak on topical. Landmine L3 confirmed where the plan predicted it: a lexical engine is
-unbeatable when the query *is* the document's text. Vector search could only fail to lose
-those categories.
-
-### Phase 4, first run — vector-only **FAILED** the gate
-
-`topical: baseline 24.6%, vector 23.5%, delta −1.1%` (macro-averaged, on the original
-fixture). Per the plan's stated fallback, work stopped and hybrid retrieval was built
-before any UI work:
-
-1. **FTS5 lexical index in D1** (`migrations/0002_fts.sql`) — `modules_fts` over title and
-   description with porter stemming, synced by triggers.
-2. **Reciprocal-rank fusion** — `1/(60 + rank)`, k=60 from the original RRF paper, left
-   untuned. Weights deliberately not fitted: tuning two parameters on six topical queries
-   would produce a number meaningless outside those six.
-3. **Stopword filtering on the FTS query** — without it, "how do i start my own company"
-   matched every *Design Your Own Course* record on the word "own". Uses the same list as
-   the baseline, so it equalises rather than advantages.
-
-Re-run: `topical delta +0.6%`, **PASS**.
-
-### Then a hostile review demolished that result
-
-An independent reviewer, given the fixture and results and told to find reasons not to
-trust them, returned six blockers. The important ones were correct:
-
-**1. The +0.6% was an artefact of macro-averaging.** Both systems had retrieved an
-identical **11 of 45** relevant documents. The mean was positive only because one query
-where vector gained had 7 relevant items and one where it lost had 8. Micro-averaged
-delta: exactly **0.0%**.
-
-**2. The relevance judgements were built from a truncated listing.** The original sets came
-from grepping the corpus and reading the first 30 alphabetical hits. Consequences:
-
-- `t4 climate change and the environment` contained **none of the 15 modules in the CCS
-  "Climate Change and Sustainability" programme** — CCS sorts after the truncation point.
-- `t3` included `BME5405` "Technology, Innovation and Entrepreneurship" but excluded
-  `DBA5110` "Technology Innovation and Entrepreneurship" — same faculty, one comma apart,
-  and the baseline's rank-1 hit.
-- `t1` included `CS3263` and `CS6208` but excluded `CS3264`, `IT5005` and `CS6216` on no
-  stated principle.
-
-The exclusions landed disproportionately on documents BM25 ranked highly, so the fixture's
-bias ran **against** the baseline — the opposite of what this file previously claimed.
-
-**3. The system had been tuned against the only test set that existed.** RRF and the
-stopword filter were both added in response to these six topical queries failing. Not
-editing the fixture is not a defence when you edit the retriever instead.
-
-**4. precision was divided by returned-list length, not K**, so a baseline returning one
-document scored "100% precision" against a hybrid returning ten.
-
-**5. The results file labelled a keyword+vector system as "vector"**, and the failing
-vector-only run was recorded nowhere.
-
-### What was changed in response
-
-- Relevance rebuilt from written criteria applied to the **whole** corpus. Set sizes went
-  from 8/7/8/8/8/6 to **57/36/91/171/11/31**.
-- Gate metric switched to **micro-averaged** recall; the smallest registrable change is
-  now printed alongside every result.
-- precision@10 divisor fixed to `min(K, |R|)`.
-- Baseline given the **same porter stemming** as the Worker's FTS5 index, removing an
-  undisclosed asymmetry.
-- Gate tolerance tightened from `>= -0.001` to `>= 0`.
-- RRF alphabetical tiebreak replaced with a **stable hash**; alphabetical ordering
-  correlated with the CS-heavy code prefixes in the fixture.
-- `mode=vector|lexical|hybrid` added to `/search` so each retriever is measurable alone —
-  this is what exposed that the lexical half does the work.
-- **A held-out fixture** of 12 topical queries added, written after tuning was frozen.
-- Raw returned code lists committed for every query and system
-  (`eval/raw-queries.json`, `eval/raw-holdout.json`), so the whole run is auditable.
-
-What was **not** changed: no relevance judgement was edited after seeing which system it
-penalised, and the RRF weights were never fitted to the fixture.
-
----
-
-## What this does and does not establish
-
-**Supported:** hybrid retrieval is not worse than a strong keyword baseline, and is
-modestly better on precision@10 in both fixtures (81.7→83.8, 56.7→61.7). It passes the
-pre-committed gate on data it was never tuned against. The exact-code shortcut and filter
-guarantees hold (R4, R5 pass).
-
-**Not supported:** "semantic search beats keyword search here." Ten documents out of 970,
-p = 0.77. And the component breakdown says the credit belongs to FTS5, not to embeddings.
-
-**The uncomfortable conclusion.** A lexical-only build — D1 FTS5, no Vectorize, no Workers
-AI, no embedding step in ingest — scores 112/970 against the hybrid's 113/970, never loses
-a query against the baseline, and has the best held-out MRR (0.903 vs the hybrid's 0.820).
-It would be cheaper, simpler, faster, and would not consume the account's shared Vectorize
-allowance. On this evidence that is the build a careful engineer would ship.
-
-The hybrid is shipped anyway because it passes the gate that was set in advance and it
-wins on the query shapes the project exists to serve — the ones where a student describes
-what they want in words no course title uses. That is a judgement call about what to
-optimise for, and it should be recognised as one, not as something the numbers proved.
-
-**Before this measurement is trusted for any further decision:** the fixtures need more
-topical queries (18 is too few — one document moves the pooled number by 0.1pp but a
-single query moves a per-query delta by up to 45pp), and relevance needs a second judge.
+The pre-Phase-2 eval (title-regex relevance, recall@10, run against the live site) is history. Its
+write-up, fixtures and scripts are in [`eval/v1/`](eval/v1/README.md).

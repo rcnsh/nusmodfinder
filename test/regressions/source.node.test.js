@@ -52,28 +52,36 @@ describe('ops', () => {
     expect(read('wrangler.jsonc')).not.toMatch(/"triggers"|"crons"/);
   });
 
-  it('[B9 fixed] README names the binding limit with its arithmetic (Vectorize queried dims before 3-0; since 3-0, Workers CPU, the smaller of CPU and neurons, B2-8), and states the per-search D1 rows read measured with SC7', () => {
+  it('[B9 fixed] REFERENCE names the binding limit with its arithmetic (Vectorize queried dims before 3-0; since 3-0, Workers CPU or the account\'s shared Workers AI neurons), and states the per-search D1 rows read measured with SC7', () => {
     expect(readme).not.toContain('D1 row reads are the binding constraint');
-    const cost = readme.slice(readme.indexOf('## Cost'), readme.indexOf('## Data source'));
+    const cost = readme.slice(readme.indexOf('## Cost'), readme.indexOf('## Data source')).replace(/\s+/g, ' ');
     // FINDINGS B9, on Workers Paid (ADR 0004): 50,000,000 queried dims/month,
     // billed as (stored vectors + queries) x 384. It bound until 3-0 took
-    // Vectorize off the search path; the README keeps the arithmetic.
+    // Vectorize off the search path; the Cost section keeps the arithmetic as history.
     const vectorizePerMonth = 50_000_000 / 384 - 6771;
     expect(Math.round(vectorizePerMonth / 100) * 100).toBe(123400);
     expect(cost).toContain('50,000,000 / 384 − 6,771 ≈ **123,400 uncached searches a month**');
     expect(cost).toContain(`about ${(Math.round(vectorizePerMonth / 30 / 100) * 100).toLocaleString('en-US')} a day`);
-    expect(cost).toContain('**Since 3-0, Vectorize is off the search path, so the binding limit is Workers CPU or Workers AI\nneurons');
-    // B2-8: the README names whichever is smaller. CPU: 30M CPU-ms/month at the ~12 ms a
-    // request measured after the 3-0 cutover; neurons: 10k/day at ~0.03 a search (~0.05 after 3A-1).
+    expect(cost).toContain('**Since 3-0, Vectorize is off the search path, so the binding limit is Workers CPU or Workers AI neurons');
+    // Since 3-0: CPU, 30M CPU-ms/month at the ~12 ms a request measured after the cutover; or
+    // Workers AI, 10k neurons/day shared by the account, at 0.033 a search (0.066 with a 3C
+    // correction). The month's busiest day left other projects ~2,500 (Phase 8 plan §1).
     expect(30_000_000 / 12).toBe(2_500_000);
-    expect(Math.round((10_000 * 30) / 0.03 / 1e6)).toBe(10);
-    expect(Math.round((10_000 * 30) / 0.05 / 1e6)).toBe(6);
-    expect(cost).toContain('**CPU is the smaller limit.**');
-    expect(cost).toContain('30M\nCPU-ms cover **~2.5M searches a month**');
+    expect(Math.floor(10_000 / 0.066 / 10_000) * 10_000).toBe(150_000);
+    expect(Math.floor(10_000 / 0.033 / 100_000) * 100_000).toBe(300_000);
+    expect(((10_000 * 30) / 0.066 / 1e6).toFixed(1)).toBe('4.5');
+    expect(Math.floor((10_000 * 30) / 0.033 / 1e6)).toBe(9);
+    expect(Math.floor((10_000 - 2_500) / 0.066 / 10_000) * 10_000).toBe(110_000);
+    expect(cost).toContain('**The limit is CPU or the shared neurons.**');
+    expect(cost).toContain('30M CPU-ms cover **~2.5M searches a month**');
+    expect(cost).toContain('150,000 to 300,000 uncached searches a day (4.5M to 9M a month) at 0.066 to 0.033 each');
+    expect(cost).toContain('about 110,000 uncached searches fit beside other projects\' ~2,500');
     expect(cost).toContain('**30,000,000 ms / month**');
     expect(cost).toContain('25,000,000,000 / month');
-    // Per-search D1 numbers after Phase 1 are measured, not invented.
-    expect(cost).toMatch(/\| D1 rows read \|[^\n]*\| per search: unfiltered 137–239 \(median 239\), filtered 249–1,784 \(median 497\), measured on 36 production searches with SC7 \(\[`sc7\.md`\]\(evidence\/phase1\/sc7\.md\)/);
+    // Per-search D1 rows read are Phase 3's counted SC7 run on production, as its evidence states them.
+    const sc7 = read('docs/evidence/phase3/sc7.md').replace(/\s+/g, ' ');
+    expect(sc7).toContain('**Rows read per search:** p50 255, max 1,403. Unfiltered searches have a p50 of 240 and filtered ones 613.5.');
+    expect(cost).toMatch(/\| D1 rows read \|[^|]*\| per search, Phase 3's SC7 run on production: p50 255, max 1,403; unfiltered p50 240, filtered p50 613\.5 \(\[`sc7\.md`\]\(evidence\/phase3\/sc7\.md\)\)/);
   });
 });
 

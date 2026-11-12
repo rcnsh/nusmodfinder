@@ -10,20 +10,22 @@ Type what you want to study — `machine learning for beginners`, `i want to und
 climate change`, `how do i start my own company` — or a module code like `CS3244`, and
 filter by semester, level, credits and faculty.
 
-> **Read [EVAL.md](../EVAL.md) before trusting the ranking.** The retrieval quality was
-> measured against a BM25 keyword baseline rather than assumed, and the honest result is
-> more equivocal than the demo looks. In particular, the lexical half of the retriever
-> accounts for essentially all of the measured improvement; the vector half does not
-> currently earn its keep on recall.
+> **Read [EVAL.md](../EVAL.md) before trusting the ranking.** It is measured offline on judged
+> queries, not assumed. On the dev set hybrid clearly beats the keyword half alone, but its lead
+> over the dense half alone (+0.022 nDCG@10) is not distinguishable from 0: the keyword half adds
+> little beyond the dense half. SC5 measured the Phase 3
+> ranker above the first hybrid version on a sealed test set, and every later ranking change ships
+> on a holdout look or a no-look route, held by CI's ranking lock.
 
 ## What it does
 
 | Route | Purpose |
 |---|---|
 | `GET /` | The page: `public/`, served as Workers Static Assets (no Worker CPU); native ES modules, no framework, no build step ([below](#the-page)) |
-| `GET /search?q=&sem=&level=&credits=&faculty=&ng=&study=&topK=&mode=` | Ranked results as JSON |
+| `GET /search?q=&sem=&level=&credits=&faculty=&ng=&study=&exam=&su=&hoursBelow=&prereq=&ignore=&topK=&mode=` | Ranked results as JSON (the parameters below) |
 | `GET /module/:code` | The full D1 row for one module, with its exchange-mode status for every semester and year of study, its exams, its workload, its NUSMods link, its grading basis and its other codes; a 404 says which kind of miss it is (below) |
 | `GET /facets` | Distinct faculties and levels, with counts, for the filter UI, the exchange-mode sources with their dates, and NUS's rules about courses off the exchange list (`offListRules`, below) |
+| `GET /health` | `{ ok, versionId, versionTag, dataVersion, vectors }`, without touching D1 ("Deploying", below) |
 | `GET /privacy` | The privacy note (`public/privacy.html`, a static asset): what Cloudflare's logs and the site's own line keep, what stays on the device, no cookies |
 | any other path | JSON 404 `{ error: "not_found", message }`; for a browser (`GET` or `HEAD` whose `Accept` prefers `text/html`), the 404 page instead (below) |
 
@@ -55,13 +57,20 @@ the zone's Browser Cache TTL (4 hours), not the one it was stored with.
 
 `ng=1` is **exchange mode**: only courses an exchange (Non-Graduating) student may take, under
 the Registrar's NG course list and course restrictions (below). It needs `study=ug1|ug2|ug3|ug4|grad`,
-the student's year of study at home (`ug4` = 4th year or later); without it `/search` answers
+the student's year of study during the exchange (`ug4` = 4th year or later); without it `/search` answers
 400 `study-required`. Under `ng=1`, `sem=1|2` picks the semester the student would come in
 (the NG list's semesters, not NUSMods'), no `sem` means either, and `sem=3|4` answers no
 courses with `noMatch: { reason: "ng-special-term" }`: the NG list has no special-term data.
 Each result then carries `exchange: { status: "open" | "note", reasons: [{ id, kind, text }] }`
 (the reasons include R3's year-of-study note and R6-2's level 4000 note, below).
 Only `true` narrows — `ng=0` is ignored, and `study` is ignored without `ng=1`.
+
+3H's explicit constraints, each a hard filter: `exam=0` (no final exam listed, in the `sem` asked
+for when there is one), `su=1` (S/U-able, or graded CS/CU), `hoursBelow=N` (NUSMods' weekly workload below N
+hours, 1 to 99) and `prereq=none` (no prerequisite). The same constraints are also read from the
+query's own words (*no final exam*, *S/U*, *light workload*; the tighter hour limit holds), and
+`ignore=` names parsed phrases to undo, as the page's chips do (`src/search.js` `parseFilters`,
+`parseIgnore`). Every one is part of the cache key.
 
 `/module/:code` (Phase 5 5A) also answers `examDates`, one `{ sem, date, durationMins }` per
 semester with an exam (`date` ISO UTC as NUSMods gives it; `[]` for none); `workload` as
@@ -75,8 +84,8 @@ none; both come after `prereqCohortOnly`, and no other field changed. It is cach
 `public, max-age=300` on a 200, `public, max-age=60` on a 404 and `no-store` on a 5xx, with no ETag.
 
 A 404 (6A) is `{ error: "not_found", kind, message, acadYear, … }`, `kind` one of:
-- `ng-listed`: on the NG list but with no classes in NUSMods this year (40 codes in 2026/27, e.g.
-  EE4407), from `data/ng-unscheduled.json` (below), with no D1 read past the row's. It carries the
+- `ng-listed`: on the NG list but with no classes in NUSMods this year (`EE4407`, for one),
+  from `data/ng-unscheduled.json` (below), with no D1 read past the row's. It carries the
   fields a row has (`code`, `title`, `description`, `credits`, `faculty`, `department`, `level`,
   `ngSemesters`, `workload`, `prerequisite`, `preclusion`, `gradingBasis`, `otherCodes`),
   `semesters: []`, `ng: true`, `examDates: []`, `nusmodsUrl`, and `exchange` built from the
@@ -117,22 +126,47 @@ code. None of it changes which results show or their order:
   `exchange` (the either-semester value), so a student planning both sees one value per semester.
 
 `mode` is `hybrid` (default), `vector` or `lexical`. It exists so the evaluation harness
-can measure each retriever on its own — which is the only reason we know the vector half
-is not pulling its weight.
+can measure each retriever on its own: EVAL.md's Phase 2 baseline compares the two halves with it.
 
 `/search` returns at most 20 results by default; `topK` may raise that to 50, the
 candidate depth of each retriever. Queries over 200 characters are rejected.
 
 ### How a search is answered
 
-1. If `q` looks like a module code and that module exists, it is pinned to position 1.
-2. The query is embedded with `@cf/baai/bge-small-en-v1.5` (384 dims) and scored by exact
-   cosine against every corpus vector, held **in the Worker** (below), after a mask for the
-   structured filters. The top 50 are kept, by score, then code.
-3. The same query runs against a D1 FTS5 index (`bm25(modules_fts, 0, 3, 1)`, porter
-   stemming, stopwords removed), with the same filters applied in SQL.
-4. The two ranked lists are combined by reciprocal-rank fusion, `1/(60 + rank)`.
-5. Surviving codes are hydrated from D1 in a single `WHERE code IN (...)`.
+`searchRoute` and `runSearch` in [`src/search.js`](../src/search.js), in order:
+
+1. **Validate, cache, limit.** A bad parameter is a 400 before any binding is touched. The
+   canonical cache key (B7) is looked up next, and a hit costs no binding call. Then the per-IP
+   rate limit (`SEARCH_LIMIT`).
+2. **Parse the query** ([`src/query-intent.js`](../src/query-intent.js)): typed course codes to
+   pin (R5, up to 3), partial codes, code prefixes and GE pillars as code ranges (3B), a spelling
+   correction against the catalogue's own words (3C, [`src/typo.js`](../src/typo.js),
+   [`src/vocabulary.js`](../src/vocabulary.js)), the no-exam, S/U, workload and prerequisite
+   phrases (3H, [`src/intents.js`](../src/intents.js)) and level phrases (5F) as constraints. The
+   parse picks one of three routes.
+3. **`no-match`:** a whole query that is one code not offered this year answers `count: 0` with
+   its reason (`unknown-code`, `not-offered`, or 6A's `ng-unscheduled`) and, as `related`, the
+   dense neighbours of its catalogue text.
+4. **`mask`:** a whole query that is a partial code, a prefix or a GE phrase answers that set's
+   members, in exact dense order (code order without the dense half).
+5. **`search`:** three lookups start together. The pin lookup in D1. The dense half
+   ([`src/dense.js`](../src/dense.js), [`src/vector-bundle.js`](../src/vector-bundle.js)): the
+   query is embedded with `@cf/baai/bge-small-en-v1.5` (384 dims), and once more when 3C
+   corrected a word, then scored by exact cosine against every corpus vector held **in the
+   Worker** (below), after a mask for the filters and constraints. The lexical half
+   ([`src/lexical.js`](../src/lexical.js), [`src/fts-query.js`](../src/fts-query.js)): a D1 FTS5
+   query, `ORDER BY rank` over the table's `bm25(0, 3, 1)`, porter stemming and stopwords
+   removed, with the same filters in SQL. A code token adds its prefix's members as a third list.
+6. **No signal** (3G, [`src/no-signal.js`](../src/no-signal.js)): a query with no route and no
+   catalogue word whose best cosine is below τ answers `noMatch: { reason: "no-signal" }`.
+7. **Fuse and hydrate.** After the pins, the lists are combined by reciprocal-rank fusion,
+   `1/(60 + rank)`, and only as many candidates as the page shows are read from D1. A dense-only
+   candidate whose fresh D1 row fails the filters is dropped.
+8. **Collapse duplicates** (3F, [`src/groups.js`](../src/groups.js)): one result per duplicate
+   group, the other members as its variants. With a semester set, the member offered in that
+   semester stands for the group (ADR 0006, "The semester representative").
+9. **Answer.** In exchange mode each result carries its `exchange` status from its stored allow
+   mask. A 200 is cached for an hour, a keyword-only answer for 60 s.
 
 Semesters are stored in Vectorize as four booleans (`sem1`..`sem4`) rather than an array,
 because Vectorize metadata indexes only support string, number and boolean.
@@ -147,10 +181,11 @@ the code that reads them. The bundles:
 
 | bundle | what | where |
 |---|---|---|
-| fixture | the ~400 test modules, fake embedder (632 KB) | `test/fixtures/vectors.bin`, committed; the alias's default, so `npm test`, `npm run dev` and a fresh checkout build against it |
-| pinned | the 6,771 pinned modules, the eval's default corpus vectors (`emb-bge-small-v1` since 3A-2; 10.7 MB) | release asset, sha256 in `data/vectors.json`; `test/full` and the `full-corpus` CI job (`node scripts/vectors.mjs fetch --corpus pinned`) |
-| production | what D1 holds (6,778 at the 3-0 cutover) | release asset, sha256 in `data/vectors.json`; only `npm run deploy` uses it, and it refuses the other two |
+| fixture | the fixture's test modules, fake embedder | `test/fixtures/vectors.bin`, committed; the alias's default, so `npm test`, `npm run dev` and a fresh checkout build against it |
+| pinned | the 6,771 pinned modules, the eval's default corpus vectors (`emb-bge-small-v1` since 3A-2) | release asset, sha256 in `data/vectors.json`; `test/full` and the `full-corpus` CI job (`node scripts/vectors.mjs fetch --corpus pinned`) |
+| production | what D1 holds | release asset, sha256 in `data/vectors.json`; only `npm run deploy` uses it, and it refuses the other two |
 
+<!-- pointer --> Each bundle's course count and size are in `data/vectors.json`.
 `scripts/vectors.mjs` builds all three. It looks each module's vector up in the eval's corpus
 asset by `embeddingKey(model, text)`, so codes that share a text share one vector, and
 production gets the replica's bits for every text the two share. Texts the asset lacks are
@@ -170,9 +205,9 @@ tests and the UI stack, the pinned corpus's (built in memory into `.data/ng-unsc
 `test/full`, production's for `test/sc1`, and the eval workspace's committed copy. Only `/module`'s 404 and
 `/search`'s no-match answer read it, so it never touches a ranking.
 
-**NG-listed codes with no classes** (6A). NUS lists 40 codes for exchange students in 2026/27
-that NUSMods offers no classes for, so D1 has no row for them. `data/ng-unscheduled.json` holds
-each one's fields, its other codes (groups-v1 over the offered rows plus the file's codes, so
+**NG-listed codes with no classes** (6A). NUS lists some codes for exchange students that
+NUSMods offers no classes for this year, so D1 has no row for them. <!-- pointer --> They and
+their count are in `data/ng-unscheduled.json`. The file holds each one's fields, its other codes (groups-v1 over the offered rows plus the file's codes, so
 FIN3701B gets FIN3701A, C and D) and the allow mask and rule ids `eligibility()` gives it, as
 ingest stores for a row. `node scripts/build-ng-unscheduled.mjs --corpus production` writes it
 from `current` (the corpus manifest, below), refused unless that corpus is the production bundle's;
@@ -200,7 +235,8 @@ python3 -m venv .venv && .venv/bin/pip install pypdf
 .venv/bin/python scripts/extract-ng.py <dir>/ng-courses.pdf --year <yyyy-yyyy>
 ```
 
-That writes `data/ng-courses-<acadYear>.json`, keeping only the sections whose heading names that
+<!-- year:live --> The live 2026/27 list (`data/ng-courses-2026-2027.json`) has 730 codes for Sem 1
+and 750 for Sem 2, 1,207 codes in all. The extractor writes `data/ng-courses-<acadYear>.json`, keeping only the sections whose heading names that
 year (NUS prepends the next year's Sem 1 above this year's Sem 2), and fails when a semester the
 year's source manifest marks published has no section or a section has no rows (Phase 7 7E;
 `--from-text` reads text already extracted, with no `pypdf`). The ingest script picks it up and
@@ -232,10 +268,11 @@ yet."), never open; the shortlist counts it "to confirm with NUS". A course not 
 list is closed there with `ng:unpublished-sem-unlisted` ("Not on last year's NG list for Sem 2"),
 not "only in the other semester". With every semester published, nothing changes.
 
-**Cross-checked against the corpus** for AY2026/2027: of 1,207 course codes in the PDF,
-**1,175 (97.3%)** exist in the NUSMods corpus — the other 32 are not offered this year.
-Where both sources state a semester they agree on **1,411 of 1,447 (97.5%)**; the ~2.5%
-disagreement is a snapshot-vs-daily-scrape artifact.
+**Cross-checked against the pinned corpus** (`test/full/corpus.test.js` asserts these).
+<!-- year:pinned --> For the pinned AY2026/2027 snapshot, of 1,207 course codes in the PDF, **1,175
+(97.3%)** exist in the NUSMods corpus, and the other 32 are not offered that year. Where both
+sources state a semester they agree on **1,411 of 1,447 (97.5%)**; the ~2.5% disagreement is a
+snapshot-vs-daily-scrape artifact.
 
 **Restrictions (Phase 4).** Being on the NG list isn't enough: the Registrar's
 "course restrictions for NG students" PDF closes schools, levels and single courses, and adds
@@ -331,8 +368,8 @@ property are filterable.
 
 ## The page
 
-The page is **Exchange Course Finder (unofficial, for NUS)**, the working name until Phase 8
-(ADR 0008, D3); "unofficial" is in its title and visible header at every width, and its footer
+The page is **NUS Mod Finder (unofficial)** at nusmodfinder.rcn.sh (ADR 0009); "unofficial" is in
+its title and visible header at every width, and its footer
 links NUSMods, the NG list, the restrictions and the Registrar's vacancy report (P3).
 
 **The design is direction D, "Annotated catalogue"** (Phase 5 5D; Jacob's pick, ADR 0008; the
@@ -353,7 +390,7 @@ checks every text/background and boundary pair in both themes against WCAG AA.
   semester (an icon, a word and a colour) with every note in full after a lead-in word. Below
   1040px the status drops under the title. An entry's other codes ("Also as") are links: each
   opens that code's own search with its detail open (`open=`), whose head says "Opened from
-  <code>" (`from=`); Back returns to the list. For a query of course codes only, the count line
+  `<code>`" (`from=`); Back returns to the list. For a query of course codes only, the count line
   names the typed codes shown ("20 courses shown: CS2030, then 19 other matches").
 - **Typed codes not shown** are explained above the entries (D4): each with its title, a stamp
   ("Not on the NG list for Sem 1", "Not for exchange students", "Not open in Sem 1", "Outside
@@ -555,8 +592,10 @@ fixtures, `data/` or the lockfile change (`scripts/ci-changes.mjs`, "CI" below).
 ## CI
 
 `.github/workflows/ci.yml` runs on every push to `main`, every ready PR and by hand, with no path
-filter: every job starts, so a change that only touches docs still runs `npm test` (which reads
-REFERENCE.md, EVAL.md and ADRs 0001 and 0003), and a red `main` shows. Draft PRs run nothing.
+filter: every job starts, so a change that only touches docs still runs `npm test` (whose tests
+read README.md, EVAL.md, REFERENCE.md and other docs under `eval/`, `docs/year-refresh/`,
+`docs/evidence/` and `docs/decisions/`; `test/docs-facts.node.test.js` holds the first three to the
+system), and a red `main` shows. Draft PRs run nothing.
 
 | Job | Runs | Skips |
 |---|---|---|
@@ -661,7 +700,8 @@ statement (red team M-3). Every caller sends a constant with `?` parameters. The
 `CLOUDFLARE_API_TOKEN`, else `npx wrangler auth token --json` captured in-process (the Mac's
 wrangler login); it is never printed, logged, put in an error or recorded. The account is
 `CLOUDFLARE_ACCOUNT_ID`, else the account wrangler cached
-(`node_modules/.cache/wrangler/wrangler-account.json`); set the variable if neither is there. The
+(`node_modules/.cache/wrangler/wrangler-account.json`), else the one account `wrangler whoami`
+lists; set the variable if none gives one. The
 database is the `d1_databases` entry bound as `DB` in `wrangler.jsonc`, wherever it is listed;
 none, or two, is refused (red team L-3). Rollback and `d1:restore` read through the same client.
 
@@ -759,8 +799,9 @@ deploy or a rollback from the Mac, run it by hand. It costs 5 GETs and one uncac
 backfill` prints the commands that create and push them (`deploy/20261111T183946Z-f8aefeab` on
 `0b5f360`, `deploy/20261111T235933Z-b0834844` on `a23601d`, both at data version
 `d820d578cf81` and `catalogueKey` `5b1e2f06e559`, marked `backfilled: true`). It runs nothing.
-Their `catalogueKey` is computed, not read: D1 was loaded from `prod-2026-2027-20261104`
-(`current`) and not written since, so it is that corpus's catalogue-only key; the first
+Their `catalogueKey` is computed, not read: when they were cut, D1 had been loaded from
+`prod-2026-2027-20261104` (then `current`) and not written since, so it is that corpus's
+catalogue-only key; the first
 `catalogueKey` read of D1 after 7D checks it.
 
 Plain `npx wrangler deploy` would ship the fixture bundle. Don't use it.
@@ -782,8 +823,8 @@ git add docs/evidence/phase5/p5-live.jsonl   # commit the log
 ```
 
 It checks the live page in Chromium (and WebKit for the iPhone 13 fold):
-- SC2 on 20 codes drawn with seed 5 from the production-normalised modules
-  (`.data/cache/…-moduleInfo.json`), 4 each with exams in two semesters, a cohort-only
+- SC2 on 20 codes drawn with seed 5 from `current` (`data/corpus.json`, restored into
+  `.data/prod/<sha256>.json`), normalised as ingest does, 4 each with exams in two semesters, a cohort-only
   prerequisite, no workload, two or more notes, and none of those;
 - axe (every rule but AAA's 7:1) on the first screen, an open detail and a hidden code, light
   and dark, at 1280 and 390×664;
@@ -899,8 +940,10 @@ node scripts/build-ng-unscheduled.mjs --corpus production --check
 npm run corpus -- check   # the data version and catalogueKey follow current; the 3B files are fresh
 git add data/corpus.json data/vectors.json src/data-version.json data/vocabulary.json data/groups.json data/ng-unscheduled.json data/ng-reasons.json data/prefixes.json data/catalogue-codes.json data/catalogue-only.json   # the build rewrites 3C's vocabulary, 3F's groups, 6A's file and the 3B catalogue files too; plus any code the change needs; open a PR
 #    A new acad year changes DEFAULT_ACAD_YEAR in scripts/lib.mjs, public/year.js and the header
-#    in public/index.html, the only places a year is written (test/year-scan.node.test.js fails on
-#    any other and checks those three agree; a year's own overlay and oracle files are exempt). The
+#    in public/index.html, the only places in code a year is written (test/year-scan.node.test.js
+#    fails on any other and checks those three agree; a year's own overlay and oracle files are
+#    exempt). The docs' <!-- year:live --> sentences change too (test/docs-facts.node.test.js;
+#    docs/year-refresh/README.md step 7). The
 #    whole year switch, sources to standby, is docs/year-refresh/README.md; it passes
 #    --write-budget 80000 at step 4, since every module and catalogue_only row is rewritten.
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
@@ -1121,8 +1164,8 @@ ignores new, untracked ones when it checks the tree is clean. Writers today: `de
 `d1:bookmark`, `d1:restore`, `eval:embed` (which keeps `neurons.tsv` too), `ops:report`, `p5-live`
 and `p6-live` against a live URL (not `localhost`), `corpus publish`, `sources publish` (the
 archive's release and sha256) and `year check --full` (mode `full`, the source-derived inputs' hash,
-the archive's sha256; the deploy preflight reads it). Phase 7's later scripts (the schema capture)
-use the same module. An Actions deploy's record is a workflow artifact, not a commit.
+the archive's sha256; the deploy preflight reads it). The schema capture (`docs/evidence/phase7/schema/`) is
+`wrangler d1 execute` output and has no run record. An Actions deploy's record is a workflow artifact, not a commit.
 
 The record (schema `vnm-run/1`):
 
@@ -1193,8 +1236,10 @@ search path, then commit both files. The month defaults to the current UTC one.
   or an error (an API error that echoes it is redacted). Neither the token nor the account id is
   recorded; the record counts each call as `/client/v4/graphql`.
 
-Workers Logs keep every event (`head_sampling_rate` unset) for 7 days: Paid includes their volume, and this
-Worker's is tiny (`docs/evidence/phase7/measure.md`). The privacy note states that retention
+Workers Logs keep every event (`head_sampling_rate` unset), 7 days. Paid includes 20 million
+events a month; from 2026-12-01 Workers Logs move to Cloudflare Observability pricing (50 GB of
+ingestion and 10 GB-month of storage included a billing cycle). This Worker's volume is far inside
+either (`docs/evidence/phase7/measure.md`). The privacy note states that retention
 (above, "What is kept about visitors").
 
 **Drift and reminder issues** (`.github/workflows/drift.yml`, `scripts/drift.mjs`, Phase 7 7F,
@@ -1271,21 +1316,29 @@ alert means.
 
 ## Evaluation
 
-The eval runs the actual Worker inside workerd (local D1 with the full pinned corpus, a fake
-Vectorize holding real `bge-small-en-v1.5` corpus embeddings, a fake AI returning precomputed
-query embeddings) and scores it against blind judgments with nDCG@10, P@5 and MRR, paired
-bootstrap CIs and a pre-committed ship gate. No live traffic, no Cloudflare calls at run time.
+The eval runs the actual Worker inside workerd and scores it against blind judgments with
+nDCG@10, P@5 and MRR, paired bootstrap CIs and a pre-committed gate. Its D1 holds the full pinned
+corpus; the dense half searches a vectors bundle built for the run from `bge-small-en-v1.5` corpus
+embeddings (release assets, sha-checked against `eval/embeddings.json`) (only `eval-v0`, which predates the bundle, searches a fake
+Vectorize, `eval/runner/run.mjs` `writeBundle`); a fake AI returns the committed query embeddings.
+No live traffic, no Cloudflare calls at run time. EVAL.md has the results and what they don't show.
+
+<!-- pointer --> The shipped ranker, the baseline each change is compared with, is the commit
+`SHIPPED_BASELINE` names in `eval/lib/baseline.mjs`. SC5 compared with `eval-v0` (`PINNED_BASELINE`)
+once, on the sealed test set.
 
 ```bash
-npm run eval -- --variant v0 --ref eval-v0        # the baseline ranker, dev set
-npm run eval -- --variant head --baseline v0      # the working tree vs v0, with gate verdict
-npm run eval:report -- --run head --baseline v0   # recompute metrics from run files only
-npm run test:eval                                 # harness self-test on the fixture set (CI)
+npm run eval -- --variant v0 --ref eval-v0 --embedding emb-bge-small-v0   # the Phase 2 baseline ranker, dev set
+npm run eval -- --variant shipped --ref <the shipped pin's ref>           # the shipped ranker, dev set
+npm run eval -- --variant head --baseline shipped                         # the working tree vs it, with the dev screen's verdict
+npm run eval:report -- --run head --baseline shipped                      # recompute metrics from run files only
+npm run test:eval                                                         # harness self-test on the fixture set (CI)
 ```
 
-Details, file formats and holdout custody: [`eval/README.md`](../eval/README.md). The v1 eval
-(regex relevance, recall@10) is kept for history in [`eval/v1/`](../eval/v1/); `EVAL.md` still
-describes it.
+A ranker before 3A-2 needs its own corpus embedding (`--embedding emb-bge-small-v0` for
+`eval-v0`): the runner refuses a ranker whose corpus texts the embedding lacks. Details, file
+formats and holdout custody: [`eval/README.md`](../eval/README.md). The v1 eval (regex relevance,
+recall@10) is history, with its write-up, in [`eval/v1/`](../eval/v1/README.md).
 
 ### The ranking lock (CI's eval gate)
 
@@ -1324,28 +1377,32 @@ npm run eval:lock                                 # rewrite for a new embedding 
 
 ## Cost
 
-**Since 3-0, Vectorize is off the search path, so the binding limit is Workers CPU or Workers AI
-neurons, not Vectorize queried dimensions.** Before 3-0 every uncached search queried 384
-dimensions, billed as (queries + stored vectors) × 384 against 50,000,000 a month:
-50,000,000 / 384 − 6,771 ≈ **123,400 uncached searches a month**, about 4,100 a day
-(FINDINGS B9). The account is on **Workers Paid** ($5/month, ADR 0004). Going over an included allowance there is
-billed, not refused, and this project stays inside them.
+The account is on **Workers Paid** ($5/month, ADR 0004). Going over an included allowance there is
+billed, not refused, and ADR 0004 allows no overage (ADR 0012, G5 (b)). Nothing in the Worker caps
+its own use. **Since 3-0, Vectorize is off the search path, so the binding limit is Workers CPU or
+Workers AI neurons, not Vectorize queried dimensions.**
 
 | | Workers Paid, included | cost here |
 |---|---|---|
-| D1 rows read | 25,000,000,000 / month | per search: unfiltered 137–239 (median 239), filtered 249–1,784 (median 497), measured on 36 production searches with SC7 ([`sc7.md`](evidence/phase1/sc7.md); local grid: [`lexical-cost.md`](evidence/phase1/lexical-cost.md)); 1 per page load; 1 per `/module/:code` (2 on a 404 for a code outside `data/ng-unscheduled.json`); ~6.8k per deploy (the guard) and per standby refresh |
+| D1 rows read | 25,000,000,000 / month | per search, Phase 3's SC7 run on production: p50 255, max 1,403; unfiltered p50 240, filtered p50 613.5 ([`sc7.md`](evidence/phase3/sc7.md)); the local grid's worst filtered search 7,772 ([`lexical-cost.md`](evidence/phase1/lexical-cost.md)); 1 per page load (`/facets`); 1 per `/module/:code` (2 on a 404 for a code outside `data/ng-unscheduled.json`); ~21k per deploy (the guard reads every module and catalogue row) and one per module for a standby refresh |
 | D1 rows written | 50,000,000 / month | 34,383 per forced full re-ingest, measured against production on 2026-11-04 ([`remote-ops.md`](evidence/phase1/remote-ops.md)); a rerun with nothing changed writes 2; the standby refresh writes 0 |
-| Vectorize stored dims | 10,000,000 | 6,778 × 384 = **2,602,752** (26%), the standby |
-| Vectorize queried dims | 50,000,000 / month | **~0 per search** (only under `DENSE_BACKEND=vectorize`); the stored term, ~2.6M, still counts once a month |
+| Vectorize stored dims | 10,000,000 | <!-- pointer --> the standby holds one vector per module the database holds, the production bundle's count in `data/vectors.json`. At 384 dimensions each that is about a quarter of the allowance |
+| Vectorize queried dims | 50,000,000 / month | **~0 per search** (only under `DENSE_BACKEND=vectorize`); the stored term still counts once a month |
 | **Workers CPU** | **30,000,000 ms / month** | live, version `343ea371`: **p50 9.1 ms, p75 15.5 ms** CPU per request (first 18 requests after the cutover, `/health` included), 33–34 ms on a fresh isolate's first search ([`3-0-cutover.md`](evidence/phase3/3-0-cutover.md)); the exact search alone is 1.44 ms locally and 3.4 ms on a CI runner ([`3-0.md`](evidence/phase3/3-0.md)) |
-| Workers AI | 10,000 neurons / day | ~0.03 per search; ~2,400 per forced re-ingest (measured); a bundle build embeds only texts the eval asset lacks (~54 for the 3-0 cutover, est.) |
+| **Workers AI** | **10,000 neurons / day, shared by the account** | 0.033 per typical uncached search, 0.066 when 3C corrects a word (a second embedding), up to ~0.88 for a whole-query catalogue-only code's `related` (*est.*), at 1,841 neurons per million tokens; ~2,400 per forced re-ingest (measured); a bundle build embeds only texts the eval asset lacks |
 | CPU per request | 30 s | as above |
 
-The arithmetic. **CPU is the smaller limit.** At the measured ~12 ms of CPU a request, 30M
-CPU-ms cover **~2.5M searches a month**, about 20 times the old Vectorize-bound ~123,400.
-Workers AI's 10,000 neurons a day at ~0.03 a search cover ~10M a month, or ~6.0M at 3A-1's
-~0.05. At 2.5M searches a month, D1's 25 billion reads cover ~10,000 rows read per search. The measured medians (239–497) are well inside that; the worst filtered search on the
-local grid (7,772 rows) is not. Cached repeats cost none of these.
+The arithmetic. **The limit is CPU or the shared neurons.** At the measured ~12 ms of CPU a
+request, 30M CPU-ms cover **~2.5M searches a month**. Workers AI's 10,000 neurons a day cover
+150,000 to 300,000 uncached searches a day (4.5M to 9M a month) at 0.066 to 0.033 each, if this
+project had them alone. It doesn't: on the month's busiest day (2026-11-06) the account used 6,805
+neurons (68%), about 4,300 of them this project's two corpus embeds and about 2,500 other
+projects' ([`ops/2026-11.md`](evidence/ops/2026-11.md), [`neurons.tsv`](evidence/neurons.tsv)).
+With no corpus embed or re-ingest that day, about 110,000 uncached searches fit beside other
+projects' ~2,500; on a day with one, far fewer, so a launch week has none (ADR 0012). At 2.5M
+searches a month, D1's 25 billion reads cover ~10,000 rows read per search; SC7's p50 (255) and
+max (1,403) are well inside that, and the worst filtered search on the local grid (7,772 rows) is
+not. Cached repeats cost none of these.
 
 **The live checks.** The uptime check sends about 70 requests a day (24 runs of `/health`,
 `/module` and one uncached `/search`): about 6k D1 rows read (24 searches at SC7's p50 of 255, plus
@@ -1358,7 +1415,23 @@ a billed day and caps nothing. What keeps the project inside the allowances is t
 [`docs/launch.md`](launch.md): no corpus embed or forced re-ingest in a week with a post, since a
 forced re-ingest spends about 2,400 of the 10,000 daily neurons.
 
-### How that number was brought down
+**A spike** (Phase 8 plan §1, *est.* where marked):
+
+| Uncached searches | Neurons | CPU (*est.* 12 ms each) | D1 rows (*est.* 500 each) | What happens |
+|---|---|---|---|---|
+| 1,000 a day | 33–66 | 12k ms | 0.5M | nothing |
+| 10,000 a day | 330–660 | 120k ms (0.4% of a month) | 5M (0.02%) | nothing |
+| 50,000 a day | 1.7k–3.3k | 600k ms (2%) | 25M | nothing, unless this project embeds its corpus that day too (~2–4k neurons) |
+| 100,000 a day | 3.3k–6.6k | 1.2M ms (4%) | 50M | with other projects at ~2,500, inside; with a corpus embed the same day, up to ~3.4k neurons over, billed at $0.011 per 1,000 (about $0.04), which ADR 0004 doesn't allow |
+| 1,500–3,000 in one **minute** | — | — | — | past Workers AI's 3,000 requests a minute for embedding models (a corrected search makes two), embeddings fail and searches go keyword-only, perhaps other projects' too |
+
+### History: the binding limit before 3-0 (FINDINGS B9)
+
+Before 3-0 every uncached search queried 384 dimensions, billed as (queries + stored vectors) × 384
+against 50,000,000 a month: 50,000,000 / 384 − 6,771 ≈ **123,400 uncached searches a month**, about
+4,100 a day (FINDINGS B9). CPU's ~2.5M a month is about 20 times that.
+
+### How D1 reads per search were brought down
 
 The first version of this app burned its entire daily D1 allowance in one afternoon of
 load testing. Three fixes, each measured with the `meta.rows_read` field D1 returns:
@@ -1385,17 +1458,16 @@ The join to `modules` is also skipped unless a filter needs a column from it.
 
 An interim fix that made the FTS query `AND`-first instead of `OR` was **reverted** once
 `ORDER BY rank` removed the cost pressure: it would have changed retrieval behaviour, and
-the evaluation in EVAL.md measured the `OR` version.
+the v1 evaluation ([`eval/v1/README.md`](../eval/v1/README.md)) measured the `OR` version.
 
-**If you blow the limit anyway**, every D1 query fails until midnight UTC and the Worker
-returns HTTP 502 with the upstream message. It does not silently return empty results
-(R7). The fix is to wait, or move to the Workers Paid plan ($5/month), where the first
-25 billion rows/month are included.
+**Past an allowance**, Workers Paid bills the overage and no request fails for it. A D1 error
+of any kind is a 502 with the upstream message, never a silently empty answer (R7).
 
-**The caveat:** the Vectorize and D1 allowances are per *account*, not per project.
-Another project on the same account can consume them. The `/search` rate limits (40 per 10 s
-and 200 per 60 s per IP, Phase 8 8B) are burst guards — per-colo and eventually consistent — and
-do not protect the daily account-wide budget against traffic spread over many addresses.
+**The caveat:** the allowances are per *account*, not per project, and the one other use reaches
+is Workers AI's: other projects' embeddings and this project's own corpus embeds share its 10,000
+neurons a day. The `/search` rate limits (40 per 10 s and 200 per 60 s per IP, Phase 8 8B) are burst guards —
+per-colo and eventually consistent — and do not protect the daily account-wide budget against
+traffic spread over many addresses.
 
 ## Data source
 
@@ -1404,8 +1476,10 @@ NUS's own systems. It is **community-maintained and unofficial; NUS does not run
 ingest script validates that the expected keys are present and aborts rather than writing
 malformed rows if the shape changes.
 
-Only modules with at least one `semesterData` entry are indexed — 6,771 of the 21,130
-records in `moduleInfo.json`. The rest are catalogue entries not offered this year.
+Only modules with at least one `semesterData` entry are indexed; the rest are catalogue entries
+not offered this year (D1's `catalogue_only`, 7D). <!-- year:pinned --> In the pinned 2026/27
+snapshot that is 6,771 of the 21,130 records in `moduleInfo.json`. Production's counts follow
+`current` in `data/corpus.json`.
 
 ### When a source changes
 
@@ -1420,8 +1494,9 @@ it whenever a source-derived input changed), and a row-only re-ingest and ship. 
 
 ## Known limitations
 
-- **One acad year.** Two years would fit the Paid stored-dimension allowance (5.2M of 10M)
-  but halve the uncached searches the queried-dimension allowance covers.
+- **One acad year.** The site serves one year at a time and switches in July
+  ([`docs/year-refresh/README.md`](year-refresh/README.md)). Two years would double the vectors
+  bundle the Worker loads and the standby's stored dimensions.
 - **Exchange mode is a manual snapshot.** The NG list and restrictions come from PDFs and
   pages that must be downloaded by hand (NUS blocks automated fetching) and re-checked when
   NUS updates them. The UI names each source with its date so staleness is visible. YST's Sem 2
@@ -1432,8 +1507,9 @@ it whenever a source-derived input changed), and a row-only re-ingest and ship. 
   key is backed up in Bitwarden. Without it the next source change can't be checked
   (`year check --full`), though deploys that touch no source-derived input still work.
 - **Exchange mode covers Semesters 1 and 2.** The NG list has no special-term data.
-- **No natural-language constraint parsing.** "No Friday classes" needs the explicit filter
-  parameters instead.
+- **Only some constraints are read from the query.** *No final exam*, *S/U*, *light workload*
+  and level phrases become filters (3H, 5F). Others, such as "no Friday classes", are not
+  understood, and there is no filter for class days.
 - **The PDF is the browser's print.** Only Chromium's is checked as a PDF (tagged, real text);
   WebKit's print page by screenshot; iOS's Share, Print path is untested on a phone. A system
   font draws U+2010 and U+2011, which the Plex subsets lack; on macOS its text layer reads them
@@ -1441,4 +1517,5 @@ it whenever a source-derived input changed), and a row-only re-ingest and ship. 
 - **No scheduled re-ingest.** Refresh is a manual command run on the Mac. Detection is
   scheduled: the drift workflow opens an issue when NUSMods' data no longer matches
   production's, or next year appears (see "Operations").
-- **The vector half is unproven.** See EVAL.md.
+- **The ranking is measured offline.** On a pinned corpus, with one judge model and queries
+  written for personas; see EVAL.md, "What the numbers don't show".
