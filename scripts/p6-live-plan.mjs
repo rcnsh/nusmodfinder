@@ -9,7 +9,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { oracleShown } from '../test/sc1/oracle.node.mjs';
 import { reference } from '../test/web/shortlist-reference.node.mjs';
-import { DEFAULT_ACAD_YEAR, catalogueOnlyRecords } from './lib.mjs';
+import { productionCorpus } from './corpus-manifest.mjs';
+import { catalogueOnlyRecords } from './lib.mjs';
 import { GAP_MS, PRODUCTION_URL, draw, loadModules, rng } from './p5-live-plan.mjs';
 
 export { GAP_MS, PRODUCTION_URL, rng };
@@ -69,7 +70,7 @@ const readJson = (rel) => JSON.parse(readFileSync(`${ROOT}${rel}`, 'utf8'));
  * normalised as ingest does, with data/'s groups and NG-listed codes with no
  * classes; or the fixture the local UI server seeds. The catalogue-only codes
  * are data/catalogue-only.json's (what the UI server seeds), and for
- * production also catalogue-only in the cached moduleInfo ingest loaded.
+ * production also catalogue-only in `current`, the corpus ingest loads.
  * @param {'production' | 'fixture'} corpus
  * @returns {Promise<LiveData>}
  */
@@ -79,9 +80,10 @@ export async function loadData(corpus) {
   const file = readJson('data/catalogue-only.json');
   let catalogueOnly = /** @type {[string, string, string][]} */ (file.rows).map(([code]) => code);
   if (corpus === 'production') {
-    const raw = readJson(`.data/cache/${DEFAULT_ACAD_YEAR}-moduleInfo.json`);
-    const cached = new Set(catalogueOnlyRecords(Array.isArray(raw) ? raw : raw.data).map((r) => r.code));
-    catalogueOnly = catalogueOnly.filter((c) => cached.has(c));
+    // Phase 7 7D: data/catalogue-only.json is built from `current` (data/corpus.json); filtered
+    // by it all the same, so a stale file can't send a code production doesn't hold.
+    const current = new Set(catalogueOnlyRecords((await productionCorpus()).records).map((r) => r.code));
+    catalogueOnly = catalogueOnly.filter((c) => current.has(c));
   }
   return {
     corpus,

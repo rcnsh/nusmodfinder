@@ -1,5 +1,7 @@
 // @ts-check
-// Fetch a NUSMods acad year and bring D1 + Vectorize in line with it:
+// Bring D1 + Vectorize in line with the production corpus, `current` in
+// data/corpus.json (Phase 7 7D; restored by `npm run corpus -- restore`, never
+// the .data/cache download), normalised with the NG files of its year:
 // re-embed what changed text, rewrite rows whose fields changed, delete
 // modules that left the corpus, load the catalogue-only codes into D1
 // catalogue_only (3B), then write src/data-version.json.
@@ -15,7 +17,6 @@
 // runbook.
 //
 // Flags:
-//   --year <y>             acad year (default DEFAULT_ACAD_YEAR)
 //   --url <base>           Worker base URL (else $WORKER_URL; no default, and ports 8787 and 8799
 //                          are refused: Phase 7 7C)
 //   --force                re-embed and rewrite every module, whatever the hashes say
@@ -23,8 +24,6 @@
 //   --write-budget <n>     stop before D1 rows written would pass n (default 40000, ADR 0002)
 //   --allow-mass-delete    proceed even if the run would delete > 5% of the codes D1 holds
 //   --allow-year-change    proceed even if D1 holds another acad year than --year (rewrites every row)
-//   --offline              use the .data/cache/ download cache as it is; never contact api.nusmods.com
-//   --max-age <dur>        revalidate .data/cache/ entries older than this (default 24h; 90s, 30m, 2d)
 //   --batch <n>            modules per /admin/ingest call (default 50, max 100)
 //   --concurrency <n>      parallel batches (default 4)
 //   --wait-timeout <dur>   how long to wait for Vectorize to apply the last mutation (default 10m)
@@ -56,9 +55,9 @@ import { DEFAULTS, runIngest } from './ingest-core.mjs';
 import { workerUrl } from './remote-session.mjs';
 import { newestRecord, startRun } from './run-record.mjs';
 import {
-  DEFAULT_ACAD_YEAR, DEFAULT_MAX_AGE_MS, EMBEDDING_MODEL, assertExpectedShape, catalogueOnlyRecords, facetsPayload, fetchAcadYearFile,
-  loadNgCourses, offeredModules,
+  EMBEDDING_MODEL, catalogueOnlyRecords, facetsPayload, loadNgCourses, offeredModules,
 } from './lib.mjs';
+import { CORPUS_MANIFEST_PATH, PROD_DIR, loadCurrentCorpus } from './corpus-manifest.mjs';
 
 export const DATA_VERSION_PATH = fileURLToPath(new URL('../src/data-version.json', import.meta.url));
 /** Unconfirmed Vectorize mutations, per Worker URL. Under .data/, so git-ignored. */
@@ -220,10 +219,9 @@ export function parseIngestArgs(argv, envVars = process.env) {
   const { values } = parseArgs({
     args: argv,
     options: {
-      year: { type: 'string' }, url: { type: 'string' }, force: { type: 'boolean' }, from: { type: 'string' },
+      url: { type: 'string' }, force: { type: 'boolean' }, from: { type: 'string' },
       'write-budget': { type: 'string' }, 'allow-mass-delete': { type: 'boolean' },
-      'allow-year-change': { type: 'boolean' }, offline: { type: 'boolean' },
-      'max-age': { type: 'string' }, batch: { type: 'string' }, concurrency: { type: 'string' },
+      'allow-year-change': { type: 'boolean' }, batch: { type: 'string' }, concurrency: { type: 'string' },
       'wait-timeout': { type: 'string' }, 'd1-only': { type: 'boolean' },
     },
     strict: true,
@@ -231,11 +229,8 @@ export function parseIngestArgs(argv, envVars = process.env) {
   const batchSize = values.batch ? positiveInt('batch', values.batch) : DEFAULTS.batchSize;
   if (batchSize > 100) throw new Error('--batch must be at most 100 (the /admin/ingest limit)');
   return {
-    acadYear: values.year ?? DEFAULT_ACAD_YEAR,
     /** The Worker, or why there is none (no default URL; reserved ports refused). */
     worker: workerUrl(values.url, envVars),
-    offline: values.offline ?? false,
-    maxAgeMs: values['max-age'] ? parseDuration(values['max-age']) : DEFAULT_MAX_AGE_MS,
     /** @type {import('./ingest-core.mjs').IngestOptions} */
     options: {
       force: values.force ?? false,
@@ -314,14 +309,14 @@ const OUTCOME_BY_CODE = { 0: 'ok', 2: 'partial', 3: 'partial', 130: 'interrupted
 /**
  * @param {string[]} argv
  * @param {{ fetchImpl?: typeof fetch, log?: (line: string) => void, dataVersionPath?: string,
- *   envVars?: Record<string, string | undefined>, cacheDir?: URL, statePath?: string, deletesPath?: string,
+ *   envVars?: Record<string, string | undefined>, manifestPath?: string, corpusDir?: string, statePath?: string, deletesPath?: string,
  *   proc?: Pick<NodeJS.Process, 'on' | 'off' | 'exit'>, runsDir?: string }} [deps]
  * @returns {Promise<number>} exit code
  */
 export async function main(argv, deps = {}) {
   const {
-    fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, cacheDir, statePath = STATE_PATH, proc = process,
-    deletesPath = D1_ONLY_DELETES, runsDir,
+    fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, statePath = STATE_PATH, proc = process,
+    deletesPath = D1_ONLY_DELETES, runsDir, manifestPath = CORPUS_MANIFEST_PATH, corpusDir = PROD_DIR,
   } = deps;
   const secret = envVars.INGEST_SECRET;
   if (!secret) {
@@ -348,7 +343,7 @@ export async function main(argv, deps = {}) {
   const signals = handleSignals(lock, controller, proc, log);
   try {
     const result = await ingestLocked({ ...args, base, options: { ...args.options, signal: controller.signal } },
-      { fetchImpl: record.countingFetch(fetchImpl), log, dataVersionPath, cacheDir, statePath, secret, deletesPath, record });
+      { fetchImpl: record.countingFetch(fetchImpl), log, dataVersionPath, manifestPath, corpusDir, statePath, secret, deletesPath, record });
     const code = result.code === 130 ? (signals.exitCode() ?? result.code) : result.code;
     record.finish(OUTCOME_BY_CODE[code] ?? (result.status === 'refused' ? 'refused' : 'failed'), { exitCode: code, message: result.message });
     return code;
@@ -365,25 +360,31 @@ export async function main(argv, deps = {}) {
 /**
  * The run, once the lock is held.
  * @param {Omit<ReturnType<typeof parseIngestArgs>, 'worker'> & { base: string }} args
- * @param {{ fetchImpl: typeof fetch, log: (line: string) => void, dataVersionPath: string, cacheDir?: URL,
+ * @param {{ fetchImpl: typeof fetch, log: (line: string) => void, dataVersionPath: string, manifestPath: string, corpusDir: string,
  *   statePath: string, secret: string, deletesPath: string, record: import('./run-record.mjs').RunRecord }} deps
  * @returns {Promise<{ code: number, status: string | null, message: string | null }>}
  */
-async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret, deletesPath, record }) {
-  const info = await fetchAcadYearFile(args.acadYear, 'moduleInfo.json', {
-    offline: args.offline, maxAgeMs: args.maxAgeMs, fetchImpl, ...(cacheDir ? { cacheDir } : {}),
-  });
-  assertExpectedShape(info.data);
-  const ngCourses = await loadNgCourses(args.acadYear);
-  const { modules, skipped } = offeredModules(info.data, args.acadYear, ngCourses);
+async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPath, corpusDir, statePath, secret, deletesPath, record }) {
+  // Phase 7 7D: only `current`, sha-checked; a missing or mismatched file refuses before any request.
+  /** @type {Awaited<ReturnType<typeof loadCurrentCorpus>>} */
+  let corpus;
+  try {
+    corpus = await loadCurrentCorpus({ manifestPath, dir: corpusDir });
+  } catch (err) {
+    const message = /** @type {Error} */ (err).message;
+    log(`ingest: refusing, ${message} Nothing was sent.`);
+    return { code: 1, status: 'refused', message };
+  }
+  const acadYear = corpus.entry.year;
+  record.detail('corpus', { release: corpus.entry.release, sha256: corpus.entry.sha256 });
+  const ngCourses = await loadNgCourses(acadYear);
+  const { modules, skipped } = offeredModules(corpus.records, acadYear, ngCourses);
   // 3B: the codes with no offering this year, for D1 catalogue_only (noMatch `not-offered`).
-  const catalogue = catalogueOnlyRecords(info.data);
+  const catalogue = catalogueOnlyRecords(corpus.records);
 
-  const age = info.ageMs === null ? 'age unknown' : `${(info.ageMs / 3_600_000).toFixed(1)} h old`;
-  const how = !info.cached ? 'freshly fetched' : info.revalidated ? 'cache revalidated (304)' : `from .data cache, ${age}`;
-  log(`acad year          ${args.acadYear}`);
-  log(`source             ${info.url} (${(info.bytes / 1e6).toFixed(1)} MB, ${how})`);
-  log(`catalogue records  ${info.data.length}`);
+  log(`acad year          ${acadYear}`);
+  log(`source             ${corpus.entry.release} (data/corpus.json current, sha256 ${corpus.entry.sha256.slice(0, 12)}, fetched ${corpus.entry.fetchedAt})`);
+  log(`catalogue records  ${corpus.records.length}`);
   log(`offered & usable   ${modules.length}`);
   log(`catalogue-only     ${catalogue.length}`);
   // R2: a record missing a title or description is skipped by code, not dropped silently.

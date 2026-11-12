@@ -4,9 +4,9 @@
 // over the corpus each Worker searches, versioned with that corpus's bundle
 // the way 3C's vocabulary is (scripts/build-vocabulary.mjs):
 //
-//   node scripts/build-groups.mjs --corpus production [--online]
+//   node scripts/build-groups.mjs --corpus production
 //       data/groups.json, the Worker's (src/group-data.js): the corpus
-//       `npm run ingest` writes. Refused unless its row count and data version
+//       `npm run ingest` writes, `current` in data/corpus.json (Phase 7 7D). Refused unless its row count and data version
 //       are the production bundle's in data/vectors.json. `vectors.mjs build
 //       --corpus production` rewrites it with the bundle.
 //   node scripts/build-groups.mjs --corpus fixture
@@ -45,15 +45,14 @@ export async function groupsBytes(modules, corpus) {
 
 /**
  * @param {'production' | 'pinned' | 'fixture'} corpus
- * @param {{ online?: boolean }} [o]
  */
-export async function build(corpus, o = {}) {
+export async function build(corpus) {
   if (corpus === 'fixture') {
     const { modules } = JSON.parse(await readFile(join(ROOT, 'test/fixtures/corpus.json'), 'utf8'));
     return groupsBytes(modules, 'fixture');
   }
   if (corpus === 'pinned') return groupsBytes((await loadPinnedCorpus()).modules, 'pinned');
-  const modules = await productionModules(o);
+  const modules = await productionModules();
   await assertProductionCorpus(modules);
   return groupsBytes(modules, 'production');
 }
@@ -80,14 +79,14 @@ export async function pinnedGroupsPath() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const { values } = parseArgs({ options: { corpus: { type: 'string' }, check: { type: 'boolean' }, online: { type: 'boolean' } } });
+  const { values } = parseArgs({ options: { corpus: { type: 'string' }, check: { type: 'boolean' } } });
   const corpus = values.corpus;
   if (corpus !== 'production' && corpus !== 'fixture') {
-    console.error('usage: node scripts/build-groups.mjs --corpus production|fixture [--check] [--online]');
+    console.error('usage: node scripts/build-groups.mjs --corpus production|fixture [--check]');
     process.exit(1);
   }
   try {
-    const bytes = await build(corpus, { online: values.online });
+    const bytes = await build(corpus);
     const path = join(ROOT, OUTPUTS[corpus]);
     if (values.check) {
       const have = existsSync(path) ? await readFile(path, 'utf8') : null;

@@ -1,0 +1,37 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T03:14:38.763Z",
+  "finishedAt": "2026-11-12T03:14:44.443Z",
+  "script": "corpus publish",
+  "args": [
+    "publish",
+    "--file",
+    "/Users/jacobwiltshire/dev/vector-nusmods/.data/cache/2026-2027-moduleInfo.json"
+  ],
+  "commit": {
+    "sha": "8d2075ba1b481f24bb0f9fdabb6d4256273e4f8f",
+    "dirty": true,
+    "diffSha256": "470ab823ad020458649cba202f465305c3050c27f01d802e5c27ae095a751d7d"
+  },
+  "target": "GitHub release prod-2026-2027-20261104",
+  "read": [],
+  "written": [
+    {
+      "what": "GitHub release asset",
+      "estimate": null,
+      "actual": 1
+    }
+  ],
+  "requests": {
+    "gh release create": 1
+  },
+  "versions": {
+    "release": "prod-2026-2027-20261104",
+    "dataVersion": "d820d578cf81"
+  },
+  "bookmark": null,
+  "details": {},
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}

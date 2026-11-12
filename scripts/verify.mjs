@@ -33,6 +33,7 @@ import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { run } from './deploy.mjs';
 import { DATA_VERSION_PATH, httpAdminApi } from './ingest.mjs';
+import { readBundledCatalogue } from './catalogue-check.mjs';
 import { formatPreDeployReport, formatReport, runPreDeployVerify, runVerify } from './verify-core.mjs';
 import { loadCheckedBundle, readVectorsManifest } from './vectors-manifest.mjs';
 import { workerUrl } from './remote-session.mjs';
@@ -150,6 +151,8 @@ export async function main(argv, deps = {}) {
       const report = await runPreDeployVerify({
         api: httpAdminApi(base, secret, fetchImpl), bundle, manifest: entry, committedDataVersion,
         knownReason: (id) => Object.hasOwn(reasons, id), dataFiles: preDeployDataFiles(ngReasons.acadYear),
+        // Phase 7 7D: D1's catalogue_only against the catalogue file this deploy bundles.
+        catalogue: await readBundledCatalogue(),
       });
       if (values.json) log(JSON.stringify(report, null, 2));
       else for (const l of formatPreDeployReport(report)) log(l);

@@ -14,10 +14,10 @@ declare global {
 
 declare module 'vitest' {
   interface ProvidedContext {
-    /** The full pinned corpus, normalised; null when .data/ is absent. */
+    /** The project's full corpus, normalised (pinned for test/full, `current` for sc1 and sc1-node); null when absent. */
     corpus: FullCorpus | null;
-    /** Which bundle the `vectors-bundle` alias resolves to in the test/full project (vitest.config.mjs). */
-    vectorsBundle: 'pinned' | 'fixture';
+    /** Which bundle the `vectors-bundle` alias resolves to in the project (vitest.config.mjs). */
+    vectorsBundle: 'pinned' | 'production' | 'fixture';
     /** test/full's lexical brute-force grid: every case, or a fixed 1-in-10 sample (LEXICAL_GRID, vitest.config.mjs). */
     lexicalGrid: 'full' | 'sample';
   }

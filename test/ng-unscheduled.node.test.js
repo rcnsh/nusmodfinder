@@ -14,7 +14,7 @@
 //   production groups' check does.
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { FIXTURE_SOURCE, NG_UNSCHEDULED_SCHEMA, OUTPUTS, build, productionCacheUrl } from '../scripts/build-ng-unscheduled.mjs';
+import { FIXTURE_SOURCE, NG_UNSCHEDULED_SCHEMA, OUTPUTS, build, productionCorpusPath } from '../scripts/build-ng-unscheduled.mjs';
 import { DEFAULT_ACAD_YEAR, loadNgRestrictions } from '../scripts/lib.mjs';
 import { bitOf, storedEligibility } from '../src/eligibility.js';
 
@@ -94,9 +94,9 @@ describe('data/ng-unscheduled.json', () => {
     }
   });
 
-  const cache = productionCacheUrl();
-  const why = 'no moduleInfo cache here (.data/cache/, the re-ingest machine has it); CI checks the masks above';
-  it.skipIf(!existsSync(cache))(`is what the build writes from the moduleInfo cache, with exactly the NG codes that have no offered row (skipped when ${why})`, async () => {
+  const restored = existsSync(await productionCorpusPath());
+  const why = '`current` is not restored here (npm run corpus -- restore); CI checks the masks above';
+  it.skipIf(!restored)(`is what the build writes from \`current\`, with exactly the NG codes that have no offered row (skipped when ${why})`, async () => {
     expect(await build('production')).toBe(readFileSync(new URL(`../${OUTPUTS.production}`, import.meta.url), 'utf8'));
   }, 60_000);
 });

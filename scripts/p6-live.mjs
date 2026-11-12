@@ -42,7 +42,7 @@
 // --url     the site (default: production, https://nusmodfinder.rcn.sh)
 // --log     the JSONL log (default docs/evidence/phase6/p6-live.jsonl), appended to
 // --corpus  the modules drawn from and the reference runs over: `production`
-//           (.data/cache's moduleInfo normalised as ingest does, data/'s groups and
+//           (`current` in data/corpus.json normalised as ingest does, data/'s groups and
 //           NG-listed codes with no classes) or `fixture` (the local UI server's,
 //           `npm run dev`); default: fixture for a localhost URL, else production
 // --seed    the draw's seed (default 6)

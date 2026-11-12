@@ -187,3 +187,17 @@ export async function dataVersion(rows) {
   const lines = rows.map((r) => `${r.code} ${r.rowHash}`).sort();
   return (await sha256Hex(lines.join('\n'))).slice(0, 12);
 }
+
+/**
+ * Phase 7 7D: the key of a catalogue, over its catalogue-only codes alone, so
+ * it can be read from D1 `catalogue_only` (GET /admin/hashes, the deploy
+ * guard, rollback) and computed from a corpus or the bundled catalogue file
+ * (`catalogue-codes-data`) alike. The codes search answers `not-offered` for
+ * are the bundled file's; the titles it names are D1's. Order and duplicates
+ * do not count.
+ * @param {Iterable<string>} codes
+ * @returns {Promise<string>} 12 hex characters
+ */
+export async function catalogueKey(codes) {
+  return (await sha256Hex(['catalogue-key/1', ...[...new Set(codes)].sort()].join('\n'))).slice(0, 12);
+}
