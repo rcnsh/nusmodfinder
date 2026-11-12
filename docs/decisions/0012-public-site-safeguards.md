@@ -1,6 +1,6 @@
 # 0012: Phase 8 launch readiness plan
 
-Status: accepted for work: Jacob answered G1–G6 on 2026-11-12 (below); final at Phase 8's exit. The plan (`docs/plans/phase8.md`) went through
+Status: accepted. Jacob answered G1–G6 on 2026-11-12 (below), and Phase 8 closed at `phase8-final` (`docs/evidence/phase8/exit.md`). The plan (`docs/plans/phase8.md`) went through
 three critic rounds. Each round had three fresh critics given only the draft and the repo:
 - a skeptical maintainer checking SC10 claims against the code;
 - launch ops and cost;

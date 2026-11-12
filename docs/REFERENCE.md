@@ -135,9 +135,10 @@ candidate depth of each retriever. Queries over 200 characters are rejected.
 
 `searchRoute` and `runSearch` in [`src/search.js`](../src/search.js), in order:
 
-1. **Validate, cache, limit.** A bad parameter is a 400 before any binding is touched. The
-   canonical cache key (B7) is looked up next, and a hit costs no binding call. Then the per-IP
-   rate limit (`SEARCH_LIMIT`).
+1. **Refuse cross-site, validate, cache, limit.** Another site's page gets the cross-site 403
+   first (above). A bad parameter is a 400 before any binding is touched. The canonical cache key
+   (B7) is looked up next, and a hit costs no binding call. Then the two per-IP rate limits
+   (`SEARCH_LIMIT` and `SEARCH_LIMIT_MINUTE`, asked together).
 2. **Parse the query** ([`src/query-intent.js`](../src/query-intent.js)): typed course codes to
    pin (R5, up to 3), partial codes, code prefixes and GE pillars as code ranges (3B), a spelling
    correction against the catalogue's own words (3C, [`src/typo.js`](../src/typo.js),
@@ -1292,7 +1293,7 @@ runners share addresses and the site's limit is per address:
 
 A failure is checked again 90 s later, with queries not yet sent; nothing is kept between runs.
 A pass pings the healthchecks.io check; two failures ping its `/fail` with a one-line reason as the
-body: the route and the status (`/search HTTP 502`, `/search degraded (embed-timeout)`), never a
+body: the route and the status (`/search HTTP 502`, `/search degraded (workers-ai-timeout)`), never a
 visitor's data. healthchecks.io alerts Jacob through Pushover, at once on `/fail`, and after the
 check's 12 h grace when runs stop arriving (GitHub may delay or drop scheduled runs, and pauses a
 public repo's after 60 quiet days). The check (period 1 h, grace 12 h) is in Jacob's
@@ -1406,8 +1407,8 @@ not. Cached repeats cost none of these.
 
 **The live checks.** The uptime check sends about 70 requests a day (24 runs of `/health`,
 `/module` and one uncached `/search`): about 6k D1 rows read (24 searches at SC7's p50 of 255, plus
-24 `/module` rows) and about 1 neuron. Each Actions deploy's smoke adds 5 GETs and one uncached
-search (about 0.03 neurons).
+24 `/module` rows) and about 1 neuron. Each Actions deploy's smoke adds 5 GETs, one of them an
+uncached search (about 0.03 neurons).
 
 **No overage (ADR 0004; ADR 0012, G5 (b)).** Nothing in Cloudflare caps Workers AI or D1 spending
 automatically. Jacob sets a Cloudflare budget alert at the lowest amount: it emails the day after
