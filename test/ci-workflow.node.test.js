@@ -40,6 +40,21 @@ describe('the ui CI job', () => {
   });
 });
 
+describe('the workflow is valid YAML', () => {
+  // A plain (unquoted) scalar may not hold ": " or " #": GitHub then rejects the whole file and the
+  // push shows one failed run with no jobs. The repo has no YAML parser, so this checks the one-line
+  // keys that carry shell or text.
+  it('no unquoted one-line run, name or if value holds ": " or " #"', () => {
+    const bad = workflow.split('\n').map((line, i) => ({ line, n: i + 1 }))
+      .filter(({ line }) => {
+        const m = line.match(/^\s*(?:- )?(?:run|name|if): (.+)$/);
+        if (!m || /^['"|>]/.test(m[1])) return false;
+        return /: | #/.test(m[1].replace(/\$\{\{.*?\}\}/g, ''));
+      });
+    expect(bad.map(({ n, line }) => `${n}: ${line.trim()}`)).toEqual([]);
+  });
+});
+
 describe('every CI job always starts (Phase 7 7A)', () => {
   it('has no paths-ignore or paths filter on any trigger', () => {
     expect(workflow).not.toMatch(/paths-ignore|^\s+paths:/m);
