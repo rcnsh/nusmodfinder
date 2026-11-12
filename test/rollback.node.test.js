@@ -180,6 +180,15 @@ describe('npm run rollback', () => {
     expect(records()[0]).toMatchObject({ outcome: 'failed' });
   });
 
+  it('refuses a flag where the version should be, and unknown arguments', async () => {
+    for (const argv of [['--to', '--yes'], ['--to'], ['--yes', '--accept'], ['stray']]) {
+      const { exec, calls } = fakeExec();
+      const code = await rollback({ argv, exec, log: () => {}, error: () => {}, runsDir, now: () => NOW, d1: async () => fakeD1().client, confirm: async () => true });
+      expect(code, argv.join(' ')).toBe(2);
+      expect(calls).toEqual([]);
+    }
+  });
+
   it('without --yes, asks first and does nothing on no', async () => {
     const { exec, calls } = fakeExec();
     const code = await rollback({ argv: [], exec, log: () => {}, error: () => {}, runsDir, now: () => NOW, d1: async () => fakeD1().client, confirm: async () => false });

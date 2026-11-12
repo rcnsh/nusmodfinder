@@ -69,6 +69,10 @@ export function assertReadOnly(sql) {
   const body = skeleton(sql).trim().replace(/;\s*$/, '').trim();
   if (!body) refuse('empty');
   if (body.includes(';')) refuse('more than one statement');
+  // Only `?` parameters are sent. SQLite's named forms ($a, @a, :a, #a) also have a TCL-style
+  // `$a(...)` that runs to the next ')' and swallows quotes, which would hide a `;` from the
+  // literal-blanking above; so none of them is allowed.
+  if (/[$@:#][A-Za-z0-9_]/.test(body)) refuse('a named parameter ($, @, : or #); only ? parameters are sent');
   const keyword = body.match(/^[A-Za-z]+/)?.[0]?.toUpperCase();
   if (keyword === 'SELECT') return;
   if (keyword === 'PRAGMA') {

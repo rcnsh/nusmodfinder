@@ -78,7 +78,11 @@ export async function restore({ argv = process.argv.slice(3), exec = run, log = 
   const { databaseName } = await d1Config();
   const i = argv.indexOf('--bookmark');
   const given = i >= 0 ? argv[i + 1] : undefined;
-  if (i >= 0 && !given) { error('usage: npm run d1:restore -- [--bookmark <id>] [--yes]'); return 2; }
+  const unknown = argv.filter((a, j) => a !== '--bookmark' && a !== '--yes' && !(i >= 0 && j === i + 1));
+  if ((i >= 0 && (!given || given.startsWith('--'))) || unknown.length) {
+    error('usage: npm run d1:restore -- [--bookmark <id>] [--yes]');
+    return 2;
+  }
   const record = startRun('d1:restore', { target: databaseName, args: argv, dir: runsDir, now });
   const unguard = record.guardExit();
   /** @param {import('./run-record.mjs').Outcome} outcome @param {number} code @param {string} message */

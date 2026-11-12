@@ -108,6 +108,18 @@ describe('npm run d1:restore', () => {
     expect(calls[0]).toContain(B_OLD);
   });
 
+  it('refuses a flag where the bookmark should be, and unknown arguments, before asking or restoring (review finding 2)', async () => {
+    seedRecords();
+    for (const argv of [['--bookmark', '--yes'], ['--bookmark'], ['--yes', '--bokmark', 'x'], ['stray']]) {
+      const { exec, calls } = fakeExec({});
+      let asked = 0;
+      const { code } = await run(exec, argv, async () => { asked++; return true; });
+      expect(code, argv.join(' ')).toBe(2);
+      expect(calls).toEqual([]);
+      expect(asked).toBe(0);
+    }
+  });
+
   it('asks first without --yes, and restores nothing on no', async () => {
     seedRecords();
     const { exec, calls } = fakeExec({});

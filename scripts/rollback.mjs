@@ -44,7 +44,7 @@ function parseArgs(argv) {
   const to = i >= 0 ? argv[i + 1] : undefined;
   const known = new Set(['--to', '--accept-data-mismatch', '--yes']);
   const unknown = argv.filter((a, j) => !known.has(a) && !(i >= 0 && j === i + 1));
-  return { to, missingTo: i >= 0 && !to, accept: argv.includes('--accept-data-mismatch'), yes: argv.includes('--yes'), unknown };
+  return { to, missingTo: i >= 0 && (!to || to.startsWith('--')), accept: argv.includes('--accept-data-mismatch'), yes: argv.includes('--yes'), unknown };
 }
 
 /**

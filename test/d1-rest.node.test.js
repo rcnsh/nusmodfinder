@@ -50,6 +50,12 @@ describe('assertReadOnly', () => {
       "ATTACH DATABASE 'x' AS y",
       'VACUUM',
       'BEGIN',
+      // SQLite's TCL-style parameter tokens run to the next ')' and swallow quotes, so a quote
+      // inside one would hide a second statement from a quote-aware scan (review finding 1).
+      "SELECT $a(');DELETE FROM modules --')",
+      "SELECT @x(');DELETE FROM modules --')",
+      'SELECT :name',
+      'SELECT #n',
     ]) expect(() => assertReadOnly(sql), JSON.stringify(sql)).toThrow(/read-only|only SELECT/);
   });
 });
