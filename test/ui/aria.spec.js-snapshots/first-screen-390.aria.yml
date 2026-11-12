@@ -2,6 +2,7 @@
   - /url: "#setup"
 - banner:
   - heading "NUS Mod Finder ( unofficial )" [level=1]
+  - paragraph: NUS's 2026/27 courses and exchange lists. Applying for 2027/28? NUS publishes Sem 1's list in March or April; until July, this site shows 2026/27's.
   - status
 - main "Find the NUS courses you can take on exchange":
   - heading "Find the NUS courses you can take on exchange" [level=2]
@@ -61,7 +62,10 @@
         - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
     - listitem:
       - link "Course restrictions for exchange (NG) students":
-        - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
+        - /url: https://www.nus.edu.sg/registrar/docs/default-source/prospective-students---non-graduating/non-graduating-course-restrictions.pdf
     - listitem:
       - link "The Registrar's course vacancy report":
         - /url: https://nus.edu.sg/coursereg/resources.html
+    - listitem:
+      - link "Privacy":
+        - /url: /privacy

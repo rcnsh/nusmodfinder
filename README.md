@@ -56,6 +56,10 @@ availability comes from the NUS Registrar's
 [Non-Graduating course lists](https://www.nus.edu.sg/registrar/prospective-students/non-graduating).
 Neither NUS nor NUSMods runs or endorses this site; check with NUS before you register.
 
+The site sets no cookies and loads no trackers. Cloudflare keeps request logs, which include
+searches and IP addresses, for 7 days; [the privacy note](https://nusmodfinder.rcn.sh/privacy)
+says what is kept and where. The site names no contact.
+
 ## Licence
 
 [MIT](LICENSE). IBM Plex is under the [SIL Open Font License](public/fonts/OFL.txt).

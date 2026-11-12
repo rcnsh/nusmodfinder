@@ -1,6 +1,6 @@
 // @ts-check
-// GET /search: parameter validation, the canonical cache key, the rate
-// limiter, the query parse (src/query-intent.js: pins, masks, the third list,
+// GET /search: the cross-site refusal, parameter validation, the canonical
+// cache key, the two rate limits, the query parse (src/query-intent.js: pins, masks, the third list,
 // the GE mask, noMatch), both retrievers (run concurrently), rank fusion,
 // hydration, and the keyword-only fallback when the dense half fails. Every
 // response carries Server-Timing and `interpreted`, and each request writes
@@ -58,6 +58,25 @@ const LOGGED_QUERY_CHARS = 100;
 // recovered upstream is used again within a minute.
 const CACHE_TTL_S = 3600;
 const DEGRADED_CACHE_TTL_S = 60;
+// Phase 8 8B: a degraded entry carries this header in the cache, so its hit is
+// re-sent with the degraded TTL. The stored copy `cache.match` returns carries
+// the zone's Browser Cache TTL (4 hours), not the TTL it was stored with, so a
+// hit always sets cache-control itself.
+const DEGRADED_HEADER = 'x-search-degraded';
+/** @param {boolean} degraded */
+const cacheControl = (degraded) => `public, max-age=${degraded ? DEGRADED_CACHE_TTL_S : CACHE_TTL_S}`;
+
+/**
+ * Whether a browser sent this /search for another site's page (Phase 8 8B): `Sec-Fetch-Site:
+ * cross-site` on anything but a top-level navigation. A fetch, an <img> or a hidden iframe on a
+ * stranger's page would spend this account's Workers AI through each visitor's browser and IP; a
+ * link a student follows is a navigation (`Sec-Fetch-Dest: document`) and is served. Browsers set
+ * these headers and page scripts can't (MDN). The page itself is same-origin; Node's fetch (smoke,
+ * uptime), the eval and curl send no Sec-Fetch-Site.
+ * @param {Headers} headers
+ */
+export const crossSite = (headers) =>
+  headers.get('sec-fetch-site') === 'cross-site' && headers.get('sec-fetch-dest') !== 'document';
 
 // Bumped by ingest (src/data-version.json), so a deploy after an ingest gets
 // fresh cache keys without a D1 read on every request.
@@ -1188,6 +1207,14 @@ export async function searchRoute(request, env, ctx, trace) {
     return response;
   };
 
+  // Another site's page is refused before the cache, the limits and any binding (Phase 8 8B).
+  if (crossSite(request.headers)) {
+    return finish(new Response(
+      JSON.stringify({ error: 'cross_site', message: 'Searches sent from another site\'s page are refused. Search on this site instead.' }, null, 2),
+      { status: 403, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'access-control-allow-origin': '*' } },
+    ), 'bypass');
+  }
+
   // Invalid requests are answered before the cache or any binding is touched.
   if (!parsed.query) {
     return finish(parsed.code ? json({ error: parsed.code, message: parsed.error }, 400) : bad(parsed.error), 'bypass');
@@ -1203,20 +1230,27 @@ export async function searchRoute(request, env, ctx, trace) {
   const tracing = sc1TraceMode(env) !== null;
   const hit = tracing ? undefined : await trace.time('cache', () => cache.match(cacheKey));
   trace.describe('cache', hit ? 'hit' : 'miss');
-  // The stored copy has no Server-Timing; this request's spans are set fresh.
-  if (hit) return finish(withHeaders(hit, {}), 'hit');
+  // The stored copy has no Server-Timing; this request's spans are set fresh,
+  // and so is its TTL, from the degraded flag stored with it (Phase 8 8B).
+  if (hit) return finish(withHeaders(hit, { 'cache-control': cacheControl(hit.headers.has(DEGRADED_HEADER)) }), 'hit');
 
   // Guardrail: /search is the only route that spends metered upstream quota.
-  // It fails open: a broken limiter must not take search down with it.
-  if (env.SEARCH_LIMIT) {
+  // Two per-IP limits (Phase 8 8B, G5 (b)): SEARCH_LIMIT, 40 per 10 s, and
+  // SEARCH_LIMIT_MINUTE, 200 per 60 s, asked together in one `limit` span,
+  // before any other binding. Either refusing is a 429. Each fails open: a
+  // broken limiter must not take search down with it.
+  const limiters = [env.SEARCH_LIMIT, env.SEARCH_LIMIT_MINUTE].filter((b) => b);
+  if (limiters.length) {
     const key = request.headers.get('cf-connecting-ip') ?? 'anonymous';
-    /** @type {boolean} */
+    const answers = await trace.time('limit', () => Promise.allSettled(limiters.map(async (b) => b.limit({ key }))));
     let allowed = true;
-    try {
-      ({ success: allowed } = await trace.time('limit', () => env.SEARCH_LIMIT.limit({ key })));
-    } catch (err) {
+    for (const a of answers) {
+      if (a.status === 'fulfilled') {
+        if (!a.value.success) allowed = false;
+        continue;
+      }
       log.limiter = 'error';
-      console.error(JSON.stringify({ event: 'limiter_error', message: /** @type {any} */ (err)?.message ?? String(err) }));
+      console.error(JSON.stringify({ event: 'limiter_error', message: /** @type {any} */ (a.reason)?.message ?? String(a.reason) }));
     }
     if (!allowed) {
       return finish(new Response(
@@ -1235,7 +1269,8 @@ export async function searchRoute(request, env, ctx, trace) {
   // Only successful responses are cached; a 400 or a 502 must stay live.
   if (response.status === 200) {
     const cacheable = new Response(response.body, response);
-    cacheable.headers.set('cache-control', `public, max-age=${degraded ? DEGRADED_CACHE_TTL_S : CACHE_TTL_S}`);
+    cacheable.headers.set('cache-control', cacheControl(degraded !== null));
+    if (degraded) cacheable.headers.set(DEGRADED_HEADER, '1');
     // Cloned before Server-Timing is set, so the cache never stores spans.
     ctx.waitUntil(cache.put(cacheKey, cacheable.clone()));
     return finish(cacheable, 'miss');

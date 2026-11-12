@@ -13,8 +13,6 @@
   "name": "vector-nusmods-ui",
   "main": "./ui/worker.js",
   "compatibility_date": "2026-09-01",
-  // As wrangler.jsonc: src/404.html, and public/_headers for the 404's headers, as Text modules.
-  "rules": [{ "type": "Text", "globs": ["**/*.html", "**/_headers"] }],
   // As wrangler.jsonc: no binding, so assets add nothing to Env, and a request
   // for a file in public/ never runs the Worker.
   "assets": { "directory": "../public" },

@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { ERROR_SENTENCES, errorSentence } from '../../public/messages.js';
-import { DEFAULT_ACAD_YEAR, yearLine } from '../../public/year.js';
+import { DEFAULT_ACAD_YEAR, headerYearLine } from '../../public/year.js';
 import { parseJsonc } from '../../scripts/jsonc.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -129,7 +129,7 @@ describe('the privacy note (8B, G3 (a))', () => {
 describe('the year line (8B)', () => {
   it('names the rows\' year, and tells applicants for the next one what to expect', () => {
     const y = '2030-2031';
-    const line = yearLine(y);
+    const line = headerYearLine(y);
     expect(line).toContain(`NUS's ${label(y)}`);
     expect(line).toContain(`Applying for ${label(next(y))}?`);
     expect(line).toContain('March or April');
@@ -137,7 +137,7 @@ describe('the year line (8B)', () => {
   });
 
   it('follows DEFAULT_ACAD_YEAR', () => {
-    expect(yearLine(DEFAULT_ACAD_YEAR)).toContain(`Applying for ${label(next(DEFAULT_ACAD_YEAR))}?`);
+    expect(headerYearLine(DEFAULT_ACAD_YEAR)).toContain(`Applying for ${label(next(DEFAULT_ACAD_YEAR))}?`);
   });
 });
 
@@ -151,7 +151,7 @@ describe('the 403\'s sentence (8B)', () => {
 });
 
 describe('the rate limits (8B, G5 (b))', () => {
-  const config = parseJsonc(read('wrangler.jsonc'), 'wrangler.jsonc');
+  const config = /** @type {any} */ (parseJsonc(read('wrangler.jsonc'), 'wrangler.jsonc'));
 
   it('SEARCH_LIMIT allows 40 per 10 s and SEARCH_LIMIT_MINUTE 200 per 60 s, in their own namespaces', () => {
     const limits = Object.fromEntries(config.ratelimits.map((/** @type {any} */ r) => [r.name, r]));
