@@ -652,8 +652,9 @@ D1 differs from the bundle, the job fails, says the re-ingest runs on the Mac th
 runbook, and deploys nothing; that deploy then runs on the Mac.
 
 **The kill switch:** the job runs only when the repo variable `DEPLOY_FROM_ACTIONS` is `true`.
-It is unset until the first Actions deploy has been watched (7G). Unset it to stop Actions
-deploys at once; the Mac's `npm run deploy` is unaffected.
+It has been `true` since the first watched Actions deploy (7G, 2026-11-12, run 43209550016). Unset
+it to stop Actions deploys at once; the Mac's `npm run deploy` is unaffected. With it on, every push
+to `main` deploys once its CI is green, a docs-only one too (the guard's ~21k rows read each time).
 
 **The deploy token** (an account-owned API token, the dashboard's "API token for external
 CI/CD"), stored as the repo secret `CLOUDFLARE_API_TOKEN`:
