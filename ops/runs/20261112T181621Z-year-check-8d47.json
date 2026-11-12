@@ -1,0 +1,51 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T18:16:21.748Z",
+  "finishedAt": "2026-11-12T18:16:28.254Z",
+  "script": "year check",
+  "args": [
+    "check",
+    "--full"
+  ],
+  "commit": {
+    "sha": "e94d7c31d338c99ce4089294e5421239415cd635",
+    "dirty": true,
+    "diffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "target": "sources archive sources-2026-2027-20261112",
+  "read": [
+    {
+      "what": "sources archive files",
+      "estimate": null,
+      "actual": 21
+    }
+  ],
+  "written": [],
+  "requests": {
+    "gh release download": 1
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "mode": "full",
+    "year": "2026-2027",
+    "revision": "2026-11-12",
+    "sourceInputsHash": "d16ddeb4ec90b332e944d5d58aea9b4216a02066f3c78d18099fb434bec30f1d",
+    "archiveSha256": "cb7ff544640ad44bd905168e27217206ae79272c65dba9be73a28b14f5aec66f",
+    "quotes": {
+      "checked": 19,
+      "unarchived": 0
+    },
+    "ngList": {
+      "result": "byte-identical",
+      "semesters": {
+        "1": 730,
+        "2": 750
+      }
+    },
+    "rules": "byte-identical"
+  },
+  "exitCode": 0,
+  "message": "19 quotes verbatim; data/ng-courses-2026-2027.json byte-identical (Sem 1 730, Sem 2 750); data/ng-restrictions-2026-2027.json byte-identical",
+  "outcome": "ok"
+}
