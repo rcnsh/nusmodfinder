@@ -1,6 +1,6 @@
 // @ts-check
 // In-memory stand-ins for the bindings the test config deliberately omits
-// (AI, VECTORIZE, SEARCH_LIMIT). They model the parts of the real services the
+// (AI, VECTORIZE, SEARCH_LIMIT, SEARCH_LIMIT_MINUTE). They model the parts of the real services the
 // Worker depends on, and enforce the real limits where breaking them would be
 // a bug (Vectorize topK ceilings, unknown filter operators). Every fake can be
 // told to throw or to hang, for upstream-failure tests.
@@ -342,7 +342,10 @@ export class FakeRateLimit extends Switchable {
  * @returns {Fakes}
  */
 export function createFakes() {
-  return { ai: new FakeAI(), vectorize: new FakeVectorize(), limit: new FakeRateLimit() };
+  return { ai: new FakeAI(), vectorize: new FakeVectorize(), limit: new FakeRateLimit(), limitMinute: new FakeRateLimit() };
 }
 
-/** @typedef {{ ai: FakeAI, vectorize: FakeVectorize, limit: FakeRateLimit }} Fakes */
+/**
+ * `limit` is SEARCH_LIMIT (per 10 s), `limitMinute` SEARCH_LIMIT_MINUTE (per 60 s; Phase 8 8B, G5).
+ * @typedef {{ ai: FakeAI, vectorize: FakeVectorize, limit: FakeRateLimit, limitMinute: FakeRateLimit }} Fakes
+ */

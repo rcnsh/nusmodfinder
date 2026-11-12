@@ -27,7 +27,7 @@ const SECRET = 'eval-ingest-secret';
  */
 export async function call(path, fakes, options = {}) {
   const bindings = /** @type {Env} */ (/** @type {unknown} */ ({
-    ...env, AI: fakes.ai, VECTORIZE: fakes.vectorize, SEARCH_LIMIT: fakes.limit, ...options.extra,
+    ...env, AI: fakes.ai, VECTORIZE: fakes.vectorize, SEARCH_LIMIT: fakes.limit, SEARCH_LIMIT_MINUTE: fakes.limitMinute, ...options.extra,
   }));
   const ctx = createExecutionContext();
   const response = await worker.fetch(new Request(new URL(path, BASE), options.init), bindings, ctx);
