@@ -21,7 +21,9 @@
 // - open an issue on its own failure (a NUSMods shape change, an HTTP error), and close it after
 //   the next good run.
 // Monthly: one reminder issue a month to check the Registrar's and YST's pages and to run the
-// usage report, with a warning when the last commit is more than 45 days old.
+// usage report, with a warning when the last commit is more than 45 days old. The weekly run also
+// opens that warning as its own issue, once per quiet stretch, since a monthly run can miss the
+// window between day 45 and day 60.
 //
 // Issues are found by label and a hidden marker in the body, never by title.
 import { execFileSync } from 'node:child_process';
@@ -50,6 +52,8 @@ export const MARKERS = Object.freeze({
   nextYear: (year) => `<!-- vnm-drift:next-year ${year} -->`,
   /** @param {string} month yyyy-mm */
   reminder: (month) => `<!-- vnm-drift:reminder ${month} -->`,
+  /** One per quiet stretch, keyed by the last commit. @param {string} sha */
+  quiet: (sha) => `<!-- vnm-drift:quiet ${sha} -->`,
 });
 const STATE_RE = /<!-- vnm-drift:state (.*?) -->/;
 
@@ -287,7 +291,8 @@ export const daysBetween = (then, now) => Math.floor((now.getTime() - then.getTi
  */
 export function quietNote(lastCommit, today) {
   const days = daysBetween(lastCommit, today);
-  if (days <= QUIET_WARN_DAYS) return null;
+  // "More than 45 days" by the clock, not by whole days: 45 days and an hour is more.
+  if (lastCommit.getTime() + QUIET_WARN_DAYS * DAY_MS >= today.getTime()) return null;
   const by = day(new Date(lastCommit.getTime() + QUIET_STOP_DAYS * DAY_MS));
   return `**The repo has had no commit for ${days} days** (the last on ${day(lastCommit)}). GitHub stops a public repo's scheduled workflows after `
     + `${QUIET_STOP_DAYS} days with no repository activity (https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/disabling-and-enabling-a-workflow), `
@@ -322,6 +327,22 @@ export function reminderIssue({ month, today, lastCommit, ngUpdatedAsAt, acadYea
     ...(note ? ['', note] : []),
   ].join('\n');
   return { title: `Monthly check, ${month}: NUS's exchange pages and the usage report`, body, labels: [LABELS.reminder] };
+}
+
+/**
+ * The weekly run's own warning for a quiet repo. The monthly reminder alone could miss the window:
+ * a last commit 31 to 45 days before the 1st reaches 60 days before the next reminder.
+ * @param {{ today: Date, lastCommit: { sha: string, date: Date } }} o
+ * @returns {{ title: string, body: string, labels: string[] } | null}
+ */
+export function quietIssue({ today, lastCommit }) {
+  const note = quietNote(lastCommit.date, today);
+  if (!note) return null;
+  return {
+    title: `No commit for ${daysBetween(lastCommit.date, today)} days: the scheduled checks stop at ${QUIET_STOP_DAYS}`,
+    body: [MARKERS.quiet(lastCommit.sha), note].join('\n'),
+    labels: [LABELS.reminder],
+  };
 }
 
 // ---- GitHub ----
@@ -472,7 +493,7 @@ async function cachedRecords(cacheDir, acadYear) {
  * The weekly check.
  * @param {{ acadYear?: string, cacheDir: string, fetchImpl?: typeof fetch, github: GitHub, now?: () => Date,
  *   ngCourses?: Awaited<ReturnType<typeof loadNgCourses>>, committed: { dataVersion: string, sha: string | null },
- *   runUrl: string | null, log?: (line: string) => void }} o
+ *   lastCommit?: { sha: string | null, date: Date }, runUrl: string | null, log?: (line: string) => void }} o
  * @returns {Promise<{ exitCode: number, dataVersion?: string, pending?: boolean, nextYear?: number | null }>}
  */
 export async function weeklyCheck(o) {
@@ -525,6 +546,13 @@ export async function weeklyCheck(o) {
         const issue = nextYearIssue({ nextYear: next, count: nextCount, checkedAt });
         await github.ensureLabels(issue.labels);
         log(`opened #${(await github.createIssue(issue)).number}: NUSMods has ${next}`);
+      }
+    }
+    if (o.lastCommit?.sha) {
+      const quiet = quietIssue({ today: checkedAt, lastCommit: /** @type {{ sha: string, date: Date }} */ (o.lastCommit) });
+      if (quiet && !(await findIssue(github, { label: LABELS.reminder, marker: MARKERS.quiet(o.lastCommit.sha), state: 'all' }))) {
+        await github.ensureLabels(quiet.labels);
+        log(`opened #${(await github.createIssue(quiet)).number}: no commit for ${daysBetween(o.lastCommit.date, checkedAt)} days`);
       }
     }
     await recovered(github, checkedAt, 'weekly');
@@ -585,23 +613,21 @@ export async function main(argv, { env = process.env, log = console.log } = {}) 
     log(`reported in #${n}`);
     return 1;
   }
+  const [lastSha, lastDate] = git(['log', '-1', '--format=%H%n%cI']).split('\n');
+  const lastCommit = { sha: lastSha, date: new Date(lastDate) };
   if (check === 'monthly') {
-    const [sha, date] = git(['log', '-1', '--format=%H%n%cI']).split('\n');
     const ng = JSON.parse(readFileSync(resolve(ROOT, `data/ng-courses-${DEFAULT_ACAD_YEAR}.json`), 'utf8'));
     try {
-      return (await monthlyCheck({ github, lastCommit: { sha, date: new Date(date) }, ngUpdatedAsAt: ng.updatedAsAt ?? null, log })).exitCode;
+      return (await monthlyCheck({ github, lastCommit, ngUpdatedAsAt: ng.updatedAsAt ?? null, log })).exitCode;
     } catch (error) {
       log(`the monthly check failed: ${errorText(error)}`);
       await reportFailure(github, { error, runUrl, checkedAt, check: 'monthly' });
       return 1;
     }
   }
-  const committed = {
-    dataVersion: String(JSON.parse(readFileSync(resolve(ROOT, 'src/data-version.json'), 'utf8')).version),
-    sha: (() => { try { return git(['rev-parse', 'HEAD']); } catch { return null; } })(),
-  };
+  const committed = { dataVersion: String(JSON.parse(readFileSync(resolve(ROOT, 'src/data-version.json'), 'utf8')).version), sha: lastSha };
   const cacheDir = resolve(values['cache-dir'] ?? DEFAULT_CACHE_DIR);
-  return (await weeklyCheck({ cacheDir, github, committed, runUrl, log })).exitCode;
+  return (await weeklyCheck({ cacheDir, github, committed, lastCommit, runUrl, log })).exitCode;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

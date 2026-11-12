@@ -263,34 +263,52 @@ const pct = (share) => {
 /** @param {unknown} x @returns {x is Missing} */
 const isMissingValue = (x) => typeof x === 'object' && x !== null && 'missing' in x;
 
+/** @param {Usage['workerStatus']} ws @param {number} lo @param {number} hi @returns {number | Missing} */
+const statusCount = (ws, lo, hi) => (isMissingValue(ws) ? ws : ws.filter((s) => s.status >= lo && s.status < hi).reduce((n, s) => n + s.requests, 0));
+/** @param {number | null} v @returns {number | Missing} */
+const quantile = (v) => (v === null ? { missing: 'no quantile' } : v);
+
 /**
- * The measures the report flags and compares, each read from a Usage.
- * @type {{ key: string, label: string, unit: string, allowance: number | null, per: string, digits: number, get: (u: Usage) => number | Missing }[]}
+ * The measures the report flags and compares, each read from a Usage. A `total` adds up over the
+ * month, so a month in progress is projected before it is compared; a busiest day and a quantile
+ * are not totals.
+ * @type {{ key: string, label: string, unit: string, allowance: number | null, per: string, digits: number, total: boolean,
+ *   get: (u: Usage) => number | Missing }[]}
  */
 const MEASURES = [
-  { key: 'workerRequests', label: 'Worker requests', unit: '', allowance: ALLOWANCES.workerRequests, per: 'a month', digits: 0,
+  { key: 'workerRequests', label: 'Worker requests', unit: '', allowance: ALLOWANCES.workerRequests, per: 'a month', digits: 0, total: true,
     get: (u) => (isMissingValue(u.workersAccount) ? u.workersAccount : u.workersAccount.requests) },
-  { key: 'workerCpuMs', label: 'Worker CPU', unit: ' ms', allowance: ALLOWANCES.workerCpuMs, per: 'a month', digits: 0,
+  { key: 'workerCpuMs', label: 'Worker CPU', unit: ' ms', allowance: ALLOWANCES.workerCpuMs, per: 'a month', digits: 0, total: true,
     get: (u) => (isMissingValue(u.workersAccount) ? u.workersAccount : u.workersAccount.cpuMs) },
-  { key: 'd1RowsRead', label: 'D1 rows read', unit: '', allowance: ALLOWANCES.d1RowsRead, per: 'a month', digits: 0,
+  { key: 'd1RowsRead', label: 'D1 rows read', unit: '', allowance: ALLOWANCES.d1RowsRead, per: 'a month', digits: 0, total: true,
     get: (u) => (isMissingValue(u.d1) ? u.d1 : u.d1.rowsRead) },
-  { key: 'd1RowsWritten', label: 'D1 rows written', unit: '', allowance: ALLOWANCES.d1RowsWritten, per: 'a month', digits: 0,
+  { key: 'd1RowsWritten', label: 'D1 rows written', unit: '', allowance: ALLOWANCES.d1RowsWritten, per: 'a month', digits: 0, total: true,
     get: (u) => (isMissingValue(u.d1) ? u.d1 : u.d1.rowsWritten) },
-  { key: 'neuronsPerDay', label: 'Workers AI neurons, busiest day', unit: '', allowance: ALLOWANCES.neuronsPerDay, per: 'a day', digits: 1,
+  { key: 'neuronsPerDay', label: 'Workers AI neurons, busiest day', unit: '', allowance: ALLOWANCES.neuronsPerDay, per: 'a day', digits: 1, total: false,
     get: (u) => (isMissingValue(u.ai) ? u.ai : u.ai.busiest.neurons) },
-  { key: 'thisWorkerRequests', label: `${WORKER}'s requests`, unit: '', allowance: null, per: '', digits: 0,
+  { key: 'thisWorkerRequests', label: `${WORKER}'s requests`, unit: '', allowance: null, per: '', digits: 0, total: true,
     get: (u) => (isMissingValue(u.worker) ? u.worker : u.worker.requests) },
-  { key: 'thisWorkerCpuMs', label: `${WORKER}'s CPU`, unit: ' ms', allowance: null, per: '', digits: 0,
+  { key: 'thisWorkerCpuMs', label: `${WORKER}'s CPU`, unit: ' ms', allowance: null, per: '', digits: 0, total: true,
     get: (u) => (isMissingValue(u.worker) ? u.worker : u.worker.cpuMs) },
-  { key: 'dbRowsRead', label: `\`${DATABASE_NAME}\` rows read`, unit: '', allowance: null, per: '', digits: 0,
+  { key: 'thisWorkerP50', label: `${WORKER}'s CPU per request, p50`, unit: ' ms', allowance: null, per: '', digits: 1, total: false,
+    get: (u) => (isMissingValue(u.worker) ? u.worker : quantile(u.worker.p50Ms)) },
+  { key: 'thisWorkerP99', label: `${WORKER}'s CPU per request, p99`, unit: ' ms', allowance: null, per: '', digits: 1, total: false,
+    get: (u) => (isMissingValue(u.worker) ? u.worker : quantile(u.worker.p99Ms)) },
+  { key: 'thisWorkerErrors', label: `${WORKER}'s exceptions`, unit: '', allowance: null, per: '', digits: 0, total: true,
+    get: (u) => (isMissingValue(u.worker) ? u.worker : u.worker.errors) },
+  { key: 'thisWorker4xx', label: `${WORKER}'s 4xx responses`, unit: '', allowance: null, per: '', digits: 0, total: true,
+    get: (u) => statusCount(u.workerStatus, 400, 500) },
+  { key: 'thisWorker5xx', label: `${WORKER}'s 5xx responses`, unit: '', allowance: null, per: '', digits: 0, total: true,
+    get: (u) => statusCount(u.workerStatus, 500, 600) },
+  { key: 'dbRowsRead', label: `\`${DATABASE_NAME}\` rows read`, unit: '', allowance: null, per: '', digits: 0, total: true,
     get: (u) => (isMissingValue(u.d1) ? u.d1 : u.d1.db.rowsRead) },
-  { key: 'dbRowsWritten', label: `\`${DATABASE_NAME}\` rows written`, unit: '', allowance: null, per: '', digits: 0,
+  { key: 'dbRowsWritten', label: `\`${DATABASE_NAME}\` rows written`, unit: '', allowance: null, per: '', digits: 0, total: true,
     get: (u) => (isMissingValue(u.d1) ? u.d1 : u.d1.db.rowsWritten) },
 ];
 
 /**
- * The flags: shares above FLAG_SHARE, and growth on the month before. A busiest day is not
- * projected (it is a day, not a total); every other measure in a month in progress is.
+ * The flags: shares above FLAG_SHARE, and growth on the month before (totals in a month in
+ * progress projected over the whole month first).
  * @param {MonthWindow} window @param {Usage} current @param {Usage} previous
  * @returns {string[]}
  */
@@ -308,7 +326,7 @@ export function flagsFor(window, current, previous) {
     const v = m.get(current);
     const p = m.get(previous);
     if (isMissingValue(v) || isMissingValue(p)) continue;
-    const projected = window.complete || m.key === 'neuronsPerDay' ? v : v / window.elapsed;
+    const projected = window.complete || !m.total ? v : v / window.elapsed;
     if (!(projected > p)) continue;
     const growth = p === 0 ? 'from zero' : `${Math.round((projected / p - 1) * 100)}%`;
     const how = projected === v ? '' : ', projected over the whole month';

@@ -1076,9 +1076,10 @@ search path, then commit both files. The month defaults to the current UTC one.
   Workers AI neurons by day (`aiInferenceAdaptiveGroups`), each against Workers Paid's allowance
   (`ALLOWANCES` in the script, which cites the pricing pages). Then this Worker's share: requests,
   CPU, CPU per request p50 and p99, exceptions, requests by HTTP status, and `nusmods-apac`'s rows.
-- **Flags:** anything above 25% of its allowance, and anything that grew on the month before. A
-  month in progress is projected over the whole month before it is compared; the busiest neuron
-  day is not.
+- **Flags:** anything above 25% of its allowance, and anything that grew on the month before:
+  the account-wide measures, and this Worker's requests, CPU, CPU p50 and p99, exceptions, 4xx
+  and 5xx responses and database rows. Totals in a month in progress are projected over the whole
+  month before they are compared; the busiest neuron day and the quantiles are not.
 - **Missing is not zero.** A dataset GraphQL couldn't answer is written as `missing: <why>`, and
   the run exits 1 with outcome `failed`; an empty dataset is zero.
 - **The month is the calendar month.** The subscription's renewal date, which starts the billing
@@ -1111,7 +1112,9 @@ public API, and makes no Cloudflare or live-site call. It needs no secret but th
 - **Monthly (the 1st, 01:41 UTC), `drift:reminder`:** one issue a month to check the Registrar's
   NG list and restrictions and YST's pages, and to run last month's usage report. When the last
   commit is more than 45 days old it adds that GitHub stops a public repo's schedules after 60
-  days with no activity; committing the usage report keeps the repo active.
+  days with no activity; committing the usage report keeps the repo active. A monthly run alone
+  can miss the window between day 45 and day 60, so the weekly run also opens that warning as its
+  own `drift:reminder` issue, once per quiet stretch (keyed by the last commit).
 
 Issues are found by their label and a hidden marker in the body (`<!-- vnm-drift:… -->`), never by
 title. To see what a check would do without touching GitHub, run `node scripts/drift.mjs weekly

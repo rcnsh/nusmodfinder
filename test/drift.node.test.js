@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   LABELS, compareSummaries, daysBetween, failureIssue, findIssue, githubRest, monthlyCheck, nextAcadYear, nextYearIssue,
-  pendingIssue, quietNote, reminderIssue, resolvedComment, summarise, weeklyCheck,
+  pendingIssue, quietIssue, quietNote, reminderIssue, resolvedComment, summarise, weeklyCheck,
 } from '../scripts/drift.mjs';
 import { corpusDataVersion } from '../scripts/build-vocabulary.mjs';
 import { loadNgCourses, offeredModules } from '../scripts/lib.mjs';
@@ -171,9 +171,14 @@ describe('the 45-day note', () => {
     expect(note).toMatch(/before 2026-11-26/);
   });
 
+  it('counts by the clock: 45 days and an hour is more than 45 days', () => {
+    expect(quietNote(new Date('2026-09-28T08:00:00Z'), new Date('2026-11-12T09:00:00Z'))).toMatch(/45 days/);
+  });
+
   it('does not at 45 days or fewer', () => {
     const today = new Date('2026-11-12T09:00:00Z');
-    expect(quietNote(new Date('2026-09-28T08:00:00Z'), today)).toBeNull();
+    expect(quietNote(new Date('2026-09-28T09:00:00Z'), today)).toBeNull();
+    expect(quietNote(new Date('2026-09-28T10:00:00Z'), today)).toBeNull();
     expect(quietNote(new Date('2026-11-11T08:00:00Z'), today)).toBeNull();
   });
 
@@ -246,8 +251,9 @@ function fakeNusMods() {
 }
 
 describe('the weekly check', () => {
-  /** @param {ReturnType<typeof fakeNusMods>} nm @param {ReturnType<typeof fakeGitHub>} gh @param {{ now?: Date, production?: string }} [o] */
-  const weekly = async (nm, gh, { now = NOW, production } = {}) => weeklyCheck({
+  /** @param {ReturnType<typeof fakeNusMods>} nm @param {ReturnType<typeof fakeGitHub>} gh @param {{ now?: Date, production?: string, lastCommit?: { sha: string, date: Date } }} [o] */
+  const weekly = async (nm, gh, { now = NOW, production, lastCommit } = {}) => weeklyCheck({
+    lastCommit,
     acadYear: YEAR, cacheDir: join(dir, 'cache'), fetchImpl: nm.fetchImpl, github: gh, now: () => now, ngCourses: NO_NG, runUrl: RUN_URL,
     committed: { dataVersion: production ?? (await summarise(BEFORE, YEAR, NO_NG)).dataVersion, sha: 'b'.repeat(40) }, log: () => {},
   });
@@ -363,6 +369,28 @@ describe('the weekly check', () => {
     nm.state.next = { status: 404 };
     expect(await weekly(nm, gh)).toMatchObject({ exitCode: 0 });
     expect(gh.issues[0].state).toBe('closed');
+  });
+
+  it('warns of a quiet repo itself, once per quiet stretch, since a monthly run can miss days 45 to 60', async () => {
+    const nm = fakeNusMods();
+    const gh = fakeGitHub();
+    // The last commit lands 2026-09-21: the 10-01 and 11-01 reminders (10 and 41 days) carry no
+    // note, and schedules stop about 11-20. The weekly run on 11-09 (49 days) warns.
+    const lastCommit = { sha: 'd'.repeat(40), date: new Date('2026-09-21T00:00:00Z') };
+    await weekly(nm, gh, { now: new Date('2026-11-02T01:17:00Z'), lastCommit });
+    expect(gh.issues).toHaveLength(0);
+    await weekly(nm, gh, { now: new Date('2026-11-09T01:17:00Z'), lastCommit });
+    expect(gh.issues).toHaveLength(1);
+    expect(gh.issues[0]).toMatchObject({ labels: [LABELS.reminder], title: 'No commit for 49 days: the scheduled checks stop at 60' });
+    expect(gh.issues[0].body).toContain(`<!-- vnm-drift:quiet ${'d'.repeat(40)} -->`);
+    expect(gh.issues[0].body).toMatch(/before 2026-11-20/);
+    await gh.updateIssue(1, { state: 'closed' });
+    await weekly(nm, gh, { now: new Date('2026-11-16T01:17:00Z'), lastCommit });
+    expect(gh.issues).toHaveLength(1);
+  });
+
+  it('a quiet issue is null while the repo is active', () => {
+    expect(quietIssue({ today: NOW, lastCommit: { sha: 'd'.repeat(40), date: new Date('2026-11-01T00:00:00Z') } })).toBeNull();
   });
 
   it('a next-year list that is not a list is a failure, not a new year', async () => {

@@ -205,6 +205,21 @@ describe('the report from fixture GraphQL answers', () => {
     expect(flags).not.toMatch(/grew/);
   });
 
+  it('flags growth in this Worker\'s exceptions, CPU p99 and error responses too', async () => {
+    const worse = {
+      worker: [{ dimensions: { scriptName: 'nusmodfinder' }, sum: { requests: 182, errors: 50, cpuTimeUs: 2_900_000 }, quantiles: { cpuTimeP50: 9145, cpuTimeP99: 80_000 } }],
+      workerStatus: [{ dimensions: { httpResponseStatus: 200 }, sum: { requests: 109 } }, { dimensions: { httpResponseStatus: 404 }, sum: { requests: 23 } },
+        { dimensions: { httpResponseStatus: 500 }, sum: { requests: 50 } }],
+    };
+    const cf = fakeCloudflare([answer({ over: worse }), answer()]);
+    const { report } = await run(['--month', '2026-10'], cf);
+    const flags = /** @type {string} */ (report).split('## Flags\n')[1];
+    expect(flags).toMatch(/- nusmodfinder's exceptions grew from zero on 2026-09 \(0 → 50\)/);
+    expect(flags).toMatch(/- nusmodfinder's CPU per request, p99 grew 134% on 2026-09 \(34\.2 ms → 80 ms\)/);
+    expect(flags).toMatch(/- nusmodfinder's 5xx responses grew from zero on 2026-09 \(0 → 50\)/);
+    expect(flags).not.toMatch(/4xx responses grew|p50 grew/);
+  });
+
   it('a month in progress is projected before it is compared', async () => {
     // 11 days 3 hours into November at the same totals as all of October: projected about 2.7×.
     const cf = fakeCloudflare([answer(), answer()]);
