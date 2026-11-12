@@ -643,9 +643,14 @@ it deploy only when that sha's `CI` and `Findings` push runs both succeeded, the
 `main`'s tip (otherwise the newer commit's runs deploy it), and no `deploy/*` tag names it yet
 (the second event finds the first's tag). It checks out exactly that sha and runs
 `npm run deploy`, the same command as above, in the `deploy-production` concurrency group (never
-cancelled mid-run). Permissions: `contents: write` (the tag push) and `actions: read`. Only the
+cancelled mid-run). Then it smokes the deployed commit (`npm run smoke -- --expect <sha>`, below),
+and a failed smoke fails the job, which GitHub reports. The smoke step has no secret and no token:
+the deploy step has already put the production bundle in `.data/vectors/` and restored `current`
+to `.data/prod/`, so smoke's own restores are no-ops (if the step ever moves before the deploy, it
+needs `GH_TOKEN`). Permissions: `contents: write` (the tag push) and `actions: read`. Only the
 deploy step sees `CLOUDFLARE_API_TOKEN` (a secret) and `CLOUDFLARE_ACCOUNT_ID` (a repo
-variable). The run record is kept as an artifact for 90 days and the job writes a summary;
+variable). The run records (the deploy's and the smoke's) are kept as an artifact for 90 days and the
+deploy writes a job summary;
 nothing is ever committed to `main` from CI, which would start CI and then a deploy in a loop.
 The pushed tag is the durable trace. Re-ingests (D1 writes) stay on the Mac: if the guard finds
 D1 differs from the bundle, the job fails, says the re-ingest runs on the Mac through the
@@ -718,7 +723,9 @@ gave (`cache;desc=miss`, not degraded, the code in the top 5) and `/facets`. The
 the groups and the bundle's codes come from the expected commit's files; titles come from its
 production corpus, `current` in its `data/corpus.json` (restored and sha-checked; a commit from
 before the manifest uses the working tree's, and says so). The URL is `wrangler.jsonc`'s
-Custom Domain at that commit, or `--url`.
+Custom Domain at that commit, or `--url`. Every Actions deploy runs it as its last step; after a
+deploy or a rollback from the Mac, run it by hand. It costs 5 GETs and one uncached search
+(about 0.03 neurons).
 
 **Back-filled tags.** The two Phase 6 deploys predate the tags; `node scripts/deploy-tag.mjs
 backfill` prints the commands that create and push them (`deploy/20261111T183946Z-f8aefeab` on
@@ -1181,6 +1188,46 @@ team M-2). To see what a check would do without touching GitHub, run `node scrip
 --dry-run` (it does fetch NUSMods) or `monthly --dry-run`. The crons in `drift.yml` must match
 `SCHEDULES` in the script; `test/drift-workflow.node.test.js` checks that.
 
+**The uptime check** (`.github/workflows/uptime.yml`, `scripts/uptime.mjs`, Phase 8 8C, G4 in
+ADR 0012). Hourly at minute 37 UTC, and by hand (`workflow_dispatch`). Each run sends three GETs
+to `wrangler.jsonc`'s Custom Domain, each at least 4 s after the last answer, since Actions
+runners share addresses and the site's limit is per address:
+
+- `/health`: 200 with `ok: true`;
+- `/module/<code>`: 200 with that code. The code is drawn by the hour from the checkout's
+  `data/groups.json`, so no course is named in the script. `main` can be ahead of the deploy (a
+  refresh is merged before D1 is re-ingested; a rollback), so a 404 that names its kind of miss
+  (`unknown`, `catalogue-only`, `ng-listed`) passes too, with a note: the Worker read D1 to give
+  it, and a D1 failure is a 502;
+- `/search` for a plain-English topic from `QUERIES` in the script, rotating by the hour: 200,
+  `cache;desc=miss` (as smoke requires), not `degraded`, at least one result. On a cache hit it
+  takes the next query, up to 3. Checking the miss and `degraded` catches the keyword-only
+  fallback, which still answers 200.
+
+A failure is checked again 90 s later, with queries not yet sent; nothing is kept between runs.
+A pass pings the healthchecks.io check; two failures ping its `/fail` with a one-line reason as the
+body: the route and the status (`/search HTTP 502`, `/search degraded (embed-timeout)`), never a
+visitor's data. healthchecks.io alerts Jacob through Pushover, at once on `/fail`, and after the
+check's 12 h grace when runs stop arriving (GitHub may delay or drop scheduled runs, and pauses a
+public repo's after 60 quiet days). The check (period 1 h, grace 12 h) is in Jacob's
+healthchecks.io account; its ping URL is the repo secret `HC_UPTIME_URL`, the workflow's only
+secret, with `contents: read` and nothing else. The script never prints the URL: every line
+shows it as `<HC_UPTIME_URL>`. The run exits 0 once the report reached healthchecks.io, up or
+down (a red run every hour of an outage would only add emails), 1 when the ping itself failed,
+and 2 on a missing or non-https `HC_UPTIME_URL`, before any request. It writes no run record: the
+history is healthchecks.io's. `node scripts/uptime.mjs --dry-run [--url <url>]` checks a site and
+prints what it would ping, pinging nothing. The cron must match `SCHEDULE` in the script;
+`test/uptime.node.test.js` checks it, the permissions and the secret.
+
+**When the site is down,** the order matters, because Actions redeploys `main` on every green push:
+check `/health`, a search, `wrangler deployments status` and the last deploy tag; then set
+`DEPLOY_FROM_ACTIONS` to anything but `true` (or revert the cause on `main`); wait for or cancel any
+queued or running Deploy job (the concurrency group never cancels one, so it could overwrite the
+rollback); then `npm run rollback` and `npm run smoke -- --expect <sha>`; and turn the switch back
+on before merging the fix, since a merge while it is off is skipped and turning it on starts
+nothing. [`docs/launch.md`](launch.md) has the runbook with its commands, and what each uptime
+alert means.
+
 ## Evaluation
 
 The eval runs the actual Worker inside workerd (local D1 with the full pinned corpus, a fake
@@ -1258,6 +1305,17 @@ CPU-ms cover **~2.5M searches a month**, about 20 times the old Vectorize-bound 
 Workers AI's 10,000 neurons a day at ~0.03 a search cover ~10M a month, or ~6.0M at 3A-1's
 ~0.05. At 2.5M searches a month, D1's 25 billion reads cover ~10,000 rows read per search. The measured medians (239–497) are well inside that; the worst filtered search on the
 local grid (7,772 rows) is not. Cached repeats cost none of these.
+
+**The live checks.** The uptime check sends about 70 requests a day (24 runs of `/health`,
+`/module` and one uncached `/search`): about 6k D1 rows read (24 searches at SC7's p50 of 255, plus
+24 `/module` rows) and about 1 neuron. Each Actions deploy's smoke adds 5 GETs and one uncached
+search (about 0.03 neurons).
+
+**No overage (ADR 0004; ADR 0012, G5 (b)).** Nothing in Cloudflare caps Workers AI or D1 spending
+automatically. Jacob sets a Cloudflare budget alert at the lowest amount: it emails the day after
+a billed day and caps nothing. What keeps the project inside the allowances is the rule in
+[`docs/launch.md`](launch.md): no corpus embed or forced re-ingest in a week with a post, since a
+forced re-ingest spends about 2,400 of the 10,000 daily neurons.
 
 ### How that number was brought down
 
