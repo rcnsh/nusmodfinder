@@ -9,13 +9,12 @@
 // - 3G (docs/plans/phase4.md §4 gate 2): no dev query outside the no-answer
 //   tag is pushed into no-signal under the bit, until Jacob rules on it.
 import { beforeAll, describe, expect, inject, it, vi } from 'vitest';
-import catalogueFile from 'catalogue-only-data';
 import devQueries from '../../eval/dev/queries.json';
 import studyMap from '../../eval/study-map.json';
 import { denseBundle } from '../../src/dense.js';
 import { storedVectorMetadata } from '../../src/rowhash.js';
 import { createFakes } from '../fakes.js';
-import { adminCall, callJson, seed } from '../helpers.js';
+import { callJson, seed } from '../helpers.js';
 import { CacheAI, COMBOS, QUERIES, ngDevRequests, shownCodes } from '../sc1/shared.js';
 
 const corpus = inject('corpus');
@@ -48,12 +47,9 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1 over the pinned corpus:
       id: code, values: Array.from(b.vectors.subarray(i * b.dims, (i + 1) * b.dims)),
       metadata: storedVectorMetadata(/** @type {NormalisedModule} */ (moduleOf.get(code))),
     }]));
-    const rows = /** @type {[string, string, string | null][]} */ (catalogueFile.rows);
-    for (let i = 0; i < rows.length; i += 100) {
-      const upsert = rows.slice(i, i + 100).map(([code, title, description]) => ({ code, title, description, acadYear: c.acadYear }));
-      const res = await adminCall('/admin/catalogue', createFakes(), { upsert });
-      if (res.status !== 200) throw new Error(`catalogue_only load: HTTP ${res.status}`);
-    }
+    // No catalogue_only rows: neither check reads them. No-signal is the parse and the top cosine
+    // (src/search.js), and a not-offered code answers not-offered with or without its row. Loading
+    // ~14k rows here (a 6.6 MB module) also took the workerd pool down in CI.
   }, 600_000);
 
   it(`the standby keeps recall@50 against the bundle at or above ${STANDBY_RECALL_FLOOR} in every combination`, async () => {
