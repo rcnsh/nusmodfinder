@@ -220,6 +220,179 @@
      "unarchived": "its host (international.huji.ac.il) refused connections on 2026-11-12, twice; quoted as read for Phase 6 (docs/evidence/phase6/facts.md)"
     }
    ]
+  },
+  {
+   "date": "2026-11-12",
+   "archive": {
+    "release": "sources-2026-2027-20261112",
+    "asset": "sources-2026-2027-20261112.vnmsrc",
+    "sha256": "cb7ff544640ad44bd905168e27217206ae79272c65dba9be73a28b14f5aec66f"
+   },
+   "documents": [
+    {
+     "id": "ng-list",
+     "name": "Courses offered to exchange (NG) students",
+     "url": "https://nus.edu.sg/registrar/docs/default-source/prospective-students---non-graduating/ng-courses.pdf",
+     "file": "ng-courses.pdf",
+     "sha256": "4e0281bea179dab976982d4ef14fe24d1436ddd5966786074ff4eb8f792e89a4",
+     "updatedAsAt": "01 Sep 2026",
+     "builder": true,
+     "text": "ng-courses.txt",
+     "note": "the Registrar's non-graduating page links it (https://www.nus.edu.sg/registrar/prospective-students/non-graduating); `text` is its pdftotext output for the quote check, saved with it in the 2026-11-10 folder"
+    },
+    {
+     "id": "restrictions",
+     "name": "Course restrictions for exchange (NG) students",
+     "url": "https://www.nus.edu.sg/registrar/docs/default-source/prospective-students---non-graduating/non-graduating-course-restrictions.pdf",
+     "file": "non-graduating-course-restrictions.pdf",
+     "sha256": "362ba277d12825b4fa9cbde86bcaad1dabf75a74c91b4d4dcaeba37f71c43b92",
+     "updatedAsAt": "31 Aug 2026",
+     "builder": true,
+     "text": "non-graduating-course-restrictions.txt",
+     "note": "also carries a 19 March 2025 footer on its blank pages 21-22 (register I18); `text` is its pdftotext output for the quote check, saved with it in the 2026-11-10 folder"
+    },
+    {
+     "id": "self-funded",
+     "name": "Courses in the NUS self-funded programmes",
+     "url": "http://nus.edu.sg/registrar/docs/info/prospective-students---non-graduating/self-funded-graduate-courses.pdf",
+     "file": "self-funded-graduate-courses.pdf",
+     "sha256": "1fbbd95fa0e3b102894a81a1c76c644d0788149404b42f9618279f9d03b9a0ad",
+     "updatedAsAt": "21 Aug 2025",
+     "builder": true,
+     "note": "linked from the restrictions' rule A (the PDF's link target); fetched directly"
+    },
+    {
+     "id": "self-funded-text",
+     "name": "pdftotext -layout of the self-funded list",
+     "url": null,
+     "file": "self-funded-graduate-courses.txt",
+     "sha256": "6aebe6ed9bac3e8cd8ed5001e5dd7e7b25d455b15717eff4c256fae0bb8c78d1",
+     "updatedAsAt": null,
+     "builder": true,
+     "derivedFrom": "self-funded",
+     "note": "a text extraction, hashed so a changed extraction fails the build"
+    },
+    {
+     "id": "yst-sem1",
+     "name": "YST, AY2026/27 Sem 1 courses for NUS non-music majors",
+     "url": "https://www.ystmusic.nus.edu.sg/sem1-courses-for-nus-non-music-majors/",
+     "file": "yst-sem1-non-music-majors.html",
+     "sha256": "df8910b35487644e4260b1785c2c9cb0d9e0c15ae3e4e3cc723f273bba573aa8",
+     "updatedAsAt": "AY2026/27 Sem 1",
+     "builder": true,
+     "note": "the restrictions' §6 \"listed HERE\" link is dead; YST's electives page points here; the URL is the saved page's canonical link"
+    },
+    {
+     "id": "yst-sem1-text",
+     "name": "text of the Sem 1 page (tags stripped, one text node per line)",
+     "url": null,
+     "file": "yst-sem1-non-music-majors.txt",
+     "sha256": "8e03268929993e263b0534d18e0e3bd556863cf0f87d3f63e7bc2142e9112207",
+     "updatedAsAt": null,
+     "builder": true,
+     "derivedFrom": "yst-sem1",
+     "note": "scripts/yst-text.mjs writes it from the page"
+    },
+    {
+     "id": "yst-sem2",
+     "name": "YST, Sem 2 courses for NUS non-music majors",
+     "url": "https://www.ystmusic.nus.edu.sg/sem2-courses-for-nus-non-music-majors/",
+     "file": "yst-sem2-non-music-majors.html",
+     "sha256": "6361e644c38b7cf2d25b39220f9ee6f851d1419c920890d46886566c4f804e92",
+     "updatedAsAt": "AY2025/26 Sem 2",
+     "builder": true,
+     "note": "AY2025/26's page: YST hadn't published AY2026/27 Sem 2's by 10 Nov 2026 (register I9); the URL is the saved page's canonical link"
+    },
+    {
+     "id": "yst-sem2-text",
+     "name": "text of the Sem 2 page",
+     "url": null,
+     "file": "yst-sem2-non-music-majors.txt",
+     "sha256": "7b63f960ca5b94245288b70c7e808755b39837b22ff5a93d8fd480478cd02f65",
+     "updatedAsAt": null,
+     "builder": true,
+     "derivedFrom": "yst-sem2",
+     "note": "scripts/yst-text.mjs writes it from the page"
+    },
+    {
+     "id": "law-compulsory",
+     "name": "NUS Law course listing, compulsory LLB courses (screenshot)",
+     "url": "http://law.nus.edu.sg/student_matters/course_listing/courses_disp.asp?MT=LL&Sem=ALL&MGC=1",
+     "file": "law-compulsory-llb-courses.png",
+     "sha256": "18a29537cca99f8d91525c9f2ab59378d9808213553e243816800221d26e1249",
+     "updatedAsAt": null,
+     "builder": true,
+     "note": "the restrictions' §5 \"See HERE\"; Jacob's screenshot; the page footer says \"last modified 02 August 2010\" but it lists current courses such as LC2017; the URL is the restrictions' §5 link target; the file is Jacob's screenshot of it"
+    },
+    {
+     "id": "gro-incoming",
+     "name": "NUS Global, Incoming Exchange Students",
+     "url": "https://www.nus.edu.sg/gro/global-programmes/student-exchange/incoming-exchangers",
+     "file": "gro-incoming-exchangers.html",
+     "sha256": "f9cea297846d6e231b999da69b91d0eb61e57e9ae0fd339dd892ecee6ff3bcb6",
+     "updatedAsAt": null,
+     "note": "no date on the page; saved from a browser by Jacob on 2026-11-12 (scripted fetches get a bot-protection challenge); it also carries the Student's Pass, drop-deadline and reselection lines Phase 6 quoted"
+    },
+    {
+     "id": "brochure",
+     "name": "NUS Global, Exchange at NUS (brochure)",
+     "url": "https://nus.edu.sg/gro/docs/default-source/prog/sep/exchangeatnus.pdf",
+     "file": "exchangeatnus.pdf",
+     "sha256": "14bf5e878a52862d19ab915ffdc19a97b6778c0479eb5193fc300533b7664cf1",
+     "updatedAsAt": "4 Jun 2026",
+     "text": "exchangeatnus.txt",
+     "note": "fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output"
+    },
+    {
+     "id": "coursereg-faq",
+     "name": "NUS CourseReg, FAQs for non-graduating students",
+     "url": "https://www.nus.edu.sg/CourseReg/faqs_non_graduate.html",
+     "file": "coursereg-faqs-non-graduate.html",
+     "sha256": "a73aeb4e4a1f60b9b5c5c94b759a343e1016d2057ba973cd92a77af6568b9db0",
+     "updatedAsAt": null,
+     "note": "no date on the page; saved from a browser by Jacob on 2026-11-12 (scripted fetches get a bot-protection challenge)"
+    },
+    {
+     "id": "coursereg-guide",
+     "name": "NUS CourseReg, student user guide",
+     "url": "https://www.nus.edu.sg/coursereg/docs/CourseReg-Student-User-Guide.pdf",
+     "file": "coursereg-student-user-guide.pdf",
+     "sha256": "19560f082cbfb302cd0ca7a1a95f8e26dbcd30c3fdddb800c1aaae691831ade6",
+     "updatedAsAt": null,
+     "note": "no date found in the copy read 2026-11-11 (docs/evidence/phase6/facts.md §3); fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output",
+     "text": "coursereg-student-user-guide.txt"
+    },
+    {
+     "id": "application-guide",
+     "name": "NG online application guide (NUS Science's copy)",
+     "url": "https://www.science.nus.edu.sg/wp-content/uploads/2025/01/NG-online-application-guide-2025-1.pdf",
+     "file": "ng-online-application-guide-2025.pdf",
+     "sha256": "833680ac6652973033c53d2cbada4989205841a598807439bb4343d6d166f082",
+     "updatedAsAt": "August 2024",
+     "note": "a 2025 copy (docs/evidence/phase6/facts.md §3); the page paraphrases it and quotes none of it word for word; fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output",
+     "text": "ng-online-application-guide-2025.txt"
+    },
+    {
+     "id": "biz-factsheet",
+     "name": "NUS Business School, undergraduate exchange factsheet (T2620)",
+     "url": "https://bba.nus.edu.sg/wp-content/uploads/sites/51/2026/07/NUS-Biz-Exchange-Factsheet-UG_T2620.pdf",
+     "file": "nus-biz-exchange-factsheet-ug-t2620.pdf",
+     "sha256": "4fe676012fd6bbfe854da86f6876708da956024bca3d9666caee39e0a9425e4a",
+     "updatedAsAt": "July 2026",
+     "note": "dated by its T2620 issue (docs/evidence/phase6/facts.md §3); fetched 2026-11-12 from the URL; `text` is its pdftotext -layout output",
+     "text": "nus-biz-exchange-factsheet-ug-t2620.txt"
+    },
+    {
+     "id": "info-sheet-2018-19",
+     "name": "NUS SEP information sheet, AY2018/19",
+     "url": "https://international.huji.ac.il/sites/default/files/intl/files/nus_sep_information_sheet_18-19.pdf",
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": "AY2018/19",
+     "note": "a partner university's copy (docs/evidence/phase6/facts.md §4); the page paraphrases it and quotes none of it word for word",
+     "unarchived": "its host (international.huji.ac.il) refused connections on 2026-11-12, twice; quoted as read for Phase 6 (docs/evidence/phase6/facts.md)"
+    }
+   ]
   }
  ],
  "quotes": [
@@ -280,20 +453,20 @@
   {
    "id": "gro-pre-registered",
    "file": "public/shortlist.js",
-   "document": "gro-students-pass",
+   "document": "gro-incoming",
    "text": "three pre-registered courses (or 12 units)"
   },
   {
    "id": "gro-reselection",
    "file": "public/shortlist.js",
-   "document": "gro-reselection",
+   "document": "gro-incoming",
    "text": "If you did not secure any of the popular courses during the first round … please do not repeat your request for any of these courses in subsequent rounds"
   },
   {
    "id": "gro-drop-grade",
    "file": "public/shortlist.js",
-   "document": "gro-drop-deadlines",
-   "text": "could lead to a Grade 'W' … or 'F' printed on your transcript"
+   "document": "gro-incoming",
+   "text": "could lead to a Grade 'W' (Withdrawn) or a Grade 'F' (Fail) printed on your transcript"
   },
   {
    "id": "gro-no-guarantee",
