@@ -24,6 +24,8 @@
     "test:eval": "node eval/selftest.mjs",
     "dev": "node scripts/ui-server.mjs",
     "deploy": "node scripts/deploy.mjs",
+    "remote": "node scripts/remote.mjs",
+    "ops:requests": "node scripts/ops-requests.mjs",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && tsc -p tsconfig.web.json && tsc -p tsconfig.ui.json",
     "test": "vitest run --exclude 'test/full/**' --exclude 'test/sc1/**'",

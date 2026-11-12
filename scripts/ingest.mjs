@@ -4,7 +4,8 @@
 // modules that left the corpus, load the catalogue-only codes into D1
 // catalogue_only (3B), then write src/data-version.json.
 //
-//   npm run ingest -- --year 2026-2027 --url http://localhost:8787
+//   npm run remote -- ingest --d1-only        (the runbook: a session sets WORKER_URL)
+//   npm run ingest -- --url <base>            (any Worker you started yourself)
 //
 // Embedding and upserting happen inside the Worker (POST /admin/ingest), which
 // already holds the AI, Vectorize and D1 bindings — so no Cloudflare API token
@@ -15,7 +16,8 @@
 //
 // Flags:
 //   --year <y>             acad year (default DEFAULT_ACAD_YEAR)
-//   --url <base>           Worker base URL (default $WORKER_URL or http://localhost:8787)
+//   --url <base>           Worker base URL (else $WORKER_URL; no default, and ports 8787 and 8799
+//                          are refused: Phase 7 7C)
 //   --force                re-embed and rewrite every module, whatever the hashes say
 //   --from <code>          only modules whose code sorts at or after <code> (resume a forced run)
 //   --write-budget <n>     stop before D1 rows written would pass n (default 40000, ADR 0002)
@@ -34,6 +36,10 @@
 // Exit codes: 0 done; 1 refused or failed; 2 stopped by the write budget
 // (resumable); 3 Vectorize did not confirm the last mutation in time.
 //
+// Each run that gets past its arguments and the run lock writes a run record
+// (scripts/run-record.mjs, Phase 7 7C) on every exit path: the target, the
+// requests by path, D1 rows read and written, the data version, the outcome.
+//
 // .data/ingest-state.json (git-ignored) keeps, per --url, the last Vectorize
 // mutation id sent and not yet seen processed (with the Worker's time when it
 // was accepted), so a rerun after exit 3 waits for it even when it has nothing
@@ -47,6 +53,8 @@ import { dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { DEFAULTS, runIngest } from './ingest-core.mjs';
+import { workerUrl } from './remote-session.mjs';
+import { startRun } from './run-record.mjs';
 import {
   DEFAULT_ACAD_YEAR, DEFAULT_MAX_AGE_MS, EMBEDDING_MODEL, assertExpectedShape, catalogueOnlyRecords, facetsPayload, fetchAcadYearFile,
   loadNgCourses, offeredModules,
@@ -224,7 +232,8 @@ export function parseIngestArgs(argv, envVars = process.env) {
   if (batchSize > 100) throw new Error('--batch must be at most 100 (the /admin/ingest limit)');
   return {
     acadYear: values.year ?? DEFAULT_ACAD_YEAR,
-    base: (values.url ?? envVars.WORKER_URL ?? 'http://localhost:8787').replace(/\/$/, ''),
+    /** The Worker, or why there is none (no default URL; reserved ports refused). */
+    worker: workerUrl(values.url, envVars),
     offline: values.offline ?? false,
     maxAgeMs: values['max-age'] ? parseDuration(values['max-age']) : DEFAULT_MAX_AGE_MS,
     /** @type {import('./ingest-core.mjs').IngestOptions} */
@@ -276,36 +285,54 @@ export function httpAdminApi(base, secret, fetchImpl = fetch) {
 /** @param {string} version */
 export const dataVersionFile = (version) => `${JSON.stringify({ version }, null, 2)}\n`;
 
+/** Exit code -> run record outcome. @type {Record<number, import('./run-record.mjs').Outcome>} */
+const OUTCOME_BY_CODE = { 0: 'ok', 2: 'partial', 3: 'partial', 130: 'interrupted', 143: 'interrupted' };
+
 /**
  * @param {string[]} argv
  * @param {{ fetchImpl?: typeof fetch, log?: (line: string) => void, dataVersionPath?: string,
  *   envVars?: Record<string, string | undefined>, cacheDir?: URL, statePath?: string, deletesPath?: string,
- *   proc?: Pick<NodeJS.Process, 'on' | 'off' | 'exit'> }} [deps]
+ *   proc?: Pick<NodeJS.Process, 'on' | 'off' | 'exit'>, runsDir?: string }} [deps]
  * @returns {Promise<number>} exit code
  */
 export async function main(argv, deps = {}) {
   const {
     fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, cacheDir, statePath = STATE_PATH, proc = process,
-    deletesPath = D1_ONLY_DELETES,
+    deletesPath = D1_ONLY_DELETES, runsDir,
   } = deps;
   const secret = envVars.INGEST_SECRET;
   if (!secret) {
-    log('INGEST_SECRET is not set. Export the same value the Worker is bound to.');
+    log('INGEST_SECRET is not set. Run it through `npm run remote -- ingest …`, or export the value the Worker is bound to.');
     return 1;
   }
   const args = parseIngestArgs(argv, envVars);
-  const lock = await acquireRunLock(statePath, args.base);
+  if (args.worker.error !== undefined) {
+    log(`ingest: ${args.worker.error} Nothing was sent.`);
+    return 1;
+  }
+  const base = args.worker.base;
+  const lock = await acquireRunLock(statePath, base);
   if ('refused' in lock) {
     log(lock.refused);
     return 1;
   }
+  const record = startRun('ingest', { target: envVars.VNM_REMOTE_TARGET ? `${base} (${envVars.VNM_REMOTE_TARGET})` : base, args: argv, dir: runsDir });
+  // Signals stay with handleSignals (a graceful stop that records in-flight mutations); a forced
+  // second signal exits through proc.exit, which the exit guard records.
+  const stopGuard = record.guardExit(proc, { signals: false });
   const controller = new AbortController();
   const signals = handleSignals(lock, controller, proc, log);
   try {
-    const code = await ingestLocked({ ...args, options: { ...args.options, signal: controller.signal } },
-      { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret, deletesPath });
-    return code === 130 ? (signals.exitCode() ?? code) : code;
+    const result = await ingestLocked({ ...args, base, options: { ...args.options, signal: controller.signal } },
+      { fetchImpl: record.countingFetch(fetchImpl), log, dataVersionPath, cacheDir, statePath, secret, deletesPath, record });
+    const code = result.code === 130 ? (signals.exitCode() ?? result.code) : result.code;
+    record.finish(OUTCOME_BY_CODE[code] ?? (result.status === 'refused' ? 'refused' : 'failed'), { exitCode: code, message: result.message });
+    return code;
+  } catch (err) {
+    record.finish('failed', { exitCode: 1, message: String(/** @type {Error} */ (err)?.message ?? err).split('\n')[0] });
+    throw err;
   } finally {
+    stopGuard();
     signals.off();
     await lock.release();
   }
@@ -313,12 +340,12 @@ export async function main(argv, deps = {}) {
 
 /**
  * The run, once the lock is held.
- * @param {ReturnType<typeof parseIngestArgs>} args
+ * @param {Omit<ReturnType<typeof parseIngestArgs>, 'worker'> & { base: string }} args
  * @param {{ fetchImpl: typeof fetch, log: (line: string) => void, dataVersionPath: string, cacheDir?: URL,
- *   statePath: string, secret: string, deletesPath: string }} deps
- * @returns {Promise<number>}
+ *   statePath: string, secret: string, deletesPath: string, record: import('./run-record.mjs').RunRecord }} deps
+ * @returns {Promise<{ code: number, status: string | null, message: string | null }>}
  */
-async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret, deletesPath }) {
+async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, statePath, secret, deletesPath, record }) {
   const info = await fetchAcadYearFile(args.acadYear, 'moduleInfo.json', {
     offline: args.offline, maxAgeMs: args.maxAgeMs, fetchImpl, ...(cacheDir ? { cacheDir } : {}),
   });
@@ -358,20 +385,27 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, cacheDir, s
 
   log(`rows read          ${result.rowsRead} (ingest and delete calls; /admin/hashes and facets not metered here)`);
   log(`rows written       ${result.rowsWritten} reported by D1; ${result.rowsCharged} charged to the budget (with FTS estimate)`);
+  record.read('D1 rows (ingest and delete calls; /admin/hashes and facets not metered)', { actual: result.rowsRead });
+  record.wrote('D1 rows (estimate: charged to the write budget, with FTS)', { estimate: result.rowsCharged, actual: result.rowsWritten });
+  if (result.dataVersion) record.version('dataVersion', result.dataVersion);
+  if (result.lastMutationId) record.version('lastMutationId', result.lastMutationId);
+  record.detail('mode', options.d1Only ? 'd1-only' : 'full');
+  record.detail('status', result.status);
+  const message = result.message ?? null;
   if (result.status === 'done' && options.d1Only) {
     await mkdir(dirname(deletesPath), { recursive: true });
     await writeFile(deletesPath, `${JSON.stringify({ dataVersion: result.dataVersion, codes: result.deletedCodes }, null, 2)}\n`);
     log(`deleted codes      ${result.deletedCodes.length} -> ${deletesPath} (runbook step 8 deletes their vectors)`);
-    log('next               npm run verify -- --pre-deploy, then npm run deploy (runbook steps 5-6)');
-    return 0;
+    log('next               npm run remote -- verify --pre-deploy, then npm run deploy (runbook steps 5-6)');
+    return { code: 0, status: result.status, message };
   }
   if (result.status === 'done' && result.dataVersion) {
     await writeFile(dataVersionPath, dataVersionFile(result.dataVersion));
     log(`data version       ${result.dataVersion} -> src/data-version.json`);
     log('next               commit src/data-version.json, then npm run deploy (docs/REFERENCE.md "Re-ingesting")');
-    return 0;
+    return { code: 0, status: result.status, message };
   }
-  return { done: 0, refused: 1, failed: 1, budget: 2, 'wait-timeout': 3, interrupted: 130 }[result.status];
+  return { code: { done: 0, refused: 1, failed: 1, budget: 2, 'wait-timeout': 3, interrupted: 130 }[result.status], status: result.status, message };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

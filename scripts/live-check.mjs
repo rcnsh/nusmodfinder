@@ -41,7 +41,9 @@
 // --seed           the draw's seed (default 5)
 // --dry-run        print the draw and send nothing
 //
-// Exit 0 when every check passes, 1 when one fails, 2 on a usage error.
+// Exit 0 when every check passes, 1 when one fails, 2 on a usage error. Against
+// a live URL (not localhost) each run writes a run record with every request
+// sent, by path (scripts/run-record.mjs, Phase 7 7C).
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -52,6 +54,7 @@ import { semLabel } from '../public/format.js';
 import { readSc2, sc2Expected, sc2Problems } from '../test/ui/sc2-fields.mjs';
 import { axeViolations } from '../test/ui/support.mjs';
 import { CLOSED_KINDS, GAP_MS, drawHidden, drawSc2, loadModules, parseArgs, rng } from './p5-live-plan.mjs';
+import { recordedLiveRun } from './run-record.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const UA = devices['Desktop Chrome'].userAgent;
@@ -91,7 +94,8 @@ function createPacer() {
 const isApi = (path) => path === '/search' || path === '/facets' || path === '/health' || path.startsWith('/module/') || path.startsWith('/admin');
 
 /**
- * @param {{ url: string, log: string }} opts
+ * @param {{ url: string, log: string, onSend?: (path: string) => void }} opts
+ *   `onSend`: each request sent to the network, by path (the run record, Phase 7 7C)
  */
 function createSite(opts) {
   const slot = createPacer();
@@ -119,6 +123,7 @@ function createSite(opts) {
     for (let attempt = 1; ; attempt++) {
       const started = await slot(isApi(path) ? 'api' : 'asset');
       sent++;
+      opts.onSend?.(path);
       let res;
       try {
         res = await send();
@@ -218,7 +223,7 @@ async function foldProblems(page, stamps) {
 }
 
 /**
- * @param {ReturnType<typeof parseArgs>} opts
+ * @param {ReturnType<typeof parseArgs> & { onSend?: (path: string) => void }} opts
  * @returns {Promise<Outcome[]>}
  */
 async function run(opts) {
@@ -425,6 +430,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.error(`p5-live: ${/** @type {Error} */ (err).message}`);
     process.exit(2);
   }
-  const outcomes = await run(opts);
+  // Phase 7 7C: a run against a live URL leaves a run record (scripts/run-record.mjs), whatever the result.
+  const outcomes = opts.dryRun ? await run(opts) : await recordedLiveRun('p5-live', opts, run);
   process.exit(outcomes.some((o) => !o.pass) ? 1 : 0);
 }
