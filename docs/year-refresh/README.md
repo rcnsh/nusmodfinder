@@ -39,9 +39,16 @@ and each file's sha256 the manifest lists (`scripts/sources.mjs`).
 ```bash
 npm run sources -- keygen --out ~/.config/vnm/sources-archive.key   # once: a random 256-bit key, mode 0600, never printed
 npm run sources -- hash --from <dir>                                # each file's sha256, for the manifest
-npm run sources -- publish --from <dir> [<year>] [--revision <date>] # refuses a document still to confirm, a sha256 that differs, an archive that exists
+npm run sources -- publish --from <dir> [<year>] [--revision <date>] # refuses a document still to confirm, a sha256 that differs, an archive that exists, a name that is a path
 npm run sources -- restore [<year>] [--revision <date>] [--out <dir>] # unpacks into a temp dir and prints it
 ```
+
+Every document's `file` and `text` is a plain base name: no `/`, `\`, `..`, absolute path or NUL
+(red team L-4); `year check`, publish and restore refuse any other, and restore checks each archive
+entry's name before writing. A document's `text` is its pdftotext extraction, archived with it;
+publish writes its sha256 into the manifest as `textSha256` (red team L-5), and restore,
+`year check --full` and the restrictions builder refuse a text that differs. List `text` in the
+revision before publishing and leave `textSha256` out: publish fills it in.
 
 The key is read from `--key <path>`, else `VNM_SOURCES_KEY_FILE`, else
 `~/.config/vnm/sources-archive.key`; never from the holdout key's path. Back it up in Bitwarden
@@ -100,8 +107,9 @@ and the oracle stay as they are, so there are no sources, no transcription, no k
 6. **Ingest and verify.** Same year, so no `--allow-year-change`. Ingest rewrites only the rows
    whose hash changed, and the catalogue-only rows that changed. The default 40,000-row budget
    covers even a rewrite of every module (about 37.3k charged). If it stops at the budget (exit 2),
-   rerun the same command: it resumes. If more than 5% of D1's codes leave the corpus, it refuses
-   until you pass `--allow-mass-delete` for a drop you've checked.
+   rerun the same command: it resumes. If more than 5% of D1's codes leave the corpus, in the
+   modules or in `catalogue_only`, it refuses before any write until you pass
+   `--allow-mass-delete` for a drop you've checked.
    ```bash
    npm run remote -- ingest --d1-only
    npm run remote -- verify --pre-deploy
@@ -148,7 +156,8 @@ from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollb
    ```bash
    npm run corpus -- fetch <yyyy-yyyy>
    npm run corpus -- publish --new-data-version
-   python3 scripts/extract-ng.py <dir>/ng-courses.pdf --year <yyyy-yyyy>   # keeps only the year's sections; fails on a published semester with none
+   python3 -m venv .venv && .venv/bin/pip install pypdf                     # once; --full needs it too
+   .venv/bin/python scripts/extract-ng.py <dir>/ng-courses.pdf --year <yyyy-yyyy>   # keeps only the year's sections; fails on a published semester with none
    npm run sources -- restore                                               # prints <restored dir>
    node scripts/build-ng-restrictions.mjs --sources <restored dir>          # after the overlay (overlay.md)
    node scripts/build-ng-reasons.mjs
@@ -161,8 +170,12 @@ from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollb
    transcription, a ruling in the register, a rules bug in the overlay or builder, an oracle bug by
    a fresh oracle author (never by whoever wrote the rules).
 7. **Checks.** `npm run year -- check --full` restores the archive, finds every indexed quote in
-   its document word for word, and rebuilds the rules file byte for byte; commit the run record it
-   writes (the deploy preflight needs it whenever a source-derived input changed). Then the bundle:
+   its document word for word, re-extracts `data/ng-courses-<year>.json` from the archived NG list
+   PDF with `.venv/bin/python scripts/extract-ng.py` and requires it byte for byte (its semester
+   sections included; the record names each section's count), and rebuilds the rules file byte for
+   byte. Without `.venv/bin/python` and `pypdf` it refuses, printing
+   `python3 -m venv .venv && .venv/bin/pip install pypdf`. Commit the run record it writes (the
+   deploy preflight needs it whenever a source-derived input changed). Then the bundle:
    `node scripts/vectors.mjs build --corpus production --expect-count <rows>` and the other
    builders (`docs/REFERENCE.md`, "Re-ingesting for a new acad year", step 1).
 8. **PR.** CI runs `sc1` and `rollover` on the new year. Merge only when the PR is complete.
@@ -203,6 +216,10 @@ from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollb
 - **`year check --full` fails on a quote:** NUS changed the sentence, or it was never verbatim. Fix
   the copy in `src/` or `public/` to NUS's words, or mark the quote `unarchived` with the reason
   when its page can't be archived.
+- **`year check --full` fails on the NG list:** `data/ng-courses-<year>.json` is not what the
+  archived PDF extracts to. Re-extract it from the PDF the revision archives (step 5) rather than
+  editing it by hand; a course the extraction misses is a bug in `scripts/extract-ng.py`, fixed
+  there (with a test) so `--full` reproduces the file.
 
 ## A mid-year revision
 
