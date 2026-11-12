@@ -3,8 +3,8 @@
 // and wrangler exec answered from a table, GitHub's push runs, and production D1 behind the
 // real D1 REST client (scripts/d1-rest.mjs) with a fake fetch. Nothing here reaches GitHub,
 // Cloudflare or the repo's remote.
-import { HASHES_SQL, REQUIRED_TRIGGERS } from '../src/admin-hashes.js';
-import { dataVersion, ROW_COLUMNS } from '../src/rowhash.js';
+import { CATALOGUE_CODES_SQL, CATALOGUE_TABLE_SQL, HASHES_SQL, REQUIRED_TRIGGERS } from '../src/admin-hashes.js';
+import { catalogueKey, dataVersion, ROW_COLUMNS } from '../src/rowhash.js';
 import { rowsKey } from '../src/vector-bundle.js';
 import { d1RestClient } from '../scripts/d1-rest.mjs';
 
@@ -28,6 +28,11 @@ export const D1_MODULES = /** @type {const} */ ([
 ]);
 export const DV = await dataVersion(D1_MODULES.map((m) => ({ code: m.code, rowHash: m.row_hash })));
 export const KEY = await rowsKey(D1_MODULES.map((m) => ({ code: m.code, textHash: m.text_hash })));
+/** D1's catalogue_only codes, and the bundled catalogue file built with them (Phase 7 7D). */
+export const CATALOGUE = /** @type {const} */ (['AA0999', 'GEQ1000']);
+export const CATALOGUE_KEY = await catalogueKey([...CATALOGUE]);
+/** The bundled catalogue file, as deploy's `catalogue` dep reads it. @param {readonly string[]} [codes] */
+export const catalogueOf = (codes = CATALOGUE) => async () => ({ codes: [...codes] });
 
 /** @param {Partial<{ corpus: string, sha256: string, dataVersion: string, rowsKey: string }>} [o] */
 export const bundleOf = (o = {}) => async () => {
@@ -118,12 +123,14 @@ export const HEALTHY_SCHEMA = {
 
 /**
  * Production D1 behind the real REST client: a fake fetch answers the schema query and the
- * hashes query from `modules`, and any SQL in `extra` (by exact text), with `rows_read` in meta.
+ * hashes query from `modules`, catalogue_only from `catalogue` (null: no table), and any SQL in
+ * `extra` (by exact text), with `rows_read` in meta.
  * @param {{ modules?: readonly Record<string, unknown>[], rowsRead?: number, extra?: Record<string, Record<string, unknown>[]>,
- *   status?: number, token?: string }} [o]
+ *   status?: number, token?: string, catalogue?: readonly string[] | null }} [o]
  */
 export function fakeD1(o = {}) {
   const { modules = D1_MODULES, rowsRead = 6800, extra = {}, status = 200, token = TOKEN } = o;
+  const catalogue = o.catalogue === undefined ? CATALOGUE : o.catalogue;
   /** @type {{ url: string, sql: string, params: unknown[], auth: string | null }[]} */
   const sent = [];
   /** @type {typeof fetch} */
@@ -136,6 +143,8 @@ export function fakeD1(o = {}) {
     let read = 1;
     if (/FROM meta WHERE key = 'schema'/.test(body.sql)) results = [HEALTHY_SCHEMA];
     else if (body.sql === HASHES_SQL) { results = [...modules]; read = rowsRead; }
+    else if (body.sql === CATALOGUE_TABLE_SQL) results = catalogue ? [{ name: 'catalogue_only' }] : [];
+    else if (body.sql === CATALOGUE_CODES_SQL && catalogue) { results = catalogue.map((code) => ({ code })); read = Math.max(1, catalogue.length); }
     else if (body.sql in extra) { results = extra[body.sql]; read = results.length; }
     else return Response.json({ success: false, errors: [{ code: 7500, message: `no such query in the fake: ${body.sql}` }], result: null }, { status: 400 });
     return Response.json({ success: true, errors: [], messages: [], result: [{ results, success: true, meta: { rows_read: read, rows_written: 0 } }] });

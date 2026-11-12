@@ -15,6 +15,7 @@ import {
   CORPUS_SCHEMA, checkCurrent, corpusDataVersion, corpusPath, currentEntry, loadCurrentCorpus, publishCorpus, readCorpusManifest,
   releaseName, restoreCurrent,
 } from '../scripts/corpus-manifest.mjs';
+import { corpusCheck, preflight as corpusPreflight } from '../scripts/corpus.mjs';
 import { main as ingestMain } from '../scripts/ingest.mjs';
 import { DEFAULT_ACAD_YEAR, catalogueOnlyRecords, loadNgCourses } from '../scripts/lib.mjs';
 import { catalogueKey } from '../src/rowhash.js';
@@ -192,6 +193,60 @@ describe('CI: npm run corpus -- check', () => {
     expect(r.dataVersion.committed).toBe(before);
     expect(r.dataVersion.asset).not.toBe(before);
     expect(r.problems.join('\n')).toMatch(/data version/);
+  });
+});
+
+describe('the deploy preflight\'s "corpus manifest" check (7B\'s optional check, scripts/corpus.mjs preflight)', () => {
+  /** A real checkCurrent over a temp manifest, a restored BODY and the given committed files, as corpusCheck. */
+  async function setup(/** @type {{ version?: string, codes?: string[], stale?: string[] }} */ o = {}) {
+    const manifestPath = await manifest();
+    const prod = join(dir, 'prod');
+    const ng = await loadNgCourses(Y);
+    const dataVersionPath = join(dir, 'data-version.json');
+    await writeFile(dataVersionPath, JSON.stringify({ version: o.version ?? await corpusDataVersion(RECORDS, Y, ng) }));
+    const cataloguePath = join(dir, 'catalogue-codes.json');
+    await writeFile(cataloguePath, JSON.stringify({ source: { moduleInfoSha256: SHA }, codes: o.codes ?? ['AA0999', 'AB0998'] }));
+    /** @type {string[]} */
+    const lines = [];
+    /** @type {import('../scripts/corpus-manifest.mjs').Download} */
+    const download = async (_release, asset, into) => { await writeFile(join(into, asset), gzipSync(BODY)); };
+    /** @type {typeof restoreCurrent} */
+    const restore = (r = {}) => restoreCurrent({ manifestPath, dir: prod, download, ...(r.log ? { log: r.log } : {}) });
+    const check = () => corpusCheck({
+      check: () => checkCurrent({ manifestPath, dir: prod, dataVersionPath, cataloguePath, ngCourses: ng }),
+      built: async () => ({}), stale: async () => o.stale ?? [],
+    });
+    return { run: () => corpusPreflight({ log: (l) => lines.push(l), restore, check }), lines, prod };
+  }
+
+  it('restores current into a checkout with none, then passes when everything follows it', async () => {
+    const { run, lines, prod } = await setup();
+    expect(existsSync(corpusPath({ sha256: SHA }, prod))).toBe(false);
+    const r = await run();
+    expect(r).toMatchObject({ ok: true });
+    expect(r.message).toMatch(new RegExp(`${RELEASE}: data version [0-9a-f]{12} and catalogueKey [0-9a-f]{12} follow it`));
+    expect(existsSync(corpusPath({ sha256: SHA }, prod))).toBe(true);
+    expect(lines.join('\n')).toMatch(/deploy: preflight: corpus: restored/);
+  });
+
+  it('fails on a stale src/data-version.json, a catalogue file missing a code, or a stale 3B file, naming each', async () => {
+    const dv = await setup({ version: 'aaaaaaaaaaaa' });
+    expect(await dv.run()).toMatchObject({ ok: false, message: expect.stringMatching(/data version.*aaaaaaaaaaaa/) });
+    const cat = await setup({ codes: ['AA0999'] });
+    expect(await cat.run()).toMatchObject({ ok: false, message: expect.stringMatching(/catalogueKey/) });
+    const stale = await setup({ stale: ['data/prefixes.json'] });
+    expect(await stale.run()).toMatchObject({ ok: false, message: expect.stringMatching(/data\/prefixes\.json is not what/) });
+  });
+
+  it('fails, saying so, when current can\'t be restored', async () => {
+    const r = await corpusPreflight({ log: () => {}, restore: async () => { throw new Error('gh: release not found'); }, check: async () => { throw new Error('unreached'); } });
+    expect(r).toEqual({ ok: false, message: 'could not restore current (npm run corpus -- restore): gh: release not found' });
+  });
+
+  it('is what scripts/preflight.mjs loads for its "corpus manifest" check', async () => {
+    const { OPTIONAL_CHECKS } = await import('../scripts/preflight.mjs');
+    expect(OPTIONAL_CHECKS.find((c) => c.name === 'corpus manifest')?.module).toBe('scripts/corpus.mjs');
+    expect(typeof (await import('../scripts/corpus.mjs')).preflight).toBe('function');
   });
 });
 

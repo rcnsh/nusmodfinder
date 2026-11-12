@@ -14,8 +14,8 @@ import { ALLOWED_VARS, MAX_STARTUP_MS, STARTUP_PROFILE, deploy, wranglerVars } f
 import { productionD1 } from '../scripts/d1-read.mjs';
 import { GUARD_CHECKS } from '../scripts/guard.mjs';
 import {
-  D1_MODULES, DV, KEY, NOW, PREVIOUS, RUNS_API, SHA, SHIM, SHORT, STATUS_KEY, TAG, TOKEN, VERSION,
-  bundleOf, fakeD1, fakeExec, ghRun, runsBody,
+  CATALOGUE, CATALOGUE_KEY, D1_MODULES, DV, KEY, NOW, PREVIOUS, RUNS_API, SHA, SHIM, SHORT, STATUS_KEY, TAG, TOKEN, VERSION,
+  bundleOf, catalogueOf, fakeD1, fakeExec, ghRun, runsBody,
 } from './deploy-fakes.node.mjs';
 
 /** Each test's run records (Phase 7 7C), in a temp dir. @type {string} */
@@ -29,7 +29,7 @@ const recordText = () => readdirSync(runsDir).map((f) => readFileSync(join(runsD
  * @param {import('../scripts/deploy.mjs').Exec} exec
  * @param {{ bundle?: () => Promise<import('../scripts/deploy.mjs').DeployBundle>, d1?: () => any, committed?: string,
  *   vars?: Record<string, unknown>, argv?: string[], env?: Record<string, string | undefined>, signals?: EventEmitter,
- *   guardChecks?: import('../scripts/guard.mjs').GuardCheck[] }} [o]
+ *   guardChecks?: import('../scripts/guard.mjs').GuardCheck[], catalogue?: () => Promise<{ codes: string[] }> }} [o]
  */
 async function runDeploy(exec, o = {}) {
   /** @type {string[]} */
@@ -44,6 +44,7 @@ async function runDeploy(exec, o = {}) {
     bundle: o.bundle ?? bundleOf(),
     d1: async () => { d1Reads++; return o.d1 ? o.d1() : fakeD1().client; },
     committedDataVersion: async () => o.committed ?? DV,
+    catalogue: o.catalogue ?? catalogueOf(),
     vars: async () => o.vars ?? { DENSE_BACKEND: 'bundle' },
     runsDir, now: () => NOW, env: o.env ?? {}, moduleExists: () => false,
     signals: o.signals ?? new EventEmitter(), exit: (c) => { exits.push(c); },
@@ -137,7 +138,8 @@ describe('npm run deploy', () => {
     expect(out).toContain('startup 21 ms');
     expect(out).toContain(`version ${VERSION} (tag ${SHORT}) is live`);
     // The schema check reads 1 row in the fake, the hashes 6,800.
-    expect(out).toMatch(/guard: 2 modules, 6801 D1 rows read/);
+    // The schema row, 6,800 module rows, and 7D's catalogue_only table check and codes.
+    expect(out).toMatch(new RegExp(`guard: 2 modules, ${6800 + 1 + 1 + CATALOGUE.length} D1 rows read`));
     expect(out).toContain(`previous version ${PREVIOUS}`);
   });
 
@@ -266,7 +268,7 @@ describe('the guard over the D1 REST query (Phase 7 7B, G1)', () => {
     const d1 = fakeD1({ rowsRead: 6812 });
     expect((await runDeploy(fakeExec().exec, { d1: async () => d1.client })).code).toBe(0);
     expect(d1.sent.every((s) => /^\s*SELECT/i.test(s.sql))).toBe(true);
-    expect(records()[0].read).toEqual([{ what: expect.stringMatching(/D1 rows.*REST/), estimate: 2, actual: 6812 + 1 }]);
+    expect(records()[0].read).toEqual([{ what: expect.stringMatching(/D1 rows.*REST/), estimate: 2, actual: 6812 + 1 + 1 + CATALOGUE.length }]);
   });
 
   it('in GitHub Actions, a D1 that differs from the bundle fails with the Mac runbook, and nothing is uploaded', async () => {
@@ -294,23 +296,52 @@ describe('the guard over the D1 REST query (Phase 7 7B, G1)', () => {
 
   it('a second comparison is one entry added to the list: its failure refuses, its value goes in the tag', async () => {
     /** @type {import('../scripts/guard.mjs').GuardCheck} */
-    const extra = { name: 'catalogueKey', field: 'catalogueKey', d1: async () => 'cat-d1', expected: () => 'cat-d1', fix: 'Re-ingest the catalogue.' };
+    const extra = { name: 'extraKey', field: 'extraKey', d1: async () => 'x-d1', expected: () => 'x-d1', fix: 'Re-ingest the extra.' };
     const { exec, calls } = fakeExec();
     expect((await runDeploy(exec, { guardChecks: [...GUARD_CHECKS, extra] })).code).toBe(0);
     const tag = /** @type {string[]} */ (calls.find((c) => c[1] === 'tag'));
-    expect(tag).toContain('catalogueKey: cat-d1');
+    expect(tag).toContain('extraKey: x-d1');
 
     const { exec: exec2, calls: calls2 } = fakeExec();
-    const r = await runDeploy(exec2, { guardChecks: [...GUARD_CHECKS, { ...extra, expected: () => 'cat-bundled' }] });
+    const r = await runDeploy(exec2, { guardChecks: [...GUARD_CHECKS, { ...extra, expected: () => 'x-bundled' }] });
     expect(r.code).toBe(1);
-    expect(r.err).toMatch(/catalogueKey.*cat-d1.*cat-bundled.*Re-ingest the catalogue/s);
+    expect(r.err).toMatch(/extraKey.*x-d1.*x-bundled.*Re-ingest the extra/s);
     expect(ranWrangler(calls2)).toBe(false);
   });
 
-  it('the shipped checks are rowsKey and the data version', () => {
-    expect(GUARD_CHECKS.map((c) => c.name)).toEqual(['rowsKey', 'dataVersion']);
+  it('the shipped checks are rowsKey, the data version and 7D\'s catalogueKey', () => {
+    expect(GUARD_CHECKS.map((c) => c.name)).toEqual(['rowsKey', 'dataVersion', 'catalogueKey']);
     expect(GUARD_CHECKS.find((c) => c.name === 'dataVersion')?.field).toBe('dataVersion');
+    expect(GUARD_CHECKS.find((c) => c.name === 'catalogueKey')?.field).toBe('catalogueKey');
     expect(KEY).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+describe('Phase 7 7D: the catalogueKey in the guard', () => {
+  it('D1\'s catalogue_only codes equal to the bundled file\'s deploy, with the key in the tag and the record', async () => {
+    const { exec, calls } = fakeExec();
+    expect((await runDeploy(exec)).code).toBe(0);
+    expect(/** @type {string[]} */ (calls.find((c) => c[1] === 'tag'))).toContain(`catalogueKey: ${CATALOGUE_KEY}`);
+    expect(records()[0].versions.catalogueKey).toBe(CATALOGUE_KEY);
+  });
+
+  it('refuses before any wrangler call when D1\'s catalogue_only is not the bundled file\'s, naming both keys and the fix', async () => {
+    const { exec, calls } = fakeExec();
+    const r = await runDeploy(exec, { d1: () => fakeD1({ catalogue: [...CATALOGUE, 'AI5206'] }).client });
+    expect(r.code).toBe(1);
+    expect(r.err).toMatch(new RegExp(`catalogueKey, over its catalogue_only codes, is [0-9a-f]{12}, the bundled catalogue file's \\(data/catalogue-codes.json\\) says ${CATALOGUE_KEY}`));
+    expect(r.err).toMatch(/runbook step 4/);
+    expect(ranWrangler(calls)).toBe(false);
+    expect(records()[0]).toMatchObject({ outcome: 'refused' });
+  });
+
+  it('refuses when the bundled file gained a code D1 lacks, and when D1 has no catalogue_only table', async () => {
+    const { exec } = fakeExec();
+    expect((await runDeploy(exec, { catalogue: catalogueOf([...CATALOGUE, 'AI5206']) })).code).toBe(1);
+    const { exec: exec2 } = fakeExec();
+    const r = await runDeploy(exec2, { d1: () => fakeD1({ catalogue: null }).client });
+    expect(r.code).toBe(1);
+    expect(r.err).toMatch(/catalogueKey, over its catalogue_only codes, is unknown/);
   });
 });
 

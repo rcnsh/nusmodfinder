@@ -542,9 +542,12 @@ This is the only supported way to deploy, from the Mac or from GitHub Actions (b
    - `bundle`: the production bundle `data/vectors.json` records (downloaded from its release if
      absent), sha256-checked, at `src/data-version.json`'s data version; never the fixture or
      pinned bundle;
-   - `corpus manifest` (7D, `scripts/corpus.mjs`) and `year check` in its CI mode (7E,
-     `scripts/year.mjs`): each runs its module's `preflight({ exec, head, log })`, and is
-     skipped, and says so in the output and the record, while that module is absent;
+   - `corpus manifest` (7D, `scripts/corpus.mjs`): restores `current` (`npm run corpus --
+     restore`, sha-checked), then `npm run corpus -- check`: `src/data-version.json`, the bundled
+     catalogue file's `catalogueKey` and the 3B files follow it;
+   - `year check` in its CI mode (7E, `scripts/year.mjs`): runs its module's
+     `preflight({ exec, head, log })`, and is skipped, and says so in the output and the record,
+     while that module is absent;
    - `source inputs`: when `HEAD` changes a source-derived input (`data/ng-*`,
      `scripts/ng-overlay/`) since the live commit (the newest `deploy/*` or `rollback/*` tag), a
      committed `year check --full` run record (7E) whose `details.sourceInputsHash` is those
@@ -552,12 +555,14 @@ This is the only supported way to deploy, from the Mac or from GitHub Actions (b
      `git ls-tree` lines). A hotfix that touches none needs no sources key;
    - `startup`: `wrangler check startup` locally with the bundle aliased in;
 2. **the guard** (`scripts/guard.mjs`): reads D1 over the D1 REST query endpoint
-   (`scripts/d1-rest.mjs`, ~6.8k rows read, the count taken from the answers' `meta.rows_read`)
-   and computes what `GET /admin/hashes` would answer, with the same code (`src/admin-hashes.js`).
-   It refuses unless D1's (code, `text_hash`) pairs hash to the bundle's `rowsKey` and D1's data
-   version is the committed one. No Worker session starts and no secret is bound. The checks are
-   a list (`GUARD_CHECKS`); one with a `field` also goes into the deploy tag and rollback's data
-   check (7D adds `catalogueKey` there);
+   (`scripts/d1-rest.mjs`, ~6.8k module and ~14.4k catalogue rows read, the count taken from the
+   answers' `meta.rows_read`) and computes what `GET /admin/hashes` would answer, with the same
+   code (`src/admin-hashes.js`). It refuses unless D1's (code, `text_hash`) pairs hash to the
+   bundle's `rowsKey`, D1's data version is the committed one, and D1's `catalogueKey` (its
+   `catalogue_only` codes, 7D) is the bundled catalogue file's (`data/catalogue-codes.json`). No
+   Worker session starts and no secret is bound. The checks are a list (`GUARD_CHECKS`); one with
+   a `field` (`dataVersion`, `catalogueKey`) also goes into the deploy tag and rollback's data
+   check;
 3. `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`, and refuses to
    promote a version whose reported startup time is missing or over 200 ms;
 4. **the intent record**: the version id, the previous one (`wrangler deployments status
@@ -622,8 +627,9 @@ npm run rollback -- --to <version id>    # or its first 8
 ```
 
 `scripts/rollback.mjs` takes the target's commit and data version from its `deploy/*` tag, reads
-D1 directly over the REST query (no Worker session, no working-tree code; ~6.8k rows today) and
-refuses unless every tagged field (`dataVersion`; 7D's `catalogueKey`) equals D1's. A deliberate
+D1 directly over the REST query (no Worker session, no working-tree code; ~21k rows) and
+refuses unless every tagged field (`dataVersion`, `catalogueKey`) equals D1's; a tag without one
+of them is refused too. A deliberate
 mismatch needs `--accept-data-mismatch`, which prints the risk; the usual path across a data
 change is `npm run d1:restore` first, then rollback. It asks before acting (or `--yes`), runs
 `wrangler rollback <id> --message "rollback to <tag>" -y`, tags `rollback/<time>-<id8>` on the
@@ -661,14 +667,18 @@ npm run smoke -- --expect <sha>          # after a rollback, the target's
 bundle is `production`), `/` (200 with the CSP header), `/module/<code>` for a code in no group
 whose title is unique in that commit's corpus and bundle, `/search` for the title `/module`
 gave (`cache;desc=miss`, not degraded, the code in the top 5) and `/facets`. The data version,
-the groups and the bundle's codes come from the expected commit's files; titles come from the
-production corpus (`.data/cache` on the Mac until 7D's manifest). The URL is `wrangler.jsonc`'s
+the groups and the bundle's codes come from the expected commit's files; titles come from its
+production corpus, `current` in its `data/corpus.json` (restored and sha-checked; a commit from
+before the manifest uses the working tree's, and says so). The URL is `wrangler.jsonc`'s
 Custom Domain at that commit, or `--url`.
 
 **Back-filled tags.** The two Phase 6 deploys predate the tags; `node scripts/deploy-tag.mjs
 backfill` prints the commands that create and push them (`deploy/20261111T183946Z-f8aefeab` on
 `0b5f360`, `deploy/20261111T235933Z-b0834844` on `a23601d`, both at data version
-`d820d578cf81`, marked `backfilled: true`). It runs nothing.
+`d820d578cf81` and `catalogueKey` `5b1e2f06e559`, marked `backfilled: true`). It runs nothing.
+Their `catalogueKey` is computed, not read: D1 was loaded from `prod-2026-2027-20261104`
+(`current`) and not written since, so it is that corpus's catalogue-only key; the first
+`catalogueKey` read of D1 after 7D checks it.
 
 Plain `npx wrangler deploy` would ship the fixture bundle. Don't use it.
 

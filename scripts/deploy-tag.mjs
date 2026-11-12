@@ -107,6 +107,15 @@ export async function findVersionTag({ exec, versionId, fetch = true }) {
 }
 
 /**
+ * The catalogueKey the back-filled tags record (Phase 7 7D): D1's catalogue_only as both Phase 6
+ * deploys served it. D1 was loaded from prod-2026-2027-20261104 (data/corpus.json, the corpus
+ * D1's data version d820d578cf81 comes from) and has not been written since, so this is that
+ * corpus's catalogue-only codes' key (`npm run corpus -- check` prints it), computed, not read
+ * from D1; the first catalogueKey read of D1 after 7D merges checks it.
+ */
+export const BACKFILL_CATALOGUE_KEY = '5b1e2f06e559';
+
+/**
  * The two back-filled tags (Phase 7 7B): the Phase 6 deploys, made before deploy tagged its
  * versions, at their promote times (docs/evidence/phase6/remote-ops.md, corrected to UTC dates).
  * @type {{ name: string, commit: string, date: string, title: string, fields: Record<string, string> }[]}
@@ -117,7 +126,7 @@ export const BACKFILL = [
     title: 'deploy f8aefeab (back-filled)',
     fields: {
       versionId: 'f8aefeab-49c4-4548-b994-73bc6bae4f86', previousVersionId: '59986aa3-48d9-4344-8f5d-29e095709ca6',
-      commit: '0b5f360c7faea8424215b4d4ddde81ebb1d850ff', dataVersion: 'd820d578cf81', startupMs: '2', backfilled: 'true',
+      commit: '0b5f360c7faea8424215b4d4ddde81ebb1d850ff', dataVersion: 'd820d578cf81', catalogueKey: BACKFILL_CATALOGUE_KEY, startupMs: '2', backfilled: 'true',
       source: 'docs/evidence/phase6/remote-ops.md',
     },
   },
@@ -126,7 +135,7 @@ export const BACKFILL = [
     title: 'deploy b0834844 (back-filled)',
     fields: {
       versionId: 'b0834844-f6fd-4bb9-838d-a45927c195fb', previousVersionId: 'f8aefeab-49c4-4548-b994-73bc6bae4f86',
-      commit: 'a23601de0b15934960bfef1d8b56ab3e80fa5587', dataVersion: 'd820d578cf81', backfilled: 'true',
+      commit: 'a23601de0b15934960bfef1d8b56ab3e80fa5587', dataVersion: 'd820d578cf81', catalogueKey: BACKFILL_CATALOGUE_KEY, backfilled: 'true',
       source: 'docs/evidence/phase6/remote-ops.md',
     },
   },

@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GUARD_CHECKS } from '../scripts/guard.mjs';
 import { rollback } from '../scripts/rollback.mjs';
-import { DV, NOW, TAG_FETCH, TAG_LIST, fakeD1 } from './deploy-fakes.node.mjs';
+import { CATALOGUE_KEY, DV, NOW, TAG_FETCH, TAG_LIST, fakeD1 } from './deploy-fakes.node.mjs';
 
 const LIVE = '9b1c2d3e-4f50-4a6b-8c7d-0e1f2a3b4c5d';
 const PREV = 'b0834844-f6fd-4bb9-838d-a45927c195fb';
@@ -24,8 +24,8 @@ const DEPLOYMENTS = JSON.stringify([
   { id: 'd2', created_on: '2026-11-11T23:59:33Z', versions: [{ version_id: PREV, percentage: 100 }] },
   { id: 'd3', created_on: '2026-11-12T10:15:30Z', versions: [{ version_id: LIVE, percentage: 100 }] },
 ]);
-/** @param {string} id @param {string} dv @param {Record<string, string>} [more] */
-const tagText = (id, dv, more = {}) => [`deploy ${id.slice(0, 8)}`, `versionId: ${id}`, `dataVersion: ${dv}`, ...Object.entries(more).map(([k, v]) => `${k}: ${v}`)].join('\n\n');
+/** A tag's annotation; by default with D1's catalogueKey (7D). @param {string} id @param {string} dv @param {Record<string, string>} [more] */
+const tagText = (id, dv, more = { catalogueKey: CATALOGUE_KEY }) => [`deploy ${id.slice(0, 8)}`, `versionId: ${id}`, `dataVersion: ${dv}`, ...Object.entries(more).map(([k, v]) => `${k}: ${v}`)].join('\n\n');
 
 /** @param {Record<string, any>} [over] */
 function fakeExec(over = {}) {
@@ -87,11 +87,13 @@ describe('npm run rollback', () => {
     expect(tag).toContain(`versionId: ${PREV}`);
     expect(tag).toContain(`previousVersionId: ${LIVE}`);
     expect(tag).toContain(`dataVersion: ${DV}`);
+    expect(tag).toContain(`catalogueKey: ${CATALOGUE_KEY}`);
     expect(calls).toContainEqual(['git', 'push', 'origin', 'refs/tags/rollback/20261112T101530Z-b0834844']);
     expect(out).toContain(`npm run smoke -- --expect ${PREV_COMMIT}`);
     expect(records()).toEqual([expect.objectContaining({
-      script: 'rollback', outcome: 'ok', versions: expect.objectContaining({ versionId: PREV, previousVersionId: LIVE, dataVersion: DV }),
-      read: [expect.objectContaining({ what: expect.stringMatching(/D1 rows/), actual: 6801 })],
+      script: 'rollback', outcome: 'ok', versions: expect.objectContaining({ versionId: PREV, previousVersionId: LIVE, dataVersion: DV, catalogueKey: CATALOGUE_KEY }),
+      // The schema row, 6,800 module rows, and 7D's catalogue_only table check and its 2 codes.
+      read: [expect.objectContaining({ what: expect.stringMatching(/D1 rows/), actual: 6800 + 1 + 1 + 2 })],
     })]);
   });
 
@@ -120,23 +122,28 @@ describe('npm run rollback', () => {
     expect(rolledBack(calls2)).toBeDefined();
   });
 
-  it('refuses a catalogueKey mismatch, or a tag missing a field a check names', async () => {
-    /** @type {import('../scripts/guard.mjs').GuardCheck} */
-    const catalogue = { name: 'catalogueKey', field: 'catalogueKey', d1: async () => 'cat-now', expected: () => 'unused' };
-    const checks = [...GUARD_CHECKS, catalogue];
-    const mismatch = fakeExec({ 'git for-each-ref --format=%(contents) refs/tags/deploy/20261111T235933Z-b0834844': { stdout: tagText(PREV, DV, { catalogueKey: 'cat-then' }) } });
-    const r1 = await run(mismatch.exec, { checks });
+  it('refuses a catalogueKey mismatch, or a tag missing a field a check names (7D\'s shipped check)', async () => {
+    expect(GUARD_CHECKS.map((c) => c.field).filter(Boolean)).toEqual(['dataVersion', 'catalogueKey']);
+    const TAG = 'git for-each-ref --format=%(contents) refs/tags/deploy/20261111T235933Z-b0834844';
+    const mismatch = fakeExec({ [TAG]: { stdout: tagText(PREV, DV, { catalogueKey: 'cat-then0000' }) } });
+    const r1 = await run(mismatch.exec);
     expect(r1.code).toBe(1);
-    expect(r1.out).toMatch(/catalogueKey.*cat-now.*cat-then/s);
+    expect(r1.out).toMatch(new RegExp(`catalogueKey.*${CATALOGUE_KEY}.*cat-then0000`, 's'));
     expect(rolledBack(mismatch.calls)).toBeUndefined();
 
-    const missing = fakeExec();
-    const r2 = await run(missing.exec, { checks });
+    // D1's catalogue moved since the target deployed (a code added): refused the same way.
+    const moved = fakeExec();
+    const r2 = await run(moved.exec, { d1: fakeD1({ catalogue: ['AA0999', 'GEQ1000', 'AI5206'] }) });
     expect(r2.code).toBe(1);
-    expect(r2.out).toMatch(/has no catalogueKey/);
+    expect(r2.out).toMatch(/catalogueKey DIFFERS/);
 
-    const same = fakeExec({ 'git for-each-ref --format=%(contents) refs/tags/deploy/20261111T235933Z-b0834844': { stdout: tagText(PREV, DV, { catalogueKey: 'cat-now' }) } });
-    expect((await run(same.exec, { checks })).code).toBe(0);
+    const missing = fakeExec({ [TAG]: { stdout: tagText(PREV, DV, {}) } });
+    const r3 = await run(missing.exec);
+    expect(r3.code).toBe(1);
+    expect(r3.out).toMatch(/has no catalogueKey/);
+
+    const same = fakeExec();
+    expect((await run(same.exec)).code).toBe(0);
   });
 
   it('refuses a target with no tag, unless --accept-data-mismatch (then no rollback tag)', async () => {

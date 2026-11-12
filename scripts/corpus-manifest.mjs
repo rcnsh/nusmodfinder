@@ -158,7 +158,17 @@ async function ghUpload(release, file, { title, notes }) {
  * @returns {Promise<string>} the restored file
  */
 export async function restoreCurrent({ manifestPath = CORPUS_MANIFEST_PATH, dir = PROD_DIR, download = ghDownload, log = console.log } = {}) {
-  const entry = currentEntry(await readCorpusManifest(manifestPath));
+  return restoreEntry(currentEntry(await readCorpusManifest(manifestPath)), { dir, download, log });
+}
+
+/**
+ * Any manifest entry (smoke's: the expected commit's `current`) into `<dir>/<sha256>.json`,
+ * sha-checked; a no-op when it is already there.
+ * @param {CorpusEntry} entry
+ * @param {{ dir?: string, download?: Download, log?: (line: string) => void }} [o]
+ * @returns {Promise<string>} the restored file's path
+ */
+export async function restoreEntry(entry, { dir = PROD_DIR, download = ghDownload, log = console.log } = {}) {
   const path = corpusPath(entry, dir);
   if (existsSync(path) && sha256(await readFile(path)) === entry.sha256) {
     log(`corpus: ${entry.release} is restored at ${path}`);
