@@ -150,6 +150,26 @@ describe('the uptime check', () => {
     expect(pinger.pings[0]).toEqual({ url: `${PING}/fail`, body: expect.stringMatching(/\/module\/[A-Z]{2}\d{4} HTTP 404/) });
   });
 
+  it('a /module 404 that names its kind of miss passes: D1 answered, and main may be ahead of the deploy', async () => {
+    for (const kind of ['unknown', 'catalogue-only', 'ng-listed']) {
+      const site = fakeSite([{ module: { status: 404, body: { error: 'not_found', kind, message: 'm' } } }]);
+      const pinger = fakePinger();
+      const { code, out } = await run(site, pinger);
+      expect(code).toBe(0);
+      expect(pinger.pings).toEqual([{ url: PING, body: undefined }]);
+      expect(site.sent.map((s) => s.path)).toEqual(['/health', expect.stringMatching(/^\/module\//), '/search']);
+      expect(out).toMatch(/not in the live corpus/);
+    }
+  });
+
+  it('a /module 404 with another kind, or none (a missing route), is a failure', async () => {
+    for (const body of [{ error: 'not_found', kind: 'other' }, { error: 'not_found', message: 'No route for /module/X.' }]) {
+      const pinger = fakePinger();
+      await run(fakeSite([{ module: { status: 404, body } }]), pinger);
+      expect(pinger.pings.map((p) => p.url)).toEqual([`${PING}/fail`]);
+    }
+  });
+
   it('a cache hit moves to the next query; the hit is no failure', async () => {
     const site = fakeSite([{}], { searchAnswers: [{ cache: 'hit', body: { results: [{ code: 'X' }] } }, { cache: 'miss', body: { results: [{ code: 'X' }] } }] });
     const pinger = fakePinger();
