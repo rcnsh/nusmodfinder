@@ -22,3 +22,13 @@ page keeps `pick` and `alt` but drops `ay`, `inv` and `view` from a link it sett
 | Time | Step | Estimate | Actual |
 |---|---|---|---|
 | 19:16:16–19:19:09 | `node scripts/p6-live.mjs` on version `f8aefeab` (`requests.tsv` 125, `p6-live.jsonl`): `/facets`, 8 `/module` for a 6-pick, 2-backup list across Sem 1 and 2, 3 `/module` 404s (one of each kind), then the page's files once; Chromium and WebKit fulfilled from memory | ~43 calls | 43 sent (12 API, 31 page files), one at a time, ≥ 4 s apart; **18 of 18 checks pass** |
+
+## 2026-11-12: the red-team follow-up (code-only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 23:58:49 | `/health` (`requests.tsv` 127): version `f8aefeab` (tag `0b5f360`) | 1 call | 1 call |
+| 23:58:54–23:59:33 | `npm run deploy` of `a23601d` (guard read 6,778 D1 rows; no D1 write) | ~6.8k rows read | version **`b0834844-f6fd-4bb9-838d-a45927c195fb`** (tag `a23601d`) at 100% |
+| 23:59:53–00:00:02 | Live re-check (`requests.tsv` 127), 2 Chromium page loads ≥ 6 s apart: a list with CS2030 (Sem 2) and CS2113 (Sem 1) under `sem=2` reads "Sem 1 and Sem 2 · 3rd-year exchange student · NUS's 2026/27 courses" (RT6-PD1); CS4268 for a 2nd-year in Sem 2 reads "Sem 2 · Open, with 1 note" with GRO's line (R6-2) | ~70 calls (page files included) | 68 calls, both as fixed |
+
+Rollback: `npx wrangler rollback f8aefeab-49c4-4548-b994-73bc6bae4f86` (code-only).
