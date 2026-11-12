@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { csvTotals, draw404, GAP_MS, loadData, makePlan, parseArgs, PRODUCTION_URL, readTotals, refData, rng, SLOTS, STUDY, totalsProblems } from '../scripts/p6-live-plan.mjs';
 import { toCsv } from '../public/csv.js';
 import { totalLines } from '../public/shortlist.js';
-import { oracleShown } from './sc1/oracle.node.mjs';
+import { oracleShown } from './sc1/oracle.mjs';
 import { reference } from './web/shortlist-reference.node.mjs';
 import { parseCsv } from './web/rfc4180.node.mjs';
 

@@ -30,6 +30,12 @@ const NOT_YEARS = [
   { re: /www\.w3\.org\/2000\//g, why: 'the SVG and XML namespace URIs, fixed by the W3C' },
 ];
 
+/**
+ * A year's own file, named by its year (Phase 7 7E): the overlay and the SC1 oracle hold their
+ * year's readings by design, and `npm run year -- check` checks the year's manifest names them.
+ */
+const PER_YEAR_FILE = /^(?:scripts\/ng-overlay\/|test\/sc1\/oracle-)\d{4}-\d{4}(?:\.node)?\.mjs$/;
+
 /** Whole files that are not about years. */
 const FILES = {
   'src/fts-separators.js': 'generated hex code-point ranges (scripts/gen-fts-separators.mjs)',
@@ -52,9 +58,6 @@ const ALLOWED = [
   { file: 'public/preclusion.js', text: 'the cohorts from 2018 inclusive', kind: 'cited', why: 'an NUSMods prerequisite string, quoted as the example of what the parser skips' },
   { file: 'public/shortlist.js', text: 'NUS info sheet, 2018/19', kind: 'cited', why: 'NUS\'s exchange information sheet, cited by its own year' },
   { file: 'public/shortlist.js', text: '2018/19 exchange information sheet', kind: 'cited', why: 'the same sheet, in the page\'s own words' },
-  { file: 'scripts/build-ng-reasons.mjs', text: "updatedAsAt: '01 Sep 2026'", kind: 'cited', why: 'the NG list PDF\'s own "updated as at" date (7E moves it to the source manifest)' },
-  { file: 'scripts/build-ng-reasons.mjs', text: "updatedAsAt: '31 Aug 2026'", kind: 'cited', why: 'the restrictions PDF\'s own "updated as at" date, likewise' },
-  { file: 'scripts/build-ng-restrictions.mjs', text: "const SOURCES_DIR = '2026-11-10';", kind: 'cited', why: 'the folder the saved NUS documents were filed under, a past date (7E moves it)' },
   { file: 'scripts/deploy-tag.mjs', text: "date: '2026-11-11T18:39:46Z'", kind: 'cited', why: 'a Phase 6 deploy\'s promote time, a past event the back-filled tag records' },
   { file: 'scripts/deploy-tag.mjs', text: "date: '2026-11-11T23:59:33Z'", kind: 'cited', why: 'the other Phase 6 deploy\'s promote time, likewise' },
 ];
@@ -70,7 +73,7 @@ const TEXT = /\.(?:js|mjs|cjs|ts|mts|html|css|json|jsonc|svg|txt|md|py|webmanife
  * @returns {string[]} `file:line: token in context`
  */
 export function unallowedYears(file, text) {
-  if (Object.hasOwn(FILES, file)) return [];
+  if (Object.hasOwn(FILES, file) || PER_YEAR_FILE.test(file)) return [];
   const out = [];
   const lines = text.split('\n');
   for (let i = 0; i < lines.length; i++) {
@@ -108,6 +111,14 @@ describe('one year source: the year scan (Phase 7 7D)', () => {
   it('finds a year in a string, a comment and a data-file name', () => {
     expect(unallowedYears('src/x.js', "const y = '2026-2027'; // Academic year 2026/27\nimport x from '../data/ng-courses-2026-2027.json';"))
       .toHaveLength(5);
+  });
+
+  it('skips a year\'s own overlay and oracle, and nothing else named by a year', () => {
+    const y = DEFAULT_ACAD_YEAR;
+    expect(unallowedYears(`scripts/ng-overlay/${y}.mjs`, '// The 2026/27 overlay')).toEqual([]);
+    expect(unallowedYears(`test/sc1/oracle-${y}.node.mjs`, '// D1 (2026/27)')).toEqual([]);
+    expect(unallowedYears(`scripts/ng-overlay/${y}-notes.mjs`, '// 2026/27')).toHaveLength(1);
+    expect(unallowedYears(`src/${y}.js`, '// 2026/27')).toHaveLength(1);
   });
 
   it('does not match a year inside a hex string, a longer number or a numeric separator', () => {

@@ -117,8 +117,9 @@ describe('/facets', () => {
     const { body } = await callJson('/facets');
     expect(Object.keys(body).slice(-2)).toEqual(['ngSources', 'offListRules']);
     expect(body.offListRules.map((/** @type {{ id: string }} */ r) => r.id)).toEqual(['E-offerings-list', '2-biz-no-late-add', '4-cee-no-appeal', '4-isem-no-appeal']);
+    // 7E: the page finds rule E by its overlay role, not by an id a new year may rename.
     for (const r of body.offListRules) {
-      expect(Object.keys(r), r.id).toEqual(['id', 'text', 'scope']);
+      expect(Object.keys(r), r.id).toEqual(r.id === 'E-offerings-list' ? ['id', 'text', 'scope', 'role'] : ['id', 'text', 'scope']);
       expect(r.text, r.id).toMatch(/\S{3}/);
     }
     expect(body.offListRules[2].scope).toEqual({ departments: ['Civil and Environmental Engineering'], levels: [1, 2, 3, 4] });

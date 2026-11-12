@@ -20,7 +20,7 @@ describe('decide: which heavy jobs a diff needs', () => {
     ['a public/ diff', ['public/app.js'], { code: true, ui: true, grid: false, rollover: true }],
     ['a data/ diff', [`data/ng-courses-${DEFAULT_ACAD_YEAR}.json`], { code: true, ui: true, grid: false, rollover: true }],
     ['a file the UI suite imports from test/web', ['test/web/rfc4180.node.mjs'], { code: true, ui: true, grid: false, rollover: true }],
-    ['the SC1 oracle, which the UI suite imports', ['test/sc1/oracle.node.mjs'], { code: true, ui: true, grid: false, rollover: true }],
+    ['the SC1 oracle, which the UI suite imports', [`test/sc1/oracle-${DEFAULT_ACAD_YEAR}.node.mjs`], { code: true, ui: true, grid: false, rollover: true }],
     ['a src/ diff', ['src/search.js'], ALL],
     ['a test/full diff', ['test/full/lexical.test.js'], { code: true, ui: false, grid: true, rollover: true }],
     ['an eval/ diff', ['eval/lib/sets.mjs'], { code: true, ui: false, grid: false, rollover: true }],

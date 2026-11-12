@@ -3,7 +3,7 @@
 // (`current` in data/corpus.json, D1 seeded through /admin/ingest) and the
 // production bundle, vocabulary, groups and catalogue (Phase 7 7D), for each
 // of the 15 (sem, study) combinations, every exchange-mode path shows
-// exactly the modules the independent oracle (test/sc1/oracle.node.mjs)
+// exactly the modules the independent oracle (test/sc1/oracle.mjs)
 // calls open or noted:
 // - set equality per path filter: the lexical filter SQL over every D1 row,
 //   compileMask over every bundle row, the D1 recheck over every row;
@@ -51,10 +51,12 @@ import { compileMask } from '../../src/vector-bundle.js';
 import { createFakes } from '../fakes.js';
 import { adminCall, call, callJson, seed } from '../helpers.js';
 import { shortlistAgainstOracle } from '../shortlist-sc1.js';
-import { levelNoteOf, oracle, oracleShown, yearNoteOf } from './oracle.node.mjs';
+import * as live from './oracle.mjs';
 import { COMBOS, QUERIES, shownCodes as shown } from './shared.js';
 
 const corpus = inject('corpus');
+// Phase 7 7E: the oracle for the corpus's year (test/sc1/oracle.mjs picks it); the live year's without one.
+const { levelNoteOf, oracle, oracleShown, yearNoteOf } = corpus ? await live.oracleFor(corpus.acadYear) : live;
 
 describe.skipIf(!corpus)('SC1: every exchange-mode path agrees with the oracle', () => {
   const c = /** @type {FullCorpus} */ (corpus);
