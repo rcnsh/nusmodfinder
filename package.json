@@ -33,6 +33,8 @@
     "ops:requests": "node scripts/ops-requests.mjs",
     "corpus": "node scripts/corpus.mjs",
     "ops:report": "node scripts/ops-report.mjs",
+    "sources": "node scripts/sources.mjs",
+    "year": "node scripts/year.mjs",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && tsc -p tsconfig.web.json && tsc -p tsconfig.ui.json",
     "test": "vitest run --exclude 'test/full/**' --exclude 'test/sc1/**'",

@@ -25,7 +25,9 @@ export const NG_UNSCHEDULED_SCHEMA = 'vnm-ng-unscheduled/1';
  *   workload: import('./workload.js').Workload | { raw: string } | null,
  *   prerequisite: string | null, preclusion: string | null, gradingBasis: string | null,
  *   otherCodes: string[], ngAllow: number, ngRules: Record<string, string[]> | null,
+ *   ngUnpublished?: number[],
  * }} NgUnscheduledEntry
+ *   `ngUnpublished` (G2, Phase 7 7E): the semesters NUS hasn't published, present only when there are any
  * @typedef {'production' | 'pinned' | 'fixture'} NgUnscheduledCorpus
  * @typedef {{
  *   schema: string, generator: string, corpus: NgUnscheduledCorpus, acadYear: string, dataVersion: string,

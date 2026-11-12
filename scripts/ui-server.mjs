@@ -75,7 +75,9 @@ function wrangler(args, env, started) {
  * migration, wrangler dev and its workerd) and deletes the temporary state, so
  * a Ctrl-C during start-up leaves nothing behind.
  * @param {{ port?: number, verbose?: boolean, signal?: AbortSignal }} [options]
- * @returns {Promise<{ url: string, stop: () => Promise<void> }>}
+ * @returns {Promise<{ url: string, secret: string, stop: () => Promise<void> }>}
+ *   `secret`: the one-off INGEST_SECRET, for a caller that ingests into this local D1 (the
+ *   rehearsal, scripts/rollover.mjs); it never leaves the process or the temp env file
  */
 export async function startUiServer({ port, verbose = false, signal } = {}) {
   /** @type {import('node:child_process').ChildProcess | null} */
@@ -146,7 +148,7 @@ export async function startUiServer({ port, verbose = false, signal } = {}) {
     await seed(url, secret);
     live();
     signal?.removeEventListener('abort', onAbort);
-    return { url, stop };
+    return { url, secret, stop };
   } catch (err) {
     await stop();
     throw new Error(`${/** @type {Error} */ (err).message}${log ? `\n--- wrangler dev output ---\n${log}` : ''}`, { cause: err });

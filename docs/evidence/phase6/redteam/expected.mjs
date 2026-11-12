@@ -14,7 +14,7 @@
 // semester, every code whose answer isn't "no" (any other code is "no").
 import { readFileSync, writeFileSync } from 'node:fs';
 import { loadModules as loadOffered } from '../../../../scripts/p5-live-plan.mjs';
-import { explainShown } from '../../../../test/sc1/oracle.node.mjs';
+import { explainShown } from '../../../../test/sc1/oracle.mjs';
 import { expected } from './rules.mjs';
 
 const HERE = new URL('.', import.meta.url);

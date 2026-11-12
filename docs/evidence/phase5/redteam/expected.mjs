@@ -11,7 +11,7 @@
 // "no"; a code not offered this year is "no").
 import { readFileSync, writeFileSync } from 'node:fs';
 import { DEFAULT_ACAD_YEAR, loadNgCourses, offeredModules } from '../../../../scripts/lib.mjs';
-import { explain } from '../../../../test/sc1/oracle.node.mjs';
+import { explain } from '../../../../test/sc1/oracle.mjs';
 import { expected } from './rules.mjs';
 
 const HERE = new URL('.', import.meta.url);

@@ -34,6 +34,16 @@
    "text": "Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it.",
    "cite": "restrictions PDF §D"
   },
+  "ng:unpublished-sem": {
+   "kind": "ask",
+   "text": "On NUS's 2025/26 list; NUS hasn't published 2026/27's yet.",
+   "cite": "NG course list, 2025/26"
+  },
+  "ng:unpublished-sem-unlisted": {
+   "kind": "closed",
+   "text": "Not on NUS's 2025/26 list for this semester, and NUS hasn't published 2026/27's yet.",
+   "cite": "NG course list, 2025/26"
+  },
   "A-dentistry": {
    "kind": "closed",
    "text": "Faculty of Dentistry courses are not open to exchange students.",
@@ -669,7 +679,8 @@
   {
    "id": "E-offerings-list",
    "text": "If the courses cannot be found at the Course offerings list, they are not available during application stage but may be available during Course registration.",
-   "scope": {}
+   "scope": {},
+   "role": "off-list-rule"
   },
   {
    "id": "2-biz-no-late-add",

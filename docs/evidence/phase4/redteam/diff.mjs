@@ -10,7 +10,7 @@
 // Writes <kit dir>/diff.json; prints counts and every disagreement.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { DEFAULT_ACAD_YEAR, loadNgCourses, offeredModules } from '../../../../scripts/lib.mjs';
-import { explain } from '../../../../test/sc1/oracle.node.mjs';
+import { explain } from '../../../../test/sc1/oracle.mjs';
 
 const kit = process.argv[2];
 if (!kit) { console.error('usage: diff.mjs <kit dir> [catalogue]'); process.exit(2); }

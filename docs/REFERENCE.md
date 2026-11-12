@@ -169,12 +169,34 @@ bot protection that blocks programmatic fetching. So the workflow is:
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install pypdf
-.venv/bin/python scripts/extract-ng.py ~/Downloads/ng-courses.pdf
+.venv/bin/python scripts/extract-ng.py <dir>/ng-courses.pdf --year <yyyy-yyyy>
 ```
 
-That writes `data/ng-courses-<acadYear>.json`. The ingest script picks it up
-automatically and sets `modules.ng` plus the `ng` Vectorize metadata property. If the file
-is missing, ingest says so loudly and every module is marked not-NG.
+That writes `data/ng-courses-<acadYear>.json`, keeping only the sections whose heading names that
+year (NUS prepends the next year's Sem 1 above this year's Sem 2), and fails when a semester the
+year's source manifest marks published has no section or a section has no rows (Phase 7 7E;
+`--from-text` reads text already extracted, with no `pypdf`). The ingest script picks it up and
+sets `modules.ng` plus the `ng` Vectorize metadata property. A missing or stub file is refused:
+exchange mode would show every course closed.
+
+**The source manifest and the year refresh** (Phase 7 7E). Each year's sources are listed in
+`data/ng-sources-<year>.json`: the revisions of NUS's documents (name, URL, file, sha256, "updated
+as at"), each revision's encrypted archive (a release asset; `npm run sources`), which semesters
+NUS has published, the transcription, overlay (`scripts/ng-overlay/<year>.mjs`), oracle and
+register paths, and the quote index (every NUS sentence copied by hand into `src/` or `public/`,
+with its document). `npm run year -- check` checks the year's files agree with it (the deploy
+preflight runs it), and `--full`, on the Mac with the key, finds every quote in its document and
+rebuilds the rules file byte for byte. The runbook for a year switch and a mid-year revision is
+[`docs/year-refresh/README.md`](year-refresh/README.md).
+
+**A semester NUS hasn't published (G2, ADR 0011).** The site moves to a new year once NUSMods has
+it and NUS has published the Sem 1 list (July). Until NUS publishes Sem 2's, the manifest marks it
+unpublished, `scripts/lib.mjs` takes last year's Sem 2 list for it and marks every module
+`ngUnpublished: [2]`, and `src/eligibility.js` gives a course on that list the note
+`ng:unpublished-sem` (kind `ask`: "On NUS's <last year> list; NUS hasn't published <this year>'s
+yet."), never open; the shortlist counts it "to confirm with NUS". A course not on last year's Sem 2
+list is closed there with `ng:unpublished-sem-unlisted` ("Not on last year's NG list for Sem 2"),
+not "only in the other semester". With every semester published, nothing changes.
 
 **Cross-checked against the corpus** for AY2026/2027: of 1,207 course codes in the PDF,
 **1,175 (97.3%)** exist in the NUSMods corpus — the other 32 are not offered this year.
@@ -185,15 +207,18 @@ disagreement is a snapshot-vs-daily-scrape artifact.
 "course restrictions for NG students" PDF closes schools, levels and single courses, and adds
 conditions (a major at home, a partner university, approval, a quota, graded only). These are
 data, not code: `data/ng-restrictions-<year>.json`, built by `scripts/build-ng-restrictions.mjs`
-from the sources in `docs/evidence/phase4/sources.md` (kept outside the repo, hashed in it), with
-every reading the sources leave open decided in `docs/evidence/phase4/interpretations.md`.
+from the documents the year's source manifest lists (`data/ng-sources-<year>.json`, archived
+encrypted; `npm run sources -- restore` unpacks them) and the year's overlay
+(`scripts/ng-overlay/<year>.mjs`), with every reading the sources leave open decided in the year's
+register (`docs/evidence/phase4/interpretations.md` for 2026/27).
 Ingest runs `src/eligibility.js` over every module for every (semester, year of study) and
 stores a 15-bit allow mask (`modules.ng_allow`) and the rule ids behind each answer
 (`modules.ng_rules`); the Worker runs no rule logic. Every search path tests the one bit for the
 request; a zero or missing mask is closed. Reason texts ship with the Worker
 (`data/ng-reasons.json`, built by `scripts/build-ng-reasons.mjs`), so rewording one rewrites no
-rows. An independent oracle (`test/sc1/oracle.node.mjs`) checks the rules on every module, and
-the `sc1` CI job checks every search path against it.
+rows. An independent oracle for the year (`test/sc1/oracle-<year>.node.mjs`, picked by the selector
+`test/sc1/oracle.mjs`) checks the rules on every module, and the `sc1` CI job checks every search
+path against it.
 
 **Year of study (Jacob's ruling R3, ADR 0008).** A NUS prerequisite that requires an
 undergraduate year ("If undertaking an Undergraduate Degree THEN must be Year 4") doesn't change
@@ -507,11 +532,12 @@ REFERENCE.md, EVAL.md and ADRs 0001 and 0003), and a red `main` shows. Draft PRs
 | `full-corpus` | `test/full` over the pinned corpus and bundle; the lexical grid in full or a 1-in-10 sample | by steps, when `code` is false |
 | `sc1` | `test/sc1` (Vitest projects `sc1` and `sc1-node`) over production: `current` restored from its release asset, the production bundle and data files, after `npm run corpus -- check`; fails on any skipped test. SC1's two pinned-corpus facts (the standby's recall floor, the 3G ruling) run in `full-corpus` (`test/full/sc1-pinned.test.js`) | by steps, when `code` is false |
 | `ui (chromium)`, `ui (webkit)` | the Playwright suite in Playwright's image | by steps, when `ui` is false |
+| `rollover` | the year-switch rehearsal (`scripts/rollover.mjs`, 7E): the pinned corpus relabelled as next year's in a temp copy, then `year next`, the builders, `year check`, a local Worker switched by `ingest --d1-only --allow-year-change --write-budget 80000`, `verify --pre-deploy`, SC1 against next year's oracle, and the variant with Sem 2 unpublished | by steps, when `rollover` is false |
 
 `scripts/ci-changes.mjs` diffs a PR against its base, and a push to `main` against the newest `main`
 commit whose CI run succeeded and which HEAD contains (`gh run list`, hence `actions: read`). `code`
 is any change outside `docs/` and the root `*.md` files; `ui` and `grid` are the paths those suites
-cover; `rollover` follows `code` until 7E's rehearsal job exists. A manual run, an API error, no green
+cover; `rollover` follows `code`. A manual run, an API error, no green
 run, an unreachable base, a failed diff, or a change to `ci.yml` or the script itself runs
 everything. A heavy job whose `changes` failed runs in full (a missing output is not `false`), and
 every heavy job's check name always reports. Runs on `main` are grouped per sha, so none cancels
@@ -545,11 +571,12 @@ This is the only supported way to deploy, from the Mac or from GitHub Actions (b
    - `corpus manifest` (7D, `scripts/corpus.mjs`): restores `current` (`npm run corpus --
      restore`, sha-checked), then `npm run corpus -- check`: `src/data-version.json`, the bundled
      catalogue file's `catalogueKey` and the 3B files follow it;
-   - `year check` in its CI mode (7E, `scripts/year.mjs`): runs its module's
-     `preflight({ exec, head, log })`, and is skipped, and says so in the output and the record,
-     while that module is absent;
+   - `year check` in its CI mode (7E, `scripts/year.mjs` `preflight()`): the year's sources agree
+     (the three year places, the data files' years and dates against the source manifest), no stub
+     remains, the per-corpus files are production's, the counts, an oracle for the year, and every
+     indexed NUS quote still in its file;
    - `source inputs`: when `HEAD` changes a source-derived input (`data/ng-*`,
-     `scripts/ng-overlay/`) since the live commit (the newest `deploy/*` or `rollback/*` tag), a
+     `scripts/ng-overlay/`; a quoted NUS sentence counts through the quote index) since the live commit (the newest `deploy/*` or `rollback/*` tag), a
      committed `year check --full` run record (7E) whose `details.sourceInputsHash` is those
      inputs' hash at `HEAD` (`sourceInputsHash` in `scripts/preflight.mjs`: sha256 over their
      `git ls-tree` lines). A hotfix that touches none needs no sources key;
@@ -803,9 +830,9 @@ npm run corpus -- check   # the data version and catalogueKey follow current; th
 git add data/corpus.json data/vectors.json src/data-version.json data/vocabulary.json data/groups.json data/ng-unscheduled.json data/ng-reasons.json data/prefixes.json data/catalogue-codes.json data/catalogue-only.json   # the build rewrites 3C's vocabulary, 3F's groups, 6A's file and the 3B catalogue files too; plus any code the change needs; open a PR
 #    A new acad year changes DEFAULT_ACAD_YEAR in scripts/lib.mjs, public/year.js and the header
 #    in public/index.html, the only places a year is written (test/year-scan.node.test.js fails on
-#    any other and checks those three agree). The source dates in scripts/build-ng-reasons.mjs and
-#    the sources folder in scripts/build-ng-restrictions.mjs are cited dates (allowed in that test)
-#    until 7E's per-year source manifest holds them.
+#    any other and checks those three agree; a year's own overlay and oracle files are exempt). The
+#    whole year switch, sources to standby, is docs/year-refresh/README.md; it passes
+#    --write-budget 80000 at step 4, since every module and catalogue_only row is rewritten.
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
 # 3. On merged main, before any D1 write: the preflight (every check but D1's), then D1's
 #    Time Travel bookmark, recorded (ingest copies it; d1:restore returns to it for 30 days).
@@ -1017,10 +1044,11 @@ file per run, on every exit path, at `docs/evidence/ops/runs/<UTC yyyymmddThhmms
 hex>.json`. Unique names mean two worktrees never conflict. Commit them; `npm run deploy`
 ignores new, untracked ones when it checks the tree is clean. Writers today: `deploy` (and
 `deploy:preflight`), `remote`, `ingest`, `verify`, `vectors standby`, `smoke`, `rollback`,
-`d1:bookmark`, `d1:restore`, `eval:embed` (which keeps `neurons.tsv` too), `ops:report`, and
-`p5-live` and `p6-live` against a live URL (not `localhost`). Phase 7's later scripts (`corpus
-publish`, `sources publish`, `year check --full`, the schema capture) use the same module. An
-Actions deploy's record is a workflow artifact, not a commit.
+`d1:bookmark`, `d1:restore`, `eval:embed` (which keeps `neurons.tsv` too), `ops:report`, `p5-live`
+and `p6-live` against a live URL (not `localhost`), `corpus publish`, `sources publish` (the
+archive's release and sha256) and `year check --full` (mode `full`, the source-derived inputs' hash,
+the archive's sha256; the deploy preflight reads it). Phase 7's later scripts (the schema capture)
+use the same module. An Actions deploy's record is a workflow artifact, not a commit.
 
 The record (schema `vnm-run/1`):
 
@@ -1252,17 +1280,13 @@ records in `moduleInfo.json`. The rest are catalogue entries not offered this ye
 ### When a source changes
 
 The NG list, the restrictions PDF, the self-funded programme list, YST's non-music-majors
-pages and the Law compulsory-course list all change without notice. A new copy of any of them
-repeats Phase 4's gate (`docs/plans/phase4.md` 4F):
-1. Save it under `~/.config/vnm/sources/<date>/` and record its sha256 and "updated as at" date in
-   `docs/evidence/phase4/sources.md`.
-2. Re-extract (`scripts/extract-ng.py` for the NG list) and rebuild
-   `data/ng-restrictions-<year>.json`; the builder refuses a hash mismatch or an unread file.
-3. Two fresh transcriptions of the changed sections, diffed by `docs/evidence/phase4/scripts/transcription-diff.mjs`;
-   a fresh oracle author for the changed sections; each new reading goes in the register.
-4. `node scripts/build-ng-reasons.mjs`, the dates in `scripts/build-ng-reasons.mjs`, and
-   `npm run test:full` and `npm run test:sc1`.
-5. A full re-ingest and ship (below): every row's mask can change.
+pages and the Law compulsory-course list all change without notice. A new copy of any of them is
+a revision of the year's source manifest, and repeats Phase 4's gate for the changed sections:
+a new archive (`npm run sources -- publish --from <dir>`), two transcriptions of what changed and
+the id map, rulings in the register, the overlay and builders, a fresh oracle author for the
+changed sections, `npm run year -- check --full` (commit its record: the deploy preflight needs
+it whenever a source-derived input changed), and a row-only re-ingest and ship. The steps are
+"A mid-year revision" in [`docs/year-refresh/README.md`](year-refresh/README.md).
 
 ## Known limitations
 
@@ -1271,7 +1295,12 @@ repeats Phase 4's gate (`docs/plans/phase4.md` 4F):
 - **Exchange mode is a manual snapshot.** The NG list and restrictions come from PDFs and
   pages that must be downloaded by hand (NUS blocks automated fetching) and re-checked when
   NUS updates them. The UI names each source with its date so staleness is visible. YST's Sem 2
-  list is last year's until YST publishes this year's.
+  list is last year's until YST publishes this year's (`year check` says so), and from the July
+  switch until NUS publishes Sem 2's NG list, Sem 2 shows last year's list, each course "to
+  confirm" (G2).
+- **The year's sources need one key.** NUS's documents are archived encrypted per revision; the
+  key is backed up in Bitwarden. Without it the next source change can't be checked
+  (`year check --full`), though deploys that touch no source-derived input still work.
 - **Exchange mode covers Semesters 1 and 2.** The NG list has no special-term data.
 - **No natural-language constraint parsing.** "No Friday classes" needs the explicit filter
   parameters instead.

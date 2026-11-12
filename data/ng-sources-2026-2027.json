@@ -1,0 +1,265 @@
+{
+ "schema": "vnm-ng-sources/1",
+ "acadYear": "2026-2027",
+ "transcription": "docs/evidence/phase4/transcription-b.json",
+ "overlay": "scripts/ng-overlay/2026-2027.mjs",
+ "oracle": "test/sc1/oracle-2026-2027.node.mjs",
+ "register": "docs/evidence/phase4/interpretations.md",
+ "published": {
+  "ngList": { "1": true, "2": true },
+  "yst": { "1": "2026-2027", "2": "2025-2026" }
+ },
+ "revisions": [
+  {
+   "date": "2026-11-10",
+   "archive": {
+    "release": "sources-2026-2027-20261110",
+    "asset": "sources-2026-2027-20261110.vnmsrc",
+    "sha256": null,
+    "pending": "the lead publishes it on the Mac with `npm run sources -- publish` (docs/year-refresh/README.md); year check --full refuses until then"
+   },
+   "documents": [
+    {
+     "id": "ng-list",
+     "name": "Courses offered to exchange (NG) students",
+     "url": "https://nus.edu.sg/registrar/docs/default-source/prospective-students---non-graduating/ng-courses.pdf",
+     "file": "ng-courses.pdf",
+     "sha256": "4e0281bea179dab976982d4ef14fe24d1436ddd5966786074ff4eb8f792e89a4",
+     "updatedAsAt": "01 Sep 2026",
+     "builder": true,
+     "text": "ng-courses.txt",
+     "note": "the Registrar's non-graduating page links it (https://www.nus.edu.sg/registrar/prospective-students/non-graduating); `text` is its pdftotext output for the quote check, which the lead adds to the archive",
+     "confirm": ["text"]
+    },
+    {
+     "id": "restrictions",
+     "name": "Course restrictions for exchange (NG) students",
+     "url": "https://www.nus.edu.sg/registrar/docs/default-source/prospective-students---non-graduating/non-graduating-course-restrictions.pdf",
+     "file": "non-graduating-course-restrictions.pdf",
+     "sha256": "362ba277d12825b4fa9cbde86bcaad1dabf75a74c91b4d4dcaeba37f71c43b92",
+     "updatedAsAt": "31 Aug 2026",
+     "builder": true,
+     "text": "non-graduating-course-restrictions.txt",
+     "note": "also carries a 19 March 2025 footer on its blank pages 21-22 (register I18); `text` is its pdftotext output for the quote check, which the lead adds to the archive",
+     "confirm": ["text"]
+    },
+    {
+     "id": "self-funded",
+     "name": "Courses in the NUS self-funded programmes",
+     "url": null,
+     "file": "self-funded-graduate-courses.pdf",
+     "sha256": "1fbbd95fa0e3b102894a81a1c76c644d0788149404b42f9618279f9d03b9a0ad",
+     "updatedAsAt": "21 Aug 2025",
+     "builder": true,
+     "note": "linked from the restrictions' rule A; fetched directly",
+     "confirm": ["url"]
+    },
+    {
+     "id": "self-funded-text",
+     "name": "pdftotext -layout of the self-funded list",
+     "url": null,
+     "file": "self-funded-graduate-courses.txt",
+     "sha256": "6aebe6ed9bac3e8cd8ed5001e5dd7e7b25d455b15717eff4c256fae0bb8c78d1",
+     "updatedAsAt": null,
+     "builder": true,
+     "derivedFrom": "self-funded",
+     "note": "a text extraction, hashed so a changed extraction fails the build"
+    },
+    {
+     "id": "yst-sem1",
+     "name": "YST, AY2026/27 Sem 1 courses for NUS non-music majors",
+     "url": null,
+     "file": "yst-sem1-non-music-majors.html",
+     "sha256": "df8910b35487644e4260b1785c2c9cb0d9e0c15ae3e4e3cc723f273bba573aa8",
+     "updatedAsAt": "AY2026/27 Sem 1",
+     "builder": true,
+     "note": "the restrictions' §6 \"listed HERE\" link is dead; YST's electives page points here",
+     "confirm": ["url"]
+    },
+    {
+     "id": "yst-sem1-text",
+     "name": "text of the Sem 1 page (tags stripped, one text node per line)",
+     "url": null,
+     "file": "yst-sem1-non-music-majors.txt",
+     "sha256": "8e03268929993e263b0534d18e0e3bd556863cf0f87d3f63e7bc2142e9112207",
+     "updatedAsAt": null,
+     "builder": true,
+     "derivedFrom": "yst-sem1",
+     "note": "scripts/yst-text.mjs writes it from the page"
+    },
+    {
+     "id": "yst-sem2",
+     "name": "YST, Sem 2 courses for NUS non-music majors",
+     "url": null,
+     "file": "yst-sem2-non-music-majors.html",
+     "sha256": "6361e644c38b7cf2d25b39220f9ee6f851d1419c920890d46886566c4f804e92",
+     "updatedAsAt": "AY2025/26 Sem 2",
+     "builder": true,
+     "note": "AY2025/26's page: YST hadn't published AY2026/27 Sem 2's by 10 Nov 2026 (register I9)",
+     "confirm": ["url"]
+    },
+    {
+     "id": "yst-sem2-text",
+     "name": "text of the Sem 2 page",
+     "url": null,
+     "file": "yst-sem2-non-music-majors.txt",
+     "sha256": "7b63f960ca5b94245288b70c7e808755b39837b22ff5a93d8fd480478cd02f65",
+     "updatedAsAt": null,
+     "builder": true,
+     "derivedFrom": "yst-sem2",
+     "note": "scripts/yst-text.mjs writes it from the page"
+    },
+    {
+     "id": "law-compulsory",
+     "name": "NUS Law course listing, compulsory LLB courses (screenshot)",
+     "url": null,
+     "file": "law-compulsory-llb-courses.png",
+     "sha256": "18a29537cca99f8d91525c9f2ab59378d9808213553e243816800221d26e1249",
+     "updatedAsAt": null,
+     "builder": true,
+     "note": "the restrictions' §5 \"See HERE\"; Jacob's screenshot; the page footer says \"last modified 02 August 2010\" but it lists current courses such as LC2017",
+     "confirm": ["url"]
+    },
+    {
+     "id": "gro-incoming",
+     "name": "NUS Global, Incoming Exchange Students",
+     "url": "https://www.nus.edu.sg/gro/global-programmes/student-exchange/incoming-exchangers",
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": null,
+     "note": "no date on the page; read 2026-11-11 (docs/evidence/phase6/facts.md §2)",
+     "confirm": ["file", "sha256"]
+    },
+    {
+     "id": "gro-students-pass",
+     "name": "NUS Global, the Student's Pass (\"three pre-registered courses\")",
+     "url": null,
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": null,
+     "note": "read 2026-11-11 (docs/evidence/phase6/facts.md §3); its page's URL isn't in git",
+     "confirm": ["url", "file", "sha256", "updatedAsAt"]
+    },
+    {
+     "id": "gro-drop-deadlines",
+     "name": "NUS Global, the drop deadlines (Grade \"W\" or \"F\")",
+     "url": null,
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": null,
+     "note": "read 2026-11-11 (docs/evidence/phase6/facts.md §3); its page's URL isn't in git",
+     "confirm": ["url", "file", "sha256", "updatedAsAt"]
+    },
+    {
+     "id": "gro-reselection",
+     "name": "NUS Global, popular courses in later rounds (\"please do not repeat your request\")",
+     "url": null,
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": null,
+     "note": "read 2026-11-11 (docs/evidence/phase6/facts.md §3); its page's URL isn't in git",
+     "confirm": ["url", "file", "sha256", "updatedAsAt"]
+    },
+    {
+     "id": "brochure",
+     "name": "NUS Global, Exchange at NUS (brochure)",
+     "url": "https://nus.edu.sg/gro/docs/default-source/prog/sep/exchangeatnus.pdf",
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": "4 Jun 2026",
+     "confirm": ["file", "sha256"]
+    },
+    {
+     "id": "coursereg-faq",
+     "name": "NUS CourseReg, FAQs for non-graduating students",
+     "url": "https://www.nus.edu.sg/CourseReg/faqs_non_graduate.html",
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": null,
+     "note": "no date on the page; read 2026-11-11 (docs/evidence/phase6/facts.md §3)",
+     "confirm": ["file", "sha256"]
+    },
+    {
+     "id": "coursereg-guide",
+     "name": "NUS CourseReg, student user guide",
+     "url": "https://www.nus.edu.sg/coursereg/docs/CourseReg-Student-User-Guide.pdf",
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": null,
+     "note": "no date found in the copy read 2026-11-11 (docs/evidence/phase6/facts.md §3)",
+     "confirm": ["file", "sha256"]
+    },
+    {
+     "id": "application-guide",
+     "name": "NG online application guide (NUS Science's copy)",
+     "url": "https://www.science.nus.edu.sg/wp-content/uploads/2025/01/NG-online-application-guide-2025-1.pdf",
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": null,
+     "note": "a 2025 copy (docs/evidence/phase6/facts.md §3); the page paraphrases it and quotes none of it word for word",
+     "confirm": ["file", "sha256", "updatedAsAt"]
+    },
+    {
+     "id": "biz-factsheet",
+     "name": "NUS Business School, undergraduate exchange factsheet (T2620)",
+     "url": "https://bba.nus.edu.sg/wp-content/uploads/sites/51/2026/07/NUS-Biz-Exchange-Factsheet-UG_T2620.pdf",
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": "July 2026",
+     "note": "dated by its T2620 issue (docs/evidence/phase6/facts.md §3)",
+     "confirm": ["file", "sha256"]
+    },
+    {
+     "id": "info-sheet-2018-19",
+     "name": "NUS SEP information sheet, AY2018/19",
+     "url": "https://international.huji.ac.il/sites/default/files/intl/files/nus_sep_information_sheet_18-19.pdf",
+     "file": null,
+     "sha256": null,
+     "updatedAsAt": "AY2018/19",
+     "note": "a partner university's copy (docs/evidence/phase6/facts.md §4); the page paraphrases it and quotes none of it word for word",
+     "confirm": ["file", "sha256"]
+    }
+   ]
+  }
+ ],
+ "quotes": [
+  { "id": "gro-level-4000", "file": "src/level-note.js", "document": "gro-incoming",
+   "text": "Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students. In order to increase the chances of securing enough courses, incoming exchange students should consider taking courses with course code starting from 1000 to 3000" },
+  { "id": "gro-popular", "file": "public/shortlist.js", "document": "gro-incoming",
+   "text": "If you are not successful in gaining placements into these popular courses at the point of offer, you are not able to add these courses during CourseReg" },
+  { "id": "gro-business-law", "file": "public/shortlist.js", "document": "gro-incoming",
+   "text": "Business and Law courses are only available to students who are invited by NUS Business School and NUS Law respectively to apply for the exchange during the nomination period" },
+  { "id": "rule-e", "file": "public/shortlist.js", "document": "restrictions",
+   "text": "not available during application stage but may be available during Course registration" },
+  { "id": "gro-weeks", "file": "public/shortlist.js", "document": "gro-incoming",
+   "text": "Each semester normally includes 13 weeks of instruction and 2 weeks of examinations" },
+  { "id": "ng-list-language", "file": "public/shortlist.js", "document": "ng-list",
+   "text": "Enrolment in higher level language courses (2XXX and above) will be conditional on the placement test result" },
+  { "id": "biz-online-application", "file": "public/shortlist.js", "document": "biz-factsheet",
+   "text": "During the Online Application, only core BBA courses are available" },
+  { "id": "biz-half-load", "file": "public/shortlist.js", "document": "biz-factsheet",
+   "text": "At least 50% of a student's total course load must consist of Business School courses" },
+  { "id": "coursereg-business", "file": "public/shortlist.js", "document": "coursereg-faq",
+   "text": "Only students who have been offered Business courses during the application stage will be able to see the courses" },
+  { "id": "gro-pre-registered", "file": "public/shortlist.js", "document": "gro-students-pass",
+   "text": "three pre-registered courses (or 12 units)" },
+  { "id": "gro-reselection", "file": "public/shortlist.js", "document": "gro-reselection",
+   "text": "If you did not secure any of the popular courses during the first round … please do not repeat your request for any of these courses in subsequent rounds" },
+  { "id": "gro-drop-grade", "file": "public/shortlist.js", "document": "gro-drop-deadlines",
+   "text": "could lead to a Grade 'W' … or 'F' printed on your transcript" },
+  { "id": "gro-no-guarantee", "file": "public/shortlist.js", "document": "gro-incoming",
+   "text": "no particular course can be guaranteed by NUS" },
+  { "id": "coursereg-submit-requests", "file": "public/shortlist.js", "document": "coursereg-faq",
+   "text": "Submit Course Requests" },
+  { "id": "coursereg-unable", "file": "public/shortlist.js", "document": "coursereg-faq",
+   "text": "Unable to secure course" },
+  { "id": "coursereg-clashes", "file": "public/shortlist.js", "document": "coursereg-faq",
+   "text": "Students are not allowed to read courses with any kind of timetable clashes" },
+  { "id": "coursereg-23-units", "file": "public/shortlist.js", "document": "coursereg-faq",
+   "text": "up to 23 Units in one course request" },
+  { "id": "coursereg-vacancy", "file": "public/shortlist.js", "document": "coursereg-faq",
+   "text": "To check if the course is offered to Non-Graduating students, refer to the Vacancy Report" },
+  { "id": "gro-credit-transfer", "file": "public/export.js", "document": "gro-incoming",
+   "text": "Transfer of units is entirely at the discretion of your home university" }
+ ]
+}
