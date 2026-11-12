@@ -1,0 +1,174 @@
+[
+  {
+    "results": [
+      {
+        "type": "table",
+        "name": "_cf_KV",
+        "tbl_name": "_cf_KV",
+        "sql": "CREATE TABLE _cf_KV (\n        key TEXT PRIMARY KEY,\n        value BLOB\n      ) WITHOUT ROWID"
+      },
+      {
+        "type": "table",
+        "name": "d1_migrations",
+        "tbl_name": "d1_migrations",
+        "sql": "CREATE TABLE \"d1_migrations\"(\n\t\tid         INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tname       TEXT UNIQUE,\n\t\tapplied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL\n)"
+      },
+      {
+        "type": "index",
+        "name": "sqlite_autoindex_d1_migrations_1",
+        "tbl_name": "d1_migrations",
+        "sql": null
+      },
+      {
+        "type": "table",
+        "name": "sqlite_sequence",
+        "tbl_name": "sqlite_sequence",
+        "sql": "CREATE TABLE sqlite_sequence(name,seq)"
+      },
+      {
+        "type": "table",
+        "name": "modules",
+        "tbl_name": "modules",
+        "sql": "CREATE TABLE modules (\n  code         TEXT PRIMARY KEY,\n  title        TEXT NOT NULL,\n  description  TEXT,\n  credits      REAL,\n  department   TEXT,\n  faculty      TEXT,\n  level        INTEGER,\n  semesters    TEXT,          -- JSON array, e.g. \"[1,2]\"\n  workload     TEXT,          -- JSON array of hours per activity\n  prerequisite TEXT,\n  preclusion   TEXT,\n  acad_year    TEXT NOT NULL,\n  text_hash    TEXT NOT NULL  -- hash of the embedded blob, for skip-on-reingest\n, ng INTEGER NOT NULL DEFAULT 0, ng_semesters TEXT, sem1 INTEGER GENERATED ALWAYS AS\n  (instr(replace(replace(coalesce(semesters, ''), '[', ','), ']', ','), ',1,') > 0) VIRTUAL, sem2 INTEGER GENERATED ALWAYS AS\n  (instr(replace(replace(coalesce(semesters, ''), '[', ','), ']', ','), ',2,') > 0) VIRTUAL, sem3 INTEGER GENERATED ALWAYS AS\n  (instr(replace(replace(coalesce(semesters, ''), '[', ','), ']', ','), ',3,') > 0) VIRTUAL, sem4 INTEGER GENERATED ALWAYS AS\n  (instr(replace(replace(coalesce(semesters, ''), '[', ','), ']', ','), ',4,') > 0) VIRTUAL, ng_sem1 INTEGER GENERATED ALWAYS AS\n  (instr(replace(replace(coalesce(ng_semesters, ''), '[', ','), ']', ','), ',1,') > 0) VIRTUAL, ng_sem2 INTEGER GENERATED ALWAYS AS\n  (instr(replace(replace(coalesce(ng_semesters, ''), '[', ','), ']', ','), ',2,') > 0) VIRTUAL, row_hash TEXT, exam_semesters TEXT NOT NULL DEFAULT '[]', exam_sem1 INTEGER GENERATED ALWAYS AS (instr(exam_semesters, '1') > 0) VIRTUAL, exam_sem2 INTEGER GENERATED ALWAYS AS (instr(exam_semesters, '2') > 0) VIRTUAL, exam_sem3 INTEGER GENERATED ALWAYS AS (instr(exam_semesters, '3') > 0) VIRTUAL, exam_sem4 INTEGER GENERATED ALWAYS AS (instr(exam_semesters, '4') > 0) VIRTUAL, su INTEGER NOT NULL DEFAULT 0, grading_basis TEXT, workload_hours REAL, prereq_none INTEGER NOT NULL DEFAULT 0, prereq_cohort_only INTEGER NOT NULL DEFAULT 0, ng_allow INTEGER NOT NULL DEFAULT 0, ng_rules TEXT, exam_dates TEXT NOT NULL DEFAULT '[]')"
+      },
+      {
+        "type": "index",
+        "name": "sqlite_autoindex_modules_1",
+        "tbl_name": "modules",
+        "sql": null
+      },
+      {
+        "type": "index",
+        "name": "idx_modules_faculty",
+        "tbl_name": "modules",
+        "sql": "CREATE INDEX idx_modules_faculty ON modules(faculty)"
+      },
+      {
+        "type": "index",
+        "name": "idx_modules_ng",
+        "tbl_name": "modules",
+        "sql": "CREATE INDEX idx_modules_ng ON modules(ng)"
+      },
+      {
+        "type": "table",
+        "name": "meta",
+        "tbl_name": "meta",
+        "sql": "CREATE TABLE meta (\n  key   TEXT PRIMARY KEY,\n  value TEXT NOT NULL,   -- JSON\n  updated_at TEXT NOT NULL\n)"
+      },
+      {
+        "type": "index",
+        "name": "sqlite_autoindex_meta_1",
+        "tbl_name": "meta",
+        "sql": null
+      },
+      {
+        "type": "table",
+        "name": "modules_fts",
+        "tbl_name": "modules_fts",
+        "sql": "CREATE VIRTUAL TABLE modules_fts USING fts5(\n  code UNINDEXED,\n  title,\n  description,\n  content = 'modules',\n  content_rowid = 'rowid',\n  tokenize = 'porter unicode61',\n  prefix = '2 3 4'\n)"
+      },
+      {
+        "type": "table",
+        "name": "modules_fts_data",
+        "tbl_name": "modules_fts_data",
+        "sql": "CREATE TABLE 'modules_fts_data'(id INTEGER PRIMARY KEY, block BLOB)"
+      },
+      {
+        "type": "table",
+        "name": "modules_fts_idx",
+        "tbl_name": "modules_fts_idx",
+        "sql": "CREATE TABLE 'modules_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID"
+      },
+      {
+        "type": "table",
+        "name": "modules_fts_docsize",
+        "tbl_name": "modules_fts_docsize",
+        "sql": "CREATE TABLE 'modules_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)"
+      },
+      {
+        "type": "table",
+        "name": "modules_fts_config",
+        "tbl_name": "modules_fts_config",
+        "sql": "CREATE TABLE 'modules_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID"
+      },
+      {
+        "type": "trigger",
+        "name": "modules_fts_insert",
+        "tbl_name": "modules",
+        "sql": "CREATE TRIGGER modules_fts_insert AFTER INSERT ON modules BEGIN\n  INSERT INTO modules_fts(rowid, code, title, description)\n  VALUES (new.rowid, new.code, new.title, new.description);\nEND"
+      },
+      {
+        "type": "trigger",
+        "name": "modules_fts_delete",
+        "tbl_name": "modules",
+        "sql": "CREATE TRIGGER modules_fts_delete AFTER DELETE ON modules BEGIN\n  INSERT INTO modules_fts(modules_fts, rowid, code, title, description)\n  VALUES ('delete', old.rowid, old.code, old.title, old.description);\nEND"
+      },
+      {
+        "type": "trigger",
+        "name": "modules_fts_update",
+        "tbl_name": "modules",
+        "sql": "CREATE TRIGGER modules_fts_update AFTER UPDATE OF code, title, description ON modules\nWHEN old.title IS NOT new.title OR old.description IS NOT new.description OR old.code IS NOT new.code\nBEGIN\n  INSERT INTO modules_fts(modules_fts, rowid, code, title, description)\n  VALUES ('delete', old.rowid, old.code, old.title, old.description);\n  INSERT INTO modules_fts(rowid, code, title, description)\n  VALUES (new.rowid, new.code, new.title, new.description);\nEND"
+      },
+      {
+        "type": "trigger",
+        "name": "modules_rowid_immutable",
+        "tbl_name": "modules",
+        "sql": "CREATE TRIGGER modules_rowid_immutable AFTER UPDATE ON modules\nWHEN new.rowid IS NOT old.rowid\nBEGIN\n  SELECT RAISE(ABORT, 'modules.rowid is immutable: modules_fts is keyed on it');\nEND"
+      },
+      {
+        "type": "index",
+        "name": "idx_modules_level",
+        "tbl_name": "modules",
+        "sql": "CREATE INDEX idx_modules_level ON modules(level)"
+      },
+      {
+        "type": "index",
+        "name": "idx_modules_credits",
+        "tbl_name": "modules",
+        "sql": "CREATE INDEX idx_modules_credits ON modules(credits)"
+      },
+      {
+        "type": "index",
+        "name": "idx_modules_sem3",
+        "tbl_name": "modules",
+        "sql": "CREATE INDEX idx_modules_sem3 ON modules(sem3) WHERE sem3 = 1"
+      },
+      {
+        "type": "index",
+        "name": "idx_modules_sem4",
+        "tbl_name": "modules",
+        "sql": "CREATE INDEX idx_modules_sem4 ON modules(sem4) WHERE sem4 = 1"
+      },
+      {
+        "type": "table",
+        "name": "catalogue_only",
+        "tbl_name": "catalogue_only",
+        "sql": "CREATE TABLE catalogue_only (\n  code        TEXT PRIMARY KEY,\n  title       TEXT NOT NULL,\n  description TEXT,\n  acad_year   TEXT NOT NULL,\n  row_hash    TEXT NOT NULL\n)"
+      },
+      {
+        "type": "index",
+        "name": "sqlite_autoindex_catalogue_only_1",
+        "tbl_name": "catalogue_only",
+        "sql": null
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "APAC",
+      "served_by_colo": "HKG",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.4909
+      },
+      "duration": 0.4909,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 25542656,
+      "rows_read": 25,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

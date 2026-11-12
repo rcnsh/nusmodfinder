@@ -1,0 +1,74 @@
+[
+  {
+    "results": [
+      {
+        "id": 1,
+        "name": "0001_init.sql",
+        "applied_at": "2026-11-04 07:40:48"
+      },
+      {
+        "id": 2,
+        "name": "0002_fts.sql",
+        "applied_at": "2026-11-04 07:40:48"
+      },
+      {
+        "id": 3,
+        "name": "0003_ng.sql",
+        "applied_at": "2026-11-04 07:40:48"
+      },
+      {
+        "id": 4,
+        "name": "0004_meta.sql",
+        "applied_at": "2026-11-04 07:40:48"
+      },
+      {
+        "id": 5,
+        "name": "0005_rank.sql",
+        "applied_at": "2026-11-04 07:40:49"
+      },
+      {
+        "id": 6,
+        "name": "0006_fts_external.sql",
+        "applied_at": "2026-11-04 07:40:49"
+      },
+      {
+        "id": 7,
+        "name": "0008_catalogue.sql",
+        "applied_at": "2026-11-07 09:28:09"
+      },
+      {
+        "id": 8,
+        "name": "0007_intents.sql",
+        "applied_at": "2026-11-07 16:37:58"
+      },
+      {
+        "id": 9,
+        "name": "0009_exchange.sql",
+        "applied_at": "2026-11-10 13:11:57"
+      },
+      {
+        "id": 10,
+        "name": "0010_exam_dates.sql",
+        "applied_at": "2026-11-10 18:14:34"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "APAC",
+      "served_by_colo": "HKG",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.3345
+      },
+      "duration": 0.3345,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 25542656,
+      "rows_read": 10,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]

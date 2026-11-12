@@ -1,0 +1,224 @@
+[
+  {
+    "results": [
+      {
+        "idx": "sqlite_autoindex_d1_migrations_1",
+        "tbl": "d1_migrations",
+        "seqno": 0,
+        "cid": 1,
+        "name": "name",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "sqlite_autoindex_d1_migrations_1",
+        "tbl": "d1_migrations",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      },
+      {
+        "idx": "sqlite_autoindex_modules_1",
+        "tbl": "modules",
+        "seqno": 0,
+        "cid": 0,
+        "name": "code",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "sqlite_autoindex_modules_1",
+        "tbl": "modules",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      },
+      {
+        "idx": "idx_modules_faculty",
+        "tbl": "modules",
+        "seqno": 0,
+        "cid": 5,
+        "name": "faculty",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "idx_modules_faculty",
+        "tbl": "modules",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      },
+      {
+        "idx": "idx_modules_ng",
+        "tbl": "modules",
+        "seqno": 0,
+        "cid": 13,
+        "name": "ng",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "idx_modules_ng",
+        "tbl": "modules",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      },
+      {
+        "idx": "sqlite_autoindex_meta_1",
+        "tbl": "meta",
+        "seqno": 0,
+        "cid": 0,
+        "name": "key",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "sqlite_autoindex_meta_1",
+        "tbl": "meta",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      },
+      {
+        "idx": "idx_modules_level",
+        "tbl": "modules",
+        "seqno": 0,
+        "cid": 6,
+        "name": "level",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "idx_modules_level",
+        "tbl": "modules",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      },
+      {
+        "idx": "idx_modules_credits",
+        "tbl": "modules",
+        "seqno": 0,
+        "cid": 3,
+        "name": "credits",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "idx_modules_credits",
+        "tbl": "modules",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      },
+      {
+        "idx": "idx_modules_sem3",
+        "tbl": "modules",
+        "seqno": 0,
+        "cid": 17,
+        "name": "sem3",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "idx_modules_sem3",
+        "tbl": "modules",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      },
+      {
+        "idx": "idx_modules_sem4",
+        "tbl": "modules",
+        "seqno": 0,
+        "cid": 18,
+        "name": "sem4",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "idx_modules_sem4",
+        "tbl": "modules",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      },
+      {
+        "idx": "sqlite_autoindex_catalogue_only_1",
+        "tbl": "catalogue_only",
+        "seqno": 0,
+        "cid": 0,
+        "name": "code",
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 1
+      },
+      {
+        "idx": "sqlite_autoindex_catalogue_only_1",
+        "tbl": "catalogue_only",
+        "seqno": 1,
+        "cid": -1,
+        "name": null,
+        "desc": 0,
+        "coll": "BINARY",
+        "key": 0
+      }
+    ],
+    "success": true,
+    "meta": {
+      "served_by": "v3-prod",
+      "served_by_region": "APAC",
+      "served_by_colo": "HKG",
+      "served_by_primary": true,
+      "timings": {
+        "sql_duration_ms": 0.5131
+      },
+      "duration": 0.5131,
+      "changes": 0,
+      "last_row_id": 0,
+      "changed_db": false,
+      "size_after": 25542656,
+      "rows_read": 45,
+      "rows_written": 0,
+      "total_attempts": 1
+    }
+  }
+]
