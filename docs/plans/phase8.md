@@ -1,4 +1,4 @@
-# Phase 8 plan: launch readiness (r3, after critic round 2)
+# Phase 8 plan: launch readiness (r4, after critic round 3, the last)
 
 Goal (exit): **SC10** is met, the name and domain gate is confirmed, and the site is ready for an
 announcement. Jacob decides whether to announce it and posts it himself.
@@ -11,8 +11,10 @@ announcement. Jacob decides whether to announce it and posts it himself.
     - The search cache and the keyword-only fallback already cover a spike.
     - Paid bills overage rather than refusing it. ADR 0004 says "Nothing in this project may run
       up an overage".
-    - Another project already used 68% of the shared daily neurons on its busiest day. So a big
-      spike on such a day could cost cents, and break the rule. G5 asks Jacob what he wants.
+    - The month's busiest day used 68% of the shared daily neurons, about 4,300 of them this
+      project's own corpus embeds. With no embed or re-ingest on a launch day, about 110,000
+      uncached searches fit; past that the overage is cents, but it breaks the rule. G5 asks Jacob
+      what he wants.
   - **The docs are the risk.**
     - EVAL.md still opens on the Phase 2 baseline, its reproduce commands no longer run as
       written, and it says no holdout look was taken (8 have been).
@@ -36,7 +38,8 @@ announcement. Jacob decides whether to announce it and posts it himself.
 
 This plan changes no product code. Numbers come from the repo at `2fa2558` (= `origin/main`), from
 a fresh clone of it, from cited evidence files, or from the live calls listed at the end of §1.
-Every number marked *est.* is an estimate. r2 and r3 apply critic rounds 1 and 2 (§6).
+Every number marked *est.* is an estimate. r2 to r4 apply critic rounds 1 to 3 (§6). r4 has not
+been critiqued; the rounds stop at three.
 
 ## 1. Measure today
 
@@ -121,14 +124,16 @@ The other stale claims sit in the older sections.
 | 1186-1189 | the eval runs "a fake Vectorize holding real … embeddings" | since 3-0 the runner builds a bundle; only `eval-v0` keeps the fake Vectorize (`eval/runner/run.mjs:150-157`) | **stale** |
 | 1192 | `npm run eval -- --variant v0 --ref eval-v0` | same refusal as EVAL.md:104 | **broken command** |
 | 1198-1200 | "`EVAL.md` still describes [the v1 eval]" | follows EVAL.md | follows EVAL.md |
-| 1239-1260 | Cost: "CPU is the smaller limit"; "~0.03 per search" | at 0.033–0.066 neurons a search, 10,000 a day covers 4.5M–9M searches a month alone, more than CPU's 2.5M. But the allowance is shared, and on 2026-11-06 another project used 6,805: on such a day ~3,200 spare neurons cover 48k–97k searches. Both are billed past the allowance, not refused. Pinned by `test/findings/source.node.test.js:55-75` (FINDINGS B9). | **incomplete**: name the shared neurons |
+| 1239-1260 | Cost: "CPU is the smaller limit"; "~0.03 per search" | at 0.033–0.066 neurons a search, 10,000 a day covers 4.5M–9M searches a month alone, more than CPU's 2.5M. But the allowance is shared: on 2026-11-06 the account used 6,805, about 4,300 of them this project's corpus embeds (`docs/evidence/neurons.tsv`). Pinned by `test/findings/source.node.test.js:55-77`: lines 71-72 pin "**CPU is the smaller limit.**" and line 76 the Phase 1 D1 medians. Both are billed past the allowance, not refused. (FINDINGS B9, `docs/FINDINGS.md:312` names that test.) | **incomplete**: name the shared neurons |
 | 1248 | "~6.8k per deploy (the guard)" | 21,353 at the latest deploy; REFERENCE's own :595 and :657 say ~21k | **stale** |
 | 1250 | 6,778 × 384 = 2,602,752 stored dims | the standby holds what D1 holds (6,818 today) | stale; point to the file |
 | 1291-1294 | "If you blow the limit anyway, every D1 query fails until midnight UTC … or move to the Workers Paid plan" | the account is on Paid; overage is billed, not refused (D1 pricing FAQ) | **wrong** |
-| 1296-1299 | the caveat names Vectorize and D1 allowances | the shared allowance that matters is Workers AI's (68% on another project's busiest day, `docs/evidence/ops/2026-11.md`) | **stale** |
+| 1296-1299 | the caveat names Vectorize and D1 allowances | the shared allowance that matters is Workers AI's (the busiest day 68%, `docs/evidence/ops/2026-11.md`, mostly this project's own embeds) | **stale** |
 | 1308-1309 | "6,771 of the 21,130 records" | pinned figures, asserted by `test/full/corpus.test.js:15` | label them pinned |
 | 1324-1325 | one acad year "would … halve the uncached searches the queried-dimension allowance covers" | Vectorize is off the search path since 3-0 | **wrong** |
 | 1336-1337 | "No natural-language constraint parsing" | 3H and 5F parse *no final exam*, *S/U*, *light workload* and level phrases (README:12-13); "no Friday classes" is still unparsed | **half wrong** |
+| 30 | "the student's year of study at home" | the page asks for the year during the exchange (`public/index.html:69,110`) | **wrong** |
+| 1248, 1259 | per search D1 rows: "unfiltered 137–239 (median 239), filtered 249–1,784 (median 497)" (Phase 1) | Phase 3's counted run: p50 255, max 1,403, filtered p50 613.5 (`docs/evidence/phase3/sc7.md:104-105`) | **stale** |
 | 806 | "Headers and IPs are never logged" | true of the Worker's own line; Workers Logs' invocation logs carry request metadata and headers on their own (`wrangler.jsonc:6`, see privacy below) | **misleading** |
 | 1149-1150 | Workers Logs: "Paid includes their volume" | true until 2026-12-01, then Cloudflare Observability pricing (`docs/evidence/phase7/measure.md:46-49`) | add the date |
 
@@ -180,23 +185,29 @@ embedding of its text for `related` (`src/search.js:894-905`). Pricing: `bge-sma
 (`ops/2026-11.md`):
 - CPU 4,526,846 ms (15.1%);
 - requests 386,162;
-- the busiest Workers AI day 6,805 neurons (68%, another project).
+- the busiest Workers AI day 6,805 neurons (68%, 2026-11-06), of which about 4,300 were this
+  project's two corpus embeds (`docs/evidence/neurons.tsv`). Other projects' share that day was about
+  2,500.
 
 | Uncached searches | Neurons | CPU (*est.* 12 ms each) | D1 rows (*est.* 500 each) | What happens |
 |---|---|---|---|---|
 | 1,000 a day | 33–66 | 12k ms | 0.5M | nothing |
 | 10,000 a day | 330–660 | 120k ms (0.4% of a month) | 5M (0.02%) | nothing |
-| 50,000 a day | 1.7k–3.3k | 600k ms (2%) | 25M | on a day the other project matches its busiest, neurons **may** cross 10,000 (8.5k–10.1k) |
-| 100,000 a day | 3.3k–6.6k | 1.2M ms (4%) | 50M | on such a day up to ~3.4k neurons over, billed at $0.011 per 1,000: **about $0.04** |
-| 1,500–3,000 in one **minute** | — | — | — | Workers AI's limit for text-embedding models is 3,000 requests a minute (Workers AI limits page). A corrected search makes two calls. Past it, embeddings fail and searches go keyword-only. If the limit is per account, the other project's embeddings fail too. |
+| 50,000 a day | 1.7k–3.3k | 600k ms (2%) | 25M | nothing, unless this project embeds its corpus that day too (~2–4k neurons) |
+| 100,000 a day | 3.3k–6.6k | 1.2M ms (4%) | 50M | with other projects at ~2,500: 5.8k–9.1k, inside. With a corpus embed the same day, up to ~3.4k over, billed at $0.011 per 1,000: **about $0.04** |
+| 1,500–3,000 in one **minute** | — | — | — | Workers AI's limit for text-embedding models is 3,000 requests a minute (Workers AI limits page). A corrected search makes two calls. Past it, embeddings fail and searches go keyword-only. If the limit is per account, other projects' embeddings fail too. |
 
 - **Billing, not refusal.** On Workers Paid, neurons over 10,000 a day are billed, not refused.
   Error 3036 ("daily free allocation") applies to the Free plan (Workers AI errors page).
   - Nothing in the Worker caps its own use.
   - ADR 0004 (:30-32) rules that "Nothing in this project may run up an overage". It was written
     when the only traffic was the project's own operations.
-  - A day like 2026-11-06, plus about 50,000 uncached searches here, would break that rule. G5
-    asks Jacob what he wants.
+  - With no corpus embed or re-ingest that day, about 110,000 uncached searches (at 0.066) fit
+    beside other projects' ~2,500. Past that, or on a day with an embed, the rule breaks. G5 asks
+    Jacob what he wants.
+  - Cloudflare's budget alerts email when the account's usage-based spend crosses a threshold. They
+    fire the day after, cap nothing, and are on by default at $10 for eligible accounts (Cloudflare
+    changelog, 2026-07-20).
 - **Worst-case abuse.** Unique uncached searches past the allowances cost about **$2 to $12 per
   million** (*est.*):
   - neurons: $0.36–0.73 at 0.033–0.066 each, up to $9.70 at the 0.88 worst case;
@@ -221,8 +232,10 @@ embedding of its text for `related` (`src/search.js:894-905`). Pricing: `bge-sma
   - It is checked before the limiter (`src/search.js:1204-1207`), and is per data centre.
   - Live, the repeat of a miss was a hit in 24 ms. The miss carried `max-age=3600`, as stored; the
     hit carried `max-age=14400`.
-  - That matches Cloudflare's default Browser Cache TTL (4 hours), which overrides a lower origin
-    `Cache-Control` (Cloudflare cache docs). The zone's setting wasn't read (8-0 reads it).
+  - The Worker's own response isn't rewritten: the miss left with 3600. The 14400 is on the
+    stored copy `cache.match` returns, which matches the zone's Browser Cache TTL default (4 hours,
+    Cloudflare cache docs). Setting `cache-control` on the hit fixes it, since the Worker's response
+    header is what the browser gets.
   - Live calls 11 and 17 both show it.
   - So a keyword-only answer, stored for 60 s (`src/search.js:60,1238`), can come back from the
     edge within its minute with 4 hours on it. The page's fetches set no `cache` option
@@ -249,20 +262,26 @@ embedding of its text for `related` (`src/search.js:894-905`). Pricing: `bge-sma
 ### Launch risk: what a visitor sees
 From the live calls (end of §1), critic C's local run (`npm run dev`, 390 px) and the code:
 - **The academic year.**
-  - The site serves NUS's 2026/27 lists. The header's "Academic year 2026/27" is hidden on phones
-    (`public/styles.css:360`, `.hdr-r { display: none; }`).
+  - The site serves NUS's 2026/27 lists. The header's "Academic year 2026/27" is hidden at
+    1040 px and below (`public/styles.css:353,360`, `.hdr-r { display: none; }`): a critic found no
+    "2026/27" in the results view at 390, 640, 768, 820, 1024 or 1040 px.
   - The phone's first screen offers "Sem 1 Aug–Dec 2026" and "Both semesters Aug 2026–May 2027".
   - The results view at 390 px shows no year at all (critic C, round 2: a page-text scan).
   - **2027/28 applicants are told.** The shortlist says "This order uses NUS's 2026/27 exchange
     list and exams. Applying for 2027/28? NUS publishes Sem 1's list in March or April…"
     (`public/shortlist.js:143`). Phase 6 designed it so applicants plan on 2026/27's lists and
     exams (`docs/evidence/phase6/facts.md:157`).
-  - Applicants apply from 21 March to 10 April for 2027/28. The site moves to 2027/28 in July
+  - Outside the shortlist and the export, nothing mentions 2027/28. In March the first screen
+    still offers "Sem 1 Aug–Dec 2026" (`public/app.js:167-168`).
+  - Applicants apply for 2027/28 in March and April. NUS's pages give two windows: 25 March to
+    12 April, and 21 March to 10 April, both from an earlier cycle. Nomination comes first, in
+    February and March (`docs/evidence/phase6/facts.md:119-121`). The site moves to 2027/28 in July
     (`docs/year-refresh/README.md:136`).
 - **Reporting a problem:** the page names no contact and no issue tracker. The footer links only
   NUSMods and NUS (`public/index.html:177-182`).
-- **Cookies:** none. Live calls 16 and 17 (`/` and a `/search`) carry no `Set-Cookie`. Cloudflare's
-  bot features could add one under a challenge; none was seen.
+- **Cookies:** the site sets none. Live calls 16 and 17 (`/` and a `/search`) carry no
+  `Set-Cookie`. Cloudflare's bot features may set a security cookie when they challenge a visitor;
+  none was seen.
 - **A mistyped path** (`/no-such-page`): HTTP 404 `{"error":"not_found","message":"No route for
   /no-such-page."}` as raw JSON in the browser (`src/index.js:63`). It is JSON even with
   `Accept: text/html` (critic C). `wrangler.jsonc` `assets` has no `not_found_handling`.
@@ -414,18 +433,21 @@ The site has been public since 2026-11-11 (ADR 0009). Nobody has announced it.
     Sem 2 NG appeal timeline is out ("Updated: 11am, 7 Oct 2026").
   - The shortlist serves them through its "Already admitted?" box and the CourseReg lines.
   - The CourseReg round dates weren't fetched: nus.edu.sg sits behind bot protection, and a
-    critic's fetch of the appeal schedule returned a bot check. Jacob reads them by hand.
+    critic's fetch of the appeal schedule returned a bot check. Business's FAQ puts registration
+    "at the beginning of the semester" (`facts.md:107`). Jacob reads the dates by hand (G2).
 - **2027/28 applicants** (21 March to 10 April) plan on 2026/27's lists and exams, labelled as
   such (above). NUS may publish 2027/28's Sem 1 list during their window. The site switches in
   July.
-- **Before any post (8C's checklist):**
-  - SC10 met;
-  - 8B live;
-  - the privacy note live;
+- **Before any post (8C's checklist), only what a visitor meets:**
+  - 8B live, the privacy note included;
+  - the README's rows fixed (8A's README part);
   - G4's choice in place;
   - the latest deploy's smoke green;
   - this month's NG-source check done, with NUS's "updated as at" dates matching
     `data/ng-sources-<year>.json`.
+
+  EVAL.md, REFERENCE.md and the vault page can follow: no student reads them, and a post shouldn't
+  miss course registration waiting for them.
 
 ### Live calls (all GET, ≥ 4 s apart; 17 of the 25 allowed, 7 of the 10 `/search`, 2 of them cache hits)
 The raw log is `docs/evidence/phase8/live-calls.jsonl`. `docs/evidence/requests.tsv` takes no new
@@ -461,7 +483,7 @@ matches". That's a search-quality limit (ADR 0011 G4), recorded here and not pla
 | 8-0 | three dashboard reads, then G3; Jacob answers G1, G2, G4, G5, G6 | lead (reads), Jacob (answers) | — | — |
 | 8A | the docs describe the system as it is (SC10) | implementer agent | `phase8/docs` | — |
 | 8B | what a visitor sees: 404 page, favicon, no-JS, year line, footer links, contact (G6), privacy note, logs per G3, hit TTL, cross-site refusal; their docs | implementer agent | `phase8/visitor` | 8-0, G3, G6 |
-| 8C | smoke in the Actions deploy; the launch checklist, post text, outage runbook; the outage check per G4; the spending guard per G5; their docs | implementer agent | `phase8/launch` | G2, G4, G5 |
+| 8C | smoke in the Actions deploy; the launch checklist, post text, outage runbook; the outage check per G4; the budget alert and ADR wording per G5; their docs | implementer agent | `phase8/launch` | G2, G4, G5 |
 | 8D | ship, live re-check, a fresh review of the docs, exit; the vault page | lead | — | 8A–8C |
 
 Code workstreams write their tests first, in the first commit of the PR, and those tests fail
@@ -491,11 +513,17 @@ matched in its sentence.
   - holdout and test looks spent (rows of `eval/holdout-ledger.md` by set). A look's PR updates
     EVAL.md;
   - SC5's Δ and CI (`docs/evidence/phase3/sc5.md`);
-  - each current-year label in README.md, EVAL.md and REFERENCE.md ("2026/27", "2026-2027") equals
-    `DEFAULT_ACAD_YEAR` (`scripts/lib.mjs`), outside sections headed "History" or labelled pinned;
-  - the NG list's codes per semester, in sentences about the live list, against
-    `data/ng-courses-<year>.json`. Sentences about the pinned corpus are labelled "pinned" and
-    checked against `eval/pinned/`.
+  - EVAL.md's qrels label equals `eval/dev/qrels.json`'s `version`, so a new qrels version fails
+    until EVAL.md is re-derived;
+  - **the year.**
+    - The sentences that state the live year carry a marker (`<!-- year:live -->`), and only those
+      are checked against `DEFAULT_ACAD_YEAR` (`scripts/lib.mjs`).
+    - Sentences marked `<!-- year:pinned -->` are checked against `PINNED_ACAD_YEAR`
+      (`scripts/pinned-corpus.mjs:11`).
+    - Identifiers such as `prod-2026-2027-20261104` are never checked.
+    - The test proves it fails first by running its check with the year stubbed to `2027-2028`;
+  - the NG list's codes per semester, in marked live sentences, against
+    `data/ng-courses-<year>.json`. Pinned sentences are checked against `eval/pinned/`.
 - **No volatile values in prose.** Since `46c8d56`, a NUSMods refresh needs no test edits, and
   ADR 0003's pin procedure (:565-566) doesn't edit docs. So these are written as pointers to their
   files and never stated:
@@ -504,7 +532,8 @@ matched in its sentence.
   - the standby's dims;
   - the shipped pin's sha.
 
-  The test asserts none of the current values appears in those sentences.
+  The test asserts that those pointer sentences (marked `<!-- pointer -->`) contain no number at
+  all. A stale 40, 6,778 or 10.7 then fails today, as it should.
 - **Retired claims:** no match, outside a section headed "History", for:
   - "Exchange Course Finder";
   - "vector half is unproven", "does not currently earn its keep", "not pulling its weight";
@@ -512,20 +541,33 @@ matched in its sentence.
   - "No look has been taken";
   - "Vectorize search is approximate";
   - "year of study at home";
-  - "Headers and IPs are never logged".
+  - "Headers and IPs are never logged";
+  - "Exchange Course Finder" and "year of study at home" also cover REFERENCE.md:30 and :306.
 - **Commands:**
   - every `npm run <x>` in the README exists in `package.json` (passes today);
   - the README names `npx playwright install` before `test:ui` (fails today);
-  - every `--ref eval-v0` in EVAL.md and REFERENCE.md also passes `--embedding
-    emb-bge-small-v0` (fails today).
+  - every `--ref eval-v0` in EVAL.md, REFERENCE.md and `eval/README.md` (:38, :45, :296-298,
+    :423) also passes `--embedding emb-bge-small-v0` (fails today).
 - **Existing tests and references 8A must change in the same PR:**
-  - `test/findings/source.node.test.js:55-75` (FINDINGS B9) pins the Cost section's text. The
-    rewrite keeps the B9 arithmetic as history. The binding-limit sentence becomes "CPU or the
-    shared neurons", with §1's numbers, and the test asserts the new sentence. FINDINGS B9's note
-    follows.
+  - **`test/findings/source.node.test.js:55-77`** (FINDINGS B9) pins the Cost section's text:
+    - the B9 arithmetic, which stays as history;
+    - "**CPU is the smaller limit.**" (:71-72), which becomes "CPU or the shared neurons" with §1's
+      numbers;
+    - Phase 1's D1 medians (:76), which become Phase 3's counted run (`phase3/sc7.md:104-105`).
+
+    The test asserts the new text. If its title changes, `docs/FINDINGS.md:312` must name it
+    exactly: `check-findings` requires backticked test names to exist, and the Findings workflow
+    gates the deploy.
   - `eval/v1/README.md` already exists, kept "so EVAL.md … stay checkable" (:4). It quotes
     EVAL.md's v1 MRR row (:16), and `docs/FINDINGS.md:344,346` cite that row and `EVAL.md:94`. The
-    v1 text moves into that file, and the FINDINGS citations move with it.
+    v1 text moves into that file.
+  - **The FINDINGS citations are already wrong.** `docs/FINDINGS.md:346` cites `EVAL.md:94` and
+    `:41`. The v1 MRR row is at :211 and the `ORDER BY rank` sentence at :158; `check-findings`
+    ignores line suffixes. They are re-derived, not moved.
+  - The v1 text's `eval/results-main.txt` and `eval/results-holdout.txt` paths become
+    `eval/v1/…`.
+  - `docs/evidence/phase2/baseline-table.mjs`'s header (:1-4) hard-codes "qrels-dev-v2" and "83".
+    It follows the re-score.
 - **`scripts/year.mjs` `CHECKLIST`** and `docs/year-refresh/README.md` gain a step: update the
   year labels in the three docs; `docs-facts` must pass.
 
@@ -544,10 +586,15 @@ matched in its sentence.
      routes, the pin in `eval/lib/baseline.mjs` and ADR 0003);
   2. SC5;
   3. the Phase 2 baseline re-scored on today's `qrels-dev-v11` (an open set, no look, by
-     `baseline-table.mjs`), with the v2 numbers kept as history, labelled with their qrels;
+     `baseline-table.mjs`), with the v2 numbers kept as history, labelled with their qrels.
+     - The re-score moves more than the tables. On v11, 85 queries are primary and 6 unscored
+       (d-061 and d-093 now have grade ≥ 1), against 83 on v2 (critic A, round 3).
+     - So every qrels-dependent sentence is re-derived: :21-22, :29-31, :43, :74-83 (feature-gap,
+       shapes, violations) and :79;
   4. replica and production, which differ in three ways:
      - the corpus (pinned 2026-09-04 against production's `current`);
-     - the NG files (`eval/pinned/`, which never move);
+     - the NG files: `eval/pinned/` never moves, `data/` follows NUS's revisions. They are
+       identical today (same sha256);
      - query vectors (Workers AI isn't bit-deterministic, so ties near the cut can differ,
        `eval/README.md:409-413`).
 
@@ -567,7 +614,7 @@ matched in its sentence.
 - `docs-facts` and `npm test` pass.
 - In a fresh clone, the README's commands run as written.
 - On the Mac, EVAL.md's dev reproduce commands (open set only, no `--holdout`) print the numbers in
-  its table.
+  its tables and its qrels-dependent sentences.
 - **A fresh reviewer's pass in 8D** over README.md, EVAL.md and REFERENCE.md against the code.
   §1's tables only bound what was found. Every finding is fixed or rebutted before the exit.
 
@@ -582,33 +629,49 @@ matched in its sentence.
   - **The hit's TTL.** With `caches.default.match` stubbed to return a stored copy carrying
     `max-age=14400` (as production's does), the hit is sent with 3600, or 60 for a degraded entry.
     Miniflare's own cache returns stored headers unchanged, so only a stub can fail first.
-  - **The cross-site refusal.** `/search` with `Sec-Fetch-Site: cross-site` (and a `Sec-Fetch-Mode`
-    other than `navigate`) answers 403 before the cache, the limiter and any binding. `same-origin`,
-    `none`, or no header (smoke, the eval, `curl`, the uptime check) is served as today. The 429
-    and 403 bodies stay JSON.
+  - **The cross-site refusal.**
+    - `/search` with `Sec-Fetch-Site: cross-site` answers 403 before the cache, the limiter and any
+      binding, unless `Sec-Fetch-Dest` is `document`.
+    - A link a student follows to `/search` is `navigate` + `document`. A hidden iframe is
+      `navigate` + `iframe`, and is refused.
+    - Served as today: `same-origin`, `none` (a bookmark), and Node's `fetch` as smoke and uptime
+      send it (`Sec-Fetch-Mode: cors` with no `Sec-Fetch-Site`, captured by a round 3 critic), the
+      eval and `curl`.
+    - The tests use exactly those header sets, the iframe case included. The 429 and 403 bodies stay
+      JSON.
+    - `public/messages.js` gains a sentence for the 403, since today an unknown code shows "The
+      search service had a problem. Try again in a moment." and invites retries.
   - **Errors outside `/search`.** A D1 failure on `/module` or `/facets` writes one log line with
     the route and the error, and no URL, query or IP.
 - **UI specs:**
-  - with JavaScript off (Playwright `javaScriptEnabled: false`), one sentence says the site needs
-    JavaScript;
-  - the academic year shows at 390 px in the set-up, results and shortlist views, and the fold spec
+  - with JavaScript off (Playwright `javaScriptEnabled: false`), one sentence saying the site needs
+    JavaScript is visible on the first screen at 390×664, on `/` and on a shared `/?q=…&pick=…`
+    link;
+  - **the year line** shows at 390, 768 and 1024 px (the header's year is hidden at 1040 px and
+    below) in the set-up, results and shortlist views, with its applicant clause, and the fold spec
     still passes;
   - the restrictions footer link is the restrictions document's address;
-  - the contact link (G6) is present;
+  - the contact link (G6) is present and, for (a), carries the course code, semester, year of
+    study and data version into the new issue;
   - the 404 page and the privacy note pass axe in both themes.
 - **If G3 is (b) or (c):** a config test asserts `wrangler.jsonc`'s `observability.logs`. For (c),
   a Worker test asserts the `search` line has no `q`.
 
 **The changes:**
-- **The 404:** `public/404.html`, imported into the Worker as a text module (a wrangler `rules`
-  entry, mirrored in the Vitest configs), so `Env` gains no binding. It's sent when `Accept`
-  prefers `text/html`, with `_headers`' headers.
+- **The 404:** `src/404.html`, imported by the Worker. Wrangler imports `.html` as a Text module by
+  default, so `Env` gains no binding. It lives in `src/`, not `public/`, so it isn't also served as
+  `/404.html` with a 200. It's sent when `Accept` prefers `text/html`, with `_headers`' headers.
 - **Small page changes:**
   - `public/favicon.ico`;
   - `<noscript>`;
-  - the year at every width: "NUS's 2026/27 lists", from the wording `public/year.js` drives;
+  - **the year line at every width:** "NUS's 2026/27 lists", from the wording `public/year.js`
+    drives. It adds a clause for applicants, e.g. "Applying for 2027/28? NUS's lists come out in
+    March–April; until July this site shows 2026/27's.", reusing `public/shortlist.js:143`'s
+    wording;
   - the restrictions link;
-  - the contact link per G6;
+  - the contact link per G6. For (a), a "Report a problem" link in the course detail opens a
+    pre-filled `issues/new` (code, semester, year of study, data version) with an issue template in
+    `.github/ISSUE_TEMPLATE/`;
   - `og:site_name` "NUS Mod Finder (unofficial)".
 - **The search hit path** re-sends its stored TTL. The degraded flag is stored with the entry, so
   the hit knows which.
@@ -625,26 +688,34 @@ matched in its sentence.
   - what stays on the device, and how to clear it: "Forget this list" for the shortlist, the
     browser's site data for the year;
   - that a copied shortlist link contains the year of study and the list;
-  - no cookies (measured, live calls 16-17), no trackers, no third parties.
+  - that the site sets no cookies (measured, live calls 16-17), though Cloudflare may set a
+    security cookie if it challenges a visitor; no trackers; Cloudflare is the only service that
+    sees the requests.
 - **G3's logging choice** in `wrangler.jsonc`, and for (c) in `src/search.js`.
 - **Docs in the same PR:**
   - REFERENCE.md's routes (the 404, the 403), "Logging" and :806 per G3, Operations;
-  - the README's data and privacy line.
+  - the README's data and privacy line, and its contact gap (§1's row) per G6.
 
 **Exit checks:**
 - CI green, ranking lock unchanged;
 - after the Actions deploy, its smoke step green (8C);
 - 8D's live checks.
 
-### 8C Smoke in the deploy; launch checklist; outage runbook and check; spending guard
+### 8C Smoke in the deploy; launch checklist; outage runbook and check; spending (G5)
 - **Smoke in the Actions deploy.** `.github/workflows/deploy.yml` runs `npm run smoke -- --expect
-  <sha>` after the promote. Its record goes into the job's artifact (nothing is committed from CI).
-  A failed smoke fails the job, which GitHub reports to Jacob.
-  - **Tests first:** `test/ci-workflow.node.test.js` (or the deploy workflow's test) asserts the
-    step, its order after the deploy step, and that it sees no Cloudflare secret.
+  <sha>` after the deploy step and before "Keep the run record" (`deploy.yml:71-78`), so its record
+  joins the artifact. Nothing is committed from CI. A failed smoke fails the job, which GitHub
+  reports to Jacob.
+  - **It needs no token,** because the deploy step has already put the bundle in `.data/vectors`
+    and restored `current` to `.data/prod` in the same job. Smoke's own restore is then a no-op
+    (`scripts/corpus-manifest.mjs:171-175`). The step says so in a comment; if the order ever
+    changes, it gets `GH_TOKEN`.
+  - **Tests first:** `test/deploy-workflow.node.test.js` asserts the step, its place (after the
+    deploy, before the artifact) and that it sees no Cloudflare secret.
   - Smoke sends 5 GETs, 1 of them an uncached `/search`: about 0.033 neurons a deploy.
 - **`docs/launch.md`**, short, for Jacob:
-  - **Before any post:** §1's preconditions, each with how to check it.
+  - **Before any post:** §1's preconditions (only what a visitor meets), each with how to check
+    it.
     - `/health`'s tag is `main`'s.
     - The latest Deploy run's smoke step is green: `gh run view <id>`, no commit needed.
     - The privacy note is live, with the retention it states matching the account's.
@@ -656,8 +727,13 @@ matched in its sentence.
     - For 2027/28 applicants (if G2 includes them): that it uses 2026/27's lists and exams,
       labelled, and that NUS publishes 2027/28's Sem 1 list in March or April.
     - Jacob edits and posts it.
-  - **Timing:** before the Sem 2 CourseReg rounds (Jacob reads their dates; nus.edu.sg isn't
-    fetched by the project), or inside the 21 March to 10 April window for applicants.
+  - **Timing:**
+    - before the Sem 2 CourseReg rounds (G2 asks Jacob for the date; nus.edu.sg isn't fetched by the
+      project);
+    - for applicants, before or during nomination and the application window, whose 2027 dates
+      Jacob confirms.
+  - **No corpus embed or forced re-ingest in launch week.** On 2026-11-06 those were about 4,300 of
+    the day's 6,805 neurons (§1).
   - **Launch week:**
     - Workers AI's daily neurons;
     - the Worker's 4xx and 5xx counts;
@@ -667,8 +743,12 @@ matched in its sentence.
     1. Check, in order: `/health`, a search, `wrangler deployments status`, the last deploy tag.
     2. **First** set `DEPLOY_FROM_ACTIONS` to anything but `true`, or revert the cause on `main`,
        so the next push doesn't redeploy it.
-    3. Then `npm run rollback` and `npm run smoke -- --expect <sha>`.
-    4. Turn the switch back on after the fix merges.
+    3. `gh run list --workflow Deploy`: wait for or cancel any queued or running Deploy job. The
+       concurrency group never cancels one, so it could overwrite the rollback (`deploy.yml:29-31`).
+    4. Then `npm run rollback` and `npm run smoke -- --expect <sha>`.
+    5. **Turn the switch back on before merging the fix.** A merge while it's off is skipped by the
+       job's `if` (`deploy.yml:38`), and turning it on fires no event. Or deploy the fix from the
+       Mac with `npm run deploy`.
   - **If NUS or NUSMods asks for a change or removal:** reply, take the text or feature down within
     a day, record it in an ADR.
 - **If G4 is (b) or (c):** `.github/workflows/uptime.yml` and `scripts/uptime.mjs`.
@@ -677,9 +757,10 @@ matched in its sentence.
   - **Each run:**
     1. GET `/health` (no D1, no neurons) and one `/module/<code>` (1 D1 row, not edge-cached,
        `src/modules.js:47-48`).
-    2. One `/search` whose query rotates by the hour, so it misses the 1-hour cache, and whose
-       answer must not be `degraded`. That catches the Workers AI failure, which still answers 200.
-       About 0.8 neurons a day.
+    2. One `/search` whose query rotates by the hour. Its answer must be a miss
+       (`cache;desc=miss`, as smoke requires, `scripts/smoke.mjs:218`) and must not be `degraded`.
+       That catches the Workers AI failure, which still answers 200. If a late run lands on a
+       cached query, it takes the next query in the list. About 0.8 neurons a day.
     3. On a failure, check again after 90 s in the same run. No state is kept between runs.
     4. Two failures open one `uptime:down` issue, found by a hidden marker as drift does. GitHub
        emails it to Jacob.
@@ -688,19 +769,15 @@ matched in its sentence.
   - **(c)** adds an end date the script checks, after which it exits 0.
   - **Tests first:** fixture responses give open, comment and close; one failure then a pass opens
     nothing; a degraded answer counts as a failure; the cron matches the script's schedule.
-- **The spending guard, per G5:**
-  - **(a):** ADR 0004 is amended in ADR 0012 to allow visitor-driven overage up to Jacob's monthly
-    amount. The monthly report flags any billed day.
-  - **(b):** a third value of the existing var, `DENSE_BACKEND=off`, puts every search in
-    keyword-only mode with no Workers AI call. A new var would fail the deploy preflight, which
-    allows only `DENSE_BACKEND` (`docs/REFERENCE.md:573-575`).
-    - Flipping it is a one-line commit that Actions deploys.
-    - `launch.md` says to flip it when the dashboard shows the day's neurons near 10,000.
-    - **Tests first:** with the var set, `/search` makes no `AI.run` call and answers `degraded`
-      with its own reason.
-    - It's ranking-changing only while on, so the ranking lock (computed with it off) is unchanged.
-- **Docs in the same PR:** REFERENCE.md's Deploying (the smoke step), Operations (uptime, the kill
-  switch order), Cost (G5).
+- **Spending, per G5.** No code; a switch to keyword-only was considered and dropped (§6, B3-1).
+  - **(a):** ADR 0004 is amended in ADR 0012: visitor-driven overage is allowed up to Jacob's
+    monthly amount. Jacob sets a Cloudflare budget alert at that amount, which emails and caps
+    nothing. The monthly report flags any billed day.
+  - **(b):** ADR 0004 stands. Its rule is kept by the launch-week rule above (no corpus embed), and
+    a budget alert at the lowest amount tells Jacob the day after it is broken.
+  - Either way, `launch.md` and REFERENCE.md's Cost say what the alert does and doesn't do.
+- **Docs in the same PR:** REFERENCE.md's Deploying (the smoke step), Operations (uptime, the
+  rollback order), Cost (G5).
 
 **Exit checks:**
 - the next Actions deploy's smoke step green;
@@ -720,8 +797,8 @@ matched in its sentence.
   - `/`'s `<noscript>`;
   - `/health`;
   - one `/search` repeated once, to see the hit's `cache-control`;
-  - one `/search` with `Sec-Fetch-Site: cross-site`, expecting 403 before any binding (costs no
-    neuron).
+  - one `/search` with `Sec-Fetch-Site: cross-site` and `Sec-Fetch-Dest: iframe`, expecting 403
+    before any binding (no neuron).
 
   axe and the fold run in CI, not live.
 - **A fresh reviewer pass** over README.md, EVAL.md and REFERENCE.md against the code, given only
@@ -742,16 +819,16 @@ matched in its sentence.
 
   No D1 write, no migration, no Vectorize call. Workers AI only in smokes and 8D's search, well
   under 1 neuron in all.
-- **G4 (b):** about 72 requests and 24 D1 rows a day, and about 0.8 neurons.
-- **The spike:** §1's table. Under 100,000 uncached searches a day, the worst day costs cents, but
-  ADR 0004 allows none until G5 says otherwise.
-- **Holdout:** no look. Every Phase 8 change is ranking-neutral, and the lock proves it. G5 (b)'s
-  switch, when on, is a declared degraded mode, not a ranking change.
+- **G4 (b):** about 72 requests, about 6k D1 rows (24 searches at SC7's p50 of 255, plus 24
+  `/module` reads) and about 0.8 neurons a day.
+- **The spike:** §1's table. With no corpus embed that day, about 110,000 uncached searches fit
+  inside the allowance. Past that, cents, which ADR 0004 allows none of until G5 says otherwise.
+- **Holdout:** no look. Every Phase 8 change is ranking-neutral, and the lock proves it.
 - **Risks:**
   - **Deploy on every push** empties the search cache on each merge. In a launch week, batch docs.
-  - **The shared Workers AI allowance and per-minute limit.** A spike on a busy day is billed
-    (G5). A burst past 3,000 embeddings a minute degrades search to keyword-only, perhaps for the
-    other project too.
+  - **The shared Workers AI allowance and per-minute limit.** A spike on a day this project also
+    embeds its corpus is billed (G5). A burst past 3,000 embeddings a minute degrades search to
+    keyword-only, perhaps for other projects too.
   - **Shared NAT and the burst limit.** A class searching together from one address can hit 429s.
     If launch-week reports show it, the limit is one number in `wrangler.jsonc`.
   - **NUS's text** shown in full, as NUSMods shows it. Answered by `launch.md`'s takedown line.
@@ -776,9 +853,12 @@ matched in its sentence.
   - G3's and G6's choices deployed;
   - the privacy note matches 8-0's reads.
 - **Launch:**
+  - the preconditions for a post (§1) can hold before SC10's EVAL, REFERENCE and vault parts are
+    done;
   - every Actions deploy smokes itself;
   - `docs/launch.md` committed, each precondition checked once;
-  - G4's and G5's choices in place, and G4's run green once if (b) or (c);
+  - G4's and G5's choices in place (G5: the ADR wording and the budget alert), and G4's run green
+    once if (b) or (c);
   - the announcement itself is Jacob's, after the exit. It is not an exit criterion.
 - **Ops:** every remote step has a run record or a line in `docs/evidence/phase8/remote-ops.md`.
   No holdout look. Ranking lock unchanged.
@@ -793,17 +873,19 @@ matched in its sentence.
   July. It helps two groups now:
   - students coming for Sem 2 (January 2027), who are mostly admitted and next face course
     registration;
-  - students applying in March for 2027/28, who can plan on 2026/27's courses and exams. The site
-    labels them as last year's.
+  - students applying in March and April for 2027/28, who can plan on 2026/27's courses and
+    exams. The site labels them as last year's.
 
   The options:
   - (a) No post. The site stays public and findable.
   - (b) You post in a few places you choose, using short texts Phase 8 drafts for you to edit:
     - for Sem 2 students, before course registration;
-    - and, if you like, for applicants, during the 21 March to 10 April window.
+    - and, if you like, for applicants, around nomination and the application window.
   - (c) A broad public post, such as an NUS forum.
 
-  If (b) or (c): which places, which group or groups, and roughly when?
+  If (b) or (c): which places, which group or groups, and roughly when? Please also give the Sem 2
+  course registration dates, and 2027's application dates, from NUS's pages. The project can't
+  fetch them (bot protection), and the posts should land before them.
 
   *Recommended: (b), both groups at their own times.* Few targeted posts reach the people the site
   is for, and a problem reaches a small group first. Waiting until July would miss this year's
@@ -836,25 +918,31 @@ matched in its sentence.
   *Recommended: (b).* About 70 requests a day, no secret, and it notices when search quietly falls
   back to keywords. You hear within about an hour, not whenever you next look. GitHub can delay
   scheduled runs, so it isn't to the minute.
-- **G5. Spending.** ADR 0004 says the project never goes over the account's free allowances. A
-  launch could, on a day another project of yours is also busy: Workers AI is shared, and on
-  6 November that project used 68% of the day's allowance. The overage would be cents: about $0.04
-  for 100,000 searches on such a day.
-  - (a) Allow visitors' searches to go over, up to an amount a month you name. The monthly report
-    shows any billed day.
-  - (b) Keep the rule. Add a switch that puts search in keyword-only mode (no AI cost), which you
-    flip from the checklist if a day's usage nears the allowance.
-  - (c) Keep the rule and add nothing, accepting it could be broken on a busy day.
+- **G5. Spending.** ADR 0004 says the project never goes over the account's included allowances.
+  - Search is very cheap: about 110,000 searches a day fit inside the daily AI allowance, as long
+    as the project doesn't also rebuild its course embeddings that day. Phase 8 makes that a
+    launch-week rule.
+  - Past that, the overage is cents: about $0.04 for 100,000 more searches.
+  - Nothing can cap it automatically. Cloudflare's budget alert only emails you, the day after.
 
-  *Recommended: (a), with a small cap such as $1 a month.* The cost is cents. A switch you must
-  watch for degrades search for everyone, and (c) leaves the rule untrue.
+  The options:
+  - (a) Allow visitors' searches to go over, up to an amount a month you name, with a budget alert
+    at that amount.
+  - (b) Keep the rule as it is, with a budget alert at the lowest amount so you hear the day after
+    if it's ever broken.
+
+  *Recommended: (a), with a $5 alert.* A launch is the one time traffic can't be planned, the cost
+  is cents, and (b)'s rule could be broken by visitors through no step of yours.
 - **G6. How visitors reach you.** A student who finds a wrong status has no way to tell you today.
-  - (a) A "Report a problem" link to the GitHub repo's issues (public; needs a GitHub account).
+  - (a) A "Report a problem" link from each course to a pre-filled GitHub issue. It's public, and
+    the student needs a GitHub account and posts under it.
   - (b) An email address on the page.
-  - (c) Neither.
+  - (c) Both: issues for wrong statuses, email for anything private (privacy questions).
+  - (d) Neither. Then the privacy note names no contact, and launch week has no reports to read.
 
-  *Recommended: (a).* It needs no personal address on the page, reports are public so others see
-  known problems, and drift's issues already live there.
+  *Recommended: (c).* Issues arrive with the course, semester and year filled in, and others can
+  see known problems. An address covers students without GitHub and anything that shouldn't be
+  public. If you'd rather not publish an address, (a).
 
 ## 6. Critic log
 
@@ -970,3 +1058,80 @@ Found sound by round 2:
 | C2-5 | C (major) | the checklist never checks the NG sources are current | **Applied.** A precondition: this month's check, dates matching the source manifest. |
 | C2-6 | C (minor) | "no cookies" checked only against the code | **Applied.** Measured live (calls 16-17): no `Set-Cookie`. |
 | C2-7 | C (minor) | the year spec doesn't name the views | **Applied.** Set-up, results and shortlist at 390 px. |
+
+### Round 3 (fresh critics on r3: A the SC10 maintainer, B launch ops and cost, C a first-time visitor; the last round)
+Found sound by round 3:
+- **A:**
+  - `DEFAULT_ACAD_YEAR`;
+  - the ledger and SC5;
+  - the refusal path;
+  - the re-score is feasible (v11's corpus hashes match the pinned run);
+  - the CLI's `run` command;
+  - `year-refresh-docs` accepts a command-less CHECKLIST line;
+  - every cited REFERENCE line and the `src/`/`public/` cites it checked.
+- **B:**
+  - `deploy.yml`'s `fetch-depth: 0` resolves `--expect`, and smoke needs no Cloudflare secret;
+  - the preflight's vars check reads names only;
+  - cache before limiter;
+  - same-origin page fetches and static `/?q=` links aren't touched by the refusal;
+  - curl and Node `fetch` send no `Sec-Fetch-Site`;
+  - ~0.8 neurons a day for uptime;
+  - the unhandled-error line;
+  - G3's options.
+- **C:**
+  - shared links and bookmarks are never refused;
+  - the `Accept`-based 404 with `_headers`' headers;
+  - the header year already in `test/year-scan.node.test.js:55`;
+  - the privacy note's on-device section;
+  - G1 and G4's wording;
+  - G3 asked after the reads.
+
+| # | Critic | Objection | Resolution |
+|---|---|---|---|
+| A3-1 | A (major) | "the current value is absent" can't catch a stale value (40, 6,778, 10.7 all pass) | **Applied.** Pointer sentences are marked and must contain no number, which fails today. |
+| A3-2 | A (major) | the year rule passes today, misfires on identifiers after July, has no "History" sections to exempt, and pinned labels follow `PINNED_ACAD_YEAR` | **Applied.** Only marked live-year sentences are checked against `DEFAULT_ACAD_YEAR`, and marked pinned ones against `PINNED_ACAD_YEAR`. Identifiers are never checked. Fail-first is proved with a stubbed `2027-2028`. |
+| A3-3 | A (major) | re-scoring on v11 moves more than the tables (85 primary, 6 unscored), and a v12 would go stale silently | **Applied.** Every qrels-dependent sentence is re-derived, `baseline-table.mjs`'s header too. `docs-facts` checks EVAL.md's qrels label against `qrels.json`'s `version`. |
+| A3-4 | A (major) | `eval/README.md` carries the same refused commands | **Applied.** The `--embedding` rule covers it. |
+| A3-5 | A (major) | the B9 test also pins "CPU is the smaller limit" (:71-72) and Phase 1's D1 medians (:76); its title is named in FINDINGS:312 | **Applied.** All named in 8A. The D1-medians row is added to §1. |
+| A3-6 | A (minor) | `eval/pinned/` and `data/` NG files are identical today | **Applied.** "Can differ after a revision; identical today." |
+| A3-7 | A (minor) | FINDINGS:346's EVAL.md line cites are already wrong; v1's results paths | **Applied.** Re-derived, not moved; paths fixed. |
+| A3-8 | A (minor) | REFERENCE:30 "year of study at home" missing from §1 | **Applied.** Row added. |
+| A3-9 | A (minor) | ADR 0012 says "two versions old" (it's v2 against v11) | **Applied** in ADR 0012. |
+| B3-1 | B (blocking) | `DENSE_BACKEND=off` fails CI (two tests, the generated types), waits on the `ui` job, then breaks smoke and uptime | **Applied.** G5 (b)'s switch is dropped. G5's options are now ADR wording plus a budget alert. |
+| B3-2 | B (major) | the 68% day was mostly this project's own corpus embeds (~4,300 of 6,805, `neurons.tsv`) | **Applied, and checked** (the sum is 4,299.9). §1, the spike table, G5 and the conclusion are corrected. Launch week has no corpus embed or re-ingest. |
+| B3-3 | B (major) | G5's "cap" is enforced by nothing; Cloudflare's budget alerts email, the day after, and cap nothing | **Applied, checked** against Cloudflare's changelog. G5 offers an alert at Jacob's amount and says it doesn't cap. |
+| B3-4, C3-6 | B, C (major) | allowing cross-site `navigate` lets hidden iframes through (C reproduced it locally) | **Applied.** Cross-site is allowed only with `Sec-Fetch-Dest: document`; the iframe case is tested. The 403 gets its own sentence on the page (C). |
+| B3-5 | B (major) | the down runbook leaves the fix undeployed (the job's `if` skips merges while off) and a running deploy can overwrite the rollback | **Applied.** Wait for or cancel running deploys; turn the switch on before merging the fix, or deploy from the Mac. |
+| B3-6 | B (minor) | Node's `fetch` sends `Sec-Fetch-Mode: cors` with no `Sec-Fetch-Site`; the tests should use that | **Applied.** |
+| B3-7 | B (minor) | the smoke step's place (before the artifact step), its test file, and why it needs no token | **Applied.** |
+| B3-8 | B (minor) | an hourly rotation can land on a cached query | **Applied.** It requires `cache;desc=miss`, and moves on otherwise. |
+| B3-9 | B (minor) | G4 (b)'s D1 rows leave out the searches (~6k a day) | **Applied.** |
+| B3-10 | B (minor) | `.html` is a Text module by default; a 404 in `public/` would also serve `/404.html` with 200 | **Applied.** `src/404.html`, no `rules` entry. |
+| B3-11 | B (minor) | the 14400 is on the stored copy, not a rewrite of the Worker's response | **Applied.** §1 reworded; the fix stands. |
+| C3-1 | C (major) | the year is hidden at 1040 px and below, not only on phones | **Applied.** §1 corrected; the spec runs at 390, 768 and 1024. |
+| C3-2 | C (major) | applicants see 2026 dates and nothing about 2027/28 outside the shortlist | **Applied.** The year line carries an applicant clause from `shortlist.js:143`'s wording, in the spec. |
+| C3-3 | C (major) | the pre-post gate includes SC10's back-office docs and could make the Sem 2 post miss CourseReg; no date | **Applied.** Preconditions are only what a visitor meets. G2 asks Jacob for the dates. |
+| C3-4 | C (minor) | two different NUS application windows; nomination comes first | **Applied.** Both quoted; Jacob confirms 2027's. |
+| C3-5 | C (major) | G5's "$1 cap" isn't a cap | **Applied** (with B3-3). |
+| C3-7 | C (major) | G6's options don't line up: "neither" contradicts the note; no issue template; GitHub's account cost unstated; privacy questions in public | **Applied.** G6 has (c) both and (d) neither, with its consequences. (a) is pre-filled with a template. The recommendation is (c), with the account cost stated. |
+| C3-8 | C (minor) | the README's contact gap is assigned to no workstream | **Applied.** 8B's README docs. |
+| C3-9 | C (minor) | "no cookies" overstates; Cloudflare may set a security cookie | **Applied** in §1 and the note. |
+| C3-10 | C (minor) | the no-JS spec should check visibility on the first screen and on shared links | **Applied.** |
+
+**Stopped at round 3, by rule.** No objection was rebutted. Every one changed the plan, except
+A2-2, which was applied in part.
+
+**Open:**
+- **r4 itself has had no critic.** Its new designs are untested by a fresh reader:
+  - the marker-based `docs-facts` rules;
+  - the `Sec-Fetch-Dest: document` exception;
+  - the smoke step's reliance on the deploy step's restored files;
+  - the uptime check's "next query" rule;
+  - G5's and G6's new options.
+- **A2-2 / the vault page:** the plan lists the lead's audit and four known stale statements, but
+  doesn't audit the page (the brief makes it the lead's).
+- **Facts left to Jacob or 8-0:**
+  - the Sem 2 CourseReg dates and 2027's application dates (nus.edu.sg is bot-protected);
+  - what Workers Logs and the zone's analytics hold per request;
+  - the account's log retention;
+  - the zone's Browser Cache TTL.
