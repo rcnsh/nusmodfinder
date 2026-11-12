@@ -83,7 +83,10 @@ export function fakeDocuments(dir, { restrictionsText = `Course restrictions\n${
 export function useFakeDocuments(root, files) {
   const m = readJson(root, `data/ng-sources-${Y}.json`);
   const rev = m.revisions[m.revisions.length - 1];
-  rev.documents = rev.documents.filter((/** @type {any} */ d) => d.builder || d.id === 'restrictions').map((/** @type {any} */ d) => {
+  // The fakes publish their own archive, so the copied revision's (the real one, once the lead has
+  // published it) is reset to pending: publish never replaces an archive.
+  rev.archive = { ...rev.archive, sha256: null, pending: 'the fakes publish it' };
+  rev.documents =rev.documents.filter((/** @type {any} */ d) => d.builder || d.id === 'restrictions').map((/** @type {any} */ d) => {
     const rest = { ...d };
     delete rest.confirm;
     const out = { ...rest, url: rest.url ?? 'https://example.test/doc', sha256: files[d.file] ? sha(files[d.file]) : d.sha256 };

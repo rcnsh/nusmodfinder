@@ -50,8 +50,11 @@ async function setup(o = {}) {
   git(root, ['commit', '-q', '-am', 'publish the sources archive']);
 }
 
-/** `year check --full` into the repo's runs dir. */
-const full = () => yearCheckFull({ root, key: keyFile, download: releases.download, runsDir: join(root, RUNS), log: () => {} });
+/**
+ * `year check --full` into the repo's runs dir.
+ * @param {{ pdfText?: (path: string) => Promise<string | null> }} [o]
+ */
+const full = (o = {}) => yearCheckFull({ root, key: keyFile, download: releases.download, runsDir: join(root, RUNS), log: () => {}, pdfText: async () => null, ...o });
 /** Commits whatever the run left. @param {string} m */
 const commit = (m) => { git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', m]); };
 
@@ -115,6 +118,19 @@ describe.skipIf(Boolean(process.env.CI))('year check --full (on the Mac)', () =>
     expect(r.ok).toBe(false);
     expect(r.problems.join('\n')).toMatch(/quote rule-e \(public\/shortlist\.js\) is not in restrictions word for word/);
     expect(JSON.parse(readFileSync(/** @type {string} */ (r.record), 'utf8'))).toMatchObject({ outcome: 'failed', details: { mode: 'full' } });
+  });
+
+  it('a PDF quote that pdftotext -layout splits across columns passes on the PDF\'s reading-order text', async () => {
+    // The layout extraction sets a page's columns side by side, so a sentence that wraps inside one
+    // column is interleaved with its neighbour (the NG list's language note, Business's 50%).
+    await setup({ restrictionsText: 'Course restrictions\nSome other sentence entirely.\n' });
+    const ruleE = readJson(root, `data/ng-sources-${Y}.json`).quotes.find((/** @type {any} */ q) => q.id === 'rule-e').text;
+    /** @type {string[]} */
+    const asked = [];
+    const r = await full({ pdfText: async (path) => { asked.push(path); return path.endsWith('.pdf') ? `Course restrictions\n${ruleE}\n` : null; } });
+    expect(r.problems.join('\n')).not.toMatch(/quote rule-e/);
+    expect(asked.some((p) => p.endsWith('.pdf'))).toBe(true);
+    expect(asked.every((p) => p.endsWith('.pdf'))).toBe(true);
   });
 
   it('fails on a rules file edited by hand: the builder does not reproduce it', async () => {

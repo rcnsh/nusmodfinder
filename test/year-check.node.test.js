@@ -23,7 +23,15 @@ afterEach(() => { rmSync(root, { recursive: true, force: true }); });
 const problems = () => yearCheck({ root }).problems.join('\n');
 
 describe('year check, CI mode', () => {
-  it('passes a consistent tree, noting the pending archive and what the lead must confirm', () => {
+  it('passes a consistent tree, noting a pending archive and what the lead must confirm', () => {
+    // The real manifest's archive is published and nothing is left to confirm, so the copy is
+    // put back in the state the lead started from: both are notes, never failures.
+    const rel = `data/ng-sources-${Y}.json`;
+    const pending = readJson(root, rel);
+    const rev = pending.revisions.at(-1);
+    rev.archive = { ...rev.archive, sha256: null, pending: 'the lead publishes it' };
+    rev.documents.find((/** @type {any} */ d) => d.id === 'self-funded').confirm = ['url'];
+    writeFileSync(join(root, rel), `${JSON.stringify(pending, null, 1)}\n`);
     const r = yearCheck({ root });
     expect(r.problems).toEqual([]);
     expect(r.ok).toBe(true);
