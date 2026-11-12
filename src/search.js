@@ -95,7 +95,7 @@ export function denseBackend(env) {
 // Reciprocal-rank fusion constant. 60 is the value from the original Cormack et
 // al. RRF paper and the usual default; it damps the top of each list so neither
 // retriever can dominate on rank alone.
-const RRF_K = 60;
+const RRF_K = 30;
 // Each retriever contributes a deeper list than we return, so a document ranked
 // mid-list by one engine and top by the other can still surface.
 const CANDIDATE_MULTIPLIER = 3;
