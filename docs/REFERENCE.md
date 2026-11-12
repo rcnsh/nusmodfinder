@@ -11,8 +11,9 @@ climate change`, `how do i start my own company` — or a module code like `CS32
 filter by semester, level, credits and faculty.
 
 > **Read [EVAL.md](../EVAL.md) before trusting the ranking.** It is measured offline on judged
-> queries, not assumed. On the dev set both halves earn their place: hybrid clearly beats the
-> keyword half alone, and the dense half alone comes close to hybrid. SC5 measured the Phase 3
+> queries, not assumed. On the dev set hybrid clearly beats the keyword half alone, but its lead
+> over the dense half alone (+0.022 nDCG@10) is not distinguishable from 0: the keyword half adds
+> little beyond the dense half. SC5 measured the Phase 3
 > ranker above the first hybrid version on a sealed test set, and every later ranking change ships
 > on a holdout look or a no-look route, held by CI's ranking lock.
 
@@ -592,8 +593,9 @@ fixtures, `data/` or the lockfile change (`scripts/ci-changes.mjs`, "CI" below).
 
 `.github/workflows/ci.yml` runs on every push to `main`, every ready PR and by hand, with no path
 filter: every job starts, so a change that only touches docs still runs `npm test` (whose tests
-read README.md, EVAL.md, REFERENCE.md, `eval/README.md` and ADRs 0001 and 0003;
-`test/docs-facts.node.test.js` holds the first three to the system), and a red `main` shows. Draft PRs run nothing.
+read README.md, EVAL.md, REFERENCE.md and other docs under `eval/`, `docs/year-refresh/`,
+`docs/evidence/` and `docs/decisions/`; `test/docs-facts.node.test.js` holds the first three to the
+system), and a red `main` shows. Draft PRs run nothing.
 
 | Job | Runs | Skips |
 |---|---|---|
@@ -698,7 +700,8 @@ statement (red team M-3). Every caller sends a constant with `?` parameters. The
 `CLOUDFLARE_API_TOKEN`, else `npx wrangler auth token --json` captured in-process (the Mac's
 wrangler login); it is never printed, logged, put in an error or recorded. The account is
 `CLOUDFLARE_ACCOUNT_ID`, else the account wrangler cached
-(`node_modules/.cache/wrangler/wrangler-account.json`); set the variable if neither is there. The
+(`node_modules/.cache/wrangler/wrangler-account.json`), else the one account `wrangler whoami`
+lists; set the variable if none gives one. The
 database is the `d1_databases` entry bound as `DB` in `wrangler.jsonc`, wherever it is listed;
 none, or two, is refused (red team L-3). Rollback and `d1:restore` read through the same client.
 
@@ -796,8 +799,9 @@ deploy or a rollback from the Mac, run it by hand. It costs 5 GETs and one uncac
 backfill` prints the commands that create and push them (`deploy/20261111T183946Z-f8aefeab` on
 `0b5f360`, `deploy/20261111T235933Z-b0834844` on `a23601d`, both at data version
 `d820d578cf81` and `catalogueKey` `5b1e2f06e559`, marked `backfilled: true`). It runs nothing.
-Their `catalogueKey` is computed, not read: D1 was loaded from `prod-2026-2027-20261104`
-(`current`) and not written since, so it is that corpus's catalogue-only key; the first
+Their `catalogueKey` is computed, not read: when they were cut, D1 had been loaded from
+`prod-2026-2027-20261104` (then `current`) and not written since, so it is that corpus's
+catalogue-only key; the first
 `catalogueKey` read of D1 after 7D checks it.
 
 Plain `npx wrangler deploy` would ship the fixture bundle. Don't use it.
@@ -819,8 +823,8 @@ git add docs/evidence/phase5/p5-live.jsonl   # commit the log
 ```
 
 It checks the live page in Chromium (and WebKit for the iPhone 13 fold):
-- SC2 on 20 codes drawn with seed 5 from the production-normalised modules
-  (`.data/cache/…-moduleInfo.json`), 4 each with exams in two semesters, a cohort-only
+- SC2 on 20 codes drawn with seed 5 from `current` (`data/corpus.json`, restored into
+  `.data/prod/<sha256>.json`), normalised as ingest does, 4 each with exams in two semesters, a cohort-only
   prerequisite, no workload, two or more notes, and none of those;
 - axe (every rule but AAA's 7:1) on the first screen, an open detail and a hidden code, light
   and dark, at 1280 and 390×664;
@@ -936,8 +940,10 @@ node scripts/build-ng-unscheduled.mjs --corpus production --check
 npm run corpus -- check   # the data version and catalogueKey follow current; the 3B files are fresh
 git add data/corpus.json data/vectors.json src/data-version.json data/vocabulary.json data/groups.json data/ng-unscheduled.json data/ng-reasons.json data/prefixes.json data/catalogue-codes.json data/catalogue-only.json   # the build rewrites 3C's vocabulary, 3F's groups, 6A's file and the 3B catalogue files too; plus any code the change needs; open a PR
 #    A new acad year changes DEFAULT_ACAD_YEAR in scripts/lib.mjs, public/year.js and the header
-#    in public/index.html, the only places a year is written (test/year-scan.node.test.js fails on
-#    any other and checks those three agree; a year's own overlay and oracle files are exempt). The
+#    in public/index.html, the only places in code a year is written (test/year-scan.node.test.js
+#    fails on any other and checks those three agree; a year's own overlay and oracle files are
+#    exempt). The docs' <!-- year:live --> sentences change too (test/docs-facts.node.test.js;
+#    docs/year-refresh/README.md step 7). The
 #    whole year switch, sources to standby, is docs/year-refresh/README.md; it passes
 #    --write-budget 80000 at step 4, since every module and catalogue_only row is rewritten.
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
@@ -1158,8 +1164,8 @@ ignores new, untracked ones when it checks the tree is clean. Writers today: `de
 `d1:bookmark`, `d1:restore`, `eval:embed` (which keeps `neurons.tsv` too), `ops:report`, `p5-live`
 and `p6-live` against a live URL (not `localhost`), `corpus publish`, `sources publish` (the
 archive's release and sha256) and `year check --full` (mode `full`, the source-derived inputs' hash,
-the archive's sha256; the deploy preflight reads it). Phase 7's later scripts (the schema capture)
-use the same module. An Actions deploy's record is a workflow artifact, not a commit.
+the archive's sha256; the deploy preflight reads it). The schema capture (`docs/evidence/phase7/schema/`) is
+`wrangler d1 execute` output and has no run record. An Actions deploy's record is a workflow artifact, not a commit.
 
 The record (schema `vnm-run/1`):
 
@@ -1312,9 +1318,9 @@ alert means.
 
 The eval runs the actual Worker inside workerd and scores it against blind judgments with
 nDCG@10, P@5 and MRR, paired bootstrap CIs and a pre-committed gate. Its D1 holds the full pinned
-corpus; the dense half searches a vectors bundle built for the run from committed
-`bge-small-en-v1.5` corpus embeddings (only `eval-v0`, which predates the bundle, searches a fake
-Vectorize, `eval/runner/run.mjs` `writeBundle`); a fake AI returns precomputed query embeddings.
+corpus; the dense half searches a vectors bundle built for the run from `bge-small-en-v1.5` corpus
+embeddings (release assets, sha-checked against `eval/embeddings.json`) (only `eval-v0`, which predates the bundle, searches a fake
+Vectorize, `eval/runner/run.mjs` `writeBundle`); a fake AI returns the committed query embeddings.
 No live traffic, no Cloudflare calls at run time. EVAL.md has the results and what they don't show.
 
 <!-- pointer --> The shipped ranker, the baseline each change is compared with, is the commit

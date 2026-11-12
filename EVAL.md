@@ -59,8 +59,8 @@ their own holdout look or no-look route, not by the test set.
 ## What is measured
 
 - **An offline replica.** A run executes the actual Worker in workerd over local D1 holding the
-  pinned corpus, with committed query and corpus embeddings and no Cloudflare call. It is not
-  production (ADR 0003, "Replica fidelity").
+  pinned corpus, with committed query embeddings, corpus embeddings from their release assets
+  (sha-checked against `eval/embeddings.json`), and no Cloudflare call. It is not production (ADR 0003, "Replica fidelity").
 - <!-- year:pinned --> **The corpus** is NUSMods' 2026/27 catalogue as pinned on 4 September 2026
   (release `data-2026-2027-20260904`), 6,771 offered modules.
 - **Replica and production differ in three ways.** Since 3-0 both run an exact dense search over
