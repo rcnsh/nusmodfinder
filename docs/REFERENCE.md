@@ -245,8 +245,16 @@ The schema lives only in `migrations/` (`0001_init.sql` onwards); there is no se
 `schema.sql`. `wrangler d1 migrations apply` records what it ran in a `d1_migrations`
 table. The production database `nusmods-apac` (APAC primary, ADR 0005) was created empty and built
 with `npx wrangler d1 migrations apply nusmods-apac --remote`, so its `d1_migrations` table is
-complete. A local database needs no
+complete for 0001–0006; 0007–0010 were hand-run with their `d1_migrations` rows
+(`scripts/remote-migration.mjs`), 0008 before 0007. A local database needs no
 bootstrap: `npx wrangler d1 migrations apply nusmods-apac --local`.
+
+`npm run db:rebuild-check` rebuilds the schema three ways, locally, and diffs each (ADR 0001).
+`node scripts/schema-snapshot.mjs --compare-remote <dir-or-file>` builds nothing: it diffs a saved
+production capture (the `wrangler d1 execute nusmods-apac --remote --command … --json` output of the
+pragma query, `sqlite_master`, `index_xinfo` and the `d1_migrations` names) against the full-chain
+snapshot, offline, comparing the migrations as a set. The 2026-11-12 capture
+(`docs/evidence/phase7/schema/`) has 0 differences.
 
 Then the eight filterable metadata indexes — **these cannot be added retroactively**, so
 they must exist before any vector is written:
@@ -481,8 +489,32 @@ Chromium's objects, Flate streams and ToUnicode maps); `test/web/csv.node.test.j
 document and the CSV in Node. `VNM_EVIDENCE=<dir>` keeps the PDF. SC1 over
 the shortlist is `test/shortlist-sc1.js`: every fixture code in `npm test`, every pinned code in
 `test/sc1/paths.test.js`. CI's `ui` job runs them when `public/`, `src/`, `test/ui/`, the configs, the
-fixtures, `data/` or the lockfile change. The Phase 4 page is kept frozen as
+fixtures, `data/` or the lockfile change (`scripts/ci-changes.mjs`, "CI" below). The Phase 4 page is kept frozen as
 `docs/evidence/phase0/page-phase4.html` for the findings tests (`test/findings/frontend.node.test.js`).
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push to `main`, every ready PR and by hand, with no path
+filter: every job starts, so a change that only touches docs still runs `npm test` (which reads
+REFERENCE.md, EVAL.md and ADRs 0001 and 0003), and a red `main` shows. Draft PRs run nothing.
+
+| Job | Runs | Skips |
+|---|---|---|
+| `changes` | `scripts/ci-changes.mjs`: the diff rule below | never |
+| `check` | lint, typecheck, types drift, `npm test`, `test:eval`, `eval:verify`, `db:rebuild-check` | never |
+| `eval-gate` | the ranking lock (below): fast path, else a recompute | never |
+| `full-corpus` | `test/full` over the pinned corpus and bundle; the lexical grid in full or a 1-in-10 sample | by steps, when `code` is false |
+| `sc1` | `test/sc1` over the pinned corpus and bundle | by steps, when `code` is false |
+| `ui (chromium)`, `ui (webkit)` | the Playwright suite in Playwright's image | by steps, when `ui` is false |
+
+`scripts/ci-changes.mjs` diffs a PR against its base, and a push to `main` against the newest `main`
+commit whose CI run succeeded and which HEAD contains (`gh run list`, hence `actions: read`). `code`
+is any change outside `docs/` and the root `*.md` files; `ui` and `grid` are the paths those suites
+cover; `rollover` follows `code` until 7E's rehearsal job exists. A manual run, an API error, no green
+run, an unreachable base, a failed diff, or a change to `ci.yml` or the script itself runs
+everything. A heavy job whose `changes` failed runs in full (a missing output is not `false`), and
+every heavy job's check name always reports. Runs on `main` are grouped per sha, so none cancels
+another; a PR's new push cancels its superseded run. `test/ci-workflow.node.test.js` holds this shape.
 
 ## Deploying
 
@@ -788,6 +820,41 @@ npm run test:eval                                 # harness self-test on the fix
 Details, file formats and holdout custody: [`eval/README.md`](../eval/README.md). The v1 eval
 (regex relevance, recall@10) is kept for history in [`eval/v1/`](../eval/v1/); `EVAL.md` still
 describes it.
+
+### The ranking lock (CI's eval gate)
+
+`eval/ranking-lock.json` holds, for each open-set query, the sha256 of its HTTP status and ordered
+result codes: the dev set on the pinned corpus filtered, `--strip ng` and `--unfiltered`, and the
+fixture set on its own corpus in the same three modes (327 lists). It also records `inputsHash`
+(the git objects of `LOCK_INPUTS` in `eval/lib/ranking-lock.mjs`: the ranker, the runner's import
+closure, the fakes, the eval config, the sets, the embeddings manifest and `package-lock.json`), the
+embedding version, the corpus release and the evidence for its lists.
+
+```bash
+npm run eval:lock -- --check [--base <rev>]       # the gate (CI's eval-gate; base: merge base with origin/main)
+npm run eval:lock -- --diff-ref <ref>             # <ref>'s ranker against HEAD's lock (e.g. the shipped pin)
+npm run eval:lock -- --evidence <kind> <ref>      # write changed lists, with their evidence
+npm run eval:lock                                 # rewrite for a new embedding version or corpus; refused if the lists change
+```
+
+- **Fast path.** HEAD's lock equals the base's, and HEAD's `inputsHash` equals the lock's or the
+  base's (the PR base, or `main`'s last green). Seconds, with no `npm ci`. Any lock edit skips it.
+- **Recompute.** Otherwise the eval runner recomputes the lists at HEAD (about 30 s locally, no
+  Cloudflare call: the pinned corpus and the corpus embeddings are sha-checked release assets). They
+  must equal HEAD's lock, or the gate fails naming each changed query with its statuses. A neutral
+  change passes and leaves the lock as it is, so PRs never conflict on it.
+- **A ranking change** rewrites the lock with evidence written after the base lock, checked against
+  the base commit's lock: `holdout-pass <n>` (row n of `eval/holdout-ledger.md`, verdict `pass`,
+  against the base commit's `SHIPPED_BASELINE`), `no-look <n>` (row n of `eval/count-log.md`, whose
+  `route` names an ADR 0003 no-look route, written by `eval:count -- --route` or
+  `eval:representatives -- --route`), or `revert <commit>` (the lists of an earlier lock). Commit the
+  row first; each row is cited once. An unchanged evidence and an ADR pin line are refused (pin lines
+  are written after the merge); `bootstrap` is allowed only when the base has no lock.
+- **What it does not cover.** It compares open sets only: the custodian's holdout count at a ship
+  stays. It guards against accidents, not against false evidence; a lock change shows in every diff.
+- The lock never runs in the `sc1` Vitest project, and `test/eval/ranking-lock.node.test.js` fails
+  if the runner's import closure (read with acorn) reaches a file outside `LOCK_INPUTS`, or a dynamic
+  import it cannot resolve to a listed path.
 
 ## Cost
 

@@ -514,6 +514,27 @@ criteria as drafted; a count is not a look, and the criteria did not change.
 - **First use:** the semester representative (ADR 0006, amendment 2026-11-11). Evidence:
   `docs/evidence/phase5/semester-representative.md`.
 
+## Amendment 2026-11-12: the count log's route column
+**Phase 7 7A (`docs/plans/phase7.md`, ADR 0011).** CI's eval gate is a committed ranking lock
+(`eval/ranking-lock.json`, `docs/REFERENCE.md` "The ranking lock"). A change to its lists needs
+evidence written after the base commit's lock. A ship gated without a look has no ledger row, so
+its evidence is a count-log row that names the route it took.
+
+- **The column.** `eval/count-log.md` gains a `route` column. `npm run eval:count -- … --route
+  <route>` writes it, and so does `npm run eval:representatives -- … --route <route>` (one row, on
+  a pass only; it counts the lists with a changed representative). Without `--route` the cell is
+  `—`, and rows from before the column have none. Either tool refuses a route not listed here.
+- **The routes:** `representative-only` (amendment 2026-11-11), `answerable-floor` (3G, amendment
+  2026-11-06), `group-first` (3F, amendment 2026-11-06), `gated-without-a-look` (Phase 4,
+  amendment 2026-11-10). `eval/lib/count-log.mjs` `NO_LOOK_ROUTES` holds the same four;
+  `test/eval/lock.node.test.js` ties the list to this line.
+- **What a route row is.** A count is still not a look, and a route row prints no verdict. The row
+  says that the custodian (or, for `eval:representatives`, the open-set check) ran under that
+  route's rule. Whether every check the rule names passed stays with the PR's evidence and the
+  custodian, as before. The lock cites a row once.
+- **Pin lines.** A shipped-ranker pin line below is written after the merge, so it is never lock
+  evidence.
+
 ## Shipped-ranker pin
 The baseline of per-change holdout looks (`SHIPPED_BASELINE`, `eval/lib/baseline.mjs`). The
 last line is the current pin; a PR that ships a change appends one line, with the ranker it

@@ -32,7 +32,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | B7 | fixed | test, live |
 | B8 | fixed | tests, live |
 | B9 | fixed | test (README arithmetic) |
-| S1 | reproduced | test (source + EVAL.md) |
+| S1 | fixed | test (the ranking lock's lists come from eval/dev), CI `eval-gate` (Phase 7 7A) |
 | S2 | reproduced | live |
 | S3 | reproduced | tests |
 | S4 | reproduced | tests, live |
@@ -55,7 +55,7 @@ another status, or a reproduced/fixed finding names evidence that does not exist
 | F10 | fixed | tests, Playwright (fold, dialog), screenshots (Phase 5 5D) |
 | V1 | fixed | design gate (ADR 0008), tests, screenshots (Phase 5 5D) |
 | O1 | fixed | test, `db:rebuild-check` (PR #1) |
-| O2 | fixed | test, CI (PR #1) |
+| O2 | fixed | test, CI (PR #1; the eval gate, Phase 7 7A) |
 | O3 | fixed | test |
 | O4 | reproduced | tests |
 
@@ -333,16 +333,17 @@ the pre-3-0 limit.
 
 ### S1 · The eval is circular and mis-scoped
 
-**Status:** reproduced
+**Status:** fixed
 
 **Claim:** Relevance is title regexes written from the query words; recall@10 ignores order;
 only tidy queries; topK=10 versus production depth 50; `ORDER BY rank` never re-measured;
 hybrid MRR 0.820 < lexical 0.903.
 
 **Evidence:**
-- test `[S1 known-bug] held-out relevance is a regex over titles, recall@10 ignores order, and hybrid MRR trails lexical`: 11 of 12 held-out rules are a regex over `m.title`; `K` defaults to 10; recall is `h / |relevant|`; EVAL.md's held-out MRR row reads 0.833 / 0.674 / 0.903 / 0.820 and states `ORDER BY rank` was not re-run.
+- test `[S1 fixed] the eval gate's lists come from eval/dev (v2, judged qrels) and the fixture, never from eval/v1/`: CI's eval gate (`eval/ranking-lock.json`, the `eval-gate` job, Phase 7 7A) locks every dev query's list (98 queries, filtered, `ng`-stripped and unfiltered) and the fixture's, from the Phase 2 harness: the Worker in workerd over the pinned corpus, judged qrels (`eval/dev/qrels.json`), nDCG@10 and P@5 at production depth. Nothing in `eval/v1/` is a lock input.
+- `eval/v1/README.md` keeps the v1 characterisation as a history note: 11 of 12 held-out rules are a regex over `m.title`; `K` defaults to 10; recall is `h / |relevant|`; EVAL.md's held-out MRR row reads 0.833 / 0.674 / 0.903 / 0.820 and states `ORDER BY rank` was not re-run.
 
-**Notes:** `eval/v1/judge-holdout.mjs:13-49`, `eval/v1/eval.mjs:34,104` (moved from `scripts/` by Phase 2), `EVAL.md:94` and
+**Notes:** Fixed by Phase 2's eval (ADR 0003) and, as a CI gate, by Phase 7 7A. `eval/v1/judge-holdout.mjs:13-49`, `eval/v1/eval.mjs:34,104` (moved from `scripts/` by Phase 2), `EVAL.md:94` and
 `:41`. Production returns 20 of a 50-deep candidate list (`src/index.js:28-29,317`). "Tidy
 queries only" is a judgement, but it mostly holds. Across `eval/v1/queries.json` and
 `eval/v1/holdout.json` (27 queries), the three code queries are exact codes (`CS3244`, `cs2040s`,
@@ -829,7 +830,7 @@ not this finding.
 - test `[O2 fixed] lint, typecheck, tests and the schema rebuild run in CI`
 - `.github/workflows/ci.yml`, `eslint.config.mjs`, `tsconfig.json`, `vitest.config.mjs`
 
-**Notes:** Fixed by PR #1 (`7ac9841`). An eval gate in CI (SC9) is still open; Phase 2.
+**Notes:** Fixed by PR #1 (`7ac9841`). The eval gate (SC9) is the ranking lock, checked by the `eval-gate` job (Phase 7 7A).
 
 ### O3 · NG_LIST_UPDATED kept in two places
 
