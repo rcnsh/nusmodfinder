@@ -1017,10 +1017,10 @@ file per run, on every exit path, at `docs/evidence/ops/runs/<UTC yyyymmddThhmms
 hex>.json`. Unique names mean two worktrees never conflict. Commit them; `npm run deploy`
 ignores new, untracked ones when it checks the tree is clean. Writers today: `deploy` (and
 `deploy:preflight`), `remote`, `ingest`, `verify`, `vectors standby`, `smoke`, `rollback`,
-`d1:bookmark`, `d1:restore`, `eval:embed` (which keeps `neurons.tsv` too), and `p5-live` and
-`p6-live` against a live URL (not `localhost`). Phase 7's later scripts (`corpus publish`,
-`sources publish`, `year check --full`, the usage report, the schema capture) use the same
-module. An Actions deploy's record is a workflow artifact, not a commit.
+`d1:bookmark`, `d1:restore`, `eval:embed` (which keeps `neurons.tsv` too), `ops:report`, and
+`p5-live` and `p6-live` against a live URL (not `localhost`). Phase 7's later scripts (`corpus
+publish`, `sources publish`, `year check --full`, the schema capture) use the same module. An
+Actions deploy's record is a workflow artifact, not a commit.
 
 The record (schema `vnm-run/1`):
 
@@ -1064,6 +1064,63 @@ calls it states first, so that half is a lower bound: the rows that state no cou
 and so are the rows that describe more calls than their count (a `/health` before the deploy,
 "plus 7 re-sends"). Phase 7's
 7-0 reads, made before this tooling, are in `docs/evidence/phase7/remote-ops.md`.
+
+**`npm run ops:report -- [--month <yyyy-mm>]`** (`scripts/ops-report.mjs`, Phase 7 7F) writes
+the month's usage report to `docs/evidence/ops/<month>.md`, with a run record. Run it on the Mac
+monthly (the monthly reminder issue asks for last month's) and after a ship that changes the
+search path, then commit both files. The month defaults to the current UTC one.
+
+- **What it reads.** Cloudflare's GraphQL Analytics API: two calls, one combined query for the
+  month and one for the month before, at least 4 s apart. Account-wide Worker requests and CPU
+  (`workersInvocationsAdaptive`), D1 rows read and written (`d1AnalyticsAdaptiveGroups`) and
+  Workers AI neurons by day (`aiInferenceAdaptiveGroups`), each against Workers Paid's allowance
+  (`ALLOWANCES` in the script, which cites the pricing pages). Then this Worker's share: requests,
+  CPU, CPU per request p50 and p99, exceptions, requests by HTTP status, and `nusmods-apac`'s rows.
+- **Flags:** anything above 25% of its allowance, and anything that grew on the month before:
+  the account-wide measures, and this Worker's requests, CPU, CPU p50 and p99, exceptions, 4xx
+  and 5xx responses and database rows. Totals in a month in progress are projected over the whole
+  month before they are compared; the busiest neuron day and the quantiles are not.
+- **Missing is not zero.** A dataset GraphQL couldn't answer is written as `missing: <why>`, and
+  the run exits 1 with outcome `failed`; an empty dataset is zero.
+- **The month is the calendar month.** The subscription's renewal date, which starts the billing
+  month, isn't readable with these scopes, and the report says so.
+- **Auth,** as the deploy's D1 reads (`scripts/d1-read.mjs`): the token is `CLOUDFLARE_API_TOKEN`,
+  else `npx wrangler auth token --json` (the wrangler login); the account is
+  `CLOUDFLARE_ACCOUNT_ID`, else wrangler's cached account, else the one `wrangler whoami` lists.
+  The token goes only in the `Authorization` header: never into the report, the record, a log line
+  or an error (an API error that echoes it is redacted). Neither the token nor the account id is
+  recorded; the record counts each call as `/client/v4/graphql`.
+
+Workers Logs keep every event (`head_sampling_rate` unset): Paid includes their volume, and this
+Worker's is tiny (`docs/evidence/phase7/measure.md`).
+
+**Drift and reminder issues** (`.github/workflows/drift.yml`, `scripts/drift.mjs`, Phase 7 7F,
+G3 (a) in ADR 0011). The workflow has `contents: read` and `issues: write`, reads only NUSMods'
+public API, and makes no Cloudflare or live-site call. It needs no secret but the run's
+`GITHUB_TOKEN`.
+
+- **Weekly (Monday 01:17 UTC).** A conditional GET of this year's `moduleInfo.json`, with the last
+  copy and its ETag kept by `actions/cache` (`.data/drift-cache/`; a miss costs one full fetch),
+  and a GET of next year's `moduleList.json`. It computes the data version offline as ingest does
+  (`offeredModules` over HEAD's NG files, `rowHash`, `dataVersion`) and compares it with
+  `src/data-version.json`.
+  - **`drift:pending`:** one issue, kept updated while they differ, with a row per check: courses
+    added, removed and changed against the copy the check before saw, the D1 columns that changed,
+    and catalogue-only counts. The check closes it once production's data version matches.
+  - **`drift:next-year`:** opened once when next year's list appears. The check never closes it.
+  - **`drift:failure`:** its own failure (a NUSMods shape change, an HTTP error, or a failed step
+    before the check). Repeats comment on the open one; the next good run closes it.
+- **Monthly (the 1st, 01:41 UTC), `drift:reminder`:** one issue a month to check the Registrar's
+  NG list and restrictions and YST's pages, and to run last month's usage report. When the last
+  commit is more than 45 days old it adds that GitHub stops a public repo's schedules after 60
+  days with no activity; committing the usage report keeps the repo active. A monthly run alone
+  can miss the window between day 45 and day 60, so the weekly run also opens that warning as its
+  own `drift:reminder` issue, once per quiet stretch (keyed by the last commit).
+
+Issues are found by their label and a hidden marker in the body (`<!-- vnm-drift:… -->`), never by
+title. To see what a check would do without touching GitHub, run `node scripts/drift.mjs weekly
+--dry-run` (it does fetch NUSMods) or `monthly --dry-run`. The crons in `drift.yml` must match
+`SCHEDULES` in the script; `test/drift-workflow.node.test.js` checks that.
 
 ## Evaluation
 
@@ -1222,5 +1279,7 @@ repeats Phase 4's gate (`docs/plans/phase4.md` 4F):
   WebKit's print page by screenshot; iOS's Share, Print path is untested on a phone. A system
   font draws U+2010 and U+2011, which the Plex subsets lack; on macOS its text layer reads them
   as "-". A 40-entry list prints in about 15 to 19 A4 pages.
-- **No scheduled re-ingest.** Refresh is a manual command, once a semester.
+- **No scheduled re-ingest.** Refresh is a manual command run on the Mac. Detection is
+  scheduled: the drift workflow opens an issue when NUSMods' data no longer matches
+  production's, or next year appears (see "Operations").
 - **The vector half is unproven.** See EVAL.md.
