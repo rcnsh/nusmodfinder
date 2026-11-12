@@ -1194,8 +1194,11 @@ to `wrangler.jsonc`'s Custom Domain, each at least 4 s after the last answer, si
 runners share addresses and the site's limit is per address:
 
 - `/health`: 200 with `ok: true`;
-- `/module/<code>`: 200 with that code. The code is drawn by the hour from `data/groups.json`, the
-  groups file bundled into the Worker, so a refresh or a year switch never leaves it stale;
+- `/module/<code>`: 200 with that code. The code is drawn by the hour from the checkout's
+  `data/groups.json`, so no course is named in the script. `main` can be ahead of the deploy (a
+  refresh is merged before D1 is re-ingested; a rollback), so a 404 that names its kind of miss
+  (`unknown`, `catalogue-only`, `ng-listed`) passes too, with a note: the Worker read D1 to give
+  it, and a D1 failure is a 502;
 - `/search` for a plain-English topic from `QUERIES` in the script, rotating by the hour: 200,
   `cache;desc=miss` (as smoke requires), not `degraded`, at least one result. On a cache hit it
   takes the next query, up to 3. Checking the miss and `degraded` catches the keyword-only

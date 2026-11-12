@@ -7,8 +7,10 @@
 //
 //   /health          200 with `ok: true` (no D1, no neurons)
 //   /module/<code>   200 with that code (one D1 row; not edge-cached). The code is drawn by the
-//                    hour from data/groups.json, the groups file bundled into the Worker, so a
-//                    year switch or a corpus refresh never leaves it pointing at a missing course
+//                    hour from this checkout's data/groups.json, so no course name is written
+//                    here. `main` can be ahead of the deploy (a corpus refresh is merged before
+//                    D1 is re-ingested; a rollback), so a 404 that names its kind of miss passes
+//                    too: the Worker read D1 to give it, and a D1 failure is a 502
 //   /search?q=<q>    200, `cache;desc=miss`, not `degraded`, at least one result. The query
 //                    rotates by the hour through QUERIES; on a cache hit it takes the next one
 //                    (TRIES at most), so the check always reaches Workers AI and catches the
@@ -64,6 +66,8 @@ export const QUERIES = Object.freeze([
   'operations research',
 ]);
 const QUERY_STRIDE = 2 * TRIES;
+/** /module's 404 kinds (src/modules.js notFound): each is answered after D1's modules read succeeded. */
+const MISS_KINDS = Object.freeze(['unknown', 'catalogue-only', 'ng-listed']);
 
 /** The first query's index for an hour since the epoch. @param {number} hour */
 export const queryIndex = (hour) => (((hour % QUERIES.length) * QUERY_STRIDE) % QUERIES.length + QUERIES.length) % QUERIES.length;
@@ -214,9 +218,13 @@ export async function uptime({
 
       route = `/module/${code}`;
       const m = await send(`/module/${encodeURIComponent(code)}`);
-      if (m.res.status !== 200) return `${route} HTTP ${m.res.status}`;
-      if (parse(m.text)?.code !== code) return `${route} answered another course or no JSON`;
-      say(`uptime: ${route} 200`);
+      const mod = parse(m.text);
+      if (m.res.status === 404 && mod?.error === 'not_found' && MISS_KINDS.includes(mod.kind)) {
+        // The Worker read D1's modules table to say this (a D1 failure is a 502), so D1 is up.
+        say(`uptime: ${route} 404 (${mod.kind}): not in the live corpus (main ahead of the deploy?); D1 answered`);
+      } else if (m.res.status !== 200) return `${route} HTTP ${m.res.status}`;
+      else if (mod?.code !== code) return `${route} answered another course or no JSON`;
+      else say(`uptime: ${route} 200`);
 
       route = '/search';
       for (let t = 0; t < TRIES; t += 1) {
