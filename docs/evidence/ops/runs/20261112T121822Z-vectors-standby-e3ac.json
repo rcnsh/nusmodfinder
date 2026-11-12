@@ -1,0 +1,47 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T12:18:22.945Z",
+  "finishedAt": "2026-11-12T12:21:22.568Z",
+  "script": "vectors standby",
+  "args": [],
+  "commit": {
+    "sha": "81309992d11b88365da72e39b32f9f7e82cb33d4",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "http://127.0.0.1:65031 (wrangler dev --remote (production D1, Vectorize and Workers AI bindings) on 127.0.0.1:65031)",
+  "read": [
+    {
+      "what": "D1 rows (/admin/verify)",
+      "estimate": null,
+      "actual": 6818
+    }
+  ],
+  "written": [
+    {
+      "what": "Vectorize vectors upserted",
+      "estimate": 6818,
+      "actual": 6818
+    },
+    {
+      "what": "Vectorize vectors deleted",
+      "estimate": 15,
+      "actual": 15
+    }
+  ],
+  "requests": {
+    "/admin/hashes": 1,
+    "wrangler vectorize list-vectors": 14,
+    "/admin/vectors": 8,
+    "/admin/vectorize": 20,
+    "/admin/verify": 1
+  },
+  "versions": {
+    "lastMutationId": "1d9915a0-54ce-4673-b0cd-62943a3ab7cd"
+  },
+  "bookmark": null,
+  "details": {},
+  "exitCode": 0,
+  "message": "standby done; D1 and Vectorize agree",
+  "outcome": "ok"
+}

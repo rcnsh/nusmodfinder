@@ -43,3 +43,21 @@ Every step below left its own run record; this table only ties them together.
 
 Rows read for the ship and the drill: about 64k (three 21.3k reads). The Vectorize standby was not
 touched (DENSE_BACKEND stays in-Worker).
+
+## 2026-11-12: the NUSMods refresh (#110, `docs/year-refresh/README.md` "A corpus-only refresh")
+
+| Time | Step | Run record | Result |
+|---|---|---|---|
+| 11:33:24 | `corpus fetch`, `corpus publish --new-data-version` | `20261112T113329Z-corpus-publish-23b8` | `prod-2026-2027-20261112`, data version 7eb77cf0828b |
+| 11:33:47 | `eval:embed` of the 254 new or edited texts (one pass today) | `20261112T113347Z-eval-embed-ef69` | ~48k tokens, ~89 neurons, 3 requests |
+| 12:06:21 | The Actions deploy of 46c8d56 (#113's merge), run 43214893068 | (its artifact) | refused at the guard as designed: D1 still held d820d578cf81; nothing deployed |
+| 12:06:29 | `deploy --preflight` on 46c8d56 | `20261112T120629Z-deploy-preflight-f036` | ok |
+| 12:06:41 | `d1:bookmark` | `20261112T120641Z-d1-bookmark-7db2` | `0000004b-00000000-00005121-9700d9ffa113f4d2bc2388418b0cd7be` |
+| 12:06:45 | `remote -- ingest --d1-only` | `20261112T120645Z-remote-4077`, `…120654Z-ingest-ec2c` | 174 rows written, 15 deleted; `catalogue_only` 25 written, 49 deleted; 1,118 rows written as D1 reports them (2,273 charged to the 40k budget) |
+| 12:07:12 | `remote -- verify --pre-deploy` | `20261112T120712Z-remote-46da`, `…120724Z-verify-ee2e` | D1, the manifest and the bundle agree; row_hash drift 0; 21,223 rows read |
+| 12:07:42 | `npm run deploy` from the Mac | `20261112T120742Z-deploy-e9bb` | live 85b401bc, tag `deploy/20261112T120816Z-85b401bc`; guard read 21,353 rows |
+| 12:08:32 | Smoke | `20261112T120832Z-smoke-6b7a` | 5 of 5 |
+| 12:09:00 | `remote -- vectors standby` | `20261112T120900Z-remote-3f72`, `…120912Z-vectors-standby-c954` | failed before any write: a list-vectors cursor starting with `-h` made wrangler print its help (fixed in 5e06c41) |
+| 12:18:10 | `remote -- vectors standby` again | `20261112T121810Z-remote-2249` | 6,818 upserted, 15 deleted; D1 and Vectorize agree (6,818 rows read) |
+
+The standby's own verify covers runbook step 8's `remote -- verify`, so it wasn't run twice.
