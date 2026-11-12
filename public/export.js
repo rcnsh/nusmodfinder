@@ -9,7 +9,9 @@
 // entries closed, or off NUS's exchange list, in their semester; the entries
 // not placed in a semester; then the foot: NUS's form order and the lines for
 // applicants, the CourseReg box and the closing lines. The description is
-// NUS's, labelled as such, never called a syllabus.
+// NUS's, labelled as such, never called a syllabus. An NUS student's document
+// (`result.nus`) is the plain plan: no exchange columns, year of study, form
+// order, CourseReg box or exchange lines.
 import { noteLead, reasonLine, stampText } from './explain.js';
 import { cleanPrereq, examLine, examLines, semLabel } from './format.js';
 import { APPLICANT_LINES, COURSEREG_BOX, FORM_LINES, TOTAL_LINES, totalLines } from './shortlist.js';
@@ -33,9 +35,9 @@ import { APPLICANT_LINES, COURSEREG_BOX, FORM_LINES, TOTAL_LINES, totalLines } f
  * @typedef {{ sem: '1' | '2', caption: string, rows: FormRow[], note: string }} FormTable
  * @typedef {{
  *   stem: string, title: string, head: Line[], columns: Column[], sections: Section[],
- *   form: { heading: string, intro: string, tables: FormTable[], applicants: string[] },
- *   courseReg: { heading: string, rules: string[], page: string }, closing: Line[],
- * }} Doc
+ *   form: { heading: string, intro: string, tables: FormTable[], applicants: string[] } | null,
+ *   courseReg: { heading: string, rules: string[], page: string } | null, closing: Line[],
+ * }} Doc `form` and `courseReg` null in an NUS student's document
  */
 
 /** The site, by its name and canonical URL (ADR 0009, ADR 0010). */
@@ -45,6 +47,8 @@ export const SITE_URL = 'https://nusmodfinder.rcn.sh';
 /** The sections after the semesters'. */
 export const SECTION = Object.freeze({
   closed: 'Closed, or not on NUS\'s exchange list, in that semester',
+  /** An NUS student's `closed`: nothing is closed to them, only not taught then. */
+  untaught: 'Not taught in that semester',
   unplaced: 'Not placed in a semester',
 });
 
@@ -68,11 +72,14 @@ const lower = (s) => (/^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : 
 
 /**
  * Every column of the CSV, in order; the print page labels its facts the same way.
+ * An NUS student's has no exchange columns (the form, the status, its notes, NUS's notes).
  * @param {string} year 'YYYY/YY', the rows' year
+ * @param {boolean} [nus]
  * @returns {Column[]}
  */
-export function columnsFor(year) {
-  return [
+export function columnsFor(year, nus = false) {
+  const exchangeOnly = ['form', 'status', 'notes', 'nus'];
+  return /** @type {Column[]} */ ([
     { key: 'section', label: 'Section' }, { key: 'sem', label: 'Semester' }, { key: 'list', label: 'List' }, { key: 'rank', label: 'Rank' },
     { key: 'form', label: 'NUS\'s application form' }, { key: 'code', label: 'Code' }, { key: 'title', label: 'Title' }, { key: 'units', label: 'Units' },
     { key: 'department', label: 'Department' }, { key: 'faculty', label: 'Faculty' }, { key: 'level', label: 'Level' }, { key: 'grading', label: 'Grading' },
@@ -81,7 +88,7 @@ export function columnsFor(year) {
     { key: 'estimate', label: 'Estimated study time' }, { key: 'description', label: DESCRIPTION_LABEL },
     { key: 'prerequisite', label: 'Prerequisite' }, { key: 'preclusion', label: 'Preclusion' }, { key: 'flags', label: 'Flags' },
     { key: 'nusmods', label: 'NUSMods' },
-  ];
+  ]).filter((c) => !nus || !exchangeOnly.includes(c.key));
 }
 
 /**
@@ -111,19 +118,20 @@ export function workloadLine(w) {
 
 /**
  * The estimated study time: hours a week at NUS's rate, with NUSMods'
- * own total where it differs, and that the student's university decides credit.
+ * own total where it differs, and (for an exchange student) that their university decides credit.
  * @param {number | null} units
  * @param {Course['workload']} w
+ * @param {boolean} [nus] an NUS student's: no line about a home university's credit
  */
-export function estimateLine(units, w) {
+export function estimateLine(units, w, nus = false) {
   const listed = w && !('raw' in w) ? w.total : null;
   const nusmods = listed !== null ? `NUSMods lists ${num(listed)} hours a week for this course` : '';
-  const rate = `${TOTAL_LINES.rate}.`;
-  if (units === null) return `No estimate: NUS lists no units for it.${nusmods ? ` ${nusmods}.` : ''} ${rate}`;
-  if (units === 0) return `NUS lists it as 0 units, so NUS's rate gives no hours.${nusmods ? ` ${nusmods}.` : ''} ${rate}`;
+  const rate = nus ? '' : `${TOTAL_LINES.rate}.`;
+  if (units === null) return `No estimate: NUS lists no units for it.${nusmods ? ` ${nusmods}.` : ''} ${rate}`.trimEnd();
+  if (units === 0) return `NUS lists it as 0 units, so NUS's rate gives no hours.${nusmods ? ` ${nusmods}.` : ''} ${rate}`.trimEnd();
   const est = units * HOURS_PER_UNIT;
   const differs = listed !== null && Math.round(listed * 100) !== Math.round(est * 100);
-  return `About ${num(est)} hours a week (NUS's rate: ${HOURS_PER_UNIT} hours a week per unit)${differs ? `; ${nusmods}` : ''}. ${rate}`;
+  return `About ${num(est)} hours a week (NUS's rate: ${HOURS_PER_UNIT} hours a week per unit)${differs ? `; ${nusmods}` : ''}. ${rate}`.trimEnd();
 }
 
 /** "12 Nov YYYY", the date the student made it on (their own clock). @param {Date} d */
@@ -154,10 +162,10 @@ function placeOf(w) {
   return w.sem;
 }
 
-/** Whether the entry counts, and why or why not. @param {Worked} w @param {boolean} exchange */
-function countsLine(w, exchange) {
+/** Whether the entry counts, and why or why not. @param {Worked} w @param {boolean} exchange @param {boolean} nus */
+function countsLine(w, exchange, nus) {
   switch (w.standing) {
-    case 'counted': return exchange ? 'Counted, if NUS accepts you into it' : 'Counted: exchange status not checked';
+    case 'counted': return nus ? 'Counted in its semester\'s total' : exchange ? 'Counted, if NUS accepts you into it' : 'Counted: exchange status not checked';
     case 'confirm': return `To confirm with NUS: ${end(lower(w.why.replace(/^To confirm with NUS: /, '')))}`;
     case 'invite': return `${w.why} (not counted unless you say you were invited)`;
     case 'duplicate': return `Not counted: the same course as ${w.sameAs}.`;
@@ -236,7 +244,8 @@ const flagLine = (f) => (f.kind === 'preclusion' && f.quote ? `${f.text}. NUS: â
 function entryOf(w, place, { result, study, sources, answers }) {
   const c = w.course;
   const answer = answers.get(w.code);
-  const { status, notes } = statusOf(w, study, result.year, sources);
+  // An NUS student's document has no exchange status: its cells stay empty, and its columns are gone.
+  const { status, notes } = result.nus ? { status: '', notes: [] } : statusOf(w, study, result.year, sources);
   const catalogue = answer?.kind === 'catalogue-only' ? answer : null;
   const description = c ? String(c.description ?? '') : catalogue ? catalogue.description : w.kind === 'failed' || w.kind === 'loading' ? 'Details could not be loaded' : '';
   const nusText = (/** @type {string | null | undefined} */ t) => (c ? cleanPrereq(t) || 'None listed' : '');
@@ -244,7 +253,7 @@ function entryOf(w, place, { result, study, sources, answers }) {
   return {
     code: w.code, which: w.which, rank: w.rank, sem: w.sem, status: w.status,
     cells: {
-      section: place === 'closed' ? SECTION.closed : place === 'unplaced' ? SECTION.unplaced : semLabel(place),
+      section: place === 'closed' ? (result.nus ? SECTION.untaught : SECTION.closed) : place === 'unplaced' ? SECTION.unplaced : semLabel(place),
       sem: w.sem ? semLabel(w.sem) : 'No semester chosen',
       list: w.which === 'pick' ? 'Primary pick' : 'Backup',
       rank: String(w.rank),
@@ -256,13 +265,13 @@ function entryOf(w, place, { result, study, sources, answers }) {
       faculty: String(c?.faculty ?? ''),
       level: levelText(c?.level),
       grading,
-      counts: countsLine(w, result.exchange),
+      counts: countsLine(w, result.exchange, result.nus),
       status,
       notes: notes.join('\n'),
       nus: w.notes.map(end).join('\n'),
       exam: examOf(w),
       workload: c ? workloadLine(c.workload) : '',
-      estimate: c ? estimateLine(w.units, c.workload ?? null) : '',
+      estimate: c ? estimateLine(w.units, c.workload ?? null, result.nus) : '',
       description,
       prerequisite: nusText(c?.prerequisite),
       preclusion: nusText(c?.preclusion),
@@ -288,7 +297,7 @@ const plannedSems = (result) => /** @type {('1' | '2')[]} */ (['1', '2']).filter
  */
 export function stemOf(result) {
   const sems = plannedSems(result).map((s) => `sem${s}-`).join('');
-  return `exchange-shortlist-${sems}${result.year.replace('/', '-')}-courses`;
+  return `${result.nus ? '' : 'exchange-'}shortlist-${sems}${result.year.replace('/', '-')}-courses`;
 }
 
 /** The file name: the stem and its extension. @param {Doc} doc @param {string} ext */
@@ -308,22 +317,25 @@ export function buildExport({ result, list, study, sources, link, today, answers
   const ctx = { result, study, sources, answers };
   const tagged = plannedSems(result);
   const semsText = tagged.map(semLabel).join(' and ');
-  const title = `Courses planned${semsText ? ` for ${semsText}` : ''}, based on NUS's ${year} courses, exams and exchange list`;
+  const title = `Courses planned${semsText ? ` for ${semsText}` : ''}, based on NUS's ${year} courses, exams${result.nus ? '' : ' and exchange list'}`;
   const listDate = dateOf(sources, /offered/i);
   const rulesDate = dateOf(sources, /restriction/i);
 
+  const nus = result.nus;
   /** @type {Line[]} */
   const head = [
     { key: 'title', label: 'Shortlist', value: title },
-    { key: 'study', label: 'Year of study during the exchange', value: STUDY_YEAR[study] ?? 'Not set: exchange status not checked' },
+    ...(nus ? [] : [{ key: 'study', label: 'Year of study during the exchange', value: STUDY_YEAR[study] ?? 'Not set: exchange status not checked' }]),
     { key: 'made', label: 'Made on', value: madeOn(today) },
     { key: 'link', label: 'Shortlist link', value: link },
   ];
   if (yearNote) head.push({ key: 'year', label: 'Year of the data', value: yearNote });
-  const invited = list.inv.map((x) => (x === 'biz' ? 'NUS Business School' : 'NUS Law'));
+  const invited = nus ? [] : list.inv.map((x) => (x === 'biz' ? 'NUS Business School' : 'NUS Law'));
   if (invited.length) head.push({ key: 'invited', label: 'Invited to apply by', value: invited.join(' and ') });
   head.push(
-    { key: 'later', label: 'For a later year', value: `For a later year, check that year's: NUS publishes the exchange course list in March or April and updates it later (${listDate ? `this one is dated ${listDate.replace(/^0/, '')}` : 'this one\'s date is unavailable'}), and publishes the course descriptions and exam timetable in July or August (NUS Global; the Registrar says the timetable comes mid-July).` },
+    { key: 'later', label: 'For a later year', value: nus
+      ? 'For a later year, check that year\'s: NUS publishes the course descriptions and exam timetable in July or August (the Registrar says the timetable comes mid-July).'
+      : `For a later year, check that year's: NUS publishes the exchange course list in March or April and updates it later (${listDate ? `this one is dated ${listDate.replace(/^0/, '')}` : 'this one\'s date is unavailable'}), and publishes the course descriptions and exam timetable in July or August (NUS Global; the Registrar says the timetable comes mid-July).` },
     { key: 'site', label: 'Made with', value: `${SITE_NAME}, ${SITE_URL}` },
   );
 
@@ -339,12 +351,12 @@ export function buildExport({ result, list, study, sources, link, today, answers
     const quota = result.entries.filter((w) => w.sem === sem && w.standing === 'invite').flatMap((w) => w.lines.filter((l) => l.startsWith('If you were invited:')));
     return {
       id: sem, heading: semLabel(sem), groups: groups(inSem),
-      totals: [...totalLines(sem, result.sems[sem], { exchange: result.exchange, year }), ...new Set(quota)],
+      totals: [...totalLines(sem, result.sems[sem], { exchange: result.exchange, year, nus }), ...new Set(quota)],
     };
   });
   for (const id of /** @type {const} */ (['closed', 'unplaced'])) {
     const ws = result.entries.filter((w) => placeOf(w) === id);
-    if (ws.length) sections.push({ id, heading: SECTION[id], groups: groups(ws), totals: [] });
+    if (ws.length) sections.push({ id, heading: id === 'closed' && nus ? SECTION.untaught : SECTION[id], groups: groups(ws), totals: [] });
   }
 
   /** @type {FormTable[]} */
@@ -365,6 +377,15 @@ export function buildExport({ result, list, study, sources, link, today, answers
     }
   }
 
+  if (nus) {
+    return {
+      stem: stemOf(result), title, head, columns: columnsFor(year, true), sections, form: null, courseReg: null,
+      closing: [
+        { key: 'unchecked', label: 'Not checked', value: 'Class times and corequisites aren\'t checked here' },
+        { key: 'unofficial', label: 'Unofficial', value: 'Unofficial. Check with NUS before you register.' },
+      ],
+    };
+  }
   return {
     stem: stemOf(result),
     title,

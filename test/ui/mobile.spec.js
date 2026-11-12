@@ -23,6 +23,7 @@ test('every text input and select is at least 16px, on the first screen and afte
 
 test('after the first search the form is one bar: the query field and Search side by side, in view; the rail is behind "Filters (n)"', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('radio', { name: /^Exchange student/ }).check();
   await page.getByRole('radio', { name: /^Sem 1/ }).check();
   await page.getByRole('radio', { name: '2nd year' }).check();
   await page.getByLabel('What do you want to study?').fill('accounting');
@@ -46,7 +47,7 @@ test('Filters opens a modal dialog with the set-up and filters; a change applies
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1');
   const button = page.getByRole('button', { name: 'Filters (3)' });
   await button.click();
-  const dialog = page.getByRole('dialog', { name: 'Your exchange and filters' });
+  const dialog = page.getByRole('dialog', { name: 'Who is searching, and filters' });
   await expect(dialog).toBeVisible();
   expect(await dialog.evaluate((el) => el.matches(':modal'))).toBe(true);
   // Focus starts inside, on the first control.

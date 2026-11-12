@@ -39,14 +39,14 @@ const ruleText = (id) => {
  * `extra` gives its outcome (a synthetic row, a 404, or null: still loading).
  * @param {string} qs
  * @param {Record<string, any>} [extra]
- * @param {{ rules?: any }} [opts]
+ * @param {{ rules?: any, nus?: boolean }} [opts] `nus`: an NUS student's plain plan
  */
-function run(qs, extra = {}, { rules = RULES } = {}) {
+function run(qs, extra = {}, { rules = RULES, nus = false } = {}) {
   const params = new URLSearchParams(qs);
   const s = parseState(params);
   const { list } = parseList(params);
   const answers = new Map([...list.pick, ...list.alt].map((e) => [e.code, answerOf(e.code in extra ? extra[e.code] : fixtureOutcome(e.code))]));
-  return workOut({ list, sem: s.sem, study: s.study, answers, rules });
+  return workOut({ list, sem: s.sem, study: s.study, answers, rules, nus });
 }
 /** @param {import('../../public/shortlist.js').Result} r @param {string} code */
 const at = (r, code) => {
@@ -594,5 +594,37 @@ describe('totals over 500 random shortlists, against the reference', () => {
     }
     expect(compared).toBe(500 * 2 * 6);
     for (const st of ['counted', 'confirm', 'invite', 'out', 'duplicate']) expect(seen[st], st).toBeGreaterThan(100);
+  });
+});
+
+describe('an NUS student\'s list (nus)', () => {
+  it('a pick counts by its units if taught in its semester, with no exchange status, form, notes or invitation', () => {
+    const r = run('pick=CS5562.2&pick=CS3244.1&pick=CS2030.2&pick=ACC1701XA.1&view=shortlist', {}, { nus: true });
+    expect(r).toMatchObject({ nus: true, exchange: false });
+    expect(at(r, 'CS5562')).toMatchObject({ standing: 'counted', why: 'Counted', status: null, form: { number: null, text: '' }, notes: [], lines: [] });
+    expect(at(r, 'CS2030').notes).toEqual([]);
+    expect(at(r, 'ACC1701XA')).toMatchObject({ standing: 'counted', lines: [] });
+    expect(at(run('pick=CS5562.1', {}, { nus: true }), 'CS5562')).toMatchObject({ standing: 'out', why: 'Not taught in Sem 1' });
+    expect(r.sems[2].counted).toBe(8);
+    expect(totalLines('2', r.sems[2], r)).toEqual(['Sem 2: 8 units picked', 'About 20 hours a week at NUS\'s rate (2.5 hours a week per unit)']);
+  });
+
+  it('a course NUS lists with no classes is to confirm in the semesters NUS lists it for, not "not taught"', () => {
+    const ee = ngListedOutcome('EE4407', { ngSemesters: [1], exchange: exchange({ 1: ['open', []], 2: ['closed', ['ng-list:not-in-semester']] }) });
+    expect(at(run('pick=EE4407.1', { EE4407: ee }, { nus: true }), 'EE4407')).toMatchObject({ standing: 'confirm', status: null });
+    expect(at(run('pick=EE4407.2', { EE4407: ee }, { nus: true }), 'EE4407')).toMatchObject({ standing: 'out', why: 'Not taught in Sem 2' });
+  });
+
+  it('ignores an exchange set-up the link carries: no invitation, no year of study', () => {
+    const r = run('ng=1&study=ug2&inv=biz&pick=ACC1701XA.1', {}, { nus: true });
+    expect(at(r, 'ACC1701XA')).toMatchObject({ standing: 'counted', status: null, lines: [] });
+  });
+
+  it('the export question never asks an NUS student the year of study; an untagged entry still asks its semester', () => {
+    const params = new URLSearchParams('pick=CS3244');
+    const { list } = parseList(params);
+    const answers = new Map([['CS3244', answerOf(fixtureOutcome('CS3244'))]]);
+    expect(exportQuestion({ list, study: '', answers, nus: true })).toEqual({ ask: true, year: false, entries: ['CS3244'] });
+    expect(exportQuestion({ list, study: '', answers })).toMatchObject({ year: true });
   });
 });

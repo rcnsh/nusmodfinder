@@ -148,7 +148,7 @@ button.chip { cursor: pointer; }
 .notes .k { font-weight: 600; }
 .notes .src { display: block; color: var(--ink-2); font-size: 12.5px; margin-top: 1px; }
 
-/* ===== The first screen: the exchange set-up ===== */
+/* ===== The first screen: who is searching, the exchange set-up, the query ===== */
 .setup { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-areas: "intro form" "sources form"; align-content: start; column-gap: 64px; row-gap: 32px; padding: 52px 40px 56px; }
 .setup-intro { grid-area: intro; }
 .setup .steps { grid-area: form; }
@@ -172,6 +172,7 @@ button.chip { cursor: pointer; }
 .step .qtitle, .step .qlabel { display: block; font-size: var(--t-brand); font-weight: 600; line-height: 1.35; margin-bottom: 2px; }
 .step .hint { color: var(--ink-2); font-size: 14px; margin-bottom: 12px; }
 .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tiles.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .tile, .pill { position: relative; display: block; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); cursor: pointer; }
 .tile { padding: 12px 14px; }
 .tile input, .pill input, .seg-opt input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
@@ -206,6 +207,9 @@ html[data-keys] :is(.tile, .pill, .seg-opt):has(input:focus) { outline: 2px soli
 .seg-opt:has(input:checked) { background: var(--accent-tint); border-color: var(--accent); color: var(--accent); font-weight: 600; z-index: 1; }
 .checkline { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; cursor: pointer; }
 .checkline input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent-fill); flex: none; }
+.who { display: grid; gap: 8px; }
+/* The site name links home, to the first screen; it keeps the header's look. */
+.brand .home:hover .brand-name { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .ng-hint { margin-top: 6px; font-size: 12.5px; color: var(--ink-2); }
 .ng-hint:empty { display: none; }
 .key { display: grid; gap: 12px; font-size: var(--t-small); line-height: 1.5; }
@@ -399,6 +403,9 @@ details[open] > summary::before { transform: rotate(90deg); }
   .tile { padding: 9px 12px; display: flex; align-items: baseline; gap: 10px; }
   .tile b { font-size: 15.5px; }
   .tile:has(input:checked) .tick { top: 50%; translate: 0 -50%; }
+  /* Who is searching: two tiles side by side, each its name over its line. */
+  .tiles.two .tile { display: block; padding-right: 30px; }
+  .tiles.two .tile:has(input:checked) .tick { top: 11px; right: 10px; translate: none; }
   .pill { min-height: 38px; padding: 0 12px; font-size: var(--t-body-s); }
   .searchrow .field, .searchrow .btn { height: 46px; }
   .searchrow .btn { padding: 0 16px; }

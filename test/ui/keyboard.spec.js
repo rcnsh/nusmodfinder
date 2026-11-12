@@ -101,7 +101,7 @@ const URL_SEARCH = 'q=CS2104&sem=1&ng=1&study=ug2';
 const URL_FILTERED = 'q=CS2104&sem=1&level=2&ng=1&study=ug2';
 
 /**
- * The first screen by keyboard: skip link, Sem 1, 2nd year, "CS2104", Enter.
+ * The first screen by keyboard: skip link, Exchange student, Sem 1, 2nd year, "CS2104", Enter.
  * @param {import('@playwright/test').Page} page
  * @param {ReturnType<typeof keys>} k
  */
@@ -111,6 +111,9 @@ async function firstScreen(page, k) {
   expect(await k.tab()).toEqual(['#skip']);
   await expect(page.locator('#skip')).toBeInViewport({ ratio: 1 });
   expect(await k.press('Enter')).toBe('#setup');
+  expect(await k.tab()).toEqual(['radio setupWho=nus']);
+  expect(await k.press('ArrowRight')).toBe('radio setupWho=exchange');
+  await expect(page.getByRole('radio', { name: /^Exchange student/ })).toBeChecked();
   expect(await k.tab()).toEqual(['radio setupSem=1']);
   await page.keyboard.press('Space');
   await expect(page.getByRole('radio', { name: /^Sem 1/ })).toBeChecked();
@@ -226,8 +229,8 @@ test.describe('at 390×664', () => {
     // Forward from the query: Search, then Filters (the rail is behind it on a phone).
     expect(await k.tab(2)).toEqual(['#go', '#filtersBtn']);
     await expect(page.locator('#filtersBtn')).toHaveText('Filters (3)');
-    expect(await k.press('Enter')).toBe('#ng');
-    await expect(page.getByRole('dialog', { name: 'Your exchange and filters' })).toBeVisible();
+    expect(await k.press('Enter')).toBe('radio who=1');
+    await expect(page.getByRole('dialog', { name: 'Who is searching, and filters' })).toBeVisible();
     expect(await k.tab(3)).toEqual(['radio xsem=1', '#study', '#level']);
     await page.keyboard.type('LL');
     await expect.poll(() => query(page)).toBe(URL_FILTERED);

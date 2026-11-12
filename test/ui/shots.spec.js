@@ -16,6 +16,7 @@ const ACC = 'introductory+accounting';
 /** @type {[string, string, (page: import('@playwright/test').Page) => Promise<void>][]} */
 const STATES = [
   ['setup', '/', async (page) => {
+    await page.getByRole('radio', { name: /^Exchange student/ }).check();
     await page.getByRole('radio', { name: /^Sem 1/ }).check();
     await page.getByRole('radio', { name: '2nd year' }).check();
     await page.mouse.click(1, 1);

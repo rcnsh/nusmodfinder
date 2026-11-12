@@ -9,13 +9,15 @@ change`, `how do i start my own company`) or a code like `CS3244` or `cs32`. Fil
 level, units and faculty. Phrases such as *no final exam*, *S/U* or *light workload* are read as
 filters, each with a chip to undo it.
 
-Exchange mode asks for your semester at NUS and your year of study during your exchange, then
+The first question is whether you're an NUS student or an exchange student. Exchange students
+then give their semester at NUS and year of study during the exchange, and the site
 marks every course as open, open with a note, or closed to you, from the Registrar's
 Non-Graduating course list and course restrictions. Each course opens a detail with its exams,
 weekly workload, prerequisites and a link to NUSMods for class times.
 
-Shortlist courses as primary picks and backups for each semester. The shortlist counts units
-against NUS's limits, flags exam clashes and preclusions, and downloads as a CSV or prints to PDF.
+Shortlist courses as primary picks and backups for each semester. The shortlist totals units,
+flags exam clashes and preclusions, and, for exchange students, counts against NUS's limits and
+orders NUS's application form; it downloads as a CSV or prints to PDF.
 It lives in the page's link, so it needs no account.
 
 <!-- year:live --> The site covers NUS's 2026/27 courses and exchange lists. It moves to the next

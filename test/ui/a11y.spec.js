@@ -39,11 +39,12 @@ async function slRows(page) {
 
 /** @type {State[]} */
 const STATES = [
-  { name: 'first screen (the exchange set-up)', open: '/' },
+  { name: 'first screen (an NUS student)', open: '/' },
   {
-    name: 'first screen, a question left unanswered',
+    name: 'first screen, an exchange student, a question left unanswered',
     open: async (page) => {
       await page.goto('/');
+      await page.getByRole('radio', { name: /^Exchange student/ }).check();
       await page.locator('#setupForm').getByRole('button', { name: 'Search' }).click();
       await expect(page.locator('#setupError')).toHaveText('Choose the semester you will study at NUS.');
     },

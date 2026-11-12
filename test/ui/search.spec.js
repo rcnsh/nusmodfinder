@@ -18,8 +18,8 @@ test('a typed search renders cards, and the URL holds the query', async ({ page 
 test('exchange mode asks for the year of study first, then keeps ng=1 and study in the URL', async ({ page }) => {
   await page.goto('/?q=networks');
   await expect(page.locator('#status')).toContainText(matchFor('networks'));
-  // The student clicks the checkbox's label.
-  await page.getByText('Only courses open to exchange students', { exact: true }).click();
+  // The student chooses "Exchange student" in the rail, by its label.
+  await page.locator('label[for="ng"]').click();
   await expect(page.locator('#ng')).toBeChecked();
   await expect(page.locator('#status')).toHaveText('Choose your year of study to see the courses open to you as an exchange student.');
   await expect(page.locator('#study')).toBeFocused();
@@ -68,7 +68,8 @@ test('result fields render as text, never as markup', async ({ page }) => {
   await expect(card.locator('.meta')).toContainText('<i>1</i>');
   await expect(card.locator('.notes li')).toHaveText(`Places. ${evil}`);
   await expect(card.locator('.variants')).toHaveText(`Also as ${evil}`);
-  await expect(page.locator('#results > li').nth(1).locator('.ng')).toHaveText('On the NG list for <s>2</s>. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check.');
+  // An NUS student's search: no exchange line on a course on the NG list.
+  await expect(page.locator('#results > li').nth(1).locator('.ng')).toHaveCount(0);
   // Inside the quotes a double quote becomes an apostrophe, so the student's text can't close them.
   await expect(page.locator('#status .count .q')).toHaveText(`“${evil.replaceAll('"', "'")}”`);
   // /facets never vouched for it, so the chip quotes it as the student's own text.

@@ -10,6 +10,11 @@
 // Every entry is worked out at its own semester, whatever the state's `sem`,
 // which only sets which semester's totals come first. Rank is the entry's place
 // in its `pick` or `alt` sequence, one order for the year.
+//
+// For an NUS student (`nus`: the search is not in exchange mode) the list is a
+// plain plan: a pick counts by its units if it is taught in its semester, with
+// the exam-overlap, preclusion and same-title flags, and none of the exchange
+// application's lines, notes, invitations or form order.
 import { semLabel } from './format.js';
 import { names } from './preclusion.js';
 import { DEFAULT_ACAD_YEAR, nextYearLabel, yearLabel } from './year.js';
@@ -52,7 +57,7 @@ import { DEFAULT_ACAD_YEAR, nextYearLabel, yearLabel } from './year.js';
  * }} Totals
  * @typedef {{
  *   entries: Worked[], sems: { '1': Totals, '2': Totals }, order: ('1' | '2')[],
- *   year: string, exchange: boolean, fullYear: boolean,
+ *   year: string, exchange: boolean, nus: boolean, fullYear: boolean,
  * }} Result
  */
 
@@ -354,7 +359,7 @@ function offListWhy(code, c, sem, rules, year) {
  * same-course rule.
  * @param {{ code: string, sem: '' | '1' | '2', which: Which, rank: number }} e
  * @param {Answer} answer
- * @param {{ study: string, rules: OffListRule[] | null, inv: string[], year: string }} ctx
+ * @param {{ study: string, nus: boolean, rules: OffListRule[] | null, inv: string[], year: string }} ctx
  * @returns {Worked}
  */
 function workEntry(e, answer, ctx) {
@@ -374,7 +379,7 @@ function workEntry(e, answer, ctx) {
   if (answer.kind === 'unknown') return as('out', `No course with this code in ${ctx.year}`);
   const c = /** @type {Course} */ (course);
   const ngListed = answer.kind === 'ng-listed';
-  if (w.faculty) w.lines.push(BIZ_LAW.gro);
+  if (w.faculty && !ctx.nus) w.lines.push(BIZ_LAW.gro);
   if (specialOnly(answer)) {
     // Its closed stamp at the chosen semester; the reason is the line below.
     if (e.sem && ctx.study) w.status = exchangeAt(c, Number(e.sem), ctx.study)?.status ?? 'closed';
@@ -384,6 +389,12 @@ function workEntry(e, answer, ctx) {
   if (credits === null) return as('out', 'NUS lists no units for it');
   const sem = Number(e.sem);
   const ngLine = `NUS lists it for ${semLabel(sem)} in ${ctx.year}, but NUSMods shows no classes: ask NUS`;
+  if (ctx.nus) {
+    // A course NUS lists with no classes in NUSMods: to confirm in the semesters NUS lists it for.
+    if (ngListed && nums(c.ng_semesters).includes(sem)) { w.lines.push(ngLine); return as('confirm', ngLine); }
+    if (!nums(c.semesters).includes(sem)) return as('out', `Not taught in ${semLabel(sem)}`);
+    return as('counted', 'Counted');
+  }
   if (ngListed && !nums(c.ng_semesters).includes(sem)) {
     // Its closed stamp, as a row's; the reason is the line below, not a note.
     const at = ctx.study ? exchangeAt(c, sem, ctx.study) : undefined;
@@ -528,9 +539,9 @@ function overlaps(a, b) {
  * semester, picks or backups; preclusions between picks only (a backup a pick
  * precludes is a normal alternative); and group members that aren't the same
  * course, with the check line.
- * @param {Worked[]} entries @param {string} study @param {string} year
+ * @param {Worked[]} entries @param {string} study @param {string} year @param {boolean} nus
  */
-function flag(entries, study, year) {
+function flag(entries, study, year, nus) {
   const live = entries.filter(takesPart);
   for (let i = 0; i < live.length; i += 1) {
     for (let j = i + 1; j < live.length; j += 1) {
@@ -538,7 +549,9 @@ function flag(entries, study, year) {
       if (a.sem && a.sem === b.sem) {
         const [ea, eb] = [examIn(a, a.sem), examIn(b, b.sem)];
         if (ea && eb && overlaps(ea, eb)) {
-          const text = `${a.code} and ${b.code}: their ${year} exams overlap. If they still do in the year you go, NUS won't approve both and its form won't take both (GRO). NUS publishes each year's timetable in July or August (the Registrar says mid-July).`;
+          const text = nus
+            ? `${a.code} and ${b.code}: their ${year} exams overlap. NUS publishes each year's timetable in July or August: check it for the year you take them.`
+            : `${a.code} and ${b.code}: their ${year} exams overlap. If they still do in the year you go, NUS won't approve both and its form won't take both (GRO). NUS publishes each year's timetable in July or August (the Registrar says mid-July).`;
           a.flags.push({ kind: 'exam', with: b.code, text });
           b.flags.push({ kind: 'exam', with: a.code, text });
         }
@@ -570,11 +583,12 @@ function flag(entries, study, year) {
  * number each is marked, keeping its number.
  * @param {Worked[]} entries
  * @param {boolean} exchange
+ * @param {boolean} nus no form at all, so no line either
  * @returns {{ '1': { units: number, line: string } | null, '2': { units: number, line: string } | null }}
  */
-function formOrder(entries, exchange) {
+function formOrder(entries, exchange, nus) {
   for (const w of entries) {
-    w.form = { number: null, note: '', text: !exchange ? FORM_LINES.setYear
+    w.form = { number: null, note: '', text: nus ? '' : !exchange ? FORM_LINES.setYear
       : w.standing === 'duplicate' ? `The same course as ${w.sameAs}`
         : w.standing === 'invite' ? 'On the form only if invited'
           : w.audition && w.standing === 'confirm' ? 'Apply separately: see the note'
@@ -606,23 +620,25 @@ function formOrder(entries, exchange) {
  * The shortlist worked out.
  * @param {{
  *   list: List, sem: string, study: string, answers: Map<string, Answer>,
- *   rules: OffListRule[] | null,
+ *   rules: OffListRule[] | null, nus?: boolean,
  * }} input `sem` the state's (it orders the totals); `study` '' in browse
- *   mode; `rules` /facets' offListRules, null if /facets failed
+ *   mode; `rules` /facets' offListRules, null if /facets failed; `nus` an
+ *   NUS student's plain plan (the search is not in exchange mode)
  * @returns {Result}
  */
-export function workOut({ list, sem, study, answers, rules }) {
+export function workOut({ list, sem, study: given, answers, rules, nus = false }) {
   const year = yearLabel(yearOf(list, answers));
-  const ctx = { study, rules, inv: list.inv, year };
+  const study = nus ? '' : given;
+  const ctx = { study, nus, rules, inv: nus ? [] : list.inv, year };
   /** @type {Worked[]} */
   const entries = [
     ...list.pick.map((e, i) => ({ ...e, which: /** @type {Which} */ ('pick'), rank: i + 1 })),
     ...list.alt.map((e, i) => ({ ...e, which: /** @type {Which} */ ('alt'), rank: i + 1 })),
   ].map((e) => workEntry(e, answers.get(e.code) ?? { kind: 'loading' }, ctx));
   settleSameCourse(entries, study);
-  flag(entries, study, year);
-  const forms = formOrder(entries, !!study);
-  for (const w of entries) w.notes = nusNotes(w, study);
+  flag(entries, study, year, nus);
+  const forms = formOrder(entries, !!study, nus);
+  for (const w of entries) w.notes = nus ? [] : nusNotes(w, study);
   /** @param {'1' | '2'} s @returns {Totals} */
   const totals = (s) => {
     const picks = entries.filter((w) => w.which === 'pick' && w.sem === s);
@@ -651,6 +667,7 @@ export function workOut({ list, sem, study, answers, rules }) {
     order: sem === '2' ? ['2', '1'] : ['1', '2'],
     year,
     exchange: !!study,
+    nus,
     fullYear: tagged.has('1') && tagged.has('2'),
   };
 }
@@ -661,11 +678,16 @@ export function workOut({ list, sem, study, answers, rules }) {
  * exam-overlap lines when they apply, and NUS's minimum and maximum.
  * @param {'1' | '2'} sem
  * @param {Totals} t
- * @param {{ exchange: boolean, year: string }} r
+ * @param {{ exchange: boolean, year: string, nus?: boolean }} r
  * @returns {string[]}
  */
-export function totalLines(sem, t, { exchange, year }) {
+export function totalLines(sem, t, { exchange, year, nus = false }) {
   const atLeast = t.pending ? 'at least ' : '';
+  if (nus) {
+    const out = [`${semLabel(sem)}: ${atLeast}${t.counted} units picked`, `About ${t.hours} hours a week at NUS's rate (2.5 hours a week per unit)`];
+    if (t.overlap) out.push(`Picks with overlapping ${year} exams`);
+    return out;
+  }
   const out = [`${semLabel(sem)}: ${atLeast}${t.counted} units picked, ${exchange ? 'if NUS accepts you into each' : 'exchange status not checked'}`];
   if (t.confirm) out.push(`plus ${t.confirm} units to confirm with NUS`);
   if (t.invite) out.push(`plus ${t.invite} units only if invited`);
@@ -699,11 +721,12 @@ export const askable = (answer) => !(answer && (answer.kind === 'catalogue-only'
  * study in browse mode, and a semester for each untagged entry that can take
  * one. Entries that can't (taught only in special terms, a catalogue-only or
  * unknown 404) are exempt.
- * @param {{ list: List, study: string, answers: Map<string, Answer> }} input
+ * An NUS student is never asked the year of study.
+ * @param {{ list: List, study: string, answers: Map<string, Answer>, nus?: boolean }} input
  * @returns {{ ask: boolean, year: boolean, entries: string[] }}
  */
-export function exportQuestion({ list, study, answers }) {
+export function exportQuestion({ list, study, answers, nus = false }) {
   const entries = [...list.pick, ...list.alt].filter((e) => !e.sem && askable(answers.get(e.code))).map((e) => e.code);
-  const year = !study && list.pick.length + list.alt.length > 0;
+  const year = !nus && !study && list.pick.length + list.alt.length > 0;
   return { ask: year || entries.length > 0, year, entries };
 }

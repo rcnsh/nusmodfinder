@@ -1,50 +1,23 @@
 - link "Skip to main content":
   - /url: "#setup"
 - banner:
-  - heading "NUS Mod Finder ( unofficial )" [level=1]
+  - heading "NUS Mod Finder ( unofficial )" [level=1]:
+    - link "NUS Mod Finder":
+      - /url: /
+    - text: ( unofficial )
   - paragraph: NUS's 2026/27 courses and exchange lists. Applying for 2027/28? NUS publishes Sem 1's list in March or April; until July, this site shows 2026/27's.
   - status
-- main "Find the NUS courses you can take on exchange":
-  - heading "Find the NUS courses you can take on exchange" [level=2]
-  - paragraph: Answer two questions first. Every course then shows whether exchange students in your semester and year may take it, and any conditions.
-  - heading "Where the rules come from" [level=3]
-  - table:
-    - rowgroup:
-      - row "NUS Registrar list Updated as at":
-        - columnheader "NUS Registrar list"
-        - columnheader "Updated as at"
-    - rowgroup:
-      - row "Courses offered to exchange students (the NG list) 01 Sep 2026":
-        - cell "Courses offered to exchange students (the NG list)"
-        - cell "01 Sep 2026"
-      - row "Course restrictions for exchange students 31 Aug 2026":
-        - cell "Course restrictions for exchange students"
-        - cell "31 Aug 2026"
-  - paragraph: "“NG” means non-graduating: NUS's word for exchange students. Course details come from NUSMods."
-  - strong: This site is unofficial. Check with NUS before you register.
-  - form "Set up your exchange":
-    - group "Which semester will you study at NUS?":
-      - paragraph: Which semester will you study at NUS?
-      - paragraph: Some courses are open to exchange students in one semester only.
-      - radio "Sem 1 Aug–Dec 2026"
-      - text: Sem 1 Aug–Dec 2026
-      - radio "Sem 2 Jan–May 2027"
-      - text: Sem 2 Jan–May 2027
-      - radio "Both semesters Aug 2026–May 2027"
-      - text: Both semesters Aug 2026–May 2027
-    - group "Your year of study during your exchange":
-      - paragraph: Your year of study during your exchange
-      - paragraph: Some NUS rules depend on it.
-      - radio "1st year"
-      - text: 1st year
-      - radio "2nd year"
-      - text: 2nd year
-      - radio "3rd year"
-      - text: 3rd year
-      - radio "4th year or later"
-      - text: 4th year or later
-      - radio "Graduate"
-      - text: Graduate
+- main "Find NUS courses in your own words":
+  - heading "Find NUS courses in your own words" [level=2]
+  - paragraph: Describe what you want to study, or type course codes. On exchange at NUS? Choose exchange student, and every course shows whether you may take it in your semester, and any conditions.
+  - form "Search NUS courses":
+    - group "Who are you searching as?":
+      - paragraph: Who are you searching as?
+      - paragraph: Exchange students can take only some NUS courses.
+      - radio "NUS student Every NUS course" [checked]
+      - text: NUS student Every NUS course
+      - radio "Exchange student Only the courses open to you"
+      - text: Exchange student Only the courses open to you
     - text: What do you want to study?
     - paragraph: A subject in your own words, a course name, or codes.
     - searchbox "What do you want to study?"

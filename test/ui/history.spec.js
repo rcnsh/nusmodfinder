@@ -106,7 +106,7 @@ test('open= from a shared link: Escape closes it by replace (this page pushed no
 
 test('Back to an exchange-mode entry with no year of study takes the chosen one, and the URL says so', async ({ page }) => {
   await browse(page);
-  await page.getByText('Only courses open to exchange students', { exact: true }).click();
+  await page.locator('label[for="ng"]').click();
   await expect.poll(() => query(page)).toBe('ng=1');
   await submit(page, 'networks');
   await expect(page.locator('#status')).toHaveText('Choose your year of study to see the courses open to you as an exchange student.');

@@ -4,71 +4,12 @@
   - paragraph: 4 units
   - button "Shortlist, CS3244": Shortlist
   - paragraph: Computer Science · Computing Taught in Sem 1, Sem 2 Sem 1 exam Thu 26 Nov, 5:00 pm Sem 2 exam Thu 29 Apr, 9:00 am
-  - paragraph: "On the NG list for Sem 2. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check."
   - region "CS3244 Machine Learning":
     - paragraph: Course details
     - button "Shortlist, CS3244": Shortlist
     - button "Close details"
     - heading "CS3244 Machine Learning" [level=3]
     - paragraph: 4 units · Computer Science, Computing
-    - heading "Open to exchange students" [level=4]
-    - table "Open to exchange students, by year of study during the exchange":
-      - caption: Open to exchange students, by year of study during the exchange
-      - rowgroup:
-        - row "Year of study Sem 1 Sem 2":
-          - columnheader "Year of study"
-          - columnheader "Sem 1"
-          - columnheader "Sem 2"
-      - rowgroup:
-        - row "1st year Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
-          - rowheader "1st year"
-          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
-            - paragraph: Not open to exchange students
-            - list:
-              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
-          - cell "Open to exchange students":
-            - paragraph: Open to exchange students
-        - row "2nd year Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
-          - rowheader "2nd year"
-          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
-            - paragraph: Not open to exchange students
-            - list:
-              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
-          - cell "Open to exchange students":
-            - paragraph: Open to exchange students
-        - row "3rd year Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
-          - rowheader "3rd year"
-          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
-            - paragraph: Not open to exchange students
-            - list:
-              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
-          - cell "Open to exchange students":
-            - paragraph: Open to exchange students
-        - row "4th year or later Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
-          - rowheader "4th year or later"
-          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
-            - paragraph: Not open to exchange students
-            - list:
-              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
-          - cell "Open to exchange students":
-            - paragraph: Open to exchange students
-        - row "Graduate Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
-          - rowheader "Graduate"
-          - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
-            - paragraph: Not open to exchange students
-            - list:
-              - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
-          - cell "Open to exchange students":
-            - paragraph: Open to exchange students
-    - strong: Check with NUS before you register.
-    - paragraph:
-      - text: "Sources:"
-      - link "Courses offered to exchange (NG) students":
-        - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
-      - text: (updated 01 Sep 2026);
-      - link "Course restrictions for exchange (NG) students":
-        - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
-      - text: (updated 31 Aug 2026).
     - heading "Class times" [level=4]
     - paragraph:
       - link "Class times and timetable on NUSMods":
@@ -189,3 +130,62 @@
       - listitem: "Sem 2: Thu 29 Apr 2027, 9:00 am, 2 h"
     - heading "Workload" [level=4]
     - paragraph: "10 hours a week: 2 lecture, 1 tutorial, 4 project, 3 preparation"
+    - group:
+      - text: "For exchange students: who may take it"
+      - table "Open to exchange students, by year of study during the exchange":
+        - caption: Open to exchange students, by year of study during the exchange
+        - rowgroup:
+          - row "Year of study Sem 1 Sem 2":
+            - columnheader "Year of study"
+            - columnheader "Sem 1"
+            - columnheader "Sem 2"
+        - rowgroup:
+          - row "1st year Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+            - rowheader "1st year"
+            - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+              - paragraph: Not open to exchange students
+              - list:
+                - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+            - cell "Open to exchange students":
+              - paragraph: Open to exchange students
+          - row "2nd year Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+            - rowheader "2nd year"
+            - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+              - paragraph: Not open to exchange students
+              - list:
+                - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+            - cell "Open to exchange students":
+              - paragraph: Open to exchange students
+          - row "3rd year Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+            - rowheader "3rd year"
+            - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+              - paragraph: Not open to exchange students
+              - list:
+                - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+            - cell "Open to exchange students":
+              - paragraph: Open to exchange students
+          - row "4th year or later Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+            - rowheader "4th year or later"
+            - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+              - paragraph: Not open to exchange students
+              - list:
+                - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+            - cell "Open to exchange students":
+              - paragraph: Open to exchange students
+          - row "Graduate Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026). Open to exchange students":
+            - rowheader "Graduate"
+            - cell "Not open to exchange students Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).":
+              - paragraph: Not open to exchange students
+              - list:
+                - listitem: Offered to exchange students only in Sem 2 (NG list, updated 01 Sep 2026).
+            - cell "Open to exchange students":
+              - paragraph: Open to exchange students
+      - strong: Check with NUS before you register.
+      - paragraph:
+        - text: "Sources:"
+        - link "Courses offered to exchange (NG) students":
+          - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
+        - text: (updated 01 Sep 2026);
+        - link "Course restrictions for exchange (NG) students":
+          - /url: https://www.nus.edu.sg/registrar/prospective-students/non-graduating
+        - text: (updated 31 Aug 2026).

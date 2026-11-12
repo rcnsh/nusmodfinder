@@ -36,16 +36,20 @@ export function csvRows(doc) {
   rows.push(Array(width).fill(''));
   for (const h of doc.head) rows.push(line(h.label, h.value));
   for (const s of doc.sections) for (const t of s.totals) rows.push(line(`${s.heading} totals`, t));
-  rows.push(line('NUS\'s application form', doc.form.intro));
-  for (const t of doc.form.tables) {
-    const label = `NUS's application form, ${t.caption.replace(/ on NUS's form.*$/, '')}`;
-    rows.push(line(label, t.caption));
-    for (const r of t.rows) rows.push(line(label, `${r.number}: ${r.code}, ${r.list}, ${r.units} units${r.note ? `${r.mark ? ':' : '.'} ${r.note}` : ''}`));
-    if (t.note) rows.push(line(label, t.note));
+  if (doc.form) {
+    rows.push(line('NUS\'s application form', doc.form.intro));
+    for (const t of doc.form.tables) {
+      const label = `NUS's application form, ${t.caption.replace(/ on NUS's form.*$/, '')}`;
+      rows.push(line(label, t.caption));
+      for (const r of t.rows) rows.push(line(label, `${r.number}: ${r.code}, ${r.list}, ${r.units} units${r.note ? `${r.mark ? ':' : '.'} ${r.note}` : ''}`));
+      if (t.note) rows.push(line(label, t.note));
+    }
+    for (const a of doc.form.applicants) rows.push(line('For applicants', a));
   }
-  for (const a of doc.form.applicants) rows.push(line('For applicants', a));
-  for (const r of doc.courseReg.rules) rows.push(line(doc.courseReg.heading, r));
-  rows.push(line(doc.courseReg.heading, doc.courseReg.page));
+  if (doc.courseReg) {
+    for (const r of doc.courseReg.rules) rows.push(line(doc.courseReg.heading, r));
+    rows.push(line(doc.courseReg.heading, doc.courseReg.page));
+  }
   for (const c of doc.closing) rows.push(line(c.label, c.value));
   rows.push(line('Excel', EXCEL_HINT));
   return rows;
