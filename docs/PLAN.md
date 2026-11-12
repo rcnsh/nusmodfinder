@@ -17,7 +17,7 @@ log in [`PROGRESS.md`](PROGRESS.md), decisions in [`decisions/`](decisions/).
 | 5 | Frontend and design overhaul | **closed** at `phase5-final` ([plan](plans/phase5.md), [ADR 0008](decisions/0008-phase5-frontend-plan.md), [exit](evidence/phase5/exit.md)): SC2 and SC8 pass (VoiceOver walkthrough dropped by Jacob); SC4's parsed phrases shipped after L8 | SC2, SC8; design gate |
 | 6 | Shortlist and export | **closed** at `phase6-final` ([plan](plans/phase6.md), [ADR 0010](decisions/0010-phase6-shortlist-plan.md), [exit](evidence/phase6/exit.md)): SC3 passes; SC1, SC2 and SC8 hold over the shortlist | SC3 |
 | 7 | Ops and architecture | **closed** at `phase7-final` ([plan](plans/phase7.md), [ADR 0011](decisions/0011-phase7-ops-and-architecture-plan.md), [exit](evidence/phase7/exit.md)): SC9 passes; `main` deploys from Actions after green CI; the first NUSMods refresh ran through the runbook | SC9 |
-| 8 | Launch readiness | not started | SC10; name/domain gate |
+| 8 | Launch readiness | **planned** ([plan](plans/phase8.md), [ADR 0012](decisions/0012-phase8-launch-readiness-plan.md), draft pending Jacob's answers to G1–G6) | SC10; name/domain gate |
 
 ## Phase 0 plan (revision 2)
 
