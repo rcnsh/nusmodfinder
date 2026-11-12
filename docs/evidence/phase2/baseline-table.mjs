@@ -1,10 +1,14 @@
-// Phase 2 baseline table for EVAL.md: dev set, the committed qrels (qrels-dev-v2), duplicate groups applied,
+// The Phase 2 baseline's tables for EVAL.md: dev set, the committed qrels (eval/dev/qrels.json,
+// whichever version it holds; the first line printed names it), duplicate groups applied,
 // no-answer = tagged and no grade-≥1 document (ADR 0003, amendment 2026-11-06).
-// Absolute 95% CIs are BCa and persona-cluster bootstraps over the 83 primary answerable
-// queries; Δ CIs are the harness's paired compare(). Seeds and resample counts are the
-// harness defaults, so the output is deterministic.
+// Absolute 95% CIs are BCa and persona-cluster bootstraps over the primary answerable queries
+// (EVAL.md states how many on the current qrels); Δ CIs are the harness's paired compare().
+// Seeds and resample counts are the harness defaults, so the output is deterministic. A new qrels
+// version changes the output: re-derive EVAL.md's tables (test/docs-facts.node.test.js fails
+// until its qrels label matches).
 //
-//   node docs/evidence/phase2/baseline-table.mjs     (needs eval/runs/v0{,-lexical,-vector}.json)
+//   node docs/evidence/phase2/baseline-table.mjs     (needs eval/runs/v0{,-lexical,-vector}.json,
+//   from EVAL.md's "Reproduce" commands)
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { loadGroups, withCorpusGroups } from '../../../eval/lib/groups.mjs';

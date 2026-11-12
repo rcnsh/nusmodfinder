@@ -9,10 +9,17 @@ change`, `how do i start my own company`) or a code like `CS3244` or `cs32`. Fil
 level, units and faculty. Phrases such as *no final exam*, *S/U* or *light workload* are read as
 filters, each with a chip to undo it.
 
-Exchange mode asks for your semester at NUS and your year of study at home, then marks every
-course as open, open with a note, or closed to you, from the Registrar's Non-Graduating course
-list and course restrictions. Each course opens a detail with its exams, weekly workload,
-prerequisites and a link to NUSMods for class times.
+Exchange mode asks for your semester at NUS and your year of study during your exchange, then
+marks every course as open, open with a note, or closed to you, from the Registrar's
+Non-Graduating course list and course restrictions. Each course opens a detail with its exams,
+weekly workload, prerequisites and a link to NUSMods for class times.
+
+Shortlist courses as primary picks and backups for each semester. The shortlist counts units
+against NUS's limits, flags exam clashes and preclusions, and downloads as a CSV or prints to PDF.
+It lives in the page's link, so it needs no account.
+
+<!-- year:live --> The site covers NUS's 2026/27 courses and exchange lists. It moves to the next
+academic year in July, once NUSMods has it and NUS has published the next Sem 1 exchange list.
 
 ## How it works
 
@@ -20,7 +27,8 @@ One Cloudflare Worker, no framework and no build step.
 
 - **Hybrid retrieval.** A D1 FTS5 (BM25) search and an exact dense search over
   `bge-small-en-v1.5` embeddings, fused by reciprocal rank. The corpus vectors ship inside the
-  Worker as a ~10.7 MB bundle, so the dense half costs no network call.
+  Worker as one bundle, so the dense half costs no network call. <!-- pointer --> The bundle's
+  size and course count are in [`data/vectors.json`](data/vectors.json).
 - **Query understanding.** Course codes are pinned, partial codes and GE pillars become filters,
   misspellings are corrected against the catalogue's own words, and phrases become constraints.
 - **The page** is static files in `public/`: native ES modules, IBM Plex, light and dark, tested
@@ -28,21 +36,28 @@ One Cloudflare Worker, no framework and no build step.
 
 ## Is the ranking any good?
 
-It is measured, not assumed. Student queries are graded blind, and the ranker is scored offline
-against the first hybrid version (`eval-v0`). On a sealed test set of 195 queries, looked at once,
-the Phase 3 ranker raised nDCG@10 by **+0.120** (95% CI 0.083 to 0.161)
-([evidence](docs/evidence/phase3/sc5.md)). Later changes are gated on a separate holdout.
-[EVAL.md](EVAL.md) has the method, the Phase 2 baseline and what the numbers do not show.
+It is measured, not assumed. Queries written for student personas are graded blind by a model
+judge, and the ranker is scored offline over a pinned copy of the catalogue. On a sealed test set
+of 195 queries, looked at once, the Phase 3 ranker raised nDCG@10 over the first hybrid version
+(`eval-v0`) by **+0.120** (95% CI 0.083 to 0.161) ([evidence](docs/evidence/phase3/sc5.md)).
+Each later ranking change is compared with the ranker in production: it ships after a passing look
+at a separate holdout set, or by a no-look route the eval's rules allow, and CI's ranking lock
+fails any change to a ranked list that lacks that evidence. [EVAL.md](EVAL.md) has the current
+state, the Phase 2 baseline and what the numbers do not show.
 
 ## Run it locally
 
 ```sh
-nvm use            # Node 22.12+
+nvm use                                  # Node 22.12+
 npm ci
-npm run dev        # the page against a seeded fixture database; nothing remote
-npm test           # Worker and unit tests
-npm run test:ui    # Playwright
+npm run dev                              # the page over a seeded fixture; nothing remote
+npm test                                 # Worker and unit tests
+npx playwright install chromium webkit   # once: the browsers the UI tests use
+npm run test:ui                          # Playwright, in Chromium and WebKit
 ```
+
+`npm run dev` serves the real page and Worker over a few hundred fixture courses with a fake
+embedder, so its ranking is not production's.
 
 Deploying, re-ingesting a new academic year, the API routes and the cost model are in
 [docs/REFERENCE.md](docs/REFERENCE.md); what to do when the site is down is in

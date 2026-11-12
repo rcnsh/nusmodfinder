@@ -498,6 +498,7 @@ export const CHECKLIST = (year) => [
   ` 5. Corpus and rules: npm run corpus -- fetch ${year}; npm run corpus -- publish --new-data-version; the overlay (overlay.md); python3 scripts/extract-ng.py <pdf> --year ${year}; node scripts/build-ng-restrictions.mjs --sources <restored dir>; node scripts/build-ng-reasons.mjs; DEFAULT_ACAD_YEAR, public/year.js and the header.`,
   ' 6. Oracle: the changed sections by a fresh author (brief-oracle.md), then agreement (npm run test:sc1).',
   ` 7. Checks: npm run year -- check --full (commit its record; it re-extracts the NG list with ${NG_VENV_PYTHON}: ${NG_VENV_SETUP}); node scripts/vectors.mjs build --corpus production.`,
+  ' 7b. Docs: the <!-- year:live --> sentences in README.md, EVAL.md and docs/REFERENCE.md name the new year and the new NG list\'s counts (npm test: test/docs-facts.node.test.js must pass).',
   ' 8. PR: CI runs sc1 and rollover on the new year; merge only when complete.',
   ' 9. On merged main: npm run deploy -- --preflight; npm run d1:bookmark.',
   '10. npm run remote -- ingest --d1-only --allow-year-change --write-budget 80000; npm run remote -- verify --pre-deploy.',

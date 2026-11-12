@@ -309,7 +309,7 @@ can rank differently.
 first.
 
 **Evidence:**
-- test `[B9 fixed] README names the binding limit with its arithmetic (Vectorize queried dims before 3-0; since 3-0, Workers CPU, the smaller of CPU and neurons, B2-8), and states the per-search D1 rows read measured with SC7` (`test/findings/source.node.test.js`)
+- test `[B9 fixed] REFERENCE names the binding limit with its arithmetic (Vectorize queried dims before 3-0; since 3-0, Workers CPU or the account's shared Workers AI neurons), and states the per-search D1 rows read measured with SC7` (`test/findings/source.node.test.js`)
 
 **Notes:** Was `README.md:169` versus its own table (`:175-178`). D1 allows 5M rows/day ÷ ~50
 per search ≈ 3M searches/month. Vectorize allows 30M queried dims/month ÷ 384 − 6,771 stored ≈
@@ -331,6 +331,10 @@ standby), so queried dims fall to ~0 per search and the README names Workers CPU
 of CPU and neurons (plan B2-8), with its arithmetic. B9's arithmetic stays in the README as
 the pre-3-0 limit.
 
+Phase 8 (8A) names the limit as CPU or the account's shared Workers AI neurons: other projects'
+embeddings and this project's own corpus embeds share the daily neurons, and the per-search D1
+reads come from Phase 3's counted SC7 run.
+
 ### S1 · The eval is circular and mis-scoped
 
 **Status:** fixed
@@ -341,10 +345,10 @@ hybrid MRR 0.820 < lexical 0.903.
 
 **Evidence:**
 - test `[S1 fixed] the eval gate's lists come from eval/dev (v2, judged qrels) and the fixture, never from eval/v1/`: CI's eval gate (`eval/ranking-lock.json`, the `eval-gate` job, Phase 7 7A) locks every dev query's list (98 queries, filtered, `ng`-stripped and unfiltered) and the fixture's, from the Phase 2 harness: the Worker in workerd over the pinned corpus, judged qrels (`eval/dev/qrels.json`), nDCG@10 and P@5 at production depth. Nothing in `eval/v1/` is a lock input.
-- `eval/v1/README.md` keeps the v1 characterisation as a history note: 11 of 12 held-out rules are a regex over `m.title`; `K` defaults to 10; recall is `h / |relevant|`; EVAL.md's held-out MRR row reads 0.833 / 0.674 / 0.903 / 0.820 and states `ORDER BY rank` was not re-run.
+- `eval/v1/README.md` keeps the v1 characterisation as a history note: 11 of 12 held-out rules are a regex over `m.title`; `K` defaults to 10; recall is `h / |relevant|`; the v1 write-up's held-out MRR row (`eval/v1/README.md:119`, moved there from EVAL.md in Phase 8) reads 0.833 / 0.674 / 0.903 / 0.820, and it states `ORDER BY rank` was not re-run (`:66`).
 
-**Notes:** Fixed by Phase 2's eval (ADR 0003) and, as a CI gate, by Phase 7 7A. `eval/v1/judge-holdout.mjs:13-49`, `eval/v1/eval.mjs:34,104` (moved from `scripts/` by Phase 2), `EVAL.md:94` and
-`:41`. Production returns 20 of a 50-deep candidate list (`src/index.js:28-29,317`). "Tidy
+**Notes:** Fixed by Phase 2's eval (ADR 0003) and, as a CI gate, by Phase 7 7A. `eval/v1/judge-holdout.mjs:13-49`, `eval/v1/eval.mjs:34,104` (moved from `scripts/` by Phase 2), `eval/v1/README.md:119`
+(the MRR row) and `:66` (`ORDER BY rank` not re-run). Production returns 20 of a 50-deep candidate list (`src/index.js:28-29,317`). "Tidy
 queries only" is a judgement, but it mostly holds. Across `eval/v1/queries.json` and
 `eval/v1/holdout.json` (27 queries), the three code queries are exact codes (`CS3244`, `cs2040s`,
 `EC4308`), and none has a space in a code, a partial code, a typo, or an exam/S/U/workload

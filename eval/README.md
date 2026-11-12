@@ -35,14 +35,14 @@ differs from the working tree's whenever git says the trees differ.
 ## Commands
 
 ```bash
-npm run eval -- --variant v0 --ref eval-v0                # dev set, baseline ranker
+npm run eval -- --variant v0 --ref eval-v0 --embedding emb-bge-small-v0   # dev set, baseline ranker, its own corpus embedding
 npm run eval -- --variant head --baseline v0              # working tree; prints table, CIs, gate
 npm run eval -- --variant typo-fix --baseline v0 --target-shapes typo
 npm run eval -- --variant cutoff --baseline v0 --change-kind cutoff
 npm run eval -- --variant head-unf --unfiltered           # secondary: filters dropped
 npm run eval:report -- --run head --baseline v0           # recompute from run files + qrels only
 node eval/cli.mjs retire-run --holdout --variant v0 --reason "<why>"   # custodian: retire a stored encrypted run (logged)
-npm run eval -- --variant v0-lexical --ref eval-v0 --mode lexical   # pool variant: one retrieval half only
+npm run eval -- --variant v0-lexical --ref eval-v0 --embedding emb-bge-small-v0 --mode lexical   # pool variant: one retrieval half only
 npm run eval:pool -- --runs v0,head [--unjudged [--qrels <file>]]   # blind pool for judges
 npm run eval:judge -- <command>                           # judging (see "Judging" below)
 npm run eval:embed                                        # embed dev query texts missing from the cache
@@ -293,9 +293,9 @@ makes no LLM or Cloudflare call.
 
 ```bash
 # 1. pool: top-10 of each variant, with the queries' filters
-npm run eval -- --variant v0 --ref eval-v0
-npm run eval -- --variant v0-lexical --ref eval-v0 --mode lexical
-npm run eval -- --variant v0-vector --ref eval-v0 --mode vector
+npm run eval -- --variant v0 --ref eval-v0 --embedding emb-bge-small-v0
+npm run eval -- --variant v0-lexical --ref eval-v0 --embedding emb-bge-small-v0 --mode lexical
+npm run eval -- --variant v0-vector --ref eval-v0 --embedding emb-bge-small-v0 --mode vector
 npm run eval:pool -- --runs v0,v0-lexical,v0-vector               # -> .eval-work/pool-dev.json
 # 2. rule pre-grading + packets (one per ~12 queries), single-judge round
 npm run eval:judge -- prepare --round r1 --judges claude-opus-5-5
@@ -420,7 +420,7 @@ Procedural, honour-system plus encryption at rest (ADR 0003 states this). The cu
 node scripts/holdout.mjs keygen                                   # once; key at ~/.config/vnm/holdout.key
 node scripts/holdout.mjs encrypt /secure/queries.json --as queries.json   # also qrels.json, embeddings.json
 npm run eval:embed -- --set holdout                               # encrypted query cache
-npm run eval -- --holdout --variant v0 --ref eval-v0 --store-only # stored, no verdict, no look
+npm run eval -- --holdout --variant v0 --ref eval-v0 --embedding emb-bge-small-v0 --store-only # stored, no verdict, no look
 npm run eval -- --holdout --variant cand --baseline v0            # verdict + Δ; one ledger row
 npm run eval:pool -- --set holdout --runs v0,cand --custodian     # encrypted pool for judges
 ```

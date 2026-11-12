@@ -106,7 +106,7 @@ const prose = (/** @type {string} */ s) => s.replace(/`[^`]*`/g, '').replace(/\]
 
 /**
  * Every year in a marked sentence must be `year` (an acad year `yyyy-yyyy`): a span such as
- * 2026/27, 2026/2027 or AY2026/2027 must be the whole year, a lone year one of its two.
+ * yyyy/yy, yyyy/yyyy or AYyyyy/yyyy must be the whole year, a lone year one of its two.
  * Identifiers in code spans are not read.
  * @param {{ kind: string, text: string }[]} sentences
  * @param {string} year
@@ -143,7 +143,7 @@ export function ngProblems(sentences, list) {
   let checked = 0;
   for (const s of sentences) {
     const text = prose(s.text);
-    for (const m of text.matchAll(/(\d[\d,]*) (?:(?:course )?codes )?for Sem ([12])\b/g)) {
+    for (const m of text.matchAll(/(\d[\d,]*) (?:(?:course )?codes? )?for Sem ([12])\b/g)) {
       checked++;
       const want = list.semesters[m[2]]?.length;
       if (num(m[1]) !== want) problems.push(`"${m[0]}": the list has ${want} for Sem ${m[2]}, in "${s.text}"`);
@@ -245,6 +245,12 @@ describe('deliberate facts against their sources', () => {
     expect(yearProblems(allMarked('year:live'), nextYear(DEFAULT_ACAD_YEAR)).length).toBeGreaterThan(0);
     expect(yearProblems(allMarked('year:pinned'), nextYear(PINNED_ACAD_YEAR)).length).toBeGreaterThan(0);
     expect(yearProblems([{ kind: 'year:live', text: 'No year here.' }], DEFAULT_ACAD_YEAR)).toHaveLength(1);
+  });
+
+  it('EVAL.md calls the live and pinned NG lists identical only while they are byte for byte', () => {
+    const live = read(`data/ng-courses-${DEFAULT_ACAD_YEAR}.json`);
+    const pinned = read(`eval/pinned/ng-courses-${PINNED_ACAD_YEAR}.json`);
+    expect(current(docs['EVAL.md']).includes('identical today')).toBe(live === pinned);
   });
 
   it('the NG list\'s counts in marked sentences are the list\'s: data/ for live, eval/pinned/ for pinned', () => {
