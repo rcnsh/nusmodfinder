@@ -45,7 +45,8 @@ npm run test:ui    # Playwright
 ```
 
 Deploying, re-ingesting a new academic year, the API routes and the cost model are in
-[docs/REFERENCE.md](docs/REFERENCE.md). How the project was planned and checked, phase by phase,
+[docs/REFERENCE.md](docs/REFERENCE.md); what to do when the site is down is in
+[docs/launch.md](docs/launch.md). How the project was planned and checked, phase by phase,
 is in [docs/](docs/README.md).
 
 ## Data

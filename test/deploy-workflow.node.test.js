@@ -70,6 +70,24 @@ describe('deploy.yml', () => {
     expect(workflow).not.toMatch(/wrangler (deploy|dev)|--remote/);
   });
 
+  it('smokes the deployed sha after the deploy and before the run record is kept, with no secret and no token', () => {
+    const smoke = step(/npm run smoke/);
+    expect(smoke).toMatch(/run: npm run smoke -- --expect "\$\{\{ github\.event\.workflow_run\.head_sha \}\}"/);
+    expect(smoke).toMatch(/if: steps\.gate\.outputs\.deploy == 'true'/);
+    // Not always(): a failed deploy is not smoked; a failed smoke fails the job.
+    expect(smoke).not.toMatch(/always\(\)|continue-on-error/);
+    expect(steps.indexOf(smoke)).toBe(steps.indexOf(step(/npm run deploy/)) + 1);
+    expect(steps.indexOf(step(/upload-artifact@/))).toBe(steps.indexOf(smoke) + 1);
+    // It reads the bundle and the corpus the deploy step restored, so it needs neither the
+    // Cloudflare secret nor GH_TOKEN; the comment above it says so.
+    expect(smoke).not.toMatch(/secrets\.|CLOUDFLARE_|GH_TOKEN|github\.token|env:/);
+    // The comment lines directly above the step.
+    const above = workflow.slice(0, workflow.indexOf(smoke)).split('\n').slice(0, -1).reverse();
+    const comment = above.slice(0, above.findIndex((l) => !/^ {6}#/.test(l))).reverse().map((l) => l.replace(/^ {6}# ?/, '')).join(' ');
+    expect(comment).toMatch(/no token/i);
+    expect(comment).toMatch(/GH_TOKEN/);
+  });
+
   it('uploads the run records and writes a summary on every outcome, and never commits to main', () => {
     const upload = step(/upload-artifact@/);
     expect(upload).toMatch(/if: \$\{\{ always\(\) && steps\.gate\.outputs\.deploy == 'true' \}\}/);
