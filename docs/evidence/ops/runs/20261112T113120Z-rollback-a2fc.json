@@ -1,0 +1,28 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:31:20.133Z",
+  "finishedAt": "2026-11-12T11:31:22.561Z",
+  "script": "rollback",
+  "args": [
+    "--to",
+    "b0834844",
+    "--yes"
+  ],
+  "commit": {
+    "sha": "894bc1fade8045b8cd60f22f1ef331632a632caf",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmodfinder",
+  "read": [],
+  "written": [],
+  "requests": {
+    "wrangler deployments list": 1
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {},
+  "exitCode": 1,
+  "message": "b0834844-f6fd-4bb9-838d-a45927c195fb is already live.",
+  "outcome": "refused"
+}

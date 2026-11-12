@@ -1,0 +1,63 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:32:26.415Z",
+  "finishedAt": "2026-11-12T11:32:45.196Z",
+  "script": "smoke",
+  "args": [
+    "--expect",
+    "894bc1f"
+  ],
+  "commit": {
+    "sha": "894bc1fade8045b8cd60f22f1ef331632a632caf",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "https://nusmodfinder.rcn.sh",
+  "read": [],
+  "written": [],
+  "requests": {
+    "/health": 1,
+    "/": 1,
+    "/module/FE5226": 1,
+    "/search": 1,
+    "/facets": 1
+  },
+  "versions": {
+    "versionId": "b1ccf7db-ae34-47b9-9977-973084089fb6",
+    "tag": "894bc1f"
+  },
+  "bookmark": null,
+  "details": {
+    "checks": [
+      {
+        "name": "/health",
+        "pass": true,
+        "detail": "tag 894bc1f, data version d820d578cf81, production bundle"
+      },
+      {
+        "name": "/",
+        "pass": true,
+        "detail": "200 with the CSP header"
+      },
+      {
+        "name": "/module/FE5226",
+        "pass": true,
+        "detail": "\"C++ in Financial Engineering\""
+      },
+      {
+        "name": "/search",
+        "pass": true,
+        "detail": "FE5226 in the top 5, a cache miss, not degraded"
+      },
+      {
+        "name": "/facets",
+        "pass": true,
+        "detail": "200"
+      }
+    ],
+    "expect": "894bc1fade8045b8cd60f22f1ef331632a632caf"
+  },
+  "exitCode": 0,
+  "message": "5 of 5 checks pass",
+  "outcome": "ok"
+}

@@ -23,3 +23,23 @@ Headroom: about 7k rows read and 11 API calls. The rule holds by orders of magni
 |---|---|---|---|
 | 02:31:45 | GraphQL Analytics, Wrangler's OAuth login: the `account` type's dataset names (introspection) | 1 call | 1 call; Workers AI is `aiInferenceAdaptiveGroups` |
 | 02:31:57 | GraphQL Analytics: `aiInferenceAdaptiveGroups` sum and dimension fields (introspection) | 1 call | 1 call; sums include `totalNeurons`, dimensions include `date` and `modelId` |
+
+## 2026-11-12: 7G ship and the rollback drill (run records in `docs/evidence/ops/runs/`)
+
+Every step below left its own run record; this table only ties them together.
+
+| Time | Step | Run record | Result |
+|---|---|---|---|
+| 11:13:00 | `year check --full` after the red team fixes (#112): NG list re-extracted byte for byte (Sem 1 730, Sem 2 750), rules byte-identical, 19 quotes | `20261112T111300Z-year-check-9bb5` | ok |
+| 11:25:21 | `deploy --preflight` on 447e2e6 (no D1 read) | `20261112T112521Z-deploy-preflight-9a52` | ok |
+| 11:25:43 | `DEPLOY_FROM_ACTIONS=true` (repo variable) | — | the Actions deploy is on |
+| 11:29:23 | First Actions deploy, run 43209550016, on 894bc1f: guard (the M-1 row-hash recompute: no drift in `modules` or `catalogue_only`), upload, startup gate, promote, tag `deploy/20261112T112951Z-b1ccf7db`, triggers | `20261112T112923Z-deploy-6b4d` (from the run's artifact) | live b1ccf7db; 21,338 D1 rows read |
+| 11:30:26 | Smoke, expecting 894bc1f | `20261112T113026Z-smoke-19bb` | 5 of 5 |
+| 11:30:56 | Drill: `rollback --to b0834844`; data check 4 of 4 | `20261112T113056Z-rollback-2708` | live b0834844, tag `rollback/20261112T113114Z-b0834844` |
+| 11:31:20 | A second `rollback --to b0834844`, sent by the lead's mistake (a stray re-run in an inspection command) | `20261112T113120Z-rollback-a2fc` | refused before any read or deploy; nothing changed |
+| 11:31:39 | Smoke, expecting a23601d | `20261112T113139Z-smoke-3fd0` | 5 of 5 |
+| 11:32:00 | Drill: `rollback --to b1ccf7db`; data check 4 of 4 | `20261112T113200Z-rollback-9904` | live b1ccf7db, tag `rollback/20261112T113217Z-b1ccf7db`; 21,338 rows read |
+| 11:32:26 | Smoke, expecting 894bc1f | `20261112T113226Z-smoke-a179` | 5 of 5 |
+
+Rows read for the ship and the drill: about 64k (three 21.3k reads). The Vectorize standby was not
+touched (DENSE_BACKEND stays in-Worker).
