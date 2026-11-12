@@ -13,9 +13,11 @@
 //    `wrangler check startup` with the bundle aliased in.
 // 2. The guard (scripts/guard.mjs; B-2, B3-4): D1's (code, text_hash) pairs must hash to the
 //    bundle's rowsKey, D1's data version must be the committed one, and D1's catalogueKey (its
-//    catalogue_only codes, Phase 7 7D) the bundled catalogue file's. Read over D1's REST
-//    query endpoint (scripts/d1-rest.mjs; ~6.8k module and ~14.4k catalogue rows), the code GET /admin/hashes runs, so no
-//    Worker session and no secret is bound anywhere. In Actions a mismatch means a data change
+//    catalogue_only codes, Phase 7 7D) the bundled catalogue file's. Every row's hash is
+//    recomputed from its columns (red team M-1): the data version is over those, and a stored
+//    row_hash that differs (modules or catalogue_only) refuses. Read over D1's REST query endpoint
+//    (scripts/d1-rest.mjs; ~6.8k module and ~14.4k catalogue rows, every column), the code GET
+//    /admin/hashes runs, so no Worker session and no secret is bound anywhere. In Actions a mismatch means a data change
 //    D1 doesn't hold yet: the job fails and says the re-ingest runs on the Mac.
 // 3. `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`; the startup gate
 //    (B-4) refuses to promote above 200 ms or with no reported time.
@@ -254,7 +256,7 @@ async function deployRun(deps, args, record, stage) {
   let client = null;
   /** @type {Awaited<ReturnType<typeof runGuard>>} */
   let guard;
-  const READ = 'D1 rows (the guard, over the D1 REST query: modules, catalogue_only and the schema check)';
+  const READ = 'D1 rows (the guard, over the D1 REST query: modules and catalogue_only with every column, and the schema check)';
   const catalogue = await (deps.catalogue ?? readBundledCatalogue)();
   // The module rows and the catalogue_only rows (7D), as D1 should hold them.
   const estimate = b.entry.count + catalogue.codes.length;

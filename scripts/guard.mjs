@@ -10,6 +10,12 @@
 // query), against the bundled catalogue file's (data/catalogue-codes.json, which the deploy
 // reads and passes in as `catalogue`).
 //
+// Red team M-1: every row's hash is recomputed from the row's columns (src/admin-hashes.js, with
+// src/rowhash.js's functions, as ingest writes them), so the data version is over the rows D1
+// actually holds, not over the row_hash values it stores. Two `integrity` checks refuse any row
+// whose stored row_hash is not its columns' hash, in modules (rowHashes) and catalogue_only
+// (catalogueRows, whose hash covers the year); they run in rollback's data check too.
+//
 // No Node APIs (the Worker test harness imports this).
 import { adminHashes } from '../src/admin-hashes.js';
 import { DEFAULT_MODEL } from '../src/embedding.js';
@@ -24,16 +30,32 @@ import { rowsKey } from '../src/vector-bundle.js';
  *   bundle?: { entry: { rowsKey: string, count: number } }, committed?: string, catalogue?: { codes: string[] },
  * }} GuardContext `bundle`, `committed` and `catalogue` (the bundled catalogue file) are the deploy's (rollback has none)
  * @typedef {{
- *   name: string, field?: string, label?: string, source?: string,
+ *   name: string, field?: string, integrity?: boolean, label?: string, source?: string,
  *   d1: (ctx: GuardContext) => Promise<string | null>,
  *   expected: (ctx: GuardContext) => string | Promise<string>,
- *   fix?: string,
- * }} GuardCheck `field`: the tag key rollback compares on; `label`, `source`, `fix`: the refusal's words
+ *   fix?: string, describe?: (d1: string | null) => string,
+ * }} GuardCheck `field`: the tag key rollback compares on; `integrity`: D1 against itself, so rollback runs it
+ *   too (no tag field); `label`, `source`, `fix`: the refusal's words; `describe`: the whole refusal, for a
+ *   value `short` would cut
  * @typedef {{ name: string, field?: string, d1: string | null, expected: string, ok: boolean, message: string }} CheckResult
  */
 
 /** @param {string | null} v */
 const short = (v) => (v === null ? 'unknown' : v.length > 16 ? `${v.slice(0, 12)}…` : v);
+
+/** What an integrity check reads when every row's row_hash is its columns' hash. */
+export const NO_DRIFT = 'none';
+/** How many codes a drift refusal names. */
+const DRIFT_SHOWN = 10;
+/** @param {string[] | null | undefined} drift */
+const driftValue = (drift) => (!Array.isArray(drift) ? null : drift.length === 0 ? NO_DRIFT
+  : `${drift.length}: ${drift.slice(0, DRIFT_SHOWN).join(', ')}${drift.length > DRIFT_SHOWN ? ', …' : ''}`);
+/** @param {string} table @param {string | null} d1 */
+const driftMessage = (table, d1) => (d1 === null
+  ? `D1 reported no row_hash check for ${table} (a Worker or reader from before the red team's M-1 fix).`
+  : `${d1.split(':')[0]} of D1's ${table} rows ${d1.startsWith('1:') ? 'has a row_hash that is not its' : 'have a row_hash that is not their'} columns' hash (${d1.slice(d1.indexOf(':') + 2)}): `
+    + 'their columns changed behind row_hash (a hand `d1 execute`, an older writer, a one-table restore). '
+    + 'Run the D1-only ingest (runbook step 4): it rewrites them.');
 
 /** @type {GuardCheck[]} */
 export const GUARD_CHECKS = [
@@ -60,6 +82,14 @@ export const GUARD_CHECKS = [
     fix: 'D1 holds other rows than the committed ones: run the D1-only ingest (runbook step 4) first.',
   },
   {
+    // Red team M-1: D1's modules rows against their own row_hash, recomputed from their columns.
+    name: 'rowHashes',
+    integrity: true,
+    d1: async ({ hashes }) => driftValue(hashes.rowHashDrift),
+    expected: () => NO_DRIFT,
+    describe: (d1) => driftMessage('modules', d1),
+  },
+  {
     // Phase 7 7D: the Worker answers not-offered for the bundled file's codes and names the title
     // D1's catalogue_only holds, so the two must hold the same codes.
     name: 'catalogueKey',
@@ -70,6 +100,15 @@ export const GUARD_CHECKS = [
     expected: ({ catalogue }) => catalogueKey(/** @type {NonNullable<GuardContext['catalogue']>} */ (catalogue).codes),
     fix: 'D1\'s catalogue_only is not the codes the Worker answers not-offered for: load it from `current` (the D1-only ingest, '
       + 'runbook step 4), or rebuild the file (node scripts/build-3b-data.mjs --corpus production).',
+  },
+  {
+    // Red team M-1: catalogue_only rows (the titles search names) against their own row_hash. The
+    // bundled file holds codes only, which catalogueKey covers.
+    name: 'catalogueRows',
+    integrity: true,
+    d1: async ({ hashes }) => driftValue(hashes.catalogueDrift),
+    expected: () => NO_DRIFT,
+    describe: (d1) => driftMessage('catalogue_only', d1),
   },
 ];
 
@@ -90,7 +129,8 @@ export async function readD1(client) {
  */
 const result = (c, d1, expected) => ({
   name: c.name, ...(c.field ? { field: c.field } : {}), d1, expected, ok: d1 === expected,
-  message: `D1's ${c.label ?? c.name} is ${short(d1)}, ${c.source ?? 'the expected value'} says ${short(expected)}.${c.fix ? ` ${c.fix}` : ''}`,
+  message: c.describe ? c.describe(d1)
+    : `D1's ${c.label ?? c.name} is ${short(d1)}, ${c.source ?? 'the expected value'} says ${short(expected)}.${c.fix ? ` ${c.fix}` : ''}`,
 });
 
 /**
@@ -111,7 +151,8 @@ export async function runGuard({ client, bundle, committed, catalogue, checks = 
 }
 
 /**
- * Rollback's data check: every check with a `field`, D1 against the target tag's value.
+ * Rollback's data check: every check with a `field`, D1 against the target tag's value; and every
+ * `integrity` check (red team M-1), D1 against itself.
  * @param {{ client: import('./d1-rest.mjs').D1Client, fields: Record<string, string>, checks?: GuardCheck[] }} o
  * @returns {Promise<{ ok: boolean, results: CheckResult[], values: Record<string, string | null> }>}
  */
@@ -119,14 +160,18 @@ export async function compareWithTag({ client, fields, checks = GUARD_CHECKS }) 
   const ctx = await readD1(client);
   /** @type {CheckResult[]} */
   const results = [];
-  for (const c of checks.filter((x) => x.field)) {
-    const field = /** @type {string} */ (c.field);
+  /** @type {Record<string, string | null>} */
+  const values = {};
+  for (const c of checks.filter((x) => x.field || x.integrity)) {
     const d1 = await c.d1(ctx);
+    if (!c.field) { results.push(result(c, d1, await c.expected(ctx))); continue; }
+    const field = c.field;
+    values[field] = d1;
     if (!(field in fields)) {
       results.push({ name: c.name, field, d1, expected: '', ok: false, message: `the target's tag has no ${field}, so D1's (${short(d1)}) can't be checked against it.` });
     } else {
       results.push(result({ ...c, source: `the target's tag (${field})`, fix: undefined }, d1, fields[field]));
     }
   }
-  return { ok: results.every((r) => r.ok), results, values: Object.fromEntries(results.map((r) => [/** @type {string} */ (r.field), r.d1])) };
+  return { ok: results.every((r) => r.ok), results, values };
 }

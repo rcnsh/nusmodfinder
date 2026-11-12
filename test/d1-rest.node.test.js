@@ -121,8 +121,8 @@ describe('assertReadOnly, strict (red team M-3)', () => {
   });
 
   it('still admits every statement the callers send (each a constant)', async () => {
-    const { SCHEMA_SQL, HASHES_SQL, CATALOGUE_TABLE_SQL, CATALOGUE_CODES_SQL } = await import('../src/admin-hashes.js');
-    for (const sql of [SCHEMA_SQL, HASHES_SQL, CATALOGUE_TABLE_SQL, CATALOGUE_CODES_SQL]) expect(() => assertReadOnly(sql), sql).not.toThrow();
+    const { SCHEMA_SQL, HASHES_SQL, CATALOGUE_TABLE_SQL, CATALOGUE_ROWS_SQL } = await import('../src/admin-hashes.js');
+    for (const sql of [SCHEMA_SQL, HASHES_SQL, CATALOGUE_TABLE_SQL, CATALOGUE_ROWS_SQL]) expect(() => assertReadOnly(sql), sql).not.toThrow();
     // Words that hold a write keyword but are not one, and keywords inside literals.
     for (const sql of ["SELECT name FROM sqlite_master WHERE name = 'modules_fts_update'", 'SELECT "delete" FROM t', 'SELECT updated_at, created FROM t']) {
       expect(() => assertReadOnly(sql), sql).not.toThrow();

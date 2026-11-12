@@ -3,8 +3,8 @@
 // and wrangler exec answered from a table, GitHub's push runs, and production D1 behind the
 // real D1 REST client (scripts/d1-rest.mjs) with a fake fetch. Nothing here reaches GitHub,
 // Cloudflare or the repo's remote.
-import { CATALOGUE_CODES_SQL, CATALOGUE_TABLE_SQL, HASHES_SQL, REQUIRED_TRIGGERS } from '../src/admin-hashes.js';
-import { catalogueKey, dataVersion, ROW_COLUMNS } from '../src/rowhash.js';
+import { CATALOGUE_ROWS_SQL, CATALOGUE_TABLE_SQL, HASHES_SQL, REQUIRED_TRIGGERS } from '../src/admin-hashes.js';
+import { boundTuple, catalogueKey, catalogueRowHash, dataVersion, ROW_COLUMNS, rowHash } from '../src/rowhash.js';
 import { rowsKey } from '../src/vector-bundle.js';
 import { d1RestClient } from '../scripts/d1-rest.mjs';
 
@@ -21,10 +21,25 @@ export const TAG = 'deploy/20261112T101530Z-9b1c2d3e';
 /** A token the tests look for in every output: it must never appear. */
 export const TOKEN = 'cf-token-NEVER-PRINT-ME-0123456789';
 
+/**
+ * A `modules` row as /admin/ingest writes it: every ROW_COLUMNS column and the row_hash of exactly
+ * those values (src/rowhash.js), so the guard's recomputation (red team M-1) agrees with it.
+ * @param {{ code: string, title: string, description: string, textHash: string, credits?: number }} m
+ */
+export async function d1Row({ code, title, description, textHash, credits = 4 }) {
+  /** @type {import('../src/rowhash.js').RowFields} */
+  const fields = {
+    code, title, description, credits, department: 'Computer Science', faculty: 'Computing', level: 1000, semesters: [1],
+    workload: null, prerequisite: null, preclusion: null, acadYear: '2026-2027', textHash, ng: false,
+  };
+  const tuple = boundTuple(fields);
+  return { ...Object.fromEntries(ROW_COLUMNS.map((c, i) => [c, tuple[i]])), row_hash: await rowHash(fields) };
+}
+
 /** D1 as runbook step 4 left it, and the production bundle built for it. */
-export const D1_MODULES = /** @type {const} */ ([
-  { code: 'CS1010S', title: 'Programming Methodology', description: 'd1', text_hash: 't1', row_hash: 'r1', acad_year: '2026-2027' },
-  { code: 'CS2040', title: 'Data Structures and Algorithms', description: 'd2', text_hash: 't2', row_hash: 'r2', acad_year: '2026-2027' },
+export const D1_MODULES = Object.freeze([
+  await d1Row({ code: 'CS1010S', title: 'Programming Methodology', description: 'd1', textHash: 't1' }),
+  await d1Row({ code: 'CS2040', title: 'Data Structures and Algorithms', description: 'd2', textHash: 't2' }),
 ]);
 export const DV = await dataVersion(D1_MODULES.map((m) => ({ code: m.code, rowHash: m.row_hash })));
 export const KEY = await rowsKey(D1_MODULES.map((m) => ({ code: m.code, textHash: m.text_hash })));
@@ -144,7 +159,13 @@ export function fakeD1(o = {}) {
     if (/FROM meta WHERE key = 'schema'/.test(body.sql)) results = [HEALTHY_SCHEMA];
     else if (body.sql === HASHES_SQL) { results = [...modules]; read = rowsRead; }
     else if (body.sql === CATALOGUE_TABLE_SQL) results = catalogue ? [{ name: 'catalogue_only' }] : [];
-    else if (body.sql === CATALOGUE_CODES_SQL && catalogue) { results = catalogue.map((code) => ({ code })); read = Math.max(1, catalogue.length); }
+    else if (body.sql === CATALOGUE_ROWS_SQL && catalogue) {
+      results = await Promise.all(catalogue.map(async (code) => {
+        const row = { code, title: `Title of ${code}`, description: null, acad_year: '2026-2027' };
+        return { ...row, row_hash: await catalogueRowHash({ code, title: row.title, description: null, acadYear: row.acad_year }) };
+      }));
+      read = Math.max(1, catalogue.length);
+    }
     else if (body.sql in extra) { results = extra[body.sql]; read = results.length; }
     else return Response.json({ success: false, errors: [{ code: 7500, message: `no such query in the fake: ${body.sql}` }], result: null }, { status: 400 });
     return Response.json({ success: true, errors: [], messages: [], result: [{ results, success: true, meta: { rows_read: read, rows_written: 0 } }] });
