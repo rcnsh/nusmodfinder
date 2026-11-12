@@ -15,8 +15,8 @@ const PAGE = `<!doctype html><html><head><title>Courses</title><style>p { color:
 <!-- a comment -->
 <h3><span style="color:#ff5200">MUA1101</span> Music &amp; Society (4 Units)</h3>
 <p>Pre-requisite:   MUA1100
-  or&nbsp;equivalent</p><p></p>
-<div>MUH2201 <em>Western</em> Music&#39;s History (4 Units)</div>
+  or&nbsp;equivalent</p><p></p><p>&nbsp;</p>
+<div>MUH2201 <em>Western</em> Music&#39;s History (4 Units)&nbsp;</div>
 </body></html>`;
 
 describe.skipIf(Boolean(process.env.CI))('yst-text (on the Mac)', () => {
@@ -26,9 +26,13 @@ describe.skipIf(Boolean(process.env.CI))('yst-text (on the Mac)', () => {
   afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
 
   it('one text node per line: script, style and comments dropped, entities decoded, white space collapsed', () => {
+    // As the Phase 4 hand extraction did (the committed .txt files reproduce byte for byte, checked
+    // on the Mac against the saved pages): only ASCII white space collapses, so a no-break space
+    // inside a node stays; each node is trimmed of every space, no-break ones too, and a node of
+    // only those is dropped; lines are joined by newlines with none after the last.
     expect(ystText(PAGE)).toBe([
-      'Courses', 'MUA1101', 'Music & Society (4 Units)', 'Pre-requisite: MUA1100 or equivalent',
-      'MUH2201', 'Western', "Music's History (4 Units)", '',
+      'Courses', 'MUA1101', 'Music & Society (4 Units)', 'Pre-requisite: MUA1100 or equivalent',
+      'MUH2201', 'Western', "Music's History (4 Units)",
     ].join('\n'));
   });
 
