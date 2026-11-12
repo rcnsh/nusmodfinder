@@ -327,7 +327,7 @@ describe('the holdout verdict path, on the encrypted selftest set', () => {
     const open = await makeSet('exact-code-open', { encrypted: false, tweak: exactTweak });
     const o = node(CLI, ['report', '--set', 'fixture', '--set-dir', open.dir, '--run', 'cand', '--baseline', 'base', '--change-kind', 'compliance']);
     expect(o.stdout.split('\n').filter((l) => l.startsWith('  [FAIL]'))).toEqual(['  [FAIL] no exact-code regression (raw qrels) — 1 exact-code queries lost their rank-1 hit']);
-  });
+  }, 30_000); // four report subprocesses: past 5 s on a cold checkout under the full suite
 
   it('an empty constraint block is a recorded vacuous pass', async () => {
     const { dir, s } = await makeSet('vacuous', { encrypted: true, tweak: (x) => { /** @type {any} */ (x.querySet.queries.find((q) => q.id === 'syn-p4')).shapes = ['topical']; } });

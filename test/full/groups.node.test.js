@@ -16,5 +16,5 @@ describe.skipIf(!available)('eval/groups.json', () => {
     const { file, text } = await buildPinnedGroups();
     expect(await readFile(GROUPS_PATH, 'utf8')).toBe(text);
     expect(file.counts).toEqual({ groups: 509, members: 1562, largest: 38 });
-  });
+  }, 30_000); // builds the groups from the whole pinned corpus: past 5 s under the full suite
 });
