@@ -52,6 +52,8 @@ const ALLOWED = [
   { file: 'public/preclusion.js', text: 'the cohorts from 2018 inclusive', kind: 'cited', why: 'an NUSMods prerequisite string, quoted as the example of what the parser skips' },
   { file: 'public/shortlist.js', text: 'NUS info sheet, 2018/19', kind: 'cited', why: 'NUS\'s exchange information sheet, cited by its own year' },
   { file: 'public/shortlist.js', text: '2018/19 exchange information sheet', kind: 'cited', why: 'the same sheet, in the page\'s own words' },
+  { file: 'scripts/deploy-tag.mjs', text: "date: '2026-11-11T18:39:46Z'", kind: 'cited', why: 'a Phase 6 deploy\'s promote time, a past event the back-filled tag records' },
+  { file: 'scripts/deploy-tag.mjs', text: "date: '2026-11-11T23:59:33Z'", kind: 'cited', why: 'the other Phase 6 deploy\'s promote time, likewise' },
 ];
 
 /** A test that reads production or pinned data, so it is scanned. */

@@ -9,6 +9,7 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { DEFAULT_ACAD_YEAR as Y } from '../scripts/lib.mjs';
 import { SMOKE_GAP_MS, smoke } from '../scripts/smoke.mjs';
 
 const SHA = 'a23601de0b15934960bfef1d8b56ab3e80fa5587';
@@ -28,7 +29,7 @@ const CORPUS = [
 ];
 const BUNDLE_CODES = ['CS1010', 'CS1010E', 'CS2030', 'CS2040', 'CS3230'];
 /** The expected commit's corpus manifest (Phase 7 7D): its `current` is the corpus titles come from. */
-const CORPUS_ENTRY = { year: '2026-2027', release: 'prod-2026-2027-20991231', asset: '2026-2027-moduleInfo.json.gz', sha256: 'c'.repeat(64), bytes: 1, fetchedAt: '2099-12-31T00:00:00Z' };
+const CORPUS_ENTRY = { year: Y, release: `prod-${Y}-29991231`, asset: `${Y}-moduleInfo.json.gz`, sha256: 'c'.repeat(64), bytes: 1, fetchedAt: '2999-12-31T00:00:00Z' };
 const CORPUS_MANIFEST = { schema: 'vnm-corpus-manifest/1', current: CORPUS_ENTRY.release, corpora: { [CORPUS_ENTRY.release]: CORPUS_ENTRY } };
 const GROUPS = { schema: 'vnm-groups/1', groups: [['CS1010', 'CS1010E']] };
 

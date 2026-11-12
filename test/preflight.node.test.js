@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { deploy } from '../scripts/deploy.mjs';
+import { DEFAULT_ACAD_YEAR as Y } from '../scripts/lib.mjs';
 import { OPTIONAL_CHECKS, isSourceInput, sourceInputsHash } from '../scripts/preflight.mjs';
 import {
   DV, GREEN, LIVE_SHA, NOW, RUNS_API, SHA, STATUS_KEY, TAG_FETCH, TAG_LIST, bundleOf, fakeD1, fakeExec, ghRun, runsBody,
@@ -123,15 +124,15 @@ describe('npm run deploy -- --preflight', () => {
 });
 
 describe('the year check --full record (7E) is needed only when a source-derived input changes', () => {
-  const NG = 'data/ng-courses-2026-2027.json';
-  const LS_TREE = `100644 blob ${'a'.repeat(40)}\t${NG}\n100644 blob ${'b'.repeat(40)}\tdata/ng-restrictions-2026-2027.json\n100644 blob ${'c'.repeat(40)}\tsrc/search.js\n`;
+  const NG = `data/ng-courses-${Y}.json`;
+  const LS_TREE = `100644 blob ${'a'.repeat(40)}\t${NG}\n100644 blob ${'b'.repeat(40)}\tdata/ng-restrictions-${Y}.json\n100644 blob ${'c'.repeat(40)}\tsrc/search.js\n`;
   const RECORD_PATH = 'docs/evidence/ops/runs/20261112T090000Z-year-check-ab12.json';
   /** @param {string} hash @param {string} [outcome] */
   const yearRecord = (hash, outcome = 'ok') => JSON.stringify({ schema: 'vnm-run/1', script: 'year check', outcome, details: { mode: 'full', sourceInputsHash: hash } });
   const changed = { [`git diff --name-only --no-renames ${LIVE_SHA} HEAD`]: { stdout: `src/search.js\n${NG}\n` }, 'git ls-tree -r HEAD': { stdout: LS_TREE } };
 
   it('the source-derived paths', () => {
-    for (const p of [NG, 'data/ng-restrictions-2026-2027.json', 'data/ng-sources-2026-2027.json', 'data/ng-reasons.json', 'scripts/ng-overlay/2026-2027.mjs']) expect(isSourceInput(p), p).toBe(true);
+    for (const p of [NG, `data/ng-restrictions-${Y}.json`, `data/ng-sources-${Y}.json`, 'data/ng-reasons.json', `scripts/ng-overlay/${Y}.mjs`]) expect(isSourceInput(p), p).toBe(true);
     for (const p of ['data/groups.json', 'src/search.js', 'scripts/ingest.mjs', 'data/vectors.json']) expect(isSourceInput(p), p).toBe(false);
   });
 

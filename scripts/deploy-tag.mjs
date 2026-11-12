@@ -108,8 +108,8 @@ export async function findVersionTag({ exec, versionId, fetch = true }) {
 
 /**
  * The catalogueKey the back-filled tags record (Phase 7 7D): D1's catalogue_only as both Phase 6
- * deploys served it. D1 was loaded from prod-2026-2027-20261104 (data/corpus.json, the corpus
- * D1's data version d820d578cf81 comes from) and has not been written since, so this is that
+ * deploys served it. D1 was loaded from data/corpus.json's first entry (`current` when 7D merged,
+ * the corpus D1's data version d820d578cf81 comes from) and has not been written since, so this is that
  * corpus's catalogue-only codes' key (`npm run corpus -- check` prints it), computed, not read
  * from D1; the first catalogueKey read of D1 after 7D merges checks it.
  */
