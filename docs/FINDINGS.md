@@ -861,4 +861,8 @@ constant and the README instruction are gone. Until the next ingest records it, 
 - test `[O4 known-bug] wrangler.jsonc declares no cron trigger`
 
 **Notes:** The default export has only `fetch` (`src/index.js:577-629`); `wrangler.jsonc` has
-no `triggers`. The README lists it as a known limitation.
+no `triggers`. Refreshing stays a manual command by design (Phase 7, ADR 0011), so the finding
+stays reproduced. Detection is scheduled: `.github/workflows/drift.yml` (Phase 7 7F) checks
+NUSMods weekly and opens an issue when its data no longer matches production's data version or
+next year appears, and a monthly issue reminds the maintainer to check NUS's own pages
+(`docs/REFERENCE.md`, "Operations"). REFERENCE.md lists it as a known limitation.

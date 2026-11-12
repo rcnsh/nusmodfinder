@@ -45,8 +45,8 @@ function answer({ scale = 1, over = {}, errors } = {}) {
       { dimensions: { databaseId: 'other-db' }, sum: { rowsRead: s(17_209_739), rowsWritten: s(365_188), readQueries: s(90_000), writeQueries: s(4000) } },
     ],
     ai: [
-      { dimensions: { date: '2026-10-03' }, sum: { totalNeurons: s(2394.7) } },
-      { dimensions: { date: '2026-10-04' }, sum: { totalNeurons: s(70.2) } },
+      { dimensions: { date: '2026-10-03' }, sum: { totalNeurons: 2394.7 * scale } },
+      { dimensions: { date: '2026-10-04' }, sum: { totalNeurons: 70.2 * scale } },
     ],
     ...over,
   };

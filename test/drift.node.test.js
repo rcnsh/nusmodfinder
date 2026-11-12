@@ -177,6 +177,10 @@ describe('the 45-day note', () => {
     expect(quietNote(new Date('2026-11-11T08:00:00Z'), today)).toBeNull();
   });
 
+  it('past 60 days (a run by hand), it says to commit now rather than give a date gone by', () => {
+    expect(quietNote(new Date('2026-09-01T00:00:00Z'), new Date('2026-11-12T09:00:00Z'))).toMatch(/72 days.*Commit something now/s);
+  });
+
   it('goes into the month\'s reminder', () => {
     const issue = reminderIssue({ month: '2026-11', today: new Date('2026-11-12T09:00:00Z'), lastCommit: { sha: 'c'.repeat(40), date: new Date('2026-09-20T00:00:00Z') }, ngUpdatedAsAt: '01 Sep 2026' });
     expect(issue.body).toMatch(/53 days/);
