@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
 // Ship step 5 (docs/plans/phase4.md §5, 4E A2-6): the independent oracle
-// (test/sc1/oracle.node.mjs) over the production-normalised modules, against
+// (test/sc1/oracle.mjs) over the production-normalised modules, against
 // the ng_allow ingest computes, locally, before any D1 write. Reads the cached
 // production catalogue ingest reads (.data/cache, `npm run ingest`'s download);
 // sends nothing. Exit 1 on any disagreement.
@@ -10,7 +10,7 @@
 import { readFileSync } from 'node:fs';
 import { DEFAULT_ACAD_YEAR, loadNgCourses, offeredModules } from '../../../scripts/lib.mjs';
 import { NG_SEMS, STUDIES, bitOf } from '../../../src/ng-bit.js';
-import { oracle } from '../../../test/sc1/oracle.node.mjs';
+import { oracle } from '../../../test/sc1/oracle.mjs';
 
 const path = process.argv[2] ?? `.data/cache/${DEFAULT_ACAD_YEAR}-moduleInfo.json`;
 const raw = JSON.parse(readFileSync(path, 'utf8'));

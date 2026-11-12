@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { bitOf, STUDIES } from '../src/ng-bit.js';
 import { moduleWorkload } from '../src/workload.js';
-import { oracle } from '../test/sc1/oracle.node.mjs';
+import { oracle } from '../test/sc1/oracle.mjs';
 import { productionCorpus } from './corpus-manifest.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -135,7 +135,7 @@ export const CLOSED_KINDS = Object.freeze(/** @type {const} */ ([
 /**
  * 3 closed codes (one of each kind) at a drawn semester and year of study, and
  * 1 partial code exchange mode empties there. Closed means closed by the
- * independent oracle (test/sc1/oracle.node.mjs) and by the stored bit. Each
+ * independent oracle (test/sc1/oracle.mjs) and by the stored bit. Each
  * closed code says the stamp it must show and whether the other semester is
  * open to the student (so "Switch to Sem N" must show), by the same two.
  * @param {any[]} modules

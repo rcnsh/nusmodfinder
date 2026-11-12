@@ -12,7 +12,7 @@
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { DEFAULT_ACAD_YEAR, loadNgCourses, offeredModules } from '../../../scripts/lib.mjs';
 import { NG_SEMS, STUDIES } from '../../../src/ng-bit.js';
-import { oracle } from '../../../test/sc1/oracle.node.mjs';
+import { oracle } from '../../../test/sc1/oracle.mjs';
 
 const ORIGIN = 'https://vector-nusmods.jacobjameswiltshire.workers.dev';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';

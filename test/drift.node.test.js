@@ -4,7 +4,7 @@
 // NUSMods and a fake GitHub: nothing here reaches the network or creates a real issue. The years
 // here are fixture data (no NG file is read); the data version over HEAD's NG files is checked
 // in test/drift-data-version.node.test.js.
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -83,7 +83,9 @@ describe('the issue text', () => {
     expect(issue.body).toContain('Added: CS5000');
     expect(issue.body).toContain('Removed: CS4248');
     expect(issue.body).toMatch(/Last checked 2026-11-16 01:17 UTC/);
-    expect(issue.body).toMatch(/docs\/REFERENCE\.md.*Re-ingesting/);
+    // 7E: the runbook's corpus-only path, which a REFERENCE.md heading can't be renamed out from under.
+    expect(issue.body).toContain('"A corpus-only refresh" in `docs/year-refresh/README.md`');
+    expect(readFileSync(new URL('../docs/year-refresh/README.md', import.meta.url), 'utf8')).toMatch(/^## A corpus-only refresh \(NUSMods changed\)$/m);
   });
 
   it('pending refresh, with no earlier copy to compare: it says so instead of counting', async () => {
@@ -139,6 +141,10 @@ describe('the issue text', () => {
     expect(issue.body).toMatch(/01 Sep 2026/);
     expect(issue.body).toMatch(/npm run ops:report -- --month 2026-10/);
     expect(issue.body).not.toMatch(/60 days/);
+    // 7E: a revision is checked against the year's source manifest and follows the runbook.
+    expect(issue.body).toContain('`data/ng-sources-2026-2027.json`');
+    expect(issue.body).toContain('"A mid-year revision" in `docs/year-refresh/README.md`');
+    expect(readFileSync(new URL('../docs/year-refresh/README.md', import.meta.url), 'utf8')).toMatch(/^## A mid-year revision$/m);
   });
 });
 

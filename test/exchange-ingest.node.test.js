@@ -78,8 +78,8 @@ describe('the row and its writes (plan §5)', () => {
 describe('the Worker\'s reason texts (data/ng-reasons.json)', () => {
   const file = JSON.parse(read('../data/ng-reasons.json'));
 
-  it('are what scripts/build-ng-reasons.mjs builds from the rules file', () => {
-    expect(file).toEqual(buildNgReasons(DEFAULT_ACAD_YEAR));
+  it('are what scripts/build-ng-reasons.mjs builds from the rules file', async () => {
+    expect(file).toEqual(await buildNgReasons(DEFAULT_ACAD_YEAR));
   });
 
   it('know every rule id ingest can store, and every id the fixture stores', () => {
@@ -145,11 +145,11 @@ describe('the rules about courses off the exchange list (6A)', () => {
     expect(info.find((i) => i.id === 'E-offerings-list')?.scope).toEqual({});
   });
 
-  it('reach data/ng-reasons.json as offListRules: id, text and scope', () => {
+  it('reach data/ng-reasons.json as offListRules: id, text and scope, and rule E its overlay role (7E)', () => {
     const file = JSON.parse(read('../data/ng-reasons.json'));
     expect(file.offListRules).toEqual(OFF_LIST.map((id) => {
       const entry = /** @type {NonNullable<(typeof info)[number]>} */ (info.find((i) => i.id === id));
-      return { id, text: entry.text, scope: entry.scope };
+      return { id, text: entry.text, scope: entry.scope, ...(id === 'E-offerings-list' ? { role: 'off-list-rule' } : {}) };
     }));
   });
 });

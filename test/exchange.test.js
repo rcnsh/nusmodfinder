@@ -3,7 +3,7 @@
 // 4A, 4C): `study` is required with ng=1; every path (D1 lexical, the
 // bundle, the Vectorize standby, pins, mask routes, 3F variants, a
 // not-offered code's `related`) shows exactly the modules the independent
-// oracle (test/sc1/oracle.node.mjs) calls open or noted for (sem, study);
+// oracle (test/sc1/oracle.mjs) calls open or noted for (sem, study);
 // a zero ng_allow is closed on every path; cards carry the bit's reasons.
 // The whole-corpus set equality per path is test/sc1/paths.test.js.
 import { env } from 'cloudflare:workers';
@@ -11,7 +11,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
 import { reasonsFor } from '../src/ng-reasons.js';
 import { searchCacheKey } from '../src/search.js';
-import { levelNoteOf, oracle, oracleShown, yearNoteOf } from './sc1/oracle.node.mjs';
+import { levelNoteOf, oracle, oracleShown, yearNoteOf } from './sc1/oracle.mjs';
 import { BASE, adminCall, callJson, fixture, seed } from './helpers.js';
 
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));

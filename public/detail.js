@@ -94,7 +94,7 @@ function availability(e, sources) {
   const status = e?.status ?? 'closed';
   const reasons = Array.isArray(e?.reasons) ? e.reasons : [];
   return [
-    h('p', { class: `exchange-status cell-status cs-${status}`, attrs: { 'data-status': status } }, icon(status), statusText(status)),
+    h('p', { class: `exchange-status cell-status cs-${status}`, attrs: { 'data-status': status } }, icon(status), statusText(status, reasons)),
     reasons.length ? h('ul', { class: 'notes cell-notes' }, ...reasons.map((r) => h('li', null, reasonLine(r, e?.sem ?? 'any', sources)))) : null,
   ];
 }
@@ -111,7 +111,7 @@ function semBlock(e, sem, mine, sources) {
   const status = e?.status ?? 'closed';
   const reasons = Array.isArray(e?.reasons) ? e.reasons : [];
   return h('div', { class: 'exchange-sem-block semblock' },
-    h('div', { class: 'row' }, stamp(status, stampText(status, sem, reasons.length)), mine ? h('span', { class: 'yours' }, 'Your semester') : null),
+    h('div', { class: 'row' }, stamp(status, stampText(status, sem, reasons)), mine ? h('span', { class: 'yours' }, 'Your semester') : null),
     reasons.length ? h('div', { class: 'notes-box' }, h('ul', { class: 'notes' },
       ...reasons.map((r) => noteItem(r, noteText(r, sem), h('span', { class: 'src' }, sourceNote(r.id, sources)))))) : null);
 }

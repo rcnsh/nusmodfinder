@@ -6,6 +6,11 @@ scripted downloads, so Jacob saves most of them by hand. Copies are kept outside
 `scripts/build-ng-restrictions.mjs` refuses to build if any file it reads has a different hash or
 any listed file goes unread, and writes the hashes it computed into the rules file.
 
+Phase 7 7E: the source manifest `data/ng-sources-2026-2027.json` now holds these documents, their
+hashes and dates (the builder reads them from there, not from this file), and NUS's documents go
+into an encrypted archive per revision (`npm run sources`; `docs/year-refresh/README.md`). This
+file stays as Phase 4's record.
+
 ## 2026-11-10
 
 | file | source | updated as at | sha256 |

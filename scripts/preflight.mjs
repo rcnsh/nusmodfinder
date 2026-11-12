@@ -11,9 +11,10 @@
 //   bundle          the production bundle, sha-checked, at the committed data version
 //   corpus manifest 7D's check (scripts/corpus.mjs preflight): restores `current` (gh, sha-checked),
 //                   then `npm run corpus -- check`: the data version, catalogueKey and 3B files follow it
-//   year check      7E's CI mode (scripts/year.mjs), skipped while that module is absent
+//   year check      7E's CI mode (scripts/year.mjs `preflight()`): the year's sources agree, no
+//                   stub, an oracle; the sources archive may still be pending
 //   source inputs   when HEAD changes a source-derived input since the live tag, a committed
-//                   `year check --full` record (7E) for those inputs' hash
+//                   `year check --full` record (7E) for those inputs' hash (sourceInputsCheck)
 //   startup         `wrangler check startup` with the bundle aliased in
 //
 // An optional check's module exports `preflight({ exec, head, log })`, answering
@@ -39,12 +40,21 @@ export const OPTIONAL_CHECKS = /** @type {const} */ ([
   { name: 'year check', module: 'scripts/year.mjs', owner: '7E' },
 ]);
 
+/** The one data/ng-* file built from the corpus, not from NUS's documents. */
+export const PER_CORPUS_NG_FILE = 'data/ng-unscheduled.json';
+
 /**
  * Source-derived inputs (7E): what NUS's documents decide. A change to one needs a committed
- * `year check --full` record. 7E's quote index adds the quoted NUS sentences.
+ * `year check --full` record. The quoted NUS sentences in src/ and public/ count through the quote
+ * index in data/ng-sources-<year>.json: `year check` fails when a quote is no longer in its file, so
+ * changing one means changing the index, a source-derived input.
+ *
+ * Not data/ng-unscheduled.json: it follows the production corpus (7D, rebuilt with the bundle), so
+ * a corpus-only refresh changes it with no source changing, and `year check --full` doesn't check
+ * it (`npm run corpus -- check` and `build-ng-unscheduled.mjs --check` do).
  * @param {string} path
  */
-export const isSourceInput = (path) => path.startsWith('data/ng-') || path.startsWith('scripts/ng-overlay/');
+export const isSourceInput = (path) => (path.startsWith('data/ng-') && path !== PER_CORPUS_NG_FILE) || path.startsWith('scripts/ng-overlay/');
 
 /** The run record script that `year check --full` writes (7E), and the mode it records. */
 export const FULL_RECORD = { script: 'year check', mode: 'full' };
@@ -77,6 +87,40 @@ export async function sourceInputsHash(exec, rev = 'HEAD') {
 
 /** A check's answer. @param {boolean} ok @param {string} message */
 const answer = (ok, message) => ({ ok, message });
+
+/**
+ * The "source inputs" check: when HEAD changes a source-derived input since what is live (the
+ * newest deploy/* or rollback/* tag), a `year check --full` run record committed at HEAD must
+ * carry an ok outcome and HEAD's sourceInputsHash. A hand-edited rules file has a hash no
+ * record names, so it can't pass.
+ * @param {Exec} exec
+ * @returns {Promise<{ ok: boolean, message: string }>}
+ */
+export async function sourceInputsCheck(exec) {
+  /** @param {string[]} args */
+  const git = async (args) => { const r = await exec('git', args); return { ...r, out: r.stdout.trim() }; };
+  if (!(await fetchTraceTags(exec))) return answer(false, 'could not fetch the deploy/* and rollback/* tags from origin, so what is live is unknown.');
+  const live = newestTag(await listTraceTags(exec));
+  if (!live) return answer(false, 'no deploy/* or rollback/* tag says what is live, so a change to source-derived inputs can\'t be told apart; push the back-filled tags (docs/REFERENCE.md "Deploying").');
+  const diff = await git(['diff', '--name-only', '--no-renames', live.commit, 'HEAD']);
+  if (diff.code !== 0) return answer(false, `git diff against the live tag ${live.name} failed.`);
+  const changed = diff.out.split('\n').filter((p) => p && isSourceInput(p));
+  if (!changed.length) return answer(true, `no source-derived input changed since ${live.name}`);
+  const hash = await sourceInputsHash(exec);
+  const listed = await git(['ls-tree', '-r', '--name-only', 'HEAD', '--', RUNS_REL]);
+  const candidates = listed.code === 0 ? listed.out.split('\n').filter((p) => p.includes('-year-check-')) : [];
+  for (const path of candidates) {
+    const shown = await git(['show', `HEAD:${path}`]);
+    /** @type {any} */
+    let r = null;
+    try { r = JSON.parse(shown.out); } catch { continue; }
+    if (r?.script === FULL_RECORD.script && r?.outcome === 'ok' && r?.details?.mode === FULL_RECORD.mode && r?.details?.sourceInputsHash === hash) {
+      return answer(true, `${changed.length} source-derived input(s) changed since ${live.name}; ${path} covers them`);
+    }
+  }
+  return answer(false, `HEAD changes source-derived inputs since ${live.name} (${changed.join(', ')}), so it needs a committed \`year check --full\` `
+    + `run record (7E, on the Mac with the sources key) for their hash ${hash.slice(0, 12)}…; none at HEAD matches.`);
+}
 
 /**
  * Runs the checks. Stops at the first failure; the rest are `not run`.
@@ -168,29 +212,7 @@ export async function runPreflight(deps) {
         return answer(false, `${c.module}: ${/** @type {Error} */ (err).message}`);
       }
     } })),
-    { name: 'source inputs', run: async () => {
-      if (!(await fetchTraceTags(exec))) return answer(false, 'could not fetch the deploy/* and rollback/* tags from origin, so what is live is unknown.');
-      const live = newestTag(await listTraceTags(exec));
-      if (!live) return answer(false, 'no deploy/* or rollback/* tag says what is live, so a change to source-derived inputs can\'t be told apart; push the back-filled tags (docs/REFERENCE.md "Deploying").');
-      const diff = await git(['diff', '--name-only', '--no-renames', live.commit, 'HEAD']);
-      if (diff.code !== 0) return answer(false, `git diff against the live tag ${live.name} failed.`);
-      const changed = diff.out.split('\n').filter((p) => p && isSourceInput(p));
-      if (!changed.length) return answer(true, `no source-derived input changed since ${live.name}`);
-      const hash = await sourceInputsHash(exec);
-      const listed = await git(['ls-tree', '-r', '--name-only', 'HEAD', '--', RUNS_REL]);
-      const candidates = listed.code === 0 ? listed.out.split('\n').filter((p) => p.includes('-year-check-')) : [];
-      for (const path of candidates) {
-        const shown = await git(['show', `HEAD:${path}`]);
-        /** @type {any} */
-        let r = null;
-        try { r = JSON.parse(shown.out); } catch { continue; }
-        if (r?.script === FULL_RECORD.script && r?.outcome === 'ok' && r?.details?.mode === FULL_RECORD.mode && r?.details?.sourceInputsHash === hash) {
-          return answer(true, `${changed.length} source-derived input(s) changed since ${live.name}; ${path} covers them`);
-        }
-      }
-      return answer(false, `HEAD changes source-derived inputs since ${live.name} (${changed.join(', ')}), so it needs a committed \`year check --full\` `
-        + `run record (7E, on the Mac with the sources key) for their hash ${hash.slice(0, 12)}…; none at HEAD matches.`);
-    } },
+    { name: 'source inputs', run: () => sourceInputsCheck(exec) },
     { name: 'startup', run: async () => {
       const b = /** @type {DeployBundle} */ (state.bundle);
       // `--args=…` as one argv entry: given as two, wrangler parses the value's `--alias` as its

@@ -7,7 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import { CLOSED_KINDS, GAP_MS, PRODUCTION_URL, STRATA, drawHidden, drawSc2, loadModules, parseArgs, rng } from '../scripts/p5-live-plan.mjs';
 import { bitOf } from '../src/ng-bit.js';
-import { oracle } from './sc1/oracle.node.mjs';
+import { oracle } from './sc1/oracle.mjs';
 
 const modules = await loadModules('fixture');
 

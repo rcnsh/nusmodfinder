@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { EventEmitter } from 'node:events';
 import { DATA_VERSION_PATH, acquireRunLock, dataVersionFile, fileStateStore, handleSignals, main, parseDuration, parseIngestArgs } from '../scripts/ingest.mjs';
@@ -82,14 +83,14 @@ beforeEach(async () => {
 });
 afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
-/** @param {string[]} argv @param {ReturnType<typeof stubWorker>} worker @param {{ statePath?: string, proc?: any }} [o] */
+/** @param {string[]} argv @param {ReturnType<typeof stubWorker>} worker @param {{ statePath?: string, proc?: any, ngDataDir?: URL }} [o] */
 const run = async (argv, worker, o = {}) => {
   /** @type {string[]} */
   const lines = [];
   const dataVersionPath = join(dir, 'data-version.json');
   const code = await main(['--url', 'http://worker.test', ...argv], {
     fetchImpl: worker.fetchImpl, log: (l) => lines.push(l), dataVersionPath, ...corpus, envVars: { INGEST_SECRET: 's' },
-    statePath: o.statePath ?? join(dir, 'ingest-state.json'), ...(o.proc ? { proc: o.proc } : {}),
+    statePath: o.statePath ?? join(dir, 'ingest-state.json'), ...(o.proc ? { proc: o.proc } : {}), ...(o.ngDataDir ? { ngDataDir: o.ngDataDir } : {}),
   });
   const written = await readFile(dataVersionPath, 'utf8').catch(() => null);
   return { code, lines, written };
@@ -107,6 +108,23 @@ describe('scripts/ingest.mjs', () => {
     expect(parseDuration('12')).toBe(43_200_000);
     expect(() => parseIngestArgs(['--batch', '101'], {})).toThrow(/at most 100/);
     expect(() => parseIngestArgs(['--wat'], {})).toThrow();
+  });
+
+  it('Phase 7 7E: refuses, sending nothing, when the year\'s NG file is a stub (`year next`) or missing', async () => {
+    const ng = join(dir, 'ng');
+    await mkdir(ng);
+    const ngDataDir = pathToFileURL(`${ng}/`);
+    await writeFile(join(ng, `ng-courses-${Y}.json`), `${JSON.stringify({ stub: true, acadYear: Y, semesters: {} })}\n`);
+    const worker = stubWorker();
+    const stub = await run([], worker, { ngDataDir });
+    expect(stub.code).toBe(1);
+    expect(stub.lines.join('\n')).toMatch(new RegExp(`refusing, \\S*ng-courses-${Y}\\.json is a stub .*Nothing was sent`));
+    await rm(join(ng, `ng-courses-${Y}.json`));
+    const missing = await run([], worker, { ngDataDir });
+    expect(missing.code).toBe(1);
+    expect(missing.lines.join('\n')).toMatch(new RegExp(`refusing, there is no \\S*ng-courses-${Y}\\.json`));
+    expect(worker.paths).toEqual([]);
+    expect(stub.written).toBeNull();
   });
 
   it('[PR13 #1b] --allow-year-change is off unless passed', () => {

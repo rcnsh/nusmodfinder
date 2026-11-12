@@ -134,6 +134,8 @@ describe('the year check --full record (7E) is needed only when a source-derived
   it('the source-derived paths', () => {
     for (const p of [NG, `data/ng-restrictions-${Y}.json`, `data/ng-sources-${Y}.json`, 'data/ng-reasons.json', `scripts/ng-overlay/${Y}.mjs`]) expect(isSourceInput(p), p).toBe(true);
     for (const p of ['data/groups.json', 'src/search.js', 'scripts/ingest.mjs', 'data/vectors.json']) expect(isSourceInput(p), p).toBe(false);
+    // 7E: a corpus-only refresh rewrites data/ng-unscheduled.json (it follows production) and needs no sources key.
+    expect(isSourceInput('data/ng-unscheduled.json')).toBe(false);
   });
 
   it('a hotfix touching none of them needs no record', async () => {

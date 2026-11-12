@@ -1,7 +1,7 @@
 // @ts-check
 // SC1 (docs/plans/phase4.md 4E), over the production corpus (Phase 7 7D: CI on
 // the live year): src/eligibility.js with the committed rules agrees with the
-// independent oracle (test/sc1/oracle.node.mjs, written from the sources and
+// independent oracle (test/sc1/oracle.mjs, written from the sources and
 // the interpretations register only) on every production module, in every
 // semester and at every study level, and on every NG-listed code with no
 // classes in data/ng-unscheduled.json. And every department and faculty a rule
@@ -17,9 +17,11 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, inject, it } from 'vitest';
 import { unknownRuleNames } from '../../scripts/ng-rule-names.mjs';
 import { bitOf, eligibility, NG_SEMS, STUDIES } from '../../src/eligibility.js';
-import { oracle } from './oracle.node.mjs';
+import * as live from './oracle.mjs';
 
 const corpus = inject('corpus');
+// Phase 7 7E: the oracle for the corpus's year (test/sc1/oracle.mjs picks it); the live year's without one.
+const { oracle } = corpus ? await live.oracleFor(corpus.acadYear) : live;
 /** @param {string} rel */
 const readJson = (rel) => JSON.parse(readFileSync(new URL(`../../${rel}`, import.meta.url), 'utf8'));
 
@@ -59,7 +61,8 @@ describe.skipIf(!corpus)('SC1: eligibility agrees with the oracle over productio
     const differ = [];
     let shown = 0;
     for (const e of file.modules) {
-      const m = { code: e.code, title: e.title, department: e.department, faculty: e.faculty, level: e.level, semesters: [], ng: true, ngSemesters: e.ngSemesters };
+      const m = { code: e.code, title: e.title, department: e.department, faculty: e.faculty, level: e.level, semesters: [], ng: true, ngSemesters: e.ngSemesters,
+        ...(e.ngUnpublished ? { ngUnpublished: e.ngUnpublished } : {}) };
       for (const sem of /** @type {const} */ ([1, 2])) {
         for (const study of STUDIES) {
           const bit = bitOf(sem, study);

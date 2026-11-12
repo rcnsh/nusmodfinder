@@ -3,7 +3,7 @@
 // rules, committed and pushed before any persona runs so they cannot drift.
 // Phase 5's rules (../../phase5/redteam/rules.mjs) with the rows the plan adds.
 // The expected answer for a (persona, course, semester) comes from the
-// independent SC1 oracle (test/sc1/oracle.node.mjs, `explainShown`: the R3
+// independent SC1 oracle (test/sc1/oracle.mjs, the selector; then test/sc1/oracle.node.mjs, `explainShown`: the R3
 // year note included, as Jacob ruled after Phase 5) over production-normalised
 // modules and the persona's brief (personas.json `brief`) alone, never from
 // the page or the Worker's stored reasons.

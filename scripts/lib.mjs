@@ -17,7 +17,8 @@ const COHORT_ONLY = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.
  *   workload?: unknown, prerequisite?: string, preclusion?: string,
  *   attributes?: { su?: boolean }, gradingBasisDescription?: string,
  * }} NusModsRecord
- * @typedef {Awaited<ReturnType<typeof loadNgCourses>>} NgCourses
+ * @typedef {Omit<Awaited<ReturnType<typeof loadNgCourses>>, 'stub' | 'unpublished'> & { stub?: boolean, unpublished?: number[] }} NgCourses
+ *   `stub` and `unpublished` (Phase 7 7E) are optional for an NgCourses built by hand (tests)
  */
 
 export const DEFAULT_ACAD_YEAR = '2026-2027';
@@ -258,26 +259,69 @@ export function hashOf(text) {
 // Non-Graduating (exchange student) availability. NUS publishes this only as a
 // PDF, so it is extracted by scripts/extract-ng.py into a committed artifact
 // rather than fetched. Absent file => no NG data, and every module is marked
-// unknown rather than silently false.
-/** @param {string} acadYear */
-export async function loadNgCourses(acadYear) {
-  const path = new URL(`../data/ng-courses-${acadYear}.json`, import.meta.url);
+// unknown rather than silently false; ingest refuses that, and a stub (Phase 7
+// 7E: `year next` writes stubs), since exchange mode would show every course closed.
+//
+// G2 (Phase 7 7E, ADR 0011): a semester the year's source manifest
+// (data/ng-sources-<year>.json) marks unpublished takes last year's list for that
+// semester (data/ng-courses-<last year>.json), and `unpublished` names it, so
+// offeredModules marks it on every module (`ngUnpublished`) and src/eligibility.js
+// counts a course listed there "to confirm", never open. Without a manifest, or with
+// every semester published, nothing changes.
+/**
+ * @param {string} acadYear
+ * @param {{ dataDir?: URL }} [o] the data/ directory (tests point it at a temp copy)
+ */
+export async function loadNgCourses(acadYear, { dataDir = new URL('../data/', import.meta.url) } = {}) {
+  const path = new URL(`ng-courses-${acadYear}.json`, dataDir);
   try {
     const data = JSON.parse(await readFile(path, 'utf8'));
+    if (data.stub === true) {
+      return { available: false, stub: true, bySem: /** @type {Map<string, number[]>} */ (new Map()), updatedAsAt: null, source: null, total: 0, rules: null, unpublished: /** @type {number[]} */ ([]) };
+    }
     /** @type {Map<string, number[]>} */
     const bySem = new Map();
-    for (const [sem, codes] of /** @type {[string, string[]][]} */ (Object.entries(data.semesters ?? {}))) {
+    /** @param {string} sem @param {string[]} codes */
+    const add = (sem, codes) => {
       for (const code of codes) {
         if (!bySem.has(code)) bySem.set(code, []);
         /** @type {number[]} */ (bySem.get(code)).push(Number(sem));
       }
+    };
+    for (const [sem, codes] of /** @type {[string, string[]][]} */ (Object.entries(data.semesters ?? {}))) add(sem, codes);
+    const unpublished = unpublishedSemesters(acadYear, dataDir);
+    if (unpublished.length) {
+      const [a, b] = acadYear.split('-').map(Number);
+      const last = `${a - 1}-${b - 1}`;
+      /** @type {any} */
+      let previous;
+      try { previous = JSON.parse(readFileSync(new URL(`ng-courses-${last}.json`, dataDir), 'utf8')); } catch (err) {
+        throw new NgRestrictionsMissing(`data/ng-sources-${acadYear}.json marks Sem ${unpublished.join(', ')} unpublished, so exchange mode shows ${last}'s list for it, but data/ng-courses-${last}.json can't be read: ${/** @type {Error} */ (err).message}`);
+      }
+      for (const s of unpublished) {
+        if (data.semesters?.[String(s)]) throw new NgRestrictionsMissing(`data/ng-courses-${acadYear}.json has a Sem ${s} list, but data/ng-sources-${acadYear}.json marks Sem ${s} unpublished`);
+        add(String(s), previous.semesters?.[String(s)] ?? []);
+      }
     }
-    for (const sems of bySem.values()) sems.sort((a, b) => a - b);
-    return { available: true, bySem, updatedAsAt: data.updatedAsAt, source: data.source ?? null, total: bySem.size, rules: loadNgRestrictions(acadYear) };
+    for (const sems of bySem.values()) sems.sort((x, y) => x - y);
+    return { available: true, stub: false, bySem, updatedAsAt: data.updatedAsAt, source: data.source ?? null, total: bySem.size, rules: loadNgRestrictions(acadYear, { dataDir }), unpublished };
   } catch (err) {
     if (err instanceof NgRestrictionsMissing) throw err;
-    return { available: false, bySem: /** @type {Map<string, number[]>} */ (new Map()), updatedAsAt: null, source: null, total: 0, rules: null };
+    return { available: false, stub: false, bySem: /** @type {Map<string, number[]>} */ (new Map()), updatedAsAt: null, source: null, total: 0, rules: null, unpublished: /** @type {number[]} */ ([]) };
   }
+}
+
+/**
+ * The semesters the year's source manifest marks unpublished; none without a manifest.
+ * @param {string} acadYear @param {URL} dataDir
+ * @returns {number[]}
+ */
+function unpublishedSemesters(acadYear, dataDir) {
+  /** @type {any} */
+  let manifest;
+  try { manifest = JSON.parse(readFileSync(new URL(`ng-sources-${acadYear}.json`, dataDir), 'utf8')); } catch { return []; }
+  if (manifest.stub === true) return [];
+  return [1, 2].filter((s) => manifest.published?.ngList?.[String(s)] === false);
 }
 
 class NgRestrictionsMissing extends Error {}
@@ -287,15 +331,20 @@ class NgRestrictionsMissing extends Error {}
  * with readFileSync so nothing imports JSON. A year with an NG list and no
  * restrictions file is an error: exchange mode would show courses unchecked.
  * @param {string} acadYear
+ * @param {{ dataDir?: URL }} [o]
  * @returns {import('../src/eligibility.js').Rules & { updatedAsAt?: Record<string, string> }}
  */
-export function loadNgRestrictions(acadYear) {
-  const path = new URL(`../data/ng-restrictions-${acadYear}.json`, import.meta.url);
+export function loadNgRestrictions(acadYear, { dataDir = new URL('../data/', import.meta.url) } = {}) {
+  const path = new URL(`ng-restrictions-${acadYear}.json`, dataDir);
+  /** @type {any} */
+  let rules;
   try {
-    return JSON.parse(readFileSync(path, 'utf8'));
+    rules = JSON.parse(readFileSync(path, 'utf8'));
   } catch (err) {
     throw new NgRestrictionsMissing(`data/ng-restrictions-${acadYear}.json: ${/** @type {Error} */ (err).message}`);
   }
+  if (rules.stub === true) throw new NgRestrictionsMissing(`data/ng-restrictions-${acadYear}.json is a stub (year next): build the year's rules first (docs/year-refresh/README.md)`);
+  return rules;
 }
 
 /**
@@ -412,6 +461,8 @@ export function offeredModules(records, acadYear, ngCourses = null) {
     if (ngCourses?.available) {
       const sems = ngCourses.bySem.get(module.code);
       if (sems) { module.ng = true; module.ngSemesters = sems; }
+      // G2: only when a semester is unpublished, so every module's shape is unchanged otherwise.
+      if (ngCourses.unpublished?.length) module.ngUnpublished = ngCourses.unpublished;
       // Phase 4 (plan §2 "Storage"): every (semester, study level) at ingest.
       if (!ngCourses.rules) throw new Error('offeredModules: an NG list without restrictions data (loadNgRestrictions)');
       Object.assign(module, storedEligibility(module, ngCourses.rules));

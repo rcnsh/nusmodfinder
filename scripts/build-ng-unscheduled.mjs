@@ -79,6 +79,8 @@ export function unscheduledFile({ codes, records, offered, ngCourses, acadYear, 
     if (!module) throw new Error(`${code}: ${skipped}`);
     module.ng = true;
     module.ngSemesters = sems;
+    // G2 (Phase 7 7E), as offeredModules does: only when a semester is unpublished.
+    if (ngCourses.unpublished?.length) module.ngUnpublished = ngCourses.unpublished;
     return { module, ...storedEligibility(module, rules) };
   });
   const { groups } = buildGroups([...offered, ...modules.map(({ module: m }) => ({ code: m.code, title: m.title, description: m.description }))]);
@@ -98,6 +100,7 @@ export function unscheduledFile({ codes, records, offered, ngCourses, acadYear, 
       department: m.department, level: m.level, ngSemesters: m.ngSemesters, workload: moduleWorkload(m.workload),
       prerequisite: m.prerequisite, preclusion: m.preclusion, gradingBasis: m.gradingBasis,
       otherCodes: (groupOf.get(m.code) ?? []).filter((c) => c !== m.code), ngAllow, ngRules,
+      ...(m.ngUnpublished ? { ngUnpublished: m.ngUnpublished } : {}),
     })),
   };
 }

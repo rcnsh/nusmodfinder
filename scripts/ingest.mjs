@@ -310,13 +310,13 @@ const OUTCOME_BY_CODE = { 0: 'ok', 2: 'partial', 3: 'partial', 130: 'interrupted
  * @param {string[]} argv
  * @param {{ fetchImpl?: typeof fetch, log?: (line: string) => void, dataVersionPath?: string,
  *   envVars?: Record<string, string | undefined>, manifestPath?: string, corpusDir?: string, statePath?: string, deletesPath?: string,
- *   proc?: Pick<NodeJS.Process, 'on' | 'off' | 'exit'>, runsDir?: string }} [deps]
+ *   proc?: Pick<NodeJS.Process, 'on' | 'off' | 'exit'>, runsDir?: string, ngDataDir?: URL }} [deps]
  * @returns {Promise<number>} exit code
  */
 export async function main(argv, deps = {}) {
   const {
     fetchImpl = fetch, log = console.log, dataVersionPath = DATA_VERSION_PATH, envVars = process.env, statePath = STATE_PATH, proc = process,
-    deletesPath = D1_ONLY_DELETES, runsDir, manifestPath = CORPUS_MANIFEST_PATH, corpusDir = PROD_DIR,
+    deletesPath = D1_ONLY_DELETES, runsDir, manifestPath = CORPUS_MANIFEST_PATH, corpusDir = PROD_DIR, ngDataDir,
   } = deps;
   const secret = envVars.INGEST_SECRET;
   if (!secret) {
@@ -343,7 +343,7 @@ export async function main(argv, deps = {}) {
   const signals = handleSignals(lock, controller, proc, log);
   try {
     const result = await ingestLocked({ ...args, base, options: { ...args.options, signal: controller.signal } },
-      { fetchImpl: record.countingFetch(fetchImpl), log, dataVersionPath, manifestPath, corpusDir, statePath, secret, deletesPath, record });
+      { fetchImpl: record.countingFetch(fetchImpl), log, dataVersionPath, manifestPath, corpusDir, statePath, secret, deletesPath, record, ngDataDir });
     const code = result.code === 130 ? (signals.exitCode() ?? result.code) : result.code;
     record.finish(OUTCOME_BY_CODE[code] ?? (result.status === 'refused' ? 'refused' : 'failed'), { exitCode: code, message: result.message });
     return code;
@@ -361,10 +361,10 @@ export async function main(argv, deps = {}) {
  * The run, once the lock is held.
  * @param {Omit<ReturnType<typeof parseIngestArgs>, 'worker'> & { base: string }} args
  * @param {{ fetchImpl: typeof fetch, log: (line: string) => void, dataVersionPath: string, manifestPath: string, corpusDir: string,
- *   statePath: string, secret: string, deletesPath: string, record: import('./run-record.mjs').RunRecord }} deps
+ *   statePath: string, secret: string, deletesPath: string, record: import('./run-record.mjs').RunRecord, ngDataDir?: URL }} deps
  * @returns {Promise<{ code: number, status: string | null, message: string | null }>}
  */
-async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPath, corpusDir, statePath, secret, deletesPath, record }) {
+async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPath, corpusDir, statePath, secret, deletesPath, record, ngDataDir }) {
   // Phase 7 7D: only `current`, sha-checked; a missing or mismatched file refuses before any request.
   /** @type {Awaited<ReturnType<typeof loadCurrentCorpus>>} */
   let corpus;
@@ -377,7 +377,24 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPat
   }
   const acadYear = corpus.entry.year;
   record.detail('corpus', { release: corpus.entry.release, sha256: corpus.entry.sha256 });
-  const ngCourses = await loadNgCourses(acadYear);
+  // Phase 7 7E: a missing or stub NG file would show every course closed in exchange mode, so it
+  // refuses here (it used to warn), before any request.
+  /** @type {Awaited<ReturnType<typeof loadNgCourses>>} */
+  let ngCourses;
+  try {
+    ngCourses = await loadNgCourses(acadYear, ngDataDir ? { dataDir: ngDataDir } : {});
+  } catch (err) {
+    const message = /** @type {Error} */ (err).message;
+    log(`ingest: refusing, ${message} Nothing was sent.`);
+    return { code: 1, status: 'refused', message };
+  }
+  if (!ngCourses.available) {
+    const message = ngCourses.stub
+      ? `data/ng-courses-${acadYear}.json is a stub (npm run year -- next); extract the year's NG list first (docs/year-refresh/README.md).`
+      : `there is no data/ng-courses-${acadYear}.json; extract the year's NG list first (scripts/extract-ng.py), or exchange mode shows every course closed.`;
+    log(`ingest: refusing, ${message} Nothing was sent.`);
+    return { code: 1, status: 'refused', message };
+  }
   const { modules, skipped } = offeredModules(corpus.records, acadYear, ngCourses);
   // 3B: the codes with no offering this year, for D1 catalogue_only (noMatch `not-offered`).
   const catalogue = catalogueOnlyRecords(corpus.records);
@@ -389,12 +406,9 @@ async function ingestLocked(args, { fetchImpl, log, dataVersionPath, manifestPat
   log(`catalogue-only     ${catalogue.length}`);
   // R2: a record missing a title or description is skipped by code, not dropped silently.
   log(`skipped            ${skipped.length}${skipped.length ? ` (${skipped.slice(0, 10).map((s) => `${s.code}: ${s.why}`).join('; ')})` : ''}`);
-  if (ngCourses.available) {
-    const matched = modules.filter((m) => m.ng).length;
-    log(`NG list            ${ngCourses.total} codes (updated ${ngCourses.updatedAsAt}); ${matched} matched this corpus, ${ngCourses.total - matched} not offered this year`);
-  } else {
-    log('NG list            ABSENT — run scripts/extract-ng.py first, or every module will be marked not-NG');
-  }
+  const matched = modules.filter((m) => m.ng).length;
+  log(`NG list            ${ngCourses.total} codes (updated ${ngCourses.updatedAsAt}); ${matched} matched this corpus, ${ngCourses.total - matched} not offered this year`);
+  if (ngCourses.unpublished.length) log(`NG list            Sem ${ngCourses.unpublished.join(', ')} unpublished: last year's list, each course to confirm (G2)`);
   log(`write budget       ${args.options.writeBudget} D1 rows`);
 
   // /admin/facets also records where the NG list came from, so /facets reports

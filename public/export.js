@@ -199,11 +199,11 @@ function statusOf(w, study, year, sources) {
   else if (w.kind === 'failed' || w.kind === 'loading') status = 'Details could not be loaded';
   else if (!study) status = 'Not checked: no year of study set';
   else if (w.sem) {
-    status = w.status ? stampText(w.status, Number(w.sem), w.reasons.length) : 'Could not be read: ask NUS';
+    status = w.status ? stampText(w.status, Number(w.sem), w.reasons) : 'Could not be read: ask NUS';
     for (const r of w.reasons) notes.push(note(r, Number(w.sem)));
   } else {
     const per = [1, 2].map((s) => ({ s, x: exchangeAt(c, s, study) })).filter((p) => p.x);
-    status = per.map((p) => stampText(/** @type {any} */ (p.x).status, p.s, (p.x?.reasons ?? []).length, true)).join('; ');
+    status = per.map((p) => stampText(/** @type {any} */ (p.x).status, p.s, p.x?.reasons ?? [], true)).join('; ');
     for (const p of per) for (const r of p.x?.reasons ?? []) notes.push(`${semLabel(p.s)}: ${note(r, p.s)}`);
   }
   // A Business or Law quota note "If you were invited: …" is said under the totals, as in the view.

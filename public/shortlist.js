@@ -33,8 +33,9 @@ import { DEFAULT_ACAD_YEAR } from './year.js';
  * @typedef {{ kind: 'row', course: Course } | { kind: 'ng-listed', course: Course }
  *   | { kind: 'catalogue-only', title: string, description: string, acadYear: string } | { kind: 'unknown', acadYear: string }
  *   | { kind: 'loading' } | { kind: 'failed' }} Answer
- * @typedef {{ id: string, text: string, scope?: { departments?: string[], faculties?: string[], levels?: number[] } | null }} OffListRule
- *   /facets' `offListRules` (6A, data/ng-reasons.json): `levels` as digits (4 is level 4000)
+ * @typedef {{ id: string, text: string, scope?: { departments?: string[], faculties?: string[], levels?: number[] } | null, role?: string }} OffListRule
+ *   /facets' `offListRules` (6A, data/ng-reasons.json): `levels` as digits (4 is level 4000); `role`
+ *   `off-list-rule` marks rule E, the line for any course off the list (Phase 7 7E: a role, not an id)
  * @typedef {'counted' | 'confirm' | 'invite' | 'out' | 'pending' | 'duplicate'} Standing
  *   `invite`: a Business or Law course the student hasn't said they were invited for (to confirm, on a line of its own)
  * @typedef {{ kind: 'exam' | 'preclusion' | 'group', with: string, text: string, quote?: string }} Flag
@@ -175,7 +176,14 @@ export const COURSEREG_BOX = Object.freeze({
  */
 export const CONDITION_KINDS = Object.freeze(['quota', 'supply', 'major', 'approval', 'graded', 'letter', 'fee']);
 const OFF_LIST = ['ng-list:not-listed', 'ng-list:not-in-semester'];
-const RULE_E_ID = 'E-offerings-list';
+/** Rule E's role in /facets' offListRules (scripts/ng-overlay/<year>.mjs), read instead of its id. */
+const OFF_LIST_ROLE = 'off-list-rule';
+/**
+ * G2 (Phase 7 7E): a semester NUS hasn't published yet. A course on last year's list for it is to
+ * confirm (kind `ask`); one that wasn't isn't counted (src/eligibility.js).
+ */
+const UNPUBLISHED = 'ng:unpublished-sem';
+const UNPUBLISHED_UNLISTED = 'ng:unpublished-sem-unlisted';
 /** NUS's 40 units, in tenths. */
 const FORM_TENTHS = 400;
 /** NUS's rate: 2.5 hours a week per unit (the Registrar's transcript legend; the brochure's 4 units for about 10 hours). */
@@ -342,7 +350,7 @@ function covers(scope, c) {
 function offListWhy(code, c, sem, rules, year) {
   const head = `Not on NUS's ${year} exchange course list for ${semLabel(sem)}`;
   if (!rules) return `${head}: ask NUS whether it can be added later`;
-  const rule = rules.find((r) => r.id !== RULE_E_ID && covers(r.scope, c));
+  const rule = rules.find((r) => r.role !== OFF_LIST_ROLE && covers(r.scope, c));
   if (rule) return `${head}. NUS: “${rule.text}”`;
   if (lettersOf(code) === 'EC' || facultyKind(c) === 'law') return `${head}. GRO: “${GRO_POPULAR}”`;
   return `${head}. Courses not on the list “are ${RULE_E}” (the Registrar's course restrictions, rule E)`;
@@ -387,7 +395,10 @@ function workEntry(e, answer, ctx) {
   const ngLine = `NUS lists it for ${semLabel(sem)} in ${ctx.year}, but NUSMods shows no classes: ask NUS`;
   if (ngListed && !nums(c.ng_semesters).includes(sem)) {
     // Its closed stamp, as a row's (SC1); the reason is the line below, not a note.
-    if (ctx.study) w.status = exchangeAt(c, sem, ctx.study)?.status ?? 'closed';
+    const at = ctx.study ? exchangeAt(c, sem, ctx.study) : undefined;
+    if (ctx.study) w.status = at?.status ?? 'closed';
+    const unlisted = (Array.isArray(at?.reasons) ? at.reasons : []).find((r) => r.id === UNPUBLISHED_UNLISTED);
+    if (unlisted) return as('out', unlisted.text.replace(/\.$/, ''));
     return as('out', `Not on NUS's exchange list for ${semLabel(sem)} in ${ctx.year}`);
   }
   if (!ctx.study) {
@@ -401,12 +412,17 @@ function workEntry(e, answer, ctx) {
   w.status = x.status;
   w.reasons = Array.isArray(x.reasons) ? x.reasons : [];
   if (x.status === 'closed') {
+    const unlisted = w.reasons.find((r) => r.id === UNPUBLISHED_UNLISTED);
+    if (unlisted) return as('out', unlisted.text.replace(/\.$/, ''));
     if (w.reasons.some((r) => OFF_LIST.includes(r.id))) return as('out', offListWhy(e.code, c, sem, ctx.rules, ctx.year));
     return as('out', `Not open to exchange students in ${semLabel(sem)}`);
   }
   const kinds = w.reasons.map((r) => r.kind);
   w.audition = kinds.includes('audition');
-  if (ngListed) w.lines.push(ngLine);
+  const unpublished = w.reasons.find((r) => r.id === UNPUBLISHED);
+  // G2: in a semester NUS hasn't published, the listing is last year's, so the line says so.
+  const listedLine = unpublished ? `${unpublished.text.replace(/\.$/, '')}, and NUSMods shows no classes: ask NUS` : ngLine;
+  if (ngListed) w.lines.push(listedLine);
   if (w.faculty) {
     if (ctx.inv.includes(w.faculty)) w.lines.push(...BIZ_LAW.invited[w.faculty]);
     else {
@@ -416,8 +432,9 @@ function workEntry(e, answer, ctx) {
       return as('invite', w.faculty === 'biz' ? 'Only for students invited by NUS Business School' : 'Only for students invited by NUS Law');
     }
   }
-  if (ngListed) return as('confirm', ngLine);
+  if (ngListed) return as('confirm', listedLine);
   if (w.audition) return as('confirm', 'Apply separately: see the note');
+  if (unpublished) return as('confirm', `To confirm with NUS: ${unpublished.text.replace(/\.$/, '')}`);
   if (kinds.some((k) => !CONDITION_KINDS.includes(k))) return as('confirm', 'To confirm with NUS: read its notes');
   return as('counted', x.status === 'open' ? 'Counted' : 'Counted, if NUS accepts you: read its notes');
 }

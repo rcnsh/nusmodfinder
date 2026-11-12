@@ -20,8 +20,11 @@ const NG_LIST_PREFIX = 'ng-list:';
 const PREREQ_PREFIX = 'prereq:';
 /** R6-2's level 4000 note (src/level-note.js): GRO's sentence, from NUS Global's page for incoming exchange students. */
 const GRO_PREFIX = 'gro:';
+/** G2's reasons (Phase 7 7E, src/eligibility.js): a semester NUS hasn't published, read from last year's NG list. */
+const UNPUBLISHED_PREFIX = 'ng:';
 const OFF_NG_LIST = 'ng-list:not-listed';
 const NOT_IN_SEM = 'ng-list:not-in-semester';
+const UNPUBLISHED_UNLISTED = 'ng:unpublished-sem-unlisted';
 
 /** @type {Readonly<Record<string, string>>} */
 const STUDY_ADJ = Object.freeze({ ug1: '1st-year', ug2: '2nd-year', ug3: '3rd-year', ug4: '4th-year (or later)', grad: 'graduate' });
@@ -54,6 +57,8 @@ const semPhrase = (sem) => (sem === '' || sem === 'any' ? 'in either semester' :
 export function sourceNote(id, sources) {
   if (id.startsWith(PREREQ_PREFIX)) return 'NUS prerequisite';
   if (id.startsWith(GRO_PREFIX)) return 'GRO, Incoming Exchange Students';
+  // The text names last year's list itself; this year's list for the semester isn't out, so no date.
+  if (id.startsWith(UNPUBLISHED_PREFIX)) return 'NG list';
   const restrictions = !id.startsWith(NG_LIST_PREFIX);
   const label = restrictions ? 'NG restrictions' : 'NG list';
   const src = (sources ?? []).find((s) => /restriction/i.test(String(s?.name ?? '')) === restrictions);
@@ -61,10 +66,17 @@ export function sourceNote(id, sources) {
   return date ? `${label}, updated ${date}` : label;
 }
 
-/** @param {Status} status */
-export function statusText(status) {
+/**
+ * Whether a semester's reasons ask the student to confirm with NUS first (kind `ask`: G2's
+ * semester NUS hasn't published, Phase 7 7E), so its stamp says "To confirm", never "Open".
+ * @param {number | { kind?: string }[] | undefined} notes
+ */
+const asksToConfirm = (notes) => Array.isArray(notes) && notes.some((r) => r?.kind === 'ask');
+
+/** @param {Status} status @param {{ kind?: string }[]} [reasons] */
+export function statusText(status, reasons) {
   if (status === 'open') return 'Open to exchange students';
-  if (status === 'note') return 'Open to exchange students, with notes';
+  if (status === 'note') return asksToConfirm(reasons) ? 'To confirm with NUS, with notes' : 'Open to exchange students, with notes';
   return 'Not open to exchange students';
 }
 
@@ -73,13 +85,15 @@ export function statusText(status) {
  * notes", or, where two stamps sit side by side, "Sem 1 · Open, 2 notes".
  * @param {Status} status
  * @param {number | string} sem 1, 2, or 'any' (no semester chosen)
- * @param {number} notes how many notes the semester has
+ * @param {number | { kind?: string }[]} notes the semester's notes, or how many it has
  * @param {boolean} [short] the both-semesters card's shorter form
  */
 export function stampText(status, sem, notes, short = false) {
   const where = sem === 'any' || sem === '' ? 'Either semester' : semLabel(sem);
-  const n = `${notes} note${notes === 1 ? '' : 's'}`;
+  const count = Array.isArray(notes) ? notes.length : notes;
+  const n = `${count} note${count === 1 ? '' : 's'}`;
   if (status === 'open') return `${where} · Open${short ? '' : ' to exchange students'}`;
+  if (status === 'note' && asksToConfirm(notes)) return `${where} · To confirm${short ? `, ${n}` : ` with NUS, with ${n}`}`;
   if (status === 'note') return `${where} · Open, ${short ? n : `with ${n}`}`;
   return `${where} · Not open${short ? '' : ' to exchange students'}`;
 }
@@ -88,7 +102,7 @@ export function stampText(status, sem, notes, short = false) {
 const NOTE_LEADS = Object.freeze({
   quota: 'Places.', major: 'Your major.', semester: 'Timetable.', approval: 'Approval.', graded: 'Grading.',
   partner: 'Partner schools.', 'restricted-elsewhere': 'Rules disagree.', letter: 'Letter.', audition: 'Audition.',
-  fee: 'Fee.', closed: 'Not open.', year: 'Year of study.', supply: 'Places.',
+  fee: 'Fee.', closed: 'Not open.', year: 'Year of study.', supply: 'Places.', ask: 'To confirm.',
 });
 
 /**
@@ -208,6 +222,7 @@ export function hiddenCodeStamp({ sem, study, exchange }) {
   if (ids.includes(OFF_NG_LIST)) return { text: 'Not for exchange students', switchTo };
   if (sem === '') return { text: 'Not open in either semester', switchTo: '' };
   if (ids.length === 1 && ids[0] === NOT_IN_SEM) return { text: `Not on the NG list for ${semLabel(sem)}`, switchTo };
+  if (ids.length === 1 && ids[0] === UNPUBLISHED_UNLISTED) return { text: `Not on last year's NG list for ${semLabel(sem)}`, switchTo };
   return { text: `Not open in ${semLabel(sem)}`, switchTo };
 }
 

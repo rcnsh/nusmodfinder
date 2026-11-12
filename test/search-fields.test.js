@@ -14,7 +14,7 @@ import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
 import { exchangeAt } from '../src/ng-reasons.js';
-import { oracleShown } from './sc1/oracle.node.mjs';
+import { oracleShown } from './sc1/oracle.mjs';
 import { callJson, fixture, seed } from './helpers.js';
 
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));

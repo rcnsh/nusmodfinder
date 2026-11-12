@@ -2,7 +2,7 @@
 // Phase 5 red team (docs/plans/phase5.md §3 5G): the brief-to-answer rules,
 // committed before any persona runs so they cannot drift. The expected answer
 // for a (persona, course, semester) comes from the independent oracle
-// (test/sc1/oracle.node.mjs) and the persona's brief (personas.json `brief`)
+// (test/sc1/oracle.mjs, the selector; then test/sc1/oracle.node.mjs) and the persona's brief (personas.json `brief`)
 // alone, never from the page or the Worker's stored reasons.
 //
 // The plan's table:
