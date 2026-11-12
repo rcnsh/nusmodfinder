@@ -1,4 +1,6 @@
-# Copy to .dev.vars (gitignored) only when running the ingest flow in README.
+# Not needed for the re-ingest runbook: `npm run remote` gives its session a one-off
+# INGEST_SECRET in a temp env file (docs/REFERENCE.md "Operations"). Copy to .dev.vars
+# (gitignored) only for a local `wrangler dev` of your own.
 # Committed for `wrangler types --env-file .dev.vars.example`, so generated
 # types never depend on a local secret. INGEST_SECRET and EMBEDDING_MODEL are
 # optional at runtime and declared by hand in src/env.d.ts; they are left

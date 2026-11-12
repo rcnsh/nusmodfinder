@@ -1,7 +1,8 @@
 // @ts-check
 // Do D1 and Vectorize agree? Exits non-zero on drift.
 //
-//   npm run verify -- --url http://localhost:8787
+//   npm run remote -- verify [--pre-deploy]   (the runbook: a session sets WORKER_URL)
+//   npm run verify -- --url <base>
 //
 // D1 side through the Worker's /admin/verify (INGEST_SECRET, like ingest);
 // vector ids from `wrangler vectorize list-vectors <index> --json`, paged
@@ -9,7 +10,8 @@
 // ingest (docs/REFERENCE.md "Re-ingesting"), after ingest reports done. What counts as
 // drift: scripts/verify-core.mjs.
 //
-// Flags: --url <base> (default $WORKER_URL or http://localhost:8787),
+// Flags: --url <base> (else $WORKER_URL; no default, and ports 8787 and 8799
+// are refused: Phase 7 7C),
 // --index <name> (default the wrangler.jsonc index), --sample <n> (default 100,
 // max 100), --json (print the report as JSON).
 //
@@ -23,6 +25,8 @@
 //     standby) also compares a getByIds sample of values with the production
 //     bundle's bits.
 // Exit codes: 0 agree; 1 drift; 2 could not verify.
+// Each run past its arguments writes a run record (scripts/run-record.mjs):
+// requests by path, D1 rows read, the outcome (drift is `failed`).
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
@@ -31,6 +35,8 @@ import { run } from './deploy.mjs';
 import { DATA_VERSION_PATH, httpAdminApi } from './ingest.mjs';
 import { formatPreDeployReport, formatReport, runPreDeployVerify, runVerify } from './verify-core.mjs';
 import { loadCheckedBundle, readVectorsManifest } from './vectors-manifest.mjs';
+import { workerUrl } from './remote-session.mjs';
+import { startRun } from './run-record.mjs';
 
 /** The binding's index in wrangler.jsonc (a test keeps them equal). */
 export const DEFAULT_INDEX = 'nusmods-modules';
@@ -86,11 +92,11 @@ export function preDeployDataFiles(acadYear) {
 /**
  * @param {string[]} argv
  * @param {{ fetchImpl?: typeof fetch, exec?: import('./deploy.mjs').Exec, log?: (line: string) => void,
- *   envVars?: Record<string, string | undefined> }} [deps]
+ *   envVars?: Record<string, string | undefined>, runsDir?: string }} [deps]
  * @returns {Promise<number>}
  */
 export async function main(argv, deps = {}) {
-  const { fetchImpl = fetch, exec = run, log = console.log, envVars = process.env } = deps;
+  const { fetchImpl: rawFetch = fetch, exec = run, log = console.log, envVars = process.env, runsDir } = deps;
   const { values } = parseArgs({
     args: argv,
     options: {
@@ -101,18 +107,35 @@ export async function main(argv, deps = {}) {
   });
   const secret = envVars.INGEST_SECRET;
   if (!secret) {
-    log('INGEST_SECRET is not set. Export the same value the Worker is bound to.');
+    log('INGEST_SECRET is not set. Run it through `npm run remote -- verify …`, or export the value the Worker is bound to.');
     return 2;
   }
-  const base = (values.url ?? envVars.WORKER_URL ?? 'http://localhost:8787').replace(/\/$/, '');
+  const worker = workerUrl(values.url, envVars);
+  if (worker.error !== undefined) { log(`verify: ${worker.error} Nothing was sent.`); return 2; }
+  const base = worker.base;
   const sampleSize = values.sample ? Number(values.sample) : 100;
   if (!Number.isInteger(sampleSize) || sampleSize < 0 || sampleSize > 100) {
     log('--sample must be an integer from 0 to 100');
     return 2;
   }
+  const record = startRun('verify', { target: envVars.VNM_REMOTE_TARGET ? `${base} (${envVars.VNM_REMOTE_TARGET})` : base, args: argv, dir: runsDir });
+  record.detail('mode', values['pre-deploy'] ? 'pre-deploy' : 'post-standby');
+  const fetchImpl = record.countingFetch(rawFetch);
+  const unguard = record.guardExit();
+  /** @param {number} code @param {string | null} [message] */
+  const done = (code, message = null) => {
+    unguard();
+    record.finish(code === 0 ? 'ok' : 'failed', { exitCode: code, message });
+    return code;
+  };
+  /** Each `wrangler vectorize list-vectors` page is a Cloudflare API call. @type {import('./deploy.mjs').Exec} */
+  const countedExec = (cmd, args, opts) => {
+    if (cmd === 'npx' && args[0] === 'wrangler') record.request(`wrangler ${args.slice(1, 3).join(' ')}`);
+    return exec(cmd, args, opts);
+  };
   try {
     const corpus = /** @type {'production' | 'pinned' | 'fixture'} */ (values.bundle ?? 'production');
-    if (!['production', 'pinned', 'fixture'].includes(corpus)) { log('--bundle must be production, pinned or fixture'); return 2; }
+    if (!['production', 'pinned', 'fixture'].includes(corpus)) { log('--bundle must be production, pinned or fixture'); return done(2, 'bad --bundle'); }
     const loadBundle = async () => {
       const entry = (await readVectorsManifest()).bundles[corpus];
       if (!entry) throw new Error(`data/vectors.json has no ${corpus} bundle`);
@@ -130,20 +153,23 @@ export async function main(argv, deps = {}) {
       });
       if (values.json) log(JSON.stringify(report, null, 2));
       else for (const l of formatPreDeployReport(report)) log(l);
-      return report.ok ? 0 : 1;
+      record.read('D1 rows (/admin/hashes and fields)', { estimate: entry.count, actual: report.rowsRead });
+      return done(report.ok ? 0 : 1, report.ok ? 'D1 agrees with the manifest and the bundle' : 'drift');
     }
     const report = await runVerify({
       api: httpAdminApi(base, secret, fetchImpl),
-      listVectorIds: () => listVectorIds(values.index ?? DEFAULT_INDEX, exec),
+      listVectorIds: () => listVectorIds(values.index ?? DEFAULT_INDEX, countedExec),
       sampleSize,
       ...(values.values ? { bundle: (await loadBundle()).bundle } : {}),
     });
     if (values.json) log(JSON.stringify(report, null, 2));
     else for (const l of formatReport(report)) log(l);
-    return report.ok ? 0 : 1;
+    record.read('D1 rows (/admin/verify)', { actual: report.rowsRead });
+    record.read('Vectorize ids listed (wrangler vectorize list-vectors)', { actual: report.vectors });
+    return done(report.ok ? 0 : 1, report.ok ? 'D1 and Vectorize agree' : 'drift');
   } catch (err) {
     log(`verify failed: ${/** @type {Error} */ (err).message}`);
-    return 2;
+    return done(2, String(/** @type {Error} */ (err).message).split('\n')[0]);
   }
 }
 

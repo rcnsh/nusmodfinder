@@ -13,11 +13,15 @@
 //   there must exist: a backticked repo path must be a file on disk, and a
 //   backticked test name (starting with `[`) must appear in a file under test/.
 // - The summary table, if present, agrees with the sections.
+// - Phase 7 7C: every run record under docs/evidence/ops/runs/ has the schema,
+//   an ISO UTC time not in the future, an outcome, and a name that matches
+//   (scripts/run-record.mjs validateRunRecord).
 // Depends only on acorn (to read exact test titles from the test sources).
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse } from 'acorn';
+import { RUNS_REL, checkRunRecords } from './run-record.mjs';
 
 export const EXPECTED_ID_COUNT = 35;
 export const STATUSES = ['reproduced', 'partially-reproduced', 'rejected', 'fixed'];
@@ -190,8 +194,10 @@ function walk(dir) {
 /**
  * Runs the check against a checkout.
  * @param {string} root repository root
+ * @param {{ runsDir?: string, now?: Date }} [o] the run records' dir (default the checkout's) and the time
+ *   a record's may not pass
  */
-export function checkRepo(root) {
+export function checkRepo(root, { runsDir, now = new Date() } = {}) {
   const read = (/** @type {string} */ p) => readFileSync(join(root, p), 'utf8');
   for (const p of ['docs/CRITERIA.md', 'docs/FINDINGS.md']) {
     if (!existsSync(join(root, p))) return { errors: [`${p} does not exist`], counts: {} };
@@ -204,6 +210,7 @@ export function checkRepo(root) {
     fileExists: (p) => !p.includes('..') && existsSync(join(root, p)),
     testSource,
   });
+  errors.push(...checkRunRecords(runsDir ?? join(root, RUNS_REL), now).map((e) => `${RUNS_REL}/${e}`));
   /** @type {Record<string, number>} */
   const counts = {};
   for (const s of parseFindings(findings).sections) counts[String(s.status)] = (counts[String(s.status)] ?? 0) + 1;

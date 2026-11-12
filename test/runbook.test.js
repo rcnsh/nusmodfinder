@@ -9,6 +9,8 @@
 //   every code upserted from the bundle with D1's full metadata, in batches of
 //   at most 1,000, deletions after, the mutation awaited, then verify with a
 //   values sample.
+// Phase 7 7C: steps 3-8 go through `npm run remote -- …`, and no step writes
+// .dev.vars.
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { runIngest } from '../scripts/ingest-core.mjs';
@@ -23,6 +25,7 @@ import fixtureUnscheduled from './fixtures/ng-unscheduled.json';
 import { hashEmbed } from './fakes.js';
 import { adminCall, fixture, seed } from './helpers.js';
 import { adminApi } from './ingest-support.js';
+import reference from '../docs/REFERENCE.md?raw';
 
 const MODEL = '@cf/baai/bge-small-en-v1.5';
 /** scripts/lib.mjs EMBEDDING_TEXT_VERSION. */
@@ -326,5 +329,24 @@ describe('runbook step 8: /admin/vectors and the standby run', () => {
     const r2 = await runStandby({ api: api(), bundle: right, deletes: [fixture.modules[0].code], sleep, now });
     expect(r2.status).toBe('refused');
     expect(fakes.vectorize.calls.filter((c) => c.method === 'upsert' || c.method === 'deleteByIds')).toEqual([]);
+  });
+});
+
+describe('Phase 7 7C: the runbook as written in docs/REFERENCE.md', () => {
+  const runbook = reference.slice(reference.indexOf('## Re-ingesting'), reference.indexOf('**What a run does.**'));
+
+  it('no line writes .dev.vars', () => {
+    expect(reference.length).toBeGreaterThan(10_000);
+    expect(reference).not.toMatch(/>{1,2}\s*\.dev\.vars/);
+    expect(reference).not.toMatch(/tee\s+(-a\s+)?\.dev\.vars/);
+  });
+
+  it('steps 4, 5 and 8 run through npm run remote, with no --url and no wrangler dev of their own', () => {
+    expect(runbook).toContain('npm run remote -- ingest');
+    expect(runbook).toContain('npm run remote -- verify --pre-deploy');
+    expect(runbook).toContain('npm run remote -- vectors standby');
+    expect(runbook).not.toMatch(/wrangler dev --remote --port/);
+    expect(runbook).not.toMatch(/--url http:\/\/localhost/);
+    expect(runbook).not.toMatch(/export INGEST_SECRET/);
   });
 });

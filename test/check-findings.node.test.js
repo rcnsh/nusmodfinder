@@ -1,8 +1,12 @@
 // @ts-check
 // scripts/check-findings.mjs: a malformed FINDINGS.md must fail, and the
 // committed one must pass.
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { startRun } from '../scripts/run-record.mjs';
 import { checkFindings, checkRepo, evidenceRefs, parseIds, testTitles } from '../scripts/check-findings.mjs';
 
 const IDS = Array.from({ length: 35 }, (_, i) => `X${i + 1}`);
@@ -107,5 +111,25 @@ describe('check-findings', () => {
     const { errors, counts } = checkRepo(fileURLToPath(new URL('..', import.meta.url)));
     expect(errors).toEqual([]);
     expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(35);
+  });
+
+  it('Phase 7 7C: validates the run records in docs/evidence/ops/runs/ (schema, a past ISO time, an outcome), and keeps its errors for the 35 IDs as they were', () => {
+    const root = fileURLToPath(new URL('..', import.meta.url));
+    const runsDir = mkdtempSync(join(tmpdir(), 'vnm-findings-runs-'));
+    try {
+      const run = startRun('verify', { dir: runsDir, now: () => new Date('2026-11-12T10:15:30Z'), random: () => 'abcd' });
+      run.finish('ok', { exitCode: 0 });
+      expect(checkRepo(root, { runsDir, now: new Date('2026-11-12T11:00:00Z') }).errors).toEqual([]);
+      writeFileSync(join(runsDir, '20261112T101531Z-verify-0001.json'), JSON.stringify({ schema: 'vnm-run/1', time: '2026-11-12T10:15:31Z', script: 'verify' }));
+      writeFileSync(join(runsDir, '20271112T101531Z-verify-0002.json'), JSON.stringify({ ...JSON.parse(JSON.stringify({ schema: 'vnm-run/1' })), time: '2027-11-12T10:15:31Z', script: 'verify' }));
+      const { errors } = checkRepo(root, { runsDir, now: new Date('2026-11-12T11:00:00Z') });
+      expect(errors).toEqual(expect.arrayContaining([
+        expect.stringMatching(/20261112T101531Z-verify-0001\.json: .*outcome/),
+        expect.stringMatching(/20271112T101531Z-verify-0002\.json: .*in the future/),
+      ]));
+      expect(errors.every((e) => e.startsWith('docs/evidence/ops/runs/'))).toBe(true);
+    } finally {
+      rmSync(runsDir, { recursive: true, force: true });
+    }
   });
 });
