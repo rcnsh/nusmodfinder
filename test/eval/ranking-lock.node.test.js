@@ -82,7 +82,7 @@ const readLock = async (dir, rev = 'HEAD') => JSON.parse(git(dir, ['show', `${re
 
 /**
  * Lists in the lock's shape from a compact spec: set -> mode -> id -> [status, codes].
- * @param {Record<string, Record<string, Record<string, [number, string[]]>>>} spec
+ * @param {Record<string, Record<string, Record<string, any[]>>>} spec
  */
 function listsOf(spec) {
   /** @type {Record<string, Record<string, Record<string, string>>>} */
@@ -90,7 +90,7 @@ function listsOf(spec) {
   for (const [set, modes] of Object.entries(spec)) {
     out[set] = {};
     for (const [mode, queries] of Object.entries(modes)) {
-      out[set][mode] = Object.fromEntries(Object.entries(queries).map(([id, [status, codes]]) => [id, queryHash(status, codes)]));
+      out[set][mode] = Object.fromEntries(Object.entries(queries).map(([id, [status, codes]]) => [id, queryHash(Number(status), /** @type {string[]} */ (codes))]));
     }
   }
   return out;
@@ -293,10 +293,15 @@ describe('the ranking lock gate: evidence for a ranking change', () => {
   it('refuses a row an earlier lock already cited', async () => {
     const { dir } = await withBootstrap();
     await rankingChange(dir, { kind: 'holdout-pass', ref: '1' }, { 'eval/holdout-ledger.md': `${await ledger(dir)}${ledgerRow()}` });
+    // A later change, with evidence of its own, so the base lock cites something else.
+    const second = edited((s) => { s.dev.filtered['d-002'] = [200, []]; });
+    await commit(dir, { 'src/search.js': 'export const RRF_K = 98;\n', 'eval/count-log.md': `${await countLog(dir)}${countRow('group-first')}` }, 'second change');
+    await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: second, evidence: { kind: 'no-look', ref: '1' } }) }, 'second lock');
     const base = git(dir, ['rev-parse', 'HEAD']);
+    const third = edited((s) => { s.dev.unfiltered['d-002'] = [200, []]; });
     await commit(dir, { 'src/search.js': 'export const RRF_K = 99;\n' }, 'another change');
-    await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: edited((s) => { s.dev.filtered['d-002'] = [200, []]; }), evidence: { kind: 'holdout-pass', ref: '1' } }) }, 'reuse');
-    const r = await gate(dir, base, recomputing(edited((s) => { s.dev.filtered['d-002'] = [200, []]; })));
+    await commit(dir, { [LOCK_PATH]: lockText(dir, { lists: third, evidence: { kind: 'holdout-pass', ref: '1' } }) }, 'reuse');
+    const r = await gate(dir, base, recomputing(third));
     expect(r.ok).toBe(false);
     expect(r.problems.join('\n')).toMatch(/already cited/);
   });

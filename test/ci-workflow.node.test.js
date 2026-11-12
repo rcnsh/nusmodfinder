@@ -64,7 +64,8 @@ describe('every CI job always starts (Phase 7 7A)', () => {
       const run = text.match(/^ {6}RUN: \$\{\{ needs\.changes\.outputs\.(\w+) != 'false' \}\}$/m);
       expect(run, `${name} has no RUN from a changes output`).not.toBeNull();
       const all = steps(text);
-      const gated = all.filter((s) => /^\s+if: (env\.RUN == 'true'|.*env\.RUN == 'true')/m.test(s));
+      // A step's `if:` is its first line (`- if: …`) or an indented key.
+      const gated = all.filter((s) => /^\s*if: .*\benv\.RUN == 'true'/m.test(s));
       // Every step but the one that says what it decided waits on RUN.
       expect(gated.length, name).toBe(all.length - 1);
       expect(all.filter((s) => !gated.includes(s))[0], name).toMatch(/RUN/);

@@ -17,8 +17,15 @@
 //
 // Exits non-zero on any difference. Usage: npm run db:rebuild-check
 // `-- --update` rewrites test/fixtures/schema-0006.json from build 3 instead.
+//
+// `-- --compare-remote <file-or-dir>` (Phase 7 7A) builds nothing: it diffs a production capture
+// against the full-chain snapshot, offline. The capture is what `wrangler d1 execute … --remote
+// --command … --json` printed, one file per query, in a directory (`pragma.json`, `master.json`,
+// `index_xinfo.json`, `d1_migrations.json`, as in docs/evidence/phase7/schema/), or one JSON file
+// holding those four sections. Every section of the snapshot is compared, and the migrations as a
+// set against the files in migrations/: production applied 0008 before 0007.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -229,7 +236,74 @@ function snapshot(persistTo) {
   };
 }
 
+/**
+ * The four query outputs of a production capture, from a directory of wrangler `--json` files
+ * (one per query) or one file holding all four. Each section stays as read (`unwrap` takes the
+ * envelope or bare rows).
+ * @param {string} path
+ * @returns {Promise<{ pragma: unknown, master: unknown, indexXinfo: unknown, migrations: unknown }>}
+ */
+export async function loadCapture(path) {
+  if ((await stat(path)).isDirectory()) {
+    const read = async (/** @type {string} */ f) => JSON.parse(await readFile(join(path, f), 'utf8'));
+    return { pragma: await read('pragma.json'), master: await read('master.json'), indexXinfo: await read('index_xinfo.json'), migrations: await read('d1_migrations.json') };
+  }
+  const all = JSON.parse(await readFile(path, 'utf8'));
+  return {
+    pragma: all.pragma,
+    master: all.master,
+    indexXinfo: all.indexXinfo ?? all.index_xinfo,
+    migrations: all.migrations ?? all.d1_migrations,
+  };
+}
+
+/**
+ * Every difference between a production capture and the full-chain snapshot: the pragma rows,
+ * sqlite_master and index_xinfo (normalised as the local builds are), and the d1_migrations
+ * names compared as a set with the migration files ("-" missing from production, "+" extra).
+ * @param {{ pragma: unknown, master: unknown, indexXinfo: unknown, migrations: unknown }} capture
+ * @param {{ expected: { pragma: string[], master: string[], indexXinfo: string[] }, migrations: string[] }} want
+ * @returns {string[]}
+ */
+export function compareRemote(capture, want) {
+  const names = unwrap(capture.migrations).map((r) => String(r.name));
+  return [
+    ...diffRows('pragma', want.expected.pragma, normalisePragmaRows(unwrap(capture.pragma))),
+    ...diffRows('sqlite_master', want.expected.master, normaliseMaster(unwrap(capture.master))),
+    ...diffRows('index_xinfo', want.expected.indexXinfo, normaliseIndexXinfo(unwrap(capture.indexXinfo))),
+    ...diffRows('d1_migrations', [...want.migrations].sort(), names.sort()),
+  ];
+}
+
+/** @param {string} path */
+async function compareRemoteMain(path) {
+  const capture = await loadCapture(path);
+  const expected = JSON.parse(await readFile(EXPECTED_SNAPSHOT, 'utf8'));
+  const migrations = (await readdir(MIGRATIONS_DIR)).filter((f) => f.endsWith('.sql')).sort();
+  const applied = unwrap(capture.migrations).map((r) => String(r.name));
+  console.log(`production applied, in order: ${applied.join(', ')}`);
+  const diff = compareRemote(capture, { expected, migrations });
+  const counts = {
+    pragma: unwrap(capture.pragma).length, master: unwrap(capture.master).length,
+    indexXinfo: unwrap(capture.indexXinfo).length, migrations: applied.length,
+  };
+  console.log(`capture rows: pragma ${counts.pragma}, sqlite_master ${counts.master}, index_xinfo ${counts.indexXinfo}, d1_migrations ${counts.migrations}`);
+  console.log(`snapshot: pragma ${expected.pragma.length}, sqlite_master ${expected.master.length}, index_xinfo ${expected.indexXinfo.length}; migrations/ ${migrations.length} files`);
+  if (diff.length) {
+    console.error(`\nproduction differs from the full-chain snapshot (${diff.length}):`);
+    for (const d of diff) console.error(`  ${d}`);
+    process.exit(1);
+  }
+  console.log(`production equals the full-chain snapshot (${EXPECTED_SNAPSHOT.slice(ROOT.length)}) in every section, with the same set of ${migrations.length} migrations`);
+}
+
 async function main() {
+  const at = process.argv.indexOf('--compare-remote');
+  if (at >= 0) {
+    const path = process.argv[at + 1];
+    if (!path) throw new Error('--compare-remote needs a capture file or directory');
+    return compareRemoteMain(path);
+  }
   const update = process.argv.includes('--update');
   const problems = [];
 

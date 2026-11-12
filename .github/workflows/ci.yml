@@ -1,27 +1,54 @@
 name: CI
 
+# Phase 7 7A: every job always starts, so no change can merge untested and a red main is seen.
+# `check` and `eval-gate` never skip. The heavy jobs skip by steps, on scripts/ci-changes.mjs's
+# outputs (a PR diffs against its base, a push to main against main's last green CI run), and run
+# in full when `changes` fails. test/ci-workflow.node.test.js holds this shape.
 on:
   push:
     branches: [main]
-    paths-ignore: ['docs/*.md', 'docs/decisions/**', '*.md']
   pull_request:
     # Draft PRs run nothing; CI starts when the PR is marked ready.
     types: [opened, synchronize, reopened, ready_for_review]
-    paths-ignore: ['docs/*.md', 'docs/decisions/**', '*.md']
   workflow_dispatch:
 
 permissions:
   contents: read
+  # ci-changes.mjs and eval-gate list this workflow's runs to find main's last green commit.
+  actions: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  # Superseded PR pushes are cancelled; runs on main always finish.
+  # PRs cancel superseded runs; runs on main are grouped per sha, so none cancels another.
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || format('{0}-{1}', github.ref, github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   WRANGLER_SEND_METRICS: 'false'
 
 jobs:
+  changes:
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+      ui: ${{ steps.diff.outputs.ui }}
+      grid: ${{ steps.diff.outputs.grid }}
+      rollover: ${{ steps.diff.outputs.rollover }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Which heavy jobs does this change need?
+        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/ci-changes.mjs
+
   check:
     if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
@@ -49,12 +76,15 @@ jobs:
       - name: Migrations rebuild the production schema
         run: npm run db:rebuild-check
 
-  full-corpus:
+  # Phase 7 7A: the ranking lock (eval/ranking-lock.json, docs/REFERENCE.md "The ranking lock").
+  # The fast path needs only git and Node; off it, the eval runner recomputes the open-set lists
+  # (dev filtered, `--strip ng` and `--unfiltered` on the pinned corpus, the fixture on its own)
+  # from release assets, with no Cloudflare call.
+  eval-gate:
     if: github.event.pull_request.draft != true
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     env:
-      FULL_CORPUS: '1'
       PINNED_RELEASE: data-2026-2027-20260904
       MODULE_INFO: .data/2026-2027-moduleInfo.json
       MODULE_INFO_SHA256: 2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1
@@ -62,33 +92,34 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      # The lexical brute-force grid (~12 min of this job) runs in full only
-      # when code it covers changes, or on a manual run; otherwise a fixed
-      # 1-in-10 sample (test/full/lexical.test.js, vitest.config.mjs).
-      - name: Full or sampled lexical grid
-        env:
-          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
-        run: |
-          grid=full
-          if [ "$GITHUB_EVENT_NAME" != workflow_dispatch ] && git cat-file -e "$BASE^{commit}" 2>/dev/null \
-            && git diff --quiet "$BASE" HEAD -- src migrations scripts test/full vitest.config.mjs test/wrangler.test.jsonc package-lock.json; then
-            grid=sample
-          fi
-          echo "lexical grid: $grid"
-          echo "LEXICAL_GRID=$grid" >> "$GITHUB_ENV"
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
+      - name: The base (a PR's base, else main's last green CI run)
+        id: base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/ci-changes.mjs --base-only
+      - name: Fast path (the lock and the eval's inputs unchanged)
+        id: fast
+        run: npm run eval:lock -- --check --fast-only --base "${{ steps.base.outputs.base }}"
+      - uses: actions/setup-node@v7
+        if: steps.fast.outputs.fast != 'true'
+        with:
+          node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+      - if: steps.fast.outputs.fast != 'true'
+        run: npm ci
       - name: Restore pinned corpus
+        if: steps.fast.outputs.fast != 'true'
         id: corpus
         uses: actions/cache@v6
         with:
           path: ${{ env.MODULE_INFO }}
           key: corpus-${{ env.MODULE_INFO_SHA256 }}
       - name: Download pinned corpus from the release (never api.nusmods.com)
-        if: steps.corpus.outputs.cache-hit != 'true'
+        if: steps.fast.outputs.fast != 'true' && steps.corpus.outputs.cache-hit != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -97,24 +128,90 @@ jobs:
           mkdir -p .data
           gunzip -c "$dl/2026-2027-moduleInfo.json.gz" > "$MODULE_INFO"
       - name: Verify raw sha256
+        if: steps.fast.outputs.fast != 'true'
+        run: echo "$MODULE_INFO_SHA256  $MODULE_INFO" | sha256sum -c -
+      - name: Restore the corpus embeddings
+        if: steps.fast.outputs.fast != 'true'
+        uses: actions/cache@v6
+        with:
+          path: .data/emb
+          key: emb-${{ hashFiles('eval/embeddings.json') }}
+      - name: Recompute the lists and check the lock (the corpus embeddings come from their release, sha-checked)
+        if: steps.fast.outputs.fast != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run eval:lock -- --check --base "${{ steps.base.outputs.base }}"
+
+  full-corpus:
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # A missing output (a failed `changes`) is not 'false', so the job runs in full.
+      RUN: ${{ needs.changes.outputs.code != 'false' }}
+      # The lexical brute-force grid (~12 min of this job) runs in full only when code it covers
+      # changes, or on a full run; otherwise a fixed 1-in-10 sample (test/full/lexical.test.js,
+      # vitest.config.mjs).
+      LEXICAL_GRID: ${{ needs.changes.outputs.grid != 'false' && 'full' || 'sample' }}
+      FULL_CORPUS: '1'
+      PINNED_RELEASE: data-2026-2027-20260904
+      MODULE_INFO: .data/2026-2027-moduleInfo.json
+      MODULE_INFO_SHA256: 2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1
+    steps:
+      - name: Does the change touch code? (RUN=${{ env.RUN }}, lexical grid ${{ env.LEXICAL_GRID }})
+        run: echo "full-corpus runs: $RUN; lexical grid: $LEXICAL_GRID"
+      - uses: actions/checkout@v7
+        if: env.RUN == 'true'
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        if: env.RUN == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: env.RUN == 'true'
+        run: npm ci
+      - name: Restore pinned corpus
+        if: env.RUN == 'true'
+        id: corpus
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.MODULE_INFO }}
+          key: corpus-${{ env.MODULE_INFO_SHA256 }}
+      - name: Download pinned corpus from the release (never api.nusmods.com)
+        if: env.RUN == 'true' && steps.corpus.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dl="$(mktemp -d)"
+          gh release download "$PINNED_RELEASE" --repo "$GITHUB_REPOSITORY" --pattern '2026-2027-moduleInfo.json.gz' --dir "$dl"
+          mkdir -p .data
+          gunzip -c "$dl/2026-2027-moduleInfo.json.gz" > "$MODULE_INFO"
+      - name: Verify raw sha256
+        if: env.RUN == 'true'
         run: echo "$MODULE_INFO_SHA256  $MODULE_INFO" | sha256sum -c -
       # Phase 3 3-0 (B2-4): test/full searches the pinned vectors bundle, the
       # catalogue the eval scores. data/vectors.json names its release asset
       # and sha256; the fetch checks it, and FULL_CORPUS=1 makes a missing or
       # mismatched bundle fail the run (vitest.config.mjs).
       - name: Restore the pinned vectors bundle
+        if: env.RUN == 'true'
         id: vectors
         uses: actions/cache@v6
         with:
           path: .data/vectors
           key: vectors-${{ hashFiles('data/vectors.json') }}
       - name: Download the pinned vectors bundle from its release, sha-checked
+        if: env.RUN == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/vectors.mjs fetch --corpus pinned
       - name: Run test/full
+        if: env.RUN == 'true'
         run: npx vitest run test/full --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/full.json"
       - name: Fail if no full-corpus test ran
+        if: env.RUN == 'true'
         run: |
           node -e '
             const r = require(process.argv[1]);
@@ -125,29 +222,37 @@ jobs:
   # Phase 4 4E: SC1's path tests over the pinned corpus and bundle, in their
   # own job with their own timeout (docs/plans/phase4.md 4E, A2-5).
   sc1:
-    if: github.event.pull_request.draft != true
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      RUN: ${{ needs.changes.outputs.code != 'false' }}
       FULL_CORPUS: '1'
       PINNED_RELEASE: data-2026-2027-20260904
       MODULE_INFO: .data/2026-2027-moduleInfo.json
       MODULE_INFO_SHA256: 2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1
     steps:
+      - name: Does the change touch code? (RUN=${{ env.RUN }})
+        run: echo "sc1 runs: $RUN"
       - uses: actions/checkout@v7
+        if: env.RUN == 'true'
       - uses: actions/setup-node@v7
+        if: env.RUN == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+      - if: env.RUN == 'true'
+        run: npm ci
       - name: Restore pinned corpus
+        if: env.RUN == 'true'
         id: corpus
         uses: actions/cache@v6
         with:
           path: ${{ env.MODULE_INFO }}
           key: corpus-${{ env.MODULE_INFO_SHA256 }}
       - name: Download pinned corpus from the release (never api.nusmods.com)
-        if: steps.corpus.outputs.cache-hit != 'true'
+        if: env.RUN == 'true' && steps.corpus.outputs.cache-hit != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -156,20 +261,25 @@ jobs:
           mkdir -p .data
           gunzip -c "$dl/2026-2027-moduleInfo.json.gz" > "$MODULE_INFO"
       - name: Verify raw sha256
+        if: env.RUN == 'true'
         run: echo "$MODULE_INFO_SHA256  $MODULE_INFO" | sha256sum -c -
       - name: Restore the pinned vectors bundle
+        if: env.RUN == 'true'
         id: vectors
         uses: actions/cache@v6
         with:
           path: .data/vectors
           key: vectors-${{ hashFiles('data/vectors.json') }}
       - name: Download the pinned vectors bundle from its release, sha-checked
+        if: env.RUN == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/vectors.mjs fetch --corpus pinned
       - name: Run test/sc1
+        if: env.RUN == 'true'
         run: npx vitest run --project sc1 --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/sc1.json"
       - name: Fail if no SC1 test ran
+        if: env.RUN == 'true'
         run: |
           node -e '
             const r = require(process.argv[1]);
@@ -180,9 +290,10 @@ jobs:
   # Phase 5 5B: the page in Chromium and WebKit (Playwright, with axe) against
   # the local UI stack: scripts/ui-server.mjs runs `wrangler dev --local` on
   # test/wrangler.ui.jsonc (FakeAI, no remote binding) over a D1 seeded with
-  # the fixture. Like full-corpus's grid step, a diff decides whether it runs.
+  # the fixture. It runs when `changes` says the UI suite's paths changed.
   ui:
-    if: github.event.pull_request.draft != true
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true }}
     runs-on: ubuntu-latest
     # Playwright's own image carries Chromium, WebKit and their system libraries, so the job
     # installs nothing with apt: installing the browsers' system libraries hung the job to its timeout
@@ -198,36 +309,25 @@ jobs:
         project: [chromium, webkit]
     name: ui (${{ matrix.project }})
     timeout-minutes: 20
+    env:
+      RUN: ${{ needs.changes.outputs.ui != 'false' }}
     steps:
+      - name: Does the change touch anything the UI suite covers? (RUN=${{ env.RUN }})
+        run: echo "ui suite runs: $RUN"
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Does the change touch anything the UI suite covers?
-        id: diff
-        env:
-          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
-        run: |
-          run=true
-          if [ "$GITHUB_EVENT_NAME" != workflow_dispatch ] && git cat-file -e "$BASE^{commit}" 2>/dev/null \
-            && git diff --quiet "$BASE" HEAD -- public src test/ui test/fakes.js scripts/ui-server.mjs scripts/lib.mjs \
-              wrangler.jsonc test/wrangler.ui.jsonc playwright.config.mjs migrations test/fixtures data \
-              package.json package-lock.json .nvmrc .github/workflows/ci.yml; then
-            run=false
-          fi
-          echo "ui suite: $run"
-          echo "run=$run" >> "$GITHUB_OUTPUT"
+        if: env.RUN == 'true'
       - uses: actions/setup-node@v7
-        if: steps.diff.outputs.run == 'true'
+        if: env.RUN == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
-      - if: steps.diff.outputs.run == 'true'
+      - if: env.RUN == 'true'
         run: npm ci
       - name: UI suite (${{ matrix.project }})
-        if: steps.diff.outputs.run == 'true'
+        if: env.RUN == 'true'
         run: npm run test:ui -- --project=${{ matrix.project }}
       - name: Keep the traces of failed tests
-        if: failure() && steps.diff.outputs.run == 'true'
+        if: failure() && env.RUN == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: ui-test-results-${{ matrix.project }}

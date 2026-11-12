@@ -32,10 +32,12 @@ afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 const today = () => new Date().toISOString().slice(0, 10);
 const QUERIES = { schema: 'vnm-eval-queries/1', set: 'selftest', version: 'route-v1', queries: [{ id: 'q1', text: 'alpha' }, { id: 'q2', text: 'beta' }] };
 const sha = createHash('sha256').update(JSON.stringify(QUERIES.queries)).digest('hex');
+// --by-group compares the runs' corpus with the one eval/groups.json was built from.
+const corpusSha = JSON.parse(await readFile(join(REPO, 'eval', 'groups.json'), 'utf8')).corpus.moduleInfoSha256;
 /** @param {string} variant @param {Record<string, string[]>} lists */
 const run = (variant, lists) => ({
   schema: 'vnm-eval-run/1', variant, set: 'selftest', ranker: { ref: 'x', sha: 'e'.repeat(40) },
-  corpus: { moduleInfoSha256: 'c'.repeat(64) },
+  corpus: { moduleInfoSha256: corpusSha },
   queries: { version: QUERIES.version, sha256: sha, count: 2 },
   config: { mode: 'hybrid', filters: true },
   results: Object.fromEntries(Object.entries(lists).map(([id, codes]) => [id, { status: 200, codes }])),

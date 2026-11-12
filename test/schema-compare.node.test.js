@@ -34,7 +34,7 @@ function capture() {
   };
 }
 
-const compare = (/** @type {ReturnType<typeof capture>} */ c) => compareRemote(c, { expected, migrations });
+const compare = (/** @type {any} */ c) => compareRemote(c, { expected, migrations });
 
 describe('--compare-remote', () => {
   it('matches a capture equal to the full chain, with 0008 applied before 0007 (migrations compare as a set)', () => {
