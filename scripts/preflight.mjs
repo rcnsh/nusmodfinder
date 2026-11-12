@@ -181,7 +181,10 @@ export async function runPreflight(deps) {
         : states.filter((s) => s.state !== 'green').map((s) => s.message).join(' '));
     } },
     { name: 'vars', run: async () => {
-      const extra = Object.keys(await deps.vars()).filter((k) => !ALLOWED_VARS.includes(k));
+      /** @type {Record<string, unknown>} */
+      let vars;
+      try { vars = await deps.vars(); } catch (err) { return answer(false, `could not read wrangler.jsonc's vars, so what ships is unknown: ${/** @type {Error} */ (err).message}`); }
+      const extra = Object.keys(vars).filter((k) => !ALLOWED_VARS.includes(k));
       return extra.length ? answer(false, `wrangler.jsonc vars hold ${extra.join(', ')}; only ${ALLOWED_VARS.join(', ')} may ship (test-only switches never deploy).`)
         : answer(true, `only ${ALLOWED_VARS.join(', ')}`);
     } },

@@ -38,6 +38,7 @@ import { createAndPushTag, pushCommand, tagArgs, tagName } from './deploy-tag.mj
 import { readBundledCatalogue } from './catalogue-check.mjs';
 import { GUARD_CHECKS, runGuard } from './guard.mjs';
 import { ALLOWED_VARS, STARTUP_PROFILE, runPreflight } from './preflight.mjs';
+import { parseJsonc } from './jsonc.mjs';
 import { startRun } from './run-record.mjs';
 
 export { ALLOWED_VARS, STARTUP_PROFILE };
@@ -54,14 +55,19 @@ const WORKER_NAME = 'nusmodfinder';
 const SIGNAL_CODES = /** @type {const} */ ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129 });
 
 /**
- * The `vars` object of wrangler.jsonc (flat, so the first `{...}` after the key is all of it).
+ * The `vars` object of wrangler.jsonc, read as JSONC (scripts/jsonc.mjs), so an object-valued var
+ * is one key like any other (red team L-2). No `vars` is no vars; a file or a `vars` it can't read
+ * throws, so the preflight's check fails rather than passing blind.
  * @param {string} [path]
  * @returns {Promise<Record<string, unknown>>}
  */
 export async function wranglerVars(path = join(ROOT, 'wrangler.jsonc')) {
-  const text = await readFile(path, 'utf8');
-  const m = /"vars"\s*:\s*(\{[^{}]*\})/.exec(text);
-  return m ? JSON.parse(m[1]) : {};
+  const config = parseJsonc(await readFile(path, 'utf8'), 'wrangler.jsonc');
+  if (!config || typeof config !== 'object' || Array.isArray(config)) throw new Error('wrangler.jsonc is not an object');
+  const vars = /** @type {Record<string, unknown>} */ (config).vars;
+  if (vars === undefined) return {};
+  if (!vars || typeof vars !== 'object' || Array.isArray(vars)) throw new Error(`wrangler.jsonc's vars is not an object (${Array.isArray(vars) ? 'an array' : typeof vars})`);
+  return /** @type {Record<string, unknown>} */ (vars);
 }
 
 /**
