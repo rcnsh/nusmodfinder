@@ -53,7 +53,7 @@ describe('data/ng-unscheduled.json', () => {
   });
 
   it('holds some codes, every one in data/catalogue-codes.json now that it follows the same corpus (Phase 7 7D)', () => {
-    // How many follows NUSMods (40 at prod-2026-2027-20261104, 43 at -20261112), so no count is pinned.
+    // How many follows NUSMods (40 in the first 7D corpus, 43 after the first refresh), so no count is pinned.
     expect(production.count).toBeGreaterThan(0);
     const catalogue = new Set(read('data/catalogue-codes.json').codes);
     expect(production.modules.map((e) => e.code).filter((c) => !catalogue.has(c))).toEqual([]);
