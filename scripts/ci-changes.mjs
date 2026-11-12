@@ -21,9 +21,9 @@ import { fileURLToPath } from 'node:url';
 
 /** A change to the decision itself. */
 const SELF = ['.github/workflows/ci.yml', 'scripts/ci-changes.mjs'];
-/** What the UI suite covers (the ui job's former diff step). */
+/** What the UI suite covers: the ui job's former diff step, plus test/web and test/sc1, which test/ui imports. */
 const UI = [
-  'public', 'src', 'test/ui', 'test/fakes.js', 'scripts/ui-server.mjs', 'scripts/lib.mjs', 'wrangler.jsonc',
+  'public', 'src', 'test/ui', 'test/web', 'test/sc1', 'test/fakes.js', 'scripts/ui-server.mjs', 'scripts/lib.mjs', 'wrangler.jsonc',
   'test/wrangler.ui.jsonc', 'playwright.config.mjs', 'migrations', 'test/fixtures', 'data', 'package.json',
   'package-lock.json', '.nvmrc',
 ];
@@ -104,6 +104,18 @@ function run(cmd, args) {
   return r.stdout;
 }
 
+/**
+ * The files changed between `base` and HEAD. `--no-renames`: a moved file counts at both its old
+ * and its new path, so moving a file out of a suite's paths still runs that suite.
+ * @param {string} base
+ * @param {string} [cwd]
+ */
+export function changedFiles(base, cwd) {
+  const r = spawnSync('git', ['diff', '--name-only', '--no-renames', base, 'HEAD'], { cwd, encoding: 'utf8', maxBuffer: 1 << 26 });
+  if (r.status !== 0) throw new Error(`git diff exited ${r.status ?? r.signal}: ${(r.stderr || '').trim().split('\n').pop()}`);
+  return r.stdout.split('\n').filter(Boolean);
+}
+
 /** @returns {Inputs} */
 function fromEnvironment() {
   return {
@@ -117,7 +129,7 @@ function fromEnvironment() {
     },
     reachable: (sha) => spawnSync('git', ['cat-file', '-e', `${sha}^{commit}`]).status === 0
       && spawnSync('git', ['merge-base', '--is-ancestor', sha, 'HEAD']).status === 0,
-    diff: (base) => run('git', ['diff', '--name-only', base, 'HEAD']).split('\n').filter(Boolean),
+    diff: (base) => changedFiles(base),
   };
 }
 

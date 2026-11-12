@@ -1,8 +1,12 @@
 // @ts-check
 // Phase 7 7A: scripts/ci-changes.mjs, the one diff rule CI's heavy jobs skip by. Every case is a
-// table row over injected git and GitHub answers; nothing here calls git or GitHub.
+// table row over injected git and GitHub answers; nothing here calls GitHub, and git only in a temp repo.
+import { spawnSync } from 'node:child_process';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { changes, decide, resolveBase } from '../scripts/ci-changes.mjs';
+import { changedFiles, changes, decide, resolveBase } from '../scripts/ci-changes.mjs';
 
 const ALL = { code: true, ui: true, grid: true, rollover: true };
 const NONE = { code: false, ui: false, grid: false, rollover: false };
@@ -14,6 +18,8 @@ describe('decide: which heavy jobs a diff needs', () => {
     ['a root markdown diff', ['README.md', 'EVAL.md'], NONE],
     ['a public/ diff', ['public/app.js'], { code: true, ui: true, grid: false, rollover: true }],
     ['a data/ diff', ['data/ng-courses-2026-2027.json'], { code: true, ui: true, grid: false, rollover: true }],
+    ['a file the UI suite imports from test/web', ['test/web/rfc4180.node.mjs'], { code: true, ui: true, grid: false, rollover: true }],
+    ['the SC1 oracle, which the UI suite imports', ['test/sc1/oracle.node.mjs'], { code: true, ui: true, grid: false, rollover: true }],
     ['a src/ diff', ['src/search.js'], ALL],
     ['a test/full diff', ['test/full/lexical.test.js'], { code: true, ui: false, grid: true, rollover: true }],
     ['an eval/ diff', ['eval/lib/sets.mjs'], { code: true, ui: false, grid: false, rollover: true }],
@@ -70,5 +76,35 @@ describe('changes: the base, and when everything runs', () => {
     expect(resolveBase(inputs())).toEqual({ base: 'b'.repeat(40) });
     expect(resolveBase(inputs({ event: 'push', prBase: undefined, listGreen: () => ['3'.repeat(40)] }))).toEqual({ base: '3'.repeat(40) });
     expect(resolveBase(inputs({ event: 'push', prBase: undefined, listGreen: () => [] }))).toMatchObject({ base: null, reason: expect.stringMatching(/no green/) });
+  });
+});
+
+describe('changedFiles', () => {
+  it('names a moved file at its old path too, so moving code out of a suite\'s paths still runs it', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'vnm-ci-changes-'));
+    try {
+      const git = (/** @type {string[]} */ ...args) => {
+        const r = spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
+        if (r.status !== 0) throw new Error(r.stderr);
+        return r.stdout.trim();
+      };
+      git('init', '-q', '-b', 'main');
+      git('config', 'user.email', 'test@example.invalid');
+      git('config', 'user.name', 'test');
+      git('config', 'commit.gpgsign', 'false');
+      await mkdir(join(dir, 'src'), { recursive: true });
+      await writeFile(join(dir, 'src/search.js'), `${'export const line = 1;\n'.repeat(20)}`);
+      git('add', '-A');
+      git('commit', '-q', '-m', 'base');
+      const base = git('rev-parse', 'HEAD');
+      await mkdir(join(dir, 'docs'), { recursive: true });
+      git('mv', 'src/search.js', 'docs/search.js');
+      git('commit', '-q', '-m', 'move');
+      const files = changedFiles(base, dir);
+      expect(files.sort()).toEqual(['docs/search.js', 'src/search.js']);
+      expect(decide(files)).toMatchObject({ code: true, ui: true, grid: true });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });
