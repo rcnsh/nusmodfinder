@@ -16,3 +16,10 @@ exists, entries are written by hand.
 | 01:28:00–01:28:03 | GraphQL Analytics (`requests.tsv` 131): account-wide `workersInvocationsAdaptive` and `d1AnalyticsAdaptiveGroups` for 2026-11-01 to 2026-11-12 01:28 | 1 call | 1 call; see `measure.md` |
 
 Headroom: about 7k rows read and 11 API calls. The rule holds by orders of magnitude.
+
+## 2026-11-12: field names for 7F (reads only)
+
+| Time | Step | Estimate | Actual |
+|---|---|---|---|
+| 02:31:45 | GraphQL Analytics, Wrangler's OAuth login: the `account` type's dataset names (introspection) | 1 call | 1 call; Workers AI is `aiInferenceAdaptiveGroups` |
+| 02:31:57 | GraphQL Analytics: `aiInferenceAdaptiveGroups` sum and dimension fields (introspection) | 1 call | 1 call; sums include `totalNeurons`, dimensions include `date` and `modelId` |
