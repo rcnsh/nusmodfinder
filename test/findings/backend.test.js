@@ -448,13 +448,13 @@ describe('O3', () => {
     await seed({ fakes, facets: true });
     const stored = await env.DB.prepare("SELECT value FROM meta WHERE key = 'ng_list'").first('value');
     expect(JSON.parse(String(stored))).toEqual(NG_LIST);
-    expect(NG_LIST).toMatchObject({ updatedAsAt: '01 Sep 2026', source: expect.stringContaining('Non-Graduating') });
+    expect(NG_LIST).toMatchObject({ updatedAsAt: expect.stringMatching(/^\d{2} [A-Z][a-z]{2} \d{4}$/), source: expect.stringContaining('Non-Graduating') });
     expect((await callJson('/facets')).body.ng.updatedAsAt).toBe(NG_LIST.updatedAsAt);
 
     // A new extract with a new date reaches /facets through the same route, with no code change.
-    const res = await adminCall('/admin/facets', fakes, { ngList: { ...NG_LIST, updatedAsAt: '15 Jan 2027' } });
+    const res = await adminCall('/admin/facets', fakes, { ngList: { ...NG_LIST, updatedAsAt: '15 Jan 1999' } });
     expect(res.status).toBe(200);
-    expect((await callJson('/facets')).body.ng.updatedAsAt).toBe('15 Jan 2027');
+    expect((await callJson('/facets')).body.ng.updatedAsAt).toBe('15 Jan 1999');
     expect((await adminCall('/admin/facets', fakes, { ngList: { updatedAsAt: 7 } })).status).toBe(400);
     // An ingest without the NG list (facetsPayload sends an explicit empty list) clears the old date.
     expect((await adminCall('/admin/facets', fakes, { ngList: { updatedAsAt: null, source: null, count: 0 } })).status).toBe(200);

@@ -4,11 +4,13 @@
 // rate limiter, with remoteBindings off, so nothing can reach a metered
 // Cloudflare service. Fakes for those bindings live in test/fakes.js.
 import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-plugin';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
+import { pinnedCatalogueOnlyPath } from './scripts/build-3b-data.mjs';
+import { productionCorpus } from './scripts/corpus-manifest.mjs';
 import { pinnedGroupsPath } from './scripts/build-groups.mjs';
 import { pinnedNgUnscheduledPath } from './scripts/build-ng-unscheduled.mjs';
 import { pinnedVocabularyPath } from './scripts/build-vocabulary.mjs';
@@ -27,19 +29,59 @@ async function fullCorpus() {
   if (!required && !existsSync(MODULE_INFO_PATH)) return null;
   try {
     const c = await loadPinnedCorpus();
-    const offered = c.records.filter((r) => (r.semesterData ?? []).length > 0).map((r) => String(r.moduleCode));
-    return {
-      acadYear: c.acadYear,
-      moduleInfoSha256: c.moduleInfoSha256,
-      recordCount: c.records.length,
-      offeredCodes: offered,
-      modules: c.modules,
-      skipped: c.skipped,
-      ng: c.ng,
-    };
+    return asFullCorpus({ ...c, moduleInfoSha256: c.moduleInfoSha256 });
   } catch (err) {
     if (required) throw err;
     console.warn(`full corpus unavailable, test/full will skip: ${/** @type {Error} */ (err).message}`);
+    return null;
+  }
+}
+
+/**
+ * What a corpus project is given as `corpus`.
+ * @param {{ acadYear: string, moduleInfoSha256: string, records: any[], modules: NormalisedModule[], skipped: { code: string, why: string }[],
+ *   ng: FullCorpus['ng'] }} c
+ * @returns {FullCorpus}
+ */
+function asFullCorpus(c) {
+  const names = (/** @type {'department' | 'faculty'} */ k) => [...new Set(c.records.map((r) => r[k]).filter((v) => typeof v === 'string'))].sort();
+  return {
+    acadYear: c.acadYear,
+    moduleInfoSha256: c.moduleInfoSha256,
+    recordCount: c.records.length,
+    offeredCodes: c.records.filter((r) => (r.semesterData ?? []).length > 0).map((r) => String(r.moduleCode)),
+    modules: c.modules,
+    skipped: c.skipped,
+    ng: c.ng,
+    departments: names('department'),
+    faculties: names('faculty'),
+  };
+}
+
+/**
+ * Phase 7 7D, CI on the live year: what the sc1 and sc1-node projects search, `current`
+ * (data/corpus.json, restored by `npm run corpus -- restore`) normalised with HEAD's NG files, and
+ * the production bundle, sha-checked. With PRODUCTION_CORPUS=1 (set only by the sc1 CI job, after
+ * the restore and `node scripts/vectors.mjs fetch --corpus production`) a missing or mismatched
+ * one fails the run here; otherwise both are null and those projects skip.
+ * @returns {Promise<{ corpus: FullCorpus, bundle: string } | null>}
+ */
+async function productionData() {
+  const required = process.env.PRODUCTION_CORPUS === '1';
+  try {
+    const c = await productionCorpus();
+    const entry = (await readVectorsManifest()).bundles.production;
+    if (!entry) throw new Error('data/vectors.json records no production bundle');
+    const path = localPath(entry);
+    if (!existsSync(path)) throw new Error(`no production bundle at ${path}: node scripts/vectors.mjs fetch --corpus production`);
+    await loadCheckedBundle(entry, path);
+    const ngJson = JSON.parse(readFileSync(new URL(`./data/ng-courses-${c.acadYear}.json`, import.meta.url), 'utf8'));
+    return {
+      corpus: asFullCorpus({ ...c, moduleInfoSha256: c.entry.sha256, ng: { updatedAsAt: ngJson.updatedAsAt ?? null, semesters: ngJson.semesters ?? {} } }),
+      bundle: await writeShim(path),
+    };
+  } catch (err) {
+    if (required) throw err;
     return null;
   }
 }
@@ -90,6 +132,23 @@ const groupsAlias = (path) => ({ find: 'groups-data', replacement: path });
 const FIXTURE_NG_UNSCHEDULED = fileURLToPath(new URL('./test/fixtures/ng-unscheduled.json', import.meta.url));
 /** 6A's import in src/ng-unscheduled.js (the bare name), pointed at the file of the corpus the tests search. @param {string} path */
 const ngUnscheduledAlias = (path) => ({ find: 'ng-unscheduled-data', replacement: path });
+/**
+ * Phase 7 7D: src/intent-data.js's catalogue codes and prefixes (bare names), the files of the
+ * corpus a project searches: data/pinned/ (the pinned corpus, from which the fixture is drawn) or
+ * data/ (`current`, what production ships). `catalogue-only-data` is what the corpus tests seed
+ * D1's catalogue_only from.
+ * @param {'pinned' | 'production'} corpus
+ * @param {string} [catalogueOnly]
+ */
+const catalogueAliases = (corpus, catalogueOnly) => {
+  const dir = corpus === 'pinned' ? './data/pinned/' : './data/';
+  return [
+    { find: 'catalogue-codes-data', replacement: fileURLToPath(new URL(`${dir}catalogue-codes.json`, import.meta.url)) },
+    { find: 'prefixes-data', replacement: fileURLToPath(new URL(`${dir}prefixes.json`, import.meta.url)) },
+    ...(catalogueOnly ? [{ find: 'catalogue-only-data', replacement: catalogueOnly }] : []),
+  ];
+};
+const PRODUCTION_CATALOGUE_ONLY = fileURLToPath(new URL('./data/catalogue-only.json', import.meta.url));
 
 // Files named *.node.test.js run in plain Node instead of workerd: they cover
 // Node-side code (scripts/) and read repository files, neither of which the
@@ -111,13 +170,19 @@ export default defineConfig(async () => {
   const fullGroups = fullCorpusData ? await pinnedGroupsPath() : FIXTURE_GROUPS;
   // 6A: the pinned NG-listed codes with no classes, built in memory as the pinned groups are.
   const fullNgUnscheduled = fullCorpusData ? await pinnedNgUnscheduledPath() : FIXTURE_NG_UNSCHEDULED;
+  // 7D: the pinned catalogue-only rows, built in memory; without the corpus the full tests skip.
+  const fullCatalogueOnly = fullCorpusData ? await pinnedCatalogueOnlyPath() : PRODUCTION_CATALOGUE_ONLY;
+  // 7D, CI on the live year: sc1 and sc1-node over `current` and the production bundle and files.
+  const production = await productionData();
+  const prod = (/** @type {string} */ rel) => fileURLToPath(new URL(rel, import.meta.url));
+  const productionBundle = /** @type {'production' | 'fixture'} */ (production ? 'production' : 'fixture');
   return {
     test: {
       projects: [
         {
           plugins: [workerd()],
           // test/wrangler.test.jsonc's `alias`, which the plugin does not read.
-          resolve: { alias: [{ find: 'vectors-bundle', replacement: FIXTURE_BUNDLE }, vocabularyAlias(FIXTURE_VOCABULARY), groupsAlias(FIXTURE_GROUPS), ngUnscheduledAlias(FIXTURE_NG_UNSCHEDULED)] },
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: FIXTURE_BUNDLE }, vocabularyAlias(FIXTURE_VOCABULARY), groupsAlias(FIXTURE_GROUPS), ngUnscheduledAlias(FIXTURE_NG_UNSCHEDULED), ...catalogueAliases('pinned')] },
           test: {
             name: 'workers',
             include: ['test/**/!(*.node).test.js'],
@@ -127,7 +192,7 @@ export default defineConfig(async () => {
         },
         {
           plugins: [workerd()],
-          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary), groupsAlias(fullGroups), ngUnscheduledAlias(fullNgUnscheduled)] },
+          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary), groupsAlias(fullGroups), ngUnscheduledAlias(fullNgUnscheduled), ...catalogueAliases('pinned', fullCatalogueOnly)] },
           test: {
             name: 'full',
             include: ['test/full/**/!(*.node).test.js'],
@@ -135,18 +200,38 @@ export default defineConfig(async () => {
             // brute-force grid (~25 s instead of ~4 min locally, ~12 min on CI).
             // CI runs the full grid whenever src/, migrations/, scripts/ or
             // test/full/ change; anything else gets the sample.
-            provide: { corpus: fullCorpusData, vectorsBundle: full.corpus, lexicalGrid: process.env.LEXICAL_GRID === 'sample' ? 'sample' : 'full' },
+            provide: { corpus: fullCorpusData, vectorsBundle: full.corpus, lexicalGrid: /** @type {'sample' | 'full'} */ (process.env.LEXICAL_GRID === 'sample' ? 'sample' : 'full') },
           },
         },
         {
-          // Phase 4 4E: SC1's path tests, the pinned corpus and bundle as test/full
-          // has them, in their own project and CI job (npm run test:sc1).
+          // Phase 4 4E: SC1's path tests, in their own project and CI job (npm run test:sc1).
+          // Phase 7 7D: over production (`current`, the production bundle and its vocabulary,
+          // groups, NG-unscheduled, catalogue and prefix files), so CI tests the live year.
           plugins: [workerd()],
-          resolve: { alias: [{ find: 'vectors-bundle', replacement: full.alias }, vocabularyAlias(fullVocabulary), groupsAlias(fullGroups), ngUnscheduledAlias(fullNgUnscheduled)] },
+          resolve: {
+            alias: [
+              { find: 'vectors-bundle', replacement: production?.bundle ?? FIXTURE_BUNDLE },
+              vocabularyAlias(production ? prod('./data/vocabulary.json') : FIXTURE_VOCABULARY),
+              groupsAlias(production ? prod('./data/groups.json') : FIXTURE_GROUPS),
+              ngUnscheduledAlias(production ? prod('./data/ng-unscheduled.json') : FIXTURE_NG_UNSCHEDULED),
+              ...catalogueAliases('production', PRODUCTION_CATALOGUE_ONLY),
+            ],
+          },
           test: {
             name: 'sc1',
             include: ['test/sc1/**/!(*.node).test.js'],
-            provide: { corpus: fullCorpusData, vectorsBundle: full.corpus },
+            provide: { corpus: production?.corpus ?? null, vectorsBundle: productionBundle },
+          },
+        },
+        {
+          // Phase 7 7D: SC1's Node-side checks over production, run by the same CI job: the
+          // oracle against src/eligibility.js and the rules' department and faculty names.
+          // `.node` tests can't run in workerd (sc1 above).
+          test: {
+            name: 'sc1-node',
+            environment: 'node',
+            include: ['test/sc1/**/*.node.test.js'],
+            provide: { corpus: production?.corpus ?? null, vectorsBundle: productionBundle },
           },
         },
         {
@@ -154,6 +239,7 @@ export default defineConfig(async () => {
             name: 'node',
             environment: 'node',
             include: [NODE_TESTS],
+            exclude: [...configDefaults.exclude, 'test/sc1/**'],
             // Phase 7 7C: scripts write run records; a test run's go to a temp dir, never
             // docs/evidence/ops/runs/ (scripts/run-record.mjs also refuses that under Vitest).
             env: { VNM_RUNS_DIR: join(tmpdir(), 'vnm-test-runs') },

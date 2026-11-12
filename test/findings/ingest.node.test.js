@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { planIngest } from '../../scripts/ingest-core.mjs';
 import {
-  EMBEDDING_MODEL, EMBEDDING_TEXT_VARIANT, EMBEDDING_TEXT_VERSION, embeddingText, fetchAcadYearFile, hashOf, loadNgRestrictions, offeredModules,
+  DEFAULT_ACAD_YEAR, EMBEDDING_MODEL, EMBEDDING_TEXT_VARIANT, EMBEDDING_TEXT_VERSION, embeddingText, fetchAcadYearFile, hashOf, loadNgRestrictions, offeredModules,
 } from '../../scripts/lib.mjs';
 import {
   NORMALISER_VERSION, ROW_COLUMNS, boundTuple, fieldsFromRow, rowHash, sha256Hex, vectorMetadata,
@@ -25,10 +25,10 @@ const record = {
   workload: [2, 1, 1, 3, 3], prerequisite: 'None', preclusion: 'CS1010',
 };
 const ng = (/** @type {Record<string, number[]>} */ bySem) =>
-  ({ available: true, bySem: new Map(Object.entries(bySem)), updatedAsAt: '01 Sep 2026', source: null, total: Object.keys(bySem).length, rules: loadNgRestrictions('2026-2027') });
+  ({ available: true, bySem: new Map(Object.entries(bySem)), updatedAsAt: '01 Sep 1999', source: null, total: Object.keys(bySem).length, rules: loadNgRestrictions(DEFAULT_ACAD_YEAR) });
 
 describe('B2', () => {
-  const Y = '2026-2027';
+  const Y = DEFAULT_ACAD_YEAR;
   /** @param {Partial<import('../../scripts/lib.mjs').NusModsRecord>} over @param {Record<string, number[]>} [ngSems] */
   const one = (over, ngSems = {}) => offeredModules([{ ...record, ...over }], Y, ng(ngSems)).modules[0];
 
@@ -42,7 +42,7 @@ describe('B2', () => {
       preclusion: one({ preclusion: 'None' }),
       ng: one({}, { CS1010S: [1] }),
       ngSemesters: offeredModules([record], Y, ng({ CS1010S: [2] })).modules[0],
-      acadYear: offeredModules([record], '2027-2028', ng({})).modules[0],
+      acadYear: offeredModules([record], '1998-1999', ng({})).modules[0],
     };
     const base = await rowHash(before);
     for (const [field, after] of Object.entries(variants)) {
@@ -101,7 +101,7 @@ describe('B2', () => {
       await writeFile(new URL(`${Y}-${FILE}`, dir), BODY);
       if (sidecar) {
         await writeFile(new URL(`${Y}-${FILE}.cache.json`, dir), JSON.stringify({
-          url: `https://api.nusmods.com/v2/${Y}/${FILE}`, etag: '"v1"', lastModified: 'Mon, 01 Sep 2026 00:00:00 GMT',
+          url: `https://api.nusmods.com/v2/${Y}/${FILE}`, etag: '"v1"', lastModified: 'Wed, 01 Sep 1999 00:00:00 GMT',
           fetchedAt: new Date(Date.now() - age).toISOString(), sha256: createHash('sha256').update(vouchFor).digest('hex'),
         }));
       }
@@ -155,7 +155,7 @@ describe('B2', () => {
       const got = await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl });
       expect(fetchImpl).toHaveBeenCalledTimes(1);
       const [, init] = /** @type {any[]} */ (fetchImpl.mock.calls[0]);
-      expect(init.headers).toMatchObject({ 'if-none-match': '"v1"', 'if-modified-since': 'Mon, 01 Sep 2026 00:00:00 GMT' });
+      expect(init.headers).toMatchObject({ 'if-none-match': '"v1"', 'if-modified-since': 'Wed, 01 Sep 1999 00:00:00 GMT' });
       expect(got).toMatchObject({ data: { v: 1 }, cached: true, revalidated: true });
       expect(Date.now() - Date.parse((await sidecar()).fetchedAt)).toBeLessThan(60_000);
     });
@@ -163,12 +163,12 @@ describe('B2', () => {
     it('[B2 fixed] a 200 on revalidation replaces the body and records the new ETag and Last-Modified', async () => {
       await prime(25 * HOUR);
       const fetchImpl = vi.fn(async () => new Response('{"v":2}', {
-        status: 200, headers: { etag: '"v2"', 'last-modified': 'Tue, 02 Sep 2026 00:00:00 GMT' },
+        status: 200, headers: { etag: '"v2"', 'last-modified': 'Thu, 02 Sep 1999 00:00:00 GMT' },
       }));
       const got = await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl });
       expect(got).toMatchObject({ data: { v: 2 }, cached: false });
       expect(await readFile(new URL(`${Y}-${FILE}`, dir), 'utf8')).toBe('{"v":2}');
-      expect(await sidecar()).toMatchObject({ etag: '"v2"', lastModified: 'Tue, 02 Sep 2026 00:00:00 GMT' });
+      expect(await sidecar()).toMatchObject({ etag: '"v2"', lastModified: 'Thu, 02 Sep 1999 00:00:00 GMT' });
     });
 
     it('[B2 fixed] an entry younger than --max-age (default 24 h) is used without a request', async () => {
@@ -184,7 +184,7 @@ describe('B2', () => {
       await prime(1000 * HOUR, false);
       const fetchImpl = vi.fn(async () => new Response('{}'));
       expect(await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl, offline: true })).toMatchObject({ data: { v: 1 }, cached: true });
-      await expect(fetchAcadYearFile('1999-2000', FILE, { cacheDir: dir, fetchImpl, offline: true })).rejects.toThrow(/offline/);
+      await expect(fetchAcadYearFile('1998-1999', FILE, { cacheDir: dir, fetchImpl, offline: true })).rejects.toThrow(/offline/);
       expect(fetchImpl).not.toHaveBeenCalled();
     });
 

@@ -5,13 +5,15 @@
 //
 // Each comparison is one entry in GUARD_CHECKS: how to compute D1's value, what it must equal,
 // and what to do when it doesn't. A check with a `field` also goes into the `deploy/*` tag under
-// that name, and rollback compares D1 with the target's tag on it. 7D's catalogueKey is one more
-// entry here (its `d1` reads `catalogue_only` through `ctx.query`).
+// that name, and rollback compares D1 with the target's tag on it. 7D's catalogueKey is the
+// third: D1's from its catalogue_only codes (the SELECT src/admin-hashes.js runs over the same
+// query), against the bundled catalogue file's (data/catalogue-codes.json, which the deploy
+// reads and passes in as `catalogue`).
 //
 // No Node APIs (the Worker test harness imports this).
 import { adminHashes } from '../src/admin-hashes.js';
 import { DEFAULT_MODEL } from '../src/embedding.js';
-import { dataVersion } from '../src/rowhash.js';
+import { catalogueKey, dataVersion } from '../src/rowhash.js';
 import { rowsKey } from '../src/vector-bundle.js';
 
 /**
@@ -19,8 +21,8 @@ import { rowsKey } from '../src/vector-bundle.js';
  * @typedef {{
  *   hashes: AdminHashes & { modules: Record<string, import('../src/admin-hashes.js').ModuleHashes> },
  *   query: import('../src/admin-hashes.js').Query,
- *   bundle?: { entry: { rowsKey: string, count: number } }, committed?: string,
- * }} GuardContext `bundle` and `committed` are the deploy's (rollback has neither)
+ *   bundle?: { entry: { rowsKey: string, count: number } }, committed?: string, catalogue?: { codes: string[] },
+ * }} GuardContext `bundle`, `committed` and `catalogue` (the bundled catalogue file) are the deploy's (rollback has none)
  * @typedef {{
  *   name: string, field?: string, label?: string, source?: string,
  *   d1: (ctx: GuardContext) => Promise<string | null>,
@@ -57,6 +59,18 @@ export const GUARD_CHECKS = [
     expected: ({ committed }) => /** @type {string} */ (committed),
     fix: 'D1 holds other rows than the committed ones: run the D1-only ingest (runbook step 4) first.',
   },
+  {
+    // Phase 7 7D: the Worker answers not-offered for the bundled file's codes and names the title
+    // D1's catalogue_only holds, so the two must hold the same codes.
+    name: 'catalogueKey',
+    field: 'catalogueKey',
+    label: 'catalogueKey, over its catalogue_only codes,',
+    source: 'the bundled catalogue file\'s (data/catalogue-codes.json)',
+    d1: async ({ hashes }) => hashes.catalogueKey ?? null,
+    expected: ({ catalogue }) => catalogueKey(/** @type {NonNullable<GuardContext['catalogue']>} */ (catalogue).codes),
+    fix: 'D1\'s catalogue_only is not the codes the Worker answers not-offered for: load it from `current` (the D1-only ingest, '
+      + 'runbook step 4), or rebuild the file (node scripts/build-3b-data.mjs --corpus production).',
+  },
 ];
 
 /**
@@ -81,11 +95,12 @@ const result = (c, d1, expected) => ({
 
 /**
  * Runs every check against what the deploy ships.
- * @param {{ client: import('./d1-rest.mjs').D1Client, bundle: NonNullable<GuardContext['bundle']>, committed: string, checks?: GuardCheck[] }} o
+ * @param {{ client: import('./d1-rest.mjs').D1Client, bundle: NonNullable<GuardContext['bundle']>, committed: string,
+ *   catalogue: NonNullable<GuardContext['catalogue']>, checks?: GuardCheck[] }} o
  * @returns {Promise<{ ok: boolean, modules: number, results: CheckResult[], values: Record<string, string | null> }>}
  */
-export async function runGuard({ client, bundle, committed, checks = GUARD_CHECKS }) {
-  const ctx = { ...(await readD1(client)), bundle, committed };
+export async function runGuard({ client, bundle, committed, catalogue, checks = GUARD_CHECKS }) {
+  const ctx = { ...(await readD1(client)), bundle, committed, catalogue };
   /** @type {CheckResult[]} */
   const results = [];
   for (const c of checks) results.push(result(c, await c.d1(ctx), await c.expected(ctx)));

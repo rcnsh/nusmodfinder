@@ -43,6 +43,10 @@ export default defineConfig(async () => {
         'vocabulary-data': join(ws, 'data/vocabulary.json'),
         'groups-data': join(ws, 'data/groups.json'),
         'ng-unscheduled-data': join(ws, 'data/ng-unscheduled.json'),
+        // Phase 7 7D: the run corpus's catalogue codes and prefixes, which the run writes over
+        // the workspace's copies (eval/lib/corpus.mjs writeRunCatalogue).
+        'catalogue-codes-data': join(ws, 'data/catalogue-codes.json'),
+        'prefixes-data': join(ws, 'data/prefixes.json'),
       },
     },
     test: {

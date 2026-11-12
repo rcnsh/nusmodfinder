@@ -2,7 +2,8 @@
 // Phase 4 gate 2, per-list identity on dev (docs/plans/phase4.md §4): no
 // holdout look gates Phase 4's correctness changes, so each of the 98 dev
 // queries (with `study` from eval/study-map.json, as the eval runner sends it)
-// is run three ways on the pinned corpus and bundle:
+// is run three ways on production's corpus (`current`) and bundle (Phase 7
+// 7D; before it, the pinned ones):
 // - the page (the shipped pipeline);
 // - SC1_TRACE=1: the same request, returning its internal lists (pins, the
 //   dense, lexical and code lists, the mask route's list) and their depths;
@@ -15,52 +16,28 @@
 // group shown by its semester representative (src/groups.js
 // semesterRepresentative: with a semester, the group's highest-ranked member
 // on that semester's timetable when its first is not). So the bit removes
-// exactly the closed modules and changes nothing else. 3G: a dev query
-// outside the no-answer tag that the bit pushes into no-signal fails the gate
-// until Jacob rules on it. The trace is test-only (src/search.js sc1TraceMode).
+// exactly the closed modules and changes nothing else. These are invariants,
+// true of any corpus; 3G's ruling (a dev query outside the no-answer tag that
+// the bit pushes into no-signal) is a fact of the pinned corpus and is
+// asserted over it in test/full/sc1-pinned.test.js. The trace is test-only
+// (src/search.js sc1TraceMode).
 import { beforeAll, describe, expect, inject, it, vi } from 'vitest';
-import catalogueFile from '../../data/catalogue-only.json';
-import devEmbeddings from '../../eval/dev/embeddings.json';
+import catalogueFile from 'catalogue-only-data';
 import devQueries from '../../eval/dev/queries.json';
 import studyMap from '../../eval/study-map.json';
-import correctedEmbeddings from '../fixtures/sc4-corrected-embeddings.json';
-import sc4Embeddings from '../sc4/embeddings.json';
 import { groups } from '../../src/group-data.js';
 import { groupKeyOf } from '../../src/groups.js';
-import { sha256Hex } from '../../src/rowhash.js';
 import { fuse } from '../../src/search.js';
 import { createFakes } from '../fakes.js';
 import { adminCall, callJson, seed } from '../helpers.js';
 import { oracle } from './oracle.node.mjs';
+import { CacheAI, ngDevRequests } from './shared.js';
 
 /** The page size the dev queries get: src/search.js DEFAULT_TOPK (they send no topK). */
 const PAGE_SIZE = 20;
 const corpus = inject('corpus');
-const bundleKind = inject('vectorsBundle');
 
-/** @type {Record<string, string>} */
-const ENTRIES = { ...devEmbeddings.entries, ...sc4Embeddings.entries, .../** @type {Record<string, string>} */ (correctedEmbeddings.entries) };
-
-/** Workers AI answered from the committed caches; a text without one throws (the dense half degrades, the same in all three calls). */
-class CacheAI {
-  /** @param {string} model @param {{ text: string | string[] }} input */
-  async run(model, input) {
-    const texts = Array.isArray(input.text) ? input.text : [input.text];
-    /** @type {number[][]} */
-    const data = [];
-    for (const text of texts) {
-      const b64 = ENTRIES[await sha256Hex(`${model}\n${text}`)];
-      if (!b64) throw new Error('no committed embedding for this text');
-      const bin = atob(b64);
-      const bytes = new Uint8Array(bin.length);
-      for (let k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
-      data.push(Array.from(new Float32Array(bytes.buffer)));
-    }
-    return { shape: [texts.length, 384], data, pooling: 'mean' };
-  }
-}
-
-describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity on dev', () => {
+describe.skipIf(!corpus)('gate 2: per-list identity on dev', () => {
   const c = /** @type {FullCorpus} */ (corpus);
   const moduleOf = new Map(c.modules.map((m) => [m.code, m]));
   const fakes = createFakes();
@@ -86,14 +63,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity o
     /** @type {string[]} */
     const noSignal = [];
     let compared = 0, ignoreShowedClosed = 0, degraded = 0, refused = 0, swapped = 0;
-    for (const q of /** @type {any[]} */ (devQueries.queries)) {
-      const f = q.filters ?? {};
-      if (!f.ng) continue;
-      const study = /** @type {Record<string, string>} */ (studyMap.personas)[q.persona] ?? studyMap.noPersona;
-      const sem = f.sem === 1 || f.sem === 2 ? f.sem : 'any';
-      const params = new URLSearchParams({ q: q.text, ng: '1', study });
-      for (const k of ['sem', 'level', 'credits', 'faculty']) if (f[k] !== undefined) params.set(k, String(f[k]));
-      const path = `/search?${params}`;
+    for (const { q, study, sem, path } of ngDevRequests(devQueries.queries, studyMap)) {
       /** @param {string} code */
       const shows = (code) => oracle(/** @type {NormalisedModule} */ (moduleOf.get(code)), { sem, study: /** @type {any} */ (study) }) !== 'closed';
       /** @param {string} code */
@@ -175,7 +145,5 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('gate 2: per-list identity o
     expect(compared).toBeGreaterThan(80);
     // The ignore mode really ignores the bit: some unfiltered top lists hold closed modules.
     expect(ignoreShowedClosed).toBeGreaterThan(0);
-    // 3G (plan §4 gate 2): a query outside the no-answer tag pushed into no-signal needs Jacob's ruling.
-    expect(noSignal.filter((s) => !s.includes('noanswer'))).toEqual([]);
   }, 900_000);
 });

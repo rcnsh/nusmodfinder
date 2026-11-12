@@ -162,7 +162,7 @@ async function waitForHealth(url, exitCode) {
   for (;;) {
     if (exitCode() !== null) throw new Error(`wrangler dev exited (${exitCode()}) before it answered`);
     try {
-      const res = await fetch(`${url}/health`, { signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${url}/health`, { signal: AbortSignal.timeout(2_000) });
       if (res.ok) return;
     } catch { /* not listening yet */ }
     if (Date.now() > deadline) throw new Error(`wrangler dev did not answer ${url}/health within ${READY_TIMEOUT_MS / 1000} s`);

@@ -79,7 +79,7 @@ code. None of it changes which results show or their order:
 - `notOffered: [code]`: the typed codes that are in the catalogue but not offered this year,
   also inside a longer query (a whole-query one still answers `noMatch: { reason: "not-offered" }`).
   6A: an NG-listed code with no classes (`data/ng-unscheduled.json`) counts as not offered here
-  even where `data/catalogue-codes.json` lacks it, and as a whole query answers
+  even where the bundled catalogue lacks it, and as a whole query answers
   `noMatch: { reason: "ng-unscheduled", code, title, ngSemesters, related }` instead of
   `not-offered` or `unknown-code`; the page says "NUS lists EE4438 (Solar Cells and Modules) for
   Sem 2, but NUSMods shows no classes for it this academic year." The parse is untouched.
@@ -133,12 +133,13 @@ each bundle's data version, row count, sha256 and `rowsKey`, the sha256 of its s
 **The vocabulary and groups** (3C, 3F) are bare-name aliases too: `src/intent-data.js` and
 `src/group-data.js` import `vocabulary-data` and `groups-data`, which `wrangler.jsonc` points at
 `data/vocabulary.json` and `data/groups.json` (deploy adds no `--alias` for them), the Vitest
-configs at the fixture's or the pinned corpus's, `test/wrangler.ui.jsonc` at the fixture's, and
+configs at the fixture's, the pinned corpus's (`test/full`) or production's (`test/sc1`),
+`test/wrangler.ui.jsonc` at the fixture's, and
 `vitest.eval.config.mjs` at each eval run's own workspace copies, so a run never ranks with
 the wrong vocabulary. 6A's `ng-unscheduled-data` (`src/ng-unscheduled.js`) is aliased the same
 way: `data/ng-unscheduled.json` in production, `test/fixtures/ng-unscheduled.json` for the Worker
 tests and the UI stack, the pinned corpus's (built in memory into `.data/ng-unscheduled/`) for
-`test/full` and `test/sc1`, and the eval workspace's committed copy. Only `/module`'s 404 and
+`test/full`, production's for `test/sc1`, and the eval workspace's committed copy. Only `/module`'s 404 and
 `/search`'s no-match answer read it, so it never touches a ranking.
 
 **NG-listed codes with no classes** (6A). NUS lists 40 codes for exchange students in 2026/27
@@ -146,10 +147,10 @@ that NUSMods offers no classes for, so D1 has no row for them. `data/ng-unschedu
 each one's fields, its other codes (groups-v1 over the offered rows plus the file's codes, so
 FIN3701B gets FIN3701A, C and D) and the allow mask and rule ids `eligibility()` gives it, as
 ingest stores for a row. `node scripts/build-ng-unscheduled.mjs --corpus production` writes it
-from the moduleInfo cache, refused unless that corpus is the production bundle's;
+from `current` (the corpus manifest, below), refused unless that corpus is the production bundle's;
 `vectors.mjs build --corpus production` rewrites it with the bundle. `--corpus fixture` writes
 `test/fixtures/ng-unscheduled.json` from `test/fixtures/ng-unscheduled-source.json` (six records
-copied from the cache); `--check` rebuilds in memory and exits 1 on a difference.
+copied from a production corpus); `--check` rebuilds in memory and exits 1 on a difference.
 `test/ng-unscheduled.node.test.js` recomputes every entry's mask from its own fields, so a
 stale one fails CI.
 
@@ -504,7 +505,7 @@ REFERENCE.md, EVAL.md and ADRs 0001 and 0003), and a red `main` shows. Draft PRs
 | `check` | lint, typecheck, types drift, `npm test`, `test:eval`, `eval:verify`, `db:rebuild-check` | never |
 | `eval-gate` | the ranking lock (below): fast path, else a recompute | never |
 | `full-corpus` | `test/full` over the pinned corpus and bundle; the lexical grid in full or a 1-in-10 sample | by steps, when `code` is false |
-| `sc1` | `test/sc1` over the pinned corpus and bundle | by steps, when `code` is false |
+| `sc1` | `test/sc1` (Vitest projects `sc1` and `sc1-node`) over production: `current` restored from its release asset, the production bundle and data files, after `npm run corpus -- check`; fails on any skipped test. SC1's two pinned-corpus facts (the standby's recall floor, the 3G ruling) run in `full-corpus` (`test/full/sc1-pinned.test.js`) | by steps, when `code` is false |
 | `ui (chromium)`, `ui (webkit)` | the Playwright suite in Playwright's image | by steps, when `ui` is false |
 
 `scripts/ci-changes.mjs` diffs a PR against its base, and a push to `main` against the newest `main`
@@ -541,9 +542,12 @@ This is the only supported way to deploy, from the Mac or from GitHub Actions (b
    - `bundle`: the production bundle `data/vectors.json` records (downloaded from its release if
      absent), sha256-checked, at `src/data-version.json`'s data version; never the fixture or
      pinned bundle;
-   - `corpus manifest` (7D, `scripts/corpus.mjs`) and `year check` in its CI mode (7E,
-     `scripts/year.mjs`): each runs its module's `preflight({ exec, head, log })`, and is
-     skipped, and says so in the output and the record, while that module is absent;
+   - `corpus manifest` (7D, `scripts/corpus.mjs`): restores `current` (`npm run corpus --
+     restore`, sha-checked), then `npm run corpus -- check`: `src/data-version.json`, the bundled
+     catalogue file's `catalogueKey` and the 3B files follow it;
+   - `year check` in its CI mode (7E, `scripts/year.mjs`): runs its module's
+     `preflight({ exec, head, log })`, and is skipped, and says so in the output and the record,
+     while that module is absent;
    - `source inputs`: when `HEAD` changes a source-derived input (`data/ng-*`,
      `scripts/ng-overlay/`) since the live commit (the newest `deploy/*` or `rollback/*` tag), a
      committed `year check --full` run record (7E) whose `details.sourceInputsHash` is those
@@ -551,12 +555,14 @@ This is the only supported way to deploy, from the Mac or from GitHub Actions (b
      `git ls-tree` lines). A hotfix that touches none needs no sources key;
    - `startup`: `wrangler check startup` locally with the bundle aliased in;
 2. **the guard** (`scripts/guard.mjs`): reads D1 over the D1 REST query endpoint
-   (`scripts/d1-rest.mjs`, ~6.8k rows read, the count taken from the answers' `meta.rows_read`)
-   and computes what `GET /admin/hashes` would answer, with the same code (`src/admin-hashes.js`).
-   It refuses unless D1's (code, `text_hash`) pairs hash to the bundle's `rowsKey` and D1's data
-   version is the committed one. No Worker session starts and no secret is bound. The checks are
-   a list (`GUARD_CHECKS`); one with a `field` also goes into the deploy tag and rollback's data
-   check (7D adds `catalogueKey` there);
+   (`scripts/d1-rest.mjs`, ~6.8k module and ~14.4k catalogue rows read, the count taken from the
+   answers' `meta.rows_read`) and computes what `GET /admin/hashes` would answer, with the same
+   code (`src/admin-hashes.js`). It refuses unless D1's (code, `text_hash`) pairs hash to the
+   bundle's `rowsKey`, D1's data version is the committed one, and D1's `catalogueKey` (its
+   `catalogue_only` codes, 7D) is the bundled catalogue file's (`data/catalogue-codes.json`). No
+   Worker session starts and no secret is bound. The checks are a list (`GUARD_CHECKS`); one with
+   a `field` (`dataVersion`, `catalogueKey`) also goes into the deploy tag and rollback's data
+   check;
 3. `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`, and refuses to
    promote a version whose reported startup time is missing or over 200 ms;
 4. **the intent record**: the version id, the previous one (`wrangler deployments status
@@ -621,8 +627,9 @@ npm run rollback -- --to <version id>    # or its first 8
 ```
 
 `scripts/rollback.mjs` takes the target's commit and data version from its `deploy/*` tag, reads
-D1 directly over the REST query (no Worker session, no working-tree code; ~6.8k rows today) and
-refuses unless every tagged field (`dataVersion`; 7D's `catalogueKey`) equals D1's. A deliberate
+D1 directly over the REST query (no Worker session, no working-tree code; ~21k rows) and
+refuses unless every tagged field (`dataVersion`, `catalogueKey`) equals D1's; a tag without one
+of them is refused too. A deliberate
 mismatch needs `--accept-data-mismatch`, which prints the risk; the usual path across a data
 change is `npm run d1:restore` first, then rollback. It asks before acting (or `--yes`), runs
 `wrangler rollback <id> --message "rollback to <tag>" -y`, tags `rollback/<time>-<id8>` on the
@@ -660,14 +667,18 @@ npm run smoke -- --expect <sha>          # after a rollback, the target's
 bundle is `production`), `/` (200 with the CSP header), `/module/<code>` for a code in no group
 whose title is unique in that commit's corpus and bundle, `/search` for the title `/module`
 gave (`cache;desc=miss`, not degraded, the code in the top 5) and `/facets`. The data version,
-the groups and the bundle's codes come from the expected commit's files; titles come from the
-production corpus (`.data/cache` on the Mac until 7D's manifest). The URL is `wrangler.jsonc`'s
+the groups and the bundle's codes come from the expected commit's files; titles come from its
+production corpus, `current` in its `data/corpus.json` (restored and sha-checked; a commit from
+before the manifest uses the working tree's, and says so). The URL is `wrangler.jsonc`'s
 Custom Domain at that commit, or `--url`.
 
 **Back-filled tags.** The two Phase 6 deploys predate the tags; `node scripts/deploy-tag.mjs
 backfill` prints the commands that create and push them (`deploy/20261111T183946Z-f8aefeab` on
 `0b5f360`, `deploy/20261111T235933Z-b0834844` on `a23601d`, both at data version
-`d820d578cf81`, marked `backfilled: true`). It runs nothing.
+`d820d578cf81` and `catalogueKey` `5b1e2f06e559`, marked `backfilled: true`). It runs nothing.
+Their `catalogueKey` is computed, not read: D1 was loaded from `prod-2026-2027-20261104`
+(`current`) and not written since, so it is that corpus's catalogue-only key; the first
+`catalogueKey` read of D1 after 7D checks it.
 
 Plain `npx wrangler deploy` would ship the fixture bundle. Don't use it.
 
@@ -768,22 +779,33 @@ manifest D1 does not yet hold, so the manifest merges first and D1 is written be
 Vectorize, the standby, is written last.
 
 ```bash
+# 0. A new corpus (a catalogue update, a new acad year): fetch it, then publish it as the next
+#    entry of data/corpus.json (the corpus manifest, below). --new-data-version because its
+#    rows differ from what src/data-version.json records; step 1 writes the new one.
+npm run corpus -- fetch [<year>]
+npm run corpus -- publish --new-data-version
+#    Any other change starts from the corpus production already has:
+npm run corpus -- restore
 # 1. Offline, on a branch: the production bundle and the data version D1 will have.
-node scripts/vectors.mjs data-version --offline                   # what ingest would write
-node scripts/vectors.mjs build --corpus production --expect-count <rows> --offline
+node scripts/vectors.mjs data-version                              # what ingest would write
+node scripts/vectors.mjs build --corpus production --expect-count <rows>
 #    If texts are missing from the eval asset, it writes .data/vectors/missing-production.json
 #    and stops; embed them (neurons logged), then rebuild with --extra:
 npm run eval:embed -- --texts .data/vectors/missing-production.json --out .data/vectors/extra-production.json
-node scripts/vectors.mjs build --corpus production --expect-count <rows> --offline --extra .data/vectors/extra-production.json
+node scripts/vectors.mjs build --corpus production --expect-count <rows> --extra .data/vectors/extra-production.json
 gh release create <release> .data/vectors/<asset> --title <asset> --notes "vectors bundle, sha256 <sha256>"
 #    For a new acad year, rebuild the reason texts from that year's rules file first:
 node scripts/build-ng-reasons.mjs
 #    The build rewrites 6A's NG-listed codes with no classes too; both checks must pass:
 node scripts/build-groups.mjs --corpus production --check
 node scripts/build-ng-unscheduled.mjs --corpus production --check
-git add data/vectors.json src/data-version.json data/vocabulary.json data/groups.json data/ng-unscheduled.json data/ng-reasons.json   # the build rewrites 3C's vocabulary, 3F's groups and 6A's file too; plus any code the change needs; open a PR
-#    A new acad year also updates public/year.js and the header in public/index.html (the page's
-#    year before a row loads; test/web/shortlist.node.test.js checks both against data/ng-reasons.json).
+npm run corpus -- check   # the data version and catalogueKey follow current; the 3B files are fresh
+git add data/corpus.json data/vectors.json src/data-version.json data/vocabulary.json data/groups.json data/ng-unscheduled.json data/ng-reasons.json data/prefixes.json data/catalogue-codes.json data/catalogue-only.json   # the build rewrites 3C's vocabulary, 3F's groups, 6A's file and the 3B catalogue files too; plus any code the change needs; open a PR
+#    A new acad year changes DEFAULT_ACAD_YEAR in scripts/lib.mjs, public/year.js and the header
+#    in public/index.html, the only places a year is written (test/year-scan.node.test.js fails on
+#    any other and checks those three agree). The source dates in scripts/build-ng-reasons.mjs and
+#    the sources folder in scripts/build-ng-restrictions.mjs are cited dates (allowed in that test)
+#    until 7E's per-year source manifest holds them.
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
 # 3. On merged main, before any D1 write: the preflight (every check but D1's), then D1's
 #    Time Travel bookmark, recorded (ingest copies it; d1:restore returns to it for 30 days).
@@ -792,11 +814,13 @@ npm run d1:bookmark
 #    Steps 4, 5 and 8 each start their own wrangler dev --remote session through npm run remote:
 #    a free port, a one-off INGEST_SECRET in a temp env file, code 10021 retried for up to 30 min,
 #    the session stopped when the command ends. Nothing reads or writes .dev.vars.
-# 4. D1 only: no Workers AI, no Vectorize. Refuses unless the corpus hashes to the committed data version.
-npm run remote -- ingest --d1-only --offline
+# 4. D1 only: no Workers AI, no Vectorize. Reads only current (restored, sha-checked); refuses
+#    unless it hashes to the committed data version.
+npm run remote -- ingest --d1-only
 # 5. D1 against the manifest and the bundle, before the deploy. Reads no Vectorize. 6A: also
 #    data/ng-reasons.json's and data/ng-unscheduled.json's acadYear equal D1's acad_year, and the
-#    latter holds exactly the NG codes with no D1 row.
+#    latter holds exactly the NG codes with no D1 row. 7D: and D1's catalogueKey (its
+#    catalogue_only codes) equals data/catalogue-codes.json's; the deploy guard checks it too.
 npm run remote -- verify --pre-deploy
 # 6. Preflight, guard (over the D1 REST query; no session), startup gate, promote, tag, triggers.
 npm run deploy
@@ -922,15 +946,36 @@ and stops a run at the 40k default, so pass `--write-budget` explicitly. The rem
 FTS writes on inserts has not been measured
 ([`ingest-cost.md`](evidence/phase1/ingest-cost.md)).
 
-**Download cache.** Downloads live in `.data/cache/`, never in `.data/` itself:
-`.data/2026-2027-moduleInfo.json` is the pinned snapshot that the eval and the full-corpus tests
-read and hash-check (`scripts/pinned-corpus.mjs`), and a fetch must not overwrite it. To
-ingest the pinned snapshot itself, copy it into `.data/cache/` without a sidecar and pass
-`--offline`. Cache entries keep NUSMods' `ETag`, `Last-Modified` and the body's
-sha256 in a `<file>.cache.json` sidecar. An entry older than `--max-age` (default `24h`)
-is revalidated with `If-None-Match`; `--offline` uses the cache as it is and never fetches.
-A body that does not match its recorded sha256 is never served or revalidated. It is
-downloaded again in full, and `--offline` refuses it.
+**The corpus manifest** (Phase 7 7D). `data/corpus.json` lists every production corpus by its
+GitHub release asset (`prod-<year>-<yyyymmdd>`, the gzipped moduleInfo.json, ADR 0011 for the
+licence) with its sha256, size and the time NUSMods served it, and names `current`, the one
+production runs on. Ingest, `vectors.mjs build --corpus production`, `vectors.mjs data-version`,
+every per-corpus builder (`build-vocabulary`, `build-groups`, `build-ng-unscheduled`,
+`build-3b-data --corpus production`) and the live probes read only `current`, from
+`.data/prod/<sha256>.json`, sha-checked, with the NG files of its year; none fetches from
+NUSMods, and a missing or mismatched file is refused with the command that fixes it.
+
+```bash
+npm run corpus -- restore            # current from its release asset into .data/prod/ (gh, sha-checked); any worktree
+npm run corpus -- check              # CI: data version and catalogueKey follow current; the 3B files are fresh
+npm run corpus -- fetch [<year>]     # NUSMods' moduleInfo.json into .data/staging/ (the only fetch)
+npm run corpus -- publish [--file <path>] [--fetched-at <iso>] [--new-data-version]
+                                     # the staged (or --file) corpus as the next release asset and current
+```
+
+`publish` refuses a corpus whose data version (with HEAD's NG files) is not
+`src/data-version.json` unless `--new-data-version`, and a release the manifest already
+lists; it writes a run record. Commit `data/corpus.json` after it. The eval's pinned
+snapshot (`.data/2026-2027-moduleInfo.json`, `scripts/pinned-corpus.mjs`) is separate and
+never moves. `scripts/probe.mjs` and `eval/v1/` still use the old `.data/cache/` download.
+
+**The catalogue files follow production.** `data/prefixes.json`, `data/catalogue-codes.json`
+(the `catalogue-codes-data` and `prefixes-data` aliases) and `data/catalogue-only.json` are
+built from `current`; `data/pinned/` holds the pinned corpus's two files, which the eval, the
+workers and full-corpus tests read. `catalogueKey` (`src/rowhash.js`) is the sha256 of the
+sorted catalogue codes; `/admin/hashes` and `verify --pre-deploy` report D1's, from its
+`catalogue_only` codes, and the deploy guard and `verify --pre-deploy` refuse one that is not
+the bundled file's (`scripts/catalogue-check.mjs`).
 
 Other flags: `--force` (re-embed and rewrite everything), `--batch`, `--concurrency` and
 `--wait-timeout` (default `10m`). Exit codes: 0 done, 1 refused or failed, 2 stopped by
@@ -982,7 +1027,7 @@ The record (schema `vnm-run/1`):
 | Field | What |
 |---|---|
 | `time`, `finishedAt` | ISO UTC; `time` is the start and names the file |
-| `script`, `args` | e.g. `ingest`, `["--d1-only","--offline"]` (never a secret) |
+| `script`, `args` | e.g. `ingest`, `["--d1-only"]` (never a secret) |
 | `commit` | `{ sha, dirty, diffSha256 }`: HEAD, whether the tree is dirty (new run records aside), and when it is, the sha256 of `git diff HEAD --binary` |
 | `target` | the URL, the Worker or the service the run touched |
 | `read`, `written` | lists of `{ what, estimate, actual }` (D1 rows, Vectorize vectors, neurons) |
@@ -1171,10 +1216,6 @@ repeats Phase 4's gate (`docs/plans/phase4.md` 4F):
   NUS updates them. The UI names each source with its date so staleness is visible. YST's Sem 2
   list is last year's until YST publishes this year's.
 - **Exchange mode covers Semesters 1 and 2.** The NG list has no special-term data.
-- **162 catalogue-only codes are unknown to `/search`.** `data/catalogue-codes.json` is built
-  from the pinned release, so codes added to the catalogue since (e.g. AI5206) get search's
-  unknown-code answer; `/module/:code` answers them as `catalogue-only`. Logged for Phase 7's
-  data work. The 9 such codes on the NG list are covered by `data/ng-unscheduled.json`.
 - **No natural-language constraint parsing.** "No Friday classes" needs the explicit filter
   parameters instead.
 - **The PDF is the browser's print.** Only Chromium's is checked as a PDF (tagged, real text);

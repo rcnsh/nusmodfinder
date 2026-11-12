@@ -68,7 +68,7 @@ const lower = (s) => (/^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : 
 
 /**
  * Every column of the CSV, in order; the print page labels its facts the same way.
- * @param {string} year '2026/27', the rows' year
+ * @param {string} year 'YYYY/YY', the rows' year
  * @returns {Column[]}
  */
 export function columnsFor(year) {
@@ -126,7 +126,7 @@ export function estimateLine(units, w) {
   return `About ${num(est)} hours a week (NUS's rate: ${HOURS_PER_UNIT} hours a week per unit)${differs ? `; ${nusmods}` : ''}. ${rate}`;
 }
 
-/** "12 Nov 2026", the date the student made it on (their own clock). @param {Date} d */
+/** "12 Nov YYYY", the date the student made it on (their own clock). @param {Date} d */
 export const madeOn = (d) => `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 
 /** @param {Source[] | null | undefined} sources @param {RegExp} name */
@@ -300,7 +300,7 @@ export const fileName = (doc, ext) => `${doc.stem}.${ext}`;
  *   result: Result, list: import('./list.js').List, study: string, sources: Source[] | null,
  *   link: string, today: Date, answers?: Map<string, Answer>, yearNote?: string,
  * }} input `study` '' in browse mode; `sources` /facets' ngSources (null if it failed);
- *   `link` the shortlist link; `yearNote` the "Made with 2026/27 courses" line, if any
+ *   `link` the shortlist link; `yearNote` the "Made with YYYY/YY courses" line, if any
  * @returns {Doc}
  */
 export function buildExport({ result, list, study, sources, link, today, answers = new Map(), yearNote = '' }) {

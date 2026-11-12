@@ -2,12 +2,12 @@
 // Phase 6 6A (docs/plans/phase6.md §3 "6A"): /search reads the NG-listed codes
 // with no classes this year (src/ng-unscheduled.js, here
 // test/fixtures/ng-unscheduled.json) before its unknown-code and not-offered
-// answers, so a typed EE4438, which data/catalogue-codes.json (built from the
-// pinned release) lacks, says what the shortlist says instead of "There is no
+// answers, so a typed EE4438, which the workers project's catalogue
+// (`catalogue-codes-data`, data/pinned/catalogue-codes.json) lacks, says what the shortlist says instead of "There is no
 // course EE4438". It changes the answer's reason and `notOffered`, never which
 // courses are ranked.
 import { beforeAll, describe, expect, it } from 'vitest';
-import catalogueCodes from '../data/catalogue-codes.json';
+import catalogueCodes from 'catalogue-codes-data';
 import { unscheduled } from '../src/ng-unscheduled.js';
 import { callJson, seed } from './helpers.js';
 

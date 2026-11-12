@@ -1,17 +1,18 @@
 // @ts-check
-// src/eligibility.js with the committed rules (data/ng-restrictions-2026-2027.json):
+// src/eligibility.js with the committed rules (data/ng-restrictions-<DEFAULT_ACAD_YEAR>.json):
 // one case per interpretations-register row that touches a course this year
 // (docs/evidence/phase4/interpretations.md), the allow mask, and the rules
 // file's integrity against its sources and transcription. The whole-corpus
 // agreement with the independent oracle is test/full/sc1-oracle.node.test.js.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { DEFAULT_ACAD_YEAR } from '../scripts/lib.mjs';
 import { bitOf, eligibility, eligibilityMask, GRAD_LEVELS, NOT_NG_IN_SEM, OFF_NG_LIST, SEMESTER_MISMATCH } from '../src/eligibility.js';
 
 /** @param {string} path */
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 /** @type {import('../src/eligibility.js').Rules & { sourceSha256: Record<string, string>, info: { id: string }[], rules: { id: string }[] }} */
-const rules = JSON.parse(read('../data/ng-restrictions-2026-2027.json'));
+const rules = JSON.parse(read(`../data/ng-restrictions-${DEFAULT_ACAD_YEAR}.json`));
 
 /**
  * A module as normalise() + offeredModules() give it, with the fields eligibility reads.

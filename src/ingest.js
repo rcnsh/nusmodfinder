@@ -13,7 +13,7 @@
 // token has to exist on disk; the script streams batches in over HTTP and the
 // Worker uses its own AI, Vectorize and D1 bindings. The routes do not exist
 // unless an INGEST_SECRET is bound, so a deployed Worker has no admin surface.
-import { adminHashes, d1Query } from './admin-hashes.js';
+import { adminHashes, d1Query, storedCatalogueKey } from './admin-hashes.js';
 import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
@@ -333,7 +333,8 @@ const canonicalMetadata = (m) => JSON.stringify(Object.fromEntries(
  * - `preDeploy` (runbook step 5, `npm run verify -- --pre-deploy`): no
  *   Vectorize call at all. Answers the row_hash check plus every row's code,
  *   text and row hashes and filter fields (`rows`), for the comparison with
- *   the manifest and the bundle.
+ *   the manifest and the bundle, and D1's `catalogueKey` (Phase 7 7D) for the
+ *   comparison with the bundled catalogue file.
  * @param {Request} request
  * @param {Env} env
  */
@@ -364,8 +365,17 @@ export async function handleVerify(request, env) {
     if (recomputed !== r.row_hash) rowHashDrift.push({ code: r.code, stored: r.row_hash, recomputed });
   }
   if (body?.preDeploy === true) {
+    /** @type {Awaited<ReturnType<typeof storedCatalogueKey>>} */
+    let catalogue;
+    try {
+      catalogue = await storedCatalogueKey(d1Query(env.DB));
+    } catch (err) {
+      return upstream('d1', err);
+    }
     return json({
       codes: [...byCode.keys()],
+      // Phase 7 7D: verify --pre-deploy compares it with the bundled catalogue file's.
+      catalogueKey: catalogue.key,
       rowHash: { checked: rows.results.length, drift: rowHashDrift, missing: missingRowHash },
       rows: rows.results.map((r) => {
         const f = fieldsFromRow(r);
@@ -379,7 +389,7 @@ export async function handleVerify(request, env) {
           acadYear: r.acad_year,
         };
       }),
-      meta: metaOf([rows]),
+      meta: metaOf(catalogue.result ? [rows, /** @type {D1Result} */ (catalogue.result)] : [rows]),
     });
   }
 

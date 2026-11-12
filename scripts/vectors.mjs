@@ -14,9 +14,10 @@
 //       corpus asset by embeddingKey(model, embeddingText). For full-corpus
 //       CI and the SC4 suite. Upload it as a release asset (it prints how).
 //   node scripts/vectors.mjs build --corpus production --expect-count <D1 rows>
-//       [--year <y>] [--offline] [--max-age <dur>] [--embedding <version>] [--extra <cache.json> ...]
+//       [--embedding <version>] [--extra <cache.json> ...]
 //       .data/vectors/vec-production-<dataVersion>-<embedding>.bin: the
-//       corpus ingest will write (fetched as `npm run ingest` fetches it),
+//       corpus ingest will write, `current` in data/corpus.json (Phase 7 7D;
+//       `npm run corpus -- restore` first), with the NG files of its year,
 //       vectors reused by key from the eval asset and the --extra caches.
 //       Texts in neither are written to .data/vectors/missing-production.json
 //       and the build stops: embed them with
@@ -36,7 +37,7 @@
 //       Downloads the release asset into .data/vectors/ if absent (gh), checks
 //       its sha256 against data/vectors.json, and writes the module the
 //       `vectors-bundle` alias points at.
-//   node scripts/vectors.mjs data-version [--year <y>] [--offline]
+//   node scripts/vectors.mjs data-version
 //       Prints the data version of the rows ingest would write (B3-4).
 //   npm run remote -- vectors standby [--deletes <file>]
 //   node scripts/vectors.mjs standby --url <a wrangler dev --remote> [--deletes <file>]
@@ -56,15 +57,14 @@ import { cachePart, embeddingKey, loadCorpusEmbeddings, readCache, readManifest,
 import { hashEmbed } from '../test/fakes.js';
 import { encodeBundle, parseBundle } from '../src/vector-bundle.js';
 import { dataVersion, rowHash } from '../src/rowhash.js';
+import { build as build3b } from './build-3b-data.mjs';
 import { writeProductionGroups } from './build-groups.mjs';
 import { writeProductionNgUnscheduled } from './build-ng-unscheduled.mjs';
 import { writeProductionVocabulary } from './build-vocabulary.mjs';
 import { dataVersionFile, httpAdminApi, parseDuration, DATA_VERSION_PATH } from './ingest.mjs';
 import { workerUrl } from './remote-session.mjs';
 import { startRun } from './run-record.mjs';
-import {
-  DEFAULT_ACAD_YEAR, DEFAULT_MAX_AGE_MS, assertExpectedShape, fetchAcadYearFile, loadNgCourses, offeredModules,
-} from './lib.mjs';
+import { productionCorpus } from './corpus-manifest.mjs';
 import { loadPinnedCorpus } from './pinned-corpus.mjs';
 import { runStandby } from './vectors-core.mjs';
 import {
@@ -100,14 +100,11 @@ async function vectorSource(version, extras) {
 }
 
 /**
- * The corpus `npm run ingest` would write, from the same source and normaliser.
- * @param {{ year: string, offline: boolean, maxAgeMs: number }} o
+ * The corpus `npm run ingest` would write, from the same source and normaliser: `current`
+ * (data/corpus.json), sha-checked, with the NG files of its year.
  */
-export async function productionModules(o) {
-  const info = await fetchAcadYearFile(o.year, 'moduleInfo.json', { offline: o.offline, maxAgeMs: o.maxAgeMs });
-  assertExpectedShape(info.data);
-  const { modules } = offeredModules(info.data, o.year, await loadNgCourses(o.year));
-  return modules;
+export async function productionModules() {
+  return (await productionCorpus()).modules;
 }
 
 /** @param {NormalisedModule[]} modules */
@@ -143,7 +140,7 @@ async function build(argv, log) {
     args: argv,
     options: {
       corpus: { type: 'string' }, embedding: { type: 'string' }, extra: { type: 'string', multiple: true },
-      'expect-count': { type: 'string' }, year: { type: 'string' }, offline: { type: 'boolean' }, 'max-age': { type: 'string' },
+      'expect-count': { type: 'string' },
     },
     strict: true,
   });
@@ -180,10 +177,7 @@ async function build(argv, log) {
       return 1;
     }
     expected = Number(values['expect-count']);
-    modules = await productionModules({
-      year: values.year ?? DEFAULT_ACAD_YEAR, offline: values.offline ?? false,
-      maxAgeMs: values['max-age'] ? parseDuration(values['max-age']) : DEFAULT_MAX_AGE_MS,
-    });
+    modules = await productionModules();
   }
   if (modules.length !== expected) {
     log(`build: the ${corpus} corpus has ${modules.length} rows, expected ${expected}. Nothing was written.`);
@@ -200,7 +194,7 @@ async function build(argv, log) {
     await writeFile(MISSING_PATH, `${JSON.stringify({ model: MODEL, texts: missing }, null, 1)}\n`);
     log(`build: ${missing.length} texts have no vector in ${version}${values.extra?.length ? ' or the --extra caches' : ''}. Wrote ${relative(ROOT, MISSING_PATH)}. Nothing else was written.`);
     log(`next: npm run eval:embed -- --texts ${relative(ROOT, MISSING_PATH)} --out .data/vectors/extra-production.json`);
-    log(`then: node scripts/vectors.mjs build --corpus production --expect-count ${expected}${values.offline ? ' --offline' : ''} --extra .data/vectors/extra-production.json`);
+    log(`then: node scripts/vectors.mjs build --corpus production --expect-count ${expected} --extra .data/vectors/extra-production.json`);
     return 1;
   }
   const bytes = await encodeBundle({ corpus, embedding: source.label, model: MODEL, modules, vectorOf: (m) => out.get(m.code) });
@@ -220,9 +214,14 @@ async function build(argv, log) {
     log(`  ${await writeProductionVocabulary(modules)} -> the 3C vocabulary of the same corpus`);
     log(`  ${await writeProductionGroups(modules)} -> the 3F duplicate groups of the same corpus`);
     log(`  ${await writeProductionNgUnscheduled(modules)} -> 6A's NG-listed codes with no classes, from the same moduleInfo`);
+    // Phase 7 7D: the catalogue codes, prefixes and catalogue-only rows of the same corpus.
+    for (const [rel, bytes] of Object.entries(await build3b('production'))) {
+      await writeFile(join(ROOT, rel), bytes);
+      log(`  ${rel} -> 3B's per-corpus file, from the same moduleInfo`);
+    }
   }
   log(`upload: gh release create ${asset.replace(/\.bin$/, '')} ${relative(ROOT, bin)} --title "${asset}" --notes "vectors bundle, sha256 ${manifest.bundles[corpus]?.sha256}"`);
-  log('then commit data/vectors.json' + (corpus === 'production' ? ', src/data-version.json, data/vocabulary.json, data/groups.json and data/ng-unscheduled.json (runbook step 1)' : ''));
+  log('then commit data/vectors.json' + (corpus === 'production' ? ', src/data-version.json, data/vocabulary.json, data/groups.json, data/ng-unscheduled.json and the 3B files (runbook step 1)' : ''));
   return 0;
 }
 
@@ -311,11 +310,8 @@ async function standby(argv, log, deps = {}) {
 
 /** @param {string[]} argv @param {(line: string) => void} log */
 async function dataVersionCommand(argv, log) {
-  const { values } = parseArgs({ args: argv, options: { year: { type: 'string' }, offline: { type: 'boolean' }, 'max-age': { type: 'string' } }, strict: true });
-  const modules = await productionModules({
-    year: values.year ?? DEFAULT_ACAD_YEAR, offline: values.offline ?? false,
-    maxAgeMs: values['max-age'] ? parseDuration(values['max-age']) : DEFAULT_MAX_AGE_MS,
-  });
+  parseArgs({ args: argv, options: {}, strict: true });
+  const modules = await productionModules();
   log(`${modules.length} rows, data version ${await offlineDataVersion(modules)}`);
   return 0;
 }

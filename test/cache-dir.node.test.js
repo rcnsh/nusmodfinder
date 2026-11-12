@@ -1,7 +1,7 @@
 // @ts-check
 // The ingest download cache must never share a path with the pinned snapshot
 // the eval and the full-corpus tests read: a fresh NUSMods fetch overwrote
-// .data/2026-2027-moduleInfo.json (the pinned 2026-09-04 file) on 2026-11-04.
+// the pinned snapshot in .data/ (PINNED_ACAD_YEAR) during Phase 1.
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { CACHE_DIR } from '../scripts/lib.mjs';

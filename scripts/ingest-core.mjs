@@ -719,7 +719,7 @@ export async function waitForMutation(api, target, { timeoutMs, intervalMs, slee
 }
 
 /** Bound on the ids a pending mutation carries in `earlier` (a run sends ~140). */
-const MAX_OWN_IDS = 2000;
+const MAX_OWN_IDS = 2_000;
 
 /** @param {number} ms */
 const defaultSleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });

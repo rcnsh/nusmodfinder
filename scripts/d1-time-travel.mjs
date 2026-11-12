@@ -126,8 +126,10 @@ export async function restore({ argv = process.argv.slice(3), exec = run, log = 
       client = await (d1 ?? (() => productionD1({ exec })))();
       const ctx = await readD1(client);
       const dv = await /** @type {import('./guard.mjs').GuardCheck} */ (GUARD_CHECKS.find((c) => c.field === 'dataVersion')).d1(ctx);
-      record.read('D1 rows (re-read over the REST query: modules and the schema check)', { actual: client.rowsRead });
+      record.read('D1 rows (re-read over the REST query: modules, catalogue_only and the schema check)', { actual: client.rowsRead });
       record.version('dataVersion', dv);
+      // 7D: and its catalogueKey, which rollback compares with the target's tag too.
+      record.version('catalogueKey', ctx.hashes.catalogueKey ?? null);
       log(`d1:restore: D1's data version is now ${dv ?? 'unknown (rows without row_hash)'} (${client.rowsRead} rows read).`);
     } catch (err) {
       record.read('D1 rows (re-read over the REST query)', { actual: client?.rowsRead ?? null });

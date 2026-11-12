@@ -135,6 +135,8 @@ describe('runbook step 5: verify --pre-deploy', () => {
    * fixture file's, so exactly the file's codes are NG codes with no D1 row.
    */
   const unscheduledCodes = fixtureUnscheduled.modules.map((e) => e.code);
+  /** Phase 7 7D: the bundled catalogue file, here the empty catalogue_only seed() leaves. */
+  const catalogue = { codes: /** @type {string[]} */ ([]) };
   const dataFiles = {
     ngReasonsAcadYear: ngReasons.acadYear,
     unscheduled: { acadYear: fixtureUnscheduled.acadYear, codes: unscheduledCodes },
@@ -144,11 +146,13 @@ describe('runbook step 5: verify --pre-deploy', () => {
   it('D1 as seeded agrees with the fixture bundle and its manifest entry, and Vectorize is not read', async () => {
     const bundle = await fixtureBundle();
     expect(bundle.header.rowsKey).toBe(fixtureEntry.rowsKey);
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles, catalogue });
     expect(r).toMatchObject({ ok: true, d1Rows: fixture.modules.length, bundleRows: fixture.modules.length, missingInBundle: [], extraInBundle: [], fieldDrift: [] });
     expect(new Set(Object.values(r.rowsKey)).size).toBe(1);
     expect(new Set(Object.values(r.dataVersion)).size).toBe(1);
-    expect(r.rowsRead).toBe(fixture.modules.length);
+    // Every module row, plus 7D's catalogueKey read of catalogue_only, counted as D1 bills it.
+    const catalogueRead = (await env.DB.prepare('SELECT code FROM catalogue_only').all()).meta.rows_read;
+    expect(r.rowsRead).toBe(fixture.modules.length + catalogueRead);
     noRemoteCalls();
   });
 
@@ -158,7 +162,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     await env.DB.prepare("UPDATE modules SET text_hash = 'changed' WHERE code = ?").bind(a.code).run();
     await env.DB.prepare("UPDATE modules SET semesters = '[4]' WHERE code = ?").bind(b.code).run();
     await env.DB.prepare('DELETE FROM modules WHERE code = ?').bind(c.code).run();
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: '000000000000', knownReason, dataFiles });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: '000000000000', knownReason, dataFiles, catalogue });
     expect(r.ok).toBe(false);
     expect(r.rowsKey.d1).not.toBe(r.rowsKey.bundle);
     expect(r.dataVersion.committed).not.toBe(r.dataVersion.bundle);
@@ -175,7 +179,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     // Rewritten as a stale ingest would have: the row's own hash agrees with its columns.
     await env.DB.prepare('UPDATE modules SET exam_dates = ?, row_hash = ? WHERE code = ?')
       .bind(JSON.stringify(examDates), await rowHash({ ...m, examDates }), m.code).run();
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles, catalogue });
     expect(r.ok).toBe(false);
     expect(r.rowHashDrift).toEqual([]);
     expect(r.fieldDrift).toEqual([{ code: m.code, d1: { examDates }, bundle: { examSemesters: m.examSemesters } }]);
@@ -184,14 +188,14 @@ describe('runbook step 5: verify --pre-deploy', () => {
 
   it('6A: both year files\' acadYear equal D1\'s acad_year, and the file\'s codes are exactly the NG codes with no row', async () => {
     const bundle = await fixtureBundle();
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles, catalogue });
     expect(r.ok).toBe(true);
     expect(r.acadYear).toEqual({ d1: '2026-2027', ngReasons: '2026-2027', ngUnscheduled: '2026-2027' });
     expect(r.unscheduled).toEqual({ missing: [], withRow: [], notNg: [] });
 
     const offered = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.ng));
     const stale = await runPreDeployVerify({
-      api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason,
+      api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, catalogue,
       dataFiles: {
         ngReasonsAcadYear: ngReasons.acadYear,
         // A file from last year, holding an offered code and a code off the NG list, and missing EE4407.
@@ -207,7 +211,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
   it('6A: a D1 holding rows of two years agrees with no file', async () => {
     const bundle = await fixtureBundle();
     await env.DB.prepare("UPDATE modules SET acad_year = '2027-2028' WHERE code = ?").bind(fixture.modules[0].code).run();
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles, catalogue });
     expect(r.ok).toBe(false);
     expect(r.acadYear.d1).toBeNull();
   });
@@ -217,7 +221,7 @@ describe('runbook step 5: verify --pre-deploy', () => {
     const ng = /** @type {NormalisedModule} */ (fixture.modules.find((m) => m.ngRules && Object.keys(m.ngRules).length));
     const stored = JSON.stringify({ ...ng.ngRules, 0: ['no-such-rule'] });
     await env.DB.prepare('UPDATE modules SET ng_rules = ? WHERE code = ?').bind(stored, ng.code).run();
-    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles });
+    const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles, catalogue });
     expect(r.ok).toBe(false);
     expect(r.unknownReasons).toEqual([{ code: ng.code, id: 'no-such-rule' }]);
   });

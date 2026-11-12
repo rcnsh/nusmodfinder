@@ -33,12 +33,17 @@
   // the fixture's: esbuild accepts no relative alias keys. Wrangler merges these
   // with deploy's --alias, so the deploy adds none for them. 6A's NG-listed
   // codes with no classes (src/ng-unscheduled.js) are one more, built with the
-  // groups (scripts/build-ng-unscheduled.mjs).
+  // groups (scripts/build-ng-unscheduled.mjs). Phase 7 7D's catalogue codes and
+  // prefixes (src/intent-data.js) follow the corpus too: built from `current`
+  // (data/corpus.json) by scripts/build-3b-data.mjs --corpus production; the
+  // deploy guard checks D1's catalogue_only against the catalogue file.
   "alias": {
     "vectors-bundle": "./test/fixtures/vectors.js",
     "vocabulary-data": "./data/vocabulary.json",
     "groups-data": "./data/groups.json",
-    "ng-unscheduled-data": "./data/ng-unscheduled.json"
+    "ng-unscheduled-data": "./data/ng-unscheduled.json",
+    "catalogue-codes-data": "./data/catalogue-codes.json",
+    "prefixes-data": "./data/prefixes.json"
   },
 
   "d1_databases": [

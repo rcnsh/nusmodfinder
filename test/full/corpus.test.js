@@ -1,6 +1,6 @@
 // @ts-check
 // Invariants over the full pinned corpus (.data/, release
-// data-2026-2027-20260904). Skipped when the corpus is absent; with
+// PINNED_RELEASE). Skipped when the corpus is absent; with
 // FULL_CORPUS=1 an absent or mismatched corpus fails in vitest.config.mjs
 // before any test runs.
 import { describe, expect, inject, it } from 'vitest';

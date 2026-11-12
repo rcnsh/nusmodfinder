@@ -48,7 +48,8 @@ export function buildNgReasons(acadYear) {
   return {
     acadYear,
     generator: 'scripts/build-ng-reasons.mjs',
-    // docs/evidence/phase4/sources.md: the documents and their "updated as at" dates.
+    // docs/evidence/phase4/sources.md: the documents and their "updated as at" dates. 7E moves
+    // them to the year's source manifest (data/ng-sources-<year>.json).
     sources: [
       { name: 'Courses offered to exchange (NG) students', updatedAsAt: '01 Sep 2026', url: NG_PAGE },
       { name: 'Course restrictions for exchange (NG) students', updatedAsAt: '31 Aug 2026', url: NG_PAGE },

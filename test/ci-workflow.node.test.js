@@ -123,3 +123,37 @@ describe('every CI job always starts (Phase 7 7A)', () => {
     expect(minutes).toBeLessThanOrEqual(15);
   });
 });
+
+describe('Phase 7 7D: CI on the live year', () => {
+  const sc1 = job('sc1');
+  const full = job('full-corpus');
+
+  it('sc1 restores `current` from its release asset, with no pinned corpus, and the production bundle', () => {
+    expect(sc1).toMatch(/npm run corpus -- restore/);
+    expect(sc1).not.toMatch(/PINNED_RELEASE|data-2026-2027-20260904|MODULE_INFO/);
+    expect(sc1).toMatch(/vectors\.mjs fetch --corpus production/);
+    expect(sc1).not.toMatch(/fetch --corpus pinned/);
+  });
+
+  it('sc1 checks the data version and the catalogueKey against the asset before its tests', () => {
+    const names = steps(sc1);
+    const check = names.findIndex((s) => /npm run corpus -- check/.test(s));
+    const tests = names.findIndex((s) => /--project sc1 --project sc1-node/.test(s));
+    expect(check).toBeGreaterThan(0);
+    expect(tests).toBeGreaterThan(check);
+  });
+
+  it('sc1 runs both projects into one report, and fails unless every test passed (none skipped)', () => {
+    expect(sc1).toMatch(/npx vitest run --project sc1 --project sc1-node --reporter=default --reporter=json --outputFile="\$RUNNER_TEMP\/sc1\.json"/);
+    expect(sc1).toMatch(/r\.numPassedTests === 0 \|\| r\.numPassedTests !== r\.numTotalTests/);
+  });
+
+  it('full-corpus keeps the pinned corpus and bundle (the eval\'s)', () => {
+    expect(full).toMatch(/PINNED_RELEASE: data-2026-2027-20260904/);
+    expect(full).toMatch(/vectors\.mjs fetch --corpus pinned/);
+  });
+
+  it('npm run test:sc1 runs both projects', () => {
+    expect(JSON.parse(read('package.json')).scripts['test:sc1']).toBe('vitest run --project sc1 --project sc1-node');
+  });
+});

@@ -9,6 +9,7 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { DEFAULT_ACAD_YEAR as Y } from '../scripts/lib.mjs';
 import { SMOKE_GAP_MS, smoke } from '../scripts/smoke.mjs';
 
 const SHA = 'a23601de0b15934960bfef1d8b56ab3e80fa5587';
@@ -27,10 +28,13 @@ const CORPUS = [
   { code: 'CS9999', title: 'A Title Nobody Else Has' },
 ];
 const BUNDLE_CODES = ['CS1010', 'CS1010E', 'CS2030', 'CS2040', 'CS3230'];
+/** The expected commit's corpus manifest (Phase 7 7D): its `current` is the corpus titles come from. */
+const CORPUS_ENTRY = { year: Y, release: `prod-${Y}-29991231`, asset: `${Y}-moduleInfo.json.gz`, sha256: 'c'.repeat(64), bytes: 1, fetchedAt: '2999-12-31T00:00:00Z' };
+const CORPUS_MANIFEST = { schema: 'vnm-corpus-manifest/1', current: CORPUS_ENTRY.release, corpora: { [CORPUS_ENTRY.release]: CORPUS_ENTRY } };
 const GROUPS = { schema: 'vnm-groups/1', groups: [['CS1010', 'CS1010E']] };
 
-/** @param {string} sha */
-function fakeExec(sha = SHA) {
+/** @param {string} sha @param {{ manifest?: boolean }} [o] */
+function fakeExec(sha = SHA, o = {}) {
   /** @type {string[][]} */
   const calls = [];
   /** @type {import('../scripts/deploy.mjs').Exec} */
@@ -40,6 +44,7 @@ function fakeExec(sha = SHA) {
     if (key === `git rev-parse --verify ${sha}^{commit}` || key === 'git rev-parse --verify HEAD^{commit}') return { code: 0, stdout: `${sha}\n` };
     if (key === `git show ${sha}:src/data-version.json`) return { code: 0, stdout: JSON.stringify({ version: DVS[sha] }) };
     if (key === `git show ${sha}:data/groups.json`) return { code: 0, stdout: JSON.stringify(GROUPS) };
+    if (key === `git show ${sha}:data/corpus.json`) return o.manifest === false ? { code: 128, stdout: '' } : { code: 0, stdout: JSON.stringify(CORPUS_MANIFEST) };
     if (key === `git show ${sha}:data/vectors.json`) return { code: 0, stdout: JSON.stringify({ bundles: { production: PRODUCTION_ENTRY } }) };
     if (key === `git show ${sha}:wrangler.jsonc`) return { code: 0, stdout: '{\n  // c\n  "routes": [{ "pattern": "nusmodfinder.rcn.sh", "custom_domain": true }]\n}\n' };
     throw new Error(`unexpected command: ${key}`);
@@ -90,19 +95,21 @@ beforeEach(() => { runsDir = mkdtempSync(join(tmpdir(), 'vnm-smoke-runs-')); });
 afterEach(() => { rmSync(runsDir, { recursive: true, force: true }); });
 const records = () => readdirSync(runsDir).sort().map((f) => JSON.parse(readFileSync(join(runsDir, f), 'utf8')));
 
-/** @param {ReturnType<typeof fakeSite>} site @param {{ argv?: string[], sha?: string, random?: () => number }} [o] */
+/** @param {ReturnType<typeof fakeSite>} site @param {{ argv?: string[], sha?: string, random?: () => number, manifest?: boolean }} [o] */
 async function run(site, o = {}) {
-  const { exec, calls } = fakeExec(o.sha ?? SHA);
+  const { exec, calls } = fakeExec(o.sha ?? SHA, { manifest: o.manifest });
   /** @type {string[]} */
   const out = [];
   /** @type {any[]} */
   const entries = [];
+  /** @type {any[]} */
+  const corpora = [];
   const code = await smoke({
     argv: o.argv ?? [], exec, fetchImpl: site.fetchImpl, sleep: site.sleep, now: site.now, random: o.random ?? (() => 0.5),
     log: (m) => out.push(m), error: (m) => out.push(m), runsDir,
-    bundleCodes: async (entry) => { entries.push(entry); return BUNDLE_CODES; }, corpus: async () => CORPUS,
+    bundleCodes: async (entry) => { entries.push(entry); return BUNDLE_CODES; }, corpus: async (entry) => { corpora.push(entry); return CORPUS; },
   });
-  return { code, out: out.join('\n'), calls, entries };
+  return { code, out: out.join('\n'), calls, entries, corpora };
 }
 
 describe('npm run smoke', () => {
@@ -152,5 +159,22 @@ describe('npm run smoke', () => {
       expect((await run(site, { random: () => r })).code).toBe(0);
       expect(site.sent[2].path).toBe('/module/CS3230');
     }
+  });
+});
+
+describe('smoke\'s corpus (Phase 7 7D)', () => {
+  it('draws from the expected commit\'s data/corpus.json `current`, not the Mac\'s download cache', async () => {
+    const r = await run(fakeSite());
+    expect(r.code).toBe(0);
+    expect(r.corpora).toEqual([CORPUS_ENTRY]);
+    expect(r.calls).toContainEqual(['git', 'show', `${SHA}:data/corpus.json`]);
+  });
+
+  it('a commit from before the manifest draws from the working tree\'s current, and says so', async () => {
+    const r = await run(fakeSite(), { manifest: false });
+    expect(r.code).toBe(0);
+    const here = JSON.parse(readFileSync(new URL('../data/corpus.json', import.meta.url), 'utf8'));
+    expect(r.corpora).toEqual([here.corpora[here.current]]);
+    expect(r.out).toMatch(new RegExp(`predates data/corpus.json; drawing from the working tree's current \\(${here.current}\\)`));
   });
 });

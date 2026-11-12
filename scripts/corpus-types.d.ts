@@ -44,6 +44,9 @@ interface FullCorpus {
   modules: NormalisedModule[];
   skipped: { code: string; why: string }[];
   ng: { updatedAsAt: string | null; semesters: Record<string, string[]> };
+  /** Phase 7 7D: every department and faculty name the corpus's records carry, sorted. */
+  departments: string[];
+  faculties: string[];
 }
 
 /** test/fixtures/corpus.json, written by scripts/build-fixture.mjs. */

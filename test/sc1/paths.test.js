@@ -1,13 +1,15 @@
 // @ts-check
-// SC1 path tests (docs/plans/phase4.md 4E): over the pinned corpus (6,771
-// modules, D1 seeded through /admin/ingest) and the pinned bundle, for each
+// SC1 path tests (docs/plans/phase4.md 4E): over production's corpus
+// (`current` in data/corpus.json, D1 seeded through /admin/ingest) and the
+// production bundle, vocabulary, groups and catalogue (Phase 7 7D), for each
 // of the 15 (sem, study) combinations, every exchange-mode path shows
 // exactly the modules the independent oracle (test/sc1/oracle.node.mjs)
 // calls open or noted:
 // - set equality per path filter: the lexical filter SQL over every D1 row,
 //   compileMask over every bundle row, the D1 recheck over every row;
 // - the standby (the fake Vectorize holding the bundle's vectors, then the
-//   recheck): no leaks, and recall@50 against the bundle above a floor;
+//   recheck): no leaks (its recall@50 floor is a fact of the pinned corpus,
+//   asserted in test/full/sc1-pinned.test.js; here it is logged);
 // - pins, 3F variants and a not-offered code's `related`: a code search for
 //   every NG code shows it exactly when the oracle does; no closed variant;
 //   no closed neighbour;
@@ -24,64 +26,43 @@
 //   entries; it never hides a course;
 // - Phase 6 6A: /module/:code's `exchange`, what the shortlist reads, equals
 //   the oracle's (with R3 and R6-2) for every offered code, NG-listed or not, and for
-//   every NG-listed code with no classes (the pinned data file, built in
-//   memory as the pinned groups are), whose 404 answers it; a typed one is
+//   every NG-listed code with no classes (data/ng-unscheduled.json), whose
+//   404 answers it; a typed one is
 //   never ranked.
 // - Phase 6 6C: the shortlist (public/shortlist.js) over the same answers, at
 //   Sem 1 and Sem 2, each study level and browse mode: a closed case is never
 //   counted, has no form number and carries its stamp (test/shortlist-sc1.js).
 // Its own vitest project and CI job (`npm run test:sc1`), with its own
-// timeout. Skipped without the pinned corpus and bundle; the sc1 CI job sets
-// FULL_CORPUS=1, so a missing one fails there instead.
+// timeout. Skipped without `current` restored (npm run corpus -- restore) and
+// the production bundle; the sc1 CI job sets PRODUCTION_CORPUS=1, so a missing
+// one fails there instead, and its guard fails on any skipped test.
 import { env } from 'cloudflare:workers';
 import { afterAll, beforeAll, describe, expect, inject, it, vi } from 'vitest';
-import catalogueFile from '../../data/catalogue-only.json';
+import catalogueFile from 'catalogue-only-data';
 import { denseBundle } from '../../src/dense.js';
 import { groups } from '../../src/group-data.js';
 import { filterSql } from '../../src/lexical.js';
 import { RESULT_COLUMNS } from '../../src/modules.js';
 import { unscheduled } from '../../src/ng-unscheduled.js';
-import { NG_SEMS, STUDIES } from '../../src/ng-bit.js';
 import { storedVectorMetadata } from '../../src/rowhash.js';
 import { localMatchesFilters } from '../../src/search.js';
+import { STUDIES } from '../../src/ng-bit.js';
 import { compileMask } from '../../src/vector-bundle.js';
 import { createFakes } from '../fakes.js';
 import { adminCall, call, callJson, seed } from '../helpers.js';
 import { shortlistAgainstOracle } from '../shortlist-sc1.js';
 import { levelNoteOf, oracle, oracleShown, yearNoteOf } from './oracle.node.mjs';
+import { COMBOS, QUERIES, shownCodes as shown } from './shared.js';
 
 const corpus = inject('corpus');
-const bundleKind = inject('vectorsBundle');
 
-/** The 15 combinations, with the query string each sets. */
-const COMBOS = NG_SEMS.flatMap((sem) => STUDIES.map((study) => ({
-  sem, study, qs: `ng=1&study=${study}${sem === 'any' ? '' : `&sem=${sem}`}`,
-  /** @type {import('../../src/vector-bundle.js').FilterEcho} */
-  echo: { ng: true, study, ...(sem === 'any' ? {} : { sem }) },
-})));
-/**
- * Standby recall@50 against the bundle, mean over the queries, per
- * combination. Plan §2's simulation over the 98 dev queries at depth 100: 0.998
- * for a level-cut bit, 0.892 for a ug1-like bit (worst query 0.04). The floor
- * sits below the simulation's worst mean.
- */
-const STANDBY_RECALL_FLOOR = 0.85;
-const QUERIES = [
-  'machine learning', 'introduction to programming', 'financial accounting', 'japanese language', 'climate change',
-  'public policy', 'statistics', 'music', 'architecture design studio', 'law and technology', 'organic chemistry',
-  'history of southeast asia', 'marketing', 'data structures and algorithms', 'philosophy of mind', 'urban planning',
-  'quantum mechanics', 'psychology', 'supply chain management', 'materials science',
-];
-
-describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode path agrees with the oracle', () => {
+describe.skipIf(!corpus)('SC1: every exchange-mode path agrees with the oracle', () => {
   const c = /** @type {FullCorpus} */ (corpus);
   const moduleOf = new Map(c.modules.map((m) => [m.code, m]));
   /** @param {string} code @param {(typeof COMBOS)[number]} k */
   const shownByOracle = (code, k) => oracle(/** @type {NormalisedModule} */ (moduleOf.get(code)), { sem: k.sem, study: k.study }) !== 'closed';
   /** @param {(typeof COMBOS)[number]} k */
   const oracleSet = (k) => c.modules.filter((m) => shownByOracle(m.code, k)).map((m) => m.code).sort();
-  /** Results and their 3F variants. @param {any} body @returns {string[]} */
-  const shown = (body) => body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)]);
   /** Whether an exchange entry carries R3's note. @param {any} e */
   const hasYear = (e) => (e?.reasons ?? []).some((/** @type {any} */ r) => r.id === 'prereq:year-of-study');
   /** How many times an exchange entry carries R6-2's note (once at most). @param {any} e */
@@ -137,7 +118,7 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
     }
   }, 300_000);
 
-  it(`the standby leaks nothing and keeps recall@50 against the bundle at or above ${STANDBY_RECALL_FLOOR}`, async () => {
+  it('the standby and the bundle leak nothing; the standby\'s recall@50 against the bundle is logged', async () => {
     /** @type {string[]} */
     const recalls = [];
     for (const k of COMBOS) {
@@ -153,7 +134,6 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
       }
       const mean = sum / QUERIES.length;
       recalls.push(`${k.qs} ${mean.toFixed(3)}`);
-      expect(mean, k.qs).toBeGreaterThanOrEqual(STANDBY_RECALL_FLOOR);
     }
     console.info(`SC1 standby recall@50 by combination:\n  ${recalls.join('\n  ')}`);
   }, 600_000);
@@ -262,11 +242,13 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('SC1: every exchange-mode pa
         entries++;
       }
     }
-    // R6-2's reach over the offered codes (docs/evidence/phase6/gates.md "R6-2"): every one on the NG list.
-    expect(groCodes.size).toBe(245);
+    // R6-2's reach over the offered codes: every one on the NG list. Its size is a fact of the
+    // corpus (245 over the pinned one, docs/evidence/phase6/gates.md "R6-2"), so it is logged.
+    expect(groCodes.size).toBeGreaterThan(0);
     expect([...groCodes].every((code) => moduleOf.get(code)?.ng)).toBe(true);
     const classless = [...unscheduled().values()];
-    expect(classless).toHaveLength(32);
+    expect(classless.length).toBeGreaterThan(0);
+    console.info(`6A over production: R6-2's note on ${groCodes.size} offered codes; ${classless.length} NG-listed codes with no classes`);
     for (const u of classless) {
       const m = /** @type {NormalisedModule} */ (/** @type {unknown} */ ({
         code: u.code, title: u.title, department: u.department, faculty: u.faculty, level: u.level,

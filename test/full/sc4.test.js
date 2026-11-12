@@ -2,7 +2,7 @@
 // The SC4 acceptance suite (docs/plans/phase3.md §4, docs/plans/phase3-prereg.md
 // §9) through the real Worker, over the pinned vectors bundle and the pinned
 // corpus loaded through /admin/ingest, with D1 catalogue_only loaded from
-// data/catalogue-only.json and the committed query embeddings
+// `catalogue-only-data` (the pinned rows, built in memory) and the committed query embeddings
 // (test/sc4/embeddings.json, and eval/dev/embeddings.json for the four dev
 // texts §4 names) answering Workers AI. 3C-2's corrected forms, which P-6 did
 // not embed, come from test/fixtures/sc4-corrected-embeddings.json
@@ -21,7 +21,7 @@
 // Under 3C-2 an item whose corrected text has no committed embedding yet is
 // listed as waiting on lead embedding, with the command that makes it.
 import { describe, expect, inject, it, beforeAll } from 'vitest';
-import catalogueFile from '../../data/catalogue-only.json';
+import catalogueFile from 'catalogue-only-data';
 import groupsFile from '../../eval/groups.json';
 import gibberishFile from '../../eval/dev/gibberish.json';
 import suiteFile from '../sc4/queries.json';
