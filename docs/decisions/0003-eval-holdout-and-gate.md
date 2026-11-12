@@ -535,6 +535,31 @@ its evidence is a count-log row that names the route it took.
 - **Pin lines.** A shipped-ranker pin line below is written after the merge, so it is never lock
   evidence.
 
+## Amendment 2026-11-12: the eval's pinned NG files
+**Phase 7 7D (`docs/plans/phase7.md`, ADR 0011).** The eval stays on the pinned 2026/27 corpus,
+because its qrels were judged on it. Until 7D it normalised that corpus with the live NG files
+(`data/ng-courses-2026-2027.json` and `data/ng-restrictions-2026-2027.json`) through the ranker's
+`loadNgCourses`. A Registrar revision of either file would then have changed the eval's modules,
+broken every report's `ngSha256` check and moved the ranking lock, with no ranker change at all.
+
+- **The copies.** `eval/pinned/` holds byte-identical copies of both files as they stood when the
+  qrels' NG list was recorded. `eval/lib/corpus.mjs` passes them into the ranker's
+  `offeredModules`; nothing the eval runs reads the live files. The copies are inputs of the
+  ranking lock (`LOCK_INPUTS`).
+  - pinned NG list sha256 `092d021db4ccff2ea45e75bfc073623fa502aace082a8d5bd627f41d79c3f169`
+    (`eval/pinned/ng-courses-2026-2027.json`, the qrels' `ngSha256`)
+  - pinned NG restrictions sha256 `eb3462ef4e2ef5524f04d9148ff7c6d5d03125353918f369f38e785231fd3132`
+    (`eval/pinned/ng-restrictions-2026-2027.json`)
+- **The checks.** A run records both sha256s (`ngSha256`, `ngRestrictionsSha256`). The report
+  checks the list against the qrels, as before, and a pinned run's restrictions against the pinned
+  copy; runs compared in one report must agree on it where they record it. Run files from before
+  this amendment record no restrictions sha256 and stay comparable.
+  `test/eval/pinned-ng.node.test.js` ties both files to the hashes above.
+- **Ranking-neutral.** The copies equal the live files at this amendment, so no list moves; the
+  lock passes unchanged (`npm run eval:lock -- --check`).
+- **Changing them.** Never while the eval's corpus is the pinned 2026/27 snapshot. A new eval
+  corpus is a new amendment, with new qrels.
+
 ## Shipped-ranker pin
 The baseline of per-change holdout looks (`SHIPPED_BASELINE`, `eval/lib/baseline.mjs`). The
 last line is the current pin; a PR that ships a change appends one line, with the ranker it

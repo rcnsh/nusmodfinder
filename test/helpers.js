@@ -7,7 +7,6 @@ import { env } from 'cloudflare:workers';
 import worker from '../src/index.js';
 import { searchCacheKey } from '../src/search.js';
 import { denseCircuit } from '../src/upstream.js';
-import ngJson from '../data/ng-courses-2026-2027.json';
 import { createFakes } from './fakes.js';
 import fixtureJson from './fixtures/corpus.json';
 
@@ -16,6 +15,14 @@ import fixtureJson from './fixtures/corpus.json';
 export const BASE = 'https://vector-nusmods.test';
 /** Only ever bound inside tests; the raw test env has no INGEST_SECRET. */
 export const TEST_INGEST_SECRET = 'test-ingest-secret';
+
+/**
+ * The NG list of the fixture's year (Phase 7 7D, one year source: found by the year, not named):
+ * data/ng-courses-<acad year>.json, which the fixture corpus was built with.
+ */
+const ngJson = /** @type {{ updatedAsAt: string, source: string, semesters: Record<string, string[]> }} */ (
+  /** @type {Record<string, { default: unknown }>} */ (import.meta.glob('../data/ng-courses-*.json', { eager: true }))[
+    `../data/ng-courses-${/** @type {FixtureCorpus} */ (/** @type {unknown} */ (fixtureJson)).modules[0].acadYear}.json`].default);
 
 /** The NG list provenance ingest posts to /admin/facets (scripts/ingest.mjs). */
 export const NG_LIST = {

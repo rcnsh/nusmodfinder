@@ -9,7 +9,7 @@
 //   the first of duplicates (picks are read first, so a code in both lists
 //   stays a pick), and keeps at most 20 entries in each tagged semester and 40
 //   in all. `dropped` says how many it left out.
-// - `ay` (`2026-2027`, as acad_year writes it) is set once, from the first
+// - `ay` (`YYYY-YYYY`, as acad_year writes it) is set once, from the first
 //   loaded row (withYear), and never rewritten.
 // - `inv` (`biz`, `law`): NUS Business School or NUS Law invited the student.
 //
@@ -49,7 +49,7 @@ export const entryValue = (e) => (e.sem ? `${e.code}.${e.sem}` : e.code);
 export const entryCount = (list) => list.pick.length + list.alt.length;
 
 /**
- * An acad year as acad_year writes it, two consecutive years: `2026-2027`.
+ * An acad year as acad_year writes it, two consecutive years, `YYYY-YYYY`.
  * @param {string} v
  */
 export function isAcadYear(v) {

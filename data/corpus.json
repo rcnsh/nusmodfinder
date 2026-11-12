@@ -1,0 +1,14 @@
+{
+  "schema": "vnm-corpus-manifest/1",
+  "current": "prod-2026-2027-20261104",
+  "corpora": {
+    "prod-2026-2027-20261104": {
+      "year": "2026-2027",
+      "release": "prod-2026-2027-20261104",
+      "asset": "2026-2027-moduleInfo.json.gz",
+      "sha256": "023beddd21afc4e7d367676bd7795fa53569b4d93810a4716b9f8d1c5835d58b",
+      "bytes": 18922723,
+      "fetchedAt": "2026-11-04T06:29:36.369Z"
+    }
+  }
+}

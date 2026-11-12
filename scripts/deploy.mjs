@@ -12,8 +12,9 @@
 //    modules exist, a `year check --full` record when source-derived inputs changed, and
 //    `wrangler check startup` with the bundle aliased in.
 // 2. The guard (scripts/guard.mjs; B-2, B3-4): D1's (code, text_hash) pairs must hash to the
-//    bundle's rowsKey, and D1's data version must be the committed one. Read over D1's REST
-//    query endpoint (scripts/d1-rest.mjs; ~6.8k rows), the code GET /admin/hashes runs, so no
+//    bundle's rowsKey, D1's data version must be the committed one, and D1's catalogueKey (its
+//    catalogue_only codes, Phase 7 7D) the bundled catalogue file's. Read over D1's REST
+//    query endpoint (scripts/d1-rest.mjs; ~6.8k module and ~14.4k catalogue rows), the code GET /admin/hashes runs, so no
 //    Worker session and no secret is bound anywhere. In Actions a mismatch means a data change
 //    D1 doesn't hold yet: the job fails and says the re-ingest runs on the Mac.
 // 3. `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`; the startup gate
@@ -34,6 +35,7 @@ import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { productionD1 } from './d1-read.mjs';
 import { createAndPushTag, pushCommand, tagArgs, tagName } from './deploy-tag.mjs';
+import { readBundledCatalogue } from './catalogue-check.mjs';
 import { GUARD_CHECKS, runGuard } from './guard.mjs';
 import { ALLOWED_VARS, STARTUP_PROFILE, runPreflight } from './preflight.mjs';
 import { startRun } from './run-record.mjs';
@@ -109,7 +111,7 @@ async function productionBundle() {
  *   bundle?: () => Promise<DeployBundle>, d1?: () => Promise<import('./d1-rest.mjs').D1Client>,
  *   committedDataVersion?: () => Promise<string>, vars?: () => Promise<Record<string, unknown>>, runsDir?: string,
  *   now?: () => Date, env?: Record<string, string | undefined>, signals?: Signals, exit?: (code: number) => void,
- *   guardChecks?: import('./guard.mjs').GuardCheck[],
+ *   guardChecks?: import('./guard.mjs').GuardCheck[], catalogue?: () => Promise<{ codes: string[] }>,
  *   moduleExists?: (rel: string) => boolean, loadModule?: (rel: string) => Promise<any>,
  * }} DeployDeps
  * @typedef {{ uploaded: boolean, promoted: boolean, signalled: { signal: string, code: number } | null, lastError: string | null }} Stage
@@ -246,16 +248,19 @@ async function deployRun(deps, args, record, stage) {
   let client = null;
   /** @type {Awaited<ReturnType<typeof runGuard>>} */
   let guard;
-  const READ = 'D1 rows (the guard, over the D1 REST query: modules and the schema check)';
+  const READ = 'D1 rows (the guard, over the D1 REST query: modules, catalogue_only and the schema check)';
+  const catalogue = await (deps.catalogue ?? readBundledCatalogue)();
+  // The module rows and the catalogue_only rows (7D), as D1 should hold them.
+  const estimate = b.entry.count + catalogue.codes.length;
   try {
     client = await (deps.d1 ?? (() => productionD1({ env, exec })))();
-    guard = await runGuard({ client, bundle: b, committed, checks: deps.guardChecks ?? GUARD_CHECKS });
+    guard = await runGuard({ client, bundle: b, committed, catalogue, checks: deps.guardChecks ?? GUARD_CHECKS });
   } catch (err) {
-    record.read(READ, { estimate: b.entry.count, actual: client?.rowsRead ?? null });
+    record.read(READ, { estimate, actual: client?.rowsRead ?? null });
     error(`deploy: refusing, could not read D1's hashes: ${/** @type {Error} */ (err).message}`);
     return 1;
   }
-  record.read(READ, { estimate: b.entry.count, actual: client.rowsRead });
+  record.read(READ, { estimate, actual: client.rowsRead });
   record.detail('guard', guard.results.map((r) => ({ name: r.name, ok: r.ok, d1: r.d1, expected: r.expected })));
   log(`deploy: guard: ${guard.modules} modules, ${client.rowsRead} D1 rows read (the REST answers' meta.rows_read; in the run record).`);
   if (!guard.ok) {
@@ -271,6 +276,8 @@ async function deployRun(deps, args, record, stage) {
   // 3. Upload and the startup gate.
   record.version('tag', short);
   record.version('dataVersion', committed);
+  // Every other guard field (7D's catalogueKey), as the tag will carry it.
+  for (const [k, v] of Object.entries(guard.values)) if (k !== 'dataVersion' && v !== null) record.version(k, v);
   const message = `${short} ${subject}`.slice(0, MAX_MESSAGE);
   const alias = `vectors-bundle:${b.shim}`;
   log(`deploy: bundle ${relative(ROOT, b.shim)} (${b.entry.count} rows, data version ${committed}, sha256 ${b.sha256.slice(0, 12)})`);

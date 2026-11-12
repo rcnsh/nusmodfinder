@@ -46,6 +46,7 @@ import { SITE_URL, buildExport, fileName } from './export.js';
 import { createPrintView } from './print.js';
 import { askSentence, createShortlistView } from './shortlist-view.js';
 import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, parseState, searchParams, shortlistUrl, unitsLabel, urlFor } from './state.js';
+import { DEFAULT_ACAD_YEAR, semesterMonths } from './year.js';
 
 /** @typedef {import('./state.js').State} State */
 
@@ -163,8 +164,9 @@ const radio = (cls, name, value, content) => {
 // #sem, which holds the value in every mode.
 for (const [value, label] of [['1', 'Sem 1'], ['2', 'Sem 2'], ['', 'Both']]) els.semSegOptions.append(radio('seg-opt', 'xsem', value, [label]));
 // The first screen's two questions (D2).
-for (const [value, name, months] of [['1', 'Sem 1', 'Aug–Dec 2026'], ['2', 'Sem 2', 'Jan–May 2027'], ['', 'Both semesters', 'Aug 2026–May 2027']]) {
-  els.setupSems.append(radio('tile', 'setupSem', value, [h('b', null, name), h('small', null, months), icon('tick', 'tick')]));
+const months = semesterMonths(DEFAULT_ACAD_YEAR);
+for (const [value, name, when] of [['1', 'Sem 1', months[1]], ['2', 'Sem 2', months[2]], ['', 'Both semesters', months.both]]) {
+  els.setupSems.append(radio('tile', 'setupSem', value, [h('b', null, name), h('small', null, when), icon('tick', 'tick')]));
 }
 for (const o of STUDIES) els.setupStudies.append(radio('pill', 'setupStudy', o.value, [icon('tick', 'tick'), o.label]));
 
@@ -1429,7 +1431,7 @@ function sayAdded(code) {
   const head = `${code} added to your picks`;
   if (!e.sem) { say(`${head}, with no semester yet: choose one in your shortlist`); return; }
   const sem = e.sem;
-  const late = new Promise((resolve) => { setTimeout(() => resolve('late'), 2000); });
+  const late = new Promise((resolve) => { setTimeout(() => resolve('late'), 2_000); });
   Promise.race([whenSettled(code).then(() => 'in'), late]).then((how) => {
     if (editCount !== at) return;
     const loading = loadingIn(sem);

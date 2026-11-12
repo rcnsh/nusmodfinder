@@ -5,10 +5,10 @@
 // the same way"). Each records the data version of the corpus it was built
 // from, as the bundle's manifest entry does (data/vectors.json):
 //
-//   node scripts/build-vocabulary.mjs --corpus production [--online]
+//   node scripts/build-vocabulary.mjs --corpus production
 //       data/vocabulary.json, the Worker's (src/intent-data.js): the corpus
-//       `npm run ingest` writes, read from the .data/cache NUSMods download
-//       (offline unless --online). Refused unless its row count and data
+//       `npm run ingest` writes, `current` in data/corpus.json (Phase 7 7D;
+//       `npm run corpus -- restore` first). Refused unless its row count and data
 //       version are the production bundle's in data/vectors.json, so it can
 //       only describe what production serves. `vectors.mjs build --corpus
 //       production` rewrites it with the bundle.
@@ -35,7 +35,7 @@ import { dataVersion, rowHash } from '../src/rowhash.js';
 import { queryTokens } from '../src/fts-query.js';
 import { ftsTerm } from '../src/porter.js';
 import { buildVocabulary, serializeVocabulary } from '../src/vocabulary.js';
-import { DEFAULT_ACAD_YEAR, assertExpectedShape, fetchAcadYearFile, loadNgCourses, offeredModules } from './lib.mjs';
+import { productionCorpus } from './corpus-manifest.mjs';
 import { loadPinnedCorpus } from './pinned-corpus.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -94,14 +94,10 @@ export function withPhraseWords(file, words) {
 }
 
 /**
- * The production corpus as `npm run ingest` would write it, from the NUSMods
- * download cache (offline by default: no network).
- * @param {{ online?: boolean }} [o]
+ * The production corpus as `npm run ingest` would write it: `current` (data/corpus.json), sha-checked.
  */
-export async function productionModules({ online = false } = {}) {
-  const info = await fetchAcadYearFile(DEFAULT_ACAD_YEAR, 'moduleInfo.json', { offline: !online });
-  assertExpectedShape(info.data);
-  return offeredModules(info.data, DEFAULT_ACAD_YEAR, await loadNgCourses(DEFAULT_ACAD_YEAR)).modules;
+export async function productionModules() {
+  return (await productionCorpus()).modules;
 }
 
 /**
@@ -120,9 +116,8 @@ export async function assertProductionCorpus(modules) {
 
 /**
  * @param {'production' | 'pinned' | 'fixture'} corpus
- * @param {{ online?: boolean }} [o]
  */
-export async function build(corpus, o = {}) {
+export async function build(corpus) {
   if (corpus === 'fixture') {
     const { modules } = JSON.parse(await readFile(join(ROOT, 'test/fixtures/corpus.json'), 'utf8'));
     const phrases = JSON.parse(await readFile(join(ROOT, 'data/constraint-phrases.json'), 'utf8'));
@@ -130,7 +125,7 @@ export async function build(corpus, o = {}) {
     return serializeVocabulary(withPhraseWords(file, phraseWords(phrases)));
   }
   if (corpus === 'pinned') return vocabularyBytes((await loadPinnedCorpus()).modules, 'pinned');
-  const modules = await productionModules(o);
+  const modules = await productionModules();
   await assertProductionCorpus(modules);
   return vocabularyBytes(modules, 'production');
 }
@@ -161,14 +156,14 @@ export async function pinnedVocabularyPath() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const { values } = parseArgs({ options: { corpus: { type: 'string' }, check: { type: 'boolean' }, online: { type: 'boolean' } } });
+  const { values } = parseArgs({ options: { corpus: { type: 'string' }, check: { type: 'boolean' } } });
   const corpus = values.corpus;
   if (corpus !== 'production' && corpus !== 'fixture') {
-    console.error('usage: node scripts/build-vocabulary.mjs --corpus production|fixture [--check] [--online]');
+    console.error('usage: node scripts/build-vocabulary.mjs --corpus production|fixture [--check]');
     process.exit(1);
   }
   try {
-    const bytes = await build(corpus, { online: values.online });
+    const bytes = await build(corpus);
     const path = join(ROOT, OUTPUTS[corpus]);
     if (values.check) {
       const have = existsSync(path) ? await readFile(path, 'utf8') : null;

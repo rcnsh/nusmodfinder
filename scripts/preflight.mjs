@@ -9,7 +9,8 @@
 //   ci              HEAD's own CI and Findings push runs succeeded
 //   vars            wrangler.jsonc's vars hold only DENSE_BACKEND
 //   bundle          the production bundle, sha-checked, at the committed data version
-//   corpus manifest 7D's check (scripts/corpus.mjs), skipped while that module is absent
+//   corpus manifest 7D's check (scripts/corpus.mjs preflight): restores `current` (gh, sha-checked),
+//                   then `npm run corpus -- check`: the data version, catalogueKey and 3B files follow it
 //   year check      7E's CI mode (scripts/year.mjs), skipped while that module is absent
 //   source inputs   when HEAD changes a source-derived input since the live tag, a committed
 //                   `year check --full` record (7E) for those inputs' hash

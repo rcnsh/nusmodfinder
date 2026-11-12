@@ -4,8 +4,11 @@
 // two back-filled tags (`b0834844` on `a23601d`, `f8aefeab` on `0b5f360`, both at data version
 // d820d578cf81), printed as the exact commands the lead runs after the merge. Nothing is pushed.
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { BACKFILL, backfillCommands, findVersionTag, parseTagFields, tagArgs, tagName } from '../scripts/deploy-tag.mjs';
+import { BACKFILL, BACKFILL_CATALOGUE_KEY, backfillCommands, findVersionTag, parseTagFields, tagArgs, tagName } from '../scripts/deploy-tag.mjs';
+import { GUARD_CHECKS } from '../scripts/guard.mjs';
+import { catalogueKey } from '../src/rowhash.js';
 import { TAG_FETCH } from './deploy-fakes.node.mjs';
 
 describe('deploy and rollback tags', () => {
@@ -60,12 +63,29 @@ describe('the back-filled tags', () => {
     }
   });
 
+  it('carry every guard field, so rollback to either can check D1 (Phase 7 7D: catalogueKey)', () => {
+    for (const b of BACKFILL) {
+      for (const c of GUARD_CHECKS.filter((x) => x.field)) expect(b.fields, `${b.name} ${c.field}`).toHaveProperty(/** @type {string} */ (c.field));
+    }
+  });
+
+  it('their catalogueKey is the key of the corpus D1 was loaded from: current\'s, which the bundled catalogue file follows', async () => {
+    const manifest = JSON.parse(readFileSync(new URL('../data/corpus.json', import.meta.url), 'utf8'));
+    // D1's data version d820d578cf81 is current's (npm run corpus -- check), and both deploys served it.
+    expect(manifest.current).toBe('prod-2026-2027-20261104');
+    expect(JSON.parse(readFileSync(new URL('../src/data-version.json', import.meta.url), 'utf8')).version).toBe('d820d578cf81');
+    const file = JSON.parse(readFileSync(new URL('../data/catalogue-codes.json', import.meta.url), 'utf8'));
+    expect(file.source.moduleInfoSha256).toBe(manifest.corpora[manifest.current].sha256);
+    expect(BACKFILL_CATALOGUE_KEY).toBe(await catalogueKey(file.codes));
+    for (const b of BACKFILL) expect(b.fields.catalogueKey, b.name).toBe(BACKFILL_CATALOGUE_KEY);
+  });
+
   it('print as exact `git tag -a … && git push origin <tag>` commands with the promote time as the tag date', () => {
     const cmds = backfillCommands();
     expect(cmds).toHaveLength(2);
     expect(cmds[0]).toBe("GIT_COMMITTER_DATE='2026-11-11T18:39:46Z' git tag -a deploy/20261111T183946Z-f8aefeab 0b5f360c7faea8424215b4d4ddde81ebb1d850ff"
       + " -m 'deploy f8aefeab (back-filled)' -m 'versionId: f8aefeab-49c4-4548-b994-73bc6bae4f86' -m 'previousVersionId: 59986aa3-48d9-4344-8f5d-29e095709ca6'"
-      + " -m 'commit: 0b5f360c7faea8424215b4d4ddde81ebb1d850ff' -m 'dataVersion: d820d578cf81' -m 'startupMs: 2' -m 'backfilled: true'"
+      + " -m 'commit: 0b5f360c7faea8424215b4d4ddde81ebb1d850ff' -m 'dataVersion: d820d578cf81' -m 'catalogueKey: 5b1e2f06e559' -m 'startupMs: 2' -m 'backfilled: true'"
       + " -m 'source: docs/evidence/phase6/remote-ops.md' && git push origin refs/tags/deploy/20261111T183946Z-f8aefeab");
     expect(cmds[1]).toMatch(/^GIT_COMMITTER_DATE='2026-11-11T23:59:33Z' git tag -a deploy\/20261111T235933Z-b0834844 a23601de0b15934960bfef1d8b56ab3e80fa5587 /);
     expect(cmds[1]).toMatch(/ && git push origin refs\/tags\/deploy\/20261111T235933Z-b0834844$/);

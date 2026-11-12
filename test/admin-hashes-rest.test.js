@@ -11,6 +11,7 @@ import { d1RestClient } from '../scripts/d1-rest.mjs';
 import { GUARD_CHECKS, readD1 } from '../scripts/guard.mjs';
 import { adminHashes } from '../src/admin-hashes.js';
 import { DEFAULT_MODEL } from '../src/embedding.js';
+import { catalogueKey } from '../src/rowhash.js';
 import { adminCall, fixture, seed } from './helpers.js';
 
 /** @type {import('./fakes.js').Fakes} */
@@ -31,7 +32,7 @@ function localRest() {
   return { client: d1RestClient({ accountId: 'acct', databaseId: 'db', token: async () => 'local', fetchImpl }), sent };
 }
 
-/** The guard's values (rowsKey, dataVersion) from a hashes body. @param {any} hashes */
+/** The guard's values (rowsKey, dataVersion, catalogueKey) from a hashes body. @param {any} hashes */
 async function guardValues(hashes) {
   const ctx = { hashes, query: async () => ({ results: [] }) };
   return Object.fromEntries(await Promise.all(GUARD_CHECKS.map(async (c) => [c.name, await c.d1(/** @type {any} */ (ctx))])));
@@ -64,5 +65,23 @@ describe('/admin/hashes and the REST guard read agree', () => {
     const after = await guardValues(rest);
     expect(after.dataVersion).not.toBe(before.dataVersion);
     expect(after).toEqual(await guardValues(route));
+  });
+
+  it('agree on the catalogueKey (Phase 7 7D): the key of catalogue_only\'s codes, moving when a code is added', async () => {
+    const codes = ['ZZ1000', 'ZZ2000', 'AA0999'];
+    const upsert = codes.map((code) => ({ code, title: `Title ${code}`, description: null, acadYear: fixture.modules[0].acadYear }));
+    expect((await adminCall('/admin/catalogue', fakes, { upsert })).status).toBe(200);
+    const route = await (await adminCall('/admin/hashes', fakes)).json();
+    const rest = await adminHashes(localRest().client.query, { embeddingModel: DEFAULT_MODEL });
+    expect(rest.catalogueKey).toBe(route.catalogueKey);
+    const { results } = /** @type {D1Result<{ code: string }>} */ (await env.DB.prepare('SELECT code FROM catalogue_only').all());
+    expect(results.map((r) => r.code).sort()).toEqual(expect.arrayContaining([...codes].sort()));
+    expect(rest.catalogueKey).toBe(await catalogueKey(results.map((r) => r.code)));
+    expect((await guardValues(rest)).catalogueKey).toBe(rest.catalogueKey);
+
+    expect((await adminCall('/admin/catalogue', fakes, { upsert: [{ code: 'ZZ3000', title: 'T', description: null, acadYear: fixture.modules[0].acadYear }] })).status).toBe(200);
+    const after = await adminHashes(localRest().client.query, { embeddingModel: DEFAULT_MODEL });
+    expect(after.catalogueKey).not.toBe(rest.catalogueKey);
+    expect(after.catalogueKey).toBe((await (await adminCall('/admin/hashes', fakes)).json()).catalogueKey);
   });
 });

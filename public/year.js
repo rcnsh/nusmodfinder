@@ -7,3 +7,14 @@
 
 /** As acad_year writes it. */
 export const DEFAULT_ACAD_YEAR = '2026-2027';
+
+/**
+ * The first screen's semester months for an acad year (Phase 7 7D: from the year, never literals):
+ * Sem 1 runs August to December of its first year, Sem 2 January to May of its second.
+ * @param {string} acadYear as acad_year writes it
+ * @returns {{ 1: string, 2: string, both: string }}
+ */
+export function semesterMonths(acadYear) {
+  const [first, second] = acadYear.split('-');
+  return { 1: `Aug–Dec ${first}`, 2: `Jan–May ${second}`, both: `Aug ${first}–May ${second}` };
+}

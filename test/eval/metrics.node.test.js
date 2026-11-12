@@ -327,3 +327,24 @@ describe('no-answer is tagged AND no grade-≥1 document (P-5b; ADR 0003 amendme
     expect(shapes.noanswer).toMatchObject({ n: 2, noAnswer: 1, unscored: 0 });
   });
 });
+
+describe('Phase 7 7D: the pinned NG restrictions in a run', () => {
+  const MI = 'a'.repeat(64);
+  const qrels = /** @type {any} */ ({ version: 'q1', corpus: { moduleInfoSha256: MI }, queries: {} });
+  const run = (/** @type {Record<string, string>} */ corpus) => /** @type {any} */ ({ variant: 'v', corpus: { moduleInfoSha256: MI, ...corpus } });
+
+  it('passes a pinned run on the eval\'s pinned copy, and a run from before 7D that records none', () => {
+    expect(() => assertSameCorpus(qrels, [run({ source: 'pinned', ngRestrictionsSha256: 'p'.repeat(64) })], { pinnedRestrictionsSha256: 'p'.repeat(64) })).not.toThrow();
+    expect(() => assertSameCorpus(qrels, [run({ source: 'pinned' })], { pinnedRestrictionsSha256: 'p'.repeat(64) })).not.toThrow();
+  });
+
+  it('refuses a pinned run normalised with other restrictions (the live file after a revision)', () => {
+    expect(() => assertSameCorpus(qrels, [run({ source: 'pinned', ngRestrictionsSha256: 'l'.repeat(64) })], { pinnedRestrictionsSha256: 'p'.repeat(64) }))
+      .toThrow(/pinned copy/);
+  });
+
+  it('checks the restrictions against qrels that record them', () => {
+    const q = { ...qrels, corpus: { moduleInfoSha256: MI, ngRestrictionsSha256: 'q'.repeat(64) } };
+    expect(() => assertSameCorpus(q, [run({ ngRestrictionsSha256: 'x'.repeat(64) })])).toThrow(/ngRestrictionsSha256/);
+  });
+});

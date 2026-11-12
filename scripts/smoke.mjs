@@ -13,8 +13,9 @@
 // The expected commit (default HEAD; after a rollback, the target's) supplies the data version,
 // the groups and the production bundle's code list (`git show <sha>:…`; the bundle from its
 // release asset, sha-checked), so a rolled-back site is checked against its own data. Titles
-// come from the production corpus (the Mac's .data/cache today; 7D's manifest replaces it). The
-// draw is random, so the search is a cache miss. The URL is wrangler.jsonc's Custom Domain at
+// come from that commit's production corpus: `current` in its data/corpus.json (Phase 7 7D),
+// restored from its release asset and sha-checked; a commit from before the manifest uses the
+// working tree's `current`, and says so. The draw is random, so the search is a cache miss. The URL is wrangler.jsonc's Custom Domain at
 // that commit unless --url is given. Writes a run record.
 import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -45,14 +46,34 @@ async function bundleCodesOf(entry) {
 }
 
 /**
- * The production corpus's offered modules (code and title): .data/cache's moduleInfo for the
- * default year, as ingest read it. 7D's corpus manifest replaces this.
+ * A production corpus's offered modules (code and title): the manifest entry's asset, restored
+ * into .data/prod/ (gh, sha-checked) if absent, as ingest read it.
+ * @param {import('./corpus-manifest.mjs').CorpusEntry} entry
  * @returns {Promise<{ code: string, title: string }[]>}
  */
-async function productionTitles() {
-  const { DEFAULT_ACAD_YEAR, fetchAcadYearFile } = await import('./lib.mjs');
-  const { data } = await fetchAcadYearFile(DEFAULT_ACAD_YEAR, 'moduleInfo.json', { offline: true });
-  return /** @type {any[]} */ (data).filter((r) => (r.semesterData ?? []).length > 0).map((r) => ({ code: String(r.moduleCode), title: String(r.title) }));
+async function productionTitles(entry) {
+  const { readFile } = await import('node:fs/promises');
+  const { restoreEntry } = await import('./corpus-manifest.mjs');
+  const records = JSON.parse(await readFile(await restoreEntry(entry, { log: () => {} }), 'utf8'));
+  return /** @type {any[]} */ (records).filter((r) => (r.semesterData ?? []).length > 0).map((r) => ({ code: String(r.moduleCode), title: String(r.title) }));
+}
+
+/**
+ * The expected commit's production corpus entry: `current` in its data/corpus.json, else (a
+ * commit from before Phase 7 7D) the working tree's, with a note saying so.
+ * @param {(path: string) => Promise<string>} show `git show <sha>:<path>`
+ * @param {string} sha
+ * @param {(m: string) => void} log
+ */
+async function corpusEntryAt(show, sha, log) {
+  const { currentEntry, readCorpusManifest } = await import('./corpus-manifest.mjs');
+  /** @type {string | null} */
+  let text = null;
+  try { text = await show('data/corpus.json'); } catch { /* no manifest at that commit */ }
+  if (text !== null) return currentEntry(JSON.parse(text));
+  const entry = currentEntry(await readCorpusManifest());
+  log(`smoke: note: ${sha.slice(0, 7)} predates data/corpus.json; drawing from the working tree's current (${entry.release}).`);
+  return entry;
 }
 
 /** @param {string[]} argv */
@@ -81,7 +102,8 @@ export function candidates({ codes, groups, corpus }) {
 /**
  * @param {{ argv?: string[], exec?: Exec, fetchImpl?: typeof fetch, sleep?: (ms: number) => Promise<void>, now?: () => number,
  *   random?: () => number, log?: (m: string) => void, error?: (m: string) => void, runsDir?: string,
- *   bundleCodes?: (entry: ManifestEntry) => Promise<string[]>, corpus?: () => Promise<{ code: string, title: string }[]> }} [o]
+ *   bundleCodes?: (entry: ManifestEntry) => Promise<string[]>,
+ *   corpus?: (entry: import('./corpus-manifest.mjs').CorpusEntry) => Promise<{ code: string, title: string }[]> }} [o]
  * @returns {Promise<number>}
  */
 export async function smoke({
@@ -113,7 +135,8 @@ export async function smoke({
     const pattern = args.url ? null : /"pattern"\s*:\s*"([^"]+)"/.exec(await show('wrangler.jsonc'))?.[1];
     if (!args.url && !pattern) throw new Error('no --url, and wrangler.jsonc names no route pattern');
     base = (args.url ?? `https://${pattern}`).replace(/\/+$/, '');
-    const pool = candidates({ codes: await bundleCodes(entry), groups, corpus: await corpus() });
+    const corpusEntry = await corpusEntryAt(show, sha, log);
+    const pool = candidates({ codes: await bundleCodes(entry), groups, corpus: await corpus(corpusEntry) });
     if (!pool.length) throw new Error('no ungrouped, uniquely titled code in that commit\'s corpus and bundle');
     pick = pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))];
   } catch (err) {

@@ -45,7 +45,7 @@ const semPhrase = (sem) => (sem === '' || sem === 'any' ? 'in either semester' :
 
 /**
  * The source a reason comes from, with its "updated as at" date when /facets
- * gave one: "NG list, updated 01 Sep 2026" or "NG restrictions, …"; R3's
+ * gave one: "NG list, updated 01 Sep YYYY" or "NG restrictions, …"; R3's
  * year-of-study note cites the course's NUS prerequisite, R6-2's level 4000
  * note GRO's page.
  * @param {string} id the reason id
@@ -116,7 +116,7 @@ export function noteText(r, sem) {
 }
 
 /**
- * A note with its source: "Limited quota (NG restrictions, updated 31 Aug 2026)."
+ * A note with its source: "Limited quota (NG restrictions, updated 31 Aug YYYY)."
  * @param {Reason} r
  * @param {number | string} sem
  * @param {Source[] | null | undefined} sources

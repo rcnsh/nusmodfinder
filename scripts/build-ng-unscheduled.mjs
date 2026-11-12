@@ -6,15 +6,15 @@
 //
 //   node scripts/build-ng-unscheduled.mjs --corpus production
 //       data/ng-unscheduled.json, the Worker's (src/ng-unscheduled.js): every
-//       code on data/ng-courses-<year>.json with no offered row, from the
-//       moduleInfo cache the re-ingest holds (.data/cache/). Refused unless its
+//       code on data/ng-courses-<year>.json with no offered row, from
+//       `current` (data/corpus.json, Phase 7 7D). Refused unless its
 //       row count and data version are the production bundle's in
 //       data/vectors.json. `vectors.mjs build --corpus production` rewrites it
 //       with the bundle.
 //   node scripts/build-ng-unscheduled.mjs --corpus fixture
 //       test/fixtures/ng-unscheduled.json, from a small hand-kept source
 //       (test/fixtures/ng-unscheduled-source.json: moduleInfo records copied from
-//       the production cache), its other codes matched against the fixture corpus.
+//       a production corpus), its other codes matched against the fixture corpus.
 //   add --check to rebuild in memory and exit 1 if the committed file differs.
 //
 // Each entry gets the fields a row has (scripts/lib.mjs normalise), its
@@ -24,7 +24,7 @@
 // (storedEligibility with the year's rules). The pinned file is never
 // committed: vitest.config.mjs builds it for test/full and test/sc1
 // (pinnedNgUnscheduledPath).
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -34,7 +34,8 @@ import { GROUPS_VERSION, buildGroups } from '../src/groups.js';
 import { NG_UNSCHEDULED_SCHEMA, serializeNgUnscheduled } from '../src/ng-unscheduled-file.js';
 import { moduleWorkload } from '../src/workload.js';
 import { assertProductionCorpus, corpusDataVersion } from './build-vocabulary.mjs';
-import { CACHE_DIR, DEFAULT_ACAD_YEAR, assertExpectedShape, fetchAcadYearFile, loadNgCourses, normalise, offeredModules } from './lib.mjs';
+import { CORPUS_MANIFEST_PATH, PROD_DIR, corpusPath, currentEntry, productionCorpus } from './corpus-manifest.mjs';
+import { DEFAULT_ACAD_YEAR, loadNgCourses, normalise } from './lib.mjs';
 import { loadPinnedCorpus } from './pinned-corpus.mjs';
 
 export { NG_UNSCHEDULED_SCHEMA };
@@ -50,8 +51,8 @@ export const OUTPUTS = Object.freeze({
 /** The fixture's hand-kept source, repo-relative. */
 export const FIXTURE_SOURCE = 'test/fixtures/ng-unscheduled-source.json';
 
-/** The moduleInfo cache the production build reads (scripts/lib.mjs fetchAcadYearFile). */
-export const productionCacheUrl = () => new URL(`${DEFAULT_ACAD_YEAR}-moduleInfo.json`, CACHE_DIR);
+/** Where the production build reads `current` from (Phase 7 7D, `npm run corpus -- restore`). */
+export const productionCorpusPath = () => corpusPath(currentEntry(JSON.parse(readFileSync(CORPUS_MANIFEST_PATH, 'utf8'))), PROD_DIR);
 
 /**
  * The file for `codes`, NG-listed codes with no offered row.
@@ -117,11 +118,9 @@ async function corpusBytes(records, modules, corpus, acadYear) {
   }));
 }
 
-/** The production moduleInfo records, from the cache only. */
+/** The production moduleInfo records: `current` (data/corpus.json), sha-checked. */
 async function productionRecords() {
-  const info = await fetchAcadYearFile(DEFAULT_ACAD_YEAR, 'moduleInfo.json', { offline: true });
-  assertExpectedShape(info.data);
-  return /** @type {import('./lib.mjs').NusModsRecord[]} */ (info.data);
+  return (await productionCorpus()).records;
 }
 
 /**
@@ -142,16 +141,15 @@ export async function build(corpus) {
     const c = await loadPinnedCorpus();
     return corpusBytes(c.records, c.modules, 'pinned', c.acadYear);
   }
-  const records = await productionRecords();
-  const { modules } = offeredModules(records, DEFAULT_ACAD_YEAR, await loadNgCourses(DEFAULT_ACAD_YEAR));
+  const { records, modules, acadYear } = await productionCorpus();
   await assertProductionCorpus(modules);
-  return corpusBytes(records, modules, 'production', DEFAULT_ACAD_YEAR);
+  return corpusBytes(records, modules, 'production', acadYear);
 }
 
 /**
  * Writes the production file for the modules the production bundle was just
  * built from (scripts/vectors.mjs build --corpus production), reading the
- * records from the cache that build used.
+ * records from `current`, which that build used.
  * @param {NormalisedModule[]} modules
  */
 export async function writeProductionNgUnscheduled(modules) {

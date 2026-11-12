@@ -1,14 +1,21 @@
 #!/usr/bin/env node
 // @ts-check
 // Phase 3 step 3B-0 (docs/plans/phase3.md 3B-0, docs/plans/phase3-prereg.md §3):
-// the corpus data the 3B code parser reads, built from the pinned corpus
-// (scripts/pinned-corpus.mjs, sha-checked) and the P-6 files, never from the
-// network. Writes, under data/:
+// the corpus data the 3B code parser reads, never built from the network.
+//
+// Per corpus (Phase 7 7D: they follow the corpus, as the vocabulary and groups do):
 //   prefixes.json        the letter parts of offered codes, with their module counts;
 //   catalogue-codes.json the catalogue-only codes (in moduleInfo.json, no offering
-//                        in the pinned year), sorted: what the Worker bundles;
+//                        in the corpus's year), sorted: what the Worker bundles
+//                        (`catalogue-codes-data`, `prefixes-data`);
 //   catalogue-only.json  the same codes with their titles and descriptions (noMatch
-//                        `not-offered`), the rows ingest loads into D1 `catalogue_only`;
+//                        `not-offered`): the rows ingest loads into D1 `catalogue_only`.
+// `--corpus production` builds them under data/ from `current` (data/corpus.json,
+// scripts/corpus-manifest.mjs), what wrangler.jsonc ships. `--corpus pinned` builds the
+// prefixes and catalogue codes under data/pinned/ from the pinned corpus
+// (scripts/pinned-corpus.mjs, sha-checked): what the Worker tests, test/full and every eval
+// run search with; the pinned catalogue-only.json is built in memory for test/full
+// (pinnedCatalogueOnlyPath). The pinned build also writes the files that are no corpus's:
 //   ge-pillars.json      the GE pillar table, from eval/prereg/ge-pillars.json;
 //   collision-list.json  the P-6 collision list and its exempt pillar prefixes, from
 //                        eval/prereg/collision-list.json (the Worker cannot read eval/);
@@ -20,29 +27,38 @@
 // and docs/evidence/phase3/3b-0-counts.json, critic C's corpus counts (plan §1)
 // re-run on the pinned corpus.
 //
-//   node scripts/build-3b-data.mjs            write every file
-//   node scripts/build-3b-data.mjs --check    rebuild in memory; exit 1 if any committed file differs
-import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+//   node scripts/build-3b-data.mjs --corpus production|pinned            write the corpus's files
+//   node scripts/build-3b-data.mjs --corpus production|pinned --check    exit 1 if a committed one differs
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { queryTokens } from '../src/fts-query.js';
+import { productionCorpus } from './corpus-manifest.mjs';
 import { catalogueOnlyRecords } from './lib.mjs';
 import { loadPinnedCorpus, PINNED_RELEASE } from './pinned-corpus.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
-/** The files this script owns, relative to the repo root. */
-export const OUTPUTS = Object.freeze({
-  prefixes: 'data/prefixes.json',
-  catalogueCodes: 'data/catalogue-codes.json',
-  catalogueOnly: 'data/catalogue-only.json',
+/** The per-corpus files, relative to the repo root. The pinned catalogue-only rows are never committed. */
+export const CORPUS_OUTPUTS = Object.freeze({
+  production: Object.freeze({ prefixes: 'data/prefixes.json', catalogueCodes: 'data/catalogue-codes.json', catalogueOnly: 'data/catalogue-only.json' }),
+  pinned: Object.freeze({ prefixes: 'data/pinned/prefixes.json', catalogueCodes: 'data/pinned/catalogue-codes.json' }),
+});
+
+/** The files that are no corpus's (written by the pinned build), relative to the repo root. */
+export const SHARED_OUTPUTS = Object.freeze({
   gePillars: 'data/ge-pillars.json',
   collisionList: 'data/collision-list.json',
   cohortOnly: 'data/cohort-only-prereq.json',
   constraintPhrases: 'data/constraint-phrases.json',
   counts: 'docs/evidence/phase3/3b-0-counts.json',
 });
+
+/**
+ * @typedef {{ release: string, acadYear: string, moduleInfoSha256: string }} CorpusSource
+ */
 
 /** @param {string} rel */
 const readJson = async (rel) => JSON.parse(await readFile(join(ROOT, rel), 'utf8'));
@@ -54,10 +70,82 @@ const byCode = (/** @type {string} */ a, /** @type {string} */ b) => (a < b ? -1
 export const partialRange = (p) => [/\d$/.test(p) ? p : `${p}0`, `${p}:`];
 
 /**
- * Every output, as the bytes it should hold.
- * @returns {Promise<Record<keyof typeof OUTPUTS, string>>}
+ * A corpus's prefixes, catalogue codes and catalogue-only rows, as the bytes each file holds.
+ * @param {{ records: import('./lib.mjs').NusModsRecord[], modules: { code: string }[], source: CorpusSource, label?: string }} c
+ *   `label` names the corpus in the files' rule lines ('pinned' keeps the pinned files' wording).
  */
-export async function build() {
+export function corpusFiles({ records, modules, source, label = 'production' }) {
+  const offered = modules.map((m) => m.code).sort(byCode);
+  /** @type {Record<string, number>} */
+  const prefixCounts = {};
+  for (const c of offered) prefixCounts[lettersOf(c)] = (prefixCounts[lettersOf(c)] ?? 0) + 1;
+  const prefixes = Object.keys(prefixCounts).sort(byCode);
+  const catalogue = catalogueOnlyRecords(records).sort((a, b) => byCode(a.code, b.code));
+  const year = label === 'pinned' ? 'the pinned year' : 'the corpus\'s year';
+  return {
+    prefixes: `${JSON.stringify({
+      schema: 'vnm-3b-prefixes/1', source, rule: `the letter part of every offered code in the ${label} corpus, with its offered-module count`,
+      count: prefixes.length, prefixes: Object.fromEntries(prefixes.map((p) => [p, prefixCounts[p]])),
+    }, null, 1)}\n`,
+    catalogueCodes: `${JSON.stringify({
+      schema: 'vnm-3b-catalogue-codes/1', source, rule: `codes in moduleInfo.json with no offering in ${year} (catalogue-only), sorted`,
+      count: catalogue.length, codes: catalogue.map((r) => r.code),
+    })}\n`,
+    // One row per line, so a catalogue change diffs by row.
+    catalogueOnly: `{"schema":"vnm-3b-catalogue-only/1","source":${JSON.stringify(source)},"columns":["code","title","description"],"count":${catalogue.length},"rows":[\n${
+      catalogue.map((r) => JSON.stringify([r.code, r.title, r.description])).join(',\n')}\n]}\n`,
+  };
+}
+
+/**
+ * The committed files, of `byPath` (repo-relative path -> the bytes it should hold), that differ
+ * or are missing under `root`, in `byPath`'s order.
+ * @param {Record<string, string>} byPath
+ * @param {string} [root]
+ */
+export async function staleFiles(byPath, root = ROOT) {
+  const stale = [];
+  for (const [rel, want] of Object.entries(byPath)) {
+    const have = await readFile(join(root, rel), 'utf8').catch(() => null);
+    if (have !== want) stale.push(rel);
+  }
+  return stale;
+}
+
+/**
+ * Every file a corpus's build owns, as repo-relative path -> bytes.
+ * @param {'production' | 'pinned'} corpus
+ * @returns {Promise<Record<string, string>>}
+ */
+export async function build(corpus) {
+  if (corpus === 'production') {
+    const c = await productionCorpus();
+    const out = corpusFiles({ records: c.records, modules: c.modules, source: { release: c.entry.release, acadYear: c.acadYear, moduleInfoSha256: c.entry.sha256 } });
+    return Object.fromEntries(Object.entries(CORPUS_OUTPUTS.production).map(([k, rel]) => [rel, out[/** @type {keyof typeof out} */ (k)]]));
+  }
+  const { files, shared } = await pinnedBuild();
+  return {
+    ...Object.fromEntries(Object.entries(CORPUS_OUTPUTS.pinned).map(([k, rel]) => [rel, files[/** @type {keyof typeof files} */ (k)]])),
+    ...Object.fromEntries(Object.entries(SHARED_OUTPUTS).map(([k, rel]) => [rel, shared[/** @type {keyof typeof shared} */ (k)]])),
+  };
+}
+
+/**
+ * The pinned catalogue-only rows as a file (.data/catalogue/, git-ignored), rebuilt if absent or
+ * stale: what vitest.config.mjs aliases `catalogue-only-data` to for test/full.
+ */
+export async function pinnedCatalogueOnlyPath() {
+  const { files } = await pinnedBuild();
+  const path = join(ROOT, '.data/catalogue/catalogue-only-pinned.json');
+  if (!existsSync(path) || (await readFile(path, 'utf8')) !== files.catalogueOnly) {
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(path, files.catalogueOnly);
+  }
+  return path;
+}
+
+/** The pinned corpus's files and the shared files. */
+async function pinnedBuild() {
   const corpus = await loadPinnedCorpus();
   const source = { release: PINNED_RELEASE, acadYear: corpus.acadYear, moduleInfoSha256: corpus.moduleInfoSha256 };
   const offered = corpus.modules.map((m) => m.code).sort(byCode);
@@ -150,56 +238,54 @@ export async function build() {
 
   const json = (/** @type {unknown} */ v) => `${JSON.stringify(v, null, 1)}\n`;
   return {
-    prefixes: json({
-      schema: 'vnm-3b-prefixes/1', source, rule: 'the letter part of every offered code in the pinned corpus, with its offered-module count',
-      count: prefixes.length, prefixes: Object.fromEntries(prefixes.map((p) => [p, prefixCounts[p]])),
-    }),
-    catalogueCodes: `${JSON.stringify({
-      schema: 'vnm-3b-catalogue-codes/1', source, rule: 'codes in moduleInfo.json with no offering in the pinned year (catalogue-only), sorted',
-      count: catalogue.length, codes: catalogue.map((r) => r.code),
-    })}\n`,
-    // One row per line, so a catalogue change diffs by row.
-    catalogueOnly: `{"schema":"vnm-3b-catalogue-only/1","source":${JSON.stringify(source)},"columns":["code","title","description"],"count":${catalogue.length},"rows":[\n${
-      catalogue.map((r) => JSON.stringify([r.code, r.title, r.description])).join(',\n')}\n]}\n`,
-    gePillars: json({
-      schema: 'vnm-3b-ge-pillars/1', from: 'eval/prereg/ge-pillars.json (P-6, unchanged)',
-      source: { url: ge.source.url, check: 'docs/evidence/phase3/3b-0.md "GE page"' },
-      prefixes: ge.prefixes, genericPhrases: ge.genericPhrases, pillars: ge.pillars,
-    }),
-    collisionList: json({
-      schema: 'vnm-3b-collision-list/1', from: 'eval/prereg/collision-list.json (P-6, unchanged)',
-      list: collision.list, exempt: collision.exempt,
-    }),
-    cohortOnly: json({
-      schema: 'vnm-3h-cohort-only/1', from: 'eval/prereg/cohort-only-prereq.json (P-6, unchanged)',
-      normalise: cohort.normalise, remove: cohort.remove, remainder: cohort.remainder, remainderFlags: cohort.remainderFlags,
-    }),
-    constraintPhrases: json({
-      schema: 'vnm-3h-constraint-phrases/1', from: 'eval/prereg/intent-phrases.json `constraints` (P-6, unchanged)',
-      exam: phrases.constraints.exam.phrases, su: phrases.constraints.su.phrases,
-      hoursBelow: phrases.constraints.hoursBelow.phrases, light: phrases.constraints.hoursBelow.light,
-      prereq: phrases.constraints.prereq.phrases,
-    }),
-    counts: json(counts),
+    files: corpusFiles({ records: corpus.records, modules: corpus.modules, source, label: 'pinned' }),
+    shared: {
+      gePillars: json({
+        schema: 'vnm-3b-ge-pillars/1', from: 'eval/prereg/ge-pillars.json (P-6, unchanged)',
+        source: { url: ge.source.url, check: 'docs/evidence/phase3/3b-0.md "GE page"' },
+        prefixes: ge.prefixes, genericPhrases: ge.genericPhrases, pillars: ge.pillars,
+      }),
+      collisionList: json({
+        schema: 'vnm-3b-collision-list/1', from: 'eval/prereg/collision-list.json (P-6, unchanged)',
+        list: collision.list, exempt: collision.exempt,
+      }),
+      cohortOnly: json({
+        schema: 'vnm-3h-cohort-only/1', from: 'eval/prereg/cohort-only-prereq.json (P-6, unchanged)',
+        normalise: cohort.normalise, remove: cohort.remove, remainder: cohort.remainder, remainderFlags: cohort.remainderFlags,
+      }),
+      constraintPhrases: json({
+        schema: 'vnm-3h-constraint-phrases/1', from: 'eval/prereg/intent-phrases.json `constraints` (P-6, unchanged)',
+        exam: phrases.constraints.exam.phrases, su: phrases.constraints.su.phrases,
+        hoursBelow: phrases.constraints.hoursBelow.phrases, light: phrases.constraints.hoursBelow.light,
+        prereq: phrases.constraints.prereq.phrases,
+      }),
+      counts: json(counts),
+    },
   };
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
-  const { values } = parseArgs({ options: { check: { type: 'boolean' } } });
-  const out = await build();
-  const stale = [];
-  for (const [key, rel] of Object.entries(OUTPUTS)) {
-    const want = out[/** @type {keyof typeof OUTPUTS} */ (key)];
-    if (values.check) {
-      const have = await readFile(join(ROOT, rel), 'utf8').catch(() => null);
-      if (have !== want) stale.push(rel);
-    } else {
-      await writeFile(join(ROOT, rel), want);
-      console.log(`wrote ${rel}`);
-    }
+  const { values } = parseArgs({ options: { check: { type: 'boolean' }, corpus: { type: 'string' } } });
+  const corpus = values.corpus;
+  if (corpus !== 'production' && corpus !== 'pinned') {
+    console.error('usage: node scripts/build-3b-data.mjs --corpus production|pinned [--check]');
+    process.exit(1);
   }
-  if (values.check) {
-    if (stale.length) { console.error(`out of date: ${stale.join(', ')} (node scripts/build-3b-data.mjs)`); process.exitCode = 1; }
-    else console.log('3B-0 data up to date');
+  try {
+    const out = await build(corpus);
+    if (values.check) {
+      const stale = await staleFiles(out);
+      if (stale.length) { console.error(`out of date: ${stale.join(', ')} (node scripts/build-3b-data.mjs --corpus ${corpus})`); process.exitCode = 1; }
+      else console.log(`3B data (${corpus}) up to date`);
+    } else {
+      for (const [rel, bytes] of Object.entries(out)) {
+        await mkdir(dirname(join(ROOT, rel)), { recursive: true });
+        await writeFile(join(ROOT, rel), bytes);
+        console.log(`wrote ${rel}`);
+      }
+    }
+  } catch (err) {
+    console.error(`build-3b-data: ${/** @type {Error} */ (err).message}`);
+    process.exitCode = 1;
   }
 }

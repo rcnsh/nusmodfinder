@@ -9,7 +9,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { loadCorpusFile, loadPinnedWith } from '../lib/corpus.mjs';
+import { loadCorpusFile, loadPinnedWith, writeRunCatalogue } from '../lib/corpus.mjs';
 import { assertCorrectedEmbedded, rankerCorrector, writeRankerGroups, writeRankerVocabulary } from '../lib/corrected.mjs';
 import { assertCorpusTextsEmbedded, base64ToF32, cachePart, embeddingKey, loadCorpusEmbeddings, packLookup, queryTextForms, readCache, readManifest, DIMS, MODEL } from '../lib/embeddings.mjs';
 import { REPO, layout, loadQueries, runFile, searchParams, setFile, setKey, studyMapSha256 } from '../lib/sets.mjs';
@@ -83,6 +83,8 @@ export async function runVariant(options) {
   if (missingQueries.length) {
     throw new Error(`${missingQueries.length} query text(s) of the ${set.name} set have no embedding; run \`npm run eval:embed -- --set ${set.name}${setDirArg}\` locally`);
   }
+  // 7D: the run corpus's catalogue codes and prefixes, never the production ones its ref commits.
+  await writeRunCatalogue(ws.root);
   // 3C: the ranker's vocabulary from this run's corpus (never the production
   // one its ref commits), and, for a 3C-2 ranker, every corrected query text embedded.
   const corrector = await rankerCorrector(ws.root, corpus.modules, corpus.info.textSha256.slice(0, 12));

@@ -31,7 +31,7 @@
 //
 // --url            the site (default: production, docs/REFERENCE.md's Live URL)
 // --log            the JSONL log (default docs/evidence/phase5/p5-live.jsonl), appended to
-// --corpus         the modules drawn from: `production` (.data/cache's moduleInfo,
+// --corpus         the modules drawn from: `production` (`current` in data/corpus.json,
 //                  normalised as ingest does) or `fixture` (test/fixtures/corpus.json,
 //                  for the local UI server, `npm run dev`); default: fixture for a
 //                  localhost URL, else production

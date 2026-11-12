@@ -318,7 +318,7 @@ describe.skipIf(!corpus)('lexical search over the full pinned corpus (Phase 1A)'
     for (const q of BROAD) {
       const n = /** @type {number} */ (await env.DB.prepare('SELECT count(*) AS n FROM modules_fts WHERE modules_fts MATCH ?')
         .bind(/** @type {string} */ (ftsMatch(q))).first('n'));
-      if (n > 2000) broad.push(q);
+      if (n > 2_000) broad.push(q);
     }
     expect(broad).toEqual(BROAD);
 

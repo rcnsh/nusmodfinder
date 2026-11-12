@@ -18,11 +18,17 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { DEFAULT_ACAD_YEAR } from './lib.mjs';
+
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const ACAD_YEAR = '2026-2027';
+// Phase 7 7D, one year source: DEFAULT_ACAD_YEAR. The sources folder is the newest revision's
+// (7E moves it to the year's source manifest, data/ng-sources-<year>.json).
+const ACAD_YEAR = DEFAULT_ACAD_YEAR;
+const SOURCES_DIR = '2026-11-10';
 const OUT = join(ROOT, `data/ng-restrictions-${ACAD_YEAR}.json`);
 const args = process.argv.slice(2);
-const SOURCES = args.includes('--sources') ? args[args.indexOf('--sources') + 1] : join(homedir(), '.config/vnm/sources/2026-11-10');
+const SOURCES = args.includes('--sources') ? args[args.indexOf('--sources') + 1]
+  : join(homedir(), '.config/vnm/sources', SOURCES_DIR);
 
 /** @typedef {import('../src/eligibility.js').Study} Study */
 /** @typedef {import('../src/eligibility.js').RuleMatch} RuleMatch */

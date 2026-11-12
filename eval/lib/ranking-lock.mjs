@@ -81,7 +81,7 @@ export const DYNAMIC_IMPORTS = Object.freeze({
 });
 
 /** Bare names vitest.eval.config.mjs aliases to files each run writes into its workspace. */
-export const ALIASES = Object.freeze(['vectors-bundle', 'vocabulary-data', 'groups-data', 'ng-unscheduled-data']);
+export const ALIASES = Object.freeze(['vectors-bundle', 'vocabulary-data', 'groups-data', 'ng-unscheduled-data', 'catalogue-codes-data', 'prefixes-data']);
 
 /**
  * Everything the lock's lists depend on. `inputsHash` hashes these paths' git objects.
@@ -123,6 +123,8 @@ export const LOCK_INPUTS = Object.freeze([
   'eval/dev',
   'eval/fixtures',
   'eval/embeddings.json',
+  // The pinned corpus's NG list and restrictions (Phase 7 7D, eval/lib/corpus.mjs).
+  'eval/pinned',
   // workerd and its SQLite, Vitest and the plugin.
   'package-lock.json',
 ]);

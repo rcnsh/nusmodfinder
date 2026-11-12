@@ -22,7 +22,9 @@
     "vectors-bundle": "./fixtures/vectors.js",
     "vocabulary-data": "./fixtures/vocabulary.json",
     "groups-data": "./fixtures/groups.json",
-    "ng-unscheduled-data": "./fixtures/ng-unscheduled.json"
+    "ng-unscheduled-data": "./fixtures/ng-unscheduled.json",
+    "catalogue-codes-data": "../data/catalogue-codes.json",
+    "prefixes-data": "../data/prefixes.json"
   },
   "vars": { "DENSE_BACKEND": "bundle" },
   "d1_databases": [

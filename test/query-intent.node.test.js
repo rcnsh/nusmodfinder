@@ -25,8 +25,8 @@ const OFFERED = new Set([
 ]);
 
 const ctx = buildIntentContext({
-  prefixes: Object.keys(readJson('data/prefixes.json').prefixes),
-  catalogueCodes: readJson('data/catalogue-codes.json').codes,
+  prefixes: Object.keys(readJson('data/pinned/prefixes.json').prefixes),
+  catalogueCodes: readJson('data/pinned/catalogue-codes.json').codes,
   collision: readJson('data/collision-list.json').list,
   ge: readJson('data/ge-pillars.json'),
   stopwords: STOPWORDS_CURRENT,

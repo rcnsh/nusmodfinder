@@ -5,7 +5,7 @@
 // G1; test/admin-hashes-rest.test.js proves they agree). A query is any function from a
 // statement and its params to `{ results }`: `d1Query(env.DB)` in the Worker, the REST client's
 // `query` in Node. Read-only statements only. WebCrypto only: no bindings, no Node APIs.
-import { ROW_COLUMNS, ftsHash } from './rowhash.js';
+import { ROW_COLUMNS, catalogueKey, ftsHash } from './rowhash.js';
 
 /**
  * One read: a statement and its params, answering D1's result shape.
@@ -17,7 +17,7 @@ import { ROW_COLUMNS, ftsHash } from './rowhash.js';
  * @typedef {{ textHash: string, rowHash: string | null, ftsHash: string }} ModuleHashes
  * @typedef {{
  *   schema: SchemaStatus, embeddingModel: string, acadYears: Record<string, number> | null,
- *   modules: Record<string, ModuleHashes> | null,
+ *   modules: Record<string, ModuleHashes> | null, catalogueKey: string | null,
  * }} AdminHashes
  */
 
@@ -38,6 +38,26 @@ export const SCHEMA_SQL = `SELECT (SELECT value FROM meta WHERE key = 'schema') 
 
 /** The hashes' one statement: every `modules` row (~6.8k rows read in production). */
 export const HASHES_SQL = 'SELECT code, title, description, text_hash, row_hash, acad_year FROM modules';
+
+/** Whether `catalogue_only` exists (migration 0008): one sqlite_master row. */
+export const CATALOGUE_TABLE_SQL = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'catalogue_only'";
+
+/** The catalogueKey's one statement: every `catalogue_only` code (~14.4k rows read in production). */
+export const CATALOGUE_CODES_SQL = 'SELECT code FROM catalogue_only';
+
+/**
+ * The catalogueKey (Phase 7 7D, src/rowhash.js) of D1's catalogue_only codes: what the deploy
+ * guard, rollback and verify --pre-deploy compare with the bundled catalogue file's
+ * (data/catalogue-codes.json) or a deploy tag's. Null without the table. `result` is the codes
+ * read's, for its meta.
+ * @param {Query} query
+ * @returns {Promise<{ key: string | null, result: Awaited<ReturnType<Query>> | null }>}
+ */
+export async function storedCatalogueKey(query) {
+  if (!(await query(CATALOGUE_TABLE_SQL)).results.length) return { key: null, result: null };
+  const result = await query(CATALOGUE_CODES_SQL);
+  return { key: await catalogueKey(result.results.map((/** @type {{ code: string }} */ r) => r.code)), result };
+}
 
 /**
  * A Query over a D1 binding (typed by shape, so the Node scripts that import this need no
@@ -85,7 +105,7 @@ export async function schemaStatus(query) {
 
 /**
  * The /admin/hashes body:
- * `{ schema, embeddingModel, acadYears, modules: { code: { textHash, rowHash, ftsHash } } }`.
+ * `{ schema, embeddingModel, acadYears, modules: { code: { textHash, rowHash, ftsHash } }, catalogueKey }`.
  * `ftsHash` (src/rowhash.js) hashes the stored code, title and description,
  * the columns the 0006 FTS update trigger watches, so ingest charges FTS
  * writes only to upserts that change them; text_hash cannot tell (it also
@@ -94,13 +114,14 @@ export async function schemaStatus(query) {
  * ingest can refuse to rewrite a database to another year.
  * `modules` and `acadYears` are null when the schema check fails (the
  * row_hash column may not exist), and ingest and the guard refuse.
+ * `catalogueKey` is storedCatalogueKey's (Phase 7 7D), null with the modules.
  * @param {Query} query
  * @param {{ embeddingModel: string }} o
  * @returns {Promise<AdminHashes>}
  */
 export async function adminHashes(query, { embeddingModel }) {
   const schema = await schemaStatus(query);
-  if (!schema.ok) return { schema, embeddingModel, acadYears: null, modules: null };
+  if (!schema.ok) return { schema, embeddingModel, acadYears: null, modules: null, catalogueKey: null };
   const { results } = /** @type {{ results: {
     code: string, title: string, description: string, text_hash: string, row_hash: string | null, acad_year: string,
   }[] }} */ (await query(HASHES_SQL));
@@ -109,7 +130,7 @@ export async function adminHashes(query, { embeddingModel }) {
   const acadYears = {};
   for (const r of results) acadYears[r.acad_year] = (acadYears[r.acad_year] ?? 0) + 1;
   return {
-    schema, embeddingModel, acadYears,
+    schema, embeddingModel, acadYears, catalogueKey: (await storedCatalogueKey(query)).key,
     modules: Object.fromEntries(results.map((r, i) => [r.code, { textHash: r.text_hash, rowHash: r.row_hash, ftsHash: fts[i] }])),
   };
 }

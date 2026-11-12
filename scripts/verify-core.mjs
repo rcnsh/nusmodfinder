@@ -17,7 +17,7 @@
 // runPreDeployVerify is runbook step 5 (`npm run verify -- --pre-deploy`,
 // Phase 3 3-0, B2-1): D1 against the manifest and the bundle, before the
 // deploy, with no Vectorize read at all.
-import { dataVersion } from '../src/rowhash.js';
+import { catalogueKey, dataVersion } from '../src/rowhash.js';
 import { base64ToFloat32, decodeFilterRow, rowsKey } from '../src/vector-bundle.js';
 
 /**
@@ -78,6 +78,7 @@ export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, 
  *   ok: boolean, d1Rows: number, bundleRows: number,
  *   rowsKey: { d1: string, manifest: string, bundle: string },
  *   dataVersion: { d1: string | null, committed: string, manifest: string, bundle: string },
+ *   catalogueKey: { d1: string | null, file: string },
  *   missingInBundle: string[], extraInBundle: string[],
  *   fieldDrift: { code: string, d1: unknown, bundle: unknown }[],
  *   rowHashDrift: { code: string, stored: string, recomputed: string }[], rowHashMissing: string[],
@@ -101,15 +102,17 @@ export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, 
  * dates (5A) name exactly the bundle's exam semesters. 6A: data/ng-reasons.json's and
  * data/ng-unscheduled.json's acadYear equal D1's acad_year, and the latter's
  * codes are exactly the NG codes without a D1 row. Reads D1 once through
- * /admin/verify `{ preDeploy: true }`, which makes no Vectorize call.
+ * /admin/verify `{ preDeploy: true }`, which makes no Vectorize call. Phase 7 7D: D1's
+ * catalogueKey (its catalogue_only codes) equals the bundled catalogue file's.
  * @param {{
  *   api: import('./ingest-core.mjs').AdminApi, bundle: import('../src/vector-bundle.js').Bundle,
  *   manifest: { rowsKey: string, dataVersion: string }, committedDataVersion: string,
  *   knownReason: (id: string) => boolean, dataFiles: PreDeployDataFiles,
- * }} args `knownReason`: whether the reason texts this deploy ships know a rule id
+ *   catalogue: { codes: string[] },
+ * }} args `knownReason`: whether the reason texts this deploy ships know a rule id; `catalogue`: the bundled catalogue file
  * @returns {Promise<PreDeployReport>}
  */
-export async function runPreDeployVerify({ api, bundle, manifest, committedDataVersion, knownReason, dataFiles }) {
+export async function runPreDeployVerify({ api, bundle, manifest, committedDataVersion, knownReason, dataFiles, catalogue }) {
   const res = await api.post('/admin/verify', { preDeploy: true });
   if (res.status !== 200 || !Array.isArray(res.body?.rows)) {
     throw new Error(`POST /admin/verify (preDeploy) -> HTTP ${res.status} ${JSON.stringify(res.body).slice(0, 300)}`);
@@ -161,6 +164,7 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
   const report = {
     ok: false, d1Rows: rows.length, bundleRows: bundle.count,
     rowsKey: { d1: d1Key, manifest: manifest.rowsKey, bundle: bundle.header.rowsKey },
+    catalogueKey: { d1: typeof res.body.catalogueKey === 'string' ? res.body.catalogueKey : null, file: await catalogueKey(catalogue.codes) },
     dataVersion: { d1: d1Version, committed: committedDataVersion, manifest: manifest.dataVersion, bundle: bundle.header.dataVersion },
     missingInBundle: rows.map((r) => r.code).filter((c) => !index.has(c)).sort(),
     extraInBundle: bundle.codes.filter((c) => !held.has(c)),
@@ -178,6 +182,7 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
   const versions = Object.values(report.dataVersion);
   const acadYears = Object.values(report.acadYear);
   report.ok = keys.every((k) => k === keys[0]) && versions.every((v) => v === versions[0])
+    && report.catalogueKey.d1 === report.catalogueKey.file
     && d1Year !== null && acadYears.every((y) => y === d1Year)
     && [report.missingInBundle, report.extraInBundle, report.fieldDrift, report.rowHashDrift, report.rowHashMissing, report.unknownReasons,
       report.unscheduled.missing, report.unscheduled.withRow, report.unscheduled.notNg]
@@ -199,6 +204,7 @@ export function formatPreDeployReport(r) {
     `bundle rows        ${r.bundleRows}`,
     `rowsKey            ${agree(r.rowsKey)}  ${Object.entries(r.rowsKey).map(([k, v]) => `${k} ${v.slice(0, 12)}`).join(', ')}`,
     `data version       ${agree(r.dataVersion)}  ${Object.entries(r.dataVersion).map(([k, v]) => `${k} ${v}`).join(', ')}`,
+    `catalogueKey       ${r.catalogueKey.d1 !== null && agree(r.catalogueKey) === 'agree' ? 'agree' : 'DIFFER'}  d1 ${r.catalogueKey.d1 ?? 'none (no catalogue_only, or a Worker from before 7D)'}, file ${r.catalogueKey.file}`,
     line('missing in bundle', r.missingInBundle),
     line('extra in bundle', r.extraInBundle),
     line('field drift', r.fieldDrift, (d) => d.code),

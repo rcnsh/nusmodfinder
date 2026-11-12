@@ -4,12 +4,12 @@
 // project's on the dev Mac), before any request. Each writer that does run
 // leaves one run record on success and one on failure. The Worker is a stub
 // fetch; records go to a temp dir.
-import { createHash } from 'node:crypto';
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { main as ingestMain } from '../scripts/ingest.mjs';
+import { writeCurrentCorpus } from './corpus-fake.node.mjs';
 import { workerUrl } from '../scripts/remote-session.mjs';
 import { main as vectorsMain } from '../scripts/vectors.mjs';
 import { main as verifyMain } from '../scripts/verify.mjs';
@@ -87,13 +87,10 @@ describe('ingest, verify and standby with no URL or a reserved port', () => {
 
 describe('each writer leaves one record on success and one on failure', () => {
   const URL_ = 'http://127.0.0.1:51999';
-  const Y = '2026-2027';
 
   it('ingest: a refused run and a finished one', async () => {
     const records_ = [{ moduleCode: 'AA1001', title: 'T', description: 'D.', moduleCredit: '4', department: 'D', faculty: 'F', semesterData: [{ semester: 1 }] }];
-    const body = JSON.stringify(records_);
-    await writeFile(join(dir, `${Y}-moduleInfo.json`), body);
-    await writeFile(join(dir, `${Y}-moduleInfo.json.cache.json`), JSON.stringify({ url: 'x', etag: null, lastModified: null, fetchedAt: new Date().toISOString(), sha256: createHash('sha256').update(body).digest('hex') }));
+    const corpus = await writeCurrentCorpus(dir, records_);
     /** @param {boolean} schemaOk */
     const worker = (schemaOk) => /** @type {typeof fetch} */ (async (input, init) => {
       const path = new URL(String(input)).pathname;
@@ -109,8 +106,8 @@ describe('each writer leaves one record on success and one on failure', () => {
       if (path === '/admin/vectorize') return ok({ processedUpToMutation: 'm1' });
       return new Response('{}', { status: 404 });
     });
-    const run = (/** @type {boolean} */ schemaOk) => ingestMain(['--year', Y, '--url', URL_], {
-      fetchImpl: worker(schemaOk), log: () => {}, envVars: { INGEST_SECRET: 's' }, cacheDir: new URL(`file://${dir}/`),
+    const run = (/** @type {boolean} */ schemaOk) => ingestMain(['--url', URL_], {
+      fetchImpl: worker(schemaOk), log: () => {}, envVars: { INGEST_SECRET: 's' }, ...corpus,
       statePath: join(dir, 'state.json'), dataVersionPath: join(dir, 'dv.json'), runsDir: join(dir, 'runs'),
     });
     expect(await run(false)).toBe(1);

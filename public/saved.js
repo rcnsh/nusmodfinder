@@ -1,5 +1,5 @@
 // @ts-check
-// The shortlist on this device (Phase 6 6B, G3: Jacob, 2026-11-11). The last
+// The shortlist on this device (Phase 6 6B, G3: Jacob). The last
 // list this student edited is kept in localStorage, as the URL would write it;
 // the page offers it ("Restore your last shortlist") when a link has no list,
 // and "Forget this list on this device" clears it. The page saves only on its

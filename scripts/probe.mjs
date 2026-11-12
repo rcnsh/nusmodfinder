@@ -20,7 +20,9 @@ line(`# Phase 1 probe — acad year ${acadYear}`);
 line();
 
 line('## Acad year availability');
-for (const y of ['2024-2025', '2025-2026', '2026-2027', '2027-2028']) {
+// The probed year, two before it and one after (Phase 7 7D: from the year, no literals).
+const first = Number(acadYear.slice(0, 4));
+for (const y of [-2, -1, 0, 1].map((d) => `${first + d}-${first + d + 1}`)) {
   const res = await fetch(`https://api.nusmods.com/v2/${y}/moduleList.json`, { method: 'HEAD' });
   line(`- ${y}: HTTP ${res.status}`);
 }

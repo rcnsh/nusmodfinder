@@ -40,7 +40,7 @@ export const SEMESTERS = Object.freeze([
   { value: '3', label: 'Special term 1' }, { value: '4', label: 'Special term 2' },
 ]);
 
-/** The label of a level filter value, as the option and the chip say it: "Level 2000". @param {string} v */
+/** The label of a level filter value, as the option and the chip say it: "Level 3000". @param {string} v */
 export const levelLabel = (v) => `Level ${v}000`;
 
 /** Course levels in the catalogue (1000 to 6000, and 8000). */

@@ -207,6 +207,9 @@ function assertComparable(runs) {
   for (const r of runs.slice(1)) {
     if (key(r) !== first) fail(`runs ${runs[0].variant} and ${r.variant} differ in set, query-set sha256 or corpus; they cannot be compared`);
   }
+  // Phase 7 7D: and the NG restrictions they were normalised with, where recorded (runs from before 7D record none).
+  const restrictions = new Set(runs.map((r) => /** @type {any} */ (r.corpus)?.ngRestrictionsSha256).filter((v) => v !== undefined));
+  if (restrictions.size > 1) fail(`the runs were normalised with different NG restrictions (${[...restrictions].map((v) => String(v).slice(0, 12)).join(', ')}); they cannot be compared`);
 }
 
 /**

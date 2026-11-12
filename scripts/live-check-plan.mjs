@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { bitOf, STUDIES } from '../src/ng-bit.js';
 import { moduleWorkload } from '../src/workload.js';
 import { oracle } from '../test/sc1/oracle.node.mjs';
-import { DEFAULT_ACAD_YEAR, loadNgCourses, offeredModules } from './lib.mjs';
+import { productionCorpus } from './corpus-manifest.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const PRODUCTION_URL = 'https://nusmodfinder.rcn.sh';
@@ -179,13 +179,13 @@ export function drawHidden(modules, r) {
 }
 
 /**
- * The modules drawn from: production's moduleInfo normalised as ingest does,
+ * The modules drawn from: production's corpus (`current`) normalised as ingest does,
  * or the fixture the local UI server holds.
  * @param {'production' | 'fixture'} corpus
  * @returns {Promise<any[]>}
  */
 export async function loadModules(corpus) {
   if (corpus === 'fixture') return JSON.parse(readFileSync(`${ROOT}test/fixtures/corpus.json`, 'utf8')).modules;
-  const raw = JSON.parse(readFileSync(`${ROOT}.data/cache/${DEFAULT_ACAD_YEAR}-moduleInfo.json`, 'utf8'));
-  return offeredModules(Array.isArray(raw) ? raw : raw.data, DEFAULT_ACAD_YEAR, await loadNgCourses(DEFAULT_ACAD_YEAR)).modules;
+  // Phase 7 7D: `current` (data/corpus.json), never the .data/cache download.
+  return (await productionCorpus()).modules;
 }

@@ -57,7 +57,7 @@ function duration(mins) {
 /** @typedef {{ sem: number, date: string, durationMins: number }} ExamDate */
 
 /**
- * One exam for the detail: "Sem 2: Tue 27 Apr 2027, 5:00 pm, 2 h" (Singapore time).
+ * One exam for the detail: "Sem 2: Tue 27 Apr YYYY, 5:00 pm, 2 h" (Singapore time).
  * @param {ExamDate} e
  */
 export function examLine(e) {

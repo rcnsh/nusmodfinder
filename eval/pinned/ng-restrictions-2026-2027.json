@@ -1,0 +1,7238 @@
+{
+ "acadYear": "2026-2027",
+ "generator": "scripts/build-ng-restrictions.mjs",
+ "sourceSha256": {
+  "law-compulsory-llb-courses.png": "18a29537cca99f8d91525c9f2ab59378d9808213553e243816800221d26e1249",
+  "ng-courses.pdf": "4e0281bea179dab976982d4ef14fe24d1436ddd5966786074ff4eb8f792e89a4",
+  "non-graduating-course-restrictions.pdf": "362ba277d12825b4fa9cbde86bcaad1dabf75a74c91b4d4dcaeba37f71c43b92",
+  "self-funded-graduate-courses.pdf": "1fbbd95fa0e3b102894a81a1c76c644d0788149404b42f9618279f9d03b9a0ad",
+  "self-funded-graduate-courses.txt": "6aebe6ed9bac3e8cd8ed5001e5dd7e7b25d455b15717eff4c256fae0bb8c78d1",
+  "yst-sem1-non-music-majors.html": "df8910b35487644e4260b1785c2c9cb0d9e0c15ae3e4e3cc723f273bba573aa8",
+  "yst-sem1-non-music-majors.txt": "8e03268929993e263b0534d18e0e3bd556863cf0f87d3f63e7bc2142e9112207",
+  "yst-sem2-non-music-majors.html": "6361e644c38b7cf2d25b39220f9ee6f851d1419c920890d46886566c4f804e92",
+  "yst-sem2-non-music-majors.txt": "7b63f960ca5b94245288b70c7e808755b39837b22ff5a93d8fd480478cd02f65"
+ },
+ "register": "docs/evidence/phase4/interpretations.md",
+ "rules": [
+  {
+   "id": "A-dentistry",
+   "effect": "closed",
+   "match": {
+    "faculties": [
+     "Dentistry"
+    ]
+   },
+   "reason": "Faculty of Dentistry courses are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1",
+   "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Faculty of Dentistry"
+  },
+  {
+   "id": "A-medicine",
+   "effect": "closed",
+   "match": {
+    "faculties": [
+     "Yong Loo Lin Sch of Medicine"
+    ],
+    "notCodeRe": "^LSM"
+   },
+   "reason": "Medicine courses are not open to exchange students. This rule does not cover courses whose code starts with LSM.",
+   "cite": "restrictions PDF §A, p1",
+   "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Yong Loo Lin School of Medicine (Course codes that do not start with LSM only)"
+  },
+  {
+   "id": "A-public-health",
+   "effect": "closed",
+   "match": {
+    "faculties": [
+     "SSH School of Public Health"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Public Health graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1",
+   "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Saw Swee Hock School of Public Health (Graduate courses only)"
+  },
+  {
+   "id": "A-nursing",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "Alice Lee Center for Nursing Studies"
+    ]
+   },
+   "reason": "Nursing courses are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1",
+   "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Alice Lee Centre for Nursing Studies"
+  },
+  {
+   "id": "A-iss",
+   "effect": "closed",
+   "match": {
+    "faculties": [
+     "NUS-ISS"
+    ]
+   },
+   "reason": "Institute of Systems Science courses are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1",
+   "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • Institute of Systems Science"
+  },
+  {
+   "id": "A-self-funded",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "ABM5001",
+     "ABM5002",
+     "ABM5003",
+     "ABM5004",
+     "ABM5101",
+     "ABM5102",
+     "ABM5103",
+     "ABM5104",
+     "ABM5105",
+     "ABM5106",
+     "ABM5107",
+     "AC5001",
+     "AC5002",
+     "AC5004",
+     "AC5007",
+     "AC5008",
+     "AC5009",
+     "AC5010",
+     "AC5011",
+     "AC5012",
+     "AC5014",
+     "AC5015",
+     "AC5016",
+     "ACE5401",
+     "ACE5402",
+     "ACE5403",
+     "ACE5404",
+     "ACE5405",
+     "ACE5406",
+     "ACE5407",
+     "ACE5408",
+     "ACE5409",
+     "ACE5410",
+     "ACE5411",
+     "ACE5412",
+     "ACE5413",
+     "ACE5414",
+     "ACE5480",
+     "AI5201",
+     "AI5202",
+     "AI5203",
+     "AI5204",
+     "AI5205",
+     "AI5206",
+     "AI5207",
+     "AI5208",
+     "AI5209",
+     "AI5210",
+     "AI5211",
+     "AI5212",
+     "AII5003",
+     "AR5001",
+     "AR5323",
+     "ARD5001",
+     "ARD5002",
+     "ARD5003",
+     "ARD5004",
+     "ARD5005",
+     "ARD5006",
+     "ARD5007",
+     "ARD5008",
+     "ARD5009",
+     "ARD5010",
+     "ARD5011",
+     "ARD5012",
+     "ARD5013",
+     "ARD5014",
+     "ARD5015",
+     "AUD5101",
+     "AUD5102",
+     "AUD5103",
+     "AUD5104",
+     "AUD5105",
+     "AUD5106",
+     "AUD5107",
+     "AUD5108",
+     "AUD5109",
+     "AUD5110",
+     "AUD5111",
+     "AUD5112",
+     "AUD5113",
+     "AUD5114",
+     "AUD5115",
+     "AUD5216",
+     "AUD5217",
+     "AUD5218",
+     "AUD5219",
+     "AUD5221",
+     "AUD5222",
+     "AUD5223",
+     "BIH5001",
+     "BIH5002",
+     "BIH5003",
+     "BIH5004",
+     "BIH5005",
+     "BIH5101",
+     "BIH5102",
+     "BIH5103",
+     "BIH5104",
+     "BIH5105",
+     "BIH5106",
+     "BIS5001",
+     "BIS5002",
+     "BIS5003",
+     "BIS5004",
+     "BIS5005",
+     "BIS5101",
+     "BIS5102",
+     "BIS5103",
+     "BIS5104",
+     "BIS5105",
+     "BIS5106",
+     "BL5204",
+     "BL5215",
+     "BL5216",
+     "BL5217",
+     "BL5228",
+     "BL5232",
+     "BL5232A",
+     "BL5232B",
+     "BL5232C",
+     "BL5233",
+     "BL5234",
+     "BL5238",
+     "BL5301",
+     "BL5302",
+     "BL5311",
+     "BL5312",
+     "BL5313",
+     "BL5314",
+     "BL5324",
+     "BL5331",
+     "BL5611",
+     "BL5612",
+     "BL5631",
+     "BL5632",
+     "BL5641",
+     "BL5642",
+     "BL5643",
+     "BL5661",
+     "BL5662",
+     "BL5690",
+     "BL5699R",
+     "BMA5001",
+     "BMA5002",
+     "BMA5002A",
+     "BMA5003",
+     "BMA5004A",
+     "BMA5005",
+     "BMA5008",
+     "BMA5009",
+     "BMA5010A",
+     "BMA5011",
+     "BMA5011A",
+     "BMA5013",
+     "BMA5014",
+     "BMA5016",
+     "BMA5016A",
+     "BMA5017",
+     "BMA5102",
+     "BMA5102A",
+     "BMA5104",
+     "BMA5104A",
+     "BMA5108",
+     "BMA5112",
+     "BMA5112A",
+     "BMA5115",
+     "BMA5115A",
+     "BMA5118",
+     "BMA5118A",
+     "BMA5118B",
+     "BMA5119",
+     "BMA5120",
+     "BMA5121",
+     "BMA5122",
+     "BMA5122A",
+     "BMA5123",
+     "BMA5124",
+     "BMA5125",
+     "BMA5126",
+     "BMA5127",
+     "BMA5128",
+     "BMA5128A",
+     "BMA5129",
+     "BMA5129A",
+     "BMA5130",
+     "BMA5131",
+     "BMA5132",
+     "BMA5132A",
+     "BMA5133",
+     "BMA5134",
+     "BMA5134A",
+     "BMA5135A",
+     "BMA5136",
+     "BMA5137",
+     "BMA5138",
+     "BMA5138EE",
+     "BMA5232A",
+     "BMA5236",
+     "BMA5237",
+     "BMA5237A",
+     "BMA5255",
+     "BMA5271",
+     "BMA5271A",
+     "BMA5274",
+     "BMA5277",
+     "BMA5278",
+     "BMA5300AE",
+     "BMA5301",
+     "BMA5302",
+     "BMA5302A",
+     "BMA5303",
+     "BMA5307",
+     "BMA5307A",
+     "BMA5308",
+     "BMA5309",
+     "BMA5309A",
+     "BMA5310",
+     "BMA5312",
+     "BMA5312A",
+     "BMA5313",
+     "BMA5313A",
+     "BMA5313C",
+     "BMA5313D",
+     "BMA5313E",
+     "BMA5314",
+     "BMA5314A",
+     "BMA5315A",
+     "BMA5316A",
+     "BMA5318",
+     "BMA5318A",
+     "BMA5319",
+     "BMA5319A",
+     "BMA5321",
+     "BMA5321A",
+     "BMA5322",
+     "BMA5323",
+     "BMA5324",
+     "BMA5325",
+     "BMA5326",
+     "BMA5327",
+     "BMA5328",
+     "BMA5330",
+     "BMA5331",
+     "BMA5332",
+     "BMA5333",
+     "BMA5334",
+     "BMA5334A",
+     "BMA5335",
+     "BMA5336",
+     "BMA5337",
+     "BMA5337A",
+     "BMA5337AE",
+     "BMA5338",
+     "BMA5339",
+     "BMA5404",
+     "BMA5405",
+     "BMA5405A",
+     "BMA5406",
+     "BMA5406EE",
+     "BMA5409A",
+     "BMA5411",
+     "BMA5411A",
+     "BMA5412",
+     "BMA5422",
+     "BMA5423",
+     "BMA5424",
+     "BMA5425",
+     "BMA5428",
+     "BMA5429",
+     "BMA5430",
+     "BMA5431EE",
+     "BMA5432",
+     "BMA5432A",
+     "BMA5433",
+     "BMA5501",
+     "BMA5502",
+     "BMA5502A",
+     "BMA5503",
+     "BMA5503A",
+     "BMA5504",
+     "BMA5504A",
+     "BMA5505",
+     "BMA5506",
+     "BMA5509",
+     "BMA5511",
+     "BMA5511A",
+     "BMA5515",
+     "BMA5517",
+     "BMA5523",
+     "BMA5523A",
+     "BMA5524",
+     "BMA5524A",
+     "BMA5525",
+     "BMA5526",
+     "BMA5527",
+     "BMA5527A",
+     "BMA5528",
+     "BMA5528A",
+     "BMA5529",
+     "BMA5529A",
+     "BMA5530",
+     "BMA5530A",
+     "BMA5531",
+     "BMA5531A",
+     "BMA5532",
+     "BMA5532A",
+     "BMA5533",
+     "BMA5533A",
+     "BMA5533AE",
+     "BMA5534",
+     "BMA5535",
+     "BMA5536",
+     "BMA5537",
+     "BMA5537A",
+     "BMA5537B",
+     "BMA5539",
+     "BMA5801",
+     "BMA5802",
+     "BMA5802C",
+     "BMA5802D",
+     "BMA5803",
+     "BMA5804",
+     "BMA5805",
+     "BMA5901",
+     "BMA5903",
+     "BMA5904A",
+     "BMA5905",
+     "BMC5021",
+     "BMC5022",
+     "BMC5023",
+     "BMC5024",
+     "BMC5025",
+     "BMC5026",
+     "BMC5027",
+     "BMC5028",
+     "BMC5029",
+     "BMC5030",
+     "BMC5031",
+     "BMC5032",
+     "BMC5033",
+     "BMC5034",
+     "BMC5035",
+     "BMC5035A",
+     "BMC5035B",
+     "BMC5035C",
+     "BMC5035D",
+     "BMC5035F",
+     "BMC5035G",
+     "BMC5035H",
+     "BMC5035N",
+     "BMC5036",
+     "BMC5037",
+     "BMC5038",
+     "BMC5040",
+     "BMC5116",
+     "BMC5117",
+     "BMC5118",
+     "BMC5125",
+     "BMC5130",
+     "BMC5203",
+     "BMC5231",
+     "BMC5305",
+     "BMC5306",
+     "BMC5337",
+     "BMC5411",
+     "BMC5415",
+     "BMC5501",
+     "BMC5502",
+     "BMC5601",
+     "BMC5707",
+     "BMC5808",
+     "BMC5813",
+     "BMC5814",
+     "BMC5815",
+     "BMC5834",
+     "BMC5836",
+     "BMC5837",
+     "BMC5838",
+     "BMD5301",
+     "BMD5302",
+     "BME5014",
+     "BME5016",
+     "BME5020",
+     "BME5021",
+     "BME5022",
+     "BME5040",
+     "BME5041",
+     "BME5042",
+     "BME5043",
+     "BME5044",
+     "BME5045",
+     "BME5046",
+     "BME5047",
+     "BME5049",
+     "BME5050",
+     "BME5051",
+     "BME5052",
+     "BME5053",
+     "BME5054",
+     "BME5055",
+     "BME5056A",
+     "BME5056B",
+     "BME5057A",
+     "BME5057B",
+     "BME5058",
+     "BME5101",
+     "BME5102",
+     "BME5103",
+     "BME5104",
+     "BME5105",
+     "BME5106",
+     "BME5107",
+     "BME5201",
+     "BME5201EE",
+     "BME5202",
+     "BME5301",
+     "BME5302",
+     "BME5401",
+     "BME5402",
+     "BME5403",
+     "BME5404",
+     "BME5405",
+     "BME5406",
+     "BME5501",
+     "BMF5321",
+     "BMF5322",
+     "BMF5323",
+     "BMF5324",
+     "BMF5331",
+     "BMF5332",
+     "BMF5333",
+     "BMF5334",
+     "BMF5341A",
+     "BMF5341B",
+     "BMF5342",
+     "BMF5343",
+     "BMF5344",
+     "BMF5345",
+     "BMF5346",
+     "BMF5346A",
+     "BMF5346B",
+     "BMF5351",
+     "BMF5352",
+     "BMF5353",
+     "BMF5354",
+     "BMF5355",
+     "BMF5356",
+     "BMF5357",
+     "BMF5358",
+     "BMF5359",
+     "BMF5360",
+     "BMF5361",
+     "BMF5362",
+     "BMF5363",
+     "BMF5391A",
+     "BMF5391B",
+     "BMF5392",
+     "BMF5393A",
+     "BMG5101",
+     "BMG5102",
+     "BMG5103",
+     "BMG5104",
+     "BMG5201",
+     "BMG5202",
+     "BMG5203",
+     "BMG5204",
+     "BMG5205",
+     "BMG5206",
+     "BMG5301",
+     "BMG5302",
+     "BMG5303",
+     "BMH5101",
+     "BMH5102",
+     "BMH5103",
+     "BMH5104",
+     "BMH5105",
+     "BMH5106",
+     "BMH5107",
+     "BMH5108",
+     "BMH5109",
+     "BMH5110",
+     "BMH5111",
+     "BMH5112",
+     "BMH5113",
+     "BMH5304",
+     "BMH5401",
+     "BMI1101",
+     "BMI1101A",
+     "BMI1101C",
+     "BMI1102",
+     "BMI2106",
+     "BMI2109",
+     "BMI2207",
+     "BMI2207C",
+     "BMI3101",
+     "BMI3102",
+     "BMI3102C",
+     "BMI3201",
+     "BMI3201C",
+     "BMI3306",
+     "BMI3308",
+     "BMI5101",
+     "BMI5101B",
+     "BMI5102",
+     "BMI5106",
+     "BMI5107",
+     "BMI5108",
+     "BMI5109",
+     "BMI5110",
+     "BMI5111",
+     "BMI5201",
+     "BMI5206",
+     "BMI5207",
+     "BMI5306",
+     "BMK5002",
+     "BMK5100",
+     "BMK5101",
+     "BMK5102",
+     "BMK5103",
+     "BMK5104",
+     "BMK5200",
+     "BMK5201",
+     "BMK5202",
+     "BMK5203",
+     "BMK5204",
+     "BMK5205",
+     "BMK5206",
+     "BMK5206B",
+     "BMK5206C",
+     "BMK5206D",
+     "BMK5206E",
+     "BMK5206F",
+     "BMK5206G",
+     "BMK5206H",
+     "BMK5207",
+     "BMK5208",
+     "BMK5209",
+     "BMK5210",
+     "BMK5300A",
+     "BMO6023A",
+     "BMO6026A",
+     "BMP5000",
+     "BMP5100",
+     "BMP5101",
+     "BMP5102",
+     "BMP5103",
+     "BMP5104",
+     "BMP5105",
+     "BMP5106",
+     "BMP5107",
+     "BMP5201",
+     "BMP5202",
+     "BMP5300",
+     "BMS5103",
+     "BMS5104",
+     "BMS5105",
+     "BMS5106",
+     "BMS5107",
+     "BMS5108",
+     "BMS5109",
+     "BMS5110",
+     "BMS5111",
+     "BMS5112",
+     "BMS5113",
+     "BMS5114",
+     "BMS5115",
+     "BMS5116",
+     "BMS5116A",
+     "BMS5117",
+     "BMS5118",
+     "BMS5119",
+     "BMS5120",
+     "BMS5121",
+     "BMS5122",
+     "BMS5127",
+     "BMS5128",
+     "BMS5129",
+     "BMS5202",
+     "BMS5203",
+     "BMS5203S",
+     "BMS5204",
+     "BMS5205",
+     "BMS5206",
+     "BMS5207",
+     "BMS5208",
+     "BMS5209",
+     "BMS5211",
+     "BMS5302",
+     "BMS5303",
+     "BMS5304",
+     "BMS5305",
+     "BMS5306",
+     "BMS5307",
+     "BMS5308",
+     "BMS5309",
+     "BMS5310",
+     "BMS5311",
+     "BMS5312",
+     "BMS5313",
+     "BMS5402",
+     "BMS5403",
+     "BMS5404",
+     "BMS5405",
+     "BMS5405S",
+     "BMS5406",
+     "BMS5407",
+     "BMS5408",
+     "BMS5409",
+     "BMS5410",
+     "BMS5411",
+     "BMS5412",
+     "BMS5414",
+     "BMS5415",
+     "BMS5416",
+     "BMS5417",
+     "BMS5418",
+     "BMS5419",
+     "BMS5502",
+     "BMS5502A",
+     "BMS5503",
+     "BMS5504",
+     "BMS5505",
+     "BMS5506",
+     "BMS5507",
+     "BMS5508",
+     "BMS5509",
+     "BMS5510",
+     "BMS5511",
+     "BMS5512",
+     "BMS5513",
+     "BMS5514",
+     "BMS5515",
+     "BMS5516",
+     "BMS5517",
+     "BMS5518",
+     "BMS5518A",
+     "BMS5518B",
+     "BMS5518C",
+     "BMS5518D",
+     "BMS5518E",
+     "BMS5519",
+     "BMS5520",
+     "BMS5521",
+     "BMS5522",
+     "BMS5602",
+     "BMS5702",
+     "BMS5702A",
+     "BMS5702B",
+     "BMS5801",
+     "BMS5802",
+     "BMS5900",
+     "BMS5900A",
+     "BMS5902",
+     "BMS5903A",
+     "BMS5903B",
+     "BMT5100",
+     "BMT5101",
+     "BMT5102",
+     "BMT5103",
+     "BMT5104",
+     "BMT5200",
+     "BMT5201",
+     "BMT5202",
+     "BMT5203",
+     "BMT5204",
+     "BMT5205",
+     "BMT5206",
+     "BMT5301A",
+     "BMT5301B",
+     "BMT5301C",
+     "BMT5400",
+     "BMT5401A",
+     "BMT5401B",
+     "BMT5401C",
+     "BMU5001",
+     "BMU5003",
+     "BMU5004",
+     "BMU5006",
+     "BMU5007",
+     "BMU5008",
+     "BMU5013",
+     "BMU5015",
+     "BMX5100",
+     "BMX5101",
+     "BN5001",
+     "BN5101",
+     "BN5102",
+     "BN5211",
+     "BN5212",
+     "BN5501",
+     "BN5511",
+     "BN5511A",
+     "BN5512",
+     "BN5513",
+     "BN5513A",
+     "BN5514",
+     "BN5515",
+     "BN5516",
+     "BN5517",
+     "BN5517A",
+     "BN5518",
+     "BPS5000",
+     "BPS5111",
+     "BPS5112",
+     "BPS5221",
+     "BPS5222",
+     "BPS5223",
+     "BPS5224",
+     "BPS5225",
+     "BPS5226",
+     "BPS5227",
+     "BPS5228",
+     "BPS5230",
+     "BPS5300",
+     "BT5110",
+     "BT5126",
+     "BT5127",
+     "BT5151",
+     "BT5152",
+     "BT5153",
+     "BT5154",
+     "BT5155",
+     "CAH5101",
+     "CAH5102",
+     "CAH5103",
+     "CAH5104",
+     "CAH5105",
+     "CAH5106",
+     "CCS5101",
+     "CCS5102",
+     "CCS5103",
+     "CCS5104",
+     "CCS5201",
+     "CCS5202",
+     "CCS5203",
+     "CCS5204",
+     "CCS5205",
+     "CCS5206",
+     "CCS5207",
+     "CCS5301",
+     "CDE5000",
+     "CDE5301",
+     "CDE5302",
+     "CDE5303",
+     "CDE5304",
+     "CDE5311",
+     "CDE5312",
+     "CDE5399D",
+     "CDE5399E",
+     "CDE5399T",
+     "CE5010A",
+     "CE5010B",
+     "CE5010QA",
+     "CE5010QB",
+     "CE5101",
+     "CE5104A",
+     "CE5104B",
+     "CE5104QA",
+     "CE5104QB",
+     "CE5106A",
+     "CE5106B",
+     "CE5106QA",
+     "CE5106QB",
+     "CE5107A",
+     "CE5107B",
+     "CE5108A",
+     "CE5108B",
+     "CE5112",
+     "CE5113A",
+     "CE5113B",
+     "CE5203",
+     "CE5204",
+     "CE5205",
+     "CE5210",
+     "CE5211",
+     "CE5214QA",
+     "CE5214QB",
+     "CE5307AQA",
+     "CE5307BQB",
+     "CE5308",
+     "CE5308A",
+     "CE5308B",
+     "CE5308QA",
+     "CE5308QB",
+     "CE5310AB",
+     "CE5312",
+     "CE5312AB",
+     "CE5313",
+     "CE5315AB",
+     "CE5317A",
+     "CE5317B",
+     "CE5317QA",
+     "CE5317QB",
+     "CE5318AB",
+     "CE5320",
+     "CE5509A",
+     "CE5509B",
+     "CE5510A",
+     "CE5510B",
+     "CE5510QA",
+     "CE5510QB",
+     "CE5516A",
+     "CE5516B",
+     "CE5516QA",
+     "CE5516QB",
+     "CE5610A",
+     "CE5610B",
+     "CE5610QA",
+     "CE5610QB",
+     "CE5611A",
+     "CE5611B",
+     "CE5716",
+     "CE5716A",
+     "CE5716QA",
+     "CE5717",
+     "CE5717B",
+     "CE5717QB",
+     "CE5718A",
+     "CE5718B",
+     "CE5718QA",
+     "CE5718QB",
+     "CE5719A",
+     "CE5719B",
+     "CE5719QA",
+     "CE5719QB",
+     "CE5720A",
+     "CE5720B",
+     "CE5720QA",
+     "CE5720QB",
+     "CE5721A",
+     "CE5721B",
+     "CE5721QA",
+     "CE5721QB",
+     "CE5805A",
+     "CE5805B",
+     "CE5805QA",
+     "CE5805QB",
+     "CE5806A",
+     "CE5806B",
+     "CE5806QA",
+     "CE5806QB",
+     "CE5807A",
+     "CE5807B",
+     "CE5808A",
+     "CE5808B",
+     "CE5808QA",
+     "CE5808QB",
+     "CE5880",
+     "CE5886",
+     "CE6001",
+     "CE6002",
+     "CE6006",
+     "CE6077QA",
+     "CE6101",
+     "CE6102",
+     "CE6601",
+     "CEG5101",
+     "CEG5102",
+     "CEG5103",
+     "CEG5104",
+     "CEG5105",
+     "CEG5201",
+     "CEG5202",
+     "CEG5203",
+     "CEG5204",
+     "CEG5205",
+     "CEG5301",
+     "CEG5302",
+     "CEG5303",
+     "CEG5304",
+     "CEG5305",
+     "CH1101S",
+     "CH2121S",
+     "CH2221S",
+     "CH3243S",
+     "CHC5101",
+     "CHC5102",
+     "CHC5301",
+     "CHC5302",
+     "CHC5303",
+     "CHC5304",
+     "CHC5305",
+     "CHC5306",
+     "CHC5307",
+     "CHC5308",
+     "CHC5309",
+     "CHC5310",
+     "CHC5311",
+     "CHC5312",
+     "CHC5313",
+     "CHC5314",
+     "CHC5315",
+     "CHC5316",
+     "CHC5317",
+     "CHC5318",
+     "CHC5319",
+     "CHC5320",
+     "CHC5321",
+     "CHC5322",
+     "CHC5323",
+     "CHC5324",
+     "CHC5325",
+     "CHC5326",
+     "CHC5327",
+     "CHC5328",
+     "CHC5330",
+     "CHC5331",
+     "CHC5332",
+     "CHC5333",
+     "CHC5334",
+     "CHC5335",
+     "CHC5336",
+     "CHC5337",
+     "CHC5338",
+     "CHC5339",
+     "CHC5340",
+     "CHC5341",
+     "CHC5342",
+     "CHC5343",
+     "CHC5344",
+     "CHC5345",
+     "CHC5346",
+     "CHC5347",
+     "CHC5348",
+     "CHC5349",
+     "CIT5001",
+     "CIT5002",
+     "CIT5003",
+     "CIT5004",
+     "CIT5005",
+     "CIT5010",
+     "CIT5011",
+     "CL1101S",
+     "CL2101S",
+     "CL2103S",
+     "CL3104S",
+     "CM5103",
+     "CM5192",
+     "CM5212",
+     "CM5224",
+     "CM5231",
+     "CM5244",
+     "CM5251",
+     "CM5299",
+     "CM5311",
+     "CM5321",
+     "CM5331",
+     "CM5351",
+     "CM5731",
+     "CMH5101",
+     "CMH5102",
+     "CMH5103",
+     "CMH5104",
+     "CMH5105",
+     "CMH5201",
+     "CMH5202",
+     "CMH5203",
+     "CMH5301",
+     "CMH5302",
+     "CMH5303",
+     "CMH5304",
+     "CMH5305",
+     "CMH5306",
+     "CMH5307",
+     "CMH5401",
+     "CMH5402",
+     "CN5010",
+     "CN5020",
+     "CN5030",
+     "CN5040",
+     "CN5050",
+     "CN5111B",
+     "CN5112",
+     "CN5124",
+     "CN5131",
+     "CN5150",
+     "CN5160",
+     "CN5161",
+     "CN5162",
+     "CN5181",
+     "CN5190",
+     "CN5192",
+     "CN5192X",
+     "CN5193",
+     "CN5194",
+     "CN5195",
+     "CN5202",
+     "CN5204",
+     "CN5215",
+     "CN5216",
+     "CN5219",
+     "CN5220",
+     "CN5222",
+     "CN5252",
+     "CN5277",
+     "CN5366",
+     "CN5371",
+     "CN5391",
+     "CN5392",
+     "CN5401",
+     "CN5432",
+     "CN5550",
+     "CN5555",
+     "CN5555X",
+     "CN5566",
+     "CN5611X",
+     "CN6020",
+     "CN6162",
+     "CN6163",
+     "CN6163X",
+     "CN6222",
+     "CN6251",
+     "CP5101",
+     "CP5102",
+     "CP5103",
+     "CP5104",
+     "CP5105",
+     "CS5421",
+     "CS5422",
+     "CS5424",
+     "CS5425",
+     "CS5430",
+     "CS5439",
+     "CS5446",
+     "CS5461",
+     "CS5469",
+     "CS5476",
+     "CS5477",
+     "CS5478",
+     "DBA5101",
+     "DBA5103",
+     "DBA5104",
+     "DBA5105",
+     "DBA5106",
+     "DBA5107",
+     "DBA5108",
+     "DBA5109",
+     "DBA5110",
+     "DBA5111",
+     "DBA5112",
+     "DBA5113",
+     "DBA5121",
+     "DEP5114",
+     "DEP5116",
+     "DEP5117",
+     "DEP5118",
+     "DEP5119",
+     "DEP5120",
+     "DI5100",
+     "DI5200",
+     "DL5101",
+     "DL5101P",
+     "DL5102",
+     "DL5102G",
+     "DL5102P",
+     "DL5103",
+     "DL5103P",
+     "DL5201",
+     "DL5201P",
+     "DL5202",
+     "DL5202P",
+     "DL5203",
+     "DL5203P",
+     "DL5301",
+     "DL5301P",
+     "DL5302",
+     "DL5302P",
+     "DL5303",
+     "DL5303P",
+     "DOS5021",
+     "DOS5022",
+     "DOS5024",
+     "DOS5025",
+     "DOS5101",
+     "DOS5101A",
+     "DOS5101B",
+     "DOS5102",
+     "DOS5102A",
+     "DOS5102B",
+     "DOS5103",
+     "DOS5104",
+     "DOS5105",
+     "DOS5106",
+     "DOS5107",
+     "DOS5109",
+     "DSA5102",
+     "DSA5103",
+     "DSA5104",
+     "DSA5105",
+     "DSA5106",
+     "DSA5201",
+     "DSA5202",
+     "DSA5203",
+     "DSA5204",
+     "DSA5205",
+     "DSA5206",
+     "DSA5207",
+     "DSA5208",
+     "DSA5209",
+     "DSA5231",
+     "DSA5731",
+     "DSA5811",
+     "DSA5812",
+     "DSA5821",
+     "DSA5822",
+     "DSA5831",
+     "DSA5841",
+     "DSA5842",
+     "DSA5843",
+     "DSC5101",
+     "DSC5103",
+     "DSC5106",
+     "DSC5221A",
+     "DSS5101",
+     "DSS5102",
+     "DSS5103",
+     "DSS5104",
+     "DSS5105",
+     "DSS5201",
+     "DSS5202",
+     "DSS5203",
+     "DSS5210",
+     "DSS5211",
+     "DTS2701",
+     "DTS5001",
+     "DTS5002",
+     "DTS5003",
+     "DTS5111",
+     "DTS5121",
+     "DTS5131",
+     "DTS5201",
+     "DTS5202",
+     "DTS5203",
+     "DTS5204",
+     "DTS5205",
+     "DTS5311",
+     "DTS5312",
+     "DTS5321",
+     "DTS5322",
+     "DTS5331",
+     "DTS5332",
+     "DTS5401",
+     "DTS5402",
+     "DTS5403",
+     "DTS5404",
+     "DTS5405",
+     "DTS5701",
+     "DTS5702",
+     "DTS5703",
+     "DTS5704",
+     "DTS5707",
+     "DTS5708",
+     "DTS5710",
+     "DTS5713",
+     "DTS5720",
+     "DTS5721",
+     "DTS5722",
+     "DTS5723",
+     "DTS5724",
+     "DTS5725",
+     "DTS5726",
+     "DTS5727",
+     "DTS5731",
+     "DTS5732",
+     "DTS5733",
+     "DTS5733EC",
+     "DTS5734",
+     "DTS5735",
+     "DY5190",
+     "EBA5001",
+     "EBA5001A",
+     "EBA5001G",
+     "EBA5002",
+     "EBA5002G",
+     "EBA5003",
+     "EBA5003G",
+     "EBA5004",
+     "EBA5004G",
+     "EBA5005",
+     "EBA5005G",
+     "EBA5006",
+     "EBA5006G",
+     "EBA5007",
+     "EBA5008",
+     "EBA5008G",
+     "ECA5101",
+     "ECA5102",
+     "ECA5103",
+     "ECA5304",
+     "ECA5305",
+     "ECA5307",
+     "ECA5308",
+     "ECA5313",
+     "ECA5315",
+     "ECA5325",
+     "ECA5333",
+     "ECA5334",
+     "ECA5335",
+     "ECA5337",
+     "ECA5341",
+     "ECA5342",
+     "ECA5343",
+     "ECA5351",
+     "ECA5371",
+     "ECA5372",
+     "ECA5373",
+     "ECA5373R",
+     "ECA5374",
+     "ECA5375",
+     "ECA5376",
+     "ECA5377",
+     "ECA5381",
+     "ECA5383",
+     "ECA5394",
+     "ECA5395",
+     "ECA5396",
+     "ECA5401",
+     "ECA5660",
+     "ECA5880",
+     "ECA5881",
+     "ECA5882",
+     "ECA5884",
+     "EE5020",
+     "EE5021",
+     "EE5022",
+     "EE5023",
+     "EE5024",
+     "EE5025",
+     "EE5026",
+     "EE5027",
+     "EE5028",
+     "EE5040",
+     "EE5041",
+     "EE5042",
+     "EE5043",
+     "EE5044",
+     "EE5045",
+     "EE5046",
+     "EE5047",
+     "EE5060",
+     "EE5061",
+     "EE5062",
+     "EE5063",
+     "EE5064",
+     "EE5065",
+     "EE5080",
+     "EE5101",
+     "EE5103",
+     "EE5104",
+     "EE5106",
+     "EE5110",
+     "EE5111",
+     "EE5112",
+     "EE5113",
+     "EE5114",
+     "EE5115",
+     "EE5131",
+     "EE5132",
+     "EE5133",
+     "EE5134",
+     "EE5135",
+     "EE5137",
+     "EE5138",
+     "EE5139",
+     "EE5303",
+     "EE5308",
+     "EE5311",
+     "EE5434",
+     "EE5439",
+     "EE5441",
+     "EE5442",
+     "EE5443",
+     "EE5502",
+     "EE5507",
+     "EE5508",
+     "EE5517",
+     "EE5518",
+     "EE5531",
+     "EE5701",
+     "EE5702",
+     "EE5703",
+     "EE5711",
+     "EE5713",
+     "EE5731",
+     "EE5801",
+     "EE5831",
+     "EE5902",
+     "EE5903",
+     "EE5904",
+     "EE5907",
+     "EE5934",
+     "EEK5001",
+     "EEK5003",
+     "EEK5101",
+     "EEK5102",
+     "EEK5103",
+     "EEK5104",
+     "EEK5105",
+     "EEK5106",
+     "EEK5107",
+     "EEK5301",
+     "EEK5302",
+     "EEK5888",
+     "EG5301",
+     "EG5302",
+     "EG5303",
+     "EHB5101",
+     "EHB5102",
+     "EHB5103",
+     "EHB5104",
+     "ELC5202",
+     "ELC5203",
+     "ELC5204",
+     "ELC5205",
+     "ELC5206",
+     "ELC5207",
+     "ELC5211",
+     "ELC5212",
+     "ELC5216",
+     "ELC5221",
+     "ELC5251",
+     "ELC5252",
+     "ELC5253",
+     "ELC5254",
+     "ELC5255",
+     "ELC5270",
+     "ENC5149",
+     "ENC5150",
+     "ENC5151",
+     "ENC5232",
+     "ENC5235",
+     "ENC5238",
+     "ENC5239",
+     "ENC5241",
+     "ENC5242",
+     "ENC5244",
+     "ENC5247",
+     "ENC5248",
+     "ENC5252",
+     "ENC5253",
+     "ENC5261",
+     "ENC5262",
+     "ENC5263",
+     "ENC5660",
+     "ENC5880A",
+     "ENC5883",
+     "ESE5001",
+     "ESE5001AB",
+     "ESE5002",
+     "ESE5003",
+     "ESE5202",
+     "ESE5202A",
+     "ESE5202AB",
+     "ESE5202B",
+     "ESE5203",
+     "ESE5204",
+     "ESE5204A",
+     "ESE5204AB",
+     "ESE5204B",
+     "ESE5205",
+     "ESE5301",
+     "ESE5401",
+     "ESE5402",
+     "ESE5402A",
+     "ESE5402AB",
+     "ESE5402B",
+     "ESE5403",
+     "ESE5403A",
+     "ESE5403B",
+     "ESE5404",
+     "ESE5405",
+     "ESE5406",
+     "ESE5407",
+     "ESE5601",
+     "ESE5607",
+     "ESE5608",
+     "ESE5666",
+     "ESE5701",
+     "ESE5880C",
+     "ESE5901A",
+     "ESE5901B",
+     "ESE6001",
+     "ESE6002",
+     "ESE6003",
+     "ESE6301",
+     "ETP5311",
+     "ETP5322",
+     "ETP5331",
+     "ETP5332",
+     "ETP5341",
+     "ETP5381",
+     "EU4660",
+     "EU4660HM",
+     "FE5101",
+     "FE5101D",
+     "FE5103",
+     "FE5105",
+     "FE5107",
+     "FE5107D",
+     "FE5108",
+     "FE5112",
+     "FE5112D",
+     "FE5116",
+     "FE5116D",
+     "FE5208",
+     "FE5209",
+     "FE5209D",
+     "FE5210",
+     "FE5212",
+     "FE5213",
+     "FE5214",
+     "FE5218",
+     "FE5219",
+     "FE5221",
+     "FE5222",
+     "FE5223",
+     "FE5224",
+     "FE5225",
+     "FE5226",
+     "FE5227",
+     "FE5901",
+     "FE5902",
+     "FE5903",
+     "FE5904",
+     "FE5905",
+     "FE5906",
+     "FE5907",
+     "FE5908",
+     "FE5909",
+     "FE5910",
+     "FE5911",
+     "FE5912",
+     "FE5913",
+     "FE5914",
+     "FE5915",
+     "FSC5201",
+     "FSC5202",
+     "FSC5203",
+     "FSC5204",
+     "FSC5205",
+     "FSC5206",
+     "FSC5207",
+     "FST5198",
+     "FST5199",
+     "FST5199A",
+     "FST5199B",
+     "FST5201",
+     "FST5202",
+     "FST5202A",
+     "FST5203",
+     "FST5203A",
+     "FST5205",
+     "FST5205A",
+     "FST5206",
+     "FST5207",
+     "FST5225",
+     "FST5226",
+     "FST5227",
+     "FST5228",
+     "FST5301",
+     "FST5301A",
+     "FST5302",
+     "FST5303",
+     "FST5303A",
+     "FT5001",
+     "FT5002",
+     "FT5003",
+     "FT5004",
+     "FT5005",
+     "FT5007",
+     "FT5010",
+     "FT5011",
+     "FT5012",
+     "FT5013",
+     "GE5225",
+     "GE5226",
+     "GE5227",
+     "GE5228",
+     "GE5230",
+     "GE5231",
+     "GMS5151",
+     "GMS5152",
+     "GMS5153",
+     "GMS5154",
+     "GMS5155",
+     "GMS5156",
+     "GMS5191",
+     "GMS5221",
+     "GMS5222",
+     "GMS5223",
+     "GMS5224",
+     "GMS5241",
+     "GMS5242",
+     "GMS5243",
+     "GMS5244",
+     "GMS5261",
+     "GMS5262",
+     "GMS5263",
+     "GMS5264",
+     "GMS5501",
+     "GMS5502",
+     "GMS5503",
+     "GMS5671",
+     "GMS5672",
+     "GMS5673",
+     "GMS5674",
+     "GMS5675",
+     "GMS5676",
+     "GMS5677",
+     "GMS5678",
+     "GMS5701",
+     "GMS5702",
+     "GMS5703",
+     "GMS5704",
+     "GMS5711",
+     "GMS5712",
+     "GMS5721",
+     "GMS5722",
+     "GMS5749",
+     "GMS5806",
+     "GMS5807",
+     "GMS5808",
+     "GMS5848",
+     "GMS5849",
+     "GMS6904",
+     "GMS6961",
+     "HE5001",
+     "HE5002",
+     "HE5003",
+     "HE5004",
+     "HE5005",
+     "HE5006",
+     "HE5101",
+     "HE5102",
+     "HE5103",
+     "HI5101",
+     "HI5102",
+     "HI5103",
+     "HI5104",
+     "HLE5101",
+     "HLE5102",
+     "HM5102",
+     "HM5103",
+     "HM5104",
+     "HM5105",
+     "HM5106",
+     "HM5107",
+     "HY5405",
+     "HY5406",
+     "HY5407",
+     "HY5408",
+     "HY5408R",
+     "HY5409",
+     "HY5410",
+     "HY5411",
+     "HY5412",
+     "HY5413",
+     "HY5415",
+     "HY5416",
+     "HY5417",
+     "HY5418",
+     "HY5419",
+     "HY5420",
+     "ID5001",
+     "ID5002",
+     "ID5352",
+     "ID5353",
+     "ID5354",
+     "ID5355",
+     "ID5356",
+     "ID5357",
+     "ID5358",
+     "ID5359",
+     "ID5360",
+     "ID5361",
+     "ID5951",
+     "IDE5001",
+     "IDE5002",
+     "IDE5003",
+     "IDE5004",
+     "IDE5005",
+     "IDE5006",
+     "IDE5007",
+     "IDE5008",
+     "IDE5009",
+     "IDE5010",
+     "IDE5011",
+     "IE5001",
+     "IE5001A",
+     "IE5001B",
+     "IE5002",
+     "IE5003",
+     "IE5004",
+     "IE5005",
+     "IE5006",
+     "IE5105",
+     "IE5105A",
+     "IE5105B",
+     "IE5107",
+     "IE5121",
+     "IE5122",
+     "IE5123",
+     "IE5125",
+     "IE5203",
+     "IE5205",
+     "IE5206",
+     "IE5207",
+     "IE5208",
+     "IE5209",
+     "IE5268",
+     "IE5291",
+     "IE5301",
+     "IE5307",
+     "IE5401",
+     "IE5402",
+     "IE5405",
+     "IE5504",
+     "IE5506",
+     "IE5708",
+     "IE5866",
+     "IE5901",
+     "IE5902",
+     "IE5903",
+     "IE5904",
+     "IND5001",
+     "IND5002",
+     "IND5003",
+     "IND5004",
+     "IND5005A",
+     "IND5021",
+     "IND5022",
+     "IND5024",
+     "IS5010",
+     "IS5451",
+     "IS5452",
+     "ISD5103",
+     "ISD5104",
+     "ISD5105",
+     "ISD5106",
+     "ISY5001",
+     "ISY5001G",
+     "ISY5002",
+     "ISY5002G",
+     "ISY5003",
+     "ISY5003G",
+     "ISY5004",
+     "ISY5004G",
+     "ISY5005",
+     "ISY5005G",
+     "ISY5007",
+     "IT5001",
+     "IT5002",
+     "IT5003",
+     "IT5004",
+     "IT5005",
+     "IT5006",
+     "IT5007",
+     "IT5008",
+     "IT5100A",
+     "IT5100B",
+     "JSC5101",
+     "JSC5102",
+     "JSC5103",
+     "JSC5201",
+     "JSC5202",
+     "JSC5203",
+     "JSC5204",
+     "JSC5205",
+     "JSC5206",
+     "JSC5207",
+     "JSC5208",
+     "JSC5209",
+     "JSC5210",
+     "JSC5301",
+     "JSC5302",
+     "JSC5303",
+     "JSC5304",
+     "JSC5305",
+     "JSC5401",
+     "JSC5660",
+     "JSC5880",
+     "LA5500",
+     "LA5742A",
+     "LA5901",
+     "LC5001",
+     "LC5010A",
+     "LC5204A",
+     "LC5204AV",
+     "LC5204B",
+     "LC5204BV",
+     "LC5225",
+     "LC5262AV",
+     "LC5262BV",
+     "LC5262V",
+     "LC5285V",
+     "LC5336",
+     "LCC5365",
+     "LCC5366",
+     "LCC5390",
+     "LCC5391",
+     "LCC5392",
+     "LCC5466",
+     "LCC5467",
+     "LCC5468",
+     "LCC5469",
+     "LCC5470",
+     "LCD5204A",
+     "LCD5204AV",
+     "LCD5204B",
+     "LCD5204BV",
+     "LCJ5015",
+     "LI5003",
+     "LI5101",
+     "LI5101A",
+     "LI5101B",
+     "LI5201",
+     "LI5202",
+     "LI5203",
+     "LI5204",
+     "LI5204A",
+     "LI5204B",
+     "LL5459X",
+     "LL5484X",
+     "LL5485X",
+     "LL5512S",
+     "LL5513S",
+     "LL5532X",
+     "LL5533X",
+     "LLJ5453",
+     "LLJ5482",
+     "LLJ5482V",
+     "LLJ5483",
+     "LLJ5483V",
+     "LLJ5485X",
+     "MA5248",
+     "MA5266",
+     "MA5268",
+     "MA5270",
+     "MA5271",
+     "MA5272",
+     "MB5104",
+     "MB5105",
+     "MCI5001",
+     "MCI5002",
+     "MCI5003",
+     "MCI5004",
+     "MCI5005",
+     "MCI5006",
+     "MCI5007",
+     "MCI5009",
+     "MDG5252",
+     "MDG5253",
+     "MDG5254",
+     "MDG5600",
+     "ME5209",
+     "ME5306",
+     "ME5311",
+     "ME5400A",
+     "ME5401",
+     "ME5402",
+     "ME5404",
+     "ME5405A",
+     "ME5408",
+     "ME5409",
+     "ME5410",
+     "ME5411",
+     "ME5412",
+     "ME5413",
+     "ME5414",
+     "ME5415",
+     "ME5416",
+     "ME5417",
+     "ME5418",
+     "ME5419",
+     "ME5420",
+     "ME5421",
+     "ME5422",
+     "ME5423",
+     "ME5424",
+     "ME5425",
+     "ME5513A",
+     "ME5516",
+     "ME5517",
+     "ME5518",
+     "ME5607",
+     "ME5608A",
+     "ME5608B",
+     "ME5612",
+     "ME5614A",
+     "ME5615A",
+     "ME5615B",
+     "ME5616",
+     "ME5701",
+     "ME5888M",
+     "ME5888R",
+     "ME6108",
+     "ME6509",
+     "ME6601",
+     "MEM5101",
+     "MEM5102",
+     "MEM5103",
+     "MEM5104",
+     "MLE5001",
+     "MLE5002",
+     "MLE5101",
+     "MLE5102",
+     "MLE5208",
+     "MLE5210",
+     "MLE5211",
+     "MLE5212",
+     "MLE5213",
+     "MLE5214",
+     "MLE5215",
+     "MLE5216",
+     "MLE5217",
+     "MLE5218",
+     "MLE5219",
+     "MLE5220",
+     "MLE5221",
+     "MLE5222",
+     "MLE5223",
+     "MLE5224",
+     "MLE5225",
+     "MLE5226",
+     "MLE5228",
+     "MLE5229",
+     "MLE5230",
+     "MLE5231",
+     "MLE5232",
+     "MLE5233",
+     "MLE5234",
+     "MLE5235",
+     "MLE5236",
+     "MLE5238",
+     "MLE5239",
+     "MLE5240",
+     "MLE5241",
+     "MLE5243",
+     "MLE5244",
+     "MLE5245",
+     "MLE5247",
+     "MLE5301",
+     "MLE5302",
+     "MLE5303",
+     "MLE5304",
+     "MSI5001",
+     "MSI5002",
+     "MSI5003",
+     "MSI5004",
+     "MSI5005",
+     "MSI5006",
+     "MSI5102",
+     "MST5001",
+     "MST5002",
+     "MST5666",
+     "MT5001",
+     "MT5001G",
+     "MT5002",
+     "MT5003",
+     "MT5006",
+     "MT5006A",
+     "MT5006B",
+     "MT5007",
+     "MT5007A",
+     "MT5007B",
+     "MT5007G",
+     "MT5007H",
+     "MT5008",
+     "MT5008A",
+     "MT5008B",
+     "MT5010",
+     "MT5010A",
+     "MT5010B",
+     "MT5011",
+     "MT5012",
+     "MT5013",
+     "MT5014",
+     "MT5015",
+     "MT5016",
+     "MT5017",
+     "MT5020",
+     "MT5020A",
+     "MT5021",
+     "MT5022",
+     "MT5023",
+     "MT5024",
+     "MT5025",
+     "MT5026",
+     "MT5027",
+     "MT5766",
+     "MT5866",
+     "MT5880",
+     "MT5880A",
+     "MT5880B",
+     "MT5880C",
+     "MT5900",
+     "MT5903",
+     "MT5911",
+     "MT5921",
+     "MTM5001",
+     "MTM5002",
+     "MTM5004",
+     "MTM5005",
+     "MTM5101",
+     "MUA5121",
+     "MUA5122",
+     "MUA5123",
+     "MUA5124",
+     "MUA5160",
+     "MUA5163",
+     "MUA5170",
+     "MUA5171",
+     "MUA5172",
+     "MUA5173",
+     "MUA5174",
+     "MUA5175",
+     "MUA5176",
+     "MUA5177",
+     "MUA5178",
+     "MUA5264",
+     "MUA5770",
+     "MUA6178",
+     "MUH5201",
+     "MUH5202",
+     "MUT5201",
+     "MW5201",
+     "NHS3911N",
+     "NHS3911PL",
+     "NHS4911PS",
+     "NLM5001",
+     "NLM5002",
+     "NLM5003",
+     "NLM5004A",
+     "NLM5004B",
+     "NLM5005",
+     "NLM5006",
+     "NLM5007",
+     "NLM5008",
+     "NLM5009",
+     "NMC5301",
+     "NMC5302",
+     "NMC5303",
+     "NMC5306",
+     "NMC5308",
+     "NMC5322",
+     "NMC5323",
+     "NMC5324",
+     "NMC5325",
+     "NMC5326",
+     "NMC5341",
+     "NMC5342",
+     "NMC5343",
+     "NMC5344",
+     "NMC5346",
+     "NMC5362",
+     "NMC5364",
+     "NMC5367",
+     "NMC5368",
+     "NMC5369",
+     "NUR5502",
+     "NUR5504",
+     "NUR5505",
+     "NUR5506",
+     "NUR5507",
+     "NUR5508",
+     "NUR5609",
+     "NUR5610",
+     "NUR5613",
+     "NUR5701",
+     "NUR5702",
+     "NUR5703",
+     "NUR5704",
+     "NUR5711",
+     "NUR5712",
+     "NUR5721",
+     "NUR5722",
+     "NUR5723",
+     "NUR5731",
+     "NUR5732",
+     "NUR5733",
+     "NUR5801G",
+     "NUR5802G",
+     "NUR5803G",
+     "NUR5804G",
+     "NUR5805G",
+     "NUR5806G",
+     "NUR5807",
+     "NUR5808",
+     "NUR5811A",
+     "NUR5811B",
+     "NUR5811C",
+     "NUR6101",
+     "NUR6102",
+     "NUR6103",
+     "NUR6104",
+     "NUR6110A",
+     "NUR6110B",
+     "OPT5101",
+     "OPT5102",
+     "OPT5103",
+     "OPT5104",
+     "OPT5105",
+     "OPT5106",
+     "OT5202A",
+     "OT5202B",
+     "OT5203A",
+     "OT5203B",
+     "OT5204A",
+     "OT5204B",
+     "OT5206A",
+     "OT5206B",
+     "OT5401A",
+     "OT5401B",
+     "OT5402A",
+     "OT5402B",
+     "OT5403A",
+     "OT5403B",
+     "OT5405A",
+     "OT5405B",
+     "OT5406A",
+     "OT5406B",
+     "OT5901",
+     "OT5902",
+     "OT5903",
+     "OT5904",
+     "OT5905",
+     "OT5906",
+     "OT5907",
+     "OT5908",
+     "OT5909",
+     "OT5910",
+     "OT5911",
+     "OT5912",
+     "PC5101",
+     "PC5102",
+     "PC5102D",
+     "PC5189",
+     "PC5201",
+     "PC5202",
+     "PC5203",
+     "PC5204",
+     "PC5204B",
+     "PC5205",
+     "PC5206",
+     "PC5207",
+     "PC5209",
+     "PC5210",
+     "PC5211",
+     "PC5212",
+     "PC5213",
+     "PC5214",
+     "PC5215",
+     "PC5216",
+     "PC5218",
+     "PC5221",
+     "PC5228",
+     "PC5233",
+     "PC5236",
+     "PC5239B",
+     "PC5247",
+     "PC5251",
+     "PC5252",
+     "PC5253",
+     "PC5267",
+     "PC5271",
+     "PC5274",
+     "PC5286",
+     "PC5287",
+     "PC5287D",
+     "PC5731",
+     "PHC5001",
+     "PHC5002",
+     "PHC5003",
+     "PHC5004",
+     "PHC5005",
+     "PHC5006",
+     "PHC5007",
+     "PHC5101",
+     "PHC5102",
+     "PHC5103",
+     "PHC5104",
+     "PHC5105",
+     "PHC5106",
+     "PHC5107",
+     "PHC5108",
+     "PHC5201",
+     "PHC5202",
+     "PHC5211",
+     "PHC5212",
+     "PHM5001",
+     "PHM5002",
+     "PHM5003",
+     "PHM5004",
+     "PHM5005",
+     "PHM5006",
+     "PHM5007",
+     "PHM5008",
+     "PHM5009",
+     "PHM5010",
+     "PHM5011",
+     "PHM5012",
+     "PHM5013",
+     "PHM5014",
+     "PHM5015",
+     "PHM5016",
+     "PHM5017",
+     "PHM5018",
+     "PLC5001",
+     "PLC5002",
+     "PLC5003",
+     "PLC5004",
+     "PLC5005",
+     "PLC5006",
+     "PLC5007",
+     "PLC5008",
+     "PLC5009",
+     "PM5000",
+     "PM5101",
+     "PM5103",
+     "PM5105",
+     "PM5106",
+     "PM5107",
+     "PM5112",
+     "PM5113",
+     "PM5114",
+     "PM5115",
+     "PM5116",
+     "PM5117",
+     "PM5118",
+     "PM5119",
+     "PM5120",
+     "PP5269M",
+     "PP5701",
+     "PP5702",
+     "PP5703",
+     "PP5704",
+     "PP5705",
+     "PP5706",
+     "PP5707",
+     "PP5711",
+     "PP5712",
+     "PP5713",
+     "PP5714",
+     "PP5715",
+     "PP5716",
+     "PP5717",
+     "PP5718",
+     "PP5721",
+     "PP5722",
+     "PP5723",
+     "PP5724",
+     "PP5725",
+     "PP5727",
+     "PP5728",
+     "PP5729",
+     "PP5730",
+     "PP5731",
+     "PP5732",
+     "PP5901",
+     "PP5903",
+     "PP5904",
+     "PP5908",
+     "PP5910",
+     "PP5911",
+     "PP5912",
+     "PP5916",
+     "PR5134",
+     "PR5135",
+     "PR5137",
+     "PR5198",
+     "PR5203",
+     "PR5210",
+     "PR5213",
+     "PR5215",
+     "PR5218",
+     "PR5219",
+     "PR5220",
+     "PR5225",
+     "PR5227",
+     "PR5237",
+     "PR5238",
+     "PR5304",
+     "PR5399",
+     "QF5201",
+     "QF5201A",
+     "QF5202",
+     "QF5202A",
+     "QF5203",
+     "QF5203A",
+     "QF5204",
+     "QF5205",
+     "QF5205A",
+     "QF5206",
+     "QF5206A",
+     "QF5207",
+     "QF5207A",
+     "QF5209",
+     "QF5209A",
+     "QF5210",
+     "QF5211",
+     "QF5211A",
+     "QF5212",
+     "QF5212A",
+     "QF5213",
+     "QF5214",
+     "QF5215",
+     "RE5001",
+     "RE5003",
+     "RE5004",
+     "RE5005",
+     "RE5006",
+     "RE5009",
+     "RE5011",
+     "RE5013",
+     "RE5014",
+     "RE5015",
+     "RE5016",
+     "RE5017",
+     "RE5018",
+     "RE5019",
+     "RE5020",
+     "RE5021",
+     "RE5022",
+     "SEA5101",
+     "SEA5102",
+     "SEA5201",
+     "SEA5202",
+     "SEA5203",
+     "SEA5211",
+     "SEA5212",
+     "SEA5213",
+     "SEA5214",
+     "SEA5221",
+     "SEA5222",
+     "SEA5223",
+     "SEA5224",
+     "SEA5231",
+     "SEA5232",
+     "SEA5233",
+     "SEA5234",
+     "SEA5235",
+     "SEA5236",
+     "SEA5237",
+     "SEA5238",
+     "SEA5880",
+     "SH5001",
+     "SH5001C",
+     "SH5002",
+     "SH5002C",
+     "SH5003",
+     "SH5003C",
+     "SH5004",
+     "SH5004C",
+     "SH5005",
+     "SH5005C",
+     "SH5101",
+     "SH5101C",
+     "SH5102",
+     "SH5102C",
+     "SH5103",
+     "SH5103C",
+     "SH5104",
+     "SH5104C",
+     "SH5105",
+     "SH5105C",
+     "SH5106",
+     "SH5106C",
+     "SH5107",
+     "SH5107C",
+     "SH5108",
+     "SH5108C",
+     "SH5109",
+     "SH5109C",
+     "SH5110",
+     "SH5110C",
+     "SH5201",
+     "SH5201C",
+     "SH5202",
+     "SH5202C",
+     "SH5203",
+     "SH5203C",
+     "SH5204",
+     "SH5204C",
+     "SH5205",
+     "SH5205C",
+     "SH5206",
+     "SH5206C",
+     "SH5207",
+     "SH5207C",
+     "SH5208",
+     "SH5208C",
+     "SH5209",
+     "SH5209C",
+     "SH5401",
+     "SH5401C",
+     "SH5402",
+     "SH5402C",
+     "SH5403",
+     "SH5403C",
+     "SH5404",
+     "SH5404C",
+     "SH5405",
+     "SH5405C",
+     "SH5406",
+     "SH5406C",
+     "SH5407",
+     "SH5407C",
+     "SH5408",
+     "SH5408C",
+     "SH5409",
+     "SH5409C",
+     "SH5666",
+     "SH5880",
+     "SH5880C",
+     "SH5881",
+     "SH5881C",
+     "SH5882",
+     "SH5882C",
+     "SLP5101",
+     "SLP5102",
+     "SLP5104",
+     "SLP5105",
+     "SLP5106",
+     "SLP5107",
+     "SLP5108",
+     "SLP5110",
+     "SLP5111",
+     "SLP5114",
+     "SLP5115",
+     "SLP5117",
+     "SM5001",
+     "SM5002",
+     "SM5003",
+     "SM5004",
+     "SM5101",
+     "SM5102",
+     "SPH6901",
+     "SPH6902",
+     "SPH6903",
+     "SPH6904",
+     "SPH6905",
+     "ST5188",
+     "ST5201",
+     "ST5201X",
+     "ST5202",
+     "ST5202X",
+     "ST5203",
+     "ST5206",
+     "ST5207",
+     "ST5208",
+     "ST5209",
+     "ST5209X",
+     "ST5210",
+     "ST5211",
+     "ST5211X",
+     "ST5212",
+     "ST5213",
+     "ST5215",
+     "ST5218",
+     "ST5221",
+     "ST5223",
+     "ST5225",
+     "ST5226",
+     "ST5227",
+     "ST5228",
+     "ST5229",
+     "ST5230",
+     "ST5290",
+     "ST6101",
+     "ST6104",
+     "SW5115",
+     "SWD5104",
+     "SWE5001",
+     "SWE5001G",
+     "SWE5002",
+     "SWE5002G",
+     "SWE5003",
+     "SWE5003G",
+     "SWE5004",
+     "SWE5004G",
+     "SWE5005",
+     "SWE5005G",
+     "SWE5006",
+     "SWE5006G",
+     "SWE5007",
+     "SWK5070",
+     "SWK5071",
+     "SWK5074",
+     "SWK5075",
+     "SWK5076",
+     "SWM5104",
+     "SWM5106",
+     "SWM5107",
+     "SWM5117A",
+     "SWM5117B",
+     "SWM5205",
+     "SWM5206",
+     "SWM5207",
+     "SWM5208",
+     "SWM5209",
+     "SWM5210",
+     "SWM5211",
+     "SWM5213",
+     "SWM5215",
+     "SWM5215R",
+     "SWM5216",
+     "SWM5217",
+     "SWM5218",
+     "SWM5219",
+     "SWM5220",
+     "SWM5245",
+     "SWM5252",
+     "SWM5253",
+     "SWM5254",
+     "SWM5881",
+     "SWM5883",
+     "SWM5884",
+     "TIC2401",
+     "TIC3302",
+     "TPS5101",
+     "TPS5201",
+     "TPS5202",
+     "TPS5203",
+     "TPS5212",
+     "TPS5213",
+     "TPS5214",
+     "TPS5215",
+     "TPS5216",
+     "TPS5232",
+     "TPS5241",
+     "TPS5242",
+     "TPS5243",
+     "TR5049",
+     "TR5101",
+     "TR5102",
+     "UD5221",
+     "UD5521",
+     "UD5624",
+     "UD5625",
+     "UD5626",
+     "UD5628",
+     "UD5641",
+     "VM5101",
+     "VM5102",
+     "VM5103",
+     "VM5104",
+     "VM5105",
+     "VM5106",
+     "XFA4408",
+     "XFA4417EC"
+    ]
+   },
+   "reason": "Courses in NUS self-funded programmes are not open to exchange students.",
+   "cite": "restrictions PDF §A, p1",
+   "quote": "Courses from the Colleges/Faculties/Schools/Institutes/Departments below are NOT open to any Non-Graduating applicants/ students. • All courses in NUS self-funded programmes (click here)"
+  },
+  {
+   "id": "B-suffix-x",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "CM1417X",
+     "CM1502X",
+     "CS1010X",
+     "MA1301X",
+     "NM1101X",
+     "PC1221X",
+     "PC1222X"
+    ]
+   },
+   "reason": "This X-suffix course is not open to exchange students.",
+   "cite": "restrictions PDF §B, p1",
+   "quote": "The Course codes below with suffix ‘X’ are NOT available to Non-Graduating applicants/ students.",
+   "titles": [
+    {
+     "code": "CM1417X",
+     "title": null
+    },
+    {
+     "code": "NM1101X",
+     "title": null
+    },
+    {
+     "code": "CM1502X",
+     "title": null
+    },
+    {
+     "code": "PC1221X",
+     "title": null
+    },
+    {
+     "code": "CS1010X",
+     "title": null
+    },
+    {
+     "code": "PC1222X",
+     "title": null
+    },
+    {
+     "code": "MA1301X",
+     "title": null
+    }
+   ]
+  },
+  {
+   "id": "C-urop-fass",
+   "effect": "closed",
+   "match": {
+    "faculties": [
+     "Arts and Social Science"
+    ],
+    "titleRe": "\\bUROPS?\\b|Undergraduate Research Opportunit"
+   },
+   "reason": "Undergraduate research courses (UROP) in Arts & Social Sciences are not open to exchange students.",
+   "cite": "restrictions PDF §C, p1",
+   "quote": "Undergraduate Research Opportunities Programme offered by the College/ Faculty/ School below are NOT available to Non-Graduating applicants/ students. a. Arts & Social Sciences"
+  },
+  {
+   "id": "C-urop-cde",
+   "effect": "closed",
+   "match": {
+    "faculties": [
+     "College of Design and Engineering"
+    ],
+    "titleRe": "\\bUROPS?\\b|Undergraduate Research Opportunit"
+   },
+   "reason": "Undergraduate research courses (UROP) in Design & Engineering are not open to exchange students.",
+   "cite": "restrictions PDF §C, p1",
+   "quote": "Undergraduate Research Opportunities Programme offered by the College/ Faculty/ School below are NOT available to Non-Graduating applicants/ students. b. Design & Engineering"
+  },
+  {
+   "id": "1-cls-table",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "LAF3203",
+     "LAG3203",
+     "LAK3203"
+    ]
+   },
+   "reason": "Listed by the Centre for Language Studies as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Centre for Language Studies), p3",
+   "quote": "Department : Centre for Language Studies Course Code Course Title",
+   "titles": [
+    {
+     "code": "LAG3203",
+     "title": "German for Academic Purposes"
+    },
+    {
+     "code": "LAF3203",
+     "title": "French for Academic Purposes"
+    },
+    {
+     "code": "LAK3203",
+     "title": "Korean for Academic Purposes"
+    }
+   ]
+  },
+  {
+   "id": "1-cls-graded",
+   "effect": "note",
+   "note": "graded",
+   "match": {
+    "departments": [
+     "Centre for Language Studies"
+    ]
+   },
+   "reason": "You must take it for a grade. You cannot audit it (attend without a grade).",
+   "cite": "restrictions PDF §1 (Centre for Language Studies), p3",
+   "quote": "Language courses can be taken only on graded basis; cannot be set to audit grading basis."
+  },
+  {
+   "id": "1-chinese-l456-ug",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "Chinese Studies"
+    ],
+    "levels": [
+     4,
+     5,
+     6
+    ]
+   },
+   "reason": "Chinese Studies level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Chinese Studies), p3",
+   "quote": "All Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate students."
+  },
+  {
+   "id": "1-cnm-table",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "NM2101",
+     "NM2103",
+     "NM2104",
+     "NM4102"
+    ]
+   },
+   "reason": "Listed by Communications and New Media as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Communications and New Media), p3",
+   "quote": "Department : Communications and New Media Course Code Course Title",
+   "titles": [
+    {
+     "code": "NM2101",
+     "title": "Theories of Communications and New Media"
+    },
+    {
+     "code": "NM2103",
+     "title": "Quantitative Research Methods"
+    },
+    {
+     "code": "NM2104",
+     "title": "Qualitative Communication Research Methods"
+    },
+    {
+     "code": "NM4102",
+     "title": "Advanced Communications and New Media Research"
+    }
+   ]
+  },
+  {
+   "id": "1-cnm-l4",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "Communications and New Media"
+    ],
+    "levels": [
+     4
+    ]
+   },
+   "reason": "Communications and New Media level 4000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §1 (Communications and New Media), p3",
+   "quote": "All Level 4000 courses are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "1-cnm-suffix-y",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "Communications and New Media"
+    ],
+    "codeRe": "Y$"
+   },
+   "reason": "Communications and New Media 'Y' courses are not open to exchange students.",
+   "cite": "restrictions PDF §1 (Communications and New Media), p3",
+   "quote": "All courses with the suffix ‘Y’ (e.g. NM2219Y) are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "1-econ-l456",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "Economics"
+    ],
+    "levels": [
+     4,
+     5,
+     6
+    ]
+   },
+   "reason": "Economics level 4000+ courses are not open to exchange students.",
+   "cite": "restrictions PDF §1 (Economics), p3",
+   "quote": "All Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate AND graduate students."
+  },
+  {
+   "id": "1-econ-l123-grad",
+   "effect": "closed",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "Economics"
+    ],
+    "levels": [
+     1,
+     2,
+     3
+    ]
+   },
+   "reason": "Economics level 1000-3000 courses are not open to exchange graduate students.",
+   "cite": "restrictions PDF §1 (Economics), p3",
+   "quote": "All Level 1000, 2000 and 3000 courses are NOT open to Non-Graduating graduate students."
+  },
+  {
+   "id": "1-elts-table",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "TS3103",
+     "TS3245"
+    ]
+   },
+   "reason": "Listed by English, Linguistics & Theatre Studies as not available to exchange students.",
+   "cite": "restrictions PDF §1 (English, Linguistics & Theatre Studies), p3",
+   "quote": "Department : English, Linguistics & Theatre Studies Course Code Course Title",
+   "titles": [
+    {
+     "code": "TS3103",
+     "title": "Play Production"
+    },
+    {
+     "code": "TS3245",
+     "title": "Professional Theatre Internship"
+    }
+   ]
+  },
+  {
+   "id": "1-elts-l456-ug",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "English,Ling.andTheatre Studies"
+    ],
+    "levels": [
+     4,
+     5,
+     6
+    ]
+   },
+   "reason": "English, Linguistics & Theatre Studies level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (English, Linguistics & Theatre Studies), p3",
+   "quote": "All Level 4000, 5000, 6000 courses are NOT open to Non-Graduating undergraduate students."
+  },
+  {
+   "id": "1-elts-grad-approval",
+   "effect": "note",
+   "note": "approval",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "English,Ling.andTheatre Studies"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "You need approval to take a graduate course. NUS decides each request separately; ask NUS how to apply.",
+   "cite": "restrictions PDF §1 (English, Linguistics & Theatre Studies), p3",
+   "quote": "Level 5000 and 6000 Graduate Courses – Approval will be granted on a case-by-case basis."
+  },
+  {
+   "id": "1-elts-grad-only",
+   "effect": "open",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "English,Ling.andTheatre Studies"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Graduate courses are open to exchange graduate students.",
+   "cite": "restrictions PDF §1 (English, Linguistics & Theatre Studies), p3",
+   "quote": "Level 5000 and 6000 Graduate Courses – ... Only open to Non-Graduating graduate students."
+  },
+  {
+   "id": "1-geog-quota",
+   "effect": "note",
+   "note": "quota",
+   "match": {
+    "codes": [
+     "GE2101",
+     "GE3216",
+     "GE3238",
+     "GE3252"
+    ]
+   },
+   "reason": "The number of places is limited, so you may not get one.",
+   "cite": "restrictions PDF §1 (Geography), p3",
+   "quote": "Courses with limited quota",
+   "titles": [
+    {
+     "code": "GE2101",
+     "title": "Methods and Practices in Geography"
+    },
+    {
+     "code": "GE3216",
+     "title": "Applications of GIS & Remote Sensing"
+    },
+    {
+     "code": "GE3238",
+     "title": "GIS Design and Practices"
+    },
+    {
+     "code": "GE3252",
+     "title": "Cartography and Geovisualization"
+    }
+   ]
+  },
+  {
+   "id": "1-geog-l1234-grad",
+   "effect": "closed",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "Geography"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   },
+   "reason": "Geography level 1000-4000 courses are not open to exchange graduate students.",
+   "cite": "restrictions PDF §1 (Geography), p3",
+   "quote": "All Level 1000, 2000, 3000 and 4000 courses are NOT open to Non-Graduating graduate students."
+  },
+  {
+   "id": "1-geog-l456-ug",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "Geography"
+    ],
+    "levels": [
+     4,
+     5,
+     6
+    ]
+   },
+   "reason": "Geography level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Geography), p3",
+   "quote": "All Level 4000, 5000 and 6000 courses are NOT open to Non-Graduating undergraduate students."
+  },
+  {
+   "id": "1-hist-quota",
+   "effect": "note",
+   "note": "quota",
+   "match": {
+    "codes": [
+     "AS2236",
+     "AS2237",
+     "AS3230",
+     "AS3238",
+     "AS3239",
+     "AS3240"
+    ]
+   },
+   "reason": "The number of places is limited, so you may not get one.",
+   "cite": "restrictions PDF §1 (History), p4",
+   "quote": "Courses cross-listed with HY coded courses and with limited quota",
+   "titles": [
+    {
+     "code": "AS2236",
+     "title": "US Media in the 20th Century and Beyond"
+    },
+    {
+     "code": "AS2237",
+     "title": "The U.S.: From Settlement to Superpower"
+    },
+    {
+     "code": "AS3230",
+     "title": "American Business: Industrial Revolution-Web"
+    },
+    {
+     "code": "AS3238",
+     "title": "The Political History of the US"
+    },
+    {
+     "code": "AS3239",
+     "title": "The United States in the Asia-Pacific"
+    },
+    {
+     "code": "AS3240",
+     "title": "Making America Modern"
+    }
+   ]
+  },
+  {
+   "id": "1-hist-l4-honours-fma",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "History"
+    ],
+    "levels": [
+     4
+    ]
+   },
+   "reason": "History Honours level 4000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §1 (History), p4",
+   "quote": "All History (Honours) Level 4000 courses and Freshmen seminar courses FMA120XH are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "1-hist-l4-honours-fma:fma",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^FMA120\\dH$"
+   },
+   "reason": "History first-year seminars are not open to exchange students.",
+   "cite": "restrictions PDF §1 (History), p4",
+   "quote": "All History (Honours) Level 4000 courses and Freshmen seminar courses FMA120XH are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "1-js-table",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "JS2101",
+     "JS3101",
+     "JS4401",
+     "JS4660"
+    ]
+   },
+   "reason": "Listed by Japanese Studies as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Japanese Studies), p4",
+   "quote": "Department : Japanese Studies Course Code Course Title",
+   "titles": [
+    {
+     "code": "JS2101",
+     "title": "Approaches to Japanese Studies I"
+    },
+    {
+     "code": "JS3101",
+     "title": "Approaches to Japanese Studies II"
+    },
+    {
+     "code": "JS4401",
+     "title": "Honours Thesis"
+    },
+    {
+     "code": "JS4660",
+     "title": "Independent Study"
+    }
+   ]
+  },
+  {
+   "id": "1-js-l4-approval",
+   "effect": "note",
+   "note": "approval",
+   "match": {
+    "departments": [
+     "Japanese Studies"
+    ],
+    "levels": [
+     4
+    ]
+   },
+   "reason": "You need approval to take a level 4000 course. NUS decides each request separately; ask NUS how to apply.",
+   "cite": "restrictions PDF §1 (Japanese Studies), p4",
+   "quote": "All Level 4000 courses – Approval will be done on a case-by-case basis."
+  },
+  {
+   "id": "1-malay-no-audit",
+   "effect": "note",
+   "note": "graded",
+   "match": {
+    "departments": [
+     "Malay Studies"
+    ]
+   },
+   "reason": "You cannot audit it (attend without a grade).",
+   "cite": "restrictions PDF §1 (Malay Studies), p4",
+   "quote": "All courses cannot be audited."
+  },
+  {
+   "id": "1-malay-l4-yr34",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2"
+   ],
+   "match": {
+    "departments": [
+     "Malay Studies"
+    ],
+    "levels": [
+     4
+    ]
+   },
+   "reason": "Malay Studies level 4000 courses are open only to 3rd and 4th-year undergraduates and graduate students.",
+   "cite": "restrictions PDF §1 (Malay Studies), p4",
+   "quote": "All Level 4000 courses are only open to 3rd & 4th year Non-Graduating undergraduate students and Non-Graduating postgraduate students."
+  },
+  {
+   "id": "1-malay-grad-approval",
+   "effect": "note",
+   "note": "approval",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "Malay Studies"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "You need approval to take a graduate course. NUS decides each request separately; ask NUS how to apply.",
+   "cite": "restrictions PDF §1 (Malay Studies), p4",
+   "quote": "Graduate Courses - Approval will be done on a case-by-case basis."
+  },
+  {
+   "id": "1-malay-grad-approval:open",
+   "effect": "open",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "Malay Studies"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Graduate courses are open to exchange graduate students by approval.",
+   "cite": "restrictions PDF §1 (Malay Studies), p4",
+   "quote": "Graduate Courses - Approval will be done on a case-by-case basis."
+  },
+  {
+   "id": "1-malay-grad-ug-closed",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "Malay Studies"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Undergraduates may not take Malay Studies graduate courses.",
+   "cite": "restrictions PDF §1 (Malay Studies), p4",
+   "quote": "Undergraduate students are NOT allowed to apply for graduate courses."
+  },
+  {
+   "id": "1-polsci-l456-ug",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "Political Science"
+    ],
+    "levels": [
+     4,
+     5,
+     6
+    ]
+   },
+   "reason": "Political Science level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Political Science), p4",
+   "quote": "All Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate Students."
+  },
+  {
+   "id": "1-psych-l4-appeal",
+   "effect": "note",
+   "note": "approval",
+   "match": {
+    "departments": [
+     "Psychology"
+    ],
+    "levels": [
+     4
+    ]
+   },
+   "reason": "You can get a place in a level 4000 course only by appeal, and only if places are left. Appeal when NUS opens the “Unable to secure Course” appeal; an appeal sent earlier is rejected.",
+   "cite": "restrictions PDF §1 (Psychology), p4",
+   "quote": "Level 4000 courses (excluding research courses) – Only appeals for courses with remaining availability will be considered, and will be reviewed on a case-by-case basis when the \"Unable to secure Course\" appeal type opens. Appeals submitted before that will be rejected."
+  },
+  {
+   "id": "1-psych-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "PL2131",
+     "PL2132",
+     "PL3231",
+     "PL3551"
+    ]
+   },
+   "reason": "Listed by Psychology as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Psychology), p4",
+   "quote": "Courses NOT available to NG students - PL2131, PL2132, PL3231, PL3551 - PL328x (lab courses) - All Level 4000, 5000 and 6000 courses",
+   "titles": [
+    {
+     "code": "PL2131",
+     "title": null
+    },
+    {
+     "code": "PL2132",
+     "title": null
+    },
+    {
+     "code": "PL3231",
+     "title": null
+    },
+    {
+     "code": "PL3551",
+     "title": null
+    }
+   ]
+  },
+  {
+   "id": "1-psych-closed:pl328x",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^PL328\\d"
+   },
+   "reason": "Psychology lab courses are not available to exchange students.",
+   "cite": "restrictions PDF §1 (Psychology), p4",
+   "quote": "Courses NOT available to NG students - PL2131, PL2132, PL3231, PL3551 - PL328x (lab courses) - All Level 4000, 5000 and 6000 courses"
+  },
+  {
+   "id": "1-psych-closed:levels",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "Psychology"
+    ],
+    "levels": [
+     4,
+     5,
+     6
+    ]
+   },
+   "reason": "Psychology level 4000+ courses are not available to exchange students.",
+   "cite": "restrictions PDF §1 (Psychology), p4",
+   "quote": "Courses NOT available to NG students - PL2131, PL2132, PL3231, PL3551 - PL328x (lab courses) - All Level 4000, 5000 and 6000 courses"
+  },
+  {
+   "id": "1-socwork-l456-ug",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "Social Work"
+    ],
+    "levels": [
+     4,
+     5,
+     6
+    ]
+   },
+   "reason": "Social Work level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Social Work), p4",
+   "quote": "Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate students"
+  },
+  {
+   "id": "1-socanth-l456-ug",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "Sociology and Anthropology"
+    ],
+    "levels": [
+     4,
+     5,
+     6
+    ]
+   },
+   "reason": "Sociology and Anthropology level 4000+ courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §1 (Sociology and Anthropology), p4",
+   "quote": "All Level 4000, 5000 or 6000 courses are NOT open to Non-Graduating undergraduate Students."
+  },
+  {
+   "id": "1-socanth-grad-only",
+   "effect": "open",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "Sociology and Anthropology"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Graduate courses are open to exchange graduate students, subject to approval.",
+   "cite": "restrictions PDF §1 (Sociology and Anthropology), p4",
+   "quote": "Graduate Courses (Level 5000 or 6000 courses) - Only open to Non-Graduating graduate students and subject to approval."
+  },
+  {
+   "id": "1-socanth-grad-approval",
+   "effect": "note",
+   "note": "approval",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "Sociology and Anthropology"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "You need approval to take a graduate course; ask NUS how to apply.",
+   "cite": "restrictions PDF §1 (Sociology and Anthropology), p4",
+   "quote": "Graduate Courses (Level 5000 or 6000 courses) - Only open to Non-Graduating graduate students and subject to approval."
+  },
+  {
+   "id": "1-sas-no-audit",
+   "effect": "note",
+   "note": "graded",
+   "match": {
+    "departments": [
+     "South Asian Studies"
+    ]
+   },
+   "reason": "You cannot audit it (attend without a grade).",
+   "cite": "restrictions PDF §1 (South Asian Studies), p4",
+   "quote": "All courses cannot be audited."
+  },
+  {
+   "id": "1-sas-l4-yr34",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2"
+   ],
+   "match": {
+    "departments": [
+     "South Asian Studies"
+    ],
+    "levels": [
+     4
+    ]
+   },
+   "reason": "South Asian Studies level 4000 courses are open only to 3rd and 4th-year undergraduates and graduate students.",
+   "cite": "restrictions PDF §1 (South Asian Studies), p4",
+   "quote": "All Level 4000 courses are only open to 3rd & 4th year Non-Graduating undergraduate students and Non-Graduating postgraduate students."
+  },
+  {
+   "id": "1-sas-grad-approval",
+   "effect": "note",
+   "note": "approval",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "South Asian Studies"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "You need approval to take a graduate course. NUS decides each request separately; ask NUS how to apply.",
+   "cite": "restrictions PDF §1 (South Asian Studies), p5",
+   "quote": "Graduate Courses - Approval will be done on a case-by-case basis."
+  },
+  {
+   "id": "1-sas-grad-approval:open",
+   "effect": "open",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "South Asian Studies"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Graduate courses are open to exchange graduate students by approval.",
+   "cite": "restrictions PDF §1 (South Asian Studies), p5",
+   "quote": "Graduate Courses - Approval will be done on a case-by-case basis."
+  },
+  {
+   "id": "1-sas-grad-ug-closed",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "South Asian Studies"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Undergraduates may not take South Asian Studies graduate courses.",
+   "cite": "restrictions PDF §1 (South Asian Studies), p5",
+   "quote": "Undergraduate students are NOT allowed to apply for graduate courses."
+  },
+  {
+   "id": "1-sea-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "SE2225",
+     "SE4101"
+    ]
+   },
+   "reason": "Listed by Southeast Asian Studies as not available to exchange students.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5",
+   "quote": "Courses NOT available to NG students (SEA5XXX: All courses with the suffix ‘SEA’)",
+   "titles": [
+    {
+     "code": "SE2225",
+     "title": "Forbidden Pleasures: Vice in Southeast Asia"
+    },
+    {
+     "code": "SE4101",
+     "title": "Southeast Asia Studies: Theory and Practice"
+    }
+   ]
+  },
+  {
+   "id": "1-sea-closed:sea",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^SEA\\d"
+   },
+   "reason": "SEA-coded courses are not available to exchange students.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5",
+   "quote": "Courses NOT available to NG students (SEA5XXX: All courses with the suffix ‘SEA’)"
+  },
+  {
+   "id": "1-sea-no-audit",
+   "effect": "note",
+   "note": "graded",
+   "match": {
+    "departments": [
+     "Southeast Asian Studies"
+    ]
+   },
+   "reason": "You cannot audit it (attend without a grade).",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5",
+   "quote": "All courses cannot be Audited."
+  },
+  {
+   "id": "1-sea-se3234-form",
+   "effect": "note",
+   "note": "approval",
+   "match": {
+    "codes": [
+     "SE3234"
+    ]
+   },
+   "reason": "You cannot choose this course in NUS's online course registration. Apply with the Southeast Asian Studies department's application form, in the application period of the semester it runs (email fasbox59@nus.edu.sg for details).",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5",
+   "quote": "SE3234 – Course is NOT open for online selection. Interested Non-Graduating students are required to submit application using the department’s application form that is available during application period in the semester that the Course is offered. Please send an email to fasbox59@nus.edu.sg for more details.",
+   "titles": [
+    {
+     "code": "SE3234",
+     "title": null
+    }
+   ]
+  },
+  {
+   "id": "1-sea-l4-yr34",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2"
+   ],
+   "match": {
+    "departments": [
+     "Southeast Asian Studies"
+    ],
+    "levels": [
+     4
+    ]
+   },
+   "reason": "Southeast Asian Studies level 4000 courses are open only to 3rd and 4th-year undergraduates and graduate students.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5",
+   "quote": "All Level 4000 courses are only open to 3rd & 4th year Non-Graduating undergraduate students and Non-Graduating postgraduate students."
+  },
+  {
+   "id": "1-sea-l5-yr4-pg",
+   "effect": "open",
+   "studies": [
+    "ug4",
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "Southeast Asian Studies"
+    ],
+    "levels": [
+     5
+    ]
+   },
+   "reason": "Southeast Asian Studies level 5000 courses are open to 4th-year and graduate students.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5",
+   "quote": "All other Level 5000 courses are only open to 4th year & postgraduate Non-Graduating students."
+  },
+  {
+   "id": "1-sea-l6-pg",
+   "effect": "open",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "Southeast Asian Studies"
+    ],
+    "levels": [
+     6
+    ]
+   },
+   "reason": "Southeast Asian Studies level 6000 courses are open to graduate students.",
+   "cite": "restrictions PDF §1 (Southeast Asian Studies), p5",
+   "quote": "All Level 6000 courses are only open to all postgraduate Non-Graduating students."
+  },
+  {
+   "id": "2-biz-l1234-priority",
+   "effect": "note",
+   "note": "quota",
+   "match": {
+    "faculties": [
+     "NUS Business School"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   },
+   "reason": "Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first.",
+   "cite": "restrictions PDF §2, p6",
+   "quote": "Level 1000 to 4000 courses: Please note that courses from the NUS Business School are extremely popular, over-subscribed and cannot be guaranteed. As such, priorities in allocating Business courses will be given firstly to our full-time NUS undergraduates who reading these Business courses as their core courses as well as exchange students from the Business School faculty-level exchange partners."
+  },
+  {
+   "id": "2-biz-major",
+   "effect": "note",
+   "note": "major",
+   "match": {
+    "faculties": [
+     "NUS Business School"
+    ]
+   },
+   "reason": "Only for students majoring in business at their home university.",
+   "cite": "restrictions PDF §2, p6",
+   "quote": "Students must also be majoring in business at their home university in order to be considered eligible for Business courses."
+  },
+  {
+   "id": "2-biz-bma-ug-closed",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "codeRe": "^BMA\\d"
+   },
+   "reason": "Undergraduates may not take MBA courses.",
+   "cite": "restrictions PDF §2, p6",
+   "quote": "Level 5000 courses with prefix BMA: Students who are pursuing an undergraduate degree at their home university are NOT eligible to apply for graduate (MBA) courses."
+  },
+  {
+   "id": "2-biz-bma-partner",
+   "effect": "note",
+   "note": "partner",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "codeRe": "^BMA\\d"
+   },
+   "reason": "Only for graduate students from a university that is an exchange partner of NUS Business School, with at least 1.5 years of work experience after their bachelor's degree.",
+   "cite": "restrictions PDF §2, p6",
+   "quote": "Only students who are currently pursuing a graduate degree in the NUS Business School’s faculty-level exchange partner universities AND have at least 1.5 years of post-bachelor work experience will be considered for admission to read MBA courses (i.e. Course codes with prefix BMA)."
+  },
+  {
+   "id": "2-biz-bma-partner:open",
+   "effect": "open",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "codeRe": "^BMA5"
+   },
+   "reason": "MBA courses are open to eligible exchange graduate students.",
+   "cite": "restrictions PDF §2, p6",
+   "quote": "Only students who are currently pursuing a graduate degree in the NUS Business School’s faculty-level exchange partner universities AND have at least 1.5 years of post-bachelor work experience will be considered for admission to read MBA courses (i.e. Course codes with prefix BMA)."
+  },
+  {
+   "id": "2-biz-bms-cems",
+   "effect": "note",
+   "note": "partner",
+   "match": {
+    "codeRe": "^BMS\\d"
+   },
+   "reason": "Only for students whom a CEMS member school has nominated for the CEMS Master's in International Management. Ask your exchange office if this applies to you.",
+   "cite": "restrictions PDF §2, p6",
+   "quote": "Level 5000 courses with prefix BMS: Only students who are nominated by a CEMS partner school for CEMS Master’s in International Management programme will be considered for admission to read these courses."
+  },
+  {
+   "id": "2-biz-bms-cems:open",
+   "effect": "open",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "codeRe": "^BMS5"
+   },
+   "reason": "CEMS courses are open to CEMS nominees.",
+   "cite": "restrictions PDF §2, p6",
+   "quote": "Level 5000 courses with prefix BMS: Only students who are nominated by a CEMS partner school for CEMS Master’s in International Management programme will be considered for admission to read these courses."
+  },
+  {
+   "id": "3-soc-dean-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "CP1008",
+     "CP2106",
+     "CP2202",
+     "CP3107",
+     "CP3108A",
+     "CP3108B",
+     "CP3109",
+     "CP3110",
+     "CP3200",
+     "CP3201",
+     "CP3202",
+     "CP3209",
+     "CP3880",
+     "CP3881",
+     "CP4101",
+     "IFS3201",
+     "IFS3202",
+     "IFS4205",
+     "UIS2951R",
+     "UIS2952R",
+     "UIS3951CS",
+     "UIS3951R",
+     "UIS3952CS",
+     "UIS3952R",
+     "UIS3953R",
+     "UIS3954R",
+     "UIS3955R",
+     "UIS3956R",
+     "UIS3957R",
+     "UIS3958R",
+     "UIS4951R",
+     "UIS4952R",
+     "UIS4953R",
+     "UIS5951R",
+     "UIS6951R",
+     "XFC4101"
+    ]
+   },
+   "reason": "Listed by the School of Computing as not available to exchange students.",
+   "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p6",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "CP1008",
+     "title": "Learning with Generative AI Tools"
+    },
+    {
+     "code": "CP2106",
+     "title": "Independent Software Development Project (Orbital)"
+    },
+    {
+     "code": "CP2202",
+     "title": "Work Experience Internship"
+    },
+    {
+     "code": "CP3107",
+     "title": "Computing for Voluntary Welfare Organisations"
+    },
+    {
+     "code": "CP3108A",
+     "title": "Independent Work"
+    },
+    {
+     "code": "CP3108B",
+     "title": "Independent Work"
+    },
+    {
+     "code": "CP3109",
+     "title": "Overseas Exploratory Project"
+    },
+    {
+     "code": "CP3110",
+     "title": "Computing for Voluntary Welfare Organisations II"
+    },
+    {
+     "code": "CP3200",
+     "title": "Internship"
+    },
+    {
+     "code": "CP3201",
+     "title": "Industry Seminar"
+    },
+    {
+     "code": "CP3202",
+     "title": "Internship II"
+    },
+    {
+     "code": "CP3209",
+     "title": "Undergraduate Research Project in Computing"
+    },
+    {
+     "code": "CP3880",
+     "title": "Advanced Technology Attachment Programme"
+    },
+    {
+     "code": "CP3881",
+     "title": "Incubation Project"
+    },
+    {
+     "code": "CP4101",
+     "title": "BComp Dissertation"
+    },
+    {
+     "code": "IFS3201",
+     "title": "Information Security Capstone Project"
+    },
+    {
+     "code": "IFS3202",
+     "title": "Information Security Practicum Programme"
+    },
+    {
+     "code": "IFS4205",
+     "title": "Information Security Capstone Project"
+    },
+    {
+     "code": "XFC4101",
+     "title": "Integrated Honours Thesis"
+    },
+    {
+     "code": "UIS2951R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS2952R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS3951CS",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS3951R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS3952CS",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS3952R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS3953R",
+     "title": "Independent Project"
+    },
+    {
+     "code": "UIS3954R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS3955R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS3956R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS3957R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS3958R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS4951R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS4952R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS4953R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS5951R",
+     "title": "Independent Study Course (Ride-on)"
+    },
+    {
+     "code": "UIS6951R",
+     "title": "Independent Study Course (Ride-on)"
+    }
+   ]
+  },
+  {
+   "id": "3-soc-cg",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "SoC Dean's Office"
+    ],
+    "codeRe": "^CG\\d"
+   },
+   "reason": "CG-coded courses are not open to exchange students.",
+   "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p7",
+   "quote": "All CG coded courses are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "3-soc-cg:elsewhere",
+   "effect": "note",
+   "note": "restricted-elsewhere",
+   "match": {
+    "codeRe": "^CG\\d"
+   },
+   "reason": "The NG list offers this course to exchange students, but the School of Computing says no course whose code starts with CG is open to them. Ask NUS before you choose it.",
+   "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p7",
+   "quote": "All CG coded courses are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "3-soc-dean-l56",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^(FT|IT|BT|CS|IS|CP)\\d",
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Computing level 5000+ courses are not open to exchange students.",
+   "cite": "restrictions PDF §3 (Dean's Office, School of Computing), p7",
+   "quote": "All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses are not open to non-graduating students"
+  },
+  {
+   "id": "3-mdp-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "CG1111A",
+     "CG2111A",
+     "CG2271"
+    ]
+   },
+   "reason": "Listed by the Multidisciplinary Programme as not available to exchange students.",
+   "cite": "restrictions PDF §3 (Multidisciplinary Programme), p7",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "CG1111A",
+     "title": "Engineering Principles and Practice I"
+    },
+    {
+     "code": "CG2111A",
+     "title": "Engineering Principles and Practice II"
+    },
+    {
+     "code": "CG2271",
+     "title": "Real-Time Operating Systems"
+    }
+   ]
+  },
+  {
+   "id": "3-cs-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "CP4281",
+     "CP4282",
+     "CP4283",
+     "CP4284",
+     "CP4285",
+     "CS1010S",
+     "CS1101S",
+     "CS1231S",
+     "CS2030S",
+     "CS2040",
+     "CS2040S",
+     "CS2102",
+     "CS2103",
+     "CS2103T",
+     "CS2106",
+     "CS2109S",
+     "CS2309",
+     "CS3216",
+     "CS3217",
+     "CS3227",
+     "CS3233",
+     "CS3263",
+     "CS3264",
+     "CS3281",
+     "CS3282",
+     "CS4225",
+     "CS4238",
+     "CS4350",
+     "IFS2200",
+     "IFS4102",
+     "IFS4103"
+    ]
+   },
+   "reason": "Listed by Computer Science as not available to exchange students.",
+   "cite": "restrictions PDF §3 (Computer Science), p7",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "CP4281",
+     "title": "Emerging Topics in Computing I"
+    },
+    {
+     "code": "CP4282",
+     "title": "Emerging Topics in Computing II"
+    },
+    {
+     "code": "CP4283",
+     "title": "Emerging Topics in Computing III"
+    },
+    {
+     "code": "CP4284",
+     "title": "Emerging Topics in Computing IV"
+    },
+    {
+     "code": "CP4285",
+     "title": "Emerging Topics in Computing V"
+    },
+    {
+     "code": "CS1101S",
+     "title": "Programming Methodology"
+    },
+    {
+     "code": "CS1010S",
+     "title": "Programming Methodology"
+    },
+    {
+     "code": "CS1231S",
+     "title": "Discrete Mathematics"
+    },
+    {
+     "code": "CS2030S",
+     "title": "Programming Methodology II"
+    },
+    {
+     "code": "CS2040",
+     "title": "Data Structures and Algorithms"
+    },
+    {
+     "code": "CS2040S",
+     "title": "Data Structures and Algorithms"
+    },
+    {
+     "code": "CS2102",
+     "title": "Database Systems"
+    },
+    {
+     "code": "CS2103",
+     "title": "Software Engineering"
+    },
+    {
+     "code": "CS2103T",
+     "title": "Software Engineering"
+    },
+    {
+     "code": "CS2106",
+     "title": "Introduction to Operating Systems"
+    },
+    {
+     "code": "CS2109S",
+     "title": "Introduction to AI and Machine Learning"
+    },
+    {
+     "code": "CS2309",
+     "title": "CS Research Methodology"
+    },
+    {
+     "code": "CS3216",
+     "title": "Software Product Engineering for Digital Markets"
+    },
+    {
+     "code": "CS3217",
+     "title": "Software Development on Modern Application Platforms"
+    },
+    {
+     "code": "CS3227",
+     "title": "Agentic Software Engineering"
+    },
+    {
+     "code": "CS3233",
+     "title": "Competitive Programming"
+    },
+    {
+     "code": "CS3263",
+     "title": "Foundations of Artificial Intelligence"
+    },
+    {
+     "code": "CS3264",
+     "title": "Foundations of Machine Learning"
+    },
+    {
+     "code": "CS3281",
+     "title": "Thematic Systems Project I"
+    },
+    {
+     "code": "CS3282",
+     "title": "Thematic Systems Project II"
+    },
+    {
+     "code": "CS4225",
+     "title": "Big Data Systems for Data Science"
+    },
+    {
+     "code": "CS4238",
+     "title": "Computer Security Practice"
+    },
+    {
+     "code": "CS4350",
+     "title": "Game Development Project"
+    },
+    {
+     "code": "IFS2200",
+     "title": "Information Security Immersion Programme"
+    },
+    {
+     "code": "IFS4102",
+     "title": "Digital Forensics"
+    },
+    {
+     "code": "IFS4103",
+     "title": "Penetration Testing Practice"
+    }
+   ]
+  },
+  {
+   "id": "3-cs-l56",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^(FT|IT|BT|CS|IS|CP)\\d",
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Computing level 5000+ courses are not open to exchange students.",
+   "cite": "restrictions PDF §3 (Computer Science), p8",
+   "quote": "All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses are not open to non-graduating students"
+  },
+  {
+   "id": "3-isa-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "BT2102",
+     "BT3103",
+     "BT4012",
+     "BT4013",
+     "BT4101",
+     "BT4103",
+     "BT4106",
+     "BT4221",
+     "BT4301",
+     "CP4286",
+     "CP4287",
+     "IFS4101",
+     "IS2108",
+     "IS2109",
+     "IS3103",
+     "IS3108",
+     "IS3109",
+     "IS4010",
+     "IS4108",
+     "IS4151",
+     "IS4226",
+     "IS4243",
+     "IS4250",
+     "IS4301"
+    ]
+   },
+   "reason": "Listed by Information Systems and Analytics as not available to exchange students.",
+   "cite": "restrictions PDF §3 (Information Systems and Analytics), p8",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "BT2102",
+     "title": "Data Management and Visualisation"
+    },
+    {
+     "code": "BT3103",
+     "title": "Application Systems Development for Business Analytics"
+    },
+    {
+     "code": "BT4012",
+     "title": "Fraud Analytics"
+    },
+    {
+     "code": "BT4013",
+     "title": "Analytics for Capital Market Trading and Investment"
+    },
+    {
+     "code": "BT4101",
+     "title": "B.SC. (BUSINESS ANALYTICS) DISSERTATION"
+    },
+    {
+     "code": "BT4103",
+     "title": "Business Analytics Capstone Project"
+    },
+    {
+     "code": "BT4106",
+     "title": "Risk Analytics for Financial Services"
+    },
+    {
+     "code": "BT4221",
+     "title": "Advanced Analytics with Big Data Technologies"
+    },
+    {
+     "code": "BT4301",
+     "title": "Business Analytics Solutions Development and Deployment"
+    },
+    {
+     "code": "CP4286",
+     "title": "Emerging Topics in Computing VI"
+    },
+    {
+     "code": "CP4287",
+     "title": "Emerging Topics in Computing VII"
+    },
+    {
+     "code": "IFS4101",
+     "title": "Legal Aspects of Information Security"
+    },
+    {
+     "code": "IS2108",
+     "title": "Full-stack Software Engineering for AI Solutions I"
+    },
+    {
+     "code": "IS2109",
+     "title": "AI and Machine Learning Techniques I"
+    },
+    {
+     "code": "IS3103",
+     "title": "Digital Transformation and Leadership Communication"
+    },
+    {
+     "code": "IS3108",
+     "title": "Full-stack Software Engineering for AI Solutions II"
+    },
+    {
+     "code": "IS3109",
+     "title": "AI and Machine Learning Techniques II"
+    },
+    {
+     "code": "IS4010",
+     "title": "Digital Transformation Leadership Programme"
+    },
+    {
+     "code": "IS4108",
+     "title": "AI Solutioning Capstone Project"
+    },
+    {
+     "code": "IS4151",
+     "title": "AIoT Solutions and Development"
+    },
+    {
+     "code": "IS4226",
+     "title": "Systematic Trading Strategies and Systems"
+    },
+    {
+     "code": "IS4243",
+     "title": "Digital Transformation Consulting"
+    },
+    {
+     "code": "IS4250",
+     "title": "IT-enabled Healthcare Solutioning"
+    },
+    {
+     "code": "IS4301",
+     "title": "Agile IT with DevOps"
+    }
+   ]
+  },
+  {
+   "id": "3-isa-l56",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^(FT|IT|BT|CS|IS|CP)\\d",
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Computing level 5000+ courses are not open to exchange students.",
+   "cite": "restrictions PDF §3 (Information Systems and Analytics), p8",
+   "quote": "All FT/IT/BT/CS/IS/CP level 5000 and 6000 courses are not open to non-graduating students"
+  },
+  {
+   "id": "4-arch-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "AR1101A",
+     "AR1102",
+     "AR1328A",
+     "AR1329",
+     "AR2228",
+     "AR5121",
+     "AR5423",
+     "AR5806",
+     "AR5807",
+     "AR5808",
+     "DEP5102",
+     "DEP5104",
+     "DEP5105",
+     "LA5742",
+     "LA5742A",
+     "LAD1001",
+     "LAD1003",
+     "LAD1005",
+     "LAD2003",
+     "LAD3005",
+     "LAD4005",
+     "LAD4010",
+     "UD5221",
+     "UD5521",
+     "UD5622",
+     "UD5628"
+    ]
+   },
+   "reason": "Listed by Architecture as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Architecture), p9",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "AR1101A",
+     "title": "Design 1"
+    },
+    {
+     "code": "AR1102",
+     "title": "Design 2"
+    },
+    {
+     "code": "AR1328A",
+     "title": "Architectural Materials and Construction"
+    },
+    {
+     "code": "AR1329",
+     "title": "Climate, Ecology & Architecture"
+    },
+    {
+     "code": "AR2228",
+     "title": "History and Theory of Architecture II"
+    },
+    {
+     "code": "AR5423",
+     "title": "Architectural Practice"
+    },
+    {
+     "code": "AR5807",
+     "title": "Architectural Design Thesis"
+    },
+    {
+     "code": "AR5808",
+     "title": "Final Design Project"
+    },
+    {
+     "code": "AR5806",
+     "title": "Architectural Design Research Report"
+    },
+    {
+     "code": "AR5121",
+     "title": "Special Topics in Technology"
+    },
+    {
+     "code": "LA5742",
+     "title": "Dissertation"
+    },
+    {
+     "code": "LA5742A",
+     "title": "Dissertation Preparation"
+    },
+    {
+     "code": "LAD1001",
+     "title": "Design 1"
+    },
+    {
+     "code": "LAD1003",
+     "title": "Introduction to Landscape Architecture"
+    },
+    {
+     "code": "LAD1005",
+     "title": "Design 2"
+    },
+    {
+     "code": "LAD2003",
+     "title": "Landscape Construction 1"
+    },
+    {
+     "code": "LAD3005",
+     "title": "Landscape Architecture Internship"
+    },
+    {
+     "code": "LAD4005",
+     "title": "Topics in Landscape Architecture"
+    },
+    {
+     "code": "LAD4010",
+     "title": "Design 8"
+    },
+    {
+     "code": "UD5221",
+     "title": "Theory & Elements Of Urban Design"
+    },
+    {
+     "code": "UD5521",
+     "title": "Planning Process Quantitative & Policy Dimensions"
+    },
+    {
+     "code": "UD5622",
+     "title": "Methods Of Urban Design & Urban Analysis"
+    },
+    {
+     "code": "UD5628",
+     "title": "Sustainable Urban Design and Development"
+    },
+    {
+     "code": "DEP5104",
+     "title": "Urban and Regional Economics"
+    },
+    {
+     "code": "DEP5102",
+     "title": "Urban Planning History and Theory (Reading the Course on Audit basis is not permitted)"
+    },
+    {
+     "code": "DEP5105",
+     "title": "Urban Infrastructure & Mobility Systems"
+    }
+   ]
+  },
+  {
+   "id": "4-arch-dep5102-no-audit",
+   "effect": "note",
+   "note": "graded",
+   "match": {
+    "codes": [
+     "DEP5102"
+    ]
+   },
+   "reason": "You cannot audit it (attend without a grade).",
+   "cite": "restrictions PDF §4 (Architecture), p9",
+   "quote": "(Reading the Course on Audit basis is not permitted)",
+   "titles": [
+    {
+     "code": "DEP5102",
+     "title": "Urban Planning History and Theory"
+    }
+   ]
+  },
+  {
+   "id": "4-arch-design-letter",
+   "effect": "note",
+   "note": "letter",
+   "match": {
+    "codes": [
+     "AR2101",
+     "AR2102",
+     "AR3101",
+     "AR3102",
+     "LA4701",
+     "LA4702",
+     "LA5701",
+     "LA5702",
+     "LAD2006",
+     "LAD2007",
+     "LAD3001",
+     "LAD3002",
+     "LAD4008"
+    ]
+   },
+   "reason": "You need a letter from your home university saying which year's design course you should take at NUS.",
+   "cite": "restrictions PDF §4 (Architecture), p9",
+   "quote": "Students are required to submit a letter of confirmation from the student’s home university to state the year of design Course that they should be enrolled in during their exchange at if they wish to take the following Design courses",
+   "titles": [
+    {
+     "code": "AR2101",
+     "title": "Design 3"
+    },
+    {
+     "code": "AR2102",
+     "title": "Design 4"
+    },
+    {
+     "code": "AR3101",
+     "title": "Design 5"
+    },
+    {
+     "code": "AR3102",
+     "title": "Design 6"
+    },
+    {
+     "code": "LA4701",
+     "title": "MLA Studio: Quarter"
+    },
+    {
+     "code": "LA4702",
+     "title": "MLA Studio: City"
+    },
+    {
+     "code": "LA5701",
+     "title": "MLA Studio: Country"
+    },
+    {
+     "code": "LA5702",
+     "title": "MLA Studio: Region"
+    },
+    {
+     "code": "LAD2006",
+     "title": "Design 3"
+    },
+    {
+     "code": "LAD2007",
+     "title": "Design 4"
+    },
+    {
+     "code": "LAD3001",
+     "title": "Design 5"
+    },
+    {
+     "code": "LAD3002",
+     "title": "Design 6"
+    },
+    {
+     "code": "LAD4008",
+     "title": "Design 7"
+    }
+   ]
+  },
+  {
+   "id": "4-arch-major-architecture",
+   "effect": "note",
+   "note": "major",
+   "match": {
+    "codes": [
+     "AR2225",
+     "AR2227",
+     "AR2328A",
+     "AR3722",
+     "AR4101",
+     "AR4220",
+     "AR4321",
+     "AR4601",
+     "AR5221",
+     "AR5321",
+     "AR5601"
+    ]
+   },
+   "reason": "Only for students majoring in Architecture or a related discipline.",
+   "cite": "restrictions PDF §4 (Architecture), p9",
+   "quote": "Courses which are only open to Non-Graduating students (i) majoring in ARCHITECTURE, or (ii) training in related disciplines",
+   "titles": [
+    {
+     "code": "AR2225",
+     "title": "Reading Visual Images"
+    },
+    {
+     "code": "AR2227",
+     "title": "History & Theory of Architecture I (offered in Sem 2 ONLY)"
+    },
+    {
+     "code": "AR2328A",
+     "title": "Architectural Tectonics & Structural (to be taken with AR2101)"
+    },
+    {
+     "code": "AR3722",
+     "title": "Sustainable Environmental System (to be taken with AR3102)"
+    },
+    {
+     "code": "AR4101",
+     "title": "Design 7"
+    },
+    {
+     "code": "AR4601",
+     "title": "Urban Design Theory and Praxis"
+    },
+    {
+     "code": "AR4321",
+     "title": "Advanced Architectural Integration (Reading the course on Audit basis is not permitted (offered in Sem 2 ONLY))"
+    },
+    {
+     "code": "AR4220",
+     "title": "Contemporary Theories (offered in Sem 2 ONLY)"
+    }
+   ]
+  },
+  {
+   "id": "4-arch-ar4321-no-audit",
+   "effect": "note",
+   "note": "graded",
+   "match": {
+    "codes": [
+     "AR4321",
+     "AR5321"
+    ]
+   },
+   "reason": "You cannot audit it (attend without a grade).",
+   "cite": "restrictions PDF §4 (Architecture), p10",
+   "quote": "(Reading the course on Audit basis is not permitted",
+   "titles": [
+    {
+     "code": "AR4321",
+     "title": "Advanced Architectural Integration"
+    }
+   ]
+  },
+  {
+   "id": "4-arch-major-landscape",
+   "effect": "note",
+   "note": "major",
+   "match": {
+    "codes": [
+     "LAD2004",
+     "LAD2005",
+     "LAD4003",
+     "LAD4006",
+     "LAD4012"
+    ]
+   },
+   "reason": "Only for students majoring in Landscape Architecture or a related discipline.",
+   "cite": "restrictions PDF §4 (Architecture), p10",
+   "quote": "Courses which are only open to Non-Graduating students (i) majoring in LANDSCAPE ARCHITECTURE, or (ii) training in related disciplines",
+   "titles": [
+    {
+     "code": "LAD2004",
+     "title": "Planting Design & Horticulture"
+    },
+    {
+     "code": "LAD2005",
+     "title": "Introduction to GIS for LA"
+    },
+    {
+     "code": "LAD4006",
+     "title": "Digital Techniques in LA"
+    },
+    {
+     "code": "LAD4012",
+     "title": "Urban Greening: Technologies And Techniques"
+    },
+    {
+     "code": "LAD4003",
+     "title": "Landscape Construction II"
+    }
+   ]
+  },
+  {
+   "id": "4-bme-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "BN1111",
+     "BN2001",
+     "BN2111",
+     "BN3101",
+     "BN4101",
+     "BN4101R",
+     "BN4109"
+    ]
+   },
+   "reason": "Listed by Biomedical Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Biomedical Engineering), p10",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "BN1111",
+     "title": "Biomedical Engineering Principles and Practice I"
+    },
+    {
+     "code": "BN2001",
+     "title": "Independent Study"
+    },
+    {
+     "code": "BN2111",
+     "title": "Biomedical Engineering Principles and Practice II"
+    },
+    {
+     "code": "BN3101",
+     "title": "Biomedical Engineering Design"
+    },
+    {
+     "code": "BN4109",
+     "title": "Special Topics in Bioengineering"
+    },
+    {
+     "code": "BN4101",
+     "title": "B.Eng Dissertation Project"
+    },
+    {
+     "code": "BN4101R",
+     "title": "B.Eng Dissertation Project"
+    }
+   ]
+  },
+  {
+   "id": "4-bme-l56-ug",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "Biomedical Engineering"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Biomedical Engineering graduate courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §4 (Biomedical Engineering), p10",
+   "quote": "All Level 5000 or 6000 courses are NOT open to Non-Graduating undergraduate students"
+  },
+  {
+   "id": "4-be-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "IPM1102",
+     "IPM1103",
+     "IPM2101",
+     "IPM2102",
+     "IPM2103",
+     "IPM2104",
+     "IPM3101",
+     "IPM3102",
+     "IPM4101",
+     "IPM4103",
+     "PF1101",
+     "PF1103",
+     "PF1107",
+     "PF1108",
+     "PF2103",
+     "PF2107",
+     "PF2108",
+     "PF2109",
+     "PF2110",
+     "PF2205",
+     "PF3104",
+     "PF4101",
+     "PF4102",
+     "PF4502"
+    ]
+   },
+   "reason": "Listed by Built Environment as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Built Environment), p10",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "PF1101",
+     "title": "Fundamentals of Project Management"
+    },
+    {
+     "code": "PF1103",
+     "title": "Digital Construction"
+    },
+    {
+     "code": "IPM1103",
+     "title": "Digital Construction"
+    },
+    {
+     "code": "PF1107",
+     "title": "Infrastructure and Project Management Law"
+    },
+    {
+     "code": "IPM1102",
+     "title": "Infrastructure and Project Management Law"
+    },
+    {
+     "code": "PF1107",
+     "title": "Project and Facilities Management Law"
+    },
+    {
+     "code": "IPM1102",
+     "title": "Project and Facilities Management Law"
+    },
+    {
+     "code": "PF1108",
+     "title": "Introduction to Building Performance"
+    },
+    {
+     "code": "IPM2101",
+     "title": "Introduction to Building Performance"
+    },
+    {
+     "code": "PF2103",
+     "title": "Measurement (Building Works)"
+    },
+    {
+     "code": "IPM2103",
+     "title": "Measurement (Building Works)"
+    },
+    {
+     "code": "PF2107",
+     "title": "Construction Technology"
+    },
+    {
+     "code": "IPM2102",
+     "title": "Construction Technology"
+    },
+    {
+     "code": "PF2108",
+     "title": "Project Cost Management"
+    },
+    {
+     "code": "IPM2104",
+     "title": "Project Cost Management"
+    },
+    {
+     "code": "PF2109",
+     "title": "Project Feasibility"
+    },
+    {
+     "code": "IPM3101",
+     "title": "Project Feasibility"
+    },
+    {
+     "code": "PF2110",
+     "title": "Fundamentals of Facilities Management"
+    },
+    {
+     "code": "IPM3102",
+     "title": "Fundamentals of Facilities Management"
+    },
+    {
+     "code": "PF2205",
+     "title": "Project Finance"
+    },
+    {
+     "code": "PF3104",
+     "title": "Project Execution"
+    },
+    {
+     "code": "PF4101",
+     "title": "Dissertation"
+    },
+    {
+     "code": "IPM4101",
+     "title": "Dissertation"
+    },
+    {
+     "code": "PF4102",
+     "title": "Contract and Procurement"
+    },
+    {
+     "code": "IPM4103",
+     "title": "Contract and Procurement"
+    },
+    {
+     "code": "PF4502",
+     "title": "Green Development"
+    }
+   ]
+  },
+  {
+   "id": "4-be-l56-ug",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "departments": [
+     "Built Environment"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Built Environment graduate courses are not open to exchange undergraduates.",
+   "cite": "restrictions PDF §4 (Built Environment), p11",
+   "quote": "All Level 5000 or 6000 courses are NOT open to Non-Graduating undergraduate students"
+  },
+  {
+   "id": "4-be-bps",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^BPS5"
+   },
+   "reason": "MSc Building Performance and Sustainability courses are not offered to exchange students.",
+   "cite": "restrictions PDF §4 (Built Environment), p11",
+   "quote": "All MSc Building Performance and Sustainability Courses (BPS5XXX) are not offered to NG students."
+  },
+  {
+   "id": "4-be-quota",
+   "effect": "note",
+   "note": "quota",
+   "match": {
+    "codes": [
+     "GESS1014",
+     "IPM4201",
+     "PF2102",
+     "PF2203",
+     "PF2305",
+     "PF2306",
+     "PF2504",
+     "PF2505",
+     "PF3105",
+     "PF3205",
+     "PF3207",
+     "PF3208",
+     "PF3209",
+     "PF3210",
+     "PF3211",
+     "PF3301",
+     "PF3305",
+     "PF3306",
+     "PF3307",
+     "PF3502",
+     "PF3504",
+     "PF4203",
+     "PF4208",
+     "PF4209",
+     "PF4213",
+     "PF4306",
+     "PF4309"
+    ]
+   },
+   "reason": "The number of places is limited, so you may not get one.",
+   "cite": "restrictions PDF §4 (Built Environment), p11",
+   "quote": "Courses available to NG students with limited quota (Semester 1: PF2102 ... GESS1014; Semester 2: PF2203 ... PF4306)",
+   "titles": [
+    {
+     "code": "PF2102",
+     "title": "Structural Systems"
+    },
+    {
+     "code": "PF2305",
+     "title": "Event Management"
+    },
+    {
+     "code": "PF3105",
+     "title": "Research Methods"
+    },
+    {
+     "code": "PF3205",
+     "title": "Advanced Measurement"
+    },
+    {
+     "code": "PF3208",
+     "title": "Project Leadership"
+    },
+    {
+     "code": "PF3209",
+     "title": "Building Information Modelling"
+    },
+    {
+     "code": "PF3210",
+     "title": "Total Building Performance"
+    },
+    {
+     "code": "PF3211",
+     "title": "AI Applications for the Built Environment"
+    },
+    {
+     "code": "PF3307",
+     "title": "Strategic Facilities Management"
+    },
+    {
+     "code": "PF3504",
+     "title": "Energy Management"
+    },
+    {
+     "code": "PF4209",
+     "title": "Construction Enterprise Management"
+    },
+    {
+     "code": "PF4213",
+     "title": "Building Energy Analysis and Simulation"
+    },
+    {
+     "code": "PF4309",
+     "title": "Infrastructure O&M"
+    },
+    {
+     "code": "IPM4201",
+     "title": "Smart FM Robotics"
+    },
+    {
+     "code": "GESS1014",
+     "title": "Managing Singapore’s Built Environment"
+    },
+    {
+     "code": "PF2203",
+     "title": "Quality and Productivity Management"
+    },
+    {
+     "code": "PF2306",
+     "title": "Event Management Case Studies"
+    },
+    {
+     "code": "PF2504",
+     "title": "Materials Technology"
+    },
+    {
+     "code": "PF2505",
+     "title": "M&E Systems"
+    },
+    {
+     "code": "PF3207",
+     "title": "Project Management Law"
+    },
+    {
+     "code": "PF3301",
+     "title": "Maintainability of Facilities"
+    },
+    {
+     "code": "PF3305",
+     "title": "Facilities Planning and Design"
+    },
+    {
+     "code": "PF3306",
+     "title": "Facilities Management Law & Contracts"
+    },
+    {
+     "code": "PF3502",
+     "title": "Smart Facilities"
+    },
+    {
+     "code": "PF4203",
+     "title": "Project Dispute Management"
+    },
+    {
+     "code": "PF4208",
+     "title": "Safety and Health Management"
+    },
+    {
+     "code": "PF4306",
+     "title": "REITS Facilities Management"
+    }
+   ]
+  },
+  {
+   "id": "4-be-l1234-grad",
+   "effect": "closed",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "departments": [
+     "Built Environment"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   },
+   "reason": "Built Environment level 1000-4000 courses are not open to exchange graduate students.",
+   "cite": "restrictions PDF §4 (Built Environment), p11",
+   "quote": "Level 1000 to 4000 Courses: Not available to NG graduate students."
+  },
+  {
+   "id": "4-be-graded",
+   "effect": "note",
+   "note": "graded",
+   "match": {
+    "departments": [
+     "Built Environment"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   },
+   "reason": "You must take it for a grade.",
+   "cite": "restrictions PDF §4 (Built Environment), p11",
+   "quote": "Building undergraduate courses must be taken on graded basis."
+  },
+  {
+   "id": "4-cbe-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "CN3101",
+     "CN3101A",
+     "CN3102",
+     "CN4102",
+     "CN4118",
+     "CN4119",
+     "CN4123R"
+    ]
+   },
+   "reason": "Listed by Chemical and Biomolecular Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Chemical and Biomolecular Engineering), p11",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "CN3101",
+     "title": "Chemical Engineering Laboratory I"
+    },
+    {
+     "code": "CN3101A",
+     "title": "Chemical Engineering Process Lab"
+    },
+    {
+     "code": "CN3102",
+     "title": "Chemical Engineering Laboratory II"
+    },
+    {
+     "code": "CN4102",
+     "title": "Chemical Engineering Lab"
+    },
+    {
+     "code": "CN4118",
+     "title": "B.Eng. Dissertation"
+    },
+    {
+     "code": "CN4119",
+     "title": "Final Year Design Project"
+    },
+    {
+     "code": "CN4123R",
+     "title": "Final Year Design Project"
+    }
+   ]
+  },
+  {
+   "id": "4-cbe-cn5",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^CN5"
+   },
+   "reason": "CN level 5000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Chemical and Biomolecular Engineering), p12",
+   "quote": "All Level 5000 courses with prefix CN5XXX are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "4-cee-l56",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^(CE|ESE)\\d",
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "CE and ESE graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Civil and Environmental Engineering), p12",
+   "quote": "All Level 5000 or 6000 courses (CE and ESE) are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "4-ece-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "EE2033",
+     "EE2211",
+     "EE3031",
+     "EE4002D",
+     "EE4002R"
+    ]
+   },
+   "reason": "Listed by Electrical and Computer Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Electrical and Computer Engineering), p12",
+   "quote": "Courses NOT available to NG students (EE5xxx & EE6xxx: All level 5000 and 6000 courses; CEG5xxxx: All level 5000 courses; EEK5xxxx: All level 5000 courses)",
+   "titles": [
+    {
+     "code": "EE2033",
+     "title": "Integrated System Lab"
+    },
+    {
+     "code": "EE2211",
+     "title": "Introduction to Machine Learning"
+    },
+    {
+     "code": "EE3031",
+     "title": "Innovation & Enterprise I"
+    },
+    {
+     "code": "EE2211",
+     "title": "Introduction to Machine Learning"
+    },
+    {
+     "code": "EE4002D",
+     "title": "Design Capstone"
+    },
+    {
+     "code": "EE4002R",
+     "title": "Research Capstone"
+    }
+   ]
+  },
+  {
+   "id": "4-ece-closed:l56",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^(EE[56]|CEG5|EEK5)\\d"
+   },
+   "reason": "EE, CEG and EEK graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Electrical and Computer Engineering), p12",
+   "quote": "Courses NOT available to NG students (EE5xxx & EE6xxx: All level 5000 and 6000 courses; CEG5xxxx: All level 5000 courses; EEK5xxxx: All level 5000 courses)"
+  },
+  {
+   "id": "4-isem-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "IE1111R",
+     "IE2111",
+     "IE2141",
+     "IE3100R",
+     "IE3102",
+     "IE3102A",
+     "IE3105",
+     "IE3110R",
+     "IE4100R"
+    ]
+   },
+   "reason": "Listed by Industrial Systems Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Industrial Systems Engineering and Management), p12",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "IE1111R",
+     "title": "Industrial & Systems Engineering Principles & Practice I"
+    },
+    {
+     "code": "IE2111",
+     "title": "Industrial & Systems Engineering Principles & Practice II"
+    },
+    {
+     "code": "IE2141",
+     "title": "Systems Thinking and Dynamics"
+    },
+    {
+     "code": "IE3100R",
+     "title": "Systems Design Project"
+    },
+    {
+     "code": "IE3102",
+     "title": "Systems Engineering Project"
+    },
+    {
+     "code": "IE3102A",
+     "title": "Systems Engineering Project"
+    },
+    {
+     "code": "IE3105",
+     "title": "Fundamentals of Systems Engineering and Architecture"
+    },
+    {
+     "code": "IE3110R",
+     "title": "Simulation"
+    },
+    {
+     "code": "IE4100R",
+     "title": "BEng Dissertation"
+    }
+   ]
+  },
+  {
+   "id": "4-isem-l56",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^(IE|MT|SDM)\\d",
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "IE, MT and SDM graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Industrial Systems Engineering and Management), p12",
+   "quote": "All Level 5000 or 6000 courses with prefixes IEXXXX, MTXXXX and SDMXXXX are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "4-mse-closed-1",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "GEH1057",
+     "MLE1001",
+     "MLE1001A",
+     "MLE1001B",
+     "MLE1002",
+     "MLE1010"
+    ]
+   },
+   "reason": "Listed by Materials Science and Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Materials Science and Engineering), p12",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "GEH1057",
+     "title": "Materials: The Enabling Substance of Civilization"
+    },
+    {
+     "code": "MLE1001",
+     "title": "Materials Science & Engineering Principles & Practice I"
+    },
+    {
+     "code": "MLE1001A",
+     "title": "Materials Science & Engineering Principles & Practice I"
+    },
+    {
+     "code": "MLE1001B",
+     "title": "Materials Science & Engineering Principles & Practice I"
+    },
+    {
+     "code": "MLE1002",
+     "title": "Materials Science & Engineering Principles & Practice II"
+    },
+    {
+     "code": "MLE1010",
+     "title": "Materials Engineering Principles & Practices"
+    }
+   ]
+  },
+  {
+   "id": "4-mse-closed-2",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "GEH1057",
+     "MLE1001",
+     "MLE1001A",
+     "MLE1001B",
+     "MLE1002",
+     "MLE1010",
+     "MLE1101",
+     "MLE1111",
+     "MLE1112",
+     "MLE2001",
+     "MLE2001A",
+     "MLE2106",
+     "MLE2107",
+     "MLE2111",
+     "MLE3101",
+     "MLE3103",
+     "MLE3111",
+     "MLE3111A",
+     "MLE3112",
+     "MLE4101",
+     "MLE4101A",
+     "MLE4101B",
+     "MLE4102",
+     "MLE4102A",
+     "MLE4204",
+     "MLE4209",
+     "MLE4213"
+    ]
+   },
+   "reason": "Listed by Materials Science and Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Materials Science and Engineering), p13",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "GEH1057",
+     "title": "Materials: The Enabling Substance of Civilization"
+    },
+    {
+     "code": "MLE1001",
+     "title": "Materials Science & Engineering Principles & Practice I"
+    },
+    {
+     "code": "MLE1001A",
+     "title": "Materials Science & Engineering Principles & Practice I"
+    },
+    {
+     "code": "MLE1001B",
+     "title": "Materials Science & Engineering Principles & Practice I"
+    },
+    {
+     "code": "MLE1002",
+     "title": "Materials Science & Engineering Principles & Practice II"
+    },
+    {
+     "code": "MLE1010",
+     "title": "Materials Engineering Principles & Practices"
+    },
+    {
+     "code": "MLE1101",
+     "title": "Introductory Materials Science And Engineering"
+    },
+    {
+     "code": "MLE1111",
+     "title": "Foundation Materials Science and Engineering I"
+    },
+    {
+     "code": "MLE1112",
+     "title": "Foundation Materials Science and Engineering 2"
+    },
+    {
+     "code": "MLE2001",
+     "title": "Materials Science & Engineering Principles & Practice II"
+    },
+    {
+     "code": "MLE2001A",
+     "title": "Materials Science & Engineering Principles & Practice II"
+    },
+    {
+     "code": "MLE2106",
+     "title": "Metallic Materials and Processing"
+    },
+    {
+     "code": "MLE2107",
+     "title": "Ceramic Materials and Processing"
+    },
+    {
+     "code": "MLE2111",
+     "title": "Materials Properties Laboratory"
+    },
+    {
+     "code": "MLE3101",
+     "title": "Materials Characterization Laboratory"
+    },
+    {
+     "code": "MLE3103",
+     "title": "Materials Design and Selection"
+    },
+    {
+     "code": "MLE3111",
+     "title": "Materials Properties & Processing Laboratory"
+    },
+    {
+     "code": "MLE3111A",
+     "title": "Materials Properties and Processing Laboratory"
+    },
+    {
+     "code": "MLE3112",
+     "title": "Machine Learning Approaches in Materials Laboratory"
+    },
+    {
+     "code": "MLE4101",
+     "title": "B.Eng. Dissertation"
+    },
+    {
+     "code": "MLE4101A",
+     "title": "BEng Dissertation"
+    },
+    {
+     "code": "MLE4101B",
+     "title": "BEng Dissertation"
+    },
+    {
+     "code": "MLE4102",
+     "title": "Design Project"
+    },
+    {
+     "code": "MLE4102A",
+     "title": "Design Project"
+    },
+    {
+     "code": "MLE4204",
+     "title": "Synthesis And Growth Of Nanostructures"
+    },
+    {
+     "code": "MLE4209",
+     "title": "Magnetism and Magnetic Materials"
+    },
+    {
+     "code": "MLE4213",
+     "title": "Innovation & Product Development for Material Engineers"
+    }
+   ]
+  },
+  {
+   "id": "4-mse-l56",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "Materials Science and Engineering"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Materials Science graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Materials Science and Engineering), p13",
+   "quote": "All Level 5000 or 6000 courses are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "4-me-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "ME2114",
+     "ME2143",
+     "ME3000",
+     "ME3001",
+     "ME3101",
+     "ME3102",
+     "ME3123",
+     "ME3163",
+     "ME3243",
+     "ME3252",
+     "ME4101A",
+     "ME4242",
+     "RB4101A",
+     "RB4107"
+    ]
+   },
+   "reason": "Listed by Mechanical Engineering as not available to exchange students.",
+   "cite": "restrictions PDF §4 (Mechanical Engineering), p13",
+   "quote": "Courses NOT available to NG students",
+   "titles": [
+    {
+     "code": "ME3000",
+     "title": "Independent Study 1"
+    },
+    {
+     "code": "ME3001",
+     "title": "Independent Study 2"
+    },
+    {
+     "code": "ME4101A",
+     "title": "B.Eng Dissertation (ME Programme)"
+    },
+    {
+     "code": "ME3163",
+     "title": "Introduction to Cyber Physical Systems"
+    },
+    {
+     "code": "ME3101",
+     "title": "Mechanical Systems Design I"
+    },
+    {
+     "code": "ME3102",
+     "title": "Mechanical Systems Design II"
+    },
+    {
+     "code": "ME3243",
+     "title": "Robotic System Design"
+    },
+    {
+     "code": "ME4242",
+     "title": "Soft Robotics"
+    },
+    {
+     "code": "ME2114",
+     "title": "Mechanics of Materials"
+    },
+    {
+     "code": "ME2143",
+     "title": "Sensors & Actuators"
+    },
+    {
+     "code": "ME3123",
+     "title": "Applied Thermofluids"
+    },
+    {
+     "code": "ME3252",
+     "title": "Materials for Mechanical Engineering"
+    },
+    {
+     "code": "RB4101A",
+     "title": "B.Eng Dissertation (RMI Programme)"
+    },
+    {
+     "code": "RB4107",
+     "title": "Robotic System Design Project"
+    }
+   ]
+  },
+  {
+   "id": "4-me-l56",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "Mechanical Engineering"
+    ],
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "Mechanical Engineering graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §4 (Mechanical Engineering), p14",
+   "quote": "All Level 5000 and 6000 courses are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "4-id-major",
+   "effect": "note",
+   "note": "major",
+   "match": {
+    "codes": [
+     "ID1121",
+     "ID1223",
+     "ID2105",
+     "ID2106",
+     "ID2112",
+     "ID2114",
+     "ID2115",
+     "ID2116",
+     "ID2122",
+     "ID2323",
+     "ID3105",
+     "ID3106",
+     "ID3122",
+     "ID3124",
+     "ID4105"
+    ]
+   },
+   "reason": "Only for students taking Industrial Design at their home university.",
+   "cite": "restrictions PDF §4 (Division of Industrial Design), p14",
+   "quote": "Courses below are only open to Non-Graduating students pursuing an INDUSTRIAL DESIGN Course in their Home University.",
+   "titles": [
+    {
+     "code": "ID1121",
+     "title": "Human-Centered Design"
+    },
+    {
+     "code": "ID1223",
+     "title": "History & Theory of Industrial Design"
+    },
+    {
+     "code": "ID2105",
+     "title": "Design in Context & Sustainability"
+    },
+    {
+     "code": "ID2106",
+     "title": "Design Platforms 1"
+    },
+    {
+     "code": "ID2114",
+     "title": "Form, Materials & Making"
+    },
+    {
+     "code": "ID2115",
+     "title": "Digital Sketching & Painting"
+    },
+    {
+     "code": "ID2116",
+     "title": "Computing for Design"
+    },
+    {
+     "code": "ID2122",
+     "title": "Ecodesign and Sustainability"
+    },
+    {
+     "code": "ID3105",
+     "title": "Design Platforms 2"
+    },
+    {
+     "code": "ID3106",
+     "title": "Design Platforms 3"
+    },
+    {
+     "code": "ID4105",
+     "title": "Design Platforms 4"
+    },
+    {
+     "code": "ID2323",
+     "title": "Technology for Design"
+    },
+    {
+     "code": "ID3122",
+     "title": "Materials & Manufacturing for Industrial Design"
+    },
+    {
+     "code": "ID3124",
+     "title": "Creative Communication & Design Argumentation"
+    },
+    {
+     "code": "ID2112",
+     "title": "Digital Design & Fabrication"
+    }
+   ]
+  },
+  {
+   "id": "4-id-id4106",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "ID4106"
+    ]
+   },
+   "reason": "Not open to exchange students.",
+   "cite": "restrictions PDF §4 (Division of Industrial Design), p14",
+   "quote": "ID4106 is NOT open to Non-Graduating students.",
+   "titles": [
+    {
+     "code": "ID4106",
+     "title": null
+    }
+   ]
+  },
+  {
+   "id": "4-id-graded",
+   "effect": "note",
+   "note": "graded",
+   "match": {
+    "codeRe": "^ID\\d"
+   },
+   "reason": "You must take it for a grade.",
+   "cite": "restrictions PDF §4 (Division of Industrial Design), p14",
+   "quote": "Industrial Design Courses must be taken on graded basis."
+  },
+  {
+   "id": "5-law-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "LL4011V",
+     "LL4033V",
+     "LL4044V",
+     "LL4045V",
+     "LL4094AV",
+     "LL4094BV",
+     "LL4094CV",
+     "LL4094DV",
+     "LL4094EV",
+     "LL4094FV",
+     "LL4094GV",
+     "LL4203",
+     "LL4261V",
+     "LL4356V",
+     "LL4359Z",
+     "LL4361Z",
+     "LL4367V",
+     "LL4377V",
+     "LL4434V",
+     "LL4463V"
+    ]
+   },
+   "reason": "Listed by the Faculty of Law as not open to exchange students.",
+   "cite": "restrictions PDF §5, p14",
+   "quote": "Courses NOT open Non-Graduating students",
+   "titles": [
+    {
+     "code": "LL4011V",
+     "title": "Civil Justice & Process"
+    },
+    {
+     "code": "LL4033V",
+     "title": "International Legal Process"
+    },
+    {
+     "code": "LL4044V",
+     "title": "Mediation"
+    },
+    {
+     "code": "LL4045V",
+     "title": "Negotiation"
+    },
+    {
+     "code": "LL4094AV",
+     "title": "The Corporate Law Clinic"
+    },
+    {
+     "code": "LL4094BV",
+     "title": "NUS-State Courts Judicial Clerkship Programme"
+    },
+    {
+     "code": "LL4094CV",
+     "title": "The Access to Justice Low Bono Litigation Clinic"
+    },
+    {
+     "code": "LL4094DV",
+     "title": "The Pro Bono Criminal Law Litigation Clinic"
+    },
+    {
+     "code": "LL4094EV",
+     "title": "The Capital Offences Criminal Litigation Clinic"
+    },
+    {
+     "code": "LL4094FV",
+     "title": "The Evolving Legal Landscapes Clinic"
+    },
+    {
+     "code": "LL4094GV",
+     "title": "NUS Entrepreneurship Society Collaboration Clinic"
+    },
+    {
+     "code": "LL4203",
+     "title": "International Moots & Competition"
+    },
+    {
+     "code": "LL4261V",
+     "title": "Employment Law & Migrant Workers Clinic"
+    },
+    {
+     "code": "LL4367V",
+     "title": "Singapore at the UN - A Clinical Externship"
+    },
+    {
+     "code": "LL4434V",
+     "title": "International Commodity Trading Law Clinic"
+    },
+    {
+     "code": "LL4356V",
+     "title": "International Economic Law Clinic"
+    },
+    {
+     "code": "LL4359Z",
+     "title": "Multinational Enterprises and International Law"
+    },
+    {
+     "code": "LL4361Z",
+     "title": "Complex Arbitrations: Multiparty - Multicontract"
+    },
+    {
+     "code": "LL4377V",
+     "title": "Law in Action: Legal Policymaking Externship"
+    },
+    {
+     "code": "LL4463V",
+     "title": "National Arts Council Externship"
+    }
+   ]
+  },
+  {
+   "id": "5-law-major",
+   "effect": "note",
+   "note": "major",
+   "match": {
+    "faculties": [
+     "Law"
+    ]
+   },
+   "reason": "Only for students majoring in Law at their home university.",
+   "cite": "restrictions PDF §5, p15",
+   "quote": "Students must be majoring in Law in their Home University in order to be considered eligible for Law courses."
+  },
+  {
+   "id": "5-law-compulsory-llb",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "LC1001A",
+     "LC1001B",
+     "LC1001C",
+     "LC1001D",
+     "LC1001E",
+     "LC1001F",
+     "LC1001H",
+     "LC1002A",
+     "LC1002B",
+     "LC1002C",
+     "LC1002D",
+     "LC1002E",
+     "LC1002F",
+     "LC1002G",
+     "LC1002H",
+     "LC1003",
+     "LC1004",
+     "LC1016",
+     "LC2009",
+     "LC1025",
+     "LC2018",
+     "LC2008A",
+     "LC2008C",
+     "LC2008D",
+     "LC2008E",
+     "LC2008F",
+     "LC2008G",
+     "LC2008H",
+     "LC2007",
+     "LC2013",
+     "LC2006A",
+     "LC2006B",
+     "LC2006C",
+     "LC2006D",
+     "LC2006E",
+     "LC2006F",
+     "LC2006G",
+     "LC2006H",
+     "LC2010A",
+     "LC2010B",
+     "LC2010C",
+     "LC2010E",
+     "LC2010F",
+     "LC2010H",
+     "LC2004",
+     "LC2012",
+     "LC3001A",
+     "LC2017"
+    ]
+   },
+   "reason": "Compulsory LLB courses are not open to exchange students.",
+   "cite": "restrictions PDF §5, p15",
+   "quote": "All compulsory LLB courses are NOT open to Non-Graduating students. See HERE."
+  },
+  {
+   "id": "5-law-ll4-electives-only",
+   "effect": "closed",
+   "match": {
+    "faculties": [
+     "Law"
+    ],
+    "notCodeRe": "^LL4"
+   },
+   "reason": "Only LL4 Law electives are open to exchange students.",
+   "cite": "restrictions PDF §5, p15",
+   "quote": "Only selective Law electives with course code LL4XXXX are available for exchange students."
+  },
+  {
+   "id": "6-music-electives-whitelist",
+   "effect": "note",
+   "note": "partner",
+   "match": {
+    "faculties": [
+     "YST Conservatory of Music"
+    ],
+    "notInList": "ystElectives"
+   },
+   "reason": "Only for students from universities that partner with NUS's Yong Siew Toh Conservatory of Music. Ask your exchange office if yours is one.",
+   "cite": "restrictions PDF §6, p15",
+   "quote": "Non-graduating students from non-YST Conservatory’s partner institutions are eligible to read Music electives listed HERE."
+  },
+  {
+   "id": "6-music-audition",
+   "effect": "note",
+   "note": "audition",
+   "match": {
+    "codes": [
+     "MUA1192",
+     "MUA3205",
+     "MUA3224",
+     "MUT3113",
+     "MUT3213",
+     "MUT3214",
+     "MUT3215",
+     "MUT3216",
+     "MUT3222",
+     "MUT3223"
+    ]
+   },
+   "reason": "You must pass an audition or placement test, and you can't choose it in the normal application. You get a place only after you pass.",
+   "cite": "restrictions PDF §6, p15",
+   "quote": "The following electives (when offered in the semester) require an audition or a placement test and will not be available for selection during the application period: ... Students will be allocated the course upon passing the audition or placement test.",
+   "titles": [
+    {
+     "code": "MUA1192",
+     "title": "Chamber Singers 1"
+    },
+    {
+     "code": "MUA3224",
+     "title": "Intermediate Keyboard Studies"
+    },
+    {
+     "code": "MUA3205",
+     "title": "Jazz Study and Performance 1"
+    },
+    {
+     "code": "MUT3113",
+     "title": "Orchestration"
+    },
+    {
+     "code": "MUT3213",
+     "title": "Romantic Styles"
+    },
+    {
+     "code": "MUT3214",
+     "title": "Concerto and Cadenza"
+    },
+    {
+     "code": "MUT3215",
+     "title": "Composition for Non-Majors"
+    },
+    {
+     "code": "MUT3216",
+     "title": "Bach Suites"
+    },
+    {
+     "code": "MUT3222",
+     "title": "Choral Composition"
+    },
+    {
+     "code": "MUT3223",
+     "title": "Early Twentieth-Century Music"
+    }
+   ]
+  },
+  {
+   "id": "7-pp-ug-closed",
+   "effect": "closed",
+   "studies": [
+    "ug1",
+    "ug2",
+    "ug3",
+    "ug4"
+   ],
+   "match": {
+    "faculties": [
+     "LKY School of Public Policy"
+    ],
+    "codeRe": "^PP"
+   },
+   "reason": "Undergraduates may not take Public Policy (PP) courses.",
+   "cite": "restrictions PDF §7, p15",
+   "quote": "Students who are pursuing an undergraduate degree at their home university are NOT eligible to apply for LKYSPP courses (i.e. Course codes with prefix PP)."
+  },
+  {
+   "id": "7-pp-partner",
+   "effect": "note",
+   "note": "partner",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "faculties": [
+     "LKY School of Public Policy"
+    ],
+    "codeRe": "^PP"
+   },
+   "reason": "Only for graduate students from universities that partner with NUS's Lee Kuan Yew School of Public Policy. Ask your exchange office if yours is one.",
+   "cite": "restrictions PDF §7, p15",
+   "quote": "Only students who are currently pursuing a graduate degree in LKYSPP’s faculty exchange partner universities will be considered."
+  },
+  {
+   "id": "7-pp-partner:open",
+   "effect": "open",
+   "studies": [
+    "grad"
+   ],
+   "match": {
+    "faculties": [
+     "LKY School of Public Policy"
+    ],
+    "codeRe": "^PP"
+   },
+   "reason": "PP graduate courses are open to eligible exchange graduate students.",
+   "cite": "restrictions PDF §7, p15",
+   "quote": "Only students who are currently pursuing a graduate degree in LKYSPP’s faculty exchange partner universities will be considered."
+  },
+  {
+   "id": "7-pp-graded",
+   "effect": "note",
+   "note": "graded",
+   "match": {
+    "faculties": [
+     "LKY School of Public Policy"
+    ],
+    "codeRe": "^PP"
+   },
+   "reason": "You must take it for a grade.",
+   "cite": "restrictions PDF §7, p15",
+   "quote": "LKYSPP courses must be taken on graded basis."
+  },
+  {
+   "id": "8-dean-table",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "FMS1201D",
+     "SP2171",
+     "SP3173",
+     "UIS3921",
+     "UIS3922",
+     "UIS3923",
+     "UIS3924",
+     "UIS4921",
+     "UIS4922",
+     "UIS4923",
+     "UIS4924",
+     "ZB4199"
+    ]
+   },
+   "reason": "Listed by the Faculty of Science as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Dean's Office (Faculty of Science)), p15",
+   "quote": "Department : Dean's Office (Faculty of Science) Course Code Course Title",
+   "titles": [
+    {
+     "code": "FMS1201D",
+     "title": "FS: Transforming Medicine: From Bench to Beside & Beyond"
+    },
+    {
+     "code": "SP2171",
+     "title": "Discovering Science"
+    },
+    {
+     "code": "SP3173",
+     "title": "Independent Study Course"
+    },
+    {
+     "code": "UIS3921",
+     "title": "Independent Study Course"
+    },
+    {
+     "code": "UIS3922",
+     "title": "Independent Study Course"
+    },
+    {
+     "code": "UIS3923",
+     "title": "Independent Study Course"
+    },
+    {
+     "code": "UIS3924",
+     "title": "Independent Study Course"
+    },
+    {
+     "code": "UIS4921",
+     "title": "Independent Study Course"
+    },
+    {
+     "code": "UIS4922",
+     "title": "Independent Study Course"
+    },
+    {
+     "code": "UIS4923",
+     "title": "Independent Study Course"
+    },
+    {
+     "code": "UIS4924",
+     "title": "Independent Study Course"
+    },
+    {
+     "code": "ZB4199",
+     "title": "Honours Project in Computational Biology"
+    }
+   ]
+  },
+  {
+   "id": "8-bio-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "LSM2301",
+     "LSM3201",
+     "LSM4199",
+     "LSM4299",
+     "SP3203"
+    ]
+   },
+   "reason": "Listed by Biological Sciences as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Biological Sciences), p16",
+   "quote": "Courses NOT open Non-Graduating students (LSM33xx: Undergraduate Professional Internship Programme)",
+   "titles": [
+    {
+     "code": "LSM2301",
+     "title": "Life Sciences Industry Seminar"
+    },
+    {
+     "code": "LSM3201",
+     "title": "Research and Communication in Life Sciences"
+    },
+    {
+     "code": "LSM4199",
+     "title": "Honours Project in Life Sciences"
+    },
+    {
+     "code": "LSM4299",
+     "title": "Applied Project in Life Sciences"
+    },
+    {
+     "code": "SP3203",
+     "title": "Aquatic Ecology Research"
+    }
+   ]
+  },
+  {
+   "id": "8-bio-closed:lsm33",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^LSM33\\d\\d"
+   },
+   "reason": "Internship programme courses are not available to exchange students.",
+   "cite": "restrictions PDF §8 (Biological Sciences), p16",
+   "quote": "Courses NOT open Non-Graduating students (LSM33xx: Undergraduate Professional Internship Programme)"
+  },
+  {
+   "id": "8-bio-fsc",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^FSC\\d"
+   },
+   "reason": "FSC-coded courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Biological Sciences), p16",
+   "quote": "Course codes FSCXXXX are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "8-chem-table",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "CM3181",
+     "CM4199A",
+     "CM4199B"
+    ]
+   },
+   "reason": "Listed by Chemistry as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Chemistry), p16",
+   "quote": "Department : Chemistry Course Code Course Title",
+   "titles": [
+    {
+     "code": "CM3181",
+     "title": "Professional Placement Applied Chemistry"
+    },
+    {
+     "code": "CM4199A",
+     "title": "Honours Project in Chemistry"
+    },
+    {
+     "code": "CM4199B",
+     "title": "Honours Project in Applied Chemistry"
+    }
+   ]
+  },
+  {
+   "id": "8-fst-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "FST2288",
+     "FST2288R",
+     "FST2289",
+     "FST2289R",
+     "FST3181",
+     "FST3201",
+     "FST3287",
+     "FST3288",
+     "FST3288R",
+     "FST3289",
+     "FST3289R",
+     "FST4199",
+     "FST4277",
+     "FST4278",
+     "FST4288",
+     "FST4299"
+    ]
+   },
+   "reason": "Listed by Food Science and Technology as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Food Science and Technology), p16",
+   "quote": "Courses NOT open Non-Graduating students",
+   "titles": [
+    {
+     "code": "FST2288",
+     "title": "Basic UROPS in Food Science & Technology I"
+    },
+    {
+     "code": "FST2288R",
+     "title": "Basic UROPS in Food Science & Technology I (REx)"
+    },
+    {
+     "code": "FST2289",
+     "title": "Basic UROPS in Food Science & Technology II"
+    },
+    {
+     "code": "FST2289R",
+     "title": "Basic UROPS in Food Science & Technology II (REx)"
+    },
+    {
+     "code": "FST3181",
+     "title": "Professional Placement"
+    },
+    {
+     "code": "FST3201",
+     "title": "Independent Study (Food Sci & Tech)"
+    },
+    {
+     "code": "FST3287",
+     "title": "FST Professional Placement"
+    },
+    {
+     "code": "FST3288",
+     "title": "Advanced UROPS in Food Science & Technology I"
+    },
+    {
+     "code": "FST3288R",
+     "title": "Advanced UROPS in Food Science & Technology I (REx)"
+    },
+    {
+     "code": "FST3289",
+     "title": "Advanced UROPS in Food Science & Technology II"
+    },
+    {
+     "code": "FST3289R",
+     "title": "Advanced UROPS in Food Science & Technology II (REx)"
+    },
+    {
+     "code": "FST4199",
+     "title": "Honours Project in Food Science & Tech"
+    },
+    {
+     "code": "FST4277",
+     "title": "Professional Internship in Food Science & Technology"
+    },
+    {
+     "code": "FST4278",
+     "title": "Independent Study during Internship"
+    },
+    {
+     "code": "FST4288",
+     "title": "Honours Project in Food Science & Technology"
+    },
+    {
+     "code": "FST4299",
+     "title": "Applied Project in FST"
+    }
+   ]
+  },
+  {
+   "id": "8-fst-l5",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^FST5"
+   },
+   "reason": "FST level 5000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Food Science and Technology), p16",
+   "quote": "All FST level 5000 courses are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "8-math-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "DSE4101",
+     "DSE4201",
+     "DSE4211",
+     "DSE4212",
+     "HS1501",
+     "MA4198",
+     "MA4199",
+     "MA4288O",
+     "MA4288P",
+     "MA4291",
+     "QF4199",
+     "QF4204",
+     "QF4211",
+     "QF4212",
+     "QF4288"
+    ]
+   },
+   "reason": "Listed by Mathematics as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17",
+   "quote": "Courses NOT open Non-Graduating students (FMS12XXM: Freshman Seminar)",
+   "titles": [
+    {
+     "code": "DSE4211",
+     "title": "Digital Currencies"
+    },
+    {
+     "code": "QF4211",
+     "title": "Digital Currencies"
+    },
+    {
+     "code": "DSE4212",
+     "title": "Data Science in FinTech"
+    },
+    {
+     "code": "QF4212",
+     "title": "Data Science in FinTech"
+    },
+    {
+     "code": "HS1501",
+     "title": "Artificial Intelligence and Society"
+    },
+    {
+     "code": "MA4198",
+     "title": "Mathematics Capstone Project"
+    },
+    {
+     "code": "MA4199",
+     "title": "Honours Project in Mathematics"
+    },
+    {
+     "code": "MA4288P",
+     "title": "Undergraduate Project in Mathematics"
+    },
+    {
+     "code": "MA4288O",
+     "title": "Undergraduate Project in Mathematics"
+    },
+    {
+     "code": "MA4291",
+     "title": "Undergraduate Topics in Mathematics"
+    },
+    {
+     "code": "QF4204",
+     "title": "Project in Quantitative Finance and Fintech"
+    },
+    {
+     "code": "QF4199",
+     "title": "Honours Project in Quantitative Finance"
+    },
+    {
+     "code": "QF4288",
+     "title": "Undergraduate Project in Quantitative Finance"
+    },
+    {
+     "code": "DSE4101",
+     "title": "Capstone Project in Data Science and Economics I"
+    },
+    {
+     "code": "DSE4201",
+     "title": "Capstone Project in Data Science and Economics II"
+    }
+   ]
+  },
+  {
+   "id": "8-math-closed:fms",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^FMS12\\d\\dM$"
+   },
+   "reason": "First-year seminars are not available to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17",
+   "quote": "Courses NOT open Non-Graduating students (FMS12XXM: Freshman Seminar)"
+  },
+  {
+   "id": "8-math-ma15",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^MA15\\d\\d"
+   },
+   "reason": "MA15xx courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17",
+   "quote": "Course codes MA15XX are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "8-math-qf5",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^QF5"
+   },
+   "reason": "QF level 5000 courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17",
+   "quote": "All QF level 5000 courses are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "8-math-dsa",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "Mathematics"
+    ],
+    "codeRe": "^DSA\\d"
+   },
+   "reason": "DSA-coded courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17",
+   "quote": "Course codes DSAXXXX are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "8-math-dsa:elsewhere",
+   "effect": "note",
+   "note": "restricted-elsewhere",
+   "match": {
+    "codeRe": "^DSA\\d"
+   },
+   "reason": "The NG list offers this course to exchange students, but the Department of Mathematics says no course whose code starts with DSA is open to them. Ask NUS before you choose it.",
+   "cite": "restrictions PDF §8 (Mathematics), p17",
+   "quote": "Course codes DSAXXXX are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "8-math-geh",
+   "effect": "closed",
+   "match": {
+    "departments": [
+     "Mathematics"
+    ],
+    "codeRe": "^GEH\\d"
+   },
+   "reason": "GEH-coded courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17",
+   "quote": "Course codes GEHXXXX are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "8-math-geh:elsewhere",
+   "effect": "note",
+   "note": "restricted-elsewhere",
+   "match": {
+    "codeRe": "^GEH\\d"
+   },
+   "reason": "The NG list offers this course to exchange students, but the Department of Mathematics says no course whose code starts with GEH is open to them. Ask NUS before you choose it.",
+   "cite": "restrictions PDF §8 (Mathematics), p17",
+   "quote": "Course codes GEHXXXX are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "8-math-ma56",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^MA[56]"
+   },
+   "reason": "MA graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Mathematics), p17",
+   "quote": "All MA level 5000 and 6000 courses are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "8-pharm-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "PHS1101",
+     "PHS2101",
+     "PHS2102",
+     "PHS2103",
+     "PHS2104",
+     "PHS2105",
+     "PHS2191",
+     "PHS3116",
+     "PHS3122",
+     "PHS3123",
+     "PHS3191",
+     "PHS3220",
+     "PHS4121",
+     "PR1150",
+     "PR1151",
+     "PR1152",
+     "PR1153",
+     "PR2150",
+     "PR2151",
+     "PR2152",
+     "PR2153",
+     "PR2154",
+     "PR2155",
+     "PR2156",
+     "PR3116",
+     "PR3117",
+     "PR3122",
+     "PR3123",
+     "PR3124",
+     "PR3136",
+     "PR3137",
+     "PR3144",
+     "PR3145",
+     "PR3146",
+     "PR3150",
+     "PR3151",
+     "PR3152",
+     "PR3153",
+     "PR3154",
+     "PR4138",
+     "PR4196",
+     "PR4197",
+     "PR4197A",
+     "PR4198",
+     "PR4198A"
+    ]
+   },
+   "reason": "Listed by Pharmacy as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Pharmacy), p17",
+   "quote": "Courses NOT open Non-Graduating students",
+   "titles": [
+    {
+     "code": "PHS1101",
+     "title": "The Billion-Dollar Pill - Bench to Bedside Drug Development"
+    },
+    {
+     "code": "PHS2101",
+     "title": "Physiology for Pharmaceutical Science"
+    },
+    {
+     "code": "PHS2102",
+     "title": "Physicochemical and Biochemical Principles of Drug Action"
+    },
+    {
+     "code": "PHS2103",
+     "title": "Essentials of Pharmaceutical and Synthetic Chemistry"
+    },
+    {
+     "code": "PHS2104",
+     "title": "Macromolecules in Pharmaceutical Science"
+    },
+    {
+     "code": "PHS2105",
+     "title": "Principles of Pharmaceutical Formulations I"
+    },
+    {
+     "code": "PHS2191",
+     "title": "Laboratory Techniques in Pharmaceutical Science"
+    },
+    {
+     "code": "PHS3116",
+     "title": "Pharmacokinetics and Biopharmaceutics"
+    },
+    {
+     "code": "PHS3123",
+     "title": "Biotechnology for Pharmaceutical Science"
+    },
+    {
+     "code": "PHS3122",
+     "title": "Pharmaceutical Quality Management"
+    },
+    {
+     "code": "PHS3191",
+     "title": "Laboratory Techniques in Pharmaceutical Science II"
+    },
+    {
+     "code": "PHS3220",
+     "title": "Microbiology for Pharmaceutical Science"
+    },
+    {
+     "code": "PHS4121",
+     "title": "Regulation of Healthcare Products"
+    },
+    {
+     "code": "PR1150",
+     "title": "Professional Identity Development I"
+    },
+    {
+     "code": "PR1151",
+     "title": "Applied Patient Care Skills I"
+    },
+    {
+     "code": "PR1152",
+     "title": "Pharmacy Foundations: Science & Therapeutics I"
+    },
+    {
+     "code": "PR1153",
+     "title": "Pharmacy Foundations: Science & Therapeutics II"
+    },
+    {
+     "code": "PR2156",
+     "title": "Integumentary & Ocular Systems: Science and Therapeutics"
+    },
+    {
+     "code": "PR2150",
+     "title": "Professional Identity Development II"
+    },
+    {
+     "code": "PR2151",
+     "title": "Applied Patient Care Skills II"
+    },
+    {
+     "code": "PR2152",
+     "title": "Gastrointestinal System: Science & Therapeutics"
+    },
+    {
+     "code": "PR2153",
+     "title": "Cardiovascular System: Science & Therapeutics"
+    },
+    {
+     "code": "PR2154",
+     "title": "Respiratory System: Science & Therapeutics"
+    },
+    {
+     "code": "PR2155",
+     "title": "Hepatic and Renal Systems: Science & Therapeutics"
+    },
+    {
+     "code": "PR3116",
+     "title": "Concepts In Pharmacokinetics And Biopharmaceutics"
+    },
+    {
+     "code": "PR3117",
+     "title": "Formulation & Technology II"
+    },
+    {
+     "code": "PR3122",
+     "title": "Self Care II"
+    },
+    {
+     "code": "PR3123",
+     "title": "Formulation & Technology II"
+    },
+    {
+     "code": "PR3124",
+     "title": "Pharmacotherapeutics III"
+    },
+    {
+     "code": "PR3136",
+     "title": "Pharmacotherapeutics IV"
+    },
+    {
+     "code": "PR3137",
+     "title": "Pharmacy Professional Skills Development III"
+    },
+    {
+     "code": "PR3144",
+     "title": "Principles Of Research Methods"
+    },
+    {
+     "code": "PR3145",
+     "title": "Compliance & Good Practices In Pharmacy"
+    },
+    {
+     "code": "PR3146",
+     "title": "Pharmacy Law In Singapore"
+    },
+    {
+     "code": "PR3150",
+     "title": "Professional Identity and Skills Development"
+    },
+    {
+     "code": "PR3151",
+     "title": "Infection: Optimising Prevention & Treatment"
+    },
+    {
+     "code": "PR3152",
+     "title": "Immune & Endocrine Systems: Science & Therapeutics"
+    },
+    {
+     "code": "PR3153",
+     "title": "Central Nervous System: Science & Therapeutics"
+    },
+    {
+     "code": "PR3154",
+     "title": "Haematological & Musculoskeletal Systems: Science & Therapeutics"
+    },
+    {
+     "code": "PR4138",
+     "title": "Pharmacy Professional Skills Development IV"
+    },
+    {
+     "code": "PR4196",
+     "title": "Pharmacy Research Project And Scientific Communication"
+    },
+    {
+     "code": "PR4197",
+     "title": "Pharmacy Internship I"
+    },
+    {
+     "code": "PR4197A",
+     "title": "Pharmacy Internship I"
+    },
+    {
+     "code": "PR4198",
+     "title": "Pharmacy Internship II"
+    },
+    {
+     "code": "PR4198A",
+     "title": "Pharmacy Internship II"
+    }
+   ]
+  },
+  {
+   "id": "8-phys-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "PC2239",
+     "PC4288",
+     "PC4288A",
+     "PC4288N",
+     "PC4288Q",
+     "PC5101",
+     "PC5102",
+     "PC5189",
+     "PC5203",
+     "PC5204",
+     "PC5205",
+     "PC5207",
+     "PC5212",
+     "PC5213",
+     "PC5214",
+     "PC5215",
+     "PC5216",
+     "PC5218",
+     "PC5221",
+     "PC5228",
+     "PC5233",
+     "PC5236",
+     "PC5239B",
+     "PC5252",
+     "PC5253",
+     "PC5267",
+     "PC5271",
+     "PC5274",
+     "PC5286",
+     "PC5287"
+    ]
+   },
+   "reason": "Listed by Physics as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Physics), p18",
+   "quote": "Courses NOT open Non-Graduating students (AIS5xxx: All AIS courses; PC33xx: Undergraduate Professional Internship Programme)",
+   "titles": [
+    {
+     "code": "PC2239",
+     "title": "Special Problems in Undergrad Physics I"
+    },
+    {
+     "code": "PC4288",
+     "title": "Honours Year Project in Physics, Honours Project in Astrophysics, Honours Project in Quantum Technologies, Honours Project in Nanophysics"
+    },
+    {
+     "code": "PC4288A",
+     "title": "Honours Year Project in Physics, Honours Project in Astrophysics, Honours Project in Quantum Technologies, Honours Project in Nanophysics"
+    },
+    {
+     "code": "PC4288Q",
+     "title": "Honours Year Project in Physics, Honours Project in Astrophysics, Honours Project in Quantum Technologies, Honours Project in Nanophysics"
+    },
+    {
+     "code": "PC4288N",
+     "title": "Honours Year Project in Physics, Honours Project in Astrophysics, Honours Project in Quantum Technologies, Honours Project in Nanophysics"
+    },
+    {
+     "code": "PC5101",
+     "title": "Physics and Technology"
+    },
+    {
+     "code": "PC5102",
+     "title": "Physics in Industry"
+    },
+    {
+     "code": "PC5189",
+     "title": "Graduate Seminar Course in Physics"
+    },
+    {
+     "code": "PC5203",
+     "title": "Advanced Solid State Physics"
+    },
+    {
+     "code": "PC5204",
+     "title": "Magnetism and Spintronics"
+    },
+    {
+     "code": "PC5205",
+     "title": "Topics in Surface Physics"
+    },
+    {
+     "code": "PC5207",
+     "title": "Topics in Optical Physics"
+    },
+    {
+     "code": "PC5212",
+     "title": "Physics of Nanostructures"
+    },
+    {
+     "code": "PC5213",
+     "title": "Advanced Biophysics"
+    },
+    {
+     "code": "PC5214",
+     "title": "Essential techniques in experimental physics"
+    },
+    {
+     "code": "PC5215",
+     "title": "Numerical Recipes With Applications"
+    },
+    {
+     "code": "PC5216",
+     "title": "Advanced Atomic & Molecular Physics"
+    },
+    {
+     "code": "PC5218",
+     "title": "Superconductivity and Superconducting Devices"
+    },
+    {
+     "code": "PC5221",
+     "title": "Quantum Many-Body Physics: an Informational Perspective"
+    },
+    {
+     "code": "PC5228",
+     "title": "Quantum Information and Computation"
+    },
+    {
+     "code": "PC5233",
+     "title": "Functional Electronic Devices of Tomorrow"
+    },
+    {
+     "code": "PC5236",
+     "title": "Atomistic modelling of electronic materials under nonequilibrium conditions"
+    },
+    {
+     "code": "PC5239B",
+     "title": "Variational Principles"
+    },
+    {
+     "code": "PC5252",
+     "title": "Bayesian Statistics and Machine Learning"
+    },
+    {
+     "code": "PC5253",
+     "title": "Complex Systems Analysis and Modelling"
+    },
+    {
+     "code": "PC5267",
+     "title": "Physics of Small Machines and Active Matters"
+    },
+    {
+     "code": "PC5271",
+     "title": "Physics of Sensors"
+    },
+    {
+     "code": "PC5274",
+     "title": "Advanced Mathematical Methods in Physics"
+    },
+    {
+     "code": "PC5286",
+     "title": "MSc Physics Coursework Project"
+    },
+    {
+     "code": "PC5287",
+     "title": "M.SC Coursework Thesis for Physics And Technology"
+    }
+   ]
+  },
+  {
+   "id": "8-phys-closed:patterns",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^(AIS5|PC33)\\d"
+   },
+   "reason": "Listed by Physics as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Physics), p18",
+   "quote": "Courses NOT open Non-Graduating students (AIS5xxx: All AIS courses; PC33xx: Undergraduate Professional Internship Programme)"
+  },
+  {
+   "id": "8-stats-closed",
+   "effect": "closed",
+   "match": {
+    "codes": [
+     "DSA1101",
+     "DSA2101",
+     "DSA3101",
+     "DSA3361",
+     "DSA3362",
+     "DSA4213",
+     "DSA4261",
+     "DSA4261A",
+     "DSA4261B",
+     "DSA4262",
+     "DSA4262A",
+     "DSA4262B",
+     "DSA4263",
+     "DSA4263A",
+     "DSA4263B",
+     "DSA4264",
+     "DSA4264A",
+     "DSA4264B",
+     "DSA4265",
+     "DSA4265A",
+     "DSA4265B",
+     "DSA4266",
+     "DSA4266A",
+     "DSA4266B",
+     "DSE1101",
+     "DSE3101",
+     "DSE4101"
+    ]
+   },
+   "reason": "Listed by Statistics and Data Science as not available to exchange students.",
+   "cite": "restrictions PDF §8 (Statistics and Data Science), p19",
+   "quote": "Courses NOT open Non-Graduating students",
+   "titles": [
+    {
+     "code": "DSA1101",
+     "title": "Introduction to Data Science"
+    },
+    {
+     "code": "DSA2101",
+     "title": "Essential Data Analytics Tools: Data Visualisation"
+    },
+    {
+     "code": "DSA3101",
+     "title": "Data Science in Practice"
+    },
+    {
+     "code": "DSA3361",
+     "title": "Inferential Data Analytics"
+    },
+    {
+     "code": "DSA3362",
+     "title": "Predictive Data Analytics"
+    },
+    {
+     "code": "DSA4213",
+     "title": "Natural Language Processing for Data Science"
+    },
+    {
+     "code": "DSA4261",
+     "title": "Sense-making Case Analysis: Logistics and Transport"
+    },
+    {
+     "code": "DSA4261A",
+     "title": "Sense-making Case Analysis: Logistics"
+    },
+    {
+     "code": "DSA4261B",
+     "title": "Sense-making Case Analysis: Transport"
+    },
+    {
+     "code": "DSA4262",
+     "title": "Sense-making Case Analysis: Health and Medicine"
+    },
+    {
+     "code": "DSA4262A",
+     "title": "Sense-making Case Analysis: Health"
+    },
+    {
+     "code": "DSA4262B",
+     "title": "Sense-making Case Analysis: Medicine"
+    },
+    {
+     "code": "DSA4263",
+     "title": "Sense-making Case Analysis: Business and Commerce"
+    },
+    {
+     "code": "DSA4263A",
+     "title": "Sense-making Case Analysis: Business"
+    },
+    {
+     "code": "DSA4263B",
+     "title": "Sense-making Case Analysis: Commerce"
+    },
+    {
+     "code": "DSA4264",
+     "title": "Sense-making Case Analysis: Public Policy and Society"
+    },
+    {
+     "code": "DSA4264A",
+     "title": "Sense-making Case Analysis: Public Policy"
+    },
+    {
+     "code": "DSA4264B",
+     "title": "Sense-making Case Analysis: Society"
+    },
+    {
+     "code": "DSA4265",
+     "title": "Sense-making Case Analysis: Economics and Finance"
+    },
+    {
+     "code": "DSA4265A",
+     "title": "Sense-making Case Analysis: Economics"
+    },
+    {
+     "code": "DSA4265B",
+     "title": "Sense-making Case Analysis: Finance"
+    },
+    {
+     "code": "DSA4266",
+     "title": "Sense-making Case Analysis: Science and Technology"
+    },
+    {
+     "code": "DSA4266A",
+     "title": "Sense-making Case Analysis: Science"
+    },
+    {
+     "code": "DSA4266B",
+     "title": "Sense-making Case Analysis: Technology"
+    },
+    {
+     "code": "DSE1101",
+     "title": "Introductory Data Science for Economics"
+    },
+    {
+     "code": "DSE3101",
+     "title": "Practical Data Science for Economics"
+    },
+    {
+     "code": "DSE4101",
+     "title": "Capstone Project in Data Science and Economics I"
+    }
+   ]
+  },
+  {
+   "id": "8-stats-l56",
+   "effect": "closed",
+   "match": {
+    "codeRe": "^(ST|DSS)\\d",
+    "levels": [
+     5,
+     6
+    ]
+   },
+   "reason": "ST and DSS graduate courses are not open to exchange students.",
+   "cite": "restrictions PDF §8 (Statistics and Data Science), p19",
+   "quote": "All ST/DSS level 5000/6000 courses are NOT open to Non-Graduating students."
+  },
+  {
+   "id": "10-rmi-approval",
+   "effect": "note",
+   "note": "approval",
+   "match": {
+    "departments": [
+     "Risk Management Institute"
+    ]
+   },
+   "reason": "Only some of these courses are open to exchange students, and you need approval: NUS decides each request separately. Ask NUS how to apply.",
+   "cite": "restrictions PDF §10, p19",
+   "quote": "Courses open to Non-Graduating students are limited and approval will be done on a case-by-case basis."
+  },
+  {
+   "id": "10-rmi-fee",
+   "effect": "note",
+   "note": "fee",
+   "match": {
+    "departments": [
+     "Risk Management Institute"
+    ]
+   },
+   "reason": "You must pay a tuition fee for each of these courses you take.",
+   "cite": "restrictions PDF §10, p19",
+   "quote": "Students will be required to pay for the per Course tuition fees."
+  },
+  {
+   "id": "11-scale-closed",
+   "effect": "closed",
+   "match": {
+    "faculties": [
+     "Cont and Lifelong Education"
+    ]
+   },
+   "reason": "SCALE courses are not open to exchange students.",
+   "cite": "restrictions PDF §11, p20",
+   "quote": "All courses are not open to Non-Graduating students."
+  },
+  {
+   "id": "12-tli-closed",
+   "effect": "closed",
+   "match": {
+    "faculties": [
+     "Logistics Inst-Asia Pac"
+    ]
+   },
+   "reason": "Logistics Institute courses are not open to exchange students.",
+   "cite": "restrictions PDF §12, p20",
+   "quote": "All courses are not open to Non-Graduating students."
+  },
+  {
+   "id": "Q1c-ar-dual-coded",
+   "effect": "open",
+   "match": {
+    "codes": [
+     "AR5221",
+     "AR5321",
+     "AR5601"
+    ]
+   },
+   "cite": "Jacob's Q1c; register: dual-coded pairs",
+   "reason": "Dual-coded with an undergraduate Architecture course that is open to Architecture majors."
+  }
+ ],
+ "lists": {
+  "ystElectives": {
+   "1": [
+    "CFA1101A",
+    "CFA1101B",
+    "CFA1112",
+    "CFA2101A",
+    "CFA2101B",
+    "CFA2210",
+    "CFA2211",
+    "CFA3101A",
+    "CFA3101B",
+    "CFA3102A",
+    "CFA3102B",
+    "CFA3105",
+    "CFA3160",
+    "CFA3210",
+    "CFA3211",
+    "CFA3220",
+    "GEC1014",
+    "GEC1023",
+    "GES1020",
+    "GESS1015",
+    "MUA1192",
+    "MUA1193",
+    "MUA1223",
+    "MUA1240",
+    "MUA2192",
+    "MUA2193",
+    "MUA2203",
+    "MUA3205",
+    "MUA3206",
+    "MUA3219",
+    "MUA3220",
+    "MUA3224",
+    "MUA3225",
+    "MUA3228",
+    "MUA3230",
+    "MUH2204",
+    "MUL1105",
+    "MUL2107",
+    "MUL2109",
+    "MUT1201",
+    "MUT3211",
+    "MUT3222"
+   ],
+   "2": [
+    "CFA1101B",
+    "CFA1220",
+    "CFA2101B",
+    "CFA2210",
+    "CFA2211",
+    "CFA3101B",
+    "CFA3105",
+    "CFA3160",
+    "CFA3210",
+    "CFA3220",
+    "GEC1014",
+    "GEC1023",
+    "GESS1015",
+    "MUA1165",
+    "MUA1192",
+    "MUA1193",
+    "MUA1223",
+    "MUA1240",
+    "MUA2192",
+    "MUA2193",
+    "MUA2204",
+    "MUA2230",
+    "MUA3205",
+    "MUA3206",
+    "MUA3208",
+    "MUA3217",
+    "MUA3219",
+    "MUA3220",
+    "MUA3224",
+    "MUA3225",
+    "MUH3203",
+    "MUH3205",
+    "MUL1106",
+    "MUL2108",
+    "MUL2110",
+    "MUT1201",
+    "MUT3113"
+   ]
+  }
+ },
+ "info": [
+  {
+   "id": "A-fee",
+   "why": "applies only after an exceptional approval of a closed course"
+  },
+  {
+   "id": "D-level-digit",
+   "why": "definition"
+  },
+  {
+   "id": "D-ug-levels",
+   "why": "definition"
+  },
+  {
+   "id": "D-grad-levels-closed-exchange",
+   "why": "built into src/eligibility.js as the level default (plan §2 step 2)"
+  },
+  {
+   "id": "E-case-by-case",
+   "why": "Jacob's Q7: courses off the NG list are hidden"
+  },
+  {
+   "id": "E-offerings-list",
+   "why": "Jacob's Q7",
+   "text": "If the courses cannot be found at the Course offerings list, they are not available during application stage but may be available during Course registration.",
+   "scope": {}
+  },
+  {
+   "id": "F-links",
+   "why": "links only"
+  },
+  {
+   "id": "2-biz-no-late-add",
+   "why": "why rule E can't apply to Business (plan §2 step 1); off-list courses are hidden anyway",
+   "text": "If you have not been offered Business courses at the point of initial acceptance (first week of June or November), you will not be able to add the Course during the Submit Course Requests period.",
+   "scope": {
+    "faculties": [
+     "NUS Business School"
+    ]
+   }
+  },
+  {
+   "id": "4-cee-no-appeal",
+   "why": "about courses off the NG list, which Jacob's Q7 hides",
+   "text": "No appeal will be accepted for any Level 1000 to Level 4000 courses that are not listed in the NG Course offerings list.",
+   "scope": {
+    "departments": [
+     "Civil and Environmental Engineering"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   }
+  },
+  {
+   "id": "4-isem-no-appeal",
+   "why": "about courses off the NG list, which Jacob's Q7 hides",
+   "text": "No appeals will be accepted for any level 1000 to level 4000 courses that are not listed in the NG courses listing.",
+   "scope": {
+    "departments": [
+     "Industrial Systems Engineering and Management"
+    ],
+    "levels": [
+     1,
+     2,
+     3,
+     4
+    ]
+   }
+  },
+  {
+   "id": "5-law-double-major",
+   "why": "a condition on double majors, covered by the Law major note"
+  },
+  {
+   "id": "6-music-core-partner",
+   "why": "applied through the electives whitelist (6-music-electives-whitelist): what isn't a listed elective is a core course"
+  },
+  {
+   "id": "9-usp-partner",
+   "why": "Jacob's Q6: NUS College courses are open"
+  }
+ ]
+}
