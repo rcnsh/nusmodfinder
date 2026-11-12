@@ -419,7 +419,10 @@ function workEntry(e, answer, ctx) {
   }
   const kinds = w.reasons.map((r) => r.kind);
   w.audition = kinds.includes('audition');
-  if (ngListed) w.lines.push(ngLine);
+  const unpublished = w.reasons.find((r) => r.id === UNPUBLISHED);
+  // G2: in a semester NUS hasn't published, the listing is last year's, so the line says so.
+  const listedLine = unpublished ? `${unpublished.text.replace(/\.$/, '')}, and NUSMods shows no classes: ask NUS` : ngLine;
+  if (ngListed) w.lines.push(listedLine);
   if (w.faculty) {
     if (ctx.inv.includes(w.faculty)) w.lines.push(...BIZ_LAW.invited[w.faculty]);
     else {
@@ -429,9 +432,8 @@ function workEntry(e, answer, ctx) {
       return as('invite', w.faculty === 'biz' ? 'Only for students invited by NUS Business School' : 'Only for students invited by NUS Law');
     }
   }
-  if (ngListed) return as('confirm', ngLine);
+  if (ngListed) return as('confirm', listedLine);
   if (w.audition) return as('confirm', 'Apply separately: see the note');
-  const unpublished = w.reasons.find((r) => r.id === UNPUBLISHED);
   if (unpublished) return as('confirm', `To confirm with NUS: ${unpublished.text.replace(/\.$/, '')}`);
   if (kinds.some((k) => !CONDITION_KINDS.includes(k))) return as('confirm', 'To confirm with NUS: read its notes');
   return as('counted', x.status === 'open' ? 'Counted' : 'Counted, if NUS accepts you: read its notes');

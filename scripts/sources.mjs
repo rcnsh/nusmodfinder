@@ -29,7 +29,7 @@
 // additional data, so an archive can't be passed off as another revision's.
 import { spawnSync } from 'node:child_process';
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -55,15 +55,33 @@ export const sha256 = (b) => createHash('sha256').update(b).digest('hex');
  */
 export function keyPath({ key, env = process.env } = {}) {
   const path = resolve(key ?? env.VNM_SOURCES_KEY_FILE ?? DEFAULT_KEY_PATH);
-  if (basename(path) === HOLDOUT_KEY_NAME || path === resolve(env.VNM_HOLDOUT_KEY_FILE ?? join(homedir(), '.config/vnm', HOLDOUT_KEY_NAME))) {
+  const holdout = resolve(env.VNM_HOLDOUT_KEY_FILE ?? join(homedir(), '.config/vnm', HOLDOUT_KEY_NAME));
+  // macOS's file system ignores case, so the names compare without it.
+  if (isHoldoutName(path) || path.toLowerCase() === holdout.toLowerCase()) {
     throw new Error(`${path} is the holdout key's path; the sources archive has its own key (--key, VNM_SOURCES_KEY_FILE, default ${DEFAULT_KEY_PATH})`);
   }
   return path;
 }
 
-/** Reads a key file (64 hex, a newline allowed). @param {string} path @returns {Buffer} */
-export function readKey(path) {
+/** @param {string} path */
+const isHoldoutName = (path) => basename(path).toLowerCase() === HOLDOUT_KEY_NAME;
+
+/**
+ * Reads a key file (64 hex, a newline allowed). Before reading, it follows symlinks and refuses a
+ * file that is the holdout key under another name: one named holdout.key in any case, or the file
+ * VNM_HOLDOUT_KEY_FILE names (same device and inode). It never opens the holdout key to compare.
+ * @param {string} path @param {NodeJS.ProcessEnv} [env] @returns {Buffer}
+ */
+export function readKey(path, env = process.env) {
   if (!existsSync(path)) throw new Error(`no sources key at ${path} (npm run sources -- keygen --out <path>, or restore it from Bitwarden: nusmodfinder/sources-archive-key)`);
+  const real = realpathSync(path);
+  const refuse = () => new Error(`${path} is the holdout key (${real}); the sources archive has its own key`);
+  if (isHoldoutName(real)) throw refuse();
+  if (env.VNM_HOLDOUT_KEY_FILE && existsSync(env.VNM_HOLDOUT_KEY_FILE)) {
+    const a = statSync(real);
+    const b = statSync(env.VNM_HOLDOUT_KEY_FILE);
+    if (a.dev === b.dev && a.ino === b.ino) throw refuse();
+  }
   const text = readFileSync(path, 'utf8').trim();
   if (!/^[0-9a-f]{64}$/i.test(text)) throw new Error(`${path} is not a sources key (64 hex characters)`);
   return Buffer.from(text, 'hex');
@@ -75,7 +93,7 @@ export function readKey(path) {
  */
 export function keygen(out) {
   const path = resolve(out);
-  if (basename(path) === HOLDOUT_KEY_NAME) throw new Error(`${path} is the holdout key's name; choose another`);
+  if (isHoldoutName(path)) throw new Error(`${path} is the holdout key's name; choose another`);
   if (existsSync(path)) throw new Error(`${path} exists; keygen never overwrites a key`);
   mkdirSync(join(path, '..'), { recursive: true, mode: 0o700 });
   writeFileSync(path, `${randomBytes(32).toString('hex')}\n`, { flag: 'wx', mode: 0o600 });
@@ -195,7 +213,7 @@ export async function publish({ from, year = DEFAULT_ACAD_YEAR, revision, key, r
   const pending = rev.documents.filter((d) => d.confirm?.some((k) => k === 'file' || k === 'sha256' || k === 'text'));
   for (const d of pending) problems.push(`${d.id}: its ${d.confirm?.join(', ')} still to confirm; fill them in (or mark it \`unarchived\` with the reason) first`);
   if (problems.length) throw new Error(`refusing to publish ${rev.date}:\n  ${problems.join('\n  ')}`);
-  const k = readKey(keyPath({ ...(key ? { key } : {}), env }));
+  const k = readKey(keyPath({ ...(key ? { key } : {}), env }), env);
   const archive = seal({ year, revision: rev.date, files, key: k });
   const release = releaseName(year, rev.date);
   const asset = `${release}.vnmsrc`;
@@ -237,7 +255,7 @@ export async function restore({ year = DEFAULT_ACAD_YEAR, revision, key, out, ro
   const rev = revisionOf(manifest, revision);
   if (!rev) throw new Error(`${rel} has no revision ${revision ?? '(none)'}`);
   if (!rev.archive.sha256) throw new Error(`${rel} revision ${rev.date}'s archive is pending (${rev.archive.pending ?? 'not published'}): npm run sources -- publish --from <dir>`);
-  const k = readKey(keyPath({ ...(key ? { key } : {}), env }));
+  const k = readKey(keyPath({ ...(key ? { key } : {}), env }), env);
   const dl = mkdtempSync(join(tmpdir(), 'vnm-sources-dl-'));
   try {
     await download(rev.archive.release, rev.archive.asset, dl);

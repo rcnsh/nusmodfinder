@@ -236,10 +236,14 @@ export async function yearCheckFull({ root = ROOT, year, key, download, runsDir,
 
   const exec = execIn(root);
   const quoteFiles = [...new Set((manifest?.quotes ?? []).map((q) => q.file))];
-  const dirty = await exec('git', ['status', '--porcelain', '--', 'data', 'scripts/ng-overlay', ...quoteFiles]);
-  const dirt = dirty.stdout.split('\n').filter((l) => l && (/ data\/ng-/.test(l) || / scripts\/ng-overlay\//.test(l) || quoteFiles.some((f) => l.endsWith(` ${f}`))));
+  // Everything the rebuild reads from the tree, not only what the preflight hashes: a rules file
+  // edited by hand must not pass against an uncommitted transcription or builder.
+  const builderFiles = [manifest?.transcription, 'scripts/build-ng-restrictions.mjs', 'scripts/ng-sources.mjs'].filter((f) => typeof f === 'string');
+  const dirty = await exec('git', ['status', '--porcelain', '--', 'data', 'scripts/ng-overlay', ...quoteFiles, ...builderFiles]);
+  const dirt = dirty.stdout.split('\n').filter((l) => l && (/ data\/ng-/.test(l) || / scripts\/ng-overlay\//.test(l)
+    || [...quoteFiles, ...builderFiles].some((f) => l.endsWith(` ${f}`))));
   if (dirty.code !== 0 || dirt.length) {
-    return { ok: false, problems: [`commit the source-derived inputs first, so the record names their committed bytes:\n${dirt.join('\n')}`], notes, record: null, sourceInputsHash: null };
+    return { ok: false, problems: [`commit the source-derived inputs (and the transcription and builder) first, so the record names their committed bytes:\n${dirt.join('\n')}`], notes, record: null, sourceInputsHash: null };
   }
   const hash = await sourceInputsHash(exec);
   const record = startRun('year check', { target: `sources archive ${rev.archive.release}`, args, cwd: root, ...(runsDir ? { dir: runsDir } : {}) });

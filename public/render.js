@@ -175,7 +175,7 @@ function exchangeBlock(m, filters) {
     const shared = per[0].notes.filter((n) => texts[1].has(n.text));
     const only = per.map((p, i) => p.notes.filter((n) => !texts[1 - i].has(n.text)));
     return h('div', { class: 'exchange guide' },
-      h('div', { class: 'stamps both' }, ...per.map((p) => stamp(p.status, stampText(p.status, p.sem, p.notes.length, true)))),
+      h('div', { class: 'stamps both' }, ...per.map((p) => stamp(p.status, stampText(p.status, p.sem, p.notes.map((n) => n.r), true)))),
       notesBox([
         { scope: `Notes for ${semLabel(1)}`, items: only[0] },
         { scope: `Notes for ${semLabel(2)}`, items: only[1] },
@@ -187,7 +187,7 @@ function exchangeBlock(m, filters) {
     const status = statusOf(m.exchange);
     const notes = reasonsOf(m.exchange).map((r) => ({ r, text: noteText(r, sem) }));
     return h('div', { class: 'exchange guide' },
-      h('div', { class: 'stamps' }, stamp(status, stampText(status, sem, notes.length))),
+      h('div', { class: 'stamps' }, stamp(status, stampText(status, sem, notes.map((n) => n.r)))),
       notesBox([{ scope: '', items: notes }]));
   }
   if (!m.ng) return null;

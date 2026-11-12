@@ -3,7 +3,7 @@
 // (scripts/sources.mjs). Every case uses fake documents, a throwaway key and a fake release store
 // in temp dirs: no real document, key or release is touched. The key path never defaults to, or
 // reads, the holdout key's.
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, linkSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -42,6 +42,19 @@ describe('the key', () => {
     expect(() => keyPath({ env: { VNM_SOURCES_KEY_FILE: join(homedir(), '.config/vnm/holdout.key') } })).toThrow(/holdout key/);
     expect(() => keyPath({ key: join(dir, 'x'), env: { VNM_HOLDOUT_KEY_FILE: join(dir, 'x') } })).toThrow(/holdout key/);
     expect(() => keygen(join(dir, 'holdout.key'))).toThrow(/holdout key/);
+  });
+
+  it('never reads the holdout key under another name: any case, a symlink, a hard link (a fake holdout key in a temp dir)', () => {
+    const holdout = join(dir, 'holdout.key');
+    writeFileSync(holdout, `${'ef'.repeat(32)}\n`);
+    const env = { VNM_HOLDOUT_KEY_FILE: holdout };
+    for (const name of ['HOLDOUT.KEY', 'Holdout.key']) expect(() => keyPath({ key: join(dir, name), env: {} })).toThrow(/holdout key/);
+    symlinkSync(holdout, join(dir, 'via-symlink.key'));
+    expect(() => readKey(join(dir, 'via-symlink.key'), {})).toThrow(/is the holdout key/);
+    linkSync(holdout, join(dir, 'via-hardlink.key'));
+    expect(() => readKey(join(dir, 'via-hardlink.key'), env)).toThrow(/is the holdout key/);
+    writeFileSync(join(dir, 'own.key'), `${'ab'.repeat(32)}\n`);
+    expect(readKey(join(dir, 'own.key'), env).toString('hex')).toBe('ab'.repeat(32));
   });
 
   it('refuses a missing or malformed key file', () => {

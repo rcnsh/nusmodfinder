@@ -89,10 +89,16 @@ describe('the --full record and the deploy preflight', () => {
     expect(after.message).toContain(rel);
   });
 
+  it('--full refuses an uncommitted transcription: the rebuild reads it from the tree', async () => {
+    const rel = readJson(root, `data/ng-sources-${Y}.json`).transcription;
+    appendFileSync(join(root, rel), '\n');
+    expect((await full()).problems.join('\n')).toMatch(new RegExp(`commit the source-derived inputs[^]*${rel.replaceAll('.', '\\.')}`));
+  });
+
   it('--full refuses uncommitted source-derived inputs, and a pending archive', async () => {
     const rel = `data/ng-courses-${Y}.json`;
     appendFileSync(join(root, rel), '\n');
-    expect((await full()).problems.join('\n')).toMatch(/commit the source-derived inputs first/);
+    expect((await full()).problems.join('\n')).toMatch(/commit the source-derived inputs/);
     git(root, ['checkout', '--', rel]);
     const m = readJson(root, `data/ng-sources-${Y}.json`);
     m.revisions.at(-1).archive = { ...m.revisions.at(-1).archive, sha256: null, pending: 'not yet' };

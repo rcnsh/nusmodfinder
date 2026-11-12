@@ -66,10 +66,17 @@ export function sourceNote(id, sources) {
   return date ? `${label}, updated ${date}` : label;
 }
 
-/** @param {Status} status */
-export function statusText(status) {
+/**
+ * Whether a semester's reasons ask the student to confirm with NUS first (kind `ask`: G2's
+ * semester NUS hasn't published, Phase 7 7E), so its stamp says "To confirm", never "Open".
+ * @param {number | { kind?: string }[] | undefined} notes
+ */
+const asksToConfirm = (notes) => Array.isArray(notes) && notes.some((r) => r?.kind === 'ask');
+
+/** @param {Status} status @param {{ kind?: string }[]} [reasons] */
+export function statusText(status, reasons) {
   if (status === 'open') return 'Open to exchange students';
-  if (status === 'note') return 'Open to exchange students, with notes';
+  if (status === 'note') return asksToConfirm(reasons) ? 'To confirm with NUS, with notes' : 'Open to exchange students, with notes';
   return 'Not open to exchange students';
 }
 
@@ -78,13 +85,15 @@ export function statusText(status) {
  * notes", or, where two stamps sit side by side, "Sem 1 · Open, 2 notes".
  * @param {Status} status
  * @param {number | string} sem 1, 2, or 'any' (no semester chosen)
- * @param {number} notes how many notes the semester has
+ * @param {number | { kind?: string }[]} notes the semester's notes, or how many it has
  * @param {boolean} [short] the both-semesters card's shorter form
  */
 export function stampText(status, sem, notes, short = false) {
   const where = sem === 'any' || sem === '' ? 'Either semester' : semLabel(sem);
-  const n = `${notes} note${notes === 1 ? '' : 's'}`;
+  const count = Array.isArray(notes) ? notes.length : notes;
+  const n = `${count} note${count === 1 ? '' : 's'}`;
   if (status === 'open') return `${where} · Open${short ? '' : ' to exchange students'}`;
+  if (status === 'note' && asksToConfirm(notes)) return `${where} · To confirm${short ? `, ${n}` : ` with NUS, with ${n}`}`;
   if (status === 'note') return `${where} · Open, ${short ? n : `with ${n}`}`;
   return `${where} · Not open${short ? '' : ' to exchange students'}`;
 }

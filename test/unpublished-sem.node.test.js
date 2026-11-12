@@ -17,11 +17,11 @@ import { yearLabel } from '../scripts/ng-sources.mjs';
 import {
   eligibility, eligibilityMask, NOT_NG_IN_SEM, NG_SEMS, STUDIES, UNPUBLISHED_SEM, UNPUBLISHED_UNLISTED,
 } from '../src/eligibility.js';
-import { hiddenCodeStamp, noteLead, sourceNote } from '../public/explain.js';
+import { hiddenCodeStamp, noteLead, sourceNote, stampText, statusText } from '../public/explain.js';
 import { parseList } from '../public/list.js';
 import { answerOf, workOut } from '../public/shortlist.js';
 import { oracleFor } from './sc1/oracle.mjs';
-import { FIXTURE, REASONS_FILE, exchange, synthOutcome } from './web/shortlist-answers.node.mjs';
+import { FIXTURE, REASONS_FILE, exchange, ngListedOutcome, synthOutcome } from './web/shortlist-answers.node.mjs';
 import { LAST, REPO, Y, readJson, writeJson } from './year-fakes.node.mjs';
 
 /** @type {import('../src/eligibility.js').Rules} */
@@ -136,6 +136,15 @@ describe('G2\'s words', () => {
     expect(sourceNote(UNPUBLISHED_SEM, [])).toBe('NG list');
   });
 
+  it('a card stamps a carried course "To confirm", never "Open"; other notes keep "Open, with notes"', () => {
+    const ask = [{ id: UNPUBLISHED_SEM, kind: 'ask', text: 'x' }];
+    expect(stampText('note', 2, ask)).toBe('Sem 2 · To confirm with NUS, with 1 note');
+    expect(stampText('note', 2, ask, true)).toBe('Sem 2 · To confirm, 1 note');
+    expect(statusText('note', ask)).toBe('To confirm with NUS, with notes');
+    expect(stampText('note', 2, [{ kind: 'quota' }])).toBe('Sem 2 · Open, with 1 note');
+    expect(stampText('note', 2, 1)).toBe('Sem 2 · Open, with 1 note');
+  });
+
   it('a hidden code unlisted in an unpublished semester says so', () => {
     const ex = /** @type {any} */ (exchange({ 1: ['open', []], 2: ['closed', [UNPUBLISHED_UNLISTED]] }));
     expect(hiddenCodeStamp({ sem: '2', study: 'ug2', exchange: ex }).text).toBe("Not on last year's NG list for Sem 2");
@@ -156,6 +165,16 @@ describe('G2\'s words', () => {
     expect(at('XX2102')).toMatchObject({ standing: 'out', why: `Not on NUS's ${yearLabel(LAST)} list for this semester, and NUS hasn't published ${yearLabel(Y)}'s yet` });
     expect(at('XX2103')).toMatchObject({ standing: 'counted' });
     expect(r.sems[2]).toMatchObject({ counted: 0, confirm: 4 });
+  });
+
+  it('an NG-listed course with no classes, carried into an unpublished Sem 2, says the listing is last year\'s', () => {
+    const { list } = parseList(new URLSearchParams('ng=1&study=ug2&pick=XX4101.2'));
+    const answers = new Map([['XX4101', answerOf(ngListedOutcome('XX4101', {
+      ngSemesters: [1, 2], ngUnpublished: [2], exchange: exchange({ 1: ['open', []], 2: ['note', [UNPUBLISHED_SEM]] }),
+    }))]]);
+    const w = workOut({ list, sem: '2', study: 'ug2', answers, rules: REASONS_FILE.offListRules }).entries[0];
+    expect(w).toMatchObject({ standing: 'confirm', why: `On NUS's ${yearLabel(LAST)} list; NUS hasn't published ${yearLabel(Y)}'s yet, and NUSMods shows no classes: ask NUS` });
+    expect(w.why).not.toMatch(/NUS lists it for Sem 2/);
   });
 });
 
