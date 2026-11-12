@@ -308,8 +308,10 @@ checks every text/background and boundary pair in both themes against WCAG AA.
   while a search runs; the Search button is never disabled (a second press aborts the first).
   Escape closes the open detail and focus returns to its button, as it does after Back to an
   open detail. Every control shows a 2px plum focus ring, and nothing covers it (the sticky
-  header leaves a scroll padding of its height). A person runs the VoiceOver walkthrough in
-  `docs/evidence/phase5/voiceover-checklist.md` (macOS Safari) locally and live.
+  header leaves a scroll padding of its height). There is no manual VoiceOver walkthrough
+  (Jacob, 2026-11-11, ADR 0008): the screen-reader flow rests on the aria snapshots, the
+  live-region specs and axe; `docs/evidence/phase5/voiceover-checklist.md` is kept for anyone who
+  wants to run it.
 - **The shortlist's state** (Phase 6 6B; `docs/plans/phase6.md` 6B, ADR 0010). The list lives
   in the URL with no account: `pick` (primary) and `alt` (backup), each repeated in rank order,
   each `CODE.S` (S is 1 or 2) or an untagged `CODE`, then `ay`, `inv` and `view`, e.g.
