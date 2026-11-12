@@ -1,0 +1,39 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T09:08:52.905Z",
+  "finishedAt": "2026-11-12T09:09:00.404Z",
+  "script": "sources publish",
+  "args": [
+    "publish",
+    "--from",
+    "/tmp/p7src/rev-2026-11-10"
+  ],
+  "commit": {
+    "sha": "ad6da50a9044692b2701f293ccecd427f1a30514",
+    "dirty": true,
+    "diffSha256": "9099bb1e5785b237e462a4073eb71d6371da92c9768a13e4a4eb0a0a501e8e03"
+  },
+  "target": "GitHub release sources-2026-2027-20261110",
+  "read": [],
+  "written": [
+    {
+      "what": "GitHub release asset",
+      "estimate": null,
+      "actual": 1
+    }
+  ],
+  "requests": {
+    "gh release create": 1
+  },
+  "versions": {
+    "release": "sources-2026-2027-20261110"
+  },
+  "bookmark": null,
+  "details": {
+    "sha256": "003255d62bd9679699c43a45c75e2364c70c00860707b063a45987c493d1f106",
+    "files": 19
+  },
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}

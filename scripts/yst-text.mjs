@@ -11,8 +11,10 @@
 // manifest's for the committed extraction (the lead's check on the Mac, against the saved page).
 //
 // One text node per line: <script>, <style> and comments dropped; every tag ends a node; entities
-// decoded; each node's white space collapsed to single spaces and trimmed; empty nodes dropped;
-// a newline after every line.
+// decoded; each node's ASCII white space collapsed to single spaces (a no-break space inside a node
+// stays, as the hand extraction kept it), then trimmed of every space, no-break ones included;
+// empty nodes dropped; lines joined by newlines, with none after the last. The two committed
+// extractions reproduce byte for byte from the saved pages (checked on the Mac, 2026-11-12).
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -25,9 +27,9 @@ export function ystText(html) {
     .replace(/<!--[\s\S]*?-->/g, '')
     .replace(/<(script|style)\b[\s\S]*?<\/\1\s*>/gi, '')
     .split(/<[^>]*>/)
-    .map((t) => decodeEntities(t).replace(/\s+/g, ' ').trim())
+    .map((t) => decodeEntities(t).replace(/[ \t\n\r\f\v]+/g, ' ').trim())
     .filter(Boolean);
-  return nodes.map((n) => `${n}\n`).join('');
+  return nodes.join('\n');
 }
 
 /** @param {string[]} argv @param {{ log?: (m: string) => void, out?: (s: string) => void }} [o] */
@@ -49,7 +51,7 @@ export function main(argv, { log = console.error, out = (s) => process.stdout.wr
   }
   if (parsed.values.out) {
     writeFileSync(parsed.values.out, text);
-    log(`yst-text: wrote ${text.split('\n').length - 1} lines to ${parsed.values.out} (sha256 ${sha})`);
+    log(`yst-text: wrote ${text ? text.split('\n').length : 0} lines to ${parsed.values.out} (sha256 ${sha})`);
   } else out(text);
   return 0;
 }
