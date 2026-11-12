@@ -519,31 +519,155 @@ another; a PR's new push cancels its superseded run. `test/ci-workflow.node.test
 ## Deploying
 
 ```bash
-npm run deploy
+npm run deploy                    # preflight, guard, upload, startup gate, promote, tag, triggers
+npm run deploy -- --preflight     # the preflight alone: before any D1 write (runbook step 3)
+npm run deploy -- --behind-ok     # a HEAD behind origin/main's tip (logged; see below)
 ```
 
-This is the only supported way to deploy. `scripts/deploy.mjs`:
+This is the only supported way to deploy, from the Mac or from GitHub Actions (below).
+`scripts/deploy.mjs`:
 
-1. refuses unless the working tree is clean and `HEAD` is already on `origin/main`. New,
-   untracked run records under `docs/evidence/ops/runs/` don't count as dirt; a modified tracked
-   file there still refuses;
-2. takes the production bundle `data/vectors.json` records (downloaded from its release if
-   absent), checks its sha256, and refuses the fixture or pinned bundle, or a data version that
-   is not `src/data-version.json`;
-3. **the guard**: reads D1's (code, `text_hash`, `row_hash`) through `/admin/hashes` on a
-   local `wrangler dev --remote` session with a one-off secret (~6.8k rows read), and refuses
-   unless they hash to the manifest's `rowsKey` and the committed data version. The session is
-   the one `npm run remote` uses (below), with its `code 10021` retries. No production secret is
-   ever bound;
-4. runs `wrangler check startup` locally with the bundle aliased in, then
-   `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`, and refuses to
+1. **the preflight** (`scripts/preflight.mjs`), every check but D1's, stopping at the first that
+   fails:
+   - `git`: the working tree is clean (new, untracked run records under `docs/evidence/ops/runs/`
+     aside; a modified tracked file there still refuses), nothing is hidden by assume-unchanged or
+     skip-worktree, and `HEAD` is on `origin/main` at its tip. A `HEAD` behind the tip refuses
+     unless `--behind-ok` (for when D1 was already written for `HEAD` and an unrelated PR merged
+     since); the flag is logged in the run record;
+   - `ci`: `HEAD`'s own `CI` and `Findings` push runs succeeded (`gh api …/actions/runs?head_sha=`).
+     A run in progress names `gh run watch <id> --exit-status`; a failed or cancelled one,
+     `gh run rerun <id>`;
+   - `vars`: `wrangler.jsonc`'s vars hold only `DENSE_BACKEND`;
+   - `bundle`: the production bundle `data/vectors.json` records (downloaded from its release if
+     absent), sha256-checked, at `src/data-version.json`'s data version; never the fixture or
+     pinned bundle;
+   - `corpus manifest` (7D, `scripts/corpus.mjs`) and `year check` in its CI mode (7E,
+     `scripts/year.mjs`): each runs its module's `preflight({ exec, head, log })`, and is
+     skipped, and says so in the output and the record, while that module is absent;
+   - `source inputs`: when `HEAD` changes a source-derived input (`data/ng-*`,
+     `scripts/ng-overlay/`) since the live commit (the newest `deploy/*` or `rollback/*` tag), a
+     committed `year check --full` run record (7E) whose `details.sourceInputsHash` is those
+     inputs' hash at `HEAD` (`sourceInputsHash` in `scripts/preflight.mjs`: sha256 over their
+     `git ls-tree` lines). A hotfix that touches none needs no sources key;
+   - `startup`: `wrangler check startup` locally with the bundle aliased in;
+2. **the guard** (`scripts/guard.mjs`): reads D1 over the D1 REST query endpoint
+   (`scripts/d1-rest.mjs`, ~6.8k rows read, the count taken from the answers' `meta.rows_read`)
+   and computes what `GET /admin/hashes` would answer, with the same code (`src/admin-hashes.js`).
+   It refuses unless D1's (code, `text_hash`) pairs hash to the bundle's `rowsKey` and D1's data
+   version is the committed one. No Worker session starts and no secret is bound. The checks are
+   a list (`GUARD_CHECKS`); one with a `field` also goes into the deploy tag and rollback's data
+   check (7D adds `catalogueKey` there);
+3. `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`, and refuses to
    promote a version whose reported startup time is missing or over 200 ms;
-5. only then `wrangler versions deploy <id>@100%`, then `wrangler triggers deploy` for the
-   Custom Domain.
+4. **the intent record**: the version id, the previous one (`wrangler deployments status
+   --json`), the data version and the startup time, printed and put in the run record before
+   the promote. If the live deployment can't be read, it doesn't promote;
+5. `wrangler versions deploy <id>@100%`, then **the tag**: an annotated
+   `deploy/<UTC yyyymmddThhmmssZ>-<version id, first 8>` on `HEAD`, one `key: value` paragraph
+   per field (`versionId`, `previousVersionId`, `commit`, `dataVersion`, the guard's fields,
+   `startupMs`, and `actionsRun` from Actions), pushed to origin. A failed push prints the
+   command to retry; the version is live either way. Then `wrangler triggers deploy` for the
+   Custom Domain. A SIGINT, SIGTERM or SIGHUP after the promote finishes the tag and the record,
+   skips the triggers (it prints the command) and exits 130, 143 or 129.
 
-Every run, refused or live, writes a run record (see "Operations" below) with the guard's read,
-the version id, the tag and the outcome. The live version's predecessor is the rollback target
-(`wrangler rollback <id>`).
+Every run, refused or live, writes one run record (see "Operations" below) with the preflight's
+checks, the guard's read, the version ids, the tag and the outcome; `--preflight` writes a
+`deploy:preflight` record, which `ingest` looks for. The tags are the deploy trace in git:
+`/health`'s `versionTag` is the commit of the newest `deploy/*` or `rollback/*` tag.
+
+**The D1 REST reads.** The client sends one statement per request and refuses, in code and
+before anything leaves, any statement but one `SELECT` or one schema-reading `PRAGMA`
+(`table_info`, `index_list` and the like, never an `=` form). The token is
+`CLOUDFLARE_API_TOKEN`, else `npx wrangler auth token --json` captured in-process (the Mac's
+wrangler login); it is never printed, logged, put in an error or recorded. The account is
+`CLOUDFLARE_ACCOUNT_ID`, else the account wrangler cached
+(`node_modules/.cache/wrangler/wrangler-account.json`); set the variable if neither is there. The
+database is `wrangler.jsonc`'s `DB` binding. Rollback and `d1:restore` read through the same
+client.
+
+**Deploying from GitHub Actions** (`.github/workflows/deploy.yml`, ADR 0011 G1). It runs on
+`workflow_run` when `CI` or `Findings` completes on `main`, and `scripts/deploy-gate.mjs` lets
+it deploy only when that sha's `CI` and `Findings` push runs both succeeded, the sha is still
+`main`'s tip (otherwise the newer commit's runs deploy it), and no `deploy/*` tag names it yet
+(the second event finds the first's tag). It checks out exactly that sha and runs
+`npm run deploy`, the same command as above, in the `deploy-production` concurrency group (never
+cancelled mid-run). Permissions: `contents: write` (the tag push) and `actions: read`. Only the
+deploy step sees `CLOUDFLARE_API_TOKEN` (a secret) and `CLOUDFLARE_ACCOUNT_ID` (a repo
+variable). The run record is kept as an artifact for 90 days and the job writes a summary;
+nothing is ever committed to `main` from CI, which would start CI and then a deploy in a loop.
+The pushed tag is the durable trace. Re-ingests (D1 writes) stay on the Mac: if the guard finds
+D1 differs from the bundle, the job fails, says the re-ingest runs on the Mac through the
+runbook, and deploys nothing; that deploy then runs on the Mac.
+
+**The kill switch:** the job runs only when the repo variable `DEPLOY_FROM_ACTIONS` is `true`.
+It is unset until the first Actions deploy has been watched (7G). Unset it to stop Actions
+deploys at once; the Mac's `npm run deploy` is unaffected.
+
+**The deploy token** (an account-owned API token, the dashboard's "API token for external
+CI/CD"), stored as the repo secret `CLOUDFLARE_API_TOKEN`:
+- Workers Scripts: Edit, on the `nusmodfinder` Worker only (`versions upload`, `versions
+  deploy`, `deployments status`);
+- Workers Routes: Edit, on the `rcn.sh` zone (`wrangler triggers deploy`, the Custom Domain);
+- D1: Read, for the account (the guard's REST query).
+
+7-0 proved it answers a `SELECT` over the D1 REST query. `versions upload`, `versions deploy`
+and `triggers deploy` with it are proven by the first watched Actions deploy.
+
+**Rollback.**
+
+```bash
+npm run rollback                         # to the deployment before the live one
+npm run rollback -- --to <version id>    # or its first 8
+```
+
+`scripts/rollback.mjs` takes the target's commit and data version from its `deploy/*` tag, reads
+D1 directly over the REST query (no Worker session, no working-tree code; ~6.8k rows today) and
+refuses unless every tagged field (`dataVersion`; 7D's `catalogueKey`) equals D1's. A deliberate
+mismatch needs `--accept-data-mismatch`, which prints the risk; the usual path across a data
+change is `npm run d1:restore` first, then rollback. It asks before acting (or `--yes`), runs
+`wrangler rollback <id> --message "rollback to <tag>" -y`, tags `rollback/<time>-<id8>` on the
+target's commit and pushes it (a failed tag is reported, not fatal), and prints
+`npm run smoke -- --expect <target sha>`. It needs no clean tree and no CI. The Vectorize standby
+is not rolled back: if it matters (a `DENSE_BACKEND` flip), rerun `npm run remote -- vectors
+standby` from the target commit. Wrangler leaves bound resources alone, so a rollback is code
+only. The rename made a new Worker: nothing before `59986aa3` is a target.
+
+**D1 bookmarks and restores.**
+
+```bash
+npm run d1:bookmark                      # D1's current Time Travel bookmark, recorded (a read)
+npm run d1:restore                       # back to the newest recorded bookmark (a D1 write)
+npm run d1:restore -- --bookmark <id>
+```
+
+`d1:bookmark` runs `wrangler d1 time-travel info nusmods-apac --json` and records the bookmark;
+the next `ingest` copies it into its own record. `d1:restore` takes the newest bookmark record
+(or `--bookmark`), prints it, its age and the ingest it came before, asks (or `--yes`), runs
+`wrangler d1 time-travel restore nusmods-apac --bookmark <id> --json`, records the restore with
+the bookmark that undoes it, and re-reads D1's data version over the REST query. The code stays
+where it is: this undoes "ingest done, deploy refused". Bookmarks reach back 30 days, and an
+older one is refused. A restore rewrites the database in place but isn't billed as rows written.
+
+**Smoke.**
+
+```bash
+npm run smoke                            # against HEAD's files
+npm run smoke -- --expect <sha>          # after a rollback, the target's
+```
+
+`scripts/smoke.mjs` sends five requests, one at a time, each at least 4 s after the last answer:
+`/health` (the tag is a prefix of the commit, the data version is its `src/data-version.json`, the
+bundle is `production`), `/` (200 with the CSP header), `/module/<code>` for a code in no group
+whose title is unique in that commit's corpus and bundle, `/search` for the title `/module`
+gave (`cache;desc=miss`, not degraded, the code in the top 5) and `/facets`. The data version,
+the groups and the bundle's codes come from the expected commit's files; titles come from the
+production corpus (`.data/cache` on the Mac until 7D's manifest). The URL is `wrangler.jsonc`'s
+Custom Domain at that commit, or `--url`.
+
+**Back-filled tags.** The two Phase 6 deploys predate the tags; `node scripts/deploy-tag.mjs
+backfill` prints the commands that create and push them (`deploy/20261111T183946Z-f8aefeab` on
+`0b5f360`, `deploy/20261111T235933Z-b0834844` on `a23601d`, both at data version
+`d820d578cf81`, marked `backfilled: true`). It runs nothing.
 
 Plain `npx wrangler deploy` would ship the fixture bundle. Don't use it.
 
@@ -661,8 +785,10 @@ git add data/vectors.json src/data-version.json data/vocabulary.json data/groups
 #    A new acad year also updates public/year.js and the header in public/index.html (the page's
 #    year before a row loads; test/web/shortlist.node.test.js checks both against data/ng-reasons.json).
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
-# 3. Note D1's current Time Travel bookmark: npx wrangler d1 time-travel info nusmods-apac
-#    (a read with no writer yet: add a requests.tsv row until 7B's npm run d1:bookmark records it).
+# 3. On merged main, before any D1 write: the preflight (every check but D1's), then D1's
+#    Time Travel bookmark, recorded (ingest copies it; d1:restore returns to it for 30 days).
+npm run deploy -- --preflight
+npm run d1:bookmark
 #    Steps 4, 5 and 8 each start their own wrangler dev --remote session through npm run remote:
 #    a free port, a one-off INGEST_SECRET in a temp env file, code 10021 retried for up to 30 min,
 #    the session stopped when the command ends. Nothing reads or writes .dev.vars.
@@ -672,19 +798,21 @@ npm run remote -- ingest --d1-only --offline
 #    data/ng-reasons.json's and data/ng-unscheduled.json's acadYear equal D1's acad_year, and the
 #    latter holds exactly the NG codes with no D1 row.
 npm run remote -- verify --pre-deploy
-# 6. Guard, startup gate, promote. The guard starts its own session, on a free port.
+# 6. Preflight, guard (over the D1 REST query; no session), startup gate, promote, tag, triggers.
 npm run deploy
-# 7. Smoke (≤ 4 calls): /health says vectors.corpus "production"; read CPUTimeMs in Workers Logs.
-#    No writer yet: add a requests.tsv row until 7B's npm run smoke records it.
-#    On failure: wrangler rollback <previous id>, restore D1 to the step-3 bookmark, revert step 2.
+# 7. Smoke: five requests, >= 4 s apart. On failure: npm run d1:restore, then npm run rollback,
+#    then npm run smoke -- --expect <target sha>. Deploy refused after step 4: npm run d1:restore,
+#    fix the cause, resume from step 3.
+npm run smoke
 # 8. The standby: upsert every code (bundle values, D1 metadata, ≤ 1,000 a batch), delete
 #    every index id D1 no longer holds, wait for the mutation, then verify, values included.
 npm run remote -- vectors standby
 ```
 
 Steps 4, 5, 6 and 8 leave run records (`npm run remote` writes one for the session, and the
-command its own); commit them with the change that follows. Steps 3 and 7 have no writer until
-Phase 7 7B adds `d1:bookmark` and `smoke`, so their calls still go in `requests.tsv` by hand. Between steps 4 and 6 the
+command its own); commit them with the change that follows. Steps 3, 6 and 7 leave theirs too
+(`deploy:preflight`, `d1:bookmark`, `deploy`, `smoke`); `ingest` warns when `HEAD` has no
+preflight record. Between steps 4 and 6 the
 live Worker searches its old bundle against the new D1, so `/search` re-checks every dense-only
 candidate's filters against its fresh D1 row after hydrate and drops those that fail. Its old
 groups and `ng-unscheduled.json` sit beside the new rows too: a code that gained a row answers
@@ -818,7 +946,7 @@ expose a write endpoint on the public URL.
 
 **`npm run remote -- [--port <n>] <command…>`** (`scripts/remote.mjs`, Phase 7 7C) runs one
 command against production D1, Vectorize and Workers AI through a fresh `wrangler dev --remote`
-session (`scripts/remote-session.mjs`, which the deploy guard shares):
+session (`scripts/remote-session.mjs`; the deploy guard no longer uses one, it reads D1 over REST):
 
 - `wrangler dev --remote --ip 127.0.0.1` on a free port; 8787 and 8799 belong to other projects
   on the dev Mac and are never used;
@@ -842,11 +970,12 @@ The exit code is the command's (1 when the session never answered, 2 on a usage 
 **Run records** (`scripts/run-record.mjs`). Every script that touches a remote writes one JSON
 file per run, on every exit path, at `docs/evidence/ops/runs/<UTC yyyymmddThhmmssZ>-<script>-<4
 hex>.json`. Unique names mean two worktrees never conflict. Commit them; `npm run deploy`
-ignores new, untracked ones when it checks the tree is clean. Writers today: `deploy`, `remote`,
-`ingest`, `verify`, `vectors standby`, `eval:embed` (which keeps `neurons.tsv` too), and
-`p5-live` and `p6-live` against a live URL (not `localhost`). Phase 7's later scripts (smoke,
-rollback, `d1:bookmark`, `d1:restore`, `corpus publish`, `sources publish`, the usage report,
-the schema capture) use the same module.
+ignores new, untracked ones when it checks the tree is clean. Writers today: `deploy` (and
+`deploy:preflight`), `remote`, `ingest`, `verify`, `vectors standby`, `smoke`, `rollback`,
+`d1:bookmark`, `d1:restore`, `eval:embed` (which keeps `neurons.tsv` too), and `p5-live` and
+`p6-live` against a live URL (not `localhost`). Phase 7's later scripts (`corpus publish`,
+`sources publish`, `year check --full`, the usage report, the schema capture) use the same
+module. An Actions deploy's record is a workflow artifact, not a commit.
 
 The record (schema `vnm-run/1`):
 

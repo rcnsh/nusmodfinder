@@ -54,7 +54,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { DEFAULTS, runIngest } from './ingest-core.mjs';
 import { workerUrl } from './remote-session.mjs';
-import { startRun } from './run-record.mjs';
+import { newestRecord, startRun } from './run-record.mjs';
 import {
   DEFAULT_ACAD_YEAR, DEFAULT_MAX_AGE_MS, EMBEDDING_MODEL, assertExpectedShape, catalogueOnlyRecords, facetsPayload, fetchAcadYearFile,
   loadNgCourses, offeredModules,
@@ -285,6 +285,29 @@ export function httpAdminApi(base, secret, fetchImpl = fetch) {
 /** @param {string} version */
 export const dataVersionFile = (version) => `${JSON.stringify({ version }, null, 2)}\n`;
 
+/**
+ * Phase 7 7B: the runbook takes a preflight (`npm run deploy -- --preflight`) and a bookmark
+ * (`npm run d1:bookmark`) before any D1 write. The newest bookmark record's bookmark goes into
+ * this run's record, so `d1:restore` can name the ingest it came before; a missing preflight
+ * record for HEAD is a warning, not a refusal.
+ * @param {import('./run-record.mjs').RunRecord} record
+ * @param {(line: string) => void} log
+ */
+function noteBookmarkAndPreflight(record, log) {
+  const mark = newestRecord(record.dir, (r) => r.script === 'd1:bookmark' && r.outcome === 'ok' && typeof r.bookmark === 'string' && r.bookmark);
+  if (mark) {
+    record.setBookmark(mark.record.bookmark);
+    record.detail('bookmarkRecord', mark.file);
+    log(`ingest: D1's bookmark before this run: ${mark.record.bookmark} (${mark.file}); \`npm run d1:restore\` returns to it.`);
+  } else {
+    log('ingest: warning: no d1:bookmark record; the runbook takes `npm run d1:bookmark` before any D1 write.');
+  }
+  const sha = record.data.commit.sha;
+  const pre = sha ? newestRecord(record.dir, (r) => r.script === 'deploy:preflight' && r.outcome === 'ok' && r.commit?.sha === sha) : null;
+  record.detail('preflight', pre?.file ?? null);
+  if (!pre) log(`ingest: warning: no \`npm run deploy -- --preflight\` record for HEAD ${sha?.slice(0, 7) ?? '(unknown)'}; the runbook runs the preflight before any D1 write.`);
+}
+
 /** Exit code -> run record outcome. @type {Record<number, import('./run-record.mjs').Outcome>} */
 const OUTCOME_BY_CODE = { 0: 'ok', 2: 'partial', 3: 'partial', 130: 'interrupted', 143: 'interrupted' };
 
@@ -320,6 +343,7 @@ export async function main(argv, deps = {}) {
   // Signals stay with handleSignals (a graceful stop that records in-flight mutations); a forced
   // second signal exits through proc.exit, which the exit guard records.
   const stopGuard = record.guardExit(proc, { signals: false });
+  noteBookmarkAndPreflight(record, log);
   const controller = new AbortController();
   const signals = handleSignals(lock, controller, proc, log);
   try {

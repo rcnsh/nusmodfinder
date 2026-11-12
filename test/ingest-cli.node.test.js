@@ -3,6 +3,7 @@
 // defaults, exit codes, and src/data-version.json written only after a run
 // that finished. The Worker is a stub fetch; the corpus is three records in a
 // temporary cache directory, so nothing reaches api.nusmods.com or Cloudflare.
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -280,5 +281,49 @@ describe('scripts/ingest.mjs', () => {
     expect(worker.paths).toContain('POST /admin/facets');
     expect(lines.join('\n')).toMatch(/could not record.*m1/i);
     expect((await readdir(dir)).filter((f) => f.endsWith('.lock'))).toEqual([]);
+  });
+});
+
+describe('Phase 7 7B: ingest after a bookmark and a preflight', () => {
+  /** @type {string} */
+  let runsDir;
+  beforeEach(async () => { runsDir = join(dir, 'runs'); await mkdir(runsDir, { recursive: true }); });
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  /** A committed earlier record. @param {string} file @param {Record<string, unknown>} r */
+  const put = (file, r) => writeFile(join(runsDir, file), JSON.stringify({
+    schema: 'vnm-run/1', finishedAt: r.time, args: [], commit: { sha: head, dirty: false, diffSha256: null }, target: 'x', read: [], written: [],
+    requests: {}, versions: {}, details: {}, exitCode: 0, message: null, bookmark: null, ...r,
+  }));
+  /** @param {ReturnType<typeof stubWorker>} worker */
+  const ingest = async (worker) => {
+    /** @type {string[]} */
+    const lines = [];
+    const code = await main(['--year', Y, '--url', 'http://worker.test'], {
+      fetchImpl: worker.fetchImpl, log: (l) => lines.push(l), dataVersionPath: join(dir, 'data-version.json'), cacheDir, envVars: { INGEST_SECRET: 's' },
+      statePath: join(dir, 'ingest-state.json'), runsDir,
+    });
+    const files = (await readdir(runsDir)).filter((f) => f.includes('-ingest-'));
+    return { code, lines: lines.join('\n'), record: JSON.parse(await readFile(join(runsDir, files[0]), 'utf8')) };
+  };
+
+  it('copies the newest d1:bookmark record\'s bookmark into its own record', async () => {
+    await put('20261110T090000Z-d1-bookmark-aaaa.json', { script: 'd1:bookmark', time: '2026-11-10T09:00:00.000Z', outcome: 'ok', bookmark: 'b-old' });
+    await put('20261112T090000Z-d1-bookmark-bbbb.json', { script: 'd1:bookmark', time: '2026-11-12T09:00:00.000Z', outcome: 'ok', bookmark: 'b-new' });
+    await put('20261112T091000Z-d1-bookmark-cccc.json', { script: 'd1:bookmark', time: '2026-11-12T09:10:00.000Z', outcome: 'failed', bookmark: null });
+    const { code, record } = await ingest(stubWorker());
+    expect(code).toBe(0);
+    expect(record).toMatchObject({ bookmark: 'b-new', details: { bookmarkRecord: '20261112T090000Z-d1-bookmark-bbbb.json' } });
+  });
+
+  it('warns when HEAD has no deploy --preflight record, and not when it has one', async () => {
+    const without = await ingest(stubWorker());
+    expect(without.lines).toMatch(/no `npm run deploy -- --preflight` record for HEAD/);
+    expect(without.record.details.preflight).toBeNull();
+    await rm(join(runsDir), { recursive: true, force: true });
+    await mkdir(runsDir, { recursive: true });
+    await put('20261112T090000Z-deploy-preflight-dddd.json', { script: 'deploy:preflight', time: '2026-11-12T09:00:00.000Z', outcome: 'ok' });
+    const withIt = await ingest(stubWorker());
+    expect(withIt.lines).not.toMatch(/--preflight` record/);
+    expect(withIt.record.details.preflight).toBe('20261112T090000Z-deploy-preflight-dddd.json');
   });
 });
