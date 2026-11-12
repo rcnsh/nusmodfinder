@@ -54,6 +54,7 @@ function fakeSite(attempts = [{}], o = {}) {
       searches += 1;
     } else answer = { status: 404, body: { error: 'not_found' } };
     if (answer.throws) throw answer.throws;
+    /** @type {Record<string, string>} */
     const headers = u.pathname === '/search' ? { 'server-timing': `cache;desc=${answer.cache ?? 'miss'}, total;dur=200` } : {};
     return Response.json(answer.body ?? {}, { status: answer.status ?? 200, headers });
   };

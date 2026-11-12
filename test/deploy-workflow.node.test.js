@@ -81,8 +81,9 @@ describe('deploy.yml', () => {
     // It reads the bundle and the corpus the deploy step restored, so it needs neither the
     // Cloudflare secret nor GH_TOKEN; the comment above it says so.
     expect(smoke).not.toMatch(/secrets\.|CLOUDFLARE_|GH_TOKEN|github\.token|env:/);
-    const at = workflow.indexOf(smoke);
-    const comment = workflow.slice(workflow.lastIndexOf('\n      - ', at - 1), at);
+    // The comment lines directly above the step.
+    const above = workflow.slice(0, workflow.indexOf(smoke)).split('\n').slice(0, -1).reverse();
+    const comment = above.slice(0, above.findIndex((l) => !/^ {6}#/.test(l))).reverse().map((l) => l.replace(/^ {6}# ?/, '')).join(' ');
     expect(comment).toMatch(/no token/i);
     expect(comment).toMatch(/GH_TOKEN/);
   });
