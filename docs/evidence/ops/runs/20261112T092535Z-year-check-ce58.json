@@ -1,0 +1,44 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T09:25:35.874Z",
+  "finishedAt": "2026-11-12T09:25:41.890Z",
+  "script": "year check",
+  "args": [
+    "check",
+    "--full"
+  ],
+  "commit": {
+    "sha": "3554a5e6262045dea1f7c05db8f81a700ed1d9c6",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "sources archive sources-2026-2027-20261112",
+  "read": [
+    {
+      "what": "sources archive files",
+      "estimate": null,
+      "actual": 21
+    }
+  ],
+  "written": [],
+  "requests": {
+    "gh release download": 1
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "mode": "full",
+    "year": "2026-2027",
+    "revision": "2026-11-12",
+    "sourceInputsHash": "5ba930289a6ba3c89b06180bff97ea0f0f1b39217e4ba1ba191e0bbfe6ebc4df",
+    "archiveSha256": "cb7ff544640ad44bd905168e27217206ae79272c65dba9be73a28b14f5aec66f",
+    "quotes": {
+      "checked": 19,
+      "unarchived": 0
+    },
+    "rules": "byte-identical"
+  },
+  "exitCode": 0,
+  "message": "19 quotes verbatim; data/ng-restrictions-2026-2027.json byte-identical",
+  "outcome": "ok"
+}
