@@ -54,14 +54,23 @@ export async function resolveToken({ env = process.env, exec }) {
 }
 
 /**
- * The account id: CLOUDFLARE_ACCOUNT_ID, else wrangler's cached account.
- * @param {{ env?: Record<string, string | undefined>, cacheFile?: string }} [o]
+ * The account id: CLOUDFLARE_ACCOUNT_ID, else wrangler's cached account, else the one account
+ * `wrangler whoami` lists (the Mac's login usually has no cache file; several accounts refuse).
+ * @param {{ env?: Record<string, string | undefined>, cacheFile?: string, exec?: Exec }} [o]
  * @returns {Promise<string>}
  */
-export async function resolveAccountId({ env = process.env, cacheFile = WRANGLER_ACCOUNT_CACHE } = {}) {
+export async function resolveAccountId({ env = process.env, cacheFile = WRANGLER_ACCOUNT_CACHE, exec } = {}) {
   if (env.CLOUDFLARE_ACCOUNT_ID) return env.CLOUDFLARE_ACCOUNT_ID;
   const cached = await readFile(cacheFile, 'utf8').then((t) => JSON.parse(t)?.account?.id, () => null);
   if (typeof cached === 'string' && cached) return cached;
+  if (exec) {
+    const res = await exec('npx', ['wrangler', 'whoami', '--json']).catch(() => null);
+    /** @type {any} */
+    let who = null;
+    if (res?.code === 0) { try { who = JSON.parse(res.stdout.slice(res.stdout.indexOf('{'))); } catch { /* not JSON */ } }
+    const accounts = Array.isArray(who?.accounts) ? who.accounts : [];
+    if (accounts.length === 1 && typeof accounts[0]?.id === 'string' && accounts[0].id) return accounts[0].id;
+  }
   throw new Error('no Cloudflare account id: set CLOUDFLARE_ACCOUNT_ID (the dashboard\'s Account ID; in Actions, the repo variable).');
 }
 
@@ -71,6 +80,6 @@ export async function resolveAccountId({ env = process.env, cacheFile = WRANGLER
  * @returns {Promise<import('./d1-rest.mjs').D1Client>}
  */
 export async function productionD1({ env = process.env, exec, fetchImpl = fetch, cacheFile }) {
-  const [{ databaseId }, accountId] = await Promise.all([d1Config(), resolveAccountId({ env, ...(cacheFile ? { cacheFile } : {}) })]);
+  const [{ databaseId }, accountId] = await Promise.all([d1Config(), resolveAccountId({ env, exec, ...(cacheFile ? { cacheFile } : {}) })]);
   return d1RestClient({ accountId, databaseId, token: () => resolveToken({ env, exec }), fetchImpl });
 }

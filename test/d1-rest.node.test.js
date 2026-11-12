@@ -148,6 +148,19 @@ describe('the token and the account', () => {
     await expect(resolveAccountId({ env: {}, cacheFile: join(dir, 'none.json') })).rejects.toThrow(/CLOUDFLARE_ACCOUNT_ID/);
   });
 
+  it('on a Mac with no cached account, the one account `wrangler whoami` lists; several or none refuse', async () => {
+    const none = join(dir, 'none.json');
+    /** @param {unknown[]} accounts */
+    const whoami = (accounts) => async (/** @type {string} */ cmd, /** @type {string[]} */ args) => {
+      expect([cmd, ...args]).toEqual(['npx', 'wrangler', 'whoami', '--json']);
+      return { code: 0, stdout: `noise\n${JSON.stringify({ loggedIn: true, accounts })}` };
+    };
+    expect(await resolveAccountId({ env: {}, cacheFile: none, exec: whoami([{ id: 'from-whoami', name: 'x' }]) })).toBe('from-whoami');
+    await expect(resolveAccountId({ env: {}, cacheFile: none, exec: whoami([{ id: 'a' }, { id: 'b' }]) })).rejects.toThrow(/CLOUDFLARE_ACCOUNT_ID/);
+    await expect(resolveAccountId({ env: {}, cacheFile: none, exec: whoami([]) })).rejects.toThrow(/CLOUDFLARE_ACCOUNT_ID/);
+    await expect(resolveAccountId({ env: {}, cacheFile: none, exec: async () => ({ code: 1, stdout: '' }) })).rejects.toThrow(/CLOUDFLARE_ACCOUNT_ID/);
+  });
+
   it('the database is wrangler.jsonc\'s DB binding', async () => {
     expect(await d1Config()).toEqual({ databaseName: 'nusmods-apac', databaseId: 'de4527ff-19ec-4a5b-9c5c-4d1791078b25' });
   });
