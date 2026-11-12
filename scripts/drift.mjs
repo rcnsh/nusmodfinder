@@ -13,8 +13,9 @@
 // Weekly:
 // - fetch this year's moduleInfo.json (a conditional GET with the ETag kept in --cache-dir, which
 //   the workflow keeps with actions/cache) and next year's moduleList.json;
-// - compute the data version offline, exactly as ingest does (offeredModules over HEAD's NG
-//   files, rowHash, dataVersion), and compare it with src/data-version.json, production's;
+// - compute the data version offline with corpusDataVersion (scripts/corpus-manifest.mjs: the
+//   function 7D's CI checks src/data-version.json with, offeredModules over HEAD's NG files,
+//   rowHash, dataVersion), and compare it with src/data-version.json, production's;
 // - keep one "pending refresh" issue updated while they differ, with what changed in each check
 //   by D1 column, and close it once they match;
 // - open a separate issue when next year appears, which it never closes;
@@ -33,7 +34,8 @@ import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { DEFAULT_ACAD_YEAR, assertExpectedShape, catalogueOnlyRecords, fetchAcadYearFile, loadNgCourses, offeredModules } from './lib.mjs';
-import { ROW_COLUMNS, boundTuple, dataVersion, rowHash } from '../src/rowhash.js';
+import { ROW_COLUMNS, boundTuple } from '../src/rowhash.js';
+import { corpusDataVersion } from './corpus-manifest.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const NUSMODS = 'https://api.nusmods.com/v2';
@@ -107,7 +109,8 @@ export function nextAcadYear(acadYear) {
  */
 export async function summarise(records, acadYear, ngCourses) {
   const { modules, skipped } = offeredModules(records, acadYear, ngCourses);
-  const version = await dataVersion(await Promise.all(modules.map(async (m) => ({ code: m.code, rowHash: await rowHash(m) }))));
+  // The data version by the function 7D's CI checks src/data-version.json with.
+  const version = await corpusDataVersion(records, acadYear, ngCourses);
   const catalogue = new Map(catalogueOnlyRecords(records).map((r) => [r.code, JSON.stringify([r.title, r.description])]));
   return {
     acadYear,
@@ -219,7 +222,8 @@ export function pendingIssue({ acadYear, production, nusmods, checkedAt, history
     `- Production's data version is \`${production.dataVersion}\` (\`src/data-version.json\`${production.sha ? ` at \`${production.sha.slice(0, 7)}\`` : ''}).`,
     `- NUSMods' data for ${acadYear} now gives \`${nusmods.dataVersion}\`: ${fmt(nusmods.counts.offered)} offered courses (the rows ingest would write), ${fmt(nusmods.counts.catalogueOnly)} catalogue-only.`,
     '',
-    'A refresh is a re-ingest run on the Mac, by the runbook in `docs/REFERENCE.md`, "Re-ingesting for a new acad year" (it covers every corpus change). '
+    'A refresh runs on the Mac: `npm run corpus -- fetch`, then `npm run corpus -- publish`, then the rest of the runbook in `docs/REFERENCE.md`, '
+      + '"Re-ingesting for a new acad year" (it covers every corpus change). '
       + 'The check closes this issue once production\'s data version matches NUSMods again.',
     '',
     '### What changed, check by check',

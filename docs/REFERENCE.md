@@ -1084,11 +1084,12 @@ search path, then commit both files. The month defaults to the current UTC one.
   the run exits 1 with outcome `failed`; an empty dataset is zero.
 - **The month is the calendar month.** The subscription's renewal date, which starts the billing
   month, isn't readable with these scopes, and the report says so.
-- **Auth.** `CLOUDFLARE_API_TOKEN`, else the last line of `npx wrangler auth token` (the wrangler
-  login). The account is `CLOUDFLARE_ACCOUNT_ID`, else the script's `DEFAULT_ACCOUNT_ID`. The
-  token goes only in the `Authorization` header: never into the report, the record, a log line or
-  an error (an API error that echoes it is redacted). The record counts each call as
-  `/client/v4/graphql`.
+- **Auth,** as the deploy's D1 reads (`scripts/d1-read.mjs`): the token is `CLOUDFLARE_API_TOKEN`,
+  else `npx wrangler auth token --json` (the wrangler login); the account is
+  `CLOUDFLARE_ACCOUNT_ID`, else wrangler's cached account, else the one `wrangler whoami` lists.
+  The token goes only in the `Authorization` header: never into the report, the record, a log line
+  or an error (an API error that echoes it is redacted). Neither the token nor the account id is
+  recorded; the record counts each call as `/client/v4/graphql`.
 
 Workers Logs keep every event (`head_sampling_rate` unset): Paid includes their volume, and this
 Worker's is tiny (`docs/evidence/phase7/measure.md`).

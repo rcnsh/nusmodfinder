@@ -7,11 +7,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  ALLOWANCES, DEFAULT_ACCOUNT_ID, GRAPHQL_URL, MIN_SPACING_MS, monthWindow, opsReport, previousMonth, resolveToken,
+  ALLOWANCES, GRAPHQL_URL, MIN_SPACING_MS, monthWindow, opsReport, previousMonth,
 } from '../scripts/ops-report.mjs';
 
 const TOKEN = 'cf-test-token-0123456789abcdefSECRET';
 const DB = 'de4527ff-19ec-4a5b-9c5c-4d1791078b25';
+const ACCOUNT = '0123456789abcdef0123456789abcdef';
+const ENV = { CLOUDFLARE_API_TOKEN: TOKEN, CLOUDFLARE_ACCOUNT_ID: ACCOUNT };
 const COMMIT = { sha: 'a'.repeat(40), dirty: false, diffSha256: null };
 
 /** @type {string} */
@@ -82,13 +84,14 @@ function fakeCloudflare(answers) {
  * Runs the report with fakes; returns what it wrote.
  * @param {string[]} argv
  * @param {ReturnType<typeof fakeCloudflare>} cf
- * @param {{ env?: Record<string, string | undefined>, exec?: (cmd: string, args: string[]) => string }} [o]
+ * @param {{ env?: Record<string, string | undefined>, exec?: import('../scripts/d1-read.mjs').Exec }} [o]
  */
-async function run(argv, cf, { env = { CLOUDFLARE_API_TOKEN: TOKEN }, exec } = {}) {
+async function run(argv, cf, { env = ENV, exec } = {}) {
   /** @type {string[]} */
   const logs = [];
   const result = await opsReport(argv, {
-    env, exec: exec ?? (() => { throw new Error('exec must not run when the env has a token'); }),
+    env, exec: exec ?? (async () => { throw new Error('exec must not run when the env has a token and an account'); }),
+    accountCacheFile: join(dir, 'no-wrangler-account.json'),
     fetchImpl: cf.fetchImpl, sleep: cf.sleep, now: cf.now, log: (l) => logs.push(l),
     outDir: join(dir, 'ops'), runsDir: join(dir, 'runs'), databaseId: DB, commit: COMMIT,
   });
@@ -245,7 +248,7 @@ describe('the calls', () => {
     for (const c of cf.calls) {
       expect(new Headers(c.init.headers).get('authorization')).toBe(`Bearer ${TOKEN}`);
       expect(JSON.stringify(c.body)).not.toContain(TOKEN);
-      expect(c.body.variables.accountTag).toBe(DEFAULT_ACCOUNT_ID);
+      expect(c.body.variables.accountTag).toBe(ACCOUNT);
       expect(c.body.variables.script).toBe('nusmodfinder');
     }
     expect(cf.calls[0].body.variables).toMatchObject({ from: '2026-10-01T00:00:00Z', to: '2026-10-31T23:59:59Z', dateFrom: '2026-10-01', dateTo: '2026-10-31' });
@@ -256,10 +259,24 @@ describe('the calls', () => {
       'rowsRead', 'rowsWritten', 'databaseId', 'aiInferenceAdaptiveGroups', 'totalNeurons', 'date_geq', 'datetime_geq']) expect(q).toContain(f);
   });
 
-  it('takes the account id from CLOUDFLARE_ACCOUNT_ID when it is set', async () => {
+  it('without CLOUDFLARE_ACCOUNT_ID, takes the one account `wrangler whoami` lists (7B\'s resolveAccountId)', async () => {
     const cf = fakeCloudflare([answer(), answer()]);
-    await run(['--month', '2026-10'], cf, { env: { CLOUDFLARE_API_TOKEN: TOKEN, CLOUDFLARE_ACCOUNT_ID: 'f'.repeat(32) } });
+    /** @type {string[][]} */
+    const ran = [];
+    /** @type {import('../scripts/d1-read.mjs').Exec} */
+    const exec = async (cmd, args) => { ran.push([cmd, ...args]); return { code: 0, stdout: JSON.stringify({ accounts: [{ id: 'f'.repeat(32), name: 'x' }] }) }; };
+    await run(['--month', '2026-10'], cf, { env: { CLOUDFLARE_API_TOKEN: TOKEN }, exec });
+    expect(ran).toEqual([['npx', 'wrangler', 'whoami', '--json']]);
     expect(cf.calls[0].body.variables.accountTag).toBe('f'.repeat(32));
+  });
+
+  it('with no account to be found, refuses before any call, and says which variable to set', async () => {
+    const cf = fakeCloudflare([answer(), answer()]);
+    const { result, logs, record } = await run(['--month', '2026-10'], cf, { env: { CLOUDFLARE_API_TOKEN: TOKEN }, exec: async () => ({ code: 1, stdout: '' }) });
+    expect(result.exitCode).toBe(1);
+    expect(cf.calls).toHaveLength(0);
+    expect(logs.join('\n')).toMatch(/CLOUDFLARE_ACCOUNT_ID/);
+    expect(JSON.parse(/** @type {string} */ (record))).toMatchObject({ outcome: 'failed', requests: {} });
   });
 
   it('writes one run record, each GraphQL call a request, with no token and no account id', async () => {
@@ -271,34 +288,38 @@ describe('the calls', () => {
     expect(rec).toMatchObject({ script: 'ops:report', args: ['--month', '2026-10'], requests: { '/client/v4/graphql': 2 }, outcome: 'ok', exitCode: 0 });
     expect(rec.details).toMatchObject({ month: '2026-10', report: expect.stringMatching(/2026-10\.md$/), flags: expect.any(Number) });
     expect(record).not.toContain(TOKEN);
-    expect(record).not.toContain(DEFAULT_ACCOUNT_ID);
+    expect(record).not.toContain(ACCOUNT);
   });
 });
 
 describe('the token', () => {
-  it('comes from CLOUDFLARE_API_TOKEN when it is set', () => {
-    expect(resolveToken({ env: { CLOUDFLARE_API_TOKEN: TOKEN }, exec: () => { throw new Error('no'); } })).toBe(TOKEN);
-  });
-
-  it('otherwise from the last line of `npx wrangler auth token`', () => {
-    /** @type {[string, string[]][]} */
+  it('otherwise comes from `npx wrangler auth token --json` (7B\'s resolveToken), sent only in the header', async () => {
+    const cf = fakeCloudflare([answer(), answer()]);
+    /** @type {string[][]} */
     const ran = [];
-    const exec = (/** @type {string} */ cmd, /** @type {string[]} */ args) => { ran.push([cmd, args]); return `\n ⛅️ wrangler 4.157.0\n───────────\n${TOKEN}\n`; };
-    expect(resolveToken({ env: {}, exec })).toBe(TOKEN);
-    expect(ran).toEqual([['npx', ['wrangler', 'auth', 'token']]]);
+    /** @type {import('../scripts/d1-read.mjs').Exec} */
+    const exec = async (cmd, args) => { ran.push([cmd, ...args]); return { code: 0, stdout: JSON.stringify({ type: 'oauth', token: TOKEN }) }; };
+    const { report, record, logs } = await run(['--month', '2026-10'], cf, { env: { CLOUDFLARE_ACCOUNT_ID: ACCOUNT }, exec });
+    expect(ran).toEqual([['npx', 'wrangler', 'auth', 'token', '--json']]);
+    expect(new Headers(cf.calls[0].init.headers).get('authorization')).toBe(`Bearer ${TOKEN}`);
+    for (const text of [report, record, logs.join('\n')]) expect(text).not.toContain(TOKEN);
   });
 
-  it('a failed wrangler names the fix and never prints what wrangler printed', () => {
-    const exec = () => { const e = /** @type {any} */ (new Error(`Command failed\n${TOKEN}`)); e.stdout = TOKEN; e.status = 1; throw e; };
-    expect(() => resolveToken({ env: {}, exec })).toThrow(/CLOUDFLARE_API_TOKEN|wrangler login/);
-    try { resolveToken({ env: {}, exec }); } catch (err) { expect(String(/** @type {Error} */ (err).message)).not.toContain(TOKEN); }
+  it('a failed wrangler fails the run with the fix named, and nothing it printed', async () => {
+    const cf = fakeCloudflare([answer()]);
+    const { result, logs, record } = await run(['--month', '2026-10'], cf, { env: { CLOUDFLARE_ACCOUNT_ID: ACCOUNT }, exec: async () => ({ code: 1, stdout: TOKEN }) });
+    expect(result.exitCode).toBe(1);
+    expect(cf.calls).toHaveLength(0);
+    expect(logs.join('\n')).toMatch(/wrangler login|CLOUDFLARE_API_TOKEN/);
+    for (const text of [record, logs.join('\n')]) expect(text).not.toContain(TOKEN);
   });
 
   it('is never printed, logged or written, even when the API echoes it back', async () => {
     const echo = { status: 400, body: { errors: [{ message: `bad token ${TOKEN}` }] } };
     const cf = fakeCloudflare([echo, echo]);
-    const exec = () => `wrangler\n${TOKEN}\n`;
-    const { report, record, logs } = await run(['--month', '2026-10'], cf, { env: {}, exec });
+    /** @type {import('../scripts/d1-read.mjs').Exec} */
+    const exec = async () => ({ code: 0, stdout: JSON.stringify({ token: TOKEN }) });
+    const { report, record, logs } = await run(['--month', '2026-10'], cf, { env: { CLOUDFLARE_ACCOUNT_ID: ACCOUNT }, exec });
     for (const text of [report, record, logs.join('\n')]) {
       expect(text).not.toContain(TOKEN);
     }
@@ -308,7 +329,7 @@ describe('the token', () => {
   it('refuses a --token flag rather than putting a token in the run record\'s args', async () => {
     const cf = fakeCloudflare([answer()]);
     await expect(opsReport(['--month', '2026-10', '--token', TOKEN], {
-      env: {}, exec: () => TOKEN, fetchImpl: cf.fetchImpl, sleep: cf.sleep, now: cf.now, log: () => {},
+      env: {}, exec: async () => ({ code: 0, stdout: TOKEN }), fetchImpl: cf.fetchImpl, sleep: cf.sleep, now: cf.now, log: () => {},
       outDir: join(dir, 'ops'), runsDir: join(dir, 'runs'), databaseId: DB, commit: COMMIT,
     })).resolves.toMatchObject({ exitCode: 2 });
     expect(cf.calls).toHaveLength(0);

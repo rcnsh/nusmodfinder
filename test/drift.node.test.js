@@ -1,8 +1,10 @@
 // @ts-check
 // Phase 7 7F (G3 (a)): the weekly NUSMods data-change check and the monthly reminder
 // (scripts/drift.mjs, run by .github/workflows/drift.yml). Fixture NUSMods records, a fake
-// NUSMods and a fake GitHub: nothing here reaches the network or creates a real issue.
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+// NUSMods and a fake GitHub: nothing here reaches the network or creates a real issue. The years
+// here are fixture data (no NG file is read); the data version over HEAD's NG files is checked
+// in test/drift-data-version.node.test.js.
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -10,9 +12,6 @@ import {
   LABELS, compareSummaries, daysBetween, failureIssue, findIssue, githubRest, monthlyCheck, nextAcadYear, nextYearIssue,
   pendingIssue, quietIssue, quietNote, reminderIssue, resolvedComment, summarise, weeklyCheck,
 } from '../scripts/drift.mjs';
-import { corpusDataVersion } from '../scripts/build-vocabulary.mjs';
-import { loadNgCourses, offeredModules } from '../scripts/lib.mjs';
-import { dataVersion, rowHash } from '../src/rowhash.js';
 
 const YEAR = '2026-2027';
 const NO_NG = { available: false, bySem: new Map(), updatedAsAt: null, source: null, total: 0, rules: null };
@@ -44,24 +43,6 @@ const AFTER = [
 let dir;
 beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'vnm-drift-')); });
 afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
-
-describe('the data version', () => {
-  it('is computed offline exactly as ingest computes it: offeredModules over HEAD\'s NG files, rowHash, dataVersion', async () => {
-    const ng = await loadNgCourses(YEAR);
-    const s = await summarise(BEFORE, YEAR, ng);
-    const { modules } = offeredModules(BEFORE, YEAR, ng);
-    expect(s.dataVersion).toBe(await dataVersion(await Promise.all(modules.map(async (m) => ({ code: m.code, rowHash: await rowHash(m) })))));
-    expect(s.dataVersion).toBe(await corpusDataVersion(modules));
-    expect(s.dataVersion).toMatch(/^[0-9a-f]{12}$/);
-  });
-
-  it('reuses ingest\'s functions rather than hashing on its own', () => {
-    const src = readFileSync(new URL('../scripts/drift.mjs', import.meta.url), 'utf8');
-    expect(src).toMatch(/import \{[^}]*\bofferedModules\b[^}]*\} from '\.\/lib\.mjs'/);
-    expect(src).toMatch(/import \{[^}]*\bdataVersion\b[^}]*\browHash\b[^}]*\} from '\.\.\/src\/rowhash\.js'/);
-    expect(src).not.toMatch(/createHash|subtle\.digest/);
-  });
-});
 
 describe('the comparison over a fixture pair', () => {
   it('counts added, removed and changed modules, and each changed D1 column', async () => {

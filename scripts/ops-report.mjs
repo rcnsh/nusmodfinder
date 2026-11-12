@@ -16,20 +16,22 @@
 //
 // A dataset GraphQL couldn't answer is reported as missing, never as zero; the run then exits 1.
 //
-// The token: CLOUDFLARE_API_TOKEN, else the last line of `npx wrangler auth token`. It goes only
-// into the Authorization header: never into the report, the run record, a log line or an error.
-import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+// The token and the account come from 7B's scripts/d1-read.mjs (resolveToken: CLOUDFLARE_API_TOKEN,
+// else `npx wrangler auth token --json`; resolveAccountId: CLOUDFLARE_ACCOUNT_ID, else wrangler's
+// cached account, else the one `wrangler whoami` lists), and the database from wrangler.jsonc
+// (d1Config). The token goes only into the Authorization header: never into the report, the run
+// record, a log line or an error. Neither is ever recorded.
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { d1Config, resolveAccountId, resolveToken } from './d1-read.mjs';
+import { run as runCommand } from './deploy.mjs';
 import { startRun } from './run-record.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const OUT_DIR = join(ROOT, 'docs/evidence/ops');
 export const GRAPHQL_URL = 'https://api.cloudflare.com/client/v4/graphql';
-/** The account (docs/evidence/phase7/measure.md); CLOUDFLARE_ACCOUNT_ID overrides it. */
-export const DEFAULT_ACCOUNT_ID = '31e51704ff7169c03d7014c3a1e5f110';
 export const WORKER = 'nusmodfinder';
 export const DATABASE_NAME = 'nusmods-apac';
 export const MIN_SPACING_MS = 4000;
@@ -137,27 +139,6 @@ export function previousMonth(month) {
 
 /** The current UTC month. @param {Date} now */
 export const currentMonth = (now) => `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
-
-/**
- * The API token: CLOUDFLARE_API_TOKEN, else the last line `npx wrangler auth token` prints. A
- * failure says how to fix it and never repeats what wrangler printed (it may be the token).
- * @param {{ env: Record<string, string | undefined>, exec: (cmd: string, args: string[]) => string }} o
- */
-export function resolveToken({ env, exec }) {
-  if (env.CLOUDFLARE_API_TOKEN) return env.CLOUDFLARE_API_TOKEN;
-  const fix = 'Set CLOUDFLARE_API_TOKEN, or run `npx wrangler login` and retry.';
-  /** @type {string} */
-  let out;
-  try {
-    out = exec('npx', ['wrangler', 'auth', 'token']);
-  } catch (err) {
-    const code = /** @type {{ status?: number }} */ (err).status;
-    throw new Error(`\`npx wrangler auth token\` failed${code == null ? '' : ` (exit ${code})`}. ${fix}`);
-  }
-  const token = String(out).split('\n').map((l) => l.trim()).filter(Boolean).at(-1);
-  if (!token || /\s/.test(token)) throw new Error(`\`npx wrangler auth token\` printed no token on its last line. ${fix}`);
-  return token;
-}
 
 /** Replaces every copy of the token in a text (anything shorter than 8 characters is no API token). @param {string} text @param {string} token */
 export const redact = (text, token) => (token && token.length >= 8 ? text.split(token).join('[redacted]') : text);
@@ -407,28 +388,19 @@ export function buildReport({ window, current, previous, generatedAt, commit }) 
 
 // ---- The run ----
 
-/** The D1 database id from wrangler.jsonc. */
-export function readDatabaseId() {
-  const text = readFileSync(join(ROOT, 'wrangler.jsonc'), 'utf8');
-  const m = new RegExp(`"database_name":\\s*"${DATABASE_NAME}",\\s*"database_id":\\s*"([^"]+)"`).exec(text);
-  if (!m) throw new Error(`wrangler.jsonc has no database_id for ${DATABASE_NAME}`);
-  return m[1];
-}
-
 /**
  * @param {string[]} argv
  * @param {{
- *   env?: Record<string, string | undefined>, exec?: (cmd: string, args: string[]) => string, fetchImpl?: typeof fetch,
+ *   env?: Record<string, string | undefined>, exec?: import('./d1-read.mjs').Exec, fetchImpl?: typeof fetch,
  *   sleep?: (ms: number) => Promise<void>, now?: () => Date, log?: (line: string) => void, outDir?: string,
- *   runsDir?: string, databaseId?: string, commit?: import('./run-record.mjs').CommitState,
+ *   runsDir?: string, databaseId?: string, accountCacheFile?: string, commit?: import('./run-record.mjs').CommitState,
  * }} [deps]
  * @returns {Promise<{ exitCode: number, path: string | null, flags: string[] }>}
  */
 export async function opsReport(argv, deps = {}) {
   const {
     env = process.env, fetchImpl = fetch, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), now = () => new Date(),
-    log = console.log, outDir = OUT_DIR, runsDir, commit,
-    exec = (cmd, args) => execFileSync(cmd, args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }),
+    log = console.log, outDir = OUT_DIR, runsDir, commit, exec = runCommand, accountCacheFile,
   } = deps;
   /** @type {{ month?: string }} */
   let values;
@@ -450,14 +422,14 @@ export async function opsReport(argv, deps = {}) {
     log(`ops:report: ${/** @type {Error} */ (err).message}`);
     return { exitCode: 2, path: null, flags: [] };
   }
-  const databaseId = deps.databaseId ?? readDatabaseId();
-  const accountTag = env.CLOUDFLARE_ACCOUNT_ID || DEFAULT_ACCOUNT_ID;
 
   const run = startRun('ops:report', { target: 'Cloudflare GraphQL Analytics API', args: argv, dir: runsDir, now, ...(commit ? { commit } : {}) });
   const unguard = run.guardExit();
   let token = '';
   try {
-    token = resolveToken({ env, exec });
+    const databaseId = deps.databaseId ?? (await d1Config()).databaseId;
+    const accountTag = await resolveAccountId({ env, exec, ...(accountCacheFile ? { cacheFile: accountCacheFile } : {}) });
+    token = await resolveToken({ env, exec });
     const counted = run.countingFetch(fetchImpl);
     let last = -Infinity;
     /** @param {MonthWindow} w @returns {Promise<Usage>} */
