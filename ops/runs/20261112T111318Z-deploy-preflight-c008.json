@@ -1,0 +1,67 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:13:18.266Z",
+  "finishedAt": "2026-11-12T11:13:20.158Z",
+  "script": "deploy:preflight",
+  "args": [
+    "--preflight"
+  ],
+  "commit": {
+    "sha": "447e2e6ad5cd7aea2742deae0deea03dc38d6366",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmodfinder",
+  "read": [],
+  "written": [],
+  "requests": {},
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "preflight": [
+      {
+        "name": "git",
+        "status": "ok",
+        "message": "HEAD 447e2e6 is on origin/main, at its tip"
+      },
+      {
+        "name": "ci",
+        "status": "failed",
+        "message": "CI run 43207243981 is in_progress: wait for it with `gh run watch 43207243981 --exit-status`. Findings run 43207244093 is in_progress: wait for it with `gh run watch 43207244093 --exit-status`."
+      },
+      {
+        "name": "vars",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "bundle",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "corpus manifest",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "year check",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "source inputs",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "startup",
+        "status": "not run",
+        "message": ""
+      }
+    ]
+  },
+  "exitCode": 1,
+  "message": "deploy: refusing (preflight: ci): CI run 43207243981 is in_progress: wait for it with `gh run watch 43207243981 --exit-status`. Findings run 43207244093 is in_progress: wait for it with `gh run watch 43207244093 --exit-status`.",
+  "outcome": "refused"
+}

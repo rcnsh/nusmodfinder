@@ -1,0 +1,70 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:30:56.820Z",
+  "finishedAt": "2026-11-12T11:31:16.642Z",
+  "script": "rollback",
+  "args": [
+    "--to",
+    "b0834844",
+    "--yes"
+  ],
+  "commit": {
+    "sha": "894bc1fade8045b8cd60f22f1ef331632a632caf",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmodfinder",
+  "read": [
+    {
+      "what": "D1 rows (the data check, over the REST query)",
+      "estimate": null,
+      "actual": 21338
+    }
+  ],
+  "written": [],
+  "requests": {
+    "wrangler deployments list": 1,
+    "wrangler whoami --json": 1,
+    "wrangler rollback b0834844-f6fd-4bb9-838d-a45927c195fb": 1
+  },
+  "versions": {
+    "versionId": "b0834844-f6fd-4bb9-838d-a45927c195fb",
+    "previousVersionId": "b1ccf7db-ae34-47b9-9977-973084089fb6",
+    "dataVersion": "d820d578cf81",
+    "catalogueKey": "5b1e2f06e559",
+    "rollbackTag": "rollback/20261112T113114Z-b0834844"
+  },
+  "bookmark": null,
+  "details": {
+    "dataCheck": [
+      {
+        "name": "dataVersion",
+        "ok": true,
+        "d1": "d820d578cf81",
+        "tag": "d820d578cf81"
+      },
+      {
+        "name": "rowHashes",
+        "ok": true,
+        "d1": "none",
+        "tag": "none"
+      },
+      {
+        "name": "catalogueKey",
+        "ok": true,
+        "d1": "5b1e2f06e559",
+        "tag": "5b1e2f06e559"
+      },
+      {
+        "name": "catalogueRows",
+        "ok": true,
+        "d1": "none",
+        "tag": "none"
+      }
+    ],
+    "tagPushed": true
+  },
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}

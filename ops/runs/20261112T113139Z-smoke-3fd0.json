@@ -1,0 +1,63 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:31:39.005Z",
+  "finishedAt": "2026-11-12T11:31:56.996Z",
+  "script": "smoke",
+  "args": [
+    "--expect",
+    "a23601de0b15934960bfef1d8b56ab3e80fa5587"
+  ],
+  "commit": {
+    "sha": "894bc1fade8045b8cd60f22f1ef331632a632caf",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "https://nusmodfinder.rcn.sh",
+  "read": [],
+  "written": [],
+  "requests": {
+    "/health": 1,
+    "/": 1,
+    "/module/LSM4258": 1,
+    "/search": 1,
+    "/facets": 1
+  },
+  "versions": {
+    "versionId": "b0834844-f6fd-4bb9-838d-a45927c195fb",
+    "tag": "a23601d"
+  },
+  "bookmark": null,
+  "details": {
+    "checks": [
+      {
+        "name": "/health",
+        "pass": true,
+        "detail": "tag a23601d, data version d820d578cf81, production bundle"
+      },
+      {
+        "name": "/",
+        "pass": true,
+        "detail": "200 with the CSP header"
+      },
+      {
+        "name": "/module/LSM4258",
+        "pass": true,
+        "detail": "\"Urban Ecology\""
+      },
+      {
+        "name": "/search",
+        "pass": true,
+        "detail": "LSM4258 in the top 5, a cache miss, not degraded"
+      },
+      {
+        "name": "/facets",
+        "pass": true,
+        "detail": "200"
+      }
+    ],
+    "expect": "a23601de0b15934960bfef1d8b56ab3e80fa5587"
+  },
+  "exitCode": 0,
+  "message": "5 of 5 checks pass",
+  "outcome": "ok"
+}

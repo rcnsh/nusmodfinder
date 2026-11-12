@@ -1,0 +1,117 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:29:23.791Z",
+  "finishedAt": "2026-11-12T11:29:55.112Z",
+  "script": "deploy",
+  "args": [],
+  "commit": {
+    "sha": "894bc1fade8045b8cd60f22f1ef331632a632caf",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmodfinder",
+  "read": [
+    {
+      "what": "D1 rows (the guard, over the D1 REST query: modules and catalogue_only with every column, and the schema check)",
+      "estimate": 21208,
+      "actual": 21338
+    }
+  ],
+  "written": [],
+  "requests": {
+    "wrangler versions upload": 1,
+    "wrangler deployments status": 1,
+    "wrangler versions deploy": 1,
+    "wrangler triggers deploy": 1
+  },
+  "versions": {
+    "tag": "894bc1f",
+    "dataVersion": "d820d578cf81",
+    "catalogueKey": "5b1e2f06e559",
+    "versionId": "b1ccf7db-ae34-47b9-9977-973084089fb6",
+    "startupMs": 3,
+    "previousVersionId": "b0834844-f6fd-4bb9-838d-a45927c195fb",
+    "deployTag": "deploy/20261112T112951Z-b1ccf7db"
+  },
+  "bookmark": null,
+  "details": {
+    "preflight": [
+      {
+        "name": "git",
+        "status": "ok",
+        "message": "HEAD 894bc1f is on origin/main, at its tip"
+      },
+      {
+        "name": "ci",
+        "status": "ok",
+        "message": "CI run 43209080083 and Findings run 43209079993 succeeded"
+      },
+      {
+        "name": "vars",
+        "status": "ok",
+        "message": "only DENSE_BACKEND"
+      },
+      {
+        "name": "bundle",
+        "status": "ok",
+        "message": "production, 6778 rows, data version d820d578cf81, sha256 706b69a492ee"
+      },
+      {
+        "name": "corpus manifest",
+        "status": "ok",
+        "message": "prod-2026-2027-20261104: data version d820d578cf81 and catalogueKey 5b1e2f06e559 follow it; the 3B files are fresh"
+      },
+      {
+        "name": "year check",
+        "status": "ok",
+        "message": "2026-2027: the year's sources agree (2 notes: YST Sem 2: 2025/26's page (YST hasn't published 2026/27's) …)"
+      },
+      {
+        "name": "source inputs",
+        "status": "ok",
+        "message": "3 source-derived input(s) changed since deploy/20261111T235933Z-b0834844; docs/evidence/ops/runs/20261112T111300Z-year-check-9bb5.json covers them"
+      },
+      {
+        "name": "startup",
+        "status": "ok",
+        "message": "wrangler check startup passed"
+      }
+    ],
+    "guard": [
+      {
+        "name": "rowsKey",
+        "ok": true,
+        "d1": "7c9b739622d99460fc68f03712d6e8bdf99f6b97f9f649bfd078f5a7b0dceb3a",
+        "expected": "7c9b739622d99460fc68f03712d6e8bdf99f6b97f9f649bfd078f5a7b0dceb3a"
+      },
+      {
+        "name": "dataVersion",
+        "ok": true,
+        "d1": "d820d578cf81",
+        "expected": "d820d578cf81"
+      },
+      {
+        "name": "rowHashes",
+        "ok": true,
+        "d1": "none",
+        "expected": "none"
+      },
+      {
+        "name": "catalogueKey",
+        "ok": true,
+        "d1": "5b1e2f06e559",
+        "expected": "5b1e2f06e559"
+      },
+      {
+        "name": "catalogueRows",
+        "ok": true,
+        "d1": "none",
+        "expected": "none"
+      }
+    ],
+    "tagPushed": true
+  },
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}
