@@ -284,11 +284,18 @@ describe('validating run records (check:findings)', () => {
 describe('the writers that exist today', () => {
   const src = (/** @type {string} */ f) => readFileSync(fileURLToPath(new URL(`../scripts/${f}`, import.meta.url)), 'utf8');
   it('deploy, remote, ingest, verify and vectors standby start a record (their tests run each one)', () => {
-    expect(src('deploy.mjs')).toMatch(/startRun\('deploy'/);
+    expect(src('deploy.mjs')).toMatch(/startRun\(args\.preflight \? 'deploy:preflight' : 'deploy'/);
     expect(src('remote.mjs')).toMatch(/startRun\('remote'/);
     expect(src('ingest.mjs')).toMatch(/startRun\('ingest'/);
     expect(src('verify.mjs')).toMatch(/startRun\('verify'/);
     expect(src('vectors.mjs')).toMatch(/startRun\('vectors standby'/);
+  });
+
+  it('Phase 7 7B: smoke, rollback, d1:bookmark and d1:restore start a record (their tests run each one)', () => {
+    expect(src('smoke.mjs')).toMatch(/startRun\('smoke'/);
+    expect(src('rollback.mjs')).toMatch(/startRun\('rollback'/);
+    expect(src('d1-time-travel.mjs')).toMatch(/startRun\('d1:bookmark'/);
+    expect(src('d1-time-travel.mjs')).toMatch(/startRun\('d1:restore'/);
   });
 
   it('eval:embed starts its record, with the exit guard, in the gate every spending branch passes before its first call', () => {

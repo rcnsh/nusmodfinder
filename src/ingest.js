@@ -13,10 +13,11 @@
 // token has to exist on disk; the script streams batches in over HTTP and the
 // Worker uses its own AI, Vectorize and D1 bindings. The routes do not exist
 // unless an INGEST_SECRET is bound, so a deployed Worker has no admin surface.
+import { adminHashes, d1Query } from './admin-hashes.js';
 import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
-import { ROW_COLUMNS, UPSERT_SET, boundTuple, catalogueRowHash, fieldsFromRow, ftsHash, rowHash, storedVectorMetadata } from './rowhash.js';
+import { ROW_COLUMNS, UPSERT_SET, boundTuple, catalogueRowHash, fieldsFromRow, rowHash, storedVectorMetadata } from './rowhash.js';
 import { base64ToFloat32, float32ToBase64, suGrading } from './vector-bundle.js';
 
 /**
@@ -105,81 +106,15 @@ const metaOf = (results) => ({
 });
 
 /**
- * The triggers 0006 creates. Without any one of them the FTS index or the
- * rowid it is keyed on drifts from `modules` (a missing insert trigger: new
- * modules never reach FTS).
- */
-export const REQUIRED_TRIGGERS = ['modules_fts_insert', 'modules_fts_delete', 'modules_fts_update', 'modules_rowid_immutable'];
-
-/**
- * Whether the database has migration 0006: the schema marker, the
- * external-content FTS table, all four of its triggers (the update trigger
- * addressed by rowid) and the row_hash column; and every column the upsert
- * binds (ROW_COLUMNS, so a later migration such as 0009 or 0010). Ingest refuses to write
- * without it: through the old triggers a full re-ingest reads ~46M rows
- * (FINDINGS B3). Reads a few sqlite_master rows.
- * @param {D1Database} db
- * @returns {Promise<import('../scripts/ingest-core.mjs').SchemaStatus>}
- */
-export async function schemaStatus(db) {
-  /** @type {any} */
-  let row = null;
-  try {
-    row = await db.prepare(
-      `SELECT (SELECT value FROM meta WHERE key = 'schema') AS version,
-              (SELECT sql FROM sqlite_master WHERE name = 'modules_fts') AS fts,
-              (SELECT sql FROM sqlite_master WHERE name = 'modules_fts_update') AS trig,
-              (SELECT json_group_array(name) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'modules') AS triggers,
-              (SELECT count(*) FROM pragma_table_info('modules') WHERE name = 'row_hash') AS row_hash,
-              (SELECT json_group_array(name) FROM pragma_table_info('modules')) AS columns`).first();
-  } catch {
-    // No meta table (pre-0004): certainly not 0006.
-  }
-  const version = row?.version == null ? null : Number(row.version);
-  const ftsExternal = /content\s*=\s*'modules'/i.test(row?.fts ?? '');
-  const rowidTriggers = /old\.rowid/i.test(row?.trig ?? '');
-  const present = new Set(/** @type {string[]} */ (JSON.parse(row?.triggers ?? '[]')));
-  const missingTriggers = REQUIRED_TRIGGERS.filter((t) => !present.has(t));
-  const rowHashColumn = Number(row?.row_hash ?? 0) === 1;
-  // Every column the upsert binds (Phase 4: 0009's ng_allow, ng_rules; 5A: 0010's exam_dates).
-  const columns = new Set(/** @type {string[]} */ (JSON.parse(row?.columns ?? '[]')));
-  const missingColumns = ROW_COLUMNS.filter((c) => !columns.has(c));
-  return {
-    version, ftsExternal, rowidTriggers, missingTriggers, rowHashColumn, missingColumns,
-    ok: version !== null && version >= 6 && ftsExternal && rowidTriggers && missingTriggers.length === 0 && rowHashColumn
-      && missingColumns.length === 0,
-  };
-}
-
-/**
- * GET /admin/hashes:
- * `{ schema, embeddingModel, acadYears, modules: { code: { textHash, rowHash, ftsHash } } }`.
- * `ftsHash` (src/rowhash.js) hashes the stored code, title and description,
- * the columns the 0006 FTS update trigger watches, so ingest charges FTS
- * writes only to upserts that change them; text_hash cannot tell (it also
- * covers the model and the embedded-text version, PR #13 review).
- * `acadYears` counts D1's rows per acad year (`{}` for an empty database), so
- * ingest can refuse to rewrite a database to another year.
- * `modules` and `acadYears` are null when the schema check fails (the
- * row_hash column may not exist), and ingest refuses.
+ * GET /admin/hashes: src/admin-hashes.js computes the body from two reads, so the
+ * deploy guard can compute the same over D1's REST query (Phase 7 7B).
  * @param {Request} request
  * @param {Env} env
  */
 export async function handleHashes(request, env) {
   const denied = ingestGuard(request, env);
   if (denied) return denied;
-  const schema = await schemaStatus(env.DB);
-  const embeddingModel = env.EMBEDDING_MODEL ?? DEFAULT_MODEL;
-  if (!schema.ok) return json({ schema, embeddingModel, acadYears: null, modules: null });
-  const { results } = /** @type {D1Result<{
-    code: string, title: string, description: string, text_hash: string, row_hash: string | null, acad_year: string,
-  }>} */ (await env.DB.prepare('SELECT code, title, description, text_hash, row_hash, acad_year FROM modules').all());
-  const fts = await Promise.all(results.map((r) => ftsHash(r)));
-  return json({
-    schema, embeddingModel,
-    acadYears: results.reduce((n, r) => ({ ...n, [r.acad_year]: (n[r.acad_year] ?? 0) + 1 }), /** @type {Record<string, number>} */ ({})),
-    modules: Object.fromEntries(results.map((r, i) => [r.code, { textHash: r.text_hash, rowHash: r.row_hash, ftsHash: fts[i] }])),
-  });
+  return json(await adminHashes(d1Query(env.DB), { embeddingModel: env.EMBEDDING_MODEL ?? DEFAULT_MODEL }));
 }
 
 /**
