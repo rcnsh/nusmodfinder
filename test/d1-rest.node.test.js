@@ -6,6 +6,7 @@
 // `wrangler auth token`) never reaches an error, a log line or a run record. Fake fetch and
 // exec only: nothing here calls Cloudflare.
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -57,6 +58,75 @@ describe('assertReadOnly', () => {
       'SELECT :name',
       'SELECT #n',
     ]) expect(() => assertReadOnly(sql), JSON.stringify(sql)).toThrow(/read-only|only SELECT/);
+  });
+});
+
+// Red team M-3 (docs/evidence/phase7/redteam.md): SQLite reads `$`, `@`, `:` or `#` followed by an
+// identifier character as a parameter, and its identifier characters include `$` and every byte
+// >= 0x80, so `$$(')` or `@é(')` is a TCL-style parameter that swallows a quote the literal-blanking
+// took for a string's start, hiding the `;` after it. The check now refuses any parameter sigil.
+describe('assertReadOnly, strict (red team M-3)', () => {
+  const PAYLOADS = [
+    "SELECT $$(');UPDATE modules SET title='pwned';--')",
+    "SELECT @é(');UPDATE modules SET title='pwned';--')",
+  ];
+  /** Runs `sql` as a batch, as the REST endpoint might, over a two-row table; the titles after. @param {string} sql */
+  const runBatch = (sql) => {
+    const db = new DatabaseSync(':memory:');
+    db.exec("CREATE TABLE modules(code TEXT, title TEXT); INSERT INTO modules VALUES ('CS1010', 'Programming'), ('CS2030', 'OOP');");
+    db.exec(sql);
+    return db.prepare('SELECT title FROM modules ORDER BY code').all().map((r) => r.title);
+  };
+
+  for (const sql of PAYLOADS) {
+    it(`refuses ${JSON.stringify(sql)}, which SQLite runs as a SELECT and then an UPDATE`, () => {
+      expect(runBatch(sql)).toEqual(['pwned', 'pwned']);
+      expect(() => assertReadOnly(sql)).toThrow(/refusing/);
+    });
+  }
+
+  it('the REST client never sends it', async () => {
+    /** @type {string[]} */
+    const sent = [];
+    const client = d1RestClient({
+      accountId: 'acct', databaseId: 'db', token: 'fake',
+      fetchImpl: /** @type {typeof fetch} */ (async (_u, init) => {
+        sent.push(JSON.parse(String(init?.body)).sql);
+        return Response.json({ success: true, result: [{ results: [], meta: {} }] });
+      }),
+    });
+    for (const sql of PAYLOADS) await expect(client.query(sql)).rejects.toThrow(/refusing/);
+    expect(sent).toEqual([]);
+  });
+
+  it('refuses the classics: a `;` behind a comment, WITH … DELETE, RETURNING, a write keyword anywhere, any parameter sigil', () => {
+    for (const sql of [
+      'SELECT 1 -- note\n; DELETE FROM modules',
+      'SELECT 1 /* x */; DROP TABLE modules',
+      'WITH x AS (SELECT 1) DELETE FROM modules',
+      'WITH x AS (SELECT 1) SELECT * FROM x',
+      'DELETE FROM modules RETURNING code',
+      "INSERT INTO meta (key) VALUES ('x') RETURNING *",
+      'SELECT code FROM modules RETURNING code',
+      "SELECT replace(title, 'a', 'b') FROM modules",
+      "SELECT 'it''s' || $x",
+      'SELECT ?1, :a',
+      'SELECT [a]$',
+      'SELECT 1 # note',
+      'SELECT @1',
+      "VACUUM INTO 'x.db'",
+      'REINDEX modules',
+      'DETACH DATABASE x',
+    ]) expect(() => assertReadOnly(sql), JSON.stringify(sql)).toThrow(/refusing/);
+  });
+
+  it('still admits every statement the callers send (each a constant)', async () => {
+    const { SCHEMA_SQL, HASHES_SQL, CATALOGUE_TABLE_SQL, CATALOGUE_CODES_SQL } = await import('../src/admin-hashes.js');
+    for (const sql of [SCHEMA_SQL, HASHES_SQL, CATALOGUE_TABLE_SQL, CATALOGUE_CODES_SQL]) expect(() => assertReadOnly(sql), sql).not.toThrow();
+    // Words that hold a write keyword but are not one, and keywords inside literals.
+    for (const sql of ["SELECT name FROM sqlite_master WHERE name = 'modules_fts_update'", 'SELECT "delete" FROM t', 'SELECT updated_at, created FROM t']) {
+      expect(() => assertReadOnly(sql), sql).not.toThrow();
+    }
   });
 });
 
@@ -163,5 +233,23 @@ describe('the token and the account', () => {
 
   it('the database is wrangler.jsonc\'s DB binding', async () => {
     expect(await d1Config()).toEqual({ databaseName: 'nusmods-apac', databaseId: 'de4527ff-19ec-4a5b-9c5c-4d1791078b25' });
+  });
+
+  // Red team L-3: d1Config took the first d1_databases entry, whatever its binding.
+  it('picks the DB binding when another database is listed first, and fails when none is bound as DB', async () => {
+    const path = join(dir, 'wrangler.jsonc');
+    writeFileSync(path, `{
+  "d1_databases": [
+    // a second database, listed first
+    { "binding": "ANALYTICS", "database_name": "nusmods-analytics", "database_id": "11111111-1111-1111-1111-111111111111" },
+    { "binding": "DB", "database_name": "nusmods-apac", "database_id": "de4527ff-19ec-4a5b-9c5c-4d1791078b25" },
+  ],
+}
+`);
+    expect(await d1Config(path)).toEqual({ databaseName: 'nusmods-apac', databaseId: 'de4527ff-19ec-4a5b-9c5c-4d1791078b25' });
+    writeFileSync(path, '{ "d1_databases": [{ "binding": "ANALYTICS", "database_name": "a", "database_id": "1" }] }');
+    await expect(d1Config(path)).rejects.toThrow(/no d1_databases entry bound as DB/);
+    writeFileSync(path, '{ "d1_databases": [{ "binding": "DB", "database_name": "a", "database_id": "1" }, { "binding": "DB", "database_name": "b", "database_id": "2" }] }');
+    await expect(d1Config(path)).rejects.toThrow(/2 d1_databases entries bound as DB/);
   });
 });

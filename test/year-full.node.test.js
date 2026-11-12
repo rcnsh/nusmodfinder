@@ -7,14 +7,14 @@
 // quote, a rules file edited by hand) run on the Mac only, and skip in CI, where the record's
 // presence is what is checked. The preflight cases run everywhere: a fresh --full record satisfies
 // the preflight for HEAD, and a rules file edited by hand after it doesn't.
-import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FULL_RECORD, sourceInputsCheck, sourceInputsHash } from '../scripts/preflight.mjs';
 import { publish } from '../scripts/sources.mjs';
-import { execIn, yearCheckFull } from '../scripts/year.mjs';
-import { Y, copyTree, fakeDocuments, fakeReleases, git, gitInit, readJson, throwawayKey, useFakeDocuments } from './year-fakes.node.mjs';
+import { NG_VENV_SETUP, execIn, yearCheckFull } from '../scripts/year.mjs';
+import { Y, copyTree, fakeDocuments, fakeReleases, fromTextExtractor, git, gitInit, readJson, throwawayKey, useFakeDocuments } from './year-fakes.node.mjs';
 
 const RUNS = 'docs/evidence/ops/runs';
 
@@ -51,10 +51,13 @@ async function setup(o = {}) {
 }
 
 /**
- * `year check --full` into the repo's runs dir.
- * @param {{ pdfText?: (path: string) => Promise<string | null> }} [o]
+ * `year check --full` into the repo's runs dir. The NG list is re-extracted by extract-ng.py's
+ * --from-text mode over the fake "PDF" (test/year-fakes.node.mjs), so no pypdf is needed.
+ * @param {{ pdfText?: (path: string) => Promise<string | null>, extractNg?: import('../scripts/year.mjs').NgExtractor }} [o]
  */
-const full = (o = {}) => yearCheckFull({ root, key: keyFile, download: releases.download, runsDir: join(root, RUNS), log: () => {}, pdfText: async () => null, ...o });
+const full = (o = {}) => yearCheckFull({
+  root, key: keyFile, download: releases.download, runsDir: join(root, RUNS), log: () => {}, pdfText: async () => null, extractNg: fromTextExtractor, ...o,
+});
 /** Commits whatever the run left. @param {string} m */
 const commit = (m) => { git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', m]); };
 
@@ -73,7 +76,15 @@ describe('the --full record and the deploy preflight', () => {
     expect(r.problems).toEqual([]);
     expect(r.ok).toBe(true);
     const record = JSON.parse(readFileSync(/** @type {string} */ (r.record), 'utf8'));
-    expect(record).toMatchObject({ script: FULL_RECORD.script, outcome: 'ok', details: { mode: FULL_RECORD.mode, sourceInputsHash: await sourceInputsHash(exec), rules: 'byte-identical' } });
+    const courses = readJson(root, `data/ng-courses-${Y}.json`);
+    expect(record).toMatchObject({
+      script: FULL_RECORD.script, outcome: 'ok',
+      details: {
+        mode: FULL_RECORD.mode, sourceInputsHash: await sourceInputsHash(exec), rules: 'byte-identical',
+        // Red team H-1: the NG list, re-extracted from the archived PDF, byte for byte, with its sections.
+        ngList: { result: 'byte-identical', semesters: { 1: courses.semesters['1'].length, 2: courses.semesters['2'].length } },
+      },
+    });
     expect(r.record).toMatch(/-year-check-[0-9a-f]{4}\.json$/);
     commit('the year check --full record');
     expect(await sourceInputsCheck(exec)).toMatchObject({ ok: true, message: expect.stringMatching(/covers them/) });
@@ -90,6 +101,41 @@ describe('the --full record and the deploy preflight', () => {
     const after = await sourceInputsCheck(execIn(root));
     expect(after.ok).toBe(false);
     expect(after.message).toContain(rel);
+  });
+
+  // Red team H-1 (docs/evidence/phase7/redteam.md): --full rebuilt only the restrictions file, so a
+  // hand edit to the NG list got an ok record and passed the preflight's record rule.
+  it('a hand-edited NG course list fails --full (the archived list re-extracts otherwise), so the preflight refuses it', async () => {
+    const rel = `data/ng-courses-${Y}.json`;
+    const courses = readJson(root, rel);
+    // A course NUS does not offer to exchange students, added by hand to both lists.
+    courses.semesters['1'] = [...courses.semesters['1'], 'MED9999X'].sort();
+    courses.allCodes = [...courses.allCodes, 'MED9999X'].sort();
+    writeFileSync(join(root, rel), `${JSON.stringify(courses, null, 2)}\n`);
+    commit('a hand edit to the NG list');
+
+    const r = await full();
+    expect(r.ok).toBe(false);
+    expect(r.problems.join('\n')).toMatch(new RegExp(`${rel.replaceAll('.', '\\.')} is not what scripts/extract-ng\\.py writes from the archived ng-courses\\.pdf`));
+    expect(JSON.parse(readFileSync(/** @type {string} */ (r.record), 'utf8'))).toMatchObject({ outcome: 'failed', details: { ngList: { result: 'differs' } } });
+    commit('the year check --full record');
+    const pre = await sourceInputsCheck(execIn(root));
+    expect(pre.ok).toBe(false);
+  });
+
+  it('--full refuses, naming the setup, when .venv/bin/python is missing or cannot import pypdf: never a silent pass', async () => {
+    const missing = await full({ extractNg: undefined });
+    expect(missing.ok).toBe(false);
+    expect(missing.problems.join('\n')).toContain(NG_VENV_SETUP);
+    expect(NG_VENV_SETUP).toBe('python3 -m venv .venv && .venv/bin/pip install pypdf');
+
+    // A venv whose python has no pypdf (here, one that fails every import).
+    mkdirSync(join(root, '.venv/bin'), { recursive: true });
+    writeFileSync(join(root, '.venv/bin/python'), '#!/bin/sh\necho "ModuleNotFoundError: No module named \'pypdf\'" >&2\nexit 1\n');
+    chmodSync(join(root, '.venv/bin/python'), 0o755);
+    const noPypdf = await full({ extractNg: undefined });
+    expect(noPypdf.ok).toBe(false);
+    expect(noPypdf.problems.join('\n')).toContain(NG_VENV_SETUP);
   });
 
   it('--full refuses an uncommitted transcription: the rebuild reads it from the tree', async () => {

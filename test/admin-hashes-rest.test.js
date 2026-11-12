@@ -8,7 +8,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { d1RestClient } from '../scripts/d1-rest.mjs';
-import { GUARD_CHECKS, readD1 } from '../scripts/guard.mjs';
+import { GUARD_CHECKS, compareWithTag, readD1, runGuard } from '../scripts/guard.mjs';
 import { adminHashes } from '../src/admin-hashes.js';
 import { DEFAULT_MODEL } from '../src/embedding.js';
 import { catalogueKey } from '../src/rowhash.js';
@@ -83,5 +83,63 @@ describe('/admin/hashes and the REST guard read agree', () => {
     const after = await adminHashes(localRest().client.query, { embeddingModel: DEFAULT_MODEL });
     expect(after.catalogueKey).not.toBe(rest.catalogueKey);
     expect(after.catalogueKey).toBe((await (await adminCall('/admin/hashes', fakes)).json()).catalogueKey);
+  });
+});
+
+// Red team M-1 (docs/evidence/phase7/redteam.md): the guard hashed D1's stored row_hash values, so
+// a row changed behind its row_hash (a hand `d1 execute`, an older writer, a one-table restore)
+// gave the same dataVersion and the deploy shipped over it. It now recomputes each row's hash from
+// the row's own columns (src/rowhash.js, as ingest does), for modules and catalogue_only alike.
+describe('the guard recomputes every row\'s hash from its columns (red team M-1)', () => {
+  /** What the deploy would ship, taken from D1 as it is now (so the guard passes before the edit). */
+  async function shipped() {
+    const values = await guardValues((await readD1(localRest().client)).hashes);
+    const { results } = /** @type {D1Result<{ code: string }>} */ (await env.DB.prepare('SELECT code FROM catalogue_only').all());
+    return {
+      bundle: { entry: { rowsKey: /** @type {string} */ (values.rowsKey), count: fixture.modules.length } },
+      committed: /** @type {string} */ (values.dataVersion),
+      catalogue: { codes: results.map((r) => r.code) },
+      fields: { dataVersion: /** @type {string} */ (values.dataVersion), catalogueKey: /** @type {string} */ (values.catalogueKey) },
+    };
+  }
+
+  it('refuses a module row edited behind its row_hash, and a catalogue_only row likewise; rollback\'s data check too', async () => {
+    const acadYear = fixture.modules[0].acadYear;
+    const upsert = ['ZZ1000', 'ZZ2000'].map((code) => ({ code, title: `Title ${code}`, description: null, acadYear }));
+    expect((await adminCall('/admin/catalogue', fakes, { upsert })).status).toBe(200);
+    const ship = await shipped();
+    const pass = await runGuard({ client: localRest().client, ...ship });
+    expect(pass.results.filter((r) => !r.ok)).toEqual([]);
+    expect(pass.ok).toBe(true);
+    expect((await compareWithTag({ client: localRest().client, fields: ship.fields })).ok).toBe(true);
+
+    // One module closed to exchange students and 99 credits heavier; row_hash, text_hash, title
+    // and description untouched. The guard reads every column, as many rows as before.
+    const code = fixture.modules[0].code;
+    await env.DB.prepare("UPDATE modules SET ng = 0, ng_allow = 0, ng_semesters = '[]', credits = credits + 99 WHERE code = ?").bind(code).run();
+    const { client, sent } = localRest();
+    const moduleEdit = await runGuard({ client, ...ship });
+    expect(moduleEdit.ok).toBe(false);
+    const failed = moduleEdit.results.filter((r) => !r.ok);
+    expect(failed.map((r) => r.name).sort()).toEqual(['dataVersion', 'rowHashes']);
+    expect(failed.find((r) => r.name === 'rowHashes')?.message).toContain(code);
+    expect(sent.some((q) => /^SELECT code, title, description, credits, .* row_hash FROM modules$/.test(q))).toBe(true);
+    const rollback = await compareWithTag({ client: localRest().client, fields: ship.fields });
+    expect(rollback.ok).toBe(false);
+    expect(rollback.results.filter((r) => !r.ok).map((r) => r.name).sort()).toEqual(['dataVersion', 'rowHashes']);
+
+    // The red team's whole-table edit: every value the guard compares moves.
+    const before = await guardValues((await readD1(localRest().client)).hashes);
+    await env.DB.batch([
+      env.DB.prepare("UPDATE modules SET ng = 0, ng_allow = 0, ng_semesters = '[]', semesters = '[]', credits = credits + 99"),
+      env.DB.prepare("UPDATE catalogue_only SET title = 'wrong title'"),
+    ]);
+    const after = await guardValues((await readD1(localRest().client)).hashes);
+    expect(after).not.toEqual(before);
+    const catalogueEdit = await runGuard({ client: localRest().client, ...ship });
+    expect(catalogueEdit.results.filter((r) => !r.ok).map((r) => r.name).sort()).toEqual(['catalogueRows', 'dataVersion', 'rowHashes']);
+    expect(catalogueEdit.results.find((r) => r.name === 'catalogueRows')?.message).toMatch(/ZZ1000/);
+    // catalogueKey covers codes only, and they did not change.
+    expect(catalogueEdit.results.find((r) => r.name === 'catalogueKey')?.ok).toBe(true);
   });
 });
