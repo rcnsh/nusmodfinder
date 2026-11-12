@@ -1,0 +1,67 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:25:21.996Z",
+  "finishedAt": "2026-11-12T11:25:30.815Z",
+  "script": "deploy:preflight",
+  "args": [
+    "--preflight"
+  ],
+  "commit": {
+    "sha": "447e2e6ad5cd7aea2742deae0deea03dc38d6366",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmodfinder",
+  "read": [],
+  "written": [],
+  "requests": {},
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "preflight": [
+      {
+        "name": "git",
+        "status": "ok",
+        "message": "HEAD 447e2e6 is on origin/main, at its tip"
+      },
+      {
+        "name": "ci",
+        "status": "ok",
+        "message": "CI run 43207243981 and Findings run 43207244093 succeeded"
+      },
+      {
+        "name": "vars",
+        "status": "ok",
+        "message": "only DENSE_BACKEND"
+      },
+      {
+        "name": "bundle",
+        "status": "ok",
+        "message": "production, 6778 rows, data version d820d578cf81, sha256 706b69a492ee"
+      },
+      {
+        "name": "corpus manifest",
+        "status": "ok",
+        "message": "prod-2026-2027-20261104: data version d820d578cf81 and catalogueKey 5b1e2f06e559 follow it; the 3B files are fresh"
+      },
+      {
+        "name": "year check",
+        "status": "ok",
+        "message": "2026-2027: the year's sources agree (2 notes: YST Sem 2: 2025/26's page (YST hasn't published 2026/27's) …)"
+      },
+      {
+        "name": "source inputs",
+        "status": "ok",
+        "message": "3 source-derived input(s) changed since deploy/20261111T235933Z-b0834844; docs/evidence/ops/runs/20261112T111300Z-year-check-9bb5.json covers them"
+      },
+      {
+        "name": "startup",
+        "status": "ok",
+        "message": "wrangler check startup passed"
+      }
+    ]
+  },
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}
