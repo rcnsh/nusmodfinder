@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FULL_RECORD, sourceInputsCheck, sourceInputsHash } from '../scripts/preflight.mjs';
 import { publish } from '../scripts/sources.mjs';
 import { NG_VENV_SETUP, execIn, yearCheckFull } from '../scripts/year.mjs';
-import { Y, copyTree, fakeDocuments, fakeReleases, fromTextExtractor, git, gitInit, readJson, throwawayKey, useFakeDocuments } from './year-fakes.node.mjs';
+import { LAST, Y, copyTree, fakeDocuments, fakeNgPages, fakeReleases, fromTextExtractor, git, gitInit, readJson, sha, throwawayKey, useFakeDocuments, writeJson } from './year-fakes.node.mjs';
 
 const RUNS = 'docs/evidence/ops/runs';
 
@@ -153,6 +153,88 @@ describe('the --full record and the deploy preflight', () => {
     m.revisions.at(-1).archive = { ...m.revisions.at(-1).archive, sha256: null, pending: 'not yet' };
     writeFileSync(join(root, `data/ng-sources-${Y}.json`), `${JSON.stringify(m, null, 1)}\n`);
     expect((await full()).problems.join('\n')).toMatch(/archive is pending/);
+  });
+});
+
+// Review of the H-1 fix: while a semester is unpublished, exchange mode serves last year's list for
+// it (scripts/lib.mjs loadNgCourses), so --full checks that file against last year's archive too.
+describe('--full and last year\'s NG list, while Sem 2 is unpublished', () => {
+  const LAST_REL = `data/ng-courses-${LAST}.json`;
+  /** The repo with this year's Sem 2 unpublished, and last year's list and archive. @param {{ lastArchive?: boolean }} [o] */
+  async function setupUnpublished({ lastArchive = true } = {}) {
+    dir = mkdtempSync(join(tmpdir(), 'vnm-year-full-prev-'));
+    root = copyTree(join(dir, 'repo'));
+    // This year: Sem 1 only.
+    const courses = readJson(root, `data/ng-courses-${Y}.json`);
+    delete courses.semesters['2'];
+    courses.allCodes = [...courses.semesters['1']];
+    writeJson(root, `data/ng-courses-${Y}.json`, courses, 2);
+    const m = readJson(root, `data/ng-sources-${Y}.json`);
+    m.published.ngList['2'] = false;
+    writeJson(root, `data/ng-sources-${Y}.json`, m);
+    const docs = join(dir, 'docs');
+    const files = fakeDocuments(docs);
+    files['ng-courses.pdf'] = Buffer.from(fakeNgPages(courses));
+    writeFileSync(join(docs, 'ng-courses.pdf'), files['ng-courses.pdf']);
+    useFakeDocuments(root, files);
+    // Last year: a Sem 2 list, extracted from its own archived NG list.
+    const lastCourses = {
+      source: courses.source, sourceFile: 'ng-courses.pdf', updatedAsAt: `15 Jan ${LAST.slice(5)}`, acadYear: LAST,
+      semesters: { 2: ['CS1010', 'CS2030'] }, allCodes: ['CS1010', 'CS2030'],
+    };
+    writeJson(root, LAST_REL, lastCourses, 2);
+    const lastDocs = join(dir, 'last-docs');
+    mkdirSync(lastDocs, { recursive: true });
+    const lastPdf = Buffer.from(fakeNgPages(lastCourses));
+    writeFileSync(join(lastDocs, 'ng-courses.pdf'), lastPdf);
+    if (lastArchive) {
+      const date = `${LAST.slice(5)}-01-15`;
+      writeJson(root, `data/ng-sources-${LAST}.json`, {
+        ...m, acadYear: LAST, published: { ngList: { 1: false, 2: true }, yst: m.published.yst }, quotes: [],
+        revisions: [{
+          date, archive: { release: `sources-${LAST}-${date.replaceAll('-', '')}`, asset: 'x', sha256: null, pending: 'the fakes publish it' },
+          documents: [{ id: 'ng-list', name: 'NG list', url: 'https://example.test/ng', file: 'ng-courses.pdf', sha256: sha(lastPdf), updatedAsAt: lastCourses.updatedAsAt, builder: true }],
+        }],
+      });
+    }
+    keyFile = throwawayKey(join(dir, 'test.key'));
+    releases = fakeReleases(join(dir, 'releases'));
+    writeFileSync(join(root, 'README.md'), 'fake\n');
+    const origin = join(dir, 'origin.git');
+    mkdirSync(origin);
+    gitInit(root, origin);
+    git(root, ['tag', '-a', '-m', 'live', 'deploy/20261111T235933Z-b0834844']);
+    git(root, ['push', '-q', 'origin', 'main', '--tags']);
+    await publish({ from: docs, root, key: keyFile, upload: releases.upload, runsDir: join(dir, 'publish-runs'), log: () => {} });
+    if (lastArchive) await publish({ from: lastDocs, year: LAST, root, key: keyFile, upload: releases.upload, runsDir: join(dir, 'publish-runs'), log: () => {} });
+    commit('publish the sources archives');
+  }
+
+  it('re-extracts last year\'s list from its archive, and a hand edit to it fails --full and the preflight', async () => {
+    await setupUnpublished();
+    const r = await full();
+    expect(r.problems).toEqual([]);
+    expect(JSON.parse(readFileSync(/** @type {string} */ (r.record), 'utf8')).details).toMatchObject({
+      ngList: { result: 'byte-identical', semesters: { 1: expect.any(Number) } }, ngListPrevious: { year: LAST, result: 'byte-identical', semesters: { 2: 2 } },
+    });
+
+    const lastCourses = readJson(root, LAST_REL);
+    lastCourses.semesters['2'] = [...lastCourses.semesters['2'], 'MED9999X'].sort();
+    lastCourses.allCodes = [...lastCourses.allCodes, 'MED9999X'].sort();
+    writeJson(root, LAST_REL, lastCourses, 2);
+    commit('a hand edit to last year\'s NG list');
+    const edited = await full();
+    expect(edited.ok).toBe(false);
+    expect(edited.problems.join('\n')).toContain(`${LAST_REL} is not what scripts/extract-ng.py writes`);
+    commit('the year check --full record');
+    expect((await sourceInputsCheck(execIn(root))).ok).toBe(false);
+  });
+
+  it('refuses when last year has no archive to check its list against', async () => {
+    await setupUnpublished({ lastArchive: false });
+    const r = await full();
+    expect(r.ok).toBe(false);
+    expect(r.problems.join('\n')).toMatch(new RegExp(`Sem 2 unpublished: exchange mode shows ${LAST_REL.replaceAll('.', '\\.')}, which --full can't check`));
   });
 });
 

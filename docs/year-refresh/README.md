@@ -173,7 +173,8 @@ from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollb
    its document word for word, re-extracts `data/ng-courses-<year>.json` from the archived NG list
    PDF with `.venv/bin/python scripts/extract-ng.py` and requires it byte for byte (its semester
    sections included; the record names each section's count), and rebuilds the rules file byte for
-   byte. Without `.venv/bin/python` and `pypdf` it refuses, printing
+   byte. While Sem 2 is unpublished it also restores last year's archive and re-extracts last
+   year's list, which exchange mode shows for Sem 2 (`details.ngListPrevious`). Without `.venv/bin/python` and `pypdf` it refuses, printing
    `python3 -m venv .venv && .venv/bin/pip install pypdf`. Commit the run record it writes (the
    deploy preflight needs it whenever a source-derived input changed). Then the bundle:
    `node scripts/vectors.mjs build --corpus production --expect-count <rows>` and the other

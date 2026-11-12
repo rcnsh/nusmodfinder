@@ -91,7 +91,8 @@ const answer = (ok, message) => ({ ok, message });
 /**
  * The "source inputs" check: when HEAD changes a source-derived input since what is live (the
  * newest deploy/* or rollback/* tag), a `year check --full` run record committed at HEAD must
- * carry an ok outcome and HEAD's sourceInputsHash. A hand-edited rules file has a hash no
+ * carry an ok outcome, HEAD's sourceInputsHash and a byte-identical NG list (`details.ngList`, red
+ * team H-1: older records didn't check it). A hand-edited rules file has a hash no
  * record names, so it can't pass.
  * @param {Exec} exec
  * @returns {Promise<{ ok: boolean, message: string }>}
@@ -114,7 +115,9 @@ export async function sourceInputsCheck(exec) {
     /** @type {any} */
     let r = null;
     try { r = JSON.parse(shown.out); } catch { continue; }
-    if (r?.script === FULL_RECORD.script && r?.outcome === 'ok' && r?.details?.mode === FULL_RECORD.mode && r?.details?.sourceInputsHash === hash) {
+    // A record from before the red team's H-1 fix never checked the NG list, so it vouches for nothing.
+    if (r?.script === FULL_RECORD.script && r?.outcome === 'ok' && r?.details?.mode === FULL_RECORD.mode && r?.details?.sourceInputsHash === hash
+      && r?.details?.ngList?.result === 'byte-identical') {
       return answer(true, `${changed.length} source-derived input(s) changed since ${live.name}; ${path} covers them`);
     }
   }

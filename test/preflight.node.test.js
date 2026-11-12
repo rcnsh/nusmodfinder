@@ -127,8 +127,10 @@ describe('the year check --full record (7E) is needed only when a source-derived
   const NG = `data/ng-courses-${Y}.json`;
   const LS_TREE = `100644 blob ${'a'.repeat(40)}\t${NG}\n100644 blob ${'b'.repeat(40)}\tdata/ng-restrictions-${Y}.json\n100644 blob ${'c'.repeat(40)}\tsrc/search.js\n`;
   const RECORD_PATH = 'docs/evidence/ops/runs/20261112T090000Z-year-check-ab12.json';
-  /** @param {string} hash @param {string} [outcome] */
-  const yearRecord = (hash, outcome = 'ok') => JSON.stringify({ schema: 'vnm-run/1', script: 'year check', outcome, details: { mode: 'full', sourceInputsHash: hash } });
+  /** @param {string} hash @param {string} [outcome] @param {Record<string, unknown>} [extra] */
+  const yearRecord = (hash, outcome = 'ok', extra = { ngList: { result: 'byte-identical', semesters: { 1: 730, 2: 750 } } }) => JSON.stringify({
+    schema: 'vnm-run/1', script: 'year check', outcome, details: { mode: 'full', sourceInputsHash: hash, ...extra },
+  });
   const changed = { [`git diff --name-only --no-renames ${LIVE_SHA} HEAD`]: { stdout: `src/search.js\n${NG}\n` }, 'git ls-tree -r HEAD': { stdout: LS_TREE } };
 
   it('the source-derived paths', () => {
@@ -172,6 +174,9 @@ describe('the year check --full record (7E) is needed only when a source-derived
     expect((await preflight(withRecord(yearRecord(hash)))).code).toBe(0);
     expect((await preflight(withRecord(yearRecord('f'.repeat(64))))).code).toBe(1);
     expect((await preflight(withRecord(yearRecord(hash, 'failed')))).code).toBe(1);
+    // A record from before the red team's H-1 fix never checked the NG list: it covers nothing.
+    expect((await preflight(withRecord(yearRecord(hash, 'ok', {})))).code).toBe(1);
+    expect((await preflight(withRecord(yearRecord(hash, 'ok', { ngList: { result: 'differs' } })))).code).toBe(1);
   });
 
   it('refuses when no deploy/* or rollback/* tag says what is live, or the tags cannot be fetched', async () => {

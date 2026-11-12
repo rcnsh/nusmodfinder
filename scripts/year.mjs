@@ -16,7 +16,9 @@
 //       verbatim in its document's text, re-extracts data/ng-courses-<year>.json from the archived
 //       NG list PDF (scripts/extract-ng.py run by .venv/bin/python, which needs pypdf: red team
 //       H-1) and requires it byte for byte, its semester sections included, and rebuilds
-//       data/ng-restrictions-<year>.json byte for byte. Refuses a pending archive, uncommitted
+//       data/ng-restrictions-<year>.json byte for byte. While a semester is unpublished, last
+//       year's NG list (which exchange mode shows for it) is re-extracted from last year's archive
+//       the same way. Refuses a pending archive, uncommitted
 //       source-derived inputs, and a missing venv or pypdf (printing the one-line setup). Writes a run record (script `year check`, details.mode
 //       `full`, details.sourceInputsHash: scripts/preflight.mjs's hash of HEAD's source-derived
 //       inputs). Commit the record: the preflight needs it whenever HEAD changes those inputs.
@@ -281,6 +283,28 @@ export const venvNgExtractor = (root) => async ({ pdf, year, published, out }) =
 };
 
 /**
+ * One year's NG list against its archived PDF: extracts it into `out` and compares it with the
+ * committed data/ng-courses-<year>.json byte for byte (red team H-1).
+ * @param {{ year: string, rev: import('./ng-sources.mjs').Revision, published: number[], dir: string, root: string, extract: NgExtractor, out: string }} o
+ * @returns {Promise<{ problem: string | null, detail: { result: string, semesters?: Record<string, number> } }>}
+ */
+async function checkNgList({ year, rev, published, dir, root, extract, out }) {
+  const rel = ngCoursesRel(year);
+  const list = documentOf(rev, 'ng-list');
+  if (!list?.file) return { problem: `the ${year} ${rev.date} revision has no ng-list document with a file, so ${rel} can't be checked`, detail: { result: 'no document' } };
+  const x = await extract({ pdf: join(dir, list.file), year, published, out });
+  if (!x.ok || !existsSync(out)) return { problem: `${rel} could not be re-extracted from the archived ${list.file}: ${x.message}`, detail: { result: 'not extracted' } };
+  const extracted = readFileSync(out, 'utf8');
+  const semesters = Object.fromEntries(Object.entries(JSON.parse(extracted).semesters ?? {}).map(([sem, codes]) => [sem, /** @type {string[]} */ (codes).length]));
+  const same = extracted === readText(root, rel);
+  return {
+    problem: same ? null : `${rel} is not what scripts/extract-ng.py writes from the archived ${list.file} `
+      + `(${Object.entries(semesters).map(([sem, n]) => `Sem ${sem} ${n}`).join(', ') || 'no sections'}): a hand edit, or a list the file wasn't re-extracted from`,
+    detail: { result: same ? 'byte-identical' : 'differs', semesters },
+  };
+}
+
+/**
  * `year check --full`.
  * @param {{ root?: string, year?: string, key?: string, download?: import('./sources.mjs').Download, runsDir?: string,
  *   log?: (m: string) => void, args?: string[], env?: NodeJS.ProcessEnv, pdfText?: (path: string) => Promise<string | null>,
@@ -330,6 +354,8 @@ export async function yearCheckFull({
   let dir = null;
   /** @type {string | null} */
   let scratch = null;
+  /** @type {string | null} */
+  let lastDir = null;
   try {
     record.request('gh release download');
     const restored = await restoreSources({ year: y, revision: rev.date, root, log, env, ...(key ? { key } : {}), ...(download ? { download } : {}) });
@@ -357,28 +383,33 @@ export async function yearCheckFull({
 
     // The NG list (red team H-1): the archived PDF re-extracts to the committed file byte for byte,
     // with a section for each semester the manifest marks published (extract-ng.py fails otherwise).
-    const list = documentOf(rev, 'ng-list');
-    /** @type {Record<string, number>} */
-    let semesters = {};
-    if (!list?.file) {
-      problems.push(`the ${rev.date} revision has no ng-list document with a file, so ${ngCoursesRel(y)} can't be checked`);
-      record.detail('ngList', { result: 'no document' });
-    } else {
-      scratch = mkdtempSync(join(tmpdir(), 'vnm-year-ng-'));
-      const out = join(scratch, 'ng-courses.json');
-      const x = await extract({ pdf: join(dir, list.file), year: y, published: publishedSemesters(/** @type {any} */ (manifest)), out });
-      if (!x.ok || !existsSync(out)) {
-        problems.push(`${ngCoursesRel(y)} could not be re-extracted from the archived ${list.file}: ${x.message}`);
-        record.detail('ngList', { result: 'not extracted' });
+    scratch = mkdtempSync(join(tmpdir(), 'vnm-year-ng-'));
+    const current = await checkNgList({ year: y, rev, published: publishedSemesters(/** @type {any} */ (manifest)), dir, root, extract, out: join(scratch, 'ng-courses.json') });
+    record.detail('ngList', current.detail);
+    if (current.problem) problems.push(current.problem);
+    const semesters = current.detail.semesters ?? {};
+
+    // A semester NUS hasn't published is served from last year's list (scripts/lib.mjs
+    // loadNgCourses), so that file is checked the same way, against last year's archived NG list.
+    const unpublished = unpublishedSemesters(/** @type {any} */ (manifest));
+    const last = previousYear(y);
+    if (unpublished.length) {
+      const lastManifest = readManifest(last, { root });
+      const lastRev = lastManifest && !lastManifest.stub ? latestRevision(lastManifest) : null;
+      if (!lastManifest || !lastRev?.archive.sha256) {
+        problems.push(`Sem ${unpublished.join(', ')} unpublished: exchange mode shows ${ngCoursesRel(last)}, which --full can't check: `
+          + `${manifestRel(last)} ${lastManifest ? 'has no published archive' : "doesn't exist"}`);
+        record.detail('ngListPrevious', { year: last, result: 'no archive' });
       } else {
-        const extracted = readFileSync(out, 'utf8');
-        semesters = Object.fromEntries(Object.entries(JSON.parse(extracted).semesters ?? {}).map(([sem, codes]) => [sem, /** @type {string[]} */ (codes).length]));
-        const sameList = extracted === readText(root, ngCoursesRel(y));
-        record.detail('ngList', { result: sameList ? 'byte-identical' : 'differs', semesters });
-        if (!sameList) {
-          problems.push(`${ngCoursesRel(y)} is not what scripts/extract-ng.py writes from the archived ${list.file} `
-            + `(${Object.entries(semesters).map(([sem, n]) => `Sem ${sem} ${n}`).join(', ') || 'no sections'}): a hand edit, or a list the file wasn't re-extracted from`);
-        }
+        record.request('gh release download');
+        const restoredLast = await restoreSources({ year: last, revision: lastRev.date, root, log, env, ...(key ? { key } : {}), ...(download ? { download } : {}) });
+        lastDir = restoredLast.dir;
+        record.read('sources archive files (last year\'s)', { actual: restoredLast.files.length });
+        const previous = await checkNgList({
+          year: last, rev: lastRev, published: publishedSemesters(lastManifest), dir: lastDir, root, extract, out: join(scratch, 'ng-courses-previous.json'),
+        });
+        record.detail('ngListPrevious', { year: last, ...previous.detail });
+        if (previous.problem) problems.push(previous.problem);
       }
     }
 
@@ -402,8 +433,7 @@ export async function yearCheckFull({
     const path = record.finish('failed', { exitCode: 1, message });
     return { ok: false, problems: [...problems, message], notes, record: path, sourceInputsHash: hash };
   } finally {
-    if (dir) rmSync(dir, { recursive: true, force: true });
-    if (scratch) rmSync(scratch, { recursive: true, force: true });
+    for (const d of [dir, lastDir, scratch]) if (d) rmSync(d, { recursive: true, force: true });
   }
 }
 

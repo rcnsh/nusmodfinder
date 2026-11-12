@@ -219,6 +219,12 @@ made its tests pass. The "(evidence)" case for L-5 (the fakes' PDF holds none of
 dropped: it showed the gap, and pinning the text closes it. "Main has no branch protection" is not
 a code fix; the lead raises it.
 
+After the merge, `npm run deploy` refuses until a fresh `year check --full` record is committed: the
+manifest's new `textSha256` fields change the source-derived inputs' hash, and the preflight no
+longer accepts the older records. That run needs the sources key and `.venv` with `pypdf`. The
+venv's `pypdf` isn't pinned to a version: if the re-extracted NG list differs from the committed file,
+check the `pypdf` version before suspecting the file.
+
 | ID | Fix | Commit | Tests |
 |---|---|---|---|
 | H-1 | `year check --full` re-extracts `data/ng-courses-<year>.json` from the archived NG list PDF (`scripts/extract-ng.py` run by `.venv/bin/python`) and requires it byte for byte, its semester sections included (the record's `details.ngList`). No venv or no `pypdf`: a refusal naming `python3 -m venv .venv && .venv/bin/pip install pypdf`. The extractor is injectable. | `7b14a07` | `test/year-full.node.test.js` ("a hand-edited NG course list fails --full…", "--full refuses, naming the setup…", the fresh-record case's `ngList`); `test/preflight.node.test.js` ("the inputs hash covers data/ng-courses-*") |
@@ -229,6 +235,7 @@ a code fix; the lead raises it.
 | L-2 | `wranglerVars` reads `wrangler.jsonc` as JSONC (`scripts/jsonc.mjs`); a file or `vars` it can't read throws, and the preflight's `vars` check fails on it. | `9664fdc` | `test/preflight.node.test.js` ("the vars check reads wrangler.jsonc as JSONC") |
 | L-3 | `d1Config` reads the entry bound as `DB`, and fails on none or two. | `4f42a1e` | `test/d1-rest.node.test.js` ("picks the DB binding…") |
 | L-4 | `year check`, `sources publish` and `restore` refuse a `file` or `text` name that isn't a plain base name; restore checks each archive entry's name before writing. | `ab194d9` | `test/sources.node.test.js` ("manifest file names are plain base names") |
+| H-1 (review) | The fresh review found two more ways round H-1. While a semester is unpublished, exchange mode serves last year's list, so `--full` also restores last year's archive and re-extracts that list byte for byte (`details.ngListPrevious`), refusing when last year has no archive. And the preflight now requires `details.ngList.result: byte-identical`, so a `--full` record from before the fix covers nothing. | see the PR | `test/year-full.node.test.js` ("--full and last year's NG list…"); `test/preflight.node.test.js` |
 | L-5 | Every `text` extraction has a `textSha256`: publish writes it, restore and `--full` check it, the builder refuses a text that differs. The 2026/27 revisions carry the lead's sha256s of the archived `.txt` files. | `ab194d9` | `test/sources.node.test.js` ("text extractions are pinned by textSha256") |
 
 ## Not reproduced (what was tried)

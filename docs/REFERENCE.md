@@ -189,7 +189,8 @@ register paths, and the quote index (every NUS sentence copied by hand into `src
 with its document). `npm run year -- check` checks the year's files agree with it (the deploy
 preflight runs it), and `--full`, on the Mac with the key, finds every quote in its document,
 re-extracts `data/ng-courses-<year>.json` from the archived NG list PDF and rebuilds the rules file,
-each byte for byte. Every document's `file` and `text` is a plain base name (red team L-4), and each
+each byte for byte; while a semester is unpublished it re-extracts last year's list (which exchange
+mode shows for it) from last year's archive too, and refuses when there is none. Every document's `file` and `text` is a plain base name (red team L-4), and each
 `text` extraction carries a `textSha256` (red team L-5), which `sources publish` writes and restore,
 `--full` and the restrictions builder check. The runbook for a year switch and a mid-year revision is
 [`docs/year-refresh/README.md`](year-refresh/README.md).
@@ -586,7 +587,8 @@ This is the only supported way to deploy, from the Mac or from GitHub Actions (b
      `data/ng-unscheduled.json`, which follows the corpus; `scripts/ng-overlay/`; a quoted NUS
      sentence counts through the quote index) since the live commit (the newest `deploy/*` or `rollback/*` tag), a
      committed `year check --full` run record (7E) whose `details.sourceInputsHash` is those
-     inputs' hash at `HEAD` (`sourceInputsHash` in `scripts/preflight.mjs`: sha256 over their
+     inputs' hash at `HEAD` and whose `details.ngList.result` is `byte-identical` (a record from
+     before the red team's H-1 fix doesn't count) (`sourceInputsHash` in `scripts/preflight.mjs`: sha256 over their
      `git ls-tree` lines). A hotfix that touches none needs no sources key;
    - `startup`: `wrangler check startup` locally with the bundle aliased in;
 2. **the guard** (`scripts/guard.mjs`): reads D1 over the D1 REST query endpoint
