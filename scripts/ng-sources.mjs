@@ -20,11 +20,14 @@ export const ROLES = /** @type {const} */ (['self-funded-list', 'off-list-rule']
 /**
  * @typedef {{
  *   id: string, name: string, url: string | null, file: string | null, sha256: string | null,
- *   updatedAsAt: string | null, builder?: boolean, derivedFrom?: string, text?: string, note?: string,
+ *   updatedAsAt: string | null, builder?: boolean, derivedFrom?: string, text?: string, textSha256?: string, note?: string,
  *   confirm?: string[], unarchived?: string,
  * }} SourceDocument
  *   `confirm` lists the fields the lead has still to fill in from the saved document (a URL or
  *   date not in git); `unarchived` gives the reason a quoted source can't go in the archive.
+ *   `text` is the document's text extraction (pdftotext), archived with it, and `textSha256` its
+ *   sha256 (red team L-5): `sources publish` writes it, and restore, `year check --full` and the
+ *   restrictions builder check it. `file` and `text` are plain base names (red team L-4).
  * @typedef {{ release: string, asset: string, sha256: string | null, pending?: string }} ArchiveRef
  * @typedef {{ date: string, archive: ArchiveRef, documents: SourceDocument[] }} Revision
  * @typedef {{ id: string, file: string, text: string, document: string }} Quote
@@ -117,6 +120,17 @@ export function builderHashes(rev) {
 }
 
 /**
+ * Whether a manifest's file name is a plain base name, safe to join onto a directory (red team
+ * L-4): not empty, not `.`, and no `/`, `\\`, `..`, drive or absolute path, or NUL.
+ * @param {unknown} name
+ */
+export const isPlainName = (name) => typeof name === 'string' && name !== '' && name !== '.'
+  && !/[/\\\0]/.test(name) && !name.includes('..') && !/^[A-Za-z]:/.test(name);
+
+/** The refusal for a name that is not plain. @param {string} what @param {unknown} name */
+export const notPlain = (what, name) => `${what} ${JSON.stringify(name)} is not a plain file name (no /, \\, .., absolute path or NUL)`;
+
+/**
  * What the manifest's shape gets wrong, as sentences (an empty list is a sound manifest).
  * @param {SourceManifest} m @param {string} year
  * @returns {string[]}
@@ -151,6 +165,13 @@ export function manifestProblems(m, year) {
         }
       }
       if (d.sha256 !== null && d.sha256 !== undefined && !/^[0-9a-f]{64}$/.test(d.sha256)) out.push(`revision ${rev.date}: ${d.id}'s sha256 is not 64 hex`);
+      if (typeof d.file === 'string' && !isPlainName(d.file)) out.push(`revision ${rev.date}: ${notPlain(`${d.id}'s file`, d.file)}`);
+      if (d.text !== undefined) {
+        if (!isPlainName(d.text)) out.push(`revision ${rev.date}: ${notPlain(`${d.id}'s text`, d.text)}`);
+        if (d.textSha256 !== undefined && !(typeof d.textSha256 === 'string' && /^[0-9a-f]{64}$/.test(d.textSha256))) out.push(`revision ${rev.date}: ${d.id}'s textSha256 is not 64 hex`);
+        // A published revision pins every file it archived; a pending one gets it from publish.
+        if (d.textSha256 === undefined && a?.sha256 && !d.unarchived) out.push(`revision ${rev.date}: ${d.id}'s text ${d.text} has no textSha256 (npm run sources -- publish writes it)`);
+      }
       if (d.builder && (!d.file || !d.sha256)) out.push(`revision ${rev.date}: ${d.id} is a builder input with no file or sha256`);
       if (d.derivedFrom && !(rev.documents ?? []).some((o) => o.id === d.derivedFrom)) out.push(`revision ${rev.date}: ${d.id} is derived from ${d.derivedFrom}, which the revision lacks`);
     }

@@ -294,6 +294,9 @@ describe('text extractions are pinned by textSha256 (red team L-5)', () => {
     const textDoc = () => latestRevision(readJson(root, `data/ng-sources-${Y}.json`)).documents.find((/** @type {any} */ d) => d.text === TEXT);
 
     it('publish writes each text\'s textSha256; every archived file is then pinned', async () => {
+      const m = readJson(root, `data/ng-sources-${Y}.json`);
+      delete latestRevision(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256;
+      writeJson(root, `data/ng-sources-${Y}.json`, m);
       expect(textDoc().textSha256).toBeUndefined();
       await doPublish();
       expect(textDoc().textSha256).toBe(sha256(files[TEXT]));

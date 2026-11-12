@@ -117,9 +117,11 @@ export function useFakeDocuments(root, files) {
   rev.documents =rev.documents.filter((/** @type {any} */ d) => d.builder || d.id === 'restrictions').map((/** @type {any} */ d) => {
     const rest = { ...d };
     delete rest.confirm;
-    // The real extraction's pin (L-5) doesn't fit the fake text; publish writes the fake's.
-    delete rest.textSha256;
-    const out = { ...rest, url: rest.url ?? 'https://example.test/doc', sha256: files[d.file] ? sha(files[d.file]) : d.sha256 };
+    // The text's pin (red team L-5) is the fake text's, as publish would write it.
+    const out = {
+      ...rest, url: rest.url ?? 'https://example.test/doc', sha256: files[d.file] ? sha(files[d.file]) : d.sha256,
+      ...(d.text ? { textSha256: files[d.text] ? sha(files[d.text]) : undefined } : {}),
+    };
     return d.id === 'restrictions' ? out : { ...out, text: undefined };
   }).map((/** @type {any} */ d) => JSON.parse(JSON.stringify(d)));
   m.quotes = m.quotes.filter((/** @type {any} */ q) => q.id === 'rule-e');
