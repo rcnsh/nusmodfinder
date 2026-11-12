@@ -7,7 +7,7 @@
 // p6-live.mjs.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { oracleShown } from '../test/sc1/oracle.node.mjs';
+import { oracleShown } from '../test/sc1/oracle.mjs';
 import { reference } from '../test/web/shortlist-reference.node.mjs';
 import { productionCorpus } from './corpus-manifest.mjs';
 import { catalogueOnlyRecords } from './lib.mjs';

@@ -5,14 +5,14 @@
 // fetched once through the page's own client (public/api.js) and read by
 // public/shortlist.js's answerOf and workOut, as a one-entry list at Sem 1 and
 // at Sem 2, at each study level and in browse mode. Against the SC1 oracle
-// (test/sc1/oracle.node.mjs, with R3), a closed case is never counted (not in
+// (test/sc1/oracle.mjs, with R3), a closed case is never counted (not in
 // the semester's totals, standing "out"), has no form number and carries its
 // closed stamp; an open or noted one takes part. In browse mode no entry gets a
 // form number.
 import { createModuleClient } from '../public/api.js';
 import { emptyList } from '../public/list.js';
 import { answerOf, workOut } from '../public/shortlist.js';
-import { oracleShown } from './sc1/oracle.node.mjs';
+import { oracleShown } from './sc1/oracle.mjs';
 
 const STUDIES = /** @type {const} */ (['ug1', 'ug2', 'ug3', 'ug4', 'grad']);
 const TAKES_PART = ['counted', 'confirm', 'invite'];

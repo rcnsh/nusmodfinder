@@ -23,7 +23,7 @@
 //   computed per request in exchangeAt, never stored, and never closes or
 //   opens anything, so the allow mask, the filters and the ranking stay the
 //   stored ones.
-// The SC1 oracle (test/sc1/oracle.node.mjs, G1 to G3) reads it on its own.
+// The SC1 oracle (test/sc1/oracle.mjs, G1 to G3) reads it on its own.
 
 /** @typedef {import('./ng-bit.js').Study} Study */
 

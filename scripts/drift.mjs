@@ -104,7 +104,7 @@ export function nextAcadYear(acadYear) {
  * catalogue-only codes, and the data version, computed as ingest computes it.
  * @param {any[]} records moduleInfo.json
  * @param {string} acadYear
- * @param {Awaited<ReturnType<typeof loadNgCourses>>} ngCourses
+ * @param {import('./lib.mjs').NgCourses} ngCourses
  * @returns {Promise<Summary>}
  */
 export async function summarise(records, acadYear, ngCourses) {
@@ -222,8 +222,8 @@ export function pendingIssue({ acadYear, production, nusmods, checkedAt, history
     `- Production's data version is \`${production.dataVersion}\` (\`src/data-version.json\`${production.sha ? ` at \`${production.sha.slice(0, 7)}\`` : ''}).`,
     `- NUSMods' data for ${acadYear} now gives \`${nusmods.dataVersion}\`: ${fmt(nusmods.counts.offered)} offered courses (the rows ingest would write), ${fmt(nusmods.counts.catalogueOnly)} catalogue-only.`,
     '',
-    'A refresh runs on the Mac: `npm run corpus -- fetch`, then `npm run corpus -- publish`, then the rest of the runbook in `docs/REFERENCE.md`, '
-      + '"Re-ingesting for a new acad year" (it covers every corpus change). '
+    'A refresh runs on the Mac: "A corpus-only refresh" in `docs/year-refresh/README.md`, from `npm run corpus -- fetch` to the standby '
+      + '(no NUS document changed, so no sources key and no `year check --full`). '
       + 'The check closes this issue once production\'s data version matches NUSMods again.',
     '',
     '### What changed, check by check',
@@ -323,11 +323,11 @@ export function reminderIssue({ month, today, lastCommit, ngUpdatedAsAt, acadYea
     'The monthly check (G3). NUS blocks scripted downloads, so these pages are checked by hand.',
     '',
     `- [ ] The Registrar's list of courses offered to Non-Graduating (NG) students: is its "updated as at" later than ${ngUpdatedAsAt ?? 'the one recorded'} (\`data/ng-courses-${acadYear}.json\`), or is a new semester's list out?`,
-    '- [ ] The Registrar\'s course restrictions for NG students: a revision later than the one in `docs/evidence/phase4/sources.md`?',
+    `- [ ] The Registrar's course restrictions for NG students: a revision later than the one in \`data/ng-sources-${acadYear}.json\`?`,
     '- [ ] YST\'s pages of courses for NUS non-music majors: a new semester\'s page?',
     `- [ ] Last month's usage report, on the Mac: \`npm run ops:report -- --month ${report}\`, then commit \`docs/evidence/ops/${report}.md\` and its run record.`,
     '',
-    'A changed source is a revision: `docs/REFERENCE.md`, "When a source changes". The weekly check covers NUSMods.',
+    'A changed source is a revision: "A mid-year revision" in `docs/year-refresh/README.md`. The weekly check covers NUSMods.',
     ...(note ? ['', note] : []),
   ].join('\n');
   return { title: `Monthly check, ${month}: NUS's exchange pages and the usage report`, body, labels: [LABELS.reminder] };
@@ -496,7 +496,7 @@ async function cachedRecords(cacheDir, acadYear) {
 /**
  * The weekly check.
  * @param {{ acadYear?: string, cacheDir: string, fetchImpl?: typeof fetch, github: GitHub, now?: () => Date,
- *   ngCourses?: Awaited<ReturnType<typeof loadNgCourses>>, committed: { dataVersion: string, sha: string | null },
+ *   ngCourses?: import('./lib.mjs').NgCourses, committed: { dataVersion: string, sha: string | null },
  *   lastCommit?: { sha: string | null, date: Date }, runUrl: string | null, log?: (line: string) => void }} o
  * @returns {Promise<{ exitCode: number, dataVersion?: string, pending?: boolean, nextYear?: number | null }>}
  */

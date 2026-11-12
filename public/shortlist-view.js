@@ -426,10 +426,10 @@ export function createShortlistView(root, on) {
     if (w.kind === 'catalogue-only' || w.kind === 'unknown') {
       out.push(h('div', { class: 'stamps' }, h('span', { class: 'st st-closed' }, icon('closed'), h('span', null, w.kind === 'unknown' ? 'No such course' : 'Not offered this year'))));
     } else if (c && w.sem && w.status) {
-      out.push(h('div', { class: 'stamps' }, stamp(w.status, stampText(w.status, Number(w.sem), w.reasons.length))));
+      out.push(h('div', { class: 'stamps' }, stamp(w.status, stampText(w.status, Number(w.sem), w.reasons))));
     } else if (c && !w.sem && m.study) {
       const per = [1, 2].map((s) => ({ s, x: exchangeAt(c, s, m.study) })).filter((p) => p.x);
-      if (per.length) out.push(h('div', { class: `stamps${per.length === 2 ? ' both' : ''}` }, ...per.map((p) => stamp(p.x.status, stampText(p.x.status, p.s, (p.x.reasons ?? []).length, true)))));
+      if (per.length) out.push(h('div', { class: `stamps${per.length === 2 ? ' both' : ''}` }, ...per.map((p) => stamp(p.x.status, stampText(p.x.status, p.s, p.x.reasons ?? [], true)))));
     }
     const items = w.sem ? w.reasons.map((r) => noteItem(r, noteText(r, Number(w.sem)))) : c && m.study ? bothSemNotes(c, m.study) : [];
     // A Business or Law quota note "If you were invited: …" is said under the totals, not again here.

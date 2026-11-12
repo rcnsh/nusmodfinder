@@ -16,12 +16,12 @@
 // formatters and /module's workload rule; NUS's prerequisite and preclusion
 // texts are compared with the module's (spacing aside, which the page
 // restores); and each year and semester's status is the independent SC1
-// oracle's (test/sc1/oracle.node.mjs). So a field the page leaves out, or one
+// oracle's (test/sc1/oracle.mjs). So a field the page leaves out, or one
 // it fills from the wrong course, is a problem.
 import { examLines, prereqView, workloadText } from '../../public/format.js';
 import { STUDIES } from '../../src/ng-bit.js';
 import { moduleWorkload } from '../../src/workload.js';
-import { oracleShown } from '../sc1/oracle.node.mjs';
+import { oracleShown } from '../sc1/oracle.mjs';
 
 /** The detail's years of study, in the all-years table's order. */
 export const YEARS = Object.freeze(['1st year', '2nd year', '3rd year', '4th year or later', 'Graduate']);

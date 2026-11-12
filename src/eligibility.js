@@ -29,15 +29,23 @@ export { NG_SEMS, OFF_NG_LIST, STUDIES, bitOf };
  */
 
 /**
- * The fields eligibility reads from a normalised module.
+ * The fields eligibility reads from a normalised module. `ngUnpublished` (G2, Phase 7 7E): the
+ * semesters NUS hasn't published this year's list for, set by scripts/lib.mjs on every module
+ * when there are any; `ngSemesters` then holds such a semester exactly when the course was on
+ * last year's list for it.
  * @typedef {{ code: string, title: string, department: string | null, faculty: string | null,
- *   level: number | null, semesters: number[], ng: boolean, ngSemesters: number[] }} EligibilityModule
+ *   level: number | null, semesters: number[], ng: boolean, ngSemesters: number[], ngUnpublished?: number[] }} EligibilityModule
  */
 
 // Built-in rule ids (not in the rules file): the NG list and rule D.
 export const NOT_NG_IN_SEM = 'ng-list:not-in-semester';
 export const SEMESTER_MISMATCH = 'ng-list:nusmods-semester-differs';
 export const GRAD_LEVELS = 'D-grad-levels-closed-exchange';
+// G2 (Jacob's answer, ADR 0011): in a semester NUS hasn't published, a course on last year's list
+// is "to confirm" (kind `ask`), never open; one that wasn't stays hidden, with its own reason, since
+// "only in the other semester" would be false there.
+export const UNPUBLISHED_SEM = 'ng:unpublished-sem';
+export const UNPUBLISHED_UNLISTED = 'ng:unpublished-sem-unlisted';
 
 /** @type {Map<string, RegExp>} */
 const reCache = new Map();
@@ -81,12 +89,21 @@ export function eligibility(m, { sem, study }, rules) {
   /** @type {string[]} */ const notes = [];
 
   // 1. The NG list (plan §2 step 1; Jacob's Q7: off the list is closed; Q5: a
-  //    NUSMods semester that differs from the NG list's is a note).
+  //    NUSMods semester that differs from the NG list's is a note; G2: a semester
+  //    NUS hasn't published is last year's list, to confirm).
+  const unpublished = m.ngUnpublished ?? [];
   if (!m.ng || m.ngSemesters.length === 0) closed.push(OFF_NG_LIST);
   else if (sem === 'any') {
     if (!m.ngSemesters.some((s) => m.semesters.includes(s))) notes.push(SEMESTER_MISMATCH);
-  } else if (!m.ngSemesters.includes(sem)) closed.push(NOT_NG_IN_SEM);
-  else if (!m.semesters.includes(sem)) notes.push(SEMESTER_MISMATCH);
+    // Either semester is as good as its best one: confirmed only if some listed semester is
+    // both published and in NUSMods' timetable.
+    if (unpublished.length && !m.ngSemesters.some((s) => m.semesters.includes(s) && !unpublished.includes(s))
+      && m.ngSemesters.some((s) => unpublished.includes(s))) notes.push(UNPUBLISHED_SEM);
+  } else if (!m.ngSemesters.includes(sem)) closed.push(unpublished.includes(sem) ? UNPUBLISHED_UNLISTED : NOT_NG_IN_SEM);
+  else {
+    if (!m.semesters.includes(sem)) notes.push(SEMESTER_MISMATCH);
+    if (unpublished.includes(sem)) notes.push(UNPUBLISHED_SEM);
+  }
 
   // 2. Rule D as a default: level 5000+ is closed unless an `open` rule
   //    specifies it for this study.

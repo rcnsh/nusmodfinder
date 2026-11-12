@@ -7,7 +7,8 @@ The SC1 oracle's author reads this file and the sources, never the rules file or
 `src/eligibility.js`.
 
 Rows marked **Jacob** are his answers (plan §8, 2026-11-10). The rest are the lead's, and the red
-team (plan §7) reports where it disagrees with any of them.
+team (plan §7) reports where it disagrees with any of them. This file is 2026/27's register; a later
+year's starts as a copy at `docs/year-refresh/registers/<year>.md` (`npm run year -- next`).
 
 ## How the model reads the sources
 | # | question | decision | reason |
@@ -54,11 +55,46 @@ team (plan §7) reports where it disagrees with any of them.
 | I18 | Pages 21–22 blank, page 22 footer "19 March 2025" | no rules there | both transcribers found them blank |
 | I19 | Malay, South Asian and Southeast Asian Studies: "All courses cannot be audited." | a note on every course of those departments | **Jacob** (red team R2): a true condition a student planning to audit must know |
 
+## Readings the oracle's author made where the register was silent (D1–D24)
+Phase 4's SC1 oracle author decided these while writing the oracle from the sources and this file.
+Phase 7 7E makes them register rows, marked as **the lead's** rulings: the next year's oracle author
+reads them here, not in last year's oracle, and a year that changes one logs the new ruling before
+its oracle is written (`docs/year-refresh/register.md`). Rows that name a course code are flagged
+"re-verify" when `npm run year -- next` copies the register.
+
+| # | question | decision | reason |
+|---|---|---|---|
+| D1 | `sem` unset ("either semester") over semester-specific rules | the least restrictive of the per-semester results over the course's NG semesters (open < note < closed) | **the lead**: reproduces R3 and extends it to I9's semester-specific YST pages |
+| D2 | Pattern rules other than C2's three blanket ones (PL328x, FMA120XH, LSM33xx, PC33xx, MA15XX, FMS12XXM, FSCXXXX, SEA5XXX, AIS5xxx, BPS5XXX, CN5XXX, EE5/6, CEG5, EEK5, QF5, MA5/6, ST/DSS5/6, FST5, CE/ESE5/6, IE/MT/SDM5/6, FT/IT/BT/CS/IS/CP5/6) | apply by code wherever the course is hosted | **the lead**: none touches an NG-listed course outside its own department this year |
+| D3 | The scope of department-wide statements, and of the Business, Law and Music sections | by NUSMods `department` (I5 generalised); Business, Law and Music by NUSMods `faculty` | **the lead** |
+| D4 | CNM "suffix 'Y'" | codes ending in Y in Communications and New Media | **the lead** |
+| D5 | Rule D's levels | levels 5 and 6 only (first digit); levels 0, 7, 8, 9 and none untouched by it | **the lead**: no NG-listed course is at those levels (R4 keeps 7000+ closed in the rules) |
+| D6 | History "All History (Honours) Level 4000 courses"; "FMA120XH" | every level-4 History course; FMA120XH as FMA120 + one digit + H | **the lead** |
+| D7 | Built Environment "Building undergraduate courses must be taken on graded basis" | the graded note on Built Environment levels 1–4 | **the lead** |
+| D8 | Centre for Language Studies "Language courses … graded basis" | the graded note on every course of that department | **the lead** |
+| D9 | "All courses cannot be audited" (Malay, South Asian, Southeast Asian Studies) | a no-audit note on every course of the department | **the lead** (I19 later confirmed by Jacob) |
+| D10 | Japanese Studies "All Level 4000 courses – Approval … case-by-case" | an approval note, not closed | **the lead** |
+| D11 | Public Policy: "Course codes with prefix PP" at every level | closed to undergraduates; graduates get the partner and graded notes, and PP levels 5/6 count as "specified" for graduates (R5) | **the lead** |
+| D12 | BMA and BMS, named at level 5000 only | closed to undergraduates, a partner note for graduates; R7 still applies, so one on the self-funded list stays closed | **the lead** |
+| D13 | Music's audition and placement list | a note in every semester | **the lead**: the NG list governs semesters |
+| D14 | Which codes a YST page lists | codes from course headings only, not from prerequisite, preclusion or co-requisite lines; a combined heading lists every code in it | **the lead** |
+| D15 | Rule C's UROP title match | case-sensitive `\bUROPS?\b`, or "Undergraduate Research Opportunit…" in any case | **the lead**: a case-insensitive "urop" hits "European" (I11) |
+| D16 | Rule A's Public Health "Graduate courses only"; Nursing, SCALE, the Logistics Institute | Public Health levels 5 and up; Nursing by department; SCALE and the Logistics Institute by faculty (I12) | **the lead** |
+| D17 | RMI's notes | by department "Risk Management Institute", whichever faculty hosts it | **the lead**: HS2301 sits under faculty "NUS" |
+| D18 | Rules that close levels 4000+ "to undergraduate students" (Chinese Studies, ELTS, Political Science, Social Work, Sociology) | level 4 stays open to graduates | **the lead** |
+| D19 | Malay and South Asian Studies "Graduate Courses" | levels 5 and 6 | **the lead** |
+| D20 | Table cells "A/B", "PC4288A/Q/N", "MA4288P/O" | expand to every code | **the lead** (the transcriptions agreed, `transcription.md`) |
+| D21 | Which codes the self-funded list holds | every code in its code column, the undergraduate-level ones included | **the lead** |
+| D22 | Title remarks such as "(offered in Sem 2 ONLY)" and "(to be taken with AR2101)" | not rules | **the lead**: the NG list governs semesters |
+| D23 | C2's blanket prefixes | match the letters before the first digit exactly (CG, DSA, GEH) | **the lead** |
+| D24 | Whether a note depends on study level | only when its sentence names one | **the lead** |
+
 ## Department map (PDF heading → NUSMods `department`)
 Spelling only, except: "Dean's Office, School of Computing" → `SoC Dean's Office`; "Multidisciplinary
 Programme" → `Computing and Engineering Programme`; "Division of Industrial Design" → `Design` (see
 I13); "Dean's Office (Faculty of Science)" → `FoS Dean's Office`; "Pharmacy" →
 `PharmacyandPharmaceuticalScience`; "English, Linguistics & Theatre Studies" →
 `English,Ling.andTheatre Studies`; "Alice Lee Centre for Nursing Studies" → `Alice Lee Center for
-Nursing Studies`. The full map is `DEPT` and `FAC` in `scripts/build-ng-restrictions.mjs`;
+Nursing Studies`. The full map is `DEPT` and `FAC` in `scripts/ng-overlay/2026-2027.mjs` (a transcription fact both the
+rules and the oracle may read);
 `test/full/sc1-oracle.node.test.js` fails if a mapped name is missing from the NUSMods snapshot.

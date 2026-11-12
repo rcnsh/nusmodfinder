@@ -282,6 +282,66 @@ jobs:
             if (r.numPassedTests === 0 || r.numPassedTests !== r.numTotalTests) process.exit(1);
           ' "$RUNNER_TEMP/sc1.json"
 
+  # Phase 7 7E: the year-switch rehearsal (scripts/rollover.mjs; docs/year-refresh/README.md). In a
+  # temp copy it relabels the pinned corpus as next year's and runs the switch the runbook gives:
+  # `year next`, the builders, `year check`, a local Worker (wrangler dev --local, FakeAI) seeded with
+  # this year and switched by `ingest --d1-only --allow-year-change --write-budget 80000`, `verify
+  # --pre-deploy`, SC1 against next year's oracle, and the variant with Sem 2 unpublished (G2).
+  # No PDF, no archive, no Cloudflare account: the pinned corpus and the eval's embeddings come
+  # from their releases, sha-checked.
+  rollover:
+    needs: changes
+    if: ${{ !cancelled() && github.event.pull_request.draft != true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RUN: ${{ needs.changes.outputs.rollover != 'false' }}
+      PINNED_RELEASE: data-2026-2027-20260904
+      MODULE_INFO: .data/2026-2027-moduleInfo.json
+      MODULE_INFO_SHA256: 2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1
+    steps:
+      - name: Does the change touch code? (RUN=${{ env.RUN }})
+        run: 'echo "rollover runs: $RUN"'
+      - uses: actions/checkout@v7
+        if: env.RUN == 'true'
+      - uses: actions/setup-node@v7
+        if: env.RUN == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - if: env.RUN == 'true'
+        run: npm ci
+      - name: Restore pinned corpus
+        if: env.RUN == 'true'
+        id: corpus
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.MODULE_INFO }}
+          key: corpus-${{ env.MODULE_INFO_SHA256 }}
+      - name: Download pinned corpus from the release (never api.nusmods.com)
+        if: env.RUN == 'true' && steps.corpus.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dl="$(mktemp -d)"
+          gh release download "$PINNED_RELEASE" --repo "$GITHUB_REPOSITORY" --pattern '2026-2027-moduleInfo.json.gz' --dir "$dl"
+          mkdir -p .data
+          gunzip -c "$dl/2026-2027-moduleInfo.json.gz" > "$MODULE_INFO"
+      - name: Verify raw sha256
+        if: env.RUN == 'true'
+        run: echo "$MODULE_INFO_SHA256  $MODULE_INFO" | sha256sum -c -
+      - name: Restore the eval's corpus embeddings
+        if: env.RUN == 'true'
+        uses: actions/cache@v6
+        with:
+          path: .data/emb
+          key: emb-${{ hashFiles('eval/embeddings.json') }}
+      - name: The rehearsal (the embeddings download from their release when the cache misses, sha-checked)
+        if: env.RUN == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/rollover.mjs
+
   # Phase 5 5B: the page in Chromium and WebKit (Playwright, with axe) against
   # the local UI stack: scripts/ui-server.mjs runs `wrangler dev --local` on
   # test/wrangler.ui.jsonc (FakeAI, no remote binding) over a D1 seeded with

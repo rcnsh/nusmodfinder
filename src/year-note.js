@@ -12,7 +12,7 @@
 // around it. A year item that is one alternative among others ("GPA of 3.2 or
 // greater OR must be Year 4"), a text with several "if undertaking" branches,
 // or unbalanced brackets gives no note. test/year-note.node.test.js lists the
-// patterns; the SC1 oracle (test/sc1/oracle.node.mjs) reads them on its own.
+// patterns; the SC1 oracle (test/sc1/oracle.mjs) reads them on its own.
 
 /** @typedef {import('./ng-bit.js').Study} Study */
 

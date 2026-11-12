@@ -19,6 +19,8 @@ interface NormalisedModule {
   textHash: string;
   ng: boolean;
   ngSemesters: number[];
+  /** G2 (Phase 7 7E): the semesters NUS has not published this year's list for; set only when there are any. */
+  ngUnpublished?: number[];
   /** 3H-0: offered semesters with an examDate. */
   examSemesters: number[];
   su: boolean;

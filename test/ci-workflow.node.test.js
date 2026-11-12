@@ -25,7 +25,7 @@ const jobIf = (text) => text.match(/^ {4}if: (.+)$/m)?.[1];
 const steps = (text) => text.slice(text.indexOf('\n    steps:\n')).split(/\n {6}- /).slice(1);
 
 const DRAFT = 'github.event.pull_request.draft != true';
-const HEAVY = ['full-corpus', 'sc1', 'ui'];
+const HEAVY = ['full-corpus', 'sc1', 'ui', 'rollover'];
 
 describe('the ui CI job', () => {
   const ui = job('ui');
@@ -121,6 +121,25 @@ describe('every CI job always starts (Phase 7 7A)', () => {
     const minutes = Number(text.match(/timeout-minutes: (\d+)/)?.[1]);
     expect(minutes).toBeGreaterThan(0);
     expect(minutes).toBeLessThanOrEqual(15);
+  });
+});
+
+describe('Phase 7 7E: the rollover job', () => {
+  const rollover = job('rollover');
+
+  it('reads the rollover output and runs the rehearsal over the pinned corpus, sha-checked', () => {
+    expect(rollover).toMatch(/RUN: \$\{\{ needs\.changes\.outputs\.rollover != 'false' \}\}/);
+    expect(rollover).toMatch(/run: node scripts\/rollover\.mjs\n/);
+    expect(rollover).toMatch(/sha256sum -c -/);
+    expect(rollover).toMatch(/path: \.data\/emb\n/);
+    const minutes = Number(rollover.match(/timeout-minutes: (\d+)/)?.[1]);
+    expect(minutes).toBeGreaterThan(0);
+    expect(minutes).toBeLessThanOrEqual(30);
+  });
+
+  it('holds no secret but the workflow token, and makes no remote Cloudflare call', () => {
+    expect(rollover.match(/\$\{\{ secrets\.\w+ \}\}/g)).toBeNull();
+    expect(rollover).not.toMatch(/--remote|wrangler deploy|npm run deploy|CLOUDFLARE_/);
   });
 });
 

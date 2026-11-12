@@ -5,7 +5,7 @@
 //   code      full-corpus and sc1: anything outside docs/** and the root *.md files;
 //   ui        the UI suite: the paths it covers (UI below);
 //   grid      full-corpus's lexical grid in full, else its fixed sample: the paths it covers;
-//   rollover  7E's rehearsal job (none yet): as code.
+//   rollover  7E's year-switch rehearsal (scripts/rollover.mjs): as code.
 // The base: a PR's base sha; a push to main, the newest main commit whose CI run succeeded and
 // which HEAD contains. A workflow_dispatch, an API error, no green run, an unreachable base or a
 // failed diff runs everything. A change to this file or to ci.yml runs everything too.

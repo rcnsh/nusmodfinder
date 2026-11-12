@@ -30,12 +30,14 @@ import { groupKeyOf } from '../../src/groups.js';
 import { fuse } from '../../src/search.js';
 import { createFakes } from '../fakes.js';
 import { adminCall, callJson, seed } from '../helpers.js';
-import { oracle } from './oracle.node.mjs';
+import * as live from './oracle.mjs';
 import { CacheAI, ngDevRequests } from './shared.js';
 
 /** The page size the dev queries get: src/search.js DEFAULT_TOPK (they send no topK). */
 const PAGE_SIZE = 20;
 const corpus = inject('corpus');
+// Phase 7 7E: the oracle for the corpus's year (test/sc1/oracle.mjs picks it); the live year's without one.
+const { oracle } = corpus ? await live.oracleFor(corpus.acadYear) : live;
 
 describe.skipIf(!corpus)('gate 2: per-list identity on dev', () => {
   const c = /** @type {FullCorpus} */ (corpus);

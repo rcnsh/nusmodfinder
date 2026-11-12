@@ -229,9 +229,16 @@ async function notFound(db, code, trace) {
   if (entry) {
     const { ngAllow, ngRules, ...fields } = entry;
     const acadYear = unscheduledAcadYear();
+    // G2 (Phase 7 7E): a semester NUS hasn't published is last year's list, said as such.
+    const pending = (entry.ngUnpublished ?? []).filter((s) => entry.ngSemesters.includes(s));
+    const listed = entry.ngSemesters.filter((s) => !pending.includes(s));
+    const lists = [
+      ...(listed.length ? [`NUS lists ${code} for ${semWords(listed)}`] : []),
+      ...(pending.length ? [`NUS's last list had ${code} for ${semWords(pending)} (this year's isn't out yet)`] : []),
+    ].join('; ');
     return answer({
       kind: 'ng-listed',
-      message: `NUS lists ${code} for ${semWords(entry.ngSemesters)}, but NUSMods shows no classes for it in ${yearLabel(acadYear)}.`,
+      message: `${lists}, but NUSMods shows no classes for it in ${yearLabel(acadYear)}.`,
       acadYear,
       ...fields,
       semesters: [],
