@@ -12,11 +12,11 @@
 //    covering index columns, trigger bodies and the FTS tokenize option.
 // 3. Builds the full chain (every file in migrations/) and diffs the same
 //    pragma rows, sqlite_master and index_xinfo against the committed expected
-//    snapshot test/fixtures/schema-0006.json. After a remote apply of 0006 that
-//    file is what a fresh remote capture must match.
+//    snapshot test/fixtures/schema-full.json (every migration). Production applies the
+//    same chain, so a fresh remote capture must match it (Phase 7 7G).
 //
 // Exits non-zero on any difference. Usage: npm run db:rebuild-check
-// `-- --update` rewrites test/fixtures/schema-0006.json from build 3 instead.
+// `-- --update` rewrites test/fixtures/schema-full.json from build 3 instead.
 //
 // `-- --compare-remote <file-or-dir>` (Phase 7 7A) builds nothing: it diffs a production capture
 // against the full-chain snapshot, offline. The capture is what `wrangler d1 execute … --remote
@@ -47,7 +47,7 @@ const OLD_RECIPE_FILES = [
 ];
 const DB = 'nusmods';
 const MIGRATIONS_DIR = join(ROOT, 'migrations');
-const EXPECTED_SNAPSHOT = join(ROOT, 'test/fixtures/schema-0006.json');
+const EXPECTED_SNAPSHOT = join(ROOT, 'test/fixtures/schema-full.json');
 // What production holds before 0006 (ADR 0001: applied by hand, then bootstrapped).
 const REMOTE_MIGRATIONS = ['0001_init.sql', '0002_fts.sql', '0003_ng.sql', '0004_meta.sql', '0005_rank.sql'];
 
@@ -225,7 +225,7 @@ function applyMigrations(persistTo, config) {
 
 /**
  * The normalised schema of one local build, in the shape of
- * test/fixtures/schema-0006.json.
+ * test/fixtures/schema-full.json.
  * @param {string} persistTo
  */
 function snapshot(persistTo) {
@@ -368,9 +368,9 @@ async function main() {
     } else {
       const expected = JSON.parse(await readFile(EXPECTED_SNAPSHOT, 'utf8'));
       const fullDiff = [
-        ...diffRows('schema-0006-vs-migrations pragma', expected.pragma, actual.pragma),
-        ...diffRows('schema-0006-vs-migrations sqlite_master', expected.master, actual.master),
-        ...diffRows('schema-0006-vs-migrations index_xinfo', expected.indexXinfo, actual.indexXinfo),
+        ...diffRows('schema-full-vs-migrations pragma', expected.pragma, actual.pragma),
+        ...diffRows('schema-full-vs-migrations sqlite_master', expected.master, actual.master),
+        ...diffRows('schema-full-vs-migrations index_xinfo', expected.indexXinfo, actual.indexXinfo),
       ];
       console.log(`full chain vs ${EXPECTED_SNAPSHOT.slice(ROOT.length)}: ${fullDiff.length} differences`);
       problems.push(...fullDiff);
