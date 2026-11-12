@@ -10,7 +10,7 @@
 // file differs from a rebuild. Usage: node scripts/build-ng-reasons.mjs
 import { writeFileSync } from 'node:fs';
 import { GRAD_LEVELS, NOT_NG_IN_SEM, OFF_NG_LIST, SEMESTER_MISMATCH } from '../src/eligibility.js';
-import { DEFAULT_ACAD_YEAR, loadNgRestrictions, loadNgSources } from './lib.mjs';
+import { DEFAULT_ACAD_YEAR, loadNgRestrictions } from './lib.mjs';
 
 const OUT = new URL('../data/ng-reasons.json', import.meta.url);
 const NG_PAGE = 'https://www.nus.edu.sg/registrar/prospective-students/non-graduating';
@@ -48,10 +48,12 @@ export function buildNgReasons(acadYear) {
   return {
     acadYear,
     generator: 'scripts/build-ng-reasons.mjs',
-    // The documents and their "updated as at" dates: the year's source manifest's newest revision
-    // (data/ng-sources-<year>.json, Phase 7 7D).
-    sources: /** @type {ReturnType<typeof loadNgSources>['revisions']} */ (loadNgSources(acadYear).revisions).at(-1)?.documents
-      .map((d) => ({ name: d.name, updatedAsAt: d.updatedAsAt, url: NG_PAGE })) ?? [],
+    // docs/evidence/phase4/sources.md: the documents and their "updated as at" dates. 7E moves
+    // them to the year's source manifest (data/ng-sources-<year>.json).
+    sources: [
+      { name: 'Courses offered to exchange (NG) students', updatedAsAt: '01 Sep 2026', url: NG_PAGE },
+      { name: 'Course restrictions for exchange (NG) students', updatedAsAt: '31 Aug 2026', url: NG_PAGE },
+    ],
     reasons,
     offListRules: (rules.info ?? []).filter((i) => i.text !== undefined).map((i) => ({ id: i.id, text: i.text, scope: i.scope ?? {} })),
   };

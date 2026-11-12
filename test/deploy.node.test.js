@@ -268,7 +268,7 @@ describe('the guard over the D1 REST query (Phase 7 7B, G1)', () => {
     const d1 = fakeD1({ rowsRead: 6812 });
     expect((await runDeploy(fakeExec().exec, { d1: async () => d1.client })).code).toBe(0);
     expect(d1.sent.every((s) => /^\s*SELECT/i.test(s.sql))).toBe(true);
-    expect(records()[0].read).toEqual([{ what: expect.stringMatching(/D1 rows.*REST/), estimate: 2, actual: 6812 + 1 + 1 + CATALOGUE.length }]);
+    expect(records()[0].read).toEqual([{ what: expect.stringMatching(/D1 rows.*REST/), estimate: 2 + CATALOGUE.length, actual: 6812 + 1 + 1 + CATALOGUE.length }]);
   });
 
   it('in GitHub Actions, a D1 that differs from the bundle fails with the Mac runbook, and nothing is uploaded', async () => {

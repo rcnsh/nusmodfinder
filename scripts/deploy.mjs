@@ -250,15 +250,17 @@ async function deployRun(deps, args, record, stage) {
   let guard;
   const READ = 'D1 rows (the guard, over the D1 REST query: modules, catalogue_only and the schema check)';
   const catalogue = await (deps.catalogue ?? readBundledCatalogue)();
+  // The module rows and the catalogue_only rows (7D), as D1 should hold them.
+  const estimate = b.entry.count + catalogue.codes.length;
   try {
     client = await (deps.d1 ?? (() => productionD1({ env, exec })))();
     guard = await runGuard({ client, bundle: b, committed, catalogue, checks: deps.guardChecks ?? GUARD_CHECKS });
   } catch (err) {
-    record.read(READ, { estimate: b.entry.count, actual: client?.rowsRead ?? null });
+    record.read(READ, { estimate, actual: client?.rowsRead ?? null });
     error(`deploy: refusing, could not read D1's hashes: ${/** @type {Error} */ (err).message}`);
     return 1;
   }
-  record.read(READ, { estimate: b.entry.count, actual: client.rowsRead });
+  record.read(READ, { estimate, actual: client.rowsRead });
   record.detail('guard', guard.results.map((r) => ({ name: r.name, ok: r.ok, d1: r.d1, expected: r.expected })));
   log(`deploy: guard: ${guard.modules} modules, ${client.rowsRead} D1 rows read (the REST answers' meta.rows_read; in the run record).`);
   if (!guard.ok) {

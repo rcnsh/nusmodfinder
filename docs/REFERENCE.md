@@ -803,7 +803,9 @@ npm run corpus -- check   # the data version and catalogueKey follow current; th
 git add data/corpus.json data/vectors.json src/data-version.json data/vocabulary.json data/groups.json data/ng-unscheduled.json data/ng-reasons.json data/prefixes.json data/catalogue-codes.json data/catalogue-only.json   # the build rewrites 3C's vocabulary, 3F's groups, 6A's file and the 3B catalogue files too; plus any code the change needs; open a PR
 #    A new acad year changes DEFAULT_ACAD_YEAR in scripts/lib.mjs, public/year.js and the header
 #    in public/index.html, the only places a year is written (test/year-scan.node.test.js fails on
-#    any other and checks those three agree), and adds data/ng-sources-<year>.json.
+#    any other and checks those three agree). The source dates in scripts/build-ng-reasons.mjs and
+#    the sources folder in scripts/build-ng-restrictions.mjs are cited dates (allowed in that test)
+#    until 7E's per-year source manifest holds them.
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
 # 3. On merged main, before any D1 write: the preflight (every check but D1's), then D1's
 #    Time Travel bookmark, recorded (ingest copies it; d1:restore returns to it for 30 days).

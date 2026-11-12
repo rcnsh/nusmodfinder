@@ -231,7 +231,15 @@ export async function publishCorpus(o = {}) {
   const raw = await readFile(file);
   const records = JSON.parse(raw.toString('utf8'));
   assertExpectedShape(records);
-  const fetchedAt = o.fetchedAt ?? JSON.parse(await readFile(`${file}.cache.json`, 'utf8').catch(() => '{}')).fetchedAt;
+  const sidecar = JSON.parse(await readFile(`${file}.cache.json`, 'utf8').catch(() => '{}'));
+  // The file's own year, from the URL `corpus fetch` recorded or its name: a corpus is never
+  // published under another year (ingest would write its rows as that year).
+  const ownYear = /\/v2\/(\d{4}-\d{4})\//.exec(String(sidecar.url ?? ''))?.[1] ?? /(?:^|[^\d])(\d{4}-\d{4})-moduleInfo\.json$/.exec(basename(file))?.[1];
+  if (ownYear && ownYear !== year) {
+    throw new Error(`${basename(file)} is NUSMods' ${ownYear} corpus, not ${year}'s. Nothing published. For a new acad year, change DEFAULT_ACAD_YEAR `
+      + '(scripts/lib.mjs, the one year source) first, then fetch and publish.');
+  }
+  const fetchedAt = o.fetchedAt ?? sidecar.fetchedAt;
   if (typeof fetchedAt !== 'string') throw new Error(`no fetch time for ${file}: pass --fetched-at <ISO time>, or publish a file \`corpus fetch\` staged (its .cache.json records it)`);
   const release = releaseName(year, fetchedAt);
   /** @type {CorpusManifest} */

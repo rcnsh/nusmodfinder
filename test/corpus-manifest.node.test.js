@@ -154,6 +154,28 @@ describe('npm run corpus -- publish', () => {
   });
 });
 
+describe('npm run corpus -- publish never relabels a year', () => {
+  it('refuses a staged file of another year (its sidecar URL) or a file named for one, and uploads nothing', async () => {
+    const manifestPath = await manifest();
+    const dataVersionPath = join(dir, 'data-version.json');
+    await writeFile(dataVersionPath, JSON.stringify({ version: 'x' }));
+    /** @type {string[]} */
+    const uploads = [];
+    const upload = async (/** @type {string} */ release) => { uploads.push(release); };
+    const other = '1998-1999';
+    const staged = join(dir, 'staged.json');
+    await writeFile(staged, BODY);
+    await writeFile(`${staged}.cache.json`, JSON.stringify({ url: `https://api.nusmods.com/v2/${other}/moduleInfo.json`, fetchedAt: FETCHED }));
+    const common = { manifestPath, dataVersionPath, dir: join(dir, 'prod'), upload, newDataVersion: true, runsDir: join(dir, 'runs'), log: () => {} };
+    await expect(publishCorpus({ ...common, file: staged })).rejects.toThrow(new RegExp(`NUSMods' ${other} corpus, not ${Y}'s.*DEFAULT_ACAD_YEAR`));
+    const named = join(dir, `${other}-moduleInfo.json`);
+    await writeFile(named, BODY);
+    await expect(publishCorpus({ ...common, file: named, fetchedAt: FETCHED })).rejects.toThrow(/not .* corpus|corpus, not/);
+    expect(uploads).toEqual([]);
+    expect(JSON.parse(await readFile(manifestPath, 'utf8')).current).toBe(RELEASE);
+  });
+});
+
 describe('CI: npm run corpus -- check', () => {
   /** @param {string} version @param {string[]} codes */
   async function committed(version, codes) {

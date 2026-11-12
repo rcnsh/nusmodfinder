@@ -299,21 +299,6 @@ export function loadNgRestrictions(acadYear) {
 }
 
 /**
- * The per-year source manifest (data/ng-sources-<year>.json, Phase 7 7D): the NUS documents the
- * NG files come from, per revision, newest last, with their "updated as at" dates and the folder
- * their saved copies live in (outside the repo). The builders read dates from here, never from code.
- * @param {string} acadYear
- * @returns {{ acadYear: string, revisions: { dir: string, hashes: string, documents: { name: string, file: string, updatedAsAt: string }[] }[] }}
- */
-export function loadNgSources(acadYear) {
-  const m = JSON.parse(readFileSync(new URL(`../data/ng-sources-${acadYear}.json`, import.meta.url), 'utf8'));
-  if (m.schema !== 'vnm-ng-sources/1' || m.acadYear !== acadYear || !Array.isArray(m.revisions) || m.revisions.length === 0) {
-    throw new Error(`data/ng-sources-${acadYear}.json is not a vnm-ng-sources/1 manifest for ${acadYear} with a revision`);
-  }
-  return m;
-}
-
-/**
  * A week's workload in hours: the sum of the NUSMods workload array. NULL when
  * the field is missing, not an array of numbers, or all zero (C-11: 259
  * modules list zeros, which means "not listed", not "no work").

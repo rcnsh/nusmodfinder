@@ -7,8 +7,8 @@
 //     every code, title and quote below comes from it;
 //   - OVERLAY below: how each transcribed rule matches NUSMods fields, per the
 //     interpretations register (docs/evidence/phase4/interpretations.md);
-//   - the sources outside the repo (~/.config/vnm/sources/<dir>/, the folder of the newest
-//     revision in data/ng-sources-<year>.json; hashes in docs/evidence/phase4/sources.md): the self-funded course list and the
+//   - the sources outside the repo (~/.config/vnm/sources/<date>/, hashes in
+//     docs/evidence/phase4/sources.md): the self-funded course list and the
 //     YST elective lists are extracted here.
 //
 //   node scripts/build-ng-restrictions.mjs [--sources <dir>]
@@ -18,16 +18,17 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { DEFAULT_ACAD_YEAR, loadNgSources } from './lib.mjs';
+import { DEFAULT_ACAD_YEAR } from './lib.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-// Phase 7 7D, one year source: DEFAULT_ACAD_YEAR, and the sources folder of the year's newest
-// revision in data/ng-sources-<year>.json.
+// Phase 7 7D, one year source: DEFAULT_ACAD_YEAR. The sources folder is the newest revision's
+// (7E moves it to the year's source manifest, data/ng-sources-<year>.json).
 const ACAD_YEAR = DEFAULT_ACAD_YEAR;
+const SOURCES_DIR = '2026-11-10';
 const OUT = join(ROOT, `data/ng-restrictions-${ACAD_YEAR}.json`);
 const args = process.argv.slice(2);
 const SOURCES = args.includes('--sources') ? args[args.indexOf('--sources') + 1]
-  : join(homedir(), '.config/vnm/sources', /** @type {string} */ (loadNgSources(ACAD_YEAR).revisions.at(-1)?.dir));
+  : join(homedir(), '.config/vnm/sources', SOURCES_DIR);
 
 /** @typedef {import('../src/eligibility.js').Study} Study */
 /** @typedef {import('../src/eligibility.js').RuleMatch} RuleMatch */

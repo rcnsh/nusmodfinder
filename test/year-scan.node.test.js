@@ -52,12 +52,15 @@ const ALLOWED = [
   { file: 'public/preclusion.js', text: 'the cohorts from 2018 inclusive', kind: 'cited', why: 'an NUSMods prerequisite string, quoted as the example of what the parser skips' },
   { file: 'public/shortlist.js', text: 'NUS info sheet, 2018/19', kind: 'cited', why: 'NUS\'s exchange information sheet, cited by its own year' },
   { file: 'public/shortlist.js', text: '2018/19 exchange information sheet', kind: 'cited', why: 'the same sheet, in the page\'s own words' },
+  { file: 'scripts/build-ng-reasons.mjs', text: "updatedAsAt: '01 Sep 2026'", kind: 'cited', why: 'the NG list PDF\'s own "updated as at" date (7E moves it to the source manifest)' },
+  { file: 'scripts/build-ng-reasons.mjs', text: "updatedAsAt: '31 Aug 2026'", kind: 'cited', why: 'the restrictions PDF\'s own "updated as at" date, likewise' },
+  { file: 'scripts/build-ng-restrictions.mjs', text: "const SOURCES_DIR = '2026-11-10';", kind: 'cited', why: 'the folder the saved NUS documents were filed under, a past date (7E moves it)' },
   { file: 'scripts/deploy-tag.mjs', text: "date: '2026-11-11T18:39:46Z'", kind: 'cited', why: 'a Phase 6 deploy\'s promote time, a past event the back-filled tag records' },
   { file: 'scripts/deploy-tag.mjs', text: "date: '2026-11-11T23:59:33Z'", kind: 'cited', why: 'the other Phase 6 deploy\'s promote time, likewise' },
 ];
 
 /** A test that reads production or pinned data, so it is scanned. */
-const READS_REAL_DATA = /pinned-corpus|corpus-manifest|inject\('corpus'\)|data\/ng-(?:courses|restrictions)-/;
+const READS_REAL_DATA = /pinned-corpus|corpus-manifest|inject\('corpus'\)|data\/ng-(?:courses|restrictions)-|loadNg(?:Courses|Restrictions)\(/;
 const TEXT = /\.(?:js|mjs|cjs|ts|mts|html|css|json|jsonc|svg|txt|md|py|webmanifest)$|\/_headers$/;
 
 /**
