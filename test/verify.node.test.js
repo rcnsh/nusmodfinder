@@ -18,13 +18,17 @@ function stubWrangler(ids, pageSize) {
   /** @type {import('../scripts/deploy.mjs').Exec} */
   const exec = async (cmd, args) => {
     calls.push([cmd, ...args]);
+    // Like wrangler (yargs): a cursor sent as its own word that starts with "-h" is read as --help,
+    // which prints the usage and exits 0. Cursors are base64url, so one can start with "-".
     const i = args.indexOf('--cursor');
-    const start = i === -1 ? 0 : Number(args[i + 1]);
+    if (i !== -1 && args[i + 1]?.startsWith('-')) return { code: 0, stdout: 'wrangler vectorize list-vectors <name>\n\nList vector identifiers' };
+    const eq = args.find((a) => a.startsWith('--cursor='));
+    const start = eq ? Number(eq.slice('--cursor=-h'.length)) : 0;
     const page = ids.slice(start, start + pageSize);
     const more = start + pageSize < ids.length;
     // wrangler prints its banner before the JSON.
     return { code: 0, stdout: `\n ⛅️ wrangler\n${JSON.stringify({
-      count: page.length, totalCount: ids.length, isTruncated: more, nextCursor: more ? String(start + pageSize) : null,
+      count: page.length, totalCount: ids.length, isTruncated: more, nextCursor: more ? `-h${start + pageSize}` : null,
       vectors: page.map((id) => ({ id })),
     })}` };
   };
@@ -32,14 +36,14 @@ function stubWrangler(ids, pageSize) {
 }
 
 describe('scripts/verify.mjs', () => {
-  it('pages through list-vectors --json with the cursor until it is not truncated', async () => {
+  it('pages through list-vectors --json with the cursor until it is not truncated, a cursor starting with "-" included', async () => {
     const ids = Array.from({ length: 2345 }, (_, i) => `M${i}`);
     const w = stubWrangler(ids, 1000);
     expect(await listVectorIds('idx', w.exec)).toEqual(ids);
     expect(w.calls).toEqual([
       ['npx', 'wrangler', 'vectorize', 'list-vectors', 'idx', '--json', '--count', '1000'],
-      ['npx', 'wrangler', 'vectorize', 'list-vectors', 'idx', '--json', '--count', '1000', '--cursor', '1000'],
-      ['npx', 'wrangler', 'vectorize', 'list-vectors', 'idx', '--json', '--count', '1000', '--cursor', '2000'],
+      ['npx', 'wrangler', 'vectorize', 'list-vectors', 'idx', '--json', '--count', '1000', '--cursor=-h1000'],
+      ['npx', 'wrangler', 'vectorize', 'list-vectors', 'idx', '--json', '--count', '1000', '--cursor=-h2000'],
     ]);
   });
 
