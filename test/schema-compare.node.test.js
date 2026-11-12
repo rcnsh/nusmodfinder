@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { compareRemote, loadCapture } from '../scripts/schema-snapshot.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const expected = JSON.parse(await readFile(join(ROOT, 'test/fixtures/schema-0006.json'), 'utf8'));
+const expected = JSON.parse(await readFile(join(ROOT, 'test/fixtures/schema-full.json'), 'utf8'));
 const migrations = (await readdir(join(ROOT, 'migrations'))).filter((f) => f.endsWith('.sql')).sort();
 
 /** wrangler's `--json` envelope around rows. @param {unknown[]} rows */
