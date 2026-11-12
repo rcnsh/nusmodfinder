@@ -35,7 +35,7 @@ export function body(over = {}) {
 export const EMPTY = 'Type what you want to study in the box above, then press Search.';
 
 /**
- * Opens the page and leaves the first screen (the exchange set-up) by
+ * Opens the page and leaves the first screen by
  * "Browse all courses instead", for a test of the general search.
  * @param {import('@playwright/test').Page} page
  */

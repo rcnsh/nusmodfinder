@@ -481,14 +481,14 @@ test.describe('rows', () => {
 });
 
 test.describe('the export question, Copy link, the invitation, the device\'s list', () => {
-  test('browse mode: Download CSV focuses the question; choosing a year keeps focus in it, arrowing starts nothing, and turns on exchange mode', async ({ page }) => {
+  test('exchange mode with no year yet: Download CSV focuses the question; choosing a year keeps focus in it, arrowing starts nothing, and sets it', async ({ page }) => {
     await page.addInitScript(() => {
       /** @type {any} */ (globalThis).printed = 0;
       window.print = () => { /** @type {any} */ (globalThis).printed += 1; };
     });
     let downloads = 0;
     page.on('download', () => { downloads += 1; });
-    await page.goto(at('pick=CS5562.2&view=shortlist'));
+    await page.goto(at('ng=1&pick=CS5562.2&view=shortlist'));
     await rowsIn(page);
     await expect(page.locator('#slAsk')).toBeVisible();
     await activate(page, page.locator('.sl-actions').getByRole('button', { name: 'Download CSV' }));
@@ -504,15 +504,40 @@ test.describe('the export question, Copy link, the invitation, the device\'s lis
     expect(await page.evaluate(() => /** @type {any} */ (globalThis).printed)).toBe(0);
   });
 
-  test('an untagged entry gets its own semester question; a 404 in browse mode asks the year', async ({ page }) => {
+  test('an untagged entry gets its own semester question; a 404 in exchange mode with no year asks the year', async ({ page }) => {
     await page.goto(at('ng=1&study=ug2&pick=CS2113&view=shortlist'));
     await rowsIn(page);
     await activate(page, page.getByRole('group', { name: 'CS2113: which semester?' }).getByRole('radio', { name: 'Sem 2' }));
     await expect.poll(() => query(page)).toContain('pick=CS2113.2');
     expect(await page.evaluate(() => !!document.activeElement?.closest('#slAsk'))).toBe(true);
-    await page.goto(at('pick=CS9999&view=shortlist'));
+    await page.goto(at('ng=1&pick=CS9999&view=shortlist'));
     await rowsIn(page);
     await expect(page.getByRole('group', { name: 'Your year of study during the exchange at NUS' })).toBeVisible();
+  });
+
+  test('an NUS student\'s list is a plain plan: no year of study, invitation, form order, CourseReg box or exchange lines', async ({ page }) => {
+    await page.goto(at('pick=CS5562.2&pick=ACC1701XA.1&pick=CS3244&view=shortlist'));
+    await rowsIn(page);
+    await expect(page.locator('#slView .sl-sub')).toHaveText('Sem 1 and Sem 2 · NUS\'s 2026/27 courses');
+    await expect(page.locator('#slAsk legend')).toHaveText(['CS3244: which semester?']);
+    await expect(page.locator('#slInvBiz')).toBeHidden();
+    await expect(page.locator('#slForm')).toBeHidden();
+    await expect(page.getByRole('heading', { name: 'Already admitted? NUS\'s rules for CourseReg' })).toBeHidden();
+    await expect(page.locator('#slView .sl-entry[data-code="CS5562"] .count')).toHaveText('Counted in its semester\'s total');
+    await expect(page.locator('#slView .sl-guide:visible:not(:empty)')).toHaveCount(0);
+    // What shows (innerText), not hidden parts kept for the exchange mode.
+    expect(await page.locator('#slView').innerText()).not.toMatch(/GRO|NG list|exchange student|To be admitted|invite/i);
+  });
+
+  test('switching to NUS student with the view open drops the year-of-study question', async ({ page }) => {
+    await page.goto(at('pick=CS2113.1&view=shortlist'));
+    await rowsIn(page);
+    const year = page.getByRole('group', { name: 'Your year of study during the exchange at NUS' });
+    await page.locator('#ng').check();
+    await expect(year).toBeVisible();
+    await page.locator('#ngOff').check();
+    await expect(year).toBeHidden();
+    await expect(page.locator('#slAsk')).toBeHidden();
   });
 
   test('the export question is worked out again as rows arrive: an unknown code drops out, a one-semester course offers only its semester', async ({ page }) => {

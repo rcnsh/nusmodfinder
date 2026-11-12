@@ -67,6 +67,8 @@ test.describe('at 1280', () => {
   test('accessibility snapshot: a detail open with the all-years table', async ({ page }) => {
     await page.goto('/?q=CS3244&open=CS3244');
     await settled(page);
+    // An NUS student's detail keeps the table collapsed: opened, so the snapshot covers it.
+    await openEntry(page).locator('details.avail-all summary').click();
     await snapshot(openEntry(page), 'detail-all-years-1280.aria.yml');
   });
 

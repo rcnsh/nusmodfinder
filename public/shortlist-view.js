@@ -3,7 +3,8 @@
 // invitation question, "Primary picks" and "Backups" in rank order, each row
 // worked out at its own semester (shortlist.js), then each semester's totals,
 // NUS's form order, the lines for applicants, the CourseReg box and "Forget
-// this list on this device".
+// this list on this device". An NUS student's list (`result.nus`) is a plain
+// plan: no year of study, invitation, form order, CourseReg box or applicant lines.
 //
 // Updated in place, never rebuilt: each row is an element kept by its code, and
 // its controls (Move up, Move down, Make backup or Make primary, Remove) are
@@ -219,10 +220,14 @@ export function createShortlistView(root, on) {
     h('p', { class: 'own' }, COURSEREG_BOX.page));
   const forget = h('button', { class: 'linkbtn', attrs: { type: 'button' } }, 'Forget this list on this device');
   forget.addEventListener('click', on.forget);
-  const closing = h('div', { class: 'sl-close-lines' },
-    h('p', null, 'Class times and corequisites aren\'t checked here: see each course on NUSMods.'),
+  // The exchange application's closing lines; an NUS student's list shows only the first and Forget.
+  const applicantClosing = [
     h('p', null, 'NUS posts each course\'s full syllabus on Canvas when the semester starts; the text here is NUS\'s course description (the Registrar\'s NG course list).'),
     h('p', null, 'For courses that have prerequisites, NUS asks for the syllabi of the courses you have completed or are taking (NUS\'s brochure).'),
+  ];
+  const closing = h('div', { class: 'sl-close-lines' },
+    h('p', null, 'Class times and corequisites aren\'t checked here: see each course on NUSMods.'),
+    ...applicantClosing,
     h('p', { class: 'sl-forget' }, forget));
 
   setChildren(root,
@@ -375,7 +380,7 @@ export function createShortlistView(root, on) {
       facts.push(h('p', null, `Workload (NUSMods): ${workloadText(c.workload)}`));
       if (typeof c.gradingBasis === 'string' && c.gradingBasis && c.gradingBasis !== 'Graded') facts.push(h('p', null, `Grading: ${c.gradingBasis}`));
     }
-    facts.push(h('p', { class: 'count' }, ...countLine(w, exchange)));
+    facts.push(h('p', { class: 'count' }, ...countLine(w, exchange, m.result.nus)));
     setChildren(r.facts, ...facts);
 
     setChildren(r.guide, ...guide(w, m));
@@ -396,13 +401,13 @@ export function createShortlistView(root, on) {
 
   /**
    * The count line: whether the entry counts, and why or why not.
-   * @param {Worked} w @param {boolean} exchange
+   * @param {Worked} w @param {boolean} exchange @param {boolean} nus
    * @returns {import('./dom.js').Child[]}
    */
-  function countLine(w, exchange) {
+  function countLine(w, exchange, nus) {
     const lead = (/** @type {string} */ t) => h('span', { class: 'sl-count' }, t);
     switch (w.standing) {
-      case 'counted': return exchange ? [lead('Counted'), ', if NUS accepts you into it'] : [lead('Counted:'), ' exchange status not checked'];
+      case 'counted': return nus ? [lead('Counted'), ' in its semester\'s total'] : exchange ? [lead('Counted'), ', if NUS accepts you into it'] : [lead('Counted:'), ' exchange status not checked'];
       case 'confirm': return [lead('To confirm with NUS:'), ` ${stop(lower(w.why.replace(/^To confirm with NUS: /, '')))}`];
       case 'invite': return [lead(stop(w.why))];
       case 'duplicate': return [lead('Not counted:'), ` the same course as ${w.sameAs}.`];
@@ -464,14 +469,14 @@ export function createShortlistView(root, on) {
       return h('section', { class: 'sl-total', attrs: { 'aria-labelledby': `slTot${s}` } },
         h('h4', { attrs: { id: `slTot${s}` } }, `${semLabel(s)} picks`),
         h('p', { class: 'sl-sum' },
-          h('span', { class: 'big' }, at, h('b', { class: 'mono' }, String(t.counted)), r.exchange ? ' units counted, if NUS accepts you into each' : ' units picked, exchange status not checked'),
+          h('span', { class: 'big' }, at, h('b', { class: 'mono' }, String(t.counted)), r.nus ? ' units picked' : r.exchange ? ' units counted, if NUS accepts you into each' : ' units picked, exchange status not checked'),
           t.confirm ? h('span', null, 'plus ', h('b', { class: 'mono' }, String(t.confirm)), ' units to confirm with NUS') : null,
           t.invite ? h('span', null, 'plus ', h('b', { class: 'mono' }, String(t.invite)), ' units only if invited') : null,
           h('span', { class: 'sl-src' }, `${t.counted} units is about ${t.hours} hours a week at NUS's rate (2.5 hours a week per unit).`)),
         ...[...new Set(quota)].map((q) => h('p', { class: 'sl-src' }, stop(q))),
-        t.economics ? h('p', { class: 'sl-src' }, `Includes ${t.economics} units of Economics courses. GRO: “${GRO_POPULAR}”.`) : null,
-        t.overlap ? h('p', { class: 'sl-flag' }, icon('check'), h('span', null, `Picks with overlapping ${r.year} exams: NUS approves at most one of each pair.`)) : null,
-        t.over20 ? h('p', { class: 'sl-flag' }, icon('check'), h('span', null, h('b', null, 'Over 20 units.'), ` ${TOTAL_LINES.maximum} ${TOTAL_LINES.maximumScope}.`)) : null,
+        t.economics && !r.nus ? h('p', { class: 'sl-src' }, `Includes ${t.economics} units of Economics courses. GRO: “${GRO_POPULAR}”.`) : null,
+        t.overlap ? h('p', { class: 'sl-flag' }, icon('check'), h('span', null, r.nus ? `Picks with overlapping ${r.year} exams: check the timetable for the year you take them.` : `Picks with overlapping ${r.year} exams: NUS approves at most one of each pair.`)) : null,
+        t.over20 && !r.nus ? h('p', { class: 'sl-flag' }, icon('check'), h('span', null, h('b', null, 'Over 20 units.'), ` ${TOTAL_LINES.maximum} ${TOTAL_LINES.maximumScope}.`)) : null,
         notCounted.length ? h('div', { class: 'sl-out' }, h('p', { class: 'lbl' }, 'Not counted'),
           ...notCounted.map((w) => h('p', null, h('span', { class: 'mono' }, w.code), ` (${w.which === 'pick' ? 'pick' : 'backup'} ${w.rank}): ${lower(stop(w.why))}`))) : null);
     });
@@ -480,7 +485,7 @@ export function createShortlistView(root, on) {
       cards.length ? h('div', { class: 'sl-totals' }, ...cards) : null,
       h('div', { class: 'sl-unplaced' }, ...(unplaced.length ? [h('p', { class: 'lbl' }, 'No semester yet'),
         ...unplaced.map((w) => h('p', null, h('span', { class: 'mono' }, w.code), ` (${w.which === 'pick' ? 'pick' : 'backup'} ${w.rank}): ${lower(stop(w.why === 'No semester chosen' ? 'Choose Sem 1 or Sem 2 on its row' : w.why))}`))] : [])),
-      lines([TOTAL_LINES.admitted, TOTAL_LINES.courseReg, `${TOTAL_LINES.maximum} ${TOTAL_LINES.maximumScope}`, TOTAL_LINES.rate, TOTAL_LINES.weeks]));
+      r.nus ? null : lines([TOTAL_LINES.admitted, TOTAL_LINES.courseReg, `${TOTAL_LINES.maximum} ${TOTAL_LINES.maximumScope}`, TOTAL_LINES.rate, TOTAL_LINES.weeks]));
   }
 
   /** NUS's form order, per semester (exchange mode), then the lines for applicants. @param {Model} m */
@@ -558,7 +563,7 @@ export function createShortlistView(root, on) {
     if (key === 'year') {
       return h('fieldset', null, h('legend', null, 'Your year of study during the exchange at NUS'),
         radios('slAskStudy', STUDIES.map((o) => [o.value, o.label]), on.askStudy),
-        h('p', { class: 'hint' }, 'Answering turns on “Only courses open to exchange students”, so each course shows whether you may take it then.'));
+        h('p', { class: 'hint' }, 'Each course then shows whether you may take it in its semester.'));
     }
     if (key === 'sem') {
       return h('fieldset', null, h('legend', null, 'Your semester at NUS'),
@@ -587,8 +592,8 @@ export function createShortlistView(root, on) {
       const held = [...new Set(r.entries.map((w) => w.sem).filter((x) => x === '1' || x === '2'))].sort();
       const one = held.length === 1 ? held[0] : held.length === 0 && (m.sem === '1' || m.sem === '2') ? m.sem : '';
       const sems = one ? semLabel(one) : 'Sem 1 and Sem 2';
-      const who = m.study ? `${studyAdj(m.study)} exchange student` : 'Exchange status not checked: no year of study set';
-      setChildren(sub, `${sems} · ${who} · NUS's ${r.year} courses`);
+      const who = r.nus ? '' : m.study ? `${studyAdj(m.study)} exchange student` : 'Exchange status not checked: no year of study set';
+      setChildren(sub, [sems, who, `NUS's ${r.year} courses`].filter(Boolean).join(' · '));
       setChildren(sentence, ...m.lines.map((l) => h('p', null, l)));
       removed.hidden = !m.removed;
       setChildren(removedText, m.removed ? `${m.removed} removed.` : '');
@@ -599,7 +604,7 @@ export function createShortlistView(root, on) {
       if (fieldInput.value !== m.linkField) fieldInput.value = m.linkField;
       fillAsk(m);
       for (const which of /** @type {('biz' | 'law')[]} */ (['biz', 'law'])) {
-        inv[which].set.hidden = !m.faculties.includes(which);
+        inv[which].set.hidden = r.nus || !m.faculties.includes(which);
         inv[which].box.checked = m.inv.includes(which);
       }
 
@@ -619,8 +624,11 @@ export function createShortlistView(root, on) {
       pickList.hidden = !picks.length;
       altList.hidden = !alts.length;
       totals.hidden = !r.entries.length;
-      form.hidden = !r.entries.length;
-      if (r.entries.length) { fillTotals(m); fillForm(m); }
+      // An NUS student's list is no application: no form order, CourseReg box or applicant lines.
+      form.hidden = !r.entries.length || r.nus;
+      box.hidden = r.nus;
+      for (const p of applicantClosing) p.hidden = r.nus;
+      if (r.entries.length) { fillTotals(m); if (!r.nus) fillForm(m); }
     },
   };
 }

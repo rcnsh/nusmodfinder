@@ -3,8 +3,9 @@
 // in step through nav.js's transitions, searches through api.js, and renders
 // with render.js. Each card is a disclosure (one open detail, `open=`) whose
 // detail comes from /module/:code; typed codes that are hidden say why, and a
-// partial code checks the other semester. The exchange set-up is the first
-// screen, then a rail with the set-up, filters and key beside the search;
+// partial code checks the other semester. The first screen asks who is
+// searching (an NUS student, or an exchange student, who then gives the exchange
+// set-up) and the query, then a rail with the set-up, filters and key beside the search;
 // filter chips are removable; on a phone the search is one bar with the rail in
 // a modal "Filters" dialog. A skip link goes to the shown <main>; one polite
 // live region says each answer in a sentence (the count or why there is none,
@@ -64,6 +65,7 @@ const els = {
   credits: /** @type {HTMLSelectElement} */ ($('credits')),
   faculty: /** @type {HTMLSelectElement} */ ($('faculty')),
   ng: /** @type {HTMLInputElement} */ ($('ng')),
+  ngOff: /** @type {HTMLInputElement} */ ($('ngOff')),
   study: /** @type {HTMLSelectElement} */ ($('study')),
   studyWrap: $('studyWrap'),
   semWrap: $('semWrap'),
@@ -77,6 +79,10 @@ const els = {
   setup: $('setup'),
   layout: $('layout'),
   setupForm: /** @type {HTMLFormElement} */ ($('setupForm')),
+  setupWhos: $('setupWhos'),
+  setupSemStep: $('setupSemStep'),
+  setupStudyStep: $('setupStudyStep'),
+  setupQNum: $('setupQNum'),
   setupSems: $('setupSems'),
   setupStudies: $('setupStudies'),
   setupQ: /** @type {HTMLInputElement} */ ($('setupQ')),
@@ -164,7 +170,10 @@ const radio = (cls, name, value, content) => {
 for (const [value, label] of [['1', 'Sem 1'], ['2', 'Sem 2'], ['', 'Both']]) els.semSegOptions.append(radio('seg-opt', 'xsem', value, [label]));
 // The header's year line: the year's lists, and a clause for next year's applicants.
 setChildren($('yearLine'), headerYearLine(DEFAULT_ACAD_YEAR));
-// The first screen's two questions.
+// The first screen's questions: who is searching, then, for an exchange student, the semester and year.
+for (const [value, name, what] of [['nus', 'NUS student', 'Every NUS course'], ['exchange', 'Exchange student', 'Only the courses open to you']]) {
+  els.setupWhos.append(radio('tile', 'setupWho', value, [h('b', null, name), h('small', null, what), icon('tick', 'tick')]));
+}
 const months = semesterMonths(DEFAULT_ACAD_YEAR);
 for (const [value, name, when] of [['1', 'Sem 1', months[1]], ['2', 'Sem 2', months[2]], ['', 'Both semesters', months.both]]) {
   els.setupSems.append(radio('tile', 'setupSem', value, [h('b', null, name), h('small', null, when), icon('tick', 'tick')]));
@@ -187,6 +196,17 @@ let facultyNames = null;
 const STUDY_KEY = 'vnm.study';
 const savedStudy = () => { try { return localStorage.getItem(STUDY_KEY) ?? ''; } catch { return ''; } };
 const saveStudy = (/** @type {string} */ v) => { try { localStorage.setItem(STUDY_KEY, v); } catch { /* private mode */ } };
+// Who searched last on this device ('nus' or 'exchange'), to pre-select the first screen's answer.
+const WHO_KEY = 'vnm.who';
+// Before vnm.who existed, a saved year of study meant an exchange student.
+const savedWho = () => {
+  try {
+    const who = localStorage.getItem(WHO_KEY);
+    if (who === 'exchange' || who === 'nus') return who;
+    return localStorage.getItem(STUDY_KEY) ? 'exchange' : 'nus';
+  } catch { return 'nus'; }
+};
+const saveWho = (/** @type {string} */ v) => { try { localStorage.setItem(WHO_KEY, v); } catch { /* private mode */ } };
 
 /**
  * Selects `value`, adding it as an option first if the list lacks it (a
@@ -204,6 +224,8 @@ function selectValue(select, value, label = value) {
 function syncExchange() {
   const ng = els.ng.checked;
   const special = els.sem.value === '3' || els.sem.value === '4';
+  els.ngOff.checked = !ng;
+  els.ngHint.hidden = !ng;
   els.studyWrap.hidden = !ng;
   els.semSeg.hidden = !ng || special;
   els.semWrap.hidden = ng && !special;
@@ -278,7 +300,7 @@ function applyToForm(s) {
 }
 
 /**
- * The first screen (the exchange set-up) shows until the student searches
+ * The first screen (who is searching, then the query) shows until the student searches
  * or chooses to browse, or a link opens the page with any state; then the
  * results layout stays for the page's life, Back to an empty entry included.
  */
@@ -757,9 +779,11 @@ function onEnter(input, submit) {
   });
 }
 onEnter(els.q, () => act({ type: 'submit', form: readForm() }));
-for (const el of [els.sem, els.level, els.credits, els.faculty, els.ng, els.study]) {
+// #ng and #ngOff are one radio pair: each fires change only when it is chosen.
+for (const el of [els.sem, els.level, els.credits, els.faculty, els.ng, els.ngOff, els.study]) {
   el.addEventListener('change', () => {
     if (el === els.study) saveStudy(els.study.value);
+    if (el === els.ng || el === els.ngOff) saveWho(els.ng.checked ? 'exchange' : 'nus');
     syncExchange();
     act({ type: 'settings', form: readForm() });
     // A special term changed to Sem 1 or 2 in exchange mode: the select gives
@@ -786,7 +810,18 @@ els.chips.addEventListener('click', (e) => {
   (left[Math.min(at, left.length - 1)] ?? els.q).focus();
 });
 
-// The first screen: the semester and the year of study, then the query.
+// The first screen: who is searching; for an exchange student, the semester and the
+// year of study; then the query.
+/** Shows the exchange questions (and the sources they rest on) only to an exchange student. */
+function syncWho() {
+  const exchange = checkedValue('setupWho') === 'exchange';
+  els.setupSemStep.hidden = !exchange;
+  els.setupStudyStep.hidden = !exchange;
+  els.setupSources.hidden = !exchange;
+  els.setupQNum.textContent = exchange ? '04' : '02';
+  els.setupError.hidden = true;
+}
+for (const r of radios('setupWho')) r.addEventListener('change', syncWho);
 /** @param {string} text @param {HTMLElement} focus */
 function setupAsk(text, focus) {
   els.setupError.textContent = text;
@@ -795,16 +830,28 @@ function setupAsk(text, focus) {
   announce(text);
 }
 function submitSetup() {
+  const q = els.setupQ.value.trim();
+  if (checkedValue('setupWho') !== 'exchange') {
+    if (!q) { setupAsk('Type what you want to study.', els.setupQ); return; }
+    els.setupError.hidden = true;
+    saveWho('nus');
+    leaveSetup({ ...readForm(), q, sem: '', level: '', credits: '', faculty: '', ng: false, study: '' });
+    return;
+  }
   const sem = checkedValue('setupSem');
   const study = checkedValue('setupStudy');
-  const q = els.setupQ.value.trim();
   if (sem === null) { setupAsk('Choose the semester you will study at NUS.', radios('setupSem')[0]); return; }
   if (!study) { setupAsk('Choose your year of study during your exchange.', radios('setupStudy')[0]); return; }
   if (!q) { setupAsk('Type what you want to study.', els.setupQ); return; }
   els.setupError.hidden = true;
   saveStudy(study);
+  saveWho('exchange');
+  leaveSetup({ ...readForm(), q, sem, level: '', credits: '', faculty: '', ng: true, study });
+}
+/** Searches from the first screen and moves to the results. @param {ReturnType<typeof readForm>} form */
+function leaveSetup(form) {
   leftSetup = true;
-  act({ type: 'submit', form: { ...readForm(), q, sem, level: '', credits: '', faculty: '', ng: true, study } });
+  act({ type: 'submit', form });
   // The results start at the top of the page, whatever the set-up was scrolled to.
   window.scrollTo(0, 0);
   els.q.focus({ preventScroll: true });
@@ -813,8 +860,17 @@ els.setupForm.addEventListener('submit', (e) => { e.preventDefault(); submitSetu
 onEnter(els.setupQ, submitSetup);
 els.browseAll.addEventListener('click', () => {
   leftSetup = true;
-  syncView(current);
-  show(current);
+  if (checkedValue('setupWho') === 'exchange') {
+    // An exchange student browses in exchange mode, with what they have answered so far.
+    saveWho('exchange');
+    const study = checkedValue('setupStudy');
+    if (study) saveStudy(study);
+    act({ type: 'settings', form: { ...readForm(), q: '', sem: checkedValue('setupSem') ?? '', ng: true, study: checkedValue('setupStudy') ?? '' } });
+  } else {
+    saveWho('nus');
+    syncView(current);
+    show(current);
+  }
   window.scrollTo(0, 0);
   els.q.focus();
 });
@@ -832,7 +888,8 @@ els.filtersBtn.addEventListener('click', () => {
   els.dialogSlot.append(els.panel);
   els.dialog.append(els.live);
   els.dialog.showModal();
-  /** @type {HTMLElement | null} */ (els.panel.querySelector('input, select'))?.focus();
+  // The first control: who is searching, on the answer chosen (where Tab would land in a radio group).
+  (els.ng.checked ? els.ng : els.ngOff).focus();
 });
 els.filtersDone.addEventListener('click', () => els.dialog.close());
 /** The control focused in the dialog when a resize closed it (the browser moves focus before `close`). */
@@ -1184,7 +1241,7 @@ const slView = createShortlistView(els.slView, {
 
 /** The shortlist worked out now (shortlist.js), every entry at its own semester. */
 function worked() {
-  return workOut({ list, sem: current.sem, study: current.ng ? current.study : '', answers: rowAnswers, rules: offListRules });
+  return workOut({ list, sem: current.sem, study: current.ng ? current.study : '', answers: rowAnswers, rules: offListRules, nus: !current.ng });
 }
 /** @param {string} code */
 const entry = (code) => worked().entries.find((w) => w.code === code);
@@ -1523,7 +1580,7 @@ function copyLink() {
 /** Every entry's row has settled: loaded, failed or a 404. */
 const rowsSettled = () => [...list.pick, ...list.alt].every((e) => rowAnswers.has(e.code));
 /** The export question still has something to answer (the view asks it; the exports wait on it). */
-const questionOpen = () => exportQuestion({ list, study: current.ng ? current.study : '', answers: rowAnswers }).ask;
+const questionOpen = () => exportQuestion({ list, study: current.ng ? current.study : '', answers: rowAnswers, nus: !current.ng }).ask;
 
 /**
  * The export's document now (export.js), from the same rows as the view.
@@ -1645,9 +1702,10 @@ function loadPrintFonts() {
 
 /** The export question's parts, kept once asked while the view stays open. */
 function updateAsked() {
-  const q = exportQuestion({ list, study: current.ng ? current.study : '', answers: rowAnswers });
+  const q = exportQuestion({ list, study: current.ng ? current.study : '', answers: rowAnswers, nus: !current.ng });
   asked = {
-    year: asked.year || q.year,
+    // An NUS student is never asked the year, even after a switch from exchange mode with the view open.
+    year: current.ng && (asked.year || q.year),
     // Parts asked stay while the view does (an answered one keeps its choice), unless the entry
     // left the list or its row, now in, shows it can't take a semester.
     entries: [...new Set([...asked.entries, ...q.entries])].filter((c) => hasEntry(list, c) && askable(rowAnswers.get(c))),
@@ -1742,7 +1800,9 @@ if (testHooks && typeof testHooks === 'object') {
   });
 }
 
-// The first screen pre-fills the year of study remembered on this device.
+// The first screen pre-fills who searched last and the year of study remembered on this device.
+checkValue('setupWho', savedWho());
+syncWho();
 if (STUDIES.some((o) => o.value === savedStudy())) checkValue('setupStudy', savedStudy());
 
 // Start: the URL's state, and its search, now; the list's rows load at once, and a link

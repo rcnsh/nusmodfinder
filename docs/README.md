@@ -37,6 +37,7 @@ How NUS Mod Finder works and how to maintain it. For what the site is, start at 
 | [0014](decisions/0014-corpus-and-source-custody.md) | One production corpus in a manifest; NUS's documents archived encrypted |
 | [0015](decisions/0015-yearly-refresh.md) | The academic year switches in July, through a rehearsed procedure |
 | [0016](decisions/0016-one-relevance-judge.md) | One relevance judge, checked across model families |
+| [0017](decisions/0017-first-screen-for-everyone.md) | The first screen serves NUS and exchange students alike |
 
 A new decision gets the next number and a kebab-case title naming the decision. Change a record
 when the decision changes, and keep its reasons.

@@ -237,7 +237,7 @@ test.describe('Print or save as PDF', () => {
   });
 
   test('Ctrl+P: before the export question is answered the screen prints; once it is, the shortlist, with the file name as the title', async ({ page }) => {
-    await page.goto(at('pick=CS5562.2&view=shortlist'));
+    await page.goto(at('ng=1&pick=CS5562.2&view=shortlist'));
     await rowsIn(page);
     await expect(page.locator('#slAsk')).toBeVisible();
     expect(await printClass(page)).toBe(false);

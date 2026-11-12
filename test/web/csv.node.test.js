@@ -35,14 +35,14 @@ const EE4407 = ngListedOutcome('EE4407', {
  * answers, `extra` overriding a code's outcome, then the export's document.
  * @param {string} qs
  * @param {Record<string, any>} [extra]
- * @param {{ rules?: any, sources?: any }} [opts]
+ * @param {{ rules?: any, sources?: any, nus?: boolean }} [opts]
  */
-function exportOf(qs, extra = {}, { rules = RULES, sources = SOURCES } = {}) {
+function exportOf(qs, extra = {}, { rules = RULES, sources = SOURCES, nus = false } = {}) {
   const params = new URLSearchParams(qs);
   const s = parseState(params);
   const { list } = parseList(params);
   const answers = new Map([...list.pick, ...list.alt].map((e) => [e.code, answerOf(e.code in extra ? extra[e.code] : fixtureOutcome(e.code))]));
-  const result = workOut({ list, sem: s.sem, study: s.study, answers, rules });
+  const result = workOut({ list, sem: s.sem, study: s.study, answers, rules, nus });
   return buildExport({ result, list, study: s.study, sources, link: `${SITE_URL}/?${qs}`, today: TODAY, answers });
 }
 
@@ -265,5 +265,35 @@ describe('the file name', () => {
       expect(doc.title, qs).toBe('Courses planned for Sem 1, based on NUS\'s 2026/27 courses, exams and exchange list');
       expect(doc.sections.map((x) => x.id), qs).not.toContain('2');
     }
+  });
+});
+
+describe('an NUS student\'s export (nus)', () => {
+  it('has no exchange columns, year of study, form order or CourseReg box, and a plain file name', () => {
+    const doc = exportOf('pick=CS3244.1&pick=ACC1701XA.1&view=shortlist', {}, { nus: true });
+    const keys = doc.columns.map((c) => c.key);
+    for (const k of ['form', 'status', 'notes', 'nus']) expect(keys).not.toContain(k);
+    expect(doc.head.map((x) => x.key)).not.toContain('study');
+    expect(doc.title).not.toContain('exchange');
+    expect(doc.form).toBeNull();
+    expect(doc.courseReg).toBeNull();
+    expect(doc.stem.startsWith('shortlist-sem1-')).toBe(true);
+    const text = toCsv(doc);
+    expect(text).not.toMatch(/exchange|GRO|NG list|CourseReg|home university|your university/i);
+    const rows = parseCsv(text.slice(1));
+    expect(rows[0]).toEqual(doc.columns.map((c) => c.label));
+    expect(rows[1][doc.columns.findIndex((c) => c.key === 'counts')]).toBe('Counted in its semester\'s total');
+  });
+
+  it('a pick not taught in its semester is "Not taught in that semester", never "exchange list"', () => {
+    const doc = exportOf('pick=CS5562.1', {}, { nus: true });
+    expect(doc.sections.map((s) => s.heading)).toEqual(['Not taught in that semester']);
+    expect(toCsv(doc)).not.toMatch(/exchange|your university/i);
+  });
+
+  it('an exchange student\'s export keeps every exchange part', () => {
+    const doc = exportOf('ng=1&study=ug2&pick=CS3244.1');
+    expect(doc.form).not.toBeNull();
+    expect(doc.stem.startsWith('exchange-shortlist-')).toBe(true);
   });
 });

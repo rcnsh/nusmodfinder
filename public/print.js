@@ -93,7 +93,7 @@ export function createPrintView(root) {
       const body = [
         h('header', { class: 'pp-head' },
           h('h1', { attrs: { id: 'ppTitle' } }, doc.title),
-          h('p', null, `Year of study during the exchange: ${head.study} · Made on ${head.made} with ${SITE_NAME}`),
+          h('p', null, head.study ? `Year of study during the exchange: ${head.study} · Made on ${head.made} with ${SITE_NAME}` : `Made on ${head.made} with ${SITE_NAME}`),
           h('p', { class: 'pp-link' }, head.link),
           ...extra.map((x) => h('p', null, `${x.label}: ${x.value}`)),
           h('p', { class: 'src' }, head.later)),
@@ -105,11 +105,13 @@ export function createPrintView(root) {
           s.totals.length ? h('h3', null, `${s.heading} totals`) : null,
           s.totals.length ? list(s.totals) : null));
       }
+      const form = doc.form;
+      const courseReg = doc.courseReg;
       body.push(
-        h('section', { class: 'pp-form', attrs: { 'aria-labelledby': 'pp-form' } },
-          h('h2', { attrs: { id: 'pp-form' } }, doc.form.heading),
-          h('p', { class: 'src' }, doc.form.intro),
-          ...doc.form.tables.flatMap((t) => [
+        form ? h('section', { class: 'pp-form', attrs: { 'aria-labelledby': 'pp-form' } },
+          h('h2', { attrs: { id: 'pp-form' } }, form.heading),
+          h('p', { class: 'src' }, form.intro),
+          ...form.tables.flatMap((t) => [
             h('table', { class: 'sl-ftab' },
               h('caption', null, t.caption),
               h('thead', null, h('tr', null, ...['No.', 'Course', 'Units', 'On your list'].map((x) => h('th', { attrs: { scope: 'col' } }, x)))),
@@ -120,10 +122,10 @@ export function createPrintView(root) {
                 h('td', r.mark ? { class: 'mark' } : null, `${r.list[0].toUpperCase()}${r.list.slice(1)}${r.note ? `${r.mark ? ':' : '.'} ${r.note}` : ''}`))))),
             t.note ? h('p', { class: 'src' }, t.note) : null,
           ]),
-          list(doc.form.applicants)),
-        h('section', { class: 'pp-foot', attrs: { 'aria-labelledby': 'pp-cr' } },
-          h('h2', { class: 'pp-lbl', attrs: { id: 'pp-cr' } }, doc.courseReg.heading),
-          list([...doc.courseReg.rules, doc.courseReg.page]),
+          list(form.applicants)) : null,
+        h('section', { class: 'pp-foot', attrs: courseReg ? { 'aria-labelledby': 'pp-cr' } : { 'aria-label': 'Notes' } },
+          courseReg ? h('h2', { class: 'pp-lbl', attrs: { id: 'pp-cr' } }, courseReg.heading) : null,
+          courseReg ? list([...courseReg.rules, courseReg.page]) : null,
           h('ul', { class: 'pp-list pp-closing' }, ...doc.closing.map((x) => h('li', null,
             x.key === 'unofficial' ? h('b', null, x.value) : x.value,
             x.key === 'unofficial' ? ` ${SITE_NAME}, ${SITE_URL.replace(/^https:\/\//, '')}` : null)))));

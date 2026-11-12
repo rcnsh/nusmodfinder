@@ -188,13 +188,8 @@ function exchangeBlock(m, filters) {
       h('div', { class: 'stamps' }, stamp(status, stampText(status, sem, notes.map((n) => n.r)))),
       notesBox([{ scope: '', items: notes }]));
   }
-  if (!m.ng) return null;
-  // Not "you can take it": the restrictions and the year of study aren't applied here.
-  const sems = (Array.isArray(m.ngSemesters) ? m.ngSemesters : []).map(semLabel);
-  const listed = sems.length < 2 ? sems.join('') : `${sems.slice(0, -1).join(', ')} and ${sems[sems.length - 1]}`;
-  return h('div', { class: 'guide' }, h('p', {
-    class: 'ng', attrs: { title: "On the Registrar's list of courses offered to exchange (Non-Graduating) students" },
-  }, `On the NG list for ${listed}. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check.`));
+  // An NUS student's search: no exchange line on the card (the detail keeps the exchange table).
+  return null;
 }
 
 let nextId = 0;

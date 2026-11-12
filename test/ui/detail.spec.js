@@ -93,9 +93,16 @@ test('exchange status on the card, both semesters: one line per semester, never 
   ]);
 });
 
-test('outside exchange mode the card keeps a marker of the exchange-list semesters', async ({ page }) => {
-  await page.goto('/?q=CS3244');
-  await expect(card(page, 'CS3244').locator('.ng')).toHaveText('On the NG list for Sem 2. Other NUS rules may still close it to you: tick “Only courses open to exchange students” to check.');
+test('an NUS student\'s card has no exchange line; the detail keeps the all-years table, collapsed after the facts', async ({ page }) => {
+  await page.goto('/?q=CS3244&open=CS3244');
+  await expect(card(page, 'CS3244').locator('.guide')).toHaveCount(0);
+  const region = page.locator('#results .detail:not([hidden])');
+  const more = region.locator('details.avail-all');
+  await expect(more.locator('summary')).toHaveText('For exchange students: who may take it');
+  await expect(more.locator('table')).toBeHidden();
+  await expect(region.locator('.sheet-side .avail')).toHaveCount(0);
+  await more.locator('summary').click();
+  await expect(more.locator('table caption')).toHaveText('Open to exchange students, by year of study during the exchange');
 });
 
 test('the detail: description, prerequisites as NUS states them with codes linked, exam, workload, exchange per semester, NUSMods', async ({ page }) => {

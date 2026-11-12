@@ -56,4 +56,5 @@ and next year's applicants, who apply from March on this year's data.
 - `data/ng-unscheduled.json` joins the re-ingest runbook, and `verify --pre-deploy` checks it and
   the reason file's year against D1.
 - Exchange-mode correctness is checked over every offered code and every classless NG code, in
-  browse mode too (`test/shortlist-oracle.js`).
+  exchange mode with no year of study too (`test/shortlist-oracle.js`). An NUS student's list is
+  a plain plan (ADR 0017).

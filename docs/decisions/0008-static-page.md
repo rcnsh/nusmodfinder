@@ -10,10 +10,7 @@ Status: accepted. The page's modules and tests are described in [docs/page.md](.
   loaded from another origin, fonts included.
 - **State lives in the URL** with a fixed transition table (`public/nav.js`), so every view is a
   link and Back works.
-- **The first screen is the exchange set-up:** the semester at NUS and the year of study during
-  the exchange, before the first search, because the page's main users are incoming exchange
-  students. "Browse all courses instead" leads to the general search, whose cards keep a marker
-  of the semesters a course is on the exchange list for.
+- **The page serves NUS and exchange students alike** ([ADR 0017](0017-first-screen-for-everyone.md)).
 - **A hidden typed code is explained with its own stored reasons**, never listed as a result, so
   exchange mode never shows a course the student can't take.
 - **Every exchange note shows in full on the card**, after a lead-in word.

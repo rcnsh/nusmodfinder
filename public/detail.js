@@ -6,7 +6,8 @@
 // semester with every reason and its source, and the link to NUSMods for class
 // times. DOM nodes only. Laid out as a sheet: the course facts on the left,
 // "can you take it" on the right (below them on a phone), and the Close button
-// at the top. Its head repeats the code, title, units and department, and, for
+// at the top. For an NUS student (not exchange mode) the exchange table is a
+// collapsed disclosure after the facts. Its head repeats the code, title, units and department, and, for
 // a detail an "Also as" link opened, which entry it was opened from.
 import { h, setChildren } from './dom.js';
 import { noteText, reasonLine, sourceNote, stampText, statusText } from './explain.js';
@@ -120,7 +121,7 @@ const STUDY_AS = Object.freeze({ ug1: '1st-year', ug2: '2nd-year', ug3: '3rd-yea
 
 /**
  * Exchange availability: in exchange mode Sem 1 and Sem 2 at the chosen year;
- * outside it, a table for every year.
+ * outside it, a table for every year, collapsed (an NUS student opens it only if they want it).
  * @param {unknown} raw /module's `exchange`
  * @param {DetailContext} ctx
  */
@@ -154,7 +155,7 @@ function exchangeSection(raw, ctx) {
       h('th', { attrs: { scope: 'col' } }, semLabel(1)), h('th', { attrs: { scope: 'col' } }, semLabel(2)))),
     h('tbody', null, ...STUDIES.map((o) => h('tr', null, h('th', { attrs: { scope: 'row' } }, o.label),
       ...[1, 2].map((sem) => h('td', null, ...availability(at(sem, o.value), sources)))))));
-  return h('section', { class: 'detail-part avail avail-all' }, h('h4', { class: 'big' }, 'Open to exchange students'), table, check, sourcesLine);
+  return h('details', { class: 'detail-part avail avail-all' }, h('summary', null, 'For exchange students: who may take it'), table, check, sourcesLine);
 }
 
 /**
@@ -174,6 +175,7 @@ export function renderDetail(region, m, ctx) {
     : h('p', { class: 'kicker' }, 'Course details');
   const dept = [m.department, m.faculty].filter((x, i, a) => typeof x === 'string' && x && a.indexOf(x) === i).join(', ');
   const units = typeof m.credits === 'number' ? `${m.credits} unit${m.credits === 1 ? '' : 's'}` : '';
+  const exchangeMode = ctx.filters.ng === true && typeof ctx.filters.study === 'string' && ctx.filters.study !== '';
   setChildren(region,
     h('div', { class: 'sheet-head' }, kicker, h('div', { class: 'sheet-acts' }, code && ctx.toggle ? ctx.toggle(code) : null, close)),
     // The head repeats the entry's code and title, so the sheet reads on its own.
@@ -184,7 +186,7 @@ export function renderDetail(region, m, ctx) {
     // "Can you take it" comes first: beside the facts on a wide screen, above them on a narrow one.
     h('div', { class: 'sheet-grid' },
       h('div', { class: 'sheet-side' },
-        exchangeSection(m.exchange, ctx),
+        exchangeMode ? exchangeSection(m.exchange, ctx) : null,
         h('section', { class: 'detail-part nusmods' }, h('h4', { class: 'vh' }, 'Class times'),
           nusmods ? h('p', null, h('a', { class: 'nusmods-link', attrs: { href: nusmods, target: '_blank', rel: 'noopener' } }, 'Class times and timetable on NUSMods', icon('ext'))) : null,
           h('p', { class: 'nm-note' }, "Class times aren't shown here."))),
@@ -193,5 +195,6 @@ export function renderDetail(region, m, ctx) {
         prerequisites(m.prerequisite, m.prereqCohortOnly === true, ctx),
         preclusions(m.preclusion, ctx),
         section('Final exam (Singapore time)', h('ul', { class: 'exam-list' }, ...examLines(Array.isArray(m.examDates) ? m.examDates : []).map((l) => h('li', null, l)))),
-        section('Workload', h('p', { class: 'wl-total' }, workloadText(m.workload))))));
+        section('Workload', h('p', { class: 'wl-total' }, workloadText(m.workload))),
+        exchangeMode ? null : exchangeSection(m.exchange, ctx))));
 }

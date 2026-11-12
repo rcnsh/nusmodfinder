@@ -43,6 +43,7 @@ const link = (q, sem) => `/?q=${encodeURIComponent(q).replace(/%20/g, '+')}${sem
 /** @param {import('@playwright/test').Page} page @param {string} q @param {string} sem */
 async function typed(page, q, sem) {
   await page.goto('/');
+  await page.getByRole('radio', { name: /^Exchange student/ }).check();
   await page.getByRole('radio', { name: sem ? new RegExp(`^Sem ${sem}`) : /^Both semesters/ }).check();
   await page.getByRole('radio', { name: '2nd year' }).check();
   await page.getByLabel('What do you want to study?').fill(q);

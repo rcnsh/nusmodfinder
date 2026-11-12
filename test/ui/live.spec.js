@@ -94,6 +94,7 @@ test('keyword-only, the phrase chips, and a missing year of study are said too',
 
 test('the first screen\'s questions left unanswered are said in the live region as focus moves to them', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('radio', { name: /^Exchange student/ }).check();
   await page.locator('#setupForm').getByRole('button', { name: 'Search' }).click();
   await expect(live(page)).toHaveText('Choose the semester you will study at NUS.');
   await expect(page.getByRole('radio', { name: /^Sem 1/ })).toBeFocused();
@@ -229,11 +230,11 @@ test('the controls are named as a screen reader should say them', async ({ page 
   await settled(page);
   for (const [role, name] of /** @type {const} */ ([
     ['link', 'Skip to main content'], ['searchbox', 'Search courses'], ['button', 'Search'],
-    ['checkbox', 'Only courses open to exchange students'], ['radio', 'Sem 1'], ['radio', 'Sem 2'], ['radio', 'Both'],
+    ['radio', 'NUS student'], ['radio', 'Exchange student'], ['group', 'Searching as'], ['radio', 'Sem 1'], ['radio', 'Sem 2'], ['radio', 'Both'],
     ['combobox', 'Year of study during your exchange'], ['combobox', 'Level'], ['combobox', 'Units'], ['combobox', 'Faculty'],
     ['button', 'Remove filter: Sem 1'], ['button', 'Remove filter: Exchange students'], ['button', 'Remove filter: Level 2000'],
     ['list', 'Filters applied'], ['list', 'Results'], ['search', 'Search courses'], ['main', 'Search and results'],
-    ['complementary', 'Your exchange and filters'], ['banner', ''], ['contentinfo', ''],
+    ['complementary', 'Who is searching, and filters'], ['banner', ''], ['contentinfo', ''],
   ])) {
     await expect(page.getByRole(role, name ? { name, exact: true } : {}).first(), `${role} "${name}"`).toBeAttached();
   }

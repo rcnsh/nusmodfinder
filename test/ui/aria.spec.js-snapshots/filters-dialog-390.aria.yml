@@ -1,10 +1,13 @@
-- dialog "Your exchange and filters":
-  - heading "Your exchange and filters" [level=2]
+- dialog "Who is searching, and filters":
+  - heading "Who is searching, and filters" [level=2]
   - button "Done"
-  - region "Your exchange":
-    - heading "Your exchange" [level=2]
-    - checkbox "Only courses open to exchange students" [checked]
-    - text: Only courses open to exchange students
+  - region "Searching as":
+    - heading "Searching as" [level=2]
+    - group "Searching as":
+      - radio "NUS student"
+      - text: NUS student
+      - radio "Exchange student" [checked]
+      - text: Exchange student
     - paragraph: 126 courses on the NUS Registrar's list, updated 01 Sep 2026.
     - group "Semester at NUS":
       - text: Semester at NUS

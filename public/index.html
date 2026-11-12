@@ -40,7 +40,7 @@
   <!-- The first stop for Tab: past the header (and the rail) to what the view is for. app.js points it at the shown <main>. -->
   <a class="skip" id="skip" href="#setup">Skip to main content</a>
   <header class="hdr">
-    <h1 class="brand"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7" fill="currentColor"/><g class="lens" fill="none" stroke-linecap="round"><circle cx="14" cy="14" r="6.5" stroke-width="2.6"/><path d="M19 19l5.5 5.5" stroke-width="3"/></g></svg><span class="brand-name">NUS Mod Finder</span> <span class="unofficial"><span class="paren">(</span>unofficial<span class="paren">)</span></span></h1>
+    <h1 class="brand"><a class="home" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7" fill="currentColor"/><g class="lens" fill="none" stroke-linecap="round"><circle cx="14" cy="14" r="6.5" stroke-width="2.6"/><path d="M19 19l5.5 5.5" stroke-width="3"/></g></svg><span class="brand-name">NUS Mod Finder</span></a> <span class="unofficial"><span class="paren">(</span>unofficial<span class="paren">)</span></span></h1>
     <!-- The year line at every width: app.js writes it from public/year.js; this is what shows before. -->
     <p class="year-line" id="yearLine">Academic year 2026/27</p>
     <!-- The one polite live region: result counts, no match, hidden codes, errors and 429, in a
@@ -49,24 +49,33 @@
   </header>
   <noscript><p class="noscript">NUS Mod Finder needs JavaScript to search: turn it on in your browser, then reload this page.</p></noscript>
 
-  <!-- The first screen: the exchange set-up, then the query. -->
+  <!-- The first screen: who is searching (an NUS student or an exchange student), the exchange
+       set-up for an exchange student, then the query. -->
   <main class="setup" id="setup" aria-labelledby="setupTitle" tabindex="-1">
     <div class="setup-intro">
-      <h2 id="setupTitle" class="setup-title">Find the NUS courses you can take on exchange</h2>
-      <p class="lede">Answer two questions first. Every course then shows whether exchange students in your semester and year may take it, and any conditions.</p>
+      <h2 id="setupTitle" class="setup-title">Find NUS courses in your own words</h2>
+      <p class="lede">Describe what you want to study, or type course codes. On exchange at NUS? Choose exchange student, and every course shows whether you may take it in your semester, and any conditions.</p>
     </div>
-    <div class="sources setup-sources" id="setupSources"></div>
-    <form class="steps" id="setupForm" aria-label="Set up your exchange" novalidate>
-      <fieldset class="step" aria-labelledby="setupSemQ" aria-describedby="setupSemHint">
+    <div class="sources setup-sources" id="setupSources" hidden></div>
+    <form class="steps" id="setupForm" aria-label="Search NUS courses" novalidate>
+      <fieldset class="step" aria-labelledby="setupWhoQ" aria-describedby="setupWhoHint">
         <span class="num" aria-hidden="true">01</span>
+        <div>
+          <p class="qtitle" id="setupWhoQ">Who are you searching as?</p>
+          <p class="hint" id="setupWhoHint">Exchange students can take only some NUS courses.</p>
+          <div class="tiles two" id="setupWhos"></div>
+        </div>
+      </fieldset>
+      <fieldset class="step" id="setupSemStep" aria-labelledby="setupSemQ" aria-describedby="setupSemHint" hidden>
+        <span class="num" aria-hidden="true">02</span>
         <div>
           <p class="qtitle" id="setupSemQ">Which semester will you study at NUS?</p>
           <p class="hint" id="setupSemHint">Some courses are open to exchange students in one semester only.</p>
           <div class="tiles" id="setupSems"></div>
         </div>
       </fieldset>
-      <fieldset class="step" aria-labelledby="setupStudyQ" aria-describedby="setupStudyHint">
-        <span class="num" aria-hidden="true">02</span>
+      <fieldset class="step" id="setupStudyStep" aria-labelledby="setupStudyQ" aria-describedby="setupStudyHint" hidden>
+        <span class="num" aria-hidden="true">03</span>
         <div>
           <p class="qtitle" id="setupStudyQ">Your year of study during your exchange</p>
           <p class="hint" id="setupStudyHint">Some NUS rules depend on it.</p>
@@ -74,7 +83,7 @@
         </div>
       </fieldset>
       <div class="step">
-        <span class="num" aria-hidden="true">03</span>
+        <span class="num" aria-hidden="true" id="setupQNum">02</span>
         <div>
           <label class="qlabel" for="setupQ">What do you want to study?</label>
           <p class="hint" id="setupQHint">A subject in your own words, a course name, or codes.</p>
@@ -93,7 +102,7 @@
 
   <!-- Results: the rail (the exchange set-up, filters and key) beside the search and the entries. -->
   <div class="layout" id="layout">
-    <aside class="rail" aria-label="Your exchange and filters">
+    <aside class="rail" aria-label="Who is searching, and filters">
       <!-- The shortlist button, outside #panel, so it never moves into the filters dialog. -->
       <div class="sl-rail">
         <button type="button" class="btn sl-open" id="slOpenRail"></button>
@@ -101,8 +110,12 @@
       </div>
       <div class="panel" id="panel">
         <section class="rail-sec" aria-labelledby="exTitle">
-          <h2 class="lbl" id="exTitle">Your exchange</h2>
-          <label class="checkline" for="ng"><input type="checkbox" id="ng"> <span>Only courses open to exchange students</span></label>
+          <h2 class="lbl" id="exTitle">Searching as</h2>
+          <!-- The first screen's answer: #ng is exchange mode's radio, #ngOff the NUS student's. -->
+          <fieldset class="who" aria-labelledby="exTitle">
+            <label class="checkline" for="ngOff"><input type="radio" name="who" id="ngOff" value=""> <span>NUS student</span></label>
+            <label class="checkline" for="ng"><input type="radio" name="who" id="ng" value="1"> <span>Exchange student</span></label>
+          </fieldset>
           <p class="hint ng-hint" id="ngHint"></p>
           <fieldset class="grp" id="semSeg">
             <legend class="gl">Semester at NUS</legend>
@@ -168,7 +181,7 @@
 
   <dialog class="filters-dialog" id="filtersDialog" aria-labelledby="filtersDialogTitle">
     <div class="dlg-head">
-      <h2 class="dlg-title" id="filtersDialogTitle">Your exchange and filters</h2>
+      <h2 class="dlg-title" id="filtersDialogTitle">Who is searching, and filters</h2>
       <button type="button" class="btn" id="filtersDone">Done</button>
     </div>
     <div class="dlg-body" id="dialogSlot"></div>

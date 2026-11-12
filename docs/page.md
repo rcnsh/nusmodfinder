@@ -16,10 +16,20 @@ match follows the system setting (`prefers-color-scheme`). Every colour is a tok
 `styles.css`, and `npm run contrast` (`scripts/contrast.mjs`, also run by `npm test`) checks every
 text/background and boundary pair in both themes against WCAG AA.
 
-- **The first screen is the exchange set-up:** the semester at NUS (Sem 1, Sem 2 or both), the
-  year of study (pre-filled from this device), then what to study; "Browse all courses instead"
-  leads to the general search. A link with any state skips it.
-- **Results:** a rail on the left ("Your exchange", the filters and the key) beside the search
+- **The first screen is the search, for NUS and exchange students alike:** "Who are you searching
+  as?" (NUS student or exchange student, pre-selected from this device's last search), then what
+  to study. An NUS student searches every course. An exchange student also answers the exchange
+  set-up, shown only to them with the sources it rests on: the semester at NUS (Sem 1, Sem 2 or
+  both) and the year of study (pre-filled from this device); the search then runs in exchange
+  mode. "Browse all courses instead" leads to the search with no query, in exchange mode for an
+  exchange student (with the answers given so far). A link with any state skips it. The site
+  name in the header links home, to the first screen.
+- **NUS student or exchange student** is `ng`: an NUS student's pages say nothing about exchange
+  (no exchange line on a card; the detail's all-years exchange table is a collapsed "For exchange
+  students: who may take it" after the facts), and the shortlist is a plain plan (below).
+- **Results:** a rail on the left ("Searching as": NUS student or exchange student, the same
+  answer as the first screen's; for an exchange student the semester and year; the filters; the
+  key in exchange mode) beside the search
   bar, the filter chips (each removes its filter; the semester and year exchange mode needs are
   changed in the rail), and the entries in three columns: code and units; title, department,
   timetable semesters, exam day and time (Singapore) and other codes; the exchange stamp per
@@ -93,8 +103,12 @@ Remove (with Undo at the top of the list). Under them: per-semester totals (coun
 only if invited, hours, NUS's limits said once), NUS's form order, the CourseReg box and the
 applicant lines. Rows load four at a time; a failed one offers Try again, a 404 reads as its
 `kind` says. The invitation checkbox shows only for the faculty the list holds (Business or
-Law). In browse mode, or with untagged entries, an export question asks the year of study and
-each entry's semester first. Copy link writes `shortlistUrl` to the clipboard within the click;
+Law). In exchange mode with no year of study yet, or with untagged entries, an export question
+asks the year of study and each entry's semester first. **An NUS student's list** (not exchange
+mode) is a plain plan: each pick counts by its units if taught in its semester, with the totals,
+hours and the exam, preclusion and same-title flags, and no year-of-study question, invitation,
+form order, CourseReg box, NUS's exchange notes or applicant lines; its exports drop the
+exchange columns and lines too, and its file is `shortlist-….csv`. Copy link writes `shortlistUrl` to the clipboard within the click;
 if the browser refuses, a selected field labelled "Shortlist link" holds it. The view moves no
 focused row: a moved row's neighbours move around it, and rows that load later never take focus.
 While the view is shown, a search under it says nothing; the view says its own sentences (each
@@ -205,7 +219,7 @@ on the fixture.
 | `failures.spec.js` | a hung search, 429, an HTML error page, the network gone, `/facets` down or slow, a keyword-only answer: a plain sentence, never a raw code |
 | `routes.spec.js` | `/` is the page from `public/`, and every API path still reaches the Worker |
 | `visitor.spec.js` | the no-JavaScript sentence, the year line at every width, the 404 page |
-| `setup.spec.js` | the first screen |
+| `setup.spec.js` | the first screen: who is searching, the exchange set-up, what each search sends |
 | `mobile.spec.js` | the phone layout, the filters dialog and the chips |
 | `fold.spec.js` | the 390×664 fold, also as an iPhone 13, after a shared link and a typed search |
 | `fonts.spec.js` | self-hosting, weights, the plain zero |
