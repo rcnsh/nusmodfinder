@@ -1,0 +1,38 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T08:35:31.854Z",
+  "finishedAt": "2026-11-12T08:35:41.678Z",
+  "script": "ops:report",
+  "args": [
+    "--month",
+    "2026-11"
+  ],
+  "commit": {
+    "sha": "28fe28e51a6515b5eab59679d5f6e445c4580fc3",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "Cloudflare GraphQL Analytics API",
+  "read": [
+    {
+      "what": "GraphQL Analytics queries",
+      "estimate": 2,
+      "actual": 2
+    }
+  ],
+  "written": [],
+  "requests": {
+    "/client/v4/graphql": 2
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "month": "2026-11",
+    "report": "docs/evidence/ops/2026-11.md",
+    "flags": 1,
+    "missing": []
+  },
+  "exitCode": 0,
+  "message": "1 flags",
+  "outcome": "ok"
+}
