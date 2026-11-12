@@ -1,7 +1,7 @@
 // @ts-check
-// A `wrangler dev --remote` session for the admin routes (Phase 7 7C), shared
-// by `npm run remote` (scripts/remote.mjs) and the deploy guard
-// (scripts/deploy.mjs):
+// A `wrangler dev --remote` session for the admin routes (Phase 7 7C), used
+// by `npm run remote` (scripts/remote.mjs). The deploy guard reads D1 over its
+// REST query instead (Phase 7 7B, scripts/d1-rest.mjs), so it starts none:
 //
 // - wrangler dev --remote --ip 127.0.0.1 on a free port (never 8787 or 8799,
 //   which belong to other projects on the dev Mac);
