@@ -154,7 +154,7 @@ export const COURSEREG_BOX = Object.freeze({
     'Keep at least 12 units or three courses a semester (GRO)',
     'Drop any course that clashes (GRO)',
     `On Business, Law and Economics courses: “${GRO_POPULAR}” (GRO)`,
-    'Missing the drop deadlines “could lead to a Grade \'W\' … or \'F\' printed on your transcript” (GRO)',
+    'Missing the drop deadlines “could lead to a Grade \'W\' (Withdrawn) or a Grade \'F\' (Fail) printed on your transcript” (GRO)',
     'The Registrar\'s Non-Graduating Office signs your Learning Agreement or Study Plan (GRO)',
     '“no particular course can be guaranteed by NUS” (GRO)',
     'A course not approved at application can be requested in “Submit Course Requests” or appealed as “Unable to secure course” (NUS\'s CourseReg FAQ)',

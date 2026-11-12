@@ -1,0 +1,67 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T09:20:10.397Z",
+  "finishedAt": "2026-11-12T09:20:12.860Z",
+  "script": "deploy:preflight",
+  "args": [
+    "--preflight"
+  ],
+  "commit": {
+    "sha": "0b5b1e1e8ec352b3735c935c4460d7f84e94b3ac",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmodfinder",
+  "read": [],
+  "written": [],
+  "requests": {},
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "preflight": [
+      {
+        "name": "git",
+        "status": "ok",
+        "message": "HEAD 0b5b1e1 is on origin/main, at its tip"
+      },
+      {
+        "name": "ci",
+        "status": "failed",
+        "message": "no CI push run for 0b5b1e1: push the commit to main first, or wait for GitHub to start it. no Findings push run for 0b5b1e1: push the commit to main first, or wait for GitHub to start it."
+      },
+      {
+        "name": "vars",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "bundle",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "corpus manifest",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "year check",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "source inputs",
+        "status": "not run",
+        "message": ""
+      },
+      {
+        "name": "startup",
+        "status": "not run",
+        "message": ""
+      }
+    ]
+  },
+  "exitCode": 1,
+  "message": "deploy: refusing (preflight: ci): no CI push run for 0b5b1e1: push the commit to main first, or wait for GitHub to start it. no Findings push run for 0b5b1e1: push the commit to main first, or wait for GitHub to start it.",
+  "outcome": "refused"
+}
