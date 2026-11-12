@@ -138,8 +138,20 @@ export async function handleFacets(env, trace) {
     console.warn('facets: no precomputed row; falling back to live aggregates (~21.5k rows read)');
     return json({ ...(await d1Timed(trace, 'd1', () => computeFacets(db))), ngSources: NG_SOURCES, offListRules: OFF_LIST_RULES }, 200);
   } catch (err) {
-    return upstream('d1', err);
+    return d1Failed('/facets', err);
   }
+}
+
+/**
+ * A D1 failure on /module or /facets (Phase 8 8B): one log line with the route and the error,
+ * and nothing about the request (no URL, query or IP), then the 502 every caller answers.
+ * /search writes its own `search` line instead.
+ * @param {'/module/:code' | '/facets'} route
+ * @param {unknown} err
+ */
+function d1Failed(route, err) {
+  console.error(JSON.stringify({ event: 'd1_error', route, error: /** @type {any} */ (err)?.message ?? String(err) }));
+  return upstream('d1', err);
 }
 
 /**
@@ -254,7 +266,7 @@ async function notFound(db, code, trace) {
     row = await d1Timed(trace, 'd1', () =>
       db.prepare('SELECT title, description, acad_year FROM catalogue_only WHERE code = ?').bind(code).first());
   } catch (err) {
-    if (!noSuchTable(err)) return withHeaders(upstream('d1', err), { 'cache-control': MODULE_CACHE.failed });
+    if (!noSuchTable(err)) return withHeaders(d1Failed('/module/:code', err), { 'cache-control': MODULE_CACHE.failed });
   }
   if (row) {
     return answer({
@@ -287,7 +299,7 @@ export async function handleModule(env, code, trace) {
     row = await d1Timed(trace, 'd1', () =>
       db.prepare(`SELECT ${MODULE_COLUMNS} FROM modules WHERE code = ?`).bind(upper).first());
   } catch (err) {
-    return withHeaders(upstream('d1', err), { 'cache-control': MODULE_CACHE.failed });
+    return withHeaders(d1Failed('/module/:code', err), { 'cache-control': MODULE_CACHE.failed });
   }
   // 6A: a row wins over the file, so a code that gained classes at a re-ingest answers as a row.
   if (!row) return notFound(db, upper, trace);

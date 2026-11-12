@@ -22,13 +22,14 @@ test('[P3] "unofficial" stays in view at 1280', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 }).getByText('(unofficial)')).toBeInViewport({ ratio: 1 });
 });
 
-test('[P3] the footer says the site is unofficial and links NUSMods, the NG list, the restrictions and the vacancy report', async ({ page }) => {
+test('[P3] the footer says the site is unofficial and links NUSMods, the NG list, the restrictions and the vacancy report, then the privacy note (8B)', async ({ page }) => {
   await page.goto('/');
   const footer = page.getByRole('contentinfo');
   await expect(footer).toContainText('An unofficial site, not run by NUS or NUSMods.');
   const links = footer.getByRole('link');
-  await expect(links).toHaveText(['NUSMods', 'Courses offered to exchange (NG) students', 'Course restrictions for exchange (NG) students', "The Registrar's course vacancy report"]);
-  for (const a of await links.all()) {
+  await expect(links).toHaveText(['NUSMods', 'Courses offered to exchange (NG) students', 'Course restrictions for exchange (NG) students', "The Registrar's course vacancy report", 'Privacy']);
+  await expect(links.last()).toHaveAttribute('href', '/privacy');
+  for (const a of (await links.all()).slice(0, -1)) {
     await expect(a).toHaveAttribute('href', /^https:\/\/(?:nusmods\.com|www\.nus\.edu\.sg|nus\.edu\.sg)\//);
     await expect(a).toHaveAttribute('rel', 'noopener');
   }

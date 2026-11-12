@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Privacy · NUS Mod Finder (unofficial)</title>
+<meta name="description" content="What NUS Mod Finder and Cloudflare keep when you use the site, and what stays on your device.">
+<link rel="canonical" href="https://nusmodfinder.rcn.sh/privacy">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<!-- Phase 8 8B, ADR 0012 G3 (a): the logs stay as they are, and this note says so. G6 (d): it
+     names no contact. Keep it true to wrangler.jsonc's observability, src/search.js's `search`
+     line, src/modules.js's `d1_error` line and what the page stores (public/app.js, saved.js).
+     Cloudflare's retention is as its Workers Logs docs state it for Workers Paid today. -->
+<div class="app">
+  <header class="hdr">
+    <p class="brand"><a href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7" fill="currentColor"/><g class="lens" fill="none" stroke-linecap="round"><circle cx="14" cy="14" r="6.5" stroke-width="2.6"/><path d="M19 19l5.5 5.5" stroke-width="3"/></g></svg><span class="brand-name">NUS Mod Finder</span></a> <span class="unofficial"><span class="paren">(</span>unofficial<span class="paren">)</span></span></p>
+  </header>
+  <main class="doc">
+    <h1>Privacy</h1>
+    <p>An unofficial site, not run by NUS or NUSMods. It runs on Cloudflare. This note says what is kept when you use it, where, and for how long.</p>
+
+    <h2>What Cloudflare keeps</h2>
+    <p>When the page searches, opens a course or loads its filters, it asks the site's search service. Cloudflare's Workers Logs keep a log of each of those requests for 7 days. Each log holds the address you requested, including what you searched for and your filters, and the request's details and headers, which include your IP address.</p>
+    <p>Cloudflare also keeps a sample of the requests to the site, the page and its address included, in its traffic analytics. The site can't turn these off.</p>
+
+    <h2>What the site's own log keeps</h2>
+    <p>For each search, the site writes one line of its own: the first 100 characters of what you searched for, your filters, how many results it found, and timings. The line holds no IP address and no headers. Workers Logs keep it beside the request it came from, for the same 7 days.</p>
+    <p>When the course data can't be read, the site logs which part failed and the error, and nothing about you.</p>
+
+    <h2>What stays on your device</h2>
+    <ul>
+      <li>Your year of study, so you don't have to answer again.</li>
+      <li>The last shortlist you changed, so you can restore it.</li>
+    </ul>
+    <p>Both stay in your browser. Your year of study also goes with each search the page sends, so the logs above hold it. To remove the shortlist, use “Forget this list on this device” in the shortlist. To remove your year of study too, clear the site data for this site in your browser's settings.</p>
+    <p>The page's address carries your search, filters, year of study and shortlist. So a link you share, including one from “Copy link” in the shortlist, shows them to anyone you send it to.</p>
+
+    <h2>Cookies and trackers</h2>
+    <p>The site sets no cookies and has no trackers, adverts or analytics scripts: every file the page loads comes from this site. Cloudflare may set a security cookie of its own if it checks that your browser isn't a bot.</p>
+
+    <p><a href="/">Back to the search</a></p>
+  </main>
+  <footer class="ftr site-footer">
+    <p>An unofficial site, not run by NUS or NUSMods. Course data comes from NUSMods; who may take each course comes from the NUS Registrar's lists. Check with NUS before you register.</p>
+  </footer>
+</div>
+</body>
+</html>

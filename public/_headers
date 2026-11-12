@@ -5,6 +5,8 @@
 # - The page runs only its own files. The one inline script (index.html, the
 #   view before app.js loads) is allowed by its sha256; change that script and
 #   test/web/source.node.test.js names the new hash.
+# - The Worker's HTML 404 (src/not-found.js) carries a copy of these three headers, since
+#   Cloudflare applies this file to assets only; test/visitor.test.js fails until the copy matches.
 /*
   Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-/v4Rz6x05oDSZmmOGtRO1IG3UBcWMdE63isXFGHVCQU='; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
   X-Frame-Options: DENY

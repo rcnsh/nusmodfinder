@@ -76,17 +76,27 @@
   // The guardrail lives in the Worker. It predates the Custom Domain, when
   // workers.dev was the only address and no zone rate-limiting rule applied.
   //
-  // This is a BURST guard, not a budget guard. The binding is per-IP AND
+  // Two per-IP limits (Phase 8 8B, ADR 0012 G5 (b)), both asked before any
+  // other binding: 40 per 10 s lets a class behind one address search, and
+  // 200 per 60 s caps a script that stays just under the burst limit.
+  //
+  // They are BURST guards, not a budget guard. Each binding is per-IP AND
   // per-colo, and Cloudflare documents its counters as permissive and
   // eventually consistent: a measured burst of 80 requests in 2s passed
-  // untouched before the counter caught up. It stops a runaway script; it does
-  // NOT protect the account-wide monthly Vectorize allowance, which stays an
-  // accepted residual risk (see docs/REFERENCE.md).
+  // untouched before the counter caught up. They stop a runaway script; they
+  // do NOT protect the account-wide monthly allowances against traffic spread
+  // over many addresses, which stays an accepted residual risk (see
+  // docs/REFERENCE.md).
   "ratelimits": [
     {
       "name": "SEARCH_LIMIT",
       "namespace_id": "1001",
-      "simple": { "limit": 20, "period": 10 }
+      "simple": { "limit": 40, "period": 10 }
+    },
+    {
+      "name": "SEARCH_LIMIT_MINUTE",
+      "namespace_id": "1002",
+      "simple": { "limit": 200, "period": 60 }
     }
   ]
 }

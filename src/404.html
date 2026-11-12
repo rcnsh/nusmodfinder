@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<title>Page not found · NUS Mod Finder (unofficial)</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<!-- Phase 8 8B: the Worker sends this for an unknown path when the browser asks for HTML
+     (src/not-found.js), with public/_headers' security headers. It lives in src/, not public/,
+     so it is never also served as /404.html with a 200. Static: nothing from the request is
+     written into it. -->
+<div class="app">
+  <header class="hdr">
+    <h1 class="brand"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7" fill="currentColor"/><g class="lens" fill="none" stroke-linecap="round"><circle cx="14" cy="14" r="6.5" stroke-width="2.6"/><path d="M19 19l5.5 5.5" stroke-width="3"/></g></svg><span class="brand-name">NUS Mod Finder</span> <span class="unofficial"><span class="paren">(</span>unofficial<span class="paren">)</span></span></h1>
+  </header>
+  <main class="doc">
+    <h2>There's no page at this address</h2>
+    <p>Check the address for a typo, or start again from the search.</p>
+    <p><a href="/">Search NUS courses</a></p>
+  </main>
+  <footer class="ftr site-footer">
+    <p>An unofficial site, not run by NUS or NUSMods.</p>
+    <ul class="footer-links">
+      <li><a href="/privacy">Privacy</a></li>
+    </ul>
+  </footer>
+</div>
+</body>
+</html>

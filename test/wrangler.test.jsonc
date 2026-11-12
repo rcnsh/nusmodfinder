@@ -9,7 +9,7 @@
   "name": "vector-nusmods-test",
   "main": "../src/index.js",
   "compatibility_date": "2026-09-01",
-  "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": false }],
+  "rules": [{ "type": "Text", "globs": ["**/*.html", "**/_headers"], "fallthrough": false }],
   // As wrangler.jsonc: the fixture bundle. The Vitest configs alias it too
   // (resolve.alias), since the Vitest plugin does not read `alias`.
   "alias": { "vectors-bundle": "./fixtures/vectors.js" },

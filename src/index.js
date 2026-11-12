@@ -3,7 +3,8 @@
 // search (search.js), module/facet reads (modules.js) and the admin ingest
 // routes (ingest.js) can change independently. The page (`/`) is public/,
 // served as Workers Static Assets in front of the Worker (Phase 5 5B): a
-// request for one of its files never reaches this code.
+// request for one of its files never reaches this code. An unknown path gets
+// JSON, or the 404 page when a browser asks for HTML (not-found.js, Phase 8 8B).
 import { denseBundle } from './dense.js';
 import { appVersion, json, withHeaders } from './http.js';
 import {
@@ -11,6 +12,7 @@ import {
   handleVectors, handleVerify,
 } from './ingest.js';
 import { handleFacets, handleModule } from './modules.js';
+import { notFoundPage, prefersHtml } from './not-found.js';
 import { DATA_VERSION, searchRoute } from './search.js';
 import { Trace } from './timing.js';
 
@@ -60,6 +62,8 @@ function route(request, env, ctx, trace) {
   if (path === '/admin/catalogue' && request.method === 'GET') return handleCatalogueHashes(request, env);
   if (path === '/admin/catalogue' && request.method === 'POST') return handleCatalogue(request, env);
 
+  // A browser's mistyped address gets the 404 page (Phase 8 8B); everything else, today's JSON.
+  if ((request.method === 'GET' || request.method === 'HEAD') && prefersHtml(request.headers.get('accept'))) return notFoundPage();
   return json({ error: 'not_found', message: `No route for ${path}.` }, 404);
 }
 
