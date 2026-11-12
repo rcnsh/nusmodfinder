@@ -1054,3 +1054,5 @@ repeats Phase 4's gate (`docs/plans/phase4.md` 4F):
   as "-". A 40-entry list prints in about 15 to 19 A4 pages.
 - **No scheduled re-ingest.** Refresh is a manual command, once a semester.
 - **The vector half is unproven.** See EVAL.md.
+
+<!-- throwaway: 7A exit check, docs-only PR; closed unmerged -->
