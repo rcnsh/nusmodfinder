@@ -75,6 +75,21 @@ describe('ops', () => {
 });
 
 describe('eval (S1)', () => {
+  it('[S1 fixed] the eval gate\'s lists come from eval/dev (v2, judged qrels) and the fixture, never from eval/v1/', async () => {
+    const { LOCK_INPUTS, LOCK_PATH, SEEDS } = await import('../../eval/lib/ranking-lock.mjs');
+    const lock = JSON.parse(read(LOCK_PATH));
+    expect(Object.keys(lock.lists).sort()).toEqual(['dev', 'fixture']);
+    expect(SEEDS.dev.dir).toBe('eval/dev');
+    expect(SEEDS.fixture.dir).toBe('eval/fixtures');
+    // Every dev query in each mode, and nothing else: the v2 set, judged.
+    const dev = JSON.parse(read('eval/dev/queries.json')).queries.map((/** @type {{ id: string }} */ q) => q.id).sort();
+    for (const mode of ['filtered', 'strip-ng', 'unfiltered']) expect(Object.keys(lock.lists.dev[mode]).sort()).toEqual(dev);
+    expect(JSON.parse(read('eval/dev/qrels.json')).version).toMatch(/^qrels-dev-v\d+$/);
+    const v1 = JSON.parse(read('eval/v1/queries.json')).queries.map((/** @type {{ id: string }} */ q) => q.id);
+    for (const id of v1) expect(dev).not.toContain(id);
+    expect(LOCK_INPUTS.some((/** @type {string} */ p) => p.startsWith('eval/v1'))).toBe(false);
+  });
+
   it('[S1 known-bug] held-out relevance is a regex over titles, recall@10 ignores order, and hybrid MRR trails lexical', () => {
     const judge = read('eval/v1/judge-holdout.mjs');
     const rules = judge.match(/rule: \(m\) => [^\n]+/g) ?? [];
