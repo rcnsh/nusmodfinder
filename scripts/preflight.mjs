@@ -40,14 +40,21 @@ export const OPTIONAL_CHECKS = /** @type {const} */ ([
   { name: 'year check', module: 'scripts/year.mjs', owner: '7E' },
 ]);
 
+/** The one data/ng-* file built from the corpus, not from NUS's documents. */
+export const PER_CORPUS_NG_FILE = 'data/ng-unscheduled.json';
+
 /**
  * Source-derived inputs (7E): what NUS's documents decide. A change to one needs a committed
  * `year check --full` record. The quoted NUS sentences in src/ and public/ count through the quote
  * index in data/ng-sources-<year>.json: `year check` fails when a quote is no longer in its file, so
  * changing one means changing the index, a source-derived input.
+ *
+ * Not data/ng-unscheduled.json: it follows the production corpus (7D, rebuilt with the bundle), so
+ * a corpus-only refresh changes it with no source changing, and `year check --full` doesn't check
+ * it (`npm run corpus -- check` and `build-ng-unscheduled.mjs --check` do).
  * @param {string} path
  */
-export const isSourceInput = (path) => path.startsWith('data/ng-') || path.startsWith('scripts/ng-overlay/');
+export const isSourceInput = (path) => (path.startsWith('data/ng-') && path !== PER_CORPUS_NG_FILE) || path.startsWith('scripts/ng-overlay/');
 
 /** The run record script that `year check --full` writes (7E), and the mode it records. */
 export const FULL_RECORD = { script: 'year check', mode: 'full' };

@@ -575,8 +575,9 @@ This is the only supported way to deploy, from the Mac or from GitHub Actions (b
      (the three year places, the data files' years and dates against the source manifest), no stub
      remains, the per-corpus files are production's, the counts, an oracle for the year, and every
      indexed NUS quote still in its file;
-   - `source inputs`: when `HEAD` changes a source-derived input (`data/ng-*`,
-     `scripts/ng-overlay/`; a quoted NUS sentence counts through the quote index) since the live commit (the newest `deploy/*` or `rollback/*` tag), a
+   - `source inputs`: when `HEAD` changes a source-derived input (`data/ng-*` but
+     `data/ng-unscheduled.json`, which follows the corpus; `scripts/ng-overlay/`; a quoted NUS
+     sentence counts through the quote index) since the live commit (the newest `deploy/*` or `rollback/*` tag), a
      committed `year check --full` run record (7E) whose `details.sourceInputsHash` is those
      inputs' hash at `HEAD` (`sourceInputsHash` in `scripts/preflight.mjs`: sha256 over their
      `git ls-tree` lines). A hotfix that touches none needs no sources key;
@@ -801,7 +802,9 @@ inside a Worker would crowd the 128 MB memory ceiling. Embedding and upserting h
 exist on disk.
 
 **Runbook** (Phase 3 3-0, `docs/plans/phase3.md` §2). The same order for every corpus change: a
-catalogue update, a re-embedding, a row-only change. The deploy guard refuses any commit whose
+catalogue update, a re-embedding, a row-only change. Step by step for the two common cases:
+[`docs/year-refresh/README.md`](year-refresh/README.md), "A corpus-only refresh" (NUSMods
+changed; the weekly drift issue links there) and "A year switch". The deploy guard refuses any commit whose
 manifest D1 does not yet hold, so the manifest merges first and D1 is written before the deploy.
 Vectorize, the standby, is written last.
 

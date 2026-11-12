@@ -1,7 +1,7 @@
 # Year refresh: the runbook
 
-How the site moves to a new acad year, and how it takes a new copy of an NUS source mid-year
-(Phase 7 7E, `docs/plans/phase7.md`). `npm run year -- next <yyyy-yyyy>` prints this checklist.
+How the site takes a new NUSMods corpus for the same year (the most common refresh), moves to a new
+acad year, and takes a new copy of an NUS source mid-year (Phase 7 7E, `docs/plans/phase7.md`). `npm run year -- next <yyyy-yyyy>` prints this checklist.
 The CI job `rollover` rehearses steps 2–13 on every code change (`scripts/rollover.mjs`), so the
 code has no year built in; it cannot show what a new PDF layout or new rules will break, which is
 what steps 3–7 are for.
@@ -48,6 +48,80 @@ The key is read from `--key <path>`, else `VNM_SOURCES_KEY_FILE`, else
 Secrets Manager as `nusmodfinder/sources-archive-key` (project `apps`) the day it is made.
 Losing it blocks the next source change (`year check --full` and the builder need the documents),
 not deploys: a hotfix that touches no source-derived input needs no key.
+
+## A corpus-only refresh (NUSMods changed)
+
+The most common refresh: NUSMods' data for the live year changed (courses added or dropped, a
+timetable or a description edited) and no NUS document did. The weekly drift check opens the issue
+"NUSMods data for <year> differs from production" and links here. The year, the NG files, the rules
+and the oracle stay as they are, so there are no sources, no transcription, no key and no
+`year check --full`.
+
+1. **On a branch from `main`, on the Mac: the new corpus.**
+   ```bash
+   npm run corpus -- fetch                          # the live year's moduleInfo.json into .data/staging/
+   npm run corpus -- publish --new-data-version     # a new release asset prod-<year>-<yyyymmdd>, made `current` in data/corpus.json
+   ```
+   `publish` leaves a run record; commit it with `data/corpus.json`.
+2. **The bundle and the per-corpus files.**
+   ```bash
+   node scripts/vectors.mjs data-version                                  # "<rows> rows, data version <dv>": the rows ingest will write
+   node scripts/vectors.mjs build --corpus production --expect-count <rows>
+   ```
+   New or edited course texts have no vector yet, so the first build stops: it writes
+   `.data/vectors/missing-production.json` and prints the next two commands. Embed those texts
+   (Workers AI; the neurons are logged, a few per text), then build again with the cache:
+   ```bash
+   npm run eval:embed -- --texts .data/vectors/missing-production.json --out .data/vectors/extra-production.json
+   node scripts/vectors.mjs build --corpus production --expect-count <rows> --extra .data/vectors/extra-production.json
+   ```
+   Then upload the bundle with the `gh release create …` line the build prints. The build rewrites
+   `data/vectors.json`, `src/data-version.json`, `data/vocabulary.json`, `data/groups.json`,
+   `data/ng-unscheduled.json` and the 3B files (`data/prefixes.json`, `data/catalogue-codes.json`,
+   `data/catalogue-only.json`).
+3. **Checks.**
+   ```bash
+   node scripts/build-groups.mjs --corpus production --check
+   node scripts/build-ng-unscheduled.mjs --corpus production --check
+   npm run corpus -- check
+   npm run year -- check
+   ```
+   `data/ng-unscheduled.json` follows the corpus, so its change needs no `year check --full`
+   record. If the diff touches any other `data/ng-*` file or `scripts/ng-overlay/`, it is a source
+   change: see "A mid-year revision" below.
+4. **PR.** Commit the files above (`docs/REFERENCE.md`, "Re-ingesting for a new acad year", step 1,
+   lists them). CI runs `sc1` over the new `current` and `rollover`. Merge when green. Nothing
+   deploys yet: the deploy guard refuses until D1 matches.
+5. **Before any D1 write**, on merged `main`:
+   ```bash
+   npm run deploy -- --preflight
+   npm run d1:bookmark
+   ```
+6. **Ingest and verify.** Same year, so no `--allow-year-change`. Ingest rewrites only the rows
+   whose hash changed, and the catalogue-only rows that changed. The default 40,000-row budget
+   covers even a rewrite of every module (about 37.3k charged). If it stops at the budget (exit 2),
+   rerun the same command: it resumes. If more than 5% of D1's codes leave the corpus, it refuses
+   until you pass `--allow-mass-delete` for a drop you've checked.
+   ```bash
+   npm run remote -- ingest --d1-only
+   npm run remote -- verify --pre-deploy
+   ```
+7. **Deploy and smoke.**
+   ```bash
+   npm run deploy
+   npm run smoke
+   ```
+8. **Standby.**
+   ```bash
+   npm run remote -- vectors standby
+   npm run remote -- verify
+   ```
+9. **The issue closes itself** at the next weekly check, once production's data version matches
+   NUSMods'. Commit the run records the steps left.
+
+On failure, as below: ingest done and deploy refused, `npm run d1:restore`, fix the cause, resume
+from step 5; deploy done and smoke failing, `npm run d1:restore`, `npm run rollback`,
+`npm run smoke -- --expect <target sha>`.
 
 ## A year switch
 
