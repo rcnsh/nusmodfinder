@@ -16,7 +16,8 @@
 //     rewrite the row and re-upsert the vector with its stored values and new
 //     metadata (the Worker re-embeds if the stored vector is not for this
 //     text_hash); both equal → skip. Refuse (unless allowMassDelete) a plan
-//     that deletes more than 5% of the codes D1 holds, before any write.
+//     that deletes more than 5% of the codes D1 holds, or more than 5% of the
+//     catalogue_only codes (red team L-1), before any write.
 //  3. Upsert in batches, concurrently, inside a write budget. Each batch is
 //     charged the larger of its D1 meta.rows_written and an estimate that
 //     includes the FTS5 shadow-table writes local D1 does not report (and
@@ -356,6 +357,18 @@ export async function runIngest({
     return stop('refused', `The corpus offers ${modules.length} modules and would delete ${plan.deletes.length} of the ${d1Count} modules D1 holds `
       + `(${((plan.deletes.length / d1Count) * 100).toFixed(1)}% > ${((1 - o.massDeleteRatio) * 100).toFixed(0)}%). Nothing was written. `
       + 'If the drop is real, rerun with --allow-mass-delete.');
+  }
+  // The same guard for catalogue_only (step 4b; red team L-1): a truncated or hostile NUSMods
+  // answer, refreshed by the corpus-only runbook, would otherwise empty the table unasked.
+  if (catalogue && catalogueStored && !o.allowMassDelete) {
+    const held = Object.keys(catalogueStored);
+    const keep = new Set(catalogue.map((r) => r.code));
+    const drops = held.filter((c) => !keep.has(c)).length;
+    if (held.length > 0 && held.length - drops < o.massDeleteRatio * held.length) {
+      return stop('refused', `catalogue_only: the corpus has ${catalogue.length} catalogue-only codes and would delete ${drops} of the ${held.length} D1 holds `
+        + `(${((drops / held.length) * 100).toFixed(1)}% > ${((1 - o.massDeleteRatio) * 100).toFixed(0)}%). Nothing was written. `
+        + 'If the drop is real, rerun with --allow-mass-delete.');
+    }
   }
 
   // In code order, so a run stopped by the budget resumes from one code.

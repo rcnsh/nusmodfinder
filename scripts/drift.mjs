@@ -27,13 +27,20 @@
 // window between day 45 and day 60.
 //
 // Issues are found by label and a hidden marker in the body, never by title.
+//
+// NUSMods controls the codes the pending issue names (red team M-2), so a code reaches an issue only
+// if it has the course-code shape the rest of the repo uses (scripts/lib.mjs MODULE_CODE_RE: letters,
+// digits, at most 13 characters); any other is counted, never shown. The issue's hidden state is
+// read from the last `vnm-drift:state` block of the body the check writes, keeps only entries of the
+// shape the check writes, and is written with `<` and `>` escaped, so no value can close the block
+// or open another.
 import { execFileSync } from 'node:child_process';
 import { mkdir, readFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import { DEFAULT_ACAD_YEAR, assertExpectedShape, catalogueOnlyRecords, fetchAcadYearFile, loadNgCourses, offeredModules } from './lib.mjs';
+import { DEFAULT_ACAD_YEAR, MODULE_CODE_RE, assertExpectedShape, catalogueOnlyRecords, fetchAcadYearFile, loadNgCourses, offeredModules } from './lib.mjs';
 import { ROW_COLUMNS, boundTuple } from '../src/rowhash.js';
 import { corpusDataVersion } from './corpus-manifest.mjs';
 
@@ -57,7 +64,7 @@ export const MARKERS = Object.freeze({
   /** One per quiet stretch, keyed by the last commit. @param {string} sha */
   quiet: (sha) => `<!-- vnm-drift:quiet ${sha} -->`,
 });
-const STATE_RE = /<!-- vnm-drift:state (.*?) -->/;
+const STATE_RE = /<!-- vnm-drift:state (.*?) -->/g;
 
 /** The workflow's two crons (drift.yml), and the check each one runs. */
 export const SCHEDULES = Object.freeze({ weekly: '17 1 * * 1', monthly: '41 1 1 * *' });
@@ -93,9 +100,10 @@ export function nextAcadYear(acadYear) {
  *   catalogue: { added: string[], removed: string[], changed: number },
  * }} Comparison
  * @typedef {{
- *   offered: { added: number, removed: number, changed: number, byField: Record<string, number>, addedCodes: string[], removedCodes: string[] },
+ *   offered: { added: number, removed: number, changed: number, byField: Record<string, number>, addedCodes: string[], removedCodes: string[],
+ *     oddCodes?: number },
  *   catalogue: { added: number, removed: number, changed: number },
- * }} CompactComparison
+ * }} CompactComparison `oddCodes`: added or removed codes not in the course-code shape, counted and never shown
  * @typedef {{ date: string, dataVersion: string, comparison: Comparison | CompactComparison | null, unchanged?: boolean }} HistoryEntry
  */
 
@@ -161,17 +169,38 @@ export function compareSummaries(before, after) {
   };
 }
 
-/** A comparison as the pending issue keeps it: counts, and the first codes only. @param {Comparison | CompactComparison} c @returns {CompactComparison} */
+/** Whether NUSMods' code may be shown in an issue: the course-code shape, and nothing else. @param {unknown} c */
+export const showableCode = (c) => typeof c === 'string' && MODULE_CODE_RE.test(c);
+/** A count read back from the state: a whole number, else 0. @param {unknown} v */
+const count = (v) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : 0);
+
+/**
+ * A comparison as the pending issue keeps it: counts, and the first codes only, each of the
+ * course-code shape (the rest counted in `oddCodes`). Safe on a comparison read back from an issue.
+ * @param {Comparison | CompactComparison} c @returns {CompactComparison}
+ */
 function compact(c) {
-  const n = (/** @type {string[] | number} */ v) => (Array.isArray(v) ? v.length : v);
-  const o = /** @type {any} */ (c.offered);
+  const n = (/** @type {unknown} */ v) => (Array.isArray(v) ? v.length : count(v));
+  const o = /** @type {any} */ (c?.offered ?? {});
+  const cat = /** @type {any} */ (c?.catalogue ?? {});
+  /** @param {unknown} full @param {unknown} kept */
+  const codes = (full, kept) => /** @type {unknown[]} */ (Array.isArray(full) ? full : Array.isArray(kept) ? kept : []);
+  const added = codes(o.added, o.addedCodes);
+  const removed = codes(o.removed, o.removedCodes);
+  const odd = Array.isArray(o.added) || Array.isArray(o.removed)
+    ? [...added, ...removed].filter((x) => !showableCode(x)).length
+    : count(o.oddCodes);
+  /** @type {Record<string, number>} */
+  const byField = {};
+  for (const [f, v] of Object.entries(o.byField ?? {})) if (FIELDS.includes(f)) byField[f] = count(v);
   return {
     offered: {
-      added: n(o.added), removed: n(o.removed), changed: o.changed, byField: { ...o.byField },
-      addedCodes: (Array.isArray(o.added) ? o.added : o.addedCodes ?? []).slice(0, CODES_SHOWN),
-      removedCodes: (Array.isArray(o.removed) ? o.removed : o.removedCodes ?? []).slice(0, CODES_SHOWN),
+      added: n(o.added), removed: n(o.removed), changed: count(o.changed), byField,
+      addedCodes: /** @type {string[]} */ (added.filter(showableCode).slice(0, CODES_SHOWN)),
+      removedCodes: /** @type {string[]} */ (removed.filter(showableCode).slice(0, CODES_SHOWN)),
+      ...(odd ? { oddCodes: odd } : {}),
     },
-    catalogue: { added: n(c.catalogue.added), removed: n(c.catalogue.removed), changed: c.catalogue.changed },
+    catalogue: { added: n(cat.added), removed: n(cat.removed), changed: count(cat.changed) },
   };
 }
 
@@ -182,16 +211,27 @@ const minute = (d) => `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(1
 /** @param {number} n */
 const fmt = (n) => n.toLocaleString('en-US');
 
-/** The history a pending issue carries in its hidden marker. @param {string} body @returns {{ history: HistoryEntry[] }} */
+/**
+ * The history a pending issue carries in its hidden marker: the last `vnm-drift:state` block (the
+ * one the check writes at the end of its body), with only entries of the shape the check writes
+ * (compact() drops any code not of the course-code shape and any field not a D1 column).
+ * @param {string} body @returns {{ history: HistoryEntry[] }}
+ */
 export function parseState(body) {
-  const m = STATE_RE.exec(body ?? '');
+  const m = [...String(body ?? '').matchAll(STATE_RE)].at(-1);
   if (!m) return { history: [] };
-  try {
-    const s = JSON.parse(m[1]);
-    return { history: Array.isArray(s?.history) ? s.history : [] };
-  } catch {
-    return { history: [] };
+  /** @type {any} */
+  let s;
+  try { s = JSON.parse(m[1]); } catch { return { history: [] }; }
+  if (!Array.isArray(s?.history)) return { history: [] };
+  /** @type {HistoryEntry[]} */
+  const history = [];
+  for (const h of s.history) {
+    if (typeof h?.date !== 'string' || !/^\d{4}-\d\d-\d\d$/.test(h.date) || typeof h.dataVersion !== 'string' || !/^[0-9a-f]{12}$/.test(h.dataVersion)) continue;
+    if (h.comparison !== null && (typeof h.comparison !== 'object' || typeof h.comparison.offered !== 'object' || h.comparison.offered === null)) continue;
+    history.push({ date: h.date, dataVersion: h.dataVersion, comparison: h.comparison === null ? null : compact(h.comparison), ...(h.unchanged === true ? { unchanged: true } : {}) });
   }
+  return { history };
 }
 
 /**
@@ -210,11 +250,16 @@ export function pendingIssue({ acadYear, production, nusmods, checkedAt, history
   });
   const latest = kept.at(-1)?.comparison;
   /** @param {string} what @param {string[]} codes @param {number} total */
-  const named = (what, codes, total) => (total ? `${what}: ${codes.join(', ')}${total > codes.length ? ` and ${fmt(total - codes.length)} more` : ''}.` : null);
+  const named = (what, codes, total) => (total && codes.length ? `${what}: ${codes.join(', ')}${total > codes.length ? ` and ${fmt(total - codes.length)} more` : ''}.` : null);
+  const odd = latest?.offered.oddCodes ?? 0;
   const latestCodes = latest
-    ? [named('Added', latest.offered.addedCodes, latest.offered.added), named('Removed', latest.offered.removedCodes, latest.offered.removed)].filter(Boolean)
+    ? [
+      named('Added', latest.offered.addedCodes, latest.offered.added), named('Removed', latest.offered.removedCodes, latest.offered.removed),
+      odd ? `${fmt(odd)} code${odd === 1 ? '' : 's'} not in the course-code shape (not shown).` : null,
+    ].filter(Boolean)
     : [];
-  const state = JSON.stringify({ history: kept }).replace(/>/g, '\\u003e');
+  // No value can close the block (`-->`) or open another (`<!--`).
+  const state = JSON.stringify({ history: kept }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
   const body = [
     MARKERS.pending,
     `NUSMods' data for ${acadYear} no longer matches what production was loaded from.`,

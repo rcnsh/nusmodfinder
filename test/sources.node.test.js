@@ -3,14 +3,17 @@
 // (scripts/sources.mjs). Every case uses fake documents, a throwaway key and a fake release store
 // in temp dirs: no real document, key or release is touched. The key path never defaults to, or
 // reads, the holdout key's.
-import { existsSync, linkSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { buildRestrictions, dirReader, loadInputs } from '../scripts/build-ng-restrictions.mjs';
+import { latestRevision, manifestProblems } from '../scripts/ng-sources.mjs';
 import {
-  DEFAULT_KEY_PATH, archivedFiles, keyPath, keygen, main, open, publish, readKey, releaseName, restore, seal,
+  DEFAULT_KEY_PATH, archivedFiles, keyPath, keygen, main, open, publish, readKey, releaseName, restore, seal, sha256,
 } from '../scripts/sources.mjs';
-import { Y, copyTree, fakeDocuments, fakeReleases, readJson, throwawayKey, useFakeDocuments } from './year-fakes.node.mjs';
+import { yearCheck } from '../scripts/year.mjs';
+import { REPO, Y, copyTree, fakeDocuments, fakeReleases, readJson, throwawayKey, useFakeDocuments, writeJson } from './year-fakes.node.mjs';
 
 /** @type {string} */
 let dir;
@@ -147,5 +150,196 @@ describe('publish and restore', () => {
     const asset = join(dir, 'releases', r.release, `${r.release}.vnmsrc`);
     writeFileSync(asset, Buffer.concat([readFileSync(asset), Buffer.from('x')]));
     await expect(restore({ root, key: keyFile, download: releases.download, log: () => {} })).rejects.toThrow(/not the manifest's/);
+  });
+});
+
+/** The newest revision of a manifest read as JSON (untyped, as the tests edit it). @param {any} m @returns {any} */
+const latestOf = (m) => latestRevision(m);
+
+// Red team L-4 (docs/evidence/phase7/redteam.md): no file name in the manifest was checked, so
+// `../escaped.png` was read from outside --from at publish and written outside the restore dir.
+describe('manifest file names are plain base names (red team L-4)', () => {
+  /** @type {string} */
+  let root;
+  /** @type {string} */
+  let from;
+  /** @type {Record<string, Buffer>} */
+  let files;
+  beforeEach(() => {
+    root = copyTree(join(dir, 'repo'));
+    from = join(dir, 'from', 'docs');
+    files = fakeDocuments(from);
+    useFakeDocuments(root, files);
+  });
+  /** Renames one document's `file` (and the rules file's key for it, so the two agree). @param {string} name */
+  const rename = (name) => {
+    const m = readJson(root, `data/ng-sources-${Y}.json`);
+    const doc = /** @type {any} */ (latestOf(m)?.documents.find((/** @type {any} */ d) => d.file === 'law-compulsory-llb-courses.png'));
+    doc.file = name;
+    writeJson(root, `data/ng-sources-${Y}.json`, m);
+    const rules = readJson(root, `data/ng-restrictions-${Y}.json`);
+    rules.sourceSha256 = Object.fromEntries(Object.entries(rules.sourceSha256)
+      .map(([n, h]) => [n === 'law-compulsory-llb-courses.png' ? name : n, h]).sort(([a], [b]) => a.localeCompare(b)));
+    writeJson(root, `data/ng-restrictions-${Y}.json`, rules);
+  };
+
+  it('a manifest file name with ../ is refused by year check, publish and restore', async () => {
+    rename('../escaped.png');
+    writeFileSync(join(dir, 'from', 'escaped.png'), files['law-compulsory-llb-courses.png']);
+    const ci = yearCheck({ root });
+    const key = throwawayKey(join(dir, 'test.key'));
+    const releases = fakeReleases(join(dir, 'releases'));
+    let published = true;
+    try {
+      await publish({ from, root, key, upload: releases.upload, runsDir: join(dir, 'runs'), log: () => {} });
+    } catch (err) {
+      published = false;
+      expect(String(/** @type {Error} */ (err).message)).toMatch(/\.\.\/escaped\.png.*not a plain file name/);
+    }
+    const out = join(dir, 'restore', 'out');
+    mkdirSync(out, { recursive: true });
+    if (published) await restore({ root, key, out, download: releases.download, log: () => {} }).catch(() => {});
+    const escaped = join(dir, 'restore', 'escaped.png');
+    expect({
+      ciNamesIt: ci.problems.some((p) => p.includes('../escaped.png')),
+      published,
+      wroteOutside: existsSync(escaped) && readFileSync(escaped).equals(files['law-compulsory-llb-courses.png']),
+    }).toEqual({ ciNamesIt: true, published: false, wroteOutside: false });
+  });
+
+  it('every shape of path is refused: slashes, backslashes, .., an absolute path, a NUL; and a `text` name too', () => {
+    const m = readJson(root, `data/ng-sources-${Y}.json`);
+    for (const bad of ['a/b.pdf', 'a\\b.pdf', '..', 'x..pdf', '/etc/passwd', 'C:\\x.pdf', 'a\u0000.pdf', '', '.']) {
+      const copy = structuredClone(m);
+      latestOf(copy).documents[0].file = bad;
+      latestOf(copy).documents[1].text = bad;
+      const problems = manifestProblems(copy, Y);
+      expect(problems.filter((p) => p.includes('not a plain file name')), JSON.stringify(bad)).toHaveLength(2);
+    }
+    expect(manifestProblems(m, Y).filter((p) => p.includes('not a plain file name'))).toEqual([]);
+  });
+
+  it('restore checks each archive entry\'s name before writing anything', async () => {
+    const key = throwawayKey(join(dir, 'test.key'));
+    const releases = fakeReleases(join(dir, 'releases'));
+    const r = await publish({ from, root, key, upload: releases.upload, runsDir: join(dir, 'runs'), log: () => {} });
+    // An archive sealed with the same key, year and revision whose first entry is a path.
+    const m = readJson(root, `data/ng-sources-${Y}.json`);
+    const rev = latestOf(m);
+    const entries = archivedFiles(rev).map((f) => ({ name: f.name, bytes: readFileSync(join(from, f.name)) }));
+    entries[0] = { name: `../${entries[0].name}`, bytes: entries[0].bytes };
+    const archive = seal({ year: Y, revision: rev.date, files: entries, key: Buffer.from('ab'.repeat(32), 'hex') });
+    writeFileSync(join(dir, 'releases', r.release, `${r.release}.vnmsrc`), archive);
+    rev.archive.sha256 = sha256(archive);
+    writeJson(root, `data/ng-sources-${Y}.json`, m);
+    const out = join(dir, 'restore', 'out');
+    await expect(restore({ root, key, out, download: releases.download, log: () => {} })).rejects.toThrow(/not a plain file name/);
+    expect(existsSync(out)).toBe(false);
+    expect(existsSync(join(dir, 'restore', entries[0].name.slice(3)))).toBe(false);
+  });
+});
+
+// Red team L-5: a document's `text` extraction was archived with no sha256, so a hand-"fixed"
+// extraction changed what --full accepts as NUS's words and what the builder reads.
+describe('text extractions are pinned by textSha256 (red team L-5)', () => {
+  /** The lead's sha256 of each published extraction (npm run sources -- hash over the archive), by document id. */
+  const REAL_TEXT_SHA256 = {
+    'ng-list': '60948390f9a3cedff9ebaeff0df3ad54317e93d6905a3421fc0abb8cd3e71816',
+    restrictions: '572e172bba8f240cba5734d3727710ab9a7a70284cd4391e74a5c4de149482e5',
+    brochure: '71a4e652b6a4e51153ac941a39f0e65c54106772dbcfc34c544728060ef5f22a',
+    'coursereg-guide': '9782ef676f9049f7b1ac45bc4d7dae8876178aa724a38c02210200a378feddd0',
+    'application-guide': 'ba53e356bb9b1c170612fe623cd082feee472e3ad5045faa89c3e4fcba0d1235',
+    'biz-factsheet': '83373eacea243b7ba4f320f9d693a803ddf7d35420829286a559957cdd891a1c',
+  };
+
+  it('the committed manifest pins every archived file of every revision, text extractions included', () => {
+    const m = readJson(REPO, `data/ng-sources-${Y}.json`);
+    for (const rev of m.revisions) {
+      const files = archivedFiles(rev);
+      expect(files.filter((f) => f.sha256 === null).map((f) => f.name), rev.date).toEqual([]);
+      const texts = rev.documents.filter((/** @type {any} */ x) => x.text);
+      expect(texts.map((/** @type {any} */ d) => d.id).sort(), rev.date).toEqual(Object.keys(REAL_TEXT_SHA256).sort());
+      for (const d of texts) expect(d.textSha256, `${rev.date} ${d.text}`).toBe(/** @type {any} */ (REAL_TEXT_SHA256)[d.id]);
+    }
+    expect(manifestProblems(m, Y)).toEqual([]);
+  });
+
+  it('a published revision with a text and no textSha256 is a manifest problem; a pending one is not (publish writes it)', () => {
+    const m = readJson(REPO, `data/ng-sources-${Y}.json`);
+    const doc = latestOf(m).documents.find((/** @type {any} */ d) => d.text);
+    delete doc.textSha256;
+    expect(manifestProblems(m, Y)).toContainEqual(expect.stringMatching(new RegExp(`${doc.id}'s text ${doc.text.replaceAll('.', '\\.')} has no textSha256`)));
+    latestOf(m).archive = { ...latestOf(m).archive, sha256: null, pending: 'not yet' };
+    expect(manifestProblems(m, Y).filter((p) => p.includes('textSha256'))).toEqual([]);
+    doc.textSha256 = 'nothex';
+    expect(manifestProblems(m, Y)).toContainEqual(expect.stringMatching(/textSha256 is not 64 hex/));
+  });
+
+  describe('publish, restore and the builder', () => {
+    /** @type {string} */
+    let root;
+    /** @type {string} */
+    let docs;
+    /** @type {string} */
+    let keyFile;
+    /** @type {ReturnType<typeof fakeReleases>} */
+    let releases;
+    /** @type {Record<string, Buffer>} */
+    let files;
+    const TEXT = 'non-graduating-course-restrictions.txt';
+    beforeEach(() => {
+      root = copyTree(join(dir, 'repo'));
+      docs = join(dir, 'docs');
+      files = fakeDocuments(docs);
+      useFakeDocuments(root, files);
+      keyFile = throwawayKey(join(dir, 'test.key'));
+      releases = fakeReleases(join(dir, 'releases'));
+    });
+    const doPublish = () => publish({ from: docs, root, key: keyFile, upload: releases.upload, runsDir: join(dir, 'runs'), log: () => {} });
+    const textDoc = () => latestOf(readJson(root, `data/ng-sources-${Y}.json`)).documents.find((/** @type {any} */ d) => d.text === TEXT);
+
+    it('publish writes each text\'s textSha256; every archived file is then pinned', async () => {
+      const m = readJson(root, `data/ng-sources-${Y}.json`);
+      delete latestOf(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256;
+      writeJson(root, `data/ng-sources-${Y}.json`, m);
+      expect(textDoc().textSha256).toBeUndefined();
+      await doPublish();
+      expect(textDoc().textSha256).toBe(sha256(files[TEXT]));
+      const rev = latestOf(readJson(root, `data/ng-sources-${Y}.json`));
+      expect(archivedFiles(rev).filter((f) => f.sha256 === null)).toEqual([]);
+    });
+
+    it('publish refuses a text whose bytes are not its textSha256', async () => {
+      const m = readJson(root, `data/ng-sources-${Y}.json`);
+      latestOf(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256 = sha256('another extraction');
+      writeJson(root, `data/ng-sources-${Y}.json`, m);
+      await expect(doPublish()).rejects.toThrow(new RegExp(`${TEXT.replaceAll('.', '\\.')}: sha256 [0-9a-f]{64}, not the manifest's`));
+    });
+
+    it('restore refuses an archive whose text is not its textSha256, and refuses an unpinned text', async () => {
+      await doPublish();
+      const m = readJson(root, `data/ng-sources-${Y}.json`);
+      const doc = latestOf(m).documents.find((/** @type {any} */ d) => d.text === TEXT);
+      doc.textSha256 = sha256('another extraction');
+      writeJson(root, `data/ng-sources-${Y}.json`, m);
+      await expect(restore({ root, key: keyFile, download: releases.download, log: () => {} })).rejects.toThrow(new RegExp(`${TEXT.replaceAll('.', '\\.')}: sha256`));
+      delete doc.textSha256;
+      writeJson(root, `data/ng-sources-${Y}.json`, m);
+      await expect(restore({ root, key: keyFile, download: releases.download, log: () => {} })).rejects.toThrow(/no sha256 in the manifest/);
+    });
+
+    it('the builder refuses a text whose hash differs from its textSha256, or one with none', async () => {
+      await doPublish();
+      const inputs = await loadInputs({ year: Y, root });
+      const ok = buildRestrictions({ ...inputs, sources: dirReader(docs) });
+      expect(ok.text).toBe(readFileSync(join(root, `data/ng-restrictions-${Y}.json`), 'utf8'));
+      writeFileSync(join(docs, TEXT), 'a hand-fixed extraction\n');
+      expect(() => buildRestrictions({ ...inputs, sources: dirReader(docs) })).toThrow(new RegExp(`${TEXT.replaceAll('.', '\\.')}: sha256 [0-9a-f]{64} does not match the source manifest's textSha256`));
+      writeFileSync(join(docs, TEXT), files[TEXT]);
+      const m = readJson(root, `data/ng-sources-${Y}.json`);
+      delete latestOf(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256;
+      writeJson(root, `data/ng-sources-${Y}.json`, m);
+      await expect(loadInputs({ year: Y, root }).then((i) => buildRestrictions({ ...i, sources: dirReader(docs) }))).rejects.toThrow(/has no textSha256/);
+    });
   });
 });

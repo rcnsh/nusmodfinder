@@ -13,7 +13,7 @@
 // token has to exist on disk; the script streams batches in over HTTP and the
 // Worker uses its own AI, Vectorize and D1 bindings. The routes do not exist
 // unless an INGEST_SECRET is bound, so a deployed Worker has no admin surface.
-import { adminHashes, d1Query, storedCatalogueKey } from './admin-hashes.js';
+import { CATALOGUE_ROWS_SQL, adminHashes, d1Query, storedCatalogueKey, verifiedCatalogueHash } from './admin-hashes.js';
 import { DEFAULT_MODEL, EMBEDDING_DIMS } from './embedding.js';
 import { bad, json, upstream } from './http.js';
 import { computeFacets } from './modules.js';
@@ -561,6 +561,9 @@ export const CATALOGUE_LIMIT = 100;
 /**
  * GET /admin/catalogue: `{ ok, rows: { code: rowHash } }`, what D1
  * `catalogue_only` holds (migration 0008), so ingest writes only changed rows.
+ * Each rowHash is recomputed from the row's columns (src/admin-hashes.js
+ * verifiedCatalogueHash): null when the stored row_hash is not it, so ingest
+ * rewrites a row changed behind its hash (red team M-1).
  * `ok: false` and `rows: null` when the table does not exist: ingest refuses
  * before any write.
  * @param {Request} request
@@ -572,9 +575,10 @@ export async function handleCatalogueHashes(request, env) {
   try {
     const table = await env.DB.prepare("SELECT 1 AS ok FROM sqlite_master WHERE type = 'table' AND name = 'catalogue_only'").first();
     if (!table) return json({ ok: false, rows: null });
-    const { results } = /** @type {D1Result<{ code: string, row_hash: string }>} */ (
-      await env.DB.prepare('SELECT code, row_hash FROM catalogue_only').all());
-    return json({ ok: true, rows: Object.fromEntries(results.map((r) => [r.code, r.row_hash])) });
+    const { results } = /** @type {D1Result<{ code: string, title: string, description: string | null, acad_year: string, row_hash: string | null }>} */ (
+      await env.DB.prepare(CATALOGUE_ROWS_SQL).all());
+    const hashes = await Promise.all(results.map((r) => verifiedCatalogueHash(r)));
+    return json({ ok: true, rows: Object.fromEntries(results.map((r, i) => [r.code, hashes[i]])) });
   } catch (err) {
     return upstream('d1', err);
   }

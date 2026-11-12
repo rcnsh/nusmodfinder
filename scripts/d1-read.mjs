@@ -8,11 +8,12 @@
 // - Account: CLOUDFLARE_ACCOUNT_ID (a repo variable in Actions), else the account wrangler
 //   cached when it last chose one (node_modules/.cache/wrangler/wrangler-account.json), else a
 //   refusal naming the variable.
-// - Database: wrangler.jsonc's DB binding (nusmods-apac).
+// - Database: wrangler.jsonc's DB binding (nusmods-apac), the d1_databases entry bound as DB.
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { d1RestClient } from './d1-rest.mjs';
+import { parseJsonc } from './jsonc.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 /** Where wrangler caches the account it last used. */
@@ -22,17 +23,26 @@ export const WRANGLER_ACCOUNT_CACHE = join(ROOT, 'node_modules/.cache/wrangler/w
  * @typedef {(cmd: string, args: string[], opts?: { stream?: boolean }) => Promise<{ code: number, stdout: string }>} Exec
  */
 
+/** The binding the Worker reads D1 through (src/ uses env.DB). */
+export const DB_BINDING = 'DB';
+
 /**
- * wrangler.jsonc's DB binding.
+ * wrangler.jsonc's DB binding: the d1_databases entry whose `binding` is DB, whatever its place in
+ * the list (red team L-3). None, or more than one, fails.
  * @param {string} [path]
  * @returns {Promise<{ databaseName: string, databaseId: string }>}
  */
 export async function d1Config(path = join(ROOT, 'wrangler.jsonc')) {
-  const text = await readFile(path, 'utf8');
-  const block = /"d1_databases"\s*:\s*\[([\s\S]*?)\]/.exec(text)?.[1] ?? '';
-  const databaseName = /"database_name"\s*:\s*"([^"]+)"/.exec(block)?.[1];
-  const databaseId = /"database_id"\s*:\s*"([^"]+)"/.exec(block)?.[1];
-  if (!databaseName || !databaseId) throw new Error('wrangler.jsonc has no d1_databases entry with database_name and database_id');
+  const config = /** @type {any} */ (parseJsonc(await readFile(path, 'utf8'), 'wrangler.jsonc'));
+  const list = Array.isArray(config?.d1_databases) ? config.d1_databases : [];
+  const bound = list.filter((/** @type {any} */ d) => d?.binding === DB_BINDING);
+  if (bound.length !== 1) {
+    throw new Error(`wrangler.jsonc has ${bound.length ? `${bound.length} d1_databases entries` : 'no d1_databases entry'} bound as ${DB_BINDING}; the guard reads the one the Worker binds`);
+  }
+  const { database_name: databaseName, database_id: databaseId } = bound[0];
+  if (typeof databaseName !== 'string' || !databaseName || typeof databaseId !== 'string' || !databaseId) {
+    throw new Error(`wrangler.jsonc's ${DB_BINDING} binding has no database_name and database_id`);
+  }
   return { databaseName, databaseId };
 }
 

@@ -492,3 +492,55 @@ describe('[PR13b #2] a pending mutation Vectorize has moved past', () => {
     expect(await pending.read()).toBeNull();
   });
 });
+
+// Red team L-1 (docs/evidence/phase7/redteam.md): step 4b deleted every catalogue_only code the
+// corpus lacked, with no guard, so a truncated or hostile NUSMods answer emptied the table.
+describe('catalogue_only has the modules\' mass-delete guard (red team L-1)', () => {
+  /** @param {{ code: string, title: string, description: string | null }[]} catalogue @param {Record<string, unknown>} [options] */
+  const ingestCatalogue = (catalogue, options = {}) => runIngest({
+    modules: fixture.modules, facetsBody, api: adminApi(() => fakes), options: { embeddingModel: MODEL, ...options }, sleep, now, catalogue,
+  });
+  const catalogueCount = async () => Number(await env.DB.prepare('SELECT count(*) AS n FROM catalogue_only').first('n'));
+  const full = Array.from({ length: 200 }, (_, i) => ({ code: `ZZ${String(1000 + i)}`, title: `Old course ${i}`, description: null }));
+
+  it('a corpus with 1 of 200 catalogue-only codes is refused before any write without allowMassDelete', async () => {
+    expect((await ingestCatalogue(full)).status).toBe('done');
+    expect(await catalogueCount()).toBe(200);
+    const writes = fakes.vectorize.calls.length;
+    const r = await ingestCatalogue(full.slice(0, 1));
+    expect({ status: r.status, left: await catalogueCount() }).toEqual({ status: 'refused', left: 200 });
+    expect(r.message).toMatch(/catalogue_only.*199 of the 200.*--allow-mass-delete/s);
+    expect(fakes.vectorize.calls.slice(writes).filter((c) => c.method === 'upsert' || c.method === 'deleteByIds')).toEqual([]);
+  });
+
+  it('the same drop goes through with allowMassDelete, and a small drop needs no flag', async () => {
+    expect((await ingestCatalogue(full)).status).toBe('done');
+    expect((await ingestCatalogue(full.slice(0, 195))).status).toBe('done');
+    expect(await catalogueCount()).toBe(195);
+    const r = await ingestCatalogue(full.slice(0, 1), { allowMassDelete: true });
+    expect(r.status).toBe('done');
+    expect(r.catalogue).toEqual({ upserted: 0, deleted: 194 });
+    expect(await catalogueCount()).toBe(1);
+  });
+});
+
+// Red team M-1: /admin/hashes and GET /admin/catalogue answer a row's hash only when the stored
+// row_hash agrees with the row's columns, so a row changed behind it is rewritten by the next run.
+describe('a row changed behind its row_hash is rewritten by the next ingest (red team M-1)', () => {
+  it('modules and catalogue_only alike', async () => {
+    const catalogue = [{ code: 'ZZ1000', title: 'A course', description: null }];
+    const run = () => runIngest({ modules: fixture.modules, facetsBody, api: adminApi(() => fakes), options: { embeddingModel: MODEL }, sleep, now, catalogue });
+    expect((await run()).status).toBe('done');
+    const code = fixture.modules[0].code;
+    const credits = await env.DB.prepare('SELECT credits FROM modules WHERE code = ?').bind(code).first('credits');
+    await env.DB.prepare('UPDATE modules SET credits = credits + 99 WHERE code = ?').bind(code).run();
+    await env.DB.prepare("UPDATE catalogue_only SET title = 'wrong title' WHERE code = 'ZZ1000'").run();
+
+    const r = await run();
+    expect(r.status).toBe('done');
+    expect(r.plan).toMatchObject({ embed: 0, rowOnly: 1 });
+    expect(r.catalogue).toEqual({ upserted: 1, deleted: 0 });
+    expect(await env.DB.prepare('SELECT credits FROM modules WHERE code = ?').bind(code).first('credits')).toBe(credits);
+    expect(await env.DB.prepare("SELECT title FROM catalogue_only WHERE code = 'ZZ1000'").first('title')).toBe('A course');
+  });
+});

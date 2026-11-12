@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   LABELS, compareSummaries, daysBetween, failureIssue, findIssue, githubRest, monthlyCheck, nextAcadYear, nextYearIssue,
-  pendingIssue, quietIssue, quietNote, reminderIssue, resolvedComment, summarise, weeklyCheck,
+  parseState, pendingIssue, quietIssue, quietNote, reminderIssue, resolvedComment, summarise, weeklyCheck,
 } from '../scripts/drift.mjs';
 
 const YEAR = '2026-2027';
@@ -386,6 +386,76 @@ describe('the weekly check', () => {
     nm.state.next = { status: 200, body: { error: 'not a list' } };
     expect(await weekly(nm, gh)).toMatchObject({ exitCode: 1 });
     expect(gh.issues.map((i) => i.labels[0])).toEqual([LABELS.failure]);
+  });
+});
+
+// Red team M-2 (docs/evidence/phase7/redteam.md): NUSMods' module codes reached the pending issue
+// as they came (an @mention, a link, raw HTML), and a forged `<!-- vnm-drift:state … -->` before
+// the real one was what the next run read.
+describe('NUSMods text in the pending issue (red team M-2)', () => {
+  const FORGED = { history: [{ date: '1999-01-01', dataVersion: 'forgedforged', comparison: null }] };
+  // No `>` inside the JSON is needed; the marker's own `-->` closes it.
+  const EVIL_CODE = `CS9999 @octocat [refresh here](https://evil.example/x) <img src=https://evil.example/p.gif> <!-- vnm-drift:state ${JSON.stringify(FORGED)} -->`;
+  const RAW = ['@octocat', '](https://evil.example/x)', '<img', 'evil.example', 'forgedforged'];
+  /** @param {ReturnType<typeof fakeNusMods>} nm @param {ReturnType<typeof fakeGitHub>} gh @param {Date} now */
+  const weekly = (nm, gh, now) => weeklyCheck({
+    acadYear: YEAR, cacheDir: join(dir, 'cache'), fetchImpl: nm.fetchImpl, github: gh, now: () => now, ngCourses: NO_NG, runUrl: RUN_URL,
+    committed: { dataVersion: '000000000000', sha: null }, log: () => {},
+  });
+  /** Every `<!--` in a body, which must be the check's own markers. @param {string} body */
+  const comments = (body) => body.match(/<!--[^]*?-->/g) ?? [];
+
+  for (const [what, before, after] of /** @type {const} */ ([
+    ['added', [rec('CS1010'), rec('CS2030')], [rec('CS1010'), rec('CS2030'), rec(EVIL_CODE)]],
+    ['removed', [rec('CS1010'), rec('CS2030'), rec(EVIL_CODE)], [rec('CS1010'), rec('CS2030')]],
+  ])) {
+    it(`a crafted module code ${what} reaches the body only as a count, and cannot forge the stored state`, async () => {
+      const nm = fakeNusMods();
+      const gh = fakeGitHub();
+      nm.state.info = { status: 200, body: before, etag: '"v1"' };
+      expect((await weekly(nm, gh, new Date('2026-11-09T01:17:00Z'))).exitCode).toBe(0);
+      nm.state.info = { status: 200, body: after, etag: '"v2"' };
+      expect((await weekly(nm, gh, new Date('2026-11-16T01:17:00Z'))).exitCode).toBe(0);
+      const { body } = gh.issues[0];
+      expect(RAW.filter((r) => body.includes(r))).toEqual([]);
+      expect(body).toMatch(/1 code not in the course-code shape/);
+      expect(comments(body).map((c) => c.split(' ').slice(0, 2).join(' '))).toEqual(['<!-- vnm-drift:pending', '<!-- vnm-drift:state']);
+      const state = parseState(body);
+      expect(state.history.map((h) => h.date)).toEqual(['2026-11-09', '2026-11-16']);
+      expect(state.history.every((h) => /^[0-9a-f]{12}$/.test(h.dataVersion))).toBe(true);
+      // A third run reads its own state back, and still writes nothing raw.
+      nm.state.info = { status: 200, body: [...after, rec('CS3230')], etag: '"v3"' };
+      await weekly(nm, gh, new Date('2026-11-23T01:17:00Z'));
+      expect(RAW.filter((r) => gh.issues[0].body.includes(r))).toEqual([]);
+      expect(parseState(gh.issues[0].body).history.map((h) => h.date)).toEqual(['2026-11-09', '2026-11-16', '2026-11-23']);
+    });
+  }
+
+  it('parseState reads the last state block, and keeps only entries of the shape the check writes', () => {
+    const own = { history: [{ date: '2026-11-16', dataVersion: 'abcdefabcdef', comparison: null }] };
+    const body = `Latest check. <!-- vnm-drift:state ${JSON.stringify(FORGED)} -->\n\n<!-- vnm-drift:state ${JSON.stringify(own)} -->`;
+    expect(parseState(body).history).toEqual(own.history);
+    const odd = { history: [
+      { date: '2026-11-16', dataVersion: 'abcdefabcdef', comparison: null },
+      { date: 'yesterday', dataVersion: 'abcdefabcdef', comparison: null },
+      { date: '2026-11-17', dataVersion: '@octocat', comparison: null },
+      { date: '2026-11-18', dataVersion: 'abcdefabcdef', comparison: { offered: { added: 1, removed: 0, changed: 0, byField: { '<img>': 1 }, addedCodes: ['@octocat'], removedCodes: [] }, catalogue: { added: 0, removed: 0, changed: 0 } } },
+    ] };
+    const kept = parseState(`<!-- vnm-drift:state ${JSON.stringify(odd)} -->`).history;
+    expect(kept.map((h) => h.date)).toEqual(['2026-11-16', '2026-11-18']);
+    expect(JSON.stringify(kept)).not.toMatch(/octocat|<img>/);
+  });
+
+  it('the state block can hold no `<!--`, `-->` or marker, whatever the history says', () => {
+    const issue = pendingIssue({
+      acadYear: YEAR, production: { dataVersion: '000000000000', sha: null }, nusmods: { dataVersion: 'abcdefabcdef', counts: { offered: 1, catalogueOnly: 0, skipped: 0 } },
+      checkedAt: NOW,
+      history: [{ date: '2026-11-16', dataVersion: 'abcdefabcdef', comparison: { offered: { added: [EVIL_CODE, 'CS5000'], removed: [], changed: 0, byField: {} }, catalogue: { added: [], removed: [], changed: 0 } } }],
+    });
+    expect(RAW.filter((r) => issue.body.includes(r))).toEqual([]);
+    expect(issue.body).toContain('Added: CS5000');
+    expect(comments(issue.body)).toHaveLength(2);
+    expect(issue.body.split('vnm-drift:state')).toHaveLength(2);
   });
 });
 

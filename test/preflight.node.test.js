@@ -5,13 +5,13 @@
 // module is absent), a committed `year check --full` record when HEAD changes a source-derived
 // input, and `wrangler check startup`. It refuses on each failing check and writes nothing
 // remote. git, gh and wrangler are a fake exec (test/deploy-fakes.js).
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { deploy } from '../scripts/deploy.mjs';
+import { deploy, wranglerVars } from '../scripts/deploy.mjs';
 import { DEFAULT_ACAD_YEAR as Y } from '../scripts/lib.mjs';
-import { OPTIONAL_CHECKS, isSourceInput, sourceInputsHash } from '../scripts/preflight.mjs';
+import { ALLOWED_VARS, OPTIONAL_CHECKS, isSourceInput, sourceInputsHash } from '../scripts/preflight.mjs';
 import {
   DV, GREEN, LIVE_SHA, NOW, RUNS_API, SHA, STATUS_KEY, TAG_FETCH, TAG_LIST, bundleOf, fakeD1, fakeExec, ghRun, runsBody,
 } from './deploy-fakes.node.mjs';
@@ -24,7 +24,7 @@ const records = () => readdirSync(runsDir).sort().map((f) => ({ file: f, ...JSON
 
 /**
  * @param {import('../scripts/deploy.mjs').Exec} exec
- * @param {{ argv?: string[], vars?: Record<string, unknown>, bundle?: any, modules?: Record<string, any> }} [o]
+ * @param {{ argv?: string[], vars?: Record<string, unknown>, readVars?: () => Promise<Record<string, unknown>>, bundle?: any, modules?: Record<string, any> }} [o]
  */
 async function preflight(exec, o = {}) {
   /** @type {string[]} */
@@ -32,7 +32,7 @@ async function preflight(exec, o = {}) {
   let d1Asked = 0;
   const code = await deploy({
     argv: ['--preflight', ...(o.argv ?? [])], exec, log: (m) => out.push(m), error: (m) => out.push(m),
-    bundle: o.bundle ?? bundleOf(), committedDataVersion: async () => DV, vars: async () => o.vars ?? { DENSE_BACKEND: 'bundle' },
+    bundle: o.bundle ?? bundleOf(), committedDataVersion: async () => DV, vars: o.readVars ?? (async () => o.vars ?? { DENSE_BACKEND: 'bundle' }),
     d1: async () => { d1Asked++; return fakeD1().client; }, runsDir, now: () => NOW,
     moduleExists: (/** @type {string} */ p) => Boolean(o.modules && p in o.modules),
     loadModule: async (/** @type {string} */ p) => /** @type {any} */ (o.modules)[p],
@@ -127,8 +127,10 @@ describe('the year check --full record (7E) is needed only when a source-derived
   const NG = `data/ng-courses-${Y}.json`;
   const LS_TREE = `100644 blob ${'a'.repeat(40)}\t${NG}\n100644 blob ${'b'.repeat(40)}\tdata/ng-restrictions-${Y}.json\n100644 blob ${'c'.repeat(40)}\tsrc/search.js\n`;
   const RECORD_PATH = 'docs/evidence/ops/runs/20261112T090000Z-year-check-ab12.json';
-  /** @param {string} hash @param {string} [outcome] */
-  const yearRecord = (hash, outcome = 'ok') => JSON.stringify({ schema: 'vnm-run/1', script: 'year check', outcome, details: { mode: 'full', sourceInputsHash: hash } });
+  /** @param {string} hash @param {string} [outcome] @param {Record<string, unknown>} [extra] */
+  const yearRecord = (hash, outcome = 'ok', extra = { ngList: { result: 'byte-identical', semesters: { 1: 730, 2: 750 } } }) => JSON.stringify({
+    schema: 'vnm-run/1', script: 'year check', outcome, details: { mode: 'full', sourceInputsHash: hash, ...extra },
+  });
   const changed = { [`git diff --name-only --no-renames ${LIVE_SHA} HEAD`]: { stdout: `src/search.js\n${NG}\n` }, 'git ls-tree -r HEAD': { stdout: LS_TREE } };
 
   it('the source-derived paths', () => {
@@ -136,6 +138,18 @@ describe('the year check --full record (7E) is needed only when a source-derived
     for (const p of ['data/groups.json', 'src/search.js', 'scripts/ingest.mjs', 'data/vectors.json']) expect(isSourceInput(p), p).toBe(false);
     // 7E: a corpus-only refresh rewrites data/ng-unscheduled.json (it follows production) and needs no sources key.
     expect(isSourceInput('data/ng-unscheduled.json')).toBe(false);
+  });
+
+  // Red team H-1: a hand edit to the NG course list must need a record of its own.
+  it('the inputs hash covers data/ng-courses-*: a change to its blob alone moves the hash', async () => {
+    const other = LS_TREE.replace(`${'a'.repeat(40)}\t${NG}`, `${'d'.repeat(40)}\t${NG}`);
+    expect(other).not.toBe(LS_TREE);
+    const before = await sourceInputsHash(fakeExec({ 'git ls-tree -r HEAD': { stdout: LS_TREE } }).exec);
+    const after = await sourceInputsHash(fakeExec({ 'git ls-tree -r HEAD': { stdout: other } }).exec);
+    expect(after).not.toBe(before);
+    // And a change outside the source-derived inputs leaves it alone.
+    const code = LS_TREE.replace(`${'c'.repeat(40)}\tsrc/search.js`, `${'e'.repeat(40)}\tsrc/search.js`);
+    expect(await sourceInputsHash(fakeExec({ 'git ls-tree -r HEAD': { stdout: code } }).exec)).toBe(before);
   });
 
   it('a hotfix touching none of them needs no record', async () => {
@@ -160,6 +174,9 @@ describe('the year check --full record (7E) is needed only when a source-derived
     expect((await preflight(withRecord(yearRecord(hash)))).code).toBe(0);
     expect((await preflight(withRecord(yearRecord('f'.repeat(64))))).code).toBe(1);
     expect((await preflight(withRecord(yearRecord(hash, 'failed')))).code).toBe(1);
+    // A record from before the red team's H-1 fix never checked the NG list: it covers nothing.
+    expect((await preflight(withRecord(yearRecord(hash, 'ok', {})))).code).toBe(1);
+    expect((await preflight(withRecord(yearRecord(hash, 'ok', { ngList: { result: 'differs' } })))).code).toBe(1);
   });
 
   it('refuses when no deploy/* or rollback/* tag says what is live, or the tags cannot be fetched', async () => {
@@ -178,6 +195,46 @@ describe('the year check --full record (7E) is needed only when a source-derived
     });
     expect((await preflight(exec)).code).toBe(0);
     expect(calls).toContainEqual(['git', 'diff', '--name-only', '--no-renames', newer, 'HEAD']);
+  });
+});
+
+// Red team L-2 (docs/evidence/phase7/redteam.md): wranglerVars matched `"vars": {[^{}]*}`, so one
+// object-valued var made it answer {} and the vars check pass blind.
+describe('the vars check reads wrangler.jsonc as JSONC (red team L-2)', () => {
+  /** @type {string} */
+  let tmp;
+  beforeEach(() => { tmp = mkdtempSync(join(tmpdir(), 'vnm-preflight-vars-')); });
+  afterEach(() => { rmSync(tmp, { recursive: true, force: true }); });
+  /** @param {string} text */
+  const config = (text) => { const path = join(tmp, 'wrangler.jsonc'); writeFileSync(path, text); return path; };
+
+  it('sees TEST_FAKE_AI next to an object-valued var, and the preflight refuses it', async () => {
+    const path = config(`{
+  // a comment, and a trailing comma below
+  "name": "nusmodfinder",
+  "vars": { "DENSE_BACKEND": "bundle", "TEST_FAKE_AI": "1", "LIMITS": { "perMinute": 30 } },
+}
+`);
+    const vars = await wranglerVars(path);
+    expect(Object.keys(vars).filter((k) => !ALLOWED_VARS.includes(k)).sort()).toEqual(['LIMITS', 'TEST_FAKE_AI']);
+    expect(vars.LIMITS).toEqual({ perMinute: 30 });
+    const r = await preflight(fakeExec().exec, { readVars: () => wranglerVars(path) });
+    expect(r.code).toBe(1);
+    expect(r.out).toMatch(/preflight: vars\).*TEST_FAKE_AI/);
+  });
+
+  it('fails on a shape it can\'t read, never passing blind', async () => {
+    for (const text of ['{ "vars": "DENSE_BACKEND" }', '{ "vars": ["DENSE_BACKEND"] }', '{ "vars": { "DENSE_BACKEND": "bundle" ', 'not json']) {
+      await expect(wranglerVars(config(text)), text).rejects.toThrow(/wrangler\.jsonc/);
+    }
+    const r = await preflight(fakeExec().exec, { readVars: () => wranglerVars(config('{ "vars": [1] }')) });
+    expect(r.code).toBe(1);
+    expect(r.out).toMatch(/preflight: vars\)/);
+  });
+
+  it('no vars block is no vars; the repo\'s own file holds only DENSE_BACKEND', async () => {
+    expect(await wranglerVars(config('{ "name": "x" }'))).toEqual({});
+    expect(await wranglerVars()).toEqual({ DENSE_BACKEND: 'bundle' });
   });
 });
 

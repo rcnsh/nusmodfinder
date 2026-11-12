@@ -12,9 +12,14 @@
 //       deploy preflight runs this mode (preflight() below).
 //   npm run year -- check --full [<year>] [--key <path>]
 //       on the Mac, with the sources key: CI mode, then restores the newest revision's archive
-//       (sha-checked) into a temp dir, checks every indexed quote verbatim in its document's text,
-//       and rebuilds data/ng-restrictions-<year>.json byte for byte. Refuses a pending archive and
-//       uncommitted source-derived inputs. Writes a run record (script `year check`, details.mode
+//       (sha-checked, text extractions included) into a temp dir, checks every indexed quote
+//       verbatim in its document's text, re-extracts data/ng-courses-<year>.json from the archived
+//       NG list PDF (scripts/extract-ng.py run by .venv/bin/python, which needs pypdf: red team
+//       H-1) and requires it byte for byte, its semester sections included, and rebuilds
+//       data/ng-restrictions-<year>.json byte for byte. While a semester is unpublished, last
+//       year's NG list (which exchange mode shows for it) is re-extracted from last year's archive
+//       the same way. Refuses a pending archive, uncommitted
+//       source-derived inputs, and a missing venv or pypdf (printing the one-line setup). Writes a run record (script `year check`, details.mode
 //       `full`, details.sourceInputsHash: scripts/preflight.mjs's hash of HEAD's source-derived
 //       inputs). Commit the record: the preflight needs it whenever HEAD changes those inputs.
 //   npm run year -- next <yyyy-yyyy>
@@ -22,7 +27,8 @@
 //       as stubs (each marked so `year check` fails until it is filled in), never overwriting a
 //       file, and prints the checklist.
 import { execFile } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -229,14 +235,87 @@ export const pdftotextReadingOrder = (path) => new Promise((resolve) => {
   execFile('pdftotext', [path, '-'], { maxBuffer: 64 * 1024 * 1024 }, (err, stdout) => resolve(err ? null : String(stdout)));
 });
 
+/** The venv `--full` runs scripts/extract-ng.py with (its docstring's), repo-relative, and how to make it. */
+export const NG_VENV_PYTHON = '.venv/bin/python';
+export const NG_VENV_SETUP = 'python3 -m venv .venv && .venv/bin/pip install pypdf';
+/** The extractor --full re-runs over the archived NG list. */
+export const EXTRACT_NG = join(ROOT, 'scripts/extract-ng.py');
+
+/**
+ * Re-extracts the NG course list from a PDF into `out` (data/ng-courses-<year>.json's format).
+ * @typedef {(o: { pdf: string, year: string, published: number[], out: string }) => Promise<{ ok: boolean, message: string }>} NgExtractor
+ */
+
+/**
+ * Runs a command, capturing both streams, never throwing.
+ * @param {string} cmd @param {string[]} args
+ * @returns {Promise<{ code: number, stdout: string, stderr: string }>}
+ */
+const capture = (cmd, args) => new Promise((resolve) => {
+  execFile(cmd, args, { maxBuffer: 64 * 1024 * 1024 }, (err, stdout, stderr) => resolve({
+    code: err ? Number(/** @type {any} */ (err).code) || 1 : 0, stdout: String(stdout), stderr: String(stderr),
+  }));
+});
+
+/**
+ * Why `--full` can't extract the NG list with the repo's venv, or null when it can: .venv/bin/python
+ * exists and imports pypdf. Never a silent pass: the answer names the one-line setup.
+ * @param {string} root
+ */
+export async function ngVenvProblem(root) {
+  const python = join(root, NG_VENV_PYTHON);
+  const setup = `year check --full re-extracts the NG list with ${NG_VENV_PYTHON} and pypdf; set it up in the repo first: ${NG_VENV_SETUP}`;
+  if (!existsSync(python)) return `no ${NG_VENV_PYTHON}. ${setup}`;
+  const probe = await capture(python, ['-c', 'import pypdf']);
+  return probe.code === 0 ? null : `${NG_VENV_PYTHON} can't import pypdf. ${setup}`;
+}
+
+/**
+ * The real extractor: scripts/extract-ng.py on the PDF, run by the repo's venv (pypdf).
+ * @param {string} root
+ * @returns {NgExtractor}
+ */
+export const venvNgExtractor = (root) => async ({ pdf, year, published, out }) => {
+  const why = await ngVenvProblem(root);
+  if (why) return { ok: false, message: why };
+  const r = await capture(join(root, NG_VENV_PYTHON), [EXTRACT_NG, pdf, '--year', year, '--published', published.join(','), '--out', out]);
+  return r.code === 0 ? { ok: true, message: r.stdout.trim() } : { ok: false, message: `scripts/extract-ng.py failed (exit ${r.code}): ${(r.stderr || r.stdout).trim()}` };
+};
+
+/**
+ * One year's NG list against its archived PDF: extracts it into `out` and compares it with the
+ * committed data/ng-courses-<year>.json byte for byte (red team H-1).
+ * @param {{ year: string, rev: import('./ng-sources.mjs').Revision, published: number[], dir: string, root: string, extract: NgExtractor, out: string }} o
+ * @returns {Promise<{ problem: string | null, detail: { result: string, semesters?: Record<string, number> } }>}
+ */
+async function checkNgList({ year, rev, published, dir, root, extract, out }) {
+  const rel = ngCoursesRel(year);
+  const list = documentOf(rev, 'ng-list');
+  if (!list?.file) return { problem: `the ${year} ${rev.date} revision has no ng-list document with a file, so ${rel} can't be checked`, detail: { result: 'no document' } };
+  const x = await extract({ pdf: join(dir, list.file), year, published, out });
+  if (!x.ok || !existsSync(out)) return { problem: `${rel} could not be re-extracted from the archived ${list.file}: ${x.message}`, detail: { result: 'not extracted' } };
+  const extracted = readFileSync(out, 'utf8');
+  const semesters = Object.fromEntries(Object.entries(JSON.parse(extracted).semesters ?? {}).map(([sem, codes]) => [sem, /** @type {string[]} */ (codes).length]));
+  const same = extracted === readText(root, rel);
+  return {
+    problem: same ? null : `${rel} is not what scripts/extract-ng.py writes from the archived ${list.file} `
+      + `(${Object.entries(semesters).map(([sem, n]) => `Sem ${sem} ${n}`).join(', ') || 'no sections'}): a hand edit, or a list the file wasn't re-extracted from`,
+    detail: { result: same ? 'byte-identical' : 'differs', semesters },
+  };
+}
+
 /**
  * `year check --full`.
  * @param {{ root?: string, year?: string, key?: string, download?: import('./sources.mjs').Download, runsDir?: string,
- *   log?: (m: string) => void, args?: string[], env?: NodeJS.ProcessEnv, pdfText?: (path: string) => Promise<string | null> }} [o]
- *   `pdfText`: a PDF's reading-order text, the second text a PDF quote is looked for in.
+ *   log?: (m: string) => void, args?: string[], env?: NodeJS.ProcessEnv, pdfText?: (path: string) => Promise<string | null>,
+ *   extractNg?: NgExtractor }} [o]
+ *   `pdfText`: a PDF's reading-order text, the second text a PDF quote is looked for in. `extractNg`: the NG list
+ *   extractor (default: scripts/extract-ng.py run by the repo's .venv/bin/python; tests pass its --from-text mode).
  * @returns {Promise<{ ok: boolean, problems: string[], notes: string[], record: string | null, sourceInputsHash: string | null }>}
  */
-export async function yearCheckFull({ root = ROOT, year, key, download, runsDir, log = console.log, args = [], env = process.env, pdfText = pdftotextReadingOrder } = {}) {
+export async function yearCheckFull({
+  root = ROOT, year, key, download, runsDir, log = console.log, args = [], env = process.env, pdfText = pdftotextReadingOrder, extractNg,
+} = {}) {
   const ci = yearCheck({ root, ...(year ? { year } : {}) });
   const y = ci.year;
   const problems = [...ci.problems];
@@ -250,13 +329,20 @@ export async function yearCheckFull({ root = ROOT, year, key, download, runsDir,
   const quoteFiles = [...new Set((manifest?.quotes ?? []).map((q) => q.file))];
   // Everything the rebuild reads from the tree, not only what the preflight hashes: a rules file
   // edited by hand must not pass against an uncommitted transcription or builder.
-  const builderFiles = [manifest?.transcription, 'scripts/build-ng-restrictions.mjs', 'scripts/ng-sources.mjs'].filter((f) => typeof f === 'string');
+  const builderFiles = [manifest?.transcription, 'scripts/build-ng-restrictions.mjs', 'scripts/ng-sources.mjs', 'scripts/extract-ng.py'].filter((f) => typeof f === 'string');
   const dirty = await exec('git', ['status', '--porcelain', '--', 'data', 'scripts/ng-overlay', ...quoteFiles, ...builderFiles]);
   const dirt = dirty.stdout.split('\n').filter((l) => l && (/ data\/ng-/.test(l) || / scripts\/ng-overlay\//.test(l)
     || [...quoteFiles, ...builderFiles].some((f) => l.endsWith(` ${f}`))));
   if (dirty.code !== 0 || dirt.length) {
     return { ok: false, problems: [`commit the source-derived inputs (and the transcription and builder) first, so the record names their committed bytes:\n${dirt.join('\n')}`], notes, record: null, sourceInputsHash: null };
   }
+  // The NG list is re-extracted with the repo's venv: refuse up front, naming the setup, when it
+  // can't run (red team H-1: never a silent pass).
+  if (!extractNg) {
+    const why = await ngVenvProblem(root);
+    if (why) return { ok: false, problems: [why], notes, record: null, sourceInputsHash: null };
+  }
+  const extract = extractNg ?? venvNgExtractor(root);
   const hash = await sourceInputsHash(exec);
   const record = startRun('year check', { target: `sources archive ${rev.archive.release}`, args, cwd: root, ...(runsDir ? { dir: runsDir } : {}) });
   record.detail('mode', 'full');
@@ -266,6 +352,10 @@ export async function yearCheckFull({ root = ROOT, year, key, download, runsDir,
   record.detail('archiveSha256', rev.archive.sha256);
   /** @type {string | null} */
   let dir = null;
+  /** @type {string | null} */
+  let scratch = null;
+  /** @type {string | null} */
+  let lastDir = null;
   try {
     record.request('gh release download');
     const restored = await restoreSources({ year: y, revision: rev.date, root, log, env, ...(key ? { key } : {}), ...(download ? { download } : {}) });
@@ -291,6 +381,38 @@ export async function yearCheckFull({ root = ROOT, year, key, download, runsDir,
     for (const u of unarchived) notes.push(`unarchived, not checked: ${u}`);
     record.detail('quotes', { checked, unarchived: unarchived.length });
 
+    // The NG list (red team H-1): the archived PDF re-extracts to the committed file byte for byte,
+    // with a section for each semester the manifest marks published (extract-ng.py fails otherwise).
+    scratch = mkdtempSync(join(tmpdir(), 'vnm-year-ng-'));
+    const current = await checkNgList({ year: y, rev, published: publishedSemesters(/** @type {any} */ (manifest)), dir, root, extract, out: join(scratch, 'ng-courses.json') });
+    record.detail('ngList', current.detail);
+    if (current.problem) problems.push(current.problem);
+    const semesters = current.detail.semesters ?? {};
+
+    // A semester NUS hasn't published is served from last year's list (scripts/lib.mjs
+    // loadNgCourses), so that file is checked the same way, against last year's archived NG list.
+    const unpublished = unpublishedSemesters(/** @type {any} */ (manifest));
+    const last = previousYear(y);
+    if (unpublished.length) {
+      const lastManifest = readManifest(last, { root });
+      const lastRev = lastManifest && !lastManifest.stub ? latestRevision(lastManifest) : null;
+      if (!lastManifest || !lastRev?.archive.sha256) {
+        problems.push(`Sem ${unpublished.join(', ')} unpublished: exchange mode shows ${ngCoursesRel(last)}, which --full can't check: `
+          + `${manifestRel(last)} ${lastManifest ? 'has no published archive' : "doesn't exist"}`);
+        record.detail('ngListPrevious', { year: last, result: 'no archive' });
+      } else {
+        record.request('gh release download');
+        const restoredLast = await restoreSources({ year: last, revision: lastRev.date, root, log, env, ...(key ? { key } : {}), ...(download ? { download } : {}) });
+        lastDir = restoredLast.dir;
+        record.read('sources archive files (last year\'s)', { actual: restoredLast.files.length });
+        const previous = await checkNgList({
+          year: last, rev: lastRev, published: publishedSemesters(lastManifest), dir: lastDir, root, extract, out: join(scratch, 'ng-courses-previous.json'),
+        });
+        record.detail('ngListPrevious', { year: last, ...previous.detail });
+        if (previous.problem) problems.push(previous.problem);
+      }
+    }
+
     // The builder reproduces the committed rules file byte for byte.
     const inputs = await loadInputs({ year: y, root, revision: rev.date });
     const built = buildRestrictions({ ...inputs, sources: dirReader(dir) });
@@ -300,14 +422,18 @@ export async function yearCheckFull({ root = ROOT, year, key, download, runsDir,
     if (!same) problems.push(`${ngRestrictionsRel(y)} is not what the builder writes from the ${rev.date} documents: a hand edit, or a source the rules weren't rebuilt from`);
 
     const ok = problems.length === 0;
-    const path = record.finish(ok ? 'ok' : 'failed', { exitCode: ok ? 0 : 1, message: ok ? `${checked} quotes verbatim; ${ngRestrictionsRel(y)} byte-identical` : problems[0] });
+    const sections = Object.entries(semesters).map(([sem, n]) => `Sem ${sem} ${n}`).join(', ');
+    const path = record.finish(ok ? 'ok' : 'failed', {
+      exitCode: ok ? 0 : 1,
+      message: ok ? `${checked} quotes verbatim; ${ngCoursesRel(y)} byte-identical (${sections}); ${ngRestrictionsRel(y)} byte-identical` : problems[0],
+    });
     return { ok, problems, notes, record: path, sourceInputsHash: hash };
   } catch (err) {
     const message = /** @type {Error} */ (err).message;
     const path = record.finish('failed', { exitCode: 1, message });
     return { ok: false, problems: [...problems, message], notes, record: path, sourceInputsHash: hash };
   } finally {
-    if (dir) rmSync(dir, { recursive: true, force: true });
+    for (const d of [dir, lastDir, scratch]) if (d) rmSync(d, { recursive: true, force: true });
   }
 }
 
@@ -371,7 +497,7 @@ export const CHECKLIST = (year) => [
   ' 4. Transcription: two independent transcriptions (brief-transcription.md), node scripts/transcription-diff.mjs, then --map-to last year; the register with the maintainer\'s rulings (register.md).',
   ` 5. Corpus and rules: npm run corpus -- fetch ${year}; npm run corpus -- publish --new-data-version; the overlay (overlay.md); python3 scripts/extract-ng.py <pdf> --year ${year}; node scripts/build-ng-restrictions.mjs --sources <restored dir>; node scripts/build-ng-reasons.mjs; DEFAULT_ACAD_YEAR, public/year.js and the header.`,
   ' 6. Oracle: the changed sections by a fresh author (brief-oracle.md), then agreement (npm run test:sc1).',
-  ' 7. Checks: npm run year -- check --full (commit its record); node scripts/vectors.mjs build --corpus production.',
+  ` 7. Checks: npm run year -- check --full (commit its record; it re-extracts the NG list with ${NG_VENV_PYTHON}: ${NG_VENV_SETUP}); node scripts/vectors.mjs build --corpus production.`,
   ' 8. PR: CI runs sc1 and rollover on the new year; merge only when complete.',
   ' 9. On merged main: npm run deploy -- --preflight; npm run d1:bookmark.',
   '10. npm run remote -- ingest --d1-only --allow-year-change --write-budget 80000; npm run remote -- verify --pre-deploy.',
