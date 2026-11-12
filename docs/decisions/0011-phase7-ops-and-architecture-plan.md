@@ -1,11 +1,11 @@
 # 0011: Phase 7 ops and architecture plan
 
-Status: draft, pending Jacob's answers to G1–G5. The plan (`docs/plans/phase7.md`) went through
+Status: accepted. Jacob answered G1–G5 on 2026-11-12 (below), and Phase 7 closed at
+`phase7-final` (`docs/evidence/phase7/exit.md`). The plan (`docs/plans/phase7.md`) went through
 three critic rounds. Each round had three fresh critics given only the draft: CI and testing; ops,
 deploy and data refresh; and a maintainer running next year's refresh alone. The rounds stopped at
-three, by rule. r4 applies round 3's objections and has not been critiqued. Its §6 logs every
-objection and its resolution. One item is open for the lead: C3-2, the behaviour of a semester NUS
-hasn't published yet, which waits on G2.
+three, by rule, and its §6 logs every objection and its resolution. C3-2, the behaviour of a
+semester NUS hasn't published yet, was settled by G2 (`ng:unpublished-sem`).
 
 ## Context
 SC9 asks for four things:

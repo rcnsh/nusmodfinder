@@ -1239,3 +1239,15 @@ fails on the previous code.
 - **CI:** the UI suite runs in Playwright's image, one job per browser.
 - **Pin** `a23601d`; holdout looks 8 of 12. Exit: `docs/evidence/phase6/exit.md`.
 - **Next:** Phase 7 (ops and architecture, SC9): plan with critics (a hard cap of three rounds).
+
+## 2026-11-12 — Phase 7 closed
+
+- **Live:** version `85b401bc` (tag `46c8d56`, data version `7eb77cf0828b`) at
+  https://nusmodfinder.rcn.sh, after the first NUSMods refresh (6,818 offered courses).
+- **Deploys:** pushes to `main` deploy from GitHub Actions once CI and Findings pass; re-ingests
+  stay on the Mac through `docs/year-refresh/README.md`. The rollback drill ran both ways.
+- **Year:** `year check --full` passes on the archived NUS sources (NG list and rules byte for
+  byte, 19 quotes); the weekly drift issue and monthly reminder run on GitHub.
+- **Red team:** nine findings, all fixed (#112).
+- **SC9:** passes. Holdout looks 8 of 12. Exit: `docs/evidence/phase7/exit.md`.
+- **Next:** Phase 8 (launch readiness).
