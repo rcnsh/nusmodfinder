@@ -55,7 +55,9 @@ export async function listVectorIds(index, exec = run) {
   /** @type {string | null} */
   let cursor = null;
   for (let page = 0; page < MAX_PAGES; page++) {
-    const args = ['wrangler', 'vectorize', 'list-vectors', index, '--json', '--count', '1000', ...(cursor ? ['--cursor', cursor] : [])];
+    // `--cursor=<value>` in one word: cursors are base64url and can start with "-", and wrangler
+    // reads a separate "-h…" as --help (the usage, exit 0) and any other "-…" as unknown flags.
+    const args = ['wrangler', 'vectorize', 'list-vectors', index, '--json', '--count', '1000', ...(cursor ? [`--cursor=${cursor}`] : [])];
     const { code, stdout } = await exec('npx', args);
     if (code !== 0) throw new Error(`wrangler vectorize list-vectors exited ${code}`);
     const start = stdout.indexOf('{');
