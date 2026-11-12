@@ -30,3 +30,6 @@ test-results/
 playwright-report/
 # Agent worktrees and session files (Claude Code).
 .claude/
+
+# Python venv for scripts/extract-ng.py (pypdf)
+.venv/
