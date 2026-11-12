@@ -492,19 +492,26 @@ npm run deploy
 
 This is the only supported way to deploy. `scripts/deploy.mjs`:
 
-1. refuses unless the working tree is clean and `HEAD` is already on `origin/main`;
+1. refuses unless the working tree is clean and `HEAD` is already on `origin/main`. New,
+   untracked run records under `docs/evidence/ops/runs/` don't count as dirt; a modified tracked
+   file there still refuses;
 2. takes the production bundle `data/vectors.json` records (downloaded from its release if
    absent), checks its sha256, and refuses the fixture or pinned bundle, or a data version that
    is not `src/data-version.json`;
 3. **the guard**: reads D1's (code, `text_hash`, `row_hash`) through `/admin/hashes` on a
-   local `wrangler dev --remote` session with a one-off secret (~6.8k rows read; log it in
-   `remote-ops.md`), and refuses unless they hash to the manifest's `rowsKey` and the committed
-   data version. No production secret is ever bound;
+   local `wrangler dev --remote` session with a one-off secret (~6.8k rows read), and refuses
+   unless they hash to the manifest's `rowsKey` and the committed data version. The session is
+   the one `npm run remote` uses (below), with its `code 10021` retries. No production secret is
+   ever bound;
 4. runs `wrangler check startup` locally with the bundle aliased in, then
    `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`, and refuses to
    promote a version whose reported startup time is missing or over 200 ms;
-5. only then `wrangler versions deploy <id>@100%`. Record the version id in `remote-ops.md`;
-   it is the rollback target (`wrangler rollback <id>`).
+5. only then `wrangler versions deploy <id>@100%`, then `wrangler triggers deploy` for the
+   Custom Domain.
+
+Every run, refused or live, writes a run record (see "Operations" below) with the guard's read,
+the version id, the tag and the outcome. The live version's predecessor is the rollback target
+(`wrangler rollback <id>`).
 
 Plain `npx wrangler deploy` would ship the fixture bundle. Don't use it.
 
@@ -622,26 +629,28 @@ git add data/vectors.json src/data-version.json data/vocabulary.json data/groups
 #    A new acad year also updates public/year.js and the header in public/index.html (the page's
 #    year before a row loads; test/web/shortlist.node.test.js checks both against data/ng-reasons.json).
 # 2. Merge it. Nothing deploys yet: the guard refuses until D1 matches.
-# 3. Record a D1 Time Travel bookmark in remote-ops.md.
-export INGEST_SECRET=$(openssl rand -hex 24)
-echo "INGEST_SECRET=$INGEST_SECRET" > .dev.vars     # gitignored
-npx wrangler dev --remote --port 8791 &             # binds the real D1/Vectorize/AI (8787 is taken on the dev Mac)
+# 3. Note D1's current Time Travel bookmark: npx wrangler d1 time-travel info nusmods-apac
+#    (a read; it goes in the step-4 run record's notes until 7B's npm run d1:bookmark records it).
+#    Steps 4, 5 and 8 each start their own wrangler dev --remote session through npm run remote:
+#    a free port, a one-off INGEST_SECRET in a temp env file, code 10021 retried for up to 30 min,
+#    the session stopped when the command ends. Nothing reads or writes .dev.vars.
 # 4. D1 only: no Workers AI, no Vectorize. Refuses unless the corpus hashes to the committed data version.
-npm run ingest -- --year 2026-2027 --url http://localhost:8791 --d1-only --offline
+npm run remote -- ingest --d1-only --offline
 # 5. D1 against the manifest and the bundle, before the deploy. Reads no Vectorize. 6A: also
 #    data/ng-reasons.json's and data/ng-unscheduled.json's acadYear equal D1's acad_year, and the
 #    latter holds exactly the NG codes with no D1 row.
-npm run verify -- --url http://localhost:8791 --pre-deploy
-# 6. Guard, startup gate, promote. The guard starts its own dev session, on a free port.
+npm run remote -- verify --pre-deploy
+# 6. Guard, startup gate, promote. The guard starts its own session, on a free port.
 npm run deploy
 # 7. Smoke (≤ 4 calls): /health says vectors.corpus "production"; read CPUTimeMs in Workers Logs.
 #    On failure: wrangler rollback <previous id>, restore D1 to the step-3 bookmark, revert step 2.
 # 8. The standby: upsert every code (bundle values, D1 metadata, ≤ 1,000 a batch), delete
 #    every index id D1 no longer holds, wait for the mutation, then verify, values included.
-node scripts/vectors.mjs standby --url http://localhost:8791
+npm run remote -- vectors standby
 ```
 
-Log every remote D1 operation, reads included, in `remote-ops.md`. Between steps 4 and 6 the
+Every step leaves run records (`npm run remote` writes one for the session, and the command its
+own), so nothing is logged by hand; commit them with the change that follows. Between steps 4 and 6 the
 live Worker searches its old bundle against the new D1, so `/search` re-checks every dense-only
 candidate's filters against its fresh D1 row after hydrate and drops those that fail. Its old
 groups and `ng-unscheduled.json` sit beside the new rows too: a code that gained a row answers
@@ -770,6 +779,76 @@ the same command later, then verify).
 `INGEST_SECRET` is bound, and the deployed Worker has none. Ingest is run locally against
 `wrangler dev --remote`. Do not `wrangler secret put INGEST_SECRET` unless you intend to
 expose a write endpoint on the public URL.
+
+## Operations
+
+**`npm run remote -- [--port <n>] <command…>`** (`scripts/remote.mjs`, Phase 7 7C) runs one
+command against production D1, Vectorize and Workers AI through a fresh `wrangler dev --remote`
+session (`scripts/remote-session.mjs`, which the deploy guard shares):
+
+- `wrangler dev --remote --ip 127.0.0.1` on a free port; 8787 and 8799 belong to other projects
+  on the dev Mac and are never used;
+- a one-off `INGEST_SECRET` in a 0600 env file in a fresh temp dir, passed with `--env-file`, so
+  wrangler never loads `.dev.vars` (and neither does the script);
+- `/health` polled until it answers; Cloudflare's `code 10021` (a session that failed to
+  generate its D1 binding) is retried every 30 s for up to 30 minutes, each try logged;
+- the command runs with `WORKER_URL` and `INGEST_SECRET` set; `ingest`, `verify` and
+  `vectors` name `scripts/<name>.mjs`, anything else runs as given, without a shell;
+- the session is stopped (its process group, SIGKILL after 5 s) and the temp dir deleted when
+  the command ends, on a throw, and at exit. A first Ctrl-C goes to the command, which stops
+  cleanly (ingest records its in-flight mutations); a second stops the session too.
+
+The exit code is the command's (1 when the session never answered, 2 on a usage error).
+
+**No default URL.** `ingest`, `verify` and `vectors standby` refuse to run without `--url` or
+`WORKER_URL`, and refuse ports 8787 and 8799, before sending anything.
+
+**Run records** (`scripts/run-record.mjs`). Every script that touches a remote writes one JSON
+file per run, on every exit path, at `docs/evidence/ops/runs/<UTC yyyymmddThhmmssZ>-<script>-<4
+hex>.json`. Unique names mean two worktrees never conflict. Commit them; `npm run deploy`
+ignores new, untracked ones when it checks the tree is clean. Writers today: `deploy`, `remote`,
+`ingest`, `verify`, `vectors standby`, `eval:embed` (which keeps `neurons.tsv` too), and
+`p5-live` and `p6-live` against a live URL (not `localhost`). Phase 7's later scripts (smoke,
+rollback, `d1:bookmark`, `d1:restore`, `corpus publish`, `sources publish`, the usage report,
+the schema capture) use the same module.
+
+The record (schema `vnm-run/1`):
+
+| Field | What |
+|---|---|
+| `time`, `finishedAt` | ISO UTC; `time` is the start and names the file |
+| `script`, `args` | e.g. `ingest`, `["--d1-only","--offline"]` (never a secret) |
+| `commit` | `{ sha, dirty, diffSha256 }`: HEAD, whether the tree is dirty (new run records aside), and when it is, the sha256 of `git diff HEAD --binary` |
+| `target` | the URL, the Worker or the service the run touched |
+| `read`, `written` | lists of `{ what, estimate, actual }` (D1 rows, Vectorize vectors, neurons) |
+| `requests` | live requests sent, by path (no query string, no account id) |
+| `versions` | version id, tag, data version, mutation id: whatever the run made or saw |
+| `bookmark` | a D1 Time Travel bookmark, or null |
+| `details` | anything else (the session's port and tries, a mode) |
+| `outcome`, `exitCode`, `message` | `ok`, `refused` (stopped at a check before writing), `failed`, `partial` (stopped part-way, resumable) or `interrupted`; the exit code; one line |
+
+A writer starts the record once it reaches for the remote (a usage error before that leaves
+none) and finishes it on every return:
+
+```js
+import { startRun } from './run-record.mjs';
+const run = startRun('d1:bookmark', { target: 'nusmods-apac', args: argv });
+run.guardExit();                         // writes it at process exit if nothing else did
+run.read('D1 Time Travel info', { estimate: 0, actual: 0 });
+run.setBookmark(bookmark);
+run.finish('ok', { exitCode: 0 });       // once; a second call is a no-op
+```
+
+`run.countingFetch(fetch)` counts each request by path; `run.request(path)` counts one by hand.
+Records go to `$VNM_RUNS_DIR` when it is set (the node test project sets a temp dir), and the
+module refuses the repo's dir under Vitest. `npm run check:findings` validates every file there:
+the schema, an ISO UTC time not in the future, an outcome, and a name matching the record.
+
+**`npm run ops:requests`** prints live-call totals from `docs/evidence/requests.tsv` (rows
+1–131, typed by hand, plus the back-fill of the ADR 0009 and rename deploys and two correction
+rows) and from the run records, by script and path. A `ref` row in the TSV counts only the
+calls it states, so that half is a lower bound and the rows with no count are listed. Phase 7's
+7-0 reads, made before this tooling, are in `docs/evidence/phase7/remote-ops.md`.
 
 ## Evaluation
 

@@ -16,14 +16,23 @@ import { main as verifyMain } from '../scripts/verify.mjs';
 
 /** @type {string} */
 let dir;
-beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), 'vnm-url-')); });
+beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), 'vnm-url-')); seen = new Set(); });
 afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
 /** A fetch that fails the test if it is ever called. */
 const noFetch = /** @type {typeof fetch} */ (/** @type {unknown} */ (async (/** @type {string} */ url) => { throw new Error(`no request may be sent, got ${url}`); }));
+/** Files already returned, so records come back in the order they were written, not by name. @type {Set<string>} */
+let seen = new Set();
+/** The records written since the last call, in that order (one run each, so at most one per call here). */
+const fresh = async () => {
+  const files = (await readdir(join(dir, 'runs')).catch(() => /** @type {string[]} */ ([]))).filter((f) => !seen.has(f));
+  for (const f of files) seen.add(f);
+  return Promise.all(files.map(async (f) => JSON.parse(await readFile(join(dir, 'runs', f), 'utf8'))));
+};
+/** Every record so far. */
 const records = async () => {
   const files = await readdir(join(dir, 'runs')).catch(() => /** @type {string[]} */ ([]));
-  return Promise.all(files.sort().map(async (f) => JSON.parse(await readFile(join(dir, 'runs', f), 'utf8'))));
+  return Promise.all(files.map(async (f) => JSON.parse(await readFile(join(dir, 'runs', f), 'utf8'))));
 };
 
 describe('workerUrl', () => {
@@ -105,8 +114,10 @@ describe('each writer leaves one record on success and one on failure', () => {
       statePath: join(dir, 'state.json'), dataVersionPath: join(dir, 'dv.json'), runsDir: join(dir, 'runs'),
     });
     expect(await run(false)).toBe(1);
+    const [refused, ...more] = await fresh();
     expect(await run(true)).toBe(0);
-    const [refused, done] = await records();
+    const [done, ...more2] = await fresh();
+    expect([...more, ...more2]).toEqual([]);
     expect(refused).toMatchObject({ script: 'ingest', target: URL_, outcome: 'refused', exitCode: 1, requests: { '/admin/hashes': 1 } });
     expect(done).toMatchObject({ script: 'ingest', target: URL_, outcome: 'ok', exitCode: 0, versions: { dataVersion: expect.stringMatching(/^[0-9a-f]{12}$/) } });
     expect(done.requests['/admin/ingest']).toBe(1);
@@ -126,10 +137,11 @@ describe('each writer leaves one record on success and one on failure', () => {
     });
     const exec = /** @type {import('../scripts/deploy.mjs').Exec} */ (async () => ({ code: 0, stdout: JSON.stringify({ vectors: [{ id: 'AA1001' }], isTruncated: false }) }));
     const codes = [];
+    const all = [];
     for (const agree of [false, true]) {
       codes.push(await verifyMain(['--url', URL_, '--sample', '0'], { fetchImpl: report(agree), exec, log: () => {}, envVars: { INGEST_SECRET: 's' }, runsDir: join(dir, 'runs') }));
+      all.push(...await fresh());
     }
-    const all = await records();
     expect(all).toHaveLength(2);
     expect(codes).toEqual([1, 0]);
     expect(all.map((r) => [r.script, r.target, r.outcome, r.exitCode])).toEqual([['verify', URL_, 'failed', 1], ['verify', URL_, 'ok', 0]]);
@@ -143,13 +155,15 @@ describe('each writer leaves one record on success and one on failure', () => {
       fetchImpl: noFetch, envVars: { INGEST_SECRET: 's' }, runsDir: join(dir, 'runs'),
       loadBundle: async () => ({ entry: { asset: 'vec.bin' }, bundle }),
       listIds: async () => ['AA1001'],
-      runStandby: async (/** @type {any} */ o) => { o.api.get('/admin/hashes'); return { status, message: status, upserted: 1, deleted: 0, mutations: ['m1'] }; },
-      runVerify: async () => ({ ok: true }),
+      runStandby: async (/** @type {any} */ o) => { o.api.get('/admin/hashes'); return { status, message: status, upserted: 1, deleted: 0, mutations: ['m1'], lastMutationId: 'm1' }; },
+      runVerify: async () => /** @type {import('../scripts/verify-core.mjs').VerifyReport} */ (/** @type {unknown} */ ({ ok: true, rowsRead: 1 })),
       formatReport: () => ['ok'],
     });
     expect(await vectorsMain(['standby', '--url', URL_], () => {}, deps('refused'))).toBe(1);
+    const [refused] = await fresh();
     expect(await vectorsMain(['standby', '--url', URL_], () => {}, deps('done'))).toBe(0);
-    const [refused, done] = await records();
+    const [done] = await fresh();
+    expect(await records()).toHaveLength(2);
     expect(refused).toMatchObject({ script: 'vectors standby', target: URL_, outcome: 'refused', exitCode: 1 });
     expect(done).toMatchObject({ script: 'vectors standby', target: URL_, outcome: 'ok', exitCode: 0 });
   });

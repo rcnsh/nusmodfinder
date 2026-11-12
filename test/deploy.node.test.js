@@ -252,10 +252,18 @@ describe('Phase 7 7C: the clean-tree exemption and the run record', () => {
   });
 
   it('every exit path leaves exactly one record: refused, failed after the upload, and live', async () => {
-    await runDeploy(fakeExec({ 'git status --porcelain --untracked-files=all --ignore-submodules=none': { stdout: ' M src/index.js\n' } }).exec);
-    await runDeploy(fakeExec({ promote: { code: 4 } }).exec);
-    await runDeploy(fakeExec().exec);
-    const [refused, failed, live] = records();
+    // Records written in one second sort by their random suffix, so each is read as it lands.
+    const after = async (/** @type {import('../scripts/deploy.mjs').Exec} */ exec) => {
+      const before = records().length;
+      await runDeploy(exec);
+      expect(records()).toHaveLength(before + 1);
+      return records().find((r) => !seen.has(r.time + r.finishedAt + r.exitCode));
+    };
+    const seen = new Set();
+    const mark = (/** @type {any} */ r) => { seen.add(r.time + r.finishedAt + r.exitCode); return r; };
+    const refused = mark(await after(fakeExec({ 'git status --porcelain --untracked-files=all --ignore-submodules=none': { stdout: ' M src/index.js\n' } }).exec));
+    const failed = mark(await after(fakeExec({ promote: { code: 4 } }).exec));
+    const live = mark(await after(fakeExec().exec));
     expect(records()).toHaveLength(3);
     expect(refused).toMatchObject({ script: 'deploy', outcome: 'refused', exitCode: 1 });
     expect(failed).toMatchObject({ script: 'deploy', outcome: 'failed', exitCode: 4, versions: { versionId: VERSION, tag: '0123456' } });

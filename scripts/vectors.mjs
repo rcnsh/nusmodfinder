@@ -38,11 +38,14 @@
 //       `vectors-bundle` alias points at.
 //   node scripts/vectors.mjs data-version [--year <y>] [--offline]
 //       Prints the data version of the rows ingest would write (B3-4).
-//   node scripts/vectors.mjs standby --url <wrangler dev --remote> [--deletes <file>]
+//   npm run remote -- vectors standby [--deletes <file>]
+//   node scripts/vectors.mjs standby --url <a wrangler dev --remote> [--deletes <file>]
 //       Runbook step 8: upsert every code with the production bundle's
 //       values and D1's metadata, delete step 4's deletions, wait for the
 //       mutation, then verify (metadata, the id list, and a getByIds sample
-//       of values against the bundle). Needs INGEST_SECRET, as ingest does.
+//       of values against the bundle). Needs INGEST_SECRET, as ingest does,
+//       and --url or WORKER_URL (no default; ports 8787 and 8799 refused). Writes
+//       a run record (scripts/run-record.mjs, Phase 7 7C).
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -57,6 +60,8 @@ import { writeProductionGroups } from './build-groups.mjs';
 import { writeProductionNgUnscheduled } from './build-ng-unscheduled.mjs';
 import { writeProductionVocabulary } from './build-vocabulary.mjs';
 import { dataVersionFile, httpAdminApi, parseDuration, DATA_VERSION_PATH } from './ingest.mjs';
+import { workerUrl } from './remote-session.mjs';
+import { startRun } from './run-record.mjs';
 import {
   DEFAULT_ACAD_YEAR, DEFAULT_MAX_AGE_MS, assertExpectedShape, fetchAcadYearFile, loadNgCourses, offeredModules,
 } from './lib.mjs';
@@ -234,30 +239,66 @@ async function entryFor(bytes, where) {
 }
 
 /**
+ * What standby reaches for, injectable for tests.
+ * @typedef {{
+ *   fetchImpl?: typeof fetch, envVars?: Record<string, string | undefined>, runsDir?: string,
+ *   loadBundle?: () => Promise<{ entry: { asset?: string }, bundle: ReturnType<typeof parseBundle> }>,
+ *   listIds?: () => Promise<string[]>, runStandby?: typeof runStandby, runVerify?: typeof runVerify, formatReport?: typeof formatReport,
+ * }} StandbyDeps
+ */
+
+/** The production bundle, sha-checked. */
+async function productionBundle() {
+  const entry = (await readVectorsManifest()).bundles.production;
+  if (!entry) throw new Error('data/vectors.json has no production bundle.');
+  return { entry, bundle: (await loadCheckedBundle(entry)).bundle };
+}
+
+/**
  * @param {string[]} argv
  * @param {(line: string) => void} log
+ * @param {StandbyDeps} [deps]
  */
-async function standby(argv, log) {
+async function standby(argv, log, deps = {}) {
+  const {
+    fetchImpl = fetch, envVars = process.env, runsDir, loadBundle = productionBundle, listIds = () => listVectorIds(DEFAULT_INDEX),
+    runStandby: standbyRun = runStandby, runVerify: verifyRun = runVerify, formatReport: format = formatReport,
+  } = deps;
   const { values } = parseArgs({ args: argv, options: { url: { type: 'string' }, deletes: { type: 'string' }, 'wait-timeout': { type: 'string' } }, strict: true });
-  const secret = process.env.INGEST_SECRET;
-  if (!secret) { log('INGEST_SECRET is not set. Export the same value the dev session is bound to.'); return 2; }
-  const base = (values.url ?? process.env.WORKER_URL ?? 'http://localhost:8787').replace(/\/$/, '');
-  const entry = (await readVectorsManifest()).bundles.production;
-  if (!entry) { log('data/vectors.json has no production bundle.'); return 1; }
-  const { bundle } = await loadCheckedBundle(entry);
-  const deletesPath = values.deletes ?? D1_ONLY_DELETES_PATH;
-  /** @type {string[]} */
-  const deletes = existsSync(deletesPath) ? JSON.parse(await readFile(deletesPath, 'utf8')).codes ?? [] : [];
-  log(`standby: ${bundle.count} vectors from ${entry.asset} (sha256 ok), ${deletes.length} deletions${deletes.length ? ` from ${relative(ROOT, deletesPath)}` : ''}`);
-  const api = httpAdminApi(base, secret);
-  const result = await runStandby({
-    api, bundle, deletes, log, listVectorIds: () => listVectorIds(DEFAULT_INDEX),
-    ...(values['wait-timeout'] ? { waitTimeoutMs: parseDuration(values['wait-timeout']) } : {}),
-  });
-  if (result.status !== 'done') return result.status === 'wait-timeout' ? 3 : 1;
-  const report = await runVerify({ api, listVectorIds: () => listVectorIds(DEFAULT_INDEX), sampleSize: 100, bundle });
-  for (const l of formatReport(report)) log(l);
-  return report.ok ? 0 : 1;
+  const secret = envVars.INGEST_SECRET;
+  if (!secret) { log('INGEST_SECRET is not set. Run it through `npm run remote -- vectors standby`.'); return 2; }
+  const worker = workerUrl(values.url, envVars);
+  if (worker.error !== undefined) { log(`standby: ${worker.error} Nothing was sent.`); return 2; }
+  const base = worker.base;
+  const record = startRun('vectors standby', { target: envVars.VNM_REMOTE_TARGET ? `${base} (${envVars.VNM_REMOTE_TARGET})` : base, args: argv, dir: runsDir });
+  /** @param {number} code @param {import('./run-record.mjs').Outcome} outcome @param {string | null} message */
+  const done = (code, outcome, message) => { record.finish(outcome, { exitCode: code, message }); return code; };
+  try {
+    const { entry, bundle } = await loadBundle();
+    const deletesPath = values.deletes ?? D1_ONLY_DELETES_PATH;
+    /** @type {string[]} */
+    const deletes = existsSync(deletesPath) ? JSON.parse(await readFile(deletesPath, 'utf8')).codes ?? [] : [];
+    log(`standby: ${bundle.count} vectors from ${entry.asset} (sha256 ok), ${deletes.length} deletions${deletes.length ? ` from ${relative(ROOT, deletesPath)}` : ''}`);
+    const api = httpAdminApi(base, secret, record.countingFetch(fetchImpl));
+    const result = await standbyRun({
+      api, bundle, deletes, log, listVectorIds: listIds,
+      ...(values['wait-timeout'] ? { waitTimeoutMs: parseDuration(values['wait-timeout']) } : {}),
+    });
+    record.wrote('Vectorize vectors upserted', { estimate: bundle.count, actual: result.upserted ?? null });
+    record.wrote('Vectorize vectors deleted', { estimate: deletes.length, actual: result.deleted ?? null });
+    if (result.lastMutationId) record.version('lastMutationId', result.lastMutationId);
+    if (result.status !== 'done') {
+      return result.status === 'wait-timeout' ? done(3, 'partial', 'Vectorize did not confirm the last mutation in time')
+        : done(1, result.status === 'refused' ? 'refused' : 'failed', result.message ?? result.status);
+    }
+    const report = await verifyRun({ api, listVectorIds: listIds, sampleSize: 100, bundle });
+    for (const l of format(report)) log(l);
+    if (typeof report.rowsRead === 'number') record.read('D1 rows (/admin/verify)', { actual: report.rowsRead });
+    return report.ok ? done(0, 'ok', 'standby done; D1 and Vectorize agree') : done(1, 'failed', 'drift after the standby');
+  } catch (err) {
+    done(1, 'failed', String(/** @type {Error} */ (err).message).split('\n')[0]);
+    throw err;
+  }
 }
 
 /** @param {string[]} argv @param {(line: string) => void} log */
@@ -274,8 +315,9 @@ async function dataVersionCommand(argv, log) {
 /**
  * @param {string[]} argv
  * @param {(line: string) => void} [log]
+ * @param {StandbyDeps} [deps] for `standby`
  */
-export async function main(argv, log = console.log) {
+export async function main(argv, log = console.log, deps = {}) {
   const [command, ...rest] = argv;
   try {
     if (command === 'build') return await build(rest, log);
@@ -285,7 +327,7 @@ export async function main(argv, log = console.log) {
       await fetchBundle(values.corpus, { log });
       return 0;
     }
-    if (command === 'standby') return await standby(rest, log);
+    if (command === 'standby') return await standby(rest, log, deps);
     if (command === 'data-version') return await dataVersionCommand(rest, log);
   } catch (err) {
     log(`vectors: ${/** @type {Error} */ (err).message}`);

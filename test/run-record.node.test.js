@@ -243,3 +243,40 @@ describe('validating run records (check:findings)', () => {
     expect(checkRunRecords(join(dir, 'none'), NOW)).toEqual([]);
   });
 });
+
+describe('the writers that exist today', () => {
+  const src = (/** @type {string} */ f) => readFileSync(fileURLToPath(new URL(`../scripts/${f}`, import.meta.url)), 'utf8');
+  it('deploy, remote, ingest, verify and vectors standby start a record (their tests run each one)', () => {
+    expect(src('deploy.mjs')).toMatch(/startRun\('deploy'/);
+    expect(src('remote.mjs')).toMatch(/startRun\('remote'/);
+    expect(src('ingest.mjs')).toMatch(/startRun\('ingest'/);
+    expect(src('verify.mjs')).toMatch(/startRun\('verify'/);
+    expect(src('vectors.mjs')).toMatch(/startRun\('vectors standby'/);
+  });
+
+  it('eval:embed starts its record, with the exit guard, in the gate every spending branch passes before its first call', () => {
+    const embed = src('embed.mjs');
+    const gate = embed.slice(embed.indexOf('async function gate('), embed.indexOf('\n}\n', embed.indexOf('async function gate(')));
+    expect(gate).toMatch(/startRun\('eval:embed'/);
+    expect(gate).toMatch(/\.guardExit\(\)/);
+    expect(gate.indexOf("a['dry-run']")).toBeLessThan(gate.indexOf('startRun'));
+    // Every call that spends neurons comes after a gate() in its branch.
+    const main = embed.slice(embed.indexOf('\n// ------'));
+    const branches = main.split(/\n\} else (?:if \(|\{)/).filter((x) => /embedAll\(|embedBatch\(cred/.test(x));
+    expect(branches).toHaveLength(4);
+    for (const b of branches) {
+      const firstCall = Math.min(...['embedAll(', 'embedBatch(cred'].map((k) => b.indexOf(k)).filter((i) => i >= 0));
+      expect(b.indexOf('await gate(')).toBeGreaterThanOrEqual(0);
+      expect(b.indexOf('await gate(')).toBeLessThan(firstCall);
+    }
+    expect(embed).toMatch(/record\?\.request\(`\/ai\/run\/\$\{MODEL\}`\)/);
+  });
+
+  it('p5-live and p6-live run through recordedLiveRun unless they only plan, and count each request they send', () => {
+    for (const [f, flag] of [['p5-live.mjs', 'dryRun'], ['p6-live.mjs', 'plan']]) {
+      const s = src(f);
+      expect(s).toContain(`opts.${flag} ? await run(opts) : await recordedLiveRun('${f.replace('.mjs', '')}', opts, run)`);
+      expect(s).toMatch(/opts\.onSend\?\.\(/);
+    }
+  });
+});

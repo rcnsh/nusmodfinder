@@ -42,6 +42,7 @@ describe('requests.tsv totals', () => {
     expect(statedCalls('30 exchange /search calls on version efd3dc25, plus 7 re-sends')).toBe(30);
     expect(statedCalls('guard read 6,778 D1 rows; 2 Cloudflare API calls')).toBe(2);
     expect(statedCalls('1,234 requests')).toBe(1234);
+    expect(statedCalls('6,771 texts in 68 requests, 2,187.1 neurons')).toBe(68);
     expect(statedCalls('/health + 3 /search')).toBeNull();
     expect(statedCalls('count not recorded')).toBeNull();
   });
@@ -49,9 +50,11 @@ describe('requests.tsv totals', () => {
   it('the committed TSV: rows 1-131 as they were, then the back-fill and the corrections, each marked', () => {
     const lines = readFileSync(TSV, 'utf8').trimEnd().split('\n');
     const rows = lines.slice(1).map((l) => l.split('\t'));
-    expect(rows.map((r) => Number(r[0]))).toEqual(rows.map((_, i) => i + 1));
-    expect(rows[130][2]).toMatch(/^Phase 7 7-0 GraphQL Analytics/);
-    const later = rows.slice(131);
+    // Rows up to 131 keep their ids (the oldest use b1-style ids); the back-fill numbers on from 132.
+    const last = rows.findIndex((r) => r[0] === '131');
+    expect(rows[last][2]).toMatch(/^Phase 7 7-0 GraphQL Analytics/);
+    const later = rows.slice(last + 1);
+    expect(later.map((r) => Number(r[0]))).toEqual(later.map((_, i) => 132 + i));
     expect(later.length).toBeGreaterThanOrEqual(8);
     for (const r of later) expect(`${r[2]} ${r[3]}`).toMatch(/back-filled|correction/i);
     expect(later.some((r) => /a6103634/.test(r[2]) && /a7b90f4/.test(r[2]))).toBe(true);

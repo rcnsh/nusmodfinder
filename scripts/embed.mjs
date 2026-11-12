@@ -6,7 +6,10 @@
 // printed; the account id from $CLOUDFLARE_ACCOUNT_ID or `wrangler whoami`.
 // Every run estimates its cost from token counts first (1,841 neurons per
 // million tokens), refuses to start above the cap, and logs the estimate to
-// docs/evidence/neurons.tsv.
+// docs/evidence/neurons.tsv. A run that passes the gate (not a dry run) also
+// writes a run record (scripts/run-record.mjs, Phase 7 7C) on every exit path:
+// the estimate, each REST call by path (never the account id), the outcome.
+// Counts only: no query text reaches the record.
 //
 //   npm run eval:embed                        dev queries (+ texts a failed run reported missing)
 //   npm run eval:embed -- --set holdout       same, encrypted cache (custodian only)
@@ -43,6 +46,7 @@ import {
 } from '../eval/lib/embeddings.mjs';
 import { REPO, layout, loadQueries, setFile, setKey } from '../eval/lib/sets.mjs';
 import { buildWorkspace } from '../eval/lib/workspace.mjs';
+import { startRun } from './run-record.mjs';
 
 const BATCH = 100;
 const QUERY_CAP = 500;
@@ -65,6 +69,9 @@ const { values: a } = parseArgs({
     sc4: { type: 'boolean', default: false },
   },
 });
+
+/** This run's record, once the gate has passed (scripts/run-record.mjs). @type {import('./run-record.mjs').RunRecord | null} */
+let record = null;
 
 /** The SC4 runner's corrected-form cache (test/full/sc4.test.js reads it beside the P-6 caches). */
 const SC4_CORRECTED = join(REPO, 'test/fixtures/sc4-corrected-embeddings.json');
@@ -90,6 +97,8 @@ function estimate(texts) {
  * @param {string} note
  */
 async function logSpend(mode, est, note) {
+  record?.read(`Workers AI neurons (${mode}; estimated from tokens)`, { estimate: Number(est.neurons.toFixed(1)) });
+  record?.detail('texts', (Number(record.data.details.texts) || 0) + est.texts);
   if (!existsSync(LOG)) await writeFile(LOG, 'date\tmode\ttexts\test_tokens\test_neurons\trequests\tnote\n');
   await appendFile(LOG, `${new Date().toISOString()}\t${mode}\t${est.texts}\t${est.tokens}\t${est.neurons.toFixed(1)}\t${est.requests}\t${note}\n`);
 }
@@ -122,6 +131,7 @@ function credentials() {
 async function embedBatch(cred, texts) {
   const url = `https://api.cloudflare.com/client/v4/accounts/${cred.account}/ai/run/${MODEL}`;
   for (let attempt = 1; ; attempt++) {
+    record?.request(`/ai/run/${MODEL}`);
     const res = await fetch(url, {
       method: 'POST',
       headers: { authorization: `Bearer ${cred.token}`, 'content-type': 'application/json' },
@@ -176,6 +186,11 @@ async function gate(mode, texts) {
   console.log(`${mode}: ${est.texts} texts, ~${est.tokens} tokens, ~${est.neurons.toFixed(1)} neurons (cap ${cap}), ${est.requests} requests`);
   if (est.neurons > cap) fail(`estimated ${est.neurons.toFixed(1)} neurons exceeds the cap of ${cap}`);
   if (a['dry-run']) { console.log('dry run: no calls made'); process.exit(0); }
+  // The first remote call follows: from here every exit leaves a run record.
+  record = startRun('eval:embed', { target: `api.cloudflare.com Workers AI REST (${MODEL})`, args: process.argv.slice(2) });
+  record.detail('mode', mode.split(' (')[0]);
+  record.detail('estimate', { texts: est.texts, tokens: est.tokens, neurons: Number(est.neurons.toFixed(1)), requests: est.requests });
+  record.guardExit();
   return est;
 }
 

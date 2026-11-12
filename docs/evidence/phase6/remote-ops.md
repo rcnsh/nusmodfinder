@@ -3,7 +3,16 @@
 Every remote operation, reads included, with its estimate and actual. Times are UTC. Headroom
 rule: ADR 0004 (`estimate × 1.5 <` the month's remaining included allowance).
 
+> **Correction (Phase 7 7C, 2026-11-12).** The headings below say 2026-11-12, but the times in
+> their tables are UTC on 2026-11-11: the Phase 6 ship ran 18:38–18:40 and the live check
+> 19:16–19:19 on 2026-11-11 (`0b5f360`, the commit deployed, was committed at 18:37:35 UTC on
+> 2026-11-11). The red-team follow-up ran from 23:58:49 on 2026-11-11 to 00:00:02 on 2026-11-12
+> (`a23601d` was committed at 23:58:29 UTC on 2026-11-11). `requests.tsv` rows 124, 125 and 127
+> carry the same slip; row 143 there corrects them. The headings stay as written.
+
 ## 2026-11-12: the Phase 6 ship (6A–6D, code-only)
+
+> Correction: 2026-11-11 UTC (see the note above).
 
 | Time | Step | Estimate | Actual |
 |---|---|---|---|
@@ -19,11 +28,15 @@ page keeps `pick` and `alt` but drops `ay`, `inv` and `view` from a link it sett
 
 ## 2026-11-12: the live check
 
+> Correction: 2026-11-11 UTC (see the note above).
+
 | Time | Step | Estimate | Actual |
 |---|---|---|---|
 | 19:16:16–19:19:09 | `node scripts/p6-live.mjs` on version `f8aefeab` (`requests.tsv` 125, `p6-live.jsonl`): `/facets`, 8 `/module` for a 6-pick, 2-backup list across Sem 1 and 2, 3 `/module` 404s (one of each kind), then the page's files once; Chromium and WebKit fulfilled from memory | ~43 calls | 43 sent (12 API, 31 page files), one at a time, ≥ 4 s apart; **18 of 18 checks pass** |
 
 ## 2026-11-12: the red-team follow-up (code-only)
+
+> Correction: 2026-11-11 23:58 to 2026-11-12 00:00 UTC (see the note above).
 
 | Time | Step | Estimate | Actual |
 |---|---|---|---|

@@ -5,6 +5,8 @@
 // Cloudflare service. Fakes for those bindings live in test/fakes.js.
 import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-plugin';
 import { existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
 import { pinnedGroupsPath } from './scripts/build-groups.mjs';
@@ -152,6 +154,9 @@ export default defineConfig(async () => {
             name: 'node',
             environment: 'node',
             include: [NODE_TESTS],
+            // Phase 7 7C: scripts write run records; a test run's go to a temp dir, never
+            // docs/evidence/ops/runs/ (scripts/run-record.mjs also refuses that under Vitest).
+            env: { VNM_RUNS_DIR: join(tmpdir(), 'vnm-test-runs') },
           },
         },
       ],
