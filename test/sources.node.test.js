@@ -153,6 +153,9 @@ describe('publish and restore', () => {
   });
 });
 
+/** The newest revision of a manifest read as JSON (untyped, as the tests edit it). @param {any} m @returns {any} */
+const latestOf = (m) => latestRevision(m);
+
 // Red team L-4 (docs/evidence/phase7/redteam.md): no file name in the manifest was checked, so
 // `../escaped.png` was read from outside --from at publish and written outside the restore dir.
 describe('manifest file names are plain base names (red team L-4)', () => {
@@ -171,7 +174,7 @@ describe('manifest file names are plain base names (red team L-4)', () => {
   /** Renames one document's `file` (and the rules file's key for it, so the two agree). @param {string} name */
   const rename = (name) => {
     const m = readJson(root, `data/ng-sources-${Y}.json`);
-    const doc = /** @type {any} */ (latestRevision(m)?.documents.find((/** @type {any} */ d) => d.file === 'law-compulsory-llb-courses.png'));
+    const doc = /** @type {any} */ (latestOf(m)?.documents.find((/** @type {any} */ d) => d.file === 'law-compulsory-llb-courses.png'));
     doc.file = name;
     writeJson(root, `data/ng-sources-${Y}.json`, m);
     const rules = readJson(root, `data/ng-restrictions-${Y}.json`);
@@ -208,8 +211,8 @@ describe('manifest file names are plain base names (red team L-4)', () => {
     const m = readJson(root, `data/ng-sources-${Y}.json`);
     for (const bad of ['a/b.pdf', 'a\\b.pdf', '..', 'x..pdf', '/etc/passwd', 'C:\\x.pdf', 'a\u0000.pdf', '', '.']) {
       const copy = structuredClone(m);
-      latestRevision(copy).documents[0].file = bad;
-      latestRevision(copy).documents[1].text = bad;
+      latestOf(copy).documents[0].file = bad;
+      latestOf(copy).documents[1].text = bad;
       const problems = manifestProblems(copy, Y);
       expect(problems.filter((p) => p.includes('not a plain file name')), JSON.stringify(bad)).toHaveLength(2);
     }
@@ -222,7 +225,7 @@ describe('manifest file names are plain base names (red team L-4)', () => {
     const r = await publish({ from, root, key, upload: releases.upload, runsDir: join(dir, 'runs'), log: () => {} });
     // An archive sealed with the same key, year and revision whose first entry is a path.
     const m = readJson(root, `data/ng-sources-${Y}.json`);
-    const rev = latestRevision(m);
+    const rev = latestOf(m);
     const entries = archivedFiles(rev).map((f) => ({ name: f.name, bytes: readFileSync(join(from, f.name)) }));
     entries[0] = { name: `../${entries[0].name}`, bytes: entries[0].bytes };
     const archive = seal({ year: Y, revision: rev.date, files: entries, key: Buffer.from('ab'.repeat(32), 'hex') });
@@ -261,10 +264,10 @@ describe('text extractions are pinned by textSha256 (red team L-5)', () => {
 
   it('a published revision with a text and no textSha256 is a manifest problem; a pending one is not (publish writes it)', () => {
     const m = readJson(REPO, `data/ng-sources-${Y}.json`);
-    const doc = latestRevision(m).documents.find((/** @type {any} */ d) => d.text);
+    const doc = latestOf(m).documents.find((/** @type {any} */ d) => d.text);
     delete doc.textSha256;
     expect(manifestProblems(m, Y)).toContainEqual(expect.stringMatching(new RegExp(`${doc.id}'s text ${doc.text.replaceAll('.', '\\.')} has no textSha256`)));
-    latestRevision(m).archive = { ...latestRevision(m).archive, sha256: null, pending: 'not yet' };
+    latestOf(m).archive = { ...latestOf(m).archive, sha256: null, pending: 'not yet' };
     expect(manifestProblems(m, Y).filter((p) => p.includes('textSha256'))).toEqual([]);
     doc.textSha256 = 'nothex';
     expect(manifestProblems(m, Y)).toContainEqual(expect.stringMatching(/textSha256 is not 64 hex/));
@@ -291,22 +294,22 @@ describe('text extractions are pinned by textSha256 (red team L-5)', () => {
       releases = fakeReleases(join(dir, 'releases'));
     });
     const doPublish = () => publish({ from: docs, root, key: keyFile, upload: releases.upload, runsDir: join(dir, 'runs'), log: () => {} });
-    const textDoc = () => latestRevision(readJson(root, `data/ng-sources-${Y}.json`)).documents.find((/** @type {any} */ d) => d.text === TEXT);
+    const textDoc = () => latestOf(readJson(root, `data/ng-sources-${Y}.json`)).documents.find((/** @type {any} */ d) => d.text === TEXT);
 
     it('publish writes each text\'s textSha256; every archived file is then pinned', async () => {
       const m = readJson(root, `data/ng-sources-${Y}.json`);
-      delete latestRevision(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256;
+      delete latestOf(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256;
       writeJson(root, `data/ng-sources-${Y}.json`, m);
       expect(textDoc().textSha256).toBeUndefined();
       await doPublish();
       expect(textDoc().textSha256).toBe(sha256(files[TEXT]));
-      const rev = latestRevision(readJson(root, `data/ng-sources-${Y}.json`));
+      const rev = latestOf(readJson(root, `data/ng-sources-${Y}.json`));
       expect(archivedFiles(rev).filter((f) => f.sha256 === null)).toEqual([]);
     });
 
     it('publish refuses a text whose bytes are not its textSha256', async () => {
       const m = readJson(root, `data/ng-sources-${Y}.json`);
-      latestRevision(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256 = sha256('another extraction');
+      latestOf(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256 = sha256('another extraction');
       writeJson(root, `data/ng-sources-${Y}.json`, m);
       await expect(doPublish()).rejects.toThrow(new RegExp(`${TEXT.replaceAll('.', '\\.')}: sha256 [0-9a-f]{64}, not the manifest's`));
     });
@@ -314,7 +317,7 @@ describe('text extractions are pinned by textSha256 (red team L-5)', () => {
     it('restore refuses an archive whose text is not its textSha256, and refuses an unpinned text', async () => {
       await doPublish();
       const m = readJson(root, `data/ng-sources-${Y}.json`);
-      const doc = latestRevision(m).documents.find((/** @type {any} */ d) => d.text === TEXT);
+      const doc = latestOf(m).documents.find((/** @type {any} */ d) => d.text === TEXT);
       doc.textSha256 = sha256('another extraction');
       writeJson(root, `data/ng-sources-${Y}.json`, m);
       await expect(restore({ root, key: keyFile, download: releases.download, log: () => {} })).rejects.toThrow(new RegExp(`${TEXT.replaceAll('.', '\\.')}: sha256`));
@@ -332,7 +335,7 @@ describe('text extractions are pinned by textSha256 (red team L-5)', () => {
       expect(() => buildRestrictions({ ...inputs, sources: dirReader(docs) })).toThrow(new RegExp(`${TEXT.replaceAll('.', '\\.')}: sha256 [0-9a-f]{64} does not match the source manifest's textSha256`));
       writeFileSync(join(docs, TEXT), files[TEXT]);
       const m = readJson(root, `data/ng-sources-${Y}.json`);
-      delete latestRevision(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256;
+      delete latestOf(m).documents.find((/** @type {any} */ d) => d.text === TEXT).textSha256;
       writeJson(root, `data/ng-sources-${Y}.json`, m);
       await expect(loadInputs({ year: Y, root }).then((i) => buildRestrictions({ ...i, sources: dirReader(docs) }))).rejects.toThrow(/has no textSha256/);
     });

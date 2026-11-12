@@ -25,6 +25,7 @@ export const TOKEN = 'cf-token-NEVER-PRINT-ME-0123456789';
  * A `modules` row as /admin/ingest writes it: every ROW_COLUMNS column and the row_hash of exactly
  * those values (src/rowhash.js), so the guard's recomputation (red team M-1) agrees with it.
  * @param {{ code: string, title: string, description: string, textHash: string, credits?: number }} m
+ * @returns {Promise<import('../src/rowhash.js').ModuleRow & { row_hash: string }>}
  */
 export async function d1Row({ code, title, description, textHash, credits = 4 }) {
   /** @type {import('../src/rowhash.js').RowFields} */
@@ -33,7 +34,7 @@ export async function d1Row({ code, title, description, textHash, credits = 4 })
     workload: null, prerequisite: null, preclusion: null, acadYear: '2026-2027', textHash, ng: false,
   };
   const tuple = boundTuple(fields);
-  return { ...Object.fromEntries(ROW_COLUMNS.map((c, i) => [c, tuple[i]])), row_hash: await rowHash(fields) };
+  return /** @type {any} */ ({ ...Object.fromEntries(ROW_COLUMNS.map((c, i) => [c, tuple[i]])), row_hash: await rowHash(fields) });
 }
 
 /** D1 as runbook step 4 left it, and the production bundle built for it. */
