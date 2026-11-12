@@ -150,7 +150,9 @@ describe('runbook step 5: verify --pre-deploy', () => {
     expect(r).toMatchObject({ ok: true, d1Rows: fixture.modules.length, bundleRows: fixture.modules.length, missingInBundle: [], extraInBundle: [], fieldDrift: [] });
     expect(new Set(Object.values(r.rowsKey)).size).toBe(1);
     expect(new Set(Object.values(r.dataVersion)).size).toBe(1);
-    expect(r.rowsRead).toBe(fixture.modules.length);
+    // Every module row, plus 7D's catalogueKey read of catalogue_only, counted as D1 bills it.
+    const catalogueRead = (await env.DB.prepare('SELECT code FROM catalogue_only').all()).meta.rows_read;
+    expect(r.rowsRead).toBe(fixture.modules.length + catalogueRead);
     noRemoteCalls();
   });
 
