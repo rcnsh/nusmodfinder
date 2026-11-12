@@ -29,6 +29,8 @@ describe('ops', () => {
     for (const step of ['npm run lint', 'npm run typecheck', 'npm run types:check', 'npm test', 'npm run db:rebuild-check']) {
       expect(ci).toContain(`run: ${step}`);
     }
+    // Phase 7 7A: the eval gate.
+    expect(ci).toContain('run: npm run eval:lock -- --check --base');
   });
 
   it('[O3 fixed] the NG list date has one source: ingest posts it from data/ng-courses-*.json, no copy is kept by hand', () => {
@@ -75,23 +77,19 @@ describe('ops', () => {
 });
 
 describe('eval (S1)', () => {
-  it('[S1 known-bug] held-out relevance is a regex over titles, recall@10 ignores order, and hybrid MRR trails lexical', () => {
-    const judge = read('eval/v1/judge-holdout.mjs');
-    const rules = judge.match(/rule: \(m\) => [^\n]+/g) ?? [];
-    expect(rules).toHaveLength(12);
-    // 11 of 12 are a regex over the title; h1 is a department check.
-    expect(rules.filter((r) => /^rule: \(m\) => \/.*\/i\.test\(m\.title\)/.test(r))).toHaveLength(11);
-
-    const evalSrc = read('eval/v1/eval.mjs');
-    expect(evalSrc).toContain("const K = Number(arg('k', fixture.k ?? 10));");
-    expect(evalSrc).toContain('recall: h / q.relevant.length,');
-    // Production returns 20 from a candidate depth of up to 50.
-    expect(worker).toContain('const DEFAULT_TOPK = 20;');
-    expect(worker).toContain('const MAX_TOPK = 50;');
-
-    const evalMd = read('EVAL.md');
-    expect(evalMd).toMatch(/MRR\s+0\.833\s+0\.674\s+0\.903\s+0\.820/);
-    expect(evalMd).toContain('`ORDER BY rank` has not been re-run against these fixtures');
+  it('[S1 fixed] the eval gate\'s lists come from eval/dev (v2, judged qrels) and the fixture, never from eval/v1/', async () => {
+    const { LOCK_INPUTS, LOCK_PATH, SEEDS } = await import('../../eval/lib/ranking-lock.mjs');
+    const lock = JSON.parse(read(LOCK_PATH));
+    expect(Object.keys(lock.lists).sort()).toEqual(['dev', 'fixture']);
+    expect(SEEDS.dev.dir).toBe('eval/dev');
+    expect(SEEDS.fixture.dir).toBe('eval/fixtures');
+    // Every dev query in each mode, and nothing else: the v2 set, judged.
+    const dev = JSON.parse(read('eval/dev/queries.json')).queries.map((/** @type {{ id: string }} */ q) => q.id).sort();
+    for (const mode of ['filtered', 'strip-ng', 'unfiltered']) expect(Object.keys(lock.lists.dev[mode]).sort()).toEqual(dev);
+    expect(JSON.parse(read('eval/dev/qrels.json')).version).toMatch(/^qrels-dev-v\d+$/);
+    const v1 = JSON.parse(read('eval/v1/queries.json')).queries.map((/** @type {{ id: string }} */ q) => q.id);
+    for (const id of v1) expect(dev).not.toContain(id);
+    expect(LOCK_INPUTS.some((/** @type {string} */ p) => p.startsWith('eval/v1'))).toBe(false);
   });
 });
 

@@ -67,7 +67,9 @@ beforeEach(async () => {
   // The committed log's header, without its real rows: each test starts from an empty log.
   if (existsSync(join(REPO, 'eval', 'count-log.md'))) {
     const log = await readFile(join(REPO, 'eval', 'count-log.md'), 'utf8');
-    await writeFile(cloneCountLog(), `${log.slice(0, log.indexOf('|---|'))}|---|---|---|---|---|\n`);
+    const header = log.slice(0, log.indexOf('|---|'));
+    const columns = (header.trim().split('\n').pop()?.match(/\|/g)?.length ?? 6) - 1;
+    await writeFile(cloneCountLog(), `${header}|${'---|'.repeat(columns)}\n`);
   }
 });
 
@@ -148,7 +150,7 @@ describe('eval:count prints one integer and logs the call', () => {
     expect(r.stderr).toBe('');
     expect(r.code).toBe(0);
     expect(r.stdout).toBe(`${ANSWERABLE + 1}\n`);
-    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'test', 'count: answerable', '—', String(ANSWERABLE + 1)]]);
+    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'test', 'count: answerable', '—', String(ANSWERABLE + 1), '—']]);
     // Not a look: the ledger is byte-for-byte unchanged.
     expect(await readFile(cloneLedger(), 'utf8')).toBe(ledgerBefore);
     expect(await looks(cloneLedger(), 'test')).toBe(looksBefore);
@@ -160,7 +162,7 @@ describe('eval:count prints one integer and logs the call', () => {
     const r = count(['--custodian', '--holdout', '--set-dir', dir, '--emptied-untagged', '--run', 'cand']);
     expect(r.stderr).toBe('');
     expect(r.stdout).toBe('4\n');
-    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'holdout', 'count: emptied-untagged', 'cand', '4']]);
+    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'holdout', 'count: emptied-untagged', 'cand', '4', '—']]);
     expect(await looks(cloneLedger(), 'holdout')).toBe(looksBefore);
     // A second call appends a second row.
     expect(count(['--custodian', '--holdout', '--set-dir', dir, '--emptied-untagged', '--run', 'base']).stdout).toBe('0\n');
@@ -175,7 +177,7 @@ describe('eval:count prints one integer and logs the call', () => {
     expect(r.stderr).toBe('');
     expect(r.code).toBe(0);
     expect(r.stdout).toBe('6\n');
-    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'holdout', 'count: lists-differing', 'cand vs base', '6']]);
+    expect(await rowsOf(cloneCountLog())).toEqual([[today(), 'holdout', 'count: lists-differing', 'cand vs base', '6', '—']]);
     expect(await looks(cloneLedger(), 'holdout')).toBe(looksBefore);
     // A run against itself, and a byte-identical copy under another name: 0.
     expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'base', '--baseline', 'base']).stdout).toBe('0\n');
@@ -213,9 +215,9 @@ describe('eval:count prints one integer and logs the call', () => {
     expect(count(['--custodian', '--holdout', '--set-dir', dir, '--lists-differing', '--run', 'repswap', '--baseline', 'repbase']).stdout).toBe('2\n');
     expect(byGroup('regroup').stdout).toBe('3\n');
     expect(await rowsOf(cloneCountLog())).toEqual([
-      [today(), 'holdout', 'count: lists-differing-by-group', 'repswap vs repbase', '0'],
-      [today(), 'holdout', 'count: lists-differing', 'repswap vs repbase', '2'],
-      [today(), 'holdout', 'count: lists-differing-by-group', 'regroup vs repbase', '3'],
+      [today(), 'holdout', 'count: lists-differing-by-group', 'repswap vs repbase', '0', '—'],
+      [today(), 'holdout', 'count: lists-differing', 'repswap vs repbase', '2', '—'],
+      [today(), 'holdout', 'count: lists-differing-by-group', 'regroup vs repbase', '3', '—'],
     ]);
     expect(await looks(cloneLedger(), 'holdout')).toBe(looksBefore);
   });
@@ -268,7 +270,7 @@ describe('eval:count refuses, printing nothing on stdout and logging nothing', (
     [['--change-kind', 'general']],
     [['report']],
   ])('with %j, which could print ids or metrics', async (extra) => {
-    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--run', 'cand', ...extra], /^eval:count: .*eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged, --lists-differing, --by-group, --run and --baseline/);
+    await refused(['--custodian', '--holdout', '--set-dir', holdoutDir, '--emptied-untagged', '--run', 'cand', ...extra], /^eval:count: .*eval:count takes only --custodian, --set, --holdout, --set-dir, --answerable, --emptied-untagged, --lists-differing, --by-group, --run, --baseline and --route/);
   });
 
   it('without exactly one count, or with a count the set does not have', async () => {

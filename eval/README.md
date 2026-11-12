@@ -55,6 +55,9 @@ npm run eval:count -- --custodian --holdout --emptied-untagged --run <variant>
 npm run eval:count -- --custodian --holdout --lists-differing --run <A> --baseline <B>
 npm run eval:count -- --custodian --holdout --lists-differing --by-group --run <A> --baseline <B>
 npm run eval:representatives -- --set dev --run <cand> --baseline <pin>   # representative-only changes: group identity on an open set
+npm run eval:count -- … --route <route>                   # also: the ADR 0003 no-look route, in the count log's route column
+npm run eval:lock -- --check                              # CI's eval gate: the ranking lock (docs/REFERENCE.md "The ranking lock")
+npm run eval:lock -- --evidence <kind> <ref>              # a ranking change: rewrite the lock with its evidence
 npm run eval:phrases -- list                              # 5F: every dev query the frozen reference parse reads
 npm run eval:phrases -- screen --candidate <ref>          # 5F: the dev screen (runs, the compliance rule, the B2-4 diagnostic)
 npm run eval:report -- --run <cand> --baseline <pin> --change-kind compliance   # 5F's rule on stored runs
@@ -514,8 +517,11 @@ outside `--custodian`, `--set`, `--holdout`, `--set-dir`, `--answerable`, `--emp
 
 All of them read their ciphertexts through the manifest check. A run must have been made on the set's
 current queries (`RunFileError`). Any failure prints only `eval: <set> count failed
-(<ErrorClass>); details withheld`. Each call appends `| date | set | count: <kind> | run | n |`
-to `eval/count-log.md` (for `selftest`, `<set-dir>/count-log.md`). Commit it with the work the
+(<ErrorClass>); details withheld`. Each call appends `| date | set | count: <kind> | run | n | route |`
+to `eval/count-log.md` (for `selftest`, `<set-dir>/count-log.md`); `route` is `--route`'s ADR 0003
+no-look route, or `—` (amendment 2026-11-12). `eval:representatives -- --route <route>` appends one
+row too, on a pass only (with `--set-dir`, in that directory). A ranking-lock change cites such a
+row once: `eval:lock -- --evidence no-look <row>`. Commit it with the work the
 count served. The ledger never reads the count log, and it refuses a row carrying a `count: …`
 cell (`LedgerTamperError`), so a count can never be recorded or spent as a look.
 
