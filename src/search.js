@@ -711,7 +711,7 @@ const INTENT_PARAMS = /** @type {const} */ (['exam', 'su', 'hoursBelow', 'prereq
 /** How deep the standby reads `related` under a 3H constraint: the dense path's cap. */
 const STANDBY_RELATED_DEPTH = 50;
 /** The catalogue text embedded for `related` is cut here (bge-small reads ~512 tokens anyway). */
-const RELATED_TEXT_CHARS = 2000;
+const RELATED_TEXT_CHARS = 2_000;
 
 /**
  * A catalogue-only module's text for `related`: title and description, each
@@ -788,8 +788,8 @@ async function runSearch({ q, echo: requestEcho, filter, mode, topK, ignore }, e
   // 5C-api: the typed codes the page explains. `notOffered` comes from the
   // parse (no read); `hiddenPins` is filled by the search route's pin lookup.
   // 6A: an NG-listed code with no classes (src/ng-unscheduled.js) is not
-  // offered, even where data/catalogue-codes.json (built from the pinned
-  // release) lacks it and the parse calls it unknown. The parse is untouched,
+  // offered, even where the bundled catalogue (`catalogue-codes-data`) lacks
+  // it and the parse calls it unknown (the pinned one the tests use lacks 9). The parse is untouched,
   // so no ranking changes.
   const noClasses = unscheduled();
   const notOffered = parsed.codes

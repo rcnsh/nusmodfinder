@@ -35,8 +35,8 @@ const { bundle } = await loadCheckedBundle(entry);
 const { modules } = await loadPinnedCorpus();
 const codes = new Set(bundle.codes);
 const ctx = buildIntentContext({
-  prefixes: Object.keys(read('data/prefixes.json').prefixes),
-  catalogueCodes: read('data/catalogue-codes.json').codes,
+  prefixes: Object.keys(read('data/pinned/prefixes.json').prefixes),
+  catalogueCodes: read('data/pinned/catalogue-codes.json').codes,
   collision: read('data/collision-list.json').list,
   ge: read('data/ge-pillars.json'),
   stopwords: STOPWORDS_IN_FORCE,

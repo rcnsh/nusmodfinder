@@ -24,7 +24,7 @@
 // (storedEligibility with the year's rules). The pinned file is never
 // committed: vitest.config.mjs builds it for test/full and test/sc1
 // (pinnedNgUnscheduledPath).
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -34,7 +34,7 @@ import { GROUPS_VERSION, buildGroups } from '../src/groups.js';
 import { NG_UNSCHEDULED_SCHEMA, serializeNgUnscheduled } from '../src/ng-unscheduled-file.js';
 import { moduleWorkload } from '../src/workload.js';
 import { assertProductionCorpus, corpusDataVersion } from './build-vocabulary.mjs';
-import { CORPUS_MANIFEST_PATH, PROD_DIR, corpusPath, currentEntry, productionCorpus, readCorpusManifest } from './corpus-manifest.mjs';
+import { CORPUS_MANIFEST_PATH, PROD_DIR, corpusPath, currentEntry, productionCorpus } from './corpus-manifest.mjs';
 import { DEFAULT_ACAD_YEAR, loadNgCourses, normalise } from './lib.mjs';
 import { loadPinnedCorpus } from './pinned-corpus.mjs';
 
@@ -52,7 +52,7 @@ export const OUTPUTS = Object.freeze({
 export const FIXTURE_SOURCE = 'test/fixtures/ng-unscheduled-source.json';
 
 /** Where the production build reads `current` from (Phase 7 7D, `npm run corpus -- restore`). */
-export const productionCorpusPath = async () => corpusPath(currentEntry(await readCorpusManifest(CORPUS_MANIFEST_PATH)), PROD_DIR);
+export const productionCorpusPath = () => corpusPath(currentEntry(JSON.parse(readFileSync(CORPUS_MANIFEST_PATH, 'utf8'))), PROD_DIR);
 
 /**
  * The file for `codes`, NG-listed codes with no offered row.

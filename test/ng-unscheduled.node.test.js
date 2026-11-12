@@ -52,10 +52,13 @@ describe('data/ng-unscheduled.json', () => {
     expect(production.modules.map((e) => e.code)).toEqual([...production.modules.map((e) => e.code)].sort());
   });
 
-  it('holds 40 codes today, 9 of them missing from data/catalogue-codes.json', () => {
+  it('holds 40 codes today, every one in data/catalogue-codes.json now that it follows the same corpus (Phase 7 7D)', () => {
     expect(production.count).toBe(40);
     const catalogue = new Set(read('data/catalogue-codes.json').codes);
-    expect(production.modules.map((e) => e.code).filter((c) => !catalogue.has(c)))
+    expect(production.modules.map((e) => e.code).filter((c) => !catalogue.has(c))).toEqual([]);
+    // The pinned catalogue (the eval's corpus) misses 9 of them, as it always did.
+    const pinned = new Set(read('data/pinned/catalogue-codes.json').codes);
+    expect(production.modules.map((e) => e.code).filter((c) => !pinned.has(c)))
       .toEqual(['EE4438', 'FIN3701B', 'GEX1004', 'ID2120', 'LSM1303', 'PH2301', 'PL3268', 'SN2278', 'TRA2101']);
   });
 
@@ -94,7 +97,7 @@ describe('data/ng-unscheduled.json', () => {
     }
   });
 
-  const restored = existsSync(await productionCorpusPath());
+  const restored = existsSync(productionCorpusPath());
   const why = '`current` is not restored here (npm run corpus -- restore); CI checks the masks above';
   it.skipIf(!restored)(`is what the build writes from \`current\`, with exactly the NG codes that have no offered row (skipped when ${why})`, async () => {
     expect(await build('production')).toBe(readFileSync(new URL(`../${OUTPUTS.production}`, import.meta.url), 'utf8'));

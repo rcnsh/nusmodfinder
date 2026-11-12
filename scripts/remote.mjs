@@ -3,7 +3,7 @@
 // fresh `wrangler dev --remote` session (Phase 7 7C; scripts/remote-session.mjs):
 //
 //   npm run remote -- [--port <n>] <command…>
-//   npm run remote -- ingest --d1-only --offline
+//   npm run remote -- ingest --d1-only
 //   npm run remote -- verify --pre-deploy
 //   npm run remote -- vectors standby
 //

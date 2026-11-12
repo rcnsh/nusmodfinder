@@ -199,7 +199,7 @@ export function otherCodes(code) {
   return key === undefined ? [] : (members.get(key) ?? []).filter((c) => c !== code);
 }
 
-/** NUS's year label for an acad year: 2026-2027 -> 2026/27. @param {string} acadYear */
+/** NUS's year label for an acad year: YYYY-YYYY -> YYYY/YY. @param {string} acadYear */
 const yearLabel = (acadYear) => acadYear.replace(/^(\d{4})-\d{2}(\d{2})$/, '$1/$2');
 
 /** "Sem 1", "Sem 1 and Sem 2". @param {number[]} sems */

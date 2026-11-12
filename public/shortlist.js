@@ -134,8 +134,8 @@ export const APPLICANT_LINES = Object.freeze([
 /** NUS's form order: its heading's note, the browse-mode line and the full-year line. */
 export const FORM_LINES = Object.freeze({
   /**
-   * @param {string} year '2026/27', the rows' year
-   * @param {string} listDate the NG list's "updated as at" date from /facets ('01 Sep 2026'), '' if it failed
+   * @param {string} year 'YYYY/YY', the rows' year
+   * @param {string} listDate the NG list's "updated as at" date from /facets ('01 Sep YYYY'), '' if it failed
    */
   applicants: (year, listDate) => {
     const dated = listDate ? ` (the ${year} list is dated ${listDate.replace(/^0/, '')})` : '';
@@ -181,12 +181,12 @@ const FORM_TENTHS = 400;
 /** NUS's rate: 2.5 hours a week per unit (the Registrar's transcript legend; the brochure's 4 units for about 10 hours). */
 const HOURS_PER_UNIT = 2.5;
 
-/** '2026-2027' → '2026/27'. @param {string} ay */
+/** 'YYYY-YYYY' → 'YYYY/YY' (an acad year's label). @param {string} ay */
 export const yearLabel = (ay) => {
   const m = /^(\d{4})-\d{2}(\d{2})$/.exec(ay);
   return m ? `${m[1]}/${m[2]}` : ay;
 };
-/** '2026/27' → '2027/28'. @param {string} label */
+/** A year label → the next year's ('YYYY/YY' a year on). @param {string} label */
 function nextYear(label) {
   const m = /^(\d{4})\/(\d{2})$/.exec(label);
   return m ? `${Number(m[1]) + 1}/${String((Number(m[2]) + 1) % 100).padStart(2, '0')}` : 'a later year';
@@ -291,7 +291,7 @@ export function yearOf(list, answers) {
 }
 
 /**
- * "Made with 2026/27 courses; showing 2027/28's" when the link's `ay` isn't
+ * "Made with <the link's year> courses; showing <the rows' year>'s" when the link's `ay` isn't
  * the rows' year; '' otherwise (or before any row loads).
  * @param {string} ay the list's `ay`
  * @param {string} rowsYear the loaded rows' acad_year, '' before any

@@ -51,7 +51,7 @@ const ALLOWED = [
   { file: 'scripts/pinned-corpus.mjs', text: `export const PINNED_RELEASE = '${PINNED_RELEASE}';`, kind: 'pinned', why: 'the pinned corpus\'s release asset; checked to name the pinned year' },
   { file: 'public/preclusion.js', text: 'the cohorts from 2018 inclusive', kind: 'cited', why: 'an NUSMods prerequisite string, quoted as the example of what the parser skips' },
   { file: 'public/shortlist.js', text: 'NUS info sheet, 2018/19', kind: 'cited', why: 'NUS\'s exchange information sheet, cited by its own year' },
-  { file: 'public/shortlist.js', text: 'NUS\'s 2018/19 exchange information sheet', kind: 'cited', why: 'the same sheet, in the page\'s own words' },
+  { file: 'public/shortlist.js', text: '2018/19 exchange information sheet', kind: 'cited', why: 'the same sheet, in the page\'s own words' },
 ];
 
 /** A test that reads production or pinned data, so it is scanned. */
@@ -93,7 +93,8 @@ function scannedFiles() {
   if (r.status !== 0) throw new Error(r.stderr);
   return r.stdout.split('\n').filter((f) => f && TEXT.test(f)).filter((f) => {
     if (!f.startsWith('test/')) return true;
-    if (f === 'test/year-scan.node.test.js') return false;
+    // test/fixtures/ is fixture data: the fixture corpus, its snapshots and sources, a fixed year.
+    if (f === 'test/year-scan.node.test.js' || f.startsWith('test/fixtures/')) return false;
     return READS_REAL_DATA.test(readFileSync(join(ROOT, f), 'utf8'));
   });
 }

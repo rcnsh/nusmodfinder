@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { changedFiles, changes, decide, resolveBase } from '../scripts/ci-changes.mjs';
+import { DEFAULT_ACAD_YEAR } from '../scripts/lib.mjs';
 
 const ALL = { code: true, ui: true, grid: true, rollover: true };
 const NONE = { code: false, ui: false, grid: false, rollover: false };
@@ -17,7 +18,7 @@ describe('decide: which heavy jobs a diff needs', () => {
     ['a REFERENCE.md diff (npm test reads it, and check always runs)', ['docs/REFERENCE.md'], NONE],
     ['a root markdown diff', ['README.md', 'EVAL.md'], NONE],
     ['a public/ diff', ['public/app.js'], { code: true, ui: true, grid: false, rollover: true }],
-    ['a data/ diff', ['data/ng-courses-2026-2027.json'], { code: true, ui: true, grid: false, rollover: true }],
+    ['a data/ diff', [`data/ng-courses-${DEFAULT_ACAD_YEAR}.json`], { code: true, ui: true, grid: false, rollover: true }],
     ['a file the UI suite imports from test/web', ['test/web/rfc4180.node.mjs'], { code: true, ui: true, grid: false, rollover: true }],
     ['the SC1 oracle, which the UI suite imports', ['test/sc1/oracle.node.mjs'], { code: true, ui: true, grid: false, rollover: true }],
     ['a src/ diff', ['src/search.js'], ALL],

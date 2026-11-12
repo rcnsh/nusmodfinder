@@ -5,6 +5,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { DEFAULT_ACAD_YEAR } from '../../scripts/lib.mjs';
 
 const read = (/** @type {string} */ rel) => readFileSync(fileURLToPath(new URL(`../../${rel}`, import.meta.url)), 'utf8');
 const exists = (/** @type {string} */ rel) => existsSync(fileURLToPath(new URL(`../../${rel}`, import.meta.url)));
@@ -13,7 +14,7 @@ const exists = (/** @type {string} */ rel) => existsSync(fileURLToPath(new URL(`
 const worker = readdirSync(fileURLToPath(new URL('../../src', import.meta.url)))
   .filter((f) => f.endsWith('.js')).sort().map((f) => read(`src/${f}`)).join('\n');
 const readme = read('docs/REFERENCE.md');
-const ngList = JSON.parse(read('data/ng-courses-2026-2027.json'));
+const ngList = JSON.parse(read(`data/ng-courses-${DEFAULT_ACAD_YEAR}.json`));
 
 describe('ops', () => {
   it('[O1 fixed] the README rebuilds the schema from migrations/, which start at 0001 and include ng in the metadata loop', () => {

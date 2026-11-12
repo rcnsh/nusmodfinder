@@ -23,7 +23,7 @@
 //   --from <code>          only modules whose code sorts at or after <code> (resume a forced run)
 //   --write-budget <n>     stop before D1 rows written would pass n (default 40000, ADR 0002)
 //   --allow-mass-delete    proceed even if the run would delete > 5% of the codes D1 holds
-//   --allow-year-change    proceed even if D1 holds another acad year than --year (rewrites every row)
+//   --allow-year-change    proceed even if D1 holds another acad year than `current`'s (rewrites every row)
 //   --batch <n>            modules per /admin/ingest call (default 50, max 100)
 //   --concurrency <n>      parallel batches (default 4)
 //   --wait-timeout <dur>   how long to wait for Vectorize to apply the last mutation (default 10m)

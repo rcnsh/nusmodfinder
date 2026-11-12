@@ -1,10 +1,9 @@
 // @ts-check
 // scripts/ingest.mjs, the CLI around scripts/ingest-core.mjs: flags and their
 // defaults, exit codes, and src/data-version.json written only after a run
-// that finished. The Worker is a stub fetch; the corpus is three records in a
-// temporary cache directory, so nothing reaches api.nusmods.com or Cloudflare.
+// that finished. The Worker is a stub fetch; the corpus is three records as a
+// temporary `current` (Phase 7 7D), so nothing reaches api.nusmods.com or Cloudflare.
 import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -12,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { EventEmitter } from 'node:events';
 import { DATA_VERSION_PATH, acquireRunLock, dataVersionFile, fileStateStore, handleSignals, main, parseDuration, parseIngestArgs } from '../scripts/ingest.mjs';
 import { DEFAULTS } from '../scripts/ingest-core.mjs';
+import { writeCurrentCorpus } from './corpus-fake.node.mjs';
 import { offeredModules } from '../scripts/lib.mjs';
 import { dataVersion, rowHash } from '../src/rowhash.js';
 
@@ -74,16 +74,11 @@ function stubWorker({ schemaOk = true, writesPerModule = 5 } = {}) {
 
 /** @type {string} */
 let dir;
-/** @type {URL} */
-let cacheDir;
+/** @type {{ manifestPath: string, corpusDir: string }} */
+let corpus;
 beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), 'vnm-ingest-'));
-  cacheDir = new URL(`file://${dir}/`);
-  const body = JSON.stringify(records);
-  await writeFile(join(dir, `${Y}-moduleInfo.json`), body);
-  await writeFile(join(dir, `${Y}-moduleInfo.json.cache.json`), JSON.stringify({
-    url: 'x', etag: null, lastModified: null, fetchedAt: new Date().toISOString(), sha256: createHash('sha256').update(body).digest('hex'),
-  }));
+  corpus = await writeCurrentCorpus(dir, records);
 });
 afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
@@ -92,8 +87,8 @@ const run = async (argv, worker, o = {}) => {
   /** @type {string[]} */
   const lines = [];
   const dataVersionPath = join(dir, 'data-version.json');
-  const code = await main(['--year', Y, '--url', 'http://worker.test', ...argv], {
-    fetchImpl: worker.fetchImpl, log: (l) => lines.push(l), dataVersionPath, cacheDir, envVars: { INGEST_SECRET: 's' },
+  const code = await main(['--url', 'http://worker.test', ...argv], {
+    fetchImpl: worker.fetchImpl, log: (l) => lines.push(l), dataVersionPath, ...corpus, envVars: { INGEST_SECRET: 's' },
     statePath: o.statePath ?? join(dir, 'ingest-state.json'), ...(o.proc ? { proc: o.proc } : {}),
   });
   const written = await readFile(dataVersionPath, 'utf8').catch(() => null);
@@ -102,13 +97,12 @@ const run = async (argv, worker, o = {}) => {
 const state = async () => JSON.parse(await readFile(join(dir, 'ingest-state.json'), 'utf8').catch(() => '{}'));
 
 describe('scripts/ingest.mjs', () => {
-  it('defaults: write budget 40,000 (ADR 0002), cache max age 24 h, batches of 50', () => {
+  it('defaults: write budget 40,000 (ADR 0002), batches of 50; no cache, year or offline flag (Phase 7 7D: only `current`)', () => {
     const a = parseIngestArgs([], {});
     expect(a.options).toMatchObject({ writeBudget: 40_000, batchSize: 50, concurrency: 4, force: false, allowMassDelete: false });
-    expect(a.maxAgeMs).toBe(24 * 3_600_000);
-    expect(a.offline).toBe(false);
-    expect(parseIngestArgs(['--offline', '--max-age', '30m', '--write-budget', '500', '--allow-mass-delete'], {}))
-      .toMatchObject({ offline: true, maxAgeMs: 1_800_000, options: { writeBudget: 500, allowMassDelete: true } });
+    expect(parseIngestArgs(['--write-budget', '500', '--allow-mass-delete'], {}))
+      .toMatchObject({ options: { writeBudget: 500, allowMassDelete: true } });
+    for (const flag of [['--offline'], ['--max-age', '30m'], ['--year', Y]]) expect(() => parseIngestArgs(flag, {})).toThrow();
     expect(parseDuration('2d')).toBe(172_800_000);
     expect(parseDuration('12')).toBe(43_200_000);
     expect(() => parseIngestArgs(['--batch', '101'], {})).toThrow(/at most 100/);
@@ -298,8 +292,8 @@ describe('Phase 7 7B: ingest after a bookmark and a preflight', () => {
   const ingest = async (worker) => {
     /** @type {string[]} */
     const lines = [];
-    const code = await main(['--year', Y, '--url', 'http://worker.test'], {
-      fetchImpl: worker.fetchImpl, log: (l) => lines.push(l), dataVersionPath: join(dir, 'data-version.json'), cacheDir, envVars: { INGEST_SECRET: 's' },
+    const code = await main(['--url', 'http://worker.test'], {
+      fetchImpl: worker.fetchImpl, log: (l) => lines.push(l), dataVersionPath: join(dir, 'data-version.json'), ...corpus, envVars: { INGEST_SECRET: 's' },
       statePath: join(dir, 'ingest-state.json'), runsDir,
     });
     const files = (await readdir(runsDir)).filter((f) => f.includes('-ingest-'));

@@ -28,7 +28,7 @@ const record = (code, sems) => ({
 const RECORDS = [record('AA1001', [1]), record('AA1002', [2]), record('AA0999', []), record('AB0998', [])];
 const BODY = JSON.stringify(RECORDS);
 const SHA = createHash('sha256').update(BODY).digest('hex');
-const FETCHED = '2026-11-04T06:29:36.369Z';
+const FETCHED = '1999-11-04T06:29:36.369Z';
 const RELEASE = releaseName(Y, FETCHED);
 
 /** @type {string} */
@@ -48,13 +48,13 @@ async function manifest(o = {}) {
 
 describe('the manifest', () => {
   it('names its release prod-<year>-<UTC yyyymmdd of the fetch>', () => {
-    expect(releaseName('2026-2027', '2026-11-04T23:59:59Z')).toBe('prod-2026-2027-20261104');
+    expect(releaseName('1998-1999', '1999-11-04T23:59:59Z')).toBe('prod-1998-1999-19991104');
   });
 
   it('current is the entry ingest uses; a current with no entry is refused', async () => {
     const m = await readCorpusManifest(await manifest());
     expect(currentEntry(m)).toMatchObject({ release: RELEASE, sha256: SHA, year: Y });
-    expect(() => currentEntry({ ...m, current: 'prod-1999-2000-19990101' })).toThrow(/current/);
+    expect(() => currentEntry({ ...m, current: 'prod-1990-1991-19900101' })).toThrow(/current/);
   });
 
   it('loads current from .data/prod/<sha>.json, and refuses a missing file (naming restore) or a wrong sha', async () => {
@@ -71,10 +71,10 @@ describe('the manifest', () => {
   });
 
   it('refuses a current entry for another year than DEFAULT_ACAD_YEAR (one year source)', async () => {
-    const manifestPath = await manifest({ year: '2019-2020' });
+    const manifestPath = await manifest({ year: '1998-1999' });
     await mkdir(join(dir, 'prod'));
     await writeFile(corpusPath({ sha256: SHA }, join(dir, 'prod')), BODY);
-    await expect(loadCurrentCorpus({ manifestPath, dir: join(dir, 'prod') })).rejects.toThrow(/2019-2020/);
+    await expect(loadCurrentCorpus({ manifestPath, dir: join(dir, 'prod') })).rejects.toThrow(/1998-1999/);
   });
 });
 

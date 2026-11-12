@@ -34,7 +34,7 @@ export async function lexicalSearch(db, query, echo, limit, trace, terms) {
 // Filtered lexical search keeps at most this many FTS hits before joining
 // `modules` for the filters (docs/plans/phase1.md r2): the join costs one row
 // read per hit, so the cap bounds a filtered search at about 2 x FTS_CAP rows.
-export const FTS_CAP = 2000;
+export const FTS_CAP = 2_000;
 
 /**
  * @typedef {'sem' | 'level' | 'credits' | 'faculty' | 'ng'} FilterKey

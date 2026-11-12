@@ -108,7 +108,7 @@ export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, 
  *   api: import('./ingest-core.mjs').AdminApi, bundle: import('../src/vector-bundle.js').Bundle,
  *   manifest: { rowsKey: string, dataVersion: string }, committedDataVersion: string,
  *   knownReason: (id: string) => boolean, dataFiles: PreDeployDataFiles,
- *   catalogue: import('./catalogue-check.mjs').BundledCatalogue,
+ *   catalogue: { codes: string[] },
  * }} args `knownReason`: whether the reason texts this deploy ships know a rule id; `catalogue`: the bundled catalogue file
  * @returns {Promise<PreDeployReport>}
  */

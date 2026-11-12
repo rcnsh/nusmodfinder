@@ -222,16 +222,16 @@ jobs:
   # Phase 4 4E: SC1's path tests over the pinned corpus and bundle, in their
   # own job with their own timeout (docs/plans/phase4.md 4E, A2-5).
   sc1:
+    # Phase 7 7D: CI on the live year. sc1 and sc1-node run over production's
+    # corpus (`current` in data/corpus.json, restored from its release asset)
+    # and the production bundle and data files, not the pinned corpus.
     needs: changes
     if: ${{ !cancelled() && github.event.pull_request.draft != true }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       RUN: ${{ needs.changes.outputs.code != 'false' }}
-      FULL_CORPUS: '1'
-      PINNED_RELEASE: data-2026-2027-20260904
-      MODULE_INFO: .data/2026-2027-moduleInfo.json
-      MODULE_INFO_SHA256: 2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1
+      PRODUCTION_CORPUS: '1'
     steps:
       - name: Does the change touch code? (RUN=${{ env.RUN }})
         run: 'echo "sc1 runs: $RUN"'
@@ -244,41 +244,36 @@ jobs:
           cache: npm
       - if: env.RUN == 'true'
         run: npm ci
-      - name: Restore pinned corpus
+      - name: Restore the production corpus cache
         if: env.RUN == 'true'
-        id: corpus
         uses: actions/cache@v6
         with:
-          path: ${{ env.MODULE_INFO }}
-          key: corpus-${{ env.MODULE_INFO_SHA256 }}
-      - name: Download pinned corpus from the release (never api.nusmods.com)
-        if: env.RUN == 'true' && steps.corpus.outputs.cache-hit != 'true'
+          path: .data/prod
+          key: corpus-prod-${{ hashFiles('data/corpus.json') }}
+      - name: Restore `current` from its release asset, sha-checked (never api.nusmods.com)
+        if: env.RUN == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          dl="$(mktemp -d)"
-          gh release download "$PINNED_RELEASE" --repo "$GITHUB_REPOSITORY" --pattern '2026-2027-moduleInfo.json.gz' --dir "$dl"
-          mkdir -p .data
-          gunzip -c "$dl/2026-2027-moduleInfo.json.gz" > "$MODULE_INFO"
-      - name: Verify raw sha256
+        run: npm run corpus -- restore
+      - name: Restore the production vectors bundle
         if: env.RUN == 'true'
-        run: echo "$MODULE_INFO_SHA256  $MODULE_INFO" | sha256sum -c -
-      - name: Restore the pinned vectors bundle
-        if: env.RUN == 'true'
-        id: vectors
         uses: actions/cache@v6
         with:
           path: .data/vectors
-          key: vectors-${{ hashFiles('data/vectors.json') }}
-      - name: Download the pinned vectors bundle from its release, sha-checked
+          # Its own key: full-corpus caches the pinned bundle under vectors-<hash>.
+          key: vectors-production-${{ hashFiles('data/vectors.json') }}
+      - name: Download the production vectors bundle from its release, sha-checked
         if: env.RUN == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/vectors.mjs fetch --corpus pinned
-      - name: Run test/sc1
+        run: node scripts/vectors.mjs fetch --corpus production
+      - name: The data version and catalogueKey follow `current`
         if: env.RUN == 'true'
-        run: npx vitest run --project sc1 --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/sc1.json"
-      - name: Fail if no SC1 test ran
+        run: npm run corpus -- check
+      - name: Run test/sc1 (sc1 and sc1-node)
+        if: env.RUN == 'true'
+        run: npx vitest run --project sc1 --project sc1-node --reporter=default --reporter=json --outputFile="$RUNNER_TEMP/sc1.json"
+      - name: Fail if no SC1 test ran, or any was skipped
         if: env.RUN == 'true'
         run: |
           node -e '

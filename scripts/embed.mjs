@@ -150,7 +150,7 @@ async function embedBatch(cred, texts) {
     if (!retryable || attempt >= 4) throw new Error(`Workers AI ${msg}`);
     console.warn(`  retry ${attempt} after ${msg}`);
     // Backoff before a retry of a throttled or failed request (not a wait on work).
-    await new Promise((r) => setTimeout(r, 2000 * attempt));
+    await new Promise((r) => setTimeout(r, 2_000 * attempt));
   }
 }
 

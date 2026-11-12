@@ -1,6 +1,6 @@
 // @ts-check
 // Phase 7 7D (ADR 0003, amendment "the eval's pinned NG files"): the eval
-// normalises the pinned corpus with byte-identical copies of the 2026/27 NG
+// normalises the pinned corpus with byte-identical copies of its year's NG
 // list and restrictions from eval/pinned/, passed into the ranker's
 // offeredModules, never the live data/ files through loadNgCourses. So a
 // Registrar revision of either live file moves neither the eval nor the
@@ -56,7 +56,7 @@ describe('the eval\'s pinned NG files', () => {
     // A revision of the live list: Sem 1 dropped. And of the restrictions: every rule closed.
     const live = join(root, 'data', COURSES);
     const ng = JSON.parse(await readFile(live, 'utf8'));
-    await writeFile(live, JSON.stringify({ ...ng, updatedAsAt: '01 Jan 2099', semesters: { 2: ng.semesters[2] } }));
+    await writeFile(live, JSON.stringify({ ...ng, updatedAsAt: '01 Jan 1999', semesters: { 2: ng.semesters[2] } }));
     const liveRules = join(root, 'data', RESTRICTIONS);
     const rules = JSON.parse(await readFile(liveRules, 'utf8'));
     await writeFile(liveRules, JSON.stringify({ ...rules, rules: rules.rules.map((/** @type {any} */ r) => ({ ...r, effect: 'closed' })) }));

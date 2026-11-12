@@ -1,6 +1,6 @@
 // @ts-check
 // The pinned upstream snapshot production was built from (release asset
-// `data-2026-2027-20260904`). Read straight from .data/ and checked against
+// PINNED_RELEASE below). Read straight from .data/ and checked against
 // the pinned hash; never via fetchAcadYearFile, which falls back to fetching
 // api.nusmods.com when the file is missing.
 import { createHash } from 'node:crypto';

@@ -175,6 +175,7 @@ export default defineConfig(async () => {
   // 7D, CI on the live year: sc1 and sc1-node over `current` and the production bundle and files.
   const production = await productionData();
   const prod = (/** @type {string} */ rel) => fileURLToPath(new URL(rel, import.meta.url));
+  const productionBundle = /** @type {'production' | 'fixture'} */ (production ? 'production' : 'fixture');
   return {
     test: {
       projects: [
@@ -199,7 +200,7 @@ export default defineConfig(async () => {
             // brute-force grid (~25 s instead of ~4 min locally, ~12 min on CI).
             // CI runs the full grid whenever src/, migrations/, scripts/ or
             // test/full/ change; anything else gets the sample.
-            provide: { corpus: fullCorpusData, vectorsBundle: full.corpus, lexicalGrid: process.env.LEXICAL_GRID === 'sample' ? 'sample' : 'full' },
+            provide: { corpus: fullCorpusData, vectorsBundle: full.corpus, lexicalGrid: /** @type {'sample' | 'full'} */ (process.env.LEXICAL_GRID === 'sample' ? 'sample' : 'full') },
           },
         },
         {
@@ -219,7 +220,7 @@ export default defineConfig(async () => {
           test: {
             name: 'sc1',
             include: ['test/sc1/**/!(*.node).test.js'],
-            provide: { corpus: production?.corpus ?? null, vectorsBundle: production ? 'production' : 'fixture' },
+            provide: { corpus: production?.corpus ?? null, vectorsBundle: productionBundle },
           },
         },
         {
@@ -230,7 +231,7 @@ export default defineConfig(async () => {
             name: 'sc1-node',
             environment: 'node',
             include: ['test/sc1/**/*.node.test.js'],
-            provide: { corpus: production?.corpus ?? null, vectorsBundle: production ? 'production' : 'fixture' },
+            provide: { corpus: production?.corpus ?? null, vectorsBundle: productionBundle },
           },
         },
         {

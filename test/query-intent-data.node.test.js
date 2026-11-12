@@ -26,22 +26,29 @@ describe('3B-0 data files', () => {
     expect(data.exempt).toEqual(p6.exempt);
   });
 
-  it('304 prefixes with counts; no collision-list entry or pillar prefix is missing from them', () => {
-    const { count, prefixes } = readJson('data/prefixes.json');
-    expect(count).toBe(304);
-    expect(Object.keys(prefixes)).toHaveLength(304);
+  // Phase 7 7D: data/prefixes.json follows production's current corpus;
+  // data/pinned/prefixes.json is the pinned corpus's (the eval's), unchanged.
+  it.each([
+    ['data/prefixes.json', 305, { CS: 165, LSM: 122, GEA: 2, GEC: 35, GEX: 15, GESS: 28 }],
+    ['data/pinned/prefixes.json', 304, { CS: 164, LSM: 123, GEA: 2, GEC: 36, GEX: 16, GESS: 29 }],
+  ])('%s: %i prefixes with counts; no collision-list entry or pillar prefix is missing from them', (rel, n, some) => {
+    const { count, prefixes } = readJson(rel);
+    expect(count).toBe(n);
+    expect(Object.keys(prefixes)).toHaveLength(n);
     for (const p of [...readJson('data/collision-list.json').list, ...readJson('data/ge-pillars.json').prefixes]) {
       expect(prefixes[p], p).toBeGreaterThan(0);
     }
     for (const p of ['ART', 'LAW', 'COMP', 'MATH', 'ECON']) expect(prefixes[p], p).toBeUndefined();
-    expect(prefixes).toMatchObject({ CS: 164, LSM: 123, GEA: 2, GEC: 36, GEX: 16, GESS: 29 });
+    expect(prefixes).toMatchObject(some);
   });
 
   it('the catalogue-only codes and rows agree, sorted, and none is a prefix-less code', () => {
     const codes = readJson('data/catalogue-codes.json');
     const rows = readJson('data/catalogue-only.json');
-    expect(codes.count).toBe(14359);
-    expect(rows.count).toBe(14359);
+    // Production's current corpus (Phase 7 7D); the pinned corpus has 14359 (data/pinned/catalogue-codes.json).
+    expect(codes.count).toBe(14430);
+    expect(rows.count).toBe(14430);
+    expect(readJson('data/pinned/catalogue-codes.json').count).toBe(14359);
     expect(rows.rows.map((/** @type {string[]} */ r) => r[0])).toEqual(codes.codes);
     expect([...codes.codes].sort()).toEqual(codes.codes);
     const byCode = new Map(rows.rows.map((/** @type {string[]} */ r) => [r[0], r]));

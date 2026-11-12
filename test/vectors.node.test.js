@@ -112,7 +112,7 @@ describe('the vocabulary-data and groups-data aliases (Phase 5 5B, A2-1, A3-1)',
     expect(config).not.toContain('find: /^\\.\\.\\/data\\/');
   });
 
-  it("vitest.eval.config.mjs aliases them and 6A's ng-unscheduled-data to the run workspace's own data/ copies (A3-1, B3-2)", async () => {
+  it("vitest.eval.config.mjs aliases them, 6A's ng-unscheduled-data and 7D's catalogue files to the run workspace's own data/ copies (A3-1, B3-2)", async () => {
     const ws = await mkdtemp(join(tmpdir(), 'vnm-ws-'));
     const before = process.env.VNM_EVAL_WORKSPACE;
     try {
@@ -127,6 +127,9 @@ describe('the vocabulary-data and groups-data aliases (Phase 5 5B, A2-1, A3-1)',
         'vocabulary-data': join(ws, 'data/vocabulary.json'),
         'groups-data': join(ws, 'data/groups.json'),
         'ng-unscheduled-data': join(ws, 'data/ng-unscheduled.json'),
+        // Phase 7 7D: the run corpus's catalogue codes and prefixes (eval/lib/corpus.mjs writeRunCatalogue).
+        'catalogue-codes-data': join(ws, 'data/catalogue-codes.json'),
+        'prefixes-data': join(ws, 'data/prefixes.json'),
       });
     } finally {
       if (before === undefined) delete process.env.VNM_EVAL_WORKSPACE;
