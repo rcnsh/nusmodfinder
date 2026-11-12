@@ -73,7 +73,7 @@ describe('red team L-5: text extractions are not pinned to their documents', () 
     const root = copyTree(join(dir, 'repo'));
     const m = readJson(root, `data/ng-sources-${Y}.json`);
     const unpinned = archivedFiles(latestRevision(m)).filter((f) => f.sha256 === null).map((f) => f.name);
-    // Observed: the committed 2026/27 manifest's text extractions (the restrictions text, the
+    // Observed: the committed manifest for this year's text extractions (the restrictions text, the
     // self-funded list, the YST lists, …) have no sha256.
     expect(unpinned).toEqual([]);
   });
