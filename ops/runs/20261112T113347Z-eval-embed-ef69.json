@@ -1,0 +1,44 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-12T11:33:47.031Z",
+  "finishedAt": "2026-11-12T11:33:51.423Z",
+  "script": "eval:embed",
+  "args": [
+    "--texts",
+    ".data/vectors/missing-production.json",
+    "--out",
+    ".data/vectors/extra-production.json"
+  ],
+  "commit": {
+    "sha": "82f2992672c55cc20a875f792116c1f85910d515",
+    "dirty": true,
+    "diffSha256": "54b9fdad9ee1a8006d0bcabdb60c7b8cad08a0607c4bb85264e8b70fcf6fe407"
+  },
+  "target": "api.cloudflare.com Workers AI REST (@cf/baai/bge-small-en-v1.5)",
+  "read": [
+    {
+      "what": "Workers AI neurons (vectors:production; estimated from tokens)",
+      "estimate": 88.6,
+      "actual": null
+    }
+  ],
+  "written": [],
+  "requests": {
+    "/ai/run/@cf/baai/bge-small-en-v1.5": 3
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "mode": "production vectors",
+    "estimate": {
+      "texts": 254,
+      "tokens": 48127,
+      "neurons": 88.6,
+      "requests": 3
+    },
+    "texts": 254
+  },
+  "exitCode": 0,
+  "message": "exited before the record was finished",
+  "outcome": "ok"
+}

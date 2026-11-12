@@ -45,9 +45,11 @@ describe('3B-0 data files', () => {
   it('the catalogue-only codes and rows agree, sorted, and none is a prefix-less code', () => {
     const codes = readJson('data/catalogue-codes.json');
     const rows = readJson('data/catalogue-only.json');
-    // Production's current corpus (Phase 7 7D); the pinned corpus has 14359 (data/pinned/catalogue-codes.json).
-    expect(codes.count).toBe(14430);
-    expect(rows.count).toBe(14430);
+    // Production's current corpus (Phase 7 7D), whose count follows NUSMods (14430 at
+    // prod-2026-2027-20261104, 14405 at -20261112); the pinned corpus has 14359.
+    expect(codes.count).toBe(codes.codes.length);
+    expect(rows.count).toBe(codes.count);
+    expect(codes.count).toBeGreaterThan(10000);
     expect(readJson('data/pinned/catalogue-codes.json').count).toBe(14359);
     expect(rows.rows.map((/** @type {string[]} */ r) => r[0])).toEqual(codes.codes);
     expect([...codes.codes].sort()).toEqual(codes.codes);
