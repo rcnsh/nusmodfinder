@@ -16,8 +16,8 @@
       - paragraph: Exchange students can take only some NUS courses.
       - radio "NUS student Every NUS course" [checked]
       - text: NUS student Every NUS course
-      - radio "Exchange student Only the courses open to you"
-      - text: Exchange student Only the courses open to you
+      - radio "Exchange student Only the courses open to exchange students"
+      - text: Exchange student Only the courses open to exchange students
     - text: What do you want to study?
     - paragraph: A subject in your own words, a course name, or codes.
     - searchbox "What do you want to study?"

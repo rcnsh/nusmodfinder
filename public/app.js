@@ -171,7 +171,7 @@ for (const [value, label] of [['1', 'Sem 1'], ['2', 'Sem 2'], ['', 'Both']]) els
 // The header's year line: the year's lists, and a clause for next year's applicants.
 setChildren($('yearLine'), headerYearLine(DEFAULT_ACAD_YEAR));
 // The first screen's questions: who is searching, then, for an exchange student, the semester and year.
-for (const [value, name, what] of [['nus', 'NUS student', 'Every NUS course'], ['exchange', 'Exchange student', 'Only the courses open to you']]) {
+for (const [value, name, what] of [['nus', 'NUS student', 'Every NUS course'], ['exchange', 'Exchange student', 'Only the courses open to exchange students']]) {
   els.setupWhos.append(radio('tile', 'setupWho', value, [h('b', null, name), h('small', null, what), icon('tick', 'tick')]));
 }
 const months = semesterMonths(DEFAULT_ACAD_YEAR);
