@@ -173,7 +173,7 @@ function exchangeBlock(m, filters) {
     const texts = per.map((p) => new Set(p.notes.map((n) => n.text)));
     const shared = per[0].notes.filter((n) => texts[1].has(n.text));
     const only = per.map((p, i) => p.notes.filter((n) => !texts[1 - i].has(n.text)));
-    return h('div', { class: 'exchange guide' },
+    return h('div', { class: 'exchange' },
       h('div', { class: 'stamps both' }, ...per.map((p) => stamp(p.status, stampText(p.status, p.sem, p.notes.map((n) => n.r), true)))),
       notesBox([
         { scope: `Notes for ${semLabel(1)}`, items: only[0] },
@@ -185,7 +185,7 @@ function exchangeBlock(m, filters) {
     const sem = filters.sem === 1 || filters.sem === 2 ? filters.sem : 'any';
     const status = statusOf(m.exchange);
     const notes = reasonsOf(m.exchange).map((r) => ({ r, text: noteText(r, sem) }));
-    return h('div', { class: 'exchange guide' },
+    return h('div', { class: 'exchange' },
       h('div', { class: 'stamps' }, stamp(status, stampText(status, sem, notes.map((n) => n.r)))),
       notesBox([{ scope: '', items: notes }]));
   }
@@ -247,15 +247,13 @@ export function reviewsPanel(m) {
 }
 
 /**
- * The entry's right-hand column: the exchange status and notes, then what students say; either
- * alone when there is only one.
- * @param {HTMLElement | null} exchange
- * @param {HTMLElement | null} reviews
+ * The entry's right-hand column: the exchange status and notes, then what students say; null
+ * with neither.
+ * @param {...(HTMLElement | null)} blocks
  */
-function guideColumn(exchange, reviews) {
-  if (exchange && reviews) { exchange.append(reviews); return exchange; }
-  if (reviews) reviews.classList.add('guide');
-  return exchange ?? reviews;
+function guideColumn(...blocks) {
+  const shown = blocks.filter((b) => b !== null);
+  return shown.length ? h('div', { class: 'guide' }, ...shown) : null;
 }
 
 let nextId = 0;

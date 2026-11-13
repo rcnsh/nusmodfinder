@@ -18,7 +18,8 @@ the card in [docs/page.md](../page.md).
   per course thread, in chunks of 100 comments.
 - **A course's numbers are means weighted by age**: a review's weight halves every three academic
   years before the current one, so a course that changed lecturer or assessment moves with its
-  recent reviews. A review posted twice (the same opening) counts once.
+  recent reviews. A review posted twice (the same opening) counts once, and the count on the card
+  is of reviews with an overall score, the number it leads with.
 - **Only the numbers are kept in the repo** (`data/reviews.json`); comment text stays in `.data/`
   and the card links to NUSMods for the reviews themselves.
 - **Display only.** Nothing in search, filtering or ranking reads the scores; `/search` returns

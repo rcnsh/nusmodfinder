@@ -1,0 +1,36 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-13T11:02:50.183Z",
+  "finishedAt": "2026-11-13T11:17:26.779Z",
+  "script": "reviews-crawl",
+  "args": [],
+  "commit": {
+    "sha": "8a60cb10691538480b0bb8269fcb8567e5c6d2dd",
+    "dirty": true,
+    "diffSha256": "9a176af1334509cdac4b27c58ea98dfc5b163d85f2545091eaa6b94afbc90a02"
+  },
+  "target": "disqus:nusmods-prod",
+  "read": [
+    {
+      "what": "Disqus threads",
+      "estimate": null,
+      "actual": 21648
+    },
+    {
+      "what": "Disqus comments",
+      "estimate": null,
+      "actual": 9869
+    }
+  ],
+  "written": [],
+  "requests": {
+    "/api/3.0/forums/listThreads": 217,
+    "/api/3.0/forums/listPosts": 99
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {},
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}

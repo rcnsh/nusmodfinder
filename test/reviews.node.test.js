@@ -28,10 +28,19 @@ describe('postsByCourse', () => {
 });
 
 describe('reviewYear', () => {
-  it('reads the semester the writer names, else the academic year it was posted in', () => {
-    expect(reviewYear(scored({ taken: 'AY22/23 S2' }), '2025-01-01')).toBe(22);
-    expect(reviewYear(scored({}), '2024-08-15')).toBe(24);
-    expect(reviewYear(scored({}), '2024-07-31')).toBe(23);
+  it('reads the semester the writer names, two-digit or four-digit, else the academic year it was posted in', () => {
+    expect(reviewYear(scored({ taken: 'AY22/23 S2' }), '2025-01-01', 26)).toBe(22);
+    expect(reviewYear(scored({ taken: 'AY2011/12 S2' }), '2012-05-01', 26)).toBe(11);
+    expect(reviewYear(scored({ taken: 'AY2014-15' }), '2015-05-01', 26)).toBe(14);
+    expect(reviewYear(scored({ taken: 'AY 22/23' }), '2023-05-01', 26)).toBe(22);
+    expect(reviewYear(scored({}), '2024-08-15', 26)).toBe(24);
+    expect(reviewYear(scored({}), '2024-07-31', 26)).toBe(23);
+  });
+
+  it('falls back to the posting year for a semester after it, or after the current year', () => {
+    expect(reviewYear(scored({ taken: 'AY99/99' }), '2023-09-01', 26)).toBe(23);
+    expect(reviewYear(scored({ taken: 'AY25/26' }), '2019-09-01', 26)).toBe(19);
+    expect(reviewYear(scored({}), undefined, 26)).toBeNull();
   });
 });
 
@@ -56,6 +65,15 @@ describe('aggregate', () => {
 
   it('is null for a course with no review', () => {
     expect(aggregate([scored({ id: 'q', is_review: false })], new Map(), 26)).toBeNull();
+  });
+
+  it('never merges reviews with no Latin text, and counts only reviews with an overall score', () => {
+    const postOf = new Map([
+      ['a', post('a', '2025-09-01', '很好的课')], ['b', post('b', '2025-09-02', '太难了')],
+      ['c', post('c', '2025-09-03', 'Took it, no strong view.')],
+    ]);
+    const r = aggregate([scored({ id: 'a', overall: 5 }), scored({ id: 'b', overall: 1 }), scored({ id: 'c', workload: 3 })], postOf, 26);
+    expect(r).toMatchObject({ n: 2, overall: 3, workload: null });
   });
 });
 

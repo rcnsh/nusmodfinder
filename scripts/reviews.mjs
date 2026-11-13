@@ -12,9 +12,11 @@
 // then forums/listPosts), 2 s apart, resumable from .data/reviews/crawl/*.cursor.
 // score: one Claude Haiku 5.5 call per course thread (threads over 100 comments
 // in chunks), structured output per comment; ANTHROPIC_API_KEY or an `ant auth`
-// profile; stops at --max-usd (default 10). A chunk that comes back missing a
+// profile; sends nothing its estimate says would pass --max-usd (default 10), counting what is
+// spent and in flight. A chunk that comes back missing a
 // comment is re-sent by running score again. build: reviews only (questions and
-// replies dropped), repeats of one review dropped, each review weighted by age
+// replies dropped), repeats of one review dropped, reviews with no overall score
+// not counted, each review weighted by age
 // (half-life HALF_LIFE academic years before DEFAULT_ACAD_YEAR).
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -32,7 +34,7 @@ export const SCHEMA_ID = 'vnm-reviews/1';
 const FORUM = 'nusmods-prod';
 // Disqus's public embed key: the one every NUSMods page sends from the browser.
 const DISQUS_KEY = 'E8Uh5l5fHZ6gD8U3KycjAIAk46f68Zw7C6eW8WSjZvCLXebZ7p0r1yrYDrLilk2F';
-const GAP_MS = 2000;
+const GAP_MS = 2_000;
 export const MODEL = 'claude-haiku-5-5';
 const CHUNK = 100;
 /** $ per million tokens for MODEL: input, cache write (1 h), output. */
@@ -85,8 +87,21 @@ Rate only what the comment says or clearly implies; use null for anything it doe
 /** @typedef {{ n: number, latest: string, overall: number | null, workload: number | null, difficulty: number | null, teaching: number | null }} CourseReviews */
 
 const sleep = (/** @type {number} */ ms) => new Promise((r) => setTimeout(r, ms));
-/** @param {string} file @returns {any[]} */
-const readJsonl = (file) => readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+/**
+ * A crawl file's records, the first of each id (a page appended twice by a crash between the
+ * append and the cursor write counts once).
+ * @param {string} file
+ * @returns {any[]}
+ */
+const readJsonl = (file) => {
+  const byId = new Map();
+  for (const l of readFileSync(file, 'utf8').split('\n')) {
+    if (!l) continue;
+    const x = JSON.parse(l);
+    if (!byId.has(x.id)) byId.set(x.id, x);
+  }
+  return [...byId.values()];
+};
 
 /**
  * The course code a thread is about: the identifier that is a code, else the code in its link.
@@ -120,16 +135,19 @@ export function postsByCourse(threads, posts) {
 
 /**
  * The academic year a review is about, as its first year's last two digits: the semester the
- * writer names, else the academic year it was posted in (from August).
+ * writer names ("AY22/23", "AY2022/23", "AY 22/23"), unless that is after the current year or
+ * after it was posted; else the academic year it was posted in (from August); null with neither.
  * @param {Scored} c
  * @param {string | undefined} postedAt ISO date
+ * @param {number} currentYear the current academic year's first year, two digits
+ * @returns {number | null}
  */
-export function reviewYear(c, postedAt) {
-  const m = /^AY(\d\d)/.exec(c.taken ?? '');
-  if (m) return Number(m[1]);
-  const d = postedAt ?? '2000-01-01';
-  const y = Number(d.slice(2, 4));
-  return Number(d.slice(5, 7)) >= 8 ? y : y - 1;
+export function reviewYear(c, postedAt, currentYear) {
+  const posted = postedAt ? Number(postedAt.slice(2, 4)) - (Number(postedAt.slice(5, 7)) >= 8 ? 0 : 1) : null;
+  const m = /^AY\s*(?:\d\d(?=\d\d))?(\d\d)\b/.exec(c.taken ?? '');
+  const named = m ? Number(m[1]) : null;
+  if (named !== null && named <= currentYear && (posted === null || named <= posted)) return named;
+  return posted;
 }
 
 /**
@@ -147,14 +165,16 @@ export function aggregate(scored, postOf, currentYear) {
   const ordered = [...scored].sort((a, b) => (postOf.get(a.id)?.createdAt ?? '').localeCompare(postOf.get(b.id)?.createdAt ?? ''));
   for (const c of ordered) {
     if (!c.is_review) continue;
-    const key = (postOf.get(c.id)?.text ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 200);
+    // A text with no Latin letter or digit (Chinese, emoji) keys on its own id: never a repeat.
+    const key = (postOf.get(c.id)?.text ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 200) || `id:${c.id}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    reviews.push(c);
+    // A review with no overall score adds to no number the card leads with, so it isn't counted.
+    if (c.overall !== null) reviews.push(c);
   }
   if (!reviews.length) return null;
-  const years = reviews.map((c) => reviewYear(c, postOf.get(c.id)?.createdAt));
-  const weight = years.map((y) => 0.5 ** (Math.max(0, currentYear - y) / HALF_LIFE));
+  const years = reviews.map((c) => reviewYear(c, postOf.get(c.id)?.createdAt, currentYear));
+  const weight = years.map((y) => (y === null ? 0 : 0.5 ** (Math.max(0, currentYear - y) / HALF_LIFE)));
   /** @param {'overall' | 'workload' | 'difficulty' | 'teaching'} k */
   const mean = (k) => {
     let sum = 0;
@@ -165,7 +185,9 @@ export function aggregate(scored, postOf, currentYear) {
     });
     return w ? Math.round((sum / w) * 10) / 10 : null;
   };
-  const latest = Math.max(...years);
+  const known = /** @type {number[]} */ (years.filter((y) => y !== null));
+  if (!known.length) return null;
+  const latest = Math.max(...known);
   return {
     n: reviews.length,
     latest: `AY${String(latest).padStart(2, '0')}/${String(latest + 1).padStart(2, '0')}`,
@@ -198,6 +220,8 @@ async function crawl(argv) {
     const state = join(CRAWL, `${name}.cursor`);
     if (existsSync(state) && readFileSync(state, 'utf8').trim() === 'DONE') return;
     let cursor = existsSync(state) ? readFileSync(state, 'utf8').trim() : '';
+    // No cursor: a fresh crawl, so start the file empty rather than after an earlier crawl.
+    if (!cursor) writeFileSync(join(CRAWL, `${name}.jsonl`), '');
     let pages = 0;
     do {
       const d = await disqusPage(endpoint, cursor, doFetch);
@@ -238,7 +262,13 @@ function requests() {
 async function scoreAll(argv) {
   const flag = (/** @type {string} */ name, /** @type {number} */ dflt) => {
     const i = argv.indexOf(name);
-    return i >= 0 ? Number(argv[i + 1]) : dflt;
+    if (i < 0) return dflt;
+    const v = Number(argv[i + 1]);
+    if (!(v > 0)) {
+      console.error(`${name} needs a positive number`);
+      process.exit(2);
+    }
+    return v;
   };
   const limit = flag('--limit', Infinity);
   const maxUsd = flag('--max-usd', 10);
@@ -258,12 +288,24 @@ async function scoreAll(argv) {
   console.log(`score: ${todo.length} requests to send, cap $${maxUsd}`);
   const usage = { input: 0, cacheWrite: 0, output: 0 };
   const usd = () => (usage.input * PRICE.input + usage.cacheWrite * PRICE.cacheWrite + usage.output * PRICE.output) / 1e6;
+  // A request's cost before it is sent, on the high side: its input written to cache at about 3.6
+  // characters a token, and 400 output tokens (thinking included) per comment.
+  const estimate = (/** @type {{ content: string, ids: string[] }} */ r) =>
+    (((r.content.length + SYSTEM.length) / 3.6) * PRICE.cacheWrite + r.ids.length * 400 * PRICE.output) / 1e6;
+  let reserved = 0;
   let next = 0;
   let failed = 0;
   let incomplete = 0;
+  let stopped = false;
   await Promise.all(Array.from({ length: 6 }, async () => {
-    while (next < todo.length && usd() < maxUsd) {
-      const r = todo[next++];
+    while (next < todo.length) {
+      const r = todo[next];
+      const est = estimate(r);
+      // Stop before a request whose estimate, with what is spent and in flight, passes the cap.
+      if (usd() + reserved + est > maxUsd) { stopped = true; break; }
+      next++;
+      reserved += est;
+      run.request('/v1/messages');
       try {
         const msg = await client.messages.stream({
           model: MODEL,
@@ -275,7 +317,6 @@ async function scoreAll(argv) {
         usage.input += msg.usage.input_tokens;
         usage.cacheWrite += msg.usage.cache_creation_input_tokens ?? 0;
         usage.output += msg.usage.output_tokens;
-        run.request('/v1/messages');
         if (msg.stop_reason !== 'end_turn') throw new Error(`stop_reason ${msg.stop_reason}`);
         const block = msg.content.find((b) => b.type === 'text');
         const comments = /** @type {Scored[]} */ (JSON.parse(block?.type === 'text' ? block.text : '{}').comments ?? [])
@@ -287,11 +328,16 @@ async function scoreAll(argv) {
       } catch (err) {
         failed++;
         console.log(`${r.id}: ${/** @type {Error} */ (err).message}`);
+      } finally {
+        reserved -= est;
       }
     }
   }));
-  run.wrote('scored chunks', { actual: todo.length - failed }).detail('usd', Math.round(usd() * 100) / 100).detail('usage', usage);
-  console.log(`score: $${usd().toFixed(2)}; ${failed} failed, ${incomplete} missing a comment; run score again to re-send them`);
+  // A failed request's usage is unknown (it may have billed), so the record says how many failed.
+  run.wrote('scored chunks', { actual: next - failed }).detail('usd', Math.round(usd() * 100) / 100).detail('usage', usage)
+    .detail('failedRequests', failed).detail('stoppedAtCap', stopped);
+  console.log(`score: $${usd().toFixed(2)} for ${next} of ${todo.length} requests${stopped ? `, stopped at the $${maxUsd} cap` : ''}; `
+    + `${failed} failed, ${incomplete} missing a comment; run score again to re-send them`);
   run.finish(failed ? 'partial' : 'ok', { exitCode: failed ? 1 : 0 });
   if (failed) process.exitCode = 1;
 }

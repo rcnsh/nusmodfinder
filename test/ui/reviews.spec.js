@@ -39,7 +39,8 @@ test('a course with fewer than three reviews, or none, has no panel', async ({ p
 
 test('in exchange mode the panel sits under the exchange status', async ({ page }) => {
   await page.goto('/?q=CS1010&ng=1&study=ug2&sem=1');
-  const guide = card(page, 'CS1010').locator('.exchange.guide');
-  await expect(guide.locator('.stamps')).toHaveCount(1);
-  await expect(guide.locator('.rv-panel .rv-num')).toHaveText(reviews.CS1010.overall.toFixed(1));
+  // One right-hand column: the exchange status, then the panel.
+  const guide = card(page, 'CS1010').locator('.guide');
+  await expect(guide).toHaveCount(1);
+  await expect(guide.locator('> .exchange + .rv-panel .rv-num')).toHaveText(reviews.CS1010.overall.toFixed(1));
 });
