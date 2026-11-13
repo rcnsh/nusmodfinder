@@ -57,7 +57,7 @@ const QUERIES = [
 ];
 const faculties = [...new Set(fixture.modules.map((m) => m.faculty).filter(Boolean))].slice(0, 3);
 const FILTERS = ['', '&sem=1', '&sem=3', '&level=2', '&credits=4', '&ng=1&study=ug2', '&ng=1&sem=2&study=grad', `&faculty=${encodeURIComponent(String(faculties[0]))}`,
-  `&faculty=${encodeURIComponent(String(faculties[1]))}&level=3`, '&level=5&credits=4'];
+  `&faculty=${encodeURIComponent(String(faculties[1]))}&level=3`, '&level=5&credits=4', '&level=1,2&credits=2,4'];
 
 describe('the bundle and the Vectorize standby agree on the fixture', () => {
   it('the bundle ranks like the fake Vectorize (exact cosine, id tiebreak) for every query and filter; near-tie swaps listed', async () => {

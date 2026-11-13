@@ -22,7 +22,9 @@ answer is in [architecture.md](architecture.md).
 
 ### Parameters
 - `q`: the query, at most 200 characters (longer is a 400).
-- `sem=1|2|3|4`, `level`, `credits`, `faculty`: filters.
+- `sem=1|2|3|4`, `level`, `credits`, `faculty`: filters. `level` and `credits` also take a
+  comma-separated list (`level=3,4`), which matches a course at any of them; `filters` echoes one
+  value as a number and several as a sorted array (`"level": [3, 4]`).
 - `ng=1` is **exchange mode**: only courses an exchange (Non-Graduating) student may take, under
   the Registrar's NG course list and course restrictions ([exchange-mode.md](exchange-mode.md)).
   It needs `study=ug1|ug2|ug3|ug4|grad`, the student's year of study during the exchange (`ug4` =

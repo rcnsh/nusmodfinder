@@ -42,6 +42,40 @@ beforeAll(async () => {
   if (res.status !== 200) throw new Error(`catalogue seed: HTTP ${res.status}`);
 });
 
+describe('several levels or unit counts', () => {
+  it('level=a,b and credits=a,b match any of their values, in every mode and on the standby, echoed as a sorted list', async () => {
+    for (const [extra, env] of /** @type {const} */ ([['', {}], ['&mode=lexical', {}], ['&mode=vector', {}], ['', { DENSE_BACKEND: 'vectorize' }]])) {
+      const path = `/search?q=introduction&topK=50&level=2,1,2&credits=4,2${extra}`;
+      const { status, body } = await callJson(path, { fakes, env });
+      expect(status, path).toBe(200);
+      expect(body.filters, path).toEqual({ level: [1, 2], credits: [2, 4] });
+      const codes = shown(body);
+      expect(codes.length, path).toBeGreaterThan(0);
+      for (const c of codes) {
+        const m = /** @type {NormalisedModule} */ (moduleOf.get(c));
+        expect([1, 2].includes(/** @type {number} */ (m.level)) && [2, 4].includes(/** @type {number} */ (m.credits)), `${path} ${c}`).toBe(true);
+      }
+      // Both levels appear: the list is an OR, not the last value.
+      if (!extra) expect(new Set(codes.map((c) => moduleOf.get(c)?.level)), path).toEqual(new Set([1, 2]));
+    }
+  });
+
+  it('one value echoes as a number; a list shares its cache key with any spelling of it', async () => {
+    const { body } = await callJson('/search?q=introduction&level=3,3', { fakes });
+    expect(body.filters).toEqual({ level: 3 });
+    const key = (/** @type {string} */ qs) => searchCacheKey(`${BASE}/search?q=x&${qs}`)?.url;
+    expect(key('level=2,1')).toBe(key('level=1,2'));
+    expect(key('level=1,1')).toBe(key('level=1'));
+  });
+
+  it('rejects a list with an empty or invalid part', async () => {
+    for (const bad of ['level=1,', 'level=1,9', 'level=,', 'credits=4,x', 'credits=-1,4']) {
+      const { status } = await callJson(`/search?q=introduction&${bad}`, { fakes });
+      expect(status, bad).toBe(400);
+    }
+  });
+});
+
 describe('explicit params', () => {
   it('each is a hard filter in every mode and on the standby, and is echoed in `filters`', async () => {
     for (const param of PARAMS) {

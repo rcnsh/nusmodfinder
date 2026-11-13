@@ -29,7 +29,7 @@ import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from
 import { combobox, pillGroup } from './choice.js';
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
-import { hiddenCodeLine, hiddenCodeStamp } from './explain.js';
+import { echoHas, hiddenCodeLine, hiddenCodeStamp } from './explain.js';
 import { quoteUser, semLabel } from './format.js';
 import { icon } from './icons.js';
 import { intentChipRow } from './intent-chips.js';
@@ -46,7 +46,7 @@ import { toCsv } from './csv.js';
 import { SITE_URL, buildExport, fileName } from './export.js';
 import { createPrintView } from './print.js';
 import { askSentence, createShortlistView } from './shortlist-view.js';
-import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, parseState, searchParams, shortlistUrl, unitsLabel, urlFor } from './state.js';
+import { CREDITS, LEVELS, SEMESTERS, STUDIES, levelLabel, listValues, parseState, searchParams, shortlistUrl, unitsLabel, urlFor } from './state.js';
 import { DEFAULT_ACAD_YEAR, headerYearLine, semesterMonths } from './year.js';
 
 /** @typedef {import('./state.js').State} State */
@@ -73,8 +73,9 @@ const els = {
   // (choice.js). Every one fills before /facets answers but the faculty list.
   // #sem's group holds the semester in every mode; exchange mode's segment drives it.
   sem: pillGroup($('semWrap'), 'sem', [{ value: '', label: 'Any' }, ...SEMESTERS], { seg: 3 }),
-  level: pillGroup($('levelWrap'), 'level', [{ value: '', label: 'Any' }, ...LEVELS.map((o) => ({ value: o.value, label: levelPill(o.value) }))]),
-  credits: pillGroup($('creditsWrap'), 'credits', [{ value: '', label: 'Any' }, ...CREDITS.map((c) => ({ value: c, label: unitsPill(c) }))]),
+  // Level and units take several values at once (checkbox pills): '3,4'.
+  level: pillGroup($('levelWrap'), 'level', [{ value: '', label: 'Any' }, ...LEVELS.map((o) => ({ value: o.value, label: levelPill(o.value) }))], { multi: true }),
+  credits: pillGroup($('creditsWrap'), 'credits', [{ value: '', label: 'Any' }, ...CREDITS.map((c) => ({ value: c, label: unitsPill(c) }))], { multi: true }),
   faculty: combobox($('facultyWrap'), 'faculty', { value: '', label: 'Any faculty' }),
   ng: /** @type {HTMLInputElement} */ ($('ng')),
   ngOff: /** @type {HTMLInputElement} */ ($('ngOff')),
@@ -221,7 +222,7 @@ const saveWho = (/** @type {string} */ v) => { try { localStorage.setItem(WHO_KE
  * answers or one it doesn't list).
  * @param {import('./choice.js').Choice} choice
  * @param {string} value
- * @param {string | import('./dom.js').Child[]} [label]
+ * @param {string | import('./dom.js').Child[] | ((one: string) => string | import('./dom.js').Child[])} [label]
  */
 function selectValue(choice, value, label = value) {
   choice.ensure(value, label);
@@ -293,8 +294,8 @@ function applyToForm(s) {
   const keepBox = viewQ !== null && (s.view !== '' || els.q.value !== viewQ);
   if (!keepBox) els.q.value = s.q;
   selectValue(els.sem, s.sem);
-  selectValue(els.level, s.level, levelPill(s.level));
-  selectValue(els.credits, s.credits, unitsPill(s.credits));
+  selectValue(els.level, s.level, levelPill);
+  selectValue(els.credits, s.credits, unitsPill);
   selectValue(els.faculty, s.faculty, facultyNames?.has(s.faculty) ? s.faculty : quoteUser(s.faculty));
   els.ng.checked = s.ng;
   if (s.study) els.study.value = s.study;
@@ -349,7 +350,7 @@ els.skip.addEventListener('click', (e) => {
  * and year that exchange mode needs are changed in the rail instead, since
  * removing them would leave nothing to search.
  * @param {State} s
- * @returns {{ key: string, label: string, removable: boolean }[]}
+ * @returns {{ key: string, value?: string, label: string, removable: boolean }[]}
  */
 function chipList(s) {
   const out = [];
@@ -364,8 +365,9 @@ function chipList(s) {
   } else if (s.sem) {
     out.push({ key: 'sem', label: semLabel(s.sem), removable: true });
   }
-  if (s.level) out.push({ key: 'level', label: levelLabel(s.level), removable: true });
-  if (s.credits) out.push({ key: 'credits', label: unitsLabel(s.credits), removable: true });
+  // One chip per chosen level or unit count; its button drops that value alone.
+  for (const v of listValues(s.level)) out.push({ key: 'level', value: v, label: levelLabel(v), removable: true });
+  for (const v of listValues(s.credits)) out.push({ key: 'credits', value: v, label: unitsLabel(v), removable: true });
   // Until /facets lists it, a link's faculty is the student's own text: quoted.
   if (s.faculty) out.push({ key: 'faculty', label: facultyNames?.has(s.faculty) ? s.faculty : quoteUser(s.faculty), removable: true });
   return out;
@@ -375,7 +377,7 @@ function chipList(s) {
 function renderChips(s) {
   const list = chipList(s);
   setChildren(els.chips, ...list.map((c) => h('li', null, c.removable
-    ? h('button', { class: 'chip', attrs: { type: 'button', 'data-filter': c.key, 'aria-label': `Remove filter: ${c.label}` } }, c.label, icon('x'))
+    ? h('button', { class: 'chip', attrs: { type: 'button', 'data-filter': c.key, ...(c.value ? { 'data-value': c.value } : {}), 'aria-label': `Remove filter: ${c.label}` } }, c.label, icon('x'))
     : h('span', { class: 'chip chip-fixed', attrs: { 'data-filter': c.key } }, c.label))));
   els.filtersBtnText.textContent = `Filters (${list.length})`;
 }
@@ -553,8 +555,8 @@ function explainHidden() {
  * @param {Record<string, unknown>} filters
  */
 function otherFilterHides(m, filters) {
-  return (filters.level !== undefined && String(m.level) !== String(filters.level))
-    || (filters.credits !== undefined && String(m.credits) !== String(filters.credits))
+  return (filters.level !== undefined && !echoHas(filters.level, m.level))
+    || (filters.credits !== undefined && !echoHas(filters.credits, m.credits))
     || (filters.faculty !== undefined && m.faculty !== filters.faculty);
 }
 
@@ -812,7 +814,9 @@ els.chips.addEventListener('click', (e) => {
   const at = [...els.chips.querySelectorAll('button.chip')].indexOf(chip);
   const key = chip.dataset.filter ?? '';
   const form = readForm();
-  if (key === 'ng') { form.ng = false; form.study = ''; } else if (key === 'sem' || key === 'level' || key === 'credits' || key === 'faculty') form[key] = '';
+  if (key === 'ng') { form.ng = false; form.study = ''; } else if (key === 'level' || key === 'credits') {
+    form[key] = listValues(form[key]).filter((v) => v !== chip.dataset.value).join(',');
+  } else if (key === 'sem' || key === 'faculty') form[key] = '';
   act({ type: 'settings', form });
   const left = /** @type {HTMLButtonElement[]} */ ([...els.chips.querySelectorAll('button.chip')]);
   (left[Math.min(at, left.length - 1)] ?? els.q).focus();
@@ -916,12 +920,13 @@ els.dialog.addEventListener('close', () => {
 });
 /**
  * The dialog's controls in Tab order: one stop per radio group (its checked
- * radio, else its first), each shown control once.
+ * radio, else its first), the level and units pills' own stop (choice.js
+ * pillGroup's roving tabindex), each shown control once.
  * @returns {HTMLElement[]}
  */
 function dialogStops() {
   const all = /** @type {HTMLElement[]} */ ([...els.dialog.querySelectorAll('button, input, select, a[href]')])
-    .filter((el) => !el.closest('[hidden]') && !(/** @type {any} */ (el).disabled) && el.getClientRects().length > 0);
+    .filter((el) => !el.closest('[hidden]') && !(/** @type {any} */ (el).disabled) && el.getClientRects().length > 0 && el.tabIndex >= 0);
   /** @type {Set<string>} */
   const groups = new Set();
   return all.filter((el) => {

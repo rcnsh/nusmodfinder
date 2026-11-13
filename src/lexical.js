@@ -6,6 +6,7 @@
 import { ftsMatch } from './fts-query.js';
 import { INTENT } from './intents.js';
 import { ngBit } from './ng-bit.js';
+import { filterValues } from './vector-bundle.js';
 
 export { ftsMatch, queryTokens } from './fts-query.js';
 
@@ -86,7 +87,8 @@ export function chooseDriver(echo, counts) {
   const rows = (k) => {
     if (k === 'ng') return counts.ng;
     if (k === 'faculty') return counts.faculty.get(/** @type {string} */ (echo.faculty)) ?? 0;
-    return counts[k].get(/** @type {number} */ (echo[k])) ?? 0;
+    // Several values: the rows of all of them.
+    return filterValues(/** @type {number | number[]} */ (echo[k])).reduce((n, v) => n + (counts[k].get(v) ?? 0), 0);
   };
   let best;
   for (const k of active) if (best === undefined || rows(k) < rows(best)) best = k;
@@ -120,8 +122,14 @@ export function filterSql(echo, driver) {
     if (![1, 2, 3, 4].includes(echo.sem)) throw new RangeError(`sem must be 1-4, got ${echo.sem}`);
     clauses.push(`${col('sem', `sem${echo.sem}`)} = 1`);
   }
-  if (echo.level !== undefined) { clauses.push(`${col('level', 'level')} = ?`); binds.push(echo.level); }
-  if (echo.credits !== undefined) { clauses.push(`${col('credits', 'credits')} = ?`); binds.push(echo.credits); }
+  // One value is `= ?`, several `IN (?, ?)`: both can walk the column's index.
+  for (const key of /** @type {const} */ (['level', 'credits'])) {
+    const v = echo[key];
+    if (v === undefined) continue;
+    const vs = filterValues(v);
+    clauses.push(vs.length === 1 ? `${col(key, key)} = ?` : `${col(key, key)} IN (${vs.map(() => '?').join(', ')})`);
+    binds.push(...vs);
+  }
   if (echo.faculty !== undefined) { clauses.push(`${col('faculty', 'faculty')} = ?`); binds.push(echo.faculty); }
   if (echo.ng === true) clauses.push(`${col('ng', 'ng')} = 1`);
   const plus = driver !== undefined ? '+' : '';

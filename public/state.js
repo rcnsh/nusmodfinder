@@ -26,6 +26,7 @@ export { isCode };
  *   ng: boolean, study: string, ignore: string[], open: string, from: string,
  *   view: '' | 'shortlist',
  * }} State
+ * `level` and `credits` may name several values, comma-separated ('3,4').
  */
 
 /** @typedef {{ value: string, label: string }} Option */
@@ -83,6 +84,19 @@ const facultyOk = (v) => v.length <= 60 && !hasHidden(v);
 const keep = (v, ok) => (v !== null && ok(v) ? v : '');
 
 /**
+ * A level or units value as a link may give it: one value or a comma-separated
+ * list (`3,4`), each part kept if `ok`, written back in numeric order without
+ * repeats, so two spellings of one choice are one URL.
+ * @param {string | null} v
+ * @param {(part: string) => boolean} ok
+ */
+const keepList = (v, ok) => [...new Set((v ?? '').split(',').map((p) => p.trim()).filter(ok).map(Number))]
+  .sort((a, b) => a - b).join(',');
+
+/** A level or units value's parts: '' is none, '3,4' is two. @param {string} v */
+export const listValues = (v) => (v ? v.split(',') : []);
+
+/**
  * The state a URL describes. Values /search would reject are dropped, so a
  * mangled link still shows a page.
  * @param {URLSearchParams} params
@@ -100,8 +114,8 @@ export function parseState(params) {
   return {
     q: (params.get('q') ?? '').trim().slice(0, MAX_QUERY_CHARS),
     sem: keep(params.get('sem'), (v) => SEMESTERS.some((o) => o.value === v)),
-    level: keep(params.get('level'), (v) => /^[1-8]$/.test(v)),
-    credits: keep(params.get('credits'), (v) => /^\d{1,2}$/.test(v)),
+    level: keepList(params.get('level'), (v) => /^[1-8]$/.test(v)),
+    credits: keepList(params.get('credits'), (v) => /^\d{1,2}$/.test(v)),
     faculty: keep((params.get('faculty') ?? '').trim(), facultyOk),
     ng,
     study: ng ? keep(params.get('study'), (v) => STUDIES.some((o) => o.value === v)) : '',

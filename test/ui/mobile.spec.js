@@ -118,12 +118,34 @@ test('a chip removes its filter, and focus moves to the next chip', async ({ pag
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 1']);
 });
 
+test('level and units take several at once: Any clears them, a chip drops one, clearing the last checks Any', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/?q=databases');
+  await pill(page, 'level', '2').check();
+  await pill(page, 'level', '3').check();
+  await pill(page, 'credits', '4').check();
+  await expect.poll(() => query(page)).toBe('q=databases&level=2%2C3&credits=4');
+  await expect(pill(page, 'level', '')).not.toBeChecked();
+  await expect(page.locator('#chips .chip')).toHaveText(['Level 2000', 'Level 3000', '4 units']);
+  await page.getByRole('button', { name: 'Remove filter: Level 2000' }).click();
+  await expect.poll(() => query(page)).toBe('q=databases&level=3&credits=4');
+  await expect(pill(page, 'level', '3')).toBeChecked();
+  await expect(pill(page, 'level', '2')).not.toBeChecked();
+  await pill(page, 'level', '3').uncheck();
+  await expect.poll(() => query(page)).toBe('q=databases&credits=4');
+  await expect(pill(page, 'level', '')).toBeChecked();
+  await pill(page, 'level', '5').check();
+  await pill(page, 'level', '').check();
+  await expect.poll(() => query(page)).toBe('q=databases&credits=4');
+  await expect(pill(page, 'level', '5')).not.toBeChecked();
+});
+
 test('filters are labelled one way everywhere: "Sem 2", "Level 2000", "4 units", in the pills (as said) and the chips', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/?q=databases&sem=2&level=2&credits=4');
   await expect(chosen(page, 'sem')).toHaveText('Sem 2');
-  await expect(page.getByRole('radio', { name: 'Level 2000', exact: true })).toBeChecked();
-  await expect(page.getByRole('radio', { name: '4 units', exact: true })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: 'Level 2000', exact: true })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: '4 units', exact: true })).toBeChecked();
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 2', 'Level 2000', '4 units']);
   await expect(page.locator('#semWrap label')).toHaveText(['Any', 'Sem 1', 'Sem 2', 'Special term 1', 'Special term 2']);
 });

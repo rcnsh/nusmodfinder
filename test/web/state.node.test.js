@@ -27,6 +27,13 @@ describe('URL state (F3, C-7)', () => {
       .toBe('q=machine+learning&sem=2&level=3&credits=4&faculty=Computing&ng=1&study=ug2&open=CS3244');
   });
 
+  it('level= and credits= keep several values, valid ones only, sorted without repeats', () => {
+    expect(parse('q=x&level=4,3,3,9&credits=12,4').level).toBe('3,4');
+    expect(round('q=x&level=4,3,3,9&credits=12,4,x')).toBe('q=x&level=3%2C4&credits=4%2C12');
+    expect(round('q=x&level=9,&credits=,')).toBe('q=x');
+    expect(searchParams(parse('q=x&level=3,4'))?.get('level')).toBe('3,4');
+  });
+
   it('from= is a course code kept only beside open= (and never open= itself)', () => {
     expect(round('q=ACC1701XB&open=acc1701xb&from=acc1701xa')).toBe('q=ACC1701XB&open=ACC1701XB&from=ACC1701XA');
     expect(round('q=ACC1701XB&from=ACC1701XA')).toBe('q=ACC1701XB');

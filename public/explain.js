@@ -140,6 +140,13 @@ export function reasonLine(r, sem, sources) {
 }
 
 /**
+ * Whether a level or credits echo (one number, or a list) names a row's value.
+ * @param {unknown} echo
+ * @param {unknown} v
+ */
+export const echoHas = (echo, v) => (Array.isArray(echo) ? echo : [echo]).some((x) => String(x) === String(v));
+
+/**
  * The filters a course fails, as clauses ("it isn't offered in Sem 1"). In
  * exchange mode the NG list decides the semester, not NUSMods' timetable
  * (src/search.js localMatchesFilters), so the semester is never blamed there.
@@ -151,8 +158,8 @@ export function filterMisses(m, filters) {
   const out = [];
   const sems = Array.isArray(m.semesters) ? m.semesters.map(String) : [];
   if (filters.sem !== undefined && filters.ng !== true && !sems.includes(String(filters.sem))) out.push(`it isn't offered in ${semLabel(String(filters.sem))}`);
-  if (filters.level !== undefined && String(m.level) !== String(filters.level)) out.push(`it is a level ${m.level}000 course`);
-  if (filters.credits !== undefined && String(m.credits) !== String(filters.credits)) out.push(`it is ${m.credits} units`);
+  if (filters.level !== undefined && !echoHas(filters.level, m.level)) out.push(`it is a level ${m.level}000 course`);
+  if (filters.credits !== undefined && !echoHas(filters.credits, m.credits)) out.push(`it is ${m.credits} units`);
   if (filters.faculty !== undefined && m.faculty !== filters.faculty) out.push(`it is in ${m.faculty}`);
   return out;
 }

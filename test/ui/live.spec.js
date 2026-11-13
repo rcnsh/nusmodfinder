@@ -231,7 +231,7 @@ test('the controls are named as a screen reader should say them', async ({ page 
   for (const [role, name] of /** @type {const} */ ([
     ['link', 'Skip to main content'], ['searchbox', 'Search courses'], ['button', 'Search'],
     ['radio', 'NUS student'], ['radio', 'Exchange student'], ['group', 'Searching as'], ['radio', 'Sem 1'], ['radio', 'Sem 2'], ['radio', 'Both'],
-    ['group', 'Year of study during your exchange'], ['group', 'Level'], ['radio', 'Level 2000'], ['group', 'Units'], ['radio', '4 units'], ['combobox', 'Faculty'],
+    ['group', 'Year of study during your exchange'], ['group', 'Level'], ['checkbox', 'Level 2000'], ['group', 'Units'], ['checkbox', '4 units'], ['combobox', 'Faculty'],
     ['button', 'Remove filter: Sem 1'], ['button', 'Remove filter: Exchange students'], ['button', 'Remove filter: Level 2000'],
     ['list', 'Filters applied'], ['list', 'Results'], ['search', 'Search courses'], ['main', 'Search and results'],
     ['complementary', 'Who is searching, and filters'], ['banner', ''], ['contentinfo', ''],

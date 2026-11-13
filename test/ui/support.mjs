@@ -117,12 +117,13 @@ export const liveLog = (page) => page.evaluate(() => /** @type {any} */ (globalT
 
 /**
  * A filter's pill (a radio): `sem`, `level`, `credits` or `study`, by value ('' is "Any").
- * Check it to choose it; `toBeChecked` says whether it is chosen.
+ * Check it to choose it; `toBeChecked` says whether it is chosen. A radio, or a
+ * checkbox for the level and units (several at once).
  * @param {import('@playwright/test').Page | import('@playwright/test').Locator} page
  * @param {string} name
  * @param {string} value
  */
-export const pill = (page, name, value) => page.locator(`input[type="radio"][name="${name}"][value="${value}"]`);
+export const pill = (page, name, value) => page.locator(`input[name="${name}"][value="${value}"]`);
 
 /**
  * The faculty combobox's options, by their names, once its list is open

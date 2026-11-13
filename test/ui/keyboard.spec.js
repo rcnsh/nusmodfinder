@@ -29,7 +29,7 @@ async function tabKey(page) {
 const here = (page) => page.evaluate(() => {
   const a = document.activeElement;
   if (!a || a === document.body) return 'body';
-  if (a instanceof HTMLInputElement && a.type === 'radio') return `radio ${a.name}=${a.value}`;
+  if (a instanceof HTMLInputElement && (a.type === 'radio' || a.type === 'checkbox')) return `${a.type} ${a.name}=${a.value}`;
   if (a.id && !/^card-\d+$/.test(a.id)) return `#${a.id}`;
   const name = (a.getAttribute('aria-label') ?? a.textContent ?? '').replace(/\s+/g, ' ').trim();
   return `${a.tagName.toLowerCase()} "${name}"`;
@@ -48,7 +48,7 @@ const ring = (page) => page.evaluate(() => {
   // A landing point, not a control: the shown <main> the skip link focuses, or a heading the
   // page focuses (tabindex -1: the shortlist view's).
   if (a.tagName === 'MAIN' || (/^H[1-6]$/.test(a.tagName) && a.getAttribute('tabindex') === '-1')) return 'ok';
-  const el = a instanceof HTMLInputElement && a.type === 'radio' ? a.closest('.tile, .pill, .seg-opt') ?? a : a;
+  const el = a instanceof HTMLInputElement && (a.type === 'radio' || a.type === 'checkbox') ? a.closest('.tile, .pill, .seg-opt') ?? a : a;
   const cs = getComputedStyle(el);
   const transparent = /^transparent$|rgba\([^)]*,\s*0\)$/.test(cs.outlineColor);
   const outline = cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) >= 2 && !transparent;
@@ -182,11 +182,12 @@ test.describe('at 1280', () => {
     expect(await k.tab(4)).toEqual(['#go', 'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', CARD]);
     // Back into the rail, which sits before the results.
     expect(await k.shiftTab(7)).toEqual([
-      'button "Remove filter: Exchange students"', 'button "Remove filter: Sem 1"', '#go', '#q', '#faculty', 'radio credits=', 'radio level=',
+      'button "Remove filter: Exchange students"', 'button "Remove filter: Sem 1"', '#go', '#q', '#faculty', 'checkbox credits=', 'checkbox level=',
     ]);
-    // A filter: Level 2000, by arrow keys along the level pills from "Any".
-    expect(await k.press('ArrowRight')).toBe('radio level=1');
-    expect(await k.press('ArrowRight')).toBe('radio level=2');
+    // A filter: Level 2000, by arrow keys along the level pills from "Any", then Space.
+    expect(await k.press('ArrowRight')).toBe('checkbox level=1');
+    expect(await k.press('ArrowRight')).toBe('checkbox level=2');
+    expect(await k.press('Space')).toBe('checkbox level=2');
     await expect.poll(() => query(page)).toBe(URL_FILTERED);
     await settled(page);
     await expect(live(page)).toHaveText(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
@@ -199,7 +200,7 @@ test.describe('at 1280', () => {
     await settled(page);
     // On to the entry.
     expect(await k.tab(9)).toEqual([
-      'radio study=ug2', 'radio level=2', 'radio credits=', '#faculty', '#q', '#go',
+      'radio study=ug2', 'checkbox level=2', 'checkbox credits=', '#faculty', '#q', '#go',
       'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', 'button "Remove filter: Level 2000"',
     ]);
     expect(await k.tab()).toEqual([CARD]);
@@ -230,9 +231,10 @@ test.describe('at 390×664', () => {
     await expect(page.locator('#filtersBtn')).toHaveText('Filters (3)');
     expect(await k.press('Enter')).toBe('radio who=1');
     await expect(page.getByRole('dialog', { name: 'Who is searching, and filters' })).toBeVisible();
-    expect(await k.tab(3)).toEqual(['radio xsem=1', 'radio study=ug2', 'radio level=']);
-    expect(await k.press('ArrowRight')).toBe('radio level=1');
-    expect(await k.press('ArrowRight')).toBe('radio level=2');
+    expect(await k.tab(3)).toEqual(['radio xsem=1', 'radio study=ug2', 'checkbox level=']);
+    expect(await k.press('ArrowRight')).toBe('checkbox level=1');
+    expect(await k.press('ArrowRight')).toBe('checkbox level=2');
+    expect(await k.press('Space')).toBe('checkbox level=2');
     await expect.poll(() => query(page)).toBe(URL_FILTERED);
     // The exchange set-up in the dialog: the semester segment by arrow keys.
     expect(await k.shiftTab(2)).toEqual(['radio study=ug2', 'radio xsem=1']);

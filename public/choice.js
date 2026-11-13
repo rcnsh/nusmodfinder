@@ -16,37 +16,82 @@ import { h } from './dom.js';
  * @typedef {object} Choice
  * @property {string} value  the chosen value ('' for "any")
  * @property {HTMLElement} root  the control's element; `change` bubbles from it
- * @property {(value: string, label: string | Child[]) => void} ensure  adds an option the list lacks (a shared link's value)
+ * @property {(value: string, label: string | Child[] | ((one: string) => string | Child[])) => void} ensure  adds an option the list lacks (a shared link's value; a multi group's label is per value)
  * @property {() => void} focus
  */
 
 /**
  * A radio group drawn as pills (or, for the rows `seg` names, a segment):
  * each radio covers its label, so the whole shape is the target. Arrow keys
- * move and choose within it, as in any radio group.
+ * move and choose within it, as in any radio group. With `multi`, the pills
+ * are checkboxes and `.value` is the chosen values comma-separated in numeric
+ * order ('3,4'): the first option ('' , "Any") clears the others, choosing
+ * any other clears it, and clearing the last choice checks it again.
  * @param {HTMLElement} root  the fieldset the pills go in
  * @param {string} name  the radios' name
  * @param {{ value: string, label: string | Child[] }[]} options  a label may carry visually hidden words (the "Level " before a level's figure), so a pill says what its chip says
- * @param {{ seg?: number }} [opts]  the first `seg` options form a segment, the rest pills under it
+ * @param {{ seg?: number, multi?: boolean }} [opts]  the first `seg` options form a segment, the rest pills under it
  * @returns {Choice}
  */
-export function pillGroup(root, name, options, { seg = 0 } = {}) {
+export function pillGroup(root, name, options, { seg = 0, multi = false } = {}) {
+  const type = multi ? 'checkbox' : 'radio';
   /** @param {string} value @param {string | Child[]} label */
   const pill = (value, label, cls = 'pill pill-s') => h('label', { class: cls },
-    h('input', { attrs: { type: 'radio', name, value } }), ...(Array.isArray(label) ? label : [label]));
+    h('input', { attrs: { type, name, value } }), ...(Array.isArray(label) ? label : [label]));
   const segRow = seg ? h('div', { class: 'seg' }, ...options.slice(0, seg).map((o) => pill(o.value, o.label, 'seg-opt'))) : null;
   const pills = h('div', { class: 'pills pills-s' }, ...options.slice(seg).map((o) => pill(o.value, o.label)));
   root.append(...[segRow, pills].filter((x) => x !== null));
-  const radios = () => /** @type {HTMLInputElement[]} */ ([...root.querySelectorAll(`input[type="radio"][name="${name}"]`)]);
+  const radios = () => /** @type {HTMLInputElement[]} */ ([...root.querySelectorAll(`input[type="${type}"][name="${name}"]`)]);
+  /** Puts a multi group's Tab stop on its first chosen pill, unless focus is in the group. @type {() => void} */
+  let roving = () => {};
+  if (multi) {
+    // Before the page's own change listener on the root: the boxes are
+    // squared up (Any against the rest) by the time it reads `.value`.
+    root.addEventListener('change', (e) => {
+      const box = e.target;
+      if (!(box instanceof HTMLInputElement) || box.name !== name) return;
+      const all = radios();
+      if (box.value === '' || !all.some((r) => r.checked && r.value !== '')) for (const r of all) r.checked = r.value === '';
+      else for (const r of all) if (r.value === '') r.checked = false;
+    }, { capture: true });
+    // One Tab stop for the group, as a radio group has: arrow keys, Home and
+    // End move along the pills, and Space checks or clears the one in focus.
+    /** @param {HTMLInputElement} [to] */
+    const rove = (to) => {
+      const all = radios();
+      const at = to ?? all.find((r) => r.checked) ?? all[0];
+      for (const r of all) r.tabIndex = r === at ? 0 : -1;
+    };
+    root.addEventListener('focusin', (e) => { if (e.target instanceof HTMLInputElement && e.target.name === name) rove(e.target); });
+    root.addEventListener('keydown', (e) => {
+      const all = radios();
+      const at = all.indexOf(/** @type {HTMLInputElement} */ (e.target));
+      if (at < 0) return;
+      const next = { ArrowRight: at + 1, ArrowDown: at + 1, ArrowLeft: at - 1, ArrowUp: at - 1, Home: 0, End: all.length - 1 }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      all[(next + all.length) % all.length].focus();
+    });
+    queueMicrotask(() => rove());
+    roving = () => rove();
+  }
   return {
     root,
-    get value() { return radios().find((r) => r.checked)?.value ?? ''; },
+    get value() {
+      const on = radios().filter((r) => r.checked && r.value !== '').map((r) => r.value);
+      return multi ? on.sort((a, b) => Number(a) - Number(b)).join(',') : radios().find((r) => r.checked)?.value ?? '';
+    },
     set value(v) {
       // '' with no "any" option (the year of study) unchecks the group.
-      for (const r of radios()) r.checked = r.value === v;
+      const want = multi ? new Set(v ? v.split(',') : ['']) : new Set([v]);
+      for (const r of radios()) r.checked = want.has(r.value);
+      if (!root.contains(document.activeElement)) roving();
     },
     ensure(value, label) {
-      if (value && !radios().some((r) => r.value === value)) pills.append(pill(value, label));
+      for (const one of multi ? value.split(',') : [value]) {
+        if (one && !radios().some((r) => r.value === one)) pills.append(pill(one, typeof label === 'function' ? label(one) : label));
+      }
+      if (multi && !root.contains(document.activeElement)) roving();
     },
     // Where Tab would land: the chosen radio, else the first.
     focus() { (radios().find((r) => r.checked) ?? radios()[0])?.focus(); },
