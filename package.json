@@ -25,6 +25,7 @@
     "test:eval": "node eval/selftest.mjs",
     "dev": "node scripts/ui-server.mjs",
     "deploy": "node scripts/deploy.mjs",
+    "deploy:uptime": "wrangler deploy -c workers/uptime/wrangler.jsonc",
     "smoke": "node scripts/smoke.mjs",
     "rollback": "node scripts/rollback.mjs",
     "d1:bookmark": "node scripts/d1-time-travel.mjs bookmark",

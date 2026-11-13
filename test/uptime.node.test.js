@@ -1,23 +1,25 @@
 // @ts-check
-// The hourly uptime check (scripts/uptime.mjs, ADR 0012) and its workflow
-// (.github/workflows/uptime.yml). Each run GETs /health, one /module/<code> and one /search that
+// The uptime check (scripts/uptime-check.mjs, ADR 0012 and 0019), its CLI (scripts/uptime.mjs) and
+// the Worker that runs it every 15 minutes (workers/uptime/). Each run GETs /health, one /module/<code> and one /search that
 // must be a cache miss and not degraded; a failure is checked again 90 s later; a pass pings
 // healthchecks.io's HC_UPTIME_URL, two failures ping HC_UPTIME_URL/fail with a one-line reason.
 // A fake site, clock and pinger: nothing here sends a request.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { MODULE_CODE_RE } from '../scripts/lib.mjs';
+import { CODE_RE } from '../scripts/uptime-check.mjs';
 import {
-  GAP_MS, QUERIES, RETRY_MS, SCHEDULE, TRIES, moduleCodes, queryIndex, siteUrl, uptime,
+  GAP_MS, PERIOD_MS, QUERIES, RETRY_MS, SCHEDULE, TRIES, moduleCodes, queryIndex, siteUrl, uptime,
 } from '../scripts/uptime.mjs';
+import { run as workerRun } from '../workers/uptime/index.mjs';
 
 const BASE = 'https://site.example';
 const PING = 'https://hc-ping.example/5ec2e7-uuid-never-logged';
 const SECRET_PART = '5ec2e7-uuid-never-logged';
 const CODES = ['AA1001', 'BB2002', 'CC3003'];
-const HOUR = 3_600_000;
-/** 37 minutes into hour 500,000 since the epoch. */
-const START = 500_000 * HOUR + 37 * 60_000;
+/** The period the fake clock starts in, and 7 s into it (a cron run starts just after the boundary). */
+const PERIOD = 2_000_000;
+const START = PERIOD * PERIOD_MS + 7000;
 
 /**
  * @typedef {{ status?: number, body?: unknown, cache?: 'hit' | 'miss', throws?: Error }} Answer
@@ -99,8 +101,8 @@ describe('the uptime check', () => {
     const { code } = await run(site, pinger);
     expect(code).toBe(0);
     expect(pinger.pings).toEqual([{ url: PING, body: undefined }]);
-    expect(site.sent.map((s) => s.path)).toEqual(['/health', `/module/${CODES[500_000 % CODES.length]}`, '/search']);
-    expect(site.sent[2].q).toBe(QUERIES[queryIndex(500_000)]);
+    expect(site.sent.map((s) => s.path)).toEqual(['/health', `/module/${CODES[PERIOD % CODES.length]}`, '/search']);
+    expect(site.sent[2].q).toBe(QUERIES[queryIndex(PERIOD)]);
   });
 
   it('one failure then a pass pings the base URL once, after 90 s', async () => {
@@ -176,7 +178,7 @@ describe('the uptime check', () => {
     const { code } = await run(site, pinger);
     expect(code).toBe(0);
     const qs = site.sent.filter((s) => s.path === '/search').map((s) => s.q);
-    const i = queryIndex(500_000);
+    const i = queryIndex(PERIOD);
     expect(qs).toEqual([QUERIES[i], QUERIES[(i + 1) % QUERIES.length]]);
     expect(pinger.pings).toEqual([{ url: PING, body: undefined }]);
   });
@@ -274,51 +276,76 @@ describe('what the check asks for', () => {
     expect(new Set(codes).size).toBe(codes.length);
   });
 
-  it('rotates the query by the hour, with no query repeated within a day or reused by the next hour\'s run', () => {
+  it('matches scripts/lib.mjs\'s course-code pattern', () => {
+    expect(CODE_RE.source).toBe(MODULE_CODE_RE.source);
+    expect(CODE_RE.flags).toBe(MODULE_CODE_RE.flags);
+  });
+
+  it('rotates the query by the period, with no first query repeated within 4 h or reused by the next period\'s run', () => {
     expect(new Set(QUERIES).size).toBe(QUERIES.length);
     for (const q of QUERIES) {
       expect(q).toMatch(/^[a-z][a-z ]+[a-z]$/);
       expect(q.split(' ').length).toBeGreaterThanOrEqual(2);
     }
-    for (let h = START / HOUR - 100; h < START / HOUR + 100; h += 1) {
-      const day = Array.from({ length: 24 }, (_, k) => queryIndex(h + k));
-      expect(new Set(day).size).toBe(24);
-      const thisRun = Array.from({ length: 2 * TRIES }, (_, k) => (queryIndex(h) + k) % QUERIES.length);
-      expect(thisRun).not.toContain(queryIndex(h + 1));
+    const fourHours = (4 * 3_600_000) / PERIOD_MS;
+    for (let p = PERIOD - 100; p < PERIOD + 100; p += 1) {
+      const window = Array.from({ length: fourHours }, (_, k) => queryIndex(p + k));
+      expect(new Set(window).size).toBe(fourHours);
+      const thisRun = Array.from({ length: 2 * TRIES }, (_, k) => (queryIndex(p) + k) % QUERIES.length);
+      expect(thisRun).not.toContain(queryIndex(p + 1));
     }
   });
 });
 
-describe('.github/workflows/uptime.yml', () => {
-  const workflow = readFileSync(new URL('../.github/workflows/uptime.yml', import.meta.url), 'utf8');
-  /** The workflow without its comments. */
-  const code = workflow.split('\n').filter((l) => !/^\s*#/.test(l)).map((l) => l.replace(/\s+#.*$/, '')).join('\n');
+describe('the uptime Worker', () => {
+  const config = readFileSync(new URL('../workers/uptime/wrangler.jsonc', import.meta.url), 'utf8');
+  /** The config without its comments. */
+  const code = config.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
 
-  it('runs hourly at the script\'s odd minute, and by hand', () => {
-    const crons = [...code.matchAll(/- cron: '([^']+)'/g)].map((m) => m[1]);
+  it('runs on the check\'s schedule, every 15 minutes, with no address and no bindings', () => {
+    const crons = JSON.parse(/"crons"\s*:\s*(\[[^\]]*\])/.exec(code)?.[1] ?? 'null');
     expect(crons).toEqual([SCHEDULE]);
-    const [minute, ...rest] = SCHEDULE.split(' ');
-    expect(rest).toEqual(['*', '*', '*', '*']);
-    expect(Number(minute) % 5).not.toBe(0);
-    expect(code).toMatch(/^ {2}workflow_dispatch:/m);
-    expect(code).not.toMatch(/^\s+(push|pull_request|pull_request_target|workflow_run):/m);
+    expect(SCHEDULE).toBe(`*/${PERIOD_MS / 60_000} * * * *`);
+    expect(code).toMatch(/"workers_dev"\s*:\s*false/);
+    expect(code).toMatch(/"preview_urls"\s*:\s*false/);
+    expect(code).not.toMatch(/"(routes|route|d1_databases|ai|vectorize|kv_namespaces|r2_buckets|services|ratelimits|assets)"/);
   });
 
-  it('has exactly contents: read, at the top and nowhere else', () => {
-    expect(code).toMatch(/^permissions:\n {2}contents: read\n(?! {2}\S)/m);
-    expect(code.match(/permissions:/g)).toHaveLength(1);
+  it('checks the root wrangler.jsonc\'s Custom Domain, and keeps the ping URL out of its config', () => {
+    const site = /"SITE"\s*:\s*"([^"]+)"/.exec(code)?.[1];
+    expect(site).toBe(siteUrl(readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8')));
+    expect(config).not.toMatch(/hc-ping\.com|healthchecks\.io\/ping/);
   });
 
-  it('uses no secret but HC_UPTIME_URL, only in the check\'s env, and never echoes it', () => {
-    const secrets = [...code.matchAll(/secrets\.([A-Za-z_]+)/g)].map((m) => m[1]);
-    expect(secrets).toEqual(['HC_UPTIME_URL']);
-    expect(code.split('\n').filter((l) => l.includes('HC_UPTIME_URL'))).toEqual(['          HC_UPTIME_URL: ${{ secrets.HC_UPTIME_URL }}']);
-    expect(code).toMatch(/run: node scripts\/uptime\.mjs\n/);
-    expect(code).not.toMatch(/github\.token|GITHUB_TOKEN|issues:|CLOUDFLARE_|wrangler|npm run (deploy|remote|ingest|verify|rollback)/);
+  it('a run checks SITE and pings HC_UPTIME_URL', async () => {
+    const site = fakeSite();
+    const pinger = fakePinger();
+    /** @type {string[]} */
+    const lines = [];
+    await workerRun({ SITE: `${BASE}/`, HC_UPTIME_URL: PING }, {
+      fetchImpl: site.fetchImpl, sleep: site.sleep, now: site.now, ping: pinger.ping, log: (m) => lines.push(m), error: (m) => lines.push(m),
+    });
+    expect(site.sent.map((s) => s.path)).toEqual(['/health', expect.stringMatching(/^\/module\//), '/search']);
+    expect(pinger.pings).toEqual([{ url: PING, body: undefined }]);
+    expect(lines.join('\n')).not.toContain(SECRET_PART);
   });
 
-  it('does not keep the checkout\'s token, and is bounded in time', () => {
-    expect(code).toMatch(/uses: actions\/checkout@v\d+\n {8}with:\n {10}persist-credentials: false\n/);
-    expect(code).toMatch(/timeout-minutes: \d+/);
+  it('a run that cannot report throws, so Workers Logs mark it failed; a down site does not', async () => {
+    const deps = (/** @type {ReturnType<typeof fakePinger>} */ pinger, /** @type {Attempt[]} */ attempts = [{}]) => {
+      const site = fakeSite(attempts);
+      return { fetchImpl: site.fetchImpl, sleep: site.sleep, now: site.now, ping: pinger.ping, log: () => {}, error: () => {} };
+    };
+    await expect(workerRun({ SITE: BASE, HC_UPTIME_URL: PING }, deps(fakePinger({ fail: true })))).rejects.toThrow(/exit 1/);
+    await expect(workerRun({ SITE: BASE }, deps(fakePinger()))).rejects.toThrow(/exit 2/);
+    await expect(workerRun({ SITE: 'http://x.example', HC_UPTIME_URL: PING }, deps(fakePinger()))).rejects.toThrow(/SITE/);
+    const down = fakePinger();
+    await workerRun({ SITE: BASE, HC_UPTIME_URL: PING }, deps(down, [{ health: { status: 503 } }]));
+    expect(down.pings.map((p) => p.url)).toEqual([`${PING}/fail`]);
+  });
+
+  it('bundles the check, which imports nothing a Worker lacks', () => {
+    const check = readFileSync(new URL('../scripts/uptime-check.mjs', import.meta.url), 'utf8');
+    expect(check).not.toMatch(/^\s*import\s/m);
+    expect(check).not.toMatch(/process\.|require\(/);
   });
 });

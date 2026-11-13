@@ -13,6 +13,7 @@ no framework, no build step. Docs index: [docs/README.md](docs/README.md).
 | `migrations/` | the D1 schema, the only one |
 | `data/` | committed data: manifests, vocabulary, groups, NG lists and rules, per year |
 | `scripts/` | ingest, deploy, rollback, smoke, remote, year refresh, builders, ops |
+| `workers/uptime/` | the uptime Worker: a 15-minute Cron Trigger that runs the uptime check (ADR 0019) |
 | `eval/` | the ranking eval: sets, harness, gate, ranking lock ([EVAL.md](EVAL.md)) |
 | `test/` | Vitest (`*.test.js` in workerd, `*.node.test.js` in Node), `full/`, `oracle/`, `ui/` (Playwright) |
 | `ops/runs/`, `ops/reports/` | run records of every remote operation; monthly usage reports |
@@ -30,6 +31,7 @@ npm run eval:lock -- --check   # the eval gate: did a ranked list move?
 npm run dev                 # the page over the fixture, nothing remote
 npm run deploy              # the only way to deploy; `-- --preflight` before any D1 write
 npm run smoke               # after a deploy or rollback from the Mac
+npm run deploy:uptime       # the uptime Worker only (workers/uptime/), from the Mac
 npm run rollback            # then the `npm run smoke -- --expect <sha>` it prints
 npm run year -- next <year> | check [--full]   # the yearly refresh (docs/year-refresh/)
 npm run reviews -- crawl | score | build        # course review scores (docs/data.md, ADR 0018)
@@ -62,6 +64,8 @@ Commit before `eval:lock -- --check`: it reads committed content only.
   `DENSE_BACKEND`, the production bundle matches D1, `corpus check` and `year check` pass, and a
   source-derived input change has a committed `year check --full` record. Never run
   `npx wrangler deploy` (it ships the fixture bundle) or `wrangler secret put INGEST_SECRET`.
+  The uptime Worker is separate: `npm run deploy:uptime`, after changing `workers/uptime/` or
+  `scripts/uptime-check.mjs`.
 - **D1 writes run on the Mac, through the runbook**, in order: merge, preflight, `d1:bookmark`,
   `npm run remote -- ingest --d1-only`, `verify --pre-deploy`, deploy, smoke, standby
   ([docs/data.md](docs/data.md), "Re-ingesting"). Ask the owner before any remote write.

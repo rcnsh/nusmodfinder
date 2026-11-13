@@ -18,7 +18,7 @@ export default [
   {
     // Node-side scripts, tool configs, and the tests that run in Node, the
     // Playwright specs included (they drive the browser from Node).
-    files: ['scripts/**/*.mjs', 'eval/**/*.mjs', '*.mjs', 'test/**/*.node.test.js', 'test/**/*.node.mjs', 'test/ui/**/*.spec.js', 'test/ui/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'workers/**/*.mjs', 'eval/**/*.mjs', '*.mjs', 'test/**/*.node.test.js', 'test/**/*.node.mjs', 'test/ui/**/*.spec.js', 'test/ui/**/*.mjs'],
     languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: { ...globals.node } },
   },
   {
@@ -26,6 +26,12 @@ export default [
     // page; so do the live checks'.
     files: ['test/ui/**/*.spec.js', 'test/ui/**/*.mjs', 'scripts/live-check.mjs', 'scripts/live-shortlist.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
+    // The uptime Worker imports data/groups.json with an import attribute (ES2025), which both
+    // Node and wrangler's bundler need.
+    files: ['workers/**/*.mjs'],
+    languageOptions: { ecmaVersion: 2025 },
   },
   {
     // The page: browser ES modules that render DOM nodes only.

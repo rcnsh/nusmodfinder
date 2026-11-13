@@ -144,7 +144,7 @@ const SERVED = [
   ['a link a student follows from another site', { 'sec-fetch-site': 'cross-site', 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'document', 'sec-fetch-user': '?1' }],
   ['the page itself', { 'sec-fetch-site': 'same-origin', 'sec-fetch-mode': 'cors', 'sec-fetch-dest': 'empty' }],
   ['a bookmark or a typed address', { 'sec-fetch-site': 'none', 'sec-fetch-mode': 'navigate', 'sec-fetch-dest': 'document', 'sec-fetch-user': '?1' }],
-  ['Node\'s fetch (smoke, uptime)', { 'sec-fetch-mode': 'cors', accept: '*/*', 'accept-language': '*', 'user-agent': 'node' }],
+  ['Node\'s fetch (smoke, the uptime CLI)', { 'sec-fetch-mode': 'cors', accept: '*/*', 'accept-language': '*', 'user-agent': 'node' }],
   ['the eval and curl (no Sec-Fetch-*)', { accept: '*/*', 'user-agent': 'curl/8.7.1' }],
 ];
 

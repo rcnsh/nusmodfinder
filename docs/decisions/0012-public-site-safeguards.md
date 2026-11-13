@@ -26,10 +26,11 @@ describing the system as it is.
   page's security headers; `favicon.ico`; a `<noscript>` line; the academic year at every width;
   and a cache hit re-sent with its own TTL, since the zone's Browser Cache TTL would otherwise keep
   a keyword-only answer for 4 hours.
-- **Outages reach the owner through healthchecks.io and Pushover.** An hourly GitHub Actions run
-  sends three GETs (`/health`, one `/module`, one uncached `/search`), pings the check on success
-  and its `/fail` after two failures, so a failure alerts at once and a run that stops arriving
-  alerts after the grace. The ping URL is the repo secret `HC_UPTIME_URL`.
+- **Outages reach the owner through healthchecks.io and Pushover.** Every 15 minutes the uptime
+  Worker (ADR 0019) sends three GETs (`/health`, one `/module`, one uncached `/search`), pings the
+  check on success and its `/fail` after two failures, so a failure alerts at once and a run that
+  stops arriving alerts after the grace. The ping URL is the uptime Worker's secret
+  `HC_UPTIME_URL`.
 - **Rollbacks hold.** The outage runbook turns off Actions deploys and clears queued ones before a
   rollback, since the next push to `main` would otherwise redeploy the cause.
 - **No announcement post is drafted.** [docs/incidents.md](../incidents.md) holds the checks to
@@ -41,6 +42,6 @@ describing the system as it is.
   and broken commands.
 
 ## Consequences
-- The uptime check costs about 70 requests and 1 neuron a day.
+- The uptime check costs about 290 requests and 3 neurons a day ([docs/cost.md](../cost.md)).
 - A rate-limited visitor sees a plain sentence and a retry time; traffic spread over many
   addresses is not limited (ADR 0004's rules are what protect the daily neurons).

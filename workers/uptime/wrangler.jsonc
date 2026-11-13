@@ -1,0 +1,19 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // The uptime Worker (ADR 0019): a Cron Trigger and nothing else. Deploy it from the Mac with
+  // `npm run deploy:uptime`; it is not part of `npm run deploy` or the Actions deploy.
+  "name": "nusmodfinder-uptime",
+  "main": "index.mjs",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+
+  // No address: it only makes requests. The cron must match SCHEDULE in
+  // scripts/uptime-check.mjs (test/uptime.node.test.js checks it).
+  "workers_dev": false,
+  "preview_urls": false,
+  "triggers": { "crons": ["*/15 * * * *"] },
+
+  // The site checked: the root wrangler.jsonc's Custom Domain (a test keeps them equal).
+  // HC_UPTIME_URL is a secret, set with `wrangler secret put`.
+  "vars": { "SITE": "https://nusmodfinder.rcn.sh" }
+}

@@ -471,18 +471,19 @@ the script; `test/drift-workflow.node.test.js` checks that.
 
 ## The uptime check
 
-`.github/workflows/uptime.yml`, `scripts/uptime.mjs` (ADR 0012). Hourly at minute 37 UTC, and by
-hand (`workflow_dispatch`). Each run sends three GETs to `wrangler.jsonc`'s Custom Domain, each at
-least 4 s after the last answer, since Actions runners share addresses and the site's limit is per
-address:
+The uptime Worker `nusmodfinder-uptime` (`workers/uptime/`, ADR 0019) runs the check
+(`scripts/uptime-check.mjs`, ADR 0012) every 15 minutes from a Cron Trigger. It is its own Worker,
+with no routes and no bindings, so it keeps running when the site's Worker is broken. Each run sends
+three GETs to the site in its `SITE` var (the root `wrangler.jsonc`'s Custom Domain; a test keeps
+them equal), each at least 4 s after the last answer, since the site's limit is per address:
 
 - `/health`: 200 with `ok: true`;
-- `/module/<code>`: 200 with that code. The code is drawn by the hour from the checkout's
-  `data/groups.json`, so no course is named in the script. `main` can be ahead of the deploy (a
-  refresh is merged before D1 is re-ingested; a rollback), so a 404 that names its kind of miss
-  (`unknown`, `catalogue-only`, `ng-listed`) passes too, with a note: the Worker read D1 to give
-  it, and a D1 failure is a 502;
-- `/search` for a plain-English topic from `QUERIES` in the script, rotating by the hour: 200,
+- `/module/<code>`: 200 with that code. The code is drawn by the period from `data/groups.json`
+  (bundled into the uptime Worker when it is deployed), so no course is named in the script. The
+  deploy can be behind or ahead of that file (a refresh is merged before D1 is re-ingested; a
+  rollback), so a 404 that names its kind of miss (`unknown`, `catalogue-only`, `ng-listed`)
+  passes too, with a note: the Worker read D1 to give it, and a D1 failure is a 502;
+- `/search` for a plain-English topic from `QUERIES` in the script, rotating by the period: 200,
   `cache;desc=miss` (as smoke requires), not `degraded`, at least one result. On a cache hit it
   takes the next query, up to 3. Checking the miss and `degraded` catches the keyword-only
   fallback, which still answers 200.
@@ -491,15 +492,23 @@ A failure is checked again 90 s later, with queries not yet sent; nothing is kep
 pass pings the healthchecks.io check; two failures ping its `/fail` with a one-line reason as the
 body: the route and the status (`/search HTTP 502`, `/search degraded (workers-ai-timeout)`), never
 a visitor's data. healthchecks.io alerts the owner through Pushover, at once on `/fail`, and after
-the check's 12 h grace when runs stop arriving (GitHub may delay or drop scheduled runs, and pauses
-a public repo's after 60 quiet days). The check (period 1 h, grace 12 h) is in the owner's
-healthchecks.io account; its ping URL is the repo secret `HC_UPTIME_URL`, the workflow's only
-secret, with `contents: read` and nothing else. The script never prints the URL: every line shows
-it as `<HC_UPTIME_URL>`. The run exits 0 once the report reached healthchecks.io, up or down (a red
-run every hour of an outage would only add emails), 1 when the ping itself failed, and 2 on a
-missing or non-https `HC_UPTIME_URL`, before any request. It writes no run record: the history is
-healthchecks.io's. `node scripts/uptime.mjs --dry-run [--url <url>]` checks a site and prints what
-it would ping, pinging nothing. The cron must match `SCHEDULE` in the script;
-`test/uptime.node.test.js` checks it, the permissions and the secret.
+the check's grace when runs stop arriving. The check (`nusmodfinder-uptime`, cron `*/15 * * * *`
+UTC, 20 min grace) is in the owner's healthchecks.io account; its ping URL is the uptime Worker's
+secret `HC_UPTIME_URL`. The script never prints the URL: every line shows it as `<HC_UPTIME_URL>`.
+A run that could not reach healthchecks.io, or has no `HC_UPTIME_URL`, throws, so Workers Logs mark
+the invocation failed; a down site is a normal run. healthchecks.io keeps the history; Workers Logs
+keep each run's lines for 7 days.
+
+- **Deploy** the uptime Worker from the Mac: `npm run deploy:uptime`. It is not part of
+  `npm run deploy` or the Actions deploy (the Actions token can edit only `nusmodfinder`), so
+  deploy it after a change to `workers/uptime/` or `scripts/uptime-check.mjs`, and after a corpus
+  refresh changes `data/groups.json` a lot (stale codes still pass, as named 404s).
+- **The secret:** `npx wrangler secret put HC_UPTIME_URL -c workers/uptime/wrangler.jsonc`, the
+  value being the check's ping URL in healthchecks.io.
+- **By hand:** `node scripts/uptime.mjs --dry-run [--url <url>]` runs the same check from the Mac
+  and prints what it would ping, pinging nothing.
+
+The cron in `workers/uptime/wrangler.jsonc` must match `SCHEDULE` in `scripts/uptime-check.mjs`;
+`test/uptime.node.test.js` checks it, and that the uptime Worker has no address or bindings.
 
 What each alert means and what to do is [incidents.md](incidents.md).
