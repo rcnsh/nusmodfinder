@@ -41,37 +41,37 @@
     - heading "Filters" [level=2]
     - group "Level":
       - text: Level
-      - radio "Any"
+      - checkbox "Any"
       - text: Any
-      - radio "Level 1000" [checked]
+      - checkbox "Level 1000" [checked]
       - text: Level 1000
-      - radio "Level 2000"
+      - checkbox "Level 2000"
       - text: Level 2000
-      - radio "Level 3000"
+      - checkbox "Level 3000"
       - text: Level 3000
-      - radio "Level 4000"
+      - checkbox "Level 4000"
       - text: Level 4000
-      - radio "Level 5000"
+      - checkbox "Level 5000"
       - text: Level 5000
-      - radio "Level 6000"
+      - checkbox "Level 6000"
       - text: Level 6000
-      - radio "Level 8000"
+      - checkbox "Level 8000"
       - text: Level 8000
     - group "Units":
       - text: Units
-      - radio "Any" [checked]
+      - checkbox "Any" [checked]
       - text: Any
-      - radio "2 units"
+      - checkbox "2 units"
       - text: 2 units
-      - radio "4 units"
+      - checkbox "4 units"
       - text: 4 units
-      - radio "5 units"
+      - checkbox "5 units"
       - text: 5 units
-      - radio "6 units"
+      - checkbox "6 units"
       - text: 6 units
-      - radio "8 units"
+      - checkbox "8 units"
       - text: 8 units
-      - radio "12 units"
+      - checkbox "12 units"
       - text: 12 units
     - text: Faculty
     - combobox "Faculty"

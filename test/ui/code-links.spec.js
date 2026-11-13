@@ -94,6 +94,7 @@ test.describe('"Also as" codes are links to their own entry', () => {
     // By keyboard, so focus is on the pill in every engine (a click doesn't focus a radio in WebKit).
     await pill(page, 'level', '').focus();
     await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Space');
     await expect.poll(() => query(page)).toBe('q=ACC1701XB&sem=1&level=1&ng=1&study=ug2');
     await expect(page.locator('#status .count')).toBeVisible();
     await page.waitForTimeout(2000);

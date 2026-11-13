@@ -56,8 +56,9 @@ const NULL_FACULTY = 0xffff;
  *   table: Uint8Array, view: DataView, vectors: Float32Array, facultyId: Map<string, number>,
  * }} Bundle
  * @typedef {import('./rowhash.js').RowFields} RowFields
- * @typedef {{ sem?: number, level?: number, credits?: number, faculty?: string, ng?: boolean,
+ * @typedef {{ sem?: number, level?: number | number[], credits?: number | number[], faculty?: string, ng?: boolean,
  *   study?: import('./ng-bit.js').Study, exam?: 0, su?: 1, hoursBelow?: number, prereq?: 'none' }} FilterEcho
+ *   `level` and `credits` are one value, or two or more (sorted, distinct) of which a row matches any.
  *   `exam`, `su`, `hoursBelow` and `prereq` are the constraints (explicit params or parsed from q).
  *   `study` is exchange mode's: with `ng`, the filter is the allow-mask bit for (sem, study), and `sem` only picks it.
  * @typedef {[string, string]} CodeRange a primary-key range [lo, hi) over codes (src/query-intent.js codeRange)
@@ -69,6 +70,13 @@ const NULL_FACULTY = 0xffff;
  *   `ngIgnoreAllow` is the oracle trace's ignore mode only (src/search.js oracleTraceMode, never
  *   live): under ng, the yearly flag without the allow-mask bit.
  */
+
+/**
+ * A level or credits filter's values as a list (one value is a list of one).
+ * @param {number | number[]} v
+ * @returns {number[]}
+ */
+export const filterValues = (v) => (Array.isArray(v) ? v : [v]);
 
 /** Code order: by UTF-16 code unit, which for NUS codes ([A-Z0-9]) is also localeCompare's order. */
 const byCode = (/** @type {string} */ a, /** @type {string} */ b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -304,8 +312,10 @@ export function compileMask(b, echo) {
     tests.push((i) => (table[i * ROW_STRIDE] & bit) !== 0);
   }
   if (echo.level !== undefined) {
-    const level = echo.level;
-    tests.push((i) => table[i * ROW_STRIDE + 1] === level);
+    // One value keeps the plain comparison: this runs on every row of the scan.
+    const levels = filterValues(echo.level);
+    const [level] = levels;
+    tests.push(levels.length === 1 ? (i) => table[i * ROW_STRIDE + 1] === level : (i) => levels.includes(table[i * ROW_STRIDE + 1]));
   }
   if (echo.levelWindow) {
     const { min } = echo.levelWindow;
@@ -324,8 +334,11 @@ export function compileMask(b, echo) {
     tests.push((i) => view.getUint16(i * ROW_STRIDE + 4, true) === id);
   }
   if (echo.credits !== undefined) {
-    const credits = echo.credits;
-    tests.push((i) => view.getFloat64(i * ROW_STRIDE + 8, true) === credits);
+    const credits = filterValues(echo.credits);
+    const [one] = credits;
+    tests.push(credits.length === 1
+      ? (i) => view.getFloat64(i * ROW_STRIDE + 8, true) === one
+      : (i) => credits.includes(view.getFloat64(i * ROW_STRIDE + 8, true)));
   }
   // The constraints: no exam in the selected semester (any offered one
   // without sem); su or CS/CU; workload under N (NULL excluded); prereq by the semantics in force.

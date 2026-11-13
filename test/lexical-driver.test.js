@@ -125,6 +125,23 @@ describe('chooseDriver', () => {
   });
 });
 
+describe('several levels or unit counts', () => {
+  it('filterSql writes IN over every value, and the driver walks its index for each', async () => {
+    const echo = /** @type {FilterEcho} */ ({ level: [3, 4], credits: [2, 4], faculty: 'Computing' });
+    expect(filterSql(echo, 'level')).toEqual({ clauses: ['m.level IN (?, ?)', '+m.credits IN (?, ?)', '+m.faculty = ?'], binds: [3, 4, 2, 4, 'Computing'] });
+    expect(await plan(echo, 'level')).toEqual(['SEARCH m USING INDEX idx_modules_level (level=?)']);
+  });
+
+  it('chooseDriver counts the rows of every value', () => {
+    const counts = parseFilterCounts({
+      faculties: [{ name: 'Computing', count: 315 }], levels: [{ level: 5, count: 200 }, { level: 8, count: 200 }],
+      credits: [{ credits: 4, count: 5081 }], semesters: [{ sem: 1, count: 4250 }], ng: { count: 1175 },
+    });
+    expect(chooseDriver({ level: 5, faculty: 'Computing' }, counts)).toBe('level');
+    expect(chooseDriver({ level: [5, 8], faculty: 'Computing' }, counts)).toBe('faculty');
+  });
+});
+
 describe('the filter-driven plan', () => {
   it('without a driver, SQLite drives faculty+credits from the credits index (the bug)', async () => {
     expect(await plan({ faculty: 'Computing', credits: 4 })).toEqual(['SEARCH m USING INDEX idx_modules_credits (credits=?)']);

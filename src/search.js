@@ -22,7 +22,7 @@ import { STUDIES, bitOf, ngBit } from './ng-bit.js';
 import { unscheduled } from './ng-unscheduled.js';
 import { canonicalQuery, parseIgnore, parseQuery } from './query-intent.js';
 import { EMBED_CORRECTED } from './typo.js';
-import { hasCode } from './vector-bundle.js';
+import { filterValues, hasCode } from './vector-bundle.js';
 import {
   AI_TIMEOUT_MS, D1_TIMEOUT_MS, TimeoutError, VECTORIZE_TIMEOUT_MS, denseCircuit, withTimeout,
 } from './upstream.js';
@@ -31,7 +31,7 @@ import {
  * @typedef {import('./modules.js').ResultRow} ResultRow
  * @typedef {import('./timing.js').Trace} Trace
  * @typedef {import('./vector-bundle.js').FilterEcho} FilterEcho
- * @typedef {Record<string, string | number | boolean>} VectorFilter
+ * @typedef {Record<string, string | number | boolean | { $in: number[] }>} VectorFilter
  * @typedef {'hybrid' | 'vector' | 'lexical'} Mode
  * @typedef {{ q: string, echo: FilterEcho, filter: VectorFilter, mode: Mode, topK: number, ignore: string[] }} SearchQuery
  *   `ignore`: the intents to undo, sorted and de-duplicated (part of the cache key).
@@ -119,6 +119,31 @@ const RRF_K = 60;
 // mid-list by one engine and top by the other can still surface.
 const CANDIDATE_MULTIPLIER = 3;
 
+/** The most distinct values a level or credits list may name (each is a bound parameter in SQL). */
+export const MAX_FILTER_VALUES = 12;
+
+/**
+ * A level or credits parameter: undefined when absent or empty, null when any
+ * part fails `ok` or it names more than MAX_FILTER_VALUES, one number, or two
+ * or more sorted and distinct.
+ * @param {string | null} raw
+ * @param {(n: number) => boolean} ok
+ * @returns {number | number[] | null | undefined}
+ */
+function listParam(raw, ok) {
+  if (raw === null || raw.trim() === '') return undefined;
+  const parts = raw.split(',').map((p) => p.trim());
+  if (parts.some((p) => p === '')) return null;
+  const ns = parts.map(Number);
+  if (!ns.every(ok)) return null;
+  const distinct = [...new Set(ns)].sort((a, b) => a - b);
+  if (distinct.length > MAX_FILTER_VALUES) return null;
+  return distinct.length === 1 ? distinct[0] : distinct;
+}
+
+/** One value as itself, several as Vectorize's `$in`. @param {number | number[]} v */
+const vectorValue = (v) => (Array.isArray(v) ? { $in: v } : v);
+
 // Reads sem/level/credits/faculty off the query string. Returns the echoed
 // filters plus the Vectorize metadata filter they translate to.
 /** @param {URLSearchParams} params */
@@ -137,19 +162,15 @@ function parseFilters(params) {
     else { echo.sem = n; filter[`sem${n}`] = true; }
   }
 
-  const level = params.get('level');
-  if (level !== null && level !== '') {
-    const n = Number(level);
-    if (!Number.isInteger(n) || n < 1 || n > 8) errors.push('level must be an integer from 1 to 8');
-    else { echo.level = n; filter.level = n; }
-  }
+  // level and credits take one value or a comma-separated list (`level=3,4`): a
+  // row matches any of them. One value echoes as a number, as it always has.
+  const level = listParam(params.get('level'), (n) => Number.isInteger(n) && n >= 1 && n <= 8);
+  if (level === null) errors.push('level must be an integer from 1 to 8, or a comma-separated list of them');
+  else if (level !== undefined) { echo.level = level; filter.level = vectorValue(level); }
 
-  const credits = params.get('credits');
-  if (credits !== null && credits !== '') {
-    const n = Number(credits);
-    if (!Number.isFinite(n) || n < 0) errors.push('credits must be a non-negative number');
-    else { echo.credits = n; filter.credits = n; }
-  }
+  const credits = listParam(params.get('credits'), (n) => Number.isFinite(n) && n >= 0);
+  if (credits === null) errors.push(`credits must be a non-negative number, or a comma-separated list of at most ${MAX_FILTER_VALUES}`);
+  else if (credits !== undefined) { echo.credits = credits; filter.credits = vectorValue(credits); }
 
   const faculty = params.get('faculty');
   if (faculty !== null && faculty.trim() !== '') {
@@ -281,8 +302,8 @@ export function canonicalCacheKey(origin, { q, echo, mode, topK, ignore }, versi
   /** @type {[string, string][]} */
   const pairs = [['q', q], ['dv', DATA_VERSION], ['v', version]];
   if (echo.sem !== undefined) pairs.push(['sem', String(echo.sem)]);
-  if (echo.level !== undefined) pairs.push(['level', String(echo.level)]);
-  if (echo.credits !== undefined) pairs.push(['credits', String(echo.credits)]);
+  if (echo.level !== undefined) pairs.push(['level', filterValues(echo.level).join(',')]);
+  if (echo.credits !== undefined) pairs.push(['credits', filterValues(echo.credits).join(',')]);
   if (echo.faculty !== undefined) pairs.push(['faculty', echo.faculty]);
   if (echo.ng === true) pairs.push(['ng', '1']);
   // Only under ng, as the echo (parseFilters ignores study without it).
@@ -321,8 +342,8 @@ export function localMatchesFilters(row, echo) {
   // The allow-mask bit; a missing or zero ng_allow is closed, and under ng sem only picks the bit.
   if (echo.ng === true && !echo.ngIgnoreAllow && ((row.ng_allow ?? 0) & (ngBit(echo) ?? 0)) === 0) return false;
   if (echo.sem !== undefined && echo.ng !== true && !JSON.parse(row.semesters ?? '[]').includes(echo.sem)) return false;
-  if (echo.level !== undefined && row.level !== echo.level) return false;
-  if (echo.credits !== undefined && row.credits !== echo.credits) return false;
+  if (echo.level !== undefined && (row.level === null || !filterValues(echo.level).includes(row.level))) return false;
+  if (echo.credits !== undefined && (row.credits === null || !filterValues(echo.credits).includes(row.credits))) return false;
   if (echo.faculty !== undefined && row.faculty !== echo.faculty) return false;
   if (echo.levelWindow) {
     const { min, max } = echo.levelWindow;

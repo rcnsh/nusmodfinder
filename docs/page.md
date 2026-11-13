@@ -42,7 +42,10 @@ text/background and boundary pair in both themes against WCAG AA.
   as pills, every choice in sight: the semester (Any, Sem 1, Sem 2 as a segment, the special terms
   as pills under it), the level and units (the figure alone, with the rest of the chip's label,
   "Level 2000" or "4 units", visually hidden so a screen reader says the same), and the year of
-  study; arrow keys move and choose, as in any radio group. The faculty list is too long for
+  study; arrow keys move and choose, as in any radio group. Level and units take several at once:
+  their pills are checkboxes, "Any" clears the rest, choosing a figure clears "Any", and clearing
+  the last figure checks "Any" again. The URL names them comma-separated (`level=3,4`), and each
+  chosen figure is its own chip. The faculty list is too long for
   that: it is a combobox (the APG pattern, `aria-activedescendant`) whose list opens in the
   flow under the box rather than over the page, so in the phone's dialog it scrolls with the
   dialog and the keyboard never covers it; the box scrolls to the dialog's top as it opens.
