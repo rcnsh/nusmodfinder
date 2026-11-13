@@ -1,6 +1,6 @@
 // @ts-check
-// `npm run smoke -- [--expect <sha>]` (scripts/smoke.mjs), five requests each at
-// least 4 s after the last: /health (the tag, the data version, the production bundle), / (200
+// `npm run smoke -- [--expect <sha>]` (scripts/smoke.mjs), five checks, each request at
+// least 4 s after the last: /health (the tag, asked again for up to 30 s while another answers, the data version, the production bundle), / (200
 // with the CSP header), /module/<code> for an ungrouped, uniquely titled code of the expected
 // commit's corpus, /search for that title (a cache miss, not degraded, the code in the top 5)
 // and /facets. The data version, groups and bundle come from that commit's files (`git show
@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_ACAD_YEAR as Y } from '../scripts/lib.mjs';
-import { SMOKE_GAP_MS, smoke } from '../scripts/smoke.mjs';
+import { HEALTH_SETTLE_MS, SMOKE_GAP_MS, smoke } from '../scripts/smoke.mjs';
 
 const SHA = 'b75ac19016a2073e77d37c2c44485c9a5d8c99a2';
 const OTHER = '8e24b21ddfcacc5cc67edf4a7cd07c41aaa5a690';
@@ -54,7 +54,8 @@ function fakeExec(sha = SHA, o = {}) {
 
 /**
  * The live site, healthy unless told otherwise; a fake clock that sleep() advances.
- * @param {{ sha?: string, tag?: string, dataVersion?: string, corpus?: string, cache?: string, degraded?: boolean, csp?: boolean,
+ * `tags` gives /health's tag per ask, the last repeating (a promote still propagating).
+ * @param {{ sha?: string, tag?: string, tags?: string[], dataVersion?: string, corpus?: string, cache?: string, degraded?: boolean, csp?: boolean,
  *   top?: (code: string) => string[], moduleStatus?: number }} [o]
  */
 function fakeSite(o = {}) {
@@ -62,13 +63,15 @@ function fakeSite(o = {}) {
   /** @type {{ path: string, at: number }[]} */
   const sent = [];
   const sha = o.sha ?? SHA;
+  let healthAsks = 0;
   /** @type {typeof fetch} */
   const fetchImpl = async (input) => {
     const u = new URL(String(input));
     sent.push({ path: u.pathname + u.search, at: clock });
     clock += 250; // each request takes a while
     if (u.pathname === '/health') {
-      return Response.json({ ok: true, versionId: 'v', versionTag: o.tag ?? sha.slice(0, 7), dataVersion: o.dataVersion ?? DVS[sha], vectors: { corpus: o.corpus ?? 'production', count: 5, dataVersion: o.dataVersion ?? DVS[sha] } });
+      const tag = o.tags ? o.tags[Math.min(healthAsks++, o.tags.length - 1)] : o.tag ?? sha.slice(0, 7);
+      return Response.json({ ok: true, versionId: 'v', versionTag: tag, dataVersion: o.dataVersion ?? DVS[sha], vectors: { corpus: o.corpus ?? 'production', count: 5, dataVersion: o.dataVersion ?? DVS[sha] } });
     }
     if (u.pathname === '/') return new Response('<!doctype html>', { headers: o.csp === false ? {} : { 'content-security-policy': "default-src 'none'" } });
     if (u.pathname.startsWith('/module/')) {
@@ -123,10 +126,9 @@ describe('npm run smoke', () => {
     expect(records()).toEqual([expect.objectContaining({ script: 'smoke', outcome: 'ok', target: URL_BASE, requests: { '/health': 1, '/': 1, '/module/CS3230': 1, '/search': 1, '/facets': 1 } })]);
   });
 
-  it('fails on a tag mismatch, a wrong data version, a non-production bundle, a missing CSP, a cache hit, a degraded answer or the code outside the top 5', async () => {
+  it('fails on a wrong data version, a non-production bundle, a missing CSP, a cache hit, a degraded answer or the code outside the top 5', async () => {
     /** @type {[Parameters<typeof fakeSite>[0], RegExp][]} */
     const cases = [
-      [{ tag: 'feedfac' }, /tag/],
       [{ dataVersion: 'ffffffffffff' }, /data version/],
       [{ corpus: 'fixture' }, /production/],
       [{ csp: false }, /content-security-policy/i],
@@ -143,6 +145,29 @@ describe('npm run smoke', () => {
       expect(site.sent.length).toBeLessThanOrEqual(5);
     }
     expect(records().every((r) => r.outcome === 'failed')).toBe(true);
+  });
+
+  it('asks /health again while the previous version still answers, then passes once the new tag does', async () => {
+    const site = fakeSite({ tags: ['feedfac', 'feedfac', SHA.slice(0, 7)] });
+    const { code, out } = await run(site);
+    expect(code).toBe(0);
+    expect(out).toMatch(/still feedfac; asking again/);
+    expect(site.sent.map((s) => s.path).slice(0, 4)).toEqual(['/health', '/health', '/health', '/']);
+    for (let i = 1; i < site.sent.length; i++) expect(site.sent[i].at - site.sent[i - 1].at).toBeGreaterThanOrEqual(SMOKE_GAP_MS);
+    expect(records()).toEqual([expect.objectContaining({ outcome: 'ok', requests: expect.objectContaining({ '/health': 3 }) })]);
+  });
+
+  it('fails when another tag still answers after the settle window, without asking past it', async () => {
+    const site = fakeSite({ tag: 'feedfac' });
+    const { code, out } = await run(site);
+    expect(code).toBe(1);
+    expect(out).toMatch(/the version tag feedfac is not a prefix/);
+    const health = site.sent.filter((s) => s.path === '/health');
+    expect(health.length).toBe(8); // the first ask and up to 7 more, as docs/operations.md says
+    for (let i = 1; i < health.length; i++) expect(health[i].at - health[i - 1].at).toBeGreaterThanOrEqual(SMOKE_GAP_MS);
+    expect(health[health.length - 1].at - health[0].at).toBeLessThanOrEqual(HEALTH_SETTLE_MS);
+    expect(out).toMatch(/after 8 asks over \d+ s/);
+    expect(records()).toEqual([expect.objectContaining({ outcome: 'failed' })]);
   });
 
   it('--expect reads that commit\'s files and expects its tag and data version', async () => {

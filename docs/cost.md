@@ -34,8 +34,9 @@ repeats cost none of these.
 
 **The scheduled and live checks.** The uptime check sends about 70 requests a day (24 runs of
 `/health`, `/module` and one uncached `/search`): about 6k D1 rows read (24 searches at the p50 of
-255, plus 24 `/module` rows) and about 1 neuron. Each Actions deploy's smoke adds 5 GETs, one of
-them an uncached search (about 0.03 neurons).
+255, plus 24 `/module` rows) and about 1 neuron. Each Actions deploy's smoke adds 5 GETs (up to
+7 more `/health` while the promote propagates), one of them an uncached search (about 0.03
+neurons).
 
 **No overage.** Nothing in Cloudflare caps Workers AI or D1 spending automatically. A Cloudflare
 budget alert at the lowest amount emails the day after a billed day and caps nothing. What keeps

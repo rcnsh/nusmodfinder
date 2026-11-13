@@ -247,17 +247,19 @@ npm run smoke                            # against HEAD's files
 npm run smoke -- --expect <sha>          # after a rollback, the target's
 ```
 
-`scripts/smoke.mjs` sends five requests, one at a time, each at least 4 s after the last answer:
-`/health` (the tag is a prefix of the commit, the data version is its `src/data-version.json`, the
-bundle is `production`), `/` (200 with the CSP header), `/module/<code>` for a code in no group
-whose title is unique in that commit's corpus and bundle, `/search` for the title `/module` gave
-(`cache;desc=miss`, not degraded, the code in the top 5) and `/facets`. The data version, the
+`scripts/smoke.mjs` makes five checks, one request at a time, each at least 4 s after the last
+answer: `/health` (the tag is a prefix of the commit, the data version is its
+`src/data-version.json`, the bundle is `production`; while it names another tag, as it can for a
+few seconds after a promote, smoke asks again, still 4 s apart, for up to 30 s before failing),
+`/` (200 with the CSP header), `/module/<code>` for a code in no group whose title is unique in
+that commit's corpus and bundle, `/search` for the title `/module` gave (`cache;desc=miss`, not
+degraded, the code in the top 5) and `/facets`. The data version, the
 groups and the bundle's codes come from the expected commit's files; titles come from its
 production corpus, `current` in its `data/corpus.json` (restored and sha-checked; a commit without
 the manifest uses the working tree's, and says so). The URL is `wrangler.jsonc`'s Custom Domain at
 that commit, or `--url`. Every Actions deploy runs it as its last step; after a deploy or a
-rollback from the Mac, run it by hand. It costs 5 GETs and one uncached search (about 0.03
-neurons).
+rollback from the Mac, run it by hand. It costs 5 GETs, plus up to 7 more `/health` while a
+promote propagates, and one uncached search (about 0.03 neurons).
 
 ## Checking what's live
 

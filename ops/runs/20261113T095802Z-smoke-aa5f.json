@@ -1,0 +1,63 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-13T09:58:02.149Z",
+  "finishedAt": "2026-11-13T09:58:20.002Z",
+  "script": "smoke",
+  "args": [
+    "--expect",
+    "359dac6cc52541251861932c938d3984c8aaa83a"
+  ],
+  "commit": {
+    "sha": "359dac6cc52541251861932c938d3984c8aaa83a",
+    "dirty": true,
+    "diffSha256": "801d055eec7e48a49bfea63c1d46c1817c62739c5848840ad3d082560ba0595f"
+  },
+  "target": "https://nusmodfinder.rcn.sh",
+  "read": [],
+  "written": [],
+  "requests": {
+    "/health": 1,
+    "/": 1,
+    "/module/CAH5105": 1,
+    "/search": 1,
+    "/facets": 1
+  },
+  "versions": {
+    "versionId": "0bf4ea61-c48b-402a-8d09-8ab5c7c33a35",
+    "tag": "359dac6"
+  },
+  "bookmark": null,
+  "details": {
+    "checks": [
+      {
+        "name": "/health",
+        "pass": true,
+        "detail": "tag 359dac6, data version 7eb77cf0828b, production bundle"
+      },
+      {
+        "name": "/",
+        "pass": true,
+        "detail": "200 with the CSP header"
+      },
+      {
+        "name": "/module/CAH5105",
+        "pass": true,
+        "detail": "\"Holistic Care for School-Aged Children\""
+      },
+      {
+        "name": "/search",
+        "pass": true,
+        "detail": "CAH5105 in the top 5, a cache miss, not degraded"
+      },
+      {
+        "name": "/facets",
+        "pass": true,
+        "detail": "200"
+      }
+    ],
+    "expect": "359dac6cc52541251861932c938d3984c8aaa83a"
+  },
+  "exitCode": 0,
+  "message": "5 of 5 checks pass",
+  "outcome": "ok"
+}

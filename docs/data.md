@@ -112,7 +112,7 @@ npm run remote -- ingest --d1-only
 npm run remote -- verify --pre-deploy
 # 6. Preflight, guard (over the D1 REST query; no session), startup gate, promote, tag, triggers.
 npm run deploy
-# 7. Smoke: five requests, >= 4 s apart. On failure: npm run d1:restore, then npm run rollback,
+# 7. Smoke: five checks, >= 4 s apart. On failure: npm run d1:restore, then npm run rollback,
 #    then npm run smoke -- --expect <target sha>. Deploy refused after step 4: npm run d1:restore,
 #    fix the cause, resume from step 3.
 npm run smoke

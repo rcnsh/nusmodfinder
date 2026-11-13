@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run smoke -- [--expect <sha>] [--url <url>]`: five requests to the live site,
-// one at a time, each sent at least 4 s after the last answered:
+// `npm run smoke -- [--expect <sha>] [--url <url>]`: five checks of the live site, one request
+// at a time, each sent at least 4 s after the last answered:
 //
 //   /health          versionTag is a prefix of the expected commit, its data version is the
-//                    commit's src/data-version.json, and the bundle is `production`
+//                    commit's src/data-version.json, and the bundle is `production`; while it
+//                    names another tag (the promote still propagating), asked again for up to 30 s
 //   /                200, with the Content-Security-Policy header
 //   /module/<code>   200, for a code in no group whose title is unique in that commit's corpus
 //   /search?q=<title from /module>   `cache;desc=miss`, not degraded, the code in the top 5
@@ -24,6 +25,8 @@ import { startRun } from './run-record.mjs';
 
 /** The least time between one answer and the next request. */
 export const SMOKE_GAP_MS = 4000;
+/** How long /health may keep answering with another version's tag before the check fails. */
+export const HEALTH_SETTLE_MS = 30_000;
 const TOP = 5;
 
 /**
@@ -175,12 +178,25 @@ export async function smoke({
   try {
     log(`smoke: ${base}, expecting ${sha.slice(0, 7)} at data version ${dataVersion}; drew ${pick.code}`);
     {
-      const { res, text } = await send('/health');
-      const h = parse(text);
+      // A promoted version takes a few seconds to reach every edge, so a smoke right after the
+      // promote can meet the previous one. While /health answers with another tag, ask again
+      // (still SMOKE_GAP_MS apart) until HEALTH_SETTLE_MS has passed since the first ask.
+      /** @param {any} x */
+      const tagOk = (x) => Boolean(x?.versionTag) && sha.startsWith(String(x.versionTag));
+      const first = now();
+      let asks = 1;
+      let { res, text } = await send('/health');
+      let h = parse(text);
+      while (res.status === 200 && h?.versionTag && !tagOk(h) && now() - first + SMOKE_GAP_MS <= HEALTH_SETTLE_MS) {
+        log(`smoke: /health: still ${h.versionTag}; asking again in ${SMOKE_GAP_MS / 1000} s`);
+        ({ res, text } = await send('/health'));
+        h = parse(text);
+        asks++;
+      }
       const p = [];
       if (res.status !== 200 || !h) p.push(`HTTP ${res.status}`);
       else {
-        if (!h.versionTag || !sha.startsWith(String(h.versionTag))) p.push(`the version tag ${h.versionTag ?? '(none)'} is not a prefix of ${sha.slice(0, 12)}`);
+        if (!tagOk(h)) p.push(`the version tag ${h.versionTag ?? '(none)'} is not a prefix of ${sha.slice(0, 12)}${asks > 1 ? ` (after ${asks} asks over ${Math.round((now() - first) / 1000)} s)` : ''}`);
         if (h.dataVersion !== dataVersion) p.push(`data version ${h.dataVersion}, expected ${dataVersion}`);
         if (h.vectors?.corpus !== 'production') p.push(`bundle corpus ${h.vectors?.corpus ?? 'none'}, expected production`);
         else if (h.vectors?.dataVersion !== dataVersion) p.push(`bundle data version ${h.vectors?.dataVersion}, expected ${dataVersion}`);
