@@ -38,6 +38,19 @@ text/background and boundary pair in both themes against WCAG AA.
   opens that code's own search with its detail open (`open=`), whose head says "Opened from
   `<code>`" (`from=`); Back returns to the list. For a query of course codes only, the count line
   names the typed codes shown ("20 courses shown: CS2030, then 19 other matches").
+- **The filters are no native selects** (`public/choice.js`). A short list is a radio group drawn
+  as pills, every choice in sight: the semester (Any, Sem 1, Sem 2 as a segment, the special terms
+  as pills under it), the level and units (the figure alone, with the rest of the chip's label,
+  "Level 2000" or "4 units", visually hidden so a screen reader says the same), and the year of
+  study; arrow keys move and choose, as in any radio group. The faculty list is too long for
+  that: it is a combobox (the APG pattern, `aria-activedescendant`) whose list opens in the
+  flow under the box rather than over the page, so in the phone's dialog it scrolls with the
+  dialog and the keyboard never covers it; the box scrolls to the dialog's top as it opens.
+  Typing narrows the list (a name that starts with the text first, then a word that does, then
+  any part); Up, Down and Enter or a click choose; Escape closes the list only (not the
+  dialog), and Escape, Tab or leaving puts the chosen name back. Its `data-value` is the
+  choice; the box shows its name, quoted for a link's faculty /facets hasn't vouched for. On a
+  phone the pills and options grow to thumb size.
 - **Typed codes not shown** are explained above the entries: each with its title, a stamp ("Not
   on the NG list for Sem 1", "Not for exchange students", "Not open in Sem 1", "Outside your
   filters", or "Not this year" for a code not offered this year), and why, from its own stored
@@ -174,6 +187,7 @@ the CSP.
 | `keys.js` | Enter submits only outside IME composition |
 | `intents.js`, `intent-chips.js` | the phrases `/search` read from the query (`interpreted`) as chip labels (pure), and the chip row under the count, each chip's button re-running the search with `ignore=` that phrase |
 | `icons.js` | the stamps' and controls' small line icons, built as SVG nodes, all decorative (`aria-hidden`) |
+| `choice.js` | the rail's filter controls in place of native selects: `pillGroup` (a radio group drawn as pills, or a segment and pills) and `combobox` (the faculty list), each with `.value`, `focus()` and a bubbling `change`, as the selects had |
 | `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`); the entries (an APG disclosure each: a heading holding one button that controls the detail; the exchange stamp for the chosen semester, or one per semester when planning both, with the notes both share said once; no score), the hidden-codes box and the status area, with the sentence each answer gives the live region; the controller (the set-up screen, the rail's semester segment, the chips, the filters dialog, the skip link, the live region, focus after Escape and Back) |
 
 `npm run typecheck` checks it with `tsconfig.web.json` (the DOM lib) and the Playwright specs with

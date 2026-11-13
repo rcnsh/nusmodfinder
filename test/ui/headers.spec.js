@@ -3,7 +3,6 @@
 // public/_headers on the local `wrangler dev` stack, the same Workers Static
 // Assets that serve it live. No other origin may frame the page, and the CSP
 // lets it run only its own files: every flow below runs with no CSP violation.
-import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 
 // Chromium's Local Network Access check stops a page on one loopback origin
@@ -15,20 +14,13 @@ test.use({
     : {}),
 });
 
-/** index.html's lines that open a <select>. */
-const SELECT_LINES = readFileSync(new URL('../../public/index.html', import.meta.url), 'utf8').split('\n')
-  .flatMap((line, i) => (/<select\b/.test(line) ? [i + 1] : []));
-
 /**
  * Records every CSP violation the page reports, from before its first script.
- * WebKit reports `style-src-attr` against each <select> as the parser builds
- * it, with no script and no style attribute (its own control styling): the
- * rail renders pixel-identical with and without the CSP (checked by hand),
- * so exactly that report is left out; any other fails.
+ * Every report fails: the page has no native <select> (WebKit reported
+ * `style-src-attr` against each one's own control styling).
  * @param {import('@playwright/test').Page} page
- * @param {string} browserName
  */
-async function watchCsp(page, browserName) {
+async function watchCsp(page) {
   await page.addInitScript(() => {
     /** @type {any} */ (globalThis).__csp = [];
     document.addEventListener('securitypolicyviolation', (e) => {
@@ -37,8 +29,7 @@ async function watchCsp(page, browserName) {
   });
   return async () => {
     /** @type {{ directive: string, blocked: string, file: string, line: number }[]} */
-    const all = await page.evaluate(() => /** @type {any} */ (globalThis).__csp);
-    return all.filter((v) => !(browserName === 'webkit' && v.directive === 'style-src-attr' && v.blocked === 'inline' && !v.file && SELECT_LINES.includes(v.line)));
+    return page.evaluate(() => /** @type {any} */ (globalThis).__csp);
   };
 }
 
@@ -78,9 +69,8 @@ test('another origin can\'t frame the page: the frame stays empty, while an unpr
   expect(rendered).toBe(0);
 });
 
-test('no CSP violation: the first screen, a search, a detail, the filters dialog, dark mode', async ({ page, browserName }) => {
-  expect(SELECT_LINES).toHaveLength(5);
-  const violations = await watchCsp(page, browserName);
+test('no CSP violation: the first screen, a search, a detail, the filters dialog, dark mode', async ({ page }) => {
+  const violations = await watchCsp(page);
   await page.goto('/');
   await expect(page.locator('#setupForm')).toBeVisible();
   await page.goto('/?q=machine+learning&ng=1&sem=1&study=ug3');
@@ -98,8 +88,8 @@ test('no CSP violation: the first screen, a search, a detail, the filters dialog
   expect(await violations()).toEqual([]);
 });
 
-test('the inline view script runs under the CSP: a link with state never flashes the first screen', async ({ page, browserName }) => {
-  const violations = await watchCsp(page, browserName);
+test('the inline view script runs under the CSP: a link with state never flashes the first screen', async ({ page }) => {
+  const violations = await watchCsp(page);
   // Hold app.js so only the inline script has run.
   /** @type {(() => void) | null} */
   let release = null;
@@ -113,8 +103,8 @@ test('the inline view script runs under the CSP: a link with state never flashes
   expect(await violations()).toEqual([]);
 });
 
-test('no CSP violation in the shortlist: a toggle, the view, a row, Copy link\'s field, the export question, Restore, dark mode', async ({ page, browserName }) => {
-  const violations = await watchCsp(page, browserName);
+test('no CSP violation in the shortlist: a toggle, the view, a row, Copy link\'s field, the export question, Restore, dark mode', async ({ page }) => {
+  const violations = await watchCsp(page);
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('no')) } });
   });
@@ -135,8 +125,8 @@ test('no CSP violation in the shortlist: a toggle, the view, a row, Copy link\'s
   expect(await violations()).toEqual([]);
 });
 
-test('no CSP violation in the exports: Download CSV (a blob URL), the print page under print media, print() called', async ({ page, browserName }) => {
-  const violations = await watchCsp(page, browserName);
+test('no CSP violation in the exports: Download CSV (a blob URL), the print page under print media, print() called', async ({ page }) => {
+  const violations = await watchCsp(page);
   await page.addInitScript(() => { window.print = () => { /** @type {any} */ (globalThis).printed = true; }; });
   await page.goto('/?ng=1&study=ug2&sem=1&pick=CS2113.1&alt=EE4407.1&view=shortlist');
   await expect(page.locator('#slView .sl-entry[data-code="EE4407"] .title')).toHaveText('Analog Electronics');

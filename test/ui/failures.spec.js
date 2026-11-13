@@ -3,7 +3,7 @@
 // search, 429, an HTML error page, the network gone, /facets down or slow, and
 // a keyword-only answer. The page shows a plain sentence, never a raw code.
 import { expect, test } from '@playwright/test';
-import { body, matchFor, searches } from './support.mjs';
+import { body, matchFor, searches, pill, facultyOptions, openFaculty } from './support.mjs';
 
 const RAW = /rate_limited|upstream_failure|not_json|bad_request|internal|SyntaxError|\b5\d\d\b|\b429\b/;
 
@@ -75,9 +75,9 @@ test('/facets down: a shared link keeps every filter, faculty included, and sear
   const answered = page.waitForResponse((r) => new URL(r.url()).pathname === '/search');
   await page.goto('/?q=databases&level=2&credits=10&faculty=Computing');
   await answered;
-  await expect(page.locator('#level')).toHaveValue('2');
-  await expect(page.locator('#credits')).toHaveValue('10');
-  await expect(page.locator('#faculty')).toHaveValue('Computing');
+  await expect(pill(page, 'level', '2')).toBeChecked();
+  await expect(pill(page, 'credits', '10')).toBeChecked();
+  await expect(page.locator('#faculty')).toHaveAttribute('data-value', 'Computing');
   expect(sent).toEqual(['q=databases&level=2&credits=10&faculty=Computing']);
 });
 
@@ -89,11 +89,12 @@ test('the first search starts before /facets answers, and the faculty list fills
   await page.goto('/?q=databases&faculty=Computing');
   await expect(page.locator('#status')).toContainText(matchFor('databases'));
   // Quoted until /facets lists it: until then it is only the link's text.
-  await expect(page.locator('#faculty option')).toHaveText(['Any faculty', '“Computing”']);
+  await openFaculty(page);
+  await expect(facultyOptions(page)).toHaveText(['Any faculty', '“Computing”']);
   /** @type {any} */ (release)();
-  await expect(page.locator('#faculty option[value="Computing"]')).toHaveText(/^Computing \(\d+\)$/);
-  await expect(page.locator('#faculty')).toHaveValue('Computing');
-  expect(await page.locator('#faculty option').count()).toBeGreaterThan(5);
+  await expect(page.locator('#faculty-list [data-value="Computing"]')).toHaveText(/^Computing, \d+$/);
+  await expect(page.locator('#faculty')).toHaveAttribute('data-value', 'Computing');
+  expect(await facultyOptions(page).count()).toBeGreaterThan(5);
 });
 
 test('a keyword-only (degraded) answer says so, with no source or reason code', async ({ page }) => {

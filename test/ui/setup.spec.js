@@ -5,7 +5,7 @@
 // study). "Browse all courses instead" is the way out. A link with any state
 // skips it.
 import { expect, test } from '@playwright/test';
-import { EMPTY, query, searches } from './support.mjs';
+import { EMPTY, query, searches, pill } from './support.mjs';
 
 /** @param {import('@playwright/test').Page} page */
 const asExchange = (page) => page.getByRole('radio', { name: /^Exchange student/ }).check();
@@ -81,7 +81,7 @@ test('answered, it searches in exchange mode: the URL holds the set-up, and the 
   await expect(page.locator('#q')).toHaveValue('ACC1701XB');
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 1', '2nd year', 'Exchange students']);
   await expect(page.locator('#ng')).toBeChecked();
-  await expect(page.locator('#study')).toHaveValue('ug2');
+  await expect(pill(page, 'study', 'ug2')).toBeChecked();
   // Back goes to the empty search, not the set-up again: the student has left it.
   await page.goBack();
   await expect(page.locator('#status')).toHaveText(EMPTY);

@@ -5,7 +5,7 @@
 // detail's head repeating the code and title; and, for a query of course codes
 // only, which of them the count shows.
 import { expect, test } from '@playwright/test';
-import { live, query } from './support.mjs';
+import { live, query, pill } from './support.mjs';
 
 /** @param {import('@playwright/test').Page} page @param {string} code */
 const toggle = (page, code) => page.locator(`#results button.card-toggle[data-code="${code}"]`);
@@ -35,7 +35,7 @@ test.describe('the hidden-codes box: a stamp per code and "Switch to Sem 2"', ()
     await expect(hidden(page, 'CS3244').getByRole('button')).toHaveText('Switch to Sem 2 to see CS3244');
     await sw.click();
     await expect.poll(() => query(page)).toBe('q=CS2030+CS3244+CS5562+AR5801&sem=2&ng=1&study=ug2');
-    await expect(page.locator('#sem')).toHaveValue('2');
+    await expect(pill(page, 'sem', '2')).toBeChecked();
     await expect(toggle(page, 'CS3244')).toBeFocused();
     await expect(hidden(page, 'CS3244')).toHaveCount(0);
   });
@@ -91,12 +91,13 @@ test.describe('"Also as" codes are links to their own entry', () => {
       await route.continue().catch(() => {});
     });
     await card(page, 'ACC1701XA').locator('.variants a').first().click();
-    await page.locator('#level').focus();
-    await page.locator('#level').selectOption('1');
+    // By keyboard, so focus is on the pill in every engine (a click doesn't focus a radio in WebKit).
+    await pill(page, 'level', '').focus();
+    await page.keyboard.press('ArrowRight');
     await expect.poll(() => query(page)).toBe('q=ACC1701XB&sem=1&level=1&ng=1&study=ug2');
     await expect(page.locator('#status .count')).toBeVisible();
     await page.waitForTimeout(2000);
-    await expect(page.locator('#level')).toBeFocused();
+    await expect(pill(page, 'level', '1')).toBeFocused();
   });
 
   test('"Opened from" belongs to that detail: closing it, or opening another, drops it', async ({ page }) => {

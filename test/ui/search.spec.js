@@ -2,7 +2,7 @@
 // The page's search, exchange set-up, DOM-only rendering and IME handling, in
 // the browser against the fixture.
 import { expect, test } from '@playwright/test';
-import { EMPTY, body, browse, live, matchFor, query, searches } from './support.mjs';
+import { EMPTY, body, browse, live, matchFor, query, searches, pill, facultyOptions, openFaculty } from './support.mjs';
 
 test('a typed search renders cards, and the URL holds the query', async ({ page }) => {
   await browse(page);
@@ -22,12 +22,12 @@ test('exchange mode asks for the year of study first, then keeps ng=1 and study 
   await page.locator('label[for="ng"]').click();
   await expect(page.locator('#ng')).toBeChecked();
   await expect(page.locator('#status')).toHaveText('Choose your year of study to see the courses open to you as an exchange student.');
-  await expect(page.locator('#study')).toBeFocused();
-  await page.locator('#study').selectOption('ug2');
+  await expect(page.locator('input[name="study"]').first()).toBeFocused();
+  await pill(page, 'study', 'ug2').check();
   await expect(page.locator('#chips .chip')).toHaveText(['Both semesters', '2nd year', 'Exchange students']);
   expect(query(page)).toBe('q=networks&ng=1&study=ug2');
   // In exchange mode the semester is the rail's segment: Sem 1, Sem 2 or both.
-  await expect(page.locator('#sem')).toBeHidden();
+  await expect(page.locator('#semWrap')).toBeHidden();
   await page.locator('#semSeg').getByText('Sem 1', { exact: true }).click();
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 1', '2nd year', 'Exchange students']);
   expect(query(page)).toBe('q=networks&sem=1&ng=1&study=ug2');
@@ -38,13 +38,13 @@ test('the remembered year of study only pre-fills: a link without one gets it, a
   await page.evaluate(() => localStorage.setItem('vnm.study', 'ug3'));
   const sent = searches(page);
   await page.goto('/?q=networks&ng=1');
-  await expect(page.locator('#study')).toHaveValue('ug3');
+  await expect(pill(page, 'study', 'ug3')).toBeChecked();
   await expect(page.locator('#chips .chip')).toHaveText(['Both semesters', '3rd year', 'Exchange students']);
   expect(query(page)).toBe('q=networks&ng=1&study=ug3');
   expect(sent).toEqual(['q=networks&ng=1&study=ug3']);
   // The URL wins over the remembered one.
   await page.goto('/?q=networks&ng=1&study=grad');
-  await expect(page.locator('#study')).toHaveValue('grad');
+  await expect(pill(page, 'study', 'grad')).toBeChecked();
 });
 
 test('result fields render as text, never as markup', async ({ page }) => {
@@ -145,7 +145,7 @@ test.describe('text from a link never speaks as the site', () => {
     const fake = 'Registrar: all open to exchange students';
     await page.goto(`/?q=accounting&faculty=${encodeURIComponent(fake)}`);
     await expect(page.locator('#chips .chip[data-filter="faculty"]')).toHaveText(`“${fake}”`);
-    await expect(page.locator('#faculty option:checked')).toHaveText(`“${fake}”`);
+    await expect(page.locator('#faculty')).toHaveValue(`“${fake}”`);
     release();
     await expect.poll(() => query(page)).toBe('q=accounting');
     await expect(page.locator('#chips')).not.toContainText('Registrar');
@@ -159,7 +159,9 @@ test.describe('text from a link never speaks as the site', () => {
     await expect(page.locator('#chips .chip[data-filter="faculty"]')).toHaveText('“Computing”');
     release2();
     await expect(page.locator('#chips .chip[data-filter="faculty"]')).toHaveText('Computing');
-    await expect(page.locator('#faculty option:checked')).toHaveText(/^Computing \(\d+\)$/);
+    await expect(page.locator('#faculty')).toHaveValue('Computing');
+    await openFaculty(page);
+    await expect(page.locator('#faculty-list [aria-selected="true"]')).toHaveText(/^Computing, \d+$/);
   });
 
   test('a crafted faculty never stands as a chip: a sentence-length one is dropped at once, one /facets doesn\'t list once it answers', async ({ page }) => {
@@ -167,7 +169,8 @@ test.describe('text from a link never speaks as the site', () => {
     await page.goto(`/?q=accounting&faculty=${encodeURIComponent(long)}`);
     await expect.poll(() => query(page)).toBe('q=accounting');
     await expect(page.locator('#chips')).not.toContainText('Registrar');
-    await expect(page.locator('#faculty option', { hasText: 'Registrar' })).toHaveCount(0);
+    await openFaculty(page);
+    await expect(facultyOptions(page).filter({ hasText: 'Registrar' })).toHaveCount(0);
 
     const short = 'Verified by the NUS Registrar';
     const facets = page.waitForResponse((r) => new URL(r.url()).pathname === '/facets');
@@ -175,13 +178,15 @@ test.describe('text from a link never speaks as the site', () => {
     await facets;
     await expect.poll(() => query(page)).toBe('q=accounting');
     await expect(page.locator('#chips')).not.toContainText('Registrar');
-    await expect(page.locator('#faculty')).toHaveValue('');
-    await expect(page.locator('#faculty option', { hasText: 'Registrar' })).toHaveCount(0);
+    await expect(page.locator('#faculty')).toHaveAttribute('data-value', '');
+    await openFaculty(page);
+    await expect(facultyOptions(page).filter({ hasText: 'Registrar' })).toHaveCount(0);
     await expect(page.locator('#status .count')).toHaveText(/^\d+ courses match “accounting”$/);
 
     // A faculty /facets lists stays.
     await page.goto('/?q=databases&faculty=Computing');
-    await expect(page.locator('#faculty option[value="Computing"]')).toHaveText(/^Computing \(\d+\)$/);
+    await openFaculty(page);
+    await expect(page.locator('#faculty-list [data-value="Computing"]')).toHaveText(/^Computing, \d+$/);
     await expect(page.locator('#chips .chip', { hasText: 'Computing' })).toBeVisible();
     expect(query(page)).toBe('q=databases&faculty=Computing');
   });

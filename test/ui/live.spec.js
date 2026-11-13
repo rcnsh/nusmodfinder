@@ -5,7 +5,7 @@
 // the Search button is never disabled (it keeps focus; a second search aborts
 // the first), and every control has an accessible name.
 import { expect, test } from '@playwright/test';
-import { body, live, liveLog, query, recordLive, settled } from './support.mjs';
+import { body, live, liveLog, query, recordLive, settled, pill } from './support.mjs';
 
 /** Every live region on the page: there must be one. @param {import('@playwright/test').Page} page */
 const liveRegions = (page) => page.locator('[aria-live], [role="status"], [role="alert"], [role="log"], [role="marquee"], [role="timer"], output');
@@ -118,10 +118,10 @@ test('the same sentence again is said again: the region clears, then repeats it'
     new MutationObserver(() => /** @type {any} */ (globalThis).liveLog.push(el.textContent)).observe(el, { childList: true, characterData: true, subtree: true });
   });
   // Level 2000 keeps the same count and query; then Back to no level (from memory, no fetch).
-  await page.locator('#level').selectOption('2');
+  await pill(page, 'level', '2').check();
   await expect.poll(() => query(page)).toBe('q=CS2104&sem=1&level=2&ng=1&study=ug2');
   await expect(live(page)).toHaveText(/** @type {string} */ (said));
-  await page.locator('#level').selectOption('');
+  await pill(page, 'level', '').check();
   await expect.poll(() => page.evaluate(() => /** @type {any} */ (globalThis).liveLog.length)).toBe(4);
   expect(await page.evaluate(() => /** @type {any} */ (globalThis).liveLog)).toEqual(['', said, '', said]);
 });
@@ -231,7 +231,7 @@ test('the controls are named as a screen reader should say them', async ({ page 
   for (const [role, name] of /** @type {const} */ ([
     ['link', 'Skip to main content'], ['searchbox', 'Search courses'], ['button', 'Search'],
     ['radio', 'NUS student'], ['radio', 'Exchange student'], ['group', 'Searching as'], ['radio', 'Sem 1'], ['radio', 'Sem 2'], ['radio', 'Both'],
-    ['combobox', 'Year of study during your exchange'], ['combobox', 'Level'], ['combobox', 'Units'], ['combobox', 'Faculty'],
+    ['group', 'Year of study during your exchange'], ['group', 'Level'], ['radio', 'Level 2000'], ['group', 'Units'], ['radio', '4 units'], ['combobox', 'Faculty'],
     ['button', 'Remove filter: Sem 1'], ['button', 'Remove filter: Exchange students'], ['button', 'Remove filter: Level 2000'],
     ['list', 'Filters applied'], ['list', 'Results'], ['search', 'Search courses'], ['main', 'Search and results'],
     ['complementary', 'Who is searching, and filters'], ['banner', ''], ['contentinfo', ''],
@@ -261,7 +261,7 @@ test('the live region stays in the accessibility tree while the filters dialog i
   await expect(dialog).toBeVisible();
   expect(await live(page).evaluate((el) => !!el.closest('dialog[open]'))).toBe(true);
   if (browserName === 'chromium') expect(await ignored()).toBe(false);
-  await dialog.locator('#level').selectOption('2');
+  await pill(dialog, 'level', '2').check();
   await expect.poll(() => query(page)).toBe('q=networks&sem=1&level=2&ng=1&study=ug2');
   await expect(live(page)).toHaveText(/^\d+ courses match “networks”\.$/);
   await expect(dialog.getByRole('status')).toHaveCount(1);

@@ -5,7 +5,7 @@
 // and the typed codes past the three that pin. A hidden course is never a
 // result card.
 import { expect, test } from '@playwright/test';
-import { body, query } from './support.mjs';
+import { body, query, pill } from './support.mjs';
 
 const cards = (/** @type {import('@playwright/test').Page} */ page) => page.locator('#results button.card-toggle');
 
@@ -71,7 +71,7 @@ test('a partial code emptied in Sem 1, open in Sem 2: says so, and the button sh
   await expect(page.locator('#status')).not.toContainText(/loosen/i);
   await see.click();
   await expect.poll(() => query(page)).toBe('q=CG32&sem=2&ng=1&study=ug2');
-  await expect(page.locator('#sem')).toHaveValue('2');
+  await expect(pill(page, 'sem', '2')).toBeChecked();
   await expect(cards(page)).toHaveCount(1);
   await expect(cards(page).first()).toHaveAttribute('data-code', 'CG3201');
 });

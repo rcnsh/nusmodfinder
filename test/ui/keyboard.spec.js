@@ -182,17 +182,16 @@ test.describe('at 1280', () => {
     expect(await k.tab(4)).toEqual(['#go', 'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', CARD]);
     // Back into the rail, which sits before the results.
     expect(await k.shiftTab(7)).toEqual([
-      'button "Remove filter: Exchange students"', 'button "Remove filter: Sem 1"', '#go', '#q', '#faculty', '#credits', '#level',
+      'button "Remove filter: Exchange students"', 'button "Remove filter: Sem 1"', '#go', '#q', '#faculty', 'radio credits=', 'radio level=',
     ]);
-    // A filter: Level 2000, by type-ahead on the closed list: L twice is the
-    // second option starting with L (a space ends WebKit's type-ahead, so not "Level 2").
-    await page.keyboard.type('LL');
+    // A filter: Level 2000, by arrow keys along the level pills from "Any".
+    expect(await k.press('ArrowRight')).toBe('radio level=1');
+    expect(await k.press('ArrowRight')).toBe('radio level=2');
     await expect.poll(() => query(page)).toBe(URL_FILTERED);
-    await expect(page.locator('#level')).toBeFocused();
     await settled(page);
     await expect(live(page)).toHaveText(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
     // The exchange set-up in the rail: the semester segment by arrow keys.
-    expect(await k.shiftTab(2)).toEqual(['#study', 'radio xsem=1']);
+    expect(await k.shiftTab(2)).toEqual(['radio study=ug2', 'radio xsem=1']);
     expect(await k.press('ArrowRight')).toBe('radio xsem=2');
     await expect.poll(() => query(page)).toBe('q=CS2104&sem=2&level=2&ng=1&study=ug2');
     expect(await k.press('ArrowLeft')).toBe('radio xsem=1');
@@ -200,7 +199,7 @@ test.describe('at 1280', () => {
     await settled(page);
     // On to the entry.
     expect(await k.tab(9)).toEqual([
-      '#study', '#level', '#credits', '#faculty', '#q', '#go',
+      'radio study=ug2', 'radio level=2', 'radio credits=', '#faculty', '#q', '#go',
       'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', 'button "Remove filter: Level 2000"',
     ]);
     expect(await k.tab()).toEqual([CARD]);
@@ -231,12 +230,12 @@ test.describe('at 390×664', () => {
     await expect(page.locator('#filtersBtn')).toHaveText('Filters (3)');
     expect(await k.press('Enter')).toBe('radio who=1');
     await expect(page.getByRole('dialog', { name: 'Who is searching, and filters' })).toBeVisible();
-    expect(await k.tab(3)).toEqual(['radio xsem=1', '#study', '#level']);
-    await page.keyboard.type('LL');
+    expect(await k.tab(3)).toEqual(['radio xsem=1', 'radio study=ug2', 'radio level=']);
+    expect(await k.press('ArrowRight')).toBe('radio level=1');
+    expect(await k.press('ArrowRight')).toBe('radio level=2');
     await expect.poll(() => query(page)).toBe(URL_FILTERED);
-    await expect(page.locator('#level')).toBeFocused();
     // The exchange set-up in the dialog: the semester segment by arrow keys.
-    expect(await k.shiftTab(2)).toEqual(['#study', 'radio xsem=1']);
+    expect(await k.shiftTab(2)).toEqual(['radio study=ug2', 'radio xsem=1']);
     expect(await k.press('ArrowRight')).toBe('radio xsem=2');
     await expect.poll(() => query(page)).toBe('q=CS2104&sem=2&level=2&ng=1&study=ug2');
     expect(await k.press('ArrowLeft')).toBe('radio xsem=1');

@@ -247,7 +247,7 @@ test.describe('Print or save as PDF', () => {
     await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
     await expect(page).toHaveTitle('NUS Mod Finder (unofficial)');
     await page.emulateMedia({ media: 'screen' });
-    await activate(page, page.getByRole('radio', { name: '2nd year' }));
+    await activate(page, page.locator('#slView').getByRole('radio', { name: '2nd year' }));
     await expect.poll(() => printClass(page)).toBe(true);
     await page.emulateMedia({ media: 'print' });
     await expect(page.locator('#slPrint')).toBeVisible();

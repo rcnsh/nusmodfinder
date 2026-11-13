@@ -121,28 +121,24 @@
             <legend class="gl">Semester at NUS</legend>
             <div class="seg" id="semSegOptions"></div>
           </fieldset>
-          <div class="grp" id="studyWrap">
-            <label class="gl" for="study">Year of study during your exchange</label>
-            <select class="select" id="study"><option value="">Choose…</option></select>
-          </div>
+          <fieldset class="grp" id="studyWrap">
+            <legend class="gl">Year of study during your exchange</legend>
+          </fieldset>
         </section>
         <section class="rail-sec" aria-labelledby="filtTitle">
           <h2 class="lbl" id="filtTitle">Filters</h2>
-          <div class="grp" id="semWrap">
-            <label class="gl" for="sem">Semester</label>
-            <select class="select" id="sem"><option value="">Any semester</option></select>
-          </div>
-          <div class="grp">
-            <label class="gl" for="level">Level</label>
-            <select class="select" id="level"><option value="">Any level</option></select>
-          </div>
-          <div class="grp">
-            <label class="gl" for="credits">Units</label>
-            <select class="select" id="credits"><option value="">Any units</option></select>
-          </div>
-          <div class="grp">
+          <!-- Short lists are radio pills; the faculty list is a combobox (choice.js). -->
+          <fieldset class="grp" id="semWrap">
+            <legend class="gl">Semester</legend>
+          </fieldset>
+          <fieldset class="grp" id="levelWrap">
+            <legend class="gl">Level</legend>
+          </fieldset>
+          <fieldset class="grp" id="creditsWrap">
+            <legend class="gl">Units</legend>
+          </fieldset>
+          <div class="grp" id="facultyWrap">
             <label class="gl" for="faculty">Faculty</label>
-            <select class="select" id="faculty"><option value="">Any faculty</option></select>
           </div>
         </section>
       </div>

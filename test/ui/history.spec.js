@@ -3,7 +3,7 @@
 // row: queries, filters, clearing, and opening,
 // switching and closing a card's detail, with focus back on its button.
 import { expect, test } from '@playwright/test';
-import { EMPTY, browse, matchFor, query, searches } from './support.mjs';
+import { EMPTY, browse, matchFor, query, searches, pill } from './support.mjs';
 
 /** @param {import('@playwright/test').Page} page @param {string} q */
 async function submit(page, q) {
@@ -55,15 +55,15 @@ test('a filter change replaces the entry: Back goes to the previous query, not t
   await submit(page, 'databases');
   await resultsFor(page, 'databases');
   const before = await historyLength(page);
-  await page.locator('#level').selectOption('2');
+  await pill(page, 'level', '2').check();
   await expect(page.locator('#chips .chip')).toHaveText(['Level 2000']);
   expect(query(page)).toBe('q=databases&level=2');
   expect(await historyLength(page)).toBe(before);
   await page.goBack();
   await resultsFor(page, 'networks');
-  await expect(page.locator('#level')).toHaveValue('');
+  await expect(pill(page, 'level', '')).toBeChecked();
   await page.goForward();
-  await expect(page.locator('#level')).toHaveValue('2');
+  await expect(pill(page, 'level', '2')).toBeChecked();
 });
 
 test('clearing the query pushes the URL without it; Back restores the cleared results', async ({ page }) => {
@@ -82,8 +82,8 @@ test('clearing the query pushes the URL without it; Back restores the cleared re
 test('a shared link restores its state on load and on reload', async ({ page }) => {
   await page.goto('/?q=databases&level=2&credits=4');
   await resultsFor(page, 'databases');
-  await expect(page.locator('#level')).toHaveValue('2');
-  await expect(page.locator('#credits')).toHaveValue('4');
+  await expect(pill(page, 'level', '2')).toBeChecked();
+  await expect(pill(page, 'credits', '4')).toBeChecked();
   await page.reload();
   await resultsFor(page, 'databases');
   await expect(page.locator('#q')).toHaveValue('databases');
@@ -100,7 +100,7 @@ test('open= from a shared link: Escape closes it by replace (this page pushed no
 
   await page.goto('/?q=networks&open=CS5562&pick=CS5562');
   await resultsFor(page, 'networks');
-  await page.locator('#sem').selectOption('1');
+  await pill(page, 'sem', '1').check();
   await expect.poll(() => query(page)).toBe('q=networks&sem=1&pick=CS5562');
 });
 
@@ -110,11 +110,11 @@ test('Back to an exchange-mode entry with no year of study takes the chosen one,
   await expect.poll(() => query(page)).toBe('ng=1');
   await submit(page, 'networks');
   await expect(page.locator('#status')).toHaveText('Choose your year of study to see the courses open to you as an exchange student.');
-  await page.locator('#study').selectOption('ug1');
+  await pill(page, 'study', 'ug1').check();
   await expect(page.locator('#chips .chip')).toHaveText(['Both semesters', '1st year', 'Exchange students']);
   await page.goBack();
   await expect.poll(() => query(page)).toBe('ng=1&study=ug1');
-  await expect(page.locator('#study')).toHaveValue('ug1');
+  await expect(pill(page, 'study', 'ug1')).toBeChecked();
 });
 
 test('a link with an intent /search cannot undo still searches, and keeps no ignore=', async ({ page }) => {
@@ -199,7 +199,7 @@ test('a filter change while a detail is open drops open= and closes it', async (
   await page.goto('/?q=CS3244');
   await toggle(page, 'CS3244').click();
   await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244');
-  await page.locator('#sem').selectOption('1');
+  await pill(page, 'sem', '1').check();
   await expect.poll(() => query(page)).toBe('q=CS3244&sem=1');
   await expect(toggle(page, 'CS3244')).toHaveAttribute('aria-expanded', 'false');
 });

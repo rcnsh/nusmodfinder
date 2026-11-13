@@ -26,6 +26,7 @@
 // what it did in the live region; while the view is shown the search behind
 // it neither speaks nor moves focus.
 import { createModuleClient, createSearchClient, fetchFacets, fetchSearch } from './api.js';
+import { combobox, pillGroup } from './choice.js';
 import { detailError, detailLoading, renderDetail } from './detail.js';
 import { h, setChildren } from './dom.js';
 import { hiddenCodeLine, hiddenCodeStamp } from './explain.js';
@@ -56,17 +57,28 @@ import { DEFAULT_ACAD_YEAR, headerYearLine, semesterMonths } from './year.js';
  * @returns {T}
  */
 const $ = (id) => /** @type {T} */ (document.getElementById(id));
+// A pill shows the figure alone under its legend, and says the whole label as
+// the chip does (the level with its word, the units with theirs): the rest is
+// there, visually hidden.
+// test/ui/mobile.spec.js holds each pill's said name to its chip's (state.js levelLabel, unitsLabel).
+/** @param {string} v */
+const levelPill = (v) => [h('span', { class: 'vh' }, 'Level '), `${v}000`];
+/** @param {string} v */
+const unitsPill = (v) => [v, h('span', { class: 'vh' }, v === '1' ? ' unit' : ' units')];
 
 const els = {
   form: /** @type {HTMLFormElement} */ ($('f')),
   q: /** @type {HTMLInputElement} */ ($('q')),
-  sem: /** @type {HTMLSelectElement} */ ($('sem')),
-  level: /** @type {HTMLSelectElement} */ ($('level')),
-  credits: /** @type {HTMLSelectElement} */ ($('credits')),
-  faculty: /** @type {HTMLSelectElement} */ ($('faculty')),
+  // The filters: radio pills for the short lists, a combobox for the faculties
+  // (choice.js). Every one fills before /facets answers but the faculty list.
+  // #sem's group holds the semester in every mode; exchange mode's segment drives it.
+  sem: pillGroup($('semWrap'), 'sem', [{ value: '', label: 'Any' }, ...SEMESTERS], { seg: 3 }),
+  level: pillGroup($('levelWrap'), 'level', [{ value: '', label: 'Any' }, ...LEVELS.map((o) => ({ value: o.value, label: levelPill(o.value) }))]),
+  credits: pillGroup($('creditsWrap'), 'credits', [{ value: '', label: 'Any' }, ...CREDITS.map((c) => ({ value: c, label: unitsPill(c) }))]),
+  faculty: combobox($('facultyWrap'), 'faculty', { value: '', label: 'Any faculty' }),
   ng: /** @type {HTMLInputElement} */ ($('ng')),
   ngOff: /** @type {HTMLInputElement} */ ($('ngOff')),
-  study: /** @type {HTMLSelectElement} */ ($('study')),
+  study: pillGroup($('studyWrap'), 'study', [...STUDIES]),
   studyWrap: $('studyWrap'),
   semWrap: $('semWrap'),
   semSeg: $('semSeg'),
@@ -145,11 +157,6 @@ function message(text, error = false) {
   resultsSay(text);
 }
 
-// Static option lists: every filter but faculty works before /facets answers.
-for (const o of SEMESTERS) els.sem.add(new Option(o.label, o.value));
-for (const o of LEVELS) els.level.add(new Option(o.label, o.value));
-for (const c of CREDITS) els.credits.add(new Option(unitsLabel(c), c));
-for (const o of STUDIES) els.study.add(new Option(o.label, o.value));
 els.filtersBtn.prepend(icon('filter'));
 
 /**
@@ -209,15 +216,16 @@ const savedWho = () => {
 const saveWho = (/** @type {string} */ v) => { try { localStorage.setItem(WHO_KEY, v); } catch { /* private mode */ } };
 
 /**
- * Selects `value`, adding it as an option first if the list lacks it (a
- * shared link's faculty before /facets answers, or one it doesn't list).
- * @param {HTMLSelectElement} select
+ * Chooses `value`, adding it as an option first if the list lacks it (a
+ * shared link's level or units off the list, or its faculty before /facets
+ * answers or one it doesn't list).
+ * @param {import('./choice.js').Choice} choice
  * @param {string} value
- * @param {string} [label]
+ * @param {string | import('./dom.js').Child[]} [label]
  */
-function selectValue(select, value, label = value) {
-  if (value && ![...select.options].some((o) => o.value === value)) select.add(new Option(label, value));
-  select.value = value;
+function selectValue(choice, value, label = value) {
+  choice.ensure(value, label);
+  choice.value = value;
 }
 
 /** Shows the controls each mode uses: the exchange set-up in exchange mode, the semester filter outside it. */
@@ -285,8 +293,8 @@ function applyToForm(s) {
   const keepBox = viewQ !== null && (s.view !== '' || els.q.value !== viewQ);
   if (!keepBox) els.q.value = s.q;
   selectValue(els.sem, s.sem);
-  selectValue(els.level, s.level, levelLabel(s.level));
-  selectValue(els.credits, s.credits, unitsLabel(s.credits));
+  selectValue(els.level, s.level, levelPill(s.level));
+  selectValue(els.credits, s.credits, unitsPill(s.credits));
   selectValue(els.faculty, s.faculty, facultyNames?.has(s.faculty) ? s.faculty : quoteUser(s.faculty));
   els.ng.checked = s.ng;
   if (s.study) els.study.value = s.study;
@@ -780,15 +788,15 @@ function onEnter(input, submit) {
 }
 onEnter(els.q, () => act({ type: 'submit', form: readForm() }));
 // #ng and #ngOff are one radio pair: each fires change only when it is chosen.
-for (const el of [els.sem, els.level, els.credits, els.faculty, els.ng, els.ngOff, els.study]) {
+for (const el of [els.sem.root, els.level.root, els.credits.root, els.faculty.root, els.ng, els.ngOff, els.study.root]) {
   el.addEventListener('change', () => {
-    if (el === els.study) saveStudy(els.study.value);
+    if (el === els.study.root) saveStudy(els.study.value);
     if (el === els.ng || el === els.ngOff) saveWho(els.ng.checked ? 'exchange' : 'nus');
     syncExchange();
     act({ type: 'settings', form: readForm() });
-    // A special term changed to Sem 1 or 2 in exchange mode: the select gives
-    // way to the segment, so focus moves to its choice instead of the page.
-    if (el === els.sem && els.semWrap.hidden) radios('xsem').find((r) => r.checked)?.focus();
+    // A special term changed to Sem 1 or 2 in exchange mode: the semester
+    // filter gives way to the segment, so focus moves to its choice instead of the page.
+    if (el === els.sem.root && els.semWrap.hidden) radios('xsem').find((r) => r.checked)?.focus();
   });
 }
 // The rail's semester segment sets #sem, which every mode reads.
@@ -1057,17 +1065,14 @@ fetchFacets().then((f) => {
     const name = String(x?.name ?? '');
     if (!name) continue;
     names.push(name);
-    const label = `${name} (${Number(x.count) || 0})`;
-    const existing = [...els.faculty.options].find((o) => o.value === name);
-    if (existing) existing.text = label;
-    else els.faculty.add(new Option(label, name));
+    els.faculty.upsert({ value: name, label: name, note: String(Number(x.count) || 0) });
   }
   // A link's faculty that /facets doesn't list is no faculty: it would
   // only stand as a chip in the site's voice over no results. Drop it, and its
   // option, and search without it (a settings change: replace).
   if (names.length) {
     facultyNames = new Set(names);
-    for (const o of [...els.faculty.options]) if (o.value && !names.includes(o.value)) o.remove();
+    els.faculty.retain(facultyNames);
     if (current.faculty && !names.includes(current.faculty)) {
       els.faculty.value = '';
       act({ type: 'settings', form: { ...readForm(), q: current.q, faculty: '' } });

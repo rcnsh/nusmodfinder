@@ -1,5 +1,6 @@
 // @ts-check
 // Shared by the Playwright specs in test/ui/.
+import { expect } from '@playwright/test';
 
 /**
  * Records the query string of every /search request the page makes, in order.
@@ -113,3 +114,26 @@ export async function recordLive(page) {
 
 /** @param {import('@playwright/test').Page} page @returns {Promise<string[]>} */
 export const liveLog = (page) => page.evaluate(() => /** @type {any} */ (globalThis).liveLog);
+
+/**
+ * A filter's pill (a radio): `sem`, `level`, `credits` or `study`, by value ('' is "Any").
+ * Check it to choose it; `toBeChecked` says whether it is chosen.
+ * @param {import('@playwright/test').Page | import('@playwright/test').Locator} page
+ * @param {string} name
+ * @param {string} value
+ */
+export const pill = (page, name, value) => page.locator(`input[type="radio"][name="${name}"][value="${value}"]`);
+
+/**
+ * The faculty combobox's options, by their names, once its list is open
+ * (`openFaculty`). The box itself is `#faculty`: its `data-value` is the choice.
+ * @param {import('@playwright/test').Page} page
+ */
+export const facultyOptions = (page) => page.locator('#faculty-list [role="option"] .combo-name');
+
+/** Opens the faculty list. @param {import('@playwright/test').Page} page */
+export async function openFaculty(page) {
+  const box = page.locator('#faculty');
+  if (await box.getAttribute('aria-expanded') !== 'true') await box.click();
+  await expect(box).toHaveAttribute('aria-expanded', 'true');
+}

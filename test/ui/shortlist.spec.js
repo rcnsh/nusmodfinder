@@ -494,9 +494,9 @@ test.describe('the export question, Copy link, the invitation, the device\'s lis
     await activate(page, page.locator('.sl-actions').getByRole('button', { name: 'Download CSV' }));
     await focusOn(page, '#slAskTitle');
     await expect(live(page)).toHaveText('Two questions before your download');
-    await activate(page, page.getByRole('radio', { name: '1st year' }));
+    await activate(page, page.locator('#slAsk').getByRole('radio', { name: '1st year' }));
     await page.keyboard.press('ArrowRight');
-    await expect(page.getByRole('radio', { name: '2nd year' })).toBeChecked();
+    await expect(page.locator('#slAsk').getByRole('radio', { name: '2nd year' })).toBeChecked();
     expect(await page.evaluate(() => !!document.activeElement?.closest('#slAsk'))).toBe(true);
     await expect.poll(() => query(page)).toContain('ng=1&study=ug2');
     await expect(view(page)).toBeVisible();

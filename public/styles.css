@@ -126,7 +126,19 @@ main[tabindex="-1"]:focus { outline: none; }
 .linkbtn { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; font: inherit; }
 .field { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: var(--t-input); }
 .field::placeholder { color: var(--ink-2); opacity: 1; }
-.select { width: 100%; height: 40px; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); color: var(--ink); padding: 0 10px; font-size: var(--t-input); }
+/* The faculty combobox (choice.js): a text box naming the choice, and its list in the flow under it. */
+.combo { position: relative; }
+.combo-in { width: 100%; height: 40px; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); color: var(--ink); padding: 0 30px 0 10px; font-size: var(--t-input); text-overflow: ellipsis; }
+.combo-in::placeholder { color: var(--ink); opacity: 1; }
+.combo-caret { position: absolute; right: 12px; top: 50%; width: 7px; height: 7px; margin-top: -5px; border: solid var(--ink-2); border-width: 0 1.5px 1.5px 0; rotate: 45deg; pointer-events: none; }
+.combo-in[aria-expanded="true"] + .combo-caret { rotate: 225deg; margin-top: -1px; }
+.combo-list { margin: 0; padding: 4px 0; border: 1px solid var(--edge); border-radius: 4px; background: var(--surface); max-height: 264px; overflow-y: auto; overscroll-behavior: contain; }
+.combo-opt { position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 7px 10px; font-size: 14px; line-height: 1.35; cursor: pointer; }
+.combo-opt.on { background: var(--accent-tint); }
+.combo-opt[aria-selected="true"] { color: var(--accent); font-weight: 500; }
+.combo-opt mark { background: none; color: inherit; font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.combo-note { font: 400 12.5px/1.35 var(--f-mono); font-feature-settings: "ss04"; color: var(--ink-2); flex: none; }
+.combo-none { padding: 7px 10px; font-size: 14px; color: var(--ink-2); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chips li { display: flex; }
@@ -205,6 +217,12 @@ html[data-keys] :is(.tile, .pill, .seg-opt):has(input:focus) { outline: 2px soli
 .seg-opt:first-child { margin-left: 0; border-radius: 4px 0 0 4px; }
 .seg-opt:last-child { border-radius: 0 4px 4px 0; }
 .seg-opt:has(input:checked) { background: var(--accent-tint); border-color: var(--accent); color: var(--accent); font-weight: 600; z-index: 1; }
+/* The rail's short filter lists: small pills, wrapping; codes-like values in Plex Mono. */
+.pills-s { gap: 6px; }
+.seg + .pills-s { margin-top: 6px; }
+.pill-s { min-height: 32px; min-width: 44px; padding: 0 11px; justify-content: center; border-radius: 16px; font-size: var(--t-small); font-weight: 400; line-height: 1.2; }
+.pill-s:has(input:checked) { color: var(--accent); font-weight: 500; }
+#levelWrap .pill-s:not(:first-child), #creditsWrap .pill-s:not(:first-child) { font-family: var(--f-mono); font-feature-settings: "ss04"; }
 .checkline { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; cursor: pointer; }
 .checkline input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent-fill); flex: none; }
 .who { display: grid; gap: 8px; }
@@ -355,6 +373,8 @@ details[open] > summary::before { transform: rotate(90deg); }
 .dlg-head { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; background: var(--ground); border-bottom: 1px solid var(--rule); }
 .dlg-title { font-size: var(--t-input); font-weight: 600; }
 .dlg-body { padding: 16px 16px 22px; }
+/* The faculty box scrolls to the top when its list opens: clear of the sticky head. */
+.filters-dialog .combo-in { scroll-margin-top: 104px; }
 
 /* Plex Mono draws a dotted zero; its stylistic set 4 is the plain one, as in
    Plex Sans (whose own ss04 is dotted, so this stays on mono text only). After
@@ -405,6 +425,12 @@ details[open] > summary::before { transform: rotate(90deg); }
   .tile:has(input:checked) .tick { top: 50%; translate: 0 -50%; }
   /* Who is searching: two tiles side by side, each its name over its line. */
   .tiles.two .tile { display: block; padding-right: 30px; }
+  /* The filters in the dialog: pills and options a thumb can hit, and the faculty
+     list at full length, scrolling with the dialog rather than inside it. */
+  .pill-s { min-height: 40px; min-width: 52px; border-radius: 20px; font-size: var(--t-body); }
+  .combo-in { height: 44px; }
+  .combo-list { max-height: none; }
+  .combo-opt { padding: 11px 12px; font-size: var(--t-body); }
   .tiles.two .tile:has(input:checked) .tick { top: 11px; right: 10px; translate: none; }
   .pill { min-height: 38px; padding: 0 12px; font-size: var(--t-body-s); }
   .searchrow .field, .searchrow .btn { height: 46px; }

@@ -5,19 +5,22 @@
 // <dialog> from a "Filters (n)" button: focus stays inside it, Escape closes
 // it, and focus returns to the button.
 import { expect, test } from '@playwright/test';
-import { query } from './support.mjs';
+import { pill, query } from './support.mjs';
+
+/** The chosen pill of a filter, by what it says. @param {import('@playwright/test').Page} page @param {string} name */
+const chosen = (page, name) => page.locator(`label:has(> input[name="${name}"]:checked)`);
 
 test.use({ viewport: { width: 390, height: 664 } });
 
 const fontSize = (/** @type {import('@playwright/test').Locator} */ l) => l.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
 
-test('every text input and select is at least 16px, on the first screen and after a search', async ({ page }) => {
+test('every text input is at least 16px, on the first screen and after a search', async ({ page }) => {
   await page.goto('/');
-  for (const el of await page.locator('#setup input[type="search"], #setup select').all()) expect(await fontSize(el)).toBeGreaterThanOrEqual(16);
+  for (const el of await page.locator('#setup input[type="search"]').all()) expect(await fontSize(el)).toBeGreaterThanOrEqual(16);
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1');
   await page.getByRole('button', { name: /^Filters/ }).click();
-  const controls = page.locator('input[type="search"], select');
-  expect(await controls.count()).toBeGreaterThanOrEqual(5);
+  const controls = page.locator('input[type="search"], input[role="combobox"]');
+  expect(await controls.count()).toBeGreaterThanOrEqual(2);
   for (const el of await controls.all()) expect(await fontSize(el), await el.getAttribute('id') ?? '').toBeGreaterThanOrEqual(16);
 });
 
@@ -39,7 +42,7 @@ test('after the first search the form is one bar: the query field and Search sid
   expect(gb.x).toBeGreaterThan(qb.x + qb.width - 1);
   expect(gb.x + gb.width).toBeLessThanOrEqual(390);
   await expect(page.locator('.rail')).toBeHidden();
-  await expect(page.locator('#study')).toBeHidden();
+  await expect(page.locator('#studyWrap')).toBeHidden();
   await expect(page.getByRole('button', { name: 'Filters (3)' })).toBeVisible();
 });
 
@@ -52,8 +55,8 @@ test('Filters opens a modal dialog with the set-up and filters; a change applies
   expect(await dialog.evaluate((el) => el.matches(':modal'))).toBe(true);
   // Focus starts inside, on the first control.
   await expect(page.locator('#ng')).toBeFocused();
-  await expect(dialog.locator('#study')).toBeVisible();
-  await dialog.locator('#level').selectOption('2');
+  await expect(dialog.locator('#studyWrap')).toBeVisible();
+  await pill(dialog, 'level', '2').check();
   await expect.poll(() => query(page)).toBe('q=networks&sem=1&level=2&ng=1&study=ug2');
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 1', '2nd year', 'Exchange students', 'Level 2000']);
   await expect(dialog).toBeVisible();
@@ -61,8 +64,8 @@ test('Filters opens a modal dialog with the set-up and filters; a change applies
   await expect(dialog).toBeHidden();
   await expect(page.getByRole('button', { name: 'Filters (4)' })).toBeFocused();
   // The controls are back in the rail (hidden on a phone), and one copy of each exists.
-  await expect(page.locator('#level')).toHaveCount(1);
-  expect(await page.locator('#level').evaluate((el) => !!el.closest('.rail'))).toBe(true);
+  await expect(page.locator('#levelWrap')).toHaveCount(1);
+  expect(await page.locator('#levelWrap').evaluate((el) => !!el.closest('.rail'))).toBe(true);
   // Escape closed the dialog only: the results are still there.
   expect(query(page)).toBe('q=networks&sem=1&level=2&ng=1&study=ug2');
 });
@@ -106,7 +109,7 @@ test('a chip removes its filter, and focus moves to the next chip', async ({ pag
   await page.getByRole('button', { name: 'Remove filter: Level 2000' }).click();
   await expect.poll(() => query(page)).toBe('q=databases&credits=4&faculty=Computing');
   await expect(page.getByRole('button', { name: 'Remove filter: 4 units' })).toBeFocused();
-  await expect(page.locator('#level')).toHaveValue('');
+  await expect(pill(page, 'level', '')).toBeChecked();
   await expect(page.getByRole('button', { name: 'Filters (2)' })).toBeVisible();
   // Removing "Exchange students" leaves exchange mode; the semester and year stay in the rail.
   await page.goto('/?q=networks&sem=1&ng=1&study=ug2');
@@ -115,14 +118,14 @@ test('a chip removes its filter, and focus moves to the next chip', async ({ pag
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 1']);
 });
 
-test('filters are labelled one way everywhere: "Sem 2", "Level 2000", "4 units", in the options and the chips', async ({ page }) => {
+test('filters are labelled one way everywhere: "Sem 2", "Level 2000", "4 units", in the pills (as said) and the chips', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/?q=databases&sem=2&level=2&credits=4');
-  await expect(page.locator('#sem option:checked')).toHaveText('Sem 2');
-  await expect(page.locator('#level option:checked')).toHaveText('Level 2000');
-  await expect(page.locator('#credits option:checked')).toHaveText('4 units');
+  await expect(chosen(page, 'sem')).toHaveText('Sem 2');
+  await expect(page.getByRole('radio', { name: 'Level 2000', exact: true })).toBeChecked();
+  await expect(page.getByRole('radio', { name: '4 units', exact: true })).toBeChecked();
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 2', 'Level 2000', '4 units']);
-  await expect(page.locator('#sem option')).toHaveText(['Any semester', 'Sem 1', 'Sem 2', 'Special term 1', 'Special term 2']);
+  await expect(page.locator('#semWrap label')).toHaveText(['Any', 'Sem 1', 'Sem 2', 'Special term 1', 'Special term 2']);
 });
 
 test('no results with filters on names the next step: remove a filter', async ({ page }) => {
@@ -149,8 +152,8 @@ test('in exchange mode the next step is never to drop the set-up: only real filt
 test('an option a link adds is labelled as the chips are: "Level 7000", "3 units"', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/?q=design&level=7&credits=3');
-  await expect(page.locator('#level option:checked')).toHaveText('Level 7000');
-  await expect(page.locator('#credits option:checked')).toHaveText('3 units');
+  await expect(chosen(page, 'level')).toHaveText('Level 7000');
+  await expect(chosen(page, 'credits')).toHaveText('3 units');
   await expect(page.locator('#chips .chip')).toHaveText(['Level 7000', '3 units']);
 });
 
@@ -173,15 +176,15 @@ for (const width of [320, 390, 560, 641, 667, 700, 760, 900, 1040, 1100]) {
 test('focus stays on a control when the one it was on goes away: a special term changed to Sem 1, and the dialog closed by widening', async ({ page }) => {
   await page.goto('/?q=networks&sem=3&ng=1&study=ug2');
   await page.getByRole('button', { name: /^Filters/ }).click();
-  await expect(page.locator('#sem')).toBeVisible();
-  await page.locator('#sem').selectOption('1');
+  await expect(page.locator('#semWrap')).toBeVisible();
+  await pill(page, 'sem', '1').check();
   await expect.poll(() => query(page)).toBe('q=networks&sem=1&ng=1&study=ug2');
-  await expect(page.locator('#sem')).toBeHidden();
+  await expect(page.locator('#semWrap')).toBeHidden();
   await expect(page.getByRole('radio', { name: 'Sem 1', exact: true })).toBeFocused();
-  await page.locator('#study').focus();
+  await pill(page, 'study', 'ug2').focus();
   await page.setViewportSize({ width: 1280, height: 800 });
   await expect(page.getByRole('dialog')).toBeHidden();
-  await expect(page.locator('#study')).toBeFocused();
+  await expect(pill(page, 'study', 'ug2')).toBeFocused();
 });
 
 test('a link with any state never shows the first screen, even before the scripts run', async ({ page }) => {
@@ -197,7 +200,7 @@ test('at 1280 the rail is beside the results and there is no Filters button', as
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/?q=networks&ng=1&study=ug2&sem=1');
   await expect(page.locator('.rail')).toBeVisible();
-  await expect(page.locator('#study')).toBeVisible();
+  await expect(page.locator('#studyWrap')).toBeVisible();
   await expect(page.getByRole('button', { name: /^Filters/ })).toBeHidden();
   await expect(page.locator('#chips .chip')).toHaveText(['Sem 1', '2nd year', 'Exchange students']);
 });
@@ -208,7 +211,7 @@ test('the dialog closes if the window widens past the phone layout, and the rail
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.setViewportSize({ width: 1280, height: 800 });
   await expect(page.getByRole('dialog')).toBeHidden();
-  await expect(page.locator('.rail #study')).toBeVisible();
+  await expect(page.locator('.rail #studyWrap')).toBeVisible();
 });
 
 // The shortlist in the same
