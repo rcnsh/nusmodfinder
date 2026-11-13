@@ -42,6 +42,6 @@ describing the system as it is.
   and broken commands.
 
 ## Consequences
-- The uptime check costs about 290 requests and 4 neurons a day ([docs/cost.md](../cost.md)).
+- The uptime check costs about 290 requests and 3 neurons a day ([docs/cost.md](../cost.md)).
 - A rate-limited visitor sees a plain sentence and a retry time; traffic spread over many
   addresses is not limited (ADR 0004's rules are what protect the daily neurons).

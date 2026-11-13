@@ -28,7 +28,7 @@ go unnoticed for more than 13 hours, and the "hourly" check was not one.
 - The GitHub Actions workflow and its repo secret are removed.
 
 ## Consequences
-- About 290 requests, 25k D1 rows read and 4 neurons a day ([docs/cost.md](../cost.md)), inside
+- About 290 requests, 25k D1 rows read and 3 neurons a day ([docs/cost.md](../cost.md)), inside
   ADR 0004's allowances.
 - The uptime Worker bundles `data/groups.json` when it is deployed; the codes go stale after a
   corpus refresh until it is redeployed, which the check tolerates (named 404s pass).
