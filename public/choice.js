@@ -26,7 +26,7 @@ import { h } from './dom.js';
  * move and choose within it, as in any radio group.
  * @param {HTMLElement} root  the fieldset the pills go in
  * @param {string} name  the radios' name
- * @param {{ value: string, label: string | Child[] }[]} options  a label may carry hidden words ("Level " before "2000"), so a pill says what its chip says
+ * @param {{ value: string, label: string | Child[] }[]} options  a label may carry visually hidden words (the "Level " before a level's figure), so a pill says what its chip says
  * @param {{ seg?: number }} [opts]  the first `seg` options form a segment, the rest pills under it
  * @returns {Choice}
  */
