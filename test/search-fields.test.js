@@ -8,6 +8,7 @@
 // - `exchangeBySem`: under ng=1 with no sem, each result's status and reasons
 //   for Sem 1 and Sem 2 at the request's study level, from the stored row.
 // - `examDates`: each result's exams, as /module/:code answers them.
+// - `reviews`: each result's review scores from data/reviews.json, null when it has none.
 // The whole-corpus check of exchangeBySem against the oracle is
 // test/oracle/paths.test.js.
 import { env } from 'cloudflare:workers';
@@ -15,6 +16,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
 import { exchangeAt } from '../src/ng-reasons.js';
 import { oracleShown } from './oracle/oracle.mjs';
+import reviewsFile from '../data/reviews.json';
 import { callJson, fixture, seed } from './helpers.js';
 
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
@@ -153,5 +155,22 @@ describe('examDates', () => {
     const { body } = await callJson('/search?q=CS3244%20PC3270', { fakes });
     expect(body.results.find((/** @type {any} */ r) => r.code === 'CS3244').examDates[0]).toEqual({ sem: 1, date: '2026-11-26T09:00:00.000Z', durationMins: 120 });
     expect(body.results.find((/** @type {any} */ r) => r.code === 'PC3270').examDates).toEqual([]);
+  });
+});
+
+describe('reviews', () => {
+  it('carries each result\'s review scores from data/reviews.json, and null for a course with none', async () => {
+    const { body } = await callJson('/search?q=CS1101S%20PC3294', { fakes });
+    const byCode = new Map(body.results.map((/** @type {any} */ r) => [r.code, r]));
+    expect(byCode.get('CS1101S').reviews).toEqual(reviewsFile.courses.CS1101S);
+    expect(byCode.get('CS1101S').reviews).toMatchObject({ n: expect.any(Number), latest: expect.stringMatching(/^AY/) });
+    expect(Object.hasOwn(reviewsFile.courses, 'PC3294')).toBe(false);
+    expect(byCode.get('PC3294').reviews).toBeNull();
+  });
+
+  it('gives every result the field, scores or null', async () => {
+    const { body } = await callJson('/search?q=programming', { fakes });
+    expect(body.results.length).toBeGreaterThan(0);
+    for (const r of body.results) expect(r.reviews === null || typeof r.reviews.n === 'number').toBe(true);
   });
 });

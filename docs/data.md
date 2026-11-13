@@ -51,6 +51,34 @@ sha256 of the sorted catalogue codes; `/admin/hashes` and `verify --pre-deploy` 
 its `catalogue_only` codes, and the deploy guard and `verify --pre-deploy` refuse one that is not
 the bundled file's (`scripts/catalogue-check.mjs`).
 
+### Course reviews
+
+`data/reviews.json` holds each course's review scores from its NUSMods comments (ADR 0018), one
+line per course: `n` reviews, the `latest` academic year one is about, and the age-weighted 1-5
+`overall`, `workload`, `difficulty` and `teaching` (`null` where reviews don't say). The Worker
+bundles it (`src/reviews.js`) and `/search` returns each result's entry as `reviews`. Rebuild it
+on the Mac with `npm run reviews -- crawl`, then `score`, then `build`, and commit the file with
+the run records:
+
+- `crawl` pages NUSMods' Disqus forum (`nusmods-prod`) through Disqus's public API, 100 threads or
+  comments per request, 2 s apart, into `.data/reviews/crawl/`; it resumes from its cursor files,
+  so delete them to crawl afresh.
+- `score` sends each course's comments to Claude Haiku 5.5 (an `ANTHROPIC_API_KEY` or an `ant
+  auth` profile), six requests at a time, into `.data/reviews/scores/`. It sends no request whose
+  estimate, with what is spent, in flight and failed, would pass `--max-usd` (default 10; a
+  whole-forum pass cost $2.73), and leaves those for the next run. It skips chunks already scored
+  in full, so run it again to re-send any that failed, came back short or were left at the cap;
+  `--limit N` sends only N.
+- `build` keeps reviews with an overall score and a year (questions, replies and hearsay
+  dropped), counts a repeated review once, reads the year a review names in the forms students
+  write ("AY22/23", "AY2022/23", "S2 AY19/20", "2020-2021", "AY1516") unless it is after the
+  posting date, else uses the posting date, weights each by age and writes the file. It reads
+  only `.data/`.
+
+No comment text goes into the repo. The scores change only when someone reruns the three steps;
+the page's aria snapshots hold some of them, so re-pin those after a rebuild
+(`VNM_ARIA_UPDATE=1 npx playwright test aria --project chromium`).
+
 ## Re-ingesting
 
 Ingest is a local Node script by design: `moduleInfo.json` is about 19 MB, and parsing it inside

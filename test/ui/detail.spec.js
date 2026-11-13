@@ -95,7 +95,7 @@ test('exchange status on the card, both semesters: one line per semester, never 
 
 test('an NUS student\'s card has no exchange line; the detail keeps the all-years table, collapsed after the facts', async ({ page }) => {
   await page.goto('/?q=CS3244&open=CS3244');
-  await expect(card(page, 'CS3244').locator('.guide')).toHaveCount(0);
+  await expect(card(page, 'CS3244').locator('.exchange')).toHaveCount(0);
   const region = page.locator('#results .detail:not([hidden])');
   const more = region.locator('details.avail-all');
   await expect(more.locator('summary')).toHaveText('For exchange students: who may take it');

@@ -38,6 +38,7 @@ How NUS Mod Finder works and how to maintain it. For what the site is, start at 
 | [0015](decisions/0015-yearly-refresh.md) | The academic year switches in July, through a rehearsed procedure |
 | [0016](decisions/0016-one-relevance-judge.md) | One relevance judge, checked across model families |
 | [0017](decisions/0017-first-screen-for-everyone.md) | The first screen serves NUS and exchange students alike |
+| [0018](decisions/0018-course-review-scores.md) | Course review scores from NUSMods comments |
 
 A new decision gets the next number and a kebab-case title naming the decision. Change a record
 when the decision changes, and keep its reasons.

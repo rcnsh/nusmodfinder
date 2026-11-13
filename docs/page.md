@@ -24,6 +24,11 @@ text/background and boundary pair in both themes against WCAG AA.
   mode. "Browse all courses instead" leads to the search with no query, in exchange mode for an
   exchange student (with the answers given so far). A link with any state skips it. The site
   name in the header links home, to the first screen.
+- **What students say** (ADR 0018): a card whose course has at least three reviews on NUSMods
+  shows, in its right-hand column (under the exchange status in exchange mode), the overall score
+  out of 5 with a word, a five-segment meter each for workload, difficulty and teaching (each
+  meter's accessible name carries its number), the review count and latest academic year, and a
+  link to read the reviews on NUSMods.
 - **NUS student or exchange student** is `ng`: an NUS student's pages say nothing about exchange
   (no exchange line on a card; the detail's all-years exchange table is a collapsed "For exchange
   students: who may take it" after the facts), and the shortlist is a plain plan (below).
@@ -191,7 +196,7 @@ the CSP.
 | `intents.js`, `intent-chips.js` | the phrases `/search` read from the query (`interpreted`) as chip labels (pure), and the chip row under the count, each chip's button re-running the search with `ignore=` that phrase |
 | `icons.js` | the stamps' and controls' small line icons, built as SVG nodes, all decorative (`aria-hidden`) |
 | `choice.js` | the rail's filter controls in place of native selects: `pillGroup` (a radio group drawn as pills, or a segment and pills) and `combobox` (the faculty list), each with `.value`, `focus()` and a bubbling `change`, as the selects had |
-| `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`); the entries (an APG disclosure each: a heading holding one button that controls the detail; the exchange stamp for the chosen semester, or one per semester when planning both, with the notes both share said once; no score), the hidden-codes box and the status area, with the sentence each answer gives the live region; the controller (the set-up screen, the rail's semester segment, the chips, the filters dialog, the skip link, the live region, focus after Escape and Back) |
+| `dom.js`, `render.js`, `app.js` | DOM nodes only (lint bans `innerHTML` and the other HTML sinks in `public/`); the entries (an APG disclosure each: a heading holding one button that controls the detail; the exchange stamp for the chosen semester, or one per semester when planning both, with the notes both share said once; what students say (`reviewsPanel`); no search score), the hidden-codes box and the status area, with the sentence each answer gives the live region; the controller (the set-up screen, the rail's semester segment, the chips, the filters dialog, the skip link, the live region, focus after Escape and Back) |
 
 `npm run typecheck` checks it with `tsconfig.web.json` (the DOM lib) and the Playwright specs with
 `tsconfig.ui.json` (Node plus the DOM lib, for their `page.evaluate` callbacks); the pure modules
