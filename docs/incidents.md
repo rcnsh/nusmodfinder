@@ -5,8 +5,8 @@ is announced anywhere. The commands behind it are in [operations.md](operations.
 
 ## The uptime alert
 
-Once an hour (`.github/workflows/uptime.yml`, minute 37 UTC), GitHub Actions sends three requests
-to the site: `/health`, one `/module/<code>` and one uncached `/search`. A failure is checked again
+Every 15 minutes the uptime Worker `nusmodfinder-uptime` (ADR 0019) sends three requests to the
+site: `/health`, one `/module/<code>` and one uncached `/search`. A failure is checked again
 90 s later. A pass pings the healthchecks.io check; two failures ping its `/fail`. healthchecks.io
 then alerts through Pushover.
 
@@ -17,13 +17,14 @@ then alerts through Pushover.
   - `/module/<code>` failing: D1. `/health` doesn't touch D1, so this is usually D1 alone.
   - `/search degraded (…)`: Workers AI or the bundle; search still answers by keyword. Check the
     day's neurons in the dashboard (a re-ingest or embed that day?).
-  - `/search HTTP 429`: the rate limit, which an Actions runner shares with other repos. Wait for
-    the next run before acting.
-- **"Down" with no reason** (the 12 h grace ran out): the runs stopped arriving, not the site.
-  `gh run list --workflow Uptime`. GitHub pauses a public repo's schedules after 60 days with no
-  activity, and may delay or drop scheduled runs under load.
-- **A red Uptime run** in Actions: the ping itself failed, or `HC_UPTIME_URL` is missing. The site
-  may be fine; the run's log says which.
+  - `/search HTTP 429`: the rate limit. Wait for the next run before acting.
+- **"Down" with no reason** (the 20 min grace ran out): the runs stopped arriving or could not
+  ping, not necessarily the site. Look at the `nusmodfinder-uptime` Worker's logs in the dashboard
+  (Workers Logs mark a run that could not report as failed, with the reason), and check that its
+  Cron Trigger and `HC_UPTIME_URL` secret are there
+  (`npx wrangler triggers deploy -c workers/uptime/wrangler.jsonc` restores the trigger,
+  `npm run deploy:uptime` the Worker). A Cloudflare-wide incident stops both Workers; the grace
+  still alerts.
 
 ## The site is down
 
@@ -60,8 +61,8 @@ the day; each is what a visitor meets.
 - **The latest deploy's smoke passed.** `gh run list --workflow Deploy --limit 1`, then
   `gh run view <id>`: the "Smoke the deployed commit" step is green. A deploy from the Mac has no
   such step; run `npm run smoke` after it instead.
-- **The uptime check is up.** The healthchecks.io check for this site shows "up", and
-  `gh run list --workflow Uptime --limit 3` shows recent runs.
+- **The uptime check is up.** The healthchecks.io check `nusmodfinder-uptime` shows "up", with a
+  ping in the last 15 minutes.
 - **The privacy note is live** on the page, and the retention it states matches the Worker's
   Workers Logs retention in the Cloudflare dashboard (7 days on Workers Paid; Cloudflare's
   Observability pricing changes on 2026-12-01).

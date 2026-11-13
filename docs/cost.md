@@ -32,9 +32,10 @@ billion reads cover ~10,000 rows read per search; the production p50 (255) and m
 well inside that, and the worst filtered search on the local grid (7,772 rows) is not. Cached
 repeats cost none of these.
 
-**The scheduled and live checks.** The uptime check sends about 70 requests a day (24 runs of
-`/health`, `/module` and one uncached `/search`): about 6k D1 rows read (24 searches at the p50 of
-255, plus 24 `/module` rows) and about 1 neuron. Each Actions deploy's smoke adds 5 GETs (up to
+**The scheduled and live checks.** The uptime check sends about 290 requests a day (96 runs of
+`/health`, `/module` and one uncached `/search`), plus the uptime Worker's 96 cron invocations:
+about 25k D1 rows read (96 searches at the p50 of 255, plus 96 `/module` rows) and about 4
+neurons. Each Actions deploy's smoke adds 5 GETs (up to
 7 more `/health` while the promote propagates), one of them an uncached search (about 0.03
 neurons).
 
