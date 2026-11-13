@@ -1,0 +1,60 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-13T08:32:51.705Z",
+  "finishedAt": "2026-11-13T08:33:09.596Z",
+  "script": "smoke",
+  "args": [],
+  "commit": {
+    "sha": "21b315624ddb1f2244366185be487ea6b807f995",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "https://nusmodfinder.rcn.sh",
+  "read": [],
+  "written": [],
+  "requests": {
+    "/health": 1,
+    "/": 1,
+    "/module/CCS5212": 1,
+    "/search": 1,
+    "/facets": 1
+  },
+  "versions": {
+    "versionId": "70f7170f-3386-475b-819c-c009d1b0a85a",
+    "tag": "21b3156"
+  },
+  "bookmark": null,
+  "details": {
+    "checks": [
+      {
+        "name": "/health",
+        "pass": true,
+        "detail": "tag 21b3156, data version 7eb77cf0828b, production bundle"
+      },
+      {
+        "name": "/",
+        "pass": true,
+        "detail": "200 with the CSP header"
+      },
+      {
+        "name": "/module/CCS5212",
+        "pass": true,
+        "detail": "\"Critical Approaches to Corporate Sustainability\""
+      },
+      {
+        "name": "/search",
+        "pass": true,
+        "detail": "CCS5212 in the top 5, a cache miss, not degraded"
+      },
+      {
+        "name": "/facets",
+        "pass": true,
+        "detail": "200"
+      }
+    ],
+    "expect": "21b315624ddb1f2244366185be487ea6b807f995"
+  },
+  "exitCode": 0,
+  "message": "5 of 5 checks pass",
+  "outcome": "ok"
+}
