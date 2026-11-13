@@ -35,6 +35,15 @@ describe('the ui CI job', () => {
     expect(ui).toMatch(new RegExp(`image: mcr\\.microsoft\\.com/playwright:v${locked.replaceAll('.', '\\.')}-noble\\n`));
   });
 
+  it('runs each browser in shards, one job each, so no UI job is CI\'s longest', () => {
+    const shards = ui.match(/^ {8}shard: \[([\d, ]+)\]$/m)?.[1].split(', ').map(Number) ?? [];
+    expect(shards.length).toBeGreaterThan(1);
+    expect(shards).toEqual(shards.map((_, i) => i + 1));
+    expect(ui).toContain(`--shard=\${{ matrix.shard }}/${shards.length}`);
+    expect(ui).toContain(`name: ui (\${{ matrix.project }} \${{ matrix.shard }}/${shards.length})`);
+    expect(ui).toContain('name: ui-test-results-${{ matrix.project }}-${{ matrix.shard }}');
+  });
+
   it('installs nothing with apt', () => {
     expect(ui).not.toMatch(/--with-deps|apt-get/);
   });

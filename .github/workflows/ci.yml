@@ -357,12 +357,16 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --ipc=host --init
-    # One job per browser: the two together took 16 minutes on a runner (limit 20).
+    # One job per browser and shard: the two browsers together took 16 minutes on a runner, and one
+    # browser alone ~7 (463 tests on the runner's 2 workers), the longest job in CI. Three shards
+    # per browser bring each job under `check`'s ~3 minutes; the repo is public, so the extra jobs
+    # cost nothing.
     strategy:
       fail-fast: false
       matrix:
         project: [chromium, webkit]
-    name: ui (${{ matrix.project }})
+        shard: [1, 2, 3]
+    name: ui (${{ matrix.project }} ${{ matrix.shard }}/3)
     timeout-minutes: 20
     env:
       RUN: ${{ needs.changes.outputs.ui != 'false' }}
@@ -378,13 +382,13 @@ jobs:
           cache: npm
       - if: env.RUN == 'true'
         run: npm ci
-      - name: UI suite (${{ matrix.project }})
+      - name: UI suite (${{ matrix.project }}, shard ${{ matrix.shard }}/3)
         if: env.RUN == 'true'
-        run: npm run test:ui -- --project=${{ matrix.project }}
+        run: npm run test:ui -- --project=${{ matrix.project }} --shard=${{ matrix.shard }}/3
       - name: Keep the traces of failed tests
         if: failure() && env.RUN == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: ui-test-results-${{ matrix.project }}
+          name: ui-test-results-${{ matrix.project }}-${{ matrix.shard }}
           path: test-results/
           retention-days: 7

@@ -65,7 +65,7 @@ shows. Draft PRs run nothing.
 | `eval-gate` | the ranking lock ([EVAL.md](../EVAL.md#the-ranking-lock)): fast path, else a recompute | never |
 | `full-corpus` | `test/full` over the pinned corpus and bundle; the lexical grid in full or a 1-in-10 sample | by steps, when `code` is false |
 | `oracle` | `test/oracle` (Vitest projects `oracle` and `oracle-node`) over production: `current` restored from its release asset, the production bundle and data files, after `npm run corpus -- check`; fails on any skipped test. Two pinned-corpus facts (the standby's recall floor, the no-signal ruling) run in `full-corpus` (`test/full/oracle-pinned.test.js`) | by steps, when `code` is false |
-| `ui (chromium)`, `ui (webkit)` | the Playwright suite in Playwright's image | by steps, when `ui` is false |
+| `ui (chromium 1/3)` … `ui (webkit 3/3)` | the Playwright suite in Playwright's image, three shards per browser | by steps, when `ui` is false |
 | `rollover` | the year-switch rehearsal (`scripts/rollover.mjs`): the pinned corpus relabelled as next year's in a temp copy, then `year next`, the builders, `year check`, a local Worker switched by `ingest --d1-only --allow-year-change --write-budget 80000`, `verify --pre-deploy`, the oracle against next year's, and the variant with Sem 2 unpublished | by steps, when `rollover` is false |
 
 `scripts/ci-changes.mjs` diffs a PR against its base, and a push to `main` against the newest
