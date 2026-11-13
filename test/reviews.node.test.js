@@ -3,7 +3,7 @@
 // (ADR 0018), and the committed data/reviews.json's shape.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { CODE_RE, HALF_LIFE, MODEL, OUT, SCHEMA_ID, aggregate, codeOf, postsByCourse, reviewYear } from '../scripts/reviews.mjs';
+import { CODE_RE, HALF_LIFE, MODEL, OUT, SCHEMA_ID, aggregate, codeOf, namedYear, postsByCourse, reviewYear } from '../scripts/reviews.mjs';
 
 /** @param {Partial<import('../scripts/reviews.mjs').Scored>} o @returns {import('../scripts/reviews.mjs').Scored} */
 const scored = (o) => ({ id: 'x', is_review: true, taken: null, workload: null, difficulty: null, teaching: null, overall: null, ...o });
@@ -24,6 +24,27 @@ describe('postsByCourse', () => {
     const posts = [post('b', '2024-02-01', 'later'), post('a', '2023-01-01', 'earlier'),
       { ...post('c', '2023-05-01', 'gone'), isDeleted: true }, { ...post('d', '2023-05-01', 'ad'), isSpam: true }, post('e', '2023-06-01', '  ')];
     expect(postsByCourse(threads, posts).get('MA1521')?.map((p) => p.id)).toEqual(['a', 'b']);
+  });
+});
+
+describe('namedYear', () => {
+  it('reads the forms students write', () => {
+    expect(namedYear('AY22/23 S2')).toBe(22);
+    expect(namedYear('AY2022/23')).toBe(22);
+    expect(namedYear('AY 2022 / 23')).toBe(22);
+    expect(namedYear('S2 AY2024/2025')).toBe(24);
+    expect(namedYear('ay 24/25 sem 1')).toBe(24);
+    expect(namedYear('Sem 2 AY18/19')).toBe(18);
+    expect(namedYear('2020-2021 Sem 1')).toBe(20);
+    expect(namedYear('17/18 S2')).toBe(17);
+    expect(namedYear('AY1516 S1')).toBe(15);
+    expect(namedYear('AY2023 S1')).toBe(23);
+    expect(namedYear('AY19')).toBe(19);
+  });
+  it('is null with no year, or a pair that is not consecutive', () => {
+    expect(namedYear('Semester 2')).toBeNull();
+    expect(namedYear('3/4 of the way')).toBeNull();
+    expect(namedYear('')).toBeNull();
   });
 });
 

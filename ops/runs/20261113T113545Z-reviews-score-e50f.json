@@ -1,0 +1,42 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-13T11:35:45.915Z",
+  "finishedAt": "2026-11-13T11:37:25.638Z",
+  "script": "reviews-score",
+  "args": [
+    "--max-usd",
+    "1"
+  ],
+  "commit": {
+    "sha": "87efa4cb6773fd943ee81d7733e2124b3f22531f",
+    "dirty": true,
+    "diffSha256": "bf18a4cc302b6e4bae72b0a201ad525e587fe4ef2820cdfc6392defa205f5965"
+  },
+  "target": "anthropic:claude-haiku-5-5",
+  "read": [],
+  "written": [
+    {
+      "what": "scored chunks",
+      "estimate": null,
+      "actual": 1
+    }
+  ],
+  "requests": {
+    "/v1/messages": 1
+  },
+  "versions": {},
+  "bookmark": null,
+  "details": {
+    "usd": 0.0229,
+    "usage": {
+      "input": 2,
+      "cacheWrite": 50803,
+      "output": 25547
+    },
+    "failedRequests": 0,
+    "leftAtCap": 0
+  },
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}

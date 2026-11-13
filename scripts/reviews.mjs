@@ -12,8 +12,8 @@
 // then forums/listPosts), 2 s apart, resumable from .data/reviews/crawl/*.cursor.
 // score: one Claude Haiku 5.5 call per course thread (threads over 100 comments
 // in chunks), structured output per comment; ANTHROPIC_API_KEY or an `ant auth`
-// profile; sends nothing its estimate says would pass --max-usd (default 10), counting what is
-// spent and in flight. A chunk that comes back missing a
+// profile; sends no request whose estimate would pass --max-usd (default 10), counting what is
+// spent, in flight and failed, and leaves those for the next run. A chunk that comes back missing a
 // comment is re-sent by running score again. build: reviews only (questions and
 // replies dropped), repeats of one review dropped, reviews with no overall score
 // not counted, each review weighted by age
@@ -134,10 +134,32 @@ export function postsByCourse(threads, posts) {
 }
 
 /**
- * The academic year a review is about, as its first year's last two digits: the semester the
- * writer names ("AY22/23", "AY2022/23", "AY 22/23", or compact "AY1516"), unless that is after
- * the current year or after it was posted; else the academic year it was posted in (from
- * August); null with neither.
+ * The academic year the writer names in `taken`, as its first year's last two digits, or null:
+ * a pair of consecutive years anywhere, each of two or four digits ("AY22/23", "S2 AY24/25",
+ * "ay 24/25 sem 1", "22-23"), else "AY" and four digits, read as two consecutive years
+ * ("AY1516") or as one calendar year, else "AY" and two digits. test/reviews.node.test.js has
+ * the four-digit forms.
+ * @param {string} taken
+ * @returns {number | null}
+ */
+export function namedYear(taken) {
+  const pair = /(?:^|\D)(\d{2}|\d{4})\s*[/-]\s*(\d{2}|\d{4})(?!\d)/.exec(taken);
+  if (pair) {
+    const a = Number(pair[1].slice(-2));
+    if (Number(pair[2].slice(-2)) === (a + 1) % 100) return a;
+  }
+  const ay = /AY\s*(\d\d)(\d\d)?(?!\d)/i.exec(taken);
+  if (!ay) return null;
+  const a = Number(ay[1]);
+  if (ay[2] === undefined) return a;
+  const b = Number(ay[2]);
+  return b === (a + 1) % 100 ? a : b;
+}
+
+/**
+ * The academic year a review is about, as its first year's last two digits: the one the writer
+ * names (namedYear), unless that is after the current year or after it was posted; else the
+ * academic year it was posted in (from August); null with neither.
  * @param {Scored} c
  * @param {string | undefined} postedAt ISO date
  * @param {number} currentYear the current academic year's first year, two digits
@@ -145,9 +167,7 @@ export function postsByCourse(threads, posts) {
  */
 export function reviewYear(c, postedAt, currentYear) {
   const posted = postedAt ? Number(postedAt.slice(2, 4)) - (Number(postedAt.slice(5, 7)) >= 8 ? 0 : 1) : null;
-  const m = /^AY\s*(\d\d)(\d\d)?([/-])?/.exec(c.taken ?? '');
-  // Four digits then "/" or "-" is a full year (AY2022/23); four alone are both years (AY1516).
-  const named = !m ? null : m[2] && m[3] ? Number(m[2]) : Number(m[1]);
+  const named = namedYear(c.taken ?? '');
   if (named !== null && named <= currentYear && (posted === null || named <= posted)) return named;
   return posted;
 }
@@ -296,29 +316,32 @@ async function scoreAll(argv) {
   // characters a token and 1.5 tokens per other character (Chinese runs about one each), and 400
   // output tokens (thinking included) per comment.
   const tokens = (/** @type {string} */ s) => {
-    const ascii = [...s].filter((ch) => ch.charCodeAt(0) < 128).length;
-    return ascii / 3.6 + (s.length - ascii) * 1.5;
+    const chars = [...s];
+    const ascii = chars.filter((ch) => ch.charCodeAt(0) < 128).length;
+    return ascii / 3.6 + (chars.length - ascii) * 1.5;
   };
-  const estimate = (/** @type {{ content: string, ids: string[] }} */ r) =>
-    (tokens(r.content + SYSTEM) * PRICE.cacheWrite + r.ids.length * 400 * PRICE.output) / 1e6;
-  let reserved = 0;
-  let next = 0;
+  const systemTokens = tokens(SYSTEM);
+  const queue = todo.map((r) => ({ r, est: ((tokens(r.content) + systemTokens) * PRICE.cacheWrite + r.ids.length * 400 * PRICE.output) / 1e6 }));
+  // Spend so far is usd() for the requests that answered, plus the estimates of those in flight
+  // (`pending`) and of those that failed (`lost`: a failed request may still have billed).
+  let pending = 0;
+  let lost = 0;
+  let inFlight = 0;
+  let sent = 0;
   let failed = 0;
   let incomplete = 0;
-  let stopped = false;
   await Promise.all(Array.from({ length: 6 }, async () => {
-    while (next < todo.length) {
-      const r = todo[next];
-      const est = estimate(r);
-      // Hold a request whose estimate, with what is spent and in flight, passes the cap until the
-      // requests in flight settle; with none in flight, stop.
-      if (usd() + reserved + est > maxUsd) {
-        if (reserved > 0) { await sleep(500); continue; }
-        stopped = true;
+    while (queue.length) {
+      // The next request that fits under the cap; none fits: wait for those in flight, or stop.
+      const at = queue.findIndex((q) => usd() + pending + lost + q.est <= maxUsd);
+      if (at < 0) {
+        if (inFlight > 0) { await sleep(500); continue; }
         break;
       }
-      next++;
-      reserved += est;
+      const [{ r, est }] = queue.splice(at, 1);
+      inFlight++;
+      pending += est;
+      sent++;
       run.request('/v1/messages');
       try {
         const msg = await client.messages.stream({
@@ -341,16 +364,18 @@ async function scoreAll(argv) {
         if (r.ids.some((id) => !comments.some((c) => c.id === id))) incomplete++;
       } catch (err) {
         failed++;
+        lost += est;
         console.log(`${r.id}: ${/** @type {Error} */ (err).message}`);
       } finally {
-        reserved -= est;
+        inFlight--;
+        pending -= est;
       }
     }
   }));
   // A failed request's usage is unknown (it may have billed), so the record says how many failed.
-  run.wrote('scored chunks', { actual: next - failed }).detail('usd', Math.round(usd() * 1e4) / 1e4).detail('usage', usage)
-    .detail('failedRequests', failed).detail('stoppedAtCap', stopped);
-  console.log(`score: $${usd().toFixed(2)} for ${next} of ${todo.length} requests${stopped ? `, stopped at the $${maxUsd} cap` : ''}; `
+  run.wrote('scored chunks', { actual: sent - failed }).detail('usd', Math.round(usd() * 1e4) / 1e4).detail('usage', usage)
+    .detail('failedRequests', failed).detail('leftAtCap', queue.length);
+  console.log(`score: $${usd().toFixed(2)} for ${sent} of ${todo.length} requests${queue.length ? `; ${queue.length} left, over the $${maxUsd} cap` : ''}; `
     + `${failed} failed, ${incomplete} missing a comment; run score again to re-send them`);
   run.finish(failed ? 'partial' : 'ok', { exitCode: failed ? 1 : 0 });
   if (failed) process.exitCode = 1;

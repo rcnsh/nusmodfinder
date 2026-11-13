@@ -65,13 +65,15 @@ the run records:
   so delete them to crawl afresh.
 - `score` sends each course's comments to Claude Haiku 5.5 (an `ANTHROPIC_API_KEY` or an `ant
   auth` profile), six requests at a time, into `.data/reviews/scores/`. It sends no request whose
-  estimate, with what is spent and in flight, would pass `--max-usd` (default 10; a whole-forum
-  pass cost $2.73). It skips chunks already scored in full, so run it again to re-send any that
-  failed or came back short; `--limit N` sends only N.
-- `build` keeps reviews with an overall score (questions, replies and hearsay dropped), counts a
-  repeated review once, reads the year a review names in either form ("AY22/23", "AY2022/23")
-  unless it is after the posting date, weights each by age and writes the file. It reads only
-  `.data/`.
+  estimate, with what is spent, in flight and failed, would pass `--max-usd` (default 10; a
+  whole-forum pass cost $2.73), and leaves those for the next run. It skips chunks already scored
+  in full, so run it again to re-send any that failed, came back short or were left at the cap;
+  `--limit N` sends only N.
+- `build` keeps reviews with an overall score and a year (questions, replies and hearsay
+  dropped), counts a repeated review once, reads the year a review names in the forms students
+  write ("AY22/23", "AY2022/23", "S2 AY19/20", "2020-2021", "AY1516") unless it is after the
+  posting date, else uses the posting date, weights each by age and writes the file. It reads
+  only `.data/`.
 
 No comment text goes into the repo. The scores change only when someone reruns the three steps;
 the page's aria snapshots hold some of them, so re-pin those after a rebuild
