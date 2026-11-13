@@ -1,0 +1,60 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-13T09:43:25.581Z",
+  "finishedAt": "2026-11-13T09:43:43.405Z",
+  "script": "smoke",
+  "args": [],
+  "commit": {
+    "sha": "eae9198e2401dfbc43d1c63e63f0933180c71dd6",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "https://nusmodfinder.rcn.sh",
+  "read": [],
+  "written": [],
+  "requests": {
+    "/health": 1,
+    "/": 1,
+    "/module/EE2111A": 1,
+    "/search": 1,
+    "/facets": 1
+  },
+  "versions": {
+    "versionId": "29468761-38c0-4c08-b431-fb17b452f3f4",
+    "tag": "eae9198"
+  },
+  "bookmark": null,
+  "details": {
+    "checks": [
+      {
+        "name": "/health",
+        "pass": true,
+        "detail": "tag eae9198, data version 7eb77cf0828b, production bundle"
+      },
+      {
+        "name": "/",
+        "pass": true,
+        "detail": "200 with the CSP header"
+      },
+      {
+        "name": "/module/EE2111A",
+        "pass": true,
+        "detail": "\"Electrical Engineering Principles and Practice II\""
+      },
+      {
+        "name": "/search",
+        "pass": true,
+        "detail": "EE2111A in the top 5, a cache miss, not degraded"
+      },
+      {
+        "name": "/facets",
+        "pass": true,
+        "detail": "200"
+      }
+    ],
+    "expect": "eae9198e2401dfbc43d1c63e63f0933180c71dd6"
+  },
+  "exitCode": 0,
+  "message": "5 of 5 checks pass",
+  "outcome": "ok"
+}

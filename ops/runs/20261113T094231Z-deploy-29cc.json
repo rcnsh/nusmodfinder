@@ -1,0 +1,118 @@
+{
+  "schema": "vnm-run/1",
+  "time": "2026-11-13T09:42:31.440Z",
+  "finishedAt": "2026-11-13T09:43:22.237Z",
+  "script": "deploy",
+  "args": [],
+  "commit": {
+    "sha": "eae9198e2401dfbc43d1c63e63f0933180c71dd6",
+    "dirty": false,
+    "diffSha256": null
+  },
+  "target": "nusmodfinder",
+  "read": [
+    {
+      "what": "D1 rows (the guard, over the D1 REST query: modules and catalogue_only with every column, and the schema check)",
+      "estimate": 21223,
+      "actual": 21353
+    }
+  ],
+  "written": [],
+  "requests": {
+    "wrangler whoami --json": 1,
+    "wrangler versions upload": 1,
+    "wrangler deployments status": 1,
+    "wrangler versions deploy": 1,
+    "wrangler triggers deploy": 1
+  },
+  "versions": {
+    "tag": "eae9198",
+    "dataVersion": "7eb77cf0828b",
+    "catalogueKey": "38fe08242136",
+    "versionId": "29468761-38c0-4c08-b431-fb17b452f3f4",
+    "startupMs": 2,
+    "previousVersionId": "f8a691c4-d678-4b6d-a4a6-3e4b94ff2256",
+    "deployTag": "deploy/20261113T094313Z-29468761"
+  },
+  "bookmark": null,
+  "details": {
+    "preflight": [
+      {
+        "name": "git",
+        "status": "ok",
+        "message": "HEAD eae9198 is on origin/main, at its tip"
+      },
+      {
+        "name": "ci",
+        "status": "ok",
+        "message": "CI run 43402820879 succeeded"
+      },
+      {
+        "name": "vars",
+        "status": "ok",
+        "message": "only DENSE_BACKEND"
+      },
+      {
+        "name": "bundle",
+        "status": "ok",
+        "message": "production, 6818 rows, data version 7eb77cf0828b, sha256 45121dab8408"
+      },
+      {
+        "name": "corpus manifest",
+        "status": "ok",
+        "message": "prod-2026-2027-20261112: data version 7eb77cf0828b and catalogueKey 38fe08242136 follow it; the catalogue files are fresh"
+      },
+      {
+        "name": "year check",
+        "status": "ok",
+        "message": "2026-2027: the year's sources agree (2 notes: YST Sem 2: 2025/26's page (YST hasn't published 2026/27's) …)"
+      },
+      {
+        "name": "source inputs",
+        "status": "ok",
+        "message": "no source-derived input changed since deploy/20261113T084545Z-f8a691c4"
+      },
+      {
+        "name": "startup",
+        "status": "ok",
+        "message": "wrangler check startup passed"
+      }
+    ],
+    "guard": [
+      {
+        "name": "rowsKey",
+        "ok": true,
+        "d1": "4193fd99547e918ebf5984240df9864d62f01f9f588016e9bf570a978983b171",
+        "expected": "4193fd99547e918ebf5984240df9864d62f01f9f588016e9bf570a978983b171"
+      },
+      {
+        "name": "dataVersion",
+        "ok": true,
+        "d1": "7eb77cf0828b",
+        "expected": "7eb77cf0828b"
+      },
+      {
+        "name": "rowHashes",
+        "ok": true,
+        "d1": "none",
+        "expected": "none"
+      },
+      {
+        "name": "catalogueKey",
+        "ok": true,
+        "d1": "38fe08242136",
+        "expected": "38fe08242136"
+      },
+      {
+        "name": "catalogueRows",
+        "ok": true,
+        "d1": "none",
+        "expected": "none"
+      }
+    ],
+    "tagPushed": true
+  },
+  "exitCode": 0,
+  "message": null,
+  "outcome": "ok"
+}
