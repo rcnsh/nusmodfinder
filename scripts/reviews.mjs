@@ -135,8 +135,9 @@ export function postsByCourse(threads, posts) {
 
 /**
  * The academic year a review is about, as its first year's last two digits: the semester the
- * writer names ("AY22/23", "AY2022/23", "AY 22/23"), unless that is after the current year or
- * after it was posted; else the academic year it was posted in (from August); null with neither.
+ * writer names ("AY22/23", "AY2022/23", "AY 22/23", or compact "AY1516"), unless that is after
+ * the current year or after it was posted; else the academic year it was posted in (from
+ * August); null with neither.
  * @param {Scored} c
  * @param {string | undefined} postedAt ISO date
  * @param {number} currentYear the current academic year's first year, two digits
@@ -144,8 +145,9 @@ export function postsByCourse(threads, posts) {
  */
 export function reviewYear(c, postedAt, currentYear) {
   const posted = postedAt ? Number(postedAt.slice(2, 4)) - (Number(postedAt.slice(5, 7)) >= 8 ? 0 : 1) : null;
-  const m = /^AY\s*(?:\d\d(?=\d\d))?(\d\d)\b/.exec(c.taken ?? '');
-  const named = m ? Number(m[1]) : null;
+  const m = /^AY\s*(\d\d)(\d\d)?([/-])?/.exec(c.taken ?? '');
+  // Four digits then "/" or "-" is a full year (AY2022/23); four alone are both years (AY1516).
+  const named = !m ? null : m[2] && m[3] ? Number(m[2]) : Number(m[1]);
   if (named !== null && named <= currentYear && (posted === null || named <= posted)) return named;
   return posted;
 }
@@ -160,21 +162,25 @@ export function reviewYear(c, postedAt, currentYear) {
  */
 export function aggregate(scored, postOf, currentYear) {
   const seen = new Set();
-  /** @type {Scored[]} */
-  const reviews = [];
+  /** @type {{ c: Scored, year: number }[]} */
+  const dated = [];
   const ordered = [...scored].sort((a, b) => (postOf.get(a.id)?.createdAt ?? '').localeCompare(postOf.get(b.id)?.createdAt ?? ''));
   for (const c of ordered) {
-    if (!c.is_review) continue;
+    // A review with no overall score adds to no number the card leads with, so it isn't counted,
+    // and it can't claim the repeat key from a later post of the same text that has one.
+    if (!c.is_review || c.overall === null) continue;
     // A text with no Latin letter or digit (Chinese, emoji) keys on its own id: never a repeat.
     const key = (postOf.get(c.id)?.text ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 200) || `id:${c.id}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    // A review with no overall score adds to no number the card leads with, so it isn't counted.
-    if (c.overall !== null) reviews.push(c);
+    // Nor is one with no year to weigh it by.
+    const year = reviewYear(c, postOf.get(c.id)?.createdAt, currentYear);
+    if (year !== null) dated.push({ c, year });
   }
-  if (!reviews.length) return null;
-  const years = reviews.map((c) => reviewYear(c, postOf.get(c.id)?.createdAt, currentYear));
-  const weight = years.map((y) => (y === null ? 0 : 0.5 ** (Math.max(0, currentYear - y) / HALF_LIFE)));
+  if (!dated.length) return null;
+  const reviews = dated.map((d) => d.c);
+  const years = dated.map((d) => d.year);
+  const weight = years.map((y) => 0.5 ** (Math.max(0, currentYear - y) / HALF_LIFE));
   /** @param {'overall' | 'workload' | 'difficulty' | 'teaching'} k */
   const mean = (k) => {
     let sum = 0;
@@ -185,9 +191,7 @@ export function aggregate(scored, postOf, currentYear) {
     });
     return w ? Math.round((sum / w) * 10) / 10 : null;
   };
-  const known = /** @type {number[]} */ (years.filter((y) => y !== null));
-  if (!known.length) return null;
-  const latest = Math.max(...known);
+  const latest = Math.max(...years);
   return {
     n: reviews.length,
     latest: `AY${String(latest).padStart(2, '0')}/${String(latest + 1).padStart(2, '0')}`,
@@ -288,10 +292,15 @@ async function scoreAll(argv) {
   console.log(`score: ${todo.length} requests to send, cap $${maxUsd}`);
   const usage = { input: 0, cacheWrite: 0, output: 0 };
   const usd = () => (usage.input * PRICE.input + usage.cacheWrite * PRICE.cacheWrite + usage.output * PRICE.output) / 1e6;
-  // A request's cost before it is sent, on the high side: its input written to cache at about 3.6
-  // characters a token, and 400 output tokens (thinking included) per comment.
+  // A request's cost before it is sent, on the high side: its input written to cache at 3.6 ASCII
+  // characters a token and 1.5 tokens per other character (Chinese runs about one each), and 400
+  // output tokens (thinking included) per comment.
+  const tokens = (/** @type {string} */ s) => {
+    const ascii = [...s].filter((ch) => ch.charCodeAt(0) < 128).length;
+    return ascii / 3.6 + (s.length - ascii) * 1.5;
+  };
   const estimate = (/** @type {{ content: string, ids: string[] }} */ r) =>
-    (((r.content.length + SYSTEM.length) / 3.6) * PRICE.cacheWrite + r.ids.length * 400 * PRICE.output) / 1e6;
+    (tokens(r.content + SYSTEM) * PRICE.cacheWrite + r.ids.length * 400 * PRICE.output) / 1e6;
   let reserved = 0;
   let next = 0;
   let failed = 0;
@@ -301,8 +310,13 @@ async function scoreAll(argv) {
     while (next < todo.length) {
       const r = todo[next];
       const est = estimate(r);
-      // Stop before a request whose estimate, with what is spent and in flight, passes the cap.
-      if (usd() + reserved + est > maxUsd) { stopped = true; break; }
+      // Hold a request whose estimate, with what is spent and in flight, passes the cap until the
+      // requests in flight settle; with none in flight, stop.
+      if (usd() + reserved + est > maxUsd) {
+        if (reserved > 0) { await sleep(500); continue; }
+        stopped = true;
+        break;
+      }
       next++;
       reserved += est;
       run.request('/v1/messages');
@@ -334,7 +348,7 @@ async function scoreAll(argv) {
     }
   }));
   // A failed request's usage is unknown (it may have billed), so the record says how many failed.
-  run.wrote('scored chunks', { actual: next - failed }).detail('usd', Math.round(usd() * 100) / 100).detail('usage', usage)
+  run.wrote('scored chunks', { actual: next - failed }).detail('usd', Math.round(usd() * 1e4) / 1e4).detail('usage', usage)
     .detail('failedRequests', failed).detail('stoppedAtCap', stopped);
   console.log(`score: $${usd().toFixed(2)} for ${next} of ${todo.length} requests${stopped ? `, stopped at the $${maxUsd} cap` : ''}; `
     + `${failed} failed, ${incomplete} missing a comment; run score again to re-send them`);

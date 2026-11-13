@@ -719,7 +719,7 @@
 "GEH1015":{"n":1,"latest":"AY17/18","overall":4,"workload":2,"difficulty":2,"teaching":4},
 "GEH1019":{"n":2,"latest":"AY19/20","overall":4,"workload":2.5,"difficulty":2.5,"teaching":3},
 "GEH1022":{"n":1,"latest":"AY21/22","overall":3,"workload":4,"difficulty":4,"teaching":3},
-"GEH1023":{"n":1,"latest":"AY20/21","overall":2,"workload":null,"difficulty":5,"teaching":null},
+"GEH1023":{"n":1,"latest":"AY19/20","overall":2,"workload":null,"difficulty":5,"teaching":null},
 "GEH1030":{"n":3,"latest":"AY21/22","overall":4,"workload":2.2,"difficulty":2.4,"teaching":2.4},
 "GEH1031":{"n":2,"latest":"AY20/21","overall":4.6,"workload":3,"difficulty":2.4,"teaching":3.6},
 "GEH1032":{"n":4,"latest":"AY21/22","overall":5,"workload":3.6,"difficulty":2.8,"teaching":5},

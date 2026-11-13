@@ -33,6 +33,8 @@ describe('reviewYear', () => {
     expect(reviewYear(scored({ taken: 'AY2011/12 S2' }), '2012-05-01', 26)).toBe(11);
     expect(reviewYear(scored({ taken: 'AY2014-15' }), '2015-05-01', 26)).toBe(14);
     expect(reviewYear(scored({ taken: 'AY 22/23' }), '2023-05-01', 26)).toBe(22);
+    expect(reviewYear(scored({ taken: 'AY1516 S1' }), '2019-01-01', 26)).toBe(15);
+    expect(reviewYear(scored({ taken: 'AY2021 S2' }), '2021-05-01', 26)).toBe(20);
     expect(reviewYear(scored({}), '2024-08-15', 26)).toBe(24);
     expect(reviewYear(scored({}), '2024-07-31', 26)).toBe(23);
   });
@@ -74,6 +76,16 @@ describe('aggregate', () => {
     ]);
     const r = aggregate([scored({ id: 'a', overall: 5 }), scored({ id: 'b', overall: 1 }), scored({ id: 'c', workload: 3 })], postOf, 26);
     expect(r).toMatchObject({ n: 2, overall: 3, workload: null });
+  });
+
+  it('keeps a scored repost of a review that first came without an overall score', () => {
+    const postOf = new Map([['a', post('a', '2024-01-01', 'Same words.')], ['b', post('b', '2024-02-01', 'Same words.')]]);
+    expect(aggregate([scored({ id: 'a', workload: 2 }), scored({ id: 'b', overall: 5 })], postOf, 26)).toMatchObject({ n: 1, overall: 5 });
+  });
+
+  it('does not count a review with no year to weigh it by', () => {
+    const postOf = new Map([['a', post('a', '2025-09-01', 'Dated.')]]);
+    expect(aggregate([scored({ id: 'a', overall: 4 }), scored({ id: 'b', overall: 1 })], postOf, 26)).toMatchObject({ n: 1, overall: 4 });
   });
 });
 
