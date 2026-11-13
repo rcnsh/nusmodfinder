@@ -119,9 +119,13 @@ const RRF_K = 60;
 // mid-list by one engine and top by the other can still surface.
 const CANDIDATE_MULTIPLIER = 3;
 
+/** The most distinct values a level or credits list may name (each is a bound parameter in SQL). */
+export const MAX_FILTER_VALUES = 12;
+
 /**
  * A level or credits parameter: undefined when absent or empty, null when any
- * part fails `ok`, one number, or two or more sorted and distinct.
+ * part fails `ok` or it names more than MAX_FILTER_VALUES, one number, or two
+ * or more sorted and distinct.
  * @param {string | null} raw
  * @param {(n: number) => boolean} ok
  * @returns {number | number[] | null | undefined}
@@ -133,6 +137,7 @@ function listParam(raw, ok) {
   const ns = parts.map(Number);
   if (!ns.every(ok)) return null;
   const distinct = [...new Set(ns)].sort((a, b) => a - b);
+  if (distinct.length > MAX_FILTER_VALUES) return null;
   return distinct.length === 1 ? distinct[0] : distinct;
 }
 
@@ -164,7 +169,7 @@ function parseFilters(params) {
   else if (level !== undefined) { echo.level = level; filter.level = vectorValue(level); }
 
   const credits = listParam(params.get('credits'), (n) => Number.isFinite(n) && n >= 0);
-  if (credits === null) errors.push('credits must be a non-negative number, or a comma-separated list of them');
+  if (credits === null) errors.push(`credits must be a non-negative number, or a comma-separated list of at most ${MAX_FILTER_VALUES}`);
   else if (credits !== undefined) { echo.credits = credits; filter.credits = vectorValue(credits); }
 
   const faculty = params.get('faculty');

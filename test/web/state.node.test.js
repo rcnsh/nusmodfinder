@@ -32,6 +32,8 @@ describe('URL state (F3, C-7)', () => {
     expect(round('q=x&level=4,3,3,9&credits=12,4,x')).toBe('q=x&level=3%2C4&credits=4%2C12');
     expect(round('q=x&level=9,&credits=,')).toBe('q=x');
     expect(searchParams(parse('q=x&level=3,4'))?.get('level')).toBe('3,4');
+    // At most 12, as /search takes.
+    expect(parse(`q=x&credits=${Array.from({ length: 20 }, (_, i) => i).join(',')}`).credits.split(',')).toHaveLength(12);
   });
 
   it('from= is a course code kept only beside open= (and never open= itself)', () => {

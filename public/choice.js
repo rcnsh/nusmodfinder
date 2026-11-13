@@ -66,7 +66,7 @@ export function pillGroup(root, name, options, { seg = 0, multi = false } = {}) 
     root.addEventListener('keydown', (e) => {
       const all = radios();
       const at = all.indexOf(/** @type {HTMLInputElement} */ (e.target));
-      if (at < 0) return;
+      if (at < 0 || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
       const next = { ArrowRight: at + 1, ArrowDown: at + 1, ArrowLeft: at - 1, ArrowUp: at - 1, Home: 0, End: all.length - 1 }[e.key];
       if (next === undefined) return;
       e.preventDefault();
@@ -91,7 +91,11 @@ export function pillGroup(root, name, options, { seg = 0, multi = false } = {}) 
       for (const one of multi ? value.split(',') : [value]) {
         if (one && !radios().some((r) => r.value === one)) pills.append(pill(one, typeof label === 'function' ? label(one) : label));
       }
-      if (multi && !root.contains(document.activeElement)) roving();
+      // One Tab stop still: a pill added while focus is in the group waits its turn.
+      if (multi) {
+        if (root.contains(document.activeElement)) for (const r of radios()) r.tabIndex = r === document.activeElement ? 0 : -1;
+        else roving();
+      }
     },
     // Where Tab would land: the chosen radio, else the first.
     focus() { (radios().find((r) => r.checked) ?? radios()[0])?.focus(); },

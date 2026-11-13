@@ -312,8 +312,10 @@ export function compileMask(b, echo) {
     tests.push((i) => (table[i * ROW_STRIDE] & bit) !== 0);
   }
   if (echo.level !== undefined) {
+    // One value keeps the plain comparison: this runs on every row of the scan.
     const levels = filterValues(echo.level);
-    tests.push((i) => levels.includes(table[i * ROW_STRIDE + 1]));
+    const [level] = levels;
+    tests.push(levels.length === 1 ? (i) => table[i * ROW_STRIDE + 1] === level : (i) => levels.includes(table[i * ROW_STRIDE + 1]));
   }
   if (echo.levelWindow) {
     const { min } = echo.levelWindow;
@@ -333,7 +335,10 @@ export function compileMask(b, echo) {
   }
   if (echo.credits !== undefined) {
     const credits = filterValues(echo.credits);
-    tests.push((i) => credits.includes(view.getFloat64(i * ROW_STRIDE + 8, true)));
+    const [one] = credits;
+    tests.push(credits.length === 1
+      ? (i) => view.getFloat64(i * ROW_STRIDE + 8, true) === one
+      : (i) => credits.includes(view.getFloat64(i * ROW_STRIDE + 8, true)));
   }
   // The constraints: no exam in the selected semester (any offered one
   // without sem); su or CS/CU; workload under N (NULL excluded); prereq by the semantics in force.

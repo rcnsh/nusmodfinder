@@ -68,8 +68,9 @@ describe('several levels or unit counts', () => {
     expect(key('level=1,1')).toBe(key('level=1'));
   });
 
-  it('rejects a list with an empty or invalid part', async () => {
-    for (const bad of ['level=1,', 'level=1,9', 'level=,', 'credits=4,x', 'credits=-1,4']) {
+  it('rejects a list with an empty or invalid part, or over 12 values', async () => {
+    const many = Array.from({ length: 13 }, (_, i) => i).join(',');
+    for (const bad of ['level=1,', 'level=1,9', 'level=,', 'credits=4,x', 'credits=-1,4', `credits=${many}`]) {
       const { status } = await callJson(`/search?q=introduction&${bad}`, { fakes });
       expect(status, bad).toBe(400);
     }

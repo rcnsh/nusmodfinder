@@ -86,12 +86,13 @@ const keep = (v, ok) => (v !== null && ok(v) ? v : '');
 /**
  * A level or units value as a link may give it: one value or a comma-separated
  * list (`3,4`), each part kept if `ok`, written back in numeric order without
- * repeats, so two spellings of one choice are one URL.
+ * repeats, so two spellings of one choice are one URL. At most 12 values, as
+ * /search takes (src/search.js MAX_FILTER_VALUES); the rest are dropped.
  * @param {string | null} v
  * @param {(part: string) => boolean} ok
  */
 const keepList = (v, ok) => [...new Set((v ?? '').split(',').map((p) => p.trim()).filter(ok).map(Number))]
-  .sort((a, b) => a - b).join(',');
+  .sort((a, b) => a - b).slice(0, 12).join(',');
 
 /** A level or units value's parts: '' is none, '3,4' is two. @param {string} v */
 export const listValues = (v) => (v ? v.split(',') : []);
