@@ -323,7 +323,7 @@ async function scoreAll(argv) {
   const systemTokens = tokens(SYSTEM);
   const queue = todo.map((r) => ({ r, est: ((tokens(r.content) + systemTokens) * PRICE.cacheWrite + r.ids.length * 400 * PRICE.output) / 1e6 }));
   // Spend so far is usd() for the requests that answered, plus the estimates of those in flight
-  // (`pending`) and of those that failed (`lost`: a failed request may still have billed).
+  // (`pending`) and of those that failed with no answer (`lost`: they may still have billed).
   let pending = 0;
   let lost = 0;
   let inFlight = 0;
@@ -343,6 +343,7 @@ async function scoreAll(argv) {
       pending += est;
       sent++;
       run.request('/v1/messages');
+      let billed = false;
       try {
         const msg = await client.messages.stream({
           model: MODEL,
@@ -354,6 +355,7 @@ async function scoreAll(argv) {
         usage.input += msg.usage.input_tokens;
         usage.cacheWrite += msg.usage.cache_creation_input_tokens ?? 0;
         usage.output += msg.usage.output_tokens;
+        billed = true;
         if (msg.stop_reason !== 'end_turn') throw new Error(`stop_reason ${msg.stop_reason}`);
         const block = msg.content.find((b) => b.type === 'text');
         const comments = /** @type {Scored[]} */ (JSON.parse(block?.type === 'text' ? block.text : '{}').comments ?? [])
@@ -364,7 +366,8 @@ async function scoreAll(argv) {
         if (r.ids.some((id) => !comments.some((c) => c.id === id))) incomplete++;
       } catch (err) {
         failed++;
-        lost += est;
+        // One that answered (a max_tokens stop) is in usd() already; one that didn't may still bill.
+        if (!billed) lost += est;
         console.log(`${r.id}: ${/** @type {Error} */ (err).message}`);
       } finally {
         inFlight--;
