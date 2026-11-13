@@ -4,7 +4,8 @@
 // one button (code and title) that controls the detail region below it; the
 // units, facts and the exchange status are plain text outside the button. The
 // status is a stamp per semester (an icon, a word and a colour, so never colour
-// alone), and every note shows in full with a lead-in word. No raw score.
+// alone), and every note shows in full with a lead-in word. No search score; the
+// review panel (ADR 0018) shows what students say.
 // app.js wires the buttons and fills the detail and the hidden-code lines. The
 // list is `aria-busy` while a search runs, and each answer comes with the one
 // sentence app.js puts in the page's polite live region (`announce`). "Also as"
@@ -192,6 +193,71 @@ function exchangeBlock(m, filters) {
   return null;
 }
 
+/** Fewer reviews than this show no panel. */
+export const MIN_REVIEWS = 3;
+
+/**
+ * The word beside the overall score.
+ * @param {number} x 1-5
+ */
+export function overallWord(x) {
+  return x >= 4 ? 'Well liked' : x >= 3.4 ? 'Liked' : x >= 2.6 ? 'Mixed' : x >= 1.8 ? 'Disliked' : 'Strongly disliked';
+}
+
+/**
+ * One 1-5 score as five segments, filled to the rounded score, with its scale's two ends.
+ * @param {string} label
+ * @param {unknown} x
+ * @param {string} low
+ * @param {string} high
+ */
+function reviewMeter(label, x, low, high) {
+  if (typeof x !== 'number') return h('div', { class: 'rv-row' }, h('span', { class: 'rv-k' }, label), h('span', { class: 'rv-none' }, 'Reviews don’t say'));
+  const filled = Math.round(x);
+  return h('div', { class: 'rv-row' },
+    h('span', { class: 'rv-k' }, label),
+    h('span', { class: 'rv-meter', attrs: { role: 'img', 'aria-label': `${x.toFixed(1)} of 5, from ${low} to ${high}` } },
+      ...[0, 1, 2, 3, 4].map((i) => h('i', i < filled ? { class: 'on' } : null))),
+    h('span', { class: 'rv-ends', attrs: { 'aria-hidden': 'true' } }, `${low} – ${high}`));
+}
+
+/**
+ * What students say about the course on NUSMods (ADR 0018): the age-weighted overall score and
+ * a word, meters for workload, difficulty and teaching, how many reviews and how recent, and a
+ * link to read them. Null under MIN_REVIEWS, where a score would mislead.
+ * @param {any} m a /search result
+ */
+export function reviewsPanel(m) {
+  const r = m.reviews;
+  if (!r || typeof r !== 'object' || typeof r.n !== 'number' || r.n < MIN_REVIEWS || typeof r.overall !== 'number') return null;
+  const code = String(m.code ?? '');
+  const link = h('a', { attrs: { href: `https://nusmods.com/courses/${encodeURIComponent(code)}/reviews`, target: '_blank', rel: 'noopener' } },
+    'Read them on NUSMods', icon('ext'));
+  const latest = typeof r.latest === 'string' ? `, latest ${r.latest}` : '';
+  const count = `${r.n} reviews`;
+  return h('div', { class: 'rv-panel' },
+    h('p', { class: 'rv-head' }, 'What students say'),
+    h('p', { class: 'rv-big' },
+      h('span', { class: 'rv-num' }, r.overall.toFixed(1)), h('span', { class: 'rv-of' }, h('span', { class: 'vh' }, ' out of '), h('span', { attrs: { 'aria-hidden': 'true' } }, '/'), '5'),
+      ' ', h('span', { class: 'rv-word' }, overallWord(r.overall))),
+    reviewMeter('Workload', r.workload, 'light', 'heavy'),
+    reviewMeter('Difficulty', r.difficulty, 'easy', 'hard'),
+    reviewMeter('Teaching', r.teaching, 'poor', 'great'),
+    h('p', { class: 'rv-foot' }, `${count}${latest}. `, link));
+}
+
+/**
+ * The entry's right-hand column: the exchange status and notes, then what students say; either
+ * alone when there is only one.
+ * @param {HTMLElement | null} exchange
+ * @param {HTMLElement | null} reviews
+ */
+function guideColumn(exchange, reviews) {
+  if (exchange && reviews) { exchange.append(reviews); return exchange; }
+  if (reviews) reviews.classList.add('guide');
+  return exchange ?? reviews;
+}
+
 let nextId = 0;
 
 /**
@@ -227,7 +293,7 @@ function card(m, filters, cards, ctx) {
         ? exams.map((e) => h('span', { class: 'exam' }, h('span', { class: 'exl' }, e.label), ' ', h('span', { class: 'mono' }, e.when)))
         : [h('span', { class: 'exam' }, 'No final exam listed')])),
     variants.length ? h('p', { class: 'variants' }, 'Also as ', ...variants.flatMap((/** @type {string} */ v, /** @type {number} */ i) => [i ? ', ' : null, variantLink(v, code, ctx)])) : null,
-    exchangeBlock(m, filters),
+    guideColumn(exchangeBlock(m, filters), reviewsPanel(m)),
     region);
 }
 

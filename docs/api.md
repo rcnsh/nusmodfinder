@@ -64,6 +64,10 @@ changes which results show or their order:
   lists EE4438 (Solar Cells and Modules) for Sem 2, but NUSMods shows no classes for it this
   academic year."
 - each result's `examDates`, as `/module/:code` gives them (`[]` for none);
+- each result's `reviews`: `{ n, latest, overall, workload, difficulty, teaching }` from
+  `data/reviews.json` (ADR 0018): the number of student reviews on NUSMods, the latest academic
+  year one is about (`"AY25/26"`), and each age-weighted 1-5 score or `null` where reviews don't
+  say; `null` for a course with no review. Ranking never reads it;
 - under `ng=1` with no `sem`, each result's `exchangeBySem: { "1": …, "2": … }`: the
   `{ status: "open" | "note" | "closed", reasons }` for each semester at the `study` level, beside
   `exchange` (the either-semester value), so a student planning both sees one value per semester.

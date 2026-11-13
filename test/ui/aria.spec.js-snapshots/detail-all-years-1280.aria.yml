@@ -4,6 +4,18 @@
   - paragraph: 4 units
   - button "Shortlist, CS3244": Shortlist
   - paragraph: Computer Science · Computing Taught in Sem 1, Sem 2 Sem 1 exam Thu 26 Nov, 5:00 pm Sem 2 exam Thu 29 Apr, 9:00 am
+  - paragraph: What students say
+  - paragraph: 3.1 out of 5 Mixed
+  - text: Workload
+  - img "2.7 of 5, from light to heavy"
+  - text: Difficulty
+  - img "2.8 of 5, from easy to hard"
+  - text: Teaching
+  - img "3.2 of 5, from poor to great"
+  - paragraph:
+    - text: 20 reviews, latest AY25/26.
+    - link "Read them on NUSMods":
+      - /url: https://nusmods.com/courses/CS3244/reviews
   - region "CS3244 Machine Learning":
     - paragraph: Course details
     - button "Shortlist, CS3244": Shortlist

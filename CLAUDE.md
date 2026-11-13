@@ -32,6 +32,7 @@ npm run deploy              # the only way to deploy; `-- --preflight` before an
 npm run smoke               # after a deploy or rollback from the Mac
 npm run rollback            # then the `npm run smoke -- --expect <sha>` it prints
 npm run year -- next <year> | check [--full]   # the yearly refresh (docs/year-refresh/)
+npm run reviews -- crawl | score | build        # course review scores (docs/data.md, ADR 0018)
 ```
 
 Commit before `eval:lock -- --check`: it reads committed content only.

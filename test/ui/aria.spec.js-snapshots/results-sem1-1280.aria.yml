@@ -125,6 +125,18 @@
       - button "Shortlist, GE1101E": Shortlist
       - paragraph: Geography · Arts and Social Science Taught in Sem 1 No final exam listed
       - text: Sem 1 · Open to exchange students
+      - paragraph: What students say
+      - paragraph: 3.8 out of 5 Liked
+      - text: Workload
+      - img "2.5 of 5, from light to heavy"
+      - text: Difficulty
+      - img "2.2 of 5, from easy to hard"
+      - text: Teaching
+      - img "4.1 of 5, from poor to great"
+      - paragraph:
+        - text: 8 reviews, latest AY25/26.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/GE1101E/reviews
     - listitem:
       - heading "CS1010 Programming Methodology" [level=2]:
         - button "CS1010 Programming Methodology"
@@ -136,6 +148,18 @@
         - link "CS1010E":
           - /url: /?q=CS1010E&sem=1&level=1&ng=1&study=ug2&open=CS1010E&from=CS1010
       - text: Sem 1 · Open to exchange students
+      - paragraph: What students say
+      - paragraph: 3.3 out of 5 Mixed
+      - text: Workload
+      - img "3.9 of 5, from light to heavy"
+      - text: Difficulty
+      - img "4.1 of 5, from easy to hard"
+      - text: Teaching
+      - img "3.6 of 5, from poor to great"
+      - paragraph:
+        - text: 28 reviews, latest AY25/26.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/CS1010/reviews
     - listitem:
       - heading "GES1034 We the Citizens - Understanding Singapore’s Politics" [level=2]:
         - button "GES1034 We the Citizens - Understanding Singapore’s Politics"
@@ -168,6 +192,18 @@
       - button "Shortlist, HS1502": Shortlist
       - paragraph: Physics · Science Taught in Sem 1, Sem 2 No final exam listed
       - text: Sem 1 · Open to exchange students
+      - paragraph: What students say
+      - paragraph: 4.4 out of 5 Well liked
+      - text: Workload
+      - img "2.6 of 5, from light to heavy"
+      - text: Difficulty
+      - img "3.0 of 5, from easy to hard"
+      - text: Teaching
+      - img "4.4 of 5, from poor to great"
+      - paragraph:
+        - text: 3 reviews, latest AY25/26.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/HS1502/reviews
     - listitem:
       - heading "LAF1201 French 1" [level=2]:
         - button "LAF1201 French 1"
@@ -177,6 +213,18 @@
       - text: Sem 1 · Open, with 1 note
       - list:
         - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
+      - paragraph: What students say
+      - paragraph: 4.5 out of 5 Well liked
+      - text: Workload
+      - img "3.0 of 5, from light to heavy"
+      - text: Difficulty
+      - img "3.0 of 5, from easy to hard"
+      - text: Teaching
+      - img "4.6 of 5, from poor to great"
+      - paragraph:
+        - text: 5 reviews, latest AY24/25.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/LAF1201/reviews
     - listitem:
       - heading "LAK1201 Korean 1" [level=2]:
         - button "LAK1201 Korean 1"
@@ -186,6 +234,18 @@
       - text: Sem 1 · Open, with 1 note
       - list:
         - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
+      - paragraph: What students say
+      - paragraph: 4.1 out of 5 Well liked
+      - text: Workload
+      - img "3.7 of 5, from light to heavy"
+      - text: Difficulty
+      - img "3.6 of 5, from easy to hard"
+      - text: Teaching
+      - img "4.9 of 5, from poor to great"
+      - paragraph:
+        - text: 9 reviews, latest AY25/26.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/LAK1201/reviews
     - listitem:
       - heading "LAM1201 Malay 1" [level=2]:
         - button "LAM1201 Malay 1"
@@ -195,6 +255,18 @@
       - text: Sem 1 · Open, with 1 note
       - list:
         - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
+      - paragraph: What students say
+      - paragraph: 2.8 out of 5 Mixed
+      - text: Workload
+      - img "2.0 of 5, from light to heavy"
+      - text: Difficulty
+      - img "2.0 of 5, from easy to hard"
+      - text: Teaching
+      - img "2.6 of 5, from poor to great"
+      - paragraph:
+        - text: 3 reviews, latest AY25/26.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/LAM1201/reviews
     - listitem:
       - heading "LAT1201 Thai 1" [level=2]:
         - button "LAT1201 Thai 1"
@@ -204,6 +276,18 @@
       - text: Sem 1 · Open, with 1 note
       - list:
         - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
+      - paragraph: What students say
+      - paragraph: 3.6 out of 5 Liked
+      - text: Workload
+      - img "4.1 of 5, from light to heavy"
+      - text: Difficulty
+      - img "3.9 of 5, from easy to hard"
+      - text: Teaching
+      - img "4.7 of 5, from poor to great"
+      - paragraph:
+        - text: 4 reviews, latest AY25/26.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/LAT1201/reviews
     - listitem:
       - heading "PC1201 Fundamentals of Physics" [level=2]:
         - button "PC1201 Fundamentals of Physics"
@@ -218,6 +302,18 @@
       - button "Shortlist, PL1101E": Shortlist
       - paragraph: Psychology · Arts and Social Science Taught in Sem 1, Sem 2, Special term 2 No final exam listed
       - text: Sem 1 · Open to exchange students
+      - paragraph: What students say
+      - paragraph: 3.5 out of 5 Liked
+      - text: Workload
+      - img "4.0 of 5, from light to heavy"
+      - text: Difficulty
+      - img "3.7 of 5, from easy to hard"
+      - text: Teaching
+      - img "3.2 of 5, from poor to great"
+      - paragraph:
+        - text: 20 reviews, latest AY25/26.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/PL1101E/reviews
     - listitem:
       - heading "LAL1201 Tamil 1" [level=2]:
         - button "LAL1201 Tamil 1"
@@ -228,6 +324,18 @@
       - list:
         - listitem: Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.
         - listitem: Grading. You must take it for a grade. You cannot audit it (attend without a grade).
+      - paragraph: What students say
+      - paragraph: 5.0 out of 5 Well liked
+      - text: Workload
+      - img "2.0 of 5, from light to heavy"
+      - text: Difficulty
+      - img "1.1 of 5, from easy to hard"
+      - text: Teaching
+      - img "5.0 of 5, from poor to great"
+      - paragraph:
+        - text: 3 reviews, latest AY24/25.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/LAL1201/reviews
     - listitem:
       - 'heading "HY1101E Engaging Asia: A Global History" [level=2]':
         - 'button "HY1101E Engaging Asia: A Global History"'
@@ -235,6 +343,18 @@
       - button "Shortlist, HY1101E": Shortlist
       - paragraph: History · Arts and Social Science Taught in Sem 1, Sem 2, Special term 2 No final exam listed
       - text: Sem 1 · Open to exchange students
+      - paragraph: What students say
+      - paragraph: 4.1 out of 5 Well liked
+      - text: Workload
+      - img "2.8 of 5, from light to heavy"
+      - text: Difficulty
+      - img "2.5 of 5, from easy to hard"
+      - text: Teaching
+      - img "4.0 of 5, from poor to great"
+      - paragraph:
+        - text: 5 reviews, latest AY23/24.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/HY1101E/reviews
     - listitem:
       - heading "EC1101E Introduction to Economic Analysis" [level=2]:
         - button "EC1101E Introduction to Economic Analysis"
@@ -242,6 +362,18 @@
       - button "Shortlist, EC1101E": Shortlist
       - paragraph: Economics · Arts and Social Science Taught in Sem 1, Sem 2 Exam Wed 25 Nov, 5:00 pm
       - text: Sem 1 · Open to exchange students
+      - paragraph: What students say
+      - paragraph: 3.6 out of 5 Liked
+      - text: Workload
+      - img "3.4 of 5, from light to heavy"
+      - text: Difficulty
+      - img "3.5 of 5, from easy to hard"
+      - text: Teaching
+      - img "3.9 of 5, from poor to great"
+      - paragraph:
+        - text: 25 reviews, latest AY25/26.
+        - link "Read them on NUSMods":
+          - /url: https://nusmods.com/courses/EC1101E/reviews
     - listitem:
       - heading "LAR1201 Arabic 1" [level=2]:
         - button "LAR1201 Arabic 1"

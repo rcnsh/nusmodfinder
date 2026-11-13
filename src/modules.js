@@ -5,6 +5,7 @@ import { groups } from './group-data.js';
 import { bad, json, upstream, withHeaders } from './http.js';
 import { exchangeAll, exchangeAt, NG_ACAD_YEAR, NG_SOURCES, OFF_LIST_RULES } from './ng-reasons.js';
 import { unscheduled, unscheduledAcadYear } from './ng-unscheduled.js';
+import { reviewsOf } from './reviews.js';
 import { D1_TIMEOUT_MS, withTimeout } from './upstream.js';
 import { moduleWorkload } from './workload.js';
 
@@ -101,6 +102,8 @@ export function rowToModule(row, score, bit = null, semBits = null) {
     ...(semBits === null ? {} : { exchangeBySem: { 1: exchangeAt(row, semBits[1]), 2: exchangeAt(row, semBits[2]) } }),
     // Each exam, its date ISO UTC, as /module/:code's `examDates`.
     examDates: JSON.parse(row.exam_dates ?? '[]'),
+    // Students' review scores from NUSMods (src/reviews.js), null when there are none.
+    reviews: reviewsOf(row.code),
     ...(score === undefined ? {} : { score }),
   };
 }

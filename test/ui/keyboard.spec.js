@@ -142,12 +142,12 @@ async function detailLinkBackEscape(page, k) {
   await expect(button).toHaveAttribute('aria-expanded', 'true');
   await expect.poll(() => query(page)).toBe(`${URL_FILTERED}&open=CS2104`);
   await settled(page);
-  // The card's shortlist toggle, then into the detail: its own toggle and Close first, then
+  // The card's shortlist toggle and its review link (ADR 0018), then into the detail: its own toggle and Close first, then
   // "can you take it" (its sources, the NUSMods link), then the course facts, whose prerequisites link CS2030.
   /** @type {string[]} */
   const inside = [];
-  for (let i = 0; i < 14 && !inside.includes('a "CS2030"'); i++) inside.push(...await k.tab());
-  expect(inside.slice(0, 3)).toEqual(['button "Shortlist, CS2104"', 'button "Shortlist, CS2104"', 'button "Close details"']);
+  for (let i = 0; i < 15 && !inside.includes('a "CS2030"'); i++) inside.push(...await k.tab());
+  expect(inside.slice(0, 4)).toEqual(['button "Shortlist, CS2104"', 'a "Read them on NUSMods"', 'button "Shortlist, CS2104"', 'button "Close details"']);
   expect(inside).toContain('a "Class times and timetable on NUSMods"');
   expect(inside.indexOf('a "Class times and timetable on NUSMods"')).toBeLessThan(inside.indexOf('a "CS2030"'));
   expect(inside.at(-1)).toBe('a "CS2030"');
