@@ -119,11 +119,20 @@ test('an exchange student who browses keeps exchange mode, with what they answer
   await expect(page.locator('#status')).toHaveText(EMPTY);
 });
 
-test('a device with a year of study saved from before has the exchange student answer chosen', async ({ page }) => {
+test('a saved year of study with no saved answer starts on NUS student, and the year pre-fills once exchange is chosen', async ({ page }) => {
   await page.addInitScript(() => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('vnm.study', 'ug2'); sessionStorage.setItem('seeded', '1'); } });
   await page.goto('/');
-  await expect(page.getByRole('radio', { name: /^Exchange student/ })).toBeChecked();
+  await expect(page.getByRole('radio', { name: /^NUS student/ })).toBeChecked();
+  await page.getByRole('radio', { name: /^Exchange student/ }).check();
   await expect(page.getByRole('radio', { name: '2nd year' })).toBeChecked();
+});
+
+test('a year picked in exchange mode, opened from a link, is remembered as an exchange student', async ({ page }) => {
+  await page.goto('/?q=networks&ng=1');
+  await pill(page, 'study', 'ug2').check();
+  await expect.poll(() => query(page)).toBe('q=networks&ng=1&study=ug2');
+  await page.goto('/');
+  await expect(page.getByRole('radio', { name: /^Exchange student/ })).toBeChecked();
 });
 
 test('the rail\'s answer is remembered for the first screen', async ({ page }) => {

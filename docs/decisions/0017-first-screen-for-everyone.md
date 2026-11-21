@@ -32,8 +32,9 @@ them dismiss questions that weren't theirs ("Browse all courses instead") before
 ## In the code
 
 - `public/app.js` reads and writes `vnm.study` and `vnm.who` inside try. A throw (private mode,
-  blocked storage) falls back to no saved year and "NUS student", and a device with a saved year
-  but no `vnm.who` pre-selects "Exchange student". What the device remembers only pre-fills the
+  blocked storage) falls back to no saved year and "NUS student". Only `vnm.who` picks the
+  answer: a saved year with no `vnm.who` starts on "NUS student", and the year pre-fills once
+  "Exchange student" is chosen. What the device remembers only pre-fills the
   first screen; the URL always wins.
 - `test/ui/fold.spec.js` checks the fold at 390×664 in Chromium and WebKit and as an iPhone 13 on
   results with ACC1701XB first, the densest entry (three notes in Sem 1, which "introductory

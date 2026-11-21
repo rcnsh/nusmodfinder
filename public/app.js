@@ -153,13 +153,7 @@ const STUDY_KEY = 'vnm.study';
 const savedStudy = () => { try { return localStorage.getItem(STUDY_KEY) ?? ''; } catch { return ''; } };
 const saveStudy = (/** @type {string} */ v) => { try { localStorage.setItem(STUDY_KEY, v); } catch {} };
 const WHO_KEY = 'vnm.who';
-const savedWho = () => {
-  try {
-    const who = localStorage.getItem(WHO_KEY);
-    if (who === 'exchange' || who === 'nus') return who;
-    return localStorage.getItem(STUDY_KEY) ? 'exchange' : 'nus';
-  } catch { return 'nus'; }
-};
+const savedWho = () => { try { return localStorage.getItem(WHO_KEY) === 'exchange' ? 'exchange' : 'nus'; } catch { return 'nus'; } };
 const saveWho = (/** @type {string} */ v) => { try { localStorage.setItem(WHO_KEY, v); } catch {} };
 
 /**
@@ -616,7 +610,7 @@ function onEnter(input, submit) {
 onEnter(els.q, () => act({ type: 'submit', form: readForm() }));
 for (const el of [els.sem.root, els.level.root, els.credits.root, els.faculty.root, els.ng, els.ngOff, els.study.root]) {
   el.addEventListener('change', () => {
-    if (el === els.study.root) saveStudy(els.study.value);
+    if (el === els.study.root) { saveStudy(els.study.value); if (els.ng.checked) saveWho('exchange'); }
     if (el === els.ng || el === els.ngOff) saveWho(els.ng.checked ? 'exchange' : 'nus');
     syncExchange();
     act({ type: 'settings', form: readForm() });
@@ -937,6 +931,7 @@ const slView = createShortlistView(els.slView, {
     els.ng.checked = true;
     els.study.value = study;
     saveStudy(study);
+    saveWho('exchange');
     syncExchange();
     act({ type: 'settings', form: readForm() });
   },
