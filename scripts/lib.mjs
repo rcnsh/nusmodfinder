@@ -365,8 +365,9 @@ export function offeredModules(records, acadYear, ngCourses = null) {
   const skipped = [];
   for (const record of records) {
     if (semestersOf(record).length === 0) continue;
-    const { module, skipped: why } = /** @type {{ module: NormalisedModule, skipped?: string }} */ (normalise(record, acadYear));
-    if (why) { skipped.push({ code: record.moduleCode ?? '<no code>', why }); continue; }
+    const normalised = normalise(record, acadYear);
+    if (normalised.skipped !== undefined) { skipped.push({ code: record.moduleCode ?? '<no code>', why: normalised.skipped }); continue; }
+    const { module } = normalised;
     if (ngCourses?.available) {
       const sems = ngCourses.bySem.get(module.code);
       if (sems) { module.ng = true; module.ngSemesters = sems; }
