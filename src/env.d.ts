@@ -6,12 +6,14 @@
 //   none, which is what makes the /admin routes 404 in production.
 // EMBEDDING_MODEL: overrides the default Workers AI embedding model.
 interface Env {
+  VECTORIZE: Vectorize;
   INGEST_SECRET?: string;
   EMBEDDING_MODEL?: string;
 }
 
 declare namespace Cloudflare {
   interface Env {
+    VECTORIZE: Vectorize;
     INGEST_SECRET?: string;
     EMBEDDING_MODEL?: string;
   }

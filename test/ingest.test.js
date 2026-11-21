@@ -255,6 +255,18 @@ describe('row-only changes against a lagging Vectorize', () => {
     expect(fakes.vectorize.vectors.get(x.code)?.metadata?.textHash).toBe(x.textHash);
     expect(fakes.vectorize.indexedProperties).not.toContain('textHash');
   });
+
+  it('leaves a null level or credits out of the vector metadata, which holds no nulls', async () => {
+    const [x] = fixture.modules;
+    const result = await ingest([{ ...x, level: null, credits: null }, ...fixture.modules.slice(1)]);
+    expect(result.status).toBe('done');
+    const metadata = fakes.vectorize.vectors.get(x.code)?.metadata ?? {};
+    expect(metadata).not.toHaveProperty('level');
+    expect(metadata).not.toHaveProperty('credits');
+    expect(Object.values(metadata)).not.toContain(null);
+    const verify = await adminCall('/admin/verify', fakes, { sample: [x.code] });
+    expect((await verify.json()).sample.metadataDrift).toEqual([]);
+  });
 });
 
 describe('write budget', () => {

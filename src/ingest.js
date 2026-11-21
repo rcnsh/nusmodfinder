@@ -27,9 +27,6 @@ function ingestGuard(request, env) {
   return null;
 }
 
-/** @param {Env} env */
-const vectorize = (env) => /** @type {Vectorize} */ (/** @type {unknown} */ (env.VECTORIZE));
-
 const acceptedAt = () => Date.now();
 
 const GET_BY_IDS_CHUNK = 20;
@@ -134,10 +131,10 @@ export async function handleIngest(request, env) {
   /** @type {number} */
   let sentAt;
   try {
-    const mutation = await vectorize(env).upsert(batch.map((m) => ({
+    const mutation = await env.VECTORIZE.upsert(batch.map((m) => ({
       id: m.code,
       values: /** @type {VectorizeVector['values']} */ (values.get(m.code)),
-      metadata: /** @type {Record<string, VectorizeVectorMetadata>} */ (storedVectorMetadata(m)),
+      metadata: vectorizeMetadata(m),
     })));
     mutationId = mutation.mutationId;
     sentAt = acceptedAt();
@@ -208,7 +205,7 @@ export async function handleDelete(request, env) {
   /** @type {number} */
   let sentAt;
   try {
-    mutationId = (await vectorize(env).deleteByIds(codes)).mutationId;
+    mutationId = (await env.VECTORIZE.deleteByIds(codes)).mutationId;
     sentAt = acceptedAt();
   } catch (err) {
     return upstream('vectorize', err);
@@ -230,10 +227,21 @@ export async function handleVectorizeInfo(request, env) {
   const denied = ingestGuard(request, env);
   if (denied) return denied;
   try {
-    return json(await vectorize(env).describe());
+    return json(await env.VECTORIZE.describe());
   } catch (err) {
     return upstream('vectorize', err);
   }
+}
+
+/**
+ * @param {import('./rowhash.js').RowFields} m
+ * @returns {Record<string, VectorizeVectorMetadata>}
+ */
+function vectorizeMetadata(m) {
+  /** @type {Record<string, VectorizeVectorMetadata>} */
+  const out = {};
+  for (const [k, v] of Object.entries(storedVectorMetadata(m))) if (v !== null) out[k] = v;
+  return out;
 }
 
 /** @param {Record<string, unknown> | undefined} m */
@@ -359,7 +367,7 @@ export async function handleVectors(request, env) {
     const held = ids.filter((c) => read.rows.has(c));
     if (held.length) return bad(`Refusing to delete vectors D1 still holds: ${held.slice(0, 10).join(', ')}${held.length > 10 ? ', …' : ''}.`);
     try {
-      const { mutationId } = await vectorize(env).deleteByIds(ids);
+      const { mutationId } = await env.VECTORIZE.deleteByIds(ids);
       return json({ deleted: ids.length, mutationId, sentAt: acceptedAt(), meta: metaOf(read.results) });
     } catch (err) {
       return upstream('vectorize', err);
@@ -383,11 +391,10 @@ export async function handleVectors(request, env) {
   const unknown = ids.filter((c) => !read.rows.has(c));
   if (unknown.length) return bad(`D1 holds no row for ${unknown.slice(0, 10).join(', ')}${unknown.length > 10 ? ', …' : ''}; nothing was upserted.`);
   try {
-    const { mutationId } = await vectorize(env).upsert(ids.map((id, i) => ({
+    const { mutationId } = await env.VECTORIZE.upsert(ids.map((id, i) => ({
       id,
       values: Array.from(values.subarray(i * EMBEDDING_DIMS, (i + 1) * EMBEDDING_DIMS)),
-      metadata: /** @type {Record<string, VectorizeVectorMetadata>} */ (
-        storedVectorMetadata(fieldsFromRow(/** @type {import('./rowhash.js').ModuleRow} */ (read.rows.get(id))))),
+      metadata: vectorizeMetadata(fieldsFromRow(/** @type {import('./rowhash.js').ModuleRow} */ (read.rows.get(id)))),
     })));
     return json({ upserted: ids.length, mutationId, sentAt: acceptedAt(), meta: metaOf(read.results) });
   } catch (err) {
