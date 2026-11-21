@@ -10,7 +10,7 @@ import correctedEmbeddings from '../fixtures/query-suite-corrected-embeddings.js
 import { intentContext } from '../../src/intent-data.js';
 import { INTENT, PARSE_PHRASES } from '../../src/intents.js';
 import { canonicalQuery, parseQuery } from '../../src/query-intent.js';
-import { denseTexts } from '../../src/search.js';
+import { denseTexts } from '../../src/query-texts.js';
 import { EMBED_CORRECTED } from '../../src/typo.js';
 import { createFakes } from '../fakes.js';
 import { adminCall, callJson, seed } from '../helpers.js';

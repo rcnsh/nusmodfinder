@@ -33,13 +33,22 @@ export async function rankerCorrector(root, modules, label) {
   const vocab = parseVocabulary(file);
   /** @type {RankerCorrector['dense']} */
   let dense = null;
-  const parse = await rankerIntentParser(root, vocab);
-  if (parse) {
+  if (existsSync(join(root, 'src/query-texts.js'))) {
+    const { intentContextFrom, queryDenseTexts } = await import(url('query-texts.js'));
+    const ctx = intentContextFrom(intentDataAt(root), vocab);
     dense = (text) => {
       const q = canonicalQuery(text.trim());
-      const p = parse(q);
-      return [p.dense, ...(EMBED_CORRECTED === true && p.corrected !== null ? [p.corrected] : [])].filter((t) => t !== q);
+      return queryDenseTexts(text, ctx).filter((/** @type {string} */ t) => t !== q);
     };
+  } else {
+    const parse = await rankerIntentParser(root, vocab);
+    if (parse) {
+      dense = (text) => {
+        const q = canonicalQuery(text.trim());
+        const p = parse(q);
+        return [p.dense, ...(EMBED_CORRECTED === true && p.corrected !== null ? [p.corrected] : [])].filter((t) => t !== q);
+      };
+    }
   }
   return {
     dense,
@@ -63,6 +72,11 @@ export async function rankerIntentParser(root, vocab) {
   if (!existsSync(join(root, 'src/intents.js'))) return null;
   const url = (/** @type {string} */ f) => pathToFileURL(join(root, 'src', f)).href;
   const { buildIntentContext, parseQuery } = await import(url('query-intent.js'));
+  if (existsSync(join(root, 'src/query-texts.js'))) {
+    const { intentContextFrom } = await import(url('query-texts.js'));
+    const ctx = intentContextFrom(intentDataAt(root), vocab);
+    return (q) => parseQuery(q, ctx);
+  }
   const { compileConstraintPhrases, PARSE_PHRASES } = await import(url('intents.js'));
   const { STOPWORDS_IN_FORCE } = await import(url('fts-query.js'));
   const data = (/** @type {string} */ f) => JSON.parse(readFileSync(join(root, 'data', f), 'utf8'));
@@ -73,6 +87,15 @@ export async function rankerIntentParser(root, vocab) {
     isOffered: () => false, vocabulary: vocab, constraintPhrases: phrases,
   });
   return (q) => parseQuery(q, ctx);
+}
+
+/** @param {string} root */
+function intentDataAt(root) {
+  const data = (/** @type {string} */ f) => JSON.parse(readFileSync(join(root, 'data', f), 'utf8'));
+  return {
+    prefixes: data('prefixes.json'), catalogueCodes: data('catalogue-codes.json'), collision: data('collision-list.json'),
+    ge: data('ge-pillars.json'), constraintPhrases: data('constraint-phrases.json'),
+  };
 }
 
 /**

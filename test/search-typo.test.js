@@ -2,7 +2,8 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import vocabFile from './fixtures/vocabulary.json';
 import { intentContext } from '../src/intent-data.js';
-import { denseTexts, mergeDense } from '../src/search.js';
+import { denseTexts } from '../src/query-texts.js';
+import { mergeDense } from '../src/search.js';
 import { EMBED_CORRECTED, correctQuery } from '../src/typo.js';
 import { dfOf, parseVocabulary } from '../src/vocabulary.js';
 import { createFakes } from './fakes.js';

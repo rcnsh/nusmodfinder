@@ -13,7 +13,7 @@ import { NO_SIGNAL_TAU } from './no-signal.js';
 import { STUDIES, bitOf, ngBit } from './ng-bit.js';
 import { unscheduled } from './ng-unscheduled.js';
 import { canonicalQuery, parseIgnore, parseQuery } from './query-intent.js';
-import { EMBED_CORRECTED } from './typo.js';
+import { denseTexts } from './query-texts.js';
 import { filterValues, hasCode } from './vector-bundle.js';
 import {
   AI_TIMEOUT_MS, D1_TIMEOUT_MS, TimeoutError, VECTORIZE_TIMEOUT_MS, denseCircuit, withTimeout,
@@ -349,12 +349,6 @@ async function embedOne(env, text) {
  */
 const embedAll = (env, texts, trace) => trace.time('embed', () => Promise.all(texts.map((t) => embedOne(env, t))));
 
-/**
- * @param {Pick<ParsedQuery, 'dense' | 'corrected'>} parsed
- * @param {boolean} [embedCorrected]
- */
-export const denseTexts = (parsed, embedCorrected = EMBED_CORRECTED) =>
-  (embedCorrected && parsed.corrected !== null ? [parsed.dense, parsed.corrected] : [parsed.dense]);
 
 /**
  * @param {DenseHit[][]} lists

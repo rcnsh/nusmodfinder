@@ -38,7 +38,7 @@ export const ENTRIES = Object.freeze([
 export const DYNAMIC_IMPORTS = Object.freeze({
   'eval/runner/run.mjs': ['src/vector-bundle.js'],
   'eval/lib/corpus.mjs': ['scripts/lib.mjs'],
-  'eval/lib/corrected.mjs': ['src/vocabulary.js', 'src/typo.js', 'src/query-intent.js', 'src/query-intent.js', 'src/intents.js', 'src/fts-query.js', 'src/groups.js'],
+  'eval/lib/corrected.mjs': ['src/vocabulary.js', 'src/typo.js', 'src/query-intent.js', 'src/query-texts.js', 'src/query-intent.js', 'src/query-texts.js', 'src/intents.js', 'src/fts-query.js', 'src/groups.js'],
   'eval/lib/compliance.mjs': ['src/vocabulary.js', 'src/query-intent.js', 'src/intents.js', 'src/vector-bundle.js', 'src/ng-bit.js'],
 });
 
