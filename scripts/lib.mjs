@@ -19,7 +19,9 @@ const COHORT_ONLY = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.
 
 export const DEFAULT_ACAD_YEAR = '2026-2027';
 export const EMBEDDING_MODEL = '@cf/baai/bge-small-en-v1.5';
-export const EMBEDDING_TEXT_VERSION = 2;
+import { EMBEDDING_TEXT_VERSION } from '../src/embedding-text-version.js';
+
+export { EMBEDDING_TEXT_VERSION };
 export { EMBEDDING_DIMS } from '../src/embedding.js';
 export const CACHE_DIR = new URL('../.data/cache/', import.meta.url);
 

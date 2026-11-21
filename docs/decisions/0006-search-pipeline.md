@@ -247,7 +247,7 @@ were the account's binding allowance (about 4,100 uncached searches a day).
   phrase word the production vocabulary leaves alone (`hours` to `tours`). Only the fixture gets
   this: `buildVocabulary` builds every eval run's vocabulary from the corpus alone, and phrase
   words there would change rankings.
-- `EMBEDDING_TEXT_VERSION` (`scripts/lib.mjs`) is part of `text_hash` with the model and the
+- `EMBEDDING_TEXT_VERSION` (`src/embedding-text-version.js`, re-exported by `scripts/lib.mjs`, and dependency-free so the workerd tests import it) is part of `text_hash` with the model and the
   text; bump it whenever `embeddingText()` changes, or old vectors stay that ingest believes are
   current. `MAX_BLOB_CHARS` (1,900) keeps embedding text under bge-small-en-v1.5's 512-token input
   at about 4 characters a token; raising it lets the model cut text the hash claims was embedded.

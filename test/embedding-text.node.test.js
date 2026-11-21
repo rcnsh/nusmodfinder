@@ -1,5 +1,4 @@
 // @ts-check
-import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import {
   EMBEDDING_TEXT_VARIANT, EMBEDDING_TEXT_VARIANTS, EMBEDDING_TEXT_VERSION, MAX_BLOB_CHARS, embeddingText, embeddingTextFor, levelLabel, levelOf,
@@ -110,13 +109,6 @@ describe('the embedding-text variant texts', () => {
 
   it('refuses an unknown variant', () => {
     expect(() => embeddingTextFor(CS5242, /** @type {any} */ ('v4'))).toThrow(/unknown embedding text variant "v4"/);
-  });
-
-  it('the workerd tests\' copies of EMBEDDING_TEXT_VERSION are lib.mjs\'s (they cannot import it)', async () => {
-    for (const f of ['runbook.test.js', 'ingest.test.js']) {
-      const src = await readFile(new URL(`./${f}`, import.meta.url), 'utf8');
-      expect(src.match(/^const EMBEDDING_TEXT_VERSION = (\d+);$/m)?.[1], f).toBe(String(EMBEDDING_TEXT_VERSION));
-    }
   });
 
   it('embeddingText builds the selected variant\'s text', () => {

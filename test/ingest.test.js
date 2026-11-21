@@ -3,12 +3,12 @@ import { applyD1Migrations, reset } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULTS, REQUIRED_SCHEMA, runIngest } from '../scripts/ingest-core.mjs';
+import { EMBEDDING_TEXT_VERSION } from '../src/embedding-text-version.js';
 import { dataVersion, ftsHash, rowHash, sha256Hex } from '../src/rowhash.js';
 import { createFakes, hashEmbed } from './fakes.js';
 import { adminCall, fixture, seed } from './helpers.js';
 import { adminApi } from './ingest-support.js';
 
-const EMBEDDING_TEXT_VERSION = 2;
 
 const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 const MODEL = '@cf/baai/bge-small-en-v1.5';

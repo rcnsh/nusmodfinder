@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { runIngest } from '../scripts/ingest-core.mjs';
 import { runStandby } from '../scripts/vectors-core.mjs';
 import { runPreDeployVerify, runVerify } from '../scripts/verify-core.mjs';
+import { EMBEDDING_TEXT_VERSION } from '../src/embedding-text-version.js';
 import { dataVersion, fieldsFromRow, rowHash, sha256Hex, storedVectorMetadata } from '../src/rowhash.js';
 import { encodeBundle, float32ToBase64, parseBundle } from '../src/vector-bundle.js';
 import manifest from '../data/vectors.json';
@@ -16,7 +17,6 @@ import { adminApi } from './ingest-support.js';
 import reference from '../docs/data.md?raw';
 
 const MODEL = '@cf/baai/bge-small-en-v1.5';
-const EMBEDDING_TEXT_VERSION = 2;
 const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 
 /** @type {import('./fakes.js').Fakes} */
