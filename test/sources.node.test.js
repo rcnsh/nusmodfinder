@@ -1,8 +1,4 @@
 // @ts-check
-// NUS's source documents in an AES-256-GCM archive per revision
-// (scripts/sources.mjs). Every case uses fake documents, a throwaway key and a fake release store
-// in temp dirs: no real document, key or release is touched. The key path never defaults to, or
-// reads, the holdout key's.
 import { existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -130,7 +126,6 @@ describe('publish and restore', () => {
     expect(m.revisions.at(-1).archive).toEqual({ release: r.release, asset: `${r.release}.vnmsrc`, sha256: r.sha256 });
     const [rec] = readdirSync(runs).map((f) => JSON.parse(readFileSync(join(runs, f), 'utf8')));
     expect(rec).toMatchObject({ script: 'sources publish', outcome: 'ok', versions: { release: r.release } });
-    // A second publish of the same revision is refused: an archive is never replaced.
     await expect(publish({ from: docs, root, key: keyFile, upload: releases.upload, runsDir: runs, log: () => {} })).rejects.toThrow(/never replaced/);
 
     const out = await restore({ root, key: keyFile, download: releases.download, log: () => {} });
@@ -153,11 +148,12 @@ describe('publish and restore', () => {
   });
 });
 
-/** The newest revision of a manifest read as JSON (untyped, as the tests edit it). @param {any} m @returns {any} */
+/**
+ * @param {any} m
+ * @returns {any}
+ */
 const latestOf = (m) => latestRevision(m);
 
-// Every file name in the manifest is checked, so `../escaped.png` can't be read from outside
-// --from at publish or written outside the restore dir.
 describe('manifest file names are plain base names', () => {
   /** @type {string} */
   let root;
@@ -171,7 +167,7 @@ describe('manifest file names are plain base names', () => {
     files = fakeDocuments(from);
     useFakeDocuments(root, files);
   });
-  /** Renames one document's `file` (and the rules file's key for it, so the two agree). @param {string} name */
+  /** @param {string} name */
   const rename = (name) => {
     const m = readJson(root, `data/ng-sources-${Y}.json`);
     const doc = /** @type {any} */ (latestOf(m)?.documents.find((/** @type {any} */ d) => d.file === 'law-compulsory-llb-courses.png'));
@@ -223,7 +219,6 @@ describe('manifest file names are plain base names', () => {
     const key = throwawayKey(join(dir, 'test.key'));
     const releases = fakeReleases(join(dir, 'releases'));
     const r = await publish({ from, root, key, upload: releases.upload, runsDir: join(dir, 'runs'), log: () => {} });
-    // An archive sealed with the same key, year and revision whose first entry is a path.
     const m = readJson(root, `data/ng-sources-${Y}.json`);
     const rev = latestOf(m);
     const entries = archivedFiles(rev).map((f) => ({ name: f.name, bytes: readFileSync(join(from, f.name)) }));
@@ -239,10 +234,7 @@ describe('manifest file names are plain base names', () => {
   });
 });
 
-// A document's `text` extraction is pinned by its sha256, so a hand-"fixed" extraction can't
-// change what --full accepts as NUS's words or what the builder reads.
 describe('text extractions are pinned by textSha256', () => {
-  /** The sha256 of each published extraction (npm run sources -- hash over the archive), by document id. */
   const REAL_TEXT_SHA256 = {
     'ng-list': '60948390f9a3cedff9ebaeff0df3ad54317e93d6905a3421fc0abb8cd3e71816',
     restrictions: '572e172bba8f240cba5734d3727710ab9a7a70284cd4391e74a5c4de149482e5',

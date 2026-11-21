@@ -1,9 +1,4 @@
 // @ts-check
-// What a visitor and a
-// stranger's page get from the Worker. The HTML 404 with public/_headers' security headers, the
-// search hit's TTL re-sent, the cross-site refusal on /search before the cache, the limiters and any
-// binding, the two per-IP rate limits, and one log line for a D1 error on /module and
-// /facets.
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import headersFile from '../public/_headers';
 import { searchCacheKey } from '../src/search.js';
@@ -21,11 +16,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/**
- * public/_headers' `/*` rule, read here the way Workers Static Assets reads it (a path line, then
- * indented "Name: value" lines), independently of the Worker's own reading.
- * @returns {Record<string, string>}
- */
+/** @returns {Record<string, string>} */
 function headersRule() {
   /** @type {Record<string, Record<string, string>>} */
   const rules = {};
@@ -39,7 +30,6 @@ function headersRule() {
   return rules['/*'];
 }
 
-/** What Chromium sends for a typed address or a link. */
 const BROWSER_ACCEPT = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7';
 
 describe('the 404 for a browser', () => {
@@ -52,7 +42,6 @@ describe('the 404 for a browser', () => {
     expect(html).toContain('NUS Mod Finder');
     expect(html).toContain('unofficial');
     expect(html).toMatch(/<a [^>]*href="\/"/);
-    // The page is static: the path asked for is never echoed back into it.
     expect(html).not.toContain('no-such-page');
   });
 
@@ -88,11 +77,7 @@ describe('the 404 for a browser', () => {
 });
 
 describe('the search hit\'s TTL', () => {
-  /**
-   * Production's `cache.match` returns the stored copy with the zone's Browser Cache TTL on it
-   * (max-age=14400); Miniflare's returns what was stored, so only a stub shows it.
-   * @param {Record<string, string>} [extra]
-   */
+  /** @param {Record<string, string>} [extra] */
   const storedCopy = (extra = {}) => new Response(JSON.stringify({ query: 'stub', results: [] }), {
     headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*', 'cache-control': 'public, max-age=14400', ...extra },
   });
@@ -129,11 +114,7 @@ describe('the search hit\'s TTL', () => {
   });
 });
 
-/**
- * Sec-Fetch-* as browsers send them (MDN; Chromium, Firefox and Safari since March 2023), and as
- * Node's fetch sends them (undici: Sec-Fetch-Mode only, captured live by a round 3 critic).
- * @type {[string, Record<string, string>][]}
- */
+/** @type {[string, Record<string, string>][]} */
 const REFUSED = [
   ['another site\'s fetch()', { 'sec-fetch-site': 'cross-site', 'sec-fetch-mode': 'cors', 'sec-fetch-dest': 'empty' }],
   ['another site\'s no-cors request (an <img> or a script tag)', { 'sec-fetch-site': 'cross-site', 'sec-fetch-mode': 'no-cors', 'sec-fetch-dest': 'image' }],
@@ -149,7 +130,6 @@ const SERVED = [
 ];
 
 describe('the cross-site refusal on /search', () => {
-  /** A D1 binding that fails the test if anything touches it. */
   const untouchable = new Proxy({}, { get(_t, prop) { throw new Error(`D1 touched: ${String(prop)}`); } });
 
   it.each(REFUSED)('%s: 403 before the cache, the limiters and any binding', async (_label, headers) => {
@@ -219,11 +199,11 @@ describe('the rate limits', () => {
 });
 
 describe('a D1 error outside /search leaves one log line', () => {
-  /** The `d1_error` lines console.error wrote. @param {import('vitest').MockInstance} spy */
+  /** @param {import('vitest').MockInstance} spy */
   const d1Lines = (spy) => spy.mock.calls.map((args) => String(args[0])).filter((l) => l.includes('d1_error'));
   const IP = '198.51.100.23';
   const lost = () => { throw new Error('D1_ERROR: network connection lost'); };
-  /** A D1 binding whose reads fail when `fails(sql)`, and find nothing otherwise. @param {(sql: string) => boolean} fails */
+  /** @param {(sql: string) => boolean} fails */
   const db = (fails) => ({ withSession: () => ({ prepare: (/** @type {string} */ sql) => ({ bind: () => ({ first: async () => (fails(sql) ? lost() : null) }) }) }) });
 
   it.each([

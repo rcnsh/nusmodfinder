@@ -1,33 +1,4 @@
 // @ts-check
-// The compliance-aware rule (ADR 0003), for a change to the constraint
-// phrases. `--change-kind compliance`, on dev and the holdout, never the test set.
-//
-// - The reference parse is frozen: pass A of tag `parse-reference` (fbfae10, which
-//   predates PARSE_PHRASES, so its phrases always compile), run over the
-//   vocabulary its own builder makes from the run corpus. It decides every
-//   query's constraints for scoring, independent of the candidate.
-// - The candidate's parse is what its Worker answered (`interpreted`, recorded
-//   per query in the run file's `intents`). Any difference from the reference
-//   on any query throws ParseMismatchError; the CLI computes all of this
-//   before it writes a ledger row, so a mismatch spends no look.
-// - A query is constrained when the reference parses a phrase in it, or it is
-//   an exchange-mode query (`ng`, with its `sem` and the study map's `study`).
-//   Its qrels are filtered: a judged document counts as relevant only if it
-//   satisfies every constraint, in DCG and IDCG alike (a failing document's
-//   grade becomes 0). A query the filter leaves with no relevant document is
-//   unscored. The candidate and the baseline are scored on the same filtered
-//   qrels; the exact-code check stays on the raw qrels.
-// - The constraint fields (exam semesters, S/U, workload, prerequisite, the
-//   allow mask) come from the pinned snapshot normalised by the candidate's
-//   scripts/lib.mjs, and the exchange bit from its src/ng-bit.js with
-//   eval/study-map.json. A judged or returned code without them throws
-//   ConstraintFieldsError. (A synthetic set whose own corpus.json carries
-//   every field is its own source; the eval fixture's does not.)
-// - Compliance: every result the candidate shows for a parsed query satisfies
-//   the parsed constraints. Identity: every query the reference leaves
-//   unparsed has its top 10 (status and codes) byte-identical to the baseline's.
-// Errors name counts, never a query id, text or code: on the holdout only the
-// class is printed, but a message must be safe either way.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -41,19 +12,16 @@ import { ConstraintFieldsError, CorpusMismatchError, ParseMismatchError, Referen
 import { compare, FEATURE_GAP_SHAPES, K, qrelsFor, scoreRun } from './metrics.mjs';
 import { REPO, loadStudyMap, studyMapSha256 } from './sets.mjs';
 
-/** The frozen reference parse: the constraint-phrase parse (pass A) at this tag, which must still resolve to this commit. */
 export const REFERENCE_PARSE = Object.freeze({ tag: 'parse-reference', sha: 'fbfae1012af3556a49b67ac4bec1bee88d863b8f' });
 
-/** The fields the rule reads per module (scripts/lib.mjs normalise and offeredModules). */
 export const CONSTRAINT_FIELDS = Object.freeze(['examSemesters', 'su', 'gradingBasis', 'workloadHours', 'prereqNone', 'prereqCohortOnly', 'ngAllow']);
 
 /**
  * @typedef {{ exam?: 0, su?: 1, hoursBelow?: number, prereq?: 'none' }} PhraseConstraints
  * @typedef {{ constraints: Record<string, unknown>, semantics: string | null }} Parse
- *   `semantics`: the prerequisite semantics (`i`, `ii`) when `prereq` is set, else null.
  * @typedef {{ examSemesters: number[], su: boolean, gradingBasis: string | null, workloadHours: number | null,
  *   prereqNone: boolean, prereqCohortOnly: boolean, ngAllow: number }} ConstraintFields
- * @typedef {{ sem: number | undefined, bit: number }} Exchange `bit` 0 when the semester has none (closed)
+ * @typedef {{ sem: number | undefined, bit: number }} Exchange
  * @typedef {{ phrase: PhraseConstraints, semantics: string | null, sem: number | undefined, exchange: Exchange | null }} QueryConstraints
  * @typedef {{
  *   reference: (text: string) => Parse & { corrected: string | null },
@@ -61,16 +29,10 @@ export const CONSTRAINT_FIELDS = Object.freeze(['examSemesters', 'su', 'gradingB
  *   suGrading: (basis: string | null) => boolean,
  *   ngBit: (echo: { ng: true, sem?: number, study: any }) => number | null,
  *   source: { reference: string, vocabularySha256: string, fields: string, lib: string, runTextSha256: string, fieldsSha256: string },
- * }} RuleSources `runTextSha256`: the run corpus the reference's vocabulary was
- *   built from; `fieldsSha256`: constraintFieldsSha256 of the fields the rule
- *   reads, over the run corpus's codes. Both must equal what the candidate run
- *   recorded (its `corpus`), so the rule reads what the candidate was seeded with.
+ * }} RuleSources
  */
 
 /**
- * A digest of every module's constraint fields, by code: what a run records
- * as `corpus.constraintFieldsSha256` (the fields it seeded the Worker with),
- * and what the rule recomputes from its own source.
  * @param {string[]} codes
  * @param {(code: string) => Record<string, unknown> | undefined} fieldsOf
  */
@@ -87,8 +49,6 @@ export function constraintFieldsSha256(codes, fieldsOf) {
 const truthyNg = (v) => v !== undefined && v !== null && v !== false && !['', 'false', '0'].includes(String(v));
 
 /**
- * The first parsed constraint a module fails, or null. As src/search.js
- * applies them: exam=0 with a semester means no exam in that semester.
  * @param {Pick<ConstraintFields, 'examSemesters' | 'su' | 'gradingBasis' | 'workloadHours' | 'prereqNone' | 'prereqCohortOnly'>} m
  * @param {PhraseConstraints} c
  * @param {{ prereq: 'i' | 'ii' | string | null, suGrading: (basis: string | null) => boolean, sem?: number }} o
@@ -103,8 +63,6 @@ export function failedConstraint(m, c, o) {
 }
 
 /**
- * The candidate's parse from its Worker's `interpreted` echo (the constraint keys only).
- * Values pass through as answered, so an unexpected one reads as a mismatch.
  * @param {unknown} interpreted
  * @returns {Parse}
  */
@@ -135,8 +93,6 @@ export const sameParse = (a, b) => canonical(a) === canonical(b);
 export const isParsed = (p) => Object.keys(p.constraints).length > 0;
 
 /**
- * A query's constraints for scoring: the reference's phrases, and in exchange
- * mode its semester and study level's allow-mask bit.
  * @param {import('./metrics.mjs').EvalQuery} q
  * @param {Parse} ref
  * @param {import('./sets.mjs').StudyMap} studyMap
@@ -156,7 +112,7 @@ export function queryConstraints(q, ref, studyMap, ngBit) {
     try {
       bit = ngBit({ ng: true, ...(sem === undefined ? {} : { sem }), study }) ?? 0;
     } catch {
-      bit = 0; // a special term in exchange mode: /search refuses it, so nothing is open
+      bit = 0;
     }
     exchange = { sem, bit };
   }
@@ -167,7 +123,6 @@ export function queryConstraints(q, ref, studyMap, ngBit) {
 const constrained = (c) => Object.keys(c.phrase).length > 0 || c.exchange !== null;
 
 /**
- * Why a module fails a query's constraints (a phrase kind, or `exchange`), or null.
  * @param {ConstraintFields} m
  * @param {QueryConstraints} c
  * @param {RuleSources['suGrading']} suGrading
@@ -180,8 +135,8 @@ export function failure(m, c, suGrading, o = {}) {
 }
 
 /**
- * Each query's codes a run returned, status 200 only.
- * @param {import('./metrics.mjs').RunFile} run @param {string} id
+ * @param {import('./metrics.mjs').RunFile} run
+ * @param {string} id
  */
 const shown = (run, id) => {
   const r = run.results[id];
@@ -189,11 +144,8 @@ const shown = (run, id) => {
 };
 
 /**
- * Throws RunFileError unless a run may be scored under the rule: filtered,
- * nothing stripped, hybrid, the committed study map, and (`intents`) the
- * per-query parse recorded.
  * @param {import('./metrics.mjs').RunFile} run
- * @param {{ intents?: boolean, explicit?: boolean }} [o] `explicit`: the run may carry explicit constraint params (the explicit-params diagnostic's baseline)
+ * @param {{ intents?: boolean, explicit?: boolean }} [o]
  */
 export function assertRuleRun(run, o = {}) {
   const c = /** @type {any} */ (run.config) ?? {};
@@ -209,10 +161,6 @@ export function assertRuleRun(run, o = {}) {
 }
 
 /**
- * The rule over one candidate and baseline. Pure: every source comes in.
- * Throws (before any verdict) ReferenceParseError when the reference parses
- * no query, ParseMismatchError when the candidate's parse differs on any
- * query, ConstraintFieldsError when a judged or returned code has no fields.
  * @param {{
  *   queries: import('./metrics.mjs').EvalQuery[],
  *   qrels: import('./metrics.mjs').Qrels,
@@ -221,14 +169,13 @@ export function assertRuleRun(run, o = {}) {
  *   sources: RuleSources,
  *   studyMap?: import('./sets.mjs').StudyMap,
  *   explicitBaseline?: boolean,
- * }} o `qrels` with the corpus groups already joined (withCorpusGroups)
+ * }} o
  */
 export function applyComplianceRule({ queries, qrels, base, cand, sources, studyMap = loadStudyMap(), explicitBaseline = false }) {
   assertRuleRun(cand, { intents: true });
   assertRuleRun(base, { explicit: explicitBaseline });
   const n = queries.length;
   const recorded = /** @type {{ textSha256?: string, constraintFieldsSha256?: string }} */ (cand.corpus ?? {});
-  // The reference's vocabulary is built from the run corpus: it must be the candidate's.
   if (recorded.textSha256 !== sources.source.runTextSha256) {
     throw new CorpusMismatchError(`run ${cand.variant} was made on another corpus text than the one the reference parse's vocabulary is built from`);
   }
@@ -244,7 +191,6 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
     const r = cand.results[q.id];
     if (!r) throw new RunFileError(`run ${cand.variant} has no result for one of the ${n} queries`);
     if (!base.results[q.id]) throw new RunFileError(`run ${base.variant} has no result for one of the ${n} queries`);
-    // A non-200 answer echoes no parse; it shows nothing and is scored as an error.
     if (r.status !== 200) continue;
     if (!sameParse(candidateParse(intents[q.id]), /** @type {Parse} */ (ref.get(q.id)))) mismatched++;
   }
@@ -255,7 +201,6 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
   /** @type {Map<string, QueryConstraints>} */
   const cons = new Map(queries.map((q) => [q.id, queryConstraints(q, /** @type {Parse} */ (ref.get(q.id)), studyMap, sources.ngBit)]));
 
-  // Every judged and every returned code must have its constraint fields.
   /** @type {Set<string>} */
   const codes = new Set();
   queries.forEach((q, i) => {
@@ -267,7 +212,6 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
     return !m || CONSTRAINT_FIELDS.some((k) => !(k in m));
   }).length;
   if (missing) throw new ConstraintFieldsError(`${missing} of ${codes.size} judged or returned codes have no constraint fields in ${sources.source.fields}`);
-  // The fields the rule reads are the ones the candidate's Worker was seeded with.
   if (!recorded.constraintFieldsSha256) {
     throw new RunFileError(`run ${cand.variant} records no corpus.constraintFieldsSha256; re-run it with this runner`);
   }
@@ -276,7 +220,6 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
   }
   const fields = (/** @type {string} */ code) => /** @type {ConstraintFields} */ (sources.fieldsOf(code));
 
-  // Constraint-filtered qrels: a failing document's grade becomes 0.
   /** @type {import('./metrics.mjs').Qrels['queries']} */
   const filteredQueries = {};
   /** @type {Set<string>} */
@@ -311,7 +254,6 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
   const cmp = compare(baseScores, candScores);
   const raw = compare(baseRaw, candRaw);
 
-  // The constraint block (FEATURE_GAP_SHAPES): its scored queries' ΔnDCG@10.
   const blockIdx = baseScores.flatMap((b, i) => (b.answerable && b.featureGap ? [i] : []));
   const blockDeltas = blockIdx.map((i) => candScores[i].ndcg - baseScores[i].ndcg);
   const mean = (/** @type {number[]} */ xs) => xs.reduce((s, x) => s + x, 0) / xs.length;
@@ -322,7 +264,6 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
     delta: blockIdx.length ? mean(blockDeltas) : NaN,
   };
 
-  // Compliance: every shown result of a parsed query satisfies the parsed constraints.
   /** @type {{ id: string, code: string, why: string }[]} */
   const violations = [];
   for (const q of parsed) {
@@ -332,12 +273,9 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
       if (why) violations.push({ id: q.id, code, why });
     }
   }
-  // Identity: an unparsed query's top 10 is the baseline's, byte for byte.
   const top = (/** @type {import('./metrics.mjs').QueryRun} */ r) => JSON.stringify([r.status, r.codes.slice(0, K)]);
   const unparsed = queries.filter((q) => !isParsed(/** @type {Parse} */ (ref.get(q.id))));
   const differing = unparsed.filter((q) => top(base.results[q.id]) !== top(cand.results[q.id])).map((q) => q.id);
-  // No new errors, per query: a candidate error where the baseline answered 200
-  // (a parsed query's error also hides its parse from the mismatch check).
   const newErrors = queries.filter((q) => cand.results[q.id].status !== 200 && base.results[q.id].status === 200).map((q) => q.id);
 
   return {
@@ -349,7 +287,6 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
     newErrors,
     counts: { parsed: parsed.length, primary: cmp.n, block: block.n, unscored: cmp.unscored.n },
     scores: { base: baseScores, cand: candScores },
-    // Dev only: ids, texts and per-query detail never leave an encrypted set's verdict path.
     detail: {
       parsed: parsed.map((q) => {
         const p = /** @type {ReturnType<RuleSources['reference']>} */ (ref.get(q.id));
@@ -364,13 +301,9 @@ export function applyComplianceRule({ queries, qrels, base, cand, sources, study
 
 /** @typedef {ReturnType<typeof applyComplianceRule>} ComplianceResult */
 
-// ---------------------------------------------------------------------------
-// Sources (I/O): the reference parse at its tag, and the constraint fields.
-
 /**
- * `git archive <sha> -- <paths>` into a fresh temporary directory (never
- * .eval-work/). The caller removes it.
- * @param {string} sha @param {string[]} paths
+ * @param {string} sha
+ * @param {string[]} paths
  */
 async function extract(sha, paths) {
   const dir = await mkdtemp(join(tmpdir(), 'vnm-compliance-'));
@@ -381,7 +314,6 @@ async function extract(sha, paths) {
   return dir;
 }
 
-/** Throws ReferenceParseError unless the tag still resolves to the frozen commit. */
 export function assertReferenceTag(repo = REPO) {
   const r = spawnSync('git', ['rev-parse', '--verify', '--quiet', `${REFERENCE_PARSE.tag}^{commit}`], { cwd: repo, encoding: 'utf8' });
   const got = r.status === 0 ? r.stdout.trim() : null;
@@ -391,8 +323,6 @@ export function assertReferenceTag(repo = REPO) {
 }
 
 /**
- * The reference parse over `modules` (the run corpus), with its vocabulary
- * built by the reference's own builder, labelled as a run labels it.
  * @param {{ modules: NormalisedModule[], label: string }} corpus
  * @returns {Promise<{ parse: RuleSources['reference'], vocabularySha256: string, close: () => Promise<void> }>}
  */
@@ -424,8 +354,6 @@ export async function referenceParser(corpus) {
 }
 
 /**
- * The candidate's scripts/lib.mjs and src/ (for the constraint fields, suGrading
- * and ngBit): the working tree for a WORKTREE run, else its commit, extracted.
  * @param {import('./metrics.mjs').RunFile} cand
  * @returns {Promise<{ root: string, label: string, close: () => Promise<void> }>}
  */
@@ -441,11 +369,6 @@ async function candidateRoot(cand) {
 const hasFields = (m) => CONSTRAINT_FIELDS.every((k) => k in m);
 
 /**
- * Every source the rule reads, for a set and its candidate run. The run
- * corpus (the set's corpus.json, else the pinned snapshot normalised by the
- * candidate's scripts/lib.mjs) feeds the reference's vocabulary, as a run's
- * own vocabulary is built; the constraint fields come from the pinned
- * snapshot, unless the set's corpus.json carries every field itself.
  * @param {import('./sets.mjs').SetLayout} set
  * @param {import('./metrics.mjs').RunFile} cand
  * @returns {Promise<RuleSources & { close: () => Promise<void> }>}
@@ -491,7 +414,6 @@ export async function loadRuleSources(set, cand) {
 }
 
 /**
- * The explicit /search params a parse maps to (the explicit-params diagnostic's baseline).
  * @param {Record<string, unknown>} constraints
  * @returns {Record<string, string>}
  */

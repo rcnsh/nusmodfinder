@@ -1,7 +1,4 @@
 // @ts-check
-// The lists the query parser reads (eval/query-rules/*.json, mirrored into data/
-// by scripts/build-catalogue-data.mjs) parse and follow their own rules, and the
-// suite's typo threshold T is what its recorded measurement gives.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -11,7 +8,10 @@ import { readJson } from './suite-files.node.mjs';
 
 const RULES = join(REPO, 'eval/query-rules');
 
-/** Shared codes between two top-10 lists. @param {string[]} a @param {string[]} b */
+/**
+ * @param {string[]} a
+ * @param {string[]} b
+ */
 const overlapAt10 = (a, b) => {
   const top = new Set(b.slice(0, 10));
   return a.slice(0, 10).filter((c) => top.has(c)).length;
@@ -80,7 +80,6 @@ describe('the query-rule lists', () => {
     const where = new Map();
     for (const [name, phrases] of Object.entries(lists)) {
       for (const ph of phrases) {
-        // Lower-case, except the placeholder N.
         expect(ph.replace(/N/g, ''), name).toBe(ph.replace(/N/g, '').toLowerCase());
         where.set(ph, [...(where.get(ph) ?? []), name]);
       }
@@ -94,7 +93,6 @@ describe('the query-rule lists', () => {
   });
 
   it('cohort-only rule: d-011\'s modules (ACC1701XA/XC cohort-only; ACC2706, FIN2704X, QF1100 not)', () => {
-    // Prerequisite fields of the pinned corpus, verbatim.
     const cohort = 'If undertaking an Undergraduate DegreeTHENmust be in one of the cohorts from 2017 inclusive';
     const acc2706 = 'If undertaking an Undergraduate DegreeTHEN( must have completed 1 of EC2204 at a grade of at least D, any Courses beginning with ACC1701 at a grade of at least DANDmust be in one of the cohorts from 2017 inclusive )';
     const fin2704x = 'If undertaking an Undergraduate Degree THEN ( must have completed 1 of EC2204 at a grade of at least D, any Courses beginning with ACC1701 at a grade of at least D AND must be in one of the cohorts from 2017 inclusive )';

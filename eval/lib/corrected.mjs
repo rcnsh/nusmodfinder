@@ -1,20 +1,4 @@
 // @ts-check
-// Typo correction, the constraint-phrase parse and duplicate groups in the eval
-// harness: each is built from the run's corpus by the ranker's own code.
-//
-// - The vocabulary a ranker corrects against is built from the run's own
-//   corpus (the pinned snapshot, or a set's corpus.json) by the ranker's own
-//   builder, and written over data/vocabulary.json in the run's workspace, so a
-//   run never reads the production vocabulary the ref commits.
-// - A ranker that embeds its corrected text (EMBED_CORRECTED) needs an embedding for each
-//   query's corrected form. The runner refuses a run that lacks one and names
-//   the command that adds them: `eval:embed --corrected-from-ref <ref>`, which
-//   asks the same corrector which texts it produces.
-// - A ranker with the constraint-phrase parse (src/intents.js) also embeds the
-//   query with its constraint phrases stripped, under its `stripped` variant. `dense` asks the ranker's
-//   own parse for every text its dense half embeds beyond the query, so both
-//   commands cover those texts too.
-// A ranker without src/typo.js has no corrector (null) and needs nothing.
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
@@ -29,19 +13,13 @@ import { MODEL, embeddingKey } from './embeddings.mjs';
  *   embedsCorrected: boolean,
  *   corrected: (text: string) => string | null,
  *   dense: ((text: string) => string[]) | null,
- * }} RankerCorrector `corrected`: the text the ranker embeds beside the query
- *   (its canonical q with the typo corrections), or null when it corrects nothing.
- *   `dense`: for a ranker with the constraint-phrase parse, every text its dense
- *   half embeds beyond the canonical query (the corrected form, the stripped form);
- *   null for an older ranker, whose only extra text is `corrected`.
+ * }} RankerCorrector
  */
 
 /**
- * The typo corrector of the ranker at `root`, with its vocabulary built from
- * `modules` by its own builder; null for a ranker without one.
- * @param {string} root a workspace (or the repo) holding the ranker's src/
- * @param {{ title: string, description?: string | null }[]} modules the run corpus
- * @param {string} label the run corpus's identity, recorded as the vocabulary's data version
+ * @param {string} root
+ * @param {{ title: string, description?: string | null }[]} modules
+ * @param {string} label
  * @returns {Promise<RankerCorrector | null>}
  */
 export async function rankerCorrector(root, modules, label) {
@@ -57,7 +35,6 @@ export async function rankerCorrector(root, modules, label) {
   let dense = null;
   const parse = await rankerIntentParser(root, vocab);
   if (parse) {
-    // As src/search.js denseTexts: the dense query, and, with EMBED_CORRECTED, the corrected one.
     dense = (text) => {
       const q = canonicalQuery(text.trim());
       const p = parse(q);
@@ -70,7 +47,6 @@ export async function rankerCorrector(root, modules, label) {
     serialized: serializeVocabulary(file),
     embedsCorrected: EMBED_CORRECTED === true,
     corrected: (text) => {
-      // As /search does: trimmed, then canonical (src/search.js parseSearch).
       const q = canonicalQuery(text.trim());
       const c = correctQuery(q, vocab);
       return c.text === q ? null : c.text;
@@ -79,12 +55,8 @@ export async function rankerCorrector(root, modules, label) {
 }
 
 /**
- * The constraint-phrase parse of the ranker at `root` (parseQuery over its own data files and
- * the given vocabulary), or null for a ranker without src/intents.js. Takes a
- * canonical query. Nothing is offered, so no code pins: callers read only the
- * dense text, the corrected text and the constraints.
  * @param {string} root
- * @param {unknown} vocab the ranker's parsed vocabulary
+ * @param {unknown} vocab
  * @returns {Promise<((q: string) => { dense: string, corrected: string | null, constraints: Record<string, unknown> }) | null>}
  */
 export async function rankerIntentParser(root, vocab) {
@@ -94,7 +66,6 @@ export async function rankerIntentParser(root, vocab) {
   const { compileConstraintPhrases, PARSE_PHRASES } = await import(url('intents.js'));
   const { STOPWORDS_IN_FORCE } = await import(url('fts-query.js'));
   const data = (/** @type {string} */ f) => JSON.parse(readFileSync(join(root, 'data', f), 'utf8'));
-  // As src/intent-data.js: a ranker with PARSE_PHRASES off reads no constraint phrase.
   const phrases = PARSE_PHRASES === false ? [] : compileConstraintPhrases(data('constraint-phrases.json'));
   const ctx = buildIntentContext({
     prefixes: Object.keys(data('prefixes.json').prefixes), catalogueCodes: data('catalogue-codes.json').codes,
@@ -105,8 +76,7 @@ export async function rankerIntentParser(root, vocab) {
 }
 
 /**
- * Writes the run's vocabulary where the ranker reads it.
- * @param {string} root the workspace
+ * @param {string} root
  * @param {RankerCorrector} corrector
  */
 export async function writeRankerVocabulary(root, corrector) {
@@ -118,7 +88,6 @@ export async function writeRankerVocabulary(root, corrector) {
 }
 
 /**
- * The distinct corrected forms of `texts`, in first-seen order.
  * @param {Pick<RankerCorrector, 'corrected'> & Partial<Pick<RankerCorrector, 'dense'>>} corrector
  * @param {string[]} texts
  */
@@ -136,12 +105,10 @@ export function correctedTexts(corrector, texts) {
 }
 
 /**
- * Refuses a run whose ranker embeds corrected texts when any query's
- * corrected text has no embedding. Names only a count, never a text (holdout).
  * @param {{
  *   set: string, setDirArg: string, ref: string, queries: { text: string }[],
  *   corrector: Pick<RankerCorrector, 'corrected' | 'embedsCorrected'> & Partial<Pick<RankerCorrector, 'dense'>> | null, have: Set<string>,
- * }} o `setDirArg`: ' --set-dir <dir>' or ''; `have`: embedding keys available to the run
+ * }} o
  */
 export function assertCorrectedEmbedded({ set, setDirArg, ref, queries, corrector, have }) {
   if (!corrector?.embedsCorrected && !corrector?.dense) return;
@@ -151,11 +118,7 @@ export function assertCorrectedEmbedded({ set, setDirArg, ref, queries, correcto
     + `run \`npm run eval:embed -- --set ${set}${setDirArg} --corrected-from-ref ${ref}\` locally`);
 }
 
-/**
- * Every text the query-suite runner (test/full/query-suite.test.js) sends to /search: item
- * texts, typo clean forms and constraint references, distinct.
- * @param {{ items: { text: string, params: Record<string, unknown> }[] }} suite
- */
+/** @param {{ items: { text: string, params: Record<string, unknown> }[] }} suite */
 export function suiteTexts(suite) {
   /** @type {Set<string>} */
   const out = new Set();
@@ -167,13 +130,9 @@ export function suiteTexts(suite) {
 }
 
 /**
- * Writes the run corpus's duplicate groups where a ranker with src/groups.js
- * reads them (data/groups.json in the workspace), built by the ranker's own
- * builder, so a run never reads the production groups its ref commits. Null
- * for a ranker without src/groups.js.
- * @param {string} root the workspace
- * @param {{ code: string, title: string, description?: string | null }[]} modules the run corpus
- * @param {string} label the run corpus's identity, recorded as the groups' data version
+ * @param {string} root
+ * @param {{ code: string, title: string, description?: string | null }[]} modules
+ * @param {string} label
  */
 export async function writeRankerGroups(root, modules, label) {
   const path = join(root, 'src/groups.js');

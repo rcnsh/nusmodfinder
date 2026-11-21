@@ -1,7 +1,4 @@
 // @ts-check
-// Semester filtering and corpus facts over the full pinned corpus: the same 6,771 modules production
-// serves, loaded through /admin/ingest into local D1 and the fake index.
-// Skipped without .data/; required (FULL_CORPUS=1) in the full-corpus CI job.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, inject, it } from 'vitest';
 import { callJson, seed } from '../helpers.js';
@@ -16,8 +13,6 @@ describe.skipIf(!corpus)('search over the full pinned corpus', () => {
     fakes = await seed({ modules: c.modules });
   }, 120_000);
 
-  // The semester filter runs before the depth cut, so all 31 come back,
-  // including BMA5134, BMC5415, BME5042, BME5046, TCX2003 and TCX2005.
   it('lexical management&sem=3&topK=50 returns all 31 sem-3 keyword matches, in rank order', async () => {
     const { body } = await callJson('/search?q=management&sem=3&mode=lexical&topK=50', { fakes });
     const got = body.results.map((/** @type {{ code: string }} */ r) => r.code);

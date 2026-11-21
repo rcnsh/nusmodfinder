@@ -1,27 +1,4 @@
 // @ts-check
-// The ops log: one JSON file per run of any script that touches a remote,
-// written on every exit path, at
-//
-//   ops/runs/<UTC yyyymmddThhmmssZ>-<script>-<4 hex>.json
-//
-// Unique names mean two worktrees never conflict and nothing is numbered at
-// write time. Records are committed with the change they belong to, and read
-// back: d1:restore and ingest find the newest bookmark, ingest the preflight
-// for HEAD, the deploy preflight a `year check --full` record, ops:requests
-// totals the requests. docs/operations.md "Run records" is the
-// contract the writers follow; test/run-record.node.test.js validates every
-// committed file (checkRunRecords).
-//
-// A writer, in one line when it has nothing to add:
-//
-//   const run = startRun('d1:bookmark', { target: 'nusmods-apac', args: argv });
-//   run.read('D1 Time Travel info', { estimate: 0, actual: 0 });
-//   run.setBookmark(id);
-//   run.finish('ok', { exitCode: 0 });
-//
-// `run.guardExit()` writes the record from a process 'exit' handler if the
-// script exits (process.exit, an uncaught throw) before it finishes. Writes are
-// synchronous so that handler can make them.
 import { execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -29,17 +6,10 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-/** The records' directory, relative to the repo root. */
 export const RUNS_REL = 'ops/runs';
 export const RUNS_DIR = join(ROOT, RUNS_REL);
 export const RUN_SCHEMA = 'vnm-run/1';
-/**
- * `ok` did what it was asked; `refused` stopped at a check before writing; `failed` broke or
- * found drift; `partial` stopped part-way and can resume (a write budget, an unconfirmed
- * mutation); `interrupted` by SIGINT or SIGTERM.
- */
 export const OUTCOMES = /** @type {const} */ (['ok', 'refused', 'failed', 'partial', 'interrupted']);
-/** A record's file name: its start time, the script's slug and 4 hex. */
 export const RUN_FILE = /^(\d{8}T\d{6}Z)-([a-z0-9-]+)-([0-9a-f]{4})\.json$/;
 const ISO_UTC = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/;
 
@@ -56,16 +26,16 @@ const ISO_UTC = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/;
  * }} RunData
  */
 
-/** A file-name-safe form of a script name (`d1:bookmark` -> `d1-bookmark`). @param {string} script */
+/** @param {string} script */
 export const slug = (script) => script.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-/** `20261112T101530Z`. @param {Date} d */
+/** @param {Date} d */
 const stamp = (d) => d.toISOString().replace(/\.\d+Z$/, 'Z').replace(/[-:]/g, '');
 
 /** @param {Date} time @param {string} script @param {string} hex */
 export const runFileName = (time, script, hex) => `${stamp(time)}-${slug(script)}-${hex}.json`;
 
-/** Untracked new files under the runs dir don't make a tree dirty (the deploy exemption). @param {string} line a porcelain v1 line */
+/** @param {string} line */
 export const isNewRunRecord = (line) => {
   if (!line.startsWith('?? ')) return false;
   const path = line.slice(3);
@@ -73,8 +43,6 @@ export const isNewRunRecord = (line) => {
 };
 
 /**
- * HEAD, whether the tree is dirty (new run records aside), and when it is, the sha256 of
- * `git diff HEAD --binary` (untracked files are dirt but are not in that diff).
  * @param {{ cwd?: string }} [o]
  * @returns {CommitState}
  */
@@ -88,10 +56,13 @@ export function gitState({ cwd = ROOT } = {}) {
   return { sha, dirty: true, diffSha256: createHash('sha256').update(git(['diff', 'HEAD', '--binary'])).digest('hex') };
 }
 
-/** 0 is ok; 130 and 143 (SIGINT, SIGTERM) are interrupted; anything else failed. @param {number} code @returns {Outcome} */
+/**
+ * @param {number} code
+ * @returns {Outcome}
+ */
 export const outcomeForExit = (code) => (code === 0 ? 'ok' : code === 130 || code === 143 ? 'interrupted' : 'failed');
 
-/** Where records go: the given dir, else $VNM_RUNS_DIR, else the repo's. @param {string} [dir] */
+/** @param {string} [dir] */
 const runsDirFor = (dir) => resolve(dir ?? process.env.VNM_RUNS_DIR ?? RUNS_DIR);
 
 /** @param {string} url */
@@ -104,9 +75,6 @@ export function isLoopback(url) {
   }
 }
 
-/**
- * One run's record, written once by finish() (or the exit guard).
- */
 export class RunRecord {
   /**
    * @param {string} script
@@ -122,7 +90,7 @@ export class RunRecord {
     this.started = now();
     /** @type {string | null} */
     this.path = null;
-    /** What finish() wrote, once it has. @type {{ outcome: Outcome, exitCode: number | null, message: string | null } | null} */
+    /** @type {{ outcome: Outcome, exitCode: number | null, message: string | null } | null} */
     this.result = null;
     /** @type {RunData} */
     this.data = {
@@ -135,20 +103,32 @@ export class RunRecord {
   /** @param {string} target */
   setTarget(target) { this.data.target = target; return this; }
 
-  /** What was read. @param {string} what @param {{ estimate?: number | null, actual?: number | null }} [n] */
+  /**
+   * @param {string} what
+   * @param {{ estimate?: number | null, actual?: number | null }} [n]
+   */
   read(what, { estimate = null, actual = null } = {}) { this.data.read.push({ what, estimate, actual }); return this; }
 
-  /** What was written. @param {string} what @param {{ estimate?: number | null, actual?: number | null }} [n] */
+  /**
+   * @param {string} what
+   * @param {{ estimate?: number | null, actual?: number | null }} [n]
+   */
   wrote(what, { estimate = null, actual = null } = {}) { this.data.written.push({ what, estimate, actual }); return this; }
 
-  /** A live request sent, by path (no query string). @param {string} path @param {number} [n] */
+  /**
+   * @param {string} path
+   * @param {number} [n]
+   */
   request(path, n = 1) {
     const p = path.split('?')[0] || '/';
     this.data.requests[p] = (this.data.requests[p] ?? 0) + n;
     return this;
   }
 
-  /** A fetch that counts each request it sends by path. @param {typeof fetch} fetchImpl @returns {typeof fetch} */
+  /**
+   * @param {typeof fetch} fetchImpl
+   * @returns {typeof fetch}
+   */
   countingFetch(fetchImpl) {
     return (input, init) => {
       const url = input instanceof Request ? input.url : String(input);
@@ -157,22 +137,27 @@ export class RunRecord {
     };
   }
 
-  /** A version id, tag or data version. @param {string} key @param {string | number | null} value */
+  /**
+   * @param {string} key
+   * @param {string | number | null} value
+   */
   version(key, value) { this.data.versions[key] = value; return this; }
 
   /** @param {string | null} id */
   setBookmark(id) { this.data.bookmark = id; return this; }
 
-  /** Anything else worth keeping (never a secret). @param {string} key @param {unknown} value */
+  /**
+   * @param {string} key
+   * @param {unknown} value
+   */
   detail(key, value) { this.data.details[key] = value; return this; }
 
   get finished() { return this.path !== null; }
 
   /**
-   * Writes the record; a second call returns the first file and changes nothing.
    * @param {Outcome} outcome
    * @param {{ exitCode?: number | null, message?: string | null }} [o]
-   * @returns {string} the file written
+   * @returns {string}
    */
   finish(outcome, { exitCode = null, message = null } = {}) {
     if (this.path) return this.path;
@@ -195,14 +180,9 @@ export class RunRecord {
   }
 
   /**
-   * Writes the record at process exit if nothing finished it, outcome from the exit code. A
-   * signal's default action exits without an 'exit' event, so with `signals` (the default) it
-   * also takes SIGINT, SIGTERM and SIGHUP: the record is finished `interrupted` and the process
-   * exits 130, 143 or 129 (its 'exit' handlers, a session's cleanup among them, still run). A
-   * script with its own graceful signal handling (ingest) passes `signals: false`.
    * @param {Pick<NodeJS.Process, 'on' | 'off' | 'exit'>} [proc]
    * @param {{ signals?: boolean }} [o]
-   * @returns {() => void} removes the handlers
+   * @returns {() => void}
    */
   guardExit(proc = process, { signals = true } = {}) {
     const onExit = (/** @type {number} */ code) => {
@@ -223,15 +203,12 @@ export class RunRecord {
 }
 
 /**
- * Starts a run record (the commit is read now).
  * @param {string} script
  * @param {ConstructorParameters<typeof RunRecord>[1]} [o]
  */
 export const startRun = (script, o) => new RunRecord(script, o);
 
 /**
- * live-check and live-shortlist: a record for a run against a live URL (none for a local server), with
- * every request the run sends by path, on success, failure and a throw alike.
  * @template {{ pass: boolean }} T
  * @template {{ url: string }} O
  * @param {string} script
@@ -263,7 +240,6 @@ const isObject = (v) => typeof v === 'object' && v !== null && !Array.isArray(v)
 const isCount = (v) => v === null || (typeof v === 'number' && Number.isFinite(v) && v >= 0);
 
 /**
- * The checks on one record.
  * @param {any} record
  * @param {{ file: string, now?: Date }} o
  * @returns {string[]}
@@ -283,7 +259,6 @@ export function validateRunRecord(record, { file, now = new Date() }) {
   else if (timeOk && typeof record.script === 'string' && (m[1] !== stamp(new Date(record.time)) || m[2] !== slug(record.script))) {
     errors.push(`the file name does not match the record's time and script (${stamp(new Date(record.time))}-${slug(record.script)})`);
   }
-  // Every field the spec says a record holds.
   const c = record.commit;
   if (!isObject(c) || !(c.sha === null || /^[0-9a-f]{40}$/.test(c.sha))) errors.push('commit.sha is missing, or not a 40-hex sha or null');
   if (isObject(c) && (typeof c.dirty !== 'boolean' || (c.dirty ? !/^[0-9a-f]{64}$/.test(c.diffSha256) : c.diffSha256 !== null))) {
@@ -314,7 +289,6 @@ export function validateRunRecord(record, { file, now = new Date() }) {
 }
 
 /**
- * Every file in the runs dir, parsed (a missing dir has none).
  * @param {string} [dir]
  * @returns {{ file: string, record: any, error: string | null }[]}
  */
@@ -331,7 +305,6 @@ export function readRunRecords(dir = RUNS_DIR) {
 }
 
 /**
- * Every record in `dir` checked: `<file>: <problem>` for each problem.
  * @param {string} [dir]
  * @param {Date} [now]
  */
@@ -341,7 +314,6 @@ export function checkRunRecords(dir = RUNS_DIR, now = new Date()) {
 }
 
 /**
- * The newest record in `dir` (by its start time) that `match` accepts, with its file name.
  * @param {string} dir
  * @param {(record: any) => boolean} match
  * @returns {{ file: string, record: any } | null}

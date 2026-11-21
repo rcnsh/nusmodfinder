@@ -1,10 +1,4 @@
 // @ts-check
-// The gate rules end to end through the CLI, on sets built here from
-// dev-derived synthetic data with a throwaway key (no workerd, no Cloudflare,
-// no real holdout file):
-//   - the no-answer set (tagged AND no grade-≥1 document): dev reports list
-//     unscored ids, encrypted sets print only their count;
-//   - change kinds `no-loss` (with `--exempt`) and `answerable-floor`, dev only.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -48,9 +42,7 @@ beforeAll(async () => {
 afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 
 const pinnedRanker = () => ({ ref: 'eval-v0', sha: PINNED_SHA, dirty: false, treeHash: v0Tree, runner: { sha: PINNED_SHA, dirty: false } });
-/** treeHash of the shipped pin's commit. */
 let holdoutTree = '';
-/** A genuine run of the shipped pin: the baseline of a per-change holdout look. */
 const holdoutRanker = () => rankerAt(SHIPPED_PIN, holdoutTree);
 const candRanker = () => ({ ref: 'WORKTREE', sha: 'c'.repeat(40), dirty: false, treeHash: 'd'.repeat(64), runner: { sha: 'c'.repeat(40), dirty: false } });
 
@@ -59,12 +51,6 @@ const ANSWERABLE = 12;
 const TAGGED = 4;
 const UNSCORED = 4;
 
-/**
- * The first 20 dev ids and texts: 12 answerable (`topical`, ten judged
- * codes), 4 tagged `noanswer` (three grade-0 codes; the first also has a
- * grade-2 code, so the grades make it answerable: 13 primary, 3 no-answer)
- * and 4 untagged with only grade-0 codes (unscored). Codes are made up.
- */
 async function derived() {
   const dev = JSON.parse(await readFile(join(REPO, 'eval', 'dev', 'queries.json'), 'utf8'));
   const picked = dev.queries.slice(0, ANSWERABLE + TAGGED + UNSCORED);
@@ -90,15 +76,18 @@ async function derived() {
     answerable: ids.slice(0, ANSWERABLE),
     tagged: ids.slice(ANSWERABLE, ANSWERABLE + TAGGED),
     unscored: ids.slice(ANSWERABLE + TAGGED),
-    /** The primary answerable set: the 12 answerable and the tagged query with a grade-2 code. */
     primary: [...ids.slice(0, ANSWERABLE), ids[ANSWERABLE]],
   };
 }
 /** @typedef {Awaited<ReturnType<typeof derived>>} Derived */
 
 /**
- * @param {any} querySet @param {string} variant @param {string} set @param {any} ranker @param {Record<string, string[]>} codes
- * @param {Record<string, number>} [status] non-200 statuses by id (their codes are dropped)
+ * @param {any} querySet
+ * @param {string} variant
+ * @param {string} set
+ * @param {any} ranker
+ * @param {Record<string, string[]>} codes
+ * @param {Record<string, number>} [status]
  */
 function runFile(querySet, variant, set, ranker, codes, status = {}) {
   return {
@@ -113,14 +102,12 @@ function runFile(querySet, variant, set, ranker, codes, status = {}) {
 
 /** @param {Record<string, string[]>} codes */
 const copy = (codes) => Object.fromEntries(Object.entries(codes).map(([id, c]) => [id, [...c]]));
-/** The candidate swaps ranks 5 and 6 (grade 1 and grade 0) on the first answerable query: a small loss. */
 const smallLoss = (/** @type {Derived} */ d) => {
   const c = copy(d.ranked);
   const id = d.answerable[0];
   [c[id][4], c[id][5]] = [c[id][5], c[id][4]];
   return c;
 };
-/** The candidate drops ranks 1 and 2 (both grade 2) to the bottom on the first two answerable queries. */
 const bigLoss = (/** @type {Derived} */ d) => {
   const c = copy(d.ranked);
   for (const id of d.answerable.slice(0, 2)) c[id] = [...c[id].slice(2), c[id][0], c[id][1]];
@@ -138,13 +125,10 @@ function cli(args, options = {}) {
 /** @param {string} path */
 const rowsOf = async (path) => (existsSync(path) ? ledgerRows(await readFile(path, 'utf8')) : []);
 
-// ---------------------------------------------------------------------------
-// dev (the fixture set name, at a temporary --set-dir)
-
 /**
- * @param {string} name @param {(d: Derived) => Record<string, string[]>} cand
+ * @param {string} name
+ * @param {(d: Derived) => Record<string, string[]>} cand
  * @param {{ prep?: (d: Derived) => void, candStatus?: (d: Derived) => Record<string, number> }} [options]
- *   `prep` edits the derived set before any file is written; `candStatus` gives the candidate non-200s
  */
 async function devSet(name, cand, options = {}) {
   const dir = join(tmp, name);
@@ -186,7 +170,6 @@ describe('change kind no-loss (dev only)', () => {
     const { dir, d, report } = await devSet('noloss-exempt', smallLoss);
     expect(report(['--change-kind', 'no-loss']).stdout).toMatch(/^gate \(dev\): FAIL · rule no-loss$/m);
     const exempt = join(dir, 'exempt.json');
-    // An exempt id outside the primary set is listed too.
     await writeFile(exempt, JSON.stringify([d.answerable[0], d.unscored[0]]));
     const r = report(['--change-kind', 'no-loss', '--exempt', exempt]);
     expect(r.stderr).toBe('');
@@ -245,14 +228,10 @@ describe('change kind answerable-floor (dev only)', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// encrypted sets
-
 /**
- * An encrypted set bound to `as`, with a pinned baseline and a candidate. The
- * baseline is the shipped pin's, which per-change looks take; on the test set
- * it is eval-v0's.
- * @param {string} name @param {string} as @param {(d: Derived) => Record<string, string[]>} cand
+ * @param {string} name
+ * @param {string} as
+ * @param {(d: Derived) => Record<string, string[]>} cand
  */
 async function encSet(name, as, cand) {
   const dir = join(tmp, name);

@@ -1,32 +1,4 @@
 // @ts-check
-// Do D1 and Vectorize agree? Exits non-zero on drift.
-//
-//   npm run remote -- verify [--pre-deploy]   (the runbook: a session sets WORKER_URL)
-//   npm run verify -- --url <base>
-//
-// D1 side through the Worker's /admin/verify (INGEST_SECRET, like ingest);
-// vector ids from `wrangler vectorize list-vectors <index> --json`, paged
-// 1,000 at a time. Run it against the same `wrangler dev --remote` Worker as
-// ingest (docs/data.md "Re-ingesting"), after ingest reports done. What counts as
-// drift: scripts/verify-core.mjs.
-//
-// Flags: --url <base> (else $WORKER_URL; no default, and ports 8787 and 8799
-// are refused),
-// --index <name> (default the wrangler.jsonc index), --sample <n> (default 100,
-// max 100), --json (print the report as JSON).
-//
-// Verify has two modes:
-//   --pre-deploy [--bundle production|pinned|fixture]   runbook step 5, before
-//     the deploy: D1's (code, text_hash) pairs equal the manifest's rowsKey,
-//     D1's data version equals the committed one, and the bundle's codes and
-//     filter table equal D1's fields. Reads no Vectorize.
-//   (default)   after runbook step 8: the full check (Vectorize metadata
-//     against D1, and the id list). `--values` (or scripts/vectors.mjs
-//     standby) also compares a getByIds sample of values with the production
-//     bundle's bits.
-// Exit codes: 0 agree; 1 drift; 2 could not verify.
-// Each run past its arguments writes a run record (scripts/run-record.mjs):
-// requests by path, D1 rows read, the outcome (drift is `failed`).
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
@@ -39,13 +11,10 @@ import { loadCheckedBundle, readVectorsManifest } from './vectors-manifest.mjs';
 import { workerUrl } from './remote-session.mjs';
 import { startRun } from './run-record.mjs';
 
-/** The binding's index in wrangler.jsonc (a test keeps them equal). */
 export const DEFAULT_INDEX = 'nusmods-modules';
-/** Pages of 1,000 ids; 6,771 vectors take 7. Stops a cursor loop. */
 const MAX_PAGES = 1000;
 
 /**
- * Every vector id in the index, via `wrangler vectorize list-vectors --json`.
  * @param {string} index
  * @param {import('./deploy.mjs').Exec} exec
  */
@@ -55,8 +24,6 @@ export async function listVectorIds(index, exec = run) {
   /** @type {string | null} */
   let cursor = null;
   for (let page = 0; page < MAX_PAGES; page++) {
-    // `--cursor=<value>` in one word: cursors are base64url and can start with "-", and wrangler
-    // reads a separate "-h…" as --help (the usage, exit 0) and any other "-…" as unknown flags.
     const args = ['wrangler', 'vectorize', 'list-vectors', index, '--json', '--count', '1000', ...(cursor ? [`--cursor=${cursor}`] : [])];
     const { code, stdout } = await exec('npx', args);
     if (code !== 0) throw new Error(`wrangler vectorize list-vectors exited ${code}`);
@@ -77,7 +44,6 @@ export async function listVectorIds(index, exec = run) {
 }
 
 /**
- * The year files this deploy ships, and the NG list of the year the reason texts name.
  * @param {string} acadYear
  * @returns {import('./verify-core.mjs').PreDeployDataFiles}
  */
@@ -131,7 +97,7 @@ export async function main(argv, deps = {}) {
     record.finish(code === 0 ? 'ok' : 'failed', { exitCode: code, message });
     return code;
   };
-  /** Each `wrangler vectorize list-vectors` page is a Cloudflare API call. @type {import('./deploy.mjs').Exec} */
+  /** @type {import('./deploy.mjs').Exec} */
   const countedExec = (cmd, args, opts) => {
     if (cmd === 'npx' && args[0] === 'wrangler') record.request(`wrangler ${args.slice(1, 3).join(' ')}`);
     return exec(cmd, args, opts);
@@ -147,13 +113,11 @@ export async function main(argv, deps = {}) {
     if (values['pre-deploy']) {
       const { entry, bundle } = await loadBundle();
       const committedDataVersion = String(JSON.parse(await readFile(DATA_VERSION_PATH, 'utf8')).version);
-      // Every stored rule id has a text in the reasons this deploy ships.
       const ngReasons = JSON.parse(readFileSync(new URL('../data/ng-reasons.json', import.meta.url), 'utf8'));
       const reasons = ngReasons.reasons;
       const report = await runPreDeployVerify({
         api: httpAdminApi(base, secret, fetchImpl), bundle, manifest: entry, committedDataVersion,
         knownReason: (id) => Object.hasOwn(reasons, id), dataFiles: preDeployDataFiles(ngReasons.acadYear),
-        // D1's catalogue_only against the catalogue file this deploy bundles.
         catalogue: await readBundledCatalogue(),
       });
       if (values.json) log(JSON.stringify(report, null, 2));

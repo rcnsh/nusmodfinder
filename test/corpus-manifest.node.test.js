@@ -1,9 +1,4 @@
 // @ts-check
-// The corpus manifest (data/corpus.json):
-// each production corpus is a sha-checked release asset, `current` names the
-// one ingest uses, and ingest, the bundle and every per-corpus file read only
-// that one, never the .data/cache download. Everything here runs on temp
-// directories with a fake download and upload: no network.
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
@@ -37,7 +32,7 @@ let dir;
 beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), 'vnm-corpus-')); });
 afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
-/** A manifest with one entry for BODY, as `corpus publish` writes it. @param {Partial<{ sha256: string, year: string }>} [o] */
+/** @param {Partial<{ sha256: string, year: string }>} [o] */
 async function manifest(o = {}) {
   const path = join(dir, 'corpus.json');
   await writeFile(path, `${JSON.stringify({
@@ -80,7 +75,7 @@ describe('the manifest', () => {
 });
 
 describe('npm run corpus -- restore', () => {
-  /** A fake `gh release download`: writes `bytes` as the asset. @param {Buffer} bytes */
+  /** @param {Buffer} bytes */
   const download = (bytes) => {
     /** @type {string[][]} */
     const calls = [];
@@ -98,7 +93,6 @@ describe('npm run corpus -- restore', () => {
     expect(path).toBe(corpusPath({ sha256: SHA }, join(dir, 'prod')));
     expect(await readFile(path, 'utf8')).toBe(BODY);
     expect(d.calls).toEqual([[RELEASE, `${Y}-moduleInfo.json.gz`]]);
-    // Present and right: nothing is downloaded again.
     await restoreCurrent({ manifestPath, dir: join(dir, 'prod'), download: d.fn, log: () => {} });
     expect(d.calls).toHaveLength(1);
   });
@@ -196,7 +190,6 @@ describe('CI: npm run corpus -- check', () => {
     const files = await committed(await corpusDataVersion(RECORDS, Y, ng), codes);
     const ok = await checkCurrent({ manifestPath, dir: join(dir, 'prod'), ...files, ngCourses: ng });
     expect(ok).toMatchObject({ ok: true, catalogueKey: { asset: await catalogueKey(codes), file: await catalogueKey(codes) } });
-    // The bundled catalogue misses a code: refused.
     const short = await committed(ok.dataVersion.asset, ['AA0999']);
     expect(await checkCurrent({ manifestPath, dir: join(dir, 'prod'), ...short, ngCourses: ng })).toMatchObject({ ok: false });
   });
@@ -208,7 +201,6 @@ describe('CI: npm run corpus -- check', () => {
     const ng = await loadNgCourses(Y);
     const before = await corpusDataVersion(RECORDS, Y, ng);
     const files = await committed(before, ['AA0999', 'AB0998']);
-    // A Registrar revision that adds AA1001 to Sem 1's list.
     const revised = { ...ng, bySem: new Map([...ng.bySem, ['AA1001', [1]]]), total: ng.total + 1 };
     const r = await checkCurrent({ manifestPath, dir: join(dir, 'prod'), ...files, ngCourses: revised });
     expect(r.ok).toBe(false);
@@ -219,7 +211,6 @@ describe('CI: npm run corpus -- check', () => {
 });
 
 describe('the deploy preflight\'s "corpus manifest" check (an optional check, scripts/corpus.mjs preflight)', () => {
-  /** A real checkCurrent over a temp manifest, a restored BODY and the given committed files, as corpusCheck. */
   async function setup(/** @type {{ version?: string, codes?: string[], stale?: string[] }} */ o = {}) {
     const manifestPath = await manifest();
     const prod = join(dir, 'prod');

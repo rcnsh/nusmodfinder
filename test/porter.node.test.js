@@ -1,10 +1,4 @@
 // @ts-check
-// src/porter.js is SQLite FTS5's porter stemmer: the typo corrector decides
-// whether a prefix term `"psych"*` matches anything from the vocabulary alone,
-// and FTS5 stems a prefix query's token before it looks it up, so the decision is exact only if
-// the Worker stems exactly as SQLite does. Checked here against node:sqlite's
-// FTS5 over every term of the fixture corpus, typo-shaped variants of them and
-// Porter's own examples; test/full/vocabulary.node.test.js does the pinned corpus.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -16,7 +10,6 @@ const fixture = JSON.parse(readFileSync(fileURLToPath(new URL('./fixtures/corpus
 /** @type {string[]} */
 const fixtureTerms = [...new Set(fixture.modules.flatMap((/** @type {any} */ m) => queryTokens(`${m.title} ${m.description ?? ''}`)))];
 
-/** Porter's paper and the SQLite step tables, rule by rule, with the edge lengths. */
 const EXAMPLES = [
   'caresses', 'ponies', 'ties', 'caress', 'cats', 'feed', 'agreed', 'plastered', 'bled', 'motoring', 'sing',
   'conflated', 'troubled', 'sized', 'hopping', 'tanned', 'falling', 'hissing', 'fizzed', 'failing', 'filing',

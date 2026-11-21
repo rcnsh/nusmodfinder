@@ -1,16 +1,10 @@
 // @ts-check
-// scripts/ingest-core.mjs runIngest against a stub admin API, at the size of
-// the production corpus (6,771 modules): the write budget's FTS charge for the
-// production starting state, the Vectorize mutation wait once Vectorize has
-// moved past the pending mutation, and a pending-store write that fails
-// mid-run. Plain Node, no Worker, nothing remote.
 import { describe, expect, it } from 'vitest';
 import { DEFAULTS, runIngest, waitForMutation } from '../scripts/ingest-core.mjs';
 import { hashOf, offeredModules } from '../scripts/lib.mjs';
 import { ftsHash } from '../src/rowhash.js';
 
 const Y = '2026-2027';
-/** The production corpus size (release data-2026-2027-20260904). */
 const N = 6771;
 const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 
@@ -22,8 +16,6 @@ const corpus = (n) => offeredModules(Array.from({ length: n }, (_, i) => ({
 })), Y, null).modules;
 
 /**
- * A stub Worker over `stored` (code -> hashes as /admin/hashes reports them),
- * whose D1 reports `rowsPerModule` rows written per upserted module.
  * @param {Record<string, { textHash: string, rowHash: string | null, ftsHash?: string }>} stored
  * @param {{ rowsPerModule?: number }} [o]
  * @returns {import('../scripts/ingest-core.mjs').AdminApi & { mutations: string[] }}
@@ -59,12 +51,7 @@ function stubApi(stored, { rowsPerModule = 5.08 } = {}) {
   };
 }
 
-/**
- * What production D1 holds after migration 0006: main's text_hash
- * (`hashOf(text)`, before the model and text version were hashed in), no
- * row_hash, and the stored title/description the corpus still has.
- * @param {NormalisedModule[]} modules
- */
+/** @param {NormalisedModule[]} modules */
 const productionHashes = async (modules) => Object.fromEntries(await Promise.all(modules.map(async (m) =>
   [m.code, { textHash: hashOf(m.text), rowHash: null, ftsHash: await ftsHash(m) }])));
 
@@ -76,7 +63,6 @@ describe('[PR13b #1] the FTS write charge follows what the 0006 FTS triggers wat
     const api = stubApi(stored);
     const result = await runIngest({ modules, facetsBody, api, options: { force: true }, sleep: async () => {} });
     expect(result).toMatchObject({ status: 'done', upserted: N, resumeFrom: null });
-    // Every row is a same-FTS-text rewrite: 5.5 per module, charged per batch of 50.
     const full = Math.floor(N / 50);
     expect(result.rowsCharged).toBe(full * Math.ceil(50 * DEFAULTS.writesPerUpdate) + Math.ceil((N % 50) * DEFAULTS.writesPerUpdate));
     expect(result.rowsCharged).toBeLessThanOrEqual(DEFAULTS.writeBudget);
@@ -108,7 +94,6 @@ describe('[PR13b #2] the mutation wait once Vectorize has processed a later muta
   const api = (info) => /** @type {import('../scripts/ingest-core.mjs').AdminApi} */ ({
     get: async () => ({ status: 200, body: { vectorCount: 1, ...info } }), post: async () => ({ status: 404, body: {} }),
   });
-  /** A fake clock the sleep advances, so a wait that is never satisfied times out. */
   const opts = () => {
     let t = 0;
     return { timeoutMs: 10_000, intervalMs: 5_000, sleep: async (/** @type {number} */ ms) => { t += ms; }, now: () => t, log: () => {} };

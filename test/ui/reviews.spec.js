@@ -1,8 +1,4 @@
 // @ts-check
-// What students say (ADR 0018): the review panel in an entry's right-hand column, with the
-// overall score and a word, a meter per score whose accessible name carries the number, how
-// many reviews and how recent, and a link to read them on NUSMods; nothing under three
-// reviews; under the exchange status in exchange mode.
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { axeViolations } from './support.mjs';
@@ -39,7 +35,6 @@ test('a course with fewer than three reviews, or none, has no panel', async ({ p
 
 test('in exchange mode the panel sits under the exchange status', async ({ page }) => {
   await page.goto('/?q=CS1010&ng=1&study=ug2&sem=1');
-  // One right-hand column: the exchange status, then the panel.
   const guide = card(page, 'CS1010').locator('.guide');
   await expect(guide).toHaveCount(1);
   await expect(guide.locator('> .exchange + .rv-panel .rv-num')).toHaveText(reviews.CS1010.overall.toFixed(1));

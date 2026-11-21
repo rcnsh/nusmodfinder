@@ -1,14 +1,4 @@
 // @ts-check
-// A course's detail, inline below its card, from /module/:code: the
-// description, prerequisites and preclusions as NUS states them (spacing
-// restored, the cohort-only case named, course codes linked to a search), the
-// exam per semester in Singapore time, the workload, exchange availability per
-// semester with every reason and its source, and the link to NUSMods for class
-// times. DOM nodes only. Laid out as a sheet: the course facts on the left,
-// "can you take it" on the right (below them on a phone), and the Close button
-// at the top. For an NUS student (not exchange mode) the exchange table is a
-// collapsed disclosure after the facts. Its head repeats the code, title, units and department, and, for
-// a detail an "Also as" link opened, which entry it was opened from.
 import { h, setChildren } from './dom.js';
 import { noteText, reasonLine, sourceNote, stampText, statusText } from './explain.js';
 import { cleanPrereq, codeSegments, examLines, prereqView, semLabel, workloadText } from './format.js';
@@ -23,9 +13,7 @@ import { STUDIES } from './state.js';
  *   filters: Record<string, unknown>, sources: Source[] | null,
  *   searchHref: (code: string) => string, onClose: () => void, from?: string,
  *   toggle?: (code: string) => HTMLElement,
- * }} DetailContext `filters` is the /search echo the card came from; `from` the
- *   entry whose "Also as" link opened this detail, if one did; `toggle` the
- *   shortlist toggle for the head
+ * }} DetailContext
  */
 
 /** @param {HTMLElement} region */
@@ -51,7 +39,6 @@ export function detailError(region, sentence, retry) {
 const section = (title, ...body) => h('section', { class: 'detail-part fact' }, h('h4', { class: 'lbl' }, title), ...body);
 
 /**
- * NUS's text with each course code a search link.
  * @param {string} text
  * @param {DetailContext} ctx
  */
@@ -59,8 +46,8 @@ const nusText = (text, ctx) => h('p', { class: 'nus-text' },
   ...codeSegments(text).map((s) => ('code' in s ? searchLink(s.code, { searchHref: ctx.searchHref }) : s.text)));
 
 /**
- * @param {unknown} raw /module's prerequisite
- * @param {boolean} cohortOnly /module's prereqCohortOnly
+ * @param {unknown} raw
+ * @param {boolean} cohortOnly
  * @param {DetailContext} ctx
  */
 function prerequisites(raw, cohortOnly, ctx) {
@@ -74,19 +61,16 @@ function prerequisites(raw, cohortOnly, ctx) {
 }
 
 /**
- * @param {unknown} raw /module's preclusion
+ * @param {unknown} raw
  * @param {DetailContext} ctx
  */
 function preclusions(raw, ctx) {
-  // The same rule language as the prerequisite, with the same spacing restored.
   const text = cleanPrereq(typeof raw === 'string' ? raw : '');
   if (!text) return section('Preclusions', h('p', null, 'No preclusions listed'));
   return section('Preclusions', h('p', { class: 'as-stated-label' }, 'As NUS states it:'), nusText(text, ctx));
 }
 
 /**
- * One semester's availability: the status in words and every reason with its
- * source and date.
  * @param {ExchangeEntry | undefined} e
  * @param {Source[] | null} sources
  */
@@ -100,11 +84,9 @@ function availability(e, sources) {
 }
 
 /**
- * One semester at the chosen year: its stamp ("Your semester" beside the one
- * chosen), then every note with its lead-in word and its source and date.
  * @param {ExchangeEntry | undefined} e
  * @param {number} sem
- * @param {boolean} mine the semester the student chose
+ * @param {boolean} mine
  * @param {Source[] | null} sources
  */
 function semBlock(e, sem, mine, sources) {
@@ -120,9 +102,7 @@ function semBlock(e, sem, mine, sources) {
 const STUDY_AS = Object.freeze({ ug1: '1st-year', ug2: '2nd-year', ug3: '3rd-year', ug4: '4th-year (or later)', grad: 'graduate' });
 
 /**
- * Exchange availability: in exchange mode Sem 1 and Sem 2 at the chosen year;
- * outside it, a table for every year, collapsed (an NUS student opens it only if they want it).
- * @param {unknown} raw /module's `exchange`
+ * @param {unknown} raw
  * @param {DetailContext} ctx
  */
 function exchangeSection(raw, ctx) {
@@ -159,7 +139,6 @@ function exchangeSection(raw, ctx) {
 }
 
 /**
- * Fills a card's detail region from a /module/:code body.
  * @param {HTMLElement} region
  * @param {any} m
  * @param {DetailContext} ctx
@@ -178,12 +157,9 @@ export function renderDetail(region, m, ctx) {
   const exchangeMode = ctx.filters.ng === true && typeof ctx.filters.study === 'string' && ctx.filters.study !== '';
   setChildren(region,
     h('div', { class: 'sheet-head' }, kicker, h('div', { class: 'sheet-acts' }, code && ctx.toggle ? ctx.toggle(code) : null, close)),
-    // The head repeats the entry's code and title, so the sheet reads on its own.
-    // The code is in the heading (on its own line), so the heading's name is the code and title.
     h('div', { class: 'dhead' },
       h('h3', { class: 'dtitle' }, code ? h('span', { class: 'dcode' }, code) : null, code ? ' ' : null, typeof m.title === 'string' ? m.title : ''),
       units || dept ? h('p', { class: 'dmeta' }, [units, dept].filter(Boolean).join(' · ')) : null),
-    // "Can you take it" comes first: beside the facts on a wide screen, above them on a narrow one.
     h('div', { class: 'sheet-grid' },
       h('div', { class: 'sheet-side' },
         exchangeMode ? exchangeSection(m.exchange, ctx) : null,

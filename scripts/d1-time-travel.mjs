@@ -1,19 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// D1 Time Travel for the runbook:
-//
-//   npm run d1:bookmark                        records D1's current bookmark (a read), before any D1 write
-//   npm run d1:restore -- [--bookmark <id>] [--yes]
-//                                              restores the newest recorded bookmark (a D1 write)
-//
-// `d1:bookmark` runs `wrangler d1 time-travel info <db> --json` and writes a run record holding
-// the bookmark; the ingest that follows copies it into its own record. `d1:restore` takes the
-// newest such record (or --bookmark), prints the bookmark, its age and the ingest it came
-// before, asks (or takes --yes), runs `wrangler d1 time-travel restore <db> --bookmark <id>
-// --json`, records the restore with the bookmark that undoes it, and re-reads D1's data version
-// over the REST query. The code stays where it is: this undoes "ingest done, deploy refused".
-// Bookmarks reach back 30 days. Restores rewrite the database in place but aren't billed as row
-// writes (Cloudflare's docs, 7-0).
 import { pathToFileURL } from 'node:url';
 import { askYes } from './ask.mjs';
 import { d1Config, productionD1 } from './d1-read.mjs';
@@ -21,7 +7,6 @@ import { run } from './deploy.mjs';
 import { GUARD_CHECKS, readD1 } from './guard.mjs';
 import { newestRecord, readRunRecords, startRun } from './run-record.mjs';
 
-/** Time Travel's reach on Workers Paid. */
 export const TIME_TRAVEL_DAYS = 30;
 
 /**
@@ -29,7 +14,7 @@ export const TIME_TRAVEL_DAYS = 30;
  * @typedef {{ argv?: string[], exec?: Exec, log?: (m: string) => void, error?: (m: string) => void, runsDir?: string, now?: () => Date }} Common
  */
 
-/** The JSON object in wrangler's output (it may print a banner first). @param {string} stdout */
+/** @param {string} stdout */
 function jsonOf(stdout) {
   const start = stdout.indexOf('{');
   const end = stdout.lastIndexOf('}');
@@ -37,7 +22,7 @@ function jsonOf(stdout) {
   return JSON.parse(stdout.slice(start, end + 1));
 }
 
-/** `3 h old`, `25 min old`, `2 d old`. @param {number} ms */
+/** @param {number} ms */
 const age = (ms) => (ms >= 86_400_000 ? `${Math.floor(ms / 86_400_000)} d` : ms >= 3_600_000 ? `${Math.floor(ms / 3_600_000)} h` : `${Math.floor(ms / 60_000)} min`);
 
 /**
@@ -119,7 +104,6 @@ export async function restore({ argv = process.argv.slice(3), exec = run, log = 
     if (body.previous_bookmark) record.detail('previousBookmark', body.previous_bookmark);
     log(`d1:restore: restored ${databaseName} to ${body.bookmark ?? id}.${body.previous_bookmark ? ` To undo: npm run d1:restore -- --bookmark ${body.previous_bookmark}` : ''}`);
 
-    // The re-read: what D1's data version is now.
     /** @type {import('./d1-rest.mjs').D1Client | null} */
     let client = null;
     try {
@@ -128,7 +112,6 @@ export async function restore({ argv = process.argv.slice(3), exec = run, log = 
       const dv = await /** @type {import('./guard.mjs').GuardCheck} */ (GUARD_CHECKS.find((c) => c.field === 'dataVersion')).d1(ctx);
       record.read('D1 rows (re-read over the REST query: modules, catalogue_only and the schema check)', { actual: client.rowsRead });
       record.version('dataVersion', dv);
-      // And its catalogueKey, which rollback compares with the target's tag too.
       record.version('catalogueKey', ctx.hashes.catalogueKey ?? null);
       log(`d1:restore: D1's data version is now ${dv ?? `unknown (rows whose row_hash is not their columns' hash: ${(ctx.hashes.rowHashDrift ?? []).slice(0, 10).join(', ')})`} (${client.rowsRead} rows read).`);
     } catch (err) {

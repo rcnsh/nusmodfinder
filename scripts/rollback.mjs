@@ -1,25 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run rollback -- [--to <version id or its first 8>] [--accept-data-mismatch] [--yes]`
-// Puts an earlier Worker version back at 100%, code only.
-//
-// 1. Target: --to, else the newest deployment before the live one whose version differs
-//    (`wrangler deployments list --json`). Its commit, data version (and every other guard
-//    field, the catalogueKey among them) come from its deploy/* tag.
-// 2. Data check: D1 read directly over the REST query (scripts/d1-rest.mjs; ~6.8k rows today,
-//    more with the catalogue), never a Worker session or the working tree's code. Every tagged
-//    field must equal D1's. A mismatch refuses unless --accept-data-mismatch, which prints the
-//    risk; the usual path across a data change is `npm run d1:restore`, then rollback.
-// 3. `wrangler rollback <id> --message "rollback to <tag>" -y`, after a confirmation (or --yes).
-// 4. An annotated `rollback/<UTC time>-<id8>` tag on the target's commit, pushed; a failed tag
-//    is reported, not fatal. Then it prints `npm run smoke -- --expect <target sha>`.
-//
-// Needs no clean tree and no CI. The Vectorize standby is not rolled back.
-//
-// Why REST rather than `wrangler d1 execute --remote --command` for the reads: one read path
-// for the guard, rollback and d1:restore, with the same read-only refusal in code, the same
-// hashing (src/admin-hashes.js) and rows read from the API's own meta; and it works with the
-// Actions token too.
 import { pathToFileURL } from 'node:url';
 import { askYes } from './ask.mjs';
 import { productionD1 } from './d1-read.mjs';
@@ -35,7 +15,7 @@ const WORKER_NAME = 'nusmodfinder';
  * @typedef {{ id: string, created_on: string, versions: { version_id: string, percentage: number }[] }} Deployment
  */
 
-/** The version a deployment serves most. @param {Deployment} d */
+/** @param {Deployment} d */
 const mainVersion = (d) => [...(d.versions ?? [])].sort((a, b) => b.percentage - a.percentage)[0]?.version_id ?? null;
 
 /** @param {string[]} argv */
@@ -71,7 +51,6 @@ export async function rollback({
   /** @param {import('./run-record.mjs').Outcome} outcome @param {number} code @param {string} message */
   const stop = (outcome, code, message) => { error(`rollback: ${message}`); record.finish(outcome, { exitCode: code, message: message.split('\n')[0] }); return code; };
   try {
-    // 1. The target.
     const listed = await exec('npx', ['wrangler', 'deployments', 'list', '--json']);
     /** @type {Deployment[]} */
     let deployments;
@@ -98,7 +77,6 @@ export async function rollback({
     record.version('previousVersionId', live);
     log(`rollback: live ${live}; target ${target}`);
 
-    // The target's tag.
     if (!(await fetchTraceTags(exec))) log('rollback: note: could not fetch the deploy tags from origin; using the local ones.');
     const tag = await findVersionTag({ exec, versionId: target, fetch: false });
     if (tag && tag.fields.versionId && tag.fields.versionId !== target) return stop('refused', 1, `the tag ${tag.name} names ${tag.fields.versionId}, not ${target}.`);
@@ -113,7 +91,6 @@ export async function rollback({
       error(`rollback: --accept-data-mismatch with no tag: rolling back unchecked; ${risk}`);
     }
 
-    // 2. The data check.
     if (tag) {
       /** @type {import('./d1-rest.mjs').D1Client | null} */
       let client = null;
@@ -140,17 +117,14 @@ export async function rollback({
       }
     }
 
-    // 3. The rollback.
     if (!args.yes && !(await confirm(`Roll ${WORKER_NAME} back from ${live} to ${target}?`))) return stop('refused', 1, 'not confirmed; nothing rolled back.');
     const msg = `rollback to ${tag?.name ?? target.slice(0, 8)}`;
     const rolled = await exec('npx', ['wrangler', 'rollback', target, '--message', msg, '-y'], { stream: true });
     if (rolled.code !== 0) return stop('failed', rolled.code, `wrangler rollback failed (exit ${rolled.code}); check \`npx wrangler deployments status\`.`);
     log(`rollback: ${target} is live again (from ${live}).`);
 
-    // 4. The trace.
     if (tag) {
       const name = tagName('rollback', now(), target);
-      // The target's data fields (dataVersion, catalogueKey…), not its deploy's own.
       const own = new Set(['versionId', 'previousVersionId', 'commit', 'backfilled', 'source', 'startupMs', 'actionsRun', 'rolledBackFrom', 'targetTag']);
       const data = Object.fromEntries(Object.entries(tag.fields).filter(([k]) => !own.has(k)));
       const made = await createAndPushTag({

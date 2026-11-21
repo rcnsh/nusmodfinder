@@ -1,7 +1,4 @@
 // @ts-check
-// scripts/vectors.mjs and scripts/vectors-manifest.mjs: the committed fixture bundle is what the builder makes,
-// the manifest checks catch a wrong file, vectors are keyed by text, and the
-// `vectors-bundle` alias defaults to the fixture everywhere.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -27,7 +24,6 @@ describe('the fixture bundle (B-9)', () => {
     expect(entry).toMatchObject({ corpus: 'fixture', count: fixture.modules.length, path: 'test/fixtures/vectors.bin', bytes: committed.length });
     expect(entry.sha256).toBe(createHash('sha256').update(committed).digest('hex'));
     expect(entry.rowsKey).toBe(await rowsKey(fixture.modules));
-    // About 400 × 384 × 4 B, well under a megabyte.
     expect(committed.length).toBeLessThan(700_000);
   });
 
@@ -51,7 +47,7 @@ describe('manifest checks (B-2)', () => {
       const sha = createHash('sha256').update(bytes).digest('hex');
       const { bundle } = await loadCheckedBundle({ corpus: 'production', embedding: 'e1', model: 'm', count: 3, dataVersion: '', rowsKey: '', sha256: sha, bytes: bytes.length }, path)
         .catch((err) => ({ bundle: null, err }));
-      expect(bundle).toBeNull(); // header dataVersion/rowsKey differ from the (empty) entry
+      expect(bundle).toBeNull();
       const header = JSON.parse(Buffer.from(bytes.subarray(12, 12 + new DataView(bytes.buffer).getUint32(8, true))).toString('utf8'));
       const entry = { corpus: /** @type {const} */ ('production'), embedding: 'e1', model: 'm', count: 3, dataVersion: header.dataVersion, rowsKey: header.rowsKey, sha256: sha, bytes: bytes.length };
       expect((await loadCheckedBundle(entry, path)).bundle.count).toBe(3);
@@ -126,7 +122,6 @@ describe('the vocabulary-data and groups-data aliases', () => {
         'vocabulary-data': join(ws, 'data/vocabulary.json'),
         'groups-data': join(ws, 'data/groups.json'),
         'ng-unscheduled-data': join(ws, 'data/ng-unscheduled.json'),
-        // The run corpus's catalogue codes and prefixes (eval/lib/corpus.mjs writeRunCatalogue).
         'catalogue-codes-data': join(ws, 'data/catalogue-codes.json'),
         'prefixes-data': join(ws, 'data/prefixes.json'),
       });

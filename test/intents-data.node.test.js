@@ -1,8 +1,4 @@
 // @ts-check
-// The fields the constraint intents filter on, derived by normalise()
-// (scripts/lib.mjs), bound by ingest and hashed into row_hash (src/rowhash.js),
-// and carried in the bundle's filter table
-// (src/vector-bundle.js, bytes 20–27).
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { COHORT_ONLY, isCohortOnly } from '../eval/query-rules/cohort-only.mjs';
@@ -50,7 +46,6 @@ describe('normalise() derives the intent fields', () => {
 
   it('prerequisites: none iff the field is absent; cohort-only by the eval\'s rule', () => {
     expect(norm({ prerequisite: undefined })).toMatchObject({ prereqNone: true, prereqCohortOnly: false });
-    // ACC1701XA's and ACC2706's texts, the rule's own checks (cohort-only-prereq.json).
     expect(isCohortOnly(COHORT)).toBe(true);
     expect(norm({ prerequisite: COHORT })).toMatchObject({ prereqNone: false, prereqCohortOnly: true });
     expect(norm({ prerequisite: COURSE })).toMatchObject({ prereqNone: false, prereqCohortOnly: false });

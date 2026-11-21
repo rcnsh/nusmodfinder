@@ -1,7 +1,4 @@
 // @ts-check
-// .github/workflows/drift.yml stays thin and harmless. It may read NUSMods'
-// public API and write issues, nothing else: no Cloudflare call, no live-site call, no secret but
-// the run's own GITHUB_TOKEN. Text checks (the repo has no YAML parser, and needs none for this).
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CHECK_FOR_SCHEDULE } from '../scripts/drift.mjs';
@@ -9,7 +6,6 @@ import { CHECK_FOR_SCHEDULE } from '../scripts/drift.mjs';
 const read = (/** @type {string} */ p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const workflow = read('.github/workflows/drift.yml');
 const script = read('scripts/drift.mjs');
-/** The workflow without its comments. */
 const code = workflow.split('\n').filter((l) => !/^\s*#/.test(l)).map((l) => l.replace(/\s+#.*$/, '')).join('\n');
 
 describe('the drift workflow', () => {
@@ -26,7 +22,6 @@ describe('the drift workflow', () => {
     const [monthly] = crons.filter((c) => CHECK_FOR_SCHEDULE[c] === 'monthly');
     expect(weekly.split(' ').slice(2)).toEqual(['*', '*', expect.stringMatching(/^[0-6]$/)]);
     expect(monthly.split(' ').slice(2)).toEqual(['1', '*', '*']);
-    // The workflow passes the schedule to the script, which maps it; the YAML has no logic of its own.
     expect(code).toContain('github.event.schedule');
     expect(code).toMatch(/workflow_dispatch:/);
   });
@@ -39,7 +34,6 @@ describe('the drift workflow', () => {
 
   it('reads only NUSMods\' public API, and writes only GitHub issues', () => {
     const hosts = (/** @type {string} */ t) => [...new Set([...t.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1].toLowerCase()))];
-    // GitHub's own hosts: the issues API, the run's URL, and the docs the 60-day note cites.
     const allowed = new Set(['api.nusmods.com', 'api.github.com', 'github.com', 'docs.github.com']);
     expect(hosts(script).filter((h) => !allowed.has(h))).toEqual([]);
     expect(hosts(script)).toContain('api.nusmods.com');

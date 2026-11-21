@@ -1,13 +1,4 @@
 // @ts-check
-// The exchange-eligibility oracle over the shortlist, shared by the pinned run (test/oracle/paths.test.js) and the
-// fixture run (test/shortlist-oracle.test.js). Each code's /module answer is
-// fetched once through the page's own client (public/api.js) and read by
-// public/shortlist.js's answerOf and workOut, as a one-entry list at Sem 1 and
-// at Sem 2, at each study level and in browse mode. Against the oracle
-// (test/oracle/oracle.mjs, with the year-of-study note), a closed case is never counted (not in
-// the semester's totals, standing "out"), has no form number and carries its
-// closed stamp; an open or noted one takes part. In browse mode no entry gets a
-// form number.
 import { createModuleClient } from '../public/api.js';
 import { emptyList } from '../public/list.js';
 import { answerOf, workOut } from '../public/shortlist.js';
@@ -22,10 +13,8 @@ const TAKES_PART = ['counted', 'confirm', 'invite'];
  */
 
 /**
- * What is wrong with the shortlist over these modules, as lines (empty when
- * nothing is), and how many cases were checked.
- * @param {OracleModule[]} modules every offered module, and every NG-listed code with no classes (semesters [])
- * @param {typeof fetch} pageFetch the page's fetch, answered by the Worker under test
+ * @param {OracleModule[]} modules
+ * @param {typeof fetch} pageFetch
  * @returns {Promise<{ wrong: string[], closed: number, shown: number, browse: number }>}
  */
 export async function shortlistAgainstOracle(modules, pageFetch) {
@@ -59,7 +48,6 @@ export async function shortlistAgainstOracle(modules, pageFetch) {
           if (w.status !== want) wrong.push(`${at}: oracle ${want}, stamp ${w.status}`);
         }
       }
-      // Browse mode: no study level, no exchange status, and no form number for anything.
       const r = workOut({ list, sem, study: '', answers, rules: null });
       browse++;
       if (r.entries[0].form.number !== null) wrong.push(`${m.code} sem ${sem} browse: form number ${r.entries[0].form.number}`);

@@ -1,7 +1,4 @@
 // @ts-check
-// The code-target rule through the CLIs: the cutoff check on five code
-// queries of the committed dev qrels, and `eval:judge -- code-rule --holdout` printing
-// counts only (a dev-derived fixture encrypted as holdout, throwaway key).
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -36,8 +33,6 @@ describe('a cutoff that empties code queries (dev)', () => {
   it('emptying the five code queries fails --change-kind cutoff: they are answerable losses, not correct empties', async () => {
     const querySet = await readJson('eval/dev/queries.json');
     const qrels = await readJson('eval/dev/qrels.json');
-    // A baseline that answers every query from the committed qrels (best grade
-    // first), so every top 10 is judged; a query with no judgments returns nothing.
     /** @type {Record<string, { status: number, codes: string[] }>} */
     const results = {};
     for (const q of querySet.queries) {
@@ -64,14 +59,11 @@ describe('a cutoff that empties code queries (dev)', () => {
     const check = (/** @type {RegExp} */ re) => out.verdict.checks.find((/** @type {{ name: string }} */ c) => re.test(c.name));
     expect(check(/correct-empty gain/).pass).toBe(false);
     expect(check(/answerable nDCG@10 loss/).pass).toBe(false);
-    // The five are answerable now, so emptying them earns no no-answer credit.
     expect(out.comparison.noAnswer.delta).toBe(0);
   });
 });
 
 describe('eval:judge -- code-rule on an encrypted set', () => {
-  // Dev code queries (public) standing in for holdout ones, a synthetic
-  // corpus of their targets, and qrels with judge-A grades to override.
   const CODES = ['BN4207', 'LL4541V', 'LL4541', 'MLE2105', 'MA2101', 'MA2101S', 'EE4502', 'CN2109', 'CN2109X', 'CS2030', 'CS2030S', 'IS4246',
     'MUL2107', 'MUL2109', 'DAO1704X', 'GEC1001', 'GEC1002', 'GEC1003', 'ZZ1000', 'ZZ2000'];
   const title = (/** @type {string} */ c) => `Secret Title ${c.split('').reverse().join('')}`;
@@ -120,23 +112,20 @@ describe('eval:judge -- code-rule on an encrypted set', () => {
     for (const s of secrets) expect(printed, `printed "${s}"`).not.toContain(s);
     expect(printed).toMatch(/queries affected: \d+/);
     expect(printed).toMatch(/A grades overridden: \d+ \(\d+ up, \d+ down, \d+ unchanged\)/);
-    // The ledger is untouched and no lock was taken.
     expect(existsSync(join(REPO, LEDGER)) ? await readFile(join(REPO, LEDGER), 'utf8') : null).toBe(ledgerBefore);
     expect(existsSync(join(REPO, `${LEDGER}.lock`))).toBe(false);
-    // The qrels were written, encrypted, with the rule grades.
     const out = await readEncryptedJson(join(dir, 'qrels.json.enc'), await readKey(keyFile), 'holdout');
     expect(out.version).toBe('qrels-holdout-v2');
     expect(out.judging.at(-1)).toMatchObject({ round: CODE_RULE, mode: 'rule', overrides: { total: 2, up: 1, down: 1, same: 0 } });
     const cn = queries.find((q) => q.target === 'CN2109');
     expect(out.queries[cn.id].judgments.CN2109).toMatchObject({ grade: 2, source: 'rule' });
-    expect(out.queries[cn.id].judgments.CN2109X).toMatchObject({ grade: 0, source: 'rule' }); // a variant, but not open to NG students
+    expect(out.queries[cn.id].judgments.CN2109X).toMatchObject({ grade: 0, source: 'rule' });
     expect(existsSync(join(dir, 'qrels.json'))).toBe(false);
   });
 
   it('updates only the qrels entry of the manifest: a tampered ciphertext stays flagged', async () => {
     const dir = await makeSet('holdout-manifest', true);
     const hash = async (/** @type {string} */ f) => createHash('sha256').update(await readFile(join(dir, f))).digest('hex');
-    // A manifest that vouches for a run file, which is then swapped for other bytes.
     await mkdir(join(dir, 'runs'), { recursive: true });
     await writeFile(join(dir, 'runs', 'run-v0.json.enc'), 'original');
     const vouched = await hash('runs/run-v0.json.enc');

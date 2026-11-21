@@ -1,8 +1,4 @@
 // @ts-check
-// Fake Workers AI for the eval runner: returns real bge-small-en-v1.5
-// vectors precomputed by scripts/embed.mjs, looked up by
-// sha256(model + "\n" + text). Any text without one is a loud failure, never
-// a made-up vector, so the eval can only ever measure real embeddings.
 
 /**
  * @typedef {{ model: string, dims: number, keys: string[], b64: string }} Lookup
@@ -23,10 +19,8 @@ async function sha256Hex(s) {
 }
 
 export class LookupAI {
-  /** Every call, in order (the shape test/fakes.js uses). */
   /** @type {{ method: string, args: unknown[] }[]} */
   calls = [];
-  /** Texts asked for that had no precomputed vector, since the last reset. */
   /** @type {string[]} */
   missing = [];
 
@@ -67,8 +61,6 @@ export class LookupAI {
       data.push(Array.from(this.vectors.subarray(row * this.dims, (row + 1) * this.dims)));
     }
     if (missingKeys.length) {
-      // Names the key prefix, never the text: holdout query text must not
-      // reach logs or error output.
       throw new Error(
         `eval fake AI: no precomputed embedding for ${missingKeys.length} text(s) (sha256 ${missingKeys.join(', ')}); `
           + 'run `npm run eval:embed` locally to add them',

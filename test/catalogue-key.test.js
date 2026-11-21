@@ -1,8 +1,4 @@
 // @ts-check
-// The Worker reports D1's catalogueKey (src/rowhash.js, over the
-// catalogue_only codes) in GET /admin/hashes, the deploy guard's read, and in
-// POST /admin/verify `{ preDeploy: true }`, the read of `verify --pre-deploy`,
-// which refuses a key that is not the bundled catalogue file's.
 import { describe, expect, it } from 'vitest';
 import { runPreDeployVerify } from '../scripts/verify-core.mjs';
 import { catalogueKey } from '../src/rowhash.js';
@@ -18,7 +14,6 @@ import { adminApi } from './ingest-support.js';
 const CODES = ['ZZ1000', 'ZZ1001', 'ZZ1002'];
 const YEAR = fixture.modules[0].acadYear;
 
-/** Seeds the fixture and three catalogue_only rows. */
 async function seeded() {
   const fakes = await seed();
   const res = await adminCall('/admin/catalogue', fakes, { upsert: CODES.map((code) => ({ code, title: `Old ${code}`, description: null, acadYear: YEAR })) });

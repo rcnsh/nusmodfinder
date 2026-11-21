@@ -27,3 +27,8 @@ location"); the only way to an APAC primary is a new database.
   binding change in `wrangler.jsonc`.
 - Warm-search latency is set by the embedding call and the dense half; ADR 0006 moved the dense
   half into the Worker for that reason.
+
+## In the code
+- The admin routes in `src/ingest.js` read and write through `env.DB`, the primary, never a
+  `withSession()` replica (`readSession`, `src/modules.js`, is for searches), so ingest's hash
+  comparison and the facets rebuild never read a lagging copy.

@@ -1,26 +1,8 @@
 // @ts-check
-// Typos and prefixes: parse step 3, on the canonical q. For each
-// pre-correction token with df 0 in the corpus vocabulary, letter-only:
-//   1. 4+ letters: an FTS prefix term `"psych"*` (0006's prefix index);
-//   2. only if that prefix term matches nothing (decided from the vocabulary)
-//      and the token has 5+ letters: correct it to the nearest vocabulary term
-//      by OSA distance, ≤ 1 for 5–7 letters and ≤ 2 for 8+, ties to the higher
-//      df, then the lexicographically smaller term;
-//   3. the original stays in the OR, as its prefix term.
-// The corrected text is what every later parse step reads. Pure.
 import { FTS_SEPARATORS } from './fts-separators.js';
 import { queryTokens } from './fts-query.js';
 import { dfOf, nearestTerm, prefixMatches } from './vocabulary.js';
 
-/**
- * The pre-registered variants. Each typo ref differs from
- * the other only in TYPO_VARIANT (`3c1` or `3c2`), so the ranker tree hash
- * names the variant the eval scored.
- * - `3c1`: the lexical half only; the dense half embeds the query as typed.
- * - `3c2`: also embeds the corrected text, a second single-text call in
- *   parallel with the first; the dense half takes each module's better cosine
- *   of the two (src/search.js mergeDense).
- */
 export const TYPO_VARIANTS = Object.freeze({
   '3c1': Object.freeze({ embedCorrected: false }),
   '3c2': Object.freeze({ embedCorrected: true }),
@@ -30,41 +12,28 @@ export const TYPO_VARIANTS = Object.freeze({
 /** @type {TypoVariant} */
 export const TYPO_VARIANT = '3c2';
 
-/** Whether the dense half also embeds the corrected text (`3c2`). */
 export const EMBED_CORRECTED = TYPO_VARIANTS[TYPO_VARIANT].embedCorrected;
 
-/** A df-0 token this long becomes a prefix term. */
 export const PREFIX_MIN_LETTERS = 4;
-/** A df-0 token this long whose prefix term matches nothing is corrected. */
 export const CORRECT_MIN_LETTERS = 5;
-/** The OSA bound for a token of `letters` letters: 1 for 5–7, 2 for 8+. @param {number} letters */
+/** @param {number} letters */
 export const maxDistance = (letters) => (letters >= 8 ? 2 : 1);
 
 const LETTERS = /^[a-z]+$/;
-/** Splits text into tokens and the separator runs between them, keeping both. */
 const PIECES = new RegExp(`(${FTS_SEPARATORS.source})`, FTS_SEPARATORS.flags);
 
 /**
  * @typedef {{ from: string, to: string }} Correction
  * @typedef {{ tokens: string[], text: string, prefixes: string[], corrections: Correction[] }} CorrectedQuery
- *   `tokens`: the pre-correction tokens (queryTokens of q; the no-signal
- *   vocabulary test reads them). `text`: q with each corrected token replaced, separators
- *   kept. `prefixes`: the df-0 tokens of 4+ letters, in query order, each an FTS
- *   prefix term. `corrections`: original → vocabulary term, in query order.
  */
 
-/**
- * The last correction, kept because /search parses a query more than once
- * when D1 has to say whether a code is offered (src/search.js
- * parseWithCorpus), and the nearest-term scan is the costly part.
- * @type {{ q: string, vocab: import('./vocabulary.js').Vocabulary, result: CorrectedQuery } | null}
- */
+/** @type {{ q: string, vocab: import('./vocabulary.js').Vocabulary, result: CorrectedQuery } | null} */
 let last = null;
 
 /**
- * @param {string} q the canonical q
+ * @param {string} q
  * @param {import('./vocabulary.js').Vocabulary} vocab
- * @returns {CorrectedQuery} not to be mutated (it may be returned again)
+ * @returns {CorrectedQuery}
  */
 export function correctQuery(q, vocab) {
   if (last && last.q === q && last.vocab === vocab) return last.result;
@@ -91,9 +60,6 @@ function correct(q, vocab) {
     const near = nearestTerm(vocab, t, maxDistance(t.length));
     if (near !== null) to.set(t, near);
   }
-  // Pieces are matched lower-cased as queryTokens lower-cases them: the
-  // canonical q lower-cases ASCII only, so `mar\u212Aetng` (KELVIN SIGN) is
-  // the token `marketng`.
   const text = to.size ? q.split(PIECES).map((piece) => to.get(piece.toLowerCase()) ?? piece).join('') : q;
   return { tokens, text, prefixes, corrections: [...to].map(([from, t]) => ({ from, to: t })) };
 }

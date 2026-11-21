@@ -1,9 +1,4 @@
 // @ts-check
-// Reference reading of the cohort-only prerequisite rule
-// (eval/query-rules/cohort-only-prereq.json). The ingest derives
-// `prereq_cohort_only` from the same rule (mirrored in data/cohort-only-prereq.json);
-// this module gives it one executable reading that the query-rule tests and
-// the corpus count share.
 import { readFileSync } from 'node:fs';
 
 /** @type {any} */
@@ -12,7 +7,7 @@ export const COHORT_ONLY = JSON.parse(readFileSync(new URL('./cohort-only-prereq
 /**
  * @param {string | null | undefined} prerequisite
  * @param {any} [spec]
- * @returns {boolean} true iff the text is only a cohort or programme restriction (NULL is false)
+ * @returns {boolean}
  */
 export function isCohortOnly(prerequisite, spec = COHORT_ONLY) {
   if (prerequisite === null || prerequisite === undefined || prerequisite.trim() === '') return false;

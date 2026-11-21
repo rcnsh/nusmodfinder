@@ -1,20 +1,4 @@
 // @ts-check
-// Writes (never runs) the SQL file for applying one migration to the remote D1
-// with `wrangler d1 execute --remote --file` (ADR 0001).
-//
-//   node scripts/remote-migration.mjs 0006_fts_external [--bootstrap]
-//
-// Output: /tmp/vnm-remote-<name>.sql =
-//   [--bootstrap] wrangler's d1_migrations DDL + INSERT OR IGNORE rows for the
-//                 hand-applied 0001–0005,
-//   the migration body, verbatim,
-//   INSERT INTO d1_migrations(name) VALUES('<file>').
-// Migration files stay clean (no d1_migrations insert) because local apply,
-// applyD1Migrations and the rebuild check record the row themselves.
-//
-// Also prints an estimate of the rows the body writes, from a local run over
-// the full pinned corpus in node:sqlite (total_changes() plus the entries of
-// every index the body creates). Skipped with a note if .data/ is absent.
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,14 +6,12 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const MIGRATIONS_DIR = join(ROOT, 'migrations');
 
-/** Wrangler's own table DDL (cli.js `initMigrationsTable`), byte for byte. */
 export const WRANGLER_MIGRATIONS_DDL =
   'CREATE TABLE IF NOT EXISTS d1_migrations(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)';
 
-/** Applied to production by hand before migration tracking existed (ADR 0001). */
 export const BOOTSTRAP_APPLIED = ['0001_init.sql', '0002_fts.sql', '0003_ng.sql', '0004_meta.sql', '0005_rank.sql'];
 
-/** @param {string} name `0006_fts_external` or `0006_fts_external.sql` */
+/** @param {string} name */
 export function migrationFile(name) {
   const file = name.endsWith('.sql') ? name : `${name}.sql`;
   if (!/^\d{4}_[a-z0-9_]+\.sql$/.test(file)) throw new Error(`not a migration file name: ${name}`);
@@ -41,10 +23,7 @@ export function outputPath(file) {
   return `/tmp/vnm-remote-${file.replace(/\.sql$/, '')}.sql`;
 }
 
-/**
- * The wrapper SQL. Pure, so the test can assert its exact structure.
- * @param {{ file: string, body: string, bootstrap: boolean }} opts
- */
+/** @param {{ file: string, body: string, bootstrap: boolean }} opts */
 export function remoteWrapper({ file, body, bootstrap }) {
   if (BOOTSTRAP_APPLIED.includes(file)) throw new Error(`${file} is one of the hand-applied migrations`);
   if (/d1_migrations/i.test(body.replace(/--[^\n]*/g, ''))) throw new Error(`${file} must not touch d1_migrations itself`);
@@ -59,8 +38,6 @@ export function remoteWrapper({ file, body, bootstrap }) {
 }
 
 /**
- * Applies every migration before `file`, loads `modules`, then runs `file`
- * and counts what it wrote.
  * @param {string} file
  * @param {NormalisedModule[]} modules
  * @returns {Promise<{ totalChanges: number, indexEntries: Record<string, number>, rowsWritten: number }>}
@@ -90,8 +67,6 @@ export async function estimateWrites(file, modules) {
   db.exec(readFileSync(join(MIGRATIONS_DIR, file), 'utf8'));
   const totalChanges = changes() - c0;
 
-  // CREATE INDEX is not DML, so total_changes() misses its entries; D1 bills
-  // them as rows written. Count each new index's rows (partial: its WHERE).
   /** @type {Record<string, number>} */
   const indexEntries = {};
   for (const [name, { tbl, sql }] of indexes()) {

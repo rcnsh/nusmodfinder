@@ -1,9 +1,4 @@
 // @ts-check
-// The restrictions builder reads its year's overlay (scripts/ng-overlay/<year>.mjs) and documents
-// through the year's source manifest, and finds the self-funded list and the off-list rule by
-// role, not by an id a new year may rename. From documents matching the manifest, the builder
-// writes the committed rules file byte for byte (here from fakes that hold the committed lists, so only `sourceSha256`, which
-// names the documents, differs, and that is checked equal to the manifest's hashes separately).
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -50,13 +45,11 @@ describe('the restrictions builder, through the manifest', () => {
   it('rebuilds the committed rules file byte for byte from documents matching the manifest', async () => {
     expect(await main(['--sources', docs, '--check'], { root, log })).toBe(0);
     expect(lines.join('\n')).toMatch(/rebuilds byte for byte/);
-    // The temp tree's rules file differs from the repo's only in sourceSha256 (the fakes' hashes) ...
     const rel = `data/ng-restrictions-${Y}.json`;
     const committed = readFileSync(join(REPO, rel), 'utf8');
     const real = JSON.parse(committed);
     expect(readFileSync(join(root, rel), 'utf8')).toBe(`${JSON.stringify({ ...real, sourceSha256: readJson(root, rel).sourceSha256 }, null, 1)}\n`);
     expect(`${JSON.stringify(real, null, 1)}\n`).toBe(committed);
-    // ... and the repo's sourceSha256 is the manifest's hashes for the real documents.
     expect(real.sourceSha256).toEqual(builderHashes(latestRevision(manifest)));
   });
 

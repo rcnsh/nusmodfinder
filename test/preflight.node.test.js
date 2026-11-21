@@ -1,10 +1,4 @@
 // @ts-check
-// `npm run deploy -- --preflight` runs every check but D1's, for HEAD, and writes a run record:
-// the git checks, CI green on HEAD's push run, the vars, the bundle, the corpus manifest and
-// `year check` (each skipped, and said so, while its
-// module is absent), a committed `year check --full` record when HEAD changes a source-derived
-// input, and `wrangler check startup`. It refuses on each failing check and writes nothing
-// remote. git, gh and wrangler are a fake exec (test/deploy-fakes.js).
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -40,7 +34,6 @@ async function preflight(exec, o = {}) {
   return { code, out: out.join('\n'), d1Asked };
 }
 
-/** Calls that would touch a remote other than reads: any wrangler command but the local startup check, a tag, a push. */
 const remoteWrites = (/** @type {string[][]} */ calls) => calls.filter((c) => (c[0] === 'npx' && c[2] !== 'check') || (c[0] === 'git' && (c[1] === 'tag' || c[1] === 'push')));
 
 describe('npm run deploy -- --preflight', () => {
@@ -76,7 +69,6 @@ describe('npm run deploy -- --preflight', () => {
       ['startup', { check: { code: 2 } }, /wrangler check startup failed/],
     ];
     for (const [name, over, msg] of cases) {
-      // Records made in the same (fixed) second sort by their random suffix: one per case.
       rmSync(runsDir, { recursive: true, force: true });
       mkdirSync(runsDir);
       const { exec, calls } = fakeExec(over);
@@ -135,18 +127,15 @@ describe('the year check --full record is needed only when a source-derived inpu
   it('the source-derived paths', () => {
     for (const p of [NG, `data/ng-restrictions-${Y}.json`, `data/ng-sources-${Y}.json`, 'data/ng-reasons.json', `scripts/ng-overlay/${Y}.mjs`]) expect(isSourceInput(p), p).toBe(true);
     for (const p of ['data/groups.json', 'src/search.js', 'scripts/ingest.mjs', 'data/vectors.json']) expect(isSourceInput(p), p).toBe(false);
-    // A corpus-only refresh rewrites data/ng-unscheduled.json (it follows production) and needs no sources key.
     expect(isSourceInput('data/ng-unscheduled.json')).toBe(false);
   });
 
-  // A hand edit to the NG course list must need a record of its own.
   it('the inputs hash covers data/ng-courses-*: a change to its blob alone moves the hash', async () => {
     const other = LS_TREE.replace(`${'a'.repeat(40)}\t${NG}`, `${'d'.repeat(40)}\t${NG}`);
     expect(other).not.toBe(LS_TREE);
     const before = await sourceInputsHash(fakeExec({ 'git ls-tree -r HEAD': { stdout: LS_TREE } }).exec);
     const after = await sourceInputsHash(fakeExec({ 'git ls-tree -r HEAD': { stdout: other } }).exec);
     expect(after).not.toBe(before);
-    // And a change outside the source-derived inputs leaves it alone.
     const code = LS_TREE.replace(`${'c'.repeat(40)}\tsrc/search.js`, `${'e'.repeat(40)}\tsrc/search.js`);
     expect(await sourceInputsHash(fakeExec({ 'git ls-tree -r HEAD': { stdout: code } }).exec)).toBe(before);
   });
@@ -173,7 +162,6 @@ describe('the year check --full record is needed only when a source-derived inpu
     expect((await preflight(withRecord(yearRecord(hash)))).code).toBe(0);
     expect((await preflight(withRecord(yearRecord('f'.repeat(64))))).code).toBe(1);
     expect((await preflight(withRecord(yearRecord(hash, 'failed')))).code).toBe(1);
-    // A record without details.ngList never re-extracted the NG list: it covers nothing.
     expect((await preflight(withRecord(yearRecord(hash, 'ok', {})))).code).toBe(1);
     expect((await preflight(withRecord(yearRecord(hash, 'ok', { ngList: { result: 'differs' } })))).code).toBe(1);
   });
@@ -197,8 +185,6 @@ describe('the year check --full record is needed only when a source-derived inpu
   });
 });
 
-// wranglerVars parses wrangler.jsonc as JSONC: a pattern match over the text would answer {} for
-// an object-valued var and let the vars check pass blind.
 describe('the vars check reads wrangler.jsonc as JSONC', () => {
   /** @type {string} */
   let tmp;

@@ -1,8 +1,4 @@
 // @ts-check
-// The fonts: IBM Plex Sans (400, 500, 600) and Plex Mono (400,
-// 500), self-hosted as WOFF2 under public/fonts/ with their SIL OFL licence,
-// `font-display: swap` and a fallback stack; the page makes no request to any
-// other origin; and neither face draws a slashed or dotted zero.
 import { expect, test } from '@playwright/test';
 
 test('the page loads only from its own origin: fonts, styles and scripts included', async ({ page, baseURL }) => {
@@ -41,7 +37,6 @@ test('every weight the page uses is loaded, and each face swaps in (font-display
   expect(faces.rules.sort()).toEqual([
     'IBM Plex Mono 400 swap', 'IBM Plex Mono 500 swap', 'IBM Plex Sans 400 swap', 'IBM Plex Sans 500 swap', 'IBM Plex Sans 600 swap',
   ]);
-  // WebKit leaves the quotes out of the computed value.
   expect(faces.body).toMatch(/^"?IBM Plex Sans"?, system-ui, .*sans-serif$/);
   expect(faces.code).toMatch(/^"?IBM Plex Mono"?, ui-monospace, .*monospace$/);
 });
@@ -71,10 +66,8 @@ test('neither face draws a slashed or dotted zero: the middle of every 0 the pag
   await expect(card).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   /**
-   * The share of dark pixels in the middle fifth of the ink a "0" in `el`
-   * draws at 200px, from a screenshot (so the page's own font features apply).
    * @param {import('@playwright/test').Locator} el
-   * @param {string} [features] a font-feature-settings value to force, for the controls
+   * @param {string} [features]
    */
   const middleInk = async (el, features) => {
     await el.evaluate((node, f) => {
@@ -85,7 +78,6 @@ test('neither face draws a slashed or dotted zero: the middle of every 0 the pag
     }, features);
     const png = (await el.screenshot()).toString('base64');
     return page.evaluate(async (b64) => {
-      // Decoded in place, not fetched: the page's CSP (connect-src 'self') refuses a data: fetch.
       const bytes = Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
       const bmp = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
       const c = new OffscreenCanvas(bmp.width, bmp.height);
@@ -108,7 +100,6 @@ test('neither face draws a slashed or dotted zero: the middle of every 0 the pag
     'Plex Sans 400 (department)': card.locator('.meta .dept'),
   };
   for (const [face, el] of Object.entries(faces)) expect(await middleInk(el), face).toBe(0);
-  // Controls: the probe sees Plex Mono's own dotted zero and its slashed one.
   await page.reload();
   await expect(card).toBeVisible();
   expect(await middleInk(card.locator('.units'), 'normal')).toBeGreaterThan(0.05);

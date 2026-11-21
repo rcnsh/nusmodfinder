@@ -1,8 +1,4 @@
 // @ts-check
-// scripts/ingest-core.mjs runIngest against the real Worker routes, local D1
-// and the fake Vectorize: the guards that stop a run before any write, the
-// write budget and resuming through the hash skip, deletes only after a clean
-// upsert phase, the Vectorize mutation wait, and the data version.
 import { applyD1Migrations, reset } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -12,7 +8,6 @@ import { createFakes, hashEmbed } from './fakes.js';
 import { adminCall, fixture, seed } from './helpers.js';
 import { adminApi } from './ingest-support.js';
 
-/** scripts/lib.mjs EMBEDDING_TEXT_VERSION (lib.mjs needs node:crypto, which workerd lacks here). */
 const EMBEDDING_TEXT_VERSION = 2;
 
 const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
@@ -20,7 +15,6 @@ const MODEL = '@cf/baai/bge-small-en-v1.5';
 
 /** @type {import('./fakes.js').Fakes} */
 let fakes;
-/** A fake clock the injected sleep advances, so waits cost no wall time. */
 let clock = 0;
 const sleep = async (/** @type {number} */ ms) => { clock += ms; };
 const now = () => clock;
@@ -35,14 +29,12 @@ const ingest = (modules, options = {}, extra = {}) => runIngest({
   sleep, now, ...(extra.pending ? { pending: extra.pending } : {}),
 });
 
-/** An in-memory stand-in for the CLI's .data/ingest-state.json. */
 const memoryPending = () => {
   /** @type {import('../scripts/ingest-core.mjs').PendingMutation | null} */
   let p = null;
   return { read: async () => p, write: async (/** @type {import('../scripts/ingest-core.mjs').PendingMutation | null} */ next) => { p = next; } };
 };
 
-/** env.DB whose DELETE statements throw, everything else passed through. */
 const deleteFailsDb = () => ({
   prepare: (/** @type {string} */ sql) => (/^\s*DELETE\b/i.test(sql)
     ? { bind: () => ({ all: async () => { throw new Error('d1: DELETE failed'); } }) }
@@ -114,7 +106,6 @@ describe('guards: refuse before any write', () => {
   });
 
   it('refuses when the deletes exceed 5% of D1, even when the corpus is as large as D1', async () => {
-    // Same size, entirely different codes: the count check alone passes this.
     const renamed = fixture.modules.map((m) => ({ ...m, code: `Q${m.code}` }));
     const refused = await ingest(renamed);
     expect(refused.status).toBe('refused');
@@ -128,7 +119,6 @@ describe('guards: refuse before any write', () => {
   it('refuses a corpus for another acad year than D1 holds unless allowYearChange; /admin/hashes reports the year', async () => {
     const hashes = await (await adminCall('/admin/hashes', fakes)).json();
     expect(/** @type {any} */ (hashes).acadYears).toEqual({ '2026-2027': fixture.modules.length });
-    // 96% of the same codes: inside the mass-delete threshold.
     const otherYear = fixture.modules.slice(0, Math.ceil(fixture.modules.length * 0.96)).map((m) => ({ ...m, acadYear: '2019-2020' }));
     const refused = await ingest(otherYear);
     expect(refused.status).toBe('refused');
@@ -148,7 +138,6 @@ describe('guards: refuse before any write', () => {
     const [x] = fixture.modules;
     await adminCall('/admin/ingest', fakes, { modules: [{ ...x, acadYear: '2019-2020' }] });
     expect(await ingest(fixture.modules)).toMatchObject({ status: 'done', plan: { rowOnly: 1 } });
-    // ...but a corpus for the minority year is a year change.
     await adminCall('/admin/ingest', fakes, { modules: [{ ...x, acadYear: '2019-2020' }] });
     const otherYear = fixture.modules.map((m) => ({ ...m, acadYear: '2019-2020' }));
     const rest = fixture.modules.length - 1;
@@ -183,7 +172,6 @@ describe('guards: refuse before any write', () => {
 
 describe('deletes', () => {
   it('run only when no upsert batch failed', async () => {
-    // A text change (new text_hash), so the batch needs Workers AI.
     const changed = fixture.modules
       .map((m, i) => (i === 0 ? { ...m, text: `${m.text} (revised)`, textHash: 'revised' } : m)).slice(0, -5);
     fakes.ai.throws('workers ai down');
@@ -204,7 +192,6 @@ describe('a delete that fails halfway', () => {
     const without = fixture.modules.filter((m) => m !== x);
     const failed = await ingest(without, { maxAttempts: 1 }, { db: deleteFailsDb() });
     expect(failed.status).toBe('failed');
-    // Vectorize deleted it; D1 still has the row.
     expect(fakes.vectorize.vectors.has(x.code)).toBe(false);
     expect(await rowCount()).toBe(fixture.modules.length);
 
@@ -217,7 +204,6 @@ describe('a delete that fails halfway', () => {
     const gone = fixture.modules.slice(0, 10);
     const result = await ingest(fixture.modules.slice(10));
     expect(result).toMatchObject({ status: 'done', deleted: 10 });
-    // Local D1: the UPDATE (1 per row) plus the DELETE (row + primary key).
     expect(result.rowsWritten).toBeGreaterThanOrEqual(3 * gone.length);
     expect(result.rowsCharged).toBe(Math.max(result.rowsWritten, gone.length * DEFAULTS.writesPerDelete));
   });
@@ -240,15 +226,12 @@ describe('row-only changes against a lagging Vectorize', () => {
     const [x] = fixture.modules;
     fakes.vectorize.deferApply = true;
     fakes.vectorize.processPerDescribe = 0;
-    // Run 1 re-embeds X and times out before Vectorize applies it.
     const revised = { ...x, text: `${x.text} Revised with quantum widgets.`, textHash: 'revised-text-hash' };
     const first = await ingest(fixture.modules.map((m) => (m === x ? revised : m)), { waitTimeoutMs: 0 });
     expect(first).toMatchObject({ status: 'wait-timeout', plan: { embed: 1 } });
-    // Run 2 changes only X's row; getByIds still returns the old vector.
     const second = await ingest(fixture.modules.map((m) => (m === x ? { ...revised, credits: 99 } : m)), { waitTimeoutMs: 0 });
     expect(second.plan).toMatchObject({ embed: 0, rowOnly: 1 });
     expect(second.embedded).toBe(1);
-    // Vectorize applies both, in order.
     fakes.vectorize.applyAll();
     const v = fakes.vectorize.vectors.get(x.code);
     expect(v?.values).toEqual(hashEmbed(revised.text));
@@ -276,7 +259,6 @@ describe('row-only changes against a lagging Vectorize', () => {
 
 describe('write budget', () => {
   it('stops cleanly before a batch would exceed it, never exceeds it, and a rerun resumes through the hash skip', async () => {
-    // Every row changes (row-only), so the whole fixture must be rewritten.
     const next = fixture.modules.map((m) => ({ ...m, credits: (m.credits ?? 0) + 1 }));
     const budget = 1200;
     const first = await ingest(next, { writeBudget: budget, batchSize: 25, concurrency: 3 });
@@ -288,7 +270,6 @@ describe('write budget', () => {
     expect(first.message).toMatch(/rerun the same command/);
     expect(first.dataVersion).toBeNull();
 
-    // Exactly the modules before resumeFrom were written.
     const done = next.filter((m) => m.code < /** @type {string} */ (first.resumeFrom));
     expect(done).toHaveLength(first.upserted);
 
@@ -317,7 +298,6 @@ describe('Vectorize mutation wait', () => {
     const corpus = fixture.modules.slice(0, -3).map((m, i) => (i < 120 ? { ...m, credits: 7 } : m));
     const result = await ingest(corpus, { batchSize: 50, waitIntervalMs: 2000 });
     expect(result.status).toBe('done');
-    // The last mutation is the deletes (they run last), and the wait targeted it.
     expect(result.lastMutationId).toBe(fakes.vectorize.mutations.at(-1));
     expect(fakes.vectorize.calls.at(-1)?.method).toBe('describe');
     const describes = fakes.vectorize.calls.filter((c) => c.method === 'describe').length;
@@ -339,7 +319,6 @@ describe('Vectorize mutation wait', () => {
     fakes.vectorize.processPerDescribe = 0;
     const result = await ingest(fixture.modules.map((m) => ({ ...m, credits: 7 })), { waitTimeoutMs: 30_000, waitIntervalMs: 5_000 });
     expect(result).toMatchObject({ status: 'wait-timeout', dataVersion: null });
-    // Polls at t = 0, 5, …, 30 s, then gives up rather than sleep past the deadline.
     expect(fakes.vectorize.calls.filter((c) => c.method === 'describe')).toHaveLength(7);
     expect(clock).toBeLessThanOrEqual(30_000);
   });
@@ -437,9 +416,6 @@ describe('the FTS charge follows the columns the 0006 FTS triggers watch', () =>
   });
 
   it('a forced run against production-format text_hash (main\'s hashOf(text)) is charged the same-text rate, and writes no FTS row', async () => {
-    // The seeded D1 is rewritten to main's text_hash (hashOf(text)), what
-    // production held after 0006 (plus row_hash NULL); the corpus carries this
-    // PR's text_hash, hash(model + text version + text), as the fixture does.
     const textHashOf = async (/** @type {string} */ text) => (await sha256Hex(JSON.stringify([MODEL, EMBEDDING_TEXT_VERSION, text]))).slice(0, 32);
     expect(fixture.modules[0].textHash).toBe(await textHashOf(fixture.modules[0].text));
     await env.DB.batch(await Promise.all(fixture.modules.map(async (m) =>
@@ -455,7 +431,6 @@ describe('the FTS charge follows the columns the 0006 FTS triggers watch', () =>
     const sameText = Math.floor(n / 50) * Math.ceil(50 * DEFAULTS.writesPerUpdate) + (n % 50 ? Math.ceil((n % 50) * DEFAULTS.writesPerUpdate) : 0);
     expect(result.rowsCharged).toBeGreaterThanOrEqual(sameText);
     expect(result.rowsCharged).toBeLessThan(n * (DEFAULTS.writesPerUpdate + 1));
-    // ...because the FTS update trigger did not fire: the shadow tables are byte-identical.
     expect(await ftsRows()).toBe(before);
   });
 });
@@ -482,7 +457,6 @@ describe('a pending mutation Vectorize has moved past', () => {
     expect(first.status).toBe('wait-timeout');
     expect(await pending.read()).toMatchObject({ id: first.lastMutationId, sentAt: t });
 
-    // Another client (another --url to the same Worker and index) mutates later.
     t += 60_000;
     await adminCall('/admin/ingest', fakes, { modules: [fixture.modules[1]] });
     fakes.vectorize.processPerDescribe = Infinity;
@@ -493,8 +467,6 @@ describe('a pending mutation Vectorize has moved past', () => {
   });
 });
 
-// Ingest deletes the catalogue_only codes the corpus lacks; without a guard, a truncated or hostile
-// NUSMods answer would empty the table.
 describe('catalogue_only has the modules\' mass-delete guard', () => {
   /** @param {{ code: string, title: string, description: string | null }[]} catalogue @param {Record<string, unknown>} [options] */
   const ingestCatalogue = (catalogue, options = {}) => runIngest({
@@ -524,8 +496,6 @@ describe('catalogue_only has the modules\' mass-delete guard', () => {
   });
 });
 
-// /admin/hashes and GET /admin/catalogue answer a row's hash only when the stored
-// row_hash agrees with the row's columns, so a row changed behind it is rewritten by the next run.
 describe('a row changed behind its row_hash is rewritten by the next ingest', () => {
   it('modules and catalogue_only alike', async () => {
     const catalogue = [{ code: 'ZZ1000', title: 'A course', description: null }];

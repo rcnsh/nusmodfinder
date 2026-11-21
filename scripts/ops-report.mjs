@@ -1,26 +1,4 @@
 // @ts-check
-// The monthly usage report, from Cloudflare's GraphQL Analytics API. Run on the Mac by hand,
-// monthly and after a deploy that changes the search path:
-//
-//   npm run ops:report -- [--month <yyyy-mm>]      (default: the current UTC month)
-//
-// It writes ops/reports/<month>.md and a run record. Two GraphQL calls, one combined query
-// for the month and one for the month before (for growth), at least 4 s apart.
-//
-// - Account-wide, each against its Workers Paid allowance: Worker requests and CPU, D1 rows read
-//   and written, Workers AI neurons on the busiest day.
-// - This Worker's share: requests, CPU, CPU per request p50 and p99, exceptions, requests by
-//   HTTP status, and its D1 database's rows.
-// - Flags: anything above 25% of its allowance, and anything that grew on the month before (a
-//   month in progress is projected over the whole month first).
-//
-// A dataset GraphQL couldn't answer is reported as missing, never as zero; the run then exits 1.
-//
-// The token and the account come from scripts/d1-read.mjs (resolveToken: CLOUDFLARE_API_TOKEN,
-// else `npx wrangler auth token --json`; resolveAccountId: CLOUDFLARE_ACCOUNT_ID, else wrangler's
-// cached account, else the one `wrangler whoami` lists), and the database from wrangler.jsonc
-// (d1Config). The token goes only into the Authorization header: never into the report, the run
-// record, a log line or an error. Neither is ever recorded.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -35,17 +13,8 @@ export const GRAPHQL_URL = 'https://api.cloudflare.com/client/v4/graphql';
 export const WORKER = 'nusmodfinder';
 export const DATABASE_NAME = 'nusmods-apac';
 export const MIN_SPACING_MS = 4000;
-/** A share of an allowance above this is flagged. */
 export const FLAG_SHARE = 0.25;
 
-/**
- * What Workers Paid includes, account-wide:
- * - Workers: 10 million requests and 30 million CPU milliseconds a month
- *   (https://developers.cloudflare.com/workers/platform/pricing/);
- * - D1: 25 billion rows read and 50 million rows written a month
- *   (https://developers.cloudflare.com/d1/platform/pricing/);
- * - Workers AI: 10,000 neurons a day (https://developers.cloudflare.com/workers-ai/platform/pricing/).
- */
 export const ALLOWANCES = Object.freeze({
   workerRequests: 10_000_000,
   workerCpuMs: 30_000_000,
@@ -54,11 +23,6 @@ export const ALLOWANCES = Object.freeze({
   neuronsPerDay: 10_000,
 });
 
-/**
- * One month's usage in one call. Workers filter on datetime and D1 and Workers AI on date, the
- * fields 7-0 confirmed by introspection. `worker` has no dimension but the script, so its
- * quantiles cover the whole month.
- */
 export const USAGE_QUERY = `query Usage($accountTag: string!, $from: Time!, $to: Time!, $dateFrom: Date!, $dateTo: Date!, $script: string!) {
   viewer {
     accounts(filter: { accountTag: $accountTag }) {
@@ -87,7 +51,6 @@ export const USAGE_QUERY = `query Usage($accountTag: string!, $from: Time!, $to:
   }
 }`;
 
-/** The aliased datasets USAGE_QUERY asks for. */
 export const DATASETS = /** @type {const} */ (['workersAccount', 'worker', 'workerStatus', 'd1', 'ai']);
 
 /**
@@ -106,9 +69,7 @@ const pad = (/** @type {number} */ n) => String(n).padStart(2, '0');
 const isoSeconds = (/** @type {Date} */ d) => d.toISOString().replace(/\.\d+Z$/, 'Z');
 
 /**
- * A calendar month in UTC: from its first second to its last, or to `now` while it runs.
- * `elapsed` is the share of the month that has passed (1 when complete).
- * @param {string} month yyyy-mm
+ * @param {string} month
  * @param {Date} now
  * @returns {MonthWindow}
  */
@@ -131,24 +92,25 @@ export function monthWindow(month, now) {
   };
 }
 
-/** @param {string} month yyyy-mm */
+/** @param {string} month */
 export function previousMonth(month) {
   const [y, m] = month.split('-').map(Number);
   return m === 1 ? `${y - 1}-12` : `${y}-${pad(m - 1)}`;
 }
 
-/** The current UTC month. @param {Date} now */
+/** @param {Date} now */
 export const currentMonth = (now) => `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}`;
 
-/** Replaces every copy of the token in a text (anything shorter than 8 characters is no API token). @param {string} text @param {string} token */
+/**
+ * @param {string} text
+ * @param {string} token
+ */
 export const redact = (text, token) => (token && token.length >= 8 ? text.split(token).join('[redacted]') : text);
 
 /** @param {unknown} v */
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 
 /**
- * One month's answer as Usage. A dataset GraphQL answered null (with an error naming its path)
- * is missing; an empty list is zero.
  * @param {{ ok: boolean, status: number, json: any, text: string }} res
  * @param {{ databaseId: string, token: string }} o
  * @returns {Usage}
@@ -189,7 +151,6 @@ export function parseUsage(res, { databaseId, token }) {
     },
     worker: isMissing(w) ? /** @type {Missing} */ (w) : (() => {
       const rows = /** @type {any[]} */ (w);
-      // One group (the script) holds the month's quantiles; more groups can't be combined.
       const q = rows.length === 1 ? rows[0].quantiles ?? {} : {};
       return {
         requests: total(rows, (r) => num(r.sum?.requests)),
@@ -231,11 +192,9 @@ export function parseUsage(res, { databaseId, token }) {
   };
 }
 
-// ---- The report ----
-
 /** @param {number} n @param {number} [digits] */
 const fmt = (n, digits = 0) => n.toLocaleString('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 });
-/** A share as a percentage: one decimal, two below 0.1%, and <0.01% below that. @param {number} share */
+/** @param {number} share */
 const pct = (share) => {
   const p = share * 100;
   if (p > 0 && p < 0.01) return '<0.01%';
@@ -250,9 +209,6 @@ const statusCount = (ws, lo, hi) => (isMissingValue(ws) ? ws : ws.filter((s) => 
 const quantile = (v) => (v === null ? { missing: 'no quantile' } : v);
 
 /**
- * The measures the report flags and compares, each read from a Usage. A `total` adds up over the
- * month, so a month in progress is projected before it is compared; a busiest day and a quantile
- * are not totals.
  * @type {{ key: string, label: string, unit: string, allowance: number | null, per: string, digits: number, total: boolean,
  *   get: (u: Usage) => number | Missing }[]}
  */
@@ -288,9 +244,9 @@ const MEASURES = [
 ];
 
 /**
- * The flags: shares above FLAG_SHARE, and growth on the month before (totals in a month in
- * progress projected over the whole month first).
- * @param {MonthWindow} window @param {Usage} current @param {Usage} previous
+ * @param {MonthWindow} window
+ * @param {Usage} current
+ * @param {Usage} previous
  * @returns {string[]}
  */
 export function flagsFor(window, current, previous) {
@@ -317,7 +273,6 @@ export function flagsFor(window, current, previous) {
 }
 
 /**
- * The report's markdown.
  * @param {{ window: MonthWindow, current: Usage, previous: Usage, generatedAt: Date, commit: string | null }} o
  * @returns {{ markdown: string, flags: string[], missing: string[] }}
  */
@@ -386,8 +341,6 @@ export function buildReport({ window, current, previous, generatedAt, commit }) 
   return { markdown: `${lines.join('\n')}\n`, flags, missing };
 }
 
-// ---- The run ----
-
 /**
  * @param {string[]} argv
  * @param {{
@@ -448,7 +401,7 @@ export async function opsReport(argv, deps = {}) {
         });
         const text = await r.text();
         let json = null;
-        try { json = JSON.parse(text); } catch { /* not JSON: reported by status and text */ }
+        try { json = JSON.parse(text); } catch {}
         res = { ok: r.ok, status: r.status, json, text: json ? '' : text };
       } catch (err) {
         res = { ok: false, status: 0, json: null, text: `the request failed: ${/** @type {Error} */ (err).message}` };

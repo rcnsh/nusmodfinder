@@ -1,17 +1,4 @@
 // @ts-check
-// The shortlist's export, as one document both exports draw: the CSV (csv.js)
-// and the print page (print.js). Pure: no DOM; test/web/csv.node.test.js runs
-// it in Node.
-//
-// Every entry is worked out at its own semester (shortlist.js), as in the view.
-// The document holds, in order: the head; each semester present, Sem 1 then Sem
-// 2, with its primary picks then its backups in rank order and its totals; the
-// entries closed, or off NUS's exchange list, in their semester; the entries
-// not placed in a semester; then the foot: NUS's form order and the lines for
-// applicants, the CourseReg box and the closing lines. The description is
-// NUS's, labelled as such, never called a syllabus. An NUS student's document
-// (`result.nus`) is the plain plan: no exchange columns, year of study, form
-// order, CourseReg box or exchange lines.
 import { noteLead, reasonLine, stampText } from './explain.js';
 import { cleanPrereq, examLine, examLines, semLabel } from './format.js';
 import { APPLICANT_LINES, COURSEREG_BOX, FORM_LINES, TOTAL_LINES, totalLines } from './shortlist.js';
@@ -22,58 +9,49 @@ import { APPLICANT_LINES, COURSEREG_BOX, FORM_LINES, TOTAL_LINES, totalLines } f
 /** @typedef {import('./shortlist.js').Course} Course */
 /** @typedef {import('./explain.js').Source} Source */
 /**
- * @typedef {{ key: string, label: string, value: string }} Line a label and its value (the CSV's label/value rows)
+ * @typedef {{ key: string, label: string, value: string }} Line
  * @typedef {{ key: string, label: string }} Column
  * @typedef {{
  *   code: string, which: 'pick' | 'alt', rank: number, sem: '' | '1' | '2', status: 'open' | 'note' | 'closed' | null,
  *   cells: Record<string, string>,
- * }} Entry one course's block: `cells` by column key, every value plain text
+ * }} Entry
  * @typedef {{ heading: string, entries: Entry[] }} Group
  * @typedef {{ id: '1' | '2' | 'closed' | 'unplaced', heading: string, groups: Group[], totals: string[] }} Section
  * @typedef {{ number: string, code: string, list: string, units: string, note: string, mark: boolean }} FormRow
- *   `list` "pick 1"; `note` the 10-course caution, or why it takes no number (the 40-unit mark)
  * @typedef {{ sem: '1' | '2', caption: string, rows: FormRow[], note: string }} FormTable
  * @typedef {{
  *   stem: string, title: string, head: Line[], columns: Column[], sections: Section[],
  *   form: { heading: string, intro: string, tables: FormTable[], applicants: string[] } | null,
  *   courseReg: { heading: string, rules: string[], page: string } | null, closing: Line[],
- * }} Doc `form` and `courseReg` null in an NUS student's document
+ * }} Doc
  */
 
-/** The site, by its name and canonical URL (ADR 0009, ADR 0010). */
 export const SITE_NAME = 'NUS Mod Finder';
 export const SITE_URL = 'https://nusmodfinder.rcn.sh';
 
-/** The sections after the semesters'. */
 export const SECTION = Object.freeze({
   closed: 'Closed, or not on NUS\'s exchange list, in that semester',
-  /** An NUS student's `closed`: nothing is closed to them, only not taught then. */
   untaught: 'Not taught in that semester',
   unplaced: 'Not placed in a semester',
 });
 
-/** NUS's description, labelled as such. */
 export const DESCRIPTION_LABEL = 'Course description (NUS, via NUSMods)';
-/** NUS's description, and the Registrar's NG course list: where the syllabus is. */
 export const CANVAS_LINE = 'NUS posts each course\'s full syllabus on Canvas when the semester starts; the text here is NUS\'s course description (the Registrar\'s NG course list)';
-/** NUS's rate (the Registrar's transcript legend; the brochure's 4 units for about 10 hours). */
 const HOURS_PER_UNIT = 2.5;
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-/** The year of study, as the head says it. @type {Readonly<Record<string, string>>} */
+/** @type {Readonly<Record<string, string>>} */
 const STUDY_YEAR = Object.freeze({ ug1: '1', ug2: '2', ug3: '3', ug4: '4 or later', grad: 'Graduate' });
 
 /** @param {number} n */
 const num = (n) => String(Math.round(n * 100) / 100);
-/** A sentence's full stop, unless it has one. @param {string} s */
+/** @param {string} s */
 const end = (s) => (/[.!?]["”)]?$/.test(s) ? s : `${s}.`);
-/** 'Not on NUS's …' → 'not on NUS's …', for after "Not counted:". @param {string} s */
+/** @param {string} s */
 const lower = (s) => (/^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
 
 /**
- * Every column of the CSV, in order; the print page labels its facts the same way.
- * An NUS student's has no exchange columns (the form, the status, its notes, NUS's notes).
- * @param {string} year 'YYYY/YY', the rows' year
+ * @param {string} year
  * @param {boolean} [nus]
  * @returns {Column[]}
  */
@@ -91,10 +69,7 @@ export function columnsFor(year, nus = false) {
   ]).filter((c) => !nus || !exchangeOnly.includes(c.key));
 }
 
-/**
- * The level from its digit, as the brochure and the Registrar put it.
- * @param {unknown} level
- */
+/** @param {unknown} level */
 export function levelText(level) {
   const n = Number(level);
   if (!Number.isFinite(n) || n <= 0) return '';
@@ -103,12 +78,7 @@ export function levelText(level) {
   return 'Level 5000 and above, graduate';
 }
 
-/**
- * NUSMods' workload as listed: each of the five parts labelled, hours a week;
- * that it lists no lecture, tutorial or lab hours when so; NUS's own text
- * when it isn't the five-number form; or that it isn't listed.
- * @param {Course['workload']} w
- */
+/** @param {Course['workload']} w */
 export function workloadLine(w) {
   if (!w) return 'Not listed';
   if ('raw' in w) return `As NUS lists it: ${w.raw}`;
@@ -117,11 +87,9 @@ export function workloadLine(w) {
 }
 
 /**
- * The estimated study time: hours a week at NUS's rate, with NUSMods'
- * own total where it differs, and (for an exchange student) that their university decides credit.
  * @param {number | null} units
  * @param {Course['workload']} w
- * @param {boolean} [nus] an NUS student's: no line about a home university's credit
+ * @param {boolean} [nus]
  */
 export function estimateLine(units, w, nus = false) {
   const listed = w && !('raw' in w) ? w.total : null;
@@ -134,7 +102,7 @@ export function estimateLine(units, w, nus = false) {
   return `About ${num(est)} hours a week (NUS's rate: ${HOURS_PER_UNIT} hours a week per unit)${differs ? `; ${nusmods}` : ''}. ${rate}`.trimEnd();
 }
 
-/** "12 Nov YYYY", the date the student made it on (their own clock). @param {Date} d */
+/** @param {Date} d */
 export const madeOn = (d) => `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 
 /** @param {Source[] | null | undefined} sources @param {RegExp} name */
@@ -143,16 +111,13 @@ const dateOf = (sources, name) => {
   return typeof s?.updatedAsAt === 'string' ? s.updatedAsAt : '';
 };
 
-/** Whether an entry's course is taught only in special terms. @param {Worked} w */
+/** @param {Worked} w */
 const specialOnly = (w) => {
   const sems = Array.isArray(w.course?.semesters) ? w.course.semesters.map(Number) : [];
   return w.kind === 'row' && sems.length > 0 && sems.every((s) => s >= 3);
 };
 
 /**
- * Where an entry goes: its semester; the closed section (closed, or off
- * NUS's list, or not taught then, in its semester); or not placed (untagged,
- * taught only in special terms, a catalogue-only or unknown 404).
  * @param {Worked} w
  * @returns {Section['id']}
  */
@@ -162,7 +127,11 @@ function placeOf(w) {
   return w.sem;
 }
 
-/** Whether the entry counts, and why or why not. @param {Worked} w @param {boolean} exchange @param {boolean} nus */
+/**
+ * @param {Worked} w
+ * @param {boolean} exchange
+ * @param {boolean} nus
+ */
 function countsLine(w, exchange, nus) {
   switch (w.standing) {
     case 'counted': return nus ? 'Counted in its semester\'s total' : exchange ? 'Counted, if NUS accepts you into it' : 'Counted: exchange status not checked';
@@ -174,7 +143,10 @@ function countsLine(w, exchange, nus) {
   }
 }
 
-/** NUS's form: the entry's number, or why none. @param {Worked} w @param {boolean} exchange */
+/**
+ * @param {Worked} w
+ * @param {boolean} exchange
+ */
 function formLine(w, exchange) {
   if (!exchange) return '';
   if (w.form.number) return w.form.note ? `${w.form.text}. ${end(w.form.note)}` : w.form.text;
@@ -184,15 +156,17 @@ function formLine(w, exchange) {
 }
 
 /**
- * The exchange entry at a semester and study level, from a course's `exchange`.
- * @param {Course | null} c @param {number} sem @param {string} study
+ * @param {Course | null} c
+ * @param {number} sem
+ * @param {string} study
  */
 const exchangeAt = (c, sem, study) => (Array.isArray(c?.exchange) ? c.exchange : []).find((x) => String(x.sem) === String(sem) && x.study === study);
 
 /**
- * The stamp's words and every note in full, with its source and date: at its
- * own semester, or each semester's when none is chosen.
- * @param {Worked} w @param {string} study @param {string} year @param {Source[] | null} sources
+ * @param {Worked} w
+ * @param {string} study
+ * @param {string} year
+ * @param {Source[] | null} sources
  * @returns {{ status: string, notes: string[] }}
  */
 function statusOf(w, study, year, sources) {
@@ -214,12 +188,11 @@ function statusOf(w, study, year, sources) {
     status = per.map((p) => stampText(/** @type {any} */ (p.x).status, p.s, p.x?.reasons ?? [], true)).join('; ');
     for (const p of per) for (const r of p.x?.reasons ?? []) notes.push(`${semLabel(p.s)}: ${note(r, p.s)}`);
   }
-  // A Business or Law quota note "If you were invited: …" is said under the totals, as in the view.
   for (const line of w.lines) if (line !== w.why && !line.startsWith('If you were invited:')) notes.push(end(line));
   return { status, notes };
 }
 
-/** The exam at its semester, in Singapore time with its length. @param {Worked} w */
+/** @param {Worked} w */
 function examOf(w) {
   const c = w.course;
   if (!c) return '';
@@ -233,18 +206,18 @@ function examOf(w) {
   return exams.length ? `${lines.join('; ')} (Singapore time)` : lines[0];
 }
 
-/** A flag as its line. @param {import('./shortlist.js').Flag} f */
+/** @param {import('./shortlist.js').Flag} f */
 const flagLine = (f) => (f.kind === 'preclusion' && f.quote ? `${f.text}. NUS: “${cleanPrereq(f.quote)}”` : end(f.text));
 
 /**
- * One course's block.
- * @param {Worked} w @param {Section['id']} place @param {{ result: Result, study: string, sources: Source[] | null, answers: Map<string, Answer> }} ctx
+ * @param {Worked} w
+ * @param {Section['id']} place
+ * @param {{ result: Result, study: string, sources: Source[] | null, answers: Map<string, Answer> }} ctx
  * @returns {Entry}
  */
 function entryOf(w, place, { result, study, sources, answers }) {
   const c = w.course;
   const answer = answers.get(w.code);
-  // An NUS student's document has no exchange status: its cells stay empty, and its columns are gone.
   const { status, notes } = result.nus ? { status: '', notes: [] } : statusOf(w, study, result.year, sources);
   const catalogue = answer?.kind === 'catalogue-only' ? answer : null;
   const description = c ? String(c.description ?? '') : catalogue ? catalogue.description : w.kind === 'failed' || w.kind === 'loading' ? 'Details could not be loaded' : '';
@@ -282,34 +255,28 @@ function entryOf(w, place, { result, study, sources, answers }) {
 }
 
 /**
- * The semesters the document plans: those with an entry placed in them (not
- * one closed then, nor one not placed in a semester). They name the title, the
- * file and the semester sections, so none is named with nothing planned in it.
  * @param {Result} result
  * @returns {('1' | '2')[]}
  */
 const plannedSems = (result) => /** @type {('1' | '2')[]} */ (['1', '2']).filter((s) => result.entries.some((w) => placeOf(w) === s));
 
-/**
- * The file name's stem: the semesters planned (`sem1`, `sem1-sem2`, none) and
- * the rows' year (shortlist.js: the rows', else a 404's, else public/year.js).
- * @param {Result} result
- */
+/** @param {Result} result */
 export function stemOf(result) {
   const sems = plannedSems(result).map((s) => `sem${s}-`).join('');
   return `${result.nus ? '' : 'exchange-'}shortlist-${sems}${result.year.replace('/', '-')}-courses`;
 }
 
-/** The file name: the stem and its extension. @param {Doc} doc @param {string} ext */
+/**
+ * @param {Doc} doc
+ * @param {string} ext
+ */
 export const fileName = (doc, ext) => `${doc.stem}.${ext}`;
 
 /**
- * The export's document.
  * @param {{
  *   result: Result, list: import('./list.js').List, study: string, sources: Source[] | null,
  *   link: string, today: Date, answers?: Map<string, Answer>, yearNote?: string,
- * }} input `study` '' in browse mode; `sources` /facets' ngSources (null if it failed);
- *   `link` the shortlist link; `yearNote` the "Made with YYYY/YY courses" line, if any
+ * }} input
  * @returns {Doc}
  */
 export function buildExport({ result, list, study, sources, link, today, answers = new Map(), yearNote = '' }) {

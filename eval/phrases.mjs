@@ -1,25 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// Dev-side tooling for a change to the constraint phrases. Open sets only
-// (dev, the fixture, or a plaintext --set-dir): it prints ids and texts, so
-// it refuses every encrypted set.
-//
-//   npm run eval:phrases -- list [--set dev] [--set-dir <dir>] [--lib <ref>] [--json <file>]
-//       every query the frozen reference parse (tag 3h) parses, with its
-//       constraints, to confirm by hand before the dev screen
-//   npm run eval:phrases -- screen --candidate <ref> [--pin <ref>] [--set dev] [--set-dir <dir>]
-//       [--prefix phrases] [--reuse] [--json-dir <dir>]
-//       the dev screen: runs the candidate, the pin, and the pin with the
-//       reference's parsed constraints as explicit params; then the
-//       compliance rule on the candidate vs the pin (the same rule as the
-//       holdout's verdict path, with per-query detail) and the explicit-params
-//       diagnostic (the candidate vs the explicit-params pin, reported, no
-//       gate). The screen passes iff the rule passes and the candidate run's
-//       vocabulary is the one the reference parsed over. The query suite's 14
-//       parsed-intent items run separately (test/full/query-suite.test.js).
-//
-// `--candidate` omitted runs the working tree; `--pin` defaults to the
-// shipped-ranker pin. `--reuse` keeps run files that already exist.
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -63,8 +43,6 @@ function openSet(a) {
 }
 
 /**
- * A stand-in run whose ranker names the scripts/lib.mjs that normalises the
- * pinned snapshot (the working tree, or a ref's commit).
  * @param {string | undefined} ref
  * @returns {import('./lib/metrics.mjs').RunFile}
  */
@@ -110,7 +88,6 @@ async function cmdScreen(a) {
   const querySet = await loadQueries(set);
   const qrels = await loadQrels(set);
 
-  // The reference parse decides the explicit params of the diagnostic's baseline.
   const pre = await loadRuleSources(set, libRun(a.candidate));
   /** @type {Record<string, Record<string, string>>} */
   const explicit = {};

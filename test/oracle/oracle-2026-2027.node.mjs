@@ -1,68 +1,3 @@
-// Exchange-eligibility oracle: which NUS courses an incoming exchange (Non-Graduating, NG) student may take, AY2026/27.
-//
-// Written independently from the sources only:
-//   - NUS Registrar "Course Restrictions for Non-Graduating Students" (updated 31 Aug 2026)
-//   - "Courses in the NUS Self-funded Programmes" (rule A)
-//   - YST "Courses for NUS Non-Music Majors" pages, AY26/27 Sem 1 and AY25/26 Sem 2 (rule I9)
-//   - Faculty of Law compulsory LLB course listing (image)
-//   - the 2026/27 interpretations register (`register` in data/ng-sources-2026-2027.json;
-//     R*, C*, I* rows are cited by id below)
-//
-// oracle(m, ctx) -> 'open' | 'note' | 'closed'. explain(m, ctx) returns the same plus the reasons.
-//
-// DECISIONS WHERE THE REGISTER IS SILENT (PDF read literally otherwise)
-//  D1  sem 'any': the least restrictive of the per-semester results over the course's NG semesters
-//      (open < note < closed). This reproduces R3 (shown if NG-listed in either semester; the R2
-//      note only if no NG semester is a NUSMods semester) and extends it to the semester-specific
-//      YST-page rule (I9).
-//  D2  Pattern rules other than C2's three blanket ones (PL328x, FMA120XH, LSM33xx, PC33xx, MA15XX,
-//      FMS12XXM, FSCXXXX, SEA5XXX, AIS5xxx, BPS5XXX, CN5XXX, EE5/6, CEG5, EEK5, QF5, MA5/6, ST/DSS5/6,
-//      FST5, CE/ESE5/6, IE/MT/SDM5/6, FT/IT/BT/CS/IS/CP5/6) apply by code wherever the course is
-//      hosted. None of them touches an NG-listed course outside its own department this year.
-//  D3  Department-wide statements apply by NUSMods `department` (I5 generalised); Business, Law and
-//      Music sections apply by NUSMods `faculty`.
-//  D4  CNM "suffix 'Y'": codes ending in Y in the Communications and New Media department.
-//  D5  Rule D/R4 covers levels 5 and 6 only (first digit). Level 0/7/8/9/null courses are not
-//      touched by it (none is NG-listed).
-//  D6  History "All History (Honours) Level 4000 courses": every level-4 course in the History dept.
-//      "FMA120XH": /^FMA120\dH$/ by code.
-//  D7  Built Environment "Building undergraduate courses must be taken on graded basis": graded note
-//      on Built Environment level 1-4 courses.
-//  D8  Centre for Language Studies "Language courses … graded basis": graded note on every course of
-//      that department.
-//  D9  "All courses cannot be audited" (Malay, South Asian, Southeast Asian Studies): no-audit note on
-//      every course of the department.
-//  D10 Japanese Studies "All Level 4000 courses – Approval … case-by-case": approval note, not closed.
-//  D11 Public Policy: the rule names "Course codes with prefix PP" at every level: closed to
-//      undergraduates; graduates get the partner + graded notes, and PP level 5/6 counts as
-//      "specified" for graduates (R5).
-//  D12 BMA / BMS are named at level 5000 only; closed to undergraduates, partner note for graduates.
-//      R7 still applies, so a BMA/BMS code on the self-funded list stays closed.
-//  D13 Music audition/placement list: a note in every semester (the NG list governs semesters).
-//  D14 YST pages: codes are taken from course headings only, not from prerequisite / preclusion /
-//      co-requisite mentions (so NHT2204, CFA2111A, MUL1107 … are not "on the page"). A combined
-//      heading (MUA1192/MUA1193/MUA2192/MUA2193, GESS1015/GES1020, CFA2210/…) lists every code.
-//  D15 Rule C UROP title match: case-sensitive \bUROPS?\b or /Undergraduate Research Opportunit/i
-//      (a case-insensitive "urop" would hit "European").
-//  D16 Rule A Public Health "Graduate courses only": level 5 and above. Nursing by department;
-//      SCALE (§11) and the Logistics Institute (§12) by faculty (I12).
-//  D17 RMI notes by department "Risk Management Institute", whichever faculty hosts it (HS2301 sits
-//      under faculty "NUS").
-//  D18 Rules that close levels 4000+ "to undergraduate students" (Chinese Studies, ELTS, Political
-//      Science, Social Work, Sociology) leave level 4 open to graduates.
-//  D19 Malay / South Asian Studies "Graduate Courses" = levels 5 and 6.
-//  D20 Table cells "A/B" expand to both codes (PF1103/IPM1103, CN4119/CN4123R, DSE4211/QF4211), and
-//      "PC4288A/Q/N", "MA4288P/O" expand the suffix letters.
-//  D21 Self-funded list: every code in its code column (2451 codes), including the undergraduate-level
-//      ones (CH1101S, BMI1101, XFA4408 …).
-//  D22 Title remarks such as "(offered in Sem 2 ONLY)" and "(to be taken with AR2101)" are not rules;
-//      the NG list governs semesters.
-//  D23 C2's blanket prefixes match the letters before the first digit exactly (CG, DSA, GEH).
-//  D24 Notes do not depend on study level unless the sentence names one.
-//
-// D1-D24 are also rows of the register. The year-of-study note and GRO's level 4000
-// note, with their readings Y1-Y5 and G1-G3, don't depend on a year's PDFs and live in
-// test/oracle/oracle-shared.node.mjs. Callers import test/oracle/oracle.mjs, which picks the year's oracle.
 import { levelNoteOf, yearNoteOf } from './oracle-shared.node.mjs';
 
 export { levelNoteOf, prereqYears, yearNoteOf } from './oracle-shared.node.mjs';
@@ -71,10 +6,8 @@ const RANK = { open: 0, note: 1, closed: 2 };
 
 const set = (s) => new Set(s.trim().split(/\s+/));
 
-// ---- Rule B ---------------------------------------------------------------------------------------
 const RULE_B = set('CM1417X CM1502X CS1010X MA1301X NM1101X PC1221X PC1222X');
 
-// ---- Code tables that close courses (by code, wherever hosted; I14) --------------------------------
 const CLOSED_TABLES = {
   'Centre for Language Studies (I2)': 'LAG3203 LAF3203 LAK3203',
   'Communications and New Media (I2, I4)': 'NM2101 NM2103 NM2104 NM4102',
@@ -146,7 +79,6 @@ for (const [section, codes] of Object.entries(CLOSED_TABLES)) {
   for (const c of codes.split(/\s+/)) if (!CLOSED_BY_CODE.has(c)) CLOSED_BY_CODE.set(c, section);
 }
 
-// Pattern closures (D2). Each: [regex on code, label]. Level 5/6 ones are redundant with R4 but kept.
 const CLOSED_PATTERNS = [
   [/^PL328\d/, 'Psychology PL328x (lab courses)'],
   [/^FMA120\dH$/, 'History FMA120XH freshmen seminars'],
@@ -171,20 +103,15 @@ const CLOSED_PATTERNS = [
   [/^FST5/, 'FST level 5000'],
 ];
 
-// C2: blanket prefix rules, closed within their section's department, a note elsewhere.
 const BLANKET = [
   ['CG', "SoC Dean's Office", "All CG coded courses are NOT open (School of Computing Dean's Office)"],
   ['DSA', 'Mathematics', 'Course codes DSAXXXX are NOT open (Mathematics)'],
   ['GEH', 'Mathematics', 'Course codes GEHXXXX are NOT open (Mathematics)'],
 ];
 
-// ---- Note tables (by code) ------------------------------------------------------------------------
 const QUOTA = set(
-  // Geography
   'GE2101 GE3216 GE3238 GE3252 ' +
-  // History (cross-listed with HY)
   'AS2236 AS2237 AS3230 AS3238 AS3239 AS3240 ' +
-  // Built Environment, Semester 1 and Semester 2 tables (I15: every semester)
   'PF2102 PF2305 PF3105 PF3205 PF3208 PF3209 PF3210 PF3211 PF3307 PF3504 PF4209 PF4213 PF4309 ' +
   'IPM4201 GESS1014 PF2203 PF2306 PF2504 PF2505 PF3207 PF3301 PF3305 PF3306 PF3502 PF4203 PF4208 PF4306');
 
@@ -192,13 +119,11 @@ const ARCH_LETTER = set('AR2101 AR2102 AR3101 AR3102 LA4701 LA4702 LA5701 LA5702
 const ARCH_MAJOR = set('AR2225 AR2227 AR2328A AR3722 AR4101 AR4601 AR4321 AR4220');
 const LA_MAJOR = set('LAD2004 LAD2005 LAD4006 LAD4012 LAD4003');
 const ID_MAJOR = set('ID1121 ID1223 ID2105 ID2106 ID2114 ID2115 ID2116 ID2122 ID3105 ID3106 ID4105 ID2323 ID3122 ID3124 ID2112');
-// C4: NG-listed 5000 twins of Architecture-majors-only 4000 courses.
 const DUAL_CODED = { AR5221: 'AR4220', AR5321: 'AR4321', AR5601: 'AR4601' };
 const NO_AUDIT_CODES = set('AR4321 AR5321 DEP5102');
 
 const MUSIC_AUDITION = set('MUA1192 MUA3224 MUA3205 MUT3113 MUT3213 MUT3214 MUT3215 MUT3216 MUT3222 MUT3223');
 
-// YST "Courses for NUS Non-Music Majors" headings (D14). Sem 2 is AY2025/26's page (I9).
 const YST_PAGE = {
   1: set('GEC1014 GEC1023 GESS1015 GES1020 MUH2204 MUT1201 MUT3222 MUT3211 MUA1223 MUA1192 MUA1193 ' +
     'MUA2192 MUA2193 MUA1240 MUA2203 MUA3205 MUA3206 MUA3219 MUA3220 MUA3224 MUA3225 MUA3228 MUA3230 ' +
@@ -210,7 +135,6 @@ const YST_PAGE = {
     'CFA3101B CFA3220 CFA1220'),
 };
 
-// Compulsory LLB courses (law-compulsory-llb-courses.png): 48 codes.
 const LLB_COMPULSORY = set(
   'LC1001A LC1001B LC1001C LC1001D LC1001E LC1001F LC1001H ' +
   'LC1002A LC1002B LC1002C LC1002D LC1002E LC1002F LC1002G LC1002H ' +
@@ -220,11 +144,6 @@ const LLB_COMPULSORY = set(
   'LC2010A LC2010B LC2010C LC2010E LC2010F LC2010H LC2004 LC2012 ' +
   'LC3001A LC2017');
 
-// ---- Evaluation -----------------------------------------------------------------------------------
-
-/** m: { code, title, department, faculty, level, semesters: number[], ng: boolean, ngSemesters: number[] }
- *  ctx: { sem: 1 | 2 | 'any', study: 'ug1'|'ug2'|'ug3'|'ug4'|'grad' }
- *  returns 'open' | 'note' | 'closed' */
 export function oracle(m, ctx) {
   return explain(m, ctx).result;
 }
@@ -244,7 +163,6 @@ export function explain(m, ctx) {
   return evalSemester(m, ctx.sem, ctx.study);
 }
 
-/** explain() plus the year-of-study and level 4000 notes: what a card shows. */
 export function explainShown(m, ctx) {
   const e = explain(m, ctx);
   if (e.result === 'closed') return e;
@@ -252,7 +170,6 @@ export function explainShown(m, ctx) {
   return added.length ? { result: 'note', closed: [], notes: [...e.notes, ...added] } : e;
 }
 
-/** oracle() plus the year-of-study and level 4000 notes. */
 export function oracleShown(m, ctx) {
   return explainShown(m, ctx).result;
 }
@@ -279,9 +196,8 @@ function applyRules(m, sem, study, closed, notes) {
   const isGradLevel = lvl === 5 || lvl === 6;
   const close = (why) => closed.push(why);
   const note = (why) => notes.push(why);
-  let opened = false; // R4: a rule "specifies" this graduate-level course for this study level
+  let opened = false;
 
-  // Rule A
   if (fac === 'Dentistry') close('A: Faculty of Dentistry');
   if (fac === 'Yong Loo Lin Sch of Medicine' && !code.startsWith('LSM')) close('A: Medicine, non-LSM code');
   if (fac === 'SSH School of Public Health' && lvl !== null && lvl >= 5) close('A: Public Health graduate course');
@@ -291,14 +207,11 @@ function applyRules(m, sem, study, closed, notes) {
   if (fac === 'Cont and Lifelong Education') close('§11: SCALE');
   if (fac === 'Logistics Inst-Asia Pac') close('§12: Logistics Institute');
 
-  // Rule B
   if (RULE_B.has(code)) close('B: X-suffix course');
 
-  // Rule C
   if ((fac === 'Arts and Social Science' || fac === 'College of Design and Engineering') &&
       (/\bUROPS?\b/.test(title) || /Undergraduate Research Opportunit/i.test(title))) close('C: UROP');
 
-  // Code tables and patterns
   if (CLOSED_BY_CODE.has(code)) close(`table: ${CLOSED_BY_CODE.get(code)}`);
   for (const [re, label] of CLOSED_PATTERNS) if (re.test(code)) close(`pattern: ${label}`);
   for (const [p, home, text] of BLANKET) {
@@ -307,7 +220,6 @@ function applyRules(m, sem, study, closed, notes) {
     else note(`C2 restricted elsewhere: ${text}`);
   }
 
-  // ---- 1. Arts & Social Sciences (by department) ----
   switch (dept) {
     case 'Centre for Language Studies':
       note('Language courses: graded basis only, no audit');
@@ -364,7 +276,7 @@ function applyRules(m, sem, study, closed, notes) {
       if (code === 'SE3234') note('SE3234: department application form, not online selection');
       if (lvl === 4 && (study === 'ug1' || study === 'ug2')) close('SEA Studies: level 4000 only for 3rd/4th-years and graduates');
       if (lvl === 5) {
-        if (study === 'ug4' || grad) opened = true; // I7
+        if (study === 'ug4' || grad) opened = true;
         else close('SEA Studies: level 5000 only for 4th-years and graduates');
       }
       if (lvl === 6) {
@@ -374,7 +286,6 @@ function applyRules(m, sem, study, closed, notes) {
       break;
   }
 
-  // ---- 2. Business (by faculty) ----
   if (fac === 'NUS Business School') {
     note('Business: must be majoring in business at home university (I8)');
     if (lvl === 5 && (prefix === 'BMA' || prefix === 'BMS')) {
@@ -388,7 +299,6 @@ function applyRules(m, sem, study, closed, notes) {
     }
   }
 
-  // ---- 4. Design & Engineering ----
   if (ARCH_LETTER.has(code)) note('Architecture design studio: letter of confirmation from home university');
   if (ARCH_MAJOR.has(code)) note('Architecture majors (or related disciplines) only');
   if (LA_MAJOR.has(code)) note('Landscape Architecture majors (or related disciplines) only');
@@ -402,20 +312,17 @@ function applyRules(m, sem, study, closed, notes) {
   if (ID_MAJOR.has(code)) note('Industrial Design students only (I13)');
   if (prefix === 'ID') note('Industrial Design courses: graded basis only (I13)');
 
-  // ---- 5. Law (by faculty) ----
   if (fac === 'Law') {
     note('Law: must be majoring in Law at home university (I10)');
     if (!code.startsWith('LL4')) close('Law: only LL4XXXX electives (I10)');
   }
   if (LLB_COMPULSORY.has(code)) close('Law: compulsory LLB course');
 
-  // ---- 6. Music ----
   if (fac === 'YST Conservatory of Music' && !YST_PAGE[sem].has(code)) {
     note("Music: not on YST's non-music-majors list this semester; YST partner institutions only (I9)");
   }
   if (MUSIC_AUDITION.has(code)) note('Music: audition or placement test required');
 
-  // ---- 7. Public Policy ----
   if (prefix === 'PP') {
     if (ug) close('LKYSPP (PP): not open to undergraduates');
     else {
@@ -425,18 +332,14 @@ function applyRules(m, sem, study, closed, notes) {
     }
   }
 
-  // ---- 10. RMI ----
   if (dept === 'Risk Management Institute') {
     note('RMI: limited, approval case-by-case');
     note('RMI: per-course tuition fee');
   }
 
-  // ---- Rule D / R4 ----
   if (isGradLevel && !opened) close('D/R4: level 5000/6000 not specified as open for this student');
 }
 
-// ---- Rule A: "Courses in the NUS Self-funded Programmes" (self-funded-graduate-courses.txt), every code in
-// its code column (D21). Generated by extracting /[A-Z]{2,5}[0-9]{4}[A-Z]{0,4}/ (one code per row).
 const SELF_FUNDED = new Set(`
   ABM5001 ABM5002 ABM5003 ABM5004 ABM5101 ABM5102 ABM5103 ABM5104 ABM5105 ABM5106 ABM5107 AC5001
   AC5002 AC5004 AC5007 AC5008 AC5009 AC5010 AC5011 AC5012 AC5014 AC5015 AC5016 ACE5401

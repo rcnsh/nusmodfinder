@@ -1,8 +1,4 @@
 // @ts-check
-// The gibberish set: ≥ 40 strings that should match nothing, and its seeded
-// split into a derivation half (which tunes the no-signal threshold) and a gate
-// half (which checks it) of ≥ 20 each. The split must reproduce from the
-// recorded seed (eval/gibberish-split.mjs).
 import { describe, expect, it } from 'vitest';
 import { splitGibberish, splitOf } from '../../eval/gibberish-split.mjs';
 import { GIBBERISH_PATH, SUITE_PATH, devQueries, nearDuplicate, normalise, readJson, suiteTexts } from './suite-files.node.mjs';

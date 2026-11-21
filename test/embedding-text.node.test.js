@@ -1,6 +1,4 @@
 // @ts-check
-// The embedding-text variants the eval screened: the exact text each variant
-// builds for records copied from the pinned corpus, and the level labels. Runs in Node (vitest project "node").
 import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import {
@@ -9,25 +7,25 @@ import {
 
 /** @typedef {import('../scripts/lib.mjs').NusModsRecord} NusModsRecord */
 
-/** Level 5: the first graduate label. @type {NusModsRecord} */
+/** @type {NusModsRecord} */
 const CS5242 = {
   moduleCode: 'CS5242', title: 'Neural Networks and Deep Learning', department: 'Computer Science', faculty: 'Computing',
   description: 'This course provides students with the knowledge of deep neural network and enables them to apply deep learning methods effectively on real world problems. The course emphasizes on the understanding of the principles of neural networks and deep learning; practical guidelines and techniques for deep learning; and their applications. Through assignments and projects, students will design, develop, and evaluate deep learning-based solutions to practical problems, such as those in the areas of computer vision, bioinformatics, fintech, cybersecurity, and games.',
 };
 
-/** Level 8 ("graduate", like 5 and 6). @type {NusModsRecord} */
+/** @type {NusModsRecord} */
 const PLS8001 = {
   moduleCode: 'PLS8001', title: 'Cultivating Collaboration', department: 'Psychology', faculty: 'Arts and Social Science',
   description: 'This 1-unit course is part of the Roots & Wings 2.0 programme. It focuses on soft skills on the interpersonal level in terms of more effective working with other people and reaching for better outcomes jointly. Through various experiential activities (e.g., role-play, negotiation exercises), students learn to understand the importance of collaboration in various settings and to apply basic techniques to help resolve conflicts and to strive for win-win situations when collaborating with other people in task accomplishment.',
 };
 
-/** CS3244 with its department removed (no pinned record lacks one), level 3. @type {NusModsRecord} */
+/** @type {NusModsRecord} */
 const CS3244_NO_DEPARTMENT = {
   moduleCode: 'CS3244', title: 'Machine Learning', faculty: 'Computing',
   description: 'This course introduces basic concepts and algorithms in machine learning and neural networks. The main reason for studying computational learning is to make better use of powerful computers to learn knowledge (or regularities) from the raw data. The ultimate objective is to build self-learning systems to relieve human from some of already-too-many programming tasks. At the end of the course, students are expected to be familiar with the theories and paradigms of computational learning, and capable of implementing basic learning systems.',
 };
 
-/** 1,929-character description: every variant hits MAX_BLOB_CHARS. @type {NusModsRecord} */
+/** @type {NusModsRecord} */
 const BMS5130 = {
   moduleCode: 'BMS5130', title: 'AI, Ethics & Venture Creation', department: 'BIZ Dean\'s Office', faculty: 'NUS Business School',
   description: 'With the accelerated usage of AI in all businesses, it is worthwhile to understand how to leverage AI as a growing tool within ethical business practices. This class is hands-on learning to teach students to build their own AI based venture or acquiring one using AI from a governance, responsibility and risk management perspective. Students will learn about AI risks and failures and leverage those to ensure a successful AI based venture which is in full compliance from a corporate governance and regulatory perspective as well. There will be real life learning from the instructor’s experience in restructuring a US-based AI venture. The purpose of this course is to ensure students understand and apply the following in to create their own AI based ethical business venture. It is also to understand and leverage AI from a governance, responsibility and risk management perspective, rather than from a technical and implementation standpoint. Specifically, students will learn the major reasons for business failures through AI ethical misconducts in terms of business, operational, ethical practices. They will conduct analysis of global cases of AI ethical business failures with lessons learned (eg: Amazon AI hiring tool, Facebook AI engagement algorithm, Open AI copyright data training, Microsoft Tay Chatbot, IBM Watson for Oncology, YouTube AI content monitoring, etc). They will conduct a diagnostic of key failure elements due to financial and stakeholder negligence (eg: customers, supply chain, shareholders) and investor impact, define the elements of a growth strategy (immediate and longer term) based on required ethical organizational practices and policies and the methodologies and metrics required to successfully implement and manage an AI ethical new venture. They will also learn about the usage of AI to develop and successfully run an ethical new venture, including risks and mitigation strategies.',
@@ -80,7 +78,6 @@ describe('the embedding-text variant texts', () => {
     expect(embeddingTextFor(CS3244_NO_DEPARTMENT, 'v1')).toBe(`CS3244. Machine Learning. Level 3 (intermediate). ${d} Computing.`);
     expect(embeddingTextFor(CS3244_NO_DEPARTMENT, 'v2')).toBe(`CS3244. Machine Learning. Level 3 (intermediate). ${d}`);
     expect(embeddingTextFor(CS3244_NO_DEPARTMENT, 'v3')).toBe(`Machine Learning. Level 3 (intermediate). ${d} Computing.`);
-    // A blank department is the same as none.
     expect(embeddingTextFor({ ...CS3244_NO_DEPARTMENT, department: '  ' }, 'v1')).toBe(embeddingTextFor(CS3244_NO_DEPARTMENT, 'v1'));
   });
 
@@ -103,7 +100,6 @@ describe('the embedding-text variant texts', () => {
   it('collapses whitespace inside and around fields, and adds no second full stop', () => {
     const r = { moduleCode: 'XX1001', title: ' Intro\n to  X ', department: 'Dept\tOf X', faculty: 'Science', description: '  First line.\n\nSecond?  ' };
     expect(embeddingTextFor(r, 'v1')).toBe('XX1001. Intro to X. Level 1 (introductory). First line. Second? Dept Of X. Science.');
-    // A description with no closing mark gets one; "!" and "?" are kept as the mark.
     expect(embeddingTextFor({ ...r, description: 'No mark' }, 'v2')).toBe('XX1001. Intro to X. Level 1 (introductory). No mark.');
     expect(embeddingTextFor({ ...r, title: 'What is a Planet?' }, 'v3')).toBe('What is a Planet? Level 1 (introductory). First line. Second? Dept Of X. Science.');
   });

@@ -1,56 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The shortlist's live checks, run by hand after a deploy that changes the shortlist. Built like
-// live-check.mjs.
-//
-// First it fetches every answer the check needs, from Node, one call in
-// flight and each starting at least 4 s after the one before: /facets, the
-// shortlist's 8 /module answers and the 3 404 codes'. Then Playwright loads
-// the page in Chromium and WebKit and fulfils every /module and /facets call
-// the page makes from that memory, shared by both, so the page's 10 s timeout
-// never fires and no call is made twice. The page's files (HTML, JS, CSS,
-// fonts) come from the network through the same queue, each fetched once and
-// then served from memory, and count in the total. An API call the page makes
-// that wasn't fetched first is refused, and fails the run.
-//
-// The checks, on a link with 6 picks and 2 backups drawn with a fixed seed
-// from the corpus's modules (scripts/live-shortlist-plan.mjs: over Sem 1 and Sem 2,
-// with a counted, a to-confirm, a Business and a closed entry; each entry's
-// standing from the independent reference, test/web/shortlist-reference.node.mjs,
-// and its status from the exchange oracle):
-// - the view's rows: each entry in its list and rank, with its title and its
-//   stamp's status as the oracle gives it;
-// - the view's totals equal the reference over the corpus's rows, and the
-//   downloaded CSV's equal the view's;
-// - the CSV downloads (BOM, RFC 4180, one row per entry);
-// - Chromium's tagged PDF (page.pdf) holds every entry's description
-//   (test/ui/pdf-text.mjs);
-// - axe (every rule but AAA's 7:1: test/ui/support.mjs) on the view, light
-//   and dark, in Chromium and WebKit;
-// - the 390×664 fold on the view (the header, the search bar, the view's
-//   heading and its export buttons), in Chromium and as an iPhone 13 in WebKit;
-// - one 404 code of each kind /module answers (`ng-listed`, `catalogue-only`,
-//   `unknown`), each answering its kind.
-//
-// Each request, sent or served from memory, is a line in the JSONL log (time,
-// path, status; `source` network, memory or refused), and the run ends with a
-// summary line. A 429 is
-// waited out (Retry-After, at least 4 s) and re-sent, twice at most.
-//
-//   node scripts/live-shortlist.mjs [--url URL] [--log FILE] [--corpus production|fixture] [--seed N] [--plan]
-//
-// --url     the site (default: production, https://nusmodfinder.rcn.sh)
-// --log     the JSONL log (default .data/live-shortlist.jsonl), appended to
-// --corpus  the modules drawn from and the reference runs over: `production`
-//           (`current` in data/corpus.json normalised as ingest does, data/'s groups and
-//           NG-listed codes with no classes) or `fixture` (the local UI server's,
-//           `npm run dev`); default: fixture for a localhost URL, else production
-// --seed    the draw's seed (default 6)
-// --plan    print the draw and the calls it would make, and send nothing
-//
-// Exit 0 when every check passes, 1 when one fails, 2 on a usage error. Against
-// a live URL (not localhost) each run writes a run record with every request
-// sent, by path (scripts/run-record.mjs).
 import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -62,52 +11,44 @@ import { GAP_MS, STUDY, csvTotals, loadData, makePlan, parseArgs, readTotals, to
 import { recordedLiveRun } from './run-record.mjs';
 
 const UA = devices['Desktop Chrome'].userAgent;
-/** How long one page may take to show what a check waits for, its files queued 4 s apart. */
 const PAGE_TIMEOUT_MS = 180_000;
-/** Response headers that describe the bytes on the wire, not the decoded body served from memory. */
 const WIRE = ['content-encoding', 'content-length', 'transfer-encoding'];
 
-/** Paths the Worker answers (the rest are the page's static files). @param {string} path */
+/** @param {string} path */
 const isApi = (path) => path === '/search' || path === '/facets' || path === '/health' || path.startsWith('/module/') || path.startsWith('/admin');
 
 /** @param {unknown} err */
 const firstLine = (err) => String(/** @type {Error} */ (err)?.message ?? err).split('\n')[0];
 
-// ---------- requests: one in flight, paced, logged, fetched once ----------
-
 /**
  * @typedef {{ status: number, headers: Record<string, string>, body: Buffer }} Answer
  */
 
-/**
- * @param {{ url: string, log: string, onSend?: (path: string) => void }} opts
- *   `onSend`: each request sent to the network, by path (the run record)
- */
+/** @param {{ url: string, log: string, onSend?: (path: string) => void }} opts */
 function createSite(opts) {
   /** @type {Map<string, Answer>} */
   const memory = new Map();
-  /** In-flight fetches, so a path asked for twice at once is still sent once. @type {Map<string, Promise<Answer>>} */
+  /** @type {Map<string, Promise<Answer>>} */
   const pending = new Map();
-  /** Every path the browsers asked the API for that wasn't fetched first. @type {string[]} */
+  /** @type {string[]} */
   const unplanned = [];
   /** @type {{ path: string, status: number | null }[]} */
   const network = [];
   let n = 0;
   let last = 0;
-  /** The queue: each call waits for the one before to finish. @type {Promise<unknown>} */
+  /** @type {Promise<unknown>} */
   let queue = Promise.resolve();
   mkdirSync(dirname(opts.log), { recursive: true });
-  /** One line per request, and the summary. @param {Record<string, unknown>} row */
+  /** @param {Record<string, unknown>} row */
   const log = (row) => appendFileSync(opts.log, `${JSON.stringify({ n: ++n, at: new Date().toISOString(), ...row })}\n`);
 
   /**
-   * Runs `send` once the call before it has finished and at least GAP_MS
-   * after it started.
-   * @template T @param {(started: number) => Promise<T>} send @returns {Promise<T>}
+   * @template T
+   * @param {(started: number) => Promise<T>} send
+   * @returns {Promise<T>}
    */
   function paced(send) {
     const run = queue.then(async () => {
-      // A timer may fire a millisecond early: never start before its time.
       while (Date.now() - last < GAP_MS) await new Promise((r) => setTimeout(r, last + GAP_MS - Date.now()));
       last = Date.now();
       return send(last);
@@ -117,8 +58,6 @@ function createSite(opts) {
   }
 
   /**
-   * GET a path on the site: from memory if this run already has it, else
-   * paced, with a 429 waited out and re-sent.
    * @param {string} pathAndQuery
    * @param {{ check: string, engine: string, send: () => Promise<Answer> }} how
    * @returns {Promise<Answer>}
@@ -141,13 +80,11 @@ function createSite(opts) {
           opts.onSend?.(new URL(pathAndQuery, opts.url).pathname);
           try {
             const r = await send();
-            // `at` is when the call was sent, so the log shows the 4 s spacing itself.
             log({ at: new Date(started).toISOString(), check, engine, path: pathAndQuery, source: 'network', status: r.status, ms: Date.now() - started, cache: r.headers['cf-cache-status'] ?? null, version: r.headers['x-app-version'] ?? null, attempt });
             network.push({ path: pathAndQuery, status: r.status });
             console.log(`  sent ${String(network.length).padStart(2)}  ${new Date(started).toISOString()}  GET ${pathAndQuery}  ${r.status}`);
             return r;
           } catch (err) {
-            // Sent, but no answer (a reset, a timeout): logged all the same.
             log({ at: new Date(started).toISOString(), check, engine, path: pathAndQuery, source: 'network', status: null, ms: Date.now() - started, error: firstLine(err), attempt });
             network.push({ path: pathAndQuery, status: null });
             throw err;
@@ -158,7 +95,6 @@ function createSite(opts) {
           await new Promise((r) => setTimeout(r, Math.max(GAP_MS, Number.isFinite(after) ? after * 1000 : 0)));
           continue;
         }
-        // Every answer is kept, a 404 included: nothing is fetched twice.
         if (res.status !== 429) memory.set(pathAndQuery, res);
         return res;
       }
@@ -174,8 +110,8 @@ function createSite(opts) {
   return {
     get, log, memory, unplanned, network,
     /**
-     * GET a path from Node (the fetch-first phase).
-     * @param {string} path @param {string} check
+     * @param {string} path
+     * @param {string} check
      */
     fetch: (path, check) => get(path, {
       check, engine: 'node',
@@ -185,12 +121,9 @@ function createSite(opts) {
       },
     }),
     /**
-     * Routes a browser context's requests: an API call from memory only (one
-     * not fetched first is refused and noted), a page file through `get`.
-     * Anything not a GET on the site is refused and logged.
      * @param {import('@playwright/test').BrowserContext} context
      * @param {string} engine
-     * @param {() => string} check the check running now
+     * @param {() => string} check
      */
     async route(context, engine, check) {
       await context.route('**/*', async (route) => {
@@ -218,7 +151,6 @@ function createSite(opts) {
             },
           });
         } catch {
-          // No answer (logged by get): the page sees a failed request, as a browser would.
           await route.abort('failed').catch(() => {});
           return;
         }
@@ -229,19 +161,14 @@ function createSite(opts) {
   };
 }
 
-// ---------- the page ----------
-
-/** The view is shown and every row has loaded or failed. @param {import('@playwright/test').Page} page */
+/** @param {import('@playwright/test').Page} page */
 async function rowsIn(page) {
   await page.locator('#slView').waitFor({ state: 'visible' });
   await page.waitForFunction(() => document.querySelectorAll('#slView .sl-ehead .title').length > 0
     && ![...document.querySelectorAll('#slView .sl-ehead .title')].some((t) => t.textContent === 'Loading…'));
 }
 
-/**
- * The view's rows, in each list's order: code, title, the stamp's status.
- * @param {import('@playwright/test').Page} page
- */
+/** @param {import('@playwright/test').Page} page */
 const viewRows = (page) => page.evaluate(() => ['slPickList', 'slAltList'].flatMap((id) => [...document.querySelectorAll(`#${id} > li.sl-entry`)].map((li) => ({
   which: id === 'slPickList' ? 'pick' : 'alt',
   code: li.getAttribute('data-code') ?? '',
@@ -249,10 +176,7 @@ const viewRows = (page) => page.evaluate(() => ['slPickList', 'slAltList'].flatM
   status: li.querySelector('.stamps .st')?.getAttribute('data-status') ?? null,
 }))));
 
-/**
- * Each semester's totals card in the view, read as text.
- * @param {import('@playwright/test').Page} page
- */
+/** @param {import('@playwright/test').Page} page */
 async function viewTotals(page) {
   const cards = await page.evaluate(() => [...document.querySelectorAll('#slTotals .sl-total')].map((c) => ({
     heading: c.querySelector('h4')?.textContent ?? '', sum: [...(c.querySelector('.sl-sum')?.children ?? [])].map((s) => s.textContent ?? ''),
@@ -263,11 +187,7 @@ async function viewTotals(page) {
   return out;
 }
 
-/**
- * Presses Download CSV by keyboard (as export.spec.js does) and reads the
- * file back strictly: its name, its entry rows, and the rows after them.
- * @param {import('@playwright/test').Page} page
- */
+/** @param {import('@playwright/test').Page} page */
 async function downloadCsv(page) {
   const button = page.locator('.sl-actions').getByRole('button', { name: 'Download CSV', exact: true });
   await button.focus();
@@ -284,13 +204,8 @@ async function downloadCsv(page) {
 }
 
 /**
- * Whether the view's fold holds at 390×664 (the view's layout: on a phone the
- * view's head and its export actions come before the list): no scroll either
- * way, and the header's "unofficial", the search box and Search, the view's
- * heading, "Back to results", and Copy link, Download CSV and Print or save
- * as PDF wholly in view.
  * @param {import('@playwright/test').Page} page
- * @returns {Promise<string[]>} what is out of view; [] when it holds
+ * @returns {Promise<string[]>}
  */
 const viewFoldProblems = (page) => page.evaluate(async () => {
   await document.fonts.ready;
@@ -312,8 +227,6 @@ const viewFoldProblems = (page) => page.evaluate(async () => {
   }
   return out;
 });
-
-// ---------- the run ----------
 
 /** @typedef {{ check: string, pass: boolean, detail: string }} Outcome */
 
@@ -346,10 +259,7 @@ async function run(opts) {
   };
   let now = 'start';
 
-  // Every check, then the summary, even if one throws: the log always ends
-  // with what passed and what didn't.
   try {
-    // 1. Every answer the check needs, first.
     now = 'fetch';
     const fetched = [];
     for (const path of plan.calls) {
@@ -364,7 +274,6 @@ async function run(opts) {
     record(`fetch first: /facets and the shortlist's ${plan.entries.length} /module answers`,
       fetched.filter((f) => shortlistPaths.includes(f.path) && f.status !== 200).map((f) => `${f.path}: ${f.status ?? f.error}`), 'every one 200');
 
-    // 2. The 404s, one of each kind.
     for (const m of plan.missing) {
       now = `404 ${m.kind}`;
       const res = site.memory.get(`/module/${m.code}`);
@@ -384,7 +293,6 @@ async function run(opts) {
     const bodies = new Map(plan.entries.map((e) => [e.code, JSON.parse(site.memory.get(`/module/${e.code}`)?.body.toString('utf8') ?? 'null')]));
     const pickAlt = [...plan.entries.filter((e) => e.which === 'pick'), ...plan.entries.filter((e) => e.which === 'alt')];
 
-    // 3. The view, in each engine at 1280×800: rows, totals, CSV, (PDF), axe.
     for (const [engine, launcher] of /** @type {const} */ ([['chromium', chromium], ['webkit', webkit]])) {
       const browser = await launcher.launch();
       try {
@@ -403,7 +311,6 @@ async function run(opts) {
           record(`the view loads (${engine})`, [firstLine(err)]);
         }
         if (loaded) {
-          // The rows: each entry in its list and place, its title, its stamp as the oracle says.
           const rows = await viewRows(page);
           const problems = [];
           if (rows.map((r) => `${r.which} ${r.code}`).join(', ') !== pickAlt.map((e) => `${e.which} ${e.code}`).join(', ')) {
@@ -445,7 +352,6 @@ async function run(opts) {
               await page.waitForFunction(() => document.documentElement.classList.contains('print-shortlist'));
               await page.evaluate(() => document.fonts.ready);
               const pdf = await page.pdf({ format: 'A4', margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }, tagged: true });
-              // As export.spec.js: a system font may map U+2010 and U+2011 to "-" in the text layer.
               const fold = (/** @type {string} */ s) => squash(s).replace(/[‐‑]/g, '-');
               const pages = pdfPages(pdf);
               const all = fold(pages.join(''));
@@ -472,7 +378,6 @@ async function run(opts) {
         }
         await ctx.close();
 
-        // 4. The fold on the view at 390×664: Chromium, and WebKit as an iPhone 13.
         const label = engine === 'chromium' ? 'chromium 390×664' : 'webkit iPhone 13';
         now = `fold ${label}`;
         const foldCtx = await browser.newContext(engine === 'chromium'
@@ -500,7 +405,6 @@ async function run(opts) {
     record(`the run (stopped at ${now})`, [firstLine(err)]);
   }
 
-  // 5. Every call fetched first, none twice.
   /** @type {Map<string, number>} */
   const times = new Map();
   for (const c of site.network) times.set(c.path, (times.get(c.path) ?? 0) + 1);
@@ -525,7 +429,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.error(`live-shortlist: ${/** @type {Error} */ (err).message}`);
     process.exit(2);
   }
-  // A run against a live URL leaves a run record (scripts/run-record.mjs), whatever the result.
   const outcomes = opts.plan ? await run(opts) : await recordedLiveRun('live-shortlist', opts, run);
   process.exit(outcomes.some((o) => !o.pass) ? 1 : 0);
 }

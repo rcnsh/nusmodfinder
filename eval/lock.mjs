@@ -1,17 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run eval:lock`: the ranking lock, eval/ranking-lock.json (eval/lib/ranking-lock.mjs).
-//
-//   npm run eval:lock                                   rewrite the lock at HEAD; refused if the lists change
-//   npm run eval:lock -- --evidence <kind> <ref>        write changed lists with their evidence:
-//       holdout-pass <ledger row> | no-look <count-log row> | revert <commit> | bootstrap <ref>
-//   npm run eval:lock -- --check [--base <rev>]         the eval gate (CI's eval-gate job)
-//   npm run eval:lock -- --check --fast-only [--base <rev>]
-//                                                       the fast path alone; prints and outputs fast=true|false
-//   npm run eval:lock -- --diff-ref <ref>               <ref>'s ranker (with the HEAD runner) against HEAD's lock
-//
-// `--base` defaults to the merge base with origin/main. The runner calls no Cloudflare service:
-// it needs the pinned corpus in .data/ and downloads the corpus embeddings release asset.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
@@ -52,7 +40,6 @@ if (a.help) {
   process.exit(0);
 }
 
-/** The base: --base (empty means none), else the merge base with origin/main. */
 function baseOf() {
   if (a.base !== undefined) return a.base.trim() || null;
   if (!commitOf(REPO, 'origin/main')) return null;
@@ -118,7 +105,6 @@ if (a['diff-ref']) {
   process.exit(0);
 }
 
-// Write.
 refuseDirty();
 const base = baseOf();
 const baseLock = base ? readLockAt(REPO, base) : null;

@@ -1,8 +1,4 @@
 // @ts-check
-// The bundled exact dense search (src/dense.js) on the fixture
-// corpus. The fixture bundle (test/fixtures/vectors.bin) holds the fake
-// embedder's vectors for the fixture modules, the vectors seed() puts in the
-// fake Vectorize, so the two dense backends must rank alike.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { denseBundle } from '../src/dense.js';
@@ -13,7 +9,6 @@ import { createFakes, hashEmbed } from './fakes.js';
 import { callJson, fixture, seed } from './helpers.js';
 
 const STANDBY = { DENSE_BACKEND: 'vectorize' };
-/** Adjacent items whose scores differ by less than this may swap. */
 const SWAP_TOLERANCE = 1e-6;
 
 /** @type {import('./fakes.js').Fakes} */
@@ -22,7 +17,10 @@ beforeAll(async () => {
   fakes = await seed();
 });
 
-/** Exact cosine in double precision, as the fake Vectorize scores. @param {number[]} a @param {number[]} b */
+/**
+ * @param {number[]} a
+ * @param {number[]} b
+ */
 function cosine(a, b) {
   let dot = 0, na = 0, nb = 0;
   for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
@@ -32,9 +30,9 @@ function cosine(a, b) {
 const textOf = new Map(fixture.modules.map((m) => [m.code, m.text]));
 
 /**
- * Where two ranked lists differ, position by position, with the exact cosine
- * of each side's item for `q`. Every difference must be a near-tie swap.
- * @param {string} q @param {string[]} a @param {string[]} b
+ * @param {string} q
+ * @param {string[]} a
+ * @param {string[]} b
  */
 function differences(q, a, b) {
   const qv = hashEmbed(q);
@@ -71,7 +69,6 @@ describe('the bundle and the Vectorize standby agree on the fixture', () => {
         /** @param {string} mode */
         const both = async (mode) => {
           const path = `/search?q=${encodeURIComponent(q)}${f}&mode=${mode}&topK=50`;
-          // Uncollapsed: the group collapse reads a single bundle list deeper than Vectorize's (src/search.js depth).
           const bundle = await callJson(path, { fakes, env: { COLLAPSE_GROUPS: 'off' } });
           const standby = await callJson(path, { fakes, env: { ...STANDBY, COLLAPSE_GROUPS: 'off' } });
           expect(bundle.status, path).toBe(200);
@@ -79,32 +76,24 @@ describe('the bundle and the Vectorize standby agree on the fixture', () => {
           expect(bundle.body.degraded, path).toBeUndefined();
           return { path, a: bundle.body.results.map((/** @type {any} */ r) => r.code), b: standby.body.results.map((/** @type {any} */ r) => r.code) };
         };
-        // mode=vector is the whole dense list (depth 50 = topK 50).
         const dense = await both('vector');
-        // In exchange mode the standby filters on the
-        // yearly ng flag, reads 100 deep and drops what D1's allow mask closes,
-        // so its list is the start of the bundle's, possibly shorter.
         const exchange = f.includes('ng=1');
         if (exchange) expect(dense.b.length, dense.path).toBeLessThanOrEqual(dense.a.length);
         const diff = differences(q, exchange ? dense.a.slice(0, dense.b.length) : dense.a, dense.b);
         for (const d of diff) swaps.push({ path: dense.path, ...d });
-        // Fusion is rank-based, so the hybrid page is identical whenever the
-        // dense lists are; a near-tie swap moves fused ranks, and is listed.
         const hybrid = await both('hybrid');
-        if (exchange) { /* the standby's dense list is deeper here, so fusion differs by design */ }
-        else if (diff.length === 0) expect(hybrid.a, hybrid.path).toEqual(hybrid.b);
-        else if (JSON.stringify(hybrid.a) !== JSON.stringify(hybrid.b)) hybridFollows.push(hybrid.path);
+        const standbyIsDeeper = exchange;
+        if (!standbyIsDeeper && diff.length === 0) expect(hybrid.a, hybrid.path).toEqual(hybrid.b);
+        else if (!standbyIsDeeper && JSON.stringify(hybrid.a) !== JSON.stringify(hybrid.b)) hybridFollows.push(hybrid.path);
         compared++;
       }
     }
     expect(compared).toBe(QUERIES.length * FILTERS.length);
-    // Every dense difference is a pair of items tied to within the tolerance
-    // (the fake embedder's integer word counts tie exactly; float rounding orders them).
     expect(swaps.filter((s) => !(s.delta < SWAP_TOLERANCE))).toEqual([]);
     console.log(`dense fixture identity: ${compared} query x filter cells; ${swaps.length} near-tie swap positions in the dense lists `
       + `(max |Δ| ${swaps.length ? Math.max(...swaps.map((s) => s.delta)).toExponential(1) : 0}), ${hybridFollows.length} hybrid pages reordered by them:\n`
       + swaps.map((s) => `  ${s.path} @${s.at}: ${s.a} <-> ${s.b} (|Δ| ${s.delta.toExponential(1)})`).join('\n'));
-  }, 120_000); // 800 searches
+  }, 120_000);
 
   it('the bundled search makes no Vectorize call; the standby makes exactly one', async () => {
     const f = createFakes();
@@ -154,7 +143,6 @@ describe('between a D1-only ingest and the deploy', () => {
     const path = '/search?q=machine%20learning&mode=vector&sem=1&topK=10';
     const before = await callJson(path);
     const top = before.body.results[0].code;
-    // D1 moves the top module out of semester 1; the bundle still says sem 1.
     await env.DB.prepare("UPDATE modules SET semesters = '[2]' WHERE code = ?").bind(top).run();
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const logs = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -167,7 +155,6 @@ describe('between a D1-only ingest and the deploy', () => {
       const line = logs.mock.calls.map((a) => { try { return JSON.parse(String(a[0])); } catch { return null; } }).find((l) => l?.event === 'search');
       expect(line.counts).toMatchObject({ filtered: 1, stale: 0, returned: 10 });
       expect(warn.mock.calls.flat().join(' ')).toContain(top);
-      // Unfiltered, the row is still served: only a failing filter drops it.
       expect((await callJson('/search?q=machine%20learning&mode=vector&topK=10')).body.results.map((/** @type {any} */ r) => r.code)).toContain(top);
     } finally { warn.mockRestore(); logs.mockRestore(); }
     await seed();
@@ -175,9 +162,7 @@ describe('between a D1-only ingest and the deploy', () => {
 
   it('a lexical candidate is never dropped by the dense rule: D1 filtered it in SQL', async () => {
     await seed();
-    // Hybrid: a module both retrievers find, which still matches in D1.
     const { body } = await callJson('/search?q=programming%20methodology&sem=1');
-    // CS1010S may stand in its duplicate group's variants.
     expect(body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)])).toContain('CS1010S');
   });
 

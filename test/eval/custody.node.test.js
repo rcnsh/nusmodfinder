@@ -34,7 +34,6 @@ describe('AES-256-GCM files', () => {
   it('binds the set name, so a ciphertext copied into another set fails to decrypt', async () => {
     const key = await readKey(await generateKey(join(dir, 'k-set', 'holdout.key')));
     const ct = encrypt(Buffer.from('{"q":1}'), key, '/somewhere/eval/holdout/queries.json.enc', 'holdout');
-    // Same file name, any directory: the set name decides.
     expect(decrypt(ct, key, '/elsewhere/copy/queries.json.enc', 'holdout').toString()).toBe('{"q":1}');
     for (const other of ['test', 'selftest']) {
       expect(() => decrypt(ct, key, '/elsewhere/copy/queries.json.enc', other)).toThrow(DecryptionError);
@@ -84,7 +83,6 @@ describe('ledger', () => {
     expect(await looks(path, 'test')).toBe(1);
     await expect(assertLookAllowed(path, 'holdout', 12)).rejects.toThrow(/refusing look 13 at the holdout set/);
     await expect(assertLookAllowed(path, 'test', 1)).rejects.toThrow(/refusing look 2/);
-    // A pipe in a cell cannot shift the columns.
     expect((await readFile(path, 'utf8'))).toContain('| v 0 |');
   });
 });
@@ -97,7 +95,6 @@ describe('ledger tampering', () => {
     for (let i = 0; i < 14; i++) await appendLook(path, row);
     const lines = (await readFile(path, 'utf8')).split('\n');
     let k = 0, j = 0;
-    // A space after the leading pipe of 11 rows, and two more rows squashed and indented.
     const edited = lines.map((l) => (l.startsWith('| 2026') && k++ < 11 ? l.replace(/^\| /, '|  ') : l))
       .map((l) => (l.startsWith('| 2026') && j++ < 2 ? `   ${l.replace(/ \| /g, '|')}   ` : l));
     expect(edited.filter((l) => /^\| \d{4}-/.test(l))).toHaveLength(1);
@@ -131,7 +128,6 @@ describe('ledger tampering', () => {
     const opts = { repo };
     expect(await assertLookAllowed(path, 'holdout', 12, opts)).toBe(5);
 
-    // Cut back to 3 rows: refused against HEAD.
     const text = await readFile(path, 'utf8');
     const cut = text.split('\n').filter((l, i, all) => !(l.startsWith('| 2026') && all.slice(0, i).filter((x) => x.startsWith('| 2026')).length >= 3)).join('\n');
     await writeFile(path, cut);
@@ -139,17 +135,14 @@ describe('ledger tampering', () => {
     await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toThrow(/has 3 look rows but HEAD:eval\/holdout-ledger\.md has 5; rows may only be appended/);
     await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toMatchObject({ name: 'LedgerTamperError' });
 
-    // Deleted: refused while git has it.
     await rm(path);
     await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toThrow(/is missing but HEAD has it \(5 look rows\)/);
 
-    // Committing the cut does not help while origin/main still has 5.
     git('update-ref', 'refs/remotes/origin/main', git('rev-parse', 'HEAD'));
     await writeFile(path, cut);
     git('commit', '-qam', 'cut the ledger');
     await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toThrow(/but origin\/main:eval\/holdout-ledger\.md has 5/);
 
-    // Appending is always fine.
     for (let i = 0; i < 3; i++) await appendLook(path, row);
     expect(await assertLookAllowed(path, 'holdout', 12, opts)).toBe(6);
   });
@@ -174,7 +167,6 @@ describe('sets', () => {
       expect(layout(name, '/tmp/copy-of-holdout').ledger).toBe(fixed);
       expect(layout(name, join(REPO, 'eval', 'holdout')).ledger).toBe(fixed);
     }
-    // Only the self-test set keeps a ledger in its directory; its ciphertexts are bound to "selftest".
     expect(layout('selftest', '/tmp/st').ledger).toBe('/tmp/st/ledger.md');
     expect(layout('selftest', '/tmp/st')).toMatchObject({ encrypted: true, maxLooks: 12, gate: 'holdout' });
     expect(layout('dev', '/tmp/d').ledger).toBe(null);
@@ -189,7 +181,6 @@ describe('sets', () => {
   });
 
   it('maps filters to /search params with production defaults (no topK, no mode)', () => {
-    // An ng query takes `study` from eval/study-map.json; persona-less ones take noPersona (ug2).
     expect(searchParams({ id: 'a', text: 'ml', filters: { ng: true, sem: 1, level: 3, faculty: 'Computing' } }))
       .toEqual({ q: 'ml', ng: '1', sem: '1', level: '3', faculty: 'Computing', study: 'ug2' });
     expect(searchParams({ id: 'a', text: 'ml', filters: { ng: false } })).toEqual({ q: 'ml' });
@@ -203,9 +194,7 @@ describe('sets', () => {
     expect(searchParams(q('P3')).study).toBe('ug2');
     expect(searchParams(q('mech')).study).toBe('ug2');
     expect(() => searchParams(q('P9'))).toThrow(/persona "P9" has no study level/);
-    // No ng, no study, whatever the persona.
     expect(searchParams(/** @type {any} */ ({ id: 'a', text: 'ml', filters: { sem: 2 }, persona: 'P9' }))).toEqual({ q: 'ml', sem: '2' });
-    // --strip ng: sem kept, ng and its study dropped.
     expect(searchParams(q('P1'), { strip: ['ng'] })).toEqual({ q: 'ml', sem: '2' });
     expect(() => searchParams(q('P1'), { strip: ['topK'] })).toThrow(/strip: unknown filter/);
   });
@@ -247,7 +236,6 @@ describe('ledger concurrency', () => {
   it('three parallel looks from 11 rows: one is recorded, two are refused', async () => {
     const path = join(dir, 'parallel.md');
     for (let i = 0; i < 11; i++) await appendLook(path, row);
-    // What eval:report does: check, compute (a tick here), append, under the lock.
     const look = (/** @type {number} */ i) => withLedgerLock(path, async () => {
       await assertLookAllowed(path, 'holdout', 12);
       await new Promise((r) => setTimeout(r, 5));
@@ -339,7 +327,6 @@ describe('ledger edits and lock ownership', () => {
       await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toMatchObject({ name: 'LedgerTamperError' });
       await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toThrow(/records 0 holdout looks but HEAD:eval\/holdout-ledger\.md records 12; rows may only be appended, not edited/);
     }
-    // An unknown set cell still counts against every set, so it is not a cut.
     await writeFile(path, committed.replace('| holdout |', '| h0ldout |'));
     await expect(assertLookAllowed(path, 'holdout', 12, opts)).rejects.toMatchObject({ name: 'LookLimitError' });
   });
@@ -355,7 +342,6 @@ describe('ledger edits and lock ownership', () => {
       /** @type {() => void} */
       let aInside = () => {};
       const aEntered = new Promise((r) => { aInside = /** @type {() => void} */ (r); });
-      // A: checks, then stalls (laptop sleep) before appending.
       const a = withLedgerLock(path, async (lock) => {
         await assertLookAllowed(path, 'holdout', 12);
         aInside();
@@ -366,7 +352,6 @@ describe('ledger edits and lock ownership', () => {
       await aEntered;
       const old = new Date(Date.now() - 31 * 60 * 1000);
       await utimes(`${path}.lock`, old, old);
-      // B breaks the stale lock and stalls inside; A resumes and finishes.
       /** @type {() => void} */
       let resumeB = () => {};
       const bPaused = new Promise((r) => { resumeB = /** @type {() => void} */ (r); });
@@ -384,7 +369,6 @@ describe('ledger edits and lock ownership', () => {
       resumeA();
       await expect(a).rejects.toMatchObject({ name: 'LedgerLockError' });
       await expect(a).rejects.toThrow(/lost the ledger lock/);
-      // B's lock is still there, so C cannot get in alongside B.
       expect(existsSync(`${path}.lock`)).toBe(true);
       await expect(withLedgerLock(path, async () => 'C', { waitMs: 100 })).rejects.toMatchObject({ name: 'LedgerLockError' });
       resumeB();
@@ -405,7 +389,6 @@ describe('ledger edits and lock ownership', () => {
     await writeFile(`${path}.lock.break`, '');
     await expect(withLedgerLock(path, async () => 'ran', { waitMs: 150 })).rejects.toMatchObject({ name: 'LedgerLockError' });
     expect(existsSync(`${path}.lock`)).toBe(true);
-    // An abandoned break lock (its holder crashed mid-break) is cleared after a minute.
     const oldBreak = new Date(Date.now() - 2 * 60 * 1000);
     await utimes(`${path}.lock.break`, oldBreak, oldBreak);
     const err = vi.spyOn(console, 'error').mockImplementation(() => {});

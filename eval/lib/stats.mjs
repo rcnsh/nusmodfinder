@@ -1,17 +1,11 @@
 // @ts-check
-// Paired statistics for comparing two runs query by query. Pure, seeded,
-// dependency-free. Every function takes per-query deltas d_i = candidate_i -
-// baseline_i over the same queries.
 
-/** Default number of resamples (plan: 10,000). */
 export const RESAMPLES = 10_000;
-/** Default seed, so a report is reproducible byte for byte. */
 export const SEED = 20261104;
 
 /**
- * mulberry32: a small, fast, well-distributed 32-bit PRNG.
  * @param {number} seed
- * @returns {() => number} uniform in [0, 1)
+ * @returns {() => number}
  */
 export function rng(seed) {
   let a = seed >>> 0;
@@ -32,22 +26,14 @@ export function mean(xs) {
   return s / xs.length;
 }
 
-/**
- * Standard normal CDF via erfc (fractional error < 1.2e-7, far below the
- * Monte Carlo error of a 10k-resample bootstrap).
- * @param {number} x
- */
+/** @param {number} x */
 export function normCdf(x) {
   if (x === Infinity) return 1;
   if (x === -Infinity) return 0;
   return 0.5 * erfc(-x / Math.SQRT2);
 }
 
-/**
- * Complementary error function, Numerical Recipes `erfcc` (Chebyshev fit,
- * fractional error < 1.2e-7 everywhere).
- * @param {number} x
- */
+/** @param {number} x */
 function erfc(x) {
   const z = Math.abs(x);
   const t = 1 / (1 + 0.5 * z);
@@ -57,10 +43,7 @@ function erfc(x) {
   return x >= 0 ? r : 2 - r;
 }
 
-/**
- * Inverse standard normal CDF (Acklam's algorithm, relative error < 1.2e-9).
- * @param {number} p in (0, 1)
- */
+/** @param {number} p */
 export function normInv(p) {
   if (p <= 0) return -Infinity;
   if (p >= 1) return Infinity;
@@ -83,10 +66,8 @@ export function normInv(p) {
 }
 
 /**
- * Quantile of a sorted array, linear interpolation between order statistics
- * (Hyndman-Fan type 7, the R/NumPy default).
  * @param {Float64Array | number[]} sorted
- * @param {number} q in [0, 1]
+ * @param {number} q
  */
 export function quantile(sorted, q) {
   const n = sorted.length;
@@ -97,18 +78,9 @@ export function quantile(sorted, q) {
   return sorted[lo] + (h - lo) * (sorted[hi] - sorted[lo]);
 }
 
-/**
- * `degenerate` marks an interval with no width to speak of: fewer than two
- * deltas, or deltas whose spread is within float noise (one query, or every
- * query moved by the same amount). Its bounds equal the estimate and carry no
- * evidence, so a CI-based gate check never passes on it (gate.mjs).
- * @typedef {{ estimate: number, lower: number, upper: number, n: number, method: string, degenerate: boolean }} Interval
- */
+/** @typedef {{ estimate: number, lower: number, upper: number, n: number, method: string, degenerate: boolean }} Interval */
 
-/**
- * True when the deltas have no variance beyond float noise.
- * @param {number[]} deltas
- */
+/** @param {number[]} deltas */
 export function zeroVariance(deltas) {
   if (deltas.length < 2) return true;
   let lo = Infinity, hi = -Infinity;
@@ -120,11 +92,8 @@ export function zeroVariance(deltas) {
 }
 
 /**
- * Paired BCa bootstrap confidence interval for the mean delta (Efron 1987):
- * bias correction z0 from the share of resampled means below the estimate,
- * acceleration from the jackknife.
  * @param {number[]} deltas
- * @param {{ resamples?: number, seed?: number, alpha?: number }} [options] alpha is two-sided (0.05 → 95%).
+ * @param {{ resamples?: number, seed?: number, alpha?: number }} [options]
  * @returns {Interval}
  */
 export function bcaInterval(deltas, options = {}) {
@@ -143,8 +112,6 @@ export function bcaInterval(deltas, options = {}) {
   }
   boot.sort();
 
-  // Bias correction. Ties with the estimate count half, so a statistic with a
-  // discrete bootstrap distribution is not pushed to one side.
   const eps = 1e-12 * Math.max(1, Math.abs(estimate));
   let below = 0, equal = 0;
   for (const v of boot) {
@@ -154,7 +121,6 @@ export function bcaInterval(deltas, options = {}) {
   const share = Math.min(Math.max((below + 0.5 * equal) / resamples, 1 / (resamples + 1)), resamples / (resamples + 1));
   const z0 = normInv(share);
 
-  // Acceleration from the jackknife of the mean.
   const total = deltas.reduce((s, d) => s + d, 0);
   const jack = deltas.map((d) => (total - d) / (n - 1));
   const jackMean = mean(jack);
@@ -182,12 +148,8 @@ export function bcaInterval(deltas, options = {}) {
 }
 
 /**
- * Persona-clustered bootstrap: resample whole clusters (personas) with
- * replacement, keep every query of each drawn cluster, take the mean delta of
- * the pooled queries. Percentile interval; reported alongside BCa because
- * queries from one persona are not independent.
  * @param {number[]} deltas
- * @param {string[]} clusters cluster label per delta
+ * @param {string[]} clusters
  * @param {{ resamples?: number, seed?: number, alpha?: number }} [options]
  * @returns {Interval & { clusters: number }}
  */
@@ -228,21 +190,16 @@ export function clusteredInterval(deltas, clusters, options = {}) {
   };
 }
 
-/** Exact enumeration below this many non-zero deltas; Monte Carlo above. */
 export const EXACT_SIGN_FLIP_MAX = 16;
 
 /**
- * Two-sided paired sign-flip randomisation test of mean delta = 0. Under the
- * null each delta's sign is exchangeable; p is the share of sign assignments
- * whose |sum| is at least the observed |sum|. Exact for small n, otherwise
- * Monte Carlo with the (count + 1) / (R + 1) correction.
  * @param {number[]} deltas
  * @param {{ resamples?: number, seed?: number }} [options]
  * @returns {{ p: number, exact: boolean, n: number }}
  */
 export function signFlipP(deltas, options = {}) {
   const { resamples = RESAMPLES, seed = SEED } = options;
-  const nz = deltas.filter((d) => d !== 0); // zero deltas contribute nothing under any flip
+  const nz = deltas.filter((d) => d !== 0);
   const n = deltas.length;
   if (nz.length === 0) return { p: 1, exact: true, n };
   const observed = Math.abs(nz.reduce((s, d) => s + d, 0));

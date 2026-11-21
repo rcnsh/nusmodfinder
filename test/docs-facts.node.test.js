@@ -1,21 +1,4 @@
 // @ts-check
-// README.md, EVAL.md and the docs under docs/ describe the system as it is (ADR 0012).
-//
-// - Facts that change only by a deliberate act are checked against their source: holdout and
-//   test-set looks and the test set's Δ and CI (eval/holdout-ledger.md), the
-//   dev qrels label and size (eval/dev/qrels.json), the year in sentences marked
-//   `<!-- year:live -->` (DEFAULT_ACAD_YEAR) or `<!-- year:pinned -->` (PINNED_ACAD_YEAR), and
-//   the NG list's counts in those sentences (data/ or eval/pinned/).
-// - Volatile values (corpus counts and sizes, the ng-unscheduled count, the shipped pin's sha)
-//   are written as pointers to their files: a `<!-- pointer -->` sentence holds no number.
-// - Retired claims appear nowhere outside a section headed "History".
-// - The commands the docs give exist and run as written.
-//
-// Text is compared after collapsing whitespace and stripping quote markers, so a phrase split
-// across lines still matches. Markers go at the start of the sentence they mark; the sentence runs
-// to its full stop, the end of its paragraph, list item or table cell, or the next marker.
-//
-// This file is year-scanned (it reads year-named NG files): it derives every year and spells none.
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -25,16 +8,11 @@ import { PINNED_ACAD_YEAR } from '../scripts/pinned-corpus.mjs';
 
 const read = (/** @type {string} */ rel) => readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
 
-/** The docs these facts appear in: the two root docs and every doc directly under docs/. */
 const DOCS = ['README.md', 'EVAL.md', ...readdirSync(fileURLToPath(new URL('../docs', import.meta.url))).filter((f) => f.endsWith('.md')).sort().map((f) => `docs/${f}`)];
 
 const collapse = (/** @type {string} */ s) => s.replace(/\s+/g, ' ').trim();
 
-/**
- * @typedef {{ text: string, history: boolean, fence: boolean }} Block
- * A paragraph, list item, table row, heading or (one per line) fenced code line, its whitespace
- * collapsed; `history` when it sits under a heading containing "History".
- */
+/** @typedef {{ text: string, history: boolean, fence: boolean }} Block */
 
 /**
  * @param {string} md
@@ -75,13 +53,11 @@ export function blocks(md) {
   return out;
 }
 
-/** The text of a doc outside "History" sections, whitespace collapsed. */
 const current = (/** @type {string} */ md) => blocks(md).filter((b) => !b.history).map((b) => collapse(b.text)).join(' \n ');
 
 const MARKER = /<!--\s*(year:live|year:pinned|pointer)\s*-->/g;
 
 /**
- * The sentences each marker starts, with the marker's kind.
  * @param {string} md
  * @returns {{ kind: string, text: string }[]}
  */
@@ -100,13 +76,9 @@ export function marked(md) {
   return out;
 }
 
-/** Prose only: code spans and link targets removed. */
 const prose = (/** @type {string} */ s) => s.replace(/`[^`]*`/g, '').replace(/\]\([^)]*\)/g, ']');
 
 /**
- * Every year in a marked sentence must be `year` (an acad year `yyyy-yyyy`): a span such as
- * yyyy/yy, yyyy/yyyy or AYyyyy/yyyy must be the whole year, a lone year one of its two.
- * Identifiers in code spans are not read.
  * @param {{ kind: string, text: string }[]} sentences
  * @param {string} year
  * @returns {string[]}
@@ -131,8 +103,6 @@ export function yearProblems(sentences, year) {
 const num = (/** @type {string} */ s) => Number(s.replace(/,/g, ''));
 
 /**
- * The NG list's counts a marked sentence states, against the list: "N codes for Sem S" and
- * "N codes in all" (or "N course codes in the PDF").
  * @param {{ kind: string, text: string }[]} sentences
  * @param {{ semesters: Record<string, string[]>, allCodes: string[] }} list
  * @returns {{ checked: number, problems: string[] }}
@@ -155,7 +125,6 @@ export function ngProblems(sentences, list) {
   return { checked, problems };
 }
 
-/** The next acad year after `year`, for the stubbed-year checks. */
 const nextYear = (/** @type {string} */ year) => year.split('-').map((y) => String(Number(y) + 1)).join('-');
 
 const docs = Object.fromEntries(DOCS.map((d) => [d, read(d)]));
@@ -200,7 +169,6 @@ describe('deliberate facts against their sources', () => {
   });
 
   it('README and EVAL.md state the test set\'s Δ and CI as the ledger\'s test row does', () => {
-    // The filtered test set's size; the ledger records the deltas, not n.
     const n = '195';
     const testRow = rows.find((r) => r[2] === 'test');
     const ci = /^([+-][\d.]+) \[([\d.]+), ([\d.]+)\]$/;
@@ -259,7 +227,6 @@ describe('deliberate facts against their sources', () => {
     expect(pinned.problems).toEqual([]);
     expect(live.checked).toBeGreaterThan(0);
     expect(pinned.checked).toBeGreaterThan(0);
-    // And the check can fail.
     expect(ngProblems([{ kind: 'year:live', text: '1 code for Sem 1.' }], { semesters: { 1: ['A', 'B'] }, allCodes: [] }).problems).toHaveLength(1);
   });
 });
@@ -325,7 +292,6 @@ describe('commands run as written', () => {
     const manifest = JSON.parse(read('eval/embeddings.json'));
     const v0 = Object.entries(/** @type {Record<string, { textRef: string }>} */ (manifest.versions)).filter(([, v]) => v.textRef === 'eval-v0').map(([k]) => k);
     expect(v0).toHaveLength(1);
-    // The runner refuses a v0 ranker on the default (later) embedding.
     expect(manifest.default).not.toBe(v0[0]);
     const bad = [];
     let seen = 0;

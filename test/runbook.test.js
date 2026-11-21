@@ -1,16 +1,4 @@
 // @ts-check
-// The ingest and re-embed runbook (docs/data.md "Re-ingesting") against
-// the real admin routes, local D1 and the fakes:
-// - step 4, the D1-only mode: /admin/ingest?d1Only=1, /admin/delete?d1Only=1
-//   and ingest-core's d1Only make no Workers AI or Vectorize call;
-// - step 5, `npm run verify -- --pre-deploy`: D1 against the manifest
-//   and the bundle, with no Vectorize read;
-// - step 8, /admin/vectors and scripts/vectors-core.mjs runStandby:
-//   every code upserted from the bundle with D1's full metadata, in batches of
-//   at most 1,000, deletions after, the mutation awaited, then verify with a
-//   values sample.
-// Steps 3-8 go through `npm run remote -- …`, and no step writes
-// .dev.vars.
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { runIngest } from '../scripts/ingest-core.mjs';
@@ -28,7 +16,6 @@ import { adminApi } from './ingest-support.js';
 import reference from '../docs/data.md?raw';
 
 const MODEL = '@cf/baai/bge-small-en-v1.5';
-/** scripts/lib.mjs EMBEDDING_TEXT_VERSION. */
 const EMBEDDING_TEXT_VERSION = 2;
 const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 
@@ -48,13 +35,16 @@ const noRemoteCalls = () => {
   expect(fakes.vectorize.calls).toEqual([]);
 };
 
-/** A module with a new text, as normalise() would give it. @param {NormalisedModule} m @param {string} text */
+/**
+ * @param {NormalisedModule} m
+ * @param {string} text
+ */
 const withText = async (m, text) => ({
   ...m, text, description: `${m.description} (revised)`,
   textHash: (await sha256Hex(JSON.stringify([MODEL, EMBEDDING_TEXT_VERSION, text]))).slice(0, 32),
 });
 
-/** The bundle a corpus implies: the fake embedder's vectors, as scripts/vectors.mjs builds the fixture's. @param {NormalisedModule[]} modules */
+/** @param {NormalisedModule[]} modules */
 const bundleFor = async (modules) => {
   const bytes = await encodeBundle({ corpus: 'production', embedding: 'fake-hash-embed', model: 'fake', modules, vectorOf: (m) => hashEmbed(/** @type {NormalisedModule} */ (m).text) });
   return parseBundle(/** @type {ArrayBuffer} */ (bytes.buffer));
@@ -72,7 +62,6 @@ describe('runbook step 4: D1-only mode', () => {
     noRemoteCalls();
     const row = await env.DB.prepare('SELECT text_hash, row_hash, description FROM modules WHERE code = ?').bind(m.code).first();
     expect(row).toEqual({ text_hash: m.textHash, row_hash: await rowHash(m), description: m.description });
-    // The standby keeps the old vector until step 8.
     expect(fakes.vectorize.vectors.get(m.code)?.metadata?.textHash).toBe(fixture.modules[0].textHash);
   });
 
@@ -130,12 +119,7 @@ describe('runbook step 4: D1-only mode', () => {
 describe('runbook step 5: verify --pre-deploy', () => {
   const fixtureEntry = /** @type {any} */ (manifest).bundles.fixture;
   const fixtureBundle = async () => bundleFor(fixture.modules);
-  /**
-   * The year files this deploy ships and the NG list, for the fixture: its NG codes plus the
-   * fixture file's, so exactly the file's codes are NG codes with no D1 row.
-   */
   const unscheduledCodes = fixtureUnscheduled.modules.map((e) => e.code);
-  /** The bundled catalogue file, here the empty catalogue_only seed() leaves. */
   const catalogue = { codes: /** @type {string[]} */ ([]) };
   const dataFiles = {
     ngReasonsAcadYear: ngReasons.acadYear,
@@ -150,7 +134,6 @@ describe('runbook step 5: verify --pre-deploy', () => {
     expect(r).toMatchObject({ ok: true, d1Rows: fixture.modules.length, bundleRows: fixture.modules.length, missingInBundle: [], extraInBundle: [], fieldDrift: [] });
     expect(new Set(Object.values(r.rowsKey)).size).toBe(1);
     expect(new Set(Object.values(r.dataVersion)).size).toBe(1);
-    // Every module row, plus the catalogueKey read of catalogue_only, counted as D1 bills it.
     const catalogueRead = (await env.DB.prepare('SELECT code FROM catalogue_only').all()).meta.rows_read;
     expect(r.rowsRead).toBe(fixture.modules.length + catalogueRead);
     noRemoteCalls();
@@ -176,7 +159,6 @@ describe('runbook step 5: verify --pre-deploy', () => {
     const m = /** @type {NormalisedModule} */ (fixture.modules.find((x) => x.examDates.length === 1));
     const wrongSem = m.examDates[0].sem === 1 ? 2 : 1;
     const examDates = [{ ...m.examDates[0], sem: wrongSem }];
-    // Rewritten as a stale ingest would have: the row's own hash agrees with its columns.
     await env.DB.prepare('UPDATE modules SET exam_dates = ?, row_hash = ? WHERE code = ?')
       .bind(JSON.stringify(examDates), await rowHash({ ...m, examDates }), m.code).run();
     const r = await runPreDeployVerify({ api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, dataFiles, catalogue });
@@ -198,7 +180,6 @@ describe('runbook step 5: verify --pre-deploy', () => {
       api: api(), bundle, manifest: fixtureEntry, committedDataVersion: fixtureEntry.dataVersion, knownReason, catalogue,
       dataFiles: {
         ngReasonsAcadYear: ngReasons.acadYear,
-        // A file from last year, holding an offered code and a code off the NG list, and missing EE4407.
         unscheduled: { acadYear: '2025-2026', codes: [...unscheduledCodes.filter((c) => c !== 'EE4407'), offered.code, 'ZZ1000'] },
         ngCodes: dataFiles.ngCodes,
       },
@@ -267,7 +248,6 @@ describe('runbook step 8: /admin/vectors and the standby run', () => {
   });
 
   it('after a D1-only ingest, the standby run upserts every code in batches, deletes, waits, and verify then agrees, values included', async () => {
-    // Step 4: a text change, a row change and two deletions reach D1 only.
     const changed = await withText(fixture.modules[5], 'standby run new text');
     const rowOnly = { ...fixture.modules[6], level: 7 };
     const corpus = [changed, rowOnly, ...fixture.modules.slice(7)];
@@ -276,11 +256,9 @@ describe('runbook step 8: /admin/vectors and the standby run', () => {
       options: { embeddingModel: MODEL, d1Only: true, expectedDataVersion: await versionOf(corpus), allowMassDelete: true },
     });
     expect(step4.status).toBe('done');
-    // The standby now disagrees with D1: verify says so.
     const listVectorIds = async () => [...fakes.vectorize.vectors.keys()];
     expect((await runVerify({ api: api(), listVectorIds, sample: [changed.code, rowOnly.code] })).ok).toBe(false);
 
-    // Step 8, with the bundle built for what D1 now holds.
     const bundle = await bundleFor(corpus);
     fakes.vectorize.processPerDescribe = 1;
     fakes.vectorize.calls.length = 0;
@@ -298,15 +276,12 @@ describe('runbook step 8: /admin/vectors and the standby run', () => {
     expect(report).toMatchObject({ ok: true, missingVectors: [], extraVectors: [], metadataDrift: [], valueDrift: [], valuesChecked: 100 });
     expect(fakes.vectorize.vectors.get(changed.code)?.metadata?.textHash).toBe(changed.textHash);
     expect(fakes.vectorize.vectors.get(rowOnly.code)?.metadata?.level).toBe(7);
-    // A sampled vector whose values differ from the bundle is drift.
     const v = /** @type {import('./fakes.js').StoredVector} */ (fakes.vectorize.vectors.get(changed.code));
     fakes.vectorize.vectors.set(changed.code, { ...v, values: hashEmbed('something else') });
     expect((await runVerify({ api: api(), listVectorIds, sample: [changed.code], bundle })).valueDrift).toEqual([changed.code]);
   });
 
   it('the standby deletes every index id D1 no longer holds, even when the deletions file lost some (resumed or retried step 4)', async () => {
-    // Step 4 removed six codes from D1, but the file it left names none of them
-    // (a budget stop then resume, a clean rerun, or a retried delete all lose codes).
     const corpus = fixture.modules.slice(6);
     const step4 = await runIngest({
       modules: corpus, facetsBody, api: api(), sleep, now,

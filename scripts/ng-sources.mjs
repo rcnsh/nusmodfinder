@@ -1,20 +1,10 @@
 // @ts-check
-// The per-year source manifest, data/ng-sources-<year>.json:
-// which NUS documents exchange mode's rules and quotes come from, revision by revision, with
-// each document's name, URL, file, sha256 and "updated as at" date; which semesters NUS has
-// published a list for; the year's transcription, overlay module, oracle and register; and the
-// quote index, each NUS sentence the page copies by hand with the document it comes from.
-//
-// Pure helpers plus file reads under a root (the repo by default), so `year check`, the
-// restrictions builder, `sources` and the rehearsal share one reading. docs/year-refresh/ is the
-// procedure; docs/exchange-mode.md the summary.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const MANIFEST_SCHEMA = 'vnm-ng-sources/1';
-/** The overlay roles the restrictions builder and the page read instead of literal rule ids. */
 export const ROLES = /** @type {const} */ (['self-funded-list', 'off-list-rule']);
 
 /**
@@ -23,11 +13,6 @@ export const ROLES = /** @type {const} */ (['self-funded-list', 'off-list-rule']
  *   updatedAsAt: string | null, builder?: boolean, derivedFrom?: string, text?: string, textSha256?: string, note?: string,
  *   confirm?: string[], unarchived?: string,
  * }} SourceDocument
- *   `confirm` lists the fields the maintainer has still to fill in from the saved document (a URL or
- *   date not in git); `unarchived` gives the reason a quoted source can't go in the archive.
- *   `text` is the document's text extraction (pdftotext), archived with it, and `textSha256` its
- *   sha256: `sources publish` writes it, and restore, `year check --full` and the
- *   restrictions builder check it. `file` and `text` are plain base names.
  * @typedef {{ release: string, asset: string, sha256: string | null, pending?: string }} ArchiveRef
  * @typedef {{ date: string, archive: ArchiveRef, documents: SourceDocument[] }} Revision
  * @typedef {{ id: string, file: string, text: string, document: string }} Quote
@@ -39,7 +24,7 @@ export const ROLES = /** @type {const} */ (['self-funded-list', 'off-list-rule']
  * }} SourceManifest
  */
 
-/** 'YYYY-YYYY' is an acad year. @param {string} year */
+/** @param {string} year */
 export const isAcadYear = (year) => {
   const m = /^(\d{4})-(\d{4})$/.exec(year);
   return !!m && Number(m[2]) === Number(m[1]) + 1;
@@ -50,14 +35,14 @@ const shift = (year, by) => {
   const a = Number(year.slice(0, 4)) + by;
   return `${a}-${a + 1}`;
 };
-/** The acad year before. @param {string} year */
+/** @param {string} year */
 export const previousYear = (year) => shift(year, -1);
-/** The acad year after. @param {string} year */
+/** @param {string} year */
 export const nextYear = (year) => shift(year, 1);
-/** 'YYYY-ZZZZ' → 'YYYY/ZZ', as the page labels a year. @param {string} year */
+/** @param {string} year */
 export const yearLabel = (year) => `${year.slice(0, 4)}/${year.slice(7, 9)}`;
 
-/** The manifest's path, repo-relative. @param {string} year */
+/** @param {string} year */
 export const manifestRel = (year) => `data/ng-sources-${year}.json`;
 /** @param {string} year */
 export const ngCoursesRel = (year) => `data/ng-courses-${year}.json`;
@@ -67,12 +52,12 @@ export const ngRestrictionsRel = (year) => `data/ng-restrictions-${year}.json`;
 export const overlayRel = (year) => `scripts/ng-overlay/${year}.mjs`;
 /** @param {string} year */
 export const oracleRel = (year) => `test/oracle/oracle-${year}.node.mjs`;
-/** A new year's register (an earlier year's is wherever its manifest's `register` says). @param {string} year */
+/** @param {string} year */
 export const registerRel = (year) => `docs/year-refresh/registers/${year}.md`;
 
 /**
- * The manifest for a year, or null when the file is missing.
- * @param {string} year @param {{ root?: string }} [o]
+ * @param {string} year
+ * @param {{ root?: string }} [o]
  * @returns {SourceManifest | null}
  */
 export function readManifest(year, { root = ROOT } = {}) {
@@ -81,36 +66,36 @@ export function readManifest(year, { root = ROOT } = {}) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-/** The newest revision (revisions are kept oldest first). @param {SourceManifest} m */
+/** @param {SourceManifest} m */
 export const latestRevision = (m) => m.revisions[m.revisions.length - 1] ?? null;
 
-/** A revision by its date, or the newest. @param {SourceManifest} m @param {string} [date] */
+/**
+ * @param {SourceManifest} m
+ * @param {string} [date]
+ */
 export function revisionOf(m, date) {
   if (!date) return latestRevision(m);
   return m.revisions.find((r) => r.date === date) ?? null;
 }
 
 /**
- * The semesters NUS has published this year's NG list for, ascending.
  * @param {Pick<SourceManifest, 'published'>} m
  * @returns {number[]}
  */
 export const publishedSemesters = (m) => /** @type {const} */ (['1', '2']).filter((s) => m.published?.ngList?.[s] === true).map(Number);
 
-/**
- * The semesters NUS hasn't published yet: Sem 2 between the July switch and NUS's Sem 2
- * list. Exchange mode shows last year's list for them, each course "to confirm".
- * @param {Pick<SourceManifest, 'published'>} m
- */
+/** @param {Pick<SourceManifest, 'published'>} m */
 export const unpublishedSemesters = (m) => [1, 2].filter((s) => !publishedSemesters(m).includes(s));
 
-/** A document of a revision by id. @param {Revision} rev @param {string} id */
+/**
+ * @param {Revision} rev
+ * @param {string} id
+ */
 export const documentOf = (rev, id) => rev.documents.find((d) => d.id === id) ?? null;
 
 /**
- * The documents the restrictions builder reads (each sha-checked), by file name.
  * @param {Revision} rev
- * @returns {Record<string, string>} file → sha256
+ * @returns {Record<string, string>}
  */
 export function builderHashes(rev) {
   /** @type {Record<string, string>} */
@@ -119,20 +104,19 @@ export function builderHashes(rev) {
   return out;
 }
 
-/**
- * Whether a manifest's file name is a plain base name, safe to join onto a directory:
- * not empty, not `.`, and no `/`, `\\`, `..`, drive or absolute path, or NUL.
- * @param {unknown} name
- */
+/** @param {unknown} name */
 export const isPlainName = (name) => typeof name === 'string' && name !== '' && name !== '.'
   && !/[/\\\0]/.test(name) && !name.includes('..') && !/^[A-Za-z]:/.test(name);
 
-/** The refusal for a name that is not plain. @param {string} what @param {unknown} name */
+/**
+ * @param {string} what
+ * @param {unknown} name
+ */
 export const notPlain = (what, name) => `${what} ${JSON.stringify(name)} is not a plain file name (no /, \\, .., absolute path or NUL)`;
 
 /**
- * What the manifest's shape gets wrong, as sentences (an empty list is a sound manifest).
- * @param {SourceManifest} m @param {string} year
+ * @param {SourceManifest} m
+ * @param {string} year
  * @returns {string[]}
  */
 export function manifestProblems(m, year) {
@@ -169,7 +153,6 @@ export function manifestProblems(m, year) {
       if (d.text !== undefined) {
         if (!isPlainName(d.text)) out.push(`revision ${rev.date}: ${notPlain(`${d.id}'s text`, d.text)}`);
         if (d.textSha256 !== undefined && !(typeof d.textSha256 === 'string' && /^[0-9a-f]{64}$/.test(d.textSha256))) out.push(`revision ${rev.date}: ${d.id}'s textSha256 is not 64 hex`);
-        // A published revision pins every file it archived; a pending one gets it from publish.
         if (d.textSha256 === undefined && a?.sha256 && !d.unarchived) out.push(`revision ${rev.date}: ${d.id}'s text ${d.text} has no textSha256 (npm run sources -- publish writes it)`);
       }
       if (d.builder && (!d.file || !d.sha256)) out.push(`revision ${rev.date}: ${d.id} is a builder input with no file or sha256`);
@@ -187,17 +170,10 @@ export function manifestProblems(m, year) {
   return out;
 }
 
-/** The documents whose fields the maintainer must still confirm, as `id: fields`. @param {Revision} rev */
+/** @param {Revision} rev */
 export const toConfirm = (rev) => rev.documents.filter((d) => d.confirm?.length).map((d) => `${d.id}: ${d.confirm?.join(', ')}`);
 
-// ---------------------------------------------------------------- quotes
-
-/**
- * A text normalised for the verbatim check: typographic quotes and apostrophes as plain ones
- * (the page writes NUS's ' as ’ in places, and ' and " alike as a quote mark), every run of
- * white space as one space (a PDF's text breaks lines where the page doesn't), case kept.
- * @param {string} text
- */
+/** @param {string} text */
 export const normaliseQuote = (text) => text
   .replace(/[‘’ʼ′]/g, "'")
   .replace(/[“”″]/g, '"')
@@ -208,9 +184,7 @@ export const normaliseQuote = (text) => text
   .trim();
 
 /**
- * Whether a quote appears verbatim in a text: after normaliseQuote, and with an ellipsis (…)
- * in the quote standing for words left out, each part in order.
- * @param {string} haystack the document's text, or a code file's
+ * @param {string} haystack
  * @param {string} quote
  */
 export function quoteIn(haystack, quote) {
@@ -224,14 +198,10 @@ export function quoteIn(haystack, quote) {
   return true;
 }
 
-/**
- * A JavaScript file's text with string escapes undone (\' \" \\), so a quote matches the
- * sentence it writes rather than its source spelling.
- * @param {string} source
- */
+/** @param {string} source */
 export const unescapeJs = (source) => source.replace(/\\(['"\\`])/g, '$1');
 
-/** Text from HTML: tags dropped, the common entities decoded. @param {string} html */
+/** @param {string} html */
 export function htmlText(html) {
   return decodeEntities(html.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' '));
 }

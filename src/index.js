@@ -1,10 +1,4 @@
 // @ts-check
-// The Worker entry point: routing only. Each route lives in its own module so
-// search (search.js), module/facet reads (modules.js) and the admin ingest
-// routes (ingest.js) can change independently. The page (`/`) is public/,
-// served as Workers Static Assets in front of the Worker: a
-// request for one of its files never reaches this code. An unknown path gets
-// JSON, or the 404 page when a browser asks for HTML (not-found.js).
 import { denseBundle } from './dense.js';
 import { appVersion, json, withHeaders } from './http.js';
 import {
@@ -16,21 +10,14 @@ import { notFoundPage, prefersHtml } from './not-found.js';
 import { DATA_VERSION, searchRoute } from './search.js';
 import { Trace } from './timing.js';
 
-/**
- * GET /health: which version is serving, the committed data version, and the
- * bundled vectors' corpus and data version (null if the bundle
- * does not parse), so a smoke can see that the production bundle is live.
- * Deliberately touches no binding but version_metadata, so it costs nothing
- * and works when D1 is down.
- * @param {Env} env
- */
+/** @param {Env} env */
 function handleHealth(env) {
   const meta = /** @type {WorkerVersionMetadata | undefined} */ (env.CF_VERSION_METADATA);
   let vectors = null;
   try {
     const { header } = denseBundle();
     vectors = { corpus: header.corpus, count: header.count, dataVersion: header.dataVersion };
-  } catch { /* reported as null; /search degrades to keyword-only (dense-index) */ }
+  } catch {}
   const response = json({
     ok: true, versionId: meta?.id ?? null, versionTag: meta?.tag || null, dataVersion: DATA_VERSION, vectors,
   });
@@ -62,13 +49,11 @@ function route(request, env, ctx, trace) {
   if (path === '/admin/catalogue' && request.method === 'GET') return handleCatalogueHashes(request, env);
   if (path === '/admin/catalogue' && request.method === 'POST') return handleCatalogue(request, env);
 
-  // A browser's mistyped address gets the 404 page; everything else, today's JSON.
   if ((request.method === 'GET' || request.method === 'HEAD') && prefersHtml(request.headers.get('accept'))) return notFoundPage();
   return json({ error: 'not_found', message: `No route for ${path}.` }, 404);
 }
 
 /**
- * Adds Server-Timing (`d1`, `total`) to a /module or /facets response.
  * @param {Promise<Response>} pending
  * @param {Trace} trace
  */
@@ -76,11 +61,7 @@ async function timed(pending, trace) {
   return withHeaders(await pending, { 'server-timing': trace.header() });
 }
 
-/**
- * The request's id for an error report: the cf-ray Cloudflare assigned, so a
- * user's report can be matched to the logs, else a fresh random id.
- * @param {Request} request
- */
+/** @param {Request} request */
 const requestId = (request) => request.headers.get('cf-ray') ?? crypto.randomUUID();
 
 export default {
@@ -96,8 +77,6 @@ export default {
     try {
       response = await route(request, env, ctx, trace);
     } catch (err) {
-      // Anything a route did not handle: a JSON 500 the caller can quote,
-      // never workerd's bare "error code: 1101".
       const id = requestId(request);
       const e = /** @type {any} */ (err);
       console.error(JSON.stringify({

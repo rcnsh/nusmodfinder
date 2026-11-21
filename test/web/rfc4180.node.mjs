@@ -1,12 +1,6 @@
 // @ts-check
-// A strict RFC 4180 reader for the export tests: written apart
-// from public/csv.js, so the tests read the file the way a spreadsheet would,
-// not the way the page wrote it. It refuses anything RFC 4180 doesn't allow:
-// a bare LF or CR, a quote inside an unquoted field, text after a closing
-// quote, an unterminated quoted field, and a file that doesn't end with CRLF.
 
 /**
- * The records of a CSV text (no byte-order mark: the caller strips it).
  * @param {string} text
  * @returns {string[][]}
  */
@@ -53,12 +47,8 @@ export function parseCsv(text) {
   return records;
 }
 
-/**
- * Whether every field of a CSV text is quoted (the export quotes every field).
- * @param {string} text
- */
+/** @param {string} text */
 export function everyFieldQuoted(text) {
-  // Outside quoted runs, only the separators may appear.
   let inQuotes = false;
   for (let i = 0; i < text.length; i += 1) {
     const ch = text[i];

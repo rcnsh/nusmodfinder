@@ -1,9 +1,4 @@
 // @ts-check
-// scripts/live-check-plan.mjs: the page's live check's arguments and its
-// seeded draw, on the fixture (the production modules live in .data/, which
-// CI doesn't have). The browser half, scripts/live-check.mjs, is run by hand:
-// against the local UI server before the PR, against production after the
-// deploy (docs/operations.md, "Live checks").
 import { describe, expect, it } from 'vitest';
 import { CLOSED_KINDS, GAP_MS, PRODUCTION_URL, STRATA, drawDetails, drawHidden, loadModules, parseArgs, rng } from '../scripts/live-check-plan.mjs';
 import { bitOf } from '../src/ng-bit.js';
@@ -77,7 +72,6 @@ describe('the hidden-code draw', () => {
       const other = c.sem === 1 ? 2 : 1;
       expect(c.otherOpen, c.m.code).toBe(oracle(c.m, { sem: other, study: c.study }) !== 'closed');
     }
-    // Off the NG list, a course is closed in both semesters: never a switch.
     expect(closed[0].otherOpen).toBe(false);
   });
 

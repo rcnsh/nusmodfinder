@@ -1,7 +1,4 @@
 // @ts-check
-// public/preclusion.js: whether one course's NUS preclusion text
-// names another, for the shortlist's preclusion flag and its same-course rule.
-// Every text here is NUS's own, as NUSMods serves it for 2026/27.
 import { describe, expect, it } from 'vitest';
 import { names } from '../../public/preclusion.js';
 
@@ -37,7 +34,6 @@ describe('a preclusion names a code', () => {
     expect(names(T.CS2030, 'CS2030DE', 'ug2')).toBe(true);
     expect(names(T.CS2030, 'CS2030S', 'ug2')).toBe(true);
     expect(names('… must not have completed CS2040C', 'CS2040C', 'ug2')).toBe(true);
-    // A longer code is another code: CS2030S doesn't name CS2030 by its first six characters.
     expect(names('must not have completed CS2030S at a grade', 'CS2030', 'ug2')).toBe(false);
   });
 
@@ -74,17 +70,13 @@ describe('a preclusion names a code', () => {
     expect(names(T.GES1034, 'GESS1024', 'grad')).toBe(false);
     expect(names(T.GES1034, 'GESS1024', 'ug1')).toBe(true);
     expect(names('(If undertaking an Undergraduate Degree THEN must not have completed CS2040C)', 'CS2040C', 'grad')).toBe(false);
-    // Naming graduate coursework students too: kept.
     expect(names(T.MA4207, 'MA5219', 'grad')).toBe(true);
     expect(names(T.EE4705, 'EE5112', 'grad')).toBe(true);
-    // "Undergraduate Degree" with no article is the same clause.
     expect(names(T.GESS1007, 'HY2239', 'grad')).toBe(false);
     expect(names(T.GESS1007, 'HY2239', 'ug2')).toBe(true);
-    // Skipped by branch, not by the text's opening: a graduate-coursework branch still names it.
     expect(names(T.CS5462, 'CS4262', 'grad')).toBe(true);
     expect(names('(If undertaking an Undergraduate DegreeTHEN( must not have completed CS4262))OR(if undertaking a Graduate Degree ResearchTHEN( must not have completed CS1010))', 'CS1010', 'grad')).toBe(true);
     expect(names('(If undertaking an Undergraduate DegreeTHEN( must not have completed CS4262))OR(if undertaking a Graduate Degree ResearchTHEN( must not have completed CS1010))', 'CS4262', 'grad')).toBe(false);
-    // Browse mode (no study level) reads every rule.
     expect(names(T.CS2030, 'CS2030S', '')).toBe(true);
   });
 

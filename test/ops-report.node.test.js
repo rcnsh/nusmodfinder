@@ -1,7 +1,4 @@
 // @ts-check
-// `npm run ops:report -- --month <yyyy-mm>`, the monthly usage report from Cloudflare's
-// GraphQL Analytics API. Fixture GraphQL answers only: fetch, the
-// token's source, the clock and the sleep are injected, and nothing here reaches Cloudflare.
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -21,11 +18,7 @@ let dir;
 beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'vnm-opsreport-')); });
 afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
 
-/**
- * One month's GraphQL answer, the shape scripts/ops-report.mjs's query asks for. `over` replaces
- * datasets (null makes one missing, as GraphQL answers a dataset it couldn't read).
- * @param {{ scale?: number, over?: Record<string, unknown>, errors?: unknown[] }} [o]
- */
+/** @param {{ scale?: number, over?: Record<string, unknown>, errors?: unknown[] }} [o] */
 function answer({ scale = 1, over = {}, errors } = {}) {
   const s = (/** @type {number} */ n) => Math.round(n * scale);
   const account = {
@@ -55,11 +48,7 @@ function answer({ scale = 1, over = {}, errors } = {}) {
   return { data: { viewer: { accounts: [account] } }, ...(errors ? { errors } : {}) };
 }
 
-/**
- * A fake fetch that answers each GraphQL call from `answers` in turn and records the calls, on a
- * virtual clock that `sleep` advances.
- * @param {unknown[]} answers bodies (an object) or `{ status, body }`
- */
+/** @param {unknown[]} answers */
 function fakeCloudflare(answers) {
   let t = Date.parse('2026-11-12T03:00:00Z');
   /** @type {{ url: string, init: RequestInit, at: number, body: any }[]} */
@@ -81,7 +70,6 @@ function fakeCloudflare(answers) {
 }
 
 /**
- * Runs the report with fakes; returns what it wrote.
  * @param {string[]} argv
  * @param {ReturnType<typeof fakeCloudflare>} cf
  * @param {{ env?: Record<string, string | undefined>, exec?: import('../scripts/d1-read.mjs').Exec }} [o]
@@ -143,23 +131,19 @@ describe('the report from fixture GraphQL answers', () => {
     const r = /** @type {string} */ (report);
     expect(r).toMatch(/^# Usage report: 2026-10\n/);
     expect(r).toContain('2026-10-01 to 2026-10-31 (UTC), the whole month');
-    // Account-wide, each against its allowance.
     expect(r).toMatch(/\| Worker requests \| 374,470 \| 10,000,000 a month \| 3\.7% \|/);
     expect(r).toMatch(/\| Worker CPU \| 4,364,811 ms \| 30,000,000 ms a month \| 14\.5% \|/);
     expect(r).toMatch(/\| D1 rows read \| 18,136,157 \| 25,000,000,000 a month \| 0\.07% \|/);
     expect(r).toMatch(/\| D1 rows written \| 579,297 \| 50,000,000 a month \| 1\.2% \|/);
     expect(r).toMatch(/\| Workers AI neurons, busiest day \| 2,394\.7 \(2026-10-03\) \| 10,000 a day \| 23\.9% \|/);
-    // This Worker's share.
     expect(r).toMatch(/\| Requests \| 182 \| 0\.05% of the account's \|/);
     expect(r).toMatch(/\| CPU \| 2,900 ms \| 0\.07% of the account's \|/);
     expect(r).toMatch(/\| CPU per request, p50 \/ p99 \| 9\.1 ms \/ 34\.2 ms \|/);
     expect(r).toMatch(/\| Errors \(exceptions\) \| 0 \|/);
     expect(r).toMatch(/\| 200 \| 159 \|\n\| 404 \| 23 \|/);
     expect(r).toMatch(/\| `nusmods-apac` rows read \| 926,418 \| 5\.1% of the account's \|/);
-    // The calendar month, and why.
     expect(r).toMatch(/calendar month/);
     expect(r).toMatch(/renewal date[^\n]*isn't readable/);
-    // Month on month: everything doubled, so everything that has a value grew.
     expect(r).toMatch(/## Flags\n/);
     expect(r).toMatch(/- Worker requests grew 100% on 2026-09 \(187,235 → 374,470\)/);
     expect(logs.join('\n')).toContain('2026-10.md');
@@ -173,7 +157,6 @@ describe('the report from fixture GraphQL answers', () => {
     expect(r).toMatch(/\| D1 rows read \| missing: not authorized for d1AnalyticsAdaptiveGroups \|/);
     expect(r).toMatch(/\| D1 rows written \| missing/);
     expect(r).not.toMatch(/\| D1 rows read \| 0 \|/);
-    // The other datasets still report.
     expect(r).toMatch(/\| Worker requests \| 374,470 \|/);
     expect(result.exitCode).toBe(1);
     expect(JSON.parse(/** @type {string} */ (record))).toMatchObject({ outcome: 'failed', details: { missing: ['d1'] } });
@@ -194,7 +177,6 @@ describe('the report from fixture GraphQL answers', () => {
   });
 
   it('flags anything above 25% of its allowance', async () => {
-    // CPU at 9M ms of 30M (30%), and a 3,000-neuron day (30%); requests stay at 3.7%.
     const over = {
       workersAccount: [{ dimensions: { scriptName: 'x' }, sum: { requests: 374_470, errors: 0, cpuTimeUs: 9_000_000_000 } }],
       ai: [{ dimensions: { date: '2026-10-09' }, sum: { totalNeurons: 3000 } }],
@@ -224,7 +206,6 @@ describe('the report from fixture GraphQL answers', () => {
   });
 
   it('a month in progress is projected before it is compared', async () => {
-    // 11 days 3 hours into November at the same totals as all of October: projected about 2.7×.
     const cf = fakeCloudflare([answer(), answer()]);
     const { report } = await run(['--month', '2026-11'], cf);
     expect(report).toContain('2026-11-01 to 2026-11-12 03:00 (UTC), month to date');
@@ -253,7 +234,6 @@ describe('the calls', () => {
     }
     expect(cf.calls[0].body.variables).toMatchObject({ from: '2026-10-01T00:00:00Z', to: '2026-10-31T23:59:59Z', dateFrom: '2026-10-01', dateTo: '2026-10-31' });
     expect(cf.calls[1].body.variables).toMatchObject({ from: '2026-09-01T00:00:00Z', dateTo: '2026-09-30' });
-    // The query reads the fields 7-0 confirmed by introspection.
     const q = cf.calls[0].body.query;
     for (const f of ['workersInvocationsAdaptive', 'cpuTimeUs', 'cpuTimeP50', 'cpuTimeP99', 'httpResponseStatus', 'd1AnalyticsAdaptiveGroups',
       'rowsRead', 'rowsWritten', 'databaseId', 'aiInferenceAdaptiveGroups', 'totalNeurons', 'date_geq', 'datetime_geq']) expect(q).toContain(f);

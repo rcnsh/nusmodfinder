@@ -27,6 +27,7 @@ npm run test:full           # test/full over the pinned corpus and bundle (needs
 npm run test:oracle         # exchange-mode correctness over production's corpus (needs `npm run corpus -- restore`)
 npm run test:ui             # Playwright, Chromium and WebKit; `npx playwright install chromium webkit` once
 npm run lint && npm run typecheck
+npm run comments -- count      # comments left, and the lines deleting them would shed
 npm run eval:lock -- --check   # the eval gate: did a ranked list move?
 npm run dev                 # the page over the fixture, nothing remote
 npm run deploy              # the only way to deploy; `-- --preflight` before any D1 write
@@ -85,10 +86,15 @@ Commit before `eval:lock -- --check`: it reads committed content only.
   the overlay and the register, then `npm run test:oracle`
   ([docs/exchange-mode.md](docs/exchange-mode.md)).
 - **Page code builds DOM nodes**; lint bans `innerHTML` and other HTML sinks in `public/`.
+- **No comments in JS** (ADR 0020). Lint (`local/no-comments`) allows only tool directives and
+  type-only JSDoc. A decision goes into its ADR's `## In the code` section, a workaround becomes
+  an issue, and code that needs explaining gets better names. `eslint-suppressions.json` is a
+  ratchet that only shrinks: prune it with `npm run lint -- --prune-suppressions`; only a newly
+  widened rule is baselined into it. To clear comments, use `/delete-comment`.
 
 ## Writing
 
 - Commits: Conventional Commits (`type(scope): summary`).
-- Comments and docs: present tense, what the code does and why. Record a new decision as the
+- Docs: present tense, what the code does and why; the code itself has no comments. Record a new decision as the
   next ADR in `docs/decisions/` and add it to the index in `docs/README.md`.
 - When the site is down: [docs/incidents.md](docs/incidents.md).

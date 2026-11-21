@@ -13,9 +13,10 @@ the same reader, they would share every misreading, and agreement would prove no
 - **Never read:** `src/eligibility.js`, `scripts/build-ng-restrictions.mjs`, the rules file
   `data/ng-restrictions-<year>.json`, or anything else in the overlay module (`OVERLAY`, `DECIDED`,
   `TWINS`, the roles).
-- **Where the register is silent**, decide, write the decision in the oracle's header as a new
-  `D` reading, and send it to the maintainer to log in the register (`register.md`). Don't read
-  the rules to see what they did.
+- **Where the register is silent**, decide, add the decision as the next `D` row in the year's
+  register (`docs/year-refresh/registers/<year>.md`, the section for the oracle author's readings),
+  and tell the maintainer, who rules on it ([register.md](register.md)). Don't read the rules to
+  see what they did.
 
 ## For a new year
 
@@ -26,8 +27,8 @@ the same reader, they would share every misreading, and agreement would prove no
    rules changed; keep the rest.
 3. Re-verify each register row flagged "re-verify" (it names a course code): the code may have
    moved, been renamed or left the list.
-4. Remove the `stub` line. Update the header: the sources and their dates, and any new `D`
-   readings.
+4. Remove the `stub` line. Any new `D` readings are rows in the year's register, not in the
+   oracle file.
 
 ## What the file exports
 

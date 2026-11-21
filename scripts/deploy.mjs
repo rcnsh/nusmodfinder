@@ -1,34 +1,4 @@
 // @ts-check
-// The only supported way to deploy, from the Mac or from GitHub Actions (.github/workflows/deploy.yml):
-//
-//   npm run deploy                     preflight, guard, upload, startup gate, promote, tag, triggers
-//   npm run deploy -- --preflight      the preflight alone (before any D1 write, per the runbook)
-//   npm run deploy -- --behind-ok      deploy a HEAD behind origin/main's tip (logged)
-//
-// 1. The preflight (scripts/preflight.mjs): every check but D1's. The git checks (clean tree,
-//    nothing hidden, HEAD on origin/main at its tip unless --behind-ok), HEAD's own CI push run
-//    green, the vars (only DENSE_BACKEND), the production bundle at the committed data version,
-//    the corpus manifest and year checks, a `year check --full` record when source-derived inputs changed, and
-//    `wrangler check startup` with the bundle aliased in.
-// 2. The guard (scripts/guard.mjs): D1's (code, text_hash) pairs must hash to the
-//    bundle's rowsKey, D1's data version must be the committed one, and D1's catalogueKey (its
-//    catalogue_only codes) the bundled catalogue file's. Every row's hash is recomputed from its
-//    columns, since the data version is over those, and a stored
-//    row_hash that differs (modules or catalogue_only) refuses. Read over D1's REST query endpoint
-//    (scripts/d1-rest.mjs; ~6.8k module and ~14.4k catalogue rows, every column), the code GET
-//    /admin/hashes runs, so no Worker session and no secret is bound anywhere. In Actions a mismatch means a data change
-//    D1 doesn't hold yet: the job fails and says the re-ingest runs on the Mac.
-// 3. `wrangler versions upload --tag <short sha> --message "<sha> <subject>"`; the startup gate
-//    refuses to promote above 200 ms or with no reported time.
-// 4. The intent record: the version id, the previous one (`wrangler deployments status`), the
-//    data version and the startup time, in the run record and printed, before the promote.
-// 5. `wrangler versions deploy <id>@100%`; then the annotated tag
-//    `deploy/<UTC time>-<id8>` on HEAD with the same fields, pushed (a failed push prints the
-//    retry; the version is live either way); then `wrangler triggers deploy` (ADR 0009's Custom
-//    Domain). A SIGINT, SIGTERM or SIGHUP after the promote finishes the tag and the record first.
-//
-// Every run writes one run record (scripts/run-record.mjs) on every exit path; in Actions it
-// also appends a job summary.
 import { spawn } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -44,21 +14,14 @@ import { startRun } from './run-record.mjs';
 
 export { ALLOWED_VARS, STARTUP_PROFILE };
 
-// Cloudflare caps version messages at 100 characters.
 const MAX_MESSAGE = 100;
-/** The startup gate: well under the platform's 1 s limit. */
 export const MAX_STARTUP_MS = 200;
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const DATA_VERSION_PATH = join(ROOT, 'src/data-version.json');
-/** The Worker deploy acts on (wrangler.jsonc `name`), for its run record. */
 const WORKER_NAME = 'nusmodfinder';
-/** Exit codes for the signals deploy finishes on. */
 const SIGNAL_CODES = /** @type {const} */ ({ SIGINT: 130, SIGTERM: 143, SIGHUP: 129 });
 
 /**
- * The `vars` object of wrangler.jsonc, read as JSONC (scripts/jsonc.mjs), so an object-valued var
- * is one key like any other. No `vars` is no vars; a file or a `vars` it can't read
- * throws, so the preflight's check fails rather than passing blind.
  * @param {string} [path]
  * @returns {Promise<Record<string, unknown>>}
  */
@@ -74,7 +37,6 @@ export async function wranglerVars(path = join(ROOT, 'wrangler.jsonc')) {
 /**
  * @typedef {{ code: number, stdout: string }} ExecResult
  * @typedef {(cmd: string, args: string[], opts?: { stream?: boolean }) => Promise<ExecResult>} Exec
- *   Runs a command without a shell. With `stream`, stdout is also echoed live.
  * @typedef {import('./preflight.mjs').DeployBundle} DeployBundle
  * @typedef {Pick<NodeJS.EventEmitter, 'on' | 'off'>} Signals
  */
@@ -94,10 +56,7 @@ export function run(cmd, args, opts = {}) {
   });
 }
 
-/**
- * The production bundle, checked (scripts/vectors-manifest.mjs).
- * @returns {Promise<DeployBundle>}
- */
+/** @returns {Promise<DeployBundle>} */
 async function productionBundle() {
   const { fetchBundle, loadCheckedBundle, readVectorsManifest } = await import('./vectors-manifest.mjs');
   const manifest = await readVectorsManifest();
@@ -132,9 +91,8 @@ function parseArgs(argv) {
 }
 
 /**
- * The deploy, with its run record: one record on every exit path, a throw included.
  * @param {DeployDeps} [deps]
- * @returns {Promise<number>} The process exit code.
+ * @returns {Promise<number>}
  */
 export async function deploy(deps = {}) {
   const argv = deps.argv ?? process.argv.slice(2);
@@ -151,8 +109,6 @@ export async function deploy(deps = {}) {
   const exit = deps.exit ?? ((/** @type {number} */ c) => process.exit(c));
   const log = deps.log ?? console.log;
   const error = (/** @type {string} */ m) => { stage.lastError = m.split('\n')[0]; errorOut(m); };
-  // Signals are handled here, not by the record's guard: after the promote they must not stop
-  // the tag and the record from being written.
   const unguard = record.guardExit(/** @type {any} */ (signals), { signals: false });
   const handlers = /** @type {[keyof typeof SIGNAL_CODES, () => void][]} */ (Object.keys(SIGNAL_CODES).map((sig) => [sig, () => {
     const code = SIGNAL_CODES[/** @type {keyof typeof SIGNAL_CODES} */ (sig)];
@@ -166,7 +122,7 @@ export async function deploy(deps = {}) {
     errorOut(`deploy: ${sig} after the promote: finishing the tag and the run record before exiting.`);
   }]));
   for (const [sig, h] of handlers) signals.on(sig, h);
-  /** Each wrangler command but the local startup check and the token read calls Cloudflare's API. @type {Exec} */
+  /** @type {Exec} */
   const exec = (cmd, a, opts) => {
     if (cmd === 'npx' && a[0] === 'wrangler' && a[1] !== 'check' && a[1] !== 'auth') record.request(`wrangler ${a.slice(1, 3).join(' ')}`);
     return (deps.exec ?? run)(cmd, a, opts);
@@ -189,7 +145,6 @@ export async function deploy(deps = {}) {
 }
 
 /**
- * GitHub Actions' job summary: the outcome, the version, the tag and the checks.
  * @param {Record<string, string | undefined>} env
  * @param {import('./run-record.mjs').RunRecord} record
  */
@@ -213,7 +168,7 @@ function summarize(env, record) {
     ['run record', record.path ? relative(ROOT, record.path) : ''],
   ].filter(([, val]) => val);
   const text = [`### ${d.script}: ${finished.outcome}`, '', '| | |', '|---|---|', ...rows.map(([k, val]) => `| ${k} | ${String(val).replaceAll('|', '\\|')} |`), ''].join('\n');
-  try { appendFileSync(env.GITHUB_STEP_SUMMARY, `${text}\n`); } catch { /* a summary is a convenience */ }
+  try { appendFileSync(env.GITHUB_STEP_SUMMARY, `${text}\n`); } catch {}
 }
 
 /**
@@ -228,7 +183,6 @@ async function deployRun(deps, args, record, stage) {
   const ci = env.GITHUB_ACTIONS === 'true';
   if (args.behindOk) record.detail('behindOk', true);
 
-  // 1. The preflight.
   const pre = await runPreflight({
     exec, log, behindOk: args.behindOk,
     bundle: deps.bundle ?? productionBundle,
@@ -250,14 +204,12 @@ async function deployRun(deps, args, record, stage) {
   const b = /** @type {DeployBundle} */ (pre.state.bundle);
   const committed = /** @type {string} */ (pre.state.committed);
 
-  // 2. The guard, over D1's REST query.
   /** @type {import('./d1-rest.mjs').D1Client | null} */
   let client = null;
   /** @type {Awaited<ReturnType<typeof runGuard>>} */
   let guard;
   const READ = 'D1 rows (the guard, over the D1 REST query: modules and catalogue_only with every column, and the schema check)';
   const catalogue = await (deps.catalogue ?? readBundledCatalogue)();
-  // The module rows and the catalogue_only rows, as D1 should hold them.
   const estimate = b.entry.count + catalogue.codes.length;
   try {
     client = await (deps.d1 ?? (() => productionD1({ env, exec })))();
@@ -280,10 +232,8 @@ async function deployRun(deps, args, record, stage) {
     return 1;
   }
 
-  // 3. Upload and the startup gate.
   record.version('tag', short);
   record.version('dataVersion', committed);
-  // Every other guard field (the catalogueKey), as the tag will carry it.
   for (const [k, v] of Object.entries(guard.values)) if (k !== 'dataVersion' && v !== null) record.version(k, v);
   const message = `${short} ${subject}`.slice(0, MAX_MESSAGE);
   const alias = `vectors-bundle:${b.shim}`;
@@ -307,14 +257,13 @@ async function deployRun(deps, args, record, stage) {
   }
   log(`deploy: version ${versionId} startup ${startup} ms (gate ${MAX_STARTUP_MS} ms)`);
 
-  // 4. The intent record: what is live now is the rollback target.
   const status = await exec('npx', ['wrangler', 'deployments', 'status', '--json']);
   /** @type {string | null} */
   let previous = null;
   try {
     const versions = /** @type {{ version_id: string, percentage: number }[]} */ (JSON.parse(status.stdout.slice(status.stdout.indexOf('{'))).versions ?? []);
     previous = [...versions].sort((x, y) => y.percentage - x.percentage)[0]?.version_id ?? null;
-  } catch { /* reported below */ }
+  } catch {}
   if (status.code !== 0 || !previous) {
     error(`deploy: refusing to promote ${versionId}: could not read the live deployment (wrangler deployments status, exit ${status.code}), `
       + 'so the rollback target would be unknown. It is uploaded but serves no traffic.');
@@ -329,7 +278,6 @@ async function deployRun(deps, args, record, stage) {
   log(`deploy: intent: promote version ${versionId}, previous version ${previous}, ${Object.entries(guard.values).map(([k, v]) => `${k} ${v}`).join(', ')}, startup ${startup} ms`);
   if (stage.signalled) return stage.signalled.code;
 
-  // 5. Promote, tag, triggers.
   stage.promoted = true;
   const promote = await exec('npx', ['wrangler', 'versions', 'deploy', `${versionId}@100%`, '--yes', '--message', message], { stream: true });
   if (promote.code !== 0) {
@@ -348,14 +296,12 @@ async function deployRun(deps, args, record, stage) {
   } else {
     log(`deploy: tagged ${name} on ${short} and pushed it.`);
   }
-  // Set by a signal handler while the awaits above ran (TypeScript can't see that).
   const late = /** @type {Stage['signalled']} */ (stage.signalled);
   if (late) {
     error(`deploy: stopped by ${late.signal} after the promote: ${versionId} is live${tag.created ? ` and tagged ${name}` : ''}. `
       + 'The Custom Domain was not re-applied: run `npx wrangler triggers deploy`.');
     return late.code;
   }
-  // `versions deploy` leaves routes alone; this applies wrangler.jsonc's Custom Domain (ADR 0009).
   const triggers = await exec('npx', ['wrangler', 'triggers', 'deploy'], { stream: true });
   if (triggers.code !== 0) { error(`deploy: wrangler triggers deploy failed (exit ${triggers.code}); ${versionId} is live, the custom domain may be stale.`); return triggers.code; }
   log(`deploy: version ${versionId} (tag ${short}) is live; ${name} and the run record name it, and ${previous} is its rollback target.`);

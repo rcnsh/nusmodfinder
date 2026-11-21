@@ -1,25 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The judging CLI. Protocol: eval/JUDGING.md. Commands: eval/README.md.
-//
-//   npm run eval:judge -- prepare --round <r> --judges <idA>[,<idB>] [--set dev] [--pool <file>] [--drift-from <qrels>]
-//   npm run eval:judge -- drop-judge --round <r> --slot B --reason <text> [--force]
-//   npm run eval:judge -- collect --round <r> [--slot A|B]
-//   npm run eval:judge -- agree --round <r> [--json <file>]                       (two-judge rounds)
-//   npm run eval:judge -- adjudicate prepare --round <r> --adjudicator <id>
-//   npm run eval:judge -- adjudicate collect --round <r> --pass 1|2
-//   npm run eval:judge -- merge --round <r> [--base <qrels> | --no-base] [--out <file>] [--version <v>]
-//   npm run eval:judge -- code-rule [--set dev | --holdout] [--qrels <in>] [--out <file>] [--version <v>]
-//   npm run eval:judge -- calibrate export --qrels <file> [--n 150] [--out <csv>]      (dev only)
-//   npm run eval:judge -- calibrate import --csv <file> --qrels <file> [--baseline v0 --run <variant>]
-//   npm run eval:judge -- status --round <r>
-//   npm run eval:judge -- clean --round <r> [--state]
-//
-// Encrypted sets (holdout, test): the round's state is written encrypted; the
-// packets and judge outputs exist in plaintext only in the round's 0700
-// directory under .eval-work/judging/<set>/, removed by `clean`. Errors print
-// only their class; validation problems (content-free: files, sections, item
-// ids, value types) and aggregate numbers are printed.
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -91,8 +71,6 @@ function roundName(a) {
 }
 
 /**
- * Where a round lives. `state` is encrypted for encrypted sets; `plain` (0700)
- * holds the packets and the judges' outputs.
  * @param {import('./lib/sets.mjs').SetLayout} set
  * @param {Args} a
  */
@@ -146,7 +124,7 @@ const readOrNull = async (path) => (existsSync(path) ? readFile(path, 'utf8') : 
  */
 const cleanHint = (set, p, a) => `npm run eval:judge -- clean --set ${set.name}${a['set-dir'] ? ` --set-dir '${a['set-dir']}'` : ''}${a['work-dir'] ? ` --work-dir '${a['work-dir']}'` : ''} --round ${a.round}   (or: rm -rf '${p.plain}')`;
 
-/** The set's corpus: its own corpus.json (fixture sets), else the pinned one. @param {import('./lib/sets.mjs').SetLayout} set */
+/** @param {import('./lib/sets.mjs').SetLayout} set */
 async function setCorpus(set) {
   const file = join(set.dir, 'corpus.json');
   return existsSync(file) ? loadCorpusFile(file) : loadPinnedWith(REPO);
@@ -158,18 +136,18 @@ async function corpusModules(set) {
   return new Map(corpus.modules.map((m) => [m.code, m]));
 }
 
-/** True when `p` is inside `dir`: only those files belong in its manifest. @param {string} dir @param {string} p */
+/**
+ * @param {string} dir
+ * @param {string} p
+ */
 const isUnder = (dir, p) => {
   const rel = relative(dir, p);
   return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
 };
 
 /**
- * The code-target rule grades (lib/code-rule.mjs) for a set's queries, from
- * the corpus the qrels are for. Duplicate groups are groups.mjs's rule over
- * that corpus (for the pinned corpus, exactly eval/groups.json).
  * @param {import('./lib/sets.mjs').SetLayout} set
- * @param {import('./lib/metrics.mjs').CorpusIds | undefined} ids the qrels' (or pool's) corpus
+ * @param {import('./lib/metrics.mjs').CorpusIds | undefined} ids
  */
 async function codeRuleFor(set, ids) {
   const corpus = await setCorpus(set);
@@ -177,7 +155,6 @@ async function codeRuleFor(set, ids) {
   if (moduleInfoSha256 !== corpus.info.moduleInfoSha256) {
     throw new CorpusMismatchError(`the qrels were judged on a corpus with moduleInfoSha256 ${String(moduleInfoSha256).slice(0, 12)}…, but the ${set.name} corpus is ${corpus.info.moduleInfoSha256.slice(0, 12)}…`);
   }
-  // The rule grades NG violations from the corpus's NG list, so it must be the one the qrels record.
   if (ids?.ngSha256 && ids.ngSha256 !== corpus.info.ngSha256) {
     throw new CorpusMismatchError(`the qrels were judged with NG list ngSha256 ${String(ids.ngSha256).slice(0, 12)}…, but the ${set.name} corpus has ${String(corpus.info.ngSha256).slice(0, 12)}…`);
   }
@@ -191,9 +168,6 @@ const num = (label, x) => {
   if (!Number.isFinite(v)) usage(`${label} must be a number`);
   return v;
 };
-
-// ---------------------------------------------------------------------------
-// prepare
 
 /** @param {Args} a */
 async function cmdPrepare(a) {
@@ -253,9 +227,6 @@ async function cmdPrepare(a) {
   if (set.encrypted) console.log(`plaintext holdout content is in ${p.plain} (0700). Delete it once collected:\n  ${cleanHint(set, p, a)}`);
 }
 
-// ---------------------------------------------------------------------------
-// drop-judge
-
 /** @param {Args} a */
 async function cmdDropJudge(a) {
   const set = setOf(a);
@@ -274,13 +245,9 @@ async function cmdDropJudge(a) {
   const batches = round.batches[a.slot].map((b) => b.id);
   dropJudge(round, { slot: a.slot, reason: a.reason, force: a.force });
   await writeState(set, p, round);
-  // Its packets must not be handed out any more. Its output directory is left alone.
   for (const b of batches) await rm(join(p.packets, `${a.slot}-${b}.md`), { force: true });
   console.log(`round ${round.round}: dropped judge ${a.slot} (${judge}): ${batches.length} packets, ${removed} items${graded ? `, ${graded} grades` : ''} removed; now single-judge (judge A, ${round.judges.A}: ${Object.keys(round.grades.A).length} of ${Object.values(round.items).length} items graded)`);
 }
-
-// ---------------------------------------------------------------------------
-// collect
 
 /**
  * @param {string[]} problems
@@ -297,9 +264,6 @@ async function cmdCollect(a) {
   const p = paths(set, a);
   const round = await readState(set, p);
   if (!existsSync(p.plain)) usage(`${p.plain} is gone (cleaned); nothing to collect`);
-  // Adjudication was built from the judges' grades as they stood; changing them
-  // now could leave a disagreement with no adjudication, or one made against
-  // grades that no longer exist.
   if (round.adjudication) usage('this round is already in adjudication; the judges\' grades are frozen (start a new round to re-judge)');
   const slots = a.slot ? [a.slot] : judgeSlots(round);
   for (const s of slots) if (!JUDGE_SLOTS.includes(/** @type {any} */ (s))) usage('--slot must be A or B');
@@ -319,7 +283,6 @@ async function cmdCollect(a) {
 }
 
 /**
- * collectOutputs over files (read up front: collectOutputs is synchronous).
  * @param {import('./lib/judging.mjs').Batch[]} batches
  * @param {Record<string, import('./lib/judging.mjs').Grade>} store
  * @param {(batch: string, section: string) => string} pathOf
@@ -332,11 +295,7 @@ async function collectAsync(batches, store, pathOf, who) {
   return collectOutputs(batches, store, (b, s) => texts.get(`${b}/${s}`) ?? null, who);
 }
 
-// ---------------------------------------------------------------------------
-// agreement
-
 /**
- * agree and adjudicate compare two judges; a single-judge round has neither.
  * @param {Round} round
  * @param {string} cmd
  */
@@ -367,9 +326,6 @@ async function cmdAgree(a) {
     await writeFile(resolve(a.json), `${JSON.stringify({ round: round.round, judges: round.judges, ...r, disagreements: units.filter((u) => u.a !== u.b).length }, null, 1)}\n`);
   }
 }
-
-// ---------------------------------------------------------------------------
-// adjudication
 
 /** @param {Args} a @param {string | undefined} sub */
 async function cmdAdjudicate(a, sub) {
@@ -407,7 +363,6 @@ async function cmdAdjudicate(a, sub) {
   const pass = a.pass === '1' ? 1 : a.pass === '2' ? 2 : usage('--pass 1 or --pass 2');
   if (!existsSync(p.plain)) usage(`${p.plain} is gone (cleaned); nothing to collect`);
   if (pass === 2 && !adj.pass2Issued) usage('pass-2 packets have not been written; collect pass 1 first');
-  // Pass 1 is blind only until the pass-2 packets (both judges' grades) exist.
   if (pass === 1 && adj.pass2Issued) usage('pass 1 is closed: the pass-2 packets showing both judges\' grades are out, so a new pass-1 grade would not be blind');
   const store = pass === 1 ? adj.pass1 : adj.pass2;
   const r = await collectAsync(adj.batches, store, (b, s) => outputPath(p.out, `${ADJUDICATOR}/p${pass}`, b, s), `adjudicator pass ${pass}`);
@@ -426,9 +381,6 @@ async function cmdAdjudicate(a, sub) {
   report(r.problems);
 }
 
-// ---------------------------------------------------------------------------
-// merge
-
 /** @param {Args} a */
 async function cmdMerge(a) {
   const set = setOf(a);
@@ -437,7 +389,6 @@ async function cmdMerge(a) {
   const target = a.out ? resolve(a.out) : setFile(set, 'qrels.json');
   if (set.encrypted && !target.endsWith('.enc')) usage('encrypted-set qrels must be written to a .enc path');
   if (a.base && a['no-base']) usage('--base and --no-base exclude each other');
-  // Starting over must not drop earlier rounds' judgments, or reuse their version string, unasked.
   if (a['no-base'] && existsSync(target) && !a.force) usage(`${a.out ? 'the --out file' : 'the set\'s qrels'} already exists; --no-base would overwrite it (pass --force to replace it)`);
   const basePath = a['no-base'] ? null : a.base ? resolve(a.base) : existsSync(target) ? target : null;
   const base = basePath ? await readSetJson(set, basePath) : null;
@@ -445,7 +396,6 @@ async function cmdMerge(a) {
   const qrels = mergeQrels(round, { base, version: a.version, codeRule });
   if (set.encrypted) {
     await writeEncryptedJson(target, qrels, await setKey(), set.name);
-    // Only the file just written: a full re-hash would vouch for a tampered ciphertext.
     if (isUnder(set.dir, target)) await recordInManifest(set.dir, [target]);
   } else {
     await mkdir(dirname(target), { recursive: true });
@@ -461,15 +411,7 @@ async function cmdMerge(a) {
   if (entry?.codeRule) console.log(`code rule: ${countLines(entry.codeRule, entry.codeRule.pairs).join('; ')}`);
 }
 
-// ---------------------------------------------------------------------------
-// code-rule: the code-target rule grade over an existing qrels file
-
-/**
- * Applies the code-target rule to the set's qrels and writes the next
- * version. Prints counts only for an encrypted set; dev also lists each
- * changed pair. Takes no ledger look (it scores nothing).
- * @param {Args} a
- */
+/** @param {Args} a */
 async function cmdCodeRule(a) {
   const set = setOf(a);
   const source = a.qrels ? resolve(a.qrels) : setFile(set, 'qrels.json');
@@ -486,7 +428,6 @@ async function cmdCodeRule(a) {
   }
   if (set.encrypted) {
     await writeEncryptedJson(target, next, await setKey(), set.name);
-    // Only the file just written: a full re-hash would vouch for a tampered ciphertext.
     if (isUnder(set.dir, target)) await recordInManifest(set.dir, [target]);
   } else {
     await mkdir(dirname(target), { recursive: true });
@@ -504,9 +445,6 @@ async function cmdCodeRule(a) {
     console.log(`  ${qid}: ${cs.length} pair(s): ${cs.map((c) => `${c.code} ${was(c)} -> ${c.to}`).join(', ')}`);
   }
 }
-
-// ---------------------------------------------------------------------------
-// calibration (dev only)
 
 /** @param {import('./lib/sets.mjs').SetLayout} set */
 function devOnly(set) {
@@ -536,7 +474,6 @@ async function cmdCalibrate(a, sub) {
   if (!a.csv) usage('--csv <file> is the filled-in calibration sheet');
   const { graded, blank } = readCalibration(await readFile(resolve(a.csv), 'utf8'));
   const h = humanAgreement(graded, qrels, agreementBlock);
-  // Only the judges the qrels record: a single-judge qrels has no B row.
   const slots = qrelsSlots(qrels);
   const labels = graderLabels(slots, (/** @type {any} */ (qrels).judging ?? []).some((/** @type {any} */ r) => r?.mode === 'single'));
   console.log(`human calibration: ${graded.length} graded rows (${blank} blank, ${h.unknown} not in qrels ${qrels.version})${labels.note}`);
@@ -548,7 +485,7 @@ async function cmdCalibrate(a, sub) {
   const readRun = async (/** @type {string} */ v) => JSON.parse(await readFile(v.includes('/') || v.endsWith('.json') ? resolve(v) : runFile(set, v), 'utf8'));
   const base = await readRun(a.baseline), cand = await readRun(a.run);
   const subset = new Map(graded.map((g) => [`${g.queryId}\t${g.code}`, g.grade]));
-  const scored = withCorpusGroups(qrels, await loadGroups()); // Δ nDCG@10 is scored like eval:report
+  const scored = withCorpusGroups(qrels, await loadGroups());
   const rows = [['grades', 'Δ nDCG@10 (all judged)', 'sign', 'n', 'Δ nDCG@10 (calibrated subset)', 'sign', 'n']];
   for (const source of [...slots, 'final', 'human']) {
     const full = source === 'human' ? null : ndcgDelta(base, cand, queries, qrelsUnder(scored, source));
@@ -558,9 +495,6 @@ async function cmdCalibrate(a, sub) {
   console.log(`\nΔ = ${cand.variant} − ${base.variant}`);
   console.log(table(rows));
 }
-
-// ---------------------------------------------------------------------------
-// status, clean
 
 /** @param {Args} a */
 async function cmdStatus(a) {
@@ -590,8 +524,6 @@ async function cmdClean(a) {
   }
 }
 
-// ---------------------------------------------------------------------------
-
 const { positionals, values } = parseArgs({ options: OPTIONS, allowPositionals: true });
 if (values.help || !positionals[0]) {
   const src = await readFile(new URL(import.meta.url), 'utf8');
@@ -602,7 +534,6 @@ if (values.help || !positionals[0]) {
 const commands = { prepare: cmdPrepare, 'drop-judge': cmdDropJudge, collect: cmdCollect, agree: cmdAgree, adjudicate: cmdAdjudicate, merge: cmdMerge, 'code-rule': cmdCodeRule, calibrate: cmdCalibrate, status: cmdStatus, clean: cmdClean };
 const fn = commands[positionals[0]];
 
-/** The encrypted set this invocation touches, if any. */
 function encryptedSet() {
   try {
     const set = setOf(values);
@@ -616,7 +547,6 @@ try {
   if (!fn) usage(`unknown command "${positionals[0]}"; expected ${Object.keys(commands).join(', ')}`);
   await fn(values, positionals[1]);
 } catch (err) {
-  // Usage errors carry no set content (they name flags and paths).
   if (err instanceof UsageError) {
     console.error(`eval:judge: ${err.message}`);
     process.exit(1);

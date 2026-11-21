@@ -1,12 +1,4 @@
 // @ts-check
-// Reads the text of a PDF Chromium wrote (the print checks), with no
-// dependency: the objects, each page's content streams (Flate, as Skia writes
-// them) and each font's ToUnicode map, enough to say which characters each
-// page shows, in the order it draws them. It handles what Chromium's
-// page.pdf() writes (no object streams, Type0 fonts with 2-byte codes, Type3
-// fonts with 1-byte codes, hex and literal strings in Tj and TJ); it is not a
-// general PDF reader. test/ui/export.spec.js checks it against the page's own
-// text.
 import { inflateSync } from 'node:zlib';
 
 /**
@@ -14,7 +6,6 @@ import { inflateSync } from 'node:zlib';
  */
 
 /**
- * Every `N 0 obj … endobj`, by number: its dictionary text and its stream.
  * @param {Buffer} buf
  * @returns {Map<number, PdfObject>}
  */
@@ -48,13 +39,10 @@ function objects(buf) {
   return out;
 }
 
-/** @param {string} s a `N 0 R` reference */
+/** @param {string} s */
 const refOf = (s) => Number(/(\d+) 0 R/.exec(s)?.[1] ?? NaN);
 
-/**
- * A ToUnicode CMap: code (as a hex string) to text, and the code's byte length.
- * @param {string} cmap
- */
+/** @param {string} cmap */
 function toUnicode(cmap) {
   /** @type {Map<string, string>} */
   const map = new Map();
@@ -82,7 +70,7 @@ function toUnicode(cmap) {
   return { map, bytes: width / 2 };
 }
 
-/** A literal PDF string's bytes, escapes undone. @param {string} s the text inside the parentheses */
+/** @param {string} s */
 function literalBytes(s) {
   const out = [];
   for (let i = 0; i < s.length; i += 1) {
@@ -101,10 +89,7 @@ function literalBytes(s) {
   return out;
 }
 
-/**
- * The pages' objects, in the page tree's order.
- * @param {Map<number, PdfObject>} objs
- */
+/** @param {Map<number, PdfObject>} objs */
 function pageOrder(objs) {
   const root = [...objs.values()].find((o) => /\/Type\s*\/Catalog\b/.test(o.dict));
   const pagesRef = refOf(/\/Pages\s+(\d+ 0 R)/.exec(root?.dict ?? '')?.[1] ?? '');
@@ -123,8 +108,6 @@ function pageOrder(objs) {
 }
 
 /**
- * The text each page draws, in drawing order, glyphs run together (lines
- * and words aren't rebuilt: compare with whitespace stripped).
  * @param {Buffer} buf
  * @returns {string[]}
  */
@@ -181,11 +164,11 @@ export function pdfPages(buf) {
   });
 }
 
-/** Whether the PDF has a structure tree (a tagged PDF). @param {Buffer} buf */
+/** @param {Buffer} buf */
 export const hasStructTree = (buf) => /\/StructTreeRoot\s+\d+ 0 R/.test(buf.toString('latin1'));
 
-/** The fonts it embeds, by base name without the subset tag. @param {Buffer} buf */
+/** @param {Buffer} buf */
 export const pdfFonts = (buf) => [...new Set([...buf.toString('latin1').matchAll(/\/BaseFont\s*\/(?:[A-Z]{6}\+)?([^\s/>]+)/g)].map((m) => m[1]))].sort();
 
-/** Text for comparison: NFKC, whitespace stripped (pdf.js and poppler both expand ligatures). @param {string} s */
+/** @param {string} s */
 export const squash = (s) => s.normalize('NFKC').replace(/\s+/g, '');

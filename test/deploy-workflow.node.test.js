@@ -1,19 +1,11 @@
 // @ts-check
-// `.github/workflows/deploy.yml`, the deploy from Actions after green CI, read
-// as text (the repo has no YAML parser), and its gate (scripts/deploy-gate.mjs) as a table.
-// - It runs on `workflow_run` for CI on main, and deploys a sha only when that sha's CI push run
-//   succeeded, the sha is still main's tip, and no deploy tag names it yet.
-// - The kill switch: the job runs only when the repo variable DEPLOY_FROM_ACTIONS is 'true'.
-// - Permissions are contents: write (the tag) and actions: read, nothing else; the Cloudflare
-//   token and account reach the deploy step's env only; nothing commits to main.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { gateDecision } from '../scripts/deploy-gate.mjs';
 
 const workflow = readFileSync(new URL('../.github/workflows/deploy.yml', import.meta.url), 'utf8');
-/** Each step's text. */
 const steps = workflow.slice(workflow.indexOf('\n    steps:\n')).split(/\n {6}- /).slice(1);
-/** The step whose text matches. @param {RegExp} re */
+/** @param {RegExp} re */
 const step = (re) => {
   const s = steps.filter((x) => re.test(x));
   if (s.length !== 1) throw new Error(`${s.length} steps match ${re}`);
@@ -61,7 +53,6 @@ describe('deploy.yml', () => {
     const deployStep = step(/npm run deploy/);
     expect(deployStep).toMatch(/CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/);
     expect(deployStep).toMatch(/CLOUDFLARE_ACCOUNT_ID: \$\{\{ vars\.CLOUDFLARE_ACCOUNT_ID \}\}/);
-    // One line each, in that step: no workflow-level or job-level env carries them.
     const lines = (/** @type {string} */ name) => workflow.split('\n').filter((l) => l.includes(name));
     expect(lines('CLOUDFLARE_API_TOKEN')).toHaveLength(1);
     expect(lines('CLOUDFLARE_ACCOUNT_ID')).toHaveLength(1);
@@ -74,14 +65,10 @@ describe('deploy.yml', () => {
     const smoke = step(/npm run smoke/);
     expect(smoke).toMatch(/run: npm run smoke -- --expect "\$\{\{ github\.event\.workflow_run\.head_sha \}\}"/);
     expect(smoke).toMatch(/if: steps\.gate\.outputs\.deploy == 'true'/);
-    // Not always(): a failed deploy is not smoked; a failed smoke fails the job.
     expect(smoke).not.toMatch(/always\(\)|continue-on-error/);
     expect(steps.indexOf(smoke)).toBe(steps.indexOf(step(/npm run deploy/)) + 1);
     expect(steps.indexOf(step(/upload-artifact@/))).toBe(steps.indexOf(smoke) + 1);
-    // It reads the bundle and the corpus the deploy step restored, so it needs neither the
-    // Cloudflare secret nor GH_TOKEN; the comment above it says so.
     expect(smoke).not.toMatch(/secrets\.|CLOUDFLARE_|GH_TOKEN|github\.token|env:/);
-    // The comment lines directly above the step.
     const above = workflow.slice(0, workflow.indexOf(smoke)).split('\n').slice(0, -1).reverse();
     const comment = above.slice(0, above.findIndex((l) => !/^ {6}#/.test(l))).reverse().map((l) => l.replace(/^ {6}# ?/, '')).join(' ');
     expect(comment).toMatch(/no token/i);

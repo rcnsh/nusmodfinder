@@ -1,18 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// Holdout custody tooling (custodian only, except `verify`). AES-256-GCM; the
-// key lives in $VNM_HOLDOUT_KEY_FILE (default ~/.config/vnm/holdout.key),
-// never in the repo, never printed.
-//
-//   node scripts/holdout.mjs keygen                          create a key file (refuses to overwrite)
-//   node scripts/holdout.mjs encrypt <plain.json> --as <name> [--dir eval/holdout] [--set holdout|test|selftest]
-//                                                            write <dir>/<name>.enc, update the manifest
-//   node scripts/holdout.mjs decrypt <file.enc> --out <path> [--set …]  plaintext to a path outside the repo
-//
-// Ciphertexts are bound to their set name. --set defaults to holdout under
-// eval/holdout and test under eval/sealed, and is required anywhere else.
-//   node scripts/holdout.mjs manifest [--dir eval/holdout]   rewrite MANIFEST.json from the ciphertexts
-//   node scripts/holdout.mjs verify [--dir d ...]            CI: ciphertext sha256s match the manifests (no key)
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -42,7 +29,6 @@ function fail(msg) {
 const insideRepo = (p) => !relative(REPO, resolve(p)).startsWith('..');
 
 /**
- * The set a directory's ciphertexts belong to: --set, else by location.
  * @param {string} dir
  * @returns {string}
  */
@@ -70,7 +56,7 @@ switch (command) {
     if (!NAMES.test(name)) fail(`--as ${name}: expected queries.json, qrels.json, embeddings.json, run-<variant>.json or judge-<judge>.json`);
     const dir = resolve(values.dir?.[0] ?? join(REPO, 'eval/holdout'));
     const plain = await readFile(/** @type {string} */ (file));
-    JSON.parse(plain.toString('utf8')); // refuse to encrypt something that is not JSON
+    JSON.parse(plain.toString('utf8'));
     const out = join(dir, `${name}.enc`);
     await mkdir(dir, { recursive: true });
     await writeFile(out, encrypt(plain, await readKey(), out, setFor(dir)));

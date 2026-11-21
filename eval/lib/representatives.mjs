@@ -1,11 +1,4 @@
 // @ts-check
-// The representative-only check on the open sets (ADR 0003: a change to which
-// member stands for a duplicate group is gated without a look): between
-// a baseline run and a candidate made with the same settings on the same
-// queries and corpus, every list has the same status and the same sequence of
-// group keys (groups-v1), and every position whose code differs shows, in the
-// candidate, a member offered in the semester the request named where the
-// baseline's member was not.
 import { groupKeys } from './groups.mjs';
 import { searchParams } from './sets.mjs';
 
@@ -16,9 +9,8 @@ import { searchParams } from './sets.mjs';
  */
 
 /**
- * The semester the eval's request for `q` named under `config` (the runner's
- * own params), or undefined.
- * @param {EvalQuery} q @param {any} config
+ * @param {EvalQuery} q
+ * @param {any} config
  */
 export function requestSemester(q, config) {
   const params = searchParams(q, { unfiltered: config?.filters === false, strip: config?.strip ?? [], mode: config?.mode ?? 'hybrid' });

@@ -1,6 +1,4 @@
 // @ts-check
-// Instrumentation: Server-Timing, the structured /search log
-// line, x-app-version and GET /health.
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createFakes } from './fakes.js';
 import manifest from '../data/vectors.json';
@@ -17,7 +15,6 @@ afterEach(() => {
 });
 
 /**
- * Parses a Server-Timing header into `{ name: { dur?, desc? } }`, in order.
  * @param {string | null} header
  * @returns {Record<string, { dur?: string, desc?: string }>}
  */
@@ -34,10 +31,7 @@ const allHaveDurations = (spans) => Object.values(spans).every((s) => s.dur !== 
 
 const VERSION = { id: '6f1e1d2c-3b4a-4596-8778-695a4b3c2d1e', tag: 'abc1234', timestamp: '2026-11-04T00:00:00Z' };
 
-/**
- * Captures console.log JSON lines with `event: "search"`.
- * @returns {() => Record<string, any>[]}
- */
+/** @returns {() => Record<string, any>[]} */
 function captureSearchLogs() {
   const spy = vi.spyOn(console, 'log');
   return () => spy.mock.calls
@@ -50,7 +44,6 @@ describe('Server-Timing on /search', () => {
     const res = await call('/search?q=machine%20learning%20timing', { fakes });
     expect(res.status).toBe(200);
     const spans = parseTiming(res.headers.get('server-timing'));
-    // The duplicate-group variants read runs when a result has duplicates to list.
     const variants = (await res.clone().json()).results.some((/** @type {any} */ r) => r.variants) ? ['variants'] : [];
     expect(Object.keys(spans)).toEqual(['cache', 'limit', 'embed', 'vector', 'fts', 'hydrate', ...variants, 'total']);
     expect(spans.cache.desc).toBe('miss');
@@ -76,7 +69,6 @@ describe('Server-Timing on /search', () => {
     expect(Object.keys(spans)).toEqual(['cache', 'total']);
     expect(spans.cache.desc).toBe('hit');
     expect(allHaveDurations(spans)).toBe(true);
-    // Same body as the miss: the header is the only difference.
     expect(await hit.json()).toEqual(await miss.json());
 
     const stored = await caches.default.match(/** @type {Request} */ (searchCacheKey(new URL(path, BASE))));
@@ -85,7 +77,6 @@ describe('Server-Timing on /search', () => {
   });
 
   it('400, 429, 502 and degraded responses carry it too', async () => {
-    // A 400 is answered before the cache or the limiter is touched.
     const badRes = await call('/search?q=', { fakes });
     expect(badRes.status).toBe(400);
     expect(Object.keys(parseTiming(badRes.headers.get('server-timing')))).toEqual(['total']);
@@ -111,7 +102,6 @@ describe('Server-Timing on /search', () => {
 });
 
 describe('Server-Timing on /module and /facets', () => {
-  // A 404 too, whichever kind: an ng-listed code (no catalogue read), a code in no table (two reads, one span).
   it.each(['/module/CS1010S', '/module/XX9999', '/module/EE4407', '/facets'])('%s reports d1 and total', async (path) => {
     const res = await call(path);
     const spans = parseTiming(res.headers.get('server-timing'));
@@ -125,7 +115,6 @@ describe('structured /search log', () => {
     const logs = captureSearchLogs();
     const res = await call('/search?q=machine%20learning%20logged&sem=1', {
       fakes,
-      // The uncollapsed pipeline: the group collapse adds a variants read (test/search-groups.test.js).
       env: { CF_VERSION_METADATA: VERSION, COLLAPSE_GROUPS: 'off' },
       init: { headers: { 'cf-connecting-ip': '203.0.113.7', 'user-agent': 'secret-agent/1.0' } },
     });
@@ -143,7 +132,6 @@ describe('structured /search log', () => {
       colo: null, version: 'abc1234',
     });
     expect(Object.keys(line.spans)).toEqual(['cache', 'limit', 'embed', 'vector', 'fts', 'hydrate', 'total']);
-    // FTS + hydrate, both against the local D1 (a session on it).
     expect(line.d1.queries).toBe(2);
     expect(line.d1.servedByPrimary).toBe(true);
     expect(line.d1.rowsRead).toBeGreaterThan(0);
@@ -177,9 +165,6 @@ describe('structured /search log', () => {
 });
 
 describe('version traceability', () => {
-  // The page (`/`) is static assets: those responses skip the
-  // Worker and carry no x-app-version, so GET /health is the version trace for
-  // `/` (test/ui/routes.spec.js checks / is the page and the API is the Worker).
   it('x-app-version is the tag, else the version id, else "dev", on every Worker route', async () => {
     for (const path of ['/search?q=networks%20version', '/module/CS1010S', '/facets', '/health', '/nope']) {
       const tagged = await call(path, { fakes, env: { CF_VERSION_METADATA: VERSION } });
@@ -201,8 +186,6 @@ describe('version traceability', () => {
   it('GET /health reports the version without touching D1', async () => {
     const { status, headers, body } = await callJson('/health', { env: { CF_VERSION_METADATA: VERSION, DB: undefined } });
     expect(status).toBe(200);
-    // The bundled vectors' corpus and data version, beside the committed one,
-    // so a smoke can see which bundle is live (here the fixture, the default alias).
     const vectors = { corpus: 'fixture', count: manifest.bundles.fixture.count, dataVersion: manifest.bundles.fixture.dataVersion };
     expect(body).toEqual({ ok: true, versionId: VERSION.id, versionTag: 'abc1234', dataVersion: DATA_VERSION, vectors });
     expect(headers.get('cache-control')).toBe('no-store');

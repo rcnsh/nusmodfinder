@@ -1,7 +1,4 @@
 // @ts-check
-// `schema-snapshot.mjs --compare-remote`, which diffs a production capture (the
-// output of `wrangler d1 execute … --json`, one file per query) against the full-chain snapshot
-// offline. The captures here are built from the committed snapshot; nothing remote is read.
 import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -13,10 +10,9 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const expected = JSON.parse(await readFile(join(ROOT, 'test/fixtures/schema-full.json'), 'utf8'));
 const migrations = (await readdir(join(ROOT, 'migrations'))).filter((f) => f.endsWith('.sql')).sort();
 
-/** wrangler's `--json` envelope around rows. @param {unknown[]} rows */
+/** @param {unknown[]} rows */
 const envelope = (rows) => [{ results: rows, success: true, meta: { rows_read: rows.length } }];
 
-/** A capture equal to the snapshot, with production's internal tables and 0008 applied before 0007. */
 function capture() {
   const order = migrations.map((name) => name);
   const i7 = order.findIndex((n) => n.startsWith('0007'));
@@ -79,7 +75,6 @@ describe('--compare-remote', () => {
       await writeFile(join(dir, 'index_xinfo.json'), JSON.stringify(c.indexXinfo));
       await writeFile(join(dir, 'd1_migrations.json'), JSON.stringify(c.migrations));
       expect(compare(await loadCapture(dir))).toEqual([]);
-      // One file holding every section is read the same way.
       await writeFile(join(dir, 'all.json'), JSON.stringify(c));
       expect(compare(await loadCapture(join(dir, 'all.json')))).toEqual([]);
     } finally {

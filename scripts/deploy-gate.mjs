@@ -1,16 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The Actions deploy's gate (.github/workflows/deploy.yml). The workflow runs once per completed
-// CI run on main; this decides whether that sha deploys:
-//
-// - its CI push run succeeded;
-// - it is still main's tip (otherwise the newer commit's own run deploys it);
-// - no deploy/* tag names it yet (a re-run of CI completes again; the concurrency group runs
-//   deploys one after the other, and a later one finds the earlier one's tag).
-//
-//   node scripts/deploy-gate.mjs --sha <sha>   writes deploy=true|false and reason to GITHUB_OUTPUT
-//
-// Reads GitHub with gh (GH_TOKEN) and origin with git ls-remote; writes nothing.
 import { appendFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { pushRuns, runStates } from './github-runs.mjs';
@@ -47,7 +36,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
   const tip = (await exec('git', ['ls-remote', 'origin', 'refs/heads/main'])).stdout.split('\t')[0].trim();
   const tags = await exec('git', ['ls-remote', '--tags', 'origin', 'refs/tags/deploy/*']);
-  // Annotated tags: the peeled line (`<commit>\trefs/tags/deploy/…^{}`) names the commit.
   const deployed = tags.stdout.split('\n').filter((l) => l.endsWith('^{}')).map((l) => l.split('\t')[0]);
   if (!/^[0-9a-f]{40}$/.test(tip) || tags.code !== 0) {
     console.error('::error title=Deploy gate::could not read main\'s tip or the deploy tags from origin; nothing deployed.');
@@ -57,7 +45,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     decision = gateDecision({ sha, tip, runs: await pushRuns({ sha, exec }), deployed });
   } catch (err) {
-    // A failed read is a red job, not a quiet skip: nothing deployed, and someone should look.
     console.error(`::error title=Deploy gate::${/** @type {Error} */ (err).message}; nothing deployed.`);
     process.exit(1);
   }

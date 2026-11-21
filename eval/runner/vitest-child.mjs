@@ -1,10 +1,4 @@
 // @ts-check
-// Child process that runs Vitest for one variant (eval/runner/run.mjs forks
-// it). For encrypted sets the parent discards this process's stdout and
-// stderr, so nothing workerd, Vitest or Node prints (uncaught exceptions in the
-// Worker, console output, crash traces) can reach the terminal. The parent
-// sends the payload and reporter options over IPC; this process sends back
-// the reporter's log lines and its outcome.
 import { createVitest } from 'vitest/node';
 import { EvalReporter } from './reporter.mjs';
 
@@ -39,7 +33,6 @@ process.once('message', async (/** @type {ChildRequest} */ req) => {
       silent: !req.perQueryOutput,
     });
     try {
-      // The ProvidedContext key is typed on the worker side (eval/runner/vitest.d.ts).
       /** @type {any} */ (vitest).provide('evalPayload', req.payload);
       await vitest.start();
     } finally {
@@ -47,7 +40,6 @@ process.once('message', async (/** @type {ChildRequest} */ req) => {
     }
     outcome = reporter.outcome ?? { ok: false, written: null, problems: ['the reporter never saw the end of the run'] };
   } catch (err) {
-    // The message may carry query text; the parent shows it only for plain sets.
     outcome = { ok: false, written: null, problems: [`the runner threw: ${err instanceof Error ? err.message : String(err)}`] };
   }
   await send({ type: 'outcome', outcome });

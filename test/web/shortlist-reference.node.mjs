@@ -1,37 +1,25 @@
 // @ts-check
-// The shortlist's independent reference: the counting rules written again
-// over a corpus's own columns (its allow mask and stored rule ids, its groups
-// and data/ng-reasons.json's kinds), not through public/shortlist.js or the
-// /module answers it reads. The property test in test/web/shortlist.node.test.js
-// runs it over the fixture; scripts/live-shortlist.mjs over the
-// production-normalised modules.
 import { yearNote } from '../../src/year-note.js';
 
 const STUDY_LIST = ['ug1', 'ug2', 'ug3', 'ug4', 'grad'];
 const CONDITIONS = ['quota', 'supply', 'major', 'approval', 'graded', 'letter', 'fee'];
-/** Read again (ADR 0007): GRO's level 4000 note, a condition, for an undergraduate outside Law. */
 const GRO_UG = ['ug1', 'ug2', 'ug3', 'ug4'];
 
 /**
- * @typedef {{ which: string, code: string, sem: string }} RefEntry an entry, `which` pick or alt, `sem` '1', '2' or ''
+ * @typedef {{ which: string, code: string, sem: string }} RefEntry
  * @typedef {'counted' | 'confirm' | 'invite' | 'out' | 'dup'} RefStanding
- * @typedef {{ counted: number, confirm: number, invite: number }} RefTotals units per semester
+ * @typedef {{ counted: number, confirm: number, invite: number }} RefTotals
  * @typedef {{
  *   rowOf: (code: string) => any,
  *   groupOf: (code: string) => string[],
  *   reasons: Record<string, { kind: string }>,
  * }} RefData
- *   `rowOf`: a normalised module (the corpus's columns), or undefined for a code with no row;
- *   `groupOf`: the code's group, itself left out; `reasons`: ng-reasons.json's reasons by id
  */
 
 /**
- * The reference over a list's entries, in rank order (picks first): each
- * entry's standing, and each semester's counted, to-confirm and only-if-invited
- * units (picks only).
  * @param {RefEntry[]} entries
- * @param {string} study a study level, or '' for browse mode
- * @param {string[]} inv the Business School and Law invitations ticked (`biz`, `law`)
+ * @param {string} study
+ * @param {string[]} inv
  * @param {RefData} data
  * @returns {{ totals: Record<'1' | '2', RefTotals>, standings: (RefEntry & { standing: RefStanding })[] }}
  */
@@ -74,7 +62,6 @@ export function reference(entries, study, inv, { rowOf, groupOf, reasons }) {
     if (kept.some((k) => same(k, x))) x.st = 'dup';
     else kept.push(x);
   }
-  // In tenths, so half units add exactly.
   /** @type {Record<'1' | '2', RefTotals>} */
   const totals = { 1: { counted: 0, confirm: 0, invite: 0 }, 2: { counted: 0, confirm: 0, invite: 0 } };
   for (const x of classified) {

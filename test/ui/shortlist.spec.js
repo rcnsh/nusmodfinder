@@ -1,16 +1,8 @@
 // @ts-check
-// The shortlist UI and the view's history: the cards' and the detail head's
-// toggles, the shortlist button, the view's rows, Move, Make, the semester
-// buttons, Remove and Undo, the export question, Copy link, Try again, the
-// device list's restore and forget, and the view's entries in history (a 429 and a 500
-// behind it, Escape, Back and Forward, a submit from it). Focus is asserted
-// after every move the page makes, with the control in view and not covered,
-// driven by real clicks and keys (Playwright WebKit doesn't scroll for a
-// programmatic focus). Both browsers; the row tests at 1280 and 390×664.
 import { expect, test } from '@playwright/test';
 import { live, query, searches, settled } from './support.mjs';
 
-/** A link's query string, built as the page writes it. @param {string} qs */
+/** @param {string} qs */
 const at = (qs) => `/?${qs}`;
 /** @param {import('@playwright/test').Page} page */
 const view = (page) => page.locator('#slView');
@@ -19,11 +11,8 @@ const row = (page, code) => page.locator(`#slView li.sl-entry[data-code="${code}
 /** @param {import('@playwright/test').Page} page @param {string} name */
 const button = (page, name) => page.getByRole('button', { name, exact: true });
 /**
- * Activates a control by keyboard, as a keyboard user does: focus on it,
- * then a real Enter (Space for a checkbox or radio). The page's own focus moves
- * then run inside a key event, in both browsers (WebKit, like Safari, doesn't
- * focus a button on a mouse click).
- * @param {import('@playwright/test').Page} page @param {string | import('@playwright/test').Locator} target a button's name, or a locator
+ * @param {import('@playwright/test').Page} page
+ * @param {string | import('@playwright/test').Locator} target
  */
 async function activate(page, target) {
   const el = typeof target === 'string' ? button(page, target) : target;
@@ -31,19 +20,15 @@ async function activate(page, target) {
   const role = await el.evaluate((x) => (x instanceof HTMLInputElement ? x.type : 'button'));
   await page.keyboard.press(role === 'checkbox' || role === 'radio' ? 'Space' : 'Enter');
 }
-/** The shortlist button the layout shows (the rail's, or the phone's under the form). @param {import('@playwright/test').Page} page */
+/** @param {import('@playwright/test').Page} page */
 const openButton = (page) => page.locator('.sl-open:visible');
-/** The focused element, named as the tests name it. @param {import('@playwright/test').Page} page */
+/** @param {import('@playwright/test').Page} page */
 const focused = (page) => page.evaluate(() => {
   const a = document.activeElement;
   if (!a || a === document.body) return 'body';
   return a.id ? `#${a.id}` : (a.getAttribute('aria-label') ?? a.textContent ?? '').replace(/\s+/g, ' ').trim();
 });
-/**
- * Whether the focused control is in the viewport and not covered (as
- * keyboard.spec.js checks): 'ok', or what is wrong.
- * @param {import('@playwright/test').Page} page
- */
+/** @param {import('@playwright/test').Page} page */
 const inView = (page) => page.evaluate(() => {
   const el = document.activeElement;
   if (!el || el === document.body) return 'focus on the page';
@@ -57,16 +42,19 @@ const inView = (page) => page.evaluate(() => {
   return 'ok';
 });
 /**
- * Asserts focus is on `name` (an aria-label, text or #id) and in view.
- * @param {import('@playwright/test').Page} page @param {string} name
+ * @param {import('@playwright/test').Page} page
+ * @param {string} name
  */
 async function focusOn(page, name) {
   await expect.poll(() => focused(page)).toBe(name);
   expect(await inView(page)).toBe('ok');
 }
-/** The codes in a list, in order. @param {import('@playwright/test').Page} page @param {'slPickList' | 'slAltList'} id */
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {'slPickList' | 'slAltList'} id
+ */
 const codes = (page, id) => page.locator(`#${id} > li`).evaluateAll((lis) => lis.map((li) => li.getAttribute('data-code')));
-/** The view is shown and every row has loaded or failed. @param {import('@playwright/test').Page} page */
+/** @param {import('@playwright/test').Page} page */
 async function rowsIn(page) {
   await expect(view(page)).toBeVisible();
   await expect(page.locator('#slView .sl-ehead .title', { hasText: 'Loading…' })).toHaveCount(0);
@@ -89,7 +77,6 @@ test.describe('the toggle and the list', () => {
     await expect.poll(() => query(page)).toContain(want);
     await expect(openButton(page)).toContainText('Your shortlist');
     await expect(openButton(page)).toContainText('Sem 1: 12 units picked');
-    // The list is page-wide: Back keeps it, and writes it into the entry it reaches.
     await page.goBack();
     await expect.poll(() => query(page)).toContain('q=networks');
     await expect.poll(() => query(page)).toContain(want);
@@ -166,7 +153,7 @@ test.describe('the toggle and the list', () => {
     await expect(live(page)).toHaveText('CS2113 added to your picks: Sem 1, 8 units picked so far');
     await page.unroute('**/module/CS2113');
 
-    await page.route('**/module/GE2101', () => { /* held */ });
+    await page.route('**/module/GE2101', () => { });
     await page.goto(at('q=GE2101+CS2030&ng=1&study=ug2&sem=1&pick=CS2030.1'));
     await settled(page);
     await activate(page, 'Shortlist, GE2101');
@@ -182,7 +169,6 @@ test.describe('the view at 1280 and 390×664', () => {
       test(`every row control by keyboard on a full-year list, before and after a Sem change: focus kept, in view (${label})`, async ({ page }) => {
         await page.goto(at('ng=1&study=ug2&pick=CS2113.1&pick=CS2030.2&pick=GE2101.1&view=shortlist'));
         await rowsIn(page);
-        // Move down on the first row with the page at the top: the neighbour moves, focus stays and scrolls in view.
         await activate(page, 'Move down, CS2113');
         await focusOn(page, 'Move down, CS2113');
         await expect.poll(() => codes(page, 'slPickList')).toEqual(['CS2030', 'CS2113', 'GE2101']);
@@ -190,7 +176,6 @@ test.describe('the view at 1280 and 390×664', () => {
         await page.keyboard.press('Enter');
         await focusOn(page, 'Move down, CS2113');
         await expect.poll(() => codes(page, 'slPickList')).toEqual(['CS2030', 'GE2101', 'CS2113']);
-        // At an end: aria-disabled, nothing moves, it says so.
         await expect(button(page, 'Move down, CS2113')).toHaveAttribute('aria-disabled', 'true');
         await page.keyboard.press('Enter');
         await focusOn(page, 'Move down, CS2113');
@@ -202,32 +187,27 @@ test.describe('the view at 1280 and 390×664', () => {
         await focusOn(page, 'Move up, CS2113');
         await expect.poll(() => codes(page, 'slPickList')).toEqual(['CS2030', 'CS2113', 'GE2101']);
 
-        // A Sem change while the view is shown: the view stays, its sentence is said.
         if (width === 1280) await page.locator('#semSegOptions').getByText('Sem 2', { exact: true }).click();
         else {
           await page.getByRole('button', { name: /^Filters/ }).click();
           await page.getByRole('dialog').locator('#semSegOptions').getByText('Sem 2', { exact: true }).click();
           await page.getByRole('button', { name: 'Done' }).click();
-          // The rest of the page is inert until the modal dialog has closed.
           await expect(page.getByRole('dialog')).toBeHidden();
         }
         await expect.poll(() => query(page)).toContain('sem=2');
         await expect(view(page)).toBeVisible();
         await expect(page.locator('.sl-sentence')).toContainText('Sem 2 first: 4 units picked; Sem 1: 8');
 
-        // A semester button keeps its element: "Move to Sem 1" becomes "Move to Sem 2".
         await activate(page, 'Move to Sem 1, CS2030');
         await focusOn(page, 'Move to Sem 2, CS2030');
         await expect(live(page)).toHaveText('CS2030 moved to Sem 1');
         await expect.poll(() => query(page)).toContain('pick=CS2030.1');
 
-        // Make backup moves the row itself: focus on its same control in its new place.
         await activate(page, 'Make backup, GE2101');
         await focusOn(page, 'Make primary, GE2101');
         await expect.poll(() => codes(page, 'slAltList')).toEqual(['GE2101']);
         await expect(live(page)).toHaveText('GE2101 is now a backup');
 
-        // Remove: the next row's Remove, else the previous; an empty list's heading; the view's heading.
         await activate(page, 'Remove, CS2030');
         await focusOn(page, 'Remove, CS2113');
         await expect(live(page)).toHaveText('CS2030 removed: Sem 1, 4 units picked. Undo is at the top of the list');
@@ -441,12 +421,10 @@ test.describe('rows', () => {
     for (const code of ['CS3244', 'CS1010J', 'EE4407', 'CS9999']) {
       for (const name of ['Move up', 'Move down', 'Make backup', 'Remove']) await expect(button(page, `${name}, ${code}`)).toBeVisible();
     }
-    // The totals count none of them; the 404s are in no semester's totals.
     await expect(page.locator('#slTotals .sl-total .big')).toHaveText('0 units counted, if NUS accepts you into each');
   });
 
   test('a row with no semester says every note its stamps count, once: one both semesters share, then one only Sem 2 has', async ({ page }) => {
-    // PC4262 at ug2: Sem 1 has GRO's level 4000 note; Sem 2 has it and the NG list's timetable note.
     await page.goto(at('ng=1&study=ug2&sem=1&pick=PC4262&view=shortlist'));
     await rowsIn(page);
     await expect(row(page, 'PC4262').locator('.exchange-status')).toHaveText(['Sem 1 · Open, 1 note', 'Sem 2 · Open, 2 notes']);
@@ -525,7 +503,6 @@ test.describe('the export question, Copy link, the invitation, the device\'s lis
     await expect(page.getByRole('heading', { name: 'Already admitted? NUS\'s rules for CourseReg' })).toBeHidden();
     await expect(page.locator('#slView .sl-entry[data-code="CS5562"] .count')).toHaveText('Counted in its semester\'s total');
     await expect(page.locator('#slView .sl-guide:visible:not(:empty)')).toHaveCount(0);
-    // What shows (innerText), not hidden parts kept for the exchange mode.
     expect(await page.locator('#slView').innerText()).not.toMatch(/GRO|NG list|exchange student|To be admitted|invite/i);
   });
 

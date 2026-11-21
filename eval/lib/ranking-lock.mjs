@@ -1,33 +1,4 @@
 // @ts-check
-// The ranking lock: CI's eval gate.
-//
-// eval/ranking-lock.json holds, for every open-set query the eval runner answers, the sha256 of
-// its HTTP status and ordered result codes, in two seeds: the dev set on the pinned corpus,
-// filtered, `--strip ng` and `--unfiltered`, and the fixture set on its own corpus, in the same
-// three modes. It also records `inputsHash` (the git objects of LOCK_INPUTS), the embedding
-// version, the corpus release, and the evidence for its lists.
-//
-// The gate (`checkGate`, run by `npm run eval:lock -- --check` in the eval-gate job):
-// 1. Fast path: HEAD's lock equals the base's, and HEAD's inputsHash equals the lock's or the
-//    base's (a commit whose eval-gate passed: the PR base, or main's last green). No runner.
-//    A lock edit of any kind never takes it.
-// 2. Recompute: the runner's lists at HEAD must equal HEAD's lock. When the lock's lists
-//    differ from the base's, its evidence must also pass (`checkEvidence`). A neutral change
-//    leaves the lock as it is, so PRs never conflict on it.
-// 3. Otherwise it fails, naming each changed query with its statuses.
-//
-// Evidence for a ranking change, checked against the base commit's lock:
-// - `holdout-pass <n>`: ledger row n, appended after the base lock's commit, verdict `pass`,
-//   against the base commit's shipped-ranker pin;
-// - `no-look <n>`: count-log row n, appended after the base lock's commit, whose route column
-//   names one of ADR 0003's no-look routes;
-// - `revert <commit>`: the lists equal those of an earlier lock, at that commit;
-// - `bootstrap <ref>`: only when the base has no lock.
-// A row is cited once. An unchanged evidence, and an ADR pin line, are refused. This guards
-// against accidents, not against a maintainer who writes false evidence.
-//
-// This module needs only Node and git (no npm package), so the fast path runs before `npm ci`.
-// The runner side is eval/lib/lock-runner.mjs.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { builtinModules } from 'node:module';
@@ -43,36 +14,27 @@ export { NO_LOOK_ROUTES };
 export const LOCK_PATH = 'eval/ranking-lock.json';
 export const LOCK_SCHEMA = 'vnm-ranking-lock/1';
 
-/** The runner's filter modes, as the lock names them. */
 export const MODES = Object.freeze({
   filtered: Object.freeze({ unfiltered: false, strip: /** @type {string[]} */ ([]) }),
   'strip-ng': Object.freeze({ unfiltered: false, strip: ['ng'] }),
   unfiltered: Object.freeze({ unfiltered: true, strip: /** @type {string[]} */ ([]) }),
 });
 
-/** The two seeds: the judged dev set on the pinned corpus, and the fixture on its own. */
 export const SEEDS = Object.freeze({
   dev: Object.freeze({ dir: 'eval/dev', corpus: 'the pinned corpus' }),
   fixture: Object.freeze({ dir: 'eval/fixtures', corpus: 'eval/fixtures/corpus.json' }),
 });
 
-/** Where the static import closure starts: the lock's CLI and runner, and the eval runner. */
 export const ENTRIES = Object.freeze([
   'eval/lock.mjs',
   'eval/lib/lock-runner.mjs',
   'eval/runner/run.mjs',
-  // Forked by run.mjs by path, not imported.
   'eval/runner/vitest-child.mjs',
-  // Loaded by vitest.eval.config.mjs in the workspace.
   'eval/runner/retrieval.eval.js',
   'vitest.eval.config.mjs',
 ]);
 
-/**
- * Non-literal dynamic imports, by file, and the listed paths each loads (in the workspace, the
- * ranker's own copy of the same paths). The completeness test fails on any other.
- * @type {Readonly<Record<string, readonly string[]>>}
- */
+/** @type {Readonly<Record<string, readonly string[]>>} */
 export const DYNAMIC_IMPORTS = Object.freeze({
   'eval/runner/run.mjs': ['src/vector-bundle.js'],
   'eval/lib/corpus.mjs': ['scripts/lib.mjs'],
@@ -80,17 +42,10 @@ export const DYNAMIC_IMPORTS = Object.freeze({
   'eval/lib/compliance.mjs': ['src/vocabulary.js', 'src/query-intent.js', 'src/intents.js', 'src/vector-bundle.js', 'src/ng-bit.js'],
 });
 
-/** Bare names vitest.eval.config.mjs aliases to files each run writes into its workspace. */
 export const ALIASES = Object.freeze(['vectors-bundle', 'vocabulary-data', 'groups-data', 'ng-unscheduled-data', 'catalogue-codes-data', 'prefixes-data']);
 
-/**
- * Everything the lock's lists depend on. `inputsHash` hashes these paths' git objects.
- * test/eval/ranking-lock.node.test.js recomputes the closure and fails on any file outside it.
- */
 export const LOCK_INPUTS = Object.freeze([
-  // The ranker and its test Worker config (workspace.mjs HASHED).
   ...HASHED,
-  // The static import closure of ENTRIES, outside HASHED.
   'eval/lock.mjs',
   'eval/lib/baseline.mjs',
   'eval/lib/compliance.mjs',
@@ -115,22 +70,18 @@ export const LOCK_INPUTS = Object.freeze([
   'eval/runner/run.mjs',
   'eval/runner/vitest-child.mjs',
   'scripts/pinned-corpus.mjs',
-  // The fakes the runner binds, and its Vitest config.
   'test/fakes.js',
   'vitest.eval.config.mjs',
-  // The sets, the study map and the corpus embeddings manifest.
   'eval/study-map.json',
   'eval/dev',
   'eval/fixtures',
   'eval/embeddings.json',
-  // The pinned corpus's NG list and restrictions (eval/lib/corpus.mjs).
   'eval/pinned',
-  // workerd and its SQLite, Vitest and the plugin.
   'package-lock.json',
 ]);
 
 /**
- * @typedef {Record<string, Record<string, Record<string, string>>>} Lists set -> mode -> query id -> "<status> <sha256>"
+ * @typedef {Record<string, Record<string, Record<string, string>>>} Lists
  * @typedef {{ kind: string, ref: string }} Evidence
  * @typedef {{
  *   schema: string, inputsHash: string, embedding: string,
@@ -142,8 +93,6 @@ export const LOCK_INPUTS = Object.freeze([
  */
 
 /**
- * One query's entry: its status, then the sha256 of the status and the ordered codes, so a 500
- * never hashes like an empty 200 and a status shows in a diff.
  * @param {number} status
  * @param {string[]} codes
  */
@@ -173,8 +122,6 @@ function showAt(repo, rev, path) {
 }
 
 /**
- * sha256 over the sorted `git ls-tree` lines (mode, type, object id, path) of `inputs` at
- * `rev`: the committed content only, so ignored and untracked files never count.
  * @param {string} repo
  * @param {string} rev
  * @param {readonly string[]} [inputs]
@@ -186,16 +133,12 @@ export function inputsHash(repo, rev, inputs = LOCK_INPUTS) {
   return createHash('sha256').update(lines.join('\n')).digest('hex');
 }
 
-/**
- * Uncommitted changes to LOCK_INPUTS, which the runner would read but inputsHash would not.
- * @param {string} [repo]
- */
+/** @param {string} [repo] */
 export function dirtyInputs(repo = REPO) {
   return git(repo, ['status', '--porcelain', '--', ...LOCK_INPUTS]).stdout.split('\n').filter(Boolean);
 }
 
 /**
- * The lock committed at `rev`, or null when there is none.
  * @param {string} repo
  * @param {string} rev
  * @returns {RankingLock | null}
@@ -206,7 +149,10 @@ export function readLockAt(repo, rev) {
   return JSON.parse(text);
 }
 
-/** Canonical JSON (sorted keys at every level). @param {unknown} v @returns {string} */
+/**
+ * @param {unknown} v
+ * @returns {string}
+ */
 export function canonical(v) {
   if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
   if (v && typeof v === 'object') {
@@ -216,7 +162,6 @@ export function canonical(v) {
 }
 
 /**
- * Every query whose entry differs between two lists, as "<set> <mode> <id>: status A -> B".
  * @param {Lists} locked
  * @param {Lists} now
  */
@@ -244,7 +189,6 @@ export function diffLists(locked, now) {
 const sameEvidence = (a, b) => !!a && !!b && a.kind === b.kind && a.ref === b.ref;
 
 /**
- * Every lock committed in the history of `rev`, newest first.
  * @param {string} repo
  * @param {string} rev
  * @returns {{ sha: string, lock: RankingLock }[]}
@@ -258,13 +202,12 @@ function lockHistory(repo, rev) {
     try {
       const lock = readLockAt(repo, sha);
       if (lock) out.push({ sha, lock });
-    } catch { /* a version that does not parse cites nothing */ }
+    } catch {}
   }
   return out;
 }
 
 /**
- * The shipped-ranker pin (eval/lib/baseline.mjs SHIPPED_BASELINE) as committed at `rev`.
  * @param {string} repo
  * @param {string} rev
  */
@@ -277,8 +220,6 @@ export function pinAt(repo, rev) {
 const rowNumber = (ref) => (/^[1-9]\d*$/.test(ref) ? Number(ref) : null);
 
 /**
- * The problems with HEAD's evidence for lists that differ from the base lock's (none when it
- * holds). `baseLock` null means the base commit has no lock.
  * @param {{ repo: string, head: string, base: string, headLock: RankingLock, baseLock: RankingLock | null }} o
  * @returns {string[]}
  */
@@ -348,8 +289,6 @@ export function checkEvidence({ repo, head, base, headLock, baseLock }) {
 }
 
 /**
- * The fast path alone: HEAD's lock equals the base's, and HEAD's inputs equal the lock's or the
- * base's. `reason` says why it holds or not.
  * @param {{ repo?: string, base?: string | null, head?: string }} o
  * @returns {{ fast: boolean, reason: string }}
  */
@@ -368,9 +307,6 @@ export function fastPath({ repo = REPO, base, head = 'HEAD' }) {
 }
 
 /**
- * The eval gate. `recompute` gives the runner's lists at HEAD (eval/lib/lock-runner.mjs
- * computeLists); it runs only off the fast path. Without a reachable base the lists are still
- * recomputed and compared, but there is no base lock to check evidence against (noted).
  * @param {{ repo?: string, base?: string | null, head?: string, recompute: () => Promise<Computed> }} o
  * @returns {Promise<GateResult>}
  */
@@ -431,16 +367,10 @@ export function lockShapeProblems(lock) {
   return p;
 }
 
-// ---------------------------------------------------------------------------
-// LOCK_INPUTS completeness: the static import closure of ENTRIES, read with acorn.
-
-/** @param {string} path a repo-relative posix path */
+/** @param {string} path */
 const covered = (path) => LOCK_INPUTS.some((p) => path === p || path.startsWith(`${p}/`));
 
 /**
- * Problems with LOCK_INPUTS against the closure under `root`: a file outside it, an import that
- * resolves to nothing, a bare name that is neither a built-in, a locked package nor an eval
- * alias, and a non-literal dynamic import not declared in DYNAMIC_IMPORTS.
  * @param {{ root?: string }} [o]
  * @returns {Promise<string[]>}
  */
@@ -512,14 +442,13 @@ export async function lockInputsProblems({ root = REPO } = {}) {
 
 /**
  * @param {string} root
- * @param {string} from repo-relative file
- * @param {string} spec relative specifier
- * @returns {string | null} the repo-relative target
+ * @param {string} from
+ * @param {string} spec
+ * @returns {string | null}
  */
 function resolveRelative(root, from, spec) {
   const base = normalize(join(dirname(from), spec)).split('\\').join('/');
   if (base.startsWith('..')) return null;
-  // A data file (JSON, a bundle) is a dependency to cover, not code to read.
   if (!/\.m?js$/.test(base) && /\.[a-z0-9]+$/i.test(base)) return base;
   for (const c of [base, `${base}.js`, `${base}.mjs`, `${base}/index.js`]) if (existsSync(join(root, c))) return c;
   return null;

@@ -1,7 +1,4 @@
 // @ts-check
-// The code-target rule grade (JUDGING.md rule 4, applied mechanically): the
-// grades per code form, the hard-constraint override, variants and
-// cross-listings, replacing judge A's grade, and the committed dev qrels.
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -11,7 +8,6 @@ import { qrelsFor } from '../../eval/lib/metrics.mjs';
 import { REPO } from '../../eval/lib/sets.mjs';
 
 /**
- * A corpus module with the fields the rule reads (public corpus fields only).
  * @param {string} code
  * @param {Record<string, unknown>} [extra]
  */
@@ -21,7 +17,6 @@ const mod = (code, extra = {}) => ({
 });
 
 /**
- * A code-origin query.
  * @param {string} id
  * @param {'exact' | 'space' | 'partial'} codeForm
  * @param {string} target
@@ -34,11 +29,11 @@ const codeQuery = (id, codeForm, target, filters = { ng: true }) => ({
 
 const MODULES = [
   mod('CS2030'),
-  mod('CS2030S', { title: 'Programming Methodology II (S)' }), // variant, other title: not in a group
-  mod('CS2030DE'), // variant (two suffix letters)
-  mod('CS20301'), // not a variant: five digits
+  mod('CS2030S', { title: 'Programming Methodology II (S)' }),
+  mod('CS2030DE'),
+  mod('CS20301'),
   mod('CS2031'),
-  mod('IT2030', { title: 'Title of CS2030', description: 'About CS2030.' }), // cross-listed with CS2030
+  mod('IT2030', { title: 'Title of CS2030', description: 'About CS2030.' }),
   mod('MUL2107'), mod('MUL2109'), mod('MUL3101'), mod('XMUL2101'),
   mod('LL4541V'), mod('LL4541'), mod('LL4541X'),
 ];
@@ -80,7 +75,6 @@ describe('codeRuleGrades', () => {
     expect(g.get(pairKey('q5', 'CS2030'))?.rationale).toBe('hard constraint: not open to non-graduating students');
     expect(g.get(pairKey('q5', 'CS2030S'))?.rationale).toBe('hard constraint: not offered in semester 1');
     expect(gradesOf(g, 'q6')).toEqual({ MUL2107: 2, MUL2109: 0 });
-    // `constraints`, when a query has them, are the hard constraints (not `filters`).
     const withConstraints = { ...codeQuery('q7', 'exact', 'CS2030', { ng: true }), constraints: { level: [3] } };
     expect(gradesOf(codeRuleGrades([withConstraints], MODULES, { groups: GROUPS }), 'q7')).toEqual({ CS2030: 0, CS2030S: 0, CS2030DE: 0, IT2030: 0 });
   });
@@ -108,12 +102,11 @@ describe('applyCodeRule / withCodeRule', () => {
     const grades = codeRuleGrades([codeQuery('q1', 'exact', 'CS2030')], MODULES, { groups: GROUPS });
     const { queries, stats, changes } = applyCodeRule(base(), grades);
     expect(stats.overrides).toEqual({ total: 3, up: 1, down: 1, same: 1 });
-    expect(stats.added).toEqual({ 0: 0, 1: 1, 2: 0 }); // IT2030 was never pooled
+    expect(stats.added).toEqual({ 0: 0, 1: 1, 2: 0 });
     expect(stats.queries).toBe(1);
-    expect(queries.q1.judgments.CS2031).toEqual(judged(0)); // not a target, variant or cross-listing: A's grade stands
+    expect(queries.q1.judgments.CS2031).toEqual(judged(0));
     expect(queries.t.judgments.CS2030).toEqual(judged(2));
     expect(queries.q1.judgments.CS2030).toMatchObject({ grade: 2, source: 'rule', round: CODE_RULE });
-    // A's own grade rides along for provenance; the final grade is the rule's.
     expect(/** @type {any} */ (queries.q1.judgments.CS2030).judges).toMatchObject({ 'claude-opus-5-5': { slot: 'A', grade: 1 }, rule: { slot: 'rule', grade: 2 } });
     expect(changes).toContainEqual({ queryId: 'q1', code: 'CS2030', from: 1, fromSource: 'judged', to: 2 });
     expect(changes).toContainEqual({ queryId: 'q1', code: 'IT2030', from: null, fromSource: null, to: 1 });

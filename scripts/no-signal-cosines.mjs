@@ -1,18 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The top-1 exact cosine of the query as typed,
-// with the query's filters, over the corpus the eval scores (the pinned
-// bundle), for both halves of the gibberish set and the dev queries not
-// tagged no-answer. It reads tags, never relevance labels. It uses the
-// product's own parse (parsed.noSignal) and exact search, and the committed
-// embeddings (test/query-suite/embeddings.json, eval/dev/embeddings.json), so it
-// makes no remote call. It also derives the τ candidates from the derivation
-// half (src/no-signal.js) and, per candidate, predicts the dev conditions
-// /search would meet: the gate half's count-0 share and any untagged dev
-// query it would empty.
-//
-//   node scripts/no-signal-cosines.mjs            print the summary
-//   node scripts/no-signal-cosines.mjs --write    also write .data/no-signal-cosines.json
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

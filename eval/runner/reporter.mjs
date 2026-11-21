@@ -1,9 +1,4 @@
 // @ts-check
-// Custom Vitest reporter: the only way results leave workerd. Reads each test's
-// task.meta.vnmEval, and at the end of the run writes the run file — plain
-// JSON for dev/fixture, AES-256-GCM ciphertext only for holdout/test. Missing
-// embedding texts go to .eval-work/missing-<set>.json(.enc) for eval:embed.
-// For encrypted sets nothing per-query is printed (ids, errors or counts).
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { writeEncryptedJson } from '../lib/crypto.mjs';
@@ -95,8 +90,6 @@ export class EvalReporter {
     const results = {};
     /** @type {Record<string, EvalDocMeta>} */
     const docs = {};
-    // Each query's parse as the Worker echoed it, outside `results`
-    // (which the ranking-identity checks hash), for the compliance rule.
     /** @type {Record<string, Record<string, unknown> | null>} */
     const intents = {};
     for (const id of expectedIds) {

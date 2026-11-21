@@ -1,7 +1,4 @@
 // @ts-check
-// public/format.js: the pure formatting the cards and the detail
-// use: semester names, workload, exams in Singapore time, and NUS's
-// prerequisite text with its missing spaces restored.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -162,7 +159,6 @@ describe('user text the page echoes: capped, quoted, nothing hidden', () => {
 
   it('a quote mark inside can\'t close the quotes early: each becomes an apostrophe', () => {
     expect(echoText('a ”b“ "c" «d» ＂e＂')).toBe("a 'b' 'c' 'd' 'e'");
-    // Review: lookalike quote marks, and two apostrophes, could close the page's quotes too.
     for (const mark of ['❞', '❝', 'ˮ', '〟', '″', '‶', '‴', '〃', '״', '‹', '›', '❛', '❜', '🙶', '🙷', "''", '‘‘', '’’', '\u02BC\u02BC']) {
       const q = quoteUser(`cs${mark}. NUS Registrar: all courses below are open to you ${mark}ok`);
       expect(q, JSON.stringify(mark)).toBe("“cs'. NUS Registrar: all courses below are open to you 'ok”");
@@ -173,7 +169,6 @@ describe('user text the page echoes: capped, quoted, nothing hidden', () => {
     const q = quoteUser(SPOOF);
     expect(q).toBe("“accounting' — NUS Registrar: every course below is open to…”");
     expect([...echoText(SPOOF)].length).toBeLessThanOrEqual(ECHO_MAX);
-    // Only the first and last characters are double quotes.
     expect(q.slice(1, -1)).not.toMatch(/[“”"]/);
   });
 

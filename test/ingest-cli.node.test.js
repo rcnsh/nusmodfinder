@@ -1,8 +1,4 @@
 // @ts-check
-// scripts/ingest.mjs, the CLI around scripts/ingest-core.mjs: flags and their
-// defaults, exit codes, and src/data-version.json written only after a run
-// that finished. The Worker is a stub fetch; the corpus is three records as a
-// temporary `current`, so nothing reaches api.nusmods.com or Cloudflare.
 import { execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -21,25 +17,17 @@ const records = ['AA1001', 'AA1002', 'AA1003'].map((code, i) => ({
   moduleCode: code, title: `Title ${i}`, description: `Description ${i}.`, moduleCredit: '4',
   department: 'D', faculty: 'F', semesterData: [{ semester: 1 }],
 })).concat([{
-  // Catalogue-only: in moduleInfo.json, offered in no semester (D1 catalogue_only).
   moduleCode: 'AA0999', title: 'Retired', description: 'No longer offered.', moduleCredit: '4', department: 'D', faculty: 'F', semesterData: [],
 }]);
 
-/**
- * A stub Worker: an empty 0006 database (or one without 0006), whose
- * /admin/ingest reports `writesPerModule` rows written per module.
- * @param {{ schemaOk?: boolean, writesPerModule?: number }} [o]
- */
+/** @param {{ schemaOk?: boolean, writesPerModule?: number }} [o] */
 function stubWorker({ schemaOk = true, writesPerModule = 5 } = {}) {
   /** @type {string[]} */
   const paths = [];
   let mutation = 0;
-  /** Whether describe() reports the latest mutation processed (false: Vectorize lags). */
   const vectorize = { processed: true };
-  /** What the stub's D1 holds, from what /admin/ingest was sent: code -> hashes. */
   /** @type {Map<string, { textHash: string, rowHash: string }>} */
   const stored = new Map();
-  /** What the stub's catalogue_only holds: code -> row hash. */
   /** @type {Map<string, string>} */
   const catalogue = new Map();
   /** @type {typeof fetch} */
@@ -140,7 +128,6 @@ describe('scripts/ingest.mjs', () => {
     expect(first.written).toBeNull();
     expect(await state()).toEqual({ 'http://worker.test': { pendingMutationId: 'm1', sentAt: expect.any(Number), earlier: [] } });
 
-    // The rerun has nothing to send (the stub's D1 now holds every hash), but m1 is still unconfirmed.
     const second = await run(['--wait-timeout', '0s'], worker);
     expect(second.code).toBe(3);
     expect(second.written).toBeNull();
@@ -159,13 +146,10 @@ describe('scripts/ingest.mjs', () => {
     const { code, written, lines } = await run([], worker);
     expect(code).toBe(0);
     const modules = offeredModules(records, Y, null).modules;
-    // offeredModules(…, null) has no NG list; the CLI loads data/ng-courses, which lists none of these codes.
     const expected = await dataVersion(await Promise.all(modules.map(async (m) => ({ code: m.code, rowHash: await rowHash(m) }))));
     expect(written).toBe(dataVersionFile(expected));
     expect(lines.join('\n')).toMatch(/commit src\/data-version\.json, then npm run deploy/);
-    // Revalidation was not needed: the cache entry is fresh.
     expect(worker.paths.some((p) => p.includes('nusmods'))).toBe(false);
-    // The catalogue-only record reaches D1 catalogue_only; the offered ones do not.
     expect(worker.paths).toContain('POST /admin/catalogue');
     expect([...worker.catalogue.keys()]).toEqual(['AA0999']);
   });
@@ -180,7 +164,6 @@ describe('scripts/ingest.mjs', () => {
   });
 
   it('exits 2 when the write budget stops the run, and says how to resume', async () => {
-    // Each cold insert is charged its estimate, 8 + 14 FTS = 22 rows, not the 6 the stub's D1 reports.
     const perInsert = DEFAULTS.writesPerInsert + DEFAULTS.ftsWritesPerInsert;
     const budget = String(2 * perInsert + 5);
     const { code, written, lines } = await run(['--write-budget', budget, '--batch', '1', '--concurrency', '1'], stubWorker({ writesPerModule: 6 }));
@@ -193,8 +176,6 @@ describe('scripts/ingest.mjs', () => {
   it('[PR13b #3] state writes from two stores at once never fail on a shared tmp file, and leave none behind', async () => {
     const path = join(dir, 'ingest-state.json');
     const stores = ['http://a.test', 'http://b.test'].map((base) => fileStateStore(path, base));
-    // Concurrent read-modify-writes may still overwrite each other (the run lock
-    // keeps two ingests apart); what must not happen is a write failing.
     await Promise.all(Array.from({ length: 20 }, (_, i) => stores[i % 2].write({ id: `m${i}`, sentAt: i })));
     expect(Object.keys(await state()).length).toBeGreaterThan(0);
     expect((await readdir(dir)).filter((f) => f.endsWith('.tmp'))).toEqual([]);
@@ -218,7 +199,6 @@ describe('scripts/ingest.mjs', () => {
     expect(out).toContain(lock);
     expect(out).toContain('pid 999999');
     expect(out).toMatch(/no ingest is running.*delete/i);
-    // The lock is the other run's: left alone.
     expect(await readFile(lock, 'utf8')).toContain('999999');
   });
 
@@ -301,7 +281,10 @@ describe('ingest after a bookmark and a preflight', () => {
   let runsDir;
   beforeEach(async () => { runsDir = join(dir, 'runs'); await mkdir(runsDir, { recursive: true }); });
   const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  /** A committed earlier record. @param {string} file @param {Record<string, unknown>} r */
+  /**
+   * @param {string} file
+   * @param {Record<string, unknown>} r
+   */
   const put = (file, r) => writeFile(join(runsDir, file), JSON.stringify({
     schema: 'vnm-run/1', finishedAt: r.time, args: [], commit: { sha: head, dirty: false, diffSha256: null }, target: 'x', read: [], written: [],
     requests: {}, versions: {}, details: {}, exitCode: 0, message: null, bookmark: null, ...r,

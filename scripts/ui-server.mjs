@@ -1,22 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The UI test stack's server: the page and the Worker on a local
-// `wrangler dev` (test/wrangler.ui.jsonc: test/ui/worker.js with FakeAI and
-// FakeRateLimit, public/ as static assets), over a local D1 seeded with the
-// fixture. `npm run dev` runs it; the Playwright suite starts it per run.
-//
-//   node scripts/ui-server.mjs [--port N] [--verbose]
-//
-// Everything is local and temporary:
-// - a fresh `--persist-to` directory, deleted on exit;
-// - its own `--env-file` holding a one-off INGEST_SECRET, never .dev.vars;
-// - `wrangler d1 migrations apply --local`, then seeding through the admin
-//   routes as ingest does: /admin/ingest?d1Only=1 in batches of 100,
-//   /admin/catalogue with the catalogue-only rows (so a not-offered code has
-//   its title), and /admin/facets with the NG list.
-// No remote binding exists in the config, so nothing here can reach Cloudflare.
-// Ports 8787 and 8799 belong to other projects and are refused; by default a
-// free port is picked.
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -30,14 +13,11 @@ import { facetsPayload, loadNgCourses } from './lib.mjs';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const CONFIG = join(ROOT, 'test/wrangler.ui.jsonc');
 const WRANGLER = join(ROOT, 'node_modules/wrangler/bin/wrangler.js');
-/** test/wrangler.ui.jsonc's D1 database_name. */
 const DATABASE = 'nusmods';
-/** Ports other projects on the dev Mac own. */
 export const RESERVED_PORTS = Object.freeze([8787, 8799]);
 const BATCH = 100;
 const READY_TIMEOUT_MS = 90_000;
 
-/** A port nothing listens on now (the OS picks it). */
 export function freePort() {
   return new Promise((resolve, reject) => {
     const srv = createServer();
@@ -51,14 +31,12 @@ export function freePort() {
 }
 
 /**
- * Runs wrangler to completion, resolving with its output.
  * @param {string[]} args
  * @param {Record<string, string>} env
  * @param {(child: import('node:child_process').ChildProcess) => void} started
  */
 function wrangler(args, env, started) {
   return new Promise((resolve, reject) => {
-    // Its own process group, like wrangler dev's, so killing it takes its workerd too.
     const child = spawn(process.execPath, [WRANGLER, ...args], { cwd: ROOT, env, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
     started(child);
     let out = '';
@@ -70,14 +48,8 @@ function wrangler(args, env, started) {
 }
 
 /**
- * Starts the server and seeds it; resolves once it answers with the fixture
- * loaded. Aborting `signal` at any point stops whatever has started (the
- * migration, wrangler dev and its workerd) and deletes the temporary state, so
- * a Ctrl-C during start-up leaves nothing behind.
  * @param {{ port?: number, verbose?: boolean, signal?: AbortSignal }} [options]
  * @returns {Promise<{ url: string, secret: string, stop: () => Promise<void> }>}
- *   `secret`: the one-off INGEST_SECRET, for a caller that ingests into this local D1 (the
- *   rehearsal, scripts/rollover.mjs); it never leaves the process or the temp env file
  */
 export async function startUiServer({ port, verbose = false, signal } = {}) {
   /** @type {import('node:child_process').ChildProcess | null} */
@@ -87,17 +59,13 @@ export async function startUiServer({ port, verbose = false, signal } = {}) {
   /** @type {string | null} */
   let dir = null;
   let log = '';
-  // Kills what is running now, each child's whole process group (wrangler
-  // and its workerd), and waits for it: workerd writes into the state
-  // directory until it exits. Safe to call again after a later spawn.
   const kill = () => Promise.all([migrate, dev].map(async (c) => {
     if (!c?.pid) return;
     const pid = c.pid;
     const exited = c.exitCode === null && c.signalCode === null ? new Promise((r) => c.once('exit', r)) : Promise.resolve();
-    try { process.kill(-pid, 'SIGTERM'); } catch { /* already gone */ }
+    try { process.kill(-pid, 'SIGTERM'); } catch {}
     await Promise.race([exited, new Promise((r) => setTimeout(r, 5000))]);
-    try { process.kill(-pid, 'SIGKILL'); } catch { /* already gone */ }
-    // The group outlives its leader by a moment; wait until none of it is left.
+    try { process.kill(-pid, 'SIGKILL'); } catch {}
     for (let i = 0; i < 50; i++) {
       try { process.kill(-pid, 0); } catch { return; }
       await new Promise((r) => setTimeout(r, 100));
@@ -120,7 +88,6 @@ export async function startUiServer({ port, verbose = false, signal } = {}) {
     const envFile = join(dir, 'ui.env');
     const secret = randomBytes(24).toString('hex');
     await writeFile(envFile, `INGEST_SECRET=${secret}\n`, { mode: 0o600 });
-    // No account, no metrics, no update check: nothing leaves the machine.
     /** @type {Record<string, string>} */
     const env = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_HIDE_BANNER: 'true', NO_UPDATE_NOTIFIER: '1' };
     delete env.CLOUDFLARE_API_TOKEN;
@@ -129,7 +96,6 @@ export async function startUiServer({ port, verbose = false, signal } = {}) {
     live();
     await wrangler(['d1', 'migrations', 'apply', DATABASE, '--local', '--persist-to', persist, '-c', CONFIG], env, (c) => { migrate = c; });
     live();
-    // Its own process group, so kill() takes workerd down with it.
     dev = spawn(process.execPath, [
       WRANGLER, 'dev', '-c', CONFIG, '--local', '--persist-to', persist, '--env-file', envFile,
       '--ip', '127.0.0.1', '--port', String(listen), '--inspector-port', String(inspector),
@@ -166,14 +132,13 @@ async function waitForHealth(url, exitCode) {
     try {
       const res = await fetch(`${url}/health`, { signal: AbortSignal.timeout(2_000) });
       if (res.ok) return;
-    } catch { /* not listening yet */ }
+    } catch {}
     if (Date.now() > deadline) throw new Error(`wrangler dev did not answer ${url}/health within ${READY_TIMEOUT_MS / 1000} s`);
     await new Promise((r) => setTimeout(r, 250));
   }
 }
 
 /**
- * The fixture, the catalogue-only rows and the NG list, through the admin routes.
  * @param {string} url
  * @param {string} secret
  */
@@ -210,8 +175,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(2);
   }
   const started = Date.now();
-  // Armed before anything starts: a signal during start-up aborts it, and
-  // startUiServer cleans up; after it, stop() does.
   const abort = new AbortController();
   /** @type {{ url: string, stop: () => Promise<void> } | null} */
   let server = null;

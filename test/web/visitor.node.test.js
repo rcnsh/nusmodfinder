@@ -1,7 +1,4 @@
 // @ts-check
-// What a visitor sees, read from the files (ADR 0012): /favicon.ico as a static file, the share
-// preview's site name, the no-JavaScript sentence, the footer's restrictions and privacy links, no
-// contact, the privacy note, the year line's wording, the 403's sentence, and the two rate limits.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,23 +8,21 @@ import { DEFAULT_ACAD_YEAR, headerYearLine } from '../../public/year.js';
 import { parseJsonc } from '../../scripts/jsonc.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
-/** A file's text, '' while it doesn't exist (so each test, not the file, fails first). @param {string} rel */
+/** @param {string} rel */
 const read = (rel) => (existsSync(join(ROOT, rel)) ? readFileSync(join(ROOT, rel), 'utf8') : '');
 const page = read('public/index.html');
 
-/** 'YYYY-YYYY' → 'YYYY/YY'. @param {string} ay */
+/** @param {string} ay */
 const label = (ay) => `${ay.slice(0, 4)}/${ay.slice(7, 9)}`;
-/** The acad year after `ay`. @param {string} ay */
+/** @param {string} ay */
 const next = (ay) => `${Number(ay.slice(0, 4)) + 1}-${Number(ay.slice(5, 9)) + 1}`;
 
 describe('/favicon.ico', () => {
   it('is a static file in public/, so a browser\'s request for it never runs the Worker', () => {
     expect(existsSync(join(ROOT, 'public/favicon.ico'))).toBe(true);
     const ico = readFileSync(join(ROOT, 'public/favicon.ico'));
-    // ICONDIR: reserved 0, type 1 (icon), at least one image.
     expect([...ico.subarray(0, 4)]).toEqual([0, 0, 1, 0]);
     expect(ico.readUInt16LE(4)).toBeGreaterThanOrEqual(1);
-    // The first image is a 32×32 PNG, the same picture as favicon-32.png.
     expect([ico[6], ico[7]]).toEqual([32, 32]);
     const offset = ico.readUInt32LE(18);
     const size = ico.readUInt32LE(14);
@@ -81,7 +76,6 @@ describe('the privacy note', () => {
     expect(html).toContain('<title>Privacy · NUS Mod Finder (unofficial)</title>');
     expect(html).toContain('<link rel="stylesheet" href="/styles.css">');
     expect(html).toMatch(/<a [^>]*href="\/"/);
-    // The page's CSP allows no inline script; the note needs none.
     expect(html).not.toMatch(/<script/);
   });
 

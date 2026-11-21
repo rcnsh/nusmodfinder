@@ -1,12 +1,4 @@
 // @ts-check
-// The query suite's `interpreted` objects and rule params checked against
-// what they mean, not only their shape. Every item's intents (ge, level, exam,
-// su, hoursBelow, prereq) must be what the committed phrase rules
-// (eval/query-rules/intent-phrases.json, ge-pillars.json) give for its text, or for
-// its clean form when it is a typo item, in both directions: a phrase in the
-// text sets its intent, and a set intent is backed by a phrase, an `XX N000`
-// code token or the clean form. Each rule's params must agree with the same
-// item's `interpreted`, and each guard's token lists with its text.
 import { describe, expect, it } from 'vitest';
 import { queryTokens } from '../../src/fts-query.js';
 import { COLLISION, INTENT_KEYS, PHRASES, STOPWORDS, canonical, codeLevel, deriveIntents, phraseMatches, phraseRegex } from './intents.node.mjs';
@@ -16,7 +8,7 @@ import { SUITE_PATH, readJson } from './suite-files.node.mjs';
 const items = readJson(SUITE_PATH).items;
 const CONSTRAINT_ROWS = ['no-exam', 'su', 'workload', 'no-prereq'];
 
-/** The text an item's intents are read from: the clean form for a typo item (typo corrections are not echoed). @param {any} it */
+/** @param {any} it */
 const intentText = (it) => (it.row === 'typo' ? it.params.clean : it.text);
 
 /** @param {any} it */
@@ -103,13 +95,15 @@ describe('the query suite: interpreted means what the text says', () => {
       const want = deriveIntents(it.params.clean, it.interpreted.prefix);
       for (const key of INTENT_KEYS) expect(it.interpreted[key], label(it, key)).toEqual(want[key]);
     }
-    // The rule is live: at least one clean form carries an intent its typo text hides.
     expect(items.some((it) => it.row === 'typo' && deriveIntents(it.text).level === null && deriveIntents(it.params.clean).level !== null)).toBe(true);
   });
 });
 
 describe('the query suite: rule params agree with interpreted', () => {
-  /** A constraint param (`{ exam: "0" }` …) as the interpreted value it implies. @param {string} key @param {string} value */
+  /**
+   * @param {string} key
+   * @param {string} value
+   */
   const paramValue = (key, value) => {
     if (key === 'hoursBelow') return Number(value);
     const c = PHRASES.constraints[key];
@@ -156,7 +150,6 @@ describe('the query suite: rule params agree with interpreted', () => {
           const [[k, v]] = Object.entries(p.param);
           expect(I[k], label(it, k)).toEqual(paramValue(k, /** @type {string} */ (v)));
           for (const other of ['exam', 'su', 'hoursBelow', 'prereq']) if (other !== k) expect(I[other], label(it, other)).toBeNull();
-          // The reference is the text with the matched phrase removed (C11): no constraint phrase left in it.
           expect(phraseMatches(p.reference).a, label(it, 'reference')).toEqual([]);
           expect(deriveIntents(p.reference)[k], label(it, 'reference')).toBeNull();
           break;

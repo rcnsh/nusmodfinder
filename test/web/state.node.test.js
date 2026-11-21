@@ -1,8 +1,4 @@
 // @ts-check
-// public/state.js and public/nav.js: the
-// page's state lives in the URL, parsed and written by one pure module, and
-// every history transition is decided by one pure function. The browser half
-// (pushState, popstate) is test/ui/history.spec.js.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { IGNORABLE_INTENTS } from '../../src/query-intent.js';
@@ -22,7 +18,6 @@ describe('URL state (F3, C-7)', () => {
       q: 'machine learning', sem: '2', level: '3', credits: '4', faculty: 'Computing', ng: true, study: 'ug2',
       ignore: [], open: 'CS3244', from: '', view: '',
     });
-    // The list is not part of the state: stateToParams alone writes no pick or alt.
     expect(stateToParams(s).toString())
       .toBe('q=machine+learning&sem=2&level=3&credits=4&faculty=Computing&ng=1&study=ug2&open=CS3244');
   });
@@ -32,7 +27,6 @@ describe('URL state (F3, C-7)', () => {
     expect(round('q=x&level=4,3,3,9&credits=12,4,x')).toBe('q=x&level=3%2C4&credits=4%2C12');
     expect(round('q=x&level=9,&credits=,')).toBe('q=x');
     expect(searchParams(parse('q=x&level=3,4'))?.get('level')).toBe('3,4');
-    // At most 12, as /search takes.
     expect(parse(`q=x&credits=${Array.from({ length: 20 }, (_, i) => i).join(',')}`).credits.split(',')).toHaveLength(12);
   });
 
@@ -59,7 +53,6 @@ describe('URL state (F3, C-7)', () => {
   it('drops values /search would reject instead of failing the page', () => {
     expect(parse('sem=9&level=0&credits=-1&study=phd&open=<b>')).toMatchObject({ sem: '', level: '', credits: '', study: '', open: '' });
     expect(parse('sem=3&level=8&credits=12&study=grad&open=GEC1015A')).toMatchObject({ sem: '3', level: '8', credits: '12', study: '', open: 'GEC1015A' });
-    // Every code shape /module/:code accepts (src/modules.js MODULE_CODE_RE), digits in the suffix included.
     for (const code of ['LC6009GRSII', 'DMA1401L01', 'DMR1201GEQA']) expect(parse(`open=${code.toLowerCase()}`).open, code).toBe(code);
     expect(parse('open=ABCDE1234').open).toBe('');
   });
@@ -67,10 +60,8 @@ describe('URL state (F3, C-7)', () => {
   it('in exchange mode ng=1 and study are always written; sem is absent for both semesters', () => {
     expect(round('ng=1&study=ug1&q=x')).toBe('q=x&ng=1&study=ug1');
     expect(round('ng=1&study=ug1&sem=1&q=x')).toBe('q=x&sem=1&ng=1&study=ug1');
-    // ng=0 and ng=false do not narrow (as /search), so they are not exchange mode.
     expect(parse('ng=0&study=ug1').ng).toBe(false);
     expect(parse('ng=false').ng).toBe(false);
-    // Outside exchange mode the study level is ignored (as /search), so it is not kept.
     expect(round('study=ug1&q=x')).toBe('q=x');
   });
 
@@ -166,7 +157,6 @@ describe('history transitions', () => {
 
   it('close a detail: history.back() while on the entry this page pushed for it, else replace without open=', () => {
     expect(transition(open, { type: 'close' }, { detailPushed: true })).toMatchObject({ op: 'back', state: { open: '' } });
-    // A shared link, a reload elsewhere, or a detail swapped in by replace after a filter change.
     expect(transition(open, { type: 'close' }, { detailPushed: false })).toMatchObject({ op: 'replace', state: { open: '' } });
     expect(transition(list, { type: 'close' }, { detailPushed: false }).op).toBe('none');
   });
@@ -183,7 +173,6 @@ describe('history transitions', () => {
     const t = transition(s, { type: 'variant', code: 'acc1701xb', from: 'ACC1701XA' }, { detailPushed: true });
     expect(t.op).toBe('push');
     expect(stateToParams(t.state).toString()).toBe('q=ACC1701XB&sem=1&ng=1&study=ug2&open=ACC1701XB&from=ACC1701XA');
-    // Already there: nothing to do.
     expect(transition(t.state, { type: 'variant', code: 'ACC1701XB', from: 'ACC1701XA' }, { detailPushed: false }).op).toBe('none');
   });
 
@@ -210,7 +199,6 @@ describe('history transitions', () => {
     const view = parse('q=networks&sem=1&view=shortlist');
     const t = transition(view, { type: 'settings', form: { ...parse('q=networks&sem=2'), view: 'shortlist' } }, { detailPushed: false });
     expect(t).toMatchObject({ op: 'replace', state: { q: 'networks', sem: '2', view: 'shortlist' } });
-    // The box holds unsubmitted text: still a settings change while the view is shown.
     const typed = transition(view, { type: 'settings', form: { ...parse('q=databases&sem=2'), view: 'shortlist' } }, { detailPushed: false });
     expect(typed).toMatchObject({ op: 'replace', state: { q: 'networks', sem: '2', view: 'shortlist' } });
     expect(transition(view, { type: 'submit', form: { ...parse('q=databases&sem=1'), view: 'shortlist' } }, { detailPushed: false }))
@@ -225,7 +213,6 @@ describe('the view\'s history', () => {
     expect(transition(list, { type: 'openView' }, { detailPushed: false })).toMatchObject({ op: 'push', state: { view: 'shortlist', open: '' } });
     expect(transition(parse('q=networks&open=CS2105'), { type: 'openView' }, { detailPushed: true })).toMatchObject({ op: 'replace', state: { view: 'shortlist', open: '' } });
     expect(transition(parse('q=networks&open=CS2105'), { type: 'openView' }, { detailPushed: false })).toMatchObject({ op: 'replace-push', state: { open: '' } });
-    // The shortlist button with the view shown: no history write.
     expect(transition(parse('q=networks&view=shortlist'), { type: 'openView' }, { detailPushed: false }).op).toBe('none');
   });
   it('close the view: back() if this page pushed it and q and filters are as it opened, else replace without view', () => {

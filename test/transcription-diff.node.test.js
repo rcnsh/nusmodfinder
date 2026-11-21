@@ -1,8 +1,4 @@
 // @ts-check
-// scripts/transcription-diff.mjs maps a new year's rule ids to last year's by the quoted sentence,
-// so the overlay (keyed by id) carries over and only real changes reach the register. Measured on
-// the live year's two independent transcriptions (A, and B, the one its source manifest names),
-// which named the same rules differently: B's C-urop-fass is A's C-urops-fass.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -23,7 +19,6 @@ describe('transcription-diff', () => {
     expect(r.renamed).toContainEqual({ from: 'E-offerings-list', to: 'E-not-in-offerings' });
     expect(r.kept.length + r.renamed.length + r.ambiguous.length + r.added.length).toBe(B.length);
     expect(r.ambiguous.map((x) => x.id).sort()).toEqual(['1-socanth-grad-approval', '1-socanth-grad-only', '4-mse-closed-1', '4-mse-closed-2']);
-    // Each of last year's ids is used at most once.
     const targets = [...r.kept.map((k) => k.lastId), ...r.renamed.map((x) => x.to)];
     expect(new Set(targets).size).toBe(targets.length);
   });

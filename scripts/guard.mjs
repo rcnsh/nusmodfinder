@@ -1,22 +1,4 @@
 // @ts-check
-// The deploy guard's comparisons: what D1 holds
-// against what the deploy ships, read over D1's REST query (scripts/d1-rest.mjs) and computed
-// by src/admin-hashes.js, the code GET /admin/hashes runs.
-//
-// Each comparison is one entry in GUARD_CHECKS: how to compute D1's value, what it must equal,
-// and what to do when it doesn't. A check with a `field` also goes into the `deploy/*` tag under
-// that name, and rollback compares D1 with the target's tag on it. catalogueKey is the
-// third: D1's from its catalogue_only codes (the SELECT src/admin-hashes.js runs over the same
-// query), against the bundled catalogue file's (data/catalogue-codes.json, which the deploy
-// reads and passes in as `catalogue`).
-//
-// Every row's hash is recomputed from the row's columns (src/admin-hashes.js, with
-// src/rowhash.js's functions, as ingest writes them), so the data version is over the rows D1
-// actually holds, not over the row_hash values it stores. Two `integrity` checks refuse any row
-// whose stored row_hash is not its columns' hash, in modules (rowHashes) and catalogue_only
-// (catalogueRows, whose hash covers the year); they run in rollback's data check too.
-//
-// No Node APIs (the Worker test harness imports this).
 import { adminHashes } from '../src/admin-hashes.js';
 import { DEFAULT_MODEL } from '../src/embedding.js';
 import { catalogueKey, dataVersion } from '../src/rowhash.js';
@@ -28,24 +10,20 @@ import { rowsKey } from '../src/vector-bundle.js';
  *   hashes: AdminHashes & { modules: Record<string, import('../src/admin-hashes.js').ModuleHashes> },
  *   query: import('../src/admin-hashes.js').Query,
  *   bundle?: { entry: { rowsKey: string, count: number } }, committed?: string, catalogue?: { codes: string[] },
- * }} GuardContext `bundle`, `committed` and `catalogue` (the bundled catalogue file) are the deploy's (rollback has none)
+ * }} GuardContext
  * @typedef {{
  *   name: string, field?: string, integrity?: boolean, label?: string, source?: string,
  *   d1: (ctx: GuardContext) => Promise<string | null>,
  *   expected: (ctx: GuardContext) => string | Promise<string>,
  *   fix?: string, describe?: (d1: string | null) => string,
- * }} GuardCheck `field`: the tag key rollback compares on; `integrity`: D1 against itself, so rollback runs it
- *   too (no tag field); `label`, `source`, `fix`: the refusal's words; `describe`: the whole refusal, for a
- *   value `short` would cut
+ * }} GuardCheck
  * @typedef {{ name: string, field?: string, d1: string | null, expected: string, ok: boolean, message: string }} CheckResult
  */
 
 /** @param {string | null} v */
 const short = (v) => (v === null ? 'unknown' : v.length > 16 ? `${v.slice(0, 12)}…` : v);
 
-/** What an integrity check reads when every row's row_hash is its columns' hash. */
 export const NO_DRIFT = 'none';
-/** How many codes a drift refusal names. */
 const DRIFT_SHOWN = 10;
 /** @param {string[] | null | undefined} drift */
 const driftValue = (drift) => (!Array.isArray(drift) ? null : drift.length === 0 ? NO_DRIFT
@@ -82,7 +60,6 @@ export const GUARD_CHECKS = [
     fix: 'D1 holds other rows than the committed ones: run the D1-only ingest (runbook step 4) first.',
   },
   {
-    // D1's modules rows against their own row_hash, recomputed from their columns.
     name: 'rowHashes',
     integrity: true,
     d1: async ({ hashes }) => driftValue(hashes.rowHashDrift),
@@ -90,8 +67,6 @@ export const GUARD_CHECKS = [
     describe: (d1) => driftMessage('modules', d1),
   },
   {
-    // The Worker answers not-offered for the bundled file's codes and names the title
-    // D1's catalogue_only holds, so the two must hold the same codes.
     name: 'catalogueKey',
     field: 'catalogueKey',
     label: 'catalogueKey, over its catalogue_only codes,',
@@ -102,8 +77,6 @@ export const GUARD_CHECKS = [
       + 'runbook step 4), or rebuild the file (node scripts/build-catalogue-data.mjs --corpus production).',
   },
   {
-    // catalogue_only rows (the titles search names) against their own row_hash. The
-    // bundled file holds codes only, which catalogueKey covers.
     name: 'catalogueRows',
     integrity: true,
     d1: async ({ hashes }) => driftValue(hashes.catalogueDrift),
@@ -113,7 +86,6 @@ export const GUARD_CHECKS = [
 ];
 
 /**
- * The /admin/hashes body, over the REST client.
  * @param {import('./d1-rest.mjs').D1Client} client
  * @returns {Promise<Pick<GuardContext, 'hashes' | 'query'>>}
  */
@@ -134,7 +106,6 @@ const result = (c, d1, expected) => ({
 });
 
 /**
- * Runs every check against what the deploy ships.
  * @param {{ client: import('./d1-rest.mjs').D1Client, bundle: NonNullable<GuardContext['bundle']>, committed: string,
  *   catalogue: NonNullable<GuardContext['catalogue']>, checks?: GuardCheck[] }} o
  * @returns {Promise<{ ok: boolean, modules: number, results: CheckResult[], values: Record<string, string | null> }>}
@@ -151,8 +122,6 @@ export async function runGuard({ client, bundle, committed, catalogue, checks = 
 }
 
 /**
- * Rollback's data check: every check with a `field`, D1 against the target tag's value; and every
- * `integrity` check, D1 against itself.
  * @param {{ client: import('./d1-rest.mjs').D1Client, fields: Record<string, string>, checks?: GuardCheck[] }} o
  * @returns {Promise<{ ok: boolean, results: CheckResult[], values: Record<string, string | null> }>}
  */

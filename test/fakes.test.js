@@ -1,10 +1,7 @@
 // @ts-check
-// The fakes stand in for real services, so their contract is tested too:
-// where they diverge from Cloudflare's behaviour, tests built on them lie.
 import { describe, expect, it } from 'vitest';
 import { EMBEDDING_DIMS, FakeAI, FakeRateLimit, FakeVectorize, hashEmbed } from './fakes.js';
 
-/** Resolves to 'pending' if `p` has not settled within `ms`. */
 const settlesWithin = (/** @type {Promise<unknown>} */ p, ms = 50) =>
   Promise.race([p.then(() => 'settled', () => 'settled'), new Promise((r) => setTimeout(() => r('pending'), ms))]);
 

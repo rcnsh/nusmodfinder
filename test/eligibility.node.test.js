@@ -1,9 +1,4 @@
 // @ts-check
-// src/eligibility.js with the committed rules (data/ng-restrictions-<DEFAULT_ACAD_YEAR>.json):
-// one case per interpretations-register row that touches a course this year (the
-// register the year's source manifest names), the allow mask, and the rules file's
-// integrity against its sources and transcription. The whole-corpus agreement with
-// the independent oracle is test/oracle/oracle.node.test.js.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ACAD_YEAR } from '../scripts/lib.mjs';
@@ -13,12 +8,11 @@ import { bitOf, eligibility, eligibilityMask, GRAD_LEVELS, NOT_NG_IN_SEM, OFF_NG
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 /** @type {import('../src/eligibility.js').Rules & { sourceSha256: Record<string, string>, info: { id: string }[], rules: { id: string }[] }} */
 const rules = JSON.parse(read(`../data/ng-restrictions-${DEFAULT_ACAD_YEAR}.json`));
-/** The year's source manifest: its documents and where its transcription lives. */
 const sources = JSON.parse(read(`../data/ng-sources-${DEFAULT_ACAD_YEAR}.json`));
 
 /**
- * A module as normalise() + offeredModules() give it, with the fields eligibility reads.
- * @param {string} code @param {Partial<import('../src/eligibility.js').EligibilityModule>} [over]
+ * @param {string} code
+ * @param {Partial<import('../src/eligibility.js').EligibilityModule>} [over]
  * @returns {import('../src/eligibility.js').EligibilityModule}
  */
 const mod = (code, over = {}) => ({
@@ -100,7 +94,6 @@ describe('conflicts and readings (C1, C2, C6, I1, I5, I9, I11)', () => {
     expect(e(mod('MUA3219', { department: "YSTCM Dean's Office", faculty: 'YST Conservatory of Music' }), 1, 'ug2').status).toBe('open');
   });
   it('I9, either semester: a YST listing in a semester the course is not NG-listed in does not lift the partner note', () => {
-    // MUA1165 is on YST's Sem 2 page only; NG-listed in Sem 1 only, it is partner-only in Sem 1 and so for "either".
     const m = mod('MUA1165', { department: "YSTCM Dean's Office", faculty: 'YST Conservatory of Music', semesters: [1], ngSemesters: [1] });
     expect(e(m, 1, 'ug2').reasons).toEqual(['6-music-electives-whitelist']);
     expect(e(m, 'any', 'ug2').reasons).toEqual(['6-music-electives-whitelist']);

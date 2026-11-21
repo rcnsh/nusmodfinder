@@ -1,7 +1,4 @@
 // @ts-check
-// The exam date and duration per semester, normalised from moduleInfo's
-// semesterData, stored by migration 0010 as `exam_dates`, bound and hashed into
-// row_hash; and the workload shape /module/:code answers.
 import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { describeSchemaProblem } from '../scripts/ingest-core.mjs';
@@ -129,7 +126,7 @@ describe('the row and its hash', () => {
 });
 
 describe('moduleWorkload: the workload /module/:code answers', () => {
-  /** What normalise() stores in `workload` for a moduleInfo value. @param {unknown} w */
+  /** @param {unknown} w */
   const stored = (w) => norm({ workload: w }).workload;
 
   it('the 5-number array: lecture, tutorial, lab, project, prep hours a week, and their total', () => {

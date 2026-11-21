@@ -1,30 +1,4 @@
 // @ts-check
-// eval/holdout-ledger.md: one row per look at the holdout (or sealed test)
-// set, so the number of looks is visible in git history. A look is any run
-// that prints a verdict. Append-only; the CLI refuses a look past the limit.
-// Each row records the rule the verdict applied (`general`, `targeted:
-// <shapes>`, `cutoff`, `compliance`, `test-set`) and the baseline's ranker sha.
-//
-// Tamper resistance (honour system, but not trivially editable):
-// - every table row except the header and separator lines counts, whatever
-//   its spacing or contents; a row whose set cell is not a known set counts
-//   against every set;
-// - a look is refused if, for any known set, the ledger records fewer looks
-//   than git's copy at HEAD or origin/main (so moving a row to another set
-//   is caught), if it has fewer rows in total, or if the file is missing
-//   while git has it;
-// - a row with a `count: …` cell is an eval:count log row (eval/count-log.md),
-//   and the ledger refuses it: a count is not a look (ADR 0003), so it can never be recorded, or spent, as one. The ledger
-//   never reads the count log.
-//
-// Concurrency: check-then-append runs under an exclusive lock file
-// (`<ledger>.lock`, created with O_EXCL and holding a random token), so
-// parallel looks cannot all pass the limit. `run` reserves its look (a
-// `reserved` row, which counts) before retrieval starts and finalises that
-// row with the verdict afterwards. A holder writes, and releases the lock,
-// only while the lock still holds its token; a lock older than 30 minutes is
-// broken under a second lock (`<ledger>.lock.break`), so two processes
-// cannot both break it and one remove the other's fresh lock.
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { appendFileSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, statSync, writeFileSync, writeSync } from 'node:fs';
@@ -43,21 +17,16 @@ by \`npm run eval\` and \`npm run eval:report\` on those sets. A look past the l
 |---|---|---|---|---|---|---|---|---|---|
 `;
 
-/** Set names a row can belong to; any other set cell counts against all of them. */
 const KNOWN_SETS = ['holdout', 'test', 'selftest'];
 
-/** The kind cell of an eval:count log row ("count: answerable"); no ledger row has one. */
 export const COUNT_CELL = /^count:\s/;
 
-/** Refs whose committed ledger the local one may not fall behind. */
 const COMMITTED_REFS = ['HEAD', 'origin/main'];
 
-/** @param {string} line trimmed */
+/** @param {string} line */
 const isSeparator = (line) => /^\|?(\s*:?-+:?\s*\|)+\s*:?-*:?\s*$/.test(line);
 
 /**
- * Every table row of a ledger except the header (the first table line, when
- * a separator follows it) and separator lines, as trimmed cells.
  * @param {string} text
  * @returns {string[][]}
  */
@@ -83,7 +52,6 @@ export async function readLedger(path) {
 }
 
 /**
- * Looks recorded against `set`: its own rows plus rows of no known set.
  * @param {string} path
  * @param {string} set
  */
@@ -98,8 +66,7 @@ export async function looks(path, set) {
 const countLooks = (rows, set) => rows.filter((r) => r.set === set || !KNOWN_SETS.includes(r.set)).length;
 
 /**
- * Looks per known set, by the same rule as `looks`.
- * @param {string} text a ledger's contents
+ * @param {string} text
  * @returns {Record<string, number>}
  */
 function lookCounts(text) {
@@ -108,9 +75,6 @@ function lookCounts(text) {
 }
 
 /**
- * Row and per-set look counts of the ledger as committed at HEAD and
- * origin/main, for those refs that have it. Empty when the path is outside
- * `repo` or untracked.
  * @param {string} path
  * @param {string} [repo]
  * @returns {{ ref: string, rel: string, rows: number, looks: Record<string, number> }[]}
@@ -129,8 +93,6 @@ export function committedLedgers(path, repo = REPO) {
 }
 
 /**
- * Throws if the ledger is missing while git has it, or has fewer rows, or
- * fewer looks for any known set, than git's copy at HEAD or origin/main.
  * @param {string} path
  * @param {string} [repo]
  */
@@ -162,11 +124,10 @@ export async function assertLedgerIntact(path, repo = REPO) {
 }
 
 /**
- * Throws if another look would exceed `max`, or if the ledger was cut back.
  * @param {string} path
  * @param {string} set
  * @param {number} max
- * @param {{ repo?: string }} [options] the git repository the ledger is checked against
+ * @param {{ repo?: string }} [options]
  */
 export async function assertLookAllowed(path, set, max, options = {}) {
   await assertLedgerIntact(path, options.repo);
@@ -177,10 +138,7 @@ export async function assertLookAllowed(path, set, max, options = {}) {
   return n;
 }
 
-/**
- * `rule` is gate.mjs `ruleOf`; `baselineRanker` the baseline run's ranker sha (7 characters).
- * @typedef {{ date: string, set: string, commit: string, variant: string, baseline: string, verdict: string, ndcg: string, p5: string, rule?: string, baselineRanker?: string }} LedgerRow
- */
+/** @typedef {{ date: string, set: string, commit: string, variant: string, baseline: string, verdict: string, ndcg: string, p5: string, rule?: string, baselineRanker?: string }} LedgerRow */
 
 /** @param {LedgerRow} row */
 export function formatRow(row) {
@@ -189,13 +147,9 @@ export function formatRow(row) {
 }
 
 /**
- * Appends a row. Callers that enforce the limit hold the lock (eval:report,
- * reserveLook) and call `lock.assertHeld()` immediately before; the write is
- * synchronous so nothing runs between that check and the append. This alone
- * does not check anything.
  * @param {string} path
  * @param {Omit<LedgerRow, 'verdict' | 'ndcg' | 'p5'> & Partial<LedgerRow>} row
- * @param {string} [line] a preformatted line
+ * @param {string} [line]
  */
 export async function appendLook(path, row, line) {
   if (!existsSync(path)) {
@@ -207,11 +161,8 @@ export async function appendLook(path, row, line) {
 
 export const LEDGER_HEADER = HEADER;
 
-/** A lock older than this is abandoned (its eval crashed) and is removed. */
 export const LOCK_STALE_MS = 30 * 60 * 1000;
-/** A break lock older than this is abandoned (its holder crashed mid-break). */
 const BREAK_STALE_MS = 60_000;
-/** How long to wait for another eval to release the lock. */
 const LOCK_WAIT_MS = 120_000;
 
 /** @typedef {{ assertHeld: () => void }} LockHandle */
@@ -222,11 +173,8 @@ function readToken(file) {
 }
 
 /**
- * Removes `lock` if it is older than LOCK_STALE_MS, holding `<lock>.break`
- * while it re-checks and removes, so two processes that both saw the same
- * stale lock cannot have one remove the lock the other has just taken.
  * @param {string} lock
- * @returns {boolean} false if another process is breaking it (wait and retry)
+ * @returns {boolean}
  */
 function breakStaleLock(lock) {
   const breaker = `${lock}.break`;
@@ -237,12 +185,12 @@ function breakStaleLock(lock) {
     if (/** @type {NodeJS.ErrnoException} */ (err).code !== 'EEXIST') throw err;
     try {
       if (Date.now() - statSync(breaker).mtimeMs > BREAK_STALE_MS) rmSync(breaker, { force: true });
-    } catch { /* released in the meantime */ }
+    } catch {}
     return false;
   }
   try {
     let st;
-    try { st = statSync(lock); } catch { return true; } // already gone
+    try { st = statSync(lock); } catch { return true; }
     const age = Date.now() - st.mtimeMs;
     if (age > LOCK_STALE_MS) {
       console.error(`eval: removing a stale ledger lock ${lock} (${Math.floor(age / 60_000)} minutes old; a lock older than 30 minutes is treated as abandoned)`);
@@ -256,14 +204,8 @@ function breakStaleLock(lock) {
 }
 
 /**
- * Runs `fn` holding the ledger's exclusive lock. Waits up to `waitMs` for
- * another holder; breaks a lock older than 30 minutes, saying so. `fn` gets a
- * handle whose `assertHeld()` throws LedgerLockError if the lock no longer
- * holds this process's token (it stalled past 30 minutes and another eval
- * broke the lock); call it right before writing. On exit the lock is removed
- * only if it still holds the token.
  * @template T
- * @param {string} path the ledger
+ * @param {string} path
  * @param {(lock: LockHandle) => Promise<T>} fn
  * @param {{ waitMs?: number }} [options]
  * @returns {Promise<T>}
@@ -285,7 +227,7 @@ export async function withLedgerLock(path, fn, options = {}) {
       if (code !== 'EEXIST') throw err;
     }
     let held;
-    try { held = statSync(lock); } catch { continue; } // released in the meantime
+    try { held = statSync(lock); } catch { continue; }
     const age = Date.now() - held.mtimeMs;
     if (age > LOCK_STALE_MS && breakStaleLock(lock)) continue;
     if (Date.now() - start >= waitMs) {
@@ -310,13 +252,11 @@ export async function withLedgerLock(path, fn, options = {}) {
 }
 
 /**
- * Reserves a look before retrieval starts: checks the limit and appends a
- * `reserved <token>` row, atomically. The row counts as a look from now on.
  * @param {string} path
  * @param {number} max
  * @param {Omit<LedgerRow, 'verdict' | 'ndcg' | 'p5'>} row
  * @param {{ repo?: string, waitMs?: number }} [options]
- * @returns {Promise<string>} the reserved line, for finaliseLook
+ * @returns {Promise<string>}
  */
 export function reserveLook(path, max, row, options = {}) {
   return withLedgerLock(path, async (lock) => {
@@ -329,11 +269,8 @@ export function reserveLook(path, max, row, options = {}) {
 }
 
 /**
- * Replaces a reserved row with the final one (verdict, or `aborted` /
- * `unjudged`). If the reserved row has gone, the final row is appended, so the
- * look is still counted.
  * @param {string} path
- * @param {string} reserved the line reserveLook returned
+ * @param {string} reserved
  * @param {LedgerRow} row
  * @param {{ waitMs?: number }} [options]
  */

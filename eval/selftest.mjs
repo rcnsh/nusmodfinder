@@ -1,37 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run test:eval`: the harness end to end on the synthetic fixture set,
-// through the real CLI, in workerd, from the committed embedding cache (no
-// Cloudflare call). Runs in CI. Checks:
-//   1. eval-v0 overlay run reproduces the golden results and metrics, and
-//      its ranker.treeHash is the hash of `git archive eval-v0` (so the old
-//      ranker really ran; the fixture ranks identically under both);
-//   2. a working-tree run + comparison + gate, and eval:report recomputes it
-//      identically from the run files alone;
-//   3. eval:pool output has no system or rank information;
-//   4. holdout custody with a throwaway key, on the `selftest` set (the
-//      holdout rules with its ledger in its own directory; its ciphertexts are
-//      bound to that name, so real holdout files cannot be read through it):
-//      encrypted-only output, a verdict-only terminal (naming the rule and
-//      the pinned baseline), ledger append, 13th look refused, a stored run
-//      never overwritten, pool refused without --custodian, tampering and a
-//      wrong key detected, errors withheld;
-//   5. a probe ranker whose Worker logs, throws and throws uncaught with the
-//      query text: the fixture set shows it (the probe works), the encrypted
-//      set prints only the withheld line; a ranker answering `degraded` fails
-//      the run;
-//   6. judging on the fixture set: lexical-mode and unfiltered runs, a pool of
-//      four runs, prepare (rule pre-grading, packets) -> scripted judges ->
-//      collect (a bad output refused) -> agree -> adjudicate (blind pass 1,
-//      then pass 2) -> merge -> eval:report on the merged qrels; calibration
-//      export/import; a drift round; a single-judge round (prepare with one
-//      judge) and a two-judge round turned single-judge by drop-judge ->
-//      collect -> agree/adjudicate refused -> merge (rule, else A) ->
-//      calibration without a B row; clean;
-//   7. the same judging cycle on an encrypted copy of the fixture set: state
-//      and qrels only as ciphertext, plaintext only in the 0700 round
-//      directory until clean, nothing set-specific printed, a verdict on the
-//      merged qrels only once the manifest lists them, calibration refused.
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
@@ -104,9 +72,6 @@ assert.equal(v0.queries.sha256, golden.queries.sha256);
 for (const field of ['ranker', 'corpus', 'embedding', 'queries', 'config']) assert.ok(v0[field], `run file has ${field}`);
 assert.equal(v0.corpus.moduleInfoSha256, '2d138795d387d133237669a7f5a22c7c4d30b4a26bf82dad0a982636e80857b1');
 assert.equal(v0.embedding.model, '@cf/baai/bge-small-en-v1.5');
-// The fixture ranks every query the same at eval-v0 and HEAD, so results
-// alone cannot show which ranker ran: compare the hash of the files that ran
-// with the hash of eval-v0's own files, extracted independently.
 const archiveDir = join(WORK, 'eval-v0-archive');
 await mkdir(archiveDir, { recursive: true });
 const atV0 = HASHED.filter((p) => spawnSync('git', ['cat-file', '-e', `eval-v0:${p}`], { cwd: REPO }).status === 0);
@@ -122,7 +87,6 @@ step('2. working-tree run, comparison and gate; eval:report recomputes it');
 const headPath = join(WORK, 'head.json');
 const runReport = join(WORK, 'run-report.json');
 const headOut = ok(node(CLI, ['run', '--set', 'fixture', '--variant', 'selftest-head', '--out', headPath, '--baseline', v0Path, '--json', runReport]), 'head run');
-// The fixture's > 200-character query returns 400: the run reports it.
 assert.match(headOut, /^errors: 1 of 11 queries returned a non-200 response$/m);
 const head = await json(headPath);
 assert.deepEqual(Object.keys(head.results).sort(), queries.map((/** @type {any} */ q) => q.id).sort());
@@ -160,11 +124,8 @@ assert.notEqual(node(HOLDOUT, ['keygen'], env).code, 0, 'keygen refuses to overw
 assert.match(node(HOLDOUT, ['encrypt', join(FIX, 'queries.json'), '--as', 'queries.json', '--dir', H], env).out, /say which set it holds with --set/);
 for (const f of ['queries.json', 'qrels.json', 'embeddings.json']) ok(node(HOLDOUT, ['encrypt', join(FIX, f), '--as', f, '--dir', H, '--set', 'selftest'], env), `encrypt ${f}`);
 ok(node(HOLDOUT, ['verify', '--dir', H]), 'verify');
-// The fixture corpus is public and the runner reads it in plain form; it goes
-// in after verification, which (rightly) refuses any non-.enc file.
 await cp(join(FIX, 'corpus.json'), join(H, 'corpus.json'));
 
-/** Holdout output must never carry a query id or text. */
 const assertNoLeak = (/** @type {string} */ out, /** @type {string} */ what) => {
   for (const q of queries) {
     assert.ok(!out.includes(q.id), `${what} printed query id ${q.id}`);
@@ -172,7 +133,6 @@ const assertNoLeak = (/** @type {string} */ out, /** @type {string} */ what) => 
   }
 };
 const hargs = ['--set', 'selftest', '--set-dir', H];
-// Per-change holdout looks compare against the shipped-ranker pin, so the stored baseline is that ranker.
 const base = node(CLI, ['run', ...hargs, '--variant', 'base', '--ref', SHIPPED_BASELINE.ref, '--store-only'], env);
 ok(base, 'holdout baseline run');
 assertNoLeak(base.out, 'holdout baseline run');
@@ -190,17 +150,14 @@ const pinRe = pinLabel(SHIPPED_BASELINE).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 assert.match(verdictLines[0], new RegExp(`^holdout verdict: (PASS|FAIL) · rule general · baseline ${pinRe} · qrels fixture-qrels-v1$`));
 assert.match(verdictLines[1], /^ΔnDCG@10 [+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
 assert.match(verdictLines[2], /^ΔP@5 +[+-]\d\.\d{3} \[-?\d\.\d{3}, -?\d\.\d{3}\] \(BCa 95%\)$/);
-// fx-05 is untagged with no grade-≥1 document: unscored, a count and never an id (ADR 0003, 2026-11-06).
 assert.equal(verdictLines[3], 'unscored queries: 1 (untagged, no grade-≥1 document; in neither set)');
 const ledgerPath = join(H, 'ledger.md');
 const rows1 = await readLedger(ledgerPath);
 assert.equal(rows1.length, 1, 'one ledger row per look');
 assert.ok(['pass', 'fail'].includes(rows1[0].verdict), `the reserved row is finalised with the verdict, got ${rows1[0].verdict}`);
-// A stored run is never overwritten: replacing it is `retire-run`, logged.
 const overwrite = node(CLI, ['run', ...hargs, '--variant', 'base', '--ref', SHIPPED_BASELINE.ref, '--store-only'], env);
 assert.notEqual(overwrite.code, 0);
 assert.match(overwrite.out, /runs\/run-base\.json\.enc is already in .*retire-run/s);
-// A pool-variant baseline is refused before a look is reserved.
 ok(node(CLI, ['run', ...hargs, '--variant', 'lexbase', '--ref', SHIPPED_BASELINE.ref, '--mode', 'lexical', '--store-only'], env), 'holdout lexical pool run');
 const lexBase = node(CLI, ['run', ...hargs, '--variant', 'cand-l', '--baseline', 'lexbase'], env);
 assert.notEqual(lexBase.code, 0, 'a lexical baseline must be refused');
@@ -215,13 +172,11 @@ assert.equal(wrong.out, 'eval: selftest run failed (DecryptionError); details wi
 assert.ok(!wrong.out.includes('abab'), 'key material printed');
 assert.equal((await readLedger(ledgerPath)).length, 1, 'a failed look is not recorded');
 
-// A run that fails after its look was reserved still counts (finalised as aborted).
 const aborted = node(CLI, ['run', ...hargs, '--variant', 'cand-x', '--baseline', 'base', '--ref', 'no-such-ref-for-selftest'], env);
 assert.equal(aborted.out, 'eval: selftest run failed (Error); details withheld\n');
 const rows2 = await readLedger(ledgerPath);
 assert.deepEqual(rows2.map((r) => r.verdict).slice(1), ['aborted'], 'a failed run keeps its reserved look');
 
-// Three parallel reports from 11 rows: the lock lets exactly one through.
 for (let i = 3; i <= 11; i++) await appendFile(ledgerPath, `| 2026-01-01 | selftest | 0000000 | filler-${i} | base | fail | +0.000 [0.000, 0.000] | +0.000 [0.000, 0.000] |\n`);
 assert.equal((await readLedger(ledgerPath)).length, 11);
 const parallel = await Promise.all([1, 2, 3].map(() => nodeAsync(CLI, ['report', ...hargs, '--run', 'cand', '--baseline', 'base'], env)));
@@ -252,9 +207,6 @@ assert.match(t.out, /MISMATCH/);
 console.log('ok: encrypted-only output, verdict-only terminal, ledger, reserved looks, lock, look limit, custodian gate, tamper and key checks');
 
 step('5. nothing the Worker prints reaches the terminal for an encrypted set');
-// A commit object (no ref, no working-tree change) whose src/index.js wraps
-// the real Worker and, on /search, logs, schedules an uncaught throw and
-// throws, each carrying the query text.
 const PROBE = `import worker from './index.orig.js';
 export default {
   ...worker,
@@ -280,19 +232,15 @@ g(['read-tree', 'HEAD']);
 g(['update-index', '--add', '--cacheinfo', `100644,${g(['rev-parse', 'HEAD:src/index.js'])},src/index.orig.js`]);
 g(['update-index', '--cacheinfo', `100644,${g(['hash-object', '-w', '--stdin'], PROBE)},src/index.js`]);
 const probe = g(['commit-tree', g(['write-tree']), '-p', 'HEAD', '-m', 'selftest leak probe']);
-// Positive control: on the plain fixture set the probe's output is visible.
 const shown = node(CLI, ['run', '--set', 'fixture', '--variant', 'probe', '--ref', probe, '--out', join(WORK, 'probe.json')]);
 assert.notEqual(shown.code, 0, 'the probe run fails');
 assert.match(shown.out, /LEAK-UNCAUGHT /, `the probe's uncaught exception is printed for a plain set:\n${shown.out}`);
 const hidden = node(CLI, ['run', ...hargs, '--variant', 'probe', '--ref', probe, '--store-only'], env);
 assert.equal(hidden.code, 1);
-// Only the header line (ranker, counts) printed before retrieval, then the withheld line.
 assert.match(hidden.out, /^selftest\/probe: ranker [0-9a-f]{40} \([0-9a-f]{7}\), \d+ modules, \d+ queries, embeddings set-cache\neval: selftest run failed \(RunFailedError\); details withheld\n$/, `an encrypted run prints only the withheld line, got:\n${hidden.out}`);
 assertNoLeak(hidden.out, 'probe run');
 console.log('ok: the probe leaks on the plain set and nothing reaches the terminal on the encrypted set');
 
-// A ranker whose /search answers 200 but `degraded` (the dense half skipped,
-// as when the breaker is open) measures a different ranker: the run fails.
 const DEGRADED = `import worker from './index.orig.js';
 export default {
   ...worker,
@@ -318,14 +266,11 @@ step('6. judging cycle on the fixture set');
 const JUDGE = join(REPO, 'eval', 'judge.mjs');
 const JUDGING = await readFile(join(REPO, 'eval', 'JUDGING.md'), 'utf8');
 const fixQrels = await json(join(FIX, 'qrels.json'));
-/** The fixture's synthetic grade of a pair (unlisted = 0). */
 const truth = (/** @type {string} */ q, /** @type {string} */ c) => fixQrels.queries[q]?.judgments?.[c] ?? 0;
 /**
- * A scripted judge: answers every section of a slot's batches from the round
- * state, the way a judge agent fills in the packet's templates.
  * @param {any} state
  * @param {string} outDir
- * @param {string} who "A", "B" or "adjudicator/p1|p2"
+ * @param {string} who
  * @param {(q: string, c: string, n: number) => number} grade
  */
 async function scriptedJudge(state, outDir, who, grade) {
@@ -342,7 +287,6 @@ async function scriptedJudge(state, outDir, who, grade) {
     }
   }
 }
-/** Judge B disagrees with the truth on every 5th item. */
 const judgeB = (/** @type {string} */ q, /** @type {string} */ c, /** @type {number} */ n) => (n % 5 === 0 ? (truth(q, c) + 1) % 3 : truth(q, c));
 
 const lexPath = join(WORK, 'lex.json'), unfPath = join(WORK, 'unf.json');
@@ -351,7 +295,6 @@ ok(node(CLI, ['run', '--set', 'fixture', '--variant', 'selftest-unf', '--unfilte
 assert.equal((await json(lexPath)).config.mode, 'lexical', 'a --mode lexical run records its mode');
 assert.equal(head.config.mode, 'hybrid');
 assert.match(node(CLI, ['run', '--set', 'fixture', '--variant', 'x', '--mode', 'dense']).out, /--mode must be one of hybrid, lexical, vector/);
-// A pool variant never meets a gate.
 assert.match(node(CLI, ['run', '--set', 'fixture', '--variant', 'x', '--mode', 'lexical', '--baseline', v0Path]).out, /takes no --baseline/);
 const lexGate = node(CLI, ['report', '--set', 'fixture', '--run', lexPath, '--baseline', v0Path]);
 assert.notEqual(lexGate.code, 0);
@@ -387,7 +330,6 @@ for (const slot of ['A', 'B']) {
     }
   }
 }
-// A bad output is refused (content-free message), then fixed.
 const firstSec = state.batches.A[0].sections[0];
 await writeFile(join(outDir, 'A', 'b01', `${firstSec.id}.json`), '{}');
 await scriptedJudge(state, outDir, 'B', judgeB);
@@ -423,7 +365,6 @@ ok(node(JUDGE, ['adjudicate', 'collect', ...fx, '--pass', '2']), 'adjudicate col
 const merged = join(WORK, 'qrels-merged.json');
 const mergeOut = ok(node(JUDGE, ['merge', ...fx, '--no-base', '--out', merged]), 'merge');
 assert.match(mergeOut, /^qrels qrels-fixture-v1 -> /m);
-// --no-base never silently overwrites existing qrels.
 const clobber = node(JUDGE, ['merge', ...fx, '--no-base', '--out', merged]);
 assert.notEqual(clobber.code, 0, '--no-base over an existing qrels file must be refused');
 assert.match(clobber.out, /already exists/);
@@ -443,7 +384,6 @@ assert.match(node(JUDGE, ['merge', ...fx, '--base', merged, '--out', join(WORK, 
 const rep = ok(node(CLI, ['report', '--set', 'fixture', '--run', headPath, '--baseline', v0Path, '--qrels', merged]), 'eval:report on merged qrels');
 assert.match(rep, /qrels qrels-fixture-v1/);
 
-// Calibration: export a blind sheet, fill it in with the truth, import it.
 const calib = join(WORK, 'calibration.csv');
 ok(node(JUDGE, ['calibrate', 'export', '--set', 'fixture', '--qrels', merged, '--n', '20', '--out', calib]), 'calibrate export');
 const sheet = (await readFile(calib, 'utf8')).split('\r\n').filter(Boolean);
@@ -456,7 +396,6 @@ const imp = ok(node(JUDGE, ['calibrate', 'import', '--set', 'fixture', '--csv', 
 assert.match(imp, /^final +\d+ +1\.000/m, 'the truth agrees with the final grades');
 assert.match(imp, /^human +\S+ +[+−0—]/m);
 
-// Drift: a new round over the same runs has nothing unjudged, so it re-judges a sample of old pairs only.
 const poolUnj = join(WORK, 'pool-unjudged.json');
 ok(node(CLI, ['pool', '--set', 'fixture', '--runs', `${v0Path},${headPath}`, '--unjudged', '--qrels', merged, '--out', poolUnj]), 'unjudged pool');
 const fx2 = ['--set', 'fixture', '--work-dir', JW, '--round', 'fx2'];
@@ -467,7 +406,6 @@ const driftN = Object.keys(s2.drift).length;
 assert.ok(driftN >= 1);
 for (const slot of ['A', 'B']) await scriptedJudge(s2, join(JW, 'plain-fx2', 'out'), slot, (q, c) => mq.queries[q].judgments[c].grade);
 assert.match(ok(node(JUDGE, ['collect', ...fx2]), 'collect drift'), new RegExp(`drift ${driftN}: agreement with stored grade 1\\.000`));
-// Single-judge: prepare with one judge makes only A packets, items and grades.
 const fx4 = ['--set', 'fixture', '--work-dir', JW, '--round', 'fx4'];
 assert.match(ok(node(JUDGE, ['prepare', ...fx4, '--judges', 'judge-a', '--pool', pool4, '--batch-size', '4']), 'single-judge prepare'), /single-judge/);
 const s4 = await json(join(JW, 'state-fx4.json'));
@@ -478,7 +416,6 @@ assert.ok(Object.values(s4.items).some((/** @type {any} */ i) => i.kind === 'rep
 assert.ok(readdirSync(join(JW, 'plain-fx4', 'packets')).every((f) => f.startsWith('A-')), 'only A packets');
 assert.match(node(JUDGE, ['collect', ...fx4, '--slot', 'B']).out, /single-judge: it has no judge B/);
 
-// drop-judge: a two-judge round with A collected and no B grades becomes single-judge.
 const fx3 = ['--set', 'fixture', '--work-dir', JW, '--round', 'fx3'];
 ok(node(JUDGE, ['prepare', ...fx3, '--judges', 'judge-a,judge-b', '--pool', pool4, '--batch-size', '4']), 'prepare fx3');
 let s3 = await json(join(JW, 'state-fx3.json'));
@@ -502,7 +439,6 @@ const st3 = ok(node(JUDGE, ['status', ...fx3]), 'status fx3');
 assert.match(st3, /^mode: single-judge/m);
 assert.match(st3, /^dropped: judge B \(judge-b\) at \S+: owner decision: one judge$/m);
 assert.ok(!/adjudication/.test(st3.replace(/no agreement or adjudication/, '')), 'status of a single-judge round has no adjudication line');
-// A's outputs still validate after the drop.
 assert.match(ok(node(JUDGE, ['collect', ...fx3]), 'collect fx3 after drop'), /judge A: (\d+) of \1 items graded/);
 assert.match(node(JUDGE, ['agree', ...fx3]).out, /single-judge \(judge A only\): agree needs two judges/);
 assert.match(node(JUDGE, ['adjudicate', 'prepare', ...fx3, '--adjudicator', 'judge-c']).out, /single-judge \(judge A only\): adjudicate needs two judges/);
@@ -536,7 +472,6 @@ assert.ok(!existsSync(plainDir), 'clean removes the round directory');
 console.log(`ok: ${ruled.length} rule-graded, ${judgedPairs} judged pairs, ${agreement.disagreements} adjudicated; qrels-fixture-v1 scored; calibration and drift; single-judge and drop-judge rounds`);
 
 step('7. judging cycle on an encrypted fixture set');
-// A fresh copy of the encrypted set (its own ledger), without its qrels.
 const H2 = join(WORK, 'holdout2');
 await mkdir(join(H2, 'runs'), { recursive: true });
 for (const f of ['queries.json.enc', 'embeddings.json.enc', 'corpus.json']) await cp(join(H, f), join(H2, f));
@@ -553,7 +488,6 @@ const encState = join(JW2, 'state-hx1.json.enc');
 const encBytes = await readFile(encState);
 assert.ok(!encBytes.includes('fx-01') && !encBytes.includes('CS1010'), 'the round state is ciphertext');
 assert.equal((await stat(join(JW2, 'plain-hx1'))).mode & 0o777, 0o700, 'plaintext packets live in a 0700 directory');
-/** Every file under JW2 outside the plaintext round directory is a ciphertext. */
 const assertOnlyCiphertext = () => {
   for (const e of readdirSync(JW2, { recursive: true, withFileTypes: true })) {
     if (!e.isFile()) continue;
@@ -583,8 +517,6 @@ assertNoLeak(hmerge, 'encrypted merge');
 const hq = await readEncryptedJson(join(H2, 'qrels.json.enc'), throwaway, 'selftest');
 assert.equal(hq.version, 'qrels-selftest-v1');
 assert.ok(Object.values(hq.queries).some((/** @type {any} */ q) => Object.values(q.judgments).some((/** @type {any} */ j) => j.judges?.['judge-a'])), 'judges recorded');
-// A verdict reads only ciphertexts the manifest lists: H2 was copied without
-// one, and merge records it only for the default directory.
 assert.equal(node(CLI, ['report', ...h2, '--run', 'cand', '--baseline', 'base'], env).out, 'eval: selftest run failed (ManifestError); details withheld\n');
 ok(node(HOLDOUT, ['manifest', '--dir', H2]), 'custodian writes the manifest');
 const hlook = ok(node(CLI, ['report', ...h2, '--run', 'cand', '--baseline', 'base'], env), 'verdict on the merged encrypted qrels');

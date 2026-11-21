@@ -1,22 +1,4 @@
 // @ts-check
-// Do D1 and Vectorize agree? The comparison behind `npm run verify`, with the
-// admin API and the vector id listing injected (no Node APIs), so Worker tests
-// run it against the real /admin/verify route and the fake index.
-//
-// Drift:
-// - missing vectors: D1 codes with no vector id (from `wrangler vectorize
-//   list-vectors`, ids only);
-// - extra vectors: vector ids with no D1 row;
-// - metadata drift: for a sample of at most 100 codes, Vectorize metadata
-//   (getByIds) differs from what the D1 row implies;
-// - row_hash drift: a stored row_hash differs from one recomputed from the
-//   stored columns, or is missing;
-// - value drift (with a bundle, after runbook step 8): a sampled vector's
-//   values differ from the bundle's bits.
-//
-// runPreDeployVerify is runbook step 5 (`npm run verify -- --pre-deploy`):
-// D1 against the manifest and the bundle, before the
-// deploy, with no Vectorize read at all.
 import { catalogueKey, dataVersion } from '../src/rowhash.js';
 import { base64ToFloat32, decodeFilterRow, rowsKey } from '../src/vector-bundle.js';
 
@@ -29,7 +11,7 @@ import { base64ToFloat32, decodeFilterRow, rowsKey } from '../src/vector-bundle.
  *   metadataDrift: { code: string, expected: unknown, actual: unknown }[],
  *   valueDrift: string[], valuesChecked: number,
  *   rowsRead: number,
- * }} VerifyReport `valueDrift`/`valuesChecked`: only with a bundle.
+ * }} VerifyReport
  */
 
 /**
@@ -37,7 +19,7 @@ import { base64ToFloat32, decodeFilterRow, rowsKey } from '../src/vector-bundle.
  *   api: import('./ingest-core.mjs').AdminApi,
  *   listVectorIds: () => Promise<string[]>,
  *   sampleSize?: number, sample?: string[], bundle?: import('../src/vector-bundle.js').Bundle,
- * }} args `bundle`: also compare the sampled vectors' values with its bits.
+ * }} args
  * @returns {Promise<VerifyReport>}
  */
 export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, bundle }) {
@@ -86,30 +68,16 @@ export async function runVerify({ api, listVectorIds, sampleSize = 100, sample, 
  *   acadYear: { d1: string | null, ngReasons: string, ngUnscheduled: string },
  *   unscheduled: { missing: string[], withRow: string[], notNg: string[] },
  * }} PreDeployReport
- *   `unknownReasons`: stored ng_rules ids the Worker's reason texts (data/ng-reasons.json) lack.
- *   `acadYear`: D1's `acad_year` (null when its rows hold more than one, or none) and the
- *   year of each file this deploy ships that names one.
- *   `unscheduled`: against data/ng-unscheduled.json, the NG codes with no D1 row that it
- *   lacks (`missing`), and its codes that have a row (`withRow`) or are off the NG list (`notNg`).
  * @typedef {{ ngReasonsAcadYear: string, unscheduled: { acadYear: string, codes: string[] }, ngCodes: string[] }} PreDeployDataFiles
- *   The year files this deploy ships and the codes on the NG list for D1's year.
  */
 
 /**
- * Runbook step 5: D1's (code, text_hash) pairs equal the manifest's rowsKey,
- * D1's data version (from its row_hashes) equals the committed one, and the
- * bundle's codes and filter table equal D1's fields, and each row's exam
- * dates name exactly the bundle's exam semesters. data/ng-reasons.json's and
- * data/ng-unscheduled.json's acadYear equal D1's acad_year, and the latter's
- * codes are exactly the NG codes without a D1 row. Reads D1 once through
- * /admin/verify `{ preDeploy: true }`, which makes no Vectorize call. D1's
- * catalogueKey (its catalogue_only codes) equals the bundled catalogue file's.
  * @param {{
  *   api: import('./ingest-core.mjs').AdminApi, bundle: import('../src/vector-bundle.js').Bundle,
  *   manifest: { rowsKey: string, dataVersion: string }, committedDataVersion: string,
  *   knownReason: (id: string) => boolean, dataFiles: PreDeployDataFiles,
  *   catalogue: { codes: string[] },
- * }} args `knownReason`: whether the reason texts this deploy ships know a rule id; `catalogue`: the bundled catalogue file
+ * }} args
  * @returns {Promise<PreDeployReport>}
  */
 export async function runPreDeployVerify({ api, bundle, manifest, committedDataVersion, knownReason, dataFiles, catalogue }) {
@@ -134,7 +102,6 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
   for (const r of rows) {
     const i = index.get(r.code);
     if (i === undefined) continue;
-    // Every filter field, in decodeFilterRow's order.
     const d1 = {
       semesters: r.semesters, level: r.level, credits: r.credits, faculty: r.faculty, ng: r.ng, ngSemesters: r.ngSemesters,
       ngAllow: r.ngAllow, examSemesters: r.examSemesters, su: r.su, suGrading: r.suGrading, workloadHours: r.workloadHours,
@@ -142,8 +109,6 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
     };
     const b = decodeFilterRow(bundle, i);
     if (JSON.stringify(d1) !== JSON.stringify(b)) { fieldDrift.push({ code: r.code, d1, bundle: b }); continue; }
-    // exam_dates is not in the bundle, but its semesters must be the
-    // bundle's exam semesters. A Worker too old to answer examDates has none.
     const examDates = r.examDates ?? [];
     if (JSON.stringify(examDates.map((d) => d.sem)) !== JSON.stringify(b.examSemesters)) {
       fieldDrift.push({ code: r.code, d1: { examDates }, bundle: { examSemesters: b.examSemesters } });
@@ -154,7 +119,6 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
   for (const r of rows) {
     for (const id of new Set(Object.values(r.ngRules ?? {}).flat())) if (!knownReason(id)) unknownReasons.push({ code: r.code, id });
   }
-  // One year in D1, and every file that names a year names it.
   const years = new Set(rows.map((r) => r.acadYear));
   const d1Year = years.size === 1 ? /** @type {string | null} */ ([...years][0] ?? null) : null;
   const ng = new Set(dataFiles.ngCodes);
@@ -190,10 +154,7 @@ export async function runPreDeployVerify({ api, bundle, manifest, committedDataV
   return report;
 }
 
-/**
- * Human-readable lines for a pre-deploy report.
- * @param {PreDeployReport} r
- */
+/** @param {PreDeployReport} r */
 export function formatPreDeployReport(r) {
   const agree = (/** @type {Record<string, unknown>} */ o) => (new Set(Object.values(o)).size === 1 ? 'agree' : 'DIFFER');
   /** @param {string} label @param {unknown[]} list @param {(x: any) => string} [show] */
@@ -220,10 +181,7 @@ export function formatPreDeployReport(r) {
   ];
 }
 
-/**
- * Human-readable lines for a report.
- * @param {VerifyReport} r
- */
+/** @param {VerifyReport} r */
 export function formatReport(r) {
   /** @param {string} label @param {unknown[]} list @param {(x: any) => string} [show] */
   const line = (label, list, show = String) =>

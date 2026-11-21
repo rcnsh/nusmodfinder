@@ -1,9 +1,4 @@
 // @ts-check
-// Re-ingest, Node side: what scripts/lib.mjs and src/rowhash.js hash, the
-// ingest skip rule (scripts/ingest-core.mjs planIngest), what is embedded, and
-// how the download cache revalidates. Runs in Node (vitest project "node").
-// The cache tests use a temporary directory and a stubbed fetch: no request
-// ever reaches api.nusmods.com.
 import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -17,7 +12,6 @@ import {
   NORMALISER_VERSION, ROW_COLUMNS, boundTuple, fieldsFromRow, rowHash, sha256Hex, vectorMetadata,
 } from '../../src/rowhash.js';
 
-/** A NUSMods v2 moduleInfo record. */
 const record = {
   moduleCode: 'CS1010S', title: 'Programming Methodology', department: 'Computer Science', faculty: 'Computing',
   description: 'This course introduces the fundamental concepts of problem solving by computing.',
@@ -49,7 +43,6 @@ describe('row and text hashes', () => {
       expect(after.textHash, field).toBe(before.textHash);
       expect(await rowHash(after), field).not.toBe(base);
     }
-    // The embedded text changes both.
     const retitled = one({ title: 'Programming Methodology I' });
     expect(retitled.textHash).not.toBe(before.textHash);
     expect(await rowHash(retitled)).not.toBe(base);
@@ -65,7 +58,6 @@ describe('row and text hashes', () => {
     const m = one({}, { CS1010S: [1, 2] });
     const expected = (await sha256Hex(JSON.stringify([NORMALISER_VERSION, boundTuple(m), vectorMetadata(m)]))).slice(0, 32);
     expect(await rowHash(m)).toBe(expected);
-    // The row as D1 stores it (columns named as in the table) hashes the same.
     const row = /** @type {import('../../src/rowhash.js').ModuleRow} */ (/** @type {unknown} */ (
       Object.fromEntries(ROW_COLUMNS.map((c, i) => [c, boundTuple(m)[i]]))));
     expect(await rowHash(fieldsFromRow(row))).toBe(expected);
@@ -79,7 +71,6 @@ describe('row and text hashes', () => {
     expect(planIngest([same], stored, { force: false })).toMatchObject({ embed: [], rowOnly: [], unchanged: 1 });
     expect(planIngest([rowOnly], stored, { force: false })).toMatchObject({ embed: [], rowOnly: [rowOnly], unchanged: 0 });
     expect(planIngest([textToo], stored, { force: false })).toMatchObject({ embed: [textToo], rowOnly: [], unchanged: 0 });
-    // New codes embed; --force embeds everything; codes only D1 has are deleted.
     const plan = planIngest([same], { XX9999: { textHash: 'x', rowHash: 'y' } }, { force: false });
     expect(plan).toMatchObject({ embed: [same], deletes: ['XX9999'] });
     expect(planIngest([same], stored, { force: true })).toMatchObject({ embed: [same], unchanged: 0 });
@@ -96,7 +87,6 @@ describe('row and text hashes', () => {
     afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 
     const BODY = '{"v":1}';
-    /** Writes a cached body and its sidecar (vouching for `vouchFor`), fetched `age` ms ago. */
     const prime = async (/** @type {number} */ age, sidecar = true, vouchFor = BODY) => {
       await writeFile(new URL(`${Y}-${FILE}`, dir), BODY);
       if (sidecar) {
@@ -106,7 +96,6 @@ describe('row and text hashes', () => {
         }));
       }
     };
-    /** NUSMods: 304 to a conditional GET, else the body. */
     const nusmods = (/** @type {string} */ body) => vi.fn(async (/** @type {any} */ _url, /** @type {any} */ init) =>
       (init?.headers?.['if-none-match'] || init?.headers?.['if-modified-since']
         ? new Response(null, { status: 304, headers: { etag: '"v1"' } })
@@ -175,7 +164,6 @@ describe('row and text hashes', () => {
       await prime(23 * HOUR);
       const fetchImpl = vi.fn(async () => { throw new Error('no network'); });
       expect(await fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl })).toMatchObject({ cached: true, revalidated: false });
-      // A shorter --max-age makes the same entry stale.
       await expect(fetchAcadYearFile(Y, FILE, { cacheDir: dir, fetchImpl, maxAgeMs: HOUR })).rejects.toThrow(/--offline/);
       expect(fetchImpl).toHaveBeenCalledTimes(1);
     });

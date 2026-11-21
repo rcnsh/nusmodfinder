@@ -1,9 +1,4 @@
 // @ts-check
-// The catalogue codes, the prefixes and catalogue-only.json follow the corpus. scripts/build-catalogue-data.mjs builds them from `current` (data/) and
-// from the pinned corpus (data/pinned/), and `--check` fails on a committed
-// file that is not what the build writes. Fake records in a temp dir: no corpus
-// needed. test/full/build-catalogue-data.node.test.js checks the committed pinned
-// files against the real pinned corpus.
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -24,7 +19,7 @@ let root;
 beforeEach(async () => { root = await mkdtemp(join(tmpdir(), 'vnm-3b-')); });
 afterEach(async () => { await rm(root, { recursive: true, force: true }); });
 
-/** @param {Record<string, string>} files rel -> bytes */
+/** @param {Record<string, string>} files */
 async function writeAll(files) {
   for (const [rel, bytes] of Object.entries(files)) {
     await mkdir(dirname(join(root, rel)), { recursive: true });
@@ -49,7 +44,6 @@ describe('the per-corpus query-understanding files', () => {
     const byPath = Object.fromEntries(Object.entries(CORPUS_OUTPUTS.production).map(([k, rel]) => [rel, out[/** @type {keyof typeof out} */ (k)]]));
     await writeAll(byPath);
     expect(await staleFiles(byPath, root)).toEqual([]);
-    // A catalogue built from an older corpus: one code fewer.
     const older = corpusFiles({ records: RECORDS.filter((r) => r.moduleCode !== 'ZZ0998'), modules, source: SOURCE });
     await writeFile(join(root, 'data/catalogue-codes.json'), older.catalogueCodes);
     await rm(join(root, 'data/prefixes.json'));

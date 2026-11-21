@@ -1,6 +1,4 @@
 // @ts-check
-// scripts/lib.mjs facetsPayload: an ingest without the NG list must overwrite
-// meta.ng_list, so /facets never shows an old list date next to a zero count.
 import { describe, expect, it } from 'vitest';
 import { facetsPayload } from '../scripts/lib.mjs';
 

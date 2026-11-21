@@ -1,10 +1,4 @@
 // @ts-check
-// Typos and prefixes in /search on the fixture
-// corpus, the fixture bundle and the fixture vocabulary: a typo's lexical half
-// finds what the corrected query finds, `interpreted` echoes no correction,
-// and the dense half follows the variant selector: `3c1` embeds the query as
-// typed; `3c2` also embeds the corrected text, a second single-text call in
-// parallel, and takes each module's better cosine of the two.
 import { beforeAll, describe, expect, it } from 'vitest';
 import vocabFile from './fixtures/vocabulary.json';
 import { intentContext } from '../src/intent-data.js';
@@ -18,11 +12,6 @@ const vocab = parseVocabulary(/** @type {import('../src/vocabulary.js').Vocabula
 /** @returns {string[]} */
 const codes = (/** @type {any} */ body) => body.results.map((/** @type {{ code: string }} */ r) => r.code);
 
-/**
- * A fixture title word of 8+ letters and its typo (one letter dropped) that
- * the corrector turns back into the word: df 0, no prefix match, nearest term
- * the word itself.
- */
 function typoPair() {
   for (const m of fixture.modules) {
     for (const word of m.title.toLowerCase().split(/[^a-z]+/)) {
@@ -71,7 +60,6 @@ describe('a typo in /search', () => {
     await callJson(`/search?q=${typo}%20design`, { fakes: f });
     const texts = f.ai.calls.filter((c) => c.method === 'run').map((c) => /** @type {any} */ (c.args[1]).text);
     expect(texts).toEqual(EMBED_CORRECTED ? [[`${typo} design`], [`${word} design`]] : [[`${typo} design`]]);
-    // A query with nothing to correct embeds once under either variant.
     const g = createFakes();
     await callJson(`/search?q=${word}%20design`, { fakes: g });
     expect(g.ai.calls.filter((c) => c.method === 'run')).toHaveLength(1);

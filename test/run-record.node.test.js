@@ -1,7 +1,4 @@
 // @ts-check
-// The ops log is one file per run (scripts/run-record.mjs). Every record these
-// tests write goes to a temp dir; nothing here writes under ops/runs/ or
-// reaches a remote. The committed records under ops/runs/ are validated here.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -20,7 +17,7 @@ let dir;
 beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'vnm-runs-')); });
 afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
 
-/** The records in `d`, parsed. @param {string} [d] */
+/** @param {string} [d] */
 const records = (d = dir) => readdirSync(d).filter((f) => f.endsWith('.json')).sort().map((f) => ({ file: f, record: JSON.parse(readFileSync(join(d, f), 'utf8')) }));
 
 const AT = new Date('2026-11-12T10:15:30.123Z');
@@ -79,7 +76,6 @@ describe('a run record', () => {
     const pb = b.finish('ok');
     expect(pa).not.toBe(pb);
     expect(records().map((r) => r.file)).toEqual(['20261112T101530Z-ingest-0a0b.json', '20261112T101530Z-ingest-ffff.json']);
-    // Without a fixed random, many in one second still never collide.
     for (let i = 0; i < 20; i++) startRun('verify', { dir, now: () => AT }).finish('ok');
     expect(records().filter((r) => r.record.script === 'verify')).toHaveLength(20);
   });
@@ -141,7 +137,7 @@ describe('the commit a record names', () => {
 });
 
 describe('every exit path leaves a record', () => {
-  /** Runs a script that imports run-record.mjs, with the runs dir given. @param {string} body */
+  /** @param {string} body */
   const node = (body) => spawnSync(process.execPath, ['--input-type=module', '-e', `import { startRun } from ${JSON.stringify(RUN_RECORD)};\n${body}`], {
     env: { ...process.env, VITEST: '', VNM_RUNS_DIR: dir }, encoding: 'utf8',
   });
@@ -308,8 +304,7 @@ describe('the writers that exist today', () => {
     expect(gate).toMatch(/startRun\('eval:embed'/);
     expect(gate).toMatch(/\.guardExit\(\)/);
     expect(gate.indexOf("a['dry-run']")).toBeLessThan(gate.indexOf('startRun'));
-    // Every call that spends neurons comes after a gate() in its branch.
-    const main = embed.slice(embed.indexOf('\n// ------'));
+    const main = embed.slice(embed.indexOf("\nif (a.suite && !a['corrected-from-ref'])"));
     const branches = main.split(/\n\} else (?:if \(|\{)/).filter((x) => /embedAll\(|embedBatch\(cred/.test(x));
     expect(branches).toHaveLength(4);
     for (const b of branches) {

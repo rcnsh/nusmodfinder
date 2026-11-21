@@ -1,14 +1,4 @@
 // @ts-check
-// The eval runner's way into the Worker. It is overlaid onto every ranker the
-// eval runs, including old refs such as eval-v0, so it uses only what every
-// ranker has: the default export's `fetch` and the `/admin/ingest` route. It
-// must not import any other module from src/ (test/eval/workspace.node.test.js
-// checks this); test/helpers.js follows the current src/ layout and does not
-// qualify.
-//
-// Each /search goes through `caches.default` as in production. A query whose
-// parameters repeat an earlier one's is a cache hit and gets the same body,
-// which the lookup AI and fake Vectorize make identical to a miss anyway.
 import { applyD1Migrations, createExecutionContext, reset, waitOnExecutionContext } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import worker from '../../src/index.js';
@@ -19,7 +9,6 @@ const BASE = 'https://vector-nusmods.test';
 const SECRET = 'eval-ingest-secret';
 
 /**
- * Sends one request through the ranker's Worker with the fakes bound.
  * @param {string} path
  * @param {Fakes} fakes
  * @param {{ init?: RequestInit, extra?: Record<string, unknown> }} [options]
@@ -36,9 +25,6 @@ export async function call(path, fakes, options = {}) {
 }
 
 /**
- * Resets the bindings, applies the ranker's migrations and loads `modules`
- * through its own /admin/ingest, so D1 and the fake Vectorize hold what
- * production would.
  * @param {NormalisedModule[]} modules
  * @param {Fakes} fakes
  */

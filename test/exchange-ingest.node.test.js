@@ -1,8 +1,4 @@
 // @ts-check
-// Exchange eligibility, Node side: ingest computes the allow mask and rule ids
-// from the NG list and the restrictions data; both reach the row hash, the
-// upsert's SET list and the schema guard; the Worker's reason texts are the
-// build of the rules file and know every id ingest stores.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { buildNgReasons } from '../scripts/build-ng-reasons.mjs';
@@ -17,7 +13,6 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 /** @type {FixtureCorpus} */
 const fixture = JSON.parse(read('./fixtures/corpus.json'));
 const rules = loadNgRestrictions(DEFAULT_ACAD_YEAR);
-/** The year's source manifest: its documents and where its transcription lives. */
 const sources = JSON.parse(read(`../data/ng-sources-${DEFAULT_ACAD_YEAR}.json`));
 
 const record = {
@@ -53,7 +48,6 @@ describe('offeredModules computes exchange eligibility at ingest', () => {
 describe('the row and its writes', () => {
   it('ng_allow and ng_rules are bound and hashed, so a rules-only change rewrites the row', async () => {
     const m = /** @type {NormalisedModule} */ (fixture.modules.find((x) => x.code === 'CS3244'));
-    // exam_dates follows them (test/exam-dates.node.test.js).
     expect(ROW_COLUMNS.slice(-3, -1)).toEqual(['ng_allow', 'ng_rules']);
     expect(boundTuple(m).slice(-3, -1)).toEqual([m.ngAllow, JSON.stringify(m.ngRules)]);
     const base = await rowHash(m);
@@ -91,8 +85,6 @@ describe('the Worker\'s reason texts (data/ng-reasons.json)', () => {
   });
 
   it('rule D says the list opens no course to the student\'s year of study, not to everyone (CAS5101)', () => {
-    // A level 5000 Southeast Asian Studies course: rule 1-sea-l5-yr4-pg opens it to 4th-years and
-    // graduates, so a 3rd-year is closed by rule D alone while a 4th-year is open.
     const cas = /** @type {any} */ ({
       code: 'CAS5101', title: 'Theorizing from Asia', department: 'Southeast Asian Studies',
       faculty: 'Arts and Social Science', level: 5, semesters: [1], ng: true, ngSemesters: [1],
@@ -114,9 +106,6 @@ describe('the Worker\'s reason texts (data/ng-reasons.json)', () => {
   });
 });
 
-// NUS's rules about courses off the exchange list, transcribed into
-// the rules file's info entries with the scope each states, reach the page
-// through ng-reasons.json and /facets' `offListRules`.
 describe('the rules about courses off the exchange list', () => {
   const OFF_LIST = ['E-offerings-list', '2-biz-no-late-add', '4-cee-no-appeal', '4-isem-no-appeal'];
   /** @type {{ rules: { id: string, quote: string, department: string | null, scope: { levels: number[] | null, school: string | null } }[] }} */
@@ -142,7 +131,6 @@ describe('the rules about courses off the exchange list', () => {
       };
       expect(entry.scope, id).toEqual(want);
     }
-    // 4-cee is scoped by department, never by code prefix: one of the 33 offered GEC codes is CEE's.
     expect(info.find((i) => i.id === '4-cee-no-appeal')?.scope).toEqual({ departments: ['Civil and Environmental Engineering'], levels: [1, 2, 3, 4] });
     expect(info.find((i) => i.id === 'E-offerings-list')?.scope).toEqual({});
   });

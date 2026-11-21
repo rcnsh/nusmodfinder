@@ -1,24 +1,8 @@
 // @ts-check
-// The NG-listed codes with no
-// classes this year. NUS lists them for exchange students, NUSMods has no
-// offering for them, so D1 has no `modules` row (only a `catalogue_only` one,
-// which holds no units, faculty or restrictions). This file holds each one's
-// fields and the allow mask and rule ids ingest would store for a row, so
-// /module/:code answers it like a row with no classes.
-//
-// Pure, like src/groups.js: scripts/build-ng-unscheduled.mjs writes the file
-// (data/ng-unscheduled.json, test/fixtures/ng-unscheduled.json), and the
-// Worker reads it through src/ng-unscheduled.js, by the bare name
-// `ng-unscheduled-data`.
 
-/** The file's schema; bump on a change to its shape. */
 export const NG_UNSCHEDULED_SCHEMA = 'vnm-ng-unscheduled/1';
 
 /**
- * One NG-listed code with no offered row: the fields a row has, its workload
- * as /module/:code answers it (src/workload.js), its group's other codes
- * (groups-v1 over the offered rows plus the file's codes), and what
- * src/eligibility.js storedEligibility gives it with the year's rules.
  * @typedef {{
  *   code: string, title: string, description: string, credits: number | null, faculty: string | null,
  *   department: string | null, level: number | null, ngSemesters: number[],
@@ -27,7 +11,6 @@ export const NG_UNSCHEDULED_SCHEMA = 'vnm-ng-unscheduled/1';
  *   otherCodes: string[], ngAllow: number, ngRules: Record<string, string[]> | null,
  *   ngUnpublished?: number[],
  * }} NgUnscheduledEntry
- *   `ngUnpublished`: the semesters NUS hasn't published, present only when there are any
  * @typedef {'production' | 'pinned' | 'fixture'} NgUnscheduledCorpus
  * @typedef {{
  *   schema: string, generator: string, corpus: NgUnscheduledCorpus, acadYear: string, dataVersion: string,
@@ -35,7 +18,7 @@ export const NG_UNSCHEDULED_SCHEMA = 'vnm-ng-unscheduled/1';
  * }} NgUnscheduledFile
  */
 
-/** The file's bytes: one entry per line. @param {NgUnscheduledFile} f */
+/** @param {NgUnscheduledFile} f */
 export function serializeNgUnscheduled(f) {
   const { modules, ...head } = f;
   const body = modules.map((e) => `  ${JSON.stringify(e)}`).join(',\n');
@@ -43,7 +26,6 @@ export function serializeNgUnscheduled(f) {
 }
 
 /**
- * Code -> entry, after checking the schema.
  * @param {NgUnscheduledFile} f
  * @returns {Map<string, NgUnscheduledEntry>}
  */

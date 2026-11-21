@@ -1,20 +1,4 @@
 // @ts-check
-// The shortlist view: its heading and actions, the export question, the
-// invitation question, "Primary picks" and "Backups" in rank order, each row
-// worked out at its own semester (shortlist.js), then each semester's totals,
-// NUS's form order, the lines for applicants, the CourseReg box and "Forget
-// this list on this device". An NUS student's list (`result.nus`) is a plain
-// plan: no year of study, invitation, form order, CourseReg box or applicant lines.
-//
-// Updated in place, never rebuilt: each row is an element kept by its code, and
-// its controls (Move up, Move down, Make backup or Make primary, Remove) are
-// made once, when the entry first appears, so a row arriving, a total changing
-// or a neighbour moving never takes focus from a control. Moving a row moves
-// its neighbours, never the row that holds focus (moving that element drops
-// focus to <body> in Chromium and WebKit). Only the semester buttons wait for
-// the row, and a pressed one keeps its element. DOM nodes only. app.js owns the
-// list, the history and the live region; this module draws a model and reports
-// what was pressed.
 import { h, setChildren } from './dom.js';
 import { noteText, stampText, studyAdj } from './explain.js';
 import { cleanPrereq, examLine, examLines, semLabel, workloadText } from './format.js';
@@ -29,21 +13,12 @@ import { STUDIES } from './state.js';
 /** @typedef {import('./shortlist.js').Worked} Worked */
 /** @typedef {import('./shortlist.js').Answer} Answer */
 /**
- * What the view draws.
  * @typedef {{
  *   result: Result, answers: Map<string, Answer>, study: string, sem: string,
  *   lines: string[], removed: string, linkField: string, said: string,
  *   ask: { year: boolean, entries: string[] }, faculties: ('biz' | 'law')[], inv: string[],
  *   listDate: string, exportLine: string,
  * }} Model
- *   `lines`: the sentences under the heading (the settings sentence, the year line, values a link dropped);
- *   `removed`: the code a Remove in the view took out, while its Undo stands ('' for none);
- *   `linkField`: Copy link's fallback, the link to copy by hand ('' hides it);
- *   `said`: the line beside the actions ("Link copied");
- *   `ask`: the parts of the export question shown (the view asks it; app.js keeps them while the view is open);
- *   `faculties`: Business and Law, when the list holds a course of theirs;
- *   `exportLine`: the export's progress after a press before every row is in ("Loading 7 of 12
- *   courses", then "Ready: press again to download"), '' otherwise
  * @typedef {{
  *   close: () => void, copy: () => void, exportPress: (kind: 'csv' | 'print') => void,
  *   invite: (which: 'biz' | 'law', on: boolean) => void,
@@ -61,18 +36,17 @@ import { STUDIES } from './state.js';
  * }} Row
  */
 
-/** Business and Law, as the invitation question and the rows name them. */
 const SCHOOL = Object.freeze({ biz: 'NUS Business School', law: 'NUS Law' });
-/** What a count line leads with, by standing. */
 const NUMBER_WORDS = ['no', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 
-/**
- * "Two questions before your download": what pressing Download CSV or Print says while the question is open.
- * @param {number} n
- */
+/** @param {number} n */
 export const askSentence = (n) => `${n <= 10 ? NUMBER_WORDS[n] : n} question${n === 1 ? '' : 's'} before your download`;
 
-/** A row's button: its visible text, named with the text first ("Move up, CS3244"). @param {string} text @param {string} code @param {string} act */
+/**
+ * @param {string} text
+ * @param {string} code
+ * @param {string} act
+ */
 function rowButton(text, code, act) {
   return h('button', { class: 'btn', attrs: { type: 'button', 'aria-label': `${text}, ${code}`, 'data-act': act, 'data-code': code } }, text);
 }
@@ -85,23 +59,21 @@ function relabel(b, text, code) {
 /** @param {Element} el @param {boolean} on */
 const ariaDisabled = (el, on) => (on ? el.setAttribute('aria-disabled', 'true') : el.removeAttribute('aria-disabled'));
 
-/** 'Not on NUS's …' → 'not on NUS's …', for after "Not counted:". @param {string} s */
+/** @param {string} s */
 const lower = (s) => (/^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
 /** @param {string} s */
 const stop = (s) => (/[.!?”)]$/.test(s) ? s : `${s}.`);
 
 /**
- * The exchange entry at a semester and study level, from a course's `exchange`.
- * @param {any} c @param {number} sem @param {string} study
+ * @param {any} c
+ * @param {number} sem
+ * @param {string} study
  */
 const exchangeAt = (c, sem, study) => (Array.isArray(c?.exchange) ? c.exchange : []).find((/** @type {any} */ x) => String(x.sem) === String(sem) && x.study === study);
 
 /**
- * A row with no semester: the notes its two stamps count, each said once. A
- * note both semesters carry is said as it is; one only a single semester
- * carries is marked "(Sem 2 only)", unless its text already names that
- * semester. A closed semester's reasons are its stamp's, not notes.
- * @param {any} c @param {string} study
+ * @param {any} c
+ * @param {string} study
  */
 function bothSemNotes(c, study) {
   const per = [1, 2].map((s) => {
@@ -126,7 +98,6 @@ function bothSemNotes(c, study) {
 }
 
 /**
- * The view: built once into `root` (#slView), then updated with update().
  * @param {HTMLElement} root
  * @param {Handlers} on
  */
@@ -143,11 +114,8 @@ export function createShortlistView(root, on) {
   const removed = h('p', { class: 'sl-removed' }, removedText, undo);
   removed.hidden = true;
 
-  // The actions come first, so a long list never puts them 200 Tab stops away.
   const copy = h('button', { class: 'btn', attrs: { type: 'button' } }, 'Copy link');
   copy.addEventListener('click', on.copy);
-  // The exports. Pressed before every row is in, a button keeps its name, and the line it
-  // points to says how far the rows are, then that a second press will do it.
   const statusId = 'slExportStatus';
   const csv = h('button', { class: 'btn', attrs: { type: 'button', 'aria-describedby': statusId, 'data-export': 'csv' } }, 'Download CSV');
   const print = h('button', { class: 'btn', attrs: { type: 'button', 'aria-describedby': statusId, 'data-export': 'print' } }, 'Print or save as PDF');
@@ -163,8 +131,6 @@ export function createShortlistView(root, on) {
   field.hidden = true;
   const actions = h('div', { class: 'sl-actions' }, h('div', { class: 'btns' }, copy, csv, print), hint, exportStatus, said, field);
 
-  // The export question: parts kept while the view is open, so answering one never
-  // removes the control that has focus.
   const askTitle = h('h3', { attrs: { id: 'slAskTitle', tabindex: '-1' } }, 'Before you download or print');
   const askParts = h('div', { class: 'sl-ask-parts' });
   const askCsv = h('button', { class: 'btn', attrs: { type: 'button', 'aria-describedby': statusId } }, 'Download CSV');
@@ -180,7 +146,6 @@ export function createShortlistView(root, on) {
   /** @type {Map<string, HTMLFieldSetElement>} */
   const askSets = new Map();
 
-  // The invitation question, one per faculty the list holds.
   /** @type {Record<'biz' | 'law', { set: HTMLFieldSetElement, box: HTMLInputElement }>} */
   const inv = /** @type {any} */ ({});
   for (const which of /** @type {('biz' | 'law')[]} */ (['biz', 'law'])) {
@@ -202,7 +167,6 @@ export function createShortlistView(root, on) {
   const altCount = h('span', { class: 'n' });
   const pickHead = h('h3', { class: 'lbl', attrs: { id: 'slPicks', tabindex: '-1' } }, 'Primary picks ', pickCount);
   const altHead = h('h3', { class: 'lbl', attrs: { id: 'slAlts', tabindex: '-1' } }, 'Backups ', altCount);
-  // role="list": WebKit drops the list role under list-style: none.
   const pickList = h('ol', { class: 'sl-list', attrs: { id: 'slPickList', role: 'list' } });
   const altList = h('ol', { class: 'sl-list', attrs: { id: 'slAltList', role: 'list' } });
   const pickNone = h('p', { class: 'sl-none' }, 'No primary picks yet. Press Shortlist on a course in the results to add it.');
@@ -220,7 +184,6 @@ export function createShortlistView(root, on) {
     h('p', { class: 'own' }, COURSEREG_BOX.page));
   const forget = h('button', { class: 'linkbtn', attrs: { type: 'button' } }, 'Forget this list on this device');
   forget.addEventListener('click', on.forget);
-  // The exchange application's closing lines; an NUS student's list shows only the first and Forget.
   const applicantClosing = [
     h('p', null, 'NUS posts each course\'s full syllabus on Canvas when the semester starts; the text here is NUS\'s course description (the Registrar\'s NG course list).'),
     h('p', null, 'For courses that have prerequisites, NUS asks for the syllabi of the courses you have completed or are taking (NUS\'s brochure).'),
@@ -240,7 +203,6 @@ export function createShortlistView(root, on) {
   /** @type {Map<string, Row>} */
   const rows = new Map();
 
-  // Every row control, by delegation: each carries its action and its code.
   root.addEventListener('click', (e) => {
     const b = e.target instanceof Element ? e.target.closest('button[data-act]') : null;
     if (!(b instanceof HTMLButtonElement) || !root.contains(b)) return;
@@ -277,10 +239,8 @@ export function createShortlistView(root, on) {
   }
 
   /**
-   * Puts `ol`'s rows in `codes`' order. The row holding focus stays where it
-   * is and its neighbours move around it (moving the focused element
-   * drops focus); a row coming from the other list is appended.
-   * @param {HTMLOListElement} ol @param {string[]} codes
+   * @param {HTMLOListElement} ol
+   * @param {string[]} codes
    */
   function place(ol, codes) {
     const want = codes.map((c) => /** @type {Row} */ (rows.get(c)).li);
@@ -290,7 +250,6 @@ export function createShortlistView(root, on) {
     const fixed = want.find((li) => li.parentElement === ol && active && li.contains(active));
     if (!fixed) { for (const li of want) ol.append(li); return; }
     const i = want.indexOf(fixed);
-    // Each one before the fixed row, in order, then each one after it: only the neighbours move.
     for (let k = 0; k < i; k += 1) ol.insertBefore(want[k], fixed);
     let ref = fixed;
     for (let k = i + 1; k < want.length; k += 1) {
@@ -300,12 +259,10 @@ export function createShortlistView(root, on) {
   }
 
   /**
-   * The semester buttons: drawn once the row is in, for the semesters the
-   * course is taught in or, in exchange mode, on NUS's list for. A pressed one
-   * keeps its element and changes its text; on an untagged row the pressed one
-   * stays and the other goes; a course taught in only that semester leaves it
-   * `aria-disabled`, "Sem 2 chosen".
-   * @param {Row} r @param {Worked} w @param {number[]} choices @param {boolean} loaded
+   * @param {Row} r
+   * @param {Worked} w
+   * @param {number[]} choices
+   * @param {boolean} loaded
    */
   function semButtons(r, w, choices, loaded) {
     if (!loaded) return;
@@ -319,7 +276,6 @@ export function createShortlistView(root, on) {
         : have.length ? [{ to: '', text: `${semLabel(w.sem)} chosen` }] : [];
     }
     const active = document.activeElement;
-    // The focused button is reused first, so focus stays on it.
     const order = [...have.filter((b) => b === active), ...have.filter((b) => b !== active)];
     const used = want.map((x, i) => {
       const b = order[i] ?? rowButton(x.text, w.code, 'sem');
@@ -329,7 +285,6 @@ export function createShortlistView(root, on) {
       return b;
     });
     for (const b of have) if (!used.includes(b)) b.remove();
-    // In the wanted order, moving only buttons that don't hold focus.
     used.forEach((b, i) => {
       if (r.semSlot.children[i] === b) return;
       if (b === active) return;
@@ -338,8 +293,10 @@ export function createShortlistView(root, on) {
   }
 
   /**
-   * One row's text, in place.
-   * @param {Row} r @param {Worked} w @param {Model} m @param {{ first: boolean, last: boolean, count: number }} where
+   * @param {Row} r
+   * @param {Worked} w
+   * @param {Model} m
+   * @param {{ first: boolean, last: boolean, count: number }} where
    */
   function fillRow(r, w, m, where) {
     const exchange = m.result.exchange;
@@ -347,7 +304,6 @@ export function createShortlistView(root, on) {
     const c = /** @type {any} */ (w.course);
     setChildren(r.rank, `${w.which === 'pick' ? 'Pick' : 'Backup'} ${w.rank}`);
     setChildren(r.sem, w.sem ? semLabel(w.sem) : 'No semester yet');
-    // NUS's form: its number, or why none (exchange mode only; browse mode says it once, under the lists).
     if (!exchange) { setChildren(r.form); setChildren(r.formNote); }
     else if (w.form.number) {
       setChildren(r.form, `Application form, ${semLabel(w.sem)}: `, h('b', null, String(w.form.number)), w.faculty === 'biz' ? ', if it\'s a core BBA course' : null);
@@ -400,8 +356,9 @@ export function createShortlistView(root, on) {
   }
 
   /**
-   * The count line: whether the entry counts, and why or why not.
-   * @param {Worked} w @param {boolean} exchange @param {boolean} nus
+   * @param {Worked} w
+   * @param {boolean} exchange
+   * @param {boolean} nus
    * @returns {import('./dom.js').Child[]}
    */
   function countLine(w, exchange, nus) {
@@ -417,10 +374,8 @@ export function createShortlistView(root, on) {
   }
 
   /**
-   * The row's exchange column: its stamp at its own semester (both semesters'
-   * when none is chosen), every note in full, the lines NUS's sources give for
-   * it, and NUS's notes on it.
-   * @param {Worked} w @param {Model} m
+   * @param {Worked} w
+   * @param {Model} m
    * @returns {import('./dom.js').Child[]}
    */
   function guide(w, m) {
@@ -436,7 +391,6 @@ export function createShortlistView(root, on) {
       if (per.length) out.push(h('div', { class: `stamps${per.length === 2 ? ' both' : ''}` }, ...per.map((p) => stamp(p.x.status, stampText(p.x.status, p.s, p.x.reasons ?? [], true)))));
     }
     const items = w.sem ? w.reasons.map((r) => noteItem(r, noteText(r, Number(w.sem)))) : c && m.study ? bothSemNotes(c, m.study) : [];
-    // A Business or Law quota note "If you were invited: …" is said under the totals, not again here.
     for (const line of w.lines) if (line !== w.why && !line.startsWith('If you were invited:')) items.push(h('li', null, stop(line)));
     if (items.length) out.push(h('div', { class: 'notes-box' }, h('ul', { class: 'notes' }, ...items)));
     if (w.notes.length) out.push(h('ul', { class: 'sl-nus' }, ...w.notes.map((n) => h('li', null, icon('check'), h('span', null, stop(n))))));
@@ -444,8 +398,8 @@ export function createShortlistView(root, on) {
   }
 
   /**
-   * The semesters a row's buttons offer (shortlist.js semChoices).
-   * @param {Answer | undefined} a @param {string} study
+   * @param {Answer | undefined} a
+   * @param {string} study
    */
   function choicesFor(a, study) {
     if (!a) return [];
@@ -455,7 +409,7 @@ export function createShortlistView(root, on) {
     return [1, 2].filter((s) => sems.has(s));
   }
 
-  /** Each semester's totals, the lines NUS's sources give once, and what has no semester. @param {Model} m */
+  /** @param {Model} m */
   function fillTotals(m) {
     const r = m.result;
     const tagged = new Set(r.entries.map((w) => w.sem).filter(Boolean));
@@ -488,7 +442,7 @@ export function createShortlistView(root, on) {
       r.nus ? null : lines([TOTAL_LINES.admitted, TOTAL_LINES.courseReg, `${TOTAL_LINES.maximum} ${TOTAL_LINES.maximumScope}`, TOTAL_LINES.rate, TOTAL_LINES.weeks]));
   }
 
-  /** NUS's form order, per semester (exchange mode), then the lines for applicants. @param {Model} m */
+  /** @param {Model} m */
   function fillForm(m) {
     const r = m.result;
     if (!r.exchange) {
@@ -518,21 +472,13 @@ export function createShortlistView(root, on) {
       lines([...APPLICANT_LINES]));
   }
 
-  /**
-   * The export question's parts: the year of study (and the semester) in
-   * browse mode, and a semester for each untagged entry. A part stays once
-   * asked (app.js keeps `ask`) so answering never removes the focused control.
-   * @param {Model} m
-   */
+  /** @param {Model} m */
   function fillAsk(m) {
     const want = [...(m.ask.year ? ['year', 'sem'] : []), ...m.ask.entries.map((c) => `entry:${c}`)];
     ask.hidden = want.length === 0;
     for (const [key, set] of askSets) if (!want.includes(key)) { set.remove(); askSets.delete(key); }
-    // New parts go in at their place; a part already there never moves (moving it would drop
-    // focus from the radio just answered).
     want.forEach((key, i) => {
       let set = askSets.get(key);
-      // An entry's part is built again when its choices change (its row has answered).
       const sig = key.startsWith('entry:') ? choicesFor(m.answers.get(key.slice('entry:'.length)), m.study).join() : '';
       if (!set || set.dataset.choices !== sig) {
         const fresh = askSet(key, m);
@@ -545,7 +491,6 @@ export function createShortlistView(root, on) {
       }
       if (askParts.children[i] !== set) askParts.insertBefore(set, askParts.children[i] ?? null);
     });
-    // Checked as the state and the list say.
     for (const [key, set] of askSets) {
       const value = key === 'year' ? m.study : key === 'sem' ? m.sem : m.result.entries.find((w) => `entry:${w.code}` === key)?.sem ?? '';
       for (const input of /** @type {NodeListOf<HTMLInputElement>} */ (set.querySelectorAll('input[type="radio"]'))) input.checked = input.value === value && (key !== 'year' || !!value);
@@ -583,12 +528,10 @@ export function createShortlistView(root, on) {
     linkInput: fieldInput,
     /** @param {string} code @returns {Row | undefined} */
     row: (code) => rows.get(code),
-    /** Whether the export question is shown. */
     asking: () => !ask.hidden,
     /** @param {Model} m */
     update(m) {
       const r = m.result;
-      // The semesters the list holds; the search filter only names one when the list has none.
       const held = [...new Set(r.entries.map((w) => w.sem).filter((x) => x === '1' || x === '2'))].sort();
       const one = held.length === 1 ? held[0] : held.length === 0 && (m.sem === '1' || m.sem === '2') ? m.sem : '';
       const sems = one ? semLabel(one) : 'Sem 1 and Sem 2';
@@ -624,7 +567,6 @@ export function createShortlistView(root, on) {
       pickList.hidden = !picks.length;
       altList.hidden = !alts.length;
       totals.hidden = !r.entries.length;
-      // An NUS student's list is no application: no form order, CourseReg box or applicant lines.
       form.hidden = !r.entries.length || r.nus;
       box.hidden = r.nus;
       for (const p of applicantClosing) p.hidden = r.nus;

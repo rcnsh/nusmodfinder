@@ -41,3 +41,24 @@ by hand from `schema.sql` and `0002`–`0005`, before any tracking.
   recovery is to insert rows for `0003`–`0005` and re-run.
 - Production applied `0008` before `0007`; tracking is by name, so order between independent
   migrations doesn't matter.
+
+## In the code
+- **`modules` is never written with a REPLACE.** No `INSERT OR REPLACE`, `UPDATE OR REPLACE` or
+  `REPLACE INTO` on `modules`, and nothing assigns a rowid. On the external-content `modules_fts`
+  table, REPLACE's implicit delete fires no delete trigger (`recursive_triggers` is off), so the
+  old row's index entries stay and the FTS integrity-check fails; a changed rowid moves the row out
+  from under its FTS entry. `test/migrations.node.test.js` bans the text forms, and 0006's
+  `modules_rowid_immutable` trigger refuses the rest in the database. Under that rule the FTS
+  table stays exactly what a fresh `rebuild` makes under any mix of inserts, upserts, updates and
+  deletes, and rewriting an unchanged row (or one whose only change is a filter column) writes
+  nothing to the FTS shadow tables (`test/fts.test.js`).
+- **`/module/:code` names its columns** (`MODULE_COLUMNS`, `src/modules.js`) rather than selecting
+  `*`, so a column a later migration adds (generated filter columns, `row_hash`) never changes the
+  response; a field joins the response only by name.
+- **`scripts/schema-snapshot.mjs`** drops only Cloudflare's (`_cf_`), wrangler's (`d1_`) and
+  SQLite's (`sqlite_`) internal tables (`INTERNAL_RE`); the FTS5 shadow tables are real schema and
+  stay in the snapshot. Its `wrangler()` wrapper refuses to run without `--local` and stops if the
+  output mentions "remote" outside wrangler's two fixed hint lines. `d1 execute --local` never reads
+  `migrations_dir`, so the test config serves every build; only `migrations apply` gets the
+  rewritten subset config (`partialConfig`). `normaliseSql` strips `--` and `/* */` comments by
+  pattern, which is safe only while no string literal in the schema contains them.

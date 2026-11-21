@@ -1,22 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// `npm run eval:representatives`: the representative-only group-identity
-// check on an open set (dev, the fixture), from two stored run files:
-//
-//   npm run eval:representatives -- --set dev --run <cand> --baseline <pin>
-//   npm run eval:representatives -- --set fixture --set-dir <dir> --run <cand> --baseline <pin>
-//   … --route representative-only
-//       on a pass, also appends a row to the count log (eval/count-log.md; with --set-dir, the
-//       set directory's count-log.md) naming the ADR 0003 no-look route,
-//       which a ranking-lock change can cite (eval:lock -- --evidence no-look <row>). A failing
-//       check writes nothing.
-//
-// It prints the lists compared, how many lists and codes changed, and every
-// problem (eval/lib/representatives.mjs), and exits 1 on any. Groups are
-// groups-v1 over the runs' corpus: the pinned corpus for dev (its groups are
-// eval/groups.json), the set's own corpus.json for the fixture. Encrypted sets
-// are refused: the holdout's counterpart is the custodian's
-// `eval:count --holdout --lists-differing --by-group`, which prints one integer.
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -53,7 +36,6 @@ const run = await readSetJson(set, runFile(set, a.run));
 const baseline = await readSetJson(set, runFile(set, a.baseline));
 const own = join(set.dir, 'corpus.json');
 const corpus = existsSync(own) ? await loadCorpusFile(own) : await loadPinnedWith(REPO);
-// The semester each request named comes from these queries, so both runs must have been made on them.
 const sha = createHash('sha256').update(JSON.stringify(queries)).digest('hex');
 for (const [name, r] of [[a.run, run], [a.baseline, baseline]]) {
   if (r.queries?.sha256 !== sha) {

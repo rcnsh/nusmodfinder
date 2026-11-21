@@ -1,14 +1,4 @@
 // @ts-check
-// The pinned vectors bundle: what the full-corpus CI job and the query suite
-// search. Skipped unless vitest.config.mjs aliased it in
-// (it is fetched by `node scripts/vectors.mjs fetch --corpus pinned`; with
-// FULL_CORPUS=1 a missing bundle fails the config before any test runs).
-//
-// The CPU microbenchmark: workerd's clock reads ~0 for CPU work
-// in production, so the `vector` span is no evidence. Locally, under the
-// Vitest pool, performance.now() advances with CPU time, so the exact search
-// is timed here: cold (the first call in this isolate: the bundle parse, then
-// a search with unoptimised code) and warm (the median over many queries).
 import { describe, expect, inject, it } from 'vitest';
 import manifest from '../../data/vectors.json';
 import embeddings from '../../eval/embeddings.json';
@@ -61,7 +51,6 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the pinned vectors bundle',
     const byText = new Map();
     for (const m of c.modules) byText.set(m.text, [...(byText.get(m.text) ?? []), m.code]);
     const shared = [...byText.values()].filter((codes) => codes.length > 1);
-    // As many distinct texts as the bundle's embedding version embedded (v0 5,920; v1, whose text leads with the code, 6,771).
     expect(byText.size).toBe(/** @type {any} */ (embeddings).versions[entry.embedding].count);
     for (const codes of shared) {
       const rows = codes.map((code) => b.vectors.subarray(/** @type {number} */ (index.get(code)) * b.dims, (/** @type {number} */ (index.get(code)) + 1) * b.dims));
@@ -69,11 +58,8 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the pinned vectors bundle',
     }
   });
 
-  // A measurement, not a gate: 1,000+ searches take ~7 s on a CI runner (3.4 ms each), so it gets room.
   it('CPU per exact search over 6,771 x 384 float32 rows, warm, unfiltered and filtered', { timeout: 60_000 }, () => {
     const b = denseBundle();
-    // The clock ticks in whole milliseconds here, so each figure is a batch of
-    // N searches timed together; five batches, their per-search means reported.
     const N = 200;
     /** @param {import('../../src/vector-bundle.js').FilterEcho} echo */
     const time = (echo) => {
@@ -94,7 +80,6 @@ describe.skipIf(!corpus || bundleKind !== 'pinned')('the pinned vectors bundle',
       unfiltered: time({}), sem1: time({ sem: 1 }), level1: time({ level: 1 }), ngSem2: time({ ng: true, sem: 2 }),
     };
     console.log(JSON.stringify(result));
-    // A generous bound, so the test is no timing gate; the evidence is the printed line.
     expect(result.unfiltered.msPerSearch.median).toBeLessThan(50);
   });
 });

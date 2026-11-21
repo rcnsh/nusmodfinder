@@ -1,5 +1,4 @@
 // @ts-check
-// The parsed-phrase chips' words (public/intents.js), in Node.
 import { describe, expect, it } from 'vitest';
 import { intentChips, PHRASE_INTENTS } from '../../public/intents.js';
 import { IGNORABLE } from '../../public/state.js';

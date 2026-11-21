@@ -1,12 +1,4 @@
 // @ts-check
-// The print page: the export's document (export.js) drawn into #slPrint, a
-// section the screen never shows (`display: none`, so screen readers skip it)
-// and print shows alone when the page's print class is on (styles.css,
-// `html.print-shortlist`). "Print or save as PDF" is the browser's own print to
-// PDF of this section: no library, real text, its structure from the HTML. It
-// holds the head, each semester's courses and totals, the closed entries, the
-// forced page break, then the foot's form order, the lines for applicants, the
-// CourseReg rules and the closing lines. DOM nodes only.
 import { h, setChildren } from './dom.js';
 import { SITE_NAME, SITE_URL } from './export.js';
 import { stamp } from './render.js';
@@ -14,7 +6,6 @@ import { stamp } from './render.js';
 /** @typedef {import('./export.js').Doc} Doc */
 /** @typedef {import('./export.js').Entry} Entry */
 
-/** The facts each course prints, in this order, after its head. */
 const FACTS = /** @type {const} */ ([
   'department', 'level', 'grading', 'counts', 'status', 'nus', 'exam', 'workload', 'estimate', 'flags', 'prerequisite', 'preclusion', 'nusmods',
 ]);
@@ -24,10 +15,7 @@ const lines = (text) => text.split('\n').filter(Boolean);
 /** @param {string[]} items */
 const list = (items) => h('ul', { class: 'pp-list' }, ...items.map((t) => h('li', null, t)));
 
-/**
- * The form cell: "Application form, Sem 1" over its number.
- * @param {string} text
- */
+/** @param {string} text */
 function formCell(text) {
   const m = /^(Application form, Sem \d): (\d+)(.*)$/.exec(text);
   if (!m) return h('p', { class: 'form' }, text);
@@ -35,8 +23,8 @@ function formCell(text) {
 }
 
 /**
- * One course's block.
- * @param {Entry} e @param {Doc} doc
+ * @param {Entry} e
+ * @param {Doc} doc
  */
 function course(e, doc) {
   const c = e.cells;
@@ -48,7 +36,6 @@ function course(e, doc) {
     let dd = null;
     let dt = label(key);
     if (key === 'department') {
-      // Department, faculty and level on one line, to keep a course's block short on paper.
       const v = [[c.department, c.faculty].filter(Boolean).join(', '), c.level].filter(Boolean).join(' · ');
       if (v) { dt = c.level ? 'Department, level' : 'Department, faculty'; dd = v; }
     } else if (key === 'level') {
@@ -72,17 +59,13 @@ function course(e, doc) {
     h('div', { class: 'pp-ch' },
       h('h4', null, h('span', { class: 'code' }, e.code), ' ', h('span', { class: 'title' }, c.title)),
       c.form ? formCell(c.form) : null,
-      // The NUSMods link sits with the head, printed as text, so each block keeps one line less.
       h('p', { class: 'src' }, where, c.nusmods ? ' · ' : null, c.nusmods ? h('a', { attrs: { href: c.nusmods } }, c.nusmods) : null)),
     h('dl', { class: 'pp-facts' }, ...facts),
     c.description ? h('p', { class: 'pp-lbl' }, label('description')) : null,
     c.description ? h('p', { class: 'pp-desc' }, c.description) : null);
 }
 
-/**
- * The print page, built into `root` (#slPrint) and rebuilt on each update.
- * @param {HTMLElement} root
- */
+/** @param {HTMLElement} root */
 export function createPrintView(root) {
   return {
     /** @param {Doc} doc */

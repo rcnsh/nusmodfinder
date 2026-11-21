@@ -1,11 +1,4 @@
 // @ts-check
-// Exchange mode in /search on the fixture: `study` is required with ng=1;
-// every path (D1 lexical, the bundle, the Vectorize standby, pins, mask
-// routes, duplicate-group variants, a
-// not-offered code's `related`) shows exactly the modules the independent
-// oracle (test/oracle/oracle.mjs) calls open or noted for (sem, study);
-// a zero ng_allow is closed on every path; cards carry the bit's reasons.
-// The whole-corpus set equality per path is test/oracle/paths.test.js.
 import { env } from 'cloudflare:workers';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { bitOf } from '../src/ng-bit.js';
@@ -20,9 +13,16 @@ const STUDIES = ['ug1', 'ug2', 'ug3', 'ug4', 'grad'];
 /** @type {[string, 1 | 2 | 'any'][]} */
 const SEMS = [['&sem=1', 1], ['&sem=2', 2], ['', 'any']];
 
-/** Whether the oracle shows `code` for (sem, study). @param {string} code @param {1 | 2 | 'any'} sem @param {import('../src/ng-bit.js').Study} study */
+/**
+ * @param {string} code
+ * @param {1 | 2 | 'any'} sem
+ * @param {import('../src/ng-bit.js').Study} study
+ */
 const shownByOracle = (code, sem, study) => oracle(/** @type {NormalisedModule} */ (moduleOf.get(code)), { sem, study }) !== 'closed';
-/** Every code the page shows: results and their variants. @param {any} body @returns {string[]} */
+/**
+ * @param {any} body
+ * @returns {string[]}
+ */
 const shown = (body) => body.results.flatMap((/** @type {any} */ r) => [r.code, ...(r.variants ?? []).map((/** @type {any} */ v) => v.code)]);
 const ROUTES = /** @type {const} */ ([['', {}], ['&mode=lexical', {}], ['&mode=vector', {}], ['', { DENSE_BACKEND: 'vectorize' }]]);
 
@@ -147,7 +147,6 @@ describe('a zero ng_allow is closed on every path', () => {
     const path = (/** @type {string} */ q, /** @type {string} */ extra) => `/search?q=${q}&ng=1&study=ug3&sem=2&topK=50${extra}`;
     const before = await callJson(path('machine%20learning', '&mode=vector'), { fakes });
     expect(shown(before.body)).toContain('CS3244');
-    // The bundle still has CS3244's bit; D1, the source of truth, now says closed.
     await env.DB.prepare('UPDATE modules SET ng_allow = 0 WHERE code = ?').bind('CS3244').run();
     try {
       for (const [q, extra, envOver] of /** @type {[string, string, Record<string, string>][]} */ ([
@@ -197,7 +196,6 @@ describe('result cards and /module/:code', () => {
 });
 
 describe('the year-of-study note (ADR 0007), read from the prerequisite on every path', () => {
-  // ESE3101: on the NG list for Sem 2; its prerequisite binds every undergraduate to Year 2, 3 or 4.
   const ese = /** @type {NormalisedModule} */ (moduleOf.get('ESE3101'));
   const YEAR = 'prereq:year-of-study';
   /** @param {any} e */
@@ -234,7 +232,6 @@ describe('the year-of-study note (ADR 0007), read from the prerequisite on every
       status: 'note',
       reasons: [{ id: YEAR, kind: 'year', text: 'NUS lists this course for Year 2, 3 or 4 students. Ask the department whether your year of study during your exchange counts.' }],
     });
-    // The prerequisite itself is not part of a card.
     expect(card.prerequisite).toBeUndefined();
   });
 
@@ -269,9 +266,7 @@ describe('the year-of-study note (ADR 0007), read from the prerequisite on every
 });
 
 describe('GRO\'s level 4000 note (ADR 0007), a condition on every path', () => {
-  // PC4262: level 4000 (Science), on the NG list for both semesters, no stored note in Sem 1.
   const pc = /** @type {NormalisedModule} */ (moduleOf.get('PC4262'));
-  // LL4295: level 4000 Law, on the NG list for Sem 2 (Law is outside the note).
   const ll = /** @type {NormalisedModule} */ (moduleOf.get('LL4295'));
   const GRO = 'gro:level-4000';
   /** @param {any} e */
@@ -311,7 +306,6 @@ describe('GRO\'s level 4000 note (ADR 0007), a condition on every path', () => {
       status: 'note',
       reasons: [{ id: GRO, kind: 'supply', text: 'GRO: “Higher level undergraduate courses (e.g. course code starting from 4000 & above) have very limited supply and are usually NOT available to exchange students. In order to increase the chances of securing enough courses, incoming exchange students should consider taking courses with course code starting from 1000 to 3000”' }],
     });
-    // Sem 2: the NG list's timetable note first, then GRO's.
     const s2 = await callJson('/search?q=PC4262&ng=1&study=ug3&sem=2&mode=lexical', { fakes });
     expect(ids(s2.body.results.find((/** @type {any} */ r) => r.code === 'PC4262').exchange)).toEqual(['ng-list:nusmods-semester-differs', GRO]);
   });

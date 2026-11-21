@@ -1,8 +1,4 @@
 // @ts-check
-// Live-call totals from the run records under ops/runs/: every request a record
-// lists, by path (or wrangler command), is one call.
-//
-//   npm run ops:requests
 import { pathToFileURL } from 'node:url';
 import { RUNS_DIR, readRunRecords } from './run-record.mjs';
 

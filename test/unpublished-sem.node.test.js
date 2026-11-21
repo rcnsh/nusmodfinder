@@ -1,12 +1,4 @@
 // @ts-check
-// An unpublished semester (ADR 0015): in July NUS has published the coming year's Sem 1 NG list
-// but not Sem 2's. Until it does, a Sem 2 course on last year's Sem 2 list is "to confirm" (reason ng:unpublished-sem, kind ask), never open; one
-// that wasn't on it is hidden with its own reason. These cases cover each piece: the loader carries
-// last year's list from the manifest, eligibility's state, the reason texts, the shortlist and the
-// hidden-code stamp, and the exchange oracle's unpublished-semester wrapper agreeing with
-// eligibility. With every semester published nothing changes (the oracle suite over production
-// and the unchanged ranking lock prove that at full scale; the no-op case here proves it on the
-// fixture).
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -57,7 +49,6 @@ describe('an unpublished semester in src/eligibility.js', () => {
     expect(eligibility(mod('XX2103', { ngSemesters: [1, 2], ngUnpublished: [2] }), { sem: 'any', study: 'ug2' }, rules).status).toBe('open');
     const only2 = eligibility(mod('XX2104', { ngSemesters: [2], ngUnpublished: [2] }), { sem: 'any', study: 'ug2' }, rules);
     expect(only2).toEqual({ status: 'note', reasons: [UNPUBLISHED_SEM] });
-    // Listed for Sem 1 but NUSMods only timetables Sem 2, which is unpublished: both notes.
     const both = eligibility(mod('XX2105', { semesters: [2], ngSemesters: [1, 2], ngUnpublished: [2] }), { sem: 'any', study: 'ug2' }, rules);
     expect(both.status).toBe('note');
     expect(both.reasons).toContain(UNPUBLISHED_SEM);
@@ -185,7 +176,6 @@ describe('the exchange oracle\'s unpublished-semester wrapper (the selector\'s) 
     const differ = [];
     let carried = 0;
     for (const base of FIXTURE.values()) {
-      // Last year's Sem 2 list, as the loader gives it: here, this year's.
       const m = { ...base, ngUnpublished: [2] };
       for (const sem of NG_SEMS) {
         for (const study of STUDIES) {

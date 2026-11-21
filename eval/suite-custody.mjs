@@ -1,21 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The custodian's holdout check of the query suite and the gibberish set: no
-// holdout text may enter them, or the suite would leak the held-out set. Run it
-// after adding suite or gibberish texts. Two rules, against every holdout query,
-// decrypted in memory only:
-// - the code-overlap rule: a suite code token (any token with a digit,
-//   spaced or not, plus each item's pinned codes and prefix families) overlaps
-//   a holdout code target when either is a prefix of the other;
-// - query-embedding cosine >= 0.9 (ADR 0003's leak-filter threshold), the
-//   maximum over every pair of embedded forms.
-// It prints only the hit count and the hitting suite and gibberish ids, never a
-// holdout id, text, target or score. It is not a look: it reads no run and
-// gives no verdict on any ranker.
-//
-//   node eval/suite-custody.mjs --custodian
-//   node eval/suite-custody.mjs --against dev   self-check on the open dev set:
-//     it must hit at least the four dev texts the suite names (d-016, d-022, d-024, d-079)
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { base64ToF32, embeddingKey, MODEL, queryTextForms, readCache } from './lib/embeddings.mjs';
@@ -38,7 +22,7 @@ const gibberish = json('eval/dev/gibberish.json').strings;
 const suiteCache = json('test/query-suite/embeddings.json').entries;
 const devCache = json('eval/dev/embeddings.json').entries;
 
-/** Code tokens with a digit in a text: `cs 1010s`, `CS32`, `lsm 9876` → CS1010S, CS32, LSM9876. @param {string} text */
+/** @param {string} text */
 const codeTokens = (text) => [...text.matchAll(/\b([a-z]{2,4})\s?(\d{1,4}[a-z]{0,2})\b/gi)].map((m) => `${m[1]}${m[2]}`.toUpperCase());
 
 /** @param {any} item */
@@ -57,7 +41,10 @@ const holdout = (await loadQueries(set, { verify: a.against === 'holdout' })).qu
 const hCache = (await readCache(setFile(set, 'embeddings.json'), key, set.name)).entries;
 const targets = holdout.map((/** @type {any} */ q) => q.target).filter((t) => typeof t === 'string').map((t) => t.toUpperCase());
 
-/** Every embedded form of a text. @param {string} text @param {Record<string, string>[]} caches */
+/**
+ * @param {string} text
+ * @param {Record<string, string>[]} caches
+ */
 function vectors(text, caches) {
   return queryTextForms(text).map((f) => {
     const k = embeddingKey(MODEL, f);
@@ -76,7 +63,6 @@ function cos(x, y) {
 }
 const hVecs = holdout.map((/** @type {any} */ q) => vectors(q.text, [hCache]));
 
-// Each item's text, plus the clean form and reference text it is compared with.
 const entries = [
   ...suite.flatMap((/** @type {any} */ it) => [
     { id: it.id, text: it.text, codes: suiteCodes(it) },

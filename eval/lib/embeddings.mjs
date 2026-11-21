@@ -1,13 +1,4 @@
 // @ts-check
-// Embedding storage. Every vector is keyed by sha256(model + "\n" + text), so
-// a cache never serves a vector for a different model or a different text.
-//
-// - Corpus: a versioned GitHub release asset (eval/embeddings.json lists each
-//   version's release, model, embedding-text ref and file sha256s):
-//   corpus.f32.gz (N x dims little-endian Float32, gzipped) + corpus.index.json
-//   (keys in row order). Downloaded into .data/emb/<version>/ and sha-checked.
-// - Queries: a JSON cache per set ({ model, dims, entries: { key: base64 } }),
-//   plaintext for dev and fixture, AES-256-GCM for holdout and test.
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -21,7 +12,6 @@ export const MODEL = '@cf/baai/bge-small-en-v1.5';
 
 export { queryTextForms } from './query-forms.mjs';
 export const DIMS = 384;
-/** Workers AI price for bge-small-en-v1.5: 1,841 neurons per million input tokens. */
 export const NEURONS_PER_M_TOKENS = 1841;
 export const MANIFEST_PATH = join(REPO, 'eval', 'embeddings.json');
 export const EMB_DIR = join(REPO, '.data', 'emb');
@@ -34,12 +24,7 @@ export function embeddingKey(model, text) {
   return createHash('sha256').update(`${model}\n${text}`).digest('hex');
 }
 
-/**
- * Conservative token estimate for a BERT WordPiece model without its vocab:
- * [CLS] + [SEP], one token per punctuation mark, one per short word, more
- * for long words and digit runs; never below chars / 4. bge truncates at 512.
- * @param {string} text
- */
+/** @param {string} text */
 export function estimateTokens(text) {
   let n = 2;
   for (const m of text.toLowerCase().matchAll(/[a-z]+|[0-9]+|[^\sa-z0-9]/g)) {
@@ -60,7 +45,6 @@ export const f32ToBase64 = (v) => Buffer.from(v.buffer, v.byteOffset, v.byteLeng
 /** @param {string} b64 */
 export function base64ToF32(b64) {
   const buf = Buffer.from(b64, 'base64');
-  // Copy so the Float32Array is aligned regardless of the Buffer pool offset.
   const out = new Float32Array(buf.length / 4);
   new Uint8Array(out.buffer).set(buf);
   return out;
@@ -75,8 +59,8 @@ export const emptyCache = () => ({ schema: 'vnm-eval-embeddings/1', model: MODEL
 
 /**
  * @param {string} path
- * @param {Buffer | null} key decryption key for encrypted sets
- * @param {string} set set name (bound into the ciphertext)
+ * @param {Buffer | null} key
+ * @param {string} set
  * @returns {Promise<QueryCache>}
  */
 export async function readCache(path, key, set) {
@@ -112,8 +96,6 @@ export async function readManifest() {
 const sha = (b) => createHash('sha256').update(b).digest('hex');
 
 /**
- * The corpus embeddings for a version: downloads the release asset if it is
- * not in .data/emb/, verifies each file's sha256 against eval/embeddings.json.
  * @param {string} version
  * @returns {Promise<{ version: string, model: string, dims: number, keys: string[], vectors: Float32Array, textRef: string }>}
  */
@@ -147,16 +129,9 @@ export async function loadCorpusEmbeddings(version) {
 }
 
 /**
- * Refuses a run whose ranker's corpus texts are not the texts `version`
- * embedded: every module's text must be a key of the corpus version itself,
- * not of a query cache merged in beside it, so a run labelled with an
- * embedding version scores only that version's corpus vectors. Vectors are
- * keyed by sha256(model + text), so this is exactly "the ranker's
- * embeddingText is the one embedded" (a v0 ranker on v1 vectors, or the
- * reverse, fails it).
- * @param {{ code: string, text: string }[]} modules the ranker's corpus
- * @param {{ version: string, keys: string[], textRef?: string }} emb the corpus version
- * @param {string} rankerRef the ref whose scripts/lib.mjs built `modules`
+ * @param {{ code: string, text: string }[]} modules
+ * @param {{ version: string, keys: string[], textRef?: string }} emb
+ * @param {string} rankerRef
  */
 export function assertCorpusTextsEmbedded(modules, emb, rankerRef) {
   const keys = new Set(emb.keys);
@@ -169,8 +144,6 @@ export function assertCorpusTextsEmbedded(modules, emb, rankerRef) {
 }
 
 /**
- * Packs vectors for workerd: one base64 Float32 string plus keys in row order
- * (nested arrays crash the Vitest pool's provide/inject transport).
  * @param {{ keys: string[], vectors: Float32Array }[]} parts
  * @param {number} dims
  */
@@ -186,10 +159,7 @@ export function packLookup(parts, dims) {
   return { model: MODEL, dims, keys, b64: f32ToBase64(all) };
 }
 
-/**
- * A query cache as a lookup part.
- * @param {QueryCache} cache
- */
+/** @param {QueryCache} cache */
 export function cachePart(cache) {
   const keys = Object.keys(cache.entries);
   const vectors = new Float32Array(keys.length * cache.dims);

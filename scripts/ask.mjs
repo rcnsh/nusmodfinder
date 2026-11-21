@@ -1,6 +1,4 @@
 // @ts-check
-// A yes/no question on the terminal, for the steps that change production by hand (rollback,
-// d1:restore). Without a terminal (CI, a pipe) the answer is no: pass --yes instead.
 
 /**
  * @param {string} question

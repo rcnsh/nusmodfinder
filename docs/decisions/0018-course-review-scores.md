@@ -45,3 +45,14 @@ recommend" field was dropped: Haiku read recommendations into reviews that never
 - The Worker bundles `data/reviews.json` (about 180 KB, one line per course).
 - Reviews are self-selected and lean to strong opinions; the panel shows the count beside the
   score so a student can weigh it.
+
+## In the code
+
+- `scripts/reviews.mjs` commits Disqus's public embed key (`DISQUS_KEY`), the one every NUSMods
+  page sends from the browser. It is not a secret.
+- `readJsonl()` keeps the first record of each id, because a crash between appending a page and
+  writing its cursor appends that page twice.
+- `aggregate()` skips a review with no overall score before it takes the repeat key, so it can't
+  hide a later post of the same text that has one. A text with no Latin letter or digit keys on
+  its own id, so it is never taken for a repeat.
+- `data/reviews.json` holds one course per line, so a rebuild's diff reads course by course.

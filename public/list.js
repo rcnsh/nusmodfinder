@@ -1,20 +1,4 @@
 // @ts-check
-// The shortlist: its half of the URL and every edit made to it,
-// as pure functions. No DOM; test/web/list.node.test.js runs it in Node.
-//
-// - `pick` (primary) and `alt` (backup), each repeated in rank order. A value
-//   is `CODE.S` (S is 1 or 2) or `CODE` (no semester chosen). Tags are kept as
-//   written: the page never tags an entry on its own after load.
-// - Parsing upper-cases and trims, drops malformed values and other tags, keeps
-//   the first of duplicates (picks are read first, so a code in both lists
-//   stays a pick), and keeps at most 20 entries in each tagged semester and 40
-//   in all. `dropped` says how many it left out.
-// - `ay` (`YYYY-YYYY`, as acad_year writes it) is set once, from the first
-//   loaded row (withYear), and never rewritten.
-// - `inv` (`biz`, `law`): NUS Business School or NUS Law invited the student.
-//
-// The list is page-wide, held apart from the search state (state.js): Back
-// and Forward keep it. state.js's urlFor writes both.
 
 /** @typedef {'' | '1' | '2'} Tag */
 /** @typedef {{ code: string, sem: Tag }} Entry */
@@ -24,34 +8,27 @@
 /** @typedef {{ which: Which, index: number, entry: Entry }} Removed */
 /** @typedef {{ ok: true, list: List } | { ok: false, why: string }} Edit */
 
-/** The most entries one tagged semester keeps. */
 export const MAX_PER_SEM = 20;
-/** The most entries the list keeps (NUS's form takes 40 units: about ten 4-unit courses a semester). */
 export const MAX_ENTRIES = 40;
-/** The invitations, in the URL's order. @type {readonly Invite[]} */
+/** @type {readonly Invite[]} */
 export const INVITES = Object.freeze(/** @type {Invite[]} */ (['biz', 'law']));
 
-/** A course code (upper-case): /module/:code's shape (src/modules.js MODULE_CODE_RE). */
 const CODE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
-/** A list value: a code, then `.1` or `.2` or nothing. */
 const VALUE = /^([A-Z]{1,4}\d{4}[A-Z0-9]{0,5})(?:\.([12]))?$/;
 
-/** Whether a string is a course code (already upper-case). @param {string} s */
+/** @param {string} s */
 export const isCode = (s) => CODE.test(s);
 
 /** @returns {List} */
 export const emptyList = () => ({ pick: [], alt: [], ay: '', inv: [] });
 
-/** `CS2030.1`, or `CS2030` with no semester. @param {Entry} e */
+/** @param {Entry} e */
 export const entryValue = (e) => (e.sem ? `${e.code}.${e.sem}` : e.code);
 
 /** @param {List} list */
 export const entryCount = (list) => list.pick.length + list.alt.length;
 
-/**
- * An acad year as acad_year writes it, two consecutive years, `YYYY-YYYY`.
- * @param {string} v
- */
+/** @param {string} v */
 export function isAcadYear(v) {
   const m = /^(\d{4})-(\d{4})$/.exec(v);
   return !!m && Number(m[2]) === Number(m[1]) + 1;
@@ -67,10 +44,9 @@ function parseEntry(raw) {
 const inSem = (list, sem) => [...list.pick, ...list.alt].filter((e) => e.sem === sem).length;
 
 /**
- * Why one more entry in `sem` would pass a cap, or '' if it fits.
  * @param {List} list
  * @param {Tag} sem
- * @param {{ adding: boolean }} how `adding`: a new entry (else an existing one changes semester)
+ * @param {{ adding: boolean }} how
  */
 function capWhy(list, sem, { adding }) {
   if (adding && entryCount(list) >= MAX_ENTRIES) return `Your shortlist already has ${MAX_ENTRIES} courses, the most it keeps.`;
@@ -79,8 +55,6 @@ function capWhy(list, sem, { adding }) {
 }
 
 /**
- * The list a URL holds, and how many values it dropped (malformed, other
- * tags, duplicates, past a cap).
  * @param {URLSearchParams} params
  * @returns {{ list: List, dropped: number }}
  */
@@ -93,7 +67,6 @@ export function parseList(params) {
     for (const raw of params.getAll(which)) {
       const e = parseEntry(raw);
       if (!e || seen.has(e.code)) { dropped += 1; continue; }
-      // The first of duplicates is the one kept or dropped: a code dropped at a cap stays dropped.
       seen.add(e.code);
       if (capWhy(list, e.sem, { adding: true })) { dropped += 1; continue; }
       list[which].push(e);
@@ -107,7 +80,6 @@ export function parseList(params) {
 }
 
 /**
- * The list's URL pairs, in order: pick, alt, ay, inv.
  * @param {List} list
  * @returns {[string, string][]}
  */
@@ -121,7 +93,11 @@ export function listPairs(list) {
   return pairs;
 }
 
-/** Which list holds `code`, or ''. @param {List} list @param {string} code @returns {Which | ''} */
+/**
+ * @param {List} list
+ * @param {string} code
+ * @returns {Which | ''}
+ */
 export function hasEntry(list, code) {
   const c = code.trim().toUpperCase();
   if (list.pick.some((e) => e.code === c)) return 'pick';
@@ -139,15 +115,16 @@ function find(list, code) {
   return null;
 }
 
-/** @param {List} list @returns {List} a copy whose arrays can be changed */
+/**
+ * @param {List} list
+ * @returns {List}
+ */
 const copy = (list) => ({ ...list, pick: [...list.pick], alt: [...list.alt], inv: [...list.inv] });
 
 /**
- * Adds a course as the last pick (a card's toggle). Already on the list:
- * nothing changes. Refused past a cap.
  * @param {List} list
  * @param {string} code
- * @param {Tag} sem its tag (tagFor)
+ * @param {Tag} sem
  * @returns {Edit}
  */
 export function add(list, code, sem) {
@@ -162,7 +139,6 @@ export function add(list, code, sem) {
 }
 
 /**
- * Removes a course from either list; `removed` restores it (Undo).
  * @param {List} list
  * @param {string} code
  * @returns {{ ok: true, list: List, removed: Removed } | { ok: false, why: string }}
@@ -176,7 +152,6 @@ export function remove(list, code) {
 }
 
 /**
- * Puts a removed entry back in its list, rank and semester (Undo).
  * @param {List} list
  * @param {Removed} removed
  * @returns {Edit}
@@ -191,8 +166,6 @@ export function restore(list, removed) {
 }
 
 /**
- * Move up (-1) or Move down (+1): swaps the entry with its neighbour in the
- * same list, whatever their semesters (one order for the year).
  * @param {List} list
  * @param {string} code
  * @param {-1 | 1} dir
@@ -211,8 +184,6 @@ export function move(list, code, dir) {
 }
 
 /**
- * Make backup (a pick) or Make primary (a backup): the entry goes last in the
- * other list, its semester kept.
  * @param {List} list
  * @param {string} code
  * @returns {Edit}
@@ -227,7 +198,6 @@ export function makeOther(list, code) {
 }
 
 /**
- * Chooses or changes an entry's semester. Refused past the semester's cap.
  * @param {List} list
  * @param {string} code
  * @param {Tag} sem
@@ -245,7 +215,6 @@ export function setSem(list, code, sem) {
 }
 
 /**
- * Ticks or unticks an invitation (`inv`).
  * @param {List} list
  * @param {Invite} which
  * @param {boolean} on
@@ -257,10 +226,8 @@ export function setInvite(list, which, on) {
 }
 
 /**
- * Sets `ay` from the rows' acad year if the list has none: a parsed `ay` is
- * never rewritten. Called on the first edit or export, never on load alone.
  * @param {List} list
- * @param {string} year a row's acad_year, '' if none loaded
+ * @param {string} year
  * @returns {List}
  */
 export function withYear(list, year) {
@@ -268,11 +235,8 @@ export function withYear(list, year) {
 }
 
 /**
- * A new entry's tag: the state's semester if it is 1 or 2, else the one of
- * Sem 1 and Sem 2 the course is open in (exchange mode) or taught in (browse
- * mode), else none.
- * @param {string} stateSem the state's `sem`
- * @param {number[]} sems the semesters (of 1 and 2) the course is open in, or taught in
+ * @param {string} stateSem
+ * @param {number[]} sems
  * @returns {Tag}
  */
 export function tagFor(stateSem, sems) {

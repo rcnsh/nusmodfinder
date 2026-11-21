@@ -1,10 +1,4 @@
 // @ts-check
-// The eval's pinned NG files (ADR 0003): the eval
-// normalises the pinned corpus with byte-identical copies of its year's NG
-// list and restrictions from eval/pinned/, passed into the ranker's
-// offeredModules, never the live data/ files through loadNgCourses. So a
-// Registrar revision of either live file moves neither the eval nor the
-// ranking lock. Compared module by module, not by a sha.
 import { createHash } from 'node:crypto';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -25,10 +19,8 @@ let root;
 /** @type {any[]} */
 let records;
 beforeAll(async () => {
-  // A ranker tree: scripts/lib.mjs with the src/ and data/ it reads.
   root = await mkdtemp(join(tmpdir(), 'vnm-pinned-ng-'));
   for (const p of ['src', 'data', 'scripts/lib.mjs']) await cp(join(REPO, p), join(root, p), { recursive: true });
-  // Records for the first 60 NG-listed codes, offered in both semesters, plus one off the list.
   const ng = JSON.parse(await readFile(join(REPO, 'eval/pinned', COURSES), 'utf8'));
   const codes = [...new Set(Object.values(/** @type {Record<string, string[]>} */ (ng.semesters)).flat())].sort().slice(0, 60);
   records = [...codes, 'ZZ1001'].map((moduleCode) => ({
@@ -53,7 +45,6 @@ describe('the eval\'s pinned NG files', () => {
   it('an edit to either live NG file leaves the eval\'s modules identical', async () => {
     const before = await pinnedModulesWith(root, records);
     expect(before.modules.filter((m) => m.ng).length).toBeGreaterThan(50);
-    // A revision of the live list: Sem 1 dropped. And of the restrictions: every rule closed.
     const live = join(root, 'data', COURSES);
     const ng = JSON.parse(await readFile(live, 'utf8'));
     await writeFile(live, JSON.stringify({ ...ng, updatedAsAt: '01 Jan 1999', semesters: { 2: ng.semesters[2] } }));

@@ -1,9 +1,4 @@
 // @ts-check
-// The two baseline pins as ADR 0003 states them, for tests that build a
-// genuine baseline run. They are read from the ADR, not imported from the code
-// under test: the test-set pin is spelled out (it never moves), and the shipped pin
-// is the last "- shipped pin:" line of the ADR's "Shipped-ranker pin" section,
-// so a ship that moves the pin needs no test edits.
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -14,10 +9,10 @@ import { HASHED, treeHash } from '../../eval/lib/workspace.mjs';
 
 /** @typedef {{ ref: string, sha: string }} Pin */
 
-/** The test-set pin. @type {Pin} */
+/** @type {Pin} */
 export const TEST_SET_PIN = { ref: 'eval-v0', sha: '5c5cce441bd33c8f66bb2857e4d7f5584cbc20ed' };
 
-/** The shipped-ranker pin: the last line of ADR 0003's "Shipped-ranker pin" section. @type {Pin} */
+/** @type {Pin} */
 export const SHIPPED_PIN = (() => {
   const adr = readFileSync(join(REPO, 'docs', 'decisions', '0003-eval-holdout-and-gate.md'), 'utf8');
   const section = adr.split(/^## /m).find((/** @type {string} */ s) => s.startsWith('Shipped-ranker pin')) ?? '';
@@ -26,17 +21,13 @@ export const SHIPPED_PIN = (() => {
   return { ref: last[1], sha: last[2] };
 })();
 
-/** How a verdict prints a pin: "eval-v0 5c5cce4" for a tag, the short sha for a plain sha. @param {Pin} pin */
+/** @param {Pin} pin */
 export const labelOf = (pin) => (pin.ref === pin.sha ? pin.sha.slice(0, 7) : `${pin.ref} ${pin.sha.slice(0, 7)}`);
 
-/** labelOf(pin), escaped for a RegExp. @param {Pin} pin */
+/** @param {Pin} pin */
 export const labelRe = (pin) => labelOf(pin).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/**
- * treeHash of `git archive <sha>` over the hashed ranker paths, computed here
- * rather than with the code under test's pinnedTreeHash.
- * @param {string} sha
- */
+/** @param {string} sha */
 export async function archiveTree(sha) {
   const dir = await mkdtemp(join(tmpdir(), 'vnm-pin-tree-'));
   try {
@@ -51,7 +42,7 @@ export async function archiveTree(sha) {
 }
 
 /**
- * The ranker block of a genuine, clean `--ref <pin.ref>` run.
- * @param {Pin} pin @param {string} tree archiveTree(pin.sha)
+ * @param {Pin} pin
+ * @param {string} tree
  */
 export const rankerAt = (pin, tree) => ({ ref: pin.ref, sha: pin.sha, dirty: false, treeHash: tree, runner: { sha: pin.sha, dirty: false } });

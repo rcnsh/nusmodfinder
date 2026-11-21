@@ -1,11 +1,4 @@
 // @ts-check
-// Typo correction in the eval harness (eval/lib/corrected.mjs): a run builds the ranker's
-// vocabulary from the run's own corpus with the ranker's own builder and
-// writes it where the ranker reads it, so no run reads a production
-// vocabulary; a ranker's corrected query texts must have embeddings
-// before a run starts, and the refusal names the command that adds them; and
-// `eval:embed --corrected-from-ref` collects exactly the corrected texts the
-// ref produces.
 import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -40,7 +33,6 @@ describe('rankerCorrector', () => {
     expect(c).not.toBeNull();
     expect(c.file.corpus).toBe('eval');
     expect(c.file.documents).toBe(fixture.modules.length);
-    // A query with nothing to correct has no corrected text; canonical form first.
     expect(c.corrected('  Machine   Learning ')).toBeNull();
   });
 
@@ -58,7 +50,6 @@ describe('rankerCorrector', () => {
 });
 
 describe('the corrected texts a ranker embeds', () => {
-  /** A corrector double: corrects `machne` to `machine`. */
   const corrector = (/** @type {boolean} */ embedsCorrected) => ({
     embedsCorrected,
     corrected: (/** @type {string} */ t) => (t.toLowerCase().includes('machne') ? t.toLowerCase().replace('machne', 'machine') : null),

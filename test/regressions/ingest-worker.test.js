@@ -1,9 +1,4 @@
 // @ts-check
-// Re-ingest, Worker side: scripts/ingest-core.mjs runIngest driven straight into the
-// real Worker (local D1 + fake Vectorize), so these tests exercise the same
-// skip rules, deletes and routes `npm run ingest` uses. The hash rules and the
-// download cache are covered in ingest.node.test.js; budget, guards and the
-// mutation wait in test/ingest.test.js.
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { runIngest } from '../../scripts/ingest-core.mjs';
@@ -16,7 +11,6 @@ const original = syntheticModule({
   code: 'XX2001', title: 'Quokka Ecology', semesters: [1], credits: 4, ng: false, ngSemesters: [],
   prerequisite: 'None', workload: '[2,1,0,3,4]',
 });
-// Upstream changed everything except the embedded text, so textHash is equal.
 const changed = {
   ...original, semesters: [2], credits: 2, ng: true, ngSemesters: [2],
   prerequisite: 'XX1001', preclusion: 'XX2901', workload: '[3,0,0,3,4]',
@@ -28,8 +22,6 @@ const facetsBody = { ngList: { updatedAsAt: null, source: null, count: 0 } };
 /** @type {import('../fakes.js').Fakes} */
 let fakes;
 beforeEach(async () => {
-  // The fixture keeps the corpus large enough that dropping two modules stays
-  // inside the 95% mass-delete guard, as in a real run.
   fakes = await seed({ modules: [...fixture.modules, original, dropped, oldYear] });
 });
 
@@ -54,19 +46,15 @@ describe('re-ingest into the Worker', () => {
     const { body } = await callJson('/module/XX2001');
     expect(body).toMatchObject({
       semesters: [2], credits: 2, ng: true, ng_semesters: [2], prerequisite: 'XX1001', preclusion: 'XX2901',
-      // /module answers the workload as named hours a week.
       workload: { lecture: 3, tutorial: 0, lab: 0, project: 3, prep: 4, total: 10 },
     });
-    // The vector keeps its values (re-upserted from getByIds) under new metadata.
     const v = fakes.vectorize.vectors.get('XX2001');
     expect(v?.metadata).toMatchObject({ sem1: false, sem2: true, credits: 2, ng: true });
     expect(v?.values).toEqual(before);
     expect(fakes.ai.calls).toEqual([]);
-    // /search filters see it too.
     expect(codes((await callJson('/search?q=quokka&mode=lexical&sem=2', { fakes })).body.results)).toEqual(['XX2001']);
     expect((await callJson('/search?q=quokka&mode=lexical&sem=1', { fakes })).body.results).toEqual([]);
 
-    // A rerun sends nothing: every row hash now matches.
     const again = await ingest([...fixture.modules, changed]);
     expect(again.plan).toMatchObject({ embed: 0, rowOnly: 0, deletes: 0 });
     expect(again.upserted).toBe(0);
@@ -79,17 +67,13 @@ describe('re-ingest into the Worker', () => {
     expect(del.map((c) => c.args[0])).toEqual([['XX2002', 'XX2003']]);
     expect(fakes.vectorize.vectors.has('XX2002')).toBe(false);
     expect((await callJson('/module/XX2002')).status).toBe(404);
-    // Deletes ran after every upsert: the deleteByIds call is the last mutation.
     const mutating = fakes.vectorize.calls.filter((c) => c.method === 'upsert' || c.method === 'deleteByIds');
     expect(mutating.at(-1)?.method).toBe('deleteByIds');
-    // And a delete route exists only behind the secret.
     expect((await callJson('/admin/delete', { init: { method: 'POST', body: '{"codes":["XX2001"]}' } })).status).toBe(404);
   });
 
   it('acad_year: rows are keyed by code, so a run leaves only the current year (stale rows deleted or rewritten)', async () => {
-    // Before: a 2019-2020 row is served.
     expect(codes((await callJson('/search?q=zymurgy&mode=lexical', { fakes })).body.results)).toEqual(['XX2003']);
-    // Next year's corpus no longer has XX2003 and still has XX2001.
     const year = fixture.source.acadYear;
     const result = await ingest([...fixture.modules, original]);
     expect(result.status).toBe('done');
@@ -97,8 +81,6 @@ describe('re-ingest into the Worker', () => {
     const { results } = await env.DB.prepare('SELECT DISTINCT acad_year FROM modules').all();
     expect(results).toEqual([{ acad_year: year }]);
 
-    // A code offered in both years is one row: the acad year is in row_hash,
-    // so the old-year row is rewritten in place.
     await adminCall('/admin/ingest', fakes, { modules: [{ ...original, acadYear: '2019-2020' }] });
     await ingest([...fixture.modules, original]);
     expect((await callJson('/module/XX2001')).body.acad_year).toBe(year);

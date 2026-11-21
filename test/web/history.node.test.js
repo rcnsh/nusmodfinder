@@ -1,17 +1,7 @@
 // @ts-check
-// public/history.js: the one history writer. Every pushState and
-// replaceState the page makes goes through it; it counts its writes over a
-// sliding 10 s, coalesces past 80 into one write 300 ms after the last, wraps
-// each in try, retries a refusal with backoff, and queues later writes behind
-// a refused one so nothing is written out of order. WebKit refuses the 101st
-// write within 10 s.
 import { describe, expect, it } from 'vitest';
 import { BUDGET, COALESCE_MS, createWriter } from '../../public/history.js';
 
-/**
- * A history and a clock: `log` records every write made, `refuse` makes the
- * next N writes throw as WebKit's SecurityError does.
- */
 function fakes() {
   let t = 0;
   /** @type {{ at: number, fn: () => void, id: number }[]} */
@@ -38,7 +28,7 @@ function fakes() {
     now: () => t,
     setTimer: (/** @type {() => void} */ fn, /** @type {number} */ ms) => { const id = nextId++; timers.push({ at: t + ms, fn, id }); return id; },
     clearTimer: (/** @type {any} */ id) => { timers = timers.filter((x) => x.id !== id); },
-    /** Advances the clock by `ms`, running the timers that fall due, in order. @param {number} ms */
+    /** @param {number} ms */
     tick(ms) {
       const end = t + ms;
       for (;;) {
@@ -81,9 +71,7 @@ describe('the history writer', () => {
     f.clock.tick(COALESCE_MS);
     expect(w.pending()).toBe(false);
     expect(f.url()).toBe('/?pick=A1149');
-    // Never more than 100 writes in any 10 s.
     expect(f.log.length).toBeLessThan(100);
-    // Once the window has passed, writes go out at once again.
     f.clock.tick(10_000);
     const before = f.log.length;
     w.replace('/?pick=Z9999');
@@ -137,7 +125,6 @@ describe('the history writer', () => {
     f.clock.tick(999);
     expect(f.log).toEqual([]);
     f.clock.tick(1);
-    // Refused again at 1 s; the next try is 2 s later.
     expect(f.log).toEqual([]);
     f.clock.tick(2000);
     expect(f.log).toEqual([{ op: 'push', url: '/?q=b&pick=A1001.1', data: null }]);
@@ -160,7 +147,6 @@ describe('the history writer', () => {
     const w = writer(f);
     f.box.refuse = 6;
     w.replace('/?q=a');
-    // 1 + 2 + 4 + 8 + 10 + 10 = 35 s of refusals; the 7th try, at 35 s, succeeds.
     f.clock.tick(34_999);
     expect(f.log).toEqual([]);
     f.clock.tick(1);

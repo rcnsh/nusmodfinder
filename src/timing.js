@@ -1,9 +1,4 @@
 // @ts-check
-// Per-request instrumentation: Server-Timing spans and D1 cost counters.
-//
-// workerd freezes the clock during synchronous CPU work and advances it only
-// across I/O, so a span measures time spent waiting on a binding (D1, Workers
-// AI, Vectorize, the cache), not CPU. That is the search latency the p50 budget measures.
 
 const now = () => performance.now();
 
@@ -11,7 +6,7 @@ const now = () => performance.now();
 const fmt = (ms) => (Math.round(ms * 10) / 10).toString();
 
 export class Trace {
-  /** @param {number} [start] `performance.now()` at fetch entry. */
+  /** @param {number} [start] */
   constructor(start = now()) {
     this.start = start;
     /** @type {Map<string, { dur?: number, desc?: string }>} */
@@ -19,16 +14,14 @@ export class Trace {
     this.d1 = {
       queries: 0,
       rowsRead: 0,
-      /** @type {string[]} distinct `meta.served_by_region` values */
+      /** @type {string[]} */
       servedByRegion: [],
-      /** @type {boolean | null} true iff every query that reported it was served by the primary */
+      /** @type {boolean | null} */
       servedByPrimary: /** @type {boolean | null} */ (null),
     };
   }
 
   /**
-   * Awaits `fn()` and adds its wall time to span `name`. Errors pass through
-   * unchanged; the time is recorded either way.
    * @template T
    * @param {string} name
    * @param {() => Promise<T> | T} fn
@@ -44,7 +37,6 @@ export class Trace {
   }
 
   /**
-   * Adds `ms` to span `name` (spans that run more than once accumulate).
    * @param {string} name
    * @param {number} ms
    * @param {string} [desc]
@@ -56,17 +48,12 @@ export class Trace {
     this.spans.set(name, span);
   }
 
-  /**
-   * Fixes the header order of spans that may run concurrently, so it does not
-   * depend on which finishes first. Reserved spans that never run stay absent.
-   * @param {string[]} names
-   */
+  /** @param {string[]} names */
   reserve(...names) {
     for (const name of names) if (!this.spans.has(name)) this.spans.set(name, {});
   }
 
   /**
-   * Sets a span's description, e.g. `cache;desc=hit`.
    * @param {string} name
    * @param {string} desc
    */
@@ -74,10 +61,7 @@ export class Trace {
     this.spans.set(name, { ...this.spans.get(name), desc });
   }
 
-  /**
-   * Records the cost of one D1 result (`.all()`, `.run()` or a batch entry).
-   * @param {{ meta?: Partial<D1Meta> } | null | undefined} result
-   */
+  /** @param {{ meta?: Partial<D1Meta> } | null | undefined} result */
   d1Result(result) {
     const meta = result?.meta;
     this.d1.queries += 1;
@@ -91,15 +75,11 @@ export class Trace {
     }
   }
 
-  /** Milliseconds since fetch entry. */
   total() {
     return now() - this.start;
   }
 
-  /**
-   * Every span's duration, plus `total`, rounded to 0.1 ms.
-   * @param {number} [total]
-   */
+  /** @param {number} [total] */
   durations(total = this.total()) {
     /** @type {Record<string, number>} */
     const out = {};
@@ -108,11 +88,7 @@ export class Trace {
     return out;
   }
 
-  /**
-   * The Server-Timing header value: spans in the order they were first
-   * recorded, then `total`. Stages that did not run are absent.
-   * @param {number} [total] Pass the value already logged so header and log agree.
-   */
+  /** @param {number} [total] */
   header(total = this.total()) {
     const parts = [];
     for (const [name, { dur, desc }] of this.spans) {

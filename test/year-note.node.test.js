@@ -1,51 +1,31 @@
 // @ts-check
-// src/year-note.js (ADR 0007): the "ask NUS" note for a
-// prerequisite that requires an undergraduate year of study above the
-// student's home year. Every text below is a production prerequisite
-// (.data/2026-2027-moduleInfo.json), verbatim; the whole-corpus agreement with
-// the exchange oracle's own reading is in test/oracle/paths.test.js.
 import { describe, expect, it } from 'vitest';
 import { requiredYears, YEAR_NOTE, yearNote } from '../src/year-note.js';
 
-/** Patterns the note handles: the year item binds every undergraduate. */
 const HANDLED = {
-  // The undergraduate branch is the year item alone.
   AR4601: ['If undertaking an Undergraduate DegreeTHENmust be Year 4', [4]],
   ME4252: ['If undertaking an Undergraduate Degree THEN must be Year 3 or 4', [3, 4]],
   CE4103R: ['If undertaking an Undergraduate Degree THEN (must be Year 4)', [4]],
-  // ANDed with a course, a programme, a cohort or units, at any depth.
   AR4101: ['If undertaking an Undergraduate DegreeTHENmust have completed AR3102 at a grade of at least DANDmust be Year 4', [4]],
   ESE3201: ['if undertaking an Undergraduate Degree then ( must be undertaking 1 of 0105NVGHON Bachelor of Env Studies (FASS) / 0613EVEHON Bachelor of Engineering / 1000NVBHON,1001BESXDP Bachelor of Env Studies (FOS) and must be Year 2,3 or 4 )', [2, 3, 4]],
   CM3311: ['If undertaking an Undergraduate Degree THEN must be in one of the cohorts prior to 2020 inclusive AND must be undertaking 1002CMHON Bachelor of Science - Chemistry (Hons) AND must be Year 2, 3 or 4 AND the student must have achieved at least 32 units prior to enrolment AND must have completed CM3310 at a grade of at least D', [2, 3, 4]],
   CE5101: ['if undertaking an Undergraduate Degree then ( must have completed CE2112 at a grade of at least D and ( must be undertaking 0613CEHON Bachelor of Engineering and must be Year 3 or 4 ) )', [3, 4]],
-  // An OR elsewhere, but not around the year item.
   GL2104: ['If undertaking an Undergraduate Degree THEN (must be undertaking 0110GLHON Bachelor of Arts - Global Studies (Hons) OR must be undertaking 0110GL2MJ Global Studies (2nd Major)) AND must be Year 3 or 4 AND must have completed all of GL1101E/GL2101/GL2102/GL2103 at a grade of at least D', [3, 4]],
   SC4101: ['If undertaking an Undergraduate DegreeTHENmust be in one of the cohorts from 2021 inclusiveANDthe student must have achieved at least 80 units prior to enrolmentANDmust be Year 4AND( must have completed 7 of any Courses beginning with SC at a grade of at least DORmust have completed 7 of any Courses beginning with AN at a grade of at least D, SC2209/SC2217/SC2220/SC3203/SC3204/SC3213/SC4205/SC4880A/SC4880B/SC4880C/SC4880D at a grade of at least D)', [4]],
-  // "a GPA of 3.2 or greater" is a comparison, not an alternative.
   PS4231HM_like: ['If undertaking an Undergraduate Degree THEN ( the student must have achieved a GPA of 3.2 or greater AND must be Year 4 )', [4]],
-  // No branch: the whole rule is for undergraduates.
   HS1403A: ['Must be undertaking an Undergraduate Degree AND must be in one of the cohorts from 2021 inclusive AND must be Year 3', [3]],
-  // "if undertaking Undergraduate Degree" without "an".
   IE5107: ['if undertaking Undergraduate Degree then ( must be undertaking 0607ISEHON Bachelor of Engineering and must be Year 4 )', [4]],
 };
 
-/** Near misses the note leaves alone: the year is one alternative, or the text is not one undergraduate rule. */
 const LEFT_ALONE = {
-  // The year item is one alternative beside an OR.
   EE4204: 'If undertaking an Undergraduate Degree THEN ( must have completed 1 of EE2012/EE2012A/ESP2107/ST2334 at a grade of at least D OR (must be undertaking 2001CEGHON Bachelor of Engineering (Computer Engineering) (Hons) AND must be Year 2,3 or 4)) ',
   AN4204: 'If undertaking an Undergraduate Degree THEN ((must have completed 7 of any Courses (Modules) beginning with AN at a grade of at least D) OR (must be Year 4))',
   gpa: 'If undertaking an Undergraduate Degree THEN (the student must have achieved a GPA of 3.2 or greater OR must be Year 4)',
-  // Programme-specific years in each alternative (every branch here names Year 2 or later, still left alone).
   CM3310: 'If undertaking an Undergraduate DegreeTHEN((must be in one of the cohorts prior to 2020 inclusiveANDmust be undertaking 1002CMHON Bachelor of Science - Chemistry (Hons)ANDmust be Year 2, 3 or 4ANDthe student must have achieved at least 32 units prior to enrolment)OR(must be in one of the cohorts from 2021 inclusiveANDmust be undertaking 1002CMHON Bachelor of Science - Chemistry (Hons)ANDmust be Year 2 or 3))',
-  // AND and OR side by side with no brackets: NUS's precedence is unstated.
   mixed: 'If undertaking an Undergraduate Degree THEN must have completed GE2101 at a grade of at least D OR must have completed GE2102 at a grade of at least D AND must be Year 3',
-  // Several "if undertaking" branches.
   CE5307A: '( if undertaking a Graduate Degree Coursework then ( must have completed CE3132 at a grade of at least D ) ) or ( if undertaking an Undergraduate Degree then must be undertaking 1 of 0613CEHON/0613EVEHON Bachelor of Engineering and must be Year 3 or 4 )',
-  // A graduate branch only.
   grad: 'If undertaking a Graduate Degree Coursework THEN must be Year 2',
-  // Unbalanced brackets.
   unbalanced: 'If undertaking an Undergraduate Degree THEN ( must be Year 4',
-  // No year item at all.
   none: 'If undertaking an Undergraduate Degree THEN must have completed CS2040 at a grade of at least D',
 };
 

@@ -1,9 +1,4 @@
 // @ts-check
-// src/level-note.js (ADR 0007): GRO's sentence on
-// higher-level undergraduate courses, a condition like a quota note, on every
-// level 4000 course outside Law that an undergraduate exchange student is
-// shown. The whole-corpus agreement with the exchange oracle's own reading is in
-// test/oracle/paths.test.js; the paths on the fixture in test/exchange.test.js.
 import { describe, expect, it } from 'vitest';
 import { GRO_LEVEL4, LEVEL_NOTE, levelNote, levelNoteApplies } from '../src/level-note.js';
 
@@ -18,7 +13,6 @@ describe('GRO\'s level 4000 note', () => {
 
   it('covers a level 4000 course at every undergraduate year', () => {
     for (const study of UG) expect(levelNoteApplies({ level: 4, faculty: 'Science' }, study), study).toBe(true);
-    // D1 answers `level` as a number; a string digit reads the same.
     expect(levelNoteApplies({ level: /** @type {any} */ ('4'), faculty: 'Science' }, 'ug1')).toBe(true);
   });
 

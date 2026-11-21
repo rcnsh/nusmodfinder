@@ -1,14 +1,10 @@
 // @ts-check
-// scripts/verify.mjs: paging through `wrangler vectorize list-vectors --json`
-// (stubbed: never run against Cloudflare), and exit codes. The comparison
-// itself runs against the real route in test/verify.test.js.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_INDEX, listVectorIds, main, preDeployDataFiles } from '../scripts/verify.mjs';
 
 /**
- * A stub `npx wrangler vectorize list-vectors` serving `ids` in pages.
  * @param {string[]} ids
  * @param {number} pageSize
  */
@@ -18,15 +14,12 @@ function stubWrangler(ids, pageSize) {
   /** @type {import('../scripts/deploy.mjs').Exec} */
   const exec = async (cmd, args) => {
     calls.push([cmd, ...args]);
-    // Like wrangler (yargs): a cursor sent as its own word that starts with "-h" is read as --help,
-    // which prints the usage and exits 0. Cursors are base64url, so one can start with "-".
     const i = args.indexOf('--cursor');
     if (i !== -1 && args[i + 1]?.startsWith('-')) return { code: 0, stdout: 'wrangler vectorize list-vectors <name>\n\nList vector identifiers' };
     const eq = args.find((a) => a.startsWith('--cursor='));
     const start = eq ? Number(eq.slice('--cursor=-h'.length)) : 0;
     const page = ids.slice(start, start + pageSize);
     const more = start + pageSize < ids.length;
-    // wrangler prints its banner before the JSON.
     return { code: 0, stdout: `\n ⛅️ wrangler\n${JSON.stringify({
       count: page.length, totalCount: ids.length, isTruncated: more, nextCursor: more ? `-h${start + pageSize}` : null,
       vectors: page.map((id) => ({ id })),

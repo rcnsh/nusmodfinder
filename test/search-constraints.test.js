@@ -1,10 +1,4 @@
 // @ts-check
-// Constraint intents in /search: the explicit params `exam=0`,
-// `su=1`, `hoursBelow=N` and `prereq=none` are hard filters in SQL, in the
-// bundle's filter table and on every hydrated dense row, in every mode and
-// route, on results, pins, duplicate-group variants and a not-offered code's neighbours.
-// Each param joins the cache key. Phrases in q are read too (PARSE_PHRASES,
-// ADR 0003 and ADR 0006).
 import { beforeAll, describe, expect, it } from 'vitest';
 import { INTENT, PARSE_PHRASES } from '../src/intents.js';
 import { searchCacheKey } from '../src/search.js';
@@ -13,8 +7,9 @@ import { BASE, adminCall, callJson, fixture, seed } from './helpers.js';
 const moduleOf = new Map(fixture.modules.map((m) => [m.code, m]));
 const CSCU = 'Completed Satisfactory/Unsatisfactory';
 /**
- * Whether a module satisfies a constraint, stated independently of src/.
- * @param {NormalisedModule} m @param {string} param @param {number} [sem]
+ * @param {NormalisedModule} m
+ * @param {string} param
+ * @param {number} [sem]
  */
 function satisfies(m, param, sem) {
   if (param === 'exam=0') return sem !== undefined ? !m.examSemesters.includes(sem) : m.examSemesters.length === 0;
@@ -24,7 +19,6 @@ function satisfies(m, param, sem) {
   throw new Error(param);
 }
 /**
- * Every code the page shows: results and their variants.
  * @param {any} body
  * @returns {string[]}
  */
@@ -35,7 +29,6 @@ const PARAMS = ['exam=0', 'su=1', 'hoursBelow=10', 'prereq=none'];
 let fakes;
 beforeAll(async () => {
   fakes = await seed();
-  // A not-offered code, whose `related` neighbours are dense hits too.
   const res = await adminCall('/admin/catalogue', fakes, {
     upsert: [{ code: 'GEQ1000', title: 'Asking Questions', description: 'How to ask good questions about the world.', acadYear: fixture.modules[0].acadYear }],
   });
@@ -55,7 +48,6 @@ describe('several levels or unit counts', () => {
         const m = /** @type {NormalisedModule} */ (moduleOf.get(c));
         expect([1, 2].includes(/** @type {number} */ (m.level)) && [2, 4].includes(/** @type {number} */ (m.credits)), `${path} ${c}`).toBe(true);
       }
-      // Both levels appear: the list is an OR, not the last value.
       if (!extra) expect(new Set(codes.map((c) => moduleOf.get(c)?.level)), path).toEqual(new Set([1, 2]));
     }
   });
@@ -96,7 +88,6 @@ describe('explicit params', () => {
     const { body } = await callJson('/search?q=introduction&topK=50&exam=0&sem=1', { fakes });
     expect(body.count).toBeGreaterThan(0);
     for (const c of shown(body)) expect(satisfies(/** @type {NormalisedModule} */ (moduleOf.get(c)), 'exam=0', 1), c).toBe(true);
-    // Some result has an exam in another semester: the rule is per selected semester.
     expect(shown(body).some((c) => (moduleOf.get(c)?.examSemesters.length ?? 0) > 0)).toBe(true);
   });
 

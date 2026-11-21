@@ -1,8 +1,4 @@
 // @ts-check
-// `npm run d1:bookmark` records D1's current Time Travel bookmark (a read), and
-// `npm run d1:restore -- [--bookmark <id>]` restores the newest recorded one (a D1 write; Time
-// Travel restores aren't billed as row writes), recording the restore and re-reading D1's data
-// version over the REST query. The code stays where it is. Fake exec and D1 only.
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -24,7 +20,10 @@ beforeEach(() => { dir = mkdtempSync(join(tmpdir(), 'vnm-tt-')); runsDir = join(
 afterEach(() => { rmSync(dir, { recursive: true, force: true }); });
 const records = () => readdirSync(runsDir).sort().map((f) => ({ file: f, ...JSON.parse(readFileSync(join(runsDir, f), 'utf8')) }));
 
-/** A committed earlier record. @param {string} file @param {Record<string, unknown>} r */
+/**
+ * @param {string} file
+ * @param {Record<string, unknown>} r
+ */
 const put = (file, r) => writeFileSync(join(runsDir, file), JSON.stringify({
   schema: RUN_SCHEMA, finishedAt: r.time, args: [], commit: { sha: null, dirty: false, diffSha256: null }, target: 'nusmods-apac',
   read: [], written: [], requests: {}, versions: {}, details: {}, exitCode: 0, message: null, bookmark: null, ...r,

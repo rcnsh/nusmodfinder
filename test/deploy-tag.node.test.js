@@ -1,6 +1,4 @@
 // @ts-check
-// The annotated `deploy/*` and `rollback/*` tags (scripts/deploy-tag.mjs): their names, their
-// `key: value` annotation, and the lookup by version id that rollback uses. Nothing is pushed.
 import { describe, expect, it } from 'vitest';
 import { findVersionTag, parseTagFields, tagArgs, tagName } from '../scripts/deploy-tag.mjs';
 import { TAG_FETCH } from './deploy-fakes.node.mjs';

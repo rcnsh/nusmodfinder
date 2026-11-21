@@ -23,8 +23,9 @@ eval/runs/
 # Playwright (npm run test:ui)
 test-results/
 playwright-report/
-# Agent worktrees and session files (Claude Code).
-.claude/
+# Agent worktrees and session files (Claude Code); the repo's skills are committed.
+.claude/*
+!.claude/skills/
 
 # Python venv for scripts/extract-ng.py (pypdf)
 .venv/

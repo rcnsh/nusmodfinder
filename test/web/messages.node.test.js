@@ -1,7 +1,4 @@
 // @ts-check
-// public/messages.js: every error code the Worker can answer
-// and every noMatch reason maps to a plain sentence; the page never shows a raw
-// code or the server's own message.
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -10,11 +7,8 @@ import { ERROR_SENTENCES, NO_MATCH, degradedNote, errorSentence, noMatchSentence
 const SRC = fileURLToPath(new URL('../../src/', import.meta.url));
 const worker = readdirSync(SRC).filter((f) => f.endsWith('.js')).map((f) => readFileSync(SRC + f, 'utf8')).join('\n');
 
-/** Every `error: '<code>'` and `code: '<code>'` a Worker route can put in a JSON body. */
 const errorCodes = [...new Set([...worker.matchAll(/\b(?:error|code): '([a-z][a-z_-]+)'/g)].map((m) => m[1]))].sort();
-/** Every noMatch reason the Worker sets. */
 const noMatchReasons = [...new Set([...worker.matchAll(/noMatch(?: =|:) \{ reason: '([a-z-]+)'/g)].map((m) => m[1]))].sort();
-/** Codes the fetch layer makes up itself (public/api.js). */
 const clientCodes = ['timeout', 'network', 'not_json', 'http'];
 
 describe('errors (F7)', () => {
@@ -74,7 +68,6 @@ describe('noMatch (F7)', () => {
       .toBe('NUS lists EE4438 (Solar Cells and Modules) for Sem 2, but NUSMods shows no classes for it this academic year.');
     expect(noMatchSentence({ query: 'PL3266', noMatch: { reason: 'ng-unscheduled', code: 'PL3266', title: null, ngSemesters: [1, 2] } }))
       .toBe('NUS lists PL3266 for Sem 1 and Sem 2, but NUSMods shows no classes for it this academic year.');
-    // An answer missing its semesters still names the code.
     expect(noMatchSentence({ query: 'EE4438', noMatch: { reason: 'ng-unscheduled', code: 'EE4438' } }))
       .toBe('NUS lists EE4438 for exchange students, but NUSMods shows no classes for it this academic year.');
   });

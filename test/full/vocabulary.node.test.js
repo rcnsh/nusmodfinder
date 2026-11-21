@@ -1,10 +1,4 @@
 // @ts-check
-// The typo step's vocabulary over the pinned corpus: the vocabulary test/full and the query suite search
-// with is the one scripts/build-vocabulary.mjs builds from the pinned corpus,
-// its index terms are exactly the terms SQLite's FTS5 indexes for that corpus,
-// the porter port agrees with SQLite on every pinned term and typo-shaped
-// variants of them, and so a prefix term's fate is decided exactly. Skipped
-// without .data/; with FULL_CORPUS=1 a missing corpus fails instead.
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { build, pinnedVocabularyPath } from '../../scripts/build-vocabulary.mjs';
@@ -47,7 +41,6 @@ describe.skipIf(!available)('typo-step vocabulary over the pinned corpus', () =>
   });
 });
 
-// The constraint-phrase pass reads the corrected text, so a phrase the typo step corrected would never match.
 describe.skipIf(!available)('constraint phrases survive the typo step over the real corpora', () => {
   it('the typo step corrects no word of any constraint phrase, on the pinned and the production vocabulary', async () => {
     const phrases = JSON.parse(readFileSync(new URL('../../data/constraint-phrases.json', import.meta.url), 'utf8'));

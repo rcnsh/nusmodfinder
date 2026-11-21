@@ -1,15 +1,4 @@
 // @ts-check
-// Corpus checks for the query suite and the query-rule lists, against the
-// pinned corpus and groups-v1. Skipped when .data/ has no corpus; with
-// FULL_CORPUS=1 (the full-corpus CI job) a missing corpus fails instead.
-// - G ≤ 50 for every partial-code and pillar item, G being the
-//   distinct groups-v1 groups among the members (a singleton is its own group);
-// - the codes each rule names are offered, catalogue-only or absent as the
-//   rule needs;
-// - gibberish texts carry no corpus signal the no-signal check reads, and typo
-//   texts correct to their clean forms under the typo corrector's thresholds;
-// - the collision list and pillar prefixes are corpus prefixes;
-// - the cohort-only rule's count on the pinned corpus.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -29,14 +18,20 @@ const collision = readJson('eval/query-rules/collision-list.json');
 const pillars = readJson('eval/query-rules/ge-pillars.json').prefixes;
 const groups = readJson('eval/groups.json').groups;
 
-/** Members of a partial code: the PK range [P(+'0' if letters only), P + ':'). @param {string[]} codes @param {string} p */
+/**
+ * @param {string[]} codes
+ * @param {string} p
+ */
 const membersOf = (codes, p) => {
   const lo = /\d$/.test(p) ? p : `${p}0`;
   const hi = `${p}:`;
   return codes.filter((c) => c >= lo && c < hi);
 };
 
-/** Optimal string alignment distance. @param {string} a @param {string} b */
+/**
+ * @param {string} a
+ * @param {string} b
+ */
 function osa(a, b) {
   /** @type {number[][]} */
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
@@ -186,9 +181,6 @@ describe.skipIf(!available)('the query suite against the pinned corpus', () => {
   });
 
   it('the guard count rule binds: two guards carry an off-list prefix token with ≥ M members, a prefix the suite also joins or routes', () => {
-    // A count-rule token that is not an offered prefix can never fail the rule.
-    // These two can: a ranker that prefix-routed the letter-only token (as a
-    // third list, like a code token) would put its members in the top 10.
     /** @type {Record<string, string[]>} */
     const binding = {};
     for (const it of items.filter((x) => x.rule === 'guard' && x.params.collisionTokens.length === 0)) {
@@ -201,7 +193,6 @@ describe.skipIf(!available)('the query suite against the pinned corpus', () => {
       const P = t.toUpperCase();
       expect(collision.list, t).not.toContain(P);
       expect(membersOf(codes, P).length, t).toBeGreaterThanOrEqual(M);
-      // Off the list by the suite's own items: the joins and routes on P need it there.
       expect(items.some((x) => (x.interpreted.pin ?? []).some((/** @type {string} */ c) => c.startsWith(P) && /^\d/.test(c.slice(P.length))) || x.interpreted.prefix === P), t).toBe(true);
     }
   });

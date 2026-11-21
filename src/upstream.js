@@ -1,11 +1,5 @@
 // @ts-check
-// Guards for calls to bindings: per-call timeouts and the dense-retrieval
-// circuit breaker.
 
-// Budgets per upstream. Workers AI and Vectorize answer in tens of
-// milliseconds when healthy; 1.5 s each keeps a hybrid search that falls back
-// to keyword-only under ~1.6 s from the user's side. D1 gets longer because
-// it is the source of truth: there is nothing to fall back to.
 export const AI_TIMEOUT_MS = 1500;
 export const VECTORIZE_TIMEOUT_MS = 1500;
 export const D1_TIMEOUT_MS = 3000;
@@ -19,12 +13,8 @@ export class TimeoutError extends Error {
 }
 
 /**
- * Runs `start(signal)` and rejects with a TimeoutError if it has not settled
- * within `ms`. The signal is aborted on timeout, so bindings that accept one
- * (Workers AI) stop the request; for those that don't (D1, Vectorize) the
- * call is abandoned and its eventual result ignored.
  * @template T
- * @param {string} what Names the upstream in the error message.
+ * @param {string} what
  * @param {number} ms
  * @param {(signal: AbortSignal) => Promise<T>} start
  * @returns {Promise<T>}
@@ -44,13 +34,6 @@ export function withTimeout(what, ms, start) {
   return /** @type {Promise<T>} */ (Promise.race([call, timeout])).finally(() => clearTimeout(timer));
 }
 
-/**
- * Per-isolate circuit breaker for the dense half (Workers AI + Vectorize).
- * After `threshold` consecutive failures, `open()` is true for `coolMs`; the
- * first request after that tries again, and one more failure re-opens it.
- * State is per isolate, so it only shields the isolate that saw the failures;
- * that is enough to stop a dead upstream adding its timeout to every search.
- */
 export class Circuit {
   /** @param {{ threshold?: number, coolMs?: number, now?: () => number }} [options] */
   constructor({ threshold = 3, coolMs = 30_000, now = () => Date.now() } = {}) {
@@ -59,7 +42,7 @@ export class Circuit {
     this.now = now;
     this.failures = 0;
     this.openUntil = 0;
-    /** @type {string | null} the upstream that failed last */
+    /** @type {string | null} */
     this.lastSource = null;
   }
 
@@ -86,5 +69,4 @@ export class Circuit {
   }
 }
 
-/** The breaker /search consults. Exported so tests can reset or inspect it. */
 export const denseCircuit = new Circuit();

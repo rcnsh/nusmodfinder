@@ -1,21 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// Builds data/ng-restrictions-<year>.json, the rules src/eligibility.js reads, per year from
-// the year's source manifest. Inputs, all named by data/ng-sources-<year>.json:
-//   - `transcription`: the restrictions PDF as transcribed (two transcriptions, diffed;
-//     docs/year-refresh/brief-transcription.md); every code, title and quote below comes from it;
-//   - `overlay`: the year's module (scripts/ng-overlay/<year>.mjs): how each transcribed rule
-//     matches NUSMods fields, per the year's interpretations register, with the roles
-//     `self-funded-list` and `off-list-rule`;
-//   - the newest revision's documents: every `builder` document is read through its sha256 (a
-//     mismatch, or one never read, fails the build), and its `text` extraction checked against
-//     its textSha256; the self-funded course list and the YST elective lists are extracted here.
-//
-//   node scripts/build-ng-restrictions.mjs --sources <dir> [--check] [--revision <date>]
-//
-// <dir> holds the revision's documents: `npm run sources -- restore` unpacks them into a temp
-// dir (docs/year-refresh/README.md). There is no default. --check compares the build with the
-// committed file byte for byte instead of writing it (`year check --full` runs it).
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -42,8 +26,6 @@ export const GENERATOR = 'scripts/build-ng-restrictions.mjs';
  */
 
 /**
- * Where each role sits in the overlay: the rule id (and, for a rule with parts, the part).
- * Fails if a role is missing, appears twice, or is not one the builder knows.
  * @param {Overlay} overlay
  * @returns {Record<typeof ROLES[number], string>}
  */
@@ -65,16 +47,9 @@ export function rolesOf(overlay) {
 }
 
 const CODE_RE = /\b[A-Z]{2,4}\d{4}[A-Z]{0,3}\b/g;
-// A YST page offers the courses its headings name, and the pages mark
-// headings two ways, neither complete: the heading line carries "(N Units"
-// (its codes start that line, or the nearest line above it within three, as
-// titles wrap), and the heading's code is in an orange (#ff5200) span. The
-// union of the two is the list. Codes in Pre-requisite, Co-requisite and
-// Preclusion lines are in neither.
 const LEAD = /^\*?([A-Z]{2,4}\d{4}[A-Z]?(?:\/[A-Z]{2,4}\d{4}[A-Z]?)*)\b/;
 
 /**
- * The rules file for a year, as the text written to disk.
  * @param {{ manifest: SourceManifest, revision: Revision, transcription: { rules: any[] }, overlay: OverlayModule, sources: SourceReader }} input
  * @returns {{ out: any, text: string, summary: string }}
  */
@@ -84,7 +59,7 @@ export function buildRestrictions({ manifest, revision, transcription, overlay, 
   const expected = builderHashes(revision);
   /** @type {Record<string, string>} */
   const computed = {};
-  /** Every document the builder reads goes through here. @param {string} id */
+  /** @param {string} id */
   const source = (id) => {
     const d = documentOf(revision, id);
     if (!d?.file || !d.builder) throw new Error(`the ${revision.date} revision has no builder document ${id}`);
@@ -95,8 +70,6 @@ export function buildRestrictions({ manifest, revision, transcription, overlay, 
     return bytes.toString('utf8');
   };
 
-  // The .txt files are pdftotext's output of the PDFs (and the HTML pages' text, scripts/yst-text.mjs);
-  // each is hashed in the manifest like its original, so a changed extraction fails.
   source('self-funded');
   const selfFunded = [...new Set(source('self-funded-text').match(CODE_RE) ?? [])].sort();
   /** @param {1 | 2} sem */
@@ -115,7 +88,6 @@ export function buildRestrictions({ manifest, revision, transcription, overlay, 
     return [...codes].sort();
   };
   source('restrictions'); source('law-compulsory'); source('ng-list');
-  // Each builder document's text extraction is pinned too: checked, not read.
   for (const d of revision.documents) {
     if (!d.builder || !d.text) continue;
     if (!d.textSha256) throw new Error(`${d.id}'s text ${d.text} has no textSha256 in the ${revision.date} revision (npm run sources -- publish writes it)`);
@@ -187,10 +159,7 @@ export function buildRestrictions({ manifest, revision, transcription, overlay, 
   };
 }
 
-/**
- * The year's inputs from the repo (or a root), read through its manifest.
- * @param {{ year?: string, root?: string, revision?: string }} [o]
- */
+/** @param {{ year?: string, root?: string, revision?: string }} [o] */
 export async function loadInputs({ year = DEFAULT_ACAD_YEAR, root = ROOT, revision } = {}) {
   const manifest = readManifest(year, { root });
   if (!manifest) throw new Error(`no source manifest data/ng-sources-${year}.json`);
@@ -204,7 +173,10 @@ export async function loadInputs({ year = DEFAULT_ACAD_YEAR, root = ROOT, revisi
   return { manifest, revision: rev, transcription, overlay };
 }
 
-/** Reads documents from a directory. @param {string} dir @returns {SourceReader} */
+/**
+ * @param {string} dir
+ * @returns {SourceReader}
+ */
 export const dirReader = (dir) => ({
   read: (file) => {
     const path = join(dir, file);

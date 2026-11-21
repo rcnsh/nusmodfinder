@@ -1,9 +1,4 @@
 // @ts-check
-// Typed codes the page does not show: each
-// hidden code with its own stored reasons and sources, codes not offered this
-// year, a partial code exchange mode empties (with and without "see Sem 2"),
-// and the typed codes past the three that pin. A hidden course is never a
-// result card.
 import { expect, test } from '@playwright/test';
 import { body, query, pill } from './support.mjs';
 
@@ -17,7 +12,6 @@ test('four typed codes at 2nd year, Sem 1: each hidden one says why, from its ow
     "CS5562 isn't on the Registrar's list of courses offered to exchange students (NG list, updated 01 Sep 2026).",
     "AR5801 isn't open to 2nd-year exchange students in Sem 1. Level 5000 and 6000 courses are graduate courses. Exchange students can take one only if NUS's restrictions list opens it to their year of study, and the list doesn't open this one to yours. If you need it, ask the department that teaches it (NG restrictions, updated 31 Aug 2026).",
   ]);
-  // Each line is headed by the code and its title, the title from /module/:code.
   await expect(page.locator('#status .hidden-codes li[data-code="CS3244"] .hc-head')).toHaveText('CS3244 Machine Learning');
   await expect(page.locator('#status .hiddenbox h2')).toHaveText("3 of the 4 codes you typed aren't shown");
   await expect(cards(page).first()).toHaveAttribute('data-code', 'CS2030');

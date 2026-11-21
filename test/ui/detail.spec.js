@@ -1,9 +1,4 @@
 // @ts-check
-// The card and its detail: an APG disclosure per card,
-// the exchange status on the card for the chosen semester or per semester,
-// every note in full, no score; the detail inline from /module/:code, fetched
-// once. Against the fixture, plus interception for what it lacks (a raw
-// workload).
 import { expect, test } from '@playwright/test';
 import { query } from './support.mjs';
 
@@ -11,7 +6,10 @@ import { query } from './support.mjs';
 const card = (page, code) => page.locator('#results > li.card').filter({ has: page.locator(`button[data-code="${code}"]`) });
 /** @param {import('@playwright/test').Page} page @param {string} code */
 const toggle = (page, code) => page.locator(`#results button.card-toggle[data-code="${code}"]`);
-/** The detail region a card's button controls. @param {import('@playwright/test').Page} page @param {string} code */
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {string} code
+ */
 async function region(page, code) {
   const id = await toggle(page, code).getAttribute('aria-controls');
   return page.locator(`#${id}`);
@@ -35,7 +33,6 @@ test('a card is a disclosure: a heading holding one button (code and title) that
   await expect(b).toHaveAttribute('aria-expanded', 'true');
   await expect(detail).toBeVisible();
   expect(query(page)).toBe('q=CS3244&open=CS3244');
-  // By keyboard too: Enter on the focused button closes it (WebKit doesn't focus buttons on click).
   await b.focus();
   await page.keyboard.press('Enter');
   await expect(b).toHaveAttribute('aria-expanded', 'false');
@@ -54,7 +51,6 @@ test('exchange status on the card, one semester: every note in full, the semeste
   const c = card(page, 'ACC1701XB');
   await expect(c.locator('.exchange-status')).toHaveText('Sem 1 · Open, with 3 notes');
   await expect(c.locator('.exchange-status')).toHaveAttribute('data-status', 'note');
-  // Each note in full, after a lead-in word for what it is about.
   await expect(c.locator('.notes li')).toHaveText([
     "Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.",
     "Places. Business courses are very popular, so a place is not guaranteed. NUS students who need them for their degree, and students from the Business School's own exchange partners, get places first.",
@@ -84,7 +80,6 @@ test('exchange status on the card, both semesters: one line per semester, never 
   await page.goto('/?q=ACC1701XB&ng=1&study=ug2');
   const c = card(page, 'ACC1701XB');
   await expect(c.locator('.exchange-status')).toHaveText(['Sem 1 · Open, 3 notes', 'Sem 2 · Open, 2 notes']);
-  // The notes both semesters share are said once, and say so.
   await expect(c.locator('.notes-box .scope')).toHaveText(['Notes for Sem 1', 'Notes for Sem 1 and Sem 2']);
   await expect(c.locator('.notes li')).toHaveText([
     "Timetable. The NG list offers it in Sem 1, but NUSMods shows no classes for it in Sem 1. Ask the department that teaches it whether it will run.",

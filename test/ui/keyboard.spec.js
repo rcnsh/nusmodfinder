@@ -1,22 +1,11 @@
 // @ts-check
-// The whole task, keyboard only,
-// at 1280 and at 390×664, in Chromium and WebKit: the skip link, the exchange
-// set-up on the first screen, a search, a filter and the set-up changed in the
-// rail (in the Filters dialog on a phone), a detail opened, a course code in it
-// followed, Back, and Escape. Every stop is asserted in order, and at every
-// stop the focused control (or, for a radio drawn as a tile, pill or segment,
-// its shape) has a computed outline at least 2px wide in a visible colour, is
-// on screen, and is not covered (the sticky header included).
-//
-// Which key is Tab: Safari on a Mac moves only between text fields and lists
-// on Tab unless "Press Tab to highlight each item" is on; Option+Tab reaches
-// everything. Playwright's WebKit on macOS behaves the same, so each test asks
-// the page which key reaches a button and uses that one (Tab in Chromium and
-// on Linux, Option+Tab in WebKit on a Mac).
 import { expect, test } from '@playwright/test';
 import { live, query, settled } from './support.mjs';
 
-/** @param {import('@playwright/test').Page} page @returns {Promise<string>} the key that moves focus to every control */
+/**
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string>}
+ */
 async function tabKey(page) {
   await page.goto('/');
   await page.locator('#setupQ').focus();
@@ -25,7 +14,10 @@ async function tabKey(page) {
   return reachesButtons ? 'Tab' : 'Alt+Tab';
 }
 
-/** @param {import('@playwright/test').Page} page @returns {Promise<string>} the focused element, as the tests name it */
+/**
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string>}
+ */
 const here = (page) => page.evaluate(() => {
   const a = document.activeElement;
   if (!a || a === document.body) return 'body';
@@ -35,18 +27,10 @@ const here = (page) => page.evaluate(() => {
   return `${a.tagName.toLowerCase()} "${name}"`;
 });
 
-/**
- * Whether the focused control shows a focus ring: 'ok', or what is wrong.
- * A radio drawn as a tile, pill or segment is invisible itself (it covers its
- * label), so its shape carries the ring. A <main> the skip link focused is a
- * landing point, not a control.
- * @param {import('@playwright/test').Page} page
- */
+/** @param {import('@playwright/test').Page} page */
 const ring = (page) => page.evaluate(() => {
   const a = document.activeElement;
   if (!a || a === document.body) return 'focus on the page';
-  // A landing point, not a control: the shown <main> the skip link focuses, or a heading the
-  // page focuses (tabindex -1: the shortlist view's).
   if (a.tagName === 'MAIN' || (/^H[1-6]$/.test(a.tagName) && a.getAttribute('tabindex') === '-1')) return 'ok';
   const el = a instanceof HTMLInputElement && (a.type === 'radio' || a.type === 'checkbox') ? a.closest('.tile, .pill, .seg-opt') ?? a : a;
   const cs = getComputedStyle(el);
@@ -64,9 +48,6 @@ const ring = (page) => page.evaluate(() => {
 });
 
 /**
- * Keyboard helpers bound to one page: each move records where focus lands and
- * checks its ring. The check polls: WebKit scrolls a newly focused control
- * into view a moment after the key, so a first look can find it off screen.
  * @param {import('@playwright/test').Page} page
  * @param {string} TAB
  */
@@ -101,7 +82,6 @@ const URL_SEARCH = 'q=CS2104&sem=1&ng=1&study=ug2';
 const URL_FILTERED = 'q=CS2104&sem=1&level=2&ng=1&study=ug2';
 
 /**
- * The first screen by keyboard: skip link, Exchange student, Sem 1, 2nd year, "CS2104", Enter.
  * @param {import('@playwright/test').Page} page
  * @param {ReturnType<typeof keys>} k
  */
@@ -131,8 +111,6 @@ async function firstScreen(page, k) {
 }
 
 /**
- * Open the CS2104 detail from its button, follow the CS2030 link in its
- * prerequisites, go Back, and close the detail with Escape.
  * @param {import('@playwright/test').Page} page
  * @param {ReturnType<typeof keys>} k
  */
@@ -142,8 +120,6 @@ async function detailLinkBackEscape(page, k) {
   await expect(button).toHaveAttribute('aria-expanded', 'true');
   await expect.poll(() => query(page)).toBe(`${URL_FILTERED}&open=CS2104`);
   await settled(page);
-  // The card's shortlist toggle and its review link (ADR 0018), then into the detail: its own toggle and Close first, then
-  // "can you take it" (its sources, the NUSMods link), then the course facts, whose prerequisites link CS2030.
   /** @type {string[]} */
   const inside = [];
   for (let i = 0; i < 15 && !inside.includes('a "CS2030"'); i++) inside.push(...await k.tab());
@@ -151,20 +127,17 @@ async function detailLinkBackEscape(page, k) {
   expect(inside).toContain('a "Class times and timetable on NUSMods"');
   expect(inside.indexOf('a "Class times and timetable on NUSMods"')).toBeLessThan(inside.indexOf('a "CS2030"'));
   expect(inside.at(-1)).toBe('a "CS2030"');
-  // Follow it: a search for CS2030 with the same set-up and filter.
   await page.keyboard.press('Enter');
   await expect.poll(() => query(page)).toBe('q=CS2030&sem=1&level=2&ng=1&study=ug2');
   await expect(page.locator('#q')).toBeFocused();
   await settled(page);
   await expect(live(page)).toHaveText(/^\d+ courses? shown: CS2030(, then \d+ other match(es)?)?\.$/);
-  // Back: the CS2104 results with its detail open, focus on its button.
   await page.goBack();
   await expect.poll(() => query(page)).toBe(`${URL_FILTERED}&open=CS2104`);
   await expect(button).toBeFocused();
   await expect(button).toHaveAttribute('aria-expanded', 'true');
   await expect.poll(() => ring(page)).toBe('ok');
   await settled(page);
-  // Escape closes it; focus stays on (returns to) its button.
   await page.keyboard.press('Escape');
   await expect.poll(() => query(page)).toBe(URL_FILTERED);
   await expect(button).toHaveAttribute('aria-expanded', 'false');
@@ -178,27 +151,22 @@ test.describe('at 1280', () => {
   test('keyboard only at 1280: set-up, search, filter, rail set-up, detail, a link, Back, Escape; focus order and a visible ring at every stop', async ({ page }) => {
     const k = keys(page, await tabKey(page));
     await firstScreen(page, k);
-    // Forward from the query: Search, the chips, the first entry.
     expect(await k.tab(4)).toEqual(['#go', 'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', CARD]);
-    // Back into the rail, which sits before the results.
     expect(await k.shiftTab(7)).toEqual([
       'button "Remove filter: Exchange students"', 'button "Remove filter: Sem 1"', '#go', '#q', '#faculty', 'checkbox credits=', 'checkbox level=',
     ]);
-    // A filter: Level 2000, by arrow keys along the level pills from "Any", then Space.
     expect(await k.press('ArrowRight')).toBe('checkbox level=1');
     expect(await k.press('ArrowRight')).toBe('checkbox level=2');
     expect(await k.press('Space')).toBe('checkbox level=2');
     await expect.poll(() => query(page)).toBe(URL_FILTERED);
     await settled(page);
     await expect(live(page)).toHaveText(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
-    // The exchange set-up in the rail: the semester segment by arrow keys.
     expect(await k.shiftTab(2)).toEqual(['radio study=ug2', 'radio xsem=1']);
     expect(await k.press('ArrowRight')).toBe('radio xsem=2');
     await expect.poll(() => query(page)).toBe('q=CS2104&sem=2&level=2&ng=1&study=ug2');
     expect(await k.press('ArrowLeft')).toBe('radio xsem=1');
     await expect.poll(() => query(page)).toBe(URL_FILTERED);
     await settled(page);
-    // On to the entry.
     expect(await k.tab(9)).toEqual([
       'radio study=ug2', 'checkbox level=2', 'checkbox credits=', '#faculty', '#q', '#go',
       'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', 'button "Remove filter: Level 2000"',
@@ -215,7 +183,6 @@ test.describe('at 1280', () => {
     await expect(page.locator('#skip')).toHaveText('Skip to main content');
     expect(await k.press('Enter')).toBe('#main');
     expect(await k.tab()).toEqual(['#q']);
-    // No fragment in the URL, so no history entry: Back leaves the page's state as it was.
     expect(page.url()).not.toContain('#');
   });
 });
@@ -226,7 +193,6 @@ test.describe('at 390×664', () => {
   test('keyboard only at 390×664: set-up, search, filter and set-up in the Filters dialog, detail, a link, Back, Escape; focus order and a visible ring at every stop', async ({ page }) => {
     const k = keys(page, await tabKey(page));
     await firstScreen(page, k);
-    // Forward from the query: Search, then Filters (the rail is behind it on a phone).
     expect(await k.tab(2)).toEqual(['#go', '#filtersBtn']);
     await expect(page.locator('#filtersBtn')).toHaveText('Filters (3)');
     expect(await k.press('Enter')).toBe('radio who=1');
@@ -236,19 +202,16 @@ test.describe('at 390×664', () => {
     expect(await k.press('ArrowRight')).toBe('checkbox level=2');
     expect(await k.press('Space')).toBe('checkbox level=2');
     await expect.poll(() => query(page)).toBe(URL_FILTERED);
-    // The exchange set-up in the dialog: the semester segment by arrow keys.
     expect(await k.shiftTab(2)).toEqual(['radio study=ug2', 'radio xsem=1']);
     expect(await k.press('ArrowRight')).toBe('radio xsem=2');
     await expect.poll(() => query(page)).toBe('q=CS2104&sem=2&level=2&ng=1&study=ug2');
     expect(await k.press('ArrowLeft')).toBe('radio xsem=1');
     await expect.poll(() => query(page)).toBe(URL_FILTERED);
-    // Escape closes the dialog; focus returns to its button, now counting four.
     expect(await k.press('Escape')).toBe('#filtersBtn');
     await expect(page.getByRole('dialog')).toBeHidden();
     await expect(page.locator('#filtersBtn')).toHaveText('Filters (4)');
     await settled(page);
     await expect(live(page)).toHaveText(/^\d+ courses shown: CS2104, then \d+ other matches\.$/);
-    // The shortlist button sits under the search form on a phone, before the entries.
     expect(await k.tab(5)).toEqual([
       'button "Remove filter: Sem 1"', 'button "Remove filter: Exchange students"', 'button "Remove filter: Level 2000"', '#slOpenPhone', CARD,
     ]);
@@ -256,9 +219,6 @@ test.describe('at 390×664', () => {
   });
 });
 
-// The shortlist by keyboard, at both widths: a card's toggle, the shortlist button (the rail's,
-// or the phone's under the form), the view's controls in order with a ring at every stop, and
-// Escape back to the button.
 for (const [label, width, height, opener] of /** @type {const} */ ([['1280', 1280, 800, '#slOpenRail'], ['390×664', 390, 664, '#slOpenPhone']])) {
   test(`keyboard only at ${label}: a card's toggle, the shortlist button, the view's controls, Escape`, async ({ page }) => {
     await page.setViewportSize({ width, height });

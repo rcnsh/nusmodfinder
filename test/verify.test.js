@@ -1,7 +1,4 @@
 // @ts-check
-// scripts/verify-core.mjs against the real /admin/verify route, local D1 and
-// the fake index (whose ids stand in for `wrangler vectorize list-vectors`):
-// a freshly ingested corpus agrees, and every kind of drift is reported.
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { runVerify } from '../scripts/verify-core.mjs';
@@ -24,7 +21,6 @@ describe('verify', () => {
       ok: true, d1Rows: fixture.modules.length, vectors: fixture.modules.length, sampleChecked: 100,
       missingVectors: [], extraVectors: [], rowHashDrift: [], rowHashMissing: [], metadataDrift: [], sampleMissingVectors: [],
     });
-    // One full read of modules; getByIds in chunks of at most 20.
     expect(r.rowsRead).toBe(fixture.modules.length);
     const gets = fakes.vectorize.calls.filter((c) => c.method === 'getByIds');
     expect(gets).toHaveLength(5);
@@ -52,7 +48,6 @@ describe('verify', () => {
     const [a, b, c] = fixture.modules;
     const vec = (/** @type {string} */ code) => /** @type {import('./fakes.js').StoredVector} */ (fakes.vectorize.vectors.get(code));
     expect((await verify({ sample: [a.code, b.code, c.code] })).ok).toBe(true);
-    // A row-only change Vectorize missed: D1 has the new text_hash, the vector still embeds the old text.
     vec(a.code).metadata = { ...vec(a.code).metadata, textHash: 'old-text-hash' };
     const legacy = { .../** @type {Record<string, unknown>} */ (vec(b.code).metadata) };
     delete legacy.textHash;

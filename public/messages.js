@@ -1,30 +1,19 @@
 // @ts-check
-// Plain sentences for every error and every no-match answer. The page never
-// shows a raw code (`rate_limited`) or the server's message.
-// test/web/messages.node.test.js reads src/ for every code and reason the
-// Worker can answer, so a new one fails the tests until it has a sentence here.
 
 import { quoteUser } from './format.js';
 
 const TRY_AGAIN = 'Try again in a moment.';
 
-/**
- * By error code: the Worker's `error` field, then the fetch layer's own
- * (public/api.js). `rate_limited` is built from Retry-After instead.
- * @type {Readonly<Record<string, string>>}
- */
+/** @type {Readonly<Record<string, string>>} */
 export const ERROR_SENTENCES = Object.freeze({
-  // The Worker's (src/http.js, src/index.js, src/search.js, src/modules.js, src/ingest.js).
   bad_request: 'That search could not be run. Check the query and the filters, then try again.',
   'study-required': 'Choose your year of study to see the courses open to you as an exchange student.',
   rate_limited: 'Too many searches from your connection. Try again in a minute.',
-  // /search refuses a search another site's page sent. Retrying never helps, so it says where to search.
   cross_site: 'This search was sent from another website, so it was not run. Open NUS Mod Finder itself to search.',
   upstream_failure: `The search service could not reach its course data. ${TRY_AGAIN}`,
   internal: `Something went wrong in the search service. ${TRY_AGAIN}`,
   not_found: 'This page may be out of date. Reload it and try again.',
   unauthorized: 'This page may be out of date. Reload it and try again.',
-  // The fetch layer's.
   timeout: 'The search took too long to answer. Try again, or try a shorter query.',
   network: 'Could not reach the search service. Check your connection and try again.',
   not_json: `The search service answered with an error page. ${TRY_AGAIN}`,
@@ -54,45 +43,31 @@ export function errorSentence(error) {
  * @typedef {{ query: string, noMatch?: NoMatch | null }} NoMatchBody
  */
 
-/** The student's query, capped and quoted. */
 const quoted = quoteUser;
 
-/**
- * The semesters NUS lists a course for, as words: "Sem 1", "Sem 1 and Sem 2".
- * @param {unknown} sems
- */
+/** @param {unknown} sems */
 const listedFor = (sems) => {
   const list = Array.isArray(sems) ? sems.filter((s) => s === 1 || s === 2) : [];
   return list.length ? list.map((s) => `Sem ${s}`).join(' and ') : 'exchange students';
 };
 
-/**
- * By noMatch reason (src/search.js, src/query-intent.js).
- * @type {Readonly<Record<string, (body: NoMatchBody, nm: NoMatch) => string>>}
- */
+/** @type {Readonly<Record<string, (body: NoMatchBody, nm: NoMatch) => string>>} */
 export const NO_MATCH = Object.freeze({
   'ng-special-term': () => "The NG list covers only Sem 1 and Sem 2, not NUS's special terms (short terms in the vacation). Choose Sem 1 or Sem 2.",
   'not-offered': (_b, nm) => `${nm.code}${nm.title ? ` (${nm.title})` : ''} isn't offered this academic year.`,
   'unknown-code': (_b, nm) => `There is no course ${nm.code} in the NUS catalogue. Check the code.`,
-  // On the NG list, with no classes in NUSMods this year (data/ng-unscheduled.json).
   'ng-unscheduled': (_b, nm) => `NUS lists ${nm.code}${nm.title ? ` (${nm.title})` : ''} for ${listedFor(nm.ngSemesters)}, but NUSMods shows no classes for it this academic year.`,
   'no-signal': (b) => `Nothing in the catalogue matches ${quoted(b.query)}. Try other words for the topic.`,
 });
 
-/**
- * The sentence for a /search answer with no results.
- * @param {NoMatchBody} body
- */
+/** @param {NoMatchBody} body */
 export function noMatchSentence(body) {
   const nm = body.noMatch;
   if (nm && Object.hasOwn(NO_MATCH, nm.reason)) return NO_MATCH[nm.reason](body, nm);
   return `No courses match ${quoted(body.query)}.`;
 }
 
-/**
- * The note shown above a keyword-only answer (`degraded`), or null.
- * @param {{ source: string, reason: string } | null | undefined} degraded
- */
+/** @param {{ source: string, reason: string } | null | undefined} degraded */
 export function degradedNote(degraded) {
   return degraded ? 'Search is in a simpler mode right now: it finds only courses that contain the words you typed. Try the course name or code, or search again later.' : null;
 }

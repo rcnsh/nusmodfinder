@@ -1,47 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// The page's live checks, run by hand after a deploy that changes the page:
-// - the full detail on 20 codes drawn with a fixed seed, 4 from each stratum of the
-//   production-normalised modules: exams in two semesters, a cohort-only
-//   prerequisite, no workload, two or more notes, plain. `?q=CODE&open=CODE`
-//   must show each field or its "not listed" text (test/ui/detail-fields.mjs, as
-//   CI's test/ui/detail-fields.spec.js does for every fixture code);
-// - axe, every rule but WCAG AAA's 7:1 (test/ui/support.mjs), on the first
-//   screen, an open detail and the hidden codes, light and dark;
-// - the 390×664 fold check, in Chromium and as an iPhone 13 in WebKit;
-// - the hidden-code explanation for 3 drawn closed codes (one off the NG list,
-//   one listed for the other semester only, one closed by a restriction), each
-//   line, stamp and "Switch" button as the page's own rules say from the
-//   code's /module answer; and 1 drawn partial code that exchange mode empties;
-// - /health traces the commit: versionTag is HEAD's short sha (as
-//   scripts/deploy.mjs tags it), the data version is src/data-version.json's,
-//   and the bundle is the production one.
-//
-// Requests: every request the script or its browsers send to the site starts
-// at least 4 s after the one before (the Worker's per-IP limiter). The page's files, /facets, and any /search or /module answer
-// already fetched are fetched once per run and then served to the browsers
-// from memory. Each request, sent or served from memory, is a line in the
-// JSONL log, and the run ends with a summary line. A 429 is waited out
-// (Retry-After, at least 4 s) and re-sent, twice at most.
-//
-//   node scripts/live-check.mjs [--url URL] [--log FILE] [--corpus production|fixture]
-//                            [--expect-commit SHA|none] [--seed N] [--dry-run]
-//
-// --url            the site (default: production, PRODUCTION_URL in scripts/live-check-plan.mjs)
-// --log            the JSONL log (default .data/live-check.jsonl), appended to
-// --corpus         the modules drawn from: `production` (`current` in data/corpus.json,
-//                  normalised as ingest does) or `fixture` (test/fixtures/corpus.json,
-//                  for the local UI server, `npm run dev`); default: fixture for a
-//                  localhost URL, else production
-// --expect-commit  the versionTag /health must give: a sha (default `git rev-parse
-//                  HEAD`, compared by its prefix), or `none` for a local server, which
-//                  has no version metadata; default: none for localhost
-// --seed           the draw's seed (default 5)
-// --dry-run        print the draw and send nothing
-//
-// Exit 0 when every check passes, 1 when one fails, 2 on a usage error. Against
-// a live URL (not localhost) each run writes a run record with every request
-// sent, by path (scripts/run-record.mjs).
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -56,16 +14,8 @@ import { recordedLiveRun } from './run-record.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const UA = devices['Desktop Chrome'].userAgent;
-/** How long one page may take to show what a check waits for, its requests queued 4 s apart. */
 const PAGE_TIMEOUT_MS = 180_000;
 
-// ---------- requests: paced, logged, fetched once ----------
-
-/**
- * One queue for every request to the site: each starts at least GAP_MS after
- * the last. Requests the page waits on (/search, /module, /facets, /health)
- * go before its files, so none waits past the page's 10 s fetch timeout.
- */
 function createPacer() {
   /** @type {{ api: ((at: number) => void)[], asset: ((at: number) => void)[] }} */
   const waiting = { api: [], asset: [] };
@@ -76,7 +26,6 @@ function createPacer() {
     if (timer || (!waiting.api.length && !waiting.asset.length)) return;
     timer = setTimeout(() => {
       timer = null;
-      // A timer may fire a millisecond early: never grant a slot before its time.
       if (Date.now() - last >= GAP_MS) {
         const next = waiting.api.shift() ?? waiting.asset.shift();
         if (next) { last = Date.now(); next(last); }
@@ -84,17 +33,17 @@ function createPacer() {
       pump();
     }, Math.max(0, last + GAP_MS - Date.now()));
   };
-  /** Resolves with the time the slot was granted. @param {'api' | 'asset'} kind @returns {Promise<number>} */
+  /**
+   * @param {'api' | 'asset'} kind
+   * @returns {Promise<number>}
+   */
   return (kind) => new Promise((resolve) => { waiting[kind].push(resolve); pump(); });
 }
 
-/** Paths the Worker answers (the rest are the page's static files). @param {string} path */
+/** @param {string} path */
 const isApi = (path) => path === '/search' || path === '/facets' || path === '/health' || path.startsWith('/module/') || path.startsWith('/admin');
 
-/**
- * @param {{ url: string, log: string, onSend?: (path: string) => void }} opts
- *   `onSend`: each request sent to the network, by path (the run record)
- */
+/** @param {{ url: string, log: string, onSend?: (path: string) => void }} opts */
 function createSite(opts) {
   const slot = createPacer();
   /** @type {Map<string, { status: number, headers: Record<string, string>, body: Buffer }>} */
@@ -102,12 +51,10 @@ function createSite(opts) {
   let n = 0;
   let sent = 0;
   mkdirSync(dirname(opts.log), { recursive: true });
-  /** One line per request (`source`: network, memory or refused), and the summary. @param {Record<string, unknown>} row */
+  /** @param {Record<string, unknown>} row */
   const log = (row) => appendFileSync(opts.log, `${JSON.stringify({ n: ++n, at: new Date().toISOString(), ...row })}\n`);
 
   /**
-   * GET a path on the site: from memory if this run already has it, else
-   * paced, with a 429 waited out and re-sent.
    * @param {string} pathAndQuery
    * @param {{ check: string, engine: string, send: () => Promise<{ status: number, headers: Record<string, string>, body: Buffer }>, keep?: boolean }} how
    */
@@ -126,11 +73,9 @@ function createSite(opts) {
       try {
         res = await send();
       } catch (err) {
-        // Sent, but no answer (a reset, a timeout, the page gone): logged all the same.
         log({ at: new Date(started).toISOString(), check, engine, path: pathAndQuery, source: 'network', status: null, ms: Date.now() - started, error: String(/** @type {Error} */ (err).message).split('\n')[0], attempt });
         throw err;
       }
-      // `at` is when the request was sent, so the log shows the 4 s spacing itself.
       log({
         at: new Date(started).toISOString(), check, engine, path: pathAndQuery, source: 'network', status: res.status, ms: Date.now() - started,
         cache: res.headers['cf-cache-status'] ?? null, version: res.headers['x-app-version'] ?? null, attempt,
@@ -147,14 +92,12 @@ function createSite(opts) {
 
   return {
     get, log, memory,
-    /** @returns {number} requests sent over the network */
+    /** @returns {number} */
     sent: () => sent,
     /**
-     * Routes a browser context's requests through `get`. Anything not on the
-     * site is refused and logged (the page loads nothing from elsewhere).
      * @param {import('@playwright/test').BrowserContext} context
      * @param {string} engine
-     * @param {() => string} check the check running now
+     * @param {() => string} check
      */
     async route(context, engine, check) {
       await context.route('**/*', async (route) => {
@@ -175,28 +118,21 @@ function createSite(opts) {
             },
           });
         } catch {
-          // No answer (logged by get): the page sees a failed request, as a browser would.
           await route.abort('failed').catch(() => {});
           return;
         }
-        // The page may have moved on (a superseded search) while this waited its turn.
         await route.fulfill({ status: res.status, headers: res.headers, body: res.body }).catch(() => {});
       });
     },
   };
 }
 
-// ---------- the checks ----------
-
 /** @typedef {{ check: string, pass: boolean, detail: string }} Outcome */
 
 /**
- * Whether the fold holds at the viewport: no scroll, the header's
- * "unofficial", the search bar, and the first entry's code, title and each
- * semester's status wholly in view (test/ui/fold.spec.js).
  * @param {import('@playwright/test').Page} page
  * @param {number} stamps
- * @returns {Promise<string[]>} what is out of view; [] when it holds
+ * @returns {Promise<string[]>}
  */
 async function foldProblems(page, stamps) {
   await page.locator('#results > li.card').first().waitFor({ state: 'visible', timeout: PAGE_TIMEOUT_MS });
@@ -245,10 +181,7 @@ async function run(opts) {
   };
   let now = 'start';
 
-  // Every check, then the summary, even if one throws (the site unreachable,
-  // a browser crash): the log always ends with what passed and what didn't.
   try {
-    // /health traces the commit.
     now = 'health';
     {
       const problems = [];
@@ -284,7 +217,10 @@ async function run(opts) {
     const page = await desk.newPage();
     page.setDefaultTimeout(PAGE_TIMEOUT_MS);
     page.setDefaultNavigationTimeout(PAGE_TIMEOUT_MS);
-    /** axe in light and dark at the widths given, without reloading. @param {string} name @param {[number, number][]} sizes */
+    /**
+     * @param {string} name
+     * @param {[number, number][]} sizes
+     */
     const axeHere = async (name, sizes) => {
       const problems = [];
       for (const scheme of /** @type {const} */ (['light', 'dark'])) {
@@ -300,13 +236,11 @@ async function run(opts) {
     };
 
     try {
-      // The first screen: its files are fetched once here; then axe on it.
       now = 'first screen';
       await page.goto(`${opts.url}/`);
       await page.locator('#setupSources td').nth(1).filter({ hasNotText: '…' }).waitFor();
       await axeHere('the first screen', [[1280, 800], [390, 664]]);
 
-      // The full detail on the 20 drawn codes.
       for (const { stratum, m } of details) {
         now = `detail ${m.code}`;
         let problems;
@@ -321,8 +255,6 @@ async function run(opts) {
       now = 'axe detail';
       await axeHere(`an open detail (${details.at(-1)?.m.code})`, [[1280, 800], [390, 664]]);
 
-      // The hidden-code explanations: each line, stamp and switch as the page's
-      // rules give them from the code's own /module answer and /facets' sources.
       const facets = JSON.parse(site.memory.get('/facets')?.body.toString('utf8') ?? 'null');
       for (const c of hidden.closed) {
         now = `hidden ${c.m.code}`;
@@ -339,14 +271,11 @@ async function run(opts) {
             why: el.querySelector('.why')?.textContent ?? '', stamp: el.querySelector('.hc-stamp')?.textContent ?? '',
             button: el.querySelector('.switch-sem')?.textContent ?? null,
           }));
-          // The page's rules, from the code's own /module answer and /facets' sources...
           if (got.why !== line) problems.push(`line "${got.why}", expected "${line}"`);
           if (got.stamp !== stamp.text) problems.push(`stamp "${got.stamp}", expected "${stamp.text}"`);
-          // ...and what the drawn kind and the oracle say, independent of that answer.
           if (got.stamp !== c.stamp) problems.push(`stamp "${got.stamp}", expected "${c.stamp}" for a code ${c.kind}`);
           const wantButton = c.otherOpen ? `Switch to ${semLabel(c.sem === 1 ? 2 : 1)} to see ${c.m.code}` : null;
           if (got.button !== wantButton) problems.push(`switch ${JSON.stringify(got.button)}, expected ${JSON.stringify(wantButton)}`);
-          // Never a result (exchange mode hides it): not an entry, not another entry's "Also as".
           if (await page.locator(`#results [data-code="${c.m.code}"], #results [data-variant="${c.m.code}"]`).count()) problems.push('shown as a result');
         } catch (err) {
           problems.push(String(/** @type {Error} */ (err).message).split('\n')[0]);
@@ -365,7 +294,6 @@ async function run(opts) {
           await page.goto(`${opts.url}/?q=${p.prefix}&sem=${p.sem}&ng=1&study=${p.study}`);
           const want = partialCodeLine({ prefix: p.prefix, sem: String(p.sem), study: p.study, otherHasResults: p.otherHasResults });
           const wantButton = p.otherHasResults ? `See ${semLabel(p.sem === 1 ? 2 : 1)} courses` : null;
-          // Settled: the other semester checked (a button, or the either-semester line).
           await page.waitForFunction(() => !!document.querySelector('#status .see-other') || /either semester/.test(document.querySelector('#status .partial')?.textContent ?? ''));
           const got = await page.evaluate(() => ({ line: document.querySelector('#status .partial')?.textContent ?? null, button: document.querySelector('#status .see-other')?.textContent ?? null, cards: document.querySelectorAll('#results > li.card').length }));
           if (got.line !== want) problems.push(`line ${JSON.stringify(got.line)}, expected "${want}"`);
@@ -379,7 +307,6 @@ async function run(opts) {
         record('partial code drawn', ['no prefix is emptied at any drawn semester and year']);
       }
 
-      // The fold at 390×664: Chromium, then WebKit as an iPhone 13.
       const FOLD = /** @type {const} */ ([['Sem 1', `/?q=ACC1701XB&sem=1&ng=1&study=ug2`, 1], ['both semesters', `/?q=ACC1701XB&ng=1&study=ug2`, 2]]);
       for (const [engine, launch, ctxOpts] of /** @type {const} */ ([
         ['chromium 390×664', null, { viewport: { width: 390, height: 664 }, userAgent: UA }],
@@ -428,7 +355,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.error(`live-check: ${/** @type {Error} */ (err).message}`);
     process.exit(2);
   }
-  // A run against a live URL leaves a run record (scripts/run-record.mjs), whatever the result.
   const outcomes = opts.dryRun ? await run(opts) : await recordedLiveRun('live-check', opts, run);
   process.exit(outcomes.some((o) => !o.pass) ? 1 : 0);
 }

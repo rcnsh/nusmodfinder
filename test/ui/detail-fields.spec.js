@@ -1,16 +1,4 @@
 // @ts-check
-// Every result opens a full detail: for every fixture code, `?q=CODE&open=CODE` opens
-// that course's detail, and each field is there with the fixture's value,
-// or its "not listed" text: the description; prerequisites and preclusions;
-// the exam per semester, or "No final exam listed"; the workload, or
-// "Workload not listed"; exchange availability per semester; the NUSMods
-// link. test/ui/detail-fields.mjs reads the fields and says what each should be
-// (the live check, scripts/live-check.mjs, uses it too). The raw-workload case
-// (NUS's text instead of the 5-number form, which the fixture lacks) is
-// intercepted.
-//
-// The codes are split into batches, one test each, so the workers share them;
-// each batch reuses one page.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
@@ -61,7 +49,6 @@ test('a missing field, or one from another course, is caught: the check is not v
     const body = await res.json();
     route.fulfill({ response: res, json: {
       ...body, examDates: [], nusmodsUrl: null, prerequisite: 'MA9999 only', preclusion: 'ZZ9999',
-      // Every year closed in Sem 2, where CS3244 is open to exchange students.
       exchange: body.exchange.map((/** @type {any} */ e) => (e.sem === 2 ? { ...e, status: 'closed' } : e)),
     } });
   });

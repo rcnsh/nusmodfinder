@@ -1,95 +1,33 @@
 // @ts-check
-// The ingest run itself, with every side effect injected: the admin API (over
-// HTTP in scripts/ingest.mjs, straight into the Worker in tests), the store
-// for an unconfirmed Vectorize mutation, the clock, the sleep between retries
-// and polls, and the log. No Node APIs, so the Worker tests run this exact
-// code against the real routes and local D1.
-//
-// One run:
-//  1. GET /admin/hashes. Refuse unless the database has migration 0006
-//     (external-content FTS keyed on rowid, its four triggers, row_hash): a
-//     full rewrite through the old triggers reads ~46M rows. Refuse a
-//     mixed acad year, duplicate codes, a Worker embedding with another model,
-//     or (unless allowYearChange) a corpus for another acad year than D1
-//     holds — all before any write.
-//  2. Plan per module: text_hash differs → re-embed; only row_hash differs →
-//     rewrite the row and re-upsert the vector with its stored values and new
-//     metadata (the Worker re-embeds if the stored vector is not for this
-//     text_hash); both equal → skip. Refuse (unless allowMassDelete) a plan
-//     that deletes more than 5% of the codes D1 holds, or more than 5% of the
-//     catalogue_only codes, before any write.
-//  3. Upsert in batches, concurrently, inside a write budget. Each batch is
-//     charged the larger of its D1 meta.rows_written and an estimate that
-//     includes the FTS5 shadow-table writes local D1 does not report (and
-//     remote D1 may bill), for the rows whose FTS-indexed columns change
-//     (ftsHash, src/rowhash.js). The last batch goes alone after the others,
-//     so the run's last Vectorize mutation is well defined.
-//  4. Only if no batch failed and the budget held: delete codes D1 has and the
-//     corpus lacks (hashes cleared, Vectorize, then D1), one request at a time.
-//  4b. When given the catalogue-only codes, bring D1 catalogue_only in
-//     line with them (GET /admin/catalogue's row hashes, then POST the changed
-//     rows and the dropped codes), inside the same write budget. D1 only, so
-//     the D1-only mode runs it unchanged. A database without the table
-//     (migration 0008) is refused in step 1, before any write.
-//  5. Rebuild the facets row; wait until Vectorize has processed the last
-//     mutation (waitForMutation, bounded poll) — this run's, or one an earlier
-//     run sent and never saw confirmed; report the data version for
-//     src/data-version.json. A mutation id that could not be recorded in the
-//     pending store does not stop the run, but it ends 'failed', naming it.
-//
-// D1-only (`d1Only`, runbook step 4): the same plan and guards,
-// but every write goes to D1 alone (`?d1Only=1`: no getByIds, AI.run or
-// Vectorize call). The data version is computed from the corpus before any
-// write and must equal `expectedDataVersion`, the committed
-// src/data-version.json (runbook step 1 computed it offline); a mismatch
-// refuses the run. There is no mutation to wait for, so the pending store is
-// neither read nor written. The deleted codes are returned for step 8.
 import { catalogueRowHash, dataVersion, ftsHash, rowHash } from '../src/rowhash.js';
 
 export const DEFAULTS = Object.freeze({
   batchSize: 50,
   concurrency: 4,
-  /** ADR 0002: a forced full re-ingest (~37k rows charged) fits in one run. */
   writeBudget: 40_000,
   deleteBatchSize: 100,
-  /** Abort if the plan would delete more than (1 - this) of the codes D1 holds. */
   massDeleteRatio: 0.95,
   maxAttempts: 5,
   waitTimeoutMs: 10 * 60_000,
   waitIntervalMs: 5_000,
-  // The write estimate per module, by what the upsert does to its row
-  // (table and index rows, as local D1 reports them), measured over the full corpus and rounded
-  // up: an INSERT ~7.1, an UPDATE ~5.1 (5.4 for field-only changes).
   writesPerInsert: 8,
   writesPerUpdate: 5.5,
-  // FTS5 shadow-table writes, which local D1's meta does not show: an inserted
-  // row 13.19 on average (cold load), a changed title/description 15.69; a row
-  // whose code, title and description are unchanged, 0 (the update trigger
-  // does not fire), whatever its text_hash.
   ftsWritesPerInsert: 14,
   ftsWritesPerTextChange: 16,
-  /**
-   * One /admin/delete per code: the hash-clearing UPDATE (1), the DELETE
-   * (row, primary key and ≤ 6 index entries), FTS 'delete' (2.92 measured).
-   */
   writesPerDelete: 12,
-  /** A catalogue_only row written or deleted: the row and its primary-key index entry (migration 0008). */
   writesPerCatalogueRow: 2,
-  /** Rows per /admin/catalogue call (its limit). */
   catalogueBatchSize: 100,
 });
 
-/** The schema 0006 must have left behind, as /admin/hashes reports it. */
 export const REQUIRED_SCHEMA = 6;
 
 /**
  * @typedef {NormalisedModule & { rowHash: string, ftsHash: string }} HashedModule
- * @typedef {{ textHash: string, rowHash: string | null, ftsHash?: string }} StoredHashes `ftsHash`
- *   is absent from a Worker older than this script.
+ * @typedef {{ textHash: string, rowHash: string | null, ftsHash?: string }} StoredHashes
  * @typedef {{
  *   version: number | null, ftsExternal: boolean, rowidTriggers: boolean, missingTriggers?: string[],
  *   rowHashColumn: boolean, missingColumns?: string[], ok: boolean,
- * }} SchemaStatus `missingColumns`: ROW_COLUMNS the table lacks; absent from a Worker without the exchange-mode columns.
+ * }} SchemaStatus
  * @typedef {{
  *   schema: SchemaStatus, embeddingModel?: string, acadYears?: Record<string, number> | null,
  *   modules: Record<string, StoredHashes> | null,
@@ -99,17 +37,11 @@ export const REQUIRED_SCHEMA = 6;
  *   get: (path: string) => Promise<ApiResponse>,
  *   post: (path: string, body: unknown) => Promise<ApiResponse>,
  * }} AdminApi
- * @typedef {{ id: string, sentAt: number | null, earlier?: string[] }} PendingMutation A Vectorize
- *   mutation id and the Worker's Date.now() when Vectorize accepted it (null
- *   from a Worker older than this script). `earlier`: the ids this run (and
- *   any pending mutation it carried over) sent before it; none of them may
- *   end the wait by time (waitForMutation).
+ * @typedef {{ id: string, sentAt: number | null, earlier?: string[] }} PendingMutation
  * @typedef {{
  *   read: () => Promise<PendingMutation | null>,
  *   write: (mutation: PendingMutation | null) => Promise<void>,
- * }} PendingMutationStore The last Vectorize mutation sent and not yet seen
- *   processed. Survives the run (scripts/ingest.mjs: .data/ingest-state.json),
- *   so a rerun with nothing to send still waits for it.
+ * }} PendingMutationStore
  * @typedef {{
  *   force?: boolean, from?: string | null, batchSize?: number, concurrency?: number, writeBudget?: number,
  *   allowMassDelete?: boolean, allowYearChange?: boolean, deleteBatchSize?: number, massDeleteRatio?: number,
@@ -118,10 +50,7 @@ export const REQUIRED_SCHEMA = 6;
  *   ftsWritesPerTextChange?: number, writesPerDelete?: number, writesPerCatalogueRow?: number,
  *   catalogueBatchSize?: number, signal?: AbortSignal,
  *   d1Only?: boolean, expectedDataVersion?: string | null,
- * }} IngestOptions `d1Only` and `expectedDataVersion`: the D1-only mode (header).
- *   `signal`: once aborted (scripts/ingest.mjs on SIGINT/SIGTERM),
- *   no new request starts; those in flight finish and are recorded, and the
- *   run ends 'interrupted'.
+ * }} IngestOptions
  * @typedef {'done' | 'refused' | 'failed' | 'budget' | 'wait-timeout' | 'interrupted'} IngestStatus
  * @typedef {{
  *   status: IngestStatus, message: string,
@@ -130,15 +59,11 @@ export const REQUIRED_SCHEMA = 6;
  *   rowsRead: number, rowsWritten: number, rowsCharged: number, resumeFrom: string | null,
  *   lastMutationId: string | null, dataVersion: string | null, deletedCodes: string[],
  *   catalogue: { upserted: number, deleted: number } | null,
- * }} IngestResult `catalogue`: what step 4b wrote to catalogue_only, null when no catalogue was given. `deletedCodes`: what /admin/delete removed (for runbook step 8 in D1-only mode). `rowsWritten` sums D1's meta.rows_written; `rowsCharged`
- *   is what the write budget counts (per batch, the larger of that and the
- *   estimate).
- * @typedef {'insert' | 'fts' | 'row'} WriteKind what an upsert does to D1:
- *   inserts a row, changes its FTS-indexed columns (code, title, description:
- *   the update trigger fires), or rewrites it with them unchanged
+ * }} IngestResult
+ * @typedef {'insert' | 'fts' | 'row'} WriteKind
  */
 
-/** @returns {PendingMutationStore} one that lasts as long as the run */
+/** @returns {PendingMutationStore} */
 export function memoryPendingStore() {
   /** @type {PendingMutation | null} */
   let p = null;
@@ -146,10 +71,9 @@ export function memoryPendingStore() {
 }
 
 /**
- * What to do with each module. Pure.
  * @template {{ code: string, textHash: string, rowHash: string }} M
  * @param {M[]} modules
- * @param {Record<string, StoredHashes>} stored code -> hashes D1 holds
+ * @param {Record<string, StoredHashes>} stored
  * @param {{ force: boolean }} options
  */
 export function planIngest(modules, stored, { force }) {
@@ -170,13 +94,6 @@ export function planIngest(modules, stored, { force }) {
 }
 
 /**
- * What an upsert of `m` does to D1, for the write estimate. The FTS update
- * trigger (0006) fires only when code, title or description change, which
- * ftsHash covers exactly; text_hash does not (it changes with the model or
- * the embedded-text version while the indexed columns stay byte-identical,
- * as for every production row after this PR). Without a stored ftsHash (an
- * older Worker), a text_hash change is taken as an FTS change: an
- * over-estimate, never an under-estimate.
  * @param {{ code: string, textHash: string, ftsHash: string }} m
  * @param {Record<string, StoredHashes>} stored
  * @returns {WriteKind}
@@ -211,38 +128,20 @@ export async function runIngest({
     upserted: 0, embedded: 0, failed: 0, deleted: 0, rowsRead: 0, rowsWritten: 0, rowsCharged: 0,
     resumeFrom: null, lastMutationId: null, dataVersion: null, deletedCodes: [], catalogue: null,
   };
-  /** Writes of `pending`, in the order the mutation ids arrived. Never rejects. */
   /** @type {Promise<void>} */
   let persisted = Promise.resolve();
-  /** The last mutation sent, with when Vectorize accepted it. */
   /** @type {PendingMutation | null} */
   let last = null;
-  /**
-   * Mutation ids this run sent, after those of a pending mutation an earlier
-   * run left: a later poll that reports one of them processed is not proof
-   * that the last one is, however late its processedUpToDatetime. An
-   * unreadable store is reported at the end (step 6), not here.
-   */
   const carried = o.d1Only ? null : await pending.read().catch(() => null);
   /** @type {string[]} */
   const ownIds = carried ? [...(carried.earlier ?? []), carried.id] : [];
-  /**
-   * Wait by id only (sentAt null). A request retried after a 5xx or a dropped
-   * connection may have queued a Vectorize mutation whose id never came back
-   * (the Worker mutates Vectorize before D1), so `earlier` cannot list it and
-   * the time check could end the wait on it. Inherited from a carried-over
-   * entry that was already id-only, whose hidden mutation precedes this run's.
-   */
   let idOnly = carried !== null && carried.sentAt === null;
   const aborted = () => o.signal?.aborted === true;
-  /** Mutation ids `pending` failed to record, and why. */
   /** @type {{ ids: string[], error: string | null }} */
   const unrecorded = { ids: [], error: null };
   /**
-   * Records a mutation the moment Vectorize accepts it. A failed write is
-   * kept, not thrown: the run goes on (its batches are already in D1 and
-   * Vectorize) and ends 'failed', naming the ids.
-   * @param {string} id @param {unknown} sentAt
+   * @param {string} id
+   * @param {unknown} sentAt
    */
   const sent = (id, sentAt) => {
     const p = { id, sentAt: !idOnly && typeof sentAt === 'number' && Number.isFinite(sentAt) ? sentAt : null, earlier: [...ownIds] };
@@ -256,7 +155,6 @@ export async function runIngest({
       log(`  could not record mutation ${id} in the pending store: ${unrecorded.error}`);
     });
   };
-  /** Switches to waiting by id only, re-recording the last mutation so a rerun inherits it. */
   const markIdOnly = () => {
     if (idOnly) return;
     idOnly = true;
@@ -285,7 +183,6 @@ export async function runIngest({
     return result;
   };
 
-  // 1. What D1 holds, and whether it is safe to write to.
   const hashesRes = await api.get('/admin/hashes');
   if (hashesRes.status !== 200) {
     return stop('refused', `GET /admin/hashes -> HTTP ${hashesRes.status}. Is the Worker running with INGEST_SECRET bound?`);
@@ -305,10 +202,6 @@ export async function runIngest({
   const seen = new Set();
   const dupes = modules.filter((m) => (seen.has(m.code) ? true : (seen.add(m.code), false))).map((m) => m.code);
   if (dupes.length) return stop('refused', `Duplicate module codes in the corpus: ${dupes.slice(0, 10).join(', ')}.`);
-  // The year D1 holds is the one most of its rows carry: stray rows of another
-  // year are cleaned up (deleted or rewritten) by a run for D1's own year, but
-  // a run for another year would rewrite the database to it. An empty
-  // database holds no year, so any year loads into it.
   if (d1Count > 0 && (hashes.acadYears === null || typeof hashes.acadYears !== 'object')) {
     return stop('refused', 'GET /admin/hashes reports no acadYears: the Worker is older than this script. Nothing was written.');
   }
@@ -320,7 +213,6 @@ export async function runIngest({
       + 'Ingesting would rewrite the database to the corpus year. If that is the intent, rerun with --allow-year-change.');
   }
 
-  // catalogue_only (step 4b) needs migration 0008; refuse now, before any write.
   /** @type {Record<string, string> | null} */
   let catalogueStored = null;
   if (catalogue) {
@@ -333,11 +225,9 @@ export async function runIngest({
     catalogueStored = /** @type {Record<string, string>} */ (res.body.rows);
   }
 
-  // 2. Plan.
   /** @type {HashedModule[]} */
   const hashed = await Promise.all(modules.map(async (m) => ({ ...m, rowHash: await rowHash(m), ftsHash: await ftsHash(m) })));
   if (o.d1Only) {
-    // Runbook step 4 writes the rows step 1 hashed offline, and nothing else.
     const computed = await dataVersion(hashed);
     if (!o.expectedDataVersion) {
       return stop('refused', 'A D1-only run needs the committed data version (src/data-version.json) to check against. Nothing was written.');
@@ -350,15 +240,11 @@ export async function runIngest({
   const plan = planIngest(hashed, stored, { force: o.force });
   result.plan = { embed: plan.embed.length, rowOnly: plan.rowOnly.length, unchanged: plan.unchanged, deletes: plan.deletes.length };
   log(`plan               ${plan.embed.length} to embed, ${plan.rowOnly.length} row-only, ${plan.unchanged} unchanged, ${plan.deletes.length} to delete`);
-  // By what it removes, not by corpus size: a same-size corpus of other codes
-  // deletes everything.
   if (d1Count > 0 && d1Count - plan.deletes.length < o.massDeleteRatio * d1Count && !o.allowMassDelete) {
     return stop('refused', `The corpus offers ${modules.length} modules and would delete ${plan.deletes.length} of the ${d1Count} modules D1 holds `
       + `(${((plan.deletes.length / d1Count) * 100).toFixed(1)}% > ${((1 - o.massDeleteRatio) * 100).toFixed(0)}%). Nothing was written. `
       + 'If the drop is real, rerun with --allow-mass-delete.');
   }
-  // The same guard for catalogue_only (step 4b): a truncated or hostile NUSMods
-  // answer, refreshed by the corpus-only runbook, would otherwise empty the table unasked.
   if (catalogue && catalogueStored && !o.allowMassDelete) {
     const held = Object.keys(catalogueStored);
     const keep = new Set(catalogue.map((r) => r.code));
@@ -370,7 +256,6 @@ export async function runIngest({
     }
   }
 
-  // In code order, so a run stopped by the budget resumes from one code.
   /** @typedef {HashedModule & { reembed: boolean }} WorkItem */
   /** @type {WorkItem[]} */
   let work = [
@@ -387,24 +272,22 @@ export async function runIngest({
   const batches = [];
   for (let i = 0; i < work.length; i += o.batchSize) batches.push(work.slice(i, i + o.batchSize));
 
-  // 3. Upserts inside the write budget.
   /** @type {Record<WriteKind, number>} */
   const perModule = {
     insert: o.writesPerInsert + o.ftsWritesPerInsert,
     fts: o.writesPerUpdate + o.ftsWritesPerTextChange,
     row: o.writesPerUpdate,
   };
-  /** @param {WorkItem[]} batch the estimated rows written, FTS shadow tables included */
+  /** @param {WorkItem[]} batch */
   const estimateBatch = (batch) => Math.ceil(batch.reduce((n, m) => n + perModule[writeKind(m, stored)], 0));
   let reserved = 0;
-  /** Highest meta.rows_written per module any batch has reported; null before the first. */
   /** @type {number | null} */
   let maxRate = null;
   let budgetHit = false;
   /**
-   * Holds budget for a request: its estimate, or more if a batch of this run
-   * has reported a higher per-module rate than the estimate assumes.
-   * @param {number} estimate @param {number} rows @returns {number | null} the reservation, or null if over budget
+   * @param {number} estimate
+   * @param {number} rows
+   * @returns {number | null}
    */
   const reserve = (estimate, rows) => {
     const need = Math.max(estimate, Math.ceil(rows * (maxRate ?? 0)));
@@ -418,7 +301,6 @@ export async function runIngest({
     for (let attempt = 1; ; attempt++) {
       const res = await api.post(path, body);
       if (res.status === 200) return res.body;
-      // Workers AI throttles under load; back off rather than losing the batch.
       if (res.status >= 500 && !o.d1Only && (path === '/admin/ingest' || path === '/admin/delete')) markIdOnly();
       if (attempt < o.maxAttempts && (res.status === 429 || res.status >= 500)) {
         const wait = 2 ** attempt * 1000;
@@ -431,9 +313,8 @@ export async function runIngest({
     }
   };
   /**
-   * Remote D1 may bill writes meta.rows_written leaves out (FTS5 shadow
-   * tables), so the budget counts whichever is larger.
-   * @param {any} body @param {number} estimate
+   * @param {any} body
+   * @param {number} estimate
    */
   const account = (body, estimate) => {
     const written = Number(body?.meta?.rows_written ?? 0);
@@ -444,7 +325,6 @@ export async function runIngest({
 
   /** @param {WorkItem[]} batch @param {number} estimate @param {number} held */
   const upsertBatch = async (batch, estimate, held) => {
-    // rowHash and ftsHash travel along but the Worker recomputes row_hash from what it binds.
     const body = await send(`/admin/ingest${mode}`, { modules: batch }, `batch ${batch[0].code}…`);
     reserved -= held;
     if (!body) { result.failed += batch.length; return; }
@@ -516,8 +396,6 @@ export async function runIngest({
     return stop('failed', `${result.failed} modules failed; deletes skipped. Rerun the same command: the hash skip retries only what failed.`);
   }
 
-  // 4. Deletes, last, one request at a time (inside /admin/delete: hashes
-  // cleared, Vectorize, then D1).
   for (let i = 0; i < plan.deletes.length; i += o.deleteBatchSize) {
     const codes = plan.deletes.slice(i, i + o.deleteBatchSize);
     if (aborted()) return interrupted('during the deletes');
@@ -542,7 +420,6 @@ export async function runIngest({
   }
   if (plan.deletes.length) log(`deleted            ${result.deleted} (${plan.deletes.slice(0, 10).join(', ')}${plan.deletes.length > 10 ? ', …' : ''})`);
 
-  // 4b. catalogue_only, in code order: changed rows, then dropped codes.
   if (catalogue && catalogueStored) {
     const have = catalogueStored;
     const year = years[0];
@@ -563,7 +440,6 @@ export async function runIngest({
       if (aborted()) return interrupted('loading catalogue_only');
       const n = call.upsert.length + call.delete.length;
       const estimate = Math.ceil(n * o.writesPerCatalogueRow);
-      // Not the modules' per-row rate: these rows have no FTS or index fan-out.
       const held = reserve(estimate, 0);
       if (held === null) {
         await facets();
@@ -584,10 +460,6 @@ export async function runIngest({
     log(`catalogue_only     ${result.catalogue.upserted} written, ${result.catalogue.deleted} deleted, ${want.length - upserts.length} unchanged`);
   }
 
-  // 5. Facets (always: the NG list date can change with no row changing), the
-  // Vectorize mutation wait, the data version. Vectorize processes mutations
-  // in order, so this run's last one covers any older pending one; a run that
-  // sent nothing waits for the one an earlier run left unconfirmed.
   await facets();
   await persisted;
   if (o.d1Only) {
@@ -619,8 +491,6 @@ export async function runIngest({
         + 'D1 is complete; rerun the same command once `wrangler vectorize info` shows it: with nothing left to send, '
         + 'it waits for that mutation and then writes the data version. Run npm run verify after.');
     }
-    // Confirmed: a stale entry left behind is harmless (the next run's wait is
-    // satisfied at once), so a failed clear only warns.
     await pending.write(null).catch((err) => log(`  could not clear the pending store: ${/** @type {Error} */ (err).message}`));
   }
   result.dataVersion = await dataVersion(hashed);
@@ -629,15 +499,11 @@ export async function runIngest({
     + `data version ${result.dataVersion}`);
 }
 
-/** The migration that adds each column ingest binds after 0006. */
 const COLUMN_MIGRATIONS = Object.freeze({
   ng_allow: '0009_exchange.sql', ng_rules: '0009_exchange.sql', exam_dates: '0010_exam_dates.sql',
 });
 
-/**
- * "migrations/0009_exchange.sql for ng_allow, ng_rules; …", in migration order.
- * @param {string[]} columns
- */
+/** @param {string[]} columns */
 function migrationsFor(columns) {
   /** @type {Map<string, string[]>} */
   const by = new Map();
@@ -649,13 +515,9 @@ function migrationsFor(columns) {
     .map(([file, cols]) => `${file.endsWith('.sql') ? `migrations/${file}` : file} for ${cols.join(', ')}`).join('; ');
 }
 
-/**
- * Why the database must not be written by this ingest, or null.
- * @param {SchemaStatus | undefined} schema
- */
+/** @param {SchemaStatus | undefined} schema */
 export function describeSchemaProblem(schema) {
   if (schema?.ok && schema.missingColumns !== undefined) return null;
-  // 0006 is in place but a later migration isn't (0009's ng_allow, ng_rules; 0010's exam_dates).
   const only0006 = schema && schema.version !== null && schema.version >= REQUIRED_SCHEMA && schema.ftsExternal
     && schema.rowidTriggers && !schema.missingTriggers?.length && schema.rowHashColumn;
   if (only0006) {
@@ -677,33 +539,13 @@ export function describeSchemaProblem(schema) {
     + 'Apply migrations/0006_fts_external.sql first (ADR 0002).';
 }
 
-/**
- * describe().processedUpToDatetime as epoch ms: `wrangler vectorize info`
- * prints an ISO 8601 string, workers-types declares a number; null if neither.
- * @param {unknown} v
- */
+/** @param {unknown} v */
 const epochMs = (v) => {
   const ms = typeof v === 'number' ? v : typeof v === 'string' ? Date.parse(v) : NaN;
   return Number.isFinite(ms) ? ms : null;
 };
 
 /**
- * Polls GET /admin/vectorize until Vectorize has processed `target`.
- * Vectorize processes mutations in order, so either is proof:
- * - describe().processedUpToMutation is `target.id`;
- * - describe().processedUpToDatetime is strictly later than `target.sentAt`
- *   (the Worker's clock just after Vectorize accepted it, src/ingest.js
- *   acceptedAt): the mutation processed was accepted after ours, so ours is
- *   processed too. This one is what ends the wait once Vectorize has moved
- *   past `target` (another client mutated the index later), where the id
- *   never matches again. Strictly later: one stamped in the same millisecond
- *   as sentAt may be an earlier mutation. Never for an id in `target.earlier`:
- *   whether processedUpToDatetime is when Vectorize accepted a mutation or
- *   when it processed it is undocumented, and in the second reading an
- *   earlier mutation of this run would pass while `target` is still queued.
- * Without a sentAt (an older Worker, or a run that retried a mutating
- * request) only the id counts. Bounded: false after `timeoutMs`, or once
- * `signal` is aborted.
  * @param {AdminApi} api
  * @param {PendingMutation} target
  * @param {{ timeoutMs: number, intervalMs: number, sleep: (ms: number) => Promise<void>, now: () => number, log: (line: string) => void, signal?: AbortSignal }} o
@@ -730,7 +572,6 @@ export async function waitForMutation(api, target, { timeoutMs, intervalMs, slee
   }
 }
 
-/** Bound on the ids a pending mutation carries in `earlier` (a run sends ~140). */
 const MAX_OWN_IDS = 2_000;
 
 /** @param {number} ms */

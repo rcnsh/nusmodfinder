@@ -1,10 +1,4 @@
 // @ts-check
-// The typo corrector (src/typo.js) at parse step 3, the parse after it (src/query-intent.js),
-// and the FTS expression it yields (src/fts-query.js). Per pre-correction
-// token with df 0: 4+ letters → a prefix term; only if that prefix term
-// matches nothing, 5+ letters → the nearest vocabulary term by OSA distance
-// (≤ 1 for 5–7 letters, ≤ 2 for 8+; ties to the higher df, then the smaller
-// term); the original stays in the OR. Intents read the corrected text.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -35,7 +29,6 @@ describe('correctQuery (step 3)', () => {
   });
 
   it('makes a df-0 token of 4+ letters a prefix term, and does not correct it when the prefix matches (psych is not psyche)', () => {
-    // FTS5 stems the prefix: `marketting`* is `market`*, which matches marketing.
     expect(correctQuery('marketting', vocab)).toMatchObject({ prefixes: ['marketting'], corrections: [] });
     const c = correctQuery('psych memory', vocab);
     expect(c.prefixes).toEqual(['psych']);
@@ -53,9 +46,7 @@ describe('correctQuery (step 3)', () => {
 
   it('allows distance 1 for 5–7 letters and 2 for 8+', () => {
     expect(correctQuery('orgainc chemistry', vocab).corrections).toEqual([{ from: 'orgainc', to: 'organic' }]);
-    // 7 letters, 2 edits from `organic`: not corrected.
     expect(correctQuery('orgnaix', vocab).corrections).toEqual([]);
-    // 10 letters, 2 edits (`enviromental` is 1; `envirnmentl` is 2).
     expect(correctQuery('envirnmentl policy', vocab).corrections).toEqual([{ from: 'envirnmentl', to: 'environmental' }]);
     expect(correctQuery('sustainabilty', vocab).corrections).toEqual([{ from: 'sustainabilty', to: 'sustainability' }]);
   });

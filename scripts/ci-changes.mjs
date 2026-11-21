@@ -1,38 +1,20 @@
 #!/usr/bin/env node
 // @ts-check
-// CI's one diff rule. The `changes` job runs it and sets four outputs the heavy jobs
-// skip by, by steps, never by a job-level `if`:
-//   code      full-corpus and oracle: anything outside docs/** and the root *.md files;
-//   ui        the UI suite: the paths it covers (UI below);
-//   grid      full-corpus's lexical grid in full, else its fixed sample: the paths it covers;
-//   rollover  the year-switch rehearsal (scripts/rollover.mjs): as code.
-// The base: a PR's base sha; a push to main, the newest main commit whose CI run succeeded and
-// which HEAD contains. A workflow_dispatch, an API error, no green run, an unreachable base or a
-// failed diff runs everything. A change to this file or to ci.yml runs everything too.
-//
-//   node scripts/ci-changes.mjs              outputs code, ui, grid, rollover, full and base
-//   node scripts/ci-changes.mjs --base-only  outputs base (empty when there is none)
-//
-// Reads GITHUB_EVENT_NAME, PR_BASE (the PR's base sha), GITHUB_REPOSITORY and GH_TOKEN, and
-// writes to GITHUB_OUTPUT. Needs only Node, git and gh.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-/** A change to the decision itself. */
 const SELF = ['.github/workflows/ci.yml', 'scripts/ci-changes.mjs'];
-/** What the UI suite covers: the ui job's former diff step, plus test/web and test/oracle, which test/ui imports. */
 const UI = [
   'public', 'src', 'test/ui', 'test/web', 'test/oracle', 'test/fakes.js', 'scripts/ui-server.mjs', 'scripts/lib.mjs', 'wrangler.jsonc',
   'test/wrangler.ui.jsonc', 'playwright.config.mjs', 'migrations', 'test/fixtures', 'data', 'package.json',
   'package-lock.json', '.nvmrc',
 ];
-/** What the lexical grid covers (full-corpus's former grid step). */
 const GRID = ['src', 'migrations', 'scripts', 'test/full', 'vitest.config.mjs', 'test/wrangler.test.jsonc', 'package-lock.json'];
 
 /** @param {string} file @param {string[]} paths */
 const under = (file, paths) => paths.some((p) => file === p || file.startsWith(`${p}/`));
-/** Docs no heavy suite reads (npm test, which reads some, is in `check`, which never skips). @param {string} file */
+/** @param {string} file */
 const isDocs = (file) => file.startsWith('docs/') || /^[^/]+\.md$/.test(file);
 
 /**
@@ -40,7 +22,6 @@ const isDocs = (file) => file.startsWith('docs/') || /^[^/]+\.md$/.test(file);
  */
 
 /**
- * Which heavy jobs a list of changed files needs.
  * @param {string[]} files
  * @returns {Needs}
  */
@@ -57,8 +38,7 @@ export function decide(files) {
  *   listGreen: () => string[],
  *   reachable: (sha: string) => boolean,
  *   diff: (base: string) => string[],
- * }} Inputs `listGreen`: head shas of successful CI push runs on main, newest first;
- *   `reachable`: the commit is in the clone and HEAD contains it
+ * }} Inputs
  */
 
 /**
@@ -105,8 +85,6 @@ function run(cmd, args) {
 }
 
 /**
- * The files changed between `base` and HEAD. `--no-renames`: a moved file counts at both its old
- * and its new path, so moving a file out of a suite's paths still runs that suite.
  * @param {string} base
  * @param {string} [cwd]
  */

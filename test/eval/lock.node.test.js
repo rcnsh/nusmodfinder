@@ -1,8 +1,4 @@
 // @ts-check
-// The query sets are locked by hashes written in ADR 0003. The manifest alone
-// only checks itself (a PR could change a ciphertext and MANIFEST.json
-// together), so this test ties both to the ADR: changing a set means
-// changing the ADR, visibly, in the same PR.
 import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -42,7 +38,6 @@ describe('query-set locks (ADR 0003)', () => {
     const start = adr.indexOf('## No-look routes');
     expect(start, `${ADR} has no "No-look routes" section`).toBeGreaterThan(0);
     const section = adr.slice(start, adr.indexOf('\n## ', start + 1));
-    // The bullet, up to the next one: route names in backticks, before each parenthesis.
     const from = section.indexOf('\n- **The routes:**');
     expect(from, 'the section has no "The routes:" bullet').toBeGreaterThan(0);
     const end = section.indexOf('\n- ', from + 1);
@@ -55,10 +50,10 @@ describe('query-set locks (ADR 0003)', () => {
   it('a plaintext file in an encrypted-set directory fails verification', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'vnm-lock-'));
     try {
-      await writeFile(join(dir, '.DS_Store'), ''); // Finder's, ignored
-      await writeFile(join(dir, '._queries.json.enc'), ''); // Finder's, ignored
+      await writeFile(join(dir, '.DS_Store'), '');
+      await writeFile(join(dir, '._queries.json.enc'), '');
       await writeFile(join(dir, 'queries.json'), '{}');
-      await writeFile(join(dir, '.queries.json'), '{}'); // a hidden plaintext is still refused
+      await writeFile(join(dir, '.queries.json'), '{}');
       const problems = await verifyManifest(dir);
       expect(problems).toHaveLength(2);
       expect(problems).toEqual(expect.arrayContaining([expect.stringMatching(/\/queries\.json is not a ciphertext/), expect.stringMatching(/\/\.queries\.json is not a ciphertext/)]));

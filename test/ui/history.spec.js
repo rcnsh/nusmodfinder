@@ -1,7 +1,4 @@
 // @ts-check
-// History: the page's transition table (public/nav.js) in the browser, every
-// row: queries, filters, clearing, and opening,
-// switching and closing a card's detail, with focus back on its button.
 import { expect, test } from '@playwright/test';
 import { EMPTY, browse, matchFor, query, searches, pill } from './support.mjs';
 
@@ -31,7 +28,6 @@ test('each submitted query is an entry: Back and Forward restore its results fro
   await page.goForward();
   await resultsFor(page, 'databases');
   expect(sent).toHaveLength(3);
-  // Back past the first search is the empty page, not another site.
   await page.goBack();
   await page.goBack();
   await expect(page.locator('#status')).toHaveText(EMPTY);
@@ -169,13 +165,11 @@ test('closing a detail this page opened goes back, by its button, its Close butt
   for (const close of ['toggle', 'close', 'escape']) {
     await t.click();
     await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244');
-    // Opening again from the list entry pushes over the forward entry Back left.
     expect(await historyLength(page), close).toBe(before + 1);
     if (close === 'toggle') await t.click();
     else if (close === 'close') await page.getByRole('button', { name: 'Close details' }).click();
     else await page.keyboard.press('Escape');
     await expect.poll(() => query(page), close).toBe('q=CS3244');
-    // back(), not a new entry: the open entry is Forward from here.
     expect(await historyLength(page), close).toBe(before + 1);
     await expect(t, close).toHaveAttribute('aria-expanded', 'false');
     await expect(t, close).toBeFocused();
@@ -226,25 +220,18 @@ test('Escape that ends an IME composition in the query box leaves the detail ope
   await expect(page.locator('#q')).toBeFocused();
 });
 
-// ---------------------------------------------------------------------------
-// The shortlist's state. The list is page-wide; every history write goes
-// through one writer (public/history.js). These drive the list through the
-// page's test hooks (`vnmTest`).
-
 /**
- * Installs the page's test hooks before it loads.
  * @param {import('@playwright/test').Page} page
  * @param {{ forceCoalesce?: boolean }} [opts]
  */
 const hooks = (page, opts = {}) => page.addInitScript((o) => { /** @type {any} */ (globalThis).vnmTest = { ...o }; }, opts);
 /**
- * An edit through the hooks, as the view's controls will make it.
  * @param {import('@playwright/test').Page} page
  * @param {string} fn
  * @param {unknown[]} args
  */
 const edit = (page, fn, ...args) => page.evaluate(([f, a]) => /** @type {any} */ (globalThis).vnmTest.edit[/** @type {string} */ (f)](.../** @type {unknown[]} */ (a)), [fn, args]);
-/** The list's URL part, from the page's own URL. @param {import('@playwright/test').Page} page */
+/** @param {import('@playwright/test').Page} page */
 const listPart = (page) => [...new URL(page.url()).searchParams].filter(([k]) => ['pick', 'alt', 'ay', 'inv'].includes(k)).map(([k, v]) => `${k}=${v}`).join('&');
 
 test('an edit on a later entry: Back and Forward keep the list, and write it into the entry they reach', async ({ page }) => {
@@ -258,7 +245,6 @@ test('an edit on a later entry: Back and Forward keep the list, and write it int
   expect(await edit(page, 'add', 'CS2105', '1')).toEqual({ ok: true });
   expect(await edit(page, 'add', 'GE2101', '')).toEqual({ ok: true });
   expect(query(page)).toBe('q=databases&pick=CS2105.1&pick=GE2101');
-  // An edit replaces: no new entry, and no search.
   expect(await historyLength(page)).toBe(before);
   await page.goBack();
   await resultsFor(page, 'networks');
@@ -297,13 +283,10 @@ test('coalescing forced: two edits then a code link; the URL\'s q matches the sc
   await edit(page, 'add', 'CS3244', '2');
   await edit(page, 'add', 'CS2030', '1');
   await link.click();
-  // CS2040 isn't in the fixture: the screen says so, for q=CS2040.
   await expect(page.locator('#q')).toHaveValue('CS2040');
   await expect(page.locator('#status')).toContainText('CS2040');
   await page.waitForTimeout(1000);
-  // The open detail loaded CS3244's row before the edits, so they carry its year.
   expect(query(page)).toBe('q=CS2040&pick=CS3244.2&pick=CS2030.1&ay=2026-2027');
-  // The entry left holds both edits: they landed before the push.
   await page.goBack();
   await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&pick=CS2030.1&ay=2026-2027');
 });
@@ -313,7 +296,6 @@ test('open a detail, edit, Escape: no open=, the list kept; Forward re-opens the
   await page.goto('/?q=CS3244');
   await toggle(page, 'CS3244').click();
   await expect.poll(() => query(page)).toBe('q=CS3244&open=CS3244');
-  // The detail's row is loaded, so the edit carries its year.
   await expect(page.locator('#results .detail a[data-search]').first()).toBeVisible();
   await edit(page, 'add', 'CS3244', '2');
   expect(query(page)).toBe('q=CS3244&open=CS3244&pick=CS3244.2&ay=2026-2027');
@@ -339,7 +321,6 @@ test('two edits within 300 ms then a reload: both survive (edits are written at 
 
 test('a refused push is retried, and an edit made meanwhile folds into it: one entry, holding the edit', async ({ page }) => {
   await hooks(page);
-  // The next pushState throws, as WebKit's does past 100 writes in 10 s.
   await page.addInitScript(() => {
     const g = /** @type {any} */ (globalThis);
     g.refusePush = 0;
@@ -395,7 +376,6 @@ test('150 edits in 5 s make no more history writes than the writer\'s budget, an
 
 test('ay: never written on load; Copy link carries it once a row has loaded, and the first edit writes it', async ({ page }) => {
   await hooks(page);
-  // The page loads the list's rows on load: held here, so "before a row loads" can be seen.
   /** @type {import('@playwright/test').Route[]} */
   const held = [];
   await page.route('**/module/CS2030', (route) => { held.push(route); });
@@ -403,7 +383,6 @@ test('ay: never written on load; Copy link carries it once a row has loaded, and
   await resultsFor(page, 'networks');
   expect(query(page)).toBe('q=networks&ng=1&study=ug2&pick=CS2030.1');
   const link = () => page.evaluate(() => /** @type {any} */ (globalThis).vnmTest.shortlistLink());
-  // Copy link never waits: before a row loads, no ay.
   await expect.poll(() => held.length).toBe(1);
   expect(new URL(await link()).search).toBe('?ng=1&study=ug2&pick=CS2030.1&view=shortlist');
   await held[0].continue();
@@ -432,7 +411,6 @@ test('the device keeps the last list this student edited; opening someone else\'
   await page.goto('/?q=databases&pick=CS2102.2&alt=CS3223.1');
   await resultsFor(page, 'databases');
   expect(await saved()).toBe('pick=CS2105.1');
-  // A link with a list: nothing to offer. A link without one: the device's list.
   expect(await page.evaluate(() => /** @type {any} */ (globalThis).vnmTest.restoreOffer())).toBeNull();
   await page.goto('/?q=databases');
   await resultsFor(page, 'databases');

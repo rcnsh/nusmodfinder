@@ -1,20 +1,4 @@
 // @ts-check
-// The corpus manifest (data/corpus.json).
-// Each production corpus is a GitHub release asset, `prod-<year>-<yyyymmdd>`,
-// holding NUSMods' moduleInfo.json gzipped. The manifest records the asset,
-// the raw file's sha256 and when NUSMods served it; `current` names the entry
-// ingest, the vectors bundle and every per-corpus file (the vocabulary,
-// groups, ng-unscheduled, catalogue and prefix files) read. They read it from
-// `.data/prod/<sha256>.json`, sha-checked, never from the `.data/cache`
-// download, so a refetch can never split D1 from what the repo records. The
-// manifest stores no data version: that depends on the NG files too
-// (src/rowhash.js), so it is always recomputed (`checkCurrent`, CI's `corpus
-// check`).
-//
-//   npm run corpus -- fetch [<year>]   NUSMods' moduleInfo.json into .data/staging/
-//   npm run corpus -- publish          upload a staged (or --file) corpus, write its entry, set current
-//   npm run corpus -- restore          download and sha-check current into .data/prod/<sha256>.json
-//   npm run corpus -- check            CI: the data version and catalogueKey of current against HEAD
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -30,9 +14,7 @@ import { startRun } from './run-record.mjs';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 export const CORPUS_SCHEMA = 'vnm-corpus-manifest/1';
 export const CORPUS_MANIFEST_PATH = join(ROOT, 'data/corpus.json');
-/** Restored corpora, by raw sha256 (git-ignored). */
 export const PROD_DIR = join(ROOT, '.data/prod');
-/** `corpus fetch` downloads (git-ignored). */
 export const STAGING_DIR = join(ROOT, '.data/staging');
 const DATA_VERSION_PATH = join(ROOT, 'src/data-version.json');
 const BUNDLED_CATALOGUE = join(ROOT, 'data/catalogue-codes.json');
@@ -41,25 +23,29 @@ const BUNDLED_CATALOGUE = join(ROOT, 'data/catalogue-codes.json');
  * @typedef {{ year: string, release: string, asset: string, sha256: string, bytes: number, fetchedAt: string }} CorpusEntry
  * @typedef {{ schema: string, current: string, corpora: Record<string, CorpusEntry> }} CorpusManifest
  * @typedef {(release: string, asset: string, destDir: string) => Promise<void>} Download
- *   Writes the release's asset into destDir (as `gh release download` does).
  * @typedef {(release: string, file: string, o: { title: string, notes: string }) => Promise<void>} Upload
- *   Creates the release with the file as its asset (as `gh release create` does).
  */
 
 /** @param {Buffer | string} bytes */
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
-/** `prod-<year>-<UTC yyyymmdd of the fetch>`. @param {string} year @param {string} fetchedAt */
+/**
+ * @param {string} year
+ * @param {string} fetchedAt
+ */
 export function releaseName(year, fetchedAt) {
   const t = new Date(fetchedAt);
   if (Number.isNaN(t.getTime())) throw new Error(`not a time: "${fetchedAt}"`);
   return `prod-${year}-${t.toISOString().slice(0, 10).replaceAll('-', '')}`;
 }
 
-/** The asset's file name in its release. @param {string} year */
+/** @param {string} year */
 export const assetName = (year) => `${year}-moduleInfo.json.gz`;
 
-/** Where a restored corpus lives. @param {{ sha256: string }} entry @param {string} [dir] */
+/**
+ * @param {{ sha256: string }} entry
+ * @param {string} [dir]
+ */
 export const corpusPath = (entry, dir = PROD_DIR) => join(dir, `${entry.sha256}.json`);
 
 /**
@@ -86,9 +72,6 @@ export function currentEntry(m) {
 }
 
 /**
- * `current`, read from `.data/prod/<sha256>.json` and sha-checked. Refuses a missing file (naming
- * `corpus restore`), a sha256 that is not current's, and a current entry for another year than
- * DEFAULT_ACAD_YEAR (one year source).
  * @param {{ manifestPath?: string, dir?: string, year?: string }} [o]
  * @returns {Promise<{ entry: CorpusEntry, records: import('./lib.mjs').NusModsRecord[], path: string }>}
  */
@@ -116,8 +99,6 @@ export async function loadCurrentCorpus({ manifestPath = CORPUS_MANIFEST_PATH, d
 }
 
 /**
- * The data version of the rows ingest would write from these records, with HEAD's NG files for
- * the year unless `ngCourses` is given.
  * @param {import('./lib.mjs').NusModsRecord[]} records
  * @param {string} year
  * @param {import('./lib.mjs').NgCourses} [ngCourses]
@@ -127,10 +108,7 @@ export async function corpusDataVersion(records, year, ngCourses) {
   return dataVersion(await Promise.all(modules.map(async (m) => ({ code: m.code, rowHash: await rowHash(m) }))));
 }
 
-/**
- * `current`, normalised as ingest normalises it: HEAD's NG files for its year.
- * @param {{ manifestPath?: string, dir?: string }} [o]
- */
+/** @param {{ manifestPath?: string, dir?: string }} [o] */
 export async function productionCorpus(o = {}) {
   const { entry, records, path } = await loadCurrentCorpus(o);
   const ngCourses = await loadNgCourses(entry.year);
@@ -151,22 +129,17 @@ async function ghUpload(release, file, { title, notes }) {
 }
 
 /**
- * Makes `current` available in this worktree: downloads its asset (unless the restored file is
- * already there and right), gunzips it, checks the raw sha256 and writes `.data/prod/<sha256>.json`.
- * A wrong sha256 writes nothing.
  * @param {{ manifestPath?: string, dir?: string, download?: Download, log?: (line: string) => void }} [o]
- * @returns {Promise<string>} the restored file
+ * @returns {Promise<string>}
  */
 export async function restoreCurrent({ manifestPath = CORPUS_MANIFEST_PATH, dir = PROD_DIR, download = ghDownload, log = console.log } = {}) {
   return restoreEntry(currentEntry(await readCorpusManifest(manifestPath)), { dir, download, log });
 }
 
 /**
- * Any manifest entry (smoke's: the expected commit's `current`) into `<dir>/<sha256>.json`,
- * sha-checked; a no-op when it is already there.
  * @param {CorpusEntry} entry
  * @param {{ dir?: string, download?: Download, log?: (line: string) => void }} [o]
- * @returns {Promise<string>} the restored file's path
+ * @returns {Promise<string>}
  */
 export async function restoreEntry(entry, { dir = PROD_DIR, download = ghDownload, log = console.log } = {}) {
   const path = corpusPath(entry, dir);
@@ -192,8 +165,6 @@ export async function restoreEntry(entry, { dir = PROD_DIR, download = ghDownloa
 }
 
 /**
- * NUSMods' moduleInfo.json for a year into `.data/staging/`, with a sidecar recording when it
- * was served and its sha256 (what `publish` reads). The only command that contacts NUSMods.
  * @param {string} year
  * @param {{ fetchImpl?: typeof fetch, dir?: string, now?: () => Date, log?: (line: string) => void }} [o]
  */
@@ -214,10 +185,6 @@ export async function fetchStaging(year, { fetchImpl = fetch, dir = STAGING_DIR,
 }
 
 /**
- * Publishes a corpus: refuses one whose data version (with HEAD's NG files) is not the committed
- * src/data-version.json unless `newDataVersion` (a refresh whose data moves; ingest and the bundle
- * follow), and a release the manifest already has. Uploads the gz asset, writes the entry, sets
- * `current`, and leaves the corpus restored here. Writes a run record.
  * @param {{ file?: string, fetchedAt?: string, year?: string, manifestPath?: string, dataVersionPath?: string, dir?: string,
  *   upload?: Upload, log?: (line: string) => void, runsDir?: string, newDataVersion?: boolean, args?: string[] }} [o]
  * @returns {Promise<{ entry: CorpusEntry, dataVersion: string }>}
@@ -232,8 +199,6 @@ export async function publishCorpus(o = {}) {
   const records = JSON.parse(raw.toString('utf8'));
   assertExpectedShape(records);
   const sidecar = JSON.parse(await readFile(`${file}.cache.json`, 'utf8').catch(() => '{}'));
-  // The file's own year, from the URL `corpus fetch` recorded or its name: a corpus is never
-  // published under another year (ingest would write its rows as that year).
   const ownYear = /\/v2\/(\d{4}-\d{4})\//.exec(String(sidecar.url ?? ''))?.[1] ?? /(?:^|[^\d])(\d{4}-\d{4})-moduleInfo\.json$/.exec(basename(file))?.[1];
   if (ownYear && ownYear !== year) {
     throw new Error(`${basename(file)} is NUSMods' ${ownYear} corpus, not ${year}'s. Nothing published. For a new acad year, change DEFAULT_ACAD_YEAR `
@@ -285,10 +250,6 @@ export async function publishCorpus(o = {}) {
 }
 
 /**
- * CI's check of `current` against HEAD: the data version of the rows ingest would write from the
- * asset with HEAD's NG files must be src/data-version.json, and the catalogueKey of the asset's
- * catalogue-only codes must be the bundled catalogue file's, built from this asset. A mid-year NG
- * revision on the same asset moves the data version, so it fails until src/data-version.json follows.
  * @param {{ manifestPath?: string, dir?: string, dataVersionPath?: string, cataloguePath?: string,
  *   ngCourses?: import('./lib.mjs').NgCourses }} [o]
  */

@@ -1,16 +1,13 @@
 // @ts-check
-// Shared helpers for probing, ingesting and evaluating the NUSMods corpus.
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { isCohortOnly } from '../src/cohort-only.js';
 import { storedEligibility } from '../src/eligibility.js';
 
-/** The pre-registered cohort-only rule, as scripts/build-catalogue-data.mjs mirrors it into data/. */
 const COHORT_ONLY = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.json', import.meta.url), 'utf8'));
 
 /**
- * The fields of a NUSMods v2 moduleInfo record this code reads.
  * @typedef {{
  *   moduleCode?: string, title?: string, description?: string, moduleCredit?: string | number,
  *   department?: string, faculty?: string, semesterData?: { semester?: unknown, examDate?: string, examDuration?: unknown }[],
@@ -18,61 +15,26 @@ const COHORT_ONLY = JSON.parse(readFileSync(new URL('../data/cohort-only-prereq.
  *   attributes?: { su?: boolean }, gradingBasisDescription?: string,
  * }} NusModsRecord
  * @typedef {Omit<Awaited<ReturnType<typeof loadNgCourses>>, 'stub' | 'unpublished'> & { stub?: boolean, unpublished?: number[] }} NgCourses
- *   `stub` and `unpublished` are optional for an NgCourses built by hand (tests)
  */
 
 export const DEFAULT_ACAD_YEAR = '2026-2027';
 export const EMBEDDING_MODEL = '@cf/baai/bge-small-en-v1.5';
-/**
- * Bump when embeddingText() changes, so text_hash changes and every module is
- * re-embedded once (text_hash = hash(model + this + text)).
- */
 export const EMBEDDING_TEXT_VERSION = 2;
 export { EMBEDDING_DIMS } from '../src/embedding.js';
-// NUSMods downloads. Not .data/ itself: .data/<year>-moduleInfo.json is the
-// pinned snapshot the eval and full-corpus tests read (scripts/pinned-corpus.mjs).
 export const CACHE_DIR = new URL('../.data/cache/', import.meta.url);
 
-// bge-small-en-v1.5 accepts 512 input tokens. ~4 chars/token, kept short of the
-// ceiling so the tail of a long description is never silently dropped mid-run.
 export const MAX_BLOB_CHARS = 1900;
 
-// NUS codes are 1-4 letters, four digits, then an optional variant suffix of up
-// to five alphanumerics: the live corpus has ACC1701XA, DMA1401L01, DMR1201GEQA
-// and LC6009GRSII.
-// A query only short-circuits if the code actually exists, so a loose match is safe.
 export const MODULE_CODE_RE = /^[A-Z]{1,4}\d{4}[A-Z0-9]{0,5}$/;
 
-/** How long a .data/ entry is used without asking NUSMods whether it changed (`--max-age`). */
 export const DEFAULT_MAX_AGE_MS = 24 * 3_600_000;
 
-/**
- * Sidecar stored next to each .data/ entry (`<entry>.cache.json`): the
- * validators NUSMods sent with it, when it was last fetched or revalidated,
- * and the sha256 of the body it vouches for.
- * @typedef {{ url: string, etag: string | null, lastModified: string | null, fetchedAt: string, sha256?: string }} CacheSidecar
- */
+/** @typedef {{ url: string, etag: string | null, lastModified: string | null, fetchedAt: string, sha256?: string }} CacheSidecar */
 
 /** @param {string} body */
 const bodySha256 = (body) => createHash('sha256').update(body).digest('hex');
 
 /**
- * Fetches `https://api.nusmods.com/v2/<acadYear>/<file>` through the .data/
- * cache.
- * - An entry younger than `maxAgeMs` (by its sidecar's `fetchedAt`) is used
- *   without a request.
- * - Otherwise it is revalidated: a conditional GET with `If-None-Match` /
- *   `If-Modified-Since` from the sidecar. 304 keeps the body and refreshes
- *   `fetchedAt`; 200 replaces body and sidecar. An entry with no sidecar
- *   (written before sidecars existed) is fetched unconditionally.
- * - `offline` uses the entry however old and never fetches.
- * - The sidecar's sha256 must match the body. If it does not (a truncated or
- *   edited file, or a sidecar from before the hash was recorded), the entry is
- *   ignored: a full GET with no validators, so a 304 cannot bless the bad
- *   body. `offline` refuses a mismatching body; with no sidecar hash at all
- *   it uses the body as it is.
- * A failed revalidation is an error, never a silent stale read; pass
- * `offline` to use the stale copy deliberately.
  * @param {string} acadYear
  * @param {string} file
  * @param {{ offline?: boolean, maxAgeMs?: number, cacheDir?: URL, fetchImpl?: typeof fetch, now?: () => number }} [options]
@@ -101,7 +63,6 @@ export async function fetchAcadYearFile(acadYear, file, options = {}) {
     }
     return fromCache(onDisk, false);
   }
-  // Only a body its sidecar vouches for is served or revalidated.
   const cached = vouched ? onDisk : null;
   if (cached !== null && ageMs !== null && ageMs >= 0 && ageMs < maxAgeMs) return fromCache(cached, false);
 
@@ -129,7 +90,6 @@ export async function fetchAcadYearFile(acadYear, file, options = {}) {
   }
   const body = await res.text();
   const data = parseJson(body, url);
-  // Body first, then the sidecar that vouches for it, each replaced atomically.
   await writeFile(new URL(`${cachePath.href}.tmp`), body);
   await rename(new URL(`${cachePath.href}.tmp`), cachePath);
   /** @type {CacheSidecar} */
@@ -149,7 +109,6 @@ function parseJson(body, where) {
 
 const REQUIRED_KEYS = ['moduleCode', 'title', 'description', 'moduleCredit', 'faculty', 'semesterData'];
 
-// Aborts rather than writing malformed rows if NUSMods changes shape.
 /** @param {unknown} records */
 export function assertExpectedShape(records) {
   if (!Array.isArray(records) || records.length === 0) {
@@ -180,10 +139,7 @@ export function semestersOf(record) {
   return [...new Set(sems)].sort((a, b) => a - b);
 }
 
-/**
- * The level label in the embedding text. Levels with no label (0, 9, none) get null and the Level field is left out.
- * @param {number | null} level
- */
+/** @param {number | null} level */
 export function levelLabel(level) {
   if (level === 1) return 'introductory';
   if (level === 2 || level === 3) return 'intermediate';
@@ -192,9 +148,6 @@ export function levelLabel(level) {
   return null;
 }
 
-/**
- * The embedding text variants: the fields, in order.
- */
 export const EMBEDDING_TEXT_VARIANTS = /** @type {const} */ ({
   v1: ['code', 'title', 'level', 'description', 'department', 'faculty'],
   v2: ['code', 'title', 'level', 'description'],
@@ -202,19 +155,10 @@ export const EMBEDDING_TEXT_VARIANTS = /** @type {const} */ ({
 });
 /** @typedef {keyof typeof EMBEDDING_TEXT_VARIANTS} EmbeddingTextVariant */
 
-/**
- * The variant embeddingText() builds (EMBEDDING_TEXT_VERSION 2). It is the
- * only place the variants differ, so the ranker tree hash names the text the
- * eval scored.
- * @type {EmbeddingTextVariant}
- */
+/** @type {EmbeddingTextVariant} */
 export const EMBEDDING_TEXT_VARIANT = 'v1';
 
 /**
- * A variant's text. Each field is whitespace-collapsed and ends with one
- * sentence mark: a "." is added unless it already ends in ".", "!" or "?", so
- * a description's own full stop is not doubled. Empty fields are skipped; the
- * whole is cut at MAX_BLOB_CHARS.
  * @param {NusModsRecord} record
  * @param {EmbeddingTextVariant} variant
  */
@@ -253,21 +197,9 @@ export function hashOf(text) {
   return createHash('sha256').update(text).digest('hex').slice(0, 32);
 }
 
-// Non-Graduating (exchange student) availability. NUS publishes this only as a
-// PDF, so it is extracted by scripts/extract-ng.py into a committed artifact
-// rather than fetched. Absent file => no NG data, and every module is marked
-// unknown rather than silently false; ingest refuses that, and a stub
-// (`year next` writes stubs), since exchange mode would show every course closed.
-//
-// ADR 0015: a semester the year's source manifest
-// (data/ng-sources-<year>.json) marks unpublished takes last year's list for that
-// semester (data/ng-courses-<last year>.json), and `unpublished` names it, so
-// offeredModules marks it on every module (`ngUnpublished`) and src/eligibility.js
-// counts a course listed there "to confirm", never open. Without a manifest, or with
-// every semester published, nothing changes.
 /**
  * @param {string} acadYear
- * @param {{ dataDir?: URL }} [o] the data/ directory (tests point it at a temp copy)
+ * @param {{ dataDir?: URL }} [o]
  */
 export async function loadNgCourses(acadYear, { dataDir = new URL('../data/', import.meta.url) } = {}) {
   const path = new URL(`ng-courses-${acadYear}.json`, dataDir);
@@ -309,8 +241,8 @@ export async function loadNgCourses(acadYear, { dataDir = new URL('../data/', im
 }
 
 /**
- * The semesters the year's source manifest marks unpublished; none without a manifest.
- * @param {string} acadYear @param {URL} dataDir
+ * @param {string} acadYear
+ * @param {URL} dataDir
  * @returns {number[]}
  */
 function unpublishedSemesters(acadYear, dataDir) {
@@ -324,9 +256,6 @@ function unpublishedSemesters(acadYear, dataDir) {
 class NgRestrictionsMissing extends Error {}
 
 /**
- * The restrictions data for a year (scripts/build-ng-restrictions.mjs), read
- * with readFileSync so nothing imports JSON. A year with an NG list and no
- * restrictions file is an error: exchange mode would show courses unchecked.
  * @param {string} acadYear
  * @param {{ dataDir?: URL }} [o]
  * @returns {import('../src/eligibility.js').Rules & { updatedAsAt?: Record<string, string> }}
@@ -345,9 +274,6 @@ export function loadNgRestrictions(acadYear, { dataDir = new URL('../data/', imp
 }
 
 /**
- * A week's workload in hours: the sum of the NUSMods workload array. NULL when
- * the field is missing, not an array of numbers, or all zero (C-11: 259
- * modules list zeros, which means "not listed", not "no work").
  * @param {unknown} workload
  * @returns {number | null}
  */
@@ -361,16 +287,12 @@ export function workloadHours(workload) {
   return sum > 0 ? sum : null;
 }
 
-/** @param {{ examDate?: unknown }} d a semesterData entry */
+/** @param {{ examDate?: unknown }} d */
 const hasExam = (d) => typeof d.examDate === 'string' && d.examDate !== '';
 
 /**
- * The exams of a module: one per offered semester with an examDate, by
- * semester, so their semesters are exactly examSemesters.
- * The date stays as moduleInfo gives it (ISO UTC); a duration that is not a
- * finite number is null, not a guess.
  * @param {NusModsRecord} record
- * @param {number[]} semesters the offered semesters, sorted
+ * @param {number[]} semesters
  * @returns {{ sem: number, date: string, durationMins: number | null }[]}
  */
 export function examDatesOf(record, semesters) {
@@ -384,7 +306,6 @@ export function examDatesOf(record, semesters) {
   return out;
 }
 
-// One normalised module. `skipped` explains why a record was dropped (R2).
 /**
  * @param {NusModsRecord} record
  * @param {string} acadYear
@@ -399,8 +320,6 @@ export function normalise(record, acadYear) {
   const semesters = semestersOf(record);
   const credits = Number(record.moduleCredit);
   const text = embeddingText(record);
-  // The vector depends on the model and on how the text was built, not only
-  // on the text: a model switch or embeddingText() change must re-embed.
   const textHash = hashOf(JSON.stringify([EMBEDDING_MODEL, EMBEDDING_TEXT_VERSION, text]));
 
   return {
@@ -419,15 +338,11 @@ export function normalise(record, acadYear) {
       acadYear,
       text,
       textHash,
-      // Filled in by offeredModules() when an NG list is present.
       ng: false,
       ngSemesters: [],
-      // Filled in by offeredModules() from the NG list and restrictions; 0 = closed everywhere.
       ngAllow: 0,
       ngRules: null,
-      // What the no-exam, S/U, workload and prerequisite intents filter on.
       examSemesters: semesters.filter((s) => (record.semesterData ?? []).some((d) => d.semester === s && hasExam(d))),
-      // Each exam's date and duration, for /module/:code (migrations/0010_exam_dates.sql).
       examDates: examDatesOf(record, semesters),
       su: record.attributes?.su === true,
       gradingBasis: record.gradingBasisDescription ?? null,
@@ -438,9 +353,6 @@ export function normalise(record, acadYear) {
   };
 }
 
-// Only modules actually offered this acad year are indexed. moduleInfo.json
-// carries the whole historical catalogue, about three times the offered modules
-// (`npm run probe` prints both counts and the index size they need).
 /**
  * @param {NusModsRecord[]} records
  * @param {string} acadYear
@@ -453,15 +365,12 @@ export function offeredModules(records, acadYear, ngCourses = null) {
   const skipped = [];
   for (const record of records) {
     if (semestersOf(record).length === 0) continue;
-    // `skipped` is set exactly when `module` is not, which tsc cannot follow through the destructure.
     const { module, skipped: why } = /** @type {{ module: NormalisedModule, skipped?: string }} */ (normalise(record, acadYear));
     if (why) { skipped.push({ code: record.moduleCode ?? '<no code>', why }); continue; }
     if (ngCourses?.available) {
       const sems = ngCourses.bySem.get(module.code);
       if (sems) { module.ng = true; module.ngSemesters = sems; }
-      // Only when a semester is unpublished, so every module's shape is unchanged otherwise.
       if (ngCourses.unpublished?.length) module.ngUnpublished = ngCourses.unpublished;
-      // Every (semester, study level) is decided at ingest.
       if (!ngCourses.rules) throw new Error('offeredModules: an NG list without restrictions data (loadNgRestrictions)');
       Object.assign(module, storedEligibility(module, ngCourses.rules));
     }
@@ -471,10 +380,6 @@ export function offeredModules(records, acadYear, ngCourses = null) {
 }
 
 /**
- * The catalogue-only codes: records in moduleInfo.json with no
- * offering this acad year, with their title and description, for noMatch
- * `not-offered` (D1 `catalogue_only`, migrations/0008_catalogue.sql). A record
- * without a code or title is left out; a missing description is null.
  * @param {NusModsRecord[]} records
  * @returns {{ code: string, title: string, description: string | null }[]}
  */
@@ -489,14 +394,9 @@ export function catalogueOnlyRecords(records) {
   return out;
 }
 
-// The Vectorize metadata and row hash are shared with the Worker.
 export { vectorMetadata } from '../src/rowhash.js';
 
-/**
- * The /admin/facets body. Always carries ngList, so an ingest without the NG
- * list overwrites a stale meta.ng_list instead of leaving its old date.
- * @param {{ available: boolean, updatedAsAt?: string | null, source?: string | null, total: number }} ngCourses
- */
+/** @param {{ available: boolean, updatedAsAt?: string | null, source?: string | null, total: number }} ngCourses */
 export function facetsPayload(ngCourses) {
   return ngCourses.available
     ? { ngList: { updatedAsAt: ngCourses.updatedAsAt ?? null, source: ngCourses.source ?? null, count: ngCourses.total } }

@@ -1,16 +1,4 @@
 // @ts-check
-// Accessibility snapshots: the accessibility tree of each
-// state, committed in test/ui/aria.spec.js-snapshots/ (one file per state,
-// shared by Chromium and WebKit and by every platform), so any drift in roles,
-// names, headings, landmarks or the order a screen reader reads fails CI.
-// Each file is the tree exactly as Playwright prints it, and the test asks
-// for both: equal text (a node added anywhere fails), and Playwright's own
-// toMatchAriaSnapshot against the same file.
-//
-// After a deliberate change: `VNM_ARIA_UPDATE=1 npx playwright test aria --project chromium`
-// rewrites the files; read their diff before committing it. (Playwright's
-// --update-snapshots writes a loosened template, with numbers as patterns,
-// which the exact comparison would not accept.)
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
@@ -18,7 +6,7 @@ import { body, settled } from './support.mjs';
 
 /**
  * @param {import('@playwright/test').Locator} locator
- * @param {string} name the snapshot file
+ * @param {string} name
  */
 async function snapshot(locator, name) {
   const file = fileURLToPath(new URL(`./aria.spec.js-snapshots/${name}`, import.meta.url));
@@ -29,12 +17,10 @@ async function snapshot(locator, name) {
   await expect(locator).toMatchAriaSnapshot(committed);
 }
 
-/** A shortlist view: Sem 1, 2nd year, four picks and two backups. */
 const VIEW_STATE = 'sem=1&ng=1&study=ug2&pick=CS2113.1&pick=GE2101.1&pick=PC3270.1&pick=ACC1701XA.1&alt=CS3244.1&alt=EE4407.1&view=shortlist';
-/** A full-year list, Sem 2 chosen. */
 const FULL_YEAR = 'sem=2&ng=1&study=ug2&pick=CS2030.1&pick=CS3244.2&pick=GE2101.1&pick=HY1101E&pick=ACC1701XA.1&pick=EN3264.1&pick=PS3251.2&pick=MA3220.1&pick=ST2137.2&pick=GES1034.1&pick=LSM2212.1&alt=CS2113.1&alt=CM3267.1&alt=PC3232.1&alt=GESS1007.1&alt=PC4262.1&alt=TS2239.2&view=shortlist';
 
-/** @param {import('@playwright/test').Page} page the open entry: its heading, facts, status and detail */
+/** @param {import('@playwright/test').Page} page */
 const openEntry = (page) => page.locator('#results > li').filter({ has: page.locator('button[aria-expanded="true"]') });
 
 test.describe('at 1280', () => {
@@ -67,7 +53,6 @@ test.describe('at 1280', () => {
   test('accessibility snapshot: a detail open with the all-years table', async ({ page }) => {
     await page.goto('/?q=CS3244&open=CS3244');
     await settled(page);
-    // An NUS student's detail keeps the table collapsed: opened, so the snapshot covers it.
     await openEntry(page).locator('details.avail-all summary').click();
     await snapshot(openEntry(page), 'detail-all-years-1280.aria.yml');
   });

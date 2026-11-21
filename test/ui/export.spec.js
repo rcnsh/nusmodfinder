@@ -1,14 +1,4 @@
 // @ts-check
-// The exports: the CSV
-// downloaded and read back by a strict RFC 4180 reader (test/web/
-// rfc4180.node.mjs), over every fixture NG code and the fixture's NG-listed
-// codes with no classes, at ug2 and at grad; Print with window.print stubbed;
-// a press before the rows are in; Ctrl+P before and after the export
-// question; the print page under print media (only it shows, full width,
-// light on paper even in dark mode, axe clean); and Chromium's tagged PDF,
-// its text read back (pdf-text.mjs). Every flow runs under the production CSP
-// (public/_headers on the local stack). Set VNM_EVIDENCE to a directory to
-// keep the files.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
@@ -28,20 +18,23 @@ const DESCRIPTION = 'Course description (NUS, via NUSMods)';
 const at = (qs) => `/?${qs}`;
 /** @param {import('@playwright/test').Page} page @param {string} name */
 const button = (page, name) => page.locator('.sl-actions').getByRole('button', { name, exact: true });
-/** Enter on a control, as the keyboard user does (WebKit doesn't focus a clicked button). @param {import('@playwright/test').Page} page @param {import('@playwright/test').Locator} el */
+/**
+ * @param {import('@playwright/test').Page} page
+ * @param {import('@playwright/test').Locator} el
+ */
 async function activate(page, el) {
   await el.focus();
   const radio = await el.evaluate((x) => x instanceof HTMLInputElement && (x.type === 'radio' || x.type === 'checkbox'));
   await page.keyboard.press(radio ? 'Space' : 'Enter');
 }
-/** The view is shown and every row has loaded or failed. @param {import('@playwright/test').Page} page */
+/** @param {import('@playwright/test').Page} page */
 async function rowsIn(page) {
   await expect(page.locator('#slView')).toBeVisible();
   await expect(page.locator('#slView .sl-ehead .title', { hasText: 'Loading…' })).toHaveCount(0);
 }
-/** Whether the page's print class is on. @param {import('@playwright/test').Page} page */
+/** @param {import('@playwright/test').Page} page */
 const printClass = (page) => page.evaluate(() => document.documentElement.classList.contains('print-shortlist'));
-/** window.print stubbed: each call records the title and what the print page holds then. @param {import('@playwright/test').Page} page */
+/** @param {import('@playwright/test').Page} page */
 async function stubPrint(page) {
   await page.addInitScript(() => {
     /** @type {any} */ (globalThis).prints = [];
@@ -59,8 +52,6 @@ async function stubPrint(page) {
 const prints = (page) => page.evaluate(() => /** @type {any} */ (globalThis).prints);
 
 /**
- * Presses Download CSV and reads the file back: its name, and its rows as
- * objects keyed by the header (the entries), strictly (RFC 4180).
  * @param {import('@playwright/test').Page} page
  * @param {import('@playwright/test').Locator} [el]
  */
@@ -77,7 +68,6 @@ async function download(page, el = button(page, 'Download CSV')) {
 }
 
 /**
- * /module/:code's answer, as the page receives it: the row, or a 404's detail.
  * @param {import('@playwright/test').APIRequestContext} request
  * @param {string} code
  */
@@ -85,7 +75,7 @@ async function moduleAnswer(request, code) {
   const res = await request.get(`/module/${code}`);
   return { status: res.status(), body: await res.json() };
 }
-/** NUSMods' workload as the export writes it, worked out here from /module's answer. @param {any} w */
+/** @param {any} w */
 function workloadExpected(w) {
   if (!w) return 'Not listed';
   if ('raw' in w) return `As NUS lists it: ${w.raw}`;
@@ -93,11 +83,6 @@ function workloadExpected(w) {
   return `Lecture ${n(w.lecture)}, tutorial ${n(w.tutorial)}, lab ${n(w.lab)}, project ${n(w.project)}, preparation ${n(w.prep)} hours a week (${n(w.total)} in all)`;
 }
 
-/**
- * Links over every fixture NG code and the fixture's NG-listed codes with no
- * classes, each tagged with its first NG semester, at most 20 to a semester in
- * each link (the shortlist's cap); every third a backup.
- */
 function coverageLinks() {
   const codes = [...corpus.modules.filter((m) => m.ng), ...unscheduled.modules].map((m) => ({ code: m.code, sem: m.ngSemesters[0] ?? 1 }));
   /** @type {{ code: string, sem: number }[][]} */
@@ -110,11 +95,6 @@ function coverageLinks() {
   return links.map((l) => l.map((c, i) => `${i % 3 === 2 ? 'alt' : 'pick'}=${c.code}.${c.sem}`).join('&'));
 }
 
-/**
- * A known 40-entry list for the PDF: every third fixture NG code, 20 tagged
- * Sem 1 as picks and 20 tagged Sem 2 as backups, with EN3264 and LL4407
- * (characters outside the Plex subsets: U+2010, U+2015) in it.
- */
 function fortyLink() {
   const ng = corpus.modules.filter((m) => m.ng);
   const third = ng.filter((_, i) => i % 3 === 0);
@@ -218,7 +198,6 @@ test.describe('Print or save as PDF', () => {
     const { name } = await download(page, csv);
     expect(name).toBe('exchange-shortlist-sem1-2026-27-courses.csv');
 
-    // Print, the same way.
     await page.unroute(/\/module\/CS2113$/);
     held.length = 0;
     await page.route(/\/module\/CS3244$/, (route) => { held.push(route); });
@@ -253,11 +232,9 @@ test.describe('Print or save as PDF', () => {
     await expect(page.locator('#slPrint')).toBeVisible();
     await expect(page.locator('#slView')).toBeHidden();
     await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
-    // CS5562 is closed to 2nd-year exchange students in Sem 2: nothing is planned for a semester, so no semester part.
     await expect(page).toHaveTitle('exchange-shortlist-2026-27-courses');
     await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
     await expect(page).toHaveTitle('NUS Mod Finder (unofficial)');
-    // Leaving the view turns the class off: Ctrl+P on the results prints the screen.
     await page.emulateMedia({ media: 'screen' });
     await page.keyboard.press('Escape');
     await expect(page.locator('#slView')).toBeHidden();
@@ -265,12 +242,7 @@ test.describe('Print or save as PDF', () => {
   });
 });
 
-/**
- * Under print media: every box with a size that is outside #slPrint (the
- * section's ancestors aside), the section's width against the page's, and
- * every visible text's colour against white paper (4.5:1).
- * @param {import('@playwright/test').Page} page
- */
+/** @param {import('@playwright/test').Page} page */
 const printLayout = (page) => page.evaluate(() => {
   const section = /** @type {HTMLElement} */ (document.getElementById('slPrint'));
   /** @param {string} c */
@@ -319,7 +291,6 @@ test.describe('the print page under print media', () => {
       mkdirSync(EVIDENCE, { recursive: true });
       await page.screenshot({ path: join(EVIDENCE, 'print-media-webkit-dark.png'), fullPage: true });
     }
-    // Without the class (Ctrl+P on the results): the screen prints, light on paper too.
     await page.emulateMedia({ media: 'screen', colorScheme: 'dark' });
     await page.keyboard.press('Escape');
     await expect(page.locator('#slView')).toBeHidden();
@@ -343,8 +314,6 @@ test.describe('the PDF', () => {
     await page.evaluate(() => document.fonts.ready);
     const pdf = await page.pdf({ format: 'A4', margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }, tagged: true });
     const pages = pdfPages(pdf);
-    // U+2010 and U+2011 (EN3264, LL4407) aren't in the Plex subsets; the system font that draws
-    // them may map them to "-" in the text layer (Helvetica Neue on macOS does), so both sides fold them.
     const fold = (/** @type {string} */ s) => squash(s).replace(/[\u2010\u2011]/g, '-');
     const all = fold(pages.join(''));
     expect(hasStructTree(pdf)).toBe(true);
@@ -355,7 +324,6 @@ test.describe('the PDF', () => {
       link: document.querySelector('#slPrint .pp-link')?.textContent ?? '',
       stamps: [...document.querySelectorAll('#slPrint .pp-course .st')].map((s) => s.textContent ?? ''),
     }));
-    // The head's first line is the h1, "Courses planned for …", and the PDF's text starts with it.
     expect(shown.first).toBe('H1');
     expect(shown.title).toMatch(/^Courses planned for Sem 1 and Sem 2, based on NUS's 2026\/27 courses, exams and exchange list$/);
     expect(all.startsWith(fold(shown.title))).toBe(true);
@@ -369,9 +337,7 @@ test.describe('the PDF', () => {
       expect(all, `${code}'s description`).toContain(fold(body.description));
       expect(all, `${code}'s workload`).toContain(fold(workloadExpected(body.workload)));
     }
-    // The forced break: the foot's form order starts a page.
     expect(pages.findIndex((p) => fold(p).startsWith(fold('NUS\'s application form order')))).toBeGreaterThan(0);
-    // The text is Plex, and a system font draws what the Plex subsets lack.
     const fonts = pdfFonts(pdf);
     expect(fonts.some((f) => /IBMPlexSans/.test(f))).toBe(true);
     expect(fonts.some((f) => !/IBMPlex/.test(f))).toBe(true);

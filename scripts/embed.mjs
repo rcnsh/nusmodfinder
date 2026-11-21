@@ -1,36 +1,5 @@
 #!/usr/bin/env node
 // @ts-check
-// Embeds texts with Workers AI @cf/baai/bge-small-en-v1.5 over the REST API
-// (default pooling, batches of 100). Local only, never CI. The OAuth token
-// comes from `wrangler auth token` on every run and is never stored or
-// printed; the account id from $CLOUDFLARE_ACCOUNT_ID or `wrangler whoami`.
-// Every run estimates its cost from token counts first (1,841 neurons per
-// million tokens) and refuses to start above the cap. A run that passes the
-// cap (not a dry run) writes a run record (scripts/run-record.mjs) on every
-// exit path: the estimate, each REST call by path (never the account id), the
-// outcome.
-// Counts only: no query text reaches the record.
-//
-//   npm run eval:embed                        dev queries (+ texts a failed run reported missing)
-//   npm run eval:embed -- --set holdout       same, encrypted cache (custodian only)
-//   npm run eval:embed -- --set fixture       fixture corpus + queries (committed cache)
-//   npm run eval:embed -- --corpus [--ref eval-v0] [--version emb-bge-small-v0]
-//                                             full corpus pass -> .data/emb/<version>/ (cap 2,500)
-//   npm run eval:embed -- --texts <file.json> --out <cache.json>
-//                                             the texts a production vectors build lacks
-//                                             (scripts/vectors.mjs writes the file) -> a cache
-//                                             it reads with --extra (cap 2,500)
-//   npm run eval:embed -- --set <set> [--set-dir <dir>] --corrected-from-ref <ref>
-//                                             the corrected query texts the ranker at <ref>
-//                                             (WORKTREE: the working tree) produces for the set,
-//                                             with its vocabulary built from the set's corpus, into
-//                                             the set's query cache (encrypted for holdout and test;
-//                                             custodian only), as `npm run eval` asks for them
-//   npm run eval:embed -- --suite --corrected-from-ref <ref>
-//                                             the same for the query suite's texts over the pinned
-//                                             corpus -> test/fixtures/query-suite-corrected-embeddings.json
-//                                             (test/query-suite/embeddings.json is never rewritten)
-//   add --dry-run to print the estimate and stop.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -69,10 +38,9 @@ const { values: a } = parseArgs({
   },
 });
 
-/** This run's record, once the gate has passed (scripts/run-record.mjs). @type {import('./run-record.mjs').RunRecord | null} */
+/** @type {import('./run-record.mjs').RunRecord | null} */
 let record = null;
 
-/** The query-suite runner's corrected-form cache (test/full/query-suite.test.js reads it beside the suite's own caches). */
 const SUITE_CORRECTED = join(REPO, 'test/fixtures/query-suite-corrected-embeddings.json');
 
 /** @param {string} msg @returns {never} */
@@ -101,11 +69,9 @@ async function logSpend(mode, est, note) {
   if (note) record?.detail('note', note);
 }
 
-/** Token and account, never printed. */
 function credentials() {
   const bin = join(REPO, 'node_modules/.bin/wrangler');
   const env = { ...process.env, WRANGLER_SEND_METRICS: 'false' };
-  // Run outside the repo so wrangler reads no project config or .dev.vars.
   const tok = spawnSync(bin, ['auth', 'token', '--json'], { cwd: tmpdir(), env, encoding: 'utf8' });
   if (tok.status !== 0) fail('`wrangler auth token` failed; run `npx wrangler login` first');
   const token = JSON.parse(tok.stdout).token;
@@ -123,7 +89,7 @@ function credentials() {
 
 /**
  * @param {{ token: string, account: string }} cred
- * @param {string[]} texts at most BATCH
+ * @param {string[]} texts
  * @returns {Promise<number[][]>}
  */
 async function embedBatch(cred, texts) {
@@ -147,15 +113,11 @@ async function embedBatch(cred, texts) {
     const msg = `HTTP ${res.status}: ${JSON.stringify(body?.errors ?? body).slice(0, 300)}`;
     if (!retryable || attempt >= 4) throw new Error(`Workers AI ${msg}`);
     console.warn(`  retry ${attempt} after ${msg}`);
-    // Backoff before a retry of a throttled or failed request (not a wait on work).
     await new Promise((r) => setTimeout(r, 2_000 * attempt));
   }
 }
 
-/**
- * Embeds texts in batches, reporting progress.
- * @param {string[]} texts
- */
+/** @param {string[]} texts */
 async function embedAll(texts) {
   const cred = credentials();
   /** @type {number[][]} */
@@ -184,7 +146,6 @@ async function gate(mode, texts) {
   console.log(`${mode}: ${est.texts} texts, ~${est.tokens} tokens, ~${est.neurons.toFixed(1)} neurons (cap ${cap}), ${est.requests} requests`);
   if (est.neurons > cap) fail(`estimated ${est.neurons.toFixed(1)} neurons exceeds the cap of ${cap}`);
   if (a['dry-run']) { console.log('dry run: no calls made'); process.exit(0); }
-  // The first remote call follows: from here every exit leaves a run record.
   record = startRun('eval:embed', { target: `api.cloudflare.com Workers AI REST (${MODEL})`, args: process.argv.slice(2) });
   record.detail('mode', mode.split(' (')[0]);
   record.detail('estimate', { texts: est.texts, tokens: est.tokens, neurons: Number(est.neurons.toFixed(1)), requests: est.requests });
@@ -192,13 +153,9 @@ async function gate(mode, texts) {
   return est;
 }
 
-// ---------------------------------------------------------------------------
-
 if (a.suite && !a['corrected-from-ref']) fail('--suite needs --corrected-from-ref <ref>');
 
 if (a['corrected-from-ref']) {
-  // The corrected texts the ranker at the ref embeds beside each query, asked of
-  // its own corrector over a vocabulary built from the corpus the run uses.
   const ref = /** @type {string} */ (a['corrected-from-ref']);
   const ws = await buildWorkspace({ ref: ref === 'WORKTREE' ? undefined : ref, name: `embed-corrected-${a.suite ? 'suite' : a.set}` });
   /** @type {string[]} */
@@ -211,7 +168,7 @@ if (a['corrected-from-ref']) {
   let key = null;
   /** @type {import('../eval/lib/sets.mjs').SetLayout | null} */
   let set = null;
-  /** Keys the run already finds elsewhere. @type {Set<string>} */
+  /** @type {Set<string>} */
   const elsewhere = new Set();
   if (a.suite) {
     texts = suiteTexts(JSON.parse(await readFile(join(REPO, 'test/query-suite/queries.json'), 'utf8')));
@@ -233,7 +190,6 @@ if (a['corrected-from-ref']) {
   if (!corrector) fail(`${ref} has no typo corrector (src/typo.js), so it embeds no corrected text`);
   if (!corrector.embedsCorrected) console.log(`note: ${ref} does not embed corrected text; these are the texts the same corrector would embed with EMBED_CORRECTED on`);
   const cache = await readCache(cachePath, key, set?.name ?? 'suite');
-  // Counts only: holdout query text must not reach the terminal.
   const wanted = correctedTexts(corrector, texts);
   const todo = wanted.filter((t) => !(embeddingKey(MODEL, t) in cache.entries) && !elsewhere.has(embeddingKey(MODEL, t)));
   if (todo.length === 0) {
@@ -248,9 +204,6 @@ if (a['corrected-from-ref']) {
   if (key && set) await recordInManifest(set.dir, [cachePath]);
   console.log(`added ${todo.length} vectors to ${cachePath} (${Object.keys(cache.entries).length} total)`);
 } else if (a.texts) {
-  // The texts the production bundle has no vector for, into a
-  // plaintext cache (the QueryCache format) that `scripts/vectors.mjs build
-  // --extra` reads. Texts already in --out are not embedded again.
   if (!a.out) fail('--texts needs --out <cache.json>');
   const out = resolve(/** @type {string} */ (a.out));
   const { texts } = JSON.parse(await readFile(resolve(a.texts), 'utf8'));
@@ -272,12 +225,9 @@ if (a['corrected-from-ref']) {
   if (!/^[a-z0-9.-]+$/.test(version)) fail('--version must be lowercase letters, digits, "." and "-"');
   const dir = join(EMB_DIR, version);
   if (existsSync(join(dir, 'corpus.index.json'))) fail(`${dir} already holds a corpus pass; refusing to spend neurons on it again`);
-  // The ranker at --ref decides the embedding text (its scripts/lib.mjs).
   const ws = await buildWorkspace({ ref: a.ref, name: `embed-${version}` });
   const corpus = await loadPinnedWith(ws.root);
   const texts = [...new Set(corpus.modules.map((m) => m.text))];
-  // Checkpoint after every batch, so a failure part-way never re-spends
-  // neurons on texts already embedded.
   await mkdir(dir, { recursive: true });
   const partialPath = join(dir, 'partial.json');
   /** @type {Record<string, number[]>} */
@@ -298,7 +248,6 @@ if (a['corrected-from-ref']) {
     await logSpend('corpus', estimate(todo), `${version} from ${a.ref}${a.note ? `; ${a.note}` : ''}`);
   }
   const vectors = texts.map((t) => done[embeddingKey(MODEL, t)]);
-  // Determinism: the same three texts again, compared with the first pass.
   const again = await embedBatch(cred, texts.slice(0, 3));
   const cosines = again.map((v, i) => cosine(v, vectors[i]));
   await logSpend('determinism', estimate(texts.slice(0, 3)), `cosines ${cosines.map((c) => c.toFixed(7)).join(',')}`);
@@ -351,7 +300,6 @@ if (a['corrected-from-ref']) {
   await logSpend(`set:${set.name}`, est, a.note ?? '');
   todo.forEach((t, i) => { cache.entries[embeddingKey(MODEL, t)] = f32ToBase64(Float32Array.from(vectors[i])); });
   await writeCache(cachePath, cache, key, set.name);
-  // Only the cache joins the manifest: no other ciphertext is re-hashed.
   if (key) await recordInManifest(set.dir, [cachePath]);
   await rm(missingFile, { force: true });
   console.log(`added ${todo.length} vectors to ${cachePath} (${Object.keys(cache.entries).length} total)`);

@@ -1,14 +1,4 @@
 // @ts-check
-// The catalogue codes follow the corpus. Every code in the production catalogue
-// file (`catalogue-codes-data`, data/catalogue-codes.json, built from `current`)
-// that the pinned one (data/pinned/catalogue-codes.json) lacks must still be a
-// code search knows. Over production, with catalogue_only loaded as ingest loads
-// it, each answers as not offered: `not-offered`, or the more specific
-// `ng-unscheduled` for an NG-listed code with no classes. The one exception: the
-// parse reads a token as a code only when its prefix is an offered one
-// (`prefixes-data`), so a code whose prefix no offered course has (EX2991;
-// 2,565 such codes in the pinned catalogue too) is not a code to search. Those
-// are listed and counted, not answered.
 import { beforeAll, describe, expect, inject, it, vi } from 'vitest';
 import production from 'catalogue-codes-data';
 import prefixes from 'prefixes-data';
@@ -28,7 +18,6 @@ describe.skipIf(!corpus)('catalogue-only codes added since the pin answer not-of
 
   beforeAll(async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
-    // D1 as ingest leaves it: every offered row, then the catalogue-only rows.
     await seed({ modules: c.modules, fakes });
     const want = new Set(added);
     const rows = /** @type {[string, string, string | null][]} */ (catalogueFile.rows).filter(([code]) => want.has(code));

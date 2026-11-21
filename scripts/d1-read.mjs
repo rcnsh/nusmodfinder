@@ -1,14 +1,4 @@
 // @ts-check
-// Production D1, read-only, for the deploy guard, rollback and d1:restore: the
-// REST client (scripts/d1-rest.mjs) with its token, account and database.
-//
-// - Token: CLOUDFLARE_API_TOKEN (GitHub Actions: the account-owned deploy token), else
-//   `npx wrangler auth token --json` captured in-process (the Mac: wrangler's OAuth login). It
-//   is never printed, logged, put in an error or recorded.
-// - Account: CLOUDFLARE_ACCOUNT_ID (a repo variable in Actions), else the account wrangler
-//   cached when it last chose one (node_modules/.cache/wrangler/wrangler-account.json), else a
-//   refusal naming the variable.
-// - Database: wrangler.jsonc's DB binding (nusmods-apac), the d1_databases entry bound as DB.
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,19 +6,15 @@ import { d1RestClient } from './d1-rest.mjs';
 import { parseJsonc } from './jsonc.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-/** Where wrangler caches the account it last used. */
 export const WRANGLER_ACCOUNT_CACHE = join(ROOT, 'node_modules/.cache/wrangler/wrangler-account.json');
 
 /**
  * @typedef {(cmd: string, args: string[], opts?: { stream?: boolean }) => Promise<{ code: number, stdout: string }>} Exec
  */
 
-/** The binding the Worker reads D1 through (src/ uses env.DB). */
 export const DB_BINDING = 'DB';
 
 /**
- * wrangler.jsonc's DB binding: the d1_databases entry whose `binding` is DB, whatever its place in
- * the list. None, or more than one, fails.
  * @param {string} [path]
  * @returns {Promise<{ databaseName: string, databaseId: string }>}
  */
@@ -47,7 +33,6 @@ export async function d1Config(path = join(ROOT, 'wrangler.jsonc')) {
 }
 
 /**
- * The API token: CLOUDFLARE_API_TOKEN, else wrangler's, captured (never streamed).
  * @param {{ env?: Record<string, string | undefined>, exec: Exec }} o
  * @returns {Promise<string>}
  */
@@ -64,8 +49,6 @@ export async function resolveToken({ env = process.env, exec }) {
 }
 
 /**
- * The account id: CLOUDFLARE_ACCOUNT_ID, else wrangler's cached account, else the one account
- * `wrangler whoami` lists (the Mac's login usually has no cache file; several accounts refuse).
  * @param {{ env?: Record<string, string | undefined>, cacheFile?: string, exec?: Exec }} [o]
  * @returns {Promise<string>}
  */
@@ -77,7 +60,7 @@ export async function resolveAccountId({ env = process.env, cacheFile = WRANGLER
     const res = await exec('npx', ['wrangler', 'whoami', '--json']).catch(() => null);
     /** @type {any} */
     let who = null;
-    if (res?.code === 0) { try { who = JSON.parse(res.stdout.slice(res.stdout.indexOf('{'))); } catch { /* not JSON */ } }
+    if (res?.code === 0) { try { who = JSON.parse(res.stdout.slice(res.stdout.indexOf('{'))); } catch {} }
     const accounts = Array.isArray(who?.accounts) ? who.accounts : [];
     if (accounts.length === 1 && typeof accounts[0]?.id === 'string' && accounts[0].id) return accounts[0].id;
   }
@@ -85,7 +68,6 @@ export async function resolveAccountId({ env = process.env, cacheFile = WRANGLER
 }
 
 /**
- * The production D1 client. Nothing is sent until the first query.
  * @param {{ env?: Record<string, string | undefined>, exec: Exec, fetchImpl?: typeof fetch, cacheFile?: string }} o
  * @returns {Promise<import('./d1-rest.mjs').D1Client>}
  */

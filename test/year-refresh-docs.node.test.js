@@ -1,7 +1,4 @@
 // @ts-check
-// The year-refresh runbook (docs/year-refresh/) and `year next`'s checklist name only
-// commands that exist, with flags their scripts take, and name one secret: the sources key's
-// backup in Bitwarden Secrets Manager.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -13,11 +10,9 @@ const docs = readdirSync(join(REPO, DIR)).filter((f) => f.endsWith('.md')).map((
 const scripts = JSON.parse(readFileSync(join(REPO, 'package.json'), 'utf8')).scripts;
 const read = (/** @type {string} */ rel) => readFileSync(join(REPO, rel), 'utf8');
 
-/** `npm run remote -- <command>` runs scripts/<command>.mjs (scripts/remote.mjs). */
 const REMOTE = { ingest: 'scripts/ingest.mjs', verify: 'scripts/verify.mjs', vectors: 'scripts/vectors.mjs' };
 
 /**
- * Each command in a text, with the file that parses its flags.
  * @param {string} text
  * @returns {{ cmd: string, file: string | null, problem?: string, flags: string[] }[]}
  */
@@ -44,7 +39,10 @@ function commands(text) {
   return out;
 }
 
-/** Whether a script parses a flag. @param {string} file @param {string} flag */
+/**
+ * @param {string} file
+ * @param {string} flag
+ */
 const takes = (file, flag) => {
   const src = read(file);
   return [`'${flag}'`, `"${flag}"`, `--${flag}`, `${flag}:`, `'${flag}':`].some((s) => src.includes(s));

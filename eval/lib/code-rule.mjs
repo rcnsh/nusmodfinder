@@ -1,29 +1,8 @@
 // @ts-check
-// The code-target rule grade: judge rule 4 of eval/JUDGING.md applied
-// mechanically, as judge `rule`, to code-origin queries (`origin: "code"`,
-// `codeForm`, `target`). Pooling can miss a code query's target entirely (no
-// run put it in its top 10), which would leave the query with no grade >= 1:
-// scored as no-answer, so the cutoff gate would reward returning nothing. The
-// rule grades every offered module it names, pooled or not.
-//
-// - exact / space form: the module whose code is `target` is 2. Its variants
-//   (same prefix letters and four digits, other suffix letters: groups.mjs
-//   `familyOf`) and its cross-listings (a module in the target's duplicate
-//   group with another stem) are 1.
-// - partial form: every offered module whose code starts with `target` is 2.
-// - Hard constraints still win: a module breaking the query's `constraints`
-//   (else `filters`) is 0, by the same rule as pre-grading (`violationReason`).
-//
-// Inputs are public corpus fields only (code, title, description, level,
-// credits, semesters, NG semesters, faculty) and the query's own fields; never
-// a judge's output. Where the qrels already hold a grade for a pair, the
-// rule's replaces it (ADR 0016: the final grade is rule's where one applies);
-// judge A's grade stays in the judgment's `judges` for provenance.
 import { buildGroups, familyOf } from './groups.mjs';
 import { pairKey, splitKey, nextVersion, RULE } from './judging.mjs';
 import { gradeOf, violationReason } from './metrics.mjs';
 
-/** The round label and qrels `judging` entry of this rule. */
 export const CODE_RULE = 'code-rule-v1';
 const RULE_TEXT = 'JUDGING.md rule 4 (code target), applied mechanically from public corpus fields';
 const FORMS = ['exact', 'space', 'partial'];
@@ -42,11 +21,10 @@ const FORMS = ['exact', 'space', 'partial'];
  */
 
 /**
- * The rule's grades for every code-origin query.
  * @param {CodeQuery[]} queries
- * @param {RuleModule[]} modules the offered modules of the corpus the qrels are for
- * @param {{ groups?: string[][] }} [o] duplicate groups (default: groups.mjs over `modules`)
- * @returns {Map<string, RuleGrade>} pairKey(queryId, code) -> grade
+ * @param {RuleModule[]} modules
+ * @param {{ groups?: string[][] }} [o]
+ * @returns {Map<string, RuleGrade>}
  */
 export function codeRuleGrades(queries, modules, o = {}) {
   const groups = o.groups ?? buildGroups(modules.map((m) => ({ code: m.code, title: m.title ?? '', description: m.description ?? '' }))).groups;
@@ -62,7 +40,7 @@ export function codeRuleGrades(queries, modules, o = {}) {
     if (typeof q.target !== 'string' || !q.target) throw new Error('a code query has no target');
     const target = q.target.toUpperCase();
     const constraints = /** @type {import('./metrics.mjs').Constraints} */ (q.constraints ?? q.filters ?? {});
-    /** @type {[string, number, string][]} code, grade, why */
+    /** @type {[string, number, string][]} */
     const named = [];
     if (q.codeForm === 'partial') {
       for (const m of modules) if (m.code.startsWith(target)) named.push([m.code, 2, `code starts with ${target}`]);
@@ -85,10 +63,6 @@ export function codeRuleGrades(queries, modules, o = {}) {
 }
 
 /**
- * Applies rule grades to qrels judgments: each named pair becomes
- * `{ grade, source: "rule", round: CODE_RULE, judges }`, keeping earlier
- * judges' entries (A's grade, for provenance) beside `rule`. Pure; returns
- * the new `queries`, counts and the list of changed pairs.
  * @param {{ queries: Record<string, import('./metrics.mjs').QueryQrels> }} qrels
  * @param {Map<string, RuleGrade>} grades
  * @returns {{ queries: Record<string, import('./metrics.mjs').QueryQrels>, stats: RuleStats, changes: RuleChange[] }}
@@ -107,7 +81,7 @@ export function applyCodeRule(qrels, grades) {
     queries[qid] ??= { judgments: {} };
     const old = queries[qid].judgments[code];
     const oldObj = old !== undefined && typeof old === 'object' ? /** @type {any} */ (old) : null;
-    if (oldObj?.round === CODE_RULE && oldObj.grade === g.grade) continue; // already applied
+    if (oldObj?.round === CODE_RULE && oldObj.grade === g.grade) continue;
     const from = old === undefined ? null : gradeOf(old);
     const fromSource = old === undefined ? null : oldObj?.source ?? 'grade';
     /** @type {Record<string, unknown>} */
@@ -128,8 +102,6 @@ export function applyCodeRule(qrels, grades) {
 }
 
 /**
- * New qrels with the rule applied: version bumped, and a `judging` entry
- * recording the rule, the corpus and groups it used, and the counts.
  * @template {import('./metrics.mjs').Qrels & { judging?: unknown[] }} Q
  * @param {Q} qrels
  * @param {Map<string, RuleGrade>} grades
@@ -155,7 +127,6 @@ export function withCodeRule(qrels, grades, o) {
 }
 
 /**
- * The counts, as printed for any set (no id, code, text or grade of a pair).
  * @param {RuleStats} s
  * @param {number} pairs
  */

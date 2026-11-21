@@ -1,17 +1,4 @@
 // @ts-check
-// Three guarantees of the gate and holdout custody, end to end through the
-// CLI on encrypted sets built here with a throwaway key from dev-derived
-// synthetic data (no workerd, no Cloudflare, no real holdout file):
-//   1. `--change-kind cutoff` must be a truncation of the baseline, and the
-//      rule applied is printed and recorded in the ledger;
-//   2. holdout and test-set verdicts refuse a baseline that is not their
-//      pin (eval-v0 for the test set, the shipped ranker for a per-change
-//      look), the ledger records the baseline's ranker sha, and
-//      `--store-only` never overwrites a manifested run file;
-//   3. every ciphertext a verdict reads is checked against MANIFEST.json.
-// The `selftest` set keeps its ledger in its own directory. The test-set
-// tests run the CLI from a temporary shared clone, so the `test` set's fixed
-// ledger is that clone's, never this checkout's eval/holdout-ledger.md.
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
@@ -29,7 +16,6 @@ import { archiveTree, labelRe, rankerAt, SHIPPED_PIN } from './pins.node.mjs';
 
 const CLI = join(REPO, 'eval', 'cli.mjs');
 const SET = 'selftest';
-/** ADR 0003's pin, spelled out here rather than imported from the code under test. */
 const PINNED_SHA = '5c5cce441bd33c8f66bb2857e4d7f5584cbc20ed';
 
 /** @type {string} */
@@ -38,9 +24,7 @@ let tmp;
 let keyFile;
 /** @type {Buffer} */
 let key;
-/** treeHash of `git archive eval-v0` over the hashed ranker paths, computed independently. */
 let v0Tree = '';
-/** treeHash of the shipped pin's commit (ADR 0003's last shipped-pin line). */
 let holdoutTree = '';
 /** @type {string} */
 let corpusSha;
@@ -61,24 +45,15 @@ beforeAll(async () => {
 });
 afterAll(async () => { await rm(tmp, { recursive: true, force: true }); });
 
-/** The ranker block of a genuine `--ref eval-v0` run. */
 const pinnedRanker = () => ({ ref: 'eval-v0', sha: PINNED_SHA, dirty: false, treeHash: v0Tree, runner: { sha: PINNED_SHA, dirty: false } });
-/** The ranker block of a genuine run of the shipped pin: the baseline of a per-change holdout look. */
 const holdoutRanker = () => rankerAt(SHIPPED_PIN, holdoutTree);
 const SHIPPED_LABEL = labelRe(SHIPPED_PIN);
 const candRanker = () => ({ ref: 'WORKTREE', sha: 'c'.repeat(40), dirty: false, treeHash: 'd'.repeat(64), runner: { sha: 'c'.repeat(40), dirty: false } });
 
-/** Grades of an answerable query's ten returned codes, best first. */
 const GRADES = [2, 2, 1, 1, 1, 0, 0, 0, 0, 0];
 const ANSWERABLE = 15;
 const NO_ANSWER = 5;
 
-/**
- * Dev-derived synthetic data: the first 20 dev query ids and texts (shapes,
- * filters and narratives dropped), 15 answerable with ten judged codes each
- * and 5 no-answer with three grade-0 codes each. Codes are made up, so no
- * duplicate group touches them.
- */
 async function derived() {
   const dev = JSON.parse(await readFile(join(REPO, 'eval', 'dev', 'queries.json'), 'utf8'));
   const picked = dev.queries.slice(0, ANSWERABLE + NO_ANSWER);
@@ -86,7 +61,7 @@ async function derived() {
     id: q.id, text: q.text, persona: q.persona, shapes: [i < ANSWERABLE ? 'topical' : 'noanswer'],
   }));
   const querySet = { schema: 'vnm-eval-queries/1', set: SET, version: 'derived-v1', queries };
-  /** @type {Record<string, string[]>} codes best first */
+  /** @type {Record<string, string[]>} */
   const ranked = {};
   /** @type {Record<string, { judgments: Record<string, number> }>} */
   const judged = {};
@@ -121,8 +96,6 @@ function runFile(querySet, variant, set, ranker, codes, config = { mode: 'hybrid
 const copy = (codes) => Object.fromEntries(Object.entries(codes).map(([id, c]) => [id, [...c]]));
 
 /**
- * Writes an encrypted set: queries, qrels and the given runs, bound to `as`.
- * `manifest: false` leaves out MANIFEST.json.
  * @param {string} name
  * @param {{ base?: { ranker?: any, config?: any, codes?: (d: Awaited<ReturnType<typeof derived>>) => Record<string, string[]> }, cand: (d: Awaited<ReturnType<typeof derived>>) => Record<string, string[]>, qrels?: (q: any, d: Awaited<ReturnType<typeof derived>>) => void, as?: string, manifest?: boolean }} spec
  */
@@ -153,19 +126,17 @@ function cli(args, options = {}) {
 const report = (dir, extra = []) => cli(['report', '--set', SET, '--set-dir', dir, '--run', 'cand', '--baseline', 'base', ...extra]);
 /** @param {string} dir */
 const ledgerOf = (dir) => join(dir, 'ledger.md');
-/** Cells of every look row. @param {string} path */
+/** @param {string} path */
 const rowsOf = async (path) => (existsSync(path) ? ledgerRows(await readFile(path, 'utf8')) : []);
 /** @param {string} cls */
 const withheld = (cls) => `eval: ${SET} run failed (${cls}); details withheld\n`;
 
-/** No-answer queries emptied; on two answerable queries the rank-5 relevant code swaps with rank 10. */
 const reorderingCutoff = (/** @type {Awaited<ReturnType<typeof derived>>} */ d) => {
   const c = copy(d.ranked);
   for (const id of d.noAnswer) c[id] = [];
   for (const id of d.answerable.slice(0, 2)) [c[id][4], c[id][9]] = [c[id][9], c[id][4]];
   return c;
 };
-/** No-answer queries emptied; two answerable lists cut after rank 8 (a real truncation). */
 const truncatingCutoff = (/** @type {Awaited<ReturnType<typeof derived>>} */ d) => {
   const c = copy(d.ranked);
   for (const id of d.noAnswer) c[id] = [];
@@ -243,7 +214,6 @@ describe('a cutoff verdict needs a truncation, and the rule is recorded', () => 
 });
 
 describe('holdout and test-set verdicts refuse a baseline that is not their pin', () => {
-  /** Top-10s worst first: the baseline a forger wants. */
   const reversed = (/** @type {Awaited<ReturnType<typeof derived>>} */ d) => Object.fromEntries(Object.entries(copy(d.ranked)).map(([id, c]) => [id, c.reverse()]));
 
   it('refuses a baseline with an all-zero ranker sha and reversed top-10s; no look is recorded', async () => {
@@ -268,7 +238,7 @@ describe('holdout and test-set verdicts refuse a baseline that is not their pin'
 
   it.each([
     ['an unfiltered run of the pin', { config: { mode: 'hybrid', filters: false } }, 'BaselineError'],
-    ['a lexical-mode run of the pin', { config: { mode: 'lexical', filters: true } }, 'RunFileError'], // a pool variant, refused first
+    ['a lexical-mode run of the pin', { config: { mode: 'lexical', filters: true } }, 'RunFileError'],
     ['a run made by a dirty runner', { ranker: { ...holdoutRanker(), runner: { sha: SHIPPED_PIN.sha, dirty: true } } }, 'BaselineError'],
   ])('refuses %s as the baseline', async (_, base, error) => {
     const { dir } = await makeSet(`forged-${_.replace(/\W+/g, '-')}`, { base, cand: (d) => copy(d.ranked) });
@@ -302,7 +272,6 @@ describe('holdout and test-set verdicts refuse a baseline that is not their pin'
       clone = join(tmp, 'clone');
       expect(spawnSync('git', ['clone', '--quiet', '--shared', '--no-checkout', REPO, clone]).status).toBe(0);
       expect(spawnSync('git', ['checkout', '--quiet', 'HEAD'], { cwd: clone }).status).toBe(0);
-      // The code under test is this checkout's working tree.
       for (const p of ['eval/cli.mjs', 'eval/lib', 'eval/groups.json', 'scripts']) {
         await rm(join(clone, p), { recursive: true, force: true });
         await cp(join(REPO, p), join(clone, p), { recursive: true });
@@ -328,7 +297,6 @@ describe('holdout and test-set verdicts refuse a baseline that is not their pin'
       expect(r.stdout).toMatch(/^test verdict: FAIL · rule test-set · baseline eval-v0 5c5cce4 · qrels qrels-derived-v1$/m);
       const rows = await rowsOf(cloneLedger());
       expect(rows.map((c) => [c[1], c[8], c[9]])).toEqual([['test', 'test-set', '5c5cce4']]);
-      // Restore the clone's ledger for the next test (one test-set look only).
       resetCloneLedger(clone);
     });
 
@@ -349,7 +317,7 @@ describe('a stored encrypted run is never overwritten without a logged retiremen
     const r = cli(['run', '--set', SET, '--set-dir', dir, '--variant', 'base', '--ref', 'eval-v0', '--store-only']);
     expect(r.code).toBe(1);
     expect(r.stderr).toMatch(/runs\/run-base\.json\.enc is already in .*MANIFEST\.json.*retire-run/s);
-    expect(r.stdout).not.toMatch(/ranker/); // the runner never started
+    expect(r.stdout).not.toMatch(/ranker/);
     expect(await readFile(join(dir, 'runs', 'run-base.json.enc'))).toEqual(before);
   });
 
@@ -388,9 +356,7 @@ describe('a stored encrypted run is never overwritten without a logged retiremen
     expect(Object.keys(manifest.files).sort()).toEqual(['qrels.json.enc', 'queries.json.enc', 'runs/run-cand.json.enc']);
     const log = ledgerRows(await readFile(join(dir, 'retired-runs.md'), 'utf8'));
     expect(log.map((c) => c.slice(1))).toEqual([[SET, 'runs/run-base.json.enc', sha, 'rebuilt after the runner fix']]);
-    // Retiring is not a look.
     expect(await rowsOf(ledgerOf(dir))).toHaveLength(0);
-    // A file absent from the manifest has nothing to retire.
     expect(cli(['retire-run', '--set', SET, '--set-dir', dir, '--variant', 'base', '--reason', 'again']).stderr).toMatch(/not in .*MANIFEST\.json/);
   });
 
@@ -408,7 +374,6 @@ describe('a stored encrypted run is never overwritten without a logged retiremen
 });
 
 describe('every ciphertext a verdict reads matches MANIFEST.json', () => {
-  /** Two queries' rank-1 grade 2 becomes 0 (and rank 10 becomes 2), enough to flip the verdict. */
   const regrade = (/** @type {any} */ q, /** @type {Awaited<ReturnType<typeof derived>>} */ d) => {
     for (const id of d.answerable.slice(0, 2)) {
       const [first, , , , , , , , , last] = d.ranked[id];
@@ -416,7 +381,6 @@ describe('every ciphertext a verdict reads matches MANIFEST.json', () => {
       q.queries[id].judgments[last] = 2;
     }
   };
-  /** The candidate moves rank 10 to the top on the first two answerable queries. */
   const promoteLast = (/** @type {Awaited<ReturnType<typeof derived>>} */ d) => {
     const c = copy(d.ranked);
     for (const id of d.answerable.slice(0, 2)) c[id] = [c[id][9], ...c[id].slice(0, 9)];
@@ -480,7 +444,6 @@ describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is
   let clone;
   /** @type {string} */
   let cloneCli;
-  /** This checkout's HEAD stands in for a later shipped ranker, pinned by plain sha. */
   let shippedSha = '';
   let shippedTree = '';
   const shippedRanker = () => ({ ref: shippedSha, sha: shippedSha, dirty: false, treeHash: shippedTree, runner: { sha: shippedSha, dirty: false } });
@@ -545,7 +508,6 @@ describe('the shipped-ranker pin, in a temporary clone whose SHIPPED_BASELINE is
   it.each([
     ['unfiltered', { mode: 'hybrid', filters: false }],
     ['lexical', { mode: 'lexical', filters: true }],
-    // The unfiltered guard's `--strip ng`, and a study map other than the committed one.
     ['ng-stripped', { mode: 'hybrid', filters: true, strip: ['ng'] }],
     ['other-study-map', { mode: 'hybrid', filters: true, studyMap: '0'.repeat(64) }],
   ])('refuses a %s run of the shipped ranker', async (name, config) => {
