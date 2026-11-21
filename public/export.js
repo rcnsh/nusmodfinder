@@ -188,7 +188,7 @@ function statusOf(w, study, year, sources) {
     status = per.map((p) => stampText(/** @type {any} */ (p.x).status, p.s, p.x?.reasons ?? [], true)).join('; ');
     for (const p of per) for (const r of p.x?.reasons ?? []) notes.push(`${semLabel(p.s)}: ${note(r, p.s)}`);
   }
-  for (const line of w.lines) if (line !== w.why && !line.startsWith('If you were invited:')) notes.push(end(line));
+  for (const line of w.lines) if (line !== w.why) notes.push(end(line));
   return { status, notes };
 }
 
@@ -315,7 +315,7 @@ export function buildExport({ result, list, study, sources, link, today, answers
   /** @type {Section[]} */
   const sections = tagged.map((sem) => {
     const inSem = result.entries.filter((w) => placeOf(w) === sem);
-    const quota = result.entries.filter((w) => w.sem === sem && w.standing === 'invite').flatMap((w) => w.lines.filter((l) => l.startsWith('If you were invited:')));
+    const quota = result.entries.filter((w) => w.sem === sem && w.standing === 'invite').flatMap((w) => w.quota);
     return {
       id: sem, heading: semLabel(sem), groups: groups(inSem),
       totals: [...totalLines(sem, result.sems[sem], { exchange: result.exchange, year, nus }), ...new Set(quota)],

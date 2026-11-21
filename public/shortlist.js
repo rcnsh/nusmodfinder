@@ -28,7 +28,7 @@ import { DEFAULT_ACAD_YEAR, nextYearLabel, yearLabel } from './year.js';
  *   course: Course | null, title: string, units: number | null,
  *   standing: Standing, why: string, status: 'open' | 'note' | 'closed' | null, reasons: Reason[],
  *   audition: boolean, faculty: '' | 'biz' | 'law', sameAs: string,
- *   lines: string[], notes: string[], flags: Flag[],
+ *   lines: string[], quota: string[], notes: string[], flags: Flag[],
  *   form: { number: number | null, text: string, note: string },
  * }} Worked
  * @typedef {{
@@ -295,7 +295,7 @@ function workEntry(e, answer, ctx) {
   const w = {
     ...e, kind: answer.kind, course, title: course ? String(course.title ?? '') : answer.kind === 'catalogue-only' ? answer.title : '',
     units: credits, standing: 'out', why: '', status: null, reasons: [], audition: false, faculty: facultyKind(course), sameAs: '',
-    lines: [], notes: [], flags: [], form: { number: null, text: '', note: '' },
+    lines: [], quota: [], notes: [], flags: [], form: { number: null, text: '', note: '' },
   };
   /** @param {Standing} standing @param {string} why */
   const as = (standing, why) => Object.assign(w, { standing, why });
@@ -350,7 +350,7 @@ function workEntry(e, answer, ctx) {
     if (ctx.inv.includes(w.faculty)) w.lines.push(...BIZ_LAW.invited[w.faculty]);
     else {
       w.lines.push(...BIZ_LAW.uninvited[w.faculty]);
-      for (const r of w.reasons) if (r.kind === 'quota') w.lines.push(`If you were invited: ${r.text}`);
+      for (const r of w.reasons) if (r.kind === 'quota') w.quota.push(`If you were invited: ${r.text}`);
       return as('invite', w.faculty === 'biz' ? 'Only for students invited by NUS Business School' : 'Only for students invited by NUS Law');
     }
   }

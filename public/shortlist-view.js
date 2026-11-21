@@ -391,7 +391,7 @@ export function createShortlistView(root, on) {
       if (per.length) out.push(h('div', { class: `stamps${per.length === 2 ? ' both' : ''}` }, ...per.map((p) => stamp(p.x.status, stampText(p.x.status, p.s, p.x.reasons ?? [], true)))));
     }
     const items = w.sem ? w.reasons.map((r) => noteItem(r, noteText(r, Number(w.sem)))) : c && m.study ? bothSemNotes(c, m.study) : [];
-    for (const line of w.lines) if (line !== w.why && !line.startsWith('If you were invited:')) items.push(h('li', null, stop(line)));
+    for (const line of w.lines) if (line !== w.why) items.push(h('li', null, stop(line)));
     if (items.length) out.push(h('div', { class: 'notes-box' }, h('ul', { class: 'notes' }, ...items)));
     if (w.notes.length) out.push(h('ul', { class: 'sl-nus' }, ...w.notes.map((n) => h('li', null, icon('check'), h('span', null, stop(n))))));
     return out;
@@ -418,7 +418,7 @@ export function createShortlistView(root, on) {
       const t = r.sems[s];
       const inSem = r.entries.filter((w) => w.sem === s);
       const at = t.pending ? 'at least ' : '';
-      const quota = inSem.filter((w) => w.standing === 'invite').flatMap((w) => w.lines.filter((l) => l.startsWith('If you were invited:')));
+      const quota = inSem.filter((w) => w.standing === 'invite').flatMap((w) => w.quota);
       const notCounted = inSem.filter((w) => w.standing === 'out' || w.standing === 'duplicate');
       return h('section', { class: 'sl-total', attrs: { 'aria-labelledby': `slTot${s}` } },
         h('h4', { attrs: { id: `slTot${s}` } }, `${semLabel(s)} picks`),

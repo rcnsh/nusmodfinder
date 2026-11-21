@@ -428,7 +428,8 @@ describe('NUS\'s notes on particular courses', () => {
     expect(at(run('ng=1&study=ug2&inv=biz&pick=ACC1701XA.1'), 'ACC1701XA').lines).toEqual([BIZ_LAW.gro, ...BIZ_LAW.invited.biz]);
     const un = at(run('ng=1&study=ug2&pick=ACC1701XA.1'), 'ACC1701XA');
     expect(un.lines.slice(0, 4)).toEqual([BIZ_LAW.gro, ...BIZ_LAW.uninvited.biz]);
-    expect(un.lines.at(-1)).toMatch(/^If you were invited: /);
+    expect(un.lines).toEqual([BIZ_LAW.gro, ...BIZ_LAW.uninvited.biz]);
+    expect(un.quota).toEqual([expect.stringMatching(/^If you were invited: /)]);
     expect(at(run('ng=1&study=ug2&inv=law&pick=LL4407.2'), 'LL4407')).toMatchObject({ standing: 'counted', lines: [BIZ_LAW.gro, ...BIZ_LAW.invited.law] });
     expect(at(run('ng=1&study=ug2&pick=LL4407.2'), 'LL4407')).toMatchObject({ standing: 'invite', why: 'Only for students invited by NUS Law' });
   });
